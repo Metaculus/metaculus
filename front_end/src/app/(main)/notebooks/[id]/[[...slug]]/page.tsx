@@ -192,6 +192,7 @@ export default async function IndividualNotebook({ params }: Props) {
               postData={postData}
               postPermissions={postData.user_permission}
               id={NOTEBOOK_COMMENTS_TITLE}
+              inNotebook={true}
             />
           </div>
         </div>

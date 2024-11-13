@@ -43,6 +43,7 @@ type CommentChildrenTreeProps = {
   treeDepth: number;
   sort: SortOption;
   postData?: PostWithForecasts;
+  lastViewedAt?: string;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -51,6 +52,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   treeDepth,
   sort,
   postData,
+  lastViewedAt,
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
@@ -74,61 +76,88 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
   return (
     <>
-      <button
-        className={classNames(
-          "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm rounded-sm px-2 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark",
-          {
-            "border border-transparent bg-blue-400/50 dark:bg-blue-700/30":
-              !childrenExpanded,
-            "border border-blue-400 bg-transparent hover:bg-blue-400/50 dark:border-blue-600/50 dark:hover:bg-blue-700/50":
-              childrenExpanded,
-          }
-        )}
-        onClick={() => {
-          setChildrenExpanded(!childrenExpanded);
-        }}
-      >
-        <FontAwesomeIcon
-          icon={faChevronDown}
-          className={classNames("inline-block transition-transform", {
-            "-rotate-180": childrenExpanded,
-          })}
-        />
-        <span className="no-underline">
-          {childrenExpanded
-            ? t("hideReplyWithCount", { count: getTreeSize(commentChildren) })
-            : t("showReplyWithCount", { count: getTreeSize(commentChildren) })}
-        </span>
-      </button>
+      <div className={classNames(treeDepth > 1 && "pr-1.5")}>
+        <button
+          className={classNames(
+            "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm rounded-sm px-1.5 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark md:px-2",
+            {
+              "border border-transparent bg-blue-400/50 dark:bg-blue-700/30":
+                !childrenExpanded,
+              "border border-blue-400 bg-transparent hover:bg-blue-400/50 dark:border-blue-600/50 dark:hover:bg-blue-700/50":
+                childrenExpanded,
+            }
+          )}
+          onClick={() => {
+            setChildrenExpanded(!childrenExpanded);
+          }}
+        >
+          <FontAwesomeIcon
+            icon={faChevronDown}
+            className={classNames("inline-block transition-transform", {
+              "-rotate-180": childrenExpanded,
+            })}
+          />
+          <span className="no-underline">
+            {childrenExpanded
+              ? t("hideReplyWithCount", { count: getTreeSize(commentChildren) })
+              : t("showReplyWithCount", {
+                  count: getTreeSize(commentChildren),
+                })}
+          </span>
+        </button>
+      </div>
       <div
         className={classNames(
           "relative",
-          treeDepth < 5 ? "pl-3" : null,
-          childrenExpanded ? "pt-1.5" : null
+          treeDepth < 5 ? "pl-0 md:pl-3" : null,
+          childrenExpanded ? "pt-0.5" : null
         )}
       >
         {treeDepth < 5 && (
           <div
-            className="absolute inset-y-0 -left-2 top-2 w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-blue-400 after:content-[''] after:hover:border-blue-600 after:dark:border-blue-600/80 after:hover:dark:border-blue-400/80"
+            className="absolute inset-y-0 -left-2 top-2 hidden w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-blue-400 after:content-[''] after:hover:border-blue-600 after:dark:border-blue-600/80 after:hover:dark:border-blue-400/80 md:block"
             onClick={() => {
               setChildrenExpanded(!childrenExpanded);
             }}
           />
-        )}
+        )}{" "}
         {childrenExpanded &&
-          sortedCommentChildren.map((child: CommentType) => (
-            <div
-              key={child.id}
-              className="my-1 rounded-md bg-blue-500/15 px-2.5 py-1.5 dark:bg-blue-500/10"
-            >
-              <Comment
-                comment={child}
-                treeDepth={treeDepth}
-                sort={sort}
-                postData={postData}
-              />
-            </div>
-          ))}
+          sortedCommentChildren.map((child: CommentType) => {
+            const isUnread =
+              lastViewedAt &&
+              new Date(lastViewedAt) < new Date(child.created_at);
+
+            const opacityClass =
+              treeDepth % 2 === 1
+                ? "bg-blue-100 dark:bg-blue-100-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md" +
+                  (treeDepth === 1 ? " overflow-hidden" : "")
+                : treeDepth === 2
+                  ? "bg-blue-200 dark:bg-blue-200-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md"
+                  : "bg-blue-200 dark:bg-blue-200-dark border-r-0 pr-0.5";
+
+            return (
+              <div
+                key={child.id}
+                className={classNames(
+                  "my-1 rounded-l-md border py-1 pl-1.5 md:py-1.5 md:pl-2.5",
+                  opacityClass,
+                  {
+                    "border-blue-500/70 dark:border-blue-400-dark": !isUnread,
+                    "border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
+                      isUnread,
+                  }
+                )}
+              >
+                <Comment
+                  comment={child}
+                  treeDepth={treeDepth}
+                  sort={sort}
+                  postData={postData}
+                  lastViewedAt={lastViewedAt}
+                />
+              </div>
+            );
+          })}
       </div>
     </>
   );
@@ -305,6 +334,8 @@ const Comment: FC<CommentProps> = ({
             commentChildren={comment.children}
             treeDepth={treeDepth + 1}
             sort={sort}
+            postData={postData}
+            lastViewedAt={lastViewedAt}
           />
         )}
       </div>
@@ -313,13 +344,7 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      <div
-        className={classNames("", {
-          "":
-            lastViewedAt &&
-            new Date(lastViewedAt) < new Date(comment.created_at),
-        })}
-      >
+      <div>
         <CmmOverlay
           forecast={100 * userForecast}
           updateForecast={updateForecast}
@@ -334,13 +359,6 @@ const Comment: FC<CommentProps> = ({
           cmmContext={cmmContext}
         />
 
-        {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
-        {comment.included_forecast && (
-          <IncludedForecast
-            author={comment.author.username}
-            forecast={comment.included_forecast}
-          />
-        )}
         <div className="mb-1 flex flex-col items-start gap-1">
           <span className="inline-flex items-center text-base">
             <a
@@ -369,6 +387,13 @@ const Comment: FC<CommentProps> = ({
           {commentAge(comment.created_time)}
         </span>
         */}
+          {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
+          {comment.included_forecast && (
+            <IncludedForecast
+              author={comment.author.username}
+              forecast={comment.included_forecast}
+            />
+          )}
         </div>
 
         {/* TODO: fix TS error */}
@@ -497,7 +522,10 @@ const Comment: FC<CommentProps> = ({
                 ))}
             </div>
 
-            <div ref={isMobileScreen ? cmmContext.setAnchorRef : null}>
+            <div
+              ref={isMobileScreen ? cmmContext.setAnchorRef : null}
+              className={classNames(treeDepth > 0 && "pr-1.5 md:pr-2")}
+            >
               <DropdownMenu items={menuItems} />
             </div>
           </div>
@@ -523,6 +551,7 @@ const Comment: FC<CommentProps> = ({
           treeDepth={treeDepth + 1}
           sort={sort}
           postData={postData}
+          lastViewedAt={lastViewedAt}
         />
       )}
       <CommentReportModal

@@ -94,7 +94,7 @@
   "metaculusRelativeLogScore": "Metaculus relative log score:",
   "questionWillOpenAt": "This question will open {{date}}.",
   "questionNotOpenYet": "This question is not yet open for predictions.",
-  "youMustLogInToComment": "you must log in to comment",
+  "youMustLogInToComment": "You must <link>log in</link> to comment",
   "commentsReadGuidelines": "Read our guidelines",
   "commentsLearnMarkdown": "Learn about our Markdown",
   "commentDeleted": "Comment deleted",
@@ -925,5 +925,7 @@
   "communityNameDescription": "This is how your community appears to others.",
   "communitySlug": "Community Slug",
   "communitySlugDescription": "Your community can be accessed via the following URL:",
-  "communityDescription": "Community Description"
+  "communityDescription": "Community Description",
+  "youArePostingAPrivateComment": "You are posting a private comment",
+  "unread": "unread"
 }

@@ -84,7 +84,7 @@
   "metaculusRelativeLogScore": "Puntaje logarítmico relativo de Metaculus:",
   "questionWillOpenAt": "Esta pregunta abrirá {{date}}.",
   "questionNotOpenYet": "Esta pregunta aún no está abierta para predicciones.",
-  "youMustLogInToComment": "debes iniciar sesión para comentar",
+  "youMustLogInToComment": "debes <link>iniciar sesión</link> para comentar",
   "commentsReadGuidelines": "Lee nuestras directrices",
   "commentsLearnMarkdown": "Aprende sobre nuestro Markdown",
   "commentDeleted": "Comentario eliminado",
@@ -508,7 +508,7 @@
   "cpRevealTime": "Hora de Revelación de la Predicción de la Comunidad",
   "openTime": "Hora de Apertura",
   "Question": "Pregunta",
-  "editOpenAndCpRevealTimes": "Editar Hora de Apertura y Revelación de la Predicción de la Comunidad",
+  "editOpenAndCpRevealTimes": "Editar Hora de Apertura y Revelaci��n de la Predicción de la Comunidad",
   "noQuestionsResolved": "No se han resuelto preguntas en este período.",
   "duration:": "Duración:",
   "timePeriod": "Período de Tiempo:",
@@ -809,5 +809,7 @@
   "onboardingStep5ViewYourPredictions": "Ver tus predicciones",
   "onboardingStep5ForecastAnother": "Pronosticar otra",
   "onboardingStep5Question": "Pregunta",
-  "onboardingStep5ViewQuestionFeed": "Ver feed de preguntas"
+  "onboardingStep5ViewQuestionFeed": "Ver feed de preguntas",
+  "youArePostingAPrivateComment": "Estás publicando un comentario privado",
+  "unread": "sin leer"
 }

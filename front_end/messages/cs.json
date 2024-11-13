@@ -84,7 +84,7 @@
   "metaculusRelativeLogScore": "Metaculus relativní log skóre:",
   "questionWillOpenAt": "Otázka bude spuštěna {{date}}.",
   "questionNotOpenYet": "Predikce na tuto otázku ještě nezačly.",
-  "youMustLogInToComment": "pro komentování se musíte přihlásit",
+  "youMustLogInToComment": "pro komentování se musíte <link>přihlásit</link>",
   "commentsReadGuidelines": "Přečtěte si naše pokyny",
   "commentsLearnMarkdown": "Přečtěte si více o našem Markdownu",
   "commentDeleted": "Komentář smazán",
@@ -413,7 +413,7 @@
   "memberSince": "Členem od",
   "bio": "Bio",
   "website": "Webová stránka",
-  "profileBioPlaceholder": "��ekněte nám něco o sobě.",
+  "profileBioPlaceholder": "ekněte nám něco o sobě.",
   "username": "uživatelské jméno",
   "noResults": "Žádné výsledky nenalezeny",
   "noTags": "Žádné štítky nenalezeny",
@@ -796,5 +796,7 @@
   "onboardingStep5ViewYourPredictions": "Zobrazit vaše předpovědi",
   "onboardingStep5ForecastAnother": "Předpovědět další",
   "onboardingStep5Question": "Otázku",
-  "onboardingStep5ViewQuestionFeed": "Zobrazit feed otázek"
+  "onboardingStep5ViewQuestionFeed": "Zobrazit feed otázek",
+  "youArePostingAPrivateComment": "Píšete soukromý komentář",
+  "unread": "nepřečtené"
 }
