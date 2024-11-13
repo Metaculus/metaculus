@@ -180,6 +180,26 @@ class Project(TimeStampedModel):
 
     subtitle = models.CharField(max_length=255, blank=True, default="")
     description = models.TextField(blank=True, default="")
+
+    # TO BE REMOVED
+    description_en = models.TextField(blank=True, default="", null=True)
+    description_es = models.TextField(blank=True, default="", null=True)
+    description_cs = models.TextField(blank=True, default="", null=True)
+    description_zh = models.TextField(blank=True, default="", null=True)
+    description_original = models.TextField(blank=True, default="", null=True)
+    subtitle_en = models.CharField(max_length=255, blank=True, default="", null=True)
+    subtitle_es = models.CharField(max_length=255, blank=True, default="", null=True)
+    subtitle_cs = models.CharField(max_length=255, blank=True, default="", null=True)
+    subtitle_zh = models.CharField(max_length=255, blank=True, default="", null=True)
+    subtitle_original = models.CharField(
+        max_length=255, blank=True, default="", null=True
+    )
+    name_en = models.CharField(max_length=200, null=True)
+    name_es = models.CharField(max_length=200, null=True)
+    name_cs = models.CharField(max_length=200, null=True)
+    name_zh = models.CharField(max_length=200, null=True)
+    name_original = models.CharField(max_length=200, null=True)
+
     header_image = models.ImageField(null=True, blank=True)
     header_logo = models.ImageField(null=True, blank=True)
     emoji = models.CharField(max_length=10, default="", blank=True)

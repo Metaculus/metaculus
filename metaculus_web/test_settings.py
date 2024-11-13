@@ -1,4 +1,4 @@
-from .settings import *
+from .settings import *  # noqa
 import dj_database_url
 
 DATABASES = {
