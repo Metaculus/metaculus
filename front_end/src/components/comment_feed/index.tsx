@@ -286,9 +286,13 @@ const CommentFeed: FC<Props> = ({
     <section
       id={id}
       className={classNames(
-        "w-[48rem] max-w-full border-transparent bg-gray-0 px-3 py-2 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border",
+        "max-w-full text-gray-900 dark:text-gray-900-dark",
         {
-          "mt-6 w-full px-0 xs:px-0 md:px-3": inNotebook,
+          "mt-6 w-full px-0 md:px-3": inNotebook,
+        },
+        {
+          "w-[48rem] border-transparent bg-gray-0 px-3 py-2 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark xs:px-4 lg:border":
+            !inNotebook,
         }
       )}
     >
