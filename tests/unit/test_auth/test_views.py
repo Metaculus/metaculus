@@ -31,7 +31,7 @@ class TestVerifyEmail:
         mock_send_activation_email.assert_called_once()
 
     def test_signup__do_not_verify_email(self, anon_client, mocker):
-        mocker.patch("django.conf.settings.AUTH_VERIFY_EMAIL", False)
+        mocker.patch("django.conf.settings.AUTH_SIGNUP_VERIFY_EMAIL", False)
         mock_send_activation_email = mocker.patch(
             "authentication.views.common.send_activation_email"
         )

@@ -67,7 +67,7 @@ def signup_api_view(request):
         username=username,
         email=email,
         password=password,
-        is_active=not settings.AUTH_VERIFY_EMAIL,
+        is_active=not settings.AUTH_SIGNUP_VERIFY_EMAIL,
         is_bot=is_bot,
     )
 
