@@ -33,6 +33,10 @@ const LanguageMenu: FC<Props> = ({ className }) => {
       locale: "es",
     },
     {
+      name: "Portuguese",
+      locale: "pt",
+    },
+    {
       name: "中文",
       locale: "zh",
     },
