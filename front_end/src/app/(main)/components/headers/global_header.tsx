@@ -3,15 +3,13 @@
 import { usePathname } from "next/navigation";
 import { FC } from "react";
 
+import { getWithDefaultHeader } from "@/utils/navigation";
+
 import Header from "./header";
 
 const GlobalHeader: FC = () => {
   const pathname = usePathname();
-  const withDefaultHeader =
-    !pathname.match(/^\/questions\/(\d+)(\/.*)?$/) &&
-    !pathname.match(/^\/notebooks\/(\d+)(\/.*)?$/) &&
-    !pathname.startsWith("/c/") &&
-    !pathname.startsWith("/questions/create");
+  const withDefaultHeader = getWithDefaultHeader(pathname);
 
   if (withDefaultHeader) {
     return <Header />;

@@ -44,3 +44,9 @@ export const getPostLink = (
 
   return `/questions/${post.id}/${post.slug}/`;
 };
+
+export const getWithDefaultHeader = (pathname: string): boolean =>
+  !pathname.match(/^\/questions\/(\d+)(\/.*)?$/) &&
+  !pathname.match(/^\/notebooks\/(\d+)(\/.*)?$/) &&
+  !pathname.startsWith("/c/") &&
+  !pathname.startsWith("/questions/create");

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getLocale } from "next-intl/server";
 
 import { getAlphaTokenSession, getServerSession } from "@/services/session";
 import {
@@ -9,7 +10,6 @@ import {
 } from "@/types/fetch";
 
 import { extractError, logError } from "./errors";
-import { getLocale } from "next-intl/server";
 
 class ApiError extends Error {
   public digest: string;

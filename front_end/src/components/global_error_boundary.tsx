@@ -40,15 +40,14 @@ const GlobalErrorBoundary: FC<GlobalErrorBoundaryProps> = ({
   console.log("\n\n--- ERROR ---\n\n");
   console.log("Error message:", error);
   console.log("Stack: ", error.stack);
+
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);
-  return (
-    <GlobalErrorContainer
-      error={(error.toString() || error.digest)!}
-      reset={reset}
-    />
-  );
+
+  // error.digest ensures we use display actual message on production build
+  // for more info see definition of ApiError class
+  return <GlobalErrorContainer error={error.digest ?? error} reset={reset} />;
 };
 
 export default GlobalErrorBoundary;
