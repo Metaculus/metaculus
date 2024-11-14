@@ -7,8 +7,6 @@ from users.models import User
 
 
 def create_user(user_obj: dict) -> User:
-    # TODO: ensure password hash is the same!
-    # TODO: social auth data should be in a separate tables as is, not in the one columns as proposed
     user = User(
         # Let's keep same user id for convenience
         id=user_obj["id"],

@@ -56,10 +56,15 @@ export const SignupForm: FC<{
       sendGAEvent("event", "register", {
         event_category: new URLSearchParams(window.location.search).toString(),
       });
-      setCurrentModal({
-        type: "signupSuccess",
-        data: { email: watch("email"), username: watch("username") },
-      });
+
+      if (state.is_active) {
+        setCurrentModal(null);
+      } else {
+        setCurrentModal({
+          type: "signupSuccess",
+          data: { email: watch("email"), username: watch("username") },
+        });
+      }
     } else {
       turnstileRef.current?.reset();
     }

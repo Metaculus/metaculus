@@ -20,3 +20,8 @@ export type AuthResponse = {
   token: string;
   user: CurrentUser;
 };
+
+export type SignUpResponse = AuthResponse & {
+  is_active: boolean;
+  token: string | null;
+};

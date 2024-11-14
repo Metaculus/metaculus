@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import status, serializers
@@ -21,12 +22,12 @@ from authentication.services import (
     send_password_reset_email,
     check_password_reset,
 )
+from fab_credits.models import UserUsage
+from projects.models import ProjectUserPermission
+from projects.permissions import ObjectPermission
 from users.models import User
 from users.serializers import UserPrivateSerializer
 from utils.cloudflare import validate_turnstile_from_request
-from projects.models import ProjectUserPermission
-from projects.permissions import ObjectPermission
-from fab_credits.models import UserUsage
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ def signup_api_view(request):
         username=username,
         email=email,
         password=password,
-        is_active=False,
+        is_active=not settings.AUTH_SIGNUP_VERIFY_EMAIL,
         is_bot=is_bot,
     )
 
@@ -86,9 +87,25 @@ def signup_api_view(request):
                 total_allowed_tokens=100000,
             )
 
-    send_activation_email(user)
+    is_active = user.is_active
+    token = None
 
-    return Response(status=status.HTTP_201_CREATED)
+    if is_active:
+        # We need to treat this as login action, so we should call `authenticate` service as well
+        user = authenticate(login=email, password=password)
+        token_obj, _ = Token.objects.get_or_create(user=user)
+        token = token_obj.key
+    else:
+        send_activation_email(user)
+
+    return Response(
+        {
+            "is_active": is_active,
+            "token": token,
+            "user": UserPrivateSerializer(user).data,
+        },
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(["POST"])
