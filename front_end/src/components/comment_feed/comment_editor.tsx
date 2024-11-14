@@ -44,6 +44,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
+  const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>();
   const [hasInteracted, setHasInteracted] = useState(false);
 
@@ -97,6 +98,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       const newCommentData = newCommentResponse.results[0];
       setHasIncludedForecast(false);
       setMarkdown("");
+      setIsMarkdownDirty(false);
       updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
       // TODO: revisit after BE changes
       onSubmit && onSubmit(parseComment(newCommentData));
@@ -105,6 +107,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
     }
   };
   const handleMarkdownChange = (newMarkdown: string) => {
+    setIsMarkdownDirty(!!newMarkdown);
     setMarkdown(newMarkdown);
     if (!hasInteracted) {
       setHasInteracted(true);
@@ -152,6 +155,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
             mode="write"
             markdown={markdown}
             onChange={handleMarkdownChange}
+            shouldConfirmLeave={isMarkdownDirty}
           />
         </div>
       )}

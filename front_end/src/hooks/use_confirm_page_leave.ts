@@ -2,13 +2,16 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 
-const useConfirmPageLeave = (isDirty: boolean) => {
+const useConfirmPageLeave = (
+  enabled: boolean,
+  preventLinkNavigation = true
+) => {
   const router = useRouter();
   const t = useTranslations();
 
   useEffect(() => {
     function beforeUnload(e: BeforeUnloadEvent) {
-      if (!isDirty) return;
+      if (!enabled) return;
       e.preventDefault();
     }
 
@@ -17,13 +20,13 @@ const useConfirmPageLeave = (isDirty: boolean) => {
     return () => {
       window.removeEventListener("beforeunload", beforeUnload);
     };
-  }, [isDirty]);
+  }, [enabled]);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
       const target = event.target as HTMLAnchorElement;
 
-      if (isDirty) {
+      if (enabled && preventLinkNavigation) {
         event.preventDefault();
 
         const confirmed = confirm(t("confirmPageLeaveMessage"));
@@ -47,7 +50,7 @@ const useConfirmPageLeave = (isDirty: boolean) => {
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDirty]);
+  }, [enabled, preventLinkNavigation]);
 };
 
 export default useConfirmPageLeave;

@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import { getComments, markPostAsRead } from "@/app/(main)/questions/actions";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 import Comment from "@/components/comment_feed/comment";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
@@ -23,7 +24,6 @@ import { logError } from "@/utils/errors";
 
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 export type SortOption = "created_at" | "-created_at" | "-vote_score";
 type FeedOptions = "public" | "private";
