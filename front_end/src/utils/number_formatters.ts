@@ -50,7 +50,7 @@ export function abbreviatedNumber(
   if (!val) {
     return "0";
   }
-  const pow = Math.floor(Math.log10(Math.abs(val)));
+  const pow = Math.floor(Math.log10(Math.abs(val)) + 1e-10);
   if (pow >= 15) {
     return toScientificNotation(val, 2, 1, false);
   }
