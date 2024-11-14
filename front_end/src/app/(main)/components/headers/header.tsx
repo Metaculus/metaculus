@@ -10,8 +10,8 @@ import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 
-import MobileMenu from "../mobile_menu";
 import ContentTranslatedBanner from "../content_translated_banner";
+import MobileMenu from "../mobile_menu";
 
 const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
   return (
@@ -47,7 +47,9 @@ const Header: FC = () => {
           className="inline-flex max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center text-center no-underline"
         >
           <h1 className="mx-3 my-0 font-league-gothic text-[28px] font-light tracking-widest !text-gray-0 antialiased">
-            <span className="hidden capitalize xs:inline">{t("metaculus")}</span>
+            <span className="hidden capitalize xs:inline">
+              {t("metaculus")}
+            </span>
             <span className="inline xs:hidden">M</span>
           </h1>
         </Link>
@@ -103,7 +105,10 @@ const Header: FC = () => {
                   href="/questions/track-record/"
                   label={t("trackRecord")}
                 />
-                <LinkMenuItem href="/project/journal/" label={t("theJournal")} />
+                <LinkMenuItem
+                  href="/project/journal/"
+                  label={t("theJournal")}
+                />
                 <LinkMenuItem
                   href="/aggregation-explorer"
                   label={t("aggregationExplorer")}
@@ -133,7 +138,7 @@ const Header: FC = () => {
         </ul>
         <MobileMenu />
       </header>
-      <ContentTranslatedBanner/>
+      <ContentTranslatedBanner />
     </>
   );
 };
