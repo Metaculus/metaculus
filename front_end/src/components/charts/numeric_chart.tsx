@@ -277,7 +277,7 @@ const NumericChart: FC<Props> = ({
 
           {!!resolutionPoint && (
             <VictoryScatter
-              data={[resolutionPoint]}
+              data={resolutionPoint}
               style={{
                 data: {
                   stroke: getThemeColor(METAC_COLORS.purple["800"]),
