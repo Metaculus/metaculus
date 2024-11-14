@@ -50,14 +50,18 @@ export function abbreviatedNumber(
   if (!val) {
     return "0";
   }
-  const pow = Math.floor(Math.log10(Math.abs(val)));
-  if (pow >= 12) {
+  const pow = Math.floor(Math.log10(Math.abs(val)) + 1e-10);
+  if (pow >= 15) {
     return toScientificNotation(val, 2, 1, false);
   }
 
   let suffix = "";
   let leadingNumbers = 1;
-  if (pow >= 9) {
+  if (pow >= 12) {
+    suffix = "T";
+    val /= 1e12;
+    leadingNumbers = pow - 11;
+  } else if (pow >= 9) {
     suffix = "B";
     val /= 1e9;
     leadingNumbers = pow - 8;
