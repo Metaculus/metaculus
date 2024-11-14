@@ -71,7 +71,7 @@ class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
 class ProjectAdmin(CustomTranslationAdmin):
     list_display = ["name", "type", "created_at", "default_permission"]
     list_filter = ["type", "show_on_homepage", ProjectDefaultPermissionFilter]
-    search_fields = ["type", "name__original", "slug"]
+    search_fields = ["type", "name_original", "slug"]
     autocomplete_fields = ["created_by", "primary_leaderboard"]
     exclude = ["add_posts_to_main_feed"]
     ordering = ["-created_at"]
