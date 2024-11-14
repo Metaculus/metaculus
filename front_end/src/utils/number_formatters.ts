@@ -9,7 +9,8 @@ export function toScientificNotation(
   leadingNumbers: number = 1,
   trailingZeros: boolean = true
 ): string {
-  const pow = Math.floor(Math.log10(Math.abs(val))) - leadingNumbers + 1;
+  const pow =
+    Math.floor(Math.log10(Math.abs(val)) + 1e-10) - leadingNumbers + 1;
   let mantissa = (val / Math.pow(10, pow)).toFixed(
     Math.max(0, sigfigs - leadingNumbers)
   );
