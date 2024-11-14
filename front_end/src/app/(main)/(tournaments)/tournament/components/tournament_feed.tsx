@@ -6,15 +6,15 @@ import { FC, useEffect, useState } from "react";
 
 import { fetchPosts } from "@/app/(main)/questions/actions";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 import PaginatedPostsFeed from "@/components/posts_feed/paginated_feed";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { logError } from "@/utils/errors";
 import { Tournament } from "@/types/projects";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
+import { logError } from "@/utils/errors";
 
 type Props = {
   tournament: Tournament;
@@ -28,7 +28,7 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
   const pageFilters: PostsParams = {
     statuses: PostStatus.APPROVED,
     ...questionFilters,
-    tournaments: tournament?.slug ?? undefined,
+    tournaments: tournament.id.toString(),
   };
 
   const [questions, setQuestions] = useState<PostWithForecasts[]>([]);
