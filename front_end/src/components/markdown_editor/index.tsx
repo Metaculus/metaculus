@@ -39,6 +39,7 @@ import {
 } from "@/components/markdown_editor/embedded_math_jax";
 import { linkPlugin } from "@/components/markdown_editor/plugins/link";
 import useAppTheme from "@/hooks/use_app_theme";
+import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { logErrorWithScope } from "@/utils/errors";
 
 import {
@@ -88,10 +89,13 @@ const MarkdownEditor: FC<Props> = ({
   onChange,
   contentEditableClassName,
   className,
+  shouldConfirmLeave = false,
 }) => {
   const { theme } = useAppTheme();
   const [errorMarkdown, setErrorMarkdown] = useState<string | null>(null);
   const editorRef = useRef<MDXEditorMethods>(null);
+
+  useConfirmPageLeave(shouldConfirmLeave, false);
 
   // Transform MathJax syntax to JSX embeds to properly utilise the MarkJax renderer
   const formattedMarkdown = useMemo(

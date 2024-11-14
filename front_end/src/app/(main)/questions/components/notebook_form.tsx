@@ -200,7 +200,6 @@ const NotebookForm: React.FC<Props> = ({
         <div className="rounded border border-gray-300 dark:border-gray-300-dark">
           <MarkdownEditor
             markdown={markdown}
-            shouldConfirmLeave={isMarkdownDirty}
             onChange={(value) => {
               setMarkdown(value);
               setIsMarkdownDirty(true);
