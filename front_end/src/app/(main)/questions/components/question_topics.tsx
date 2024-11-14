@@ -81,7 +81,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   return (
     <div
       className={clsx(
-        "sticky z-40 sm:-z-10 mt-0 self-start sm:top-16 sm:mt-4 ",
+        "sticky z-40 mt-0 self-start sm:top-16 sm:mt-4 ",
         topPositionClasses
       )}
     >
