@@ -93,15 +93,26 @@ const LeaderboardTable: FC<Props> = ({
                   ? `/contributions/?${SCORING_CATEGORY_FILTER}=${category}&${CONTRIBUTIONS_USER_FILTER}=${entry.user.id}&${SCORING_YEAR_FILTER}=${year}&duration=${duration}`
                   : `/questions/track-record`;
               }
-
-              return (
-                <LeaderboardRow
-                  key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method!}`}
-                  rowEntry={entry}
-                  scoreType={leaderboardDetails.score_type}
-                  href={navigationUrl}
-                />
-              );
+              if (entry.user && entry.user.id === userEntry?.user?.id) {
+                return (
+                  <UserLeaderboardRow
+                    userEntry={userEntry}
+                    year={year}
+                    duration={duration}
+                    category={category}
+                    scoreType={leaderboardDetails.score_type}
+                  />
+                );
+              } else {
+                return (
+                  <LeaderboardRow
+                    key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method!}`}
+                    rowEntry={entry}
+                    scoreType={leaderboardDetails.score_type}
+                    href={navigationUrl}
+                  />
+                );
+              }
             })
           ) : (
             <tr className="border-b border-gray-300  dark:border-gray-300-dark">
