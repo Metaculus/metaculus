@@ -115,7 +115,7 @@ class TestPostCreate:
 
     def test_create__conditional(self, user1, user1_client):
         question = create_question(
-            title="Starship Reaches Orbit in 2024?",
+            title_original="Starship Reaches Orbit in 2024?",
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.make_aware(datetime.datetime(2024, 3, 1)),
             scheduled_close_time=timezone.make_aware(datetime.datetime(2024, 5, 1)),
@@ -124,7 +124,7 @@ class TestPostCreate:
         factory_post(author=user1, question=question)
 
         question_numeric = create_question(
-            title="Starship Booster Tower Catch Attempt in 2024?",
+            title_original="Starship Booster Tower Catch Attempt in 2024?",
             question_type=Question.QuestionType.NUMERIC,
             open_time=timezone.make_aware(datetime.datetime(2024, 3, 1)),
             scheduled_close_time=timezone.make_aware(datetime.datetime(2024, 4, 1)),

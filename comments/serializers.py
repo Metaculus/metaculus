@@ -30,6 +30,7 @@ class CommentSerializer(serializers.ModelSerializer):
     author = BaseUserSerializer()
     changed_my_mind = serializers.SerializerMethodField(read_only=True)
     text = serializers.SerializerMethodField()
+    on_post_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -42,6 +43,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "is_soft_deleted",
             "text",
             "on_post",
+            "on_post_data",
             "included_forecast",
             "is_private",
             "vote_score",
@@ -65,6 +67,15 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_text(self, value: Comment):
         return _("deleted") if value.is_soft_deleted else value.text
+
+    def get_on_post_data(self, value: Comment):
+        """
+        Minimalistic serialization version of post object
+        Could be replaced with `serialize_post_many` call
+        in `serialize_comment_many` function in the future
+        """
+
+        return {"id": value.on_post_id, "title": getattr(value.on_post, "title", "")}
 
 
 class OldAPICommentWriteSerializer(serializers.Serializer):
@@ -120,6 +131,10 @@ def serialize_comment(
     serialized_data["vote_score"] = comment.vote_score
     serialized_data["user_vote"] = comment.user_vote
 
+    serialized_data["is_current_content_translated"] = (
+        comment.is_current_content_translated()
+    )
+
     return serialized_data
 
 
@@ -131,7 +146,7 @@ def serialize_comment_many(
     ids = [p.pk for p in comments]
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
 
-    qs = qs.select_related("included_forecast", "author")
+    qs = qs.select_related("included_forecast", "author", "on_post")
     qs = qs.annotate_vote_score()
 
     if current_user and not current_user.is_anonymous:

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions/";
 import Button from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { TournamentType } from "@/types/projects";
 import PostApprovalModal from "./post_approval_modal";
 import PostSubscribeButton from "./subscribe_button";
 import { draftPost, submitPostForReview } from "../../actions";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 export default function PostHeader({
   post,
@@ -69,6 +70,16 @@ export default function PostHeader({
   }
 
   const [approvalModalOpen, setIsApprovalModalOpen] = useState(false);
+  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+  const locale = useLocale();
+
+  useEffect(() => {
+    if (post.is_current_content_translated) {
+      setTimeout(() => {
+        setBannerisVisible(true);
+      }, 0);
+    }
+  }, [post, locale]);
 
   return (
     <div className="flex flex-col">

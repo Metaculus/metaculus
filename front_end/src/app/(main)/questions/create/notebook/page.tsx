@@ -37,11 +37,8 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
 
   return (
     <>
-      {community ? (
-        <CommunityHeader community={community} />
-      ) : (
-        <Header />
-      )}
+      {community ? <CommunityHeader community={community} /> : <Header />}
+
       <NotebookForm
         mode={mode}
         post={post}

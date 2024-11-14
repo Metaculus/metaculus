@@ -34,6 +34,7 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   return (
     <>
       {community ? <CommunityHeader community={community} /> : <Header />}
+
       <GroupForm
         // @ts-ignore
         subtype={

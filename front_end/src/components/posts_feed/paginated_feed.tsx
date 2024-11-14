@@ -16,6 +16,7 @@ import { logError } from "@/utils/errors";
 import EmptyCommunityFeed from "./empty_community_feed";
 import InReviewBox from "./in_review_box";
 import { FormErrorMessage } from "../ui/form_field";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 export type PostsFeedType = "posts" | "news";
 
@@ -45,6 +46,16 @@ const PaginatedPostsFeed: FC<Props> = ({
     (Error & { digest?: string }) | undefined
   >();
 
+  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+
+  useEffect(() => {
+    if (
+      initialQuestions.filter((q) => q.is_current_content_translated).length > 0
+    ) {
+      setBannerisVisible(true);
+    }
+  }, [initialQuestions, setBannerisVisible]);
+
   useEffect(() => {
     // capture search event from AwaitedPostsFeed
     sendGAEvent("event", "feedSearch", {
@@ -64,6 +75,12 @@ const PaginatedPostsFeed: FC<Props> = ({
           offset,
           POSTS_PER_PAGE
         );
+
+        if (
+          newPosts.filter((q) => q.is_current_content_translated).length > 0
+        ) {
+          setBannerisVisible(true);
+        }
 
         if (!hasNextPage) setHasMoreData(false);
         setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
