@@ -4,6 +4,7 @@ from django.db.models import QuerySet, Q
 from django.http import HttpResponse
 
 from projects.models import Project, ProjectUserPermission
+from projects.services.common import update_with_add_posts_to_main_feed
 from questions.models import Question
 from utils.csv_utils import export_data_for_questions
 from scoring.utils import update_project_leaderboard
@@ -69,14 +70,24 @@ class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
 
 @admin.register(Project)
 class ProjectAdmin(CustomTranslationAdmin):
-    list_display = ["name", "type", "created_at", "default_permission"]
+    list_display = [
+        "name",
+        "type",
+        "created_at",
+        "default_permission",
+        "add_posts_to_main_feed",
+    ]
     list_filter = ["type", "show_on_homepage", ProjectDefaultPermissionFilter]
     search_fields = ["type", "name_original", "slug"]
     autocomplete_fields = ["created_by", "primary_leaderboard"]
-    exclude = ["add_posts_to_main_feed"]
     ordering = ["-created_at"]
     inlines = [ProjectUserPermissionInline]
-    actions = ["update_leaderboards", "export_questions_data_for_projects", "update_translations"]
+    actions = [
+        "update_leaderboards",
+        "export_questions_data_for_projects",
+        "update_translations",
+        "toggle_add_posts_to_main_feed",
+    ]
 
     change_form_template = "admin/projects/project_change_form.html"
 
@@ -129,3 +140,11 @@ class ProjectAdmin(CustomTranslationAdmin):
     export_questions_data_for_projects.short_description = (
         "Download Question Data for Selected Projects"
     )
+
+    def toggle_add_posts_to_main_feed(self, request, queryset: QuerySet[Project]):
+        for project in queryset:
+            update_with_add_posts_to_main_feed(
+                project, not project.add_posts_to_main_feed
+            )
+
+    toggle_add_posts_to_main_feed.short_description = "Toggle Add Posts to Main Feed"
