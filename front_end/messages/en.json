@@ -933,5 +933,12 @@
   "youArePostingAPrivateComment": "You are posting a private comment",
   "unread": "unread",
   "contentTranslatedHeaderText": "Some content on this page is automatically translated, and may be inaccurate.",
-  "showOriginalContent": "Show original"
+  "showOriginalContent": "Show original",
+  "willForecastingOn": "You’ll be forecasting on {questionNumber} questions",
+  "authOnMetaculus": "Authenticate on Metaculus",
+  "questionsToForecast": "There are <bold>{questionNumber} questions</bold> to forecast.",
+  "forecastedOn": "You forecasted on <bold>{forecastedNumber}</bold> of <bold>{questionNumber}</bold> available questions",
+  "startForecasting": "Start forecasting",
+  "curveIntroduction": "Some introductory text goes here",
+  "reciprocalSurvey": "Reciprocal Survey"
 }

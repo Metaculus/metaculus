@@ -6,7 +6,6 @@ import {
   PropsWithChildren,
   useContext,
   useState,
-  useEffect, // Add this import
 } from "react";
 
 export type ModalType =
