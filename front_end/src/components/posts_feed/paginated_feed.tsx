@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, Fragment, useEffect, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
@@ -16,7 +17,6 @@ import { logError } from "@/utils/errors";
 import EmptyCommunityFeed from "./empty_community_feed";
 import InReviewBox from "./in_review_box";
 import { FormErrorMessage } from "../ui/form_field";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 export type PostsFeedType = "posts" | "news";
 

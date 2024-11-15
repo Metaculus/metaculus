@@ -1,4 +1,5 @@
 "use client";
+import classNames from "classnames";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
@@ -12,6 +13,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useServerAction } from "@/hooks/use_server_action";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import { generateCurveChoiceOptions } from "@/utils/forecasts";
 import { canPredictQuestion } from "@/utils/questions";
 
 type Props = {
@@ -29,7 +31,7 @@ const CurveForecastMaker: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const [questionOptions, setQuestionOptions] = useState(
-    generateChoiceOptions(questions)
+    generateCurveChoiceOptions(questions)
   );
   const questionsToSubmit = useMemo(
     () =>
@@ -40,11 +42,8 @@ const CurveForecastMaker: FC<Props> = ({
     [questionOptions]
   );
   useEffect(() => {
-    setQuestionOptions(generateChoiceOptions(questions));
+    setQuestionOptions(generateCurveChoiceOptions(questions));
   }, [questions]);
-
-  console.log(post);
-  console.log(questionOptions);
 
   const canPredict = canPredictQuestion(post);
 
@@ -52,7 +51,7 @@ const CurveForecastMaker: FC<Props> = ({
     setQuestionOptions((prev) =>
       prev.map((prevQuestion) => {
         if (prevQuestion.id === id) {
-          return { ...prevQuestion, forecast };
+          return { ...prevQuestion, forecast, isDirty: true };
         }
 
         return prevQuestion;
@@ -61,8 +60,6 @@ const CurveForecastMaker: FC<Props> = ({
   }, []);
 
   const handlePredictSubmit = useCallback(async () => {
-    // setSubmitErrors([]);
-
     if (!questionsToSubmit.length) {
       return;
     }
@@ -92,98 +89,68 @@ const CurveForecastMaker: FC<Props> = ({
     if (!(response && "errors" in response)) {
       onPredict && onPredict();
     }
-    // const errors: ErrorResponse[] = [];
-    // if (response && "errors" in response && !!response.errors) {
-    //   for (const response_errors of response.errors) {
-    //     errors.push(response_errors);
-    //   }
-    // }
-    // if (response && "error" in response && !!response.error) {
-    //   errors.push(response.error);
-    // }
-    // if (errors.length) {
-    //   setSubmitErrors(errors);
-    // }
   }, [post, questionsToSubmit, onPredict]);
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
   return (
-    <div className="m-5">
-      <p className="m-0">{t("respondCrowdMedian")}</p>
-      <div className="flex w-full flex-col items-center rounded bg-blue-300 p-6 dark:bg-blue-300-dark">
+    <div className="p-5 md:rounded-b md:bg-gray-0 md:dark:bg-gray-0-dark">
+      <p className="m-0 text-gray-800 dark:text-gray-800-dark">
+        {t("respondCrowdMedian")}
+      </p>
+      <div className="mt-4 flex w-full flex-col items-center rounded bg-[#A9C0D64D]/30 p-6 dark:bg-[#A9C0D64D]/30">
         {questionOptions.map((option, idx) => (
           <React.Fragment key={idx}>
-            <p className="m-0">{option.label}</p>
+            <p
+              className={classNames(
+                "m-0 text-sm font-medium leading-5 text-gray-900 dark:text-gray-900-dark",
+                {
+                  "mt-6": idx > 0,
+                }
+              )}
+            >
+              {option.label}
+            </p>
             <BinarySlider
-              className="!m-0 w-full !h-10"
+              className="!m-0 !mt-2 !h-10 w-full"
               forecast={option.forecast}
               onChange={(forecast) => handleForecastChange(option.id, forecast)}
               isDirty={false}
               disabled={!canPredict}
+              styles={{
+                rail: { backgroundColor: "white", height: "3px" },
+                track: { backgroundColor: "white", height: "3px" },
+              }}
             />
           </React.Fragment>
         ))}
-        {/* <p className="m-0">Your forecast</p>
-        <BinarySlider
-          className="!m-0 w-full"
-          forecast={questionOptions[0].forecast}
-          onChange={(forecast) =>
-            handleForecastChange(questionOptions[0].id, forecast)
-          }
-          isDirty={false}
-          disabled={!canPredict}
-        />
 
-        <p className="m-0">Your forecast of Crowd Median</p>
-        <BinarySlider
-          className="!m-0 w-full"
-          forecast={questionOptions[1].forecast}
-          onChange={(forecast) =>
-            handleForecastChange(questionOptions[1].id, forecast)
-          }
-          isDirty={false}
-          disabled={!canPredict}
-        /> */}
         <div className="h-[24px] w-full">
           {isPending && <LoadingIndicator />}
         </div>
-        <Button onClick={submit} disabled={!canPredict}>
+        <Button
+          onClick={submit}
+          disabled={!canPredict || questionOptions.some((q) => !q.isDirty)}
+          className="!px-5 !text-lg"
+        >
           {t("predict")}
         </Button>
-        <p className="m-0">Answers cannot be edited after submission.</p>
-        <Button onClick={onSkip} variant="text" className="!underline">
-          Skip question
+        <p className="m-0 my-4 text-center text-xs leading-4 text-gray-800 dark:text-gray-800-dark">
+          {t("answerAfterEditing")}
+        </p>
+        <Button
+          onClick={onSkip}
+          variant="text"
+          className="!py-0 !font-normal !text-blue-800 !underline dark:!text-blue-800-dark"
+        >
+          {t("skipQuestions")}
         </Button>
       </div>
 
-      <div className="mt-4 flex w-full flex-col items-center rounded bg-blue-300 p-6 dark:bg-blue-300-dark">
-        Histograms will be revealed once you submit your prediction.
+      <div className="mt-4 flex w-full flex-col items-center rounded bg-[#A9C0D64D]/30 p-6 text-center text-gray-700 dark:bg-[#A9C0D64D]/30 dark:text-gray-700-dark">
+        {t("histogramAfterPrediction")}
       </div>
     </div>
   );
 };
 
-enum CurveQuestionLabels {
-  question = "your forecast",
-  crowdMedian = "your forecast of crowd median",
-}
-
-function generateChoiceOptions(questions: QuestionWithForecasts[]) {
-  return questions
-    .map((q) => ({
-      id: q.id,
-      forecast: q.my_forecasts?.latest?.forecast_values[1] ?? null,
-      status: q.status,
-      label: q.label,
-    }))
-    .sort((a, b) => {
-      if (a.label.toLowerCase() === CurveQuestionLabels.question) return -1;
-      if (b.label.toLowerCase() === CurveQuestionLabels.question) return 1;
-
-      if (a.label.toLowerCase() === CurveQuestionLabels.crowdMedian) return -1;
-      if (b.label.toLowerCase() === CurveQuestionLabels.crowdMedian) return 1;
-
-      return 0;
-    });
-}
 export default CurveForecastMaker;

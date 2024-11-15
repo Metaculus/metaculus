@@ -46,7 +46,9 @@ const CurveHeader: FC<Props> = ({
       </div>
       {layout === "survey" ? (
         <p className="m-0 mr-5 text-sm text-gray-0/50">
-          {t("questionsLeft", { count: notPredictedQuestions - questionIndex })}
+          {t("questionsLeft", {
+            count: notPredictedQuestions - (questionIndex ?? 0),
+          })}
         </p>
       ) : (
         user && (

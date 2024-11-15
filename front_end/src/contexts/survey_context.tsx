@@ -11,8 +11,8 @@ import {
 } from "react";
 
 type SurveyContextType = {
-  questionIndex: number;
-  setQuestionIndex: Dispatch<SetStateAction<number>>;
+  questionIndex: number | null;
+  setQuestionIndex: Dispatch<SetStateAction<number | null>>;
 };
 
 export const SurveyContext = createContext<SurveyContextType>({
@@ -21,7 +21,7 @@ export const SurveyContext = createContext<SurveyContextType>({
 });
 
 const SurveyProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [questionIndex, setQuestionIndex] = useState<number>(0);
+  const [questionIndex, setQuestionIndex] = useState<number | null>(null);
 
   return (
     <SurveyContext.Provider value={{ questionIndex, setQuestionIndex }}>

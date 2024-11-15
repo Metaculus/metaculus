@@ -1,19 +1,25 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { useSurvey } from "@/contexts/survey_context";
 
 type Props = {
   questionNumber: number;
   forecastedNumber?: number;
 };
+
 const CurveButton: FC<Props> = ({ questionNumber, forecastedNumber }) => {
+  const router = useRouter();
+  const { setQuestionIndex } = useSurvey();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
   const t = useTranslations();
+
   if (!user) {
     return (
       <div className="mt-10 flex flex-col items-center">
@@ -52,7 +58,13 @@ const CurveButton: FC<Props> = ({ questionNumber, forecastedNumber }) => {
           })}
         </p>
       )}
-      <Button className="mt-4 !px-5 !text-lg" href="/thecurve/survey">
+      <Button
+        className="mt-4 !px-5 !text-lg"
+        onClick={() => {
+          setQuestionIndex(0);
+          router.push("/thecurve/survey");
+        }}
+      >
         {t("startForecasting")}
       </Button>
     </div>

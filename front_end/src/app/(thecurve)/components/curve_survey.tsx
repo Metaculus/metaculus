@@ -2,13 +2,12 @@
 import { useRouter } from "next/navigation";
 import { FC, useCallback, useState } from "react";
 
-import Button from "@/components/ui/button";
 import { useSurvey } from "@/contexts/survey_context";
 import { PostWithForecasts } from "@/types/post";
 
+import CurveHistogramDrawer from "./curve_histogram/curve_histogram_drawer";
 import CurveQuestion from "./curve_question";
 import CurveForecastMaker from "./forecast_maker";
-import CurveHistogram from "./curve_histogram";
 
 type Props = {
   questions: PostWithForecasts[];
@@ -17,23 +16,25 @@ type Props = {
 const Survey: FC<Props> = ({ questions }) => {
   const router = useRouter();
   const { questionIndex, setQuestionIndex } = useSurvey();
-  console.log("Survey component questions:", questions);
-  console.log(questionIndex);
-  const activeQuestion = questions[questionIndex];
   const [predicted, setPredicted] = useState(false);
 
   const nextQuestion = useCallback(
     (questionIndex: number) => {
       questions.length === questionIndex + 1
         ? router.push("/thecurve")
-        : setQuestionIndex((prev) => prev + 1);
+        : setQuestionIndex((prev) => (prev ?? 0) + 1);
     },
     [questions.length, router, setQuestionIndex]
   );
-  return (
-    <div className="w-full">
-      <CurveQuestion post={activeQuestion} />
+  if (questionIndex === null) {
+    router.push("/thecurve");
+    return null;
+  }
+  const activeQuestion = questions[questionIndex];
 
+  return (
+    <div className="flex w-full flex-col md:justify-center lg:w-[790px]">
+      {activeQuestion && <CurveQuestion post={activeQuestion} />}
       {activeQuestion.group_of_questions?.questions && !predicted && (
         <CurveForecastMaker
           post={activeQuestion}
@@ -44,17 +45,13 @@ const Survey: FC<Props> = ({ questions }) => {
       )}
 
       {activeQuestion.group_of_questions?.questions && predicted && (
-        <>
-          <CurveHistogram post={activeQuestion} />
-          <Button
-            onClick={() => {
-              setPredicted(false);
-              nextQuestion(questionIndex);
-            }}
-          >
-            Next Question
-          </Button>
-        </>
+        <CurveHistogramDrawer
+          postId={activeQuestion.id}
+          onNextQuestion={() => {
+            setPredicted(false);
+            nextQuestion(questionIndex);
+          }}
+        />
       )}
     </div>
   );

@@ -2,7 +2,8 @@ import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useState } from "react";
+import { SemanticName } from "rc-slider/lib/interface";
+import { CSSProperties, FC, useCallback, useEffect, useState } from "react";
 
 import Slider from "@/components/sliders/slider";
 
@@ -21,6 +22,7 @@ type Props = {
   disabled?: boolean;
   helperDisplay?: boolean;
   className?: string;
+  styles?: Partial<Record<SemanticName, CSSProperties>>;
 };
 
 const BinarySlider: FC<Props> = ({
@@ -32,10 +34,11 @@ const BinarySlider: FC<Props> = ({
   disabled = false,
   helperDisplay = false,
   className,
+  styles,
 }) => {
   const inputDisplayValue = forecast ? forecast.toString() + "%" : "—";
-  const [inputValue, setInputValue] = useState(inputDisplayValue);
-  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [_inputValue, setInputValue] = useState(inputDisplayValue);
+  const [isInputFocused, _setIsInputFocused] = useState(false);
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
   );
@@ -100,7 +103,7 @@ const BinarySlider: FC<Props> = ({
               : undefined
           }
           disabled={disabled}
-          styles={disabled ? { handle: { cursor: "default" } } : {}}
+          styles={disabled ? { handle: { cursor: "default" } } : styles}
           showValue
         />
         {forecast !== null && helperDisplay && (

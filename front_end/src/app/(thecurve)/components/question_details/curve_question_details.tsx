@@ -20,10 +20,10 @@ type Props = {
 };
 
 const CurveQuestionDetails: FC<Props> = ({
+  question,
   expandLabel: _expandLabel,
   collapseLabel: _collapseLabel,
   className,
-  question,
 }) => {
   const t = useTranslations();
   const expandLabel = _expandLabel ?? t("details");
@@ -32,7 +32,7 @@ const CurveQuestionDetails: FC<Props> = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="flex flex-col">
+    <div className={classNames("relative flex flex-col")}>
       {isExpanded && (
         <div>
           {!!question.group_of_questions?.resolution_criteria && (
@@ -49,11 +49,14 @@ const CurveQuestionDetails: FC<Props> = ({
           )}
         </div>
       )}
+
+      {isExpanded && (
+        <div className="absolute bottom-0 left-0 h-10 w-full bg-gradient-to-t to-transparent"></div>
+      )}
       <Button
         variant="text"
         className={classNames(
-          "mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500",
-          { "mb-2": isExpanded }
+          "z-10 mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500"
         )}
         onClick={() => setIsExpanded((prev) => !prev)}
       >

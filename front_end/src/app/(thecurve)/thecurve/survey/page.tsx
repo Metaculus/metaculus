@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
 import PostsApi from "@/services/posts";
 import ProfileApi from "@/services/profile";
@@ -35,9 +34,7 @@ export default async function TheCurve() {
   if (notPredictedQuestions === 0) {
     redirect("/thecurve");
   }
-  console.log("===response===");
-  console.log(response);
-  console.log("===response===");
+  const mixedQuestions = [...response.results].sort(() => Math.random() - 0.5);
 
   return (
     <>
@@ -45,8 +42,8 @@ export default async function TheCurve() {
         layout="survey"
         notPredictedQuestions={notPredictedQuestions}
       />
-      <main className="flex flex-grow justify-center">
-        <Survey questions={response.results} />
+      <main className="flex w-[100vw] max-w-[780px] flex-grow justify-center md:my-5">
+        <Survey questions={mixedQuestions} />
       </main>
     </>
   );
