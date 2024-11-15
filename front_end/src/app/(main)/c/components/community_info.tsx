@@ -54,7 +54,10 @@ const CommunityInfo: FC<Props> = ({ community }) => {
 
   const handleBackClick = () => {
     if (previousPath) {
-      if (previousPath.startsWith("/c/")) {
+      const shouldFallbackToDefaultFeed =
+        previousPath.startsWith("/c/") || isMatchingCreateURL(previousPath);
+
+      if (shouldFallbackToDefaultFeed) {
         return router.push(`/questions/?communities=true`);
       } else {
         return router.back();
@@ -158,5 +161,10 @@ const CommunityInfo: FC<Props> = ({ community }) => {
     </div>
   );
 };
+
+function isMatchingCreateURL(url: string): boolean {
+  const regex = /^\/questions\/create\/.*\?community_id=\d+/;
+  return regex.test(url);
+}
 
 export default CommunityInfo;
