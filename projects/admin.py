@@ -136,6 +136,12 @@ class PostDefaultProjectInline(admin.TabularInline):
 
     title_link.short_description = "Title"
 
+    def get_queryset(self, request):
+        project_id = request.resolver_match.kwargs.get("object_id")
+        if Project.objects.get(id=project_id).type == Project.ProjectTypes.SITE_MAIN:
+            return super().get_queryset(request).none()
+        return super().get_queryset(request)
+
 
 class PostProjectInlineForm(forms.ModelForm):
     remove_from_project = forms.BooleanField(
@@ -179,17 +185,17 @@ class PostProjectInline(admin.TabularInline):
     def curation_status(self, obj):
         return obj.post.curation_status
 
-    curation_status.short_description = "Curation Status"
-
     def published_at(self, obj):
         return obj.post.published_at
-
-    published_at.short_description = "Published At"
 
     def default_project(self, obj):
         return obj.default_project
 
-    default_project.short_description = "Default Project"
+    def get_queryset(self, request):
+        project_id = request.resolver_match.kwargs.get("object_id")
+        if Project.objects.get(id=project_id).type == Project.ProjectTypes.SITE_MAIN:
+            return super().get_queryset(request).none()
+        return super().get_queryset(request)
 
 
 @admin.register(Project)
