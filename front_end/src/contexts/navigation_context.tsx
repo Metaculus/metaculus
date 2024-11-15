@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   createContext,
   FC,
@@ -26,14 +26,17 @@ const NavigationProvider: FC<PropsWithChildren> = ({ children }) => {
     previousPath: null,
     currentPath: null,
   });
+  const searchParams = useSearchParams();
 
   useEffect(() => {
+    const fullPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+
     setPath((prevPath) => {
-      return pathname === prevPath.currentPath
+      return fullPath === prevPath.currentPath
         ? prevPath
-        : { previousPath: prevPath.currentPath, currentPath: pathname };
+        : { previousPath: prevPath.currentPath, currentPath: fullPath };
     });
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
   return (
     <NavigationContext.Provider value={{ ...path }}>
