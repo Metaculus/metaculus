@@ -11,7 +11,6 @@ import Survey from "../../components/curve_survey";
 import { curveSlug } from "../../constants";
 
 export default async function TheCurve() {
-  const t = await getTranslations();
   const user = await ProfileApi.getMyProfile();
 
   const tournament = await ProjectsApi.getSlugTournament(curveSlug);
@@ -46,7 +45,7 @@ export default async function TheCurve() {
         layout="survey"
         notPredictedQuestions={notPredictedQuestions}
       />
-      <main className="flex flex-grow justify-center bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% dark:from-blue-100-dark dark:to-blue-200-dark">
+      <main className="flex flex-grow justify-center">
         <Survey questions={response.results} />
       </main>
     </>

@@ -1,7 +1,7 @@
 "use client";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,
@@ -83,7 +83,8 @@ const CurveForecastMaker: FC<Props> = ({
             continuousCdf: null,
           },
         };
-      }, false)
+      }),
+      false
     );
     setQuestionOptions((prev) =>
       prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
@@ -104,13 +105,25 @@ const CurveForecastMaker: FC<Props> = ({
     //   setSubmitErrors(errors);
     // }
   }, [post, questionsToSubmit, onPredict]);
-  // const [submit, isPending] = useServerAction(handlePredictSubmit);
+  const [submit, isPending] = useServerAction(handlePredictSubmit);
 
   return (
     <div className="m-5">
       <p className="m-0">{t("respondCrowdMedian")}</p>
-      <div className="flex w-full flex-col items-center rounded bg-blue-300 p-6">
-        <p className="m-0">Your forecast</p>
+      <div className="flex w-full flex-col items-center rounded bg-blue-300 p-6 dark:bg-blue-300-dark">
+        {questionOptions.map((option, idx) => (
+          <React.Fragment key={idx}>
+            <p className="m-0">{option.label}</p>
+            <BinarySlider
+              className="!m-0 w-full !h-10"
+              forecast={option.forecast}
+              onChange={(forecast) => handleForecastChange(option.id, forecast)}
+              isDirty={false}
+              disabled={!canPredict}
+            />
+          </React.Fragment>
+        ))}
+        {/* <p className="m-0">Your forecast</p>
         <BinarySlider
           className="!m-0 w-full"
           forecast={questionOptions[0].forecast}
@@ -130,11 +143,11 @@ const CurveForecastMaker: FC<Props> = ({
           }
           isDirty={false}
           disabled={!canPredict}
-        />
-        {/* <div className="h-[32px] w-full">
+        /> */}
+        <div className="h-[24px] w-full">
           {isPending && <LoadingIndicator />}
-        </div> */}
-        <Button onClick={handlePredictSubmit} disabled={!canPredict}>
+        </div>
+        <Button onClick={submit} disabled={!canPredict}>
           {t("predict")}
         </Button>
         <p className="m-0">Answers cannot be edited after submission.</p>
@@ -143,18 +156,34 @@ const CurveForecastMaker: FC<Props> = ({
         </Button>
       </div>
 
-      <div className="mt-4 flex w-full flex-col items-center rounded bg-blue-300 p-6">
+      <div className="mt-4 flex w-full flex-col items-center rounded bg-blue-300 p-6 dark:bg-blue-300-dark">
         Histograms will be revealed once you submit your prediction.
       </div>
     </div>
   );
 };
 
+enum CurveQuestionLabels {
+  question = "your forecast",
+  crowdMedian = "your forecast of crowd median",
+}
+
 function generateChoiceOptions(questions: QuestionWithForecasts[]) {
-  return questions.map((q) => ({
-    id: q.id,
-    forecast: q.my_forecasts?.latest?.forecast_values[1] ?? null,
-    status: q.status,
-  }));
+  return questions
+    .map((q) => ({
+      id: q.id,
+      forecast: q.my_forecasts?.latest?.forecast_values[1] ?? null,
+      status: q.status,
+      label: q.label,
+    }))
+    .sort((a, b) => {
+      if (a.label.toLowerCase() === CurveQuestionLabels.question) return -1;
+      if (b.label.toLowerCase() === CurveQuestionLabels.question) return 1;
+
+      if (a.label.toLowerCase() === CurveQuestionLabels.crowdMedian) return -1;
+      if (b.label.toLowerCase() === CurveQuestionLabels.crowdMedian) return 1;
+
+      return 0;
+    });
 }
 export default CurveForecastMaker;

@@ -22,6 +22,7 @@ const CurveIntro: FC<Props> = ({
   const t = useTranslations();
   const { questionIndex } = useSurvey();
   console.log(questionIndex);
+  console.log("questionNumber", questionNumber);
   return (
     <div className="my-auto flex flex-col items-center justify-center">
       <div className="flex w-full items-center justify-center">
@@ -41,7 +42,7 @@ const CurveIntro: FC<Props> = ({
       </div>
 
       {questionNumber === forecastedNumber ||
-      questionNumber === questionIndex + 1 ? (
+      forecastedNumber === questionIndex + 1 ? (
         <>
           <h2 className="m-0 mt-9 max-w-[330px] text-center text-3xl font-medium lg:max-w-[500px]">
             {t("forecastedAllQuestions", { questionNumber })}

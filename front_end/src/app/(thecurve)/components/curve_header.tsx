@@ -21,7 +21,7 @@ const CurveHeader: FC<Props> = ({
   const { user } = useAuth();
   const { questionIndex } = useSurvey();
   return (
-    <header className="fixed left-0 top-0 z-50 flex h-12 w-full flex-auto flex-wrap items-center justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
+    <header className="fixed left-0 top-0 z-50 flex h-12 w-full flex-auto flex-wrap items-center justify-between bg-blue-900 text-gray-0">
       <div className="flex h-full items-center">
         <Link
           href="/"

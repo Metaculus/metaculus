@@ -26,7 +26,7 @@ export default async function RootLayout({
       <SurveyProvider>
         {/* <CurveHeader /> */}
         <Bulletins />
-        <div className="flex flex-grow">{children}</div>
+        <div className="flex flex-grow mx-auto">{children}</div>
         <CookiesBanner />
       </SurveyProvider>
     </div>

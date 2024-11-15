@@ -31,13 +31,14 @@ export default async function TheCurve() {
   }
   const notPredictedQuestions =
     tournament.posts_count - (predictedQuestions ?? 0);
+
   return (
     <>
       <CurveHeader
         layout="landing"
         notPredictedQuestions={notPredictedQuestions}
       />
-      <main className="flex flex-grow justify-center bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% dark:from-blue-100-dark dark:to-blue-200-dark">
+      <main className="flex flex-grow justify-center">
         <CurveIntro
           tournamentSlug={curveSlug}
           questionNumber={tournament.posts_count}

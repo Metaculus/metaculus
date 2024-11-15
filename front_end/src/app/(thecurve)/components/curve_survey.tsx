@@ -8,6 +8,7 @@ import { PostWithForecasts } from "@/types/post";
 
 import CurveQuestion from "./curve_question";
 import CurveForecastMaker from "./forecast_maker";
+import CurveHistogram from "./curve_histogram";
 
 type Props = {
   questions: PostWithForecasts[];
@@ -19,8 +20,6 @@ const Survey: FC<Props> = ({ questions }) => {
   console.log("Survey component questions:", questions);
   console.log(questionIndex);
   const activeQuestion = questions[questionIndex];
-  const groupQuestions = activeQuestion.group_of_questions?.questions;
-  const hasUserForecast = groupQuestions?.some((q) => !!q.my_forecasts?.latest);
   const [predicted, setPredicted] = useState(false);
 
   const nextQuestion = useCallback(
@@ -33,12 +32,12 @@ const Survey: FC<Props> = ({ questions }) => {
   );
   return (
     <div className="w-full">
-      <CurveQuestion question={activeQuestion} />
+      <CurveQuestion post={activeQuestion} />
 
       {activeQuestion.group_of_questions?.questions && !predicted && (
         <CurveForecastMaker
           post={activeQuestion}
-          questions={activeQuestion.group_of_questions?.questions}
+          questions={activeQuestion.group_of_questions.questions}
           onSkip={() => nextQuestion(questionIndex)}
           onPredict={() => setPredicted(true)}
         />
@@ -46,7 +45,7 @@ const Survey: FC<Props> = ({ questions }) => {
 
       {activeQuestion.group_of_questions?.questions && predicted && (
         <>
-          <p>Histogram template</p>
+          <CurveHistogram post={activeQuestion} />
           <Button
             onClick={() => {
               setPredicted(false);
