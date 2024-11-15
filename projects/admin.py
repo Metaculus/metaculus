@@ -85,7 +85,7 @@ class PostSelect2MultipleWidget(ModelSelect2MultipleWidget):
             queryset = self.get_queryset()
         qs = queryset.none()
         if term:
-            qs = queryset.filter(title__icontains=term)
+            qs = queryset.filter(title_original__icontains=term)
         if term.isdigit():
             qs = qs | queryset.filter(id=int(term))
         return qs
@@ -94,7 +94,7 @@ class PostSelect2MultipleWidget(ModelSelect2MultipleWidget):
 class AddPostsToProjectForm(forms.Form):
     posts = forms.ModelMultipleChoiceField(
         queryset=Post.objects.all(),
-        label="Select Posts to Add (id search only for the moment)",
+        label="Select Posts to Add (id or title)",
         widget=PostSelect2MultipleWidget(),
         required=True,
     )

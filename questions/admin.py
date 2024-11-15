@@ -1,7 +1,11 @@
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 from django.db.models import QuerySet
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django.http import HttpResponse
+from django.utils.html import format_html
+from django.urls import reverse
 
 from questions.models import (
     Conditional,
@@ -15,11 +19,54 @@ from utils.models import CustomTranslationAdmin
 
 @admin.register(Question)
 class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
-    list_display = ["title", "id", "type"]
+    list_display = [
+        "title",
+        "type",
+        "forecasts",
+        "open_time",
+        "author",
+        "curation_status",
+        "post_link",
+    ]
+    readonly_fields = ["post_link"]
     search_fields = ["title_original", "description_original"]
     actions = ["export_selected_questions_data"]
+    list_filter = [
+        "type",
+        "related_posts__post__curation_status",
+        AutocompleteFilterFactory("Author", "related_posts__post__author"),
+        AutocompleteFilterFactory(
+            "Default Project", "related_posts__post__default_project"
+        ),
+        AutocompleteFilterFactory("Project", "related_posts__post__projects"),
+    ]
 
     autocomplete_fields = ["group"]
+
+    def forecasts(self, obj):
+        return obj.user_forecasts.count()
+
+    def author(self, obj):
+        return obj.related_posts.first().post.author
+
+    author.admin_order_field = "related_posts__post__author"
+
+    def curation_status(self, obj):
+        return obj.related_posts.first().post.curation_status
+
+    curation_status.admin_order_field = "related_posts__post__curation_status"
+
+    def post_link(self, obj):
+        post = obj.related_posts.first().post
+        url = reverse("admin:posts_post_change", args=[post.id])
+        return format_html('<a href="{}">{}</a>', url, f"Post-{post.id}")
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        if "post_link" in fields:
+            fields.remove("post_link")
+        fields.insert(0, "post_link")
+        return fields
 
     def get_actions(self, request):
         actions = super().get_actions(request)
