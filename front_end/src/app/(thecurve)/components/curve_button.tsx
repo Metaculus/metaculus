@@ -52,7 +52,7 @@ const CurveButton: FC<Props> = ({ questionNumber, forecastedNumber }) => {
           })}
         </p>
       )}
-      <Button className="mt-4 !px-5 !text-lg" href="/thecurve/forecasts">
+      <Button className="mt-4 !px-5 !text-lg" href="/thecurve/survey">
         {t("startForecasting")}
       </Button>
     </div>

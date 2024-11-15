@@ -940,5 +940,8 @@
   "forecastedOn": "You forecasted on <bold>{forecastedNumber}</bold> of <bold>{questionNumber}</bold> available questions",
   "startForecasting": "Start forecasting",
   "curveIntroduction": "Some introductory text goes here",
-  "reciprocalSurvey": "Reciprocal Survey"
+  "reciprocalSurvey": "Reciprocal Survey",
+  "viewTournamentPage": "View Tournament Page",
+  "visitTournamentPage": "If you’d like to change your forecasts, visit the Tournament Page.",
+  "forecastedAllQuestions": "You’ve forecasted on all {questionNumber} questions!"
 }
