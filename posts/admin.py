@@ -26,6 +26,7 @@ class PostAdmin(CustomTranslationAdmin):
         "curation_status",
         "published_at",
         "default_project",
+        "other_project_count",
     ]
     list_filter = [
         AutocompleteFilterFactory("Author", "author"),
@@ -46,6 +47,9 @@ class PostAdmin(CustomTranslationAdmin):
     search_fields = ["title_original"]
     readonly_fields = ["notebook"]
     actions = ["export_selected_posts_data", "update_translations"]
+
+    def other_project_count(self, obj):
+        return obj.projects.count()
 
     def get_actions(self, request):
         actions = super().get_actions(request)

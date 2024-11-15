@@ -1,8 +1,16 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
+from django import forms
 from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
 from django.db.models import QuerySet, Q
 from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import path
+from django_select2.forms import ModelSelect2MultipleWidget
+from django.contrib.admin.widgets import FilteredSelectMultiple
 
+from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.services.common import update_with_add_posts_to_main_feed
 from questions.models import Question
@@ -41,15 +49,6 @@ class ProjectUserPermissionAdmin(admin.ModelAdmin):
     autocomplete_fields = ["user", "project"]
 
 
-class ProjectUserPermissionInline(admin.TabularInline):
-    model = ProjectUserPermission
-    extra = 1
-    autocomplete_fields = ("user",)
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).none()
-
-
 class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
     title = "Visibility"  # Display title in the admin
     parameter_name = "default_permission"  # Query parameter
@@ -68,6 +67,131 @@ class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
         return queryset
 
 
+class ProjectUserPermissionInline(admin.TabularInline):
+    model = ProjectUserPermission
+    extra = 1
+    autocomplete_fields = ("user",)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).none()
+
+
+class PostSelect2MultipleWidget(ModelSelect2MultipleWidget):
+    model = Post
+    search_fields = ["title__icontains"]  # Remove 'id__exact'
+
+    def filter_queryset(self, request, term, queryset=None, **kwargs):
+        if queryset is None:
+            queryset = self.get_queryset()
+        qs = queryset.none()
+        if term:
+            qs = queryset.filter(title__icontains=term)
+        if term.isdigit():
+            qs = qs | queryset.filter(id=int(term))
+        return qs
+
+
+class AddPostsToProjectForm(forms.Form):
+    posts = forms.ModelMultipleChoiceField(
+        queryset=Post.objects.all(),
+        label="Select Posts to Add (id search only for the moment)",
+        widget=PostSelect2MultipleWidget(),
+        required=True,
+    )
+
+
+class PostDefaultProjectInlineForm(forms.ModelForm):
+    remove_from_project = forms.BooleanField(
+        required=False,
+        label="Remove from Project",
+        widget=forms.CheckboxInput(),
+    )
+
+    class Meta:
+        model = Post
+        fields = ["curation_status", "remove_from_project"]
+
+
+class PostDefaultProjectInline(admin.TabularInline):
+    model = Post
+    form = PostDefaultProjectInlineForm
+    extra = 0
+    fields = (
+        "title_link",
+        "curation_status",
+        "published_at",
+        "remove_from_project",
+    )
+    readonly_fields = (
+        "title_link",
+        "published_at",
+    )
+    can_delete = False
+    verbose_name = "Post with this as Default Project"
+    verbose_name_plural = "Posts with this as Default Project"
+
+    def title_link(self, obj):
+        url = reverse("admin:posts_post_change", args=[obj.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.title)
+
+    title_link.short_description = "Title"
+
+
+class PostProjectInlineForm(forms.ModelForm):
+    remove_from_project = forms.BooleanField(
+        required=False,
+        label="Remove from Project",
+        widget=forms.CheckboxInput(),
+    )
+
+    class Meta:
+        model = Post.projects.through
+        fields = ["remove_from_project"]
+
+
+class PostProjectInline(admin.TabularInline):
+    model = Post.projects.through
+    form = PostProjectInlineForm
+    extra = 0
+    fields = (
+        "title_link",
+        "curation_status",
+        "published_at",
+        "default_project",
+        "remove_from_project",
+    )
+    readonly_fields = (
+        "title_link",
+        "curation_status",
+        "published_at",
+        "default_project",
+    )
+    can_delete = False
+    verbose_name = "Post with this as a Project (not Default)"
+    verbose_name_plural = "Posts with this as a Project (not Default)"
+
+    def title_link(self, obj):
+        url = reverse("admin:posts_post_change", args=[obj.post.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.post.title)
+
+    title_link.short_description = "Title"
+
+    def curation_status(self, obj):
+        return obj.post.curation_status
+
+    curation_status.short_description = "Curation Status"
+
+    def published_at(self, obj):
+        return obj.post.published_at
+
+    published_at.short_description = "Published At"
+
+    def default_project(self, obj):
+        return obj.default_project
+
+    default_project.short_description = "Default Project"
+
+
 @admin.register(Project)
 class ProjectAdmin(CustomTranslationAdmin):
     list_display = [
@@ -76,12 +200,23 @@ class ProjectAdmin(CustomTranslationAdmin):
         "created_at",
         "default_permission",
         "add_posts_to_main_feed",
+        "order",
+        "view_default_posts_link",
+        "view_posts_link",
     ]
-    list_filter = ["type", "show_on_homepage", ProjectDefaultPermissionFilter]
+    list_filter = [
+        "type",
+        "show_on_homepage",
+        ProjectDefaultPermissionFilter,
+    ]
     search_fields = ["type", "name_original", "slug"]
     autocomplete_fields = ["created_by", "primary_leaderboard"]
     ordering = ["-created_at"]
-    inlines = [ProjectUserPermissionInline]
+    inlines = [
+        ProjectUserPermissionInline,
+        PostDefaultProjectInline,
+        PostProjectInline,
+    ]
     actions = [
         "update_leaderboards",
         "export_questions_data_for_projects",
@@ -148,3 +283,110 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
 
     toggle_add_posts_to_main_feed.short_description = "Toggle Add Posts to Main Feed"
+
+    def view_default_posts_link(self, obj):
+        count = Post.objects.filter(default_project=obj).distinct().count()
+        url = (
+            reverse("admin:posts_post_changelist")
+            + "?"
+            + f"default_project__id__exact={obj.id}"
+        )
+        return format_html('<a href="{}">{} Posts</a>', url, count)
+
+    view_default_posts_link.short_description = "Default Posts"
+
+    def view_posts_link(self, obj):
+        count = Post.objects.filter(projects=obj).distinct().count()
+        url = (
+            reverse("admin:posts_post_changelist")
+            + "?"
+            + f"projects__id__exact={obj.id}"
+        )
+        return format_html('<a href="{}">{} Posts</a>', url, count)
+
+    view_posts_link.short_description = "Posts"
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        parent_obj = form.instance  # Get the Project instance
+
+        for form_obj in formset.forms:
+            instance = form_obj.instance
+            if form_obj.cleaned_data.get("remove_from_project"):
+                # Remove the instance from the project
+                if isinstance(instance, Post):
+                    if instance.default_project == parent_obj:
+                        instance.default_project = None
+                        instance.save()
+                elif isinstance(instance, Post.projects.through):
+                    instance.delete()
+            else:
+                instance.save()
+        formset.save_m2m()
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:project_id>/add-default-posts/",
+                self.admin_site.admin_view(self.add_default_posts_view),
+                name="add-default-posts-to-project",
+            ),
+            path(
+                "<int:project_id>/add-posts/",
+                self.admin_site.admin_view(self.add_posts_view),
+                name="add-posts-to-project",
+            ),
+        ]
+        return custom_urls + urls
+
+    def add_default_posts_view(self, request, project_id):
+        project = get_object_or_404(Project, pk=project_id)
+        if request.method == "POST":
+            form = AddPostsToProjectForm(request.POST)
+            if form.is_valid():
+                posts = form.cleaned_data["posts"]
+                for post in posts:
+                    post.default_project = project
+                    post.save()
+                self.message_user(
+                    request,
+                    f"Added {posts.count()} posts to project '{project.name}' as default project.",
+                )
+                return redirect("admin:projects_project_change", project_id)
+        else:
+            form = AddPostsToProjectForm()
+
+        context = {
+            **self.admin_site.each_context(request),
+            "form": form,
+            "project": project,
+            "opts": self.model._meta,
+            "title": f"Add Default Posts to {project.name} (will overwrite current default_project)",
+        }
+        return render(request, "admin/projects/add_posts_to_project.html", context)
+
+    def add_posts_view(self, request, project_id):
+        project = get_object_or_404(Project, pk=project_id)
+        if request.method == "POST":
+            form = AddPostsToProjectForm(request.POST)
+            if form.is_valid():
+                posts = form.cleaned_data["posts"]
+                for post in posts:
+                    post.projects.add(project)
+                self.message_user(
+                    request,
+                    f"Added {posts.count()} posts to project '{project.name}' as default project.",
+                )
+                return redirect("admin:projects_project_change", project_id)
+        else:
+            form = AddPostsToProjectForm()
+
+        context = {
+            **self.admin_site.each_context(request),
+            "form": form,
+            "project": project,
+            "opts": self.model._meta,
+            "title": f"Add Posts to {project.name}",
+        }
+        return render(request, "admin/projects/add_posts_to_project.html", context)

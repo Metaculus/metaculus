@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "notifications",
     "fab_management",
     "fab_credits",
+    "django_select2",
 ]
 
 MIDDLEWARE = [
@@ -190,7 +191,9 @@ AUTHENTICATION_BACKENDS = (
     "social_core.backends.google.GoogleOAuth2",
 )
 # Should we verify email or always set `User.is_active = True`
-AUTH_SIGNUP_VERIFY_EMAIL = os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
+AUTH_SIGNUP_VERIFY_EMAIL = (
+    os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
+)
 
 if DEBUG:
     # Allow to authenticate without correst password in development
