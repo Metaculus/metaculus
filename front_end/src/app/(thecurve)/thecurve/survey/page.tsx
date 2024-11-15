@@ -6,9 +6,9 @@ import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { PostStatus } from "@/types/post";
 
+import CurveHeader from "../../components/curve_header";
 import Survey from "../../components/curve_survey";
-
-const curveSlug = "the-curve";
+import { curveSlug } from "../../constants";
 
 export default async function TheCurve() {
   const t = await getTranslations();
@@ -36,11 +36,19 @@ export default async function TheCurve() {
   if (notPredictedQuestions === 0) {
     redirect("/thecurve");
   }
+  console.log("===response===");
   console.log(response);
+  console.log("===response===");
 
   return (
-    <main className="flex flex-grow justify-center bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% dark:from-blue-100-dark dark:to-blue-200-dark">
-      <Survey questions={response.results} />
-    </main>
+    <>
+      <CurveHeader
+        layout="survey"
+        notPredictedQuestions={notPredictedQuestions}
+      />
+      <main className="flex flex-grow justify-center bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% dark:from-blue-100-dark dark:to-blue-200-dark">
+        <Survey questions={response.results} />
+      </main>
+    </>
   );
 }

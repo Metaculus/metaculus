@@ -40,7 +40,8 @@ const CurveIntro: FC<Props> = ({
         </p>
       </div>
 
-      {questionNumber && questionNumber === questionIndex + 1 ? (
+      {questionNumber === forecastedNumber ||
+      questionNumber === questionIndex + 1 ? (
         <>
           <h2 className="m-0 mt-9 max-w-[330px] text-center text-3xl font-medium lg:max-w-[500px]">
             {t("forecastedAllQuestions", { questionNumber })}

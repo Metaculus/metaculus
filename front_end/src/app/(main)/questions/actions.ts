@@ -109,11 +109,12 @@ export async function removePostFromProject(postId: number, projectId: number) {
 
 export async function createForecasts(
   postId: number,
-  forecasts: ForecastPayload[]
+  forecasts: ForecastPayload[],
+  revalidate = true
 ) {
   try {
     const response = await QuestionsApi.createForecasts(forecasts);
-    revalidatePath(`/questions/${postId}`);
+    revalidate && revalidatePath(`/questions/${postId}`);
   } catch (err) {
     const error = err as FetchError;
 

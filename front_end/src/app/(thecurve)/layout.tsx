@@ -24,7 +24,7 @@ export default async function RootLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <SurveyProvider>
-        <CurveHeader />
+        {/* <CurveHeader /> */}
         <Bulletins />
         <div className="flex flex-grow">{children}</div>
         <CookiesBanner />

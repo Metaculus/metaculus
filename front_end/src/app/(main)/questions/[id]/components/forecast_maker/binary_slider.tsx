@@ -1,5 +1,6 @@
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
@@ -19,6 +20,7 @@ type Props = {
   communityForecast?: number | null;
   disabled?: boolean;
   helperDisplay?: boolean;
+  className?: string;
 };
 
 const BinarySlider: FC<Props> = ({
@@ -29,6 +31,7 @@ const BinarySlider: FC<Props> = ({
   onBecomeDirty,
   disabled = false,
   helperDisplay = false,
+  className,
 }) => {
   const inputDisplayValue = forecast ? forecast.toString() + "%" : "—";
   const [inputValue, setInputValue] = useState(inputDisplayValue);
@@ -74,7 +77,7 @@ const BinarySlider: FC<Props> = ({
 
   return (
     <>
-      <div className="group relative mx-6 mt-8 h-16">
+      <div className={classNames("group relative mx-6 mt-8 h-16", className)}>
         <Slider
           inputMin={BINARY_MIN_VALUE}
           inputMax={BINARY_MAX_VALUE}
