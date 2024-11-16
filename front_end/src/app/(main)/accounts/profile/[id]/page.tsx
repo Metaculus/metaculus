@@ -71,7 +71,6 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
             </span>
           )}
           {currentUser?.is_staff && (
-            // soft delete with ProfileApi.softDeleteUser
             <span className="inline">
               <SoftDeleteButton id={id} />
             </span>

@@ -311,7 +311,7 @@ const Comment: FC<CommentProps> = ({
       id: "deleteUser",
       name: t("softDeleteUserButton"),
       onClick: async () => {
-        //probably change this to a modal
+        // change this to the "soft_delete_button" component with modal
         const response = await softDeleteUserAction(comment.author.id);
 
         if (response && "errors" in response) {

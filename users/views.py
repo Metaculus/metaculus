@@ -381,9 +381,6 @@ def serialize_profile(
 @api_view(["POST"])
 @permission_classes([IsAdminUser])
 def soft_delete_user_api_view(request, pk):
-    """
-    Soft delete a user.
-    """
     user_to_delete: User = get_object_or_404(User, pk=pk)
     user_to_delete.soft_delete()
     return Response(status=status.HTTP_200_OK)
