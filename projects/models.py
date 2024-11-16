@@ -214,7 +214,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     created_by = models.ForeignKey(
         User,
-        models.CASCADE,
+        on_delete=models.CASCADE,  # TODO: change to SET_NULL
         related_name="created_projects",
         default=None,
         null=True,

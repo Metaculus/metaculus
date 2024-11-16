@@ -36,6 +36,7 @@ import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
 
 import { SortOption, sortComments } from ".";
+import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
@@ -300,6 +301,21 @@ const Comment: FC<CommentProps> = ({
 
         if (response && "errors" in response) {
           console.error("Error deleting comment:", response.errors);
+        } else {
+          setIsDeleted(true);
+        }
+      },
+    },
+    {
+      hidden: !user?.is_staff,
+      id: "deleteUser",
+      name: t("softDeleteUserButton"),
+      onClick: async () => {
+        // change this to the "soft_delete_button" component with modal
+        const response = await softDeleteUserAction(comment.author.id);
+
+        if (response && "errors" in response) {
+          console.error("Error deleting User:", response.errors);
         } else {
           setIsDeleted(true);
         }

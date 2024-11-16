@@ -45,6 +45,18 @@ export default async function changeUsernameAction(
   }
 }
 
+export async function softDeleteUserAction(userId: number) {
+  try {
+    return await ProfileApi.softDeleteUser(userId);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export type UpdateProfileState = {
   errors?: any;
   user?: CurrentUser;

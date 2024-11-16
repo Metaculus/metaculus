@@ -1,17 +1,25 @@
+from typing import TYPE_CHECKING
 from datetime import timedelta, datetime
 
 import dateutil.parser
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from utils.models import TimeStampedModel
+
+if TYPE_CHECKING:
+    from comments.models import Comment
+    from posts.models import Post
 
 
 class User(TimeStampedModel, AbstractUser):
     # typing
     id: int
+    comment_set: QuerySet["Comment"]
+    posts: QuerySet["Post"]
 
     # Profile data
     bio = models.TextField(default="", blank=True)
@@ -78,3 +86,17 @@ class User(TimeStampedModel, AbstractUser):
     def update_username(self, val: str):
         self.old_usernames.append((self.username, timezone.now().isoformat()))
         self.username = val
+
+    def soft_delete(self: "User"):
+        # set to inactive
+        self.is_active = False
+
+        # set soft delete comments
+        self.comment_set.update(is_soft_deleted=True)
+
+        # soft delete posts
+        from posts.models import Post
+
+        self.posts.update(curation_status=Post.CurationStatus.DELETED)
+
+        self.save()
