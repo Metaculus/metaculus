@@ -8,7 +8,6 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import path
 from django_select2.forms import ModelSelect2MultipleWidget
-from django.contrib.admin.widgets import FilteredSelectMultiple
 
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
@@ -313,8 +312,8 @@ class ProjectAdmin(CustomTranslationAdmin):
     view_posts_link.short_description = "Posts"
 
     def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-        parent_obj = form.instance  # Get the Project instance
+        formset.save(commit=False)
+        parent_obj = form.instance
 
         for form_obj in formset.forms:
             instance = form_obj.instance

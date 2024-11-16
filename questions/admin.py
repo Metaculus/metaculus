@@ -1,6 +1,5 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
-from django.utils.safestring import mark_safe
 from django.db.models import QuerySet
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django.http import HttpResponse
