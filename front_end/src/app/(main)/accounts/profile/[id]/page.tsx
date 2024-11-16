@@ -16,6 +16,7 @@ import { ProfilePageMode } from "@/types/users";
 
 import ProfilePageTabs from "./components/profile_page_tab";
 import ChangeUsername from "../components/change_username";
+import SoftDeleteButton from "../components/soft_delete_button";
 import TrackRecord from "../components/track_record";
 
 type Props = {
@@ -67,6 +68,12 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
           {isCurrentUser && (
             <span className="inline">
               <ChangeUsername />
+            </span>
+          )}
+          {currentUser?.is_staff && (
+            // soft delete with ProfileApi.softDeleteUser
+            <span className="inline">
+              <SoftDeleteButton id={id} />
             </span>
           )}
         </div>

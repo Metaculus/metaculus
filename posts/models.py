@@ -402,7 +402,9 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     title = models.CharField(max_length=2000, blank=True)
     url_title = models.CharField(max_length=2000, default="", blank=True)
-    author = models.ForeignKey(User, models.CASCADE, related_name="posts")
+    author = models.ForeignKey(
+        User, models.CASCADE, related_name="posts"
+    )  # are we sure we want this?
     coauthors = models.ManyToManyField(
         User, related_name="coauthored_posts", blank=True
     )

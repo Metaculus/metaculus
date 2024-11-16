@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from scipy.stats import binom
@@ -376,6 +376,17 @@ def serialize_profile(
         data.update(get_user_profile_data(user))
         data.update(get_authoring_stats_data(user))
     return data
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def soft_delete_user_api_view(request, pk):
+    """
+    Soft delete a user.
+    """
+    user_to_delete: User = get_object_or_404(User, pk=pk)
+    user_to_delete.soft_delete()
+    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])

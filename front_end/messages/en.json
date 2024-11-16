@@ -440,6 +440,8 @@
   "myDivergence": "My Divergence",
   "profile": "Profile",
   "changeUsernameButton": "change",
+  "softDeleteUserButton": "Soft Delete User",
+  "softDeleteUser?": "Are you sure you want to soft delete this user?",
   "memberSince": "Member Since",
   "bio": "Bio",
   "website": "Website",

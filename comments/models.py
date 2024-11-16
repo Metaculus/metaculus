@@ -80,7 +80,7 @@ class CommentQuerySet(models.QuerySet):
 class Comment(TimeStampedModel, TranslatedModel):  # type: ignore
     comment_votes: QuerySet["CommentVote"]
 
-    author = models.ForeignKey(User, models.CASCADE)
+    author = models.ForeignKey(User, models.CASCADE)  # are we sure we want this?
     parent = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
@@ -130,7 +130,7 @@ class Comment(TimeStampedModel, TranslatedModel):  # type: ignore
 
 class CommentDiff(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE)
-    author = models.ForeignKey(User, models.CASCADE)
+    author = models.ForeignKey(User, models.CASCADE)  # are we sure we want this?
     text_diff = models.TextField()
 
 

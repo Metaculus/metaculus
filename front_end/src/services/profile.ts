@@ -16,6 +16,10 @@ class ProfileApi {
     return await get<CurrentUser>("/users/me/");
   }
 
+  static async softDeleteUser(id: number): Promise<Response | null> {
+    return post(`/users/${id}/soft-delete/`, {});
+  }
+
   static async getProfileById(id: number): Promise<CurrentUser> {
     return await get<CurrentUser>(`/users/${id}/`);
   }
