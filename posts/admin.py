@@ -2,6 +2,8 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 from django.db.models import QuerySet
 from django.http import HttpResponse
+from django.utils.html import format_html
+from django.urls import reverse
 
 from posts.models import Post, Notebook
 from questions.models import Question
@@ -26,12 +28,15 @@ class PostAdmin(CustomTranslationAdmin):
         "curation_status",
         "published_at",
         "default_project",
+        "other_project_count",
     ]
     list_filter = [
+        "curation_status",
+        "resolved",
         AutocompleteFilterFactory("Author", "author"),
         "show_on_homepage",
-        AutocompleteFilterFactory("Project", "projects"),
         AutocompleteFilterFactory("Default Project", "default_project"),
+        AutocompleteFilterFactory("Project", "projects"),
     ]
     autocomplete_fields = [
         "author",
@@ -46,6 +51,9 @@ class PostAdmin(CustomTranslationAdmin):
     search_fields = ["title_original"]
     readonly_fields = ["notebook"]
     actions = ["export_selected_posts_data", "update_translations"]
+
+    def other_project_count(self, obj):
+        return obj.projects.count()
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -102,4 +110,51 @@ class PostAdmin(CustomTranslationAdmin):
 
 @admin.register(Notebook)
 class NotebookAdmin(CustomTranslationAdmin):
-    list_display = ["__str__", "post"]
+    list_display = [
+        "title",
+        "type",
+        "author",
+        "curation_status",
+        "published_at",
+        "comments",
+        "votes",
+        "post_link",
+    ]
+    readonly_fields = ["post_link"]
+    search_fields = ["post__title_original"]
+    list_filter = [
+        AutocompleteFilterFactory("Default Project", "post__default_project"),
+        AutocompleteFilterFactory("Project", "post__projects"),
+    ]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).distinct()
+
+    def title(self, obj):
+        return obj.post.title
+
+    def author(self, obj):
+        return obj.post.author
+
+    author.admin_order_field = "post__author"
+
+    def curation_status(self, obj):
+        return obj.post.curation_status
+
+    def published_at(self, obj):
+        return obj.post.published_at
+
+    published_at.admin_order_field = "post__published_at"
+
+    def comments(self, obj):
+        return obj.post.comments.count()
+
+    def votes(self, obj):
+        return obj.post.votes.count()
+
+    votes.admin_order_field = "post__votes"
+
+    def post_link(self, obj):
+        post = obj.post
+        url = reverse("admin:posts_post_change", args=[post.id])
+        return format_html('<a href="{}">{}</a>', url, f"Post-{post.id}")

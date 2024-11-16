@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 
@@ -11,4 +11,5 @@ urlpatterns = [
         views.remove_article_api_view,
         name="itn-article-remove",
     ),
+    path("select2/", include("django_select2.urls")),
 ]
