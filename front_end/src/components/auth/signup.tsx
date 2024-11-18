@@ -205,7 +205,7 @@ const SignUpModal: FC<SignInModalType> = ({
 
   return (
     <BaseModal
-      // className="mx-3"
+      className="mx-3"
       label={t("registrationHeadingSite")}
       isOpen={isOpen}
       onClose={onClose}

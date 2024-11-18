@@ -37,8 +37,8 @@ const BinarySlider: FC<Props> = ({
   styles,
 }) => {
   const inputDisplayValue = forecast ? forecast.toString() + "%" : "—";
-  const [_inputValue, setInputValue] = useState(inputDisplayValue);
-  const [isInputFocused, _setIsInputFocused] = useState(false);
+  const [, setInputValue] = useState(inputDisplayValue);
+  const [isInputFocused] = useState(false);
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
   );

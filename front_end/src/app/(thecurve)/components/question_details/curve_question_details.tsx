@@ -1,10 +1,13 @@
 "use client";
 
+import { faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import MarkdownEditor from "@/components/markdown_editor";
+import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
 
 import "./styles.css";
@@ -13,14 +16,17 @@ type Props = {
   question: PostWithForecasts;
   expandLabel?: string;
   collapseLabel?: string;
+  onCollapse: () => void;
 };
 
 const CurveQuestionDetails: FC<Props> = ({
   question,
   expandLabel: _expandLabel,
   collapseLabel: _collapseLabel,
+  onCollapse,
 }) => {
   const t = useTranslations();
+  const collapseLabel = _collapseLabel ?? t("collapse");
 
   return (
     <div className={classNames("flex flex-col")}>
@@ -46,6 +52,24 @@ const CurveQuestionDetails: FC<Props> = ({
           />
         </>
       )}
+      <div className="sticky bottom-0 left-0 -mx-5 h-12 w-full bg-blue-800/90">
+        <Button
+          variant="text"
+          className={classNames(
+            "z-10 mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500"
+          )}
+          onClick={onCollapse}
+        >
+          <FontAwesomeIcon
+            icon={faChevronUp}
+            className="m-0"
+            width={10}
+            height={10}
+          />
+
+          {collapseLabel}
+        </Button>
+      </div>
     </div>
   );
 };

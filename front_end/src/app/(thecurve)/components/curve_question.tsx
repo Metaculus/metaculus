@@ -1,6 +1,6 @@
 "use client";
 
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
@@ -26,7 +26,6 @@ const CurveQuestion: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const expandLabel = _expandLabel ?? t("details");
-  const collapseLabel = _collapseLabel ?? t("collapse");
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [maxDetailsHeight, setMaxDetailsHeight] = useState<number>(500);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -37,6 +36,7 @@ const CurveQuestion: FC<Props> = ({
       setMaxDetailsHeight(windowHeight - wrapperHeight - HEADER_HEIGHT);
     }
   }, [isExpanded]);
+
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <div className="max-h-[calc(100vh-48px)] w-full overflow-y-auto bg-blue-800 p-5 pb-3 md:rounded-t">
@@ -44,31 +44,36 @@ const CurveQuestion: FC<Props> = ({
           {post.title}
         </h1>
 
-        <Button
-          variant="text"
-          className={classNames(
-            "z-10 mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500"
-          )}
-          onClick={() => setIsExpanded((prev) => !prev)}
-        >
-          <FontAwesomeIcon
-            icon={isExpanded ? faChevronUp : faChevronDown}
-            className="m-0"
-            width={10}
-            height={10}
-          />
+        {!isExpanded && (
+          <Button
+            variant="text"
+            className={classNames(
+              "sticky z-10 mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500"
+            )}
+            onClick={() => setIsExpanded(true)}
+          >
+            <FontAwesomeIcon
+              icon={faChevronDown}
+              className="m-0"
+              width={10}
+              height={10}
+            />
 
-          {isExpanded ? collapseLabel : expandLabel}
-        </Button>
+            {expandLabel}
+          </Button>
+        )}
+        {isExpanded && (
+          <div
+            className="absolute left-0 top-full z-50 w-full overflow-y-scroll bg-blue-800 p-5 py-0 lg:!max-h-[510px]"
+            style={{ maxHeight: `${maxDetailsHeight}px` }}
+          >
+            <CurveQuestionDetails
+              question={post}
+              onCollapse={() => setIsExpanded(false)}
+            />
+          </div>
+        )}
       </div>
-      {isExpanded && (
-        <div
-          className="absolute top-full z-50 overflow-y-scroll bg-blue-800 p-5 pt-0 lg:!max-h-[510px]"
-          style={{ maxHeight: `${maxDetailsHeight}px` }}
-        >
-          <CurveQuestionDetails question={post} />
-        </div>
-      )}
     </div>
   );
 };
