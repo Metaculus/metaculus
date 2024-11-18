@@ -114,6 +114,10 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
     ),
+    robots:
+      process.env.NEXT_PUBLIC_DISALLOW_ALL_BOTS === "true"
+        ? { index: false, follow: true }
+        : null,
   };
 }
 
