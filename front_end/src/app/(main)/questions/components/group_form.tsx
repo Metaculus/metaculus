@@ -217,21 +217,27 @@ const GroupForm: React.FC<Props> = ({
     }
   };
 
-  const [subQuestions, setSubQuestions] = useState<any[]>(
+  const [subQuestions, setSubQuestions] = useState<any[]>(() =>
     post?.group_of_questions?.questions
-      ? post?.group_of_questions?.questions.map((x) => {
-          return {
-            id: x.id,
-            scheduled_close_time: x.scheduled_close_time,
-            scheduled_resolve_time: x.scheduled_resolve_time,
-            open_time: x.open_time,
-            cp_reveal_time: x.cp_reveal_time,
-            label: x.label,
-            scaling: x.scaling,
-            open_lower_bound: x.open_lower_bound,
-            open_upper_bound: x.open_upper_bound,
-          };
-        })
+      ? post?.group_of_questions?.questions
+          .sort(
+            (a, b) =>
+              new Date(a.created_at).getTime() -
+              new Date(b.created_at).getTime()
+          )
+          .map((x) => {
+            return {
+              id: x.id,
+              scheduled_close_time: x.scheduled_close_time,
+              scheduled_resolve_time: x.scheduled_resolve_time,
+              open_time: x.open_time,
+              cp_reveal_time: x.cp_reveal_time,
+              label: x.label,
+              scaling: x.scaling,
+              open_lower_bound: x.open_lower_bound,
+              open_upper_bound: x.open_upper_bound,
+            };
+          })
       : []
   );
   const [categoriesList, setCategoriesList] = useState<Category[]>(
@@ -671,56 +677,68 @@ const GroupForm: React.FC<Props> = ({
           <div className="flex justify-between">
             <Button
               onClick={() => {
-                if (subtype === "numeric") {
+                if (subQuestions.length > 0) {
+                  // Clone subquestion attributes from the previous one
                   setSubQuestions([
                     ...subQuestions,
                     {
-                      type: "numeric",
+                      ...subQuestions[subQuestions.length - 1],
+                      id: undefined,
                       label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                      scaling: {
-                        range_min: null,
-                        range_max: null,
-                        zero_point: null,
-                      },
-                      open_lower_bound: null,
-                      open_upper_bound: null,
-                    },
-                  ]);
-                } else if (subtype === "date") {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "date",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                      scaling: {
-                        range_min: null,
-                        range_max: null,
-                        zero_point: null,
-                      },
-                      open_lower_bound: null,
-                      open_upper_bound: null,
                     },
                   ]);
                 } else {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "binary",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                    },
-                  ]);
+                  if (subtype === "numeric") {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: "numeric",
+                        label: "",
+                        scheduled_close_time:
+                          control.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          control.getValues().scheduled_resolve_time,
+                        scaling: {
+                          range_min: null,
+                          range_max: null,
+                          zero_point: null,
+                        },
+                        open_lower_bound: null,
+                        open_upper_bound: null,
+                      },
+                    ]);
+                  } else if (subtype === "date") {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: "date",
+                        label: "",
+                        scheduled_close_time:
+                          control.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          control.getValues().scheduled_resolve_time,
+                        scaling: {
+                          range_min: null,
+                          range_max: null,
+                          zero_point: null,
+                        },
+                        open_lower_bound: null,
+                        open_upper_bound: null,
+                      },
+                    ]);
+                  } else {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: "binary",
+                        label: "",
+                        scheduled_close_time:
+                          control.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          control.getValues().scheduled_resolve_time,
+                      },
+                    ]);
+                  }
                 }
                 setCollapsedSubQuestions([...collapsedSubQuestions, true]);
               }}
