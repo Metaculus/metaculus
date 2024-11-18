@@ -50,7 +50,7 @@ const CurveIntro: FC<Props> = ({
             {t("visitTournamentPage")}
           </p>
           <Button
-            className="mt-4 !px-5 !text-lg"
+            className="mt-6 !border-gray-700 !px-5 !text-lg !text-gray-700 dark:!border-gray-700-dark dark:!text-gray-700-dark"
             href={`/tournament/${tournamentSlug}`}
           >
             {t("viewTournamentPage")}

@@ -59,13 +59,13 @@ const CurveButton: FC<Props> = ({ questionNumber, forecastedNumber }) => {
         </p>
       )}
       <Button
-        className="mt-4 !px-5 !text-lg"
+        className="mt-4 !border-gray-700 !px-5 !text-lg !text-gray-700 dark:!border-gray-700-dark dark:!text-gray-700-dark"
         onClick={() => {
           setQuestionIndex(0);
           router.push("/thecurve/survey");
         }}
       >
-        {t("startForecasting")}
+        {!!forecastedNumber ? t("continueForecasting") : t("startForecasting")}
       </Button>
     </div>
   );

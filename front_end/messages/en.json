@@ -945,6 +945,7 @@
   "questionsToForecast": "There are <bold>{questionNumber} questions</bold> to forecast.",
   "forecastedOn": "You forecasted on <bold>{forecastedNumber}</bold> of <bold>{questionNumber}</bold> available questions",
   "startForecasting": "Start forecasting",
+  "continueForecasting": "Continue forecasting",
   "curveIntroduction": "Some introductory text goes here",
   "curveHistogramHeader": "Check out how your answers compare to the rest of the group. When you’re ready, click Next Question.",
   "nextQuestion": "Next Question",
