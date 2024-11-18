@@ -5,8 +5,8 @@ import type { Metadata } from "next";
 import { defaultDescription } from "@/constants/metadata";
 import SurveyProvider from "@/contexts/survey_context";
 
-import Bulletins from "../(main)/components/bulletins";
-import CookiesBanner from "../(main)/components/cookies_banner";
+import Bulletins from "../../(main)/components/bulletins";
+import CookiesBanner from "../../(main)/components/cookies_banner";
 
 config.autoAddCss = false;
 

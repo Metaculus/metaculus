@@ -52,11 +52,11 @@ const CurveQuestionDetails: FC<Props> = ({
           />
         </>
       )}
-      <div className="sticky bottom-0 left-0 -mx-5 h-12 w-full bg-blue-800/90">
+      <div className="sticky bottom-0 left-0 -mx-5 flex h-12 w-full items-end bg-gradient-to-t from-blue-800 from-20% pb-3 dark:from-blue-800-dark">
         <Button
           variant="text"
           className={classNames(
-            "z-10 mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500"
+            "z-10 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500"
           )}
           onClick={onCollapse}
         >

@@ -1,4 +1,5 @@
 "use client";
+import { isNil } from "lodash";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
@@ -41,7 +42,7 @@ const CurveIntro: FC<Props> = ({
       </div>
 
       {questionNumber === forecastedNumber ||
-      (questionIndex && notForecastedNumber <= questionIndex + 1) ? (
+      (!isNil(questionIndex) && notForecastedNumber <= questionIndex + 1) ? (
         <>
           <h2 className="m-0 mt-9 max-w-[330px] text-center text-3xl font-medium lg:max-w-[500px]">
             {t("forecastedAllQuestions", { questionNumber })}
