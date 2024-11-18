@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block inline_field_sets %}
+    {% if original.id %}
     <div class="form-row">
         <a href="{% url 'admin:add-default-posts-to-project' original.id %}" class="addlink">
             Add Posts (set this as Post's Default Project)
@@ -19,5 +20,6 @@
                 href="{% url 'admin:projects_projectuserpermission_changelist' %}?project={{ original.id }}">[Edit
             permissions]</a></h3>
     </div>
+    {% endif %}
     {{ block.super }}
 {% endblock %}
