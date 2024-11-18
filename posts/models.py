@@ -566,9 +566,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         Notebook, models.CASCADE, related_name="post", null=True, blank=True
     )
 
-    # TODO: make required in the future
     default_project = models.ForeignKey(
-        Project, related_name="default_posts", on_delete=models.PROTECT, null=True
+        Project, related_name="default_posts", on_delete=models.PROTECT, null=False
     )
     projects = models.ManyToManyField(Project, related_name="posts", blank=True)
     users = models.ManyToManyField(User, through="PostUserSnapshot")
