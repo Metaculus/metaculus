@@ -64,8 +64,8 @@ const MultipleChoiceGroupChart: FC<Props> = ({
     type === "continuous" ? getContinuousGroupScaling(questions) : undefined;
 
   const userForecasts = useMemo(
-    () => (user ? generateUserForecasts(questions) : undefined),
-    [user, questions]
+    () => (user ? generateUserForecasts(questions, scaling) : undefined),
+    [user, questions, scaling]
   );
 
   const timestampsCount = timestamps.length;
