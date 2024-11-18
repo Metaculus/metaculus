@@ -7,12 +7,14 @@ import { PostStatus } from "@/types/post";
 
 import CurveHeader from "../../components/curve_header";
 import Survey from "../../components/curve_survey";
-import { curveSlug } from "../../constants";
+import { THECURVE_TOURNAMENT_SLUG } from "../../constants";
 
 export default async function TheCurve() {
   const user = await ProfileApi.getMyProfile();
 
-  const tournament = await ProjectsApi.getSlugTournament(curveSlug);
+  const tournament = await ProjectsApi.getSlugTournament(
+    THECURVE_TOURNAMENT_SLUG
+  );
   if (!tournament) {
     return notFound();
   }
@@ -23,7 +25,7 @@ export default async function TheCurve() {
 
   const tournamentFilter = {
     statuses: PostStatus.APPROVED,
-    tournaments: curveSlug,
+    tournaments: THECURVE_TOURNAMENT_SLUG,
     not_forecaster_id: String(user.id),
     limit: tournament.posts_count,
   };

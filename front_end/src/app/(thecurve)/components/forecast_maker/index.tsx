@@ -99,7 +99,7 @@ const CurveForecastMaker: FC<Props> = ({
       </p>
       <div className="mt-4 flex w-full flex-col items-center rounded bg-[#A9C0D64D]/30 p-6 dark:bg-[#A9C0D64D]/30">
         {questionOptions.map((option, idx) => (
-          <React.Fragment key={idx}>
+          <React.Fragment key={`forecast-option-${option.id}`}>
             <p
               className={classNames(
                 "m-0 text-sm font-medium leading-5 text-gray-900 dark:text-gray-900-dark",

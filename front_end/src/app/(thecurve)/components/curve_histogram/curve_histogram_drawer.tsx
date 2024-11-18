@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 
 import { getPost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
@@ -21,6 +21,8 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(true);
   const [post, setPost] = useState<PostWithForecasts | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [chartHeight, setChartHeight] = useState(65);
 
   useEffect(() => {
     const fetchPost = async (postId: number) => {
@@ -34,6 +36,11 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
     };
     fetchPost(postId);
   }, [postId]);
+
+  useEffect(() => {
+    if (!chartContainerRef.current) return;
+    setChartHeight(Math.max(chartContainerRef.current?.clientHeight, 65));
+  }, [isLoading]);
 
   if (isLoading) {
     return (
@@ -64,23 +71,25 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
     return (
       <div className="p-5 md:rounded-b md:bg-gray-0 md:dark:bg-gray-0-dark">
         <p className="m-0 text-gray-800 dark:text-gray-800-dark md:rounded-b">
-          Check out how your answers compare to the rest of the group. When
-          you’re ready, click Next Question.
+          {t("curveHistogramHeader")}
         </p>
 
         <div className="mt-4 flex flex-col items-center rounded bg-[#A9C0D64D]/30 p-6 dark:bg-[#A9C0D64D]/30">
           <p className="m-0 w-full text-start text-sm font-medium leading-4 text-gray-700 dark:text-gray-700-dark">
             {t("communityPredictionLabel")}
           </p>
-          {!!histogramQuestion.aggregations.recency_weighted.latest
-            ?.histogram && (
-            <CurveHistogram
-              choiceOptions={choiceOptions}
-              histogramData={histogramData ?? []}
-              median={median}
-              color={"gray"}
-            />
-          )}
+          <div ref={chartContainerRef}>
+            {!!histogramQuestion.aggregations.recency_weighted.latest
+              ?.histogram && (
+              <CurveHistogram
+                choiceOptions={choiceOptions}
+                histogramData={histogramData ?? []}
+                median={median}
+                color={"gray"}
+                height={chartHeight}
+              />
+            )}
+          </div>
         </div>
         <div className="mt-4 flex w-full justify-center">
           <Button
@@ -89,7 +98,7 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
               onNextQuestion && onNextQuestion();
             }}
           >
-            Next Question
+            {t("nextQuestion")}
           </Button>
         </div>
       </div>

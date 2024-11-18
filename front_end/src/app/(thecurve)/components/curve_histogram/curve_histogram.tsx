@@ -1,4 +1,5 @@
 import { range } from "lodash";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 import React from "react";
 import {
@@ -18,6 +19,7 @@ type Props = {
   choiceOptions: CurveChoiceOption[];
   median: number | undefined;
   color: "blue" | "gray";
+  height: number;
 };
 
 const CurveHistogram: FC<Props> = ({
@@ -25,10 +27,11 @@ const CurveHistogram: FC<Props> = ({
   median,
   color,
   choiceOptions,
+  height,
 }) => {
+  const t = useTranslations();
   const { theme } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-
   const maxY = Math.max(...histogramData.map((d) => d.y));
   return (
     <>
@@ -40,7 +43,7 @@ const CurveHistogram: FC<Props> = ({
         }}
         containerComponent={<VictoryContainer responsive={true} />}
         padding={{ top: 0, bottom: 25, left: 10, right: 10 }}
-        height={65}
+        height={height}
       >
         <VictoryAxis
           tickValues={range(0, 101)}
@@ -93,7 +96,7 @@ const CurveHistogram: FC<Props> = ({
 
         <div className="flex items-center rounded bg-gray-0 p-2 text-sm dark:bg-gray-0-dark">
           <div className="mr-2 size-4 rounded-sm bg-mc-option-1"></div>
-          <p className="m-0 ">Crowd Median</p>
+          <p className="m-0 ">{t("crowdMedian")}</p>
 
           <span className={"ml-auto text-gray-800 dark:text-gray-800-dark"}>
             {median != null ? `${(100 * median).toFixed(1)}%` : "?"}

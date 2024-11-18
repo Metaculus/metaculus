@@ -30,7 +30,12 @@ const Survey: FC<Props> = ({ questions }) => {
     router.push("/thecurve");
     return null;
   }
+
   const activeQuestion = questions[questionIndex];
+  if (!activeQuestion) {
+    router.push("/thecurve");
+    return null;
+  }
 
   return (
     <div className="flex w-full flex-col md:justify-center lg:w-[790px]">

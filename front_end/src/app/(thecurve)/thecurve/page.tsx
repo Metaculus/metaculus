@@ -7,12 +7,14 @@ import { PostStatus } from "@/types/post";
 
 import CurveHeader from "../components/curve_header";
 import CurveIntro from "../components/curve_intro";
-import { curveSlug } from "../constants";
+import { THECURVE_TOURNAMENT_SLUG } from "../constants";
 
 export default async function TheCurve() {
   const user = await ProfileApi.getMyProfile();
 
-  const tournament = await ProjectsApi.getSlugTournament(curveSlug);
+  const tournament = await ProjectsApi.getSlugTournament(
+    THECURVE_TOURNAMENT_SLUG
+  );
   if (!tournament) {
     return notFound();
   }
@@ -21,7 +23,7 @@ export default async function TheCurve() {
   if (user) {
     const tournamentFilter = {
       statuses: PostStatus.APPROVED,
-      tournaments: curveSlug,
+      tournaments: THECURVE_TOURNAMENT_SLUG,
       forecaster_id: String(user.id),
       limit: tournament.posts_count,
     };
@@ -40,7 +42,7 @@ export default async function TheCurve() {
       />
       <main className="flex flex-grow justify-center">
         <CurveIntro
-          tournamentSlug={curveSlug}
+          tournamentSlug={THECURVE_TOURNAMENT_SLUG}
           questionNumber={tournament.posts_count}
           forecastedNumber={predictedQuestions}
         />
