@@ -66,6 +66,7 @@ type Props = {
   onChange?: (markdown: string) => void;
   contentEditableClassName?: string;
   shouldConfirmLeave?: boolean;
+  withUgcLinks?: boolean;
   className?: string;
 };
 
@@ -90,6 +91,7 @@ const MarkdownEditor: FC<Props> = ({
   contentEditableClassName,
   className,
   shouldConfirmLeave = false,
+  withUgcLinks,
 }) => {
   const { theme } = useAppTheme();
   const [errorMarkdown, setErrorMarkdown] = useState<string | null>(null);
@@ -112,7 +114,9 @@ const MarkdownEditor: FC<Props> = ({
   const baseFormattingPlugins = [
     headingsPlugin(),
     listsPlugin(),
-    linkPlugin(),
+    linkPlugin({
+      withUgcLinks,
+    }),
     quotePlugin(),
     markdownShortcutPlugin(),
     codeBlockPlugin({

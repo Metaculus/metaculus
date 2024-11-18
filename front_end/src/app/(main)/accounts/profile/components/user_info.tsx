@@ -101,6 +101,7 @@ const UserInfo: FC<UserInfoProps> = ({
                             setValue("bio", markdown);
                           }}
                           className="w-full"
+                          withUgcLinks
                         />
                       )}
                     />
@@ -108,7 +109,11 @@ const UserInfo: FC<UserInfoProps> = ({
                   </>
                 ) : (
                   <div className="flex items-center whitespace-pre-line text-base font-light">
-                    <MarkdownEditor mode="read" markdown={profile.bio} />
+                    <MarkdownEditor
+                      mode="read"
+                      markdown={profile.bio}
+                      withUgcLinks
+                    />
                   </div>
                 )}
               </div>
