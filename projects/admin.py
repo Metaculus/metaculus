@@ -132,7 +132,6 @@ class PostDefaultProjectInline(admin.TabularInline):
         return super().get_queryset(request)
 
 
-
 class PostProjectInline(admin.TabularInline):
     model = Post.projects.through
     extra = 0
