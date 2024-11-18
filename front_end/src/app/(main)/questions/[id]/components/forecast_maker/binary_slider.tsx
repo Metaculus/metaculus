@@ -1,7 +1,9 @@
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useState } from "react";
+import { SemanticName } from "rc-slider/lib/interface";
+import { CSSProperties, FC, useCallback, useEffect, useState } from "react";
 
 import Slider from "@/components/sliders/slider";
 
@@ -19,6 +21,8 @@ type Props = {
   communityForecast?: number | null;
   disabled?: boolean;
   helperDisplay?: boolean;
+  className?: string;
+  styles?: Partial<Record<SemanticName, CSSProperties>>;
 };
 
 const BinarySlider: FC<Props> = ({
@@ -29,10 +33,12 @@ const BinarySlider: FC<Props> = ({
   onBecomeDirty,
   disabled = false,
   helperDisplay = false,
+  className,
+  styles,
 }) => {
   const inputDisplayValue = forecast ? forecast.toString() + "%" : "—";
-  const [inputValue, setInputValue] = useState(inputDisplayValue);
-  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [, setInputValue] = useState(inputDisplayValue);
+  const [isInputFocused] = useState(false);
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
   );
@@ -74,7 +80,7 @@ const BinarySlider: FC<Props> = ({
 
   return (
     <>
-      <div className="group relative mx-6 mt-8 h-16">
+      <div className={classNames("group relative mx-6 mt-8 h-16", className)}>
         <Slider
           inputMin={BINARY_MIN_VALUE}
           inputMax={BINARY_MAX_VALUE}
@@ -97,7 +103,7 @@ const BinarySlider: FC<Props> = ({
               : undefined
           }
           disabled={disabled}
-          styles={disabled ? { handle: { cursor: "default" } } : {}}
+          styles={disabled ? { handle: { cursor: "default" } } : styles}
           showValue
         />
         {forecast !== null && helperDisplay && (

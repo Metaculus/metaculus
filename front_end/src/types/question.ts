@@ -269,3 +269,16 @@ export type AggregationQuestion = {
   title: string;
   type: QuestionType;
 };
+
+export enum CurveQuestionLabels {
+  question = "your forecast",
+  crowdMedian = "your forecast of crowd median",
+}
+
+export type CurveChoiceOption = {
+  id: number;
+  forecast: number | null;
+  status: QuestionStatus | undefined;
+  label: string;
+  isDirty: boolean;
+};

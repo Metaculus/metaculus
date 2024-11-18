@@ -54,7 +54,7 @@ const SignInModal: FC<SignInModalType> = ({
       label={t("logIn")}
       isOpen={isOpen}
       onClose={onClose}
-      className="flex max-w-sm flex-col gap-2"
+      className="mx-3 flex max-w-sm flex-col gap-2"
     >
       <div className="mb-4 text-base leading-tight">
         <span className="text-blue-900 dark:text-gray-1000-dark">
