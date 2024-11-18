@@ -120,7 +120,6 @@ const MultiChoicesChartView: FC<Props> = ({
   );
   const toggleSelectAll = useCallback(
     (isAllSelected: boolean) => {
-      console.log("isAllSelected", isAllSelected);
       if (isAllSelected) {
         onChoiceItemsUpdate(
           choiceItems.map((item) => ({
