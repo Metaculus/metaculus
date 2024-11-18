@@ -156,10 +156,13 @@ const CommentEditor: FC<CommentEditorProps> = ({
             markdown={markdown}
             onChange={handleMarkdownChange}
             shouldConfirmLeave={isMarkdownDirty}
+            withUgcLinks
           />
         </div>
       )}
-      {!isEditing && <MarkdownEditor mode="read" markdown={markdown} />}
+      {!isEditing && (
+        <MarkdownEditor mode="read" markdown={markdown} withUgcLinks />
+      )}
       {(isReplying || hasInteracted) && (
         <div className="my-4 flex items-center justify-end gap-3">
           {!isReplying && isPrivateFeed && (

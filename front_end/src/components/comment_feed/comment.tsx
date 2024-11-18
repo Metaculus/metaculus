@@ -11,6 +11,7 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useState, useEffect, useRef } from "react";
 
+import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import {
   softDeleteComment,
   editComment,
@@ -36,7 +37,6 @@ import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
 
 import { SortOption, sortComments } from ".";
-import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
@@ -429,10 +429,15 @@ const Comment: FC<CommentProps> = ({
               markdown={commentMarkdown}
               mode={"write"}
               onChange={setCommentMarkdown}
+              withUgcLinks
             />
           )}{" "}
           {!isEditing && (
-            <MarkdownEditor markdown={commentMarkdown} mode={"read"} />
+            <MarkdownEditor
+              markdown={commentMarkdown}
+              mode={"read"}
+              withUgcLinks
+            />
           )}
         </div>
         {isEditing && (
