@@ -2,7 +2,6 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django import forms
 from django.contrib import admin
 from django.db.models import QuerySet, Q
-from django.forms.models import BaseInlineFormSet
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import path
