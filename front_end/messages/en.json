@@ -94,7 +94,7 @@
   "metaculusRelativeLogScore": "Metaculus relative log score:",
   "questionWillOpenAt": "This question will open {{date}}.",
   "questionNotOpenYet": "This question is not yet open for predictions.",
-  "youMustLogInToComment": "You must <link>log in</link> to comment",
+  "youMustLogInToComment": "You must log in to comment",
   "commentsReadGuidelines": "Read our guidelines",
   "commentsLearnMarkdown": "Learn about our Markdown",
   "commentDeleted": "Comment deleted",
