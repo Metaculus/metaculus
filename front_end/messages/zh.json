@@ -82,7 +82,7 @@
   "metaculusRelativeLogScore": "Metaculus 相對對數分數：",
   "questionWillOpenAt": "此問題將於 {{date}} 開啟。",
   "questionNotOpenYet": "此問題尚未開放預測。",
-  "youMustLogInToComment": "您必須<link>登入</link>才能發表評論",
+  "youMustLogInToComment": "您必須登入才能發表評論",
   "commentsReadGuidelines": "閱讀我們的指南",
   "commentsLearnMarkdown": "學習我們的 Markdown",
   "commentDeleted": "評論已刪除",
