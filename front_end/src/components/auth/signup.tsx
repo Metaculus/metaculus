@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useRef, useState, useTransition } from "react";
 import { useFormState } from "react-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext, FormProvider } from "react-hook-form";
 
 import { signUpAction, SignUpActionState } from "@/app/(main)/accounts/actions";
 import { SignUpSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
@@ -36,13 +36,16 @@ export const SignupForm: FC<{
   const [isPending, startTransition] = useTransition();
   const [isTurnstileValidated, setIsTurnstileValidate] = useState(false);
   const { setCurrentModal } = useModal();
-  const { register, watch, setValue } = useForm<SignUpSchema>({
+  const turnstileRef = useRef<TurnstileInstance | undefined>();
+
+  const methods = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       isBot: forceIsBot !== "ask" ? forceIsBot : undefined,
     },
   });
-  const turnstileRef = useRef<TurnstileInstance | undefined>();
+
+  const { register, watch, setValue } = methods;
 
   const [state, formAction] = useFormState<SignUpActionState, FormData>(
     signUpAction,
@@ -74,92 +77,52 @@ export const SignupForm: FC<{
   }, [setCurrentModal, watch, state, forceIsBot]);
 
   return (
-    <form
-      action={(data) => {
-        startTransition(() => {
-          formAction(data);
-        });
-      }}
-      className="flex flex-col gap-4"
-    >
-      <Input
-        autoComplete="username"
-        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-        placeholder={t("registrationUsernamePlaceholder")}
-        type="text"
-        errors={state?.errors}
-        {...register("username")}
-      />
-      <div>
-        <Input
-          autoComplete="new-password"
-          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("passwordPlaceholder")}
-          type="password"
-          {...register("password")}
-        />
-        <Input
-          autoComplete="new-password"
-          className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("registrationVerifyPasswordPlaceholder")}
-          type="password"
-          {...register("passwordAgain")}
-        />
-        <FormError errors={state?.errors} name={"password"} />
-      </div>
-      <Input
-        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-        placeholder={t("registrationEmailPlaceholder")}
-        type="email"
-        errors={state?.errors}
-        {...register("email")}
-      />
-      {forceIsBot == null && (
-        <Checkbox
-          checked={watch("isBot")}
-          onChange={(is_bot) => {
-            setValue("isBot", is_bot);
-          }}
-          label={t("signUpAsBot")}
-          className="p-1.5"
-        />
-      )}
-      <FormError errors={state?.errors} name="isBot" />
-      <input type="hidden" {...register("isBot")} />
-      {addToProject && (
-        <input
-          type="hidden"
-          {...register("addToProject")}
-          value={addToProject}
-        />
-      )}
-      <div>
-        <Button
-          variant="primary"
-          className="w-full"
-          type="submit"
-          disabled={isPending || !isTurnstileValidated}
-        >
-          {t("createAnAccount")}
-        </Button>
-        <FormError
-          errors={state?.errors}
-          name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
-        />
-      </div>
-      {TURNSTILE_SITE_KEY && (
-        <Turnstile
-          ref={turnstileRef}
-          siteKey={TURNSTILE_SITE_KEY}
-          options={{
-            responseFieldName: "turnstileToken",
-          }}
-          onSuccess={() => setIsTurnstileValidate(true)}
-          onError={() => setIsTurnstileValidate(false)}
-          onExpire={() => setIsTurnstileValidate(false)}
-        />
-      )}
-    </form>
+    <FormProvider {...methods}>
+      <form
+        action={(data) => {
+          startTransition(() => {
+            formAction(data);
+          });
+        }}
+        className="flex flex-col gap-4"
+      >
+        <SignUpFragment errors={state?.errors} />
+
+        {addToProject && (
+          <input
+            type="hidden"
+            {...register("addToProject")}
+            value={addToProject}
+          />
+        )}
+        <div>
+          <Button
+            variant="primary"
+            className="w-full"
+            type="submit"
+            disabled={isPending || !isTurnstileValidated}
+          >
+            {t("createAnAccount")}
+          </Button>
+          <FormError
+            errors={state?.errors}
+            name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
+          />
+        </div>
+        {TURNSTILE_SITE_KEY && (
+          <Turnstile
+            ref={turnstileRef}
+            siteKey={TURNSTILE_SITE_KEY}
+            options={{
+              responseFieldName: "turnstileToken",
+            }}
+            onSuccess={() => setIsTurnstileValidate(true)}
+            onError={() => setIsTurnstileValidate(false)}
+            onExpire={() => setIsTurnstileValidate(false)}
+          />
+        )}
+      </form>
+    </FormProvider>
   );
 };
 
@@ -285,3 +248,59 @@ const SignUpModal: FC<SignInModalType> = ({
 };
 
 export default SignUpModal;
+
+export const SignUpFragment: FC<{
+  forceIsBot?: boolean | "ask";
+  errors: NonNullable<SignUpActionState>["errors"];
+}> = ({ forceIsBot = "ask", errors }) => {
+  const { register, setValue, watch } = useFormContext();
+  const t = useTranslations();
+  return (
+    <>
+      <Input
+        autoComplete="username"
+        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+        placeholder={t("registrationUsernamePlaceholder")}
+        type="text"
+        errors={errors}
+        {...register("username")}
+      />
+      <div>
+        <Input
+          autoComplete="new-password"
+          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          placeholder={t("passwordPlaceholder")}
+          type="password"
+          {...register("password")}
+        />
+        <Input
+          autoComplete="new-password"
+          className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          placeholder={t("registrationVerifyPasswordPlaceholder")}
+          type="password"
+          {...register("passwordAgain")}
+        />
+        <FormError errors={errors} name={"password"} />
+      </div>
+      <Input
+        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+        placeholder={t("registrationEmailPlaceholder")}
+        type="email"
+        errors={errors}
+        {...register("email")}
+      />
+      {forceIsBot == null && (
+        <Checkbox
+          checked={watch("isBot")}
+          onChange={(is_bot) => {
+            setValue("isBot", is_bot);
+          }}
+          label={t("signUpAsBot")}
+          className="p-1.5"
+        />
+      )}
+      <FormError errors={errors} name="isBot" />
+      <input type="hidden" {...register("isBot")} />
+    </>
+  );
+};
