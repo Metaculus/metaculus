@@ -179,7 +179,7 @@ export type Question = {
   type: QuestionType;
   // Multiple-choice only
   options?: string[];
-  group_variable: string;
+  group_variable?: string;
   // Other
   scaling: Scaling;
   possibilities: {
