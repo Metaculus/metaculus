@@ -3,9 +3,9 @@ import { FC } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
+import CPRevealTime from "@/components/charts/cp_reveal_time";
 import NumericChart from "@/components/charts/numeric_chart";
 import PredictionChip from "@/components/prediction_chip";
-import LocalDaytime from "@/components/ui/local_daytime";
 import { ContinuousAreaType, TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
@@ -103,13 +103,12 @@ const QuestionNumericTile: FC<Props> = ({
             hideCP={hideCP}
           />
         )}
-        {!isCPRevealed && question.cp_reveal_time && (
-          <div className="absolute inset-0 flex items-center justify-center pl-3 text-center text-sm">
-            <p>
-              {t("cpWillRevealOn")}{" "}
-              <LocalDaytime date={question.cp_reveal_time} />
-            </p>
-          </div>
+
+        {!isCPRevealed && (
+          <CPRevealTime
+            className="pl-3 text-xs md:text-sm"
+            cpRevealTime={question.cp_reveal_time}
+          />
         )}
       </div>
     </div>

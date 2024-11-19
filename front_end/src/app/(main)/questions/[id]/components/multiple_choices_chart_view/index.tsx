@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
+import CPRevealTime from "@/components/charts/cp_reveal_time";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
-import LocalDaytime from "@/components/ui/local_daytime";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
@@ -42,7 +42,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
   isCPRevealed?: boolean;
-  CPRevealTime?: string;
+  cpRevealTime?: string;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -69,7 +69,7 @@ const MultiChoicesChartView: FC<Props> = ({
   chartTheme,
   embedMode = false,
   isCPRevealed = true,
-  CPRevealTime,
+  cpRevealTime,
 }) => {
   const { user } = useAuth();
   const t = useTranslations();
@@ -191,13 +191,7 @@ const MultiChoicesChartView: FC<Props> = ({
                 : TimelineChartZoomOption.TwoMonths
           }
         />
-        {!isCPRevealed && CPRevealTime && (
-          <div className="absolute inset-0 flex items-center justify-center pl-3 text-center">
-            <p>
-              {t("cpWillRevealOn")} <LocalDaytime date={CPRevealTime} />
-            </p>
-          </div>
-        )}
+        {!isCPRevealed && <CPRevealTime cpRevealTime={cpRevealTime} />}
       </div>
 
       {withLegend && (

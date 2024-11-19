@@ -25,9 +25,12 @@ import {
 } from "@/utils/charts";
 import { getPostLink } from "@/utils/navigation";
 import {
+  getGroupCPRevealTime,
   getQuestionLinearChartType,
   sortGroupPredictionOptions,
 } from "@/utils/questions";
+
+import CPRevealTime from "./charts/cp_reveal_time";
 
 type Props = {
   post: PostWithForecasts;
@@ -82,7 +85,8 @@ const ForecastCard: FC<Props> = ({
       if (!graphType) {
         return null;
       }
-
+      const { closestCPRevealTime, isCPRevealed } =
+        getGroupCPRevealTime(questions);
       switch (post.group_of_questions.graph_type) {
         case GroupOfQuestionsGraphType.FanGraph: {
           const predictionQuestion =
@@ -100,6 +104,8 @@ const ForecastCard: FC<Props> = ({
               height={chartHeight}
               withTooltip={!nonInteractive}
               extraTheme={embedTheme?.chart}
+              isCPRevealed={isCPRevealed}
+              cpRevealTime={closestCPRevealTime}
             />
           );
         }
@@ -123,6 +129,8 @@ const ForecastCard: FC<Props> = ({
               chartTheme={embedTheme?.chart}
               defaultZoom={defaultChartZoom}
               embedMode
+              isCPRevealed={isCPRevealed}
+              cpRevealTime={closestCPRevealTime}
             />
           );
         }
@@ -144,33 +152,51 @@ const ForecastCard: FC<Props> = ({
 
     if (post.question) {
       const { question } = post;
-
+      const isCPRevealed = question.cp_reveal_time
+        ? new Date(question.cp_reveal_time) <= new Date()
+        : true;
       switch (question.type) {
         case QuestionType.Binary:
         case QuestionType.Numeric:
         case QuestionType.Date:
           return (
-            <NumericChart
-              aggregation={question.aggregations.recency_weighted}
-              myForecasts={question.my_forecasts}
-              resolution={question.resolution}
-              resolveTime={question.actual_resolve_time}
-              height={chartHeight}
-              questionType={
-                getNumericChartTypeFromQuestion(question.type) ??
-                QuestionType.Numeric
-              }
-              actualCloseTime={
-                question.actual_close_time
-                  ? new Date(question.actual_close_time).getTime()
-                  : null
-              }
-              scaling={question.scaling}
-              onCursorChange={nonInteractive ? undefined : setCursorValue}
-              extraTheme={embedTheme?.chart}
-              defaultZoom={defaultChartZoom}
-              withZoomPicker={withZoomPicker}
-            />
+            <div className="relative flex w-full flex-col">
+              <NumericChart
+                aggregation={question.aggregations.recency_weighted}
+                myForecasts={question.my_forecasts}
+                resolution={question.resolution}
+                resolveTime={question.actual_resolve_time}
+                height={chartHeight}
+                questionType={
+                  getNumericChartTypeFromQuestion(question.type) ??
+                  QuestionType.Numeric
+                }
+                actualCloseTime={
+                  question.actual_close_time
+                    ? new Date(question.actual_close_time).getTime()
+                    : null
+                }
+                scaling={question.scaling}
+                onCursorChange={
+                  nonInteractive || !isCPRevealed ? undefined : setCursorValue
+                }
+                extraTheme={embedTheme?.chart}
+                defaultZoom={defaultChartZoom}
+                withZoomPicker={withZoomPicker}
+                isCPRevealed={isCPRevealed}
+                openTime={
+                  question.open_time
+                    ? new Date(question.open_time).getTime()
+                    : undefined
+                }
+              />
+              {!isCPRevealed && (
+                <CPRevealTime
+                  cpRevealTime={question.cp_reveal_time}
+                  className="!justify-end pr-10 text-xs md:text-sm"
+                />
+              )}
+            </div>
           );
         case QuestionType.MultipleChoice:
           const visibleChoicesCount = 3;
@@ -187,6 +213,7 @@ const ForecastCard: FC<Props> = ({
               chartHeight={chartHeight}
               chartTheme={embedTheme?.chart}
               defaultZoom={defaultChartZoom}
+              isCPRevealed={isCPRevealed}
             />
           );
         default:

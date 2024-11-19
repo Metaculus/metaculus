@@ -3,8 +3,8 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
+import CPRevealTime from "@/components/charts/cp_reveal_time";
 import NumericChart from "@/components/charts/numeric_chart";
-import LocalDaytime from "@/components/ui/local_daytime";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { Question } from "@/types/question";
@@ -128,13 +128,8 @@ const NumericChartCard: FC<Props> = ({
               : undefined
           }
         />
-        {!isCPRevealed && question.cp_reveal_time && (
-          <div className="absolute inset-0 flex items-center justify-center text-center">
-            <p>
-              {t("cpWillRevealOn")}{" "}
-              <LocalDaytime date={question.cp_reveal_time} />
-            </p>
-          </div>
+        {!isCPRevealed && (
+          <CPRevealTime cpRevealTime={question.cp_reveal_time} />
         )}
       </div>
       <div

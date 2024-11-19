@@ -162,7 +162,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
       chartHeight={chartHeight}
       defaultZoom={defaultZoom}
       isCPRevealed={isCPRevealed}
-      CPRevealTime={question.cp_reveal_time}
+      cpRevealTime={question.cp_reveal_time}
     />
   );
 };

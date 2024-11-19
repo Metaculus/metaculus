@@ -38,6 +38,8 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
   withLegend?: boolean;
+  isCPRevealed?: boolean;
+  cpRevealTime?: string;
 };
 
 const MultipleChoiceGroupChart: FC<Props> = ({
@@ -56,6 +58,8 @@ const MultipleChoiceGroupChart: FC<Props> = ({
   chartTheme,
   embedMode,
   withLegend,
+  isCPRevealed = true,
+  cpRevealTime,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -211,7 +215,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       timestamps={timestamps}
       userForecasts={userForecasts}
       tooltipDate={tooltipDate}
-      onCursorChange={handleCursorChange}
+      onCursorChange={isCPRevealed ? handleCursorChange : undefined}
       onChoiceItemsUpdate={setChoiceItems}
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
@@ -224,6 +228,8 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       chartHeight={chartHeight}
       withLegend={withLegend}
       defaultZoom={defaultZoom}
+      isCPRevealed={isCPRevealed}
+      cpRevealTime={cpRevealTime}
     />
   );
 };

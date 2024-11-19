@@ -18,7 +18,7 @@ import { Question, QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { getChoiceOptionValue } from "@/utils/charts";
 
-import LocalDaytime from "./ui/local_daytime";
+import CPRevealTime from "./charts/cp_reveal_time";
 
 type Props = {
   timestamps: number[];
@@ -35,6 +35,7 @@ type Props = {
   scaling?: Scaling | undefined;
   hideCP?: boolean;
   isCPRevealed?: boolean;
+  cpRevealTime?: string;
 };
 
 const MultipleChoiceTile: FC<Props> = ({
@@ -52,6 +53,7 @@ const MultipleChoiceTile: FC<Props> = ({
   scaling,
   hideCP,
   isCPRevealed,
+  cpRevealTime,
 }) => {
   const t = useTranslations();
 
@@ -125,13 +127,12 @@ const MultipleChoiceTile: FC<Props> = ({
             questionType={questionType}
             scaling={scaling}
           />
-          {!isCPRevealed && question?.cp_reveal_time && (
-            <div className="absolute inset-0 flex items-center justify-center pl-4 text-center text-xs lg:text-sm">
-              <p className="max-w-[300px]">
-                {t("cpWillRevealOn")}{" "}
-                <LocalDaytime date={question.cp_reveal_time} />
-              </p>
-            </div>
+          {!isCPRevealed && (
+            <CPRevealTime
+              className="text-xs lg:text-sm"
+              textClassName="!max-w-[300px]"
+              cpRevealTime={question?.cp_reveal_time ?? cpRevealTime}
+            />
           )}
         </div>
       )}

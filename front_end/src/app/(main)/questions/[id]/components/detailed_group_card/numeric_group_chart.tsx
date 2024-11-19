@@ -15,6 +15,8 @@ type Props = {
   withLabel?: boolean;
   hideCP?: boolean;
   withTooltip?: boolean;
+  isCPRevealed?: boolean;
+  cpRevealTime?: string;
 };
 
 const NumericGroupChart: FC<Props> = ({
@@ -24,6 +26,8 @@ const NumericGroupChart: FC<Props> = ({
   withLabel,
   hideCP,
   withTooltip = true,
+  isCPRevealed = true,
+  cpRevealTime,
 }) => {
   const t = useTranslations();
 
@@ -39,6 +43,8 @@ const NumericGroupChart: FC<Props> = ({
       yLabel={withLabel ? t("communityPredictionLabel") : undefined}
       withTooltip={withTooltip}
       hideCP={hideCP}
+      isCPRevealed={isCPRevealed}
+      cpRevealTime={cpRevealTime}
     />
   );
 };

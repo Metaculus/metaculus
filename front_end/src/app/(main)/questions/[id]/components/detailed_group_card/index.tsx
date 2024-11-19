@@ -15,6 +15,7 @@ import {
 } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
 import {
+  getGroupCPRevealTime,
   getQuestionLinearChartType,
   sortGroupPredictionOptions,
 } from "@/utils/questions";
@@ -59,7 +60,7 @@ const DetailedGroupCard: FC<Props> = ({
       </div>
     );
   }
-
+  const { closestCPRevealTime, isCPRevealed } = getGroupCPRevealTime(questions);
   let isForecastEmpty = true;
   let oneQuestionClosed = false;
   questions.forEach((question) => {
@@ -73,7 +74,7 @@ const DetailedGroupCard: FC<Props> = ({
       oneQuestionClosed = true;
     }
   });
-  if (isForecastEmpty) {
+  if (isForecastEmpty && isCPRevealed) {
     if (postStatus !== PostStatus.OPEN) {
       return null;
     }
@@ -114,6 +115,8 @@ const DetailedGroupCard: FC<Props> = ({
             isClosed={isClosed}
             preselectedQuestionId={preselectedQuestionId}
             hideCP={hideCP}
+            isCPRevealed={isCPRevealed}
+            cpRevealTime={closestCPRevealTime}
           />
           {hideCP && <RevealCPButton />}
         </>
@@ -124,6 +127,8 @@ const DetailedGroupCard: FC<Props> = ({
         <NumericGroupChart
           questions={questions as QuestionWithNumericForecasts[]}
           withLabel
+          isCPRevealed={isCPRevealed}
+          cpRevealTime={closestCPRevealTime}
         />
       );
     default:
