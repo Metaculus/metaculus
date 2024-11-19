@@ -53,14 +53,14 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
               id: "boost",
               name: t("boost"),
               onClick: () => {
-                changePostActivity(20);
+                changePostActivity(50);
               },
             },
             {
               id: "bury",
               name: t("bury"),
               onClick: () => {
-                changePostActivity(-20);
+                changePostActivity(-50);
               },
             },
             {
