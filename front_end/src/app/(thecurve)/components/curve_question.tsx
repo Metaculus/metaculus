@@ -19,6 +19,7 @@ type Props = {
 };
 
 const HEADER_HEIGHT = 48;
+const BOTTOM_SPACING = 100;
 const CurveQuestion: FC<Props> = ({
   post,
   expandLabel: _expandLabel,
@@ -33,7 +34,9 @@ const CurveQuestion: FC<Props> = ({
     if (isExpanded && wrapperRef.current) {
       const wrapperHeight = wrapperRef.current.offsetHeight;
       const windowHeight = window.innerHeight;
-      setMaxDetailsHeight(windowHeight - wrapperHeight - HEADER_HEIGHT - 100);
+      setMaxDetailsHeight(
+        windowHeight - wrapperHeight - HEADER_HEIGHT - BOTTOM_SPACING
+      );
     }
   }, [isExpanded]);
 
@@ -75,9 +78,9 @@ const CurveQuestion: FC<Props> = ({
             </div>
             <div
               className="absolute left-0 top-full z-40 h-[100vh] w-full"
-              style={{ maxHeight: `${maxDetailsHeight + 100}px` }}
+              style={{ maxHeight: `${maxDetailsHeight + BOTTOM_SPACING}px` }}
               onClick={() => setIsExpanded(false)}
-            ></div>
+            />
           </>
         )}
       </div>
