@@ -38,6 +38,7 @@ import {
   mathJaxDescriptor,
 } from "@/components/markdown_editor/embedded_math_jax";
 import { linkPlugin } from "@/components/markdown_editor/plugins/link";
+import { mentionsPlugin } from "@/components/markdown_editor/plugins/mentions";
 import useAppTheme from "@/hooks/use_app_theme";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { logErrorWithScope } from "@/utils/errors";
@@ -117,6 +118,7 @@ const MarkdownEditor: FC<Props> = ({
     linkPlugin({
       withUgcLinks,
     }),
+    mentionsPlugin(),
     quotePlugin(),
     markdownShortcutPlugin(),
     codeBlockPlugin({
