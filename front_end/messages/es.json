@@ -84,7 +84,7 @@
   "metaculusRelativeLogScore": "Puntaje logarítmico relativo de Metaculus:",
   "questionWillOpenAt": "Esta pregunta abrirá {{date}}.",
   "questionNotOpenYet": "Esta pregunta aún no está abierta para predicciones.",
-  "youMustLogInToComment": "debes <link>iniciar sesión</link> para comentar",
+  "youMustLogInToComment": "debes iniciar sesión para comentar",
   "commentsReadGuidelines": "Lee nuestras directrices",
   "commentsLearnMarkdown": "Aprende sobre nuestro Markdown",
   "commentDeleted": "Comentario eliminado",
