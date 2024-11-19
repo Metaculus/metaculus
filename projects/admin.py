@@ -72,7 +72,11 @@ class ProjectUserPermissionInline(admin.TabularInline):
     autocomplete_fields = ("user",)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).none()
+        project_id = request.resolver_match.kwargs.get("object_id")
+        qs = super().get_queryset(request)
+        if project_id and qs.filter(project_id=project_id).count() > 100:
+            return qs.none()
+        return qs.filter(project_id=project_id)
 
 
 class PostSelect2MultipleWidget(ModelSelect2MultipleWidget):
@@ -112,8 +116,8 @@ class PostDefaultProjectInline(admin.TabularInline):
         "published_at",
     )
     can_delete = False
-    verbose_name = "Post with this as Default Project"
-    verbose_name_plural = "Posts with this as Default Project"
+    verbose_name = "Post with this as Default Project (determines permissions)"
+    verbose_name_plural = "Posts with this as Default Project (determines permissions)"
 
     def title_link(self, obj):
         url = reverse("admin:posts_post_change", args=[obj.pk])
@@ -123,23 +127,47 @@ class PostDefaultProjectInline(admin.TabularInline):
 
     def get_queryset(self, request):
         project_id = request.resolver_match.kwargs.get("object_id")
-        if (
-            project_id
-            and Project.objects.get(id=project_id).type
-            == Project.ProjectTypes.SITE_MAIN
-        ):
-            return super().get_queryset(request).none()
-        return super().get_queryset(request)
+        qs = super().get_queryset(request)
+        if project_id and qs.filter(default_project_id=project_id).count() > 100:
+            return qs.none()
+        return qs.filter(default_project_id=project_id)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class PostProjectInlineForm(forms.ModelForm):
+    # this is a hack to rename the "delete" checkbox to "remove from project"
+    remove_from_project = forms.BooleanField(
+        required=False,
+        label="Remove from Project",
+        widget=forms.CheckboxInput(),
+    )
+
+    class Meta:
+        model = Post.projects.through
+        fields = ["remove_from_project"]
+
+    def save(self, commit=True):
+        # Handle deletion based on the `custom_delete` field
+        if self.cleaned_data.get("remove_from_project"):
+            if self.instance.pk:
+                self.instance.delete()
+            return
+
+        return super().save(commit=commit)
 
 
 class PostProjectInline(admin.TabularInline):
     model = Post.projects.through
+    form = PostProjectInlineForm
     extra = 0
     fields = (
         "title_link",
         "curation_status",
         "published_at",
         "default_project",
+        "remove_from_project",
     )
     readonly_fields = (
         "title_link",
@@ -147,8 +175,11 @@ class PostProjectInline(admin.TabularInline):
         "published_at",
         "default_project",
     )
-    verbose_name = "Post with this as a Project (not Default)"
-    verbose_name_plural = "Posts with this as a Project (not Default)"
+    can_delete = False  # this is a hack to rename the "delete" checkbox
+    verbose_name = "Post with this as a Secondary Project (no permission effects)"
+    verbose_name_plural = (
+        "Posts with this as a Secondary Project (no permission effects)"
+    )
 
     def title_link(self, obj):
         url = reverse("admin:posts_post_change", args=[obj.post.pk])
@@ -167,13 +198,13 @@ class PostProjectInline(admin.TabularInline):
 
     def get_queryset(self, request):
         project_id = request.resolver_match.kwargs.get("object_id")
-        if (
-            project_id
-            and Project.objects.get(id=project_id).type
-            == Project.ProjectTypes.SITE_MAIN
-        ):
-            return super().get_queryset(request).none()
-        return super().get_queryset(request)
+        qs = super().get_queryset(request)
+        if project_id and qs.filter(project=project_id).count() > 100:
+            return qs.none()
+        return qs.filter(project=project_id)
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Project)
