@@ -40,12 +40,17 @@ const LexicalBeautifulMentionVisitor: LexicalExportVisitor<
   testLexicalNode: $isBeautifulMentionNode,
   visitLexicalNode: ({ lexicalNode, actions }) => {
     const value = lexicalNode.getValue();
-    actions.addAndStepInto("text", { value: `@(${value})` });
-    // actions.addAndStepInto("link", {
-    //   url: `/profile/${data.id}`,
-    //   title: value,
-    //   children: [{ type: "text", value: "alpha" }],
-    // });
+    const data = lexicalNode.getData() as MentionData;
+
+    actions.addAndStepInto(
+      "link",
+      {
+        url: `/accounts/profile/${data.id}`,
+        title: null,
+        children: [{ type: "text", value: `@${value}` }],
+      },
+      false
+    );
   },
 };
 
