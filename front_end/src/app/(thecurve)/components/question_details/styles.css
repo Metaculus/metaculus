@@ -65,7 +65,7 @@
 
 .thecurve table th,
 .thecurve table td {
-  @apply border-0 p-0 align-top;
+  @apply !border-0 p-0 align-top;
 }
 
 .thecurve table .sticky-column {
