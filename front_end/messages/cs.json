@@ -84,7 +84,7 @@
   "metaculusRelativeLogScore": "Metaculus relativní log skóre:",
   "questionWillOpenAt": "Otázka bude spuštěna {{date}}.",
   "questionNotOpenYet": "Predikce na tuto otázku ještě nezačly.",
-  "youMustLogInToComment": "pro komentování se musíte <link>přihlásit</link>",
+  "youMustLogInToComment": "pro komentování se musíte přihlásit",
   "commentsReadGuidelines": "Přečtěte si naše pokyny",
   "commentsLearnMarkdown": "Přečtěte si více o našem Markdownu",
   "commentDeleted": "Komentář smazán",
