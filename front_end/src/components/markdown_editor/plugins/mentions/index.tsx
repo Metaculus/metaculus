@@ -10,16 +10,12 @@ import {
   createBeautifulMentionNode,
 } from "lexical-beautiful-mentions";
 
-import { AuthorType } from "@/types/comment";
-
 import CustomMentionComponent from "./components/mention";
 import { Menu, MenuItem } from "./components/menu";
 import { LexicalBeautifulMentionVisitor } from "./LexicalBeautifulMentionVisitor";
 import { queryMentions } from "./utils";
 
-export const mentionsPlugin = realmPlugin<{
-  contentMentions?: AuthorType[];
-}>({
+export const mentionsPlugin = realmPlugin({
   init(realm) {
     realm.pubIn({
       [addLexicalNode$]: [
