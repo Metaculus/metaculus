@@ -1,9 +1,11 @@
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import PredictionChip from "@/components/prediction_chip";
+import LocalDaytime from "@/components/ui/local_daytime";
 import { ContinuousAreaType, TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
@@ -18,6 +20,7 @@ type Props = {
   defaultChartZoom?: TimelineChartZoomOption;
   hideCP?: boolean;
   forecasters?: number;
+  isCPRevealed?: boolean;
 };
 
 const QuestionNumericTile: FC<Props> = ({
@@ -26,7 +29,9 @@ const QuestionNumericTile: FC<Props> = ({
   defaultChartZoom,
   hideCP,
   forecasters,
+  isCPRevealed,
 }) => {
+  const t = useTranslations();
   const latest = question.aggregations.recency_weighted.latest;
   const prediction = latest?.centers![0];
 
@@ -61,7 +66,7 @@ const QuestionNumericTile: FC<Props> = ({
 
         <ForecastersCounter forecasters={forecasters} className="p-1" />
       </div>
-      <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
+      <div className="relative my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
           <NumericChart
             aggregation={question.aggregations.recency_weighted}
@@ -81,6 +86,12 @@ const QuestionNumericTile: FC<Props> = ({
             resolution={question.resolution}
             resolveTime={question.actual_resolve_time}
             hideCP={hideCP}
+            isCPRevealed={isCPRevealed}
+            openTime={
+              question.open_time
+                ? new Date(question.open_time).getTime()
+                : undefined
+            }
           />
         ) : (
           <ContinuousAreaChart
@@ -91,6 +102,14 @@ const QuestionNumericTile: FC<Props> = ({
             resolution={question.resolution}
             hideCP={hideCP}
           />
+        )}
+        {!isCPRevealed && question.cp_reveal_time && (
+          <div className="absolute inset-0 flex items-center justify-center pl-3 text-center text-sm">
+            <p>
+              {t("cpWillRevealOn")}{" "}
+              <LocalDaytime date={question.cp_reveal_time} />
+            </p>
+          </div>
         )}
       </div>
     </div>

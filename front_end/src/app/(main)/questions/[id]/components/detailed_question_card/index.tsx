@@ -25,6 +25,10 @@ const DetailedQuestionCard: FC<Props> = ({
 }) => {
   const isForecastEmpty =
     question.aggregations.recency_weighted.history.length === 0;
+  const isCPRevealed = question.cp_reveal_time
+    ? new Date(question.cp_reveal_time) <= new Date()
+    : true;
+
   const { hideCP } = useHideCP();
 
   const t = useTranslations();
@@ -40,17 +44,13 @@ const DetailedQuestionCard: FC<Props> = ({
     if (postStatus !== PostStatus.OPEN) {
       return null;
     }
-    return (
-      <>
-        {nrForecasters > 0 ? (
-          <div className="text-l m-4 w-full text-center">{t("CPIsHidden")}</div>
-        ) : (
-          <div className="text-l m-4 w-full text-center">
-            {t("forecastDataIsEmpty")}
-          </div>
-        )}
-      </>
-    );
+    if (nrForecasters === 0) {
+      return (
+        <div className="text-l m-4 w-full text-center">
+          {t("forecastDataIsEmpty")}
+        </div>
+      );
+    }
   }
 
   switch (question.type) {
@@ -59,14 +59,23 @@ const DetailedQuestionCard: FC<Props> = ({
     case QuestionType.Binary:
       return (
         <DetailsQuestionCardErrorBoundary>
-          <NumericChartCard question={question} hideCP={hideCP} />
+          <NumericChartCard
+            question={question}
+            hideCP={hideCP || !isCPRevealed}
+            isCPRevealed={isCPRevealed}
+            nrForecasters={nrForecasters}
+          />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
       );
     case QuestionType.MultipleChoice:
       return (
         <DetailsQuestionCardErrorBoundary>
-          <MultipleChoiceChartCard question={question} hideCP={hideCP} />
+          <MultipleChoiceChartCard
+            question={question}
+            hideCP={hideCP}
+            isCPRevealed={isCPRevealed}
+          />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
       );

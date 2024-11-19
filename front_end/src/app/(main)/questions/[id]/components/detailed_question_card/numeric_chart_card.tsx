@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
+import LocalDaytime from "@/components/ui/local_daytime";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { Question } from "@/types/question";
@@ -14,9 +15,16 @@ import CursorDetailItem from "./numeric_cursor_item";
 type Props = {
   question: Question;
   hideCP?: boolean;
+  isCPRevealed?: boolean;
+  nrForecasters?: number;
 };
 
-const NumericChartCard: FC<Props> = ({ question, hideCP }) => {
+const NumericChartCard: FC<Props> = ({
+  question,
+  hideCP,
+  isCPRevealed,
+  nrForecasters,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
 
@@ -26,6 +34,15 @@ const NumericChartCard: FC<Props> = ({ question, hideCP }) => {
 
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const cursorData = useMemo(() => {
+    if (!isCPRevealed) {
+      return {
+        timestamp: cursorTimestamp,
+        forecasterCount: nrForecasters ?? 0,
+        interval_lower_bound: null,
+        center: null,
+        interval_upper_bound: null,
+      };
+    }
     const index = aggregate.history.findIndex(
       (f) => f.start_time === cursorTimestamp
     );
@@ -58,7 +75,13 @@ const NumericChartCard: FC<Props> = ({ question, hideCP }) => {
       center: forecast.centers![0],
       interval_upper_bound: forecast.interval_upper_bounds![0],
     };
-  }, [cursorTimestamp, aggregate.history, question.my_forecasts]);
+  }, [
+    cursorTimestamp,
+    aggregate.history,
+    question.my_forecasts,
+    isCPRevealed,
+    nrForecasters,
+  ]);
 
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
@@ -75,28 +98,45 @@ const NumericChartCard: FC<Props> = ({ question, hideCP }) => {
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
-      <NumericChart
-        aggregation={question.aggregations.recency_weighted}
-        myForecasts={question.my_forecasts}
-        resolution={question.resolution}
-        resolveTime={question.actual_resolve_time}
-        onCursorChange={handleCursorChange}
-        yLabel={t("communityPredictionLabel")}
-        onChartReady={handleChartReady}
-        questionType={question.type}
-        actualCloseTime={
-          question.actual_close_time
-            ? new Date(question.actual_close_time).getTime()
-            : null
-        }
-        scaling={question.scaling}
-        defaultZoom={
-          user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
-        }
-        withZoomPicker
-        hideCP={hideCP}
-      />
-
+      <div className="relative">
+        <NumericChart
+          aggregation={question.aggregations.recency_weighted}
+          myForecasts={question.my_forecasts}
+          resolution={question.resolution}
+          resolveTime={question.actual_resolve_time}
+          onCursorChange={isCPRevealed ? handleCursorChange : undefined}
+          yLabel={t("communityPredictionLabel")}
+          onChartReady={handleChartReady}
+          questionType={question.type}
+          actualCloseTime={
+            question.actual_close_time
+              ? new Date(question.actual_close_time).getTime()
+              : null
+          }
+          scaling={question.scaling}
+          defaultZoom={
+            user
+              ? TimelineChartZoomOption.All
+              : TimelineChartZoomOption.TwoMonths
+          }
+          withZoomPicker
+          hideCP={hideCP || !isCPRevealed}
+          isCPRevealed={isCPRevealed}
+          openTime={
+            question.open_time
+              ? new Date(question.open_time).getTime()
+              : undefined
+          }
+        />
+        {!isCPRevealed && question.cp_reveal_time && (
+          <div className="absolute inset-0 flex items-center justify-center text-center">
+            <p>
+              {t("cpWillRevealOn")}{" "}
+              <LocalDaytime date={question.cp_reveal_time} />
+            </p>
+          </div>
+        )}
+      </div>
       <div
         className={classNames(
           "my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
@@ -105,13 +145,17 @@ const NumericChartCard: FC<Props> = ({ question, hideCP }) => {
       >
         <CursorDetailItem
           title={t("totalForecastersLabel")}
-          text={cursorData.forecasterCount?.toString()}
+          text={
+            isCPRevealed
+              ? cursorData!.forecasterCount?.toString()
+              : String(nrForecasters)
+          }
         />
-        {!hideCP && (
+        {!hideCP && isCPRevealed && (
           <CursorDetailItem
             title={t("communityPredictionLabel")}
             text={getDisplayValue(
-              cursorData.center,
+              cursorData?.center,
               question.type,
               question.scaling
             )}
@@ -123,8 +167,8 @@ const NumericChartCard: FC<Props> = ({ question, hideCP }) => {
             title={t("myPrediction")}
             text={getDisplayUserValue(
               question.my_forecasts,
-              cursorData.center,
-              cursorData.timestamp,
+              cursorData!.center as number,
+              cursorData!.timestamp as number,
               question.type,
               question.scaling
             )}

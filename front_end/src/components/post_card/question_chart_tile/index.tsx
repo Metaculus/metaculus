@@ -30,7 +30,11 @@ const QuestionChartTile: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-
+  const isForecastEmpty =
+    question.aggregations.recency_weighted.history.length === 0;
+  const isCPRevealed = question.cp_reveal_time
+    ? new Date(question.cp_reveal_time) <= new Date()
+    : true;
   if (curationStatus === PostStatus.PENDING) {
     return (
       <div>
@@ -42,11 +46,13 @@ const QuestionChartTile: FC<Props> = ({
     );
   }
 
-  if (question.aggregations.recency_weighted.history.length === 0) {
-    if (curationStatus === PostStatus.OPEN) {
+  if (isForecastEmpty) {
+    if (curationStatus !== PostStatus.OPEN) {
+      return null;
+    }
+    if (forecasters === 0) {
       return <div>{t("forecastDataIsEmpty")}</div>;
     }
-    return null;
   }
 
   const defaultChartZoom: TimelineChartZoomOption = user
@@ -63,6 +69,7 @@ const QuestionChartTile: FC<Props> = ({
           curationStatus={curationStatus}
           defaultChartZoom={defaultChartZoom}
           hideCP={hideCP}
+          isCPRevealed={isCPRevealed}
           forecasters={forecasters}
         />
       );
@@ -87,6 +94,7 @@ const QuestionChartTile: FC<Props> = ({
           question={question}
           userForecasts={userForecasts}
           hideCP={hideCP}
+          isCPRevealed={isCPRevealed}
           actualCloseTime={actualCloseTime}
         />
       );

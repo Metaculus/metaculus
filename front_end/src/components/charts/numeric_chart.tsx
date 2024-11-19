@@ -70,6 +70,8 @@ type Props = {
   resolution?: Resolution | null;
   resolveTime?: string | null;
   hideCP?: boolean;
+  isCPRevealed?: boolean;
+  openTime?: number;
 };
 
 const NumericChart: FC<Props> = ({
@@ -88,6 +90,8 @@ const NumericChart: FC<Props> = ({
   resolution,
   resolveTime,
   hideCP,
+  isCPRevealed,
+  openTime,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -116,6 +120,8 @@ const NumericChart: FC<Props> = ({
         width: chartWidth,
         zoom,
         extraTheme,
+        isCPRevealed,
+        openTime,
       }),
     [
       questionType,
@@ -127,6 +133,8 @@ const NumericChart: FC<Props> = ({
       chartWidth,
       zoom,
       extraTheme,
+      isCPRevealed,
+      openTime,
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
@@ -338,6 +346,8 @@ function buildChartData({
   width,
   zoom,
   extraTheme,
+  isCPRevealed,
+  openTime,
 }: {
   questionType: QuestionType;
   actualCloseTime: number | null;
@@ -348,6 +358,8 @@ function buildChartData({
   width: number;
   zoom: TimelineChartZoomOption;
   extraTheme?: VictoryThemeDefinition;
+  isCPRevealed?: boolean;
+  openTime?: number;
 }): ChartData {
   const line = aggregation.history.map((forecast) => ({
     x: forecast.start_time,
@@ -393,13 +405,17 @@ function buildChartData({
   }
   // TODO: add quartiles if continuous
 
-  const domainTimestamps = [
-    ...aggregation.history.map((f) => f.start_time),
-    ...(myForecasts?.history
-      ? myForecasts.history.map((f) => f.start_time)
-      : []),
-    latestTimestamp,
-  ];
+  const domainTimestamps =
+    !isCPRevealed && openTime
+      ? [openTime / 1000, latestTimestamp]
+      : [
+          ...aggregation.history.map((f) => f.start_time),
+          ...(myForecasts?.history
+            ? myForecasts.history.map((f) => f.start_time)
+            : []),
+          latestTimestamp,
+        ];
+
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
 

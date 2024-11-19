@@ -31,6 +31,7 @@ type Props = {
   defaultZoom?: TimelineChartZoomOption;
   chartTheme?: VictoryThemeDefinition;
   hideCP?: boolean;
+  isCPRevealed?: boolean;
 };
 
 const MultipleChoiceChartCard: FC<Props> = ({
@@ -40,6 +41,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
   defaultZoom,
   chartTheme,
   hideCP,
+  isCPRevealed,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -149,7 +151,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
       userForecasts={userForecasts}
       forecastersCount={forecastersCount}
       tooltipDate={tooltipDate}
-      onCursorChange={handleCursorChange}
+      onCursorChange={isCPRevealed ? handleCursorChange : undefined}
       onChoiceItemsUpdate={setChoiceItems}
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
@@ -159,6 +161,8 @@ const MultipleChoiceChartCard: FC<Props> = ({
       embedMode={embedMode}
       chartHeight={chartHeight}
       defaultZoom={defaultZoom}
+      isCPRevealed={isCPRevealed}
+      CPRevealTime={question.cp_reveal_time}
     />
   );
 };

@@ -18,6 +18,8 @@ import { Question, QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { getChoiceOptionValue } from "@/utils/charts";
 
+import LocalDaytime from "./ui/local_daytime";
+
 type Props = {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -32,6 +34,7 @@ type Props = {
   questionType?: QuestionType;
   scaling?: Scaling | undefined;
   hideCP?: boolean;
+  isCPRevealed?: boolean;
 };
 
 const MultipleChoiceTile: FC<Props> = ({
@@ -48,6 +51,7 @@ const MultipleChoiceTile: FC<Props> = ({
   questionType,
   scaling,
   hideCP,
+  isCPRevealed,
 }) => {
   const t = useTranslations();
 
@@ -108,18 +112,28 @@ const MultipleChoiceTile: FC<Props> = ({
         )}
       </div>
       {!isResolvedView && (
-        <MultipleChoiceChart
-          timestamps={timestamps}
-          actualCloseTime={actualCloseTime}
-          choiceItems={hideCP ? [] : choices}
-          height={chartHeight}
-          extraTheme={chartTheme}
-          defaultZoom={defaultChartZoom}
-          withZoomPicker={withZoomPicker}
-          userForecasts={userForecasts}
-          questionType={questionType}
-          scaling={scaling}
-        />
+        <div className="relative">
+          <MultipleChoiceChart
+            timestamps={timestamps}
+            actualCloseTime={actualCloseTime}
+            choiceItems={hideCP ? [] : choices}
+            height={chartHeight}
+            extraTheme={chartTheme}
+            defaultZoom={defaultChartZoom}
+            withZoomPicker={withZoomPicker}
+            userForecasts={userForecasts}
+            questionType={questionType}
+            scaling={scaling}
+          />
+          {!isCPRevealed && question?.cp_reveal_time && (
+            <div className="absolute inset-0 flex items-center justify-center pl-4 text-center text-xs lg:text-sm">
+              <p className="max-w-[300px]">
+                {t("cpWillRevealOn")}{" "}
+                <LocalDaytime date={question.cp_reveal_time} />
+              </p>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
