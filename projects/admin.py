@@ -68,14 +68,15 @@ class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
 
 class ProjectUserPermissionInline(admin.TabularInline):
     model = ProjectUserPermission
-    extra = 0
+    extra = 1
     autocomplete_fields = ("user",)
 
     def get_queryset(self, request):
         project_id = request.resolver_match.kwargs.get("object_id")
-        if ProjectUserPermission.objects.filter(project_id=project_id).count() > 100:
-            return ProjectUserPermission.objects.none()
-        return ProjectUserPermission.objects.filter(project_id=project_id)
+        qs = super().get_queryset(request)
+        if project_id and qs.filter(project_id=project_id).count() > 100:
+            return qs.none()
+        return qs.filter(project_id=project_id)
 
 
 class PostSelect2MultipleWidget(ModelSelect2MultipleWidget):
@@ -126,9 +127,10 @@ class PostDefaultProjectInline(admin.TabularInline):
 
     def get_queryset(self, request):
         project_id = request.resolver_match.kwargs.get("object_id")
-        if Post.objects.filter(default_project_id=project_id).count() > 100:
-            return Post.objects.none()
-        return Post.objects.filter(default_project_id=project_id)
+        qs = super().get_queryset(request)
+        if project_id and qs.filter(default_project_id=project_id).count() > 100:
+            return qs.none()
+        return qs.filter(default_project_id=project_id)
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -145,6 +147,15 @@ class PostProjectInlineForm(forms.ModelForm):
     class Meta:
         model = Post.projects.through
         fields = ["remove_from_project"]
+
+    def save(self, commit=True):
+        # Handle deletion based on the `custom_delete` field
+        if self.cleaned_data.get("remove_from_project"):
+            if self.instance.pk:
+                self.instance.delete()
+            return
+
+        return super().save(commit=commit)
 
 
 class PostProjectInline(admin.TabularInline):
@@ -187,9 +198,10 @@ class PostProjectInline(admin.TabularInline):
 
     def get_queryset(self, request):
         project_id = request.resolver_match.kwargs.get("object_id")
-        if Post.projects.through.objects.filter(project=project_id).count() > 100:
-            return Post.projects.through.objects.none()
-        return Post.projects.through.objects.filter(project=project_id)
+        qs = super().get_queryset(request)
+        if project_id and qs.filter(project=project_id).count() > 100:
+            return qs.none()
+        return qs.filter(project=project_id)
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -308,19 +320,6 @@ class ProjectAdmin(CustomTranslationAdmin):
         return format_html('<a href="{}">{} Posts</a>', url, count)
 
     view_posts_link.short_description = "Posts"
-
-    def save_formset(self, request, form, formset, change):
-        formset.save(commit=False)
-
-        for form_obj in formset.forms:
-            instance = form_obj.instance
-            if form_obj.cleaned_data.get("remove_from_project"):
-                # Remove the instance from the project
-                if isinstance(instance, Post.projects.through):
-                    instance.delete()
-            else:
-                instance.save()
-        formset.save_m2m()
 
     def get_urls(self):
         urls = super().get_urls()
