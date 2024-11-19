@@ -218,6 +218,7 @@ def clone_question(question: Question, title: str = None):
         open_upper_bound=question.open_upper_bound,
         open_lower_bound=question.open_lower_bound,
         options=question.options,
+        group_variable=question.group_variable,
         resolution_set_time=question.resolution_set_time,
         actual_resolve_time=question.actual_resolve_time,
         scheduled_close_time=question.scheduled_close_time,

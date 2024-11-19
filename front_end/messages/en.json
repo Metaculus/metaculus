@@ -67,6 +67,7 @@
   "forecastTimelineHeading": "Forecast Timeline",
   "totalPredictionsLabel": "Total Predictions",
   "totalForecastersLabel": "Total Forecasters",
+  "cpWillRevealOn": "The Community Prediction will be revealed on",
   "communityPredictionLabel": "Community Prediction",
   "metaculusPredictionLabel": "Metaculus Prediction",
   "userPredictionLabel": "User Prediction",

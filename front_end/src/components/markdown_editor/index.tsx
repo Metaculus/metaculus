@@ -38,6 +38,7 @@ import {
   mathJaxDescriptor,
 } from "@/components/markdown_editor/embedded_math_jax";
 import { linkPlugin } from "@/components/markdown_editor/plugins/link";
+import { mentionsPlugin } from "@/components/markdown_editor/plugins/mentions";
 import useAppTheme from "@/hooks/use_app_theme";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { logErrorWithScope } from "@/utils/errors";
@@ -64,6 +65,7 @@ type Props = {
   markdown: string;
   mode?: EditorMode;
   onChange?: (markdown: string) => void;
+  withUserMentions?: boolean;
   contentEditableClassName?: string;
   shouldConfirmLeave?: boolean;
   withUgcLinks?: boolean;
@@ -88,6 +90,7 @@ const MarkdownEditor: FC<Props> = ({
   markdown,
   mode = "read",
   onChange,
+  withUserMentions,
   contentEditableClassName,
   className,
   shouldConfirmLeave = false,
@@ -117,6 +120,7 @@ const MarkdownEditor: FC<Props> = ({
     linkPlugin({
       withUgcLinks,
     }),
+    ...(withUserMentions ? [mentionsPlugin()] : []),
     quotePlugin(),
     markdownShortcutPlugin(),
     codeBlockPlugin({

@@ -63,6 +63,7 @@ type QuestionOption = {
 type Props = {
   post: PostWithForecasts;
   questions: QuestionWithNumericForecasts[];
+  groupVariable: string;
   canPredict: boolean;
   canResolve: boolean;
   predictionMessage: PredictionInputMessage;
@@ -71,6 +72,7 @@ type Props = {
 const ForecastMakerGroupBinary: FC<Props> = ({
   post,
   questions,
+  groupVariable,
   canPredict,
   canResolve,
   predictionMessage,
@@ -213,7 +215,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         <thead>
           <tr>
             <th className="bg-blue-100 p-2 text-left text-xs font-bold dark:bg-blue-100-dark">
-              {t("Candidates")}
+              {groupVariable}
             </th>
             <th className="bg-blue-100 p-2 pr-4 text-right text-xs dark:bg-blue-100-dark">
               <FontAwesomeIcon

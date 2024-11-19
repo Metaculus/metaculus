@@ -47,6 +47,7 @@
     "fetch-retry": "^6.0.0",
     "html-react-parser": "^5.1.18",
     "http-proxy-middleware": "^3.0.0",
+    "lexical-beautiful-mentions": "^0.1.44",
     "lodash": "^4.17.21",
     "mathjs": "^12.4.2",
     "negotiator": "^0.6.3",

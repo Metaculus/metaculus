@@ -16,6 +16,8 @@ import {
 } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
 
+import CPRevealTime from "../charts/cp_reveal_time";
+
 type Props = {
   question: QuestionWithForecasts;
   disabled: boolean;
@@ -33,7 +35,19 @@ const ConditionalChart: FC<Props> = ({
   const resolved = question.resolution !== null;
   const aggregate = question.aggregations.recency_weighted;
   const userForecasts = question.my_forecasts;
+  const isCPRevealed = question.cp_reveal_time
+    ? new Date(question.cp_reveal_time) <= new Date()
+    : true;
 
+  if (!isCPRevealed) {
+    return (
+      <CPRevealTime
+        className="!relative text-xs"
+        textClassName="m-0 !max-w-[300px] !pl-0"
+        cpRevealTime={question?.cp_reveal_time}
+      />
+    );
+  }
   switch (question.type) {
     case QuestionType.Binary: {
       const pctCandidate = aggregate.latest?.centers![0];
