@@ -37,6 +37,7 @@ export type ConditionalTableOption = {
 
 type Props = {
   value: number | null;
+  groupVariable: string;
   options: ConditionalTableOption[];
   onChange: (id: number) => void;
   questions: QuestionWithNumericForecasts[];
@@ -48,6 +49,7 @@ const GroupForecastTable: FC<Props> = ({
   value,
   onChange,
   questions,
+  groupVariable,
   showCP = true,
 }) => {
   const t = useTranslations();
@@ -78,7 +80,7 @@ const GroupForecastTable: FC<Props> = ({
       {!!resolvedOptions.length && (
         <thead>
           <tr className="h-4">
-            <Th className="border-b border-r">TBD group label</Th>
+            <Th className="border-b border-r">{groupVariable}</Th>
             <Th className="border-b" colSpan={3}>
               {t("resolution")}
             </Th>
@@ -133,7 +135,7 @@ const GroupForecastTable: FC<Props> = ({
       {!!pendingOptions.length && (
         <tbody>
           <tr className="h-4 cursor-pointer bg-gray-100 dark:bg-gray-1000-dark">
-            <Th className="border-b border-r" />
+            <Th className="border-b border-r">{groupVariable}</Th>
             <Th className="border-b border-r">
               {t("questionGroupTableFirstQuartileLabel")}
             </Th>
