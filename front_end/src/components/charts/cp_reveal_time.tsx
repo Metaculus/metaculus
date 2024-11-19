@@ -29,7 +29,7 @@ const CPRevealTime: FC<Props> = ({
     >
       <p
         className={classNames(
-          "max-w-[300px] pl-5 md:max-w-max md:pl-0",
+          "max-w-[300px] pl-5 max-[425px]:max-w-[200px] md:max-w-max md:pl-0",
           textClassName
         )}
       >

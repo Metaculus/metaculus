@@ -415,20 +415,29 @@ export function parseQuestionId(questionUrlOrId: string): {
 }
 
 export function getGroupCPRevealTime(questions: QuestionWithForecasts[]) {
-  const closestCPRevealTime = Math.min(
-    ...questions
-      .map((q) =>
-        q.cp_reveal_time ? new Date(q.cp_reveal_time).getTime() : undefined
-      )
-      .filter((time) => time !== undefined)
-  );
+  const cdRevealTimes: number[] = [];
+  for (const q of questions) {
+    if (q.cp_reveal_time) {
+      cdRevealTimes.push(new Date(q.cp_reveal_time).getTime());
+    }
+  }
+
+  let closestCPRevealTime: Date | null = null;
+  if (cdRevealTimes.length) {
+    const candidate = Math.min(...cdRevealTimes);
+    const candidateDate = new Date(candidate);
+    if (isValid(candidateDate)) {
+      closestCPRevealTime = candidateDate;
+    }
+  }
+
   const isCPRevealed = closestCPRevealTime
-    ? new Date(closestCPRevealTime) <= new Date()
+    ? closestCPRevealTime <= new Date()
     : true;
 
   return {
     closestCPRevealTime: closestCPRevealTime
-      ? new Date(closestCPRevealTime).toString()
+      ? closestCPRevealTime.toString()
       : undefined,
     isCPRevealed,
   };
