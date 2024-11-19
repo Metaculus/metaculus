@@ -65,6 +65,7 @@ type Props = {
   markdown: string;
   mode?: EditorMode;
   onChange?: (markdown: string) => void;
+  withUserMentions?: boolean;
   contentEditableClassName?: string;
   shouldConfirmLeave?: boolean;
   withUgcLinks?: boolean;
@@ -89,6 +90,7 @@ const MarkdownEditor: FC<Props> = ({
   markdown,
   mode = "read",
   onChange,
+  withUserMentions,
   contentEditableClassName,
   className,
   shouldConfirmLeave = false,
@@ -118,7 +120,7 @@ const MarkdownEditor: FC<Props> = ({
     linkPlugin({
       withUgcLinks,
     }),
-    mentionsPlugin(),
+    ...(withUserMentions ? [mentionsPlugin()] : []),
     quotePlugin(),
     markdownShortcutPlugin(),
     codeBlockPlugin({
