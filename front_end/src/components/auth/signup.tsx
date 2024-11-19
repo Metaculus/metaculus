@@ -48,7 +48,10 @@ export const SignupForm: FC<{
   const { register, watch, setValue } = methods;
 
   const [state, formAction] = useFormState<SignUpActionState, FormData>(
-    signUpAction,
+    (prevState, formData) => {
+      const signupData = Object.fromEntries(formData.entries());
+      return signUpAction(signupData);
+    },
     null
   );
   useEffect(() => {

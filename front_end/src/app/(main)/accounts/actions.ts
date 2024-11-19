@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { signInSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
+import {
+  signInSchema,
+  SignUpSchema,
+  signUpSchema,
+} from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
 import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
@@ -59,14 +63,11 @@ export type SignUpActionState =
   | null;
 
 export async function signUpAction(
-  prevState: SignUpActionState,
-  formData: FormData
+  signupData: object
 ): Promise<SignUpActionState> {
   const headersList = headers();
 
-  const validatedFields = signUpSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
+  const validatedFields = signUpSchema.safeParse(signupData);
 
   if (!validatedFields.success) {
     return {
