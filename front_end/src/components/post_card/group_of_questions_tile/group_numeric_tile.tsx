@@ -19,6 +19,7 @@ import {
 } from "@/utils/charts";
 import {
   generateUserForecasts,
+  getGroupCPRevealTime,
   getPredictionQuestion,
   sortGroupPredictionOptions,
 } from "@/utils/questions";
@@ -46,6 +47,7 @@ const GroupNumericTile: FC<Props> = ({
   const scaling = isBinaryGroup
     ? undefined
     : getContinuousGroupScaling(questions);
+  const { closestCPRevealTime, isCPRevealed } = getGroupCPRevealTime(questions);
 
   if (
     post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph
@@ -76,6 +78,8 @@ const GroupNumericTile: FC<Props> = ({
             pointSize={8}
             hideCP={hideCP}
             withTooltip={false}
+            isCPRevealed={isCPRevealed}
+            cpRevealTime={closestCPRevealTime}
           />
         </div>
       </div>
@@ -115,6 +119,8 @@ const GroupNumericTile: FC<Props> = ({
         }
         questionType={questions[0].type}
         hideCP={hideCP}
+        isCPRevealed={isCPRevealed}
+        cpRevealTime={closestCPRevealTime}
       />
     );
   }
