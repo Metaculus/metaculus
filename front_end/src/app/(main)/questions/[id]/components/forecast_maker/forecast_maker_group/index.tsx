@@ -19,6 +19,7 @@ type Props = {
   finePrint: string;
   questions: QuestionWithForecasts[];
   post: PostWithForecasts;
+  groupVariable: string;
   canPredict: boolean;
   canResolve: boolean;
   predictionMessage: PredictionInputMessage;
@@ -29,6 +30,7 @@ const ForecastMakerGroup: FC<Props> = ({
   resolutionCriteria,
   finePrint,
   questions,
+  groupVariable,
   canResolve,
   canPredict,
   predictionMessage,
@@ -57,6 +59,7 @@ const ForecastMakerGroup: FC<Props> = ({
           questions={sortGroupPredictionOptions(
             questions as QuestionWithNumericForecasts[]
           )}
+          groupVariable={groupVariable}
           canResolve={canResolve}
           canPredict={canPredict}
           predictionMessage={predictionMessage}
@@ -67,6 +70,7 @@ const ForecastMakerGroup: FC<Props> = ({
         <ForecastMakerGroupContinuous
           post={post}
           questions={questions as QuestionWithNumericForecasts[]}
+          groupVariable={groupVariable}
           canResolve={canResolve}
           canPredict={canPredict}
           predictionMessage={predictionMessage}

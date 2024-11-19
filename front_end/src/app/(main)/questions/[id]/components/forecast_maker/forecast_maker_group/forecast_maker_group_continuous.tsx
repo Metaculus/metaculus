@@ -48,6 +48,7 @@ import ScoreDisplay from "../resolution/score_display";
 type Props = {
   post: PostWithForecasts;
   questions: QuestionWithNumericForecasts[];
+  groupVariable: string;
   canPredict: boolean;
   canResolve: boolean;
   predictionMessage: PredictionInputMessage;
@@ -57,6 +58,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   post,
   questions,
   canPredict,
+  groupVariable,
   canResolve,
   predictionMessage,
 }) => {
@@ -282,6 +284,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       <GroupForecastTable
         value={activeTableOption}
         options={groupOptions}
+        groupVariable={groupVariable}
         onChange={setActiveTableOption}
         questions={questions}
         showCP={!user || !hideCP}
