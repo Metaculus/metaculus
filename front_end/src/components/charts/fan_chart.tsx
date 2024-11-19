@@ -35,6 +35,8 @@ import {
   unscaleNominalLocation,
 } from "@/utils/charts";
 
+import CPRevealTime from "./cp_reveal_time";
+
 const TOOLTIP_WIDTH = 150;
 
 type Props = {
@@ -45,6 +47,8 @@ type Props = {
   extraTheme?: VictoryThemeDefinition;
   pointSize?: number;
   hideCP?: boolean;
+  isCPRevealed?: boolean;
+  cpRevealTime?: string;
 };
 
 const FanChart: FC<Props> = ({
@@ -55,6 +59,8 @@ const FanChart: FC<Props> = ({
   extraTheme,
   pointSize,
   hideCP,
+  isCPRevealed = true,
+  cpRevealTime,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -104,7 +110,7 @@ const FanChart: FC<Props> = ({
 
   const shouldDisplayChart = !!chartWidth;
   return (
-    <div ref={chartContainerRef} className="w-full" style={{ height }}>
+    <div ref={chartContainerRef} className="relative w-full" style={{ height }}>
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
@@ -188,7 +194,7 @@ const FanChart: FC<Props> = ({
             }
           />
           <VictoryAxis tickFormat={(_, index) => labels[index]} />
-          {!hideCP && (
+          {!hideCP && isCPRevealed && (
             <VictoryScatter
               data={points.map((point) => ({
                 ...point,
@@ -226,6 +232,13 @@ const FanChart: FC<Props> = ({
             }
           />
         </VictoryChart>
+      )}
+      {!isCPRevealed && (
+        <CPRevealTime
+          className="text-xs lg:text-sm"
+          textClassName="!max-w-[300px]"
+          cpRevealTime={cpRevealTime}
+        />
       )}
     </div>
   );

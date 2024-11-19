@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
+import CPRevealTime from "@/components/charts/cp_reveal_time";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
@@ -25,7 +26,7 @@ type Props = {
   forecastersCount?: number | null;
   onChoiceItemsUpdate: (choiceItems: ChoiceItem[]) => void;
   timestamps: number[];
-  onCursorChange: (value: number, format: TickFormat) => void;
+  onCursorChange?: (value: number, format: TickFormat) => void;
   actualCloseTime?: number | null;
   userForecasts?: UserChoiceItem[];
   isClosed?: boolean;
@@ -40,6 +41,8 @@ type Props = {
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
+  isCPRevealed?: boolean;
+  cpRevealTime?: string;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -65,6 +68,8 @@ const MultiChoicesChartView: FC<Props> = ({
   chartHeight,
   chartTheme,
   embedMode = false,
+  isCPRevealed = true,
+  cpRevealTime,
 }) => {
   const { user } = useAuth();
   const t = useTranslations();
@@ -159,7 +164,11 @@ const MultiChoicesChartView: FC<Props> = ({
           </>
         )}
       </div>
-      <div ref={refs.setReference} {...getReferenceProps()}>
+      <div
+        ref={refs.setReference}
+        {...getReferenceProps()}
+        className={"relative"}
+      >
         <MultipleChoiceChart
           actualCloseTime={actualCloseTime}
           timestamps={timestamps}
@@ -182,6 +191,7 @@ const MultiChoicesChartView: FC<Props> = ({
                 : TimelineChartZoomOption.TwoMonths
           }
         />
+        {!isCPRevealed && <CPRevealTime cpRevealTime={cpRevealTime} />}
       </div>
 
       {withLegend && (

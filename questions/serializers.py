@@ -46,7 +46,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             "scheduled_close_time",
             "actual_close_time",
             "type",
+            # Multiple-choice Questions only
             "options",
+            "group_variable",
             # Used for Group Of Questions to determine
             # whether question is eligible for forecasting
             "status",
@@ -108,6 +110,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "open_upper_bound",
             "open_lower_bound",
             "options",
+            "group_variable",
             "label",
             "scheduled_resolve_time",
             "scheduled_close_time",

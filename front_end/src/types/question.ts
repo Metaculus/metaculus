@@ -177,7 +177,10 @@ export type Question = {
   scheduled_close_time: string;
   actual_close_time?: string;
   type: QuestionType;
+  // Multiple-choice only
   options?: string[];
+  group_variable?: string;
+  // Other
   scaling: Scaling;
   possibilities: {
     format?: string;

@@ -143,6 +143,9 @@ export const createQuestionSchemas = (
 
   const multipleChoiceQuestionSchema = baseQuestionSchema.merge(
     z.object({
+      group_variable: z.string().max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+      }),
       options: z.array(
         z
           .string()
@@ -544,63 +547,76 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
         {questionType === "multiple_choice" && (
-          <div className="flex-col">
-            <InputContainer labelText={t("choices")} />
-            {optionsList && (
-              <div className="flex flex-col">
-                {optionsList.map((option, opt_index) => (
-                  <div key={opt_index} className="flex">
-                    <div className="w-full">
-                      <Input
-                        {...control.register(`options.${opt_index}`)}
-                        readOnly={hasForecasts && mode !== "create"}
-                        className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                        value={option}
-                        placeholder={`Option ${opt_index + 1}`}
-                        onChange={(e) => {
-                          setOptionsList(
-                            optionsList.map((opt, index) => {
-                              if (index === opt_index) {
-                                return e.target.value;
-                              }
-                              return opt;
-                            })
-                          );
-                        }}
-                        errors={
-                          // @ts-ignore
-                          control.formState.errors.options?.[opt_index]
-                        }
-                      />
-                    </div>
-                    {opt_index >= MIN_OPTIONS_AMOUNT && !hasForecasts && (
-                      <Button
-                        className="my-2 h-[42px] w-max self-start capitalize"
-                        variant="text"
-                        onClick={() => {
-                          setOptionsList((prev) => {
-                            const newOptionsArray = [...prev].filter(
-                              (_, index) => index !== opt_index
-                            );
-                            control.setValue("options", newOptionsArray);
-                            return newOptionsArray;
-                          });
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faXmark} />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            <Button
-              className="w-max capitalize"
-              onClick={() => setOptionsList([...optionsList, ""])}
+          <>
+            <InputContainer
+              labelText={t("groupVariable")}
+              explanation={t("groupVariableDescription")}
             >
-              + {t("addOption")}
-            </Button>
-          </div>
+              <Input
+                {...control.register("group_variable")}
+                errors={control.formState.errors.group_variable}
+                defaultValue={post?.question?.group_variable}
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              />
+            </InputContainer>
+            <div className="flex-col">
+              <InputContainer labelText={t("choices")} />
+              {optionsList && (
+                <div className="flex flex-col">
+                  {optionsList.map((option, opt_index) => (
+                    <div key={opt_index} className="flex">
+                      <div className="w-full">
+                        <Input
+                          {...control.register(`options.${opt_index}`)}
+                          readOnly={hasForecasts && mode !== "create"}
+                          className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          value={option}
+                          placeholder={`Option ${opt_index + 1}`}
+                          onChange={(e) => {
+                            setOptionsList(
+                              optionsList.map((opt, index) => {
+                                if (index === opt_index) {
+                                  return e.target.value;
+                                }
+                                return opt;
+                              })
+                            );
+                          }}
+                          errors={
+                            // @ts-ignore
+                            control.formState.errors.options?.[opt_index]
+                          }
+                        />
+                      </div>
+                      {opt_index >= MIN_OPTIONS_AMOUNT && !hasForecasts && (
+                        <Button
+                          className="my-2 h-[42px] w-max self-start capitalize"
+                          variant="text"
+                          onClick={() => {
+                            setOptionsList((prev) => {
+                              const newOptionsArray = [...prev].filter(
+                                (_, index) => index !== opt_index
+                              );
+                              control.setValue("options", newOptionsArray);
+                              return newOptionsArray;
+                            });
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faXmark} />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button
+                className="w-max capitalize"
+                onClick={() => setOptionsList([...optionsList, ""])}
+              >
+                + {t("addOption")}
+              </Button>
+            </div>
+          </>
         )}
         <InputContainer
           labelText={t("resolutionCriteria")}

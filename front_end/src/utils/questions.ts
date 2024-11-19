@@ -22,6 +22,7 @@ import {
   QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
   Scaling,
+  QuestionWithForecasts,
 } from "@/types/question";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -411,4 +412,33 @@ export function parseQuestionId(questionUrlOrId: string): {
   }
 
   return result;
+}
+
+export function getGroupCPRevealTime(questions: QuestionWithForecasts[]) {
+  const cdRevealTimes: number[] = [];
+  for (const q of questions) {
+    if (q.cp_reveal_time) {
+      cdRevealTimes.push(new Date(q.cp_reveal_time).getTime());
+    }
+  }
+
+  let closestCPRevealTime: Date | null = null;
+  if (cdRevealTimes.length) {
+    const candidate = Math.min(...cdRevealTimes);
+    const candidateDate = new Date(candidate);
+    if (isValid(candidateDate)) {
+      closestCPRevealTime = candidateDate;
+    }
+  }
+
+  const isCPRevealed = closestCPRevealTime
+    ? closestCPRevealTime <= new Date()
+    : true;
+
+  return {
+    closestCPRevealTime: closestCPRevealTime
+      ? closestCPRevealTime.toString()
+      : undefined,
+    isCPRevealed,
+  };
 }

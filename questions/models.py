@@ -110,6 +110,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # list of multiple choice option labels
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
+    group_variable = models.CharField(blank=True, null=False)
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)

@@ -215,7 +215,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         <thead>
           <tr>
             <th className="bg-blue-100 p-2 text-left text-xs font-bold dark:bg-blue-100-dark">
-              {t("Candidates")}
+              {question.group_variable}
             </th>
             <th className="bg-blue-100 p-2 pr-4 text-right text-xs dark:bg-blue-100-dark">
               <FontAwesomeIcon

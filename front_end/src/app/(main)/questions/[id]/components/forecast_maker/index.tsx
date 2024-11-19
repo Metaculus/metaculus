@@ -45,6 +45,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         resolutionCriteria={groupOfQuestions.resolution_criteria}
         finePrint={groupOfQuestions.fine_print}
         questions={groupOfQuestions.questions}
+        groupVariable={groupOfQuestions.group_variable}
         canPredict={canPredict}
         canResolve={canResolve}
         predictionMessage={predictionMessage}

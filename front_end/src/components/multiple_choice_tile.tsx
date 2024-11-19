@@ -18,6 +18,8 @@ import { Question, QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { getChoiceOptionValue } from "@/utils/charts";
 
+import CPRevealTime from "./charts/cp_reveal_time";
+
 type Props = {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -32,6 +34,8 @@ type Props = {
   questionType?: QuestionType;
   scaling?: Scaling | undefined;
   hideCP?: boolean;
+  isCPRevealed?: boolean;
+  cpRevealTime?: string;
 };
 
 const MultipleChoiceTile: FC<Props> = ({
@@ -48,6 +52,8 @@ const MultipleChoiceTile: FC<Props> = ({
   questionType,
   scaling,
   hideCP,
+  isCPRevealed,
+  cpRevealTime,
 }) => {
   const t = useTranslations();
 
@@ -108,18 +114,27 @@ const MultipleChoiceTile: FC<Props> = ({
         )}
       </div>
       {!isResolvedView && (
-        <MultipleChoiceChart
-          timestamps={timestamps}
-          actualCloseTime={actualCloseTime}
-          choiceItems={hideCP ? [] : choices}
-          height={chartHeight}
-          extraTheme={chartTheme}
-          defaultZoom={defaultChartZoom}
-          withZoomPicker={withZoomPicker}
-          userForecasts={userForecasts}
-          questionType={questionType}
-          scaling={scaling}
-        />
+        <div className="relative">
+          <MultipleChoiceChart
+            timestamps={timestamps}
+            actualCloseTime={actualCloseTime}
+            choiceItems={hideCP ? [] : choices}
+            height={chartHeight}
+            extraTheme={chartTheme}
+            defaultZoom={defaultChartZoom}
+            withZoomPicker={withZoomPicker}
+            userForecasts={userForecasts}
+            questionType={questionType}
+            scaling={scaling}
+          />
+          {!isCPRevealed && (
+            <CPRevealTime
+              className="text-xs lg:text-sm"
+              textClassName="!max-w-[300px]"
+              cpRevealTime={question?.cp_reveal_time ?? cpRevealTime}
+            />
+          )}
+        </div>
       )}
     </div>
   );
