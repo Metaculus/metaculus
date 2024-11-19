@@ -33,7 +33,7 @@ const CurveQuestion: FC<Props> = ({
     if (isExpanded && wrapperRef.current) {
       const wrapperHeight = wrapperRef.current.offsetHeight;
       const windowHeight = window.innerHeight;
-      setMaxDetailsHeight(windowHeight - wrapperHeight - HEADER_HEIGHT);
+      setMaxDetailsHeight(windowHeight - wrapperHeight - HEADER_HEIGHT - 100);
     }
   }, [isExpanded]);
 
@@ -44,34 +44,41 @@ const CurveQuestion: FC<Props> = ({
           {post.title}
         </h1>
 
-        {!isExpanded && (
-          <Button
-            variant="text"
-            className={classNames(
-              "sticky z-10 mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500"
-            )}
-            onClick={() => setIsExpanded(true)}
-          >
-            <FontAwesomeIcon
-              icon={faChevronDown}
-              className="m-0"
-              width={10}
-              height={10}
-            />
+        <Button
+          variant="text"
+          className={classNames(
+            "sticky z-10 mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500",
+            { invisible: isExpanded }
+          )}
+          onClick={() => setIsExpanded(true)}
+        >
+          <FontAwesomeIcon
+            icon={faChevronDown}
+            className="m-0"
+            width={10}
+            height={10}
+          />
 
-            {expandLabel}
-          </Button>
-        )}
+          {expandLabel}
+        </Button>
+
         {isExpanded && (
-          <div
-            className="absolute left-0 top-full z-50 w-full overflow-y-scroll bg-blue-800 p-5 py-0 lg:!max-h-[510px]"
-            style={{ maxHeight: `${maxDetailsHeight}px` }}
-          >
-            <CurveQuestionDetails
-              question={post}
-              onCollapse={() => setIsExpanded(false)}
-            />
-          </div>
+          <>
+            <div
+              className="absolute left-0 top-[100%-50px] z-50 w-full overflow-y-scroll bg-blue-800 p-5 py-0 lg:!max-h-[510px]"
+              style={{ maxHeight: `${maxDetailsHeight}px` }}
+            >
+              <CurveQuestionDetails
+                question={post}
+                onCollapse={() => setIsExpanded(false)}
+              />
+            </div>
+            <div
+              className="absolute left-0 top-full z-40 h-[100vh] w-full"
+              style={{ maxHeight: `${maxDetailsHeight + 100}px` }}
+              onClick={() => setIsExpanded(false)}
+            ></div>
+          </>
         )}
       </div>
     </div>

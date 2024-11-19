@@ -46,8 +46,9 @@
   @apply font-bold;
 }
 
-.thecurve a {
-  @apply text-blue-300 dark:text-gray-300;
+.thecurve a,
+.MathJax {
+  @apply text-blue-300 dark:text-blue-300;
 }
 
 .thecurve table {
@@ -77,7 +78,7 @@
 
 .thecurve table thead td,
 .thecurve table thead th {
-  @apply border-b border-gray-300 pr-2 text-gray-900 dark:border-gray-300-dark dark:text-gray-900;
+  @apply border-b border-gray-300 pr-2 text-blue-300 dark:border-gray-300-dark dark:text-blue-300;
 }
 
 .thecurve table tbody tr:last-child td,
@@ -102,5 +103,5 @@
 }
 
 .thecurve blockquote {
-  @apply my-4 border-s-4 border-gray-300 bg-gray-100 p-4 text-gray-800 dark:border-gray-300-dark dark:bg-gray-200-dark dark:text-gray-800-dark;
+  @apply my-4 border-s-4 border-gray-300 bg-gray-100 p-4 text-blue-300 dark:border-gray-300-dark dark:bg-gray-200-dark dark:text-blue-300;
 }
