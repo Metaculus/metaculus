@@ -41,7 +41,16 @@ const CurveHistogram: FC<Props> = ({
           x: [0, 100],
           y: [0, maxY],
         }}
-        containerComponent={<VictoryContainer responsive={true} />}
+        containerComponent={
+          <VictoryContainer
+            responsive={true}
+            style={{
+              pointerEvents: "auto",
+              userSelect: "auto",
+              touchAction: "auto",
+            }}
+          />
+        }
         padding={{ top: 0, bottom: 25, left: 10, right: 10 }}
         height={height}
       >
