@@ -251,7 +251,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     def validate_news_type(self, value: str):
         try:
             return Project.objects.get(
-                name__iexact=value, type=Project.ProjectTypes.NEWS_CATEGORY
+                slug__iexact=value, type=Project.ProjectTypes.NEWS_CATEGORY
             )
         except Project.DoesNotExist:
             raise ValidationError("Slug does not exist")
