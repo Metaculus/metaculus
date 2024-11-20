@@ -335,7 +335,6 @@ def compute_hotness():
                 ),
                 0,
             )
-            * 20
         )
         + Case(
             # approved in last week
