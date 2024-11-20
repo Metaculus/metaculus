@@ -20,6 +20,7 @@ const Survey: FC<Props> = ({ questions }) => {
 
   const nextQuestion = useCallback(
     (questionIndex: number) => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
       questions.length === questionIndex + 1
         ? router.push("/thecurve")
         : setQuestionIndex((prev) => (prev ?? 0) + 1);
@@ -45,7 +46,9 @@ const Survey: FC<Props> = ({ questions }) => {
           post={activeQuestion}
           questions={activeQuestion.group_of_questions.questions}
           onSkip={() => nextQuestion(questionIndex)}
-          onPredict={() => setPredicted(true)}
+          onPredict={() => {
+            setPredicted(true);
+          }}
         />
       )}
 
