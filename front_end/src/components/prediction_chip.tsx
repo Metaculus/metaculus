@@ -46,8 +46,32 @@ const PredictionChip: FC<Props> = ({
     locale
   );
 
-  const aggregate = question.aggregations?.recency_weighted;
-  const lastUserForecast = aggregate?.history[aggregate.history.length - 1];
+  const renderUserForecast = () => {
+    const lastUserForecast = question.my_forecasts?.history.at(-1);
+
+    if (
+      showUserForecast &&
+      question.my_forecasts?.history.length &&
+      lastUserForecast?.centers?.length
+    ) {
+      const displayValue = getDisplayUserValue(
+        question.my_forecasts,
+        lastUserForecast.centers[0],
+        lastUserForecast.start_time,
+        question.type,
+        question.scaling
+      );
+
+      return (
+        <p className="m-2 text-orange-800 dark:text-orange-800-dark">
+          <FontAwesomeIcon icon={faUser} className="mr-1" />
+          {displayValue}
+        </p>
+      );
+    }
+
+    return null;
+  };
 
   switch (status) {
     case PostStatus.PENDING:
@@ -80,20 +104,7 @@ const PredictionChip: FC<Props> = ({
           >
             {formattedResolution}
           </Chip>
-          {showUserForecast && question.my_forecasts?.history.length ? (
-            <p className="m-2 text-orange-800 dark:text-orange-800-dark">
-              <FontAwesomeIcon icon={faUser} className="mr-1" />
-              {getDisplayUserValue(
-                question.my_forecasts,
-                lastUserForecast.centers![0],
-                lastUserForecast.start_time,
-                question.type,
-                question.scaling
-              )}
-            </p>
-          ) : (
-            <></>
-          )}
+          {renderUserForecast()}
           {size !== "compact" && !!nr_forecasters && (
             <p>
               {nr_forecasters} {t("forecasters")}
@@ -122,59 +133,42 @@ const PredictionChip: FC<Props> = ({
           )}
         </span>
       );
-    default:
+    default: {
       if (hideCP) {
         return (
           <span className={classNames("inline-flex flex-col", className)}>
-            {showUserForecast && !!question.my_forecasts?.history.length && (
-              <p className="m-2 text-base text-orange-800 dark:text-orange-800-dark">
-                <FontAwesomeIcon icon={faUser} className="mr-1" />
-                {getDisplayUserValue(
-                  question.my_forecasts,
-                  lastUserForecast.centers![0],
-                  lastUserForecast.start_time,
-                  question.type,
-                  question.scaling
-                )}
-              </p>
-            )}
+            {renderUserForecast()}
           </span>
         );
       }
+
+      const predictionDisplayValue = prediction
+        ? getDisplayValue(prediction, question.type, question.scaling)
+        : null;
       return (
         <span className={classNames("inline-flex flex-col", className)}>
-          <Chip
-            size={size}
-            className={classNames(
-              "bg-olive-700 dark:bg-olive-700-dark",
-              chipClassName
-            )}
-            style={unresovledChipStyle}
-          >
-            <FontAwesomeIcon icon={faUserGroup} size="xs" />
-            {prediction
-              ? getDisplayValue(prediction, question.type, question.scaling)
-              : ""}
-          </Chip>
+          {!!predictionDisplayValue && (
+            <Chip
+              size={size}
+              className={classNames(
+                "bg-olive-700 dark:bg-olive-700-dark",
+                chipClassName
+              )}
+              style={unresovledChipStyle}
+            >
+              <FontAwesomeIcon icon={faUserGroup} size="xs" />
+              {predictionDisplayValue}
+            </Chip>
+          )}
           {!!nr_forecasters && (
             <p>
               {nr_forecasters} {t("forecasters")}
             </p>
           )}
-          {showUserForecast && !!question.my_forecasts?.history.length && (
-            <p className="m-2 text-orange-800 dark:text-orange-800-dark">
-              <FontAwesomeIcon icon={faUser} className="mr-1" />
-              {getDisplayUserValue(
-                question.my_forecasts,
-                lastUserForecast.centers![0],
-                lastUserForecast.start_time,
-                question.type,
-                question.scaling
-              )}
-            </p>
-          )}
+          {renderUserForecast()}
         </span>
       );
+    }
   }
 };
 
