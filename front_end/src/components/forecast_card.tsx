@@ -275,7 +275,7 @@ const ForecastCard: FC<Props> = ({
       <div className="ForecastCard-header flex items-start justify-between max-[288px]:flex-col">
         {!post.conditional && (
           <h2
-            className="ForecastTitle m-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal"
+            className="ForecastTitle m-0 text-lg font-medium leading-snug tracking-normal"
             style={embedTheme?.title}
           >
             {embedTitle ? embedTitle : post.title}

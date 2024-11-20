@@ -22,6 +22,7 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [post, setPost] = useState<PostWithForecasts | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const nextBtnRef = useRef<HTMLButtonElement>(null);
   const [chartHeight, setChartHeight] = useState(65);
 
   useEffect(() => {
@@ -40,6 +41,13 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
   useEffect(() => {
     if (!chartContainerRef.current) return;
     setChartHeight(Math.max(chartContainerRef.current?.clientHeight, 65));
+
+    setTimeout(() => {
+      nextBtnRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
   }, [isLoading]);
 
   if (isLoading) {
@@ -93,6 +101,7 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
         </div>
         <div className="mt-4 flex w-full justify-center">
           <Button
+            ref={nextBtnRef}
             className="!bg-blue-900 !px-5 !text-lg !text-gray-200"
             onClick={() => {
               onNextQuestion && onNextQuestion();
