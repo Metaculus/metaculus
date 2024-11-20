@@ -6,6 +6,8 @@ from rest_framework.exceptions import ValidationError
 from comments.models import Comment
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
+from posts.services.common import get_posts_staff_users
+from projects.permissions import ObjectPermission
 from questions.serializers import ForecastSerializer
 from users.models import User
 from users.serializers import BaseUserSerializer
@@ -112,6 +114,7 @@ def serialize_comment(
     comment: Comment,
     current_user: User | None = None,
     mentions: list[User] | None = None,
+    author_staff_permission: ObjectPermission = None,
 ) -> dict:
     mentions = mentions or []
     serialized_data = CommentSerializer(
@@ -130,6 +133,7 @@ def serialize_comment(
     # Annotate user's vote
     serialized_data["vote_score"] = comment.vote_score
     serialized_data["user_vote"] = comment.user_vote
+    serialized_data["author_staff_permission"] = author_staff_permission
 
     serialized_data["is_current_content_translated"] = (
         comment.is_current_content_translated()
@@ -146,7 +150,7 @@ def serialize_comment_many(
     ids = [p.pk for p in comments]
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
 
-    qs = qs.select_related("included_forecast", "author", "on_post")
+    qs = qs.select_related("included_forecast__question", "author", "on_post")
     qs = qs.annotate_vote_score()
 
     if current_user and not current_user.is_anonymous:
@@ -158,9 +162,20 @@ def serialize_comment_many(
     objects = list(qs.all())
     objects.sort(key=lambda obj: ids.index(obj.id))
 
+    # Extracting staff users
+    post_staff_users_map = get_posts_staff_users(
+        {c.on_post for c in objects if c.on_post}
+    )
     mentions_map = comments_extract_user_mentions_mapping(objects)
 
     return [
-        serialize_comment(comment, current_user, mentions=mentions_map.get(comment.id))
+        serialize_comment(
+            comment,
+            current_user,
+            mentions=mentions_map.get(comment.id),
+            author_staff_permission=(
+                post_staff_users_map.get(comment.on_post, {}).get(comment.author_id)
+            ),
+        )
         for comment in objects
     ]

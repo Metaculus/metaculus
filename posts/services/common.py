@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Iterable
 from datetime import timedelta, date
 
 from django.db.models import Q, Count, Sum, Value, Case, When, F
@@ -13,6 +14,7 @@ from projects.permissions import ObjectPermission
 from projects.services.common import (
     notify_project_subscriptions_post_open,
     get_site_main_project,
+    get_projects_staff_users,
 )
 from questions.models import Question
 from questions.services import (
@@ -395,3 +397,19 @@ def handle_post_open(post: Post):
 
     # Handle post on followed projects subscriptions
     notify_project_subscriptions_post_open(post)
+
+
+def get_posts_staff_users(
+    posts: Iterable[Post],
+) -> dict[Post, dict[int, ObjectPermission]]:
+    """
+    Generates map of Curators/Admins for the given posts
+    """
+
+    post_default_projects_id_map = {post: post.default_project_id for post in posts}
+    project_staff_map = get_projects_staff_users(post_default_projects_id_map.values())
+
+    return {
+        post: project_staff_map[default_project_id]
+        for post, default_project_id in post_default_projects_id_map.items()
+    }

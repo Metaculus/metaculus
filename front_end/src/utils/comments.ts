@@ -8,6 +8,7 @@ export function parseComment(
     root_id: comment.root_id,
     parent_id: comment.parent_id,
     author: comment.author,
+    author_staff_permission: comment.author_staff_permission,
     children: [],
     text: comment.text,
     on_post: comment.on_post,

@@ -1,4 +1,4 @@
-import { Post } from "@/types/post";
+import { ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
@@ -12,6 +12,7 @@ export type AuthorType = {
 export type BECommentType = {
   id: number;
   author: AuthorType;
+  author_staff_permission: ProjectPermissions | null;
   on_post: number;
   root_id: number | null;
   parent_id: number | null;
