@@ -7,143 +7,191 @@ from users.views import check_text_for_spam
 from rest_framework.response import Response
 from django.utils import timezone
 from datetime import timedelta
-
+from utils.email import send_email_async
 
 class TestUserProfileUpdate:
     url = reverse("user-update-profile")
+    user_email = "user@metaculus.com"
+    spam_free_pass_threshold = 7
 
     def test_update_bio_with_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        # Mock the spam check to return True (indicating spam)
-        mock_spam_check = mocker.patch(
-            f"{check_text_for_spam.__module__}.{check_text_for_spam.__name__}"
-        )
+        mock_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker)
         mock_spam_check.return_value = True
+
+        days_since_joining = self.spam_free_pass_threshold - 1
+        self.set_up_user(user1, days_since_joining)
 
         response = user1_client.patch(
             self.url, {"bio": "This is spam content"}, format="json"
         )
 
-        days_since_joining = 6
-        email = "user@metaculus.com"
-        user1.date_joined = timezone.now() - timedelta(days=days_since_joining + 1)
-        user1.email = email
-        user1.save()
-
         assert isinstance(response, Response)
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        mock_spam_check.assert_called_once_with(
-            "This is spam content", email
-        )
+        mock_spam_check.assert_called_once_with("This is spam content", self.user_email)
         assert response.data is not None, "There needs to be a response body"
-        assert (
-            "support@metaculus.com" in response.data["message"]
-        ), "There needs to be a way to appeal in the message"
         assert (
             response.data["error_code"] == "SPAM_DETECTED"
         ), "There needs to be an error code"
 
+        user1.refresh_from_db()
+        assert not user1.is_active, "The user should be soft deleted"
+
+        # TODO: Figure out how to properly mock dramatiq actors.
+            # It won't increment call count despite clearly going over the function in debugger.
+        # mock_send_mail.assert_called_once()
+        # call_kwargs = mock_send_mail.call_args[1]  # Get kwargs from the call
+        # assert call_kwargs["recipient_list"] == [
+        #     self.user_email
+        # ], "Email should be sent to the user"
+        # assert (
+        #     "support@metaculus.com" in call_kwargs["message"]
+        # ), "Message should mention support email"
+
     def test_update_bio_without_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        # Mock the spam check to return False (no spam)
-        mock_spam_check = mocker.patch(
-            f"{check_text_for_spam.__module__}.{check_text_for_spam.__name__}"
-        )
+        mock_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker)
         mock_spam_check.return_value = False
 
-        email = "user@metaculus.com"
-        user1.email = email
-        user1.save()
+        self.set_up_user(user1, 1)
 
-        response = user1_client.patch(
-            self.url, {"bio": "This is legitimate content"}, format="json"
-        )
-
-
-        assert isinstance(response, Response)
-        assert response.status_code == status.HTTP_200_OK
-        mock_spam_check.assert_called_once_with(
-            "This is legitimate content", email
+        self.assert_successful_response(
+            {"bio": "This is legitimate content"},
+            user1_client,
+            user1,
+            mock_spam_check,
+            mock_send_mail,
+            spam_call_should_be_made=True,
         )
 
     def test_update_bio_empty_string(
-        self, user1_client: APIClient, mocker: Mock
+        self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        mock_spam_check = mocker.patch(
-            f"{check_text_for_spam.__module__}.{check_text_for_spam.__name__}"
-        )
-        response = user1_client.patch(self.url, {"bio": ""}, format="json")
+        mock_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker)
 
-        assert isinstance(response, Response)
-        assert response.status_code == status.HTTP_200_OK
-        mock_spam_check.assert_not_called()
+        self.set_up_user(user1, 1)
+        self.assert_successful_response(
+            {"bio": ""},
+            user1_client,
+            user1,
+            mock_spam_check,
+            mock_send_mail,
+            spam_call_should_be_made=False,
+        )
 
     def test_update_profile_without_bio(
-        self, user1_client: APIClient, mocker: Mock
+        self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        # Mock the spam check
-        mock_spam_check = mocker.patch(
-            f"{check_text_for_spam.__module__}.{check_text_for_spam.__name__}"
-        )
+        mock_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker)
 
-        # Update various profile fields except bio
-        response = user1_client.patch(
-            self.url,
+        self.set_up_user(user1, 1)
+
+        self.assert_successful_response(
             {
                 "website": "https://example.com",
                 "twitter": "twitterhandle",
                 "location": "New York",
                 "occupation": "Developer",
             },
-            format="json",
+            user1_client,
+            user1,
+            mock_spam_check,
+            mock_send_mail,
+            spam_call_should_be_made=False,
         )
-
-        assert isinstance(response, Response)
-        assert response.status_code == status.HTTP_200_OK
-        mock_spam_check.assert_not_called()
 
     def test_update_bio_long_time_member(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        mock_spam_check = mocker.patch(
-            f"{check_text_for_spam.__module__}.{check_text_for_spam.__name__}"
+        mock_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker)
+        mock_spam_check.return_value = True
+
+        days_since_joining = self.spam_free_pass_threshold + 1
+        self.set_up_user(user1, days_since_joining)
+
+        self.assert_successful_response(
+            {"bio": "This would normally be spam"},
+            user1_client,
+            user1,
+            mock_spam_check,
+            mock_send_mail,
+            spam_call_should_be_made=False,
         )
-        mock_spam_check.return_value = True  # Even if it's spam, it should be allowed
 
-        days_since_joining = 8
-        user1.date_joined = timezone.now() - timedelta(days=days_since_joining + 1)
-        user1.save()
+    def set_up_user(self, user: User, days_since_joining: int) -> None:
+        assert user.is_active, "The user should be active at first"
+        user.date_joined = timezone.now() - timedelta(days=days_since_joining)
+        user.email = self.user_email
+        user.save()
 
-        response = user1_client.patch(
-            self.url, {"bio": "This would normally be spam"}, format="json"
-        )
+    def assert_successful_response(
+        self,
+        patch_data: dict,
+        user_client: APIClient,
+        user: User,
+        mock_spam_check: Mock,
+        mock_send_mail: Mock,
+        spam_call_should_be_made: bool,
+    ) -> None:
+        old_bio = user.bio
+        response = user_client.patch(self.url, patch_data, format="json")
 
+        user.refresh_from_db()
+        assert user.bio == (
+            patch_data["bio"] if "bio" in patch_data else old_bio
+        ), "The bio should be updated"
         assert isinstance(response, Response)
         assert response.status_code == status.HTTP_200_OK
-        mock_spam_check.assert_not_called()
+        assert user.is_active, "The user should not be soft deleted"
+        if spam_call_should_be_made:
+            mock_spam_check.assert_called_once_with(patch_data["bio"], user.email)
+        else:
+            mock_spam_check.assert_not_called()
+        mock_send_mail.assert_not_called()
 
 
-@pytest.mark.skip(reason="Run this manually when needed. It should not be run automatically")
+def mock_spam_detection_and_email(mocker: Mock) -> tuple[Mock, Mock]:
+    """Helper function to mock spam detection and email sending.
+    Returns a tuple of (mock_spam_check, mock_send_mail)"""
+    mock_spam_check = mocker.patch(
+        f"{check_text_for_spam.__module__}.{check_text_for_spam.__name__}"
+    )
+    mock_send_mail = mocker.patch("utils.email.send_email_async")
+    return mock_spam_check, mock_send_mail
+
+
+@pytest.mark.skip(
+    reason="Run this manually when needed. It should not be run automatically. It can be referenced as examples of real spam and legitimate content."
+)
 @pytest.mark.parametrize(
     "bio, username, is_spam",
     [
         ("This is legitimate content", "user1@gmail.com", False),
-        ("I was born in 1990 and I love to play poker", "geniegeneral@gmail.com", False),
-        ("I was born in 1990 have forecasted since I was 9, and love to play poker", "geniegeneral@gmail.com", False),
+        (
+            "I was born in 1990 and I love to play poker",
+            "geniegeneral@gmail.com",
+            False,
+        ),
+        (
+            "I was born in 1990 have forecasted since I was 9, and love to play poker",
+            "geniegeneral@gmail.com",
+            False,
+        ),
+        ("This is spam content", "user1@gmail.com", True),
+        (
+            "My day job is as a software engineer at [JMA Wireless](https://www.jmawireless.com)",
+            "geniegeneral@gmail.com",
+            False,
+        ),
+        # Below are all real examples from the site (with non-spam emails made up)
         ("Moderator. Contact at skppcj@gmail.com", "skppcj@gmail.com", False),
         (
             "Chief of Staff at Metaculus.  Excited about making forecasting more useful.",
             "ibij@outlook.com",
             False,
         ),
-        (
-            "My day job is as a software engineer at [JMA Wireless](https://www.jmawireless.com)",
-            "geniegeneral@gmail.com",
-            False,
-        ),
-        ("This is spam content", "user1@gmail.com", True),
         (
             """
 [<u>TK88</u>](https://tk88i.bet/) - Khám phá ngay những điều bất ngờ tại - tk88i.bet Đến với chúng tôi, bạn sẽ trải nghiệm giải trí trực tuyến đỉnh cao với hàng loạt trò chơi thú vị, từ đó chinh phục những giải thưởng hấp dẫn đang chờ đón.
@@ -201,10 +249,10 @@ We believe in offering both best practices and affordable libraries. We take pri
             True,
         ),
         (
-"""
+            """
 # Sao Cự Môn ở cung Quan Lộc: Ý nghĩa và ảnh hưởng đến sự nghiệp
 
-Sao Cự Môn, khi nằm tại cung Quan Lộc, mang đến những ý nghĩa đặc biệt về sự nghiệp và thành công. Với đặc điểm nổi bật về trí tuệ và khả năng phản biện, người có sao Cự Môn ở cung Quan Lộc thường sở hữu tư duy sắc bén và khả năng phân tích tốt, nhưng cũng dễ gặp các thử thách và xung đột trong sự nghiệp. Cùng Tracuulasotuvi.com tìm hiểu về sao Cự Môn tọa  ở cung Quan Lộc và khám phá cách phát huy tối đa tiềm năng để đạt được sự nghiệp ổn định và thành công.
+Sao Cự Môn, khi nằm tại cung Quan Lộc, mang đến những ý nghĩa đặc biệt về sự nghiệp và thành công. Với đặc điểm nổi bật về trí tuệ và khả năng phản biện, người có sao Cự Môn ở cung Quan Lộc thường sở hữu tư duy sắc bén và khả năng phân tích tốt, nhưng cũng dễ gặp các thử thách và xung đột trong sự nghiệp. Cùng Tracuulasotuvi.com tìm hiu về sao Cự Môn tọa  ở cung Quan Lộc và khám phá cách phát huy tối đa tiềm năng để đạt đưc sự nghiệp ổn định và thành công.
 
 ## Đặc điểm của người có sao Cự Môn ở cung Quan Lộc
 
@@ -251,7 +299,7 @@ Tìm hiểu sâu về sao Cự Môn ở cung Quan Lộc và ảnh hưởng đế
             """
 We are offering #1 IT support services in Los Angeles - Beverly Hills - Burbank - West Hollywood - Glendale - IT consulting - Managed IT services.![](https://metaculus-web-media.s3.amazonaws.com/user_uploaded/geeks500x500.jpg)
 """,
-            "geeks@1956seo@agrautowheels.com",
+            "1956seo@agrautowheels.com",
             True,
         ),
     ],

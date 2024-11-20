@@ -38,9 +38,10 @@ from users.services import (
     change_email_from_token,
 )
 from utils.openai import generate_text_async
-
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
 
 def get_score_scatter_plot_data(
     scores: list[Score] | None = None,
@@ -454,30 +455,39 @@ def update_profile_api_view(request: Request) -> Response:
     assert isinstance(request.data, dict)
     days_since_joined = (timezone.now() - user.date_joined).days
     days_since_joined_threshold = 7
-    if "bio" in request.data and days_since_joined < days_since_joined_threshold:
-        bio = request.data["bio"]
-        if bio != "" and check_text_for_spam(bio, user.email):
-            user.soft_delete()
-            return Response(
-                {
-                    "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
-                    "error_code": "SPAM_DETECTED",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-    unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
-    if unsubscribe_tags is not None:
-        user_unsubscribe_tags(user, unsubscribe_tags)
+    logger.debug(f"Request Data: {request.data}")
+    logger.debug(f"Days since joined: {days_since_joined}")
+    if (
+        "bio" in request.data
+        and days_since_joined < days_since_joined_threshold
+        and request.data["bio"] != ""
+        and check_text_for_spam(request.data["bio"], user.email)
+    ):
+        user.soft_delete()
+        response = Response(
+            {
+                "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
+                "error_code": "SPAM_DETECTED",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+        logger.warning(
+            f"User {user.username} was soft deleted for spam bio: {request.data['bio']}"
+        )
+    else:
+        unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
+        if unsubscribe_tags is not None:
+            user_unsubscribe_tags(user, unsubscribe_tags)
+        response = Response(UserPrivateSerializer(user).data)
 
     serializer.save()
     user.save()
-
-    return Response(UserPrivateSerializer(user).data)
+    logger.debug(f"User {user.username} updated profile")
+    return response
 
 
 def check_text_for_spam(bio: str, email: str) -> bool:
-    if bio == "":
+    if not settings.OPENAI_API_KEY or not bio:
         return False
 
     if len(bio) > 25000:
@@ -533,6 +543,7 @@ def check_text_for_spam(bio: str, email: str) -> bool:
         )
     )
     is_spam = "TRUE" in gpt_response
+    logger.debug(f"Spam identification: {is_spam}")
     return is_spam
 
 

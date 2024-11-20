@@ -10,7 +10,7 @@ from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_notifications.factories import factory_notification
 from tests.unit.test_posts.factories import factory_post
-
+from utils.email import send_email_async
 
 class TestNotificationNewComments:
     def test_get_email_context_group(self, user1, user2, mocker):

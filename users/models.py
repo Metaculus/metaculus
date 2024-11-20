@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from datetime import timedelta, datetime
+import textwrap
 
 import dateutil.parser
 from django.contrib.auth.models import AbstractUser, UserManager
@@ -7,8 +8,9 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
-
+from django.conf import settings
 from utils.models import TimeStampedModel
+from utils.email import send_email_async
 
 if TYPE_CHECKING:
     from comments.models import Comment
@@ -103,3 +105,18 @@ class User(TimeStampedModel, AbstractUser):
         self.posts.update(curation_status=Post.CurationStatus.DELETED)
 
         self.save()
+
+        send_email_async.send(
+            subject="Your Metaculus Account Has Been Deactivated",
+            message=textwrap.dedent(
+                """Your Metaculus account has been deactivated by an administrator or an automated system. Possible reasons could include
+                - Suspicious activity
+                - Spam/Ad/Inappropriate content in comments
+                - Spam/Ad/Inappropriate content in profile bio
+                - Manual review for bot and spam accounts
+
+                If you believe this was done in error, please contact support@metaculus.com."""
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[self.email],
+        )
