@@ -47,11 +47,14 @@ const CurveIntro: FC<Props> = ({
           <h2 className="m-0 mt-9 max-w-[330px] text-center text-3xl font-medium lg:max-w-[500px]">
             {t("forecastedAllQuestions", { questionNumber })}
           </h2>
-          <p className="dark:gray-800-dark m-0 mt-7 max-w-[330px] text-center text-xl text-gray-800 dark:text-gray-800-dark lg:max-w-[500px]">
+          <p className="dark:gray-800-dark m-0 mt-7 max-w-[330px] text-center text-xl text-gray-800 dark:text-gray-800-dark md:max-w-[500px]">
+            {t("joinAgiWorkshop")}
+          </p>
+          <p className="dark:gray-800-dark m-0 mt-7 max-w-[330px] text-center text-base text-gray-800 dark:text-gray-800-dark md:max-w-[500px]">
             {t("visitTournamentPage")}
           </p>
           <Button
-            className="mt-6 !border-gray-700 !px-5 !text-lg !text-gray-700 dark:!border-gray-700-dark dark:!text-gray-700-dark"
+            className="mt-3 !border-gray-700 !px-5 !text-lg !text-gray-700 dark:!border-gray-700-dark dark:!text-gray-700-dark"
             href={`/tournament/${tournamentSlug}`}
           >
             {t("viewTournamentPage")}
@@ -59,10 +62,8 @@ const CurveIntro: FC<Props> = ({
         </>
       ) : (
         <>
-          <h2 className="m-0 mt-9 text-3xl font-medium">
-            {t("reciprocalSurvey")}
-          </h2>
-          <p className="dark:gray-800-dark m-0 mt-7 text-xl text-gray-800 dark:text-gray-800-dark">
+          <h2 className="m-0 mt-9 text-3xl font-medium">{t("curveSurvey")}</h2>
+          <p className="dark:gray-800-dark m-0 mt-7 max-w-[300px] text-center text-xl text-gray-800 dark:text-gray-800-dark md:max-w-[500px]">
             {t("curveIntroduction")}
           </p>
 

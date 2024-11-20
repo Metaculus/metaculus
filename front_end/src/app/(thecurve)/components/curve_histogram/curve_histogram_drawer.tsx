@@ -78,7 +78,7 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
           <p className="m-0 w-full text-start text-sm font-medium leading-4 text-gray-700 dark:text-gray-700-dark">
             {t("communityPredictionLabel")}
           </p>
-          <div ref={chartContainerRef}>
+          <div className="mt-3" ref={chartContainerRef}>
             {!!histogramQuestion.aggregations.recency_weighted.latest
               ?.histogram && (
               <CurveHistogram
