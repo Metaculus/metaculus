@@ -120,6 +120,7 @@ const CurveForecastMaker: FC<Props> = ({
                 rail: { backgroundColor: "white", height: "3px" },
                 track: { backgroundColor: "white", height: "3px" },
               }}
+              withArrowStep={false}
             />
           </React.Fragment>
         ))}

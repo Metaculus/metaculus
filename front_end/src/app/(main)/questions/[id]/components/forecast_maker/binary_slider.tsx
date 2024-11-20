@@ -23,6 +23,7 @@ type Props = {
   helperDisplay?: boolean;
   className?: string;
   styles?: Partial<Record<SemanticName, CSSProperties>>;
+  withArrowStep?: boolean;
 };
 
 const BinarySlider: FC<Props> = ({
@@ -35,6 +36,7 @@ const BinarySlider: FC<Props> = ({
   helperDisplay = false,
   className,
   styles,
+  withArrowStep = true,
 }) => {
   const inputDisplayValue = forecast ? forecast.toString() + "%" : "—";
   const [, setInputValue] = useState(inputDisplayValue);
@@ -87,7 +89,7 @@ const BinarySlider: FC<Props> = ({
           defaultValue={forecast ?? DEFAULT_SLIDER_VALUE}
           onChange={handleSliderForecastChange}
           step={1}
-          arrowStep={0.1}
+          arrowStep={withArrowStep ? 0.1 : undefined}
           shouldSyncWithDefault
           marks={
             communityForecast
