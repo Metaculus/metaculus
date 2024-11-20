@@ -1,9 +1,12 @@
+from collections import defaultdict
+from typing import Iterable
+
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Comment
+from comments.models import Comment, KeyFactor
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
 from posts.services.common import get_posts_staff_users
@@ -11,6 +14,7 @@ from projects.permissions import ObjectPermission
 from questions.serializers import ForecastSerializer
 from users.models import User
 from users.serializers import BaseUserSerializer
+from utils.dtypes import flatten, generate_map_from_list
 
 
 class CommentFilterSerializer(serializers.Serializer):
@@ -115,6 +119,7 @@ def serialize_comment(
     current_user: User | None = None,
     mentions: list[User] | None = None,
     author_staff_permission: ObjectPermission = None,
+    key_factors: list[KeyFactor] = None,
 ) -> dict:
     mentions = mentions or []
     serialized_data = CommentSerializer(
@@ -138,6 +143,7 @@ def serialize_comment(
     serialized_data["is_current_content_translated"] = (
         comment.is_current_content_translated()
     )
+    serialized_data["key_factors"] = key_factors or []
 
     return serialized_data
 
@@ -145,12 +151,15 @@ def serialize_comment(
 def serialize_comment_many(
     comments: QuerySet[Comment] | list[Comment],
     current_user: User | None = None,
+    with_key_factors: bool = False,
 ) -> list[dict]:
     # Get original ordering of the comments
     ids = [p.pk for p in comments]
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
 
-    qs = qs.select_related("included_forecast__question", "author", "on_post")
+    qs = qs.select_related(
+        "included_forecast__question", "author", "on_post"
+    ).prefetch_related("key_factors")
     qs = qs.annotate_vote_score()
 
     if current_user and not current_user.is_anonymous:
@@ -168,6 +177,17 @@ def serialize_comment_many(
     )
     mentions_map = comments_extract_user_mentions_mapping(objects)
 
+    # Extracting key factors
+    comment_key_factors_map = {}
+    if with_key_factors:
+        comment_key_factors_map = generate_map_from_list(
+            serialize_key_factors_many(
+                flatten([c.key_factors.all() for c in objects]),
+                current_user=current_user,
+            ),
+            key=lambda x: x.comment_id,
+        )
+
     return [
         serialize_comment(
             comment,
@@ -176,6 +196,41 @@ def serialize_comment_many(
             author_staff_permission=(
                 post_staff_users_map.get(comment.on_post, {}).get(comment.author_id)
             ),
+            key_factors=comment_key_factors_map.get(comment.id),
         )
         for comment in objects
     ]
+
+
+def serialize_key_factor(key_factor: KeyFactor) -> dict:
+    votes_summary = defaultdict(int)
+
+    for vote in key_factor.votes.all():
+        votes_summary[vote.score] += 1
+
+    return {
+        "id": key_factor.id,
+        "text": key_factor.text,
+        "user_vote": key_factor.user_vote,
+        "votes_score": key_factor.votes_score,
+        "votes_summary": votes_summary,
+    }
+
+
+def serialize_key_factors_many(
+    key_factors: Iterable[KeyFactor], current_user: User = None
+):
+    # Get original ordering of the comments
+    ids = [p.pk for p in key_factors]
+    qs = KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors]).prefetch_related(
+        "votes"
+    )
+
+    if current_user and not current_user.is_anonymous:
+        qs = qs.annotate_user_vote(current_user)
+
+    # Restore the original ordering
+    objects = list(qs.all())
+    objects.sort(key=lambda obj: ids.index(obj.id))
+
+    return [serialize_key_factor(comment) for comment in objects]
