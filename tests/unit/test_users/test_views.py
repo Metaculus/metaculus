@@ -1,3 +1,7 @@
+from datetime import timedelta
+import logging
+import pytest
+
 from unittest.mock import Mock
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -6,8 +10,8 @@ from tests.unit.fixtures import *  # noqa
 from users.views import check_text_for_spam
 from rest_framework.response import Response
 from django.utils import timezone
-from datetime import timedelta
-from utils.email import send_email_async
+import asyncio
+logger = logging.getLogger(__name__)
 
 class TestUserProfileUpdate:
     url = reverse("user-update-profile")
@@ -38,16 +42,14 @@ class TestUserProfileUpdate:
         user1.refresh_from_db()
         assert not user1.is_active, "The user should be soft deleted"
 
-        # TODO: Figure out how to properly mock dramatiq actors.
-            # It won't increment call count despite clearly going over the function in debugger.
-        # mock_send_mail.assert_called_once()
-        # call_kwargs = mock_send_mail.call_args[1]  # Get kwargs from the call
-        # assert call_kwargs["recipient_list"] == [
-        #     self.user_email
-        # ], "Email should be sent to the user"
-        # assert (
-        #     "support@metaculus.com" in call_kwargs["message"]
-        # ), "Message should mention support email"
+        mock_send_mail.assert_called_once()
+        call_kwargs = mock_send_mail.call_args[1]  # Get kwargs from the call
+        assert call_kwargs["recipient_list"] == [
+            self.user_email
+        ], "Email should be sent to the user"
+        assert (
+            "support@metaculus.com" in call_kwargs["message"]
+        ), "Message should mention support email"
 
     def test_update_bio_without_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User
@@ -158,13 +160,13 @@ def mock_spam_detection_and_email(mocker: Mock) -> tuple[Mock, Mock]:
     mock_spam_check = mocker.patch(
         f"{check_text_for_spam.__module__}.{check_text_for_spam.__name__}"
     )
-    mock_send_mail = mocker.patch("utils.email.send_email_async")
+    mock_send_mail = mocker.patch("utils.email.send_email_async.send")
     return mock_spam_check, mock_send_mail
 
 
-@pytest.mark.skip(
-    reason="Run this manually when needed. It should not be run automatically. It can be referenced as examples of real spam and legitimate content."
-)
+# @pytest.mark.skip(
+#     reason="Run this manually when needed. It should not be run automatically. It can be referenced as examples of real spam and legitimate content."
+# )
 @pytest.mark.parametrize(
     "bio, username, is_spam",
     [
@@ -179,7 +181,6 @@ def mock_spam_detection_and_email(mocker: Mock) -> tuple[Mock, Mock]:
             "geniegeneral@gmail.com",
             False,
         ),
-        ("This is spam content", "user1@gmail.com", True),
         (
             "My day job is as a software engineer at [JMA Wireless](https://www.jmawireless.com)",
             "geniegeneral@gmail.com",
@@ -190,6 +191,22 @@ def mock_spam_detection_and_email(mocker: Mock) -> tuple[Mock, Mock]:
         (
             "Chief of Staff at Metaculus.  Excited about making forecasting more useful.",
             "ibij@outlook.com",
+            False,
+        ),
+        ("eigenrobot", "johnash@gmail.com", False),
+        ("politics is alright", "ger6897@gmail.com", False),
+        (
+            "PhD Candidate @ MIT\nhttps://www.linkedin.com/in/peter-williams-5b8a0b119/",
+            "peter.williams234@gmail.com",
+            False,
+        ),
+        (
+            """
+A fox ever on the hunt for knowledge, and the best hunters catch enough to share.
+If you have something interesting to say to me, do it here: https://vulpine.club/web/accounts/714027
+Website: https://www.lorx.us/favor
+""",
+            "lupx@gmail.com",
             False,
         ),
         (
@@ -305,7 +322,10 @@ We are offering #1 IT support services in Los Angeles - Beverly Hills - Burbank 
     ],
 )
 def test_spam_detection(bio: str, username: str, is_spam: bool) -> None:
-    identified_as_spam = check_text_for_spam(bio, username)
-    assert (
-        identified_as_spam == is_spam
-    ), f"Bio: {bio}\nIdentified as spam: {identified_as_spam}, expected: {is_spam}"
+    identified_as_spam, gpt_response = asyncio.run(check_text_for_spam(bio, username))
+    try:
+        assert (
+            identified_as_spam == is_spam
+        ), f"Bio: {bio}\nIdentified as spam: {identified_as_spam}, expected: {is_spam}\nGPT response: {gpt_response}"
+    finally:
+        logger.debug(f"Bio: {bio}\nIdentified as spam: {identified_as_spam}, expected: {is_spam}\nGPT response: {gpt_response}")

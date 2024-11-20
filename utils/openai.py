@@ -25,10 +25,12 @@ async def generate_text_async(
     if system_prompt is not None:
         messages.insert(0, {"role": "system", "content": system_prompt})
 
-    response = await get_openai_client_async().chat.completions.create(
-        model=model, messages=messages, temperature=temperature  # type: ignore
-    )
-    response_text = response.choices[0].message.content
+    client = get_openai_client_async()
+    async with client as client:
+        response = await client.chat.completions.create(
+            model=model, messages=messages, temperature=temperature  # type: ignore
+        )
+        response_text = response.choices[0].message.content
 
     if response_text is None:
         raise ValueError("No text was generated")

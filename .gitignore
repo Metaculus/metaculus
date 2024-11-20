@@ -161,3 +161,9 @@ some_data.csv
 profile.dump
 .env.sh
 staticfiles
+
+# Sandbox Files
+.personal/
+.sandbox/
+sandbox/
+sandbox.py
