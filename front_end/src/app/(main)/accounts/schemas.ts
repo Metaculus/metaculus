@@ -14,11 +14,7 @@ export const signUpSchema = z.intersection(
   z.object({
     username: z.string().min(1, { message: "Username is required" }),
     email: z.string().min(1, { message: "Email is required" }),
-    isBot: z
-      .string()
-      .toLowerCase()
-      .transform((x) => x === "true")
-      .pipe(z.boolean()),
+    isBot: z.boolean(),
     turnstileToken: z.string({
       required_error: "Turnstile token is required",
     }),
