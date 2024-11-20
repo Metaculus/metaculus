@@ -29,12 +29,14 @@ from users.serializers import (
     UserFilterSerializer,
     PasswordChangeSerializer,
     EmailChangeSerializer,
+    UserCampaignRegistrationSerializer,
 )
 from users.services.common import (
     get_users,
     user_unsubscribe_tags,
     send_email_change_confirmation_email,
     change_email_from_token,
+    register_user_to_campaign,
 )
 from users.services.spam_detection import (
     check_profile_update_for_spam,
@@ -522,3 +524,20 @@ def email_change_confirm_api_view(request):
     change_email_from_token(request.user, token)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def register_campaign(request):
+    user = request.user
+    serializer = UserCampaignRegistrationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    project = serializer.validated_data.get("add_to_project", None)
+    campaign_data = serializer.validated_data["details"]
+    campaign_key = serializer.validated_data["key"]
+
+    register_user_to_campaign(
+        user, campaign_key=campaign_key, campaign_data=campaign_data, project=project
+    )
+
+    return Response(status=status.HTTP_200_OK)

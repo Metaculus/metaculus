@@ -67,6 +67,18 @@ class ProfileApi {
   static async searchUsers(query: string) {
     return await get<PaginatedPayload<UserProfile>>(`/users/?search=${query}`);
   }
+
+  static async registerUserCampaign(
+    key: string,
+    details: object,
+    add_to_project?: number
+  ) {
+    return post<void>("/users/me/register_campaign/", {
+      key,
+      details,
+      add_to_project,
+    });
+  }
 }
 
 export default ProfileApi;
