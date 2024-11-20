@@ -8,10 +8,20 @@ from projects.models import Project
 
 class SignupSerializer(serializers.ModelSerializer):
     add_to_project = serializers.IntegerField(required=False)
+    campaign_key = serializers.CharField(required=False)
+    campaign_data = serializers.JSONField(required=False)
 
     class Meta:
         model = User
-        fields = ("username", "email", "password", "is_bot", "add_to_project")
+        fields = (
+            "username",
+            "email",
+            "password",
+            "is_bot",
+            "add_to_project",
+            "campaign_key",
+            "campaign_data",
+        )
         extra_kwargs = {"email": {"required": True}}
 
     def validate_add_to_project(self, value):

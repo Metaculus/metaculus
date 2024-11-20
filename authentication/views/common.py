@@ -25,7 +25,7 @@ from authentication.services import (
 from fab_credits.models import UserUsage
 from projects.models import ProjectUserPermission
 from projects.permissions import ObjectPermission
-from users.models import User
+from users.models import User, UserCampaignRegistration
 from users.serializers import UserPrivateSerializer
 from utils.cloudflare import validate_turnstile_from_request
 
@@ -62,6 +62,8 @@ def signup_api_view(request):
     is_bot = serializer.validated_data.get("is_bot", False)
 
     project = serializer.validated_data.get("add_to_project", None)
+    campaign_key = serializer.validated_data.get("campaign_key", None)
+    campaign_data = serializer.validated_data.get("campaign_data", None)
 
     user = User.objects.create_user(
         username=username,
@@ -71,7 +73,15 @@ def signup_api_view(request):
         is_bot=is_bot,
     )
 
+    if campaign_key is not None:
+        UserCampaignRegistration.objects.create(
+            user=user, key=campaign_key, details=campaign_data
+        )
+
     if project is not None:
+        if project.default_permission is None:
+            raise ValidationError("Cannot add user to a private project")
+
         ProjectUserPermission.objects.create(
             user=user, project=project, permission=ObjectPermission.FORECASTER
         )
