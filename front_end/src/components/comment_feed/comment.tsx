@@ -22,12 +22,14 @@ import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
 import CommentVoter from "@/components/comment_feed/comment_voter";
+import { Admin } from "@/components/icons/admin";
+import { Moderator } from "@/components/icons/moderator";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { CommentType } from "@/types/comment";
-import { PostWithForecasts } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseUserMentions } from "@/utils/comments";
 import { logError } from "@/utils/errors";
@@ -378,13 +380,20 @@ const Comment: FC<CommentProps> = ({
         <div className="mb-1 flex flex-col items-start gap-1">
           <span className="inline-flex items-center text-base">
             <a
-              className="no-underline"
+              className="flex flex-row items-center no-underline"
               href={`/accounts/profile/${comment.author.id}/`}
             >
               <h4 className="my-1 text-base">
                 {comment.author.username}
                 {comment.author.is_bot && " 🤖"}
               </h4>
+              {comment.author_staff_permission ===
+                ProjectPermissions.CURATOR && (
+                <Moderator className="ml-2 text-lg" />
+              )}
+              {comment.author_staff_permission === ProjectPermissions.ADMIN && (
+                <Admin className="ml-2 text-lg" />
+              )}
             </a>
             {/*
           {comment.is_moderator && !comment.is_admin && (

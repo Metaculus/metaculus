@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from django.db import IntegrityError
 from django.db.models import Q
 
@@ -11,6 +13,7 @@ from posts.models import Post
 from projects.models import Project, ProjectUserPermission, ProjectSubscription
 from projects.permissions import ObjectPermission
 from users.models import User
+from utils.dtypes import generate_map_from_list
 
 
 def get_projects_qs(
@@ -150,3 +153,24 @@ def notify_project_subscriptions_post_open(post: Post):
             ),
             mailing_tag=MailingTags.TOURNAMENT_NEW_QUESTIONS,
         )
+
+
+def get_projects_staff_users(
+    project_ids: Iterable[int],
+) -> dict[int, dict[int, ObjectPermission]]:
+    """
+    Generates map of users which are admins/mods for the given projects
+    """
+
+    m2m_objects = ProjectUserPermission.objects.filter(
+        project_id__in=project_ids,
+        permission__in=[ObjectPermission.ADMIN, ObjectPermission.CURATOR],
+    )
+    project_staff_map = generate_map_from_list(m2m_objects, lambda x: x.project_id)
+
+    return {
+        project_id: {
+            obj.user_id: obj.permission for obj in project_staff_map.get(project_id, [])
+        }
+        for project_id in project_ids
+    }
