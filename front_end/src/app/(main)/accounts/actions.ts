@@ -63,31 +63,23 @@ export type SignUpActionState =
   | null;
 
 export async function signUpAction(
-  signupData: object
+  validatedSignupData: SignUpSchema
 ): Promise<SignUpActionState> {
   const headersList = headers();
 
-  const validatedFields = signUpSchema.safeParse(signupData);
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
   let addToProject;
-  if (validatedFields.data.addToProject) {
-    addToProject = parseInt(validatedFields.data.addToProject);
+  if (validatedSignupData.addToProject) {
+    addToProject = parseInt(validatedSignupData.addToProject);
   }
 
   try {
     const response = await AuthApi.signUp(
-      validatedFields.data.email,
-      validatedFields.data.username,
-      validatedFields.data.password,
-      validatedFields.data.isBot,
+      validatedSignupData.email,
+      validatedSignupData.username,
+      validatedSignupData.password,
+      validatedSignupData.isBot,
       {
-        "cf-turnstile-response": validatedFields.data.turnstileToken,
+        "cf-turnstile-response": validatedSignupData.turnstileToken,
         "CF-Connecting-IP": headersList.get("CF-Connecting-IP"),
       },
       addToProject

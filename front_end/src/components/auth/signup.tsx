@@ -9,7 +9,12 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useRef, useState, useTransition } from "react";
 import { useFormState } from "react-dom";
-import { useForm, useFormContext, FormProvider } from "react-hook-form";
+import {
+  useForm,
+  useFormContext,
+  FormProvider,
+  SubmitHandler,
+} from "react-hook-form";
 
 import { signUpAction, SignUpActionState } from "@/app/(main)/accounts/actions";
 import { SignUpSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
@@ -19,6 +24,7 @@ import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
+import { useServerAction } from "@/hooks/use_server_action";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -29,11 +35,10 @@ type SignInModalType = {
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export const SignupForm: FC<{
-  forceIsBot?: boolean | "ask";
+  forceIsBot?: boolean;
   addToProject?: number;
-}> = ({ forceIsBot = "ask", addToProject }) => {
+}> = ({ forceIsBot, addToProject }) => {
   const t = useTranslations();
-  const [isPending, startTransition] = useTransition();
   const [isTurnstileValidated, setIsTurnstileValidate] = useState(false);
   const { setCurrentModal } = useModal();
   const turnstileRef = useRef<TurnstileInstance | undefined>();
@@ -41,30 +46,39 @@ export const SignupForm: FC<{
   const methods = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      isBot: forceIsBot !== "ask" ? forceIsBot : undefined,
+      isBot: forceIsBot ?? false,
     },
   });
 
-  const { register, watch, setValue } = methods;
+  const {
+    register,
+    watch,
+    setValue,
+    formState,
+    handleSubmit,
+    setError,
+    clearErrors,
+  } = methods;
 
-  const [state, formAction] = useFormState<SignUpActionState, FormData>(
-    (prevState, formData) => {
-      const signupData = Object.fromEntries(formData.entries());
-      return signUpAction(signupData);
-    },
-    null
-  );
-  useEffect(() => {
-    if (!state) {
-      return;
+  const onSubmit = async (data: SignUpSchema) => {
+    const response = await signUpAction(data);
+
+    if (response && response.errors) {
+      let error;
+      for (error in response.errors)
+        setError(error as keyof SignUpSchema, {
+          type: "custom",
+          message: response.errors[error][0],
+        });
     }
 
-    if (!("errors" in state)) {
+    if (response?.errors) {
+      turnstileRef.current?.reset();
+    } else {
       sendGAEvent("event", "register", {
         event_category: new URLSearchParams(window.location.search).toString(),
       });
-
-      if (state.is_active) {
+      if (response?.is_active) {
         setCurrentModal(null);
       } else {
         setCurrentModal({
@@ -72,24 +86,24 @@ export const SignupForm: FC<{
           data: { email: watch("email"), username: watch("username") },
         });
       }
-    } else {
-      turnstileRef.current?.reset();
     }
 
-    forceIsBot !== "ask" && setValue("isBot", forceIsBot);
-  }, [setCurrentModal, watch, state, forceIsBot]);
+    return response;
+  };
+  const [submit, isPending] = useServerAction(onSubmit);
+
+  const errors = Object.keys(formState.errors).reduce((errorsAcc, error) => {
+    const key = error as keyof typeof formState.errors;
+    return {
+      ...errorsAcc,
+      [key]: formState.errors[key]?.message,
+    };
+  }, {});
 
   return (
     <FormProvider {...methods}>
-      <form
-        action={(data) => {
-          startTransition(() => {
-            formAction(data);
-          });
-        }}
-        className="flex flex-col gap-4"
-      >
-        <SignUpFragment errors={state?.errors} />
+      <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
+        <SignUpFragment errors={errors} forceIsBot={forceIsBot} />
 
         {addToProject && (
           <input
@@ -108,7 +122,7 @@ export const SignupForm: FC<{
             {t("createAnAccount")}
           </Button>
           <FormError
-            errors={state?.errors}
+            errors={errors}
             name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
           />
         </div>
@@ -116,11 +130,12 @@ export const SignupForm: FC<{
           <Turnstile
             ref={turnstileRef}
             siteKey={TURNSTILE_SITE_KEY}
-            options={{
-              responseFieldName: "turnstileToken",
+            onSuccess={(token) => {
+              setIsTurnstileValidate(true);
+              setValue("turnstileToken", token);
+              clearErrors("turnstileToken");
             }}
-            onSuccess={() => setIsTurnstileValidate(true)}
-            onError={() => setIsTurnstileValidate(false)}
+            onError={(errorCode) => setIsTurnstileValidate(false)}
             onExpire={() => setIsTurnstileValidate(false)}
           />
         )}
@@ -253,9 +268,9 @@ const SignUpModal: FC<SignInModalType> = ({
 export default SignUpModal;
 
 export const SignUpFragment: FC<{
-  forceIsBot?: boolean | "ask";
+  forceIsBot?: boolean;
   errors: NonNullable<SignUpActionState>["errors"];
-}> = ({ forceIsBot = "ask", errors }) => {
+}> = ({ forceIsBot = undefined, errors }) => {
   const { register, setValue, watch } = useFormContext();
   const t = useTranslations();
   return (
@@ -292,7 +307,7 @@ export const SignUpFragment: FC<{
         errors={errors}
         {...register("email")}
       />
-      {forceIsBot == null && (
+      {forceIsBot === null && (
         <Checkbox
           checked={watch("isBot")}
           onChange={(is_bot) => {
