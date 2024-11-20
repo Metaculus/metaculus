@@ -16,26 +16,38 @@ export function generateMentionLink(value: string, data?: MentionData) {
 
 export async function queryMentions(
   _trigger: string,
-  query: string | null | undefined
+  query: string | null | undefined,
+  defaultUserMentions?: MentionItem[]
 ): Promise<MentionItem[]> {
-  const defaultMentions = [
+  const usersGroupMentions = [
     { value: "moderators" },
     { value: "predictors" },
     { value: "admins" },
     { value: "members" },
   ];
+  const fallbackUserMentions = defaultUserMentions ? defaultUserMentions : [];
+  const fallbackMentions = [...fallbackUserMentions, ...usersGroupMentions];
 
-  if (!query || query.length < 3) {
-    return defaultMentions;
+  if (!query) {
+    return fallbackMentions;
+  }
+
+  if (query.length < 3) {
+    return clientSearch(query, fallbackMentions);
   }
 
   const users = await searchUsers(query);
   if ("errors" in users) {
-    return defaultMentions;
+    return clientSearch(query, fallbackMentions);
   }
 
   return [
     ...users.results.map((user) => ({ value: user.username, userId: user.id })),
-    ...defaultMentions,
+    ...usersGroupMentions,
   ];
 }
+
+const clientSearch = (query: string, mentions: MentionItem[]) =>
+  mentions.filter((mention) =>
+    mention.value.toLowerCase().includes(query?.toLowerCase() ?? "")
+  );

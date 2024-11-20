@@ -5,15 +5,13 @@ import {
   realmPlugin,
 } from "@mdxeditor/editor";
 import {
-  BeautifulMentionsPlugin,
   PlaceholderNode,
   createBeautifulMentionNode,
 } from "lexical-beautiful-mentions";
 
 import CustomMentionComponent from "./components/mention";
-import { Menu, MenuItem } from "./components/menu";
+import MentionsPlugin from "./components/plugin";
 import { LexicalBeautifulMentionVisitor } from "./LexicalBeautifulMentionVisitor";
-import { queryMentions } from "./utils";
 
 export const mentionsPlugin = realmPlugin({
   init(realm) {
@@ -23,14 +21,7 @@ export const mentionsPlugin = realmPlugin({
         PlaceholderNode,
       ],
       [addExportVisitor$]: LexicalBeautifulMentionVisitor,
-      [addComposerChild$]: () => (
-        <BeautifulMentionsPlugin
-          triggers={["@"]}
-          onSearch={queryMentions}
-          menuComponent={Menu}
-          menuItemComponent={MenuItem}
-        />
-      ),
+      [addComposerChild$]: () => <MentionsPlugin />,
     });
   },
 });
