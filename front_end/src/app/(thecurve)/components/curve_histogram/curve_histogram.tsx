@@ -63,7 +63,7 @@ const CurveHistogram: FC<Props> = ({
               fill: "light" + color,
             },
           }}
-          barRatio={1.2}
+          barRatio={1.7}
           x={(d) => d.x + 0.5}
         />
         {choiceOptions[0].forecast && (
