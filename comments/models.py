@@ -13,6 +13,7 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from sql_util.aggregates import SubqueryAggregate
 
+from notifications.models import Notification
 from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
@@ -77,7 +78,7 @@ class CommentQuerySet(models.QuerySet):
         )
 
 
-class Comment(TimeStampedModel, TranslatedModel):  # type: ignore
+class Comment(TimeStampedModel, TranslatedModel):
     comment_votes: QuerySet["CommentVote"]
 
     author = models.ForeignKey(User, models.CASCADE)  # are we sure we want this?
@@ -176,6 +177,9 @@ class ChangedMyMindEntry(TimeStampedModel):
 
 
 class KeyFactorQuerySet(models.QuerySet):
+    def for_post(self, post: Post):
+        return self.filter(comment__on_post=post)
+
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option
@@ -190,7 +194,7 @@ class KeyFactorQuerySet(models.QuerySet):
         )
 
 
-class KeyFactor(TimeStampedModel):
+class KeyFactor(TimeStampedModel, TranslatedModel):
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
     text = models.TextField(blank=True)
     votes_score = models.IntegerField(default=0, db_index=True, editable=False)
@@ -209,6 +213,9 @@ class KeyFactor(TimeStampedModel):
 
     # Annotated placeholders
     user_vote: int = None
+
+    def __str__(self):
+        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}: {self.text}"
 
 
 class KeyFactorVote(TimeStampedModel):

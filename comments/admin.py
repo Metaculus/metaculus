@@ -1,8 +1,8 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 
-from .models import Comment
 from utils.models import CustomTranslationAdmin
+from .models import Comment, KeyFactor
 
 
 @admin.register(Comment)
@@ -32,3 +32,19 @@ class CommentAdmin(CustomTranslationAdmin):
         "included_forecast",
         "is_private",
     ]
+    search_fields = ["id", "text"]
+
+
+@admin.register(KeyFactor)
+class KeyFactorAdmin(CustomTranslationAdmin):
+    list_filter = [
+        AutocompleteFilterFactory("Comment", "comment"),
+        AutocompleteFilterFactory("Post", "comment__on_post"),
+    ]
+
+    autocomplete_fields = [
+        "comment",
+    ]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("comment__on_post")
