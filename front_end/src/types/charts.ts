@@ -22,6 +22,7 @@ export type Line<X = number, Y = number> = Array<{
   y: Y;
   y1?: Y;
   y2?: Y;
+  symbol?: string;
 }>;
 export type Area<X = number, Y = number> = Array<{ x: X; y: Y; y0?: Y }>;
 

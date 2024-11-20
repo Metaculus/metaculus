@@ -174,14 +174,14 @@ const NumericChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const closestForecast = aggregation.history.reduce((prev, curr) => {
+          const prevForecast = aggregation.history.reduce((prev, curr) => {
             if (curr.start_time <= value) {
               return curr.start_time > prev.start_time ? curr : prev;
             }
             return prev;
           });
 
-          onCursorChange(closestForecast.start_time);
+          onCursorChange(prevForecast.start_time);
         }
       }}
     />
@@ -385,23 +385,45 @@ function buildChartData({
     });
   }
 
-  let points: Line = [];
+  const points: Line = [];
   if (myForecasts?.history.length) {
-    points = myForecasts.history.map((forecast) => ({
-      x: forecast.start_time,
-      y:
-        questionType === "binary"
-          ? forecast.forecast_values[1]
-          : forecast.centers?.[0] ?? 0,
-      y1:
-        questionType === "binary"
-          ? undefined
-          : forecast.interval_lower_bounds?.[0],
-      y2:
-        questionType === "binary"
-          ? undefined
-          : forecast.interval_upper_bounds?.[0],
-    }));
+    myForecasts.history.forEach((forecast) => {
+      const newPoint = {
+        x: forecast.start_time,
+        y:
+          questionType === "binary"
+            ? forecast.forecast_values[1]
+            : forecast.centers?.[0] ?? 0,
+        y1:
+          questionType === "binary"
+            ? undefined
+            : forecast.interval_lower_bounds?.[0],
+        y2:
+          questionType === "binary"
+            ? undefined
+            : forecast.interval_upper_bounds?.[0],
+        symbol: "circle",
+      };
+
+      if (points.length > 0) {
+        // if the last forecasts terminates at the new
+        // forecast's start time, replace the end point record
+        // with the new point
+        const lastPoint = points[points.length - 1];
+        if (lastPoint.x === newPoint.x) {
+          points.pop();
+        }
+      }
+
+      points.push(newPoint);
+      if (!!forecast.end_time) {
+        points.push({
+          x: forecast.end_time,
+          y: newPoint.y,
+          symbol: "x",
+        });
+      }
+    });
   }
   // TODO: add quartiles if continuous
 
@@ -517,6 +539,7 @@ export function getResolutionData({
 const PredictionWithRange: React.FC<any> = ({
   x,
   y,
+  symbol,
   datum: { y1, y2 },
   scale,
 }) => {
@@ -535,14 +558,26 @@ const PredictionWithRange: React.FC<any> = ({
           strokeWidth={2}
         />
       )}
-      <circle
-        cx={x}
-        cy={y}
-        r={3}
-        fill={getThemeColor(METAC_COLORS.gray["0"])}
-        stroke={getThemeColor(METAC_COLORS.orange["700"])}
-        strokeWidth={2}
-      />
+      {symbol === "circle" && (
+        <circle
+          cx={x}
+          cy={y}
+          r={3}
+          fill={getThemeColor(METAC_COLORS.gray["0"])}
+          stroke={getThemeColor(METAC_COLORS.orange["700"])}
+          strokeWidth={2}
+        />
+      )}
+
+      {symbol === "x" && (
+        <polygon
+          points={`${x - 3},${y - 3} ${x + 3},${y + 3} ${x},${y} ${x - 3},${y + 3} ${x + 3},${y - 3} ${x},${y}`}
+          r={3}
+          fill={getThemeColor(METAC_COLORS.gray["0"])}
+          stroke={getThemeColor(METAC_COLORS.orange["700"])}
+          strokeWidth={2}
+        />
+      )}
     </>
   );
 };

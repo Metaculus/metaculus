@@ -318,7 +318,10 @@ export function getDisplayUserValue(
   let zPoint: number | null;
   let closestUserForecastIndex = -1;
   myForecasts?.history.forEach((forecast, index) => {
-    if (forecast.start_time <= valueTimestamp) {
+    if (
+      forecast.start_time <= valueTimestamp &&
+      (!forecast.end_time || forecast.end_time > valueTimestamp)
+    ) {
       closestUserForecastIndex = index;
     }
   });

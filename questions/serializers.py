@@ -513,6 +513,11 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         return data
 
 
+class ForecastWithdrawSerializer(serializers.Serializer):
+    question = serializers.IntegerField()
+    withdraw_at = serializers.DateTimeField(required=False)
+
+
 def serialize_question(
     question: Question,
     with_cp: bool = False,

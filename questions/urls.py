@@ -9,6 +9,11 @@ urlpatterns = [
         name="create-forecast",
     ),
     path(
+        "questions/withdraw/",
+        views.bulk_withdraw_forecasts_api_view,
+        name="create-withdraw",
+    ),
+    path(
         "questions/<int:pk>/", views.question_detail_api_view, name="question-resolve"
     ),
     path(

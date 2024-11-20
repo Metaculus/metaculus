@@ -6,6 +6,10 @@ export type ForecastPayload = {
   forecastData: ForecastData;
   sliderValues?: SliderValues | null;
 };
+export type WithdrawalPayload = {
+  question: number;
+  withdrawal_at?: string;
+};
 
 class QuestionsApi {
   static async createForecasts(
@@ -21,6 +25,12 @@ class QuestionsApi {
         slider_values: sliderValues,
       }))
     );
+  }
+
+  static async withdrawForecasts(
+    withdrawals: WithdrawalPayload[]
+  ): Promise<Response> {
+    return await post<Response>(`/questions/withdraw/`, withdrawals);
   }
 
   static async resolve(

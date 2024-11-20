@@ -3,7 +3,10 @@ import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
@@ -15,6 +18,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
+import Button from "@/components/ui/button";
 
 import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
@@ -54,6 +58,7 @@ const ForecastMakerBinary: FC<Props> = ({
 
   const [isForecastDirty, setIsForecastDirty] = useState(false);
 
+  const [withdrawError, setWithdrawError] = useState<ErrorResponse>();
   const [submitError, setSubmitError] = useState<ErrorResponse>();
 
   useEffect(() => {
@@ -85,6 +90,28 @@ const ForecastMakerBinary: FC<Props> = ({
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
+
+  const handlePredictWithdraw = async () => {
+    setWithdrawError(undefined);
+
+    if (!prevForecastValue) return;
+
+    const response = await withdrawForecasts(post.id, [
+      {
+        question: question.id,
+        // withdrawAt: new Date().toISOString(), // TODO: implement
+      },
+    ]);
+    setIsForecastDirty(false);
+
+    if (response && "errors" in response && !!response.errors) {
+      setWithdrawError(response.errors[0]);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
   return (
     <>
       <BinarySlider
@@ -118,6 +145,26 @@ const ForecastMakerBinary: FC<Props> = ({
             />
             <div className="h-[32px] w-full">
               {isPending && <LoadingIndicator />}
+            </div>
+          </>
+        )}
+
+        {canPredict && prevForecast && (
+          <>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={withdrawalIsPending}
+              onClick={withdraw}
+            >
+              {t("withdraw")}
+            </Button>
+            <FormErrorMessage
+              className="mt-2 flex justify-center"
+              errors={withdrawError}
+            />
+            <div className="h-[32px] w-full">
+              {withdrawalIsPending && <LoadingIndicator />}
             </div>
           </>
         )}
