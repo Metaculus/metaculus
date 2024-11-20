@@ -46,9 +46,7 @@ const Survey: FC<Props> = ({ questions }) => {
           post={activeQuestion}
           questions={activeQuestion.group_of_questions.questions}
           onSkip={() => nextQuestion(questionIndex)}
-          onPredict={() => {
-            setPredicted(true);
-          }}
+          onPredict={() => setPredicted(true)}
         />
       )}
 
