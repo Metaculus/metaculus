@@ -1,17 +1,20 @@
 from datetime import timedelta
 import logging
 import pytest
+import asyncio
 
 from unittest.mock import Mock
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 from tests.unit.fixtures import *  # noqa
-from users.views import check_text_for_spam
+from users.views import _ask_gpt_to_check_for_spam
 from rest_framework.response import Response
 from django.utils import timezone
-import asyncio
+from users.views import _combine_bio_and_websites_from_request_data
+
 logger = logging.getLogger(__name__)
+
 
 class TestUserProfileUpdate:
     url = reverse("user-update-profile")
@@ -22,40 +25,28 @@ class TestUserProfileUpdate:
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
         mock_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker)
-        mock_spam_check.return_value = True
+        mock_spam_check.return_value = (True, "Mocked reasoning")
 
         days_since_joining = self.spam_free_pass_threshold - 1
         self.set_up_user(user1, days_since_joining)
+        original_bio = user1.bio
+        new_bio = "This is spam content"
 
-        response = user1_client.patch(
-            self.url, {"bio": "This is spam content"}, format="json"
-        )
+        response = user1_client.patch(self.url, {"bio": new_bio}, format="json")
 
         assert isinstance(response, Response)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        mock_spam_check.assert_called_once_with("This is spam content", self.user_email)
-        assert response.data is not None, "There needs to be a response body"
-        assert (
-            response.data["error_code"] == "SPAM_DETECTED"
-        ), "There needs to be an error code"
-
         user1.refresh_from_db()
-        assert not user1.is_active, "The user should be soft deleted"
+        mock_spam_check.assert_called_once_with(new_bio, self.user_email)
 
-        mock_send_mail.assert_called_once()
-        call_kwargs = mock_send_mail.call_args[1]  # Get kwargs from the call
-        assert call_kwargs["recipient_list"] == [
-            self.user_email
-        ], "Email should be sent to the user"
-        assert (
-            "support@metaculus.com" in call_kwargs["message"]
-        ), "Message should mention support email"
+        self.assert_response_is_forbidden_spam(response)
+        self.assert_user_is_deactivated_and_unchanged(user1, original_bio, new_bio)
+        self.assert_notification_email_sent(mock_send_mail, self.user_email)
 
     def test_update_bio_without_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
         mock_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker)
-        mock_spam_check.return_value = False
+        mock_spam_check.return_value = (False, "Mocked reasoning")
 
         self.set_up_user(user1, 1)
 
@@ -108,7 +99,7 @@ class TestUserProfileUpdate:
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
         mock_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker)
-        mock_spam_check.return_value = True
+        mock_spam_check.return_value = (True, "Mocked reasoning")
 
         days_since_joining = self.spam_free_pass_threshold + 1
         self.set_up_user(user1, days_since_joining)
@@ -120,6 +111,29 @@ class TestUserProfileUpdate:
             mock_spam_check,
             mock_send_mail,
             spam_call_should_be_made=False,
+        )
+
+    def test_update_bio_and_website(
+        self, user1_client: APIClient, mocker: Mock, user1: User
+    ) -> None:
+        mock_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker)
+        mock_spam_check.return_value = (False, "Mocked reasoning")
+
+        self.set_up_user(user1, 1)
+
+        self.assert_successful_response(
+            {
+                "bio": "This is legitimate content",
+                "website": "https://example.com",
+                "twitter": "https://twitter.com/example",
+                "location": "New York",
+                "occupation": "Developer",
+            },
+            user1_client,
+            user1,
+            mock_spam_check,
+            mock_send_mail,
+            spam_call_should_be_made=True,
         )
 
     def set_up_user(self, user: User, days_since_joining: int) -> None:
@@ -138,6 +152,7 @@ class TestUserProfileUpdate:
         spam_call_should_be_made: bool,
     ) -> None:
         old_bio = user.bio
+        assert user.is_active, "The user should be active at first"
         response = user_client.patch(self.url, patch_data, format="json")
 
         user.refresh_from_db()
@@ -148,25 +163,57 @@ class TestUserProfileUpdate:
         assert response.status_code == status.HTTP_200_OK
         assert user.is_active, "The user should not be soft deleted"
         if spam_call_should_be_made:
-            mock_spam_check.assert_called_once_with(patch_data["bio"], user.email)
+            mock_spam_check.assert_called_once_with(
+                _combine_bio_and_websites_from_request_data(patch_data), user.email
+            )
         else:
             mock_spam_check.assert_not_called()
         mock_send_mail.assert_not_called()
+
+    def assert_response_is_forbidden_spam(self, response: Response) -> None:
+        """Assert that the response indicates forbidden spam."""
+        assert isinstance(response, Response)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.data is not None, "There needs to be a response body"
+        assert (
+            response.data["error_code"] == "SPAM_DETECTED"
+        ), "There needs to be an error code"
+
+    def assert_user_is_deactivated_and_unchanged(
+        self, user: User, original_bio: str, new_bio: str
+    ) -> None:
+        """Assert that the user is deactivated and bio remains unchanged."""
+        assert not user.is_active, "The user should be soft deleted"
+        assert user.bio != new_bio, "The bio should not be updated"
+        assert user.bio == original_bio, "The bio should not be changed"
+
+    def assert_notification_email_sent(
+        self, mock_send_mail: Mock, recipient_email: str
+    ) -> None:
+        """Assert that a notification email was sent with correct parameters."""
+        mock_send_mail.assert_called_once()
+        call_kwargs = mock_send_mail.call_args[1]  # Get kwargs from the call
+        assert call_kwargs["recipient_list"] == [
+            recipient_email
+        ], "Email should be sent to the user"
+        assert (
+            "support@metaculus.com" in call_kwargs["message"]
+        ), "Message should mention support email"
 
 
 def mock_spam_detection_and_email(mocker: Mock) -> tuple[Mock, Mock]:
     """Helper function to mock spam detection and email sending.
     Returns a tuple of (mock_spam_check, mock_send_mail)"""
     mock_spam_check = mocker.patch(
-        f"{check_text_for_spam.__module__}.{check_text_for_spam.__name__}"
+        f"{_ask_gpt_to_check_for_spam.__module__}.{_ask_gpt_to_check_for_spam.__name__}"
     )
     mock_send_mail = mocker.patch("utils.email.send_email_async.send")
     return mock_spam_check, mock_send_mail
 
 
-# @pytest.mark.skip(
-#     reason="Run this manually when needed. It should not be run automatically. It can be referenced as examples of real spam and legitimate content."
-# )
+@pytest.mark.skip(
+    reason="Run this manually when needed. It should not be run automatically. It can be referenced as examples of real spam and legitimate content."
+)
 @pytest.mark.parametrize(
     "bio, username, is_spam",
     [
@@ -276,7 +323,7 @@ Sao Cự Môn, khi nằm tại cung Quan Lộc, mang đến những ý nghĩa đ
 * Trí tuệ sắc bén và tư duy phản biện mạnh mẽ: Người có sao Cự Môn ở cung Quan Lộc thường có trí tuệ vượt trội, với khả năng phân tích sâu sắc và luôn có những ý kiến riêng biệt về vấn đề trong công việc. Họ không ngại đưa ra quan điểm và sẵn sàng tranh luận để bảo vệ ý kiến của mình. Điều này giúp họ trở nên nổi bật trong những ngành nghề cần sự chi tiết và lý luận logic.
 * Khả năng tìm kiếm và khám phá: Người có Cự Môn trong cung Quan Lộc thích tìm hiểu và không ngừng học hỏi. Họ là người ham hiểu biết và luôn nỗ lực để khám phá những khía cạnh mới trong công việc. Tinh thần học hỏi này giúp họ tích lũy nhiều kiến thức và kỹ năng, hỗ trợ cho sự phát triển sự nghiệp.
 * Cẩn trọng và tính cách nghiêm túc trong công việc: Sao Cự Môn mang lại cho người sở hữu tính cách cẩn trọng và kỹ lưỡng. Trong công việc, họ có thể dành nhiều thời gian để phân tích các yếu tố trước khi đưa ra quyết định. Tuy nhiên, điều này đôi khi khiến họ thiếu đi sự linh hoạt hoặc chậm trong việc nắm bắt cơ hội kịp thời.
-* Dễ xảy ra mâu thuẫn trong môi trường làm việc: Sao Cự Môn có tính chất phản biện, nên người có sao này ở cung Quan Lộc dễ gặp mâu thuẫn hoặc xung đột trong các mối quan hệ đồng nghiệp nếu không biết cách kiểm soát cảm xúc. Họ có thể bị cho là quá chi tiết hoặc phê phán, dẫn đến hiểu lầm và ảnh hưởng đến sự hòa hợp trong công việc nhóm.
+* Dễ xảy ra mâu thuẫn trong môi trường làm việc: Sao Cự Môn có tính chất phản biện, nên người có sao ny ở cung Quan Lộc dễ gặp mâu thuẫn hoặc xung đột trong các mối quan hệ đồng nghiệp nếu không biết cách kiểm soát cảm xúc. Họ có thể bị cho là quá chi tiết hoặc phê phán, dẫn đến hiểu lầm và ảnh hưởng đến sự hòa hợp trong công việc nhóm.
 
 ⏩⏩⏩Nếu bạn đang tìm hiểu về ý nghĩa của [**cung tử tức có cự môn​**](https://padlet.com/tracuulasotuviofficial/cung-t-t-c-c-m-n-ngh-a-v-nh-h-ng-t-i-con-c-i-gia-o-69dc4jkccd6pgrcw) trong lá số tử vi, đừng bỏ qua bài viết chi tiết và thú vị này từ Tracuulasotuvi nhé!
 
@@ -322,10 +369,14 @@ We are offering #1 IT support services in Los Angeles - Beverly Hills - Burbank 
     ],
 )
 def test_spam_detection(bio: str, username: str, is_spam: bool) -> None:
-    identified_as_spam, gpt_response = asyncio.run(check_text_for_spam(bio, username))
+    identified_as_spam, gpt_response = asyncio.run(
+        _ask_gpt_to_check_for_spam(bio, username)
+    )
     try:
         assert (
             identified_as_spam == is_spam
         ), f"Bio: {bio}\nIdentified as spam: {identified_as_spam}, expected: {is_spam}\nGPT response: {gpt_response}"
     finally:
-        logger.debug(f"Bio: {bio}\nIdentified as spam: {identified_as_spam}, expected: {is_spam}\nGPT response: {gpt_response}")
+        logger.debug(
+            f"Bio: {bio}\nIdentified as spam: {identified_as_spam}, expected: {is_spam}\nGPT response: {gpt_response}"
+        )

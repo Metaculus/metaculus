@@ -19,7 +19,7 @@ def get_openai_client_async() -> AsyncOpenAI:
 
 
 async def generate_text_async(
-    model: str, prompt: str, system_prompt: str | None = None, temperature: float = 0.0
+    model: str, prompt: str, system_prompt: str | None = None, temperature: float = 0
 ) -> str:
     messages = [{"role": "user", "content": prompt}]
     if system_prompt is not None:

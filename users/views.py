@@ -453,52 +453,81 @@ def update_profile_api_view(request: Request) -> Response:
     serializer.is_valid(raise_exception=True)
 
     assert isinstance(request.data, dict)
+    is_spam, reasoning = _check_for_spam(user, request.data)
+
+    if is_spam:
+        return _handle_spam_detection(
+            user, _combine_bio_and_websites_from_request_data(request.data), reasoning
+        )
+    assert isinstance(serializer, UserUpdateProfileSerializer)
+    return _update_user_profile(user, serializer)
+
+
+def _combine_bio_and_websites_from_request_data(request_data: dict) -> str:
+    bio: str | None = request_data.get("bio")
+    website: str | None = request_data.get("website")
+    if not bio:
+        return ""
+    bio_plus_websites = bio + (f"\n\nWebsite: {website}" if website else "")
+    return bio_plus_websites
+
+
+def _check_for_spam(user: User, request_data: dict) -> tuple[bool, str]:  # NOSONAR
     days_since_joined = (timezone.now() - user.date_joined).days
     days_since_joined_threshold = 7
-    bio_plus_websites = f"{request.data.get('bio', '')}".strip()
-    bio_plus_websites += (
-        f"\n\nWebsite: {request.data.get('website')}" if request.data.get("website") else ""
-    )
-    if (
-        "bio" in request.data
-        and days_since_joined < days_since_joined_threshold
-        and bio_plus_websites != ""
-        and asyncio.run(check_text_for_spam(bio_plus_websites, user.email))
-    ):
-        user.soft_delete()
-        response = Response(
-            {
-                "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
-                "error_code": "SPAM_DETECTED",
-            },
-            status=status.HTTP_403_FORBIDDEN,
-        )
-        logger.warning(
-            f"User {user.username} was soft deleted for spam bio: {bio_plus_websites}"
-        )
-    else:
-        unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
-        if unsubscribe_tags is not None:
-            user_unsubscribe_tags(user, unsubscribe_tags)
-        response = Response(UserPrivateSerializer(user).data)
-
-    serializer.save()
-    user.save()
-    return response
-
-
-async def check_text_for_spam(bio_plus_websites: str, email: str) -> tuple[bool, str]:
-    if not settings.OPENAI_API_KEY:
-        return False, "No API key set, so not checking for spam"
+    bio_plus_websites = _combine_bio_and_websites_from_request_data(request_data)
 
     if not bio_plus_websites:
         return False, "No bio to check for spam"
 
+    if len(bio_plus_websites) < 10:
+        return False, "Bio is too short to be spam"
+
+    if days_since_joined > days_since_joined_threshold:
+        return (
+            False,
+            f"The user has been a member for more than {days_since_joined_threshold} days",
+        )
+
     if len(bio_plus_websites) > 25000:
         return True, "Bio is more than 25000 characters"
 
-    if len(bio_plus_websites) < 10:
-        return False, "Bio is too short to be spam"
+    return asyncio.run(_ask_gpt_to_check_for_spam(bio_plus_websites, user.email))
+
+
+def _handle_spam_detection(
+    user: User, bio_plus_websites: str, reasoning: str
+) -> Response:
+    user.soft_delete()
+    user.save()
+    logger.warning(
+        f"User {user.username} was soft deleted for spam bio: {bio_plus_websites}\n"
+        f"AI Reasoning: {reasoning}"
+    )
+    return Response(
+        data={
+            "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
+            "error_code": "SPAM_DETECTED",
+        },
+        status=status.HTTP_403_FORBIDDEN,
+    )
+
+
+def _update_user_profile(
+    user: User, serializer: UserUpdateProfileSerializer
+) -> Response:
+    unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
+    if unsubscribe_tags is not None:
+        user_unsubscribe_tags(user, unsubscribe_tags)
+    serializer.save()
+    return Response(UserPrivateSerializer(user).data)
+
+
+async def _ask_gpt_to_check_for_spam(
+    bio_plus_websites: str, email: str
+) -> tuple[bool, str]:
+    if not settings.OPENAI_API_KEY:
+        return False, "No API key set, so not checking for spam"
 
     system_prompt = textwrap.dedent(
         """
@@ -533,11 +562,19 @@ async def check_text_for_spam(bio_plus_websites: str, email: str) -> tuple[bool,
         Lets take this step by step. Give your reasoning then say TRUE (if it is spam) or FALSE (if it is not spam).
         """
     )
-    gpt_response = await generate_text_async(
-        model="gpt-4o-mini", system_prompt=system_prompt, prompt=prompt
-    )
-    is_spam = "TRUE" in gpt_response
-    logger.debug(f"Spam identification: {is_spam}")
+    try:
+        gpt_response = await generate_text_async(
+            model="gpt-4o-mini",
+            system_prompt=system_prompt,
+            prompt=prompt,
+            temperature=0,
+        )
+        is_spam = "TRUE" in gpt_response
+        logger.debug(f"Spam identification: {is_spam}")
+    except Exception as e:
+        logger.warning(f"AI call failed while checking for spam: {e}")
+        is_spam = False
+        gpt_response = "AI call failed"
     return is_spam, gpt_response
 
 

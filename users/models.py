@@ -92,7 +92,7 @@ class User(TimeStampedModel, AbstractUser):
         self.old_usernames.append((self.username, timezone.now().isoformat()))
         self.username = val
 
-    def soft_delete(self: "User"):
+    def soft_delete(self: "User") -> None:
         # set to inactive
         self.is_active = False
 
