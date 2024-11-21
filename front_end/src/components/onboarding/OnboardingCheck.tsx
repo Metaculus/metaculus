@@ -1,39 +1,45 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { useNavigation } from "@/contexts/navigation_context";
 
 const OnboardingCheck: React.FC = () => {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
+  const { previousPath, currentPath } = useNavigation();
+  const pathname = usePathname();
 
-  const handleOnboarding = useCallback(() => {
-    const startOnboarding = searchParams.get("start_onboarding");
-    if (startOnboarding === "true") {
-      // Remove the query parameter
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete("start_onboarding");
-      router.replace(newUrl.toString());
-
-      // Check if the user is logged in
-      if (user) {
-        // Start the onboarding process
-        setCurrentModal({ type: "onboarding" });
-      } else {
-        // Show the registration modal
-        setCurrentModal({ type: "signup" });
-      }
-    }
-  }, [searchParams, router, user, setCurrentModal]);
+  // We want to avoid situations where a user skips the tutorial
+  // on the homepage, navigates directly to the questions feed,
+  // and then sees the tutorial pop up again (or vice versa).
+  // To handle this, we simply check that the previous page
+  // wasn’t the home or questions page.
+  const previousPathHasTutorial =
+    previousPath &&
+    ["/", "/questions/"].includes(
+      new URL(previousPath, process.env.APP_URL).pathname
+    );
 
   useEffect(() => {
-    handleOnboarding();
-  }, [handleOnboarding]);
+    // Checks if the hook has already been refreshed.
+    // Sometimes, it takes a moment for useNavigation to update from the previous route's values,
+    // so we need to perform this check to ensure we have updated values of previousPath
+    const hookUpdated = currentPath === pathname;
+
+    if (
+      hookUpdated &&
+      user?.id &&
+      !user?.is_onboarding_complete &&
+      !previousPathHasTutorial
+    ) {
+      // Start the onboarding process
+      setCurrentModal({ type: "onboarding" });
+    }
+  }, [currentPath]);
 
   return null; // This component doesn't render anything
 };

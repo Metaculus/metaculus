@@ -115,7 +115,9 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                 <MenuLink href={"/accounts/settings/"}>
                   {t("settings")}
                 </MenuLink>
-                <MenuLink href={"/?start_onboarding=true"}>
+                <MenuLink
+                  onClick={() => setCurrentModal({ type: "onboarding" })}
+                >
                   {t("tutorial")}
                 </MenuLink>
                 {user.is_superuser && (
@@ -195,7 +197,7 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                 {t("profile")}
               </MenuLink>
               <MenuLink href={"/accounts/settings/"}>{t("settings")}</MenuLink>
-              <MenuLink href={"/?start_onboarding=true"}>
+              <MenuLink onClick={() => setCurrentModal({ type: "onboarding" })}>
                 {t("tutorial")}
               </MenuLink>
               {user.is_superuser && (
