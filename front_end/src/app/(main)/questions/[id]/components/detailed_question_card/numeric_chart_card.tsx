@@ -43,14 +43,21 @@ const NumericChartCard: FC<Props> = ({
         interval_upper_bound: null,
       };
     }
-    const index = aggregate.history.findIndex(
-      (f) => f.start_time === cursorTimestamp
-    );
 
-    const forecast =
-      index === -1
-        ? aggregate.history[aggregate.history.length - 1]
-        : aggregate.history[index];
+    console.log({ aggregate, cursorTimestamp });
+    const index =
+      cursorTimestamp === null
+        ? aggregate.history.length - 1
+        : cursorTimestamp === undefined
+          ? -1
+          : aggregate.history.findIndex(
+              (f) =>
+                cursorTimestamp !== null &&
+                f.start_time <= cursorTimestamp &&
+                (f.end_time === null || f.end_time > cursorTimestamp)
+            );
+
+    const forecast = index === -1 ? null : aggregate.history[index];
     let timestamp = cursorTimestamp;
     const lastAggregate = aggregate.history[aggregate.history.length - 1];
     if (
@@ -62,18 +69,18 @@ const NumericChartCard: FC<Props> = ({
       timestamp = question.my_forecasts.latest.start_time;
       return {
         timestamp,
-        forecasterCount: forecast.forecaster_count,
-        interval_lower_bound: forecast.interval_lower_bounds![0],
-        center: forecast.centers![0],
-        interval_upper_bound: forecast.interval_upper_bounds![0],
+        forecasterCount: forecast?.forecaster_count ?? 0,
+        interval_lower_bound: forecast?.interval_lower_bounds![0],
+        center: forecast?.centers![0],
+        interval_upper_bound: forecast?.interval_upper_bounds![0],
       };
     }
     return {
-      timestamp: forecast.start_time ?? cursorTimestamp,
-      forecasterCount: forecast.forecaster_count,
-      interval_lower_bound: forecast.interval_lower_bounds![0],
-      center: forecast.centers![0],
-      interval_upper_bound: forecast.interval_upper_bounds![0],
+      timestamp: forecast?.start_time ?? cursorTimestamp,
+      forecasterCount: forecast?.forecaster_count ?? 0,
+      interval_lower_bound: forecast?.interval_lower_bounds![0],
+      center: forecast?.centers![0],
+      interval_upper_bound: forecast?.interval_upper_bounds![0],
     };
   }, [
     cursorTimestamp,

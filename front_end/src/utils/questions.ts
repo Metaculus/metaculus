@@ -264,11 +264,31 @@ export const generateUserForecastsForMultipleQuestion = (
 
   return options.map((choice, index) => {
     const userForecasts = question.my_forecasts?.history;
+    const values: (number | null)[] = [];
+    const timestamps: number[] = [];
+    userForecasts?.forEach((forecast) => {
+      if (
+        timestamps.length &&
+        timestamps[timestamps.length - 1] === forecast.start_time
+      ) {
+        // new forecast starts at the end of the previous, so overwrite values
+        values[values.length - 1] = forecast.forecast_values[index];
+      } else {
+        // just add the forecast
+        values.push(forecast.forecast_values[index]);
+        timestamps.push(forecast.start_time);
+      }
+
+      if (forecast.end_time) {
+        // this forecast ends, add it to timestamps and a null value
+        timestamps.push(forecast.end_time);
+        values.push(null);
+      }
+    });
     return {
       choice,
-      values:
-        userForecasts?.map((forecast) => forecast.forecast_values[index]) ?? [],
-      timestamps: userForecasts?.map((forecast) => forecast.start_time) ?? [],
+      values: values,
+      timestamps: timestamps,
       color:
         MULTIPLE_CHOICE_COLOR_SCALE[choiceOrdering.indexOf(index)] ??
         METAC_COLORS.gray["400"],

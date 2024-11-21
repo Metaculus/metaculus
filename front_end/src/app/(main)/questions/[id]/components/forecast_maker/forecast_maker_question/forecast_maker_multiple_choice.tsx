@@ -5,7 +5,10 @@ import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -19,6 +22,7 @@ import {
   PredictionInputMessage,
   Question,
   QuestionWithMultipleChoiceForecasts,
+  UserForecast,
   UserForecastHistory,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
@@ -63,6 +67,13 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const { user } = useAuth();
   const { hideCP } = useHideCP();
 
+  const activeUserForecast =
+    (question.my_forecasts?.latest?.end_time ||
+      new Date().getTime() / 1000 + 1000) <=
+    new Date().getTime() / 1000
+      ? undefined
+      : question.my_forecasts?.latest;
+
   const choiceOrdering = useMemo(() => {
     const latest = question.aggregations.recency_weighted.latest;
     const choiceOrdering: number[] = question.options!.map((_, i) => i);
@@ -81,7 +92,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       question,
       question.aggregations.recency_weighted,
       choiceOrdering,
-      question.my_forecasts ?? { history: [] }
+      activeUserForecast
     )
   );
 
@@ -209,6 +220,29 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
+
+  const [withdrawError, setWithdrawError] = useState<ErrorResponse>();
+  const handlePredictWithdraw = async () => {
+    setWithdrawError(undefined);
+
+    if (!activeUserForecast) return;
+
+    const response = await withdrawForecasts(post.id, [
+      {
+        question: question.id,
+        // withdrawAt: new Date().toISOString(), // TODO: implement
+      },
+    ]);
+    setIsDirty(false);
+
+    if (response && "errors" in response && !!response.errors) {
+      setWithdrawError(response.errors[0]);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
   return (
     <>
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
@@ -304,14 +338,28 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               isPending={isPending}
               isDisabled={!isForecastValid}
             />
+            {activeUserForecast && (
+              <>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              </>
+            )}
           </div>
         )}
       </div>
       <FormErrorMessage
         className="ml-auto mt-2 flex w-full justify-center"
-        errors={submitError}
+        errors={submitError || withdrawError}
       />
-      <div className="h-[32px] w-full">{isPending && <LoadingIndicator />}</div>
+      <div className="h-[32px] w-full">
+        {(isPending || withdrawalIsPending) && <LoadingIndicator />}
+      </div>
       <div className="flex flex-col items-center justify-center">
         <QuestionUnresolveButton question={question} permission={permission} />
 
@@ -330,7 +378,7 @@ function generateChoiceOptions(
   question: Question,
   aggregate: AggregateForecastHistory,
   choiceOrdering: number[],
-  my_forecasts: UserForecastHistory
+  activeUserForecast: UserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
 
@@ -339,8 +387,8 @@ function generateChoiceOptions(
       name: question.options![order],
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       communityForecast: latest?.forecast_values[order] ?? null,
-      forecast: my_forecasts.latest
-        ? Math.round(my_forecasts.latest.forecast_values[order] * 1000) / 10
+      forecast: activeUserForecast
+        ? Math.round(activeUserForecast.forecast_values[order] * 1000) / 10
         : null,
     };
   });

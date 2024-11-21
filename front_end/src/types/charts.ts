@@ -17,14 +17,14 @@ export type BaseChartData = {
   yScale: Scale;
 };
 
-export type Line<X = number, Y = number> = Array<{
+export type Line<X = number, Y = number | null> = Array<{
   x: X;
   y: Y;
   y1?: Y;
   y2?: Y;
   symbol?: string;
 }>;
-export type Area<X = number, Y = number> = Array<{ x: X; y: Y; y0?: Y }>;
+export type Area<X = number, Y = number | null> = Array<{ x: X; y: Y; y0?: Y }>;
 
 export type NumericChartType = "date" | "numeric" | "binary";
 

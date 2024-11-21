@@ -55,10 +55,11 @@ export function getNumericChartTypeFromQuestion(
 }
 
 export function generateNumericDomain(
-  timestamps: number[],
+  timestamps: (number | null)[],
   zoom: TimelineChartZoomOption
 ): Tuple<number> {
-  const latestTimestamp = timestamps.at(-1);
+  const validTimestamps = uniq(timestamps.filter((t) => t !== null));
+  const latestTimestamp = validTimestamps.at(-1);
   if (latestTimestamp === undefined) {
     return [0, 0];
   }
@@ -75,11 +76,11 @@ export function generateNumericDomain(
       startDate = subMonths(latestDate, 2);
       break;
     default:
-      startDate = fromUnixTime(Math.min(...timestamps));
+      startDate = fromUnixTime(Math.min(...validTimestamps));
   }
 
   return [
-    Math.max(Math.min(...timestamps), getUnixTime(startDate)),
+    Math.max(Math.min(...validTimestamps), getUnixTime(startDate)),
     latestTimestamp,
   ];
 }

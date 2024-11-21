@@ -185,6 +185,56 @@ const MultipleChoiceChart: FC<Props> = ({
       }}
     />
   );
+
+  // Define a custom "X" symbol function
+  const GetSymbol = (props: {
+    x: number;
+    y: number;
+    size: number;
+    datum: {
+      valueNull: boolean;
+    };
+    style: {
+      stroke: string;
+    };
+  }) => {
+    const { x, y, size } = props;
+    const valueNull = props.datum.valueNull;
+    const stroke = props.style.stroke;
+    if (valueNull) {
+      return (
+        <g>
+          <line
+            x1={x - size}
+            y1={y - size}
+            x2={x + size}
+            y2={y + size}
+            stroke={stroke}
+            strokeWidth={2}
+          />
+          <line
+            x1={x - size}
+            y1={y + size}
+            x2={x + size}
+            y2={y - size}
+            stroke={stroke}
+            strokeWidth={2}
+          />
+        </g>
+      );
+    }
+    return (
+      <circle
+        cx={x}
+        cy={y}
+        r={size}
+        stroke={stroke}
+        fill={"none"}
+        strokeWidth={2}
+      />
+    );
+  };
+
   return (
     <ChartContainer
       ref={chartContainerRef}
@@ -282,21 +332,28 @@ const MultipleChoiceChart: FC<Props> = ({
             );
           })}
 
-          {userForecasts?.map((question) => {
+          {userForecasts?.map((option) => {
+            let prevValue: number | null = null;
             return (
               <VictoryScatter
-                key={question.choice}
+                key={option.choice}
                 data={
-                  question.values
-                    ? question.values.map((value, index) => ({
-                        y: value,
-                        x: question.timestamps?.[index],
-                      }))
+                  option.values
+                    ? option.values.map((value, index) => {
+                        const dataPoint = {
+                          y: value ?? prevValue,
+                          x: option.timestamps?.[index],
+                          valueNull: value === null,
+                        };
+                        prevValue = value;
+                        return dataPoint;
+                      })
                     : []
                 }
+                dataComponent={<GetSymbol />}
                 style={{
                   data: {
-                    stroke: getThemeColor(question.color),
+                    stroke: getThemeColor(option.color),
                     fill: "none",
                     strokeWidth: 2,
                   },

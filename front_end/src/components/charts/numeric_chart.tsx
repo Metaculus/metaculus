@@ -174,14 +174,23 @@ const NumericChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const prevForecast = aggregation.history.reduce((prev, curr) => {
-            if (curr.start_time <= value) {
-              return curr.start_time > prev.start_time ? curr : prev;
+          const timestamps: number[] = [];
+          aggregation.history.forEach((forecast) => {
+            if (
+              !timestamps.length ||
+              (timestamps &&
+                timestamps[timestamps.length - 1] < forecast.start_time)
+            ) {
+              timestamps.push(forecast.start_time);
             }
-            return prev;
+            if (forecast.end_time) {
+              timestamps.push(forecast.end_time);
+            }
           });
 
-          onCursorChange(prevForecast.start_time);
+          onCursorChange(
+            timestamps[timestamps.findIndex((t) => t > value) - 1]
+          );
         }
       }}
     />
@@ -361,19 +370,53 @@ function buildChartData({
   isCPRevealed?: boolean;
   openTime?: number;
 }): ChartData {
-  const line = aggregation.history.map((forecast) => ({
-    x: forecast.start_time,
-    y: forecast.centers?.[0] ?? forecast.forecast_values?.[1] ?? 0,
-  }));
-  const area = aggregation.history.map((forecast) => ({
-    x: forecast.start_time,
-    y0: forecast.interval_lower_bounds?.[0] ?? 0,
-    y: forecast.interval_upper_bounds?.[0] ?? 0,
-  }));
+  const line: Line = [];
+  const area: Area = [];
+
+  aggregation.history.forEach((forecast) => {
+    if (line.length && line[line.length - 1].x === forecast.start_time) {
+      line[line.length - 1].y = forecast.centers?.[0] ?? 0;
+      area[area.length - 1].y0 = forecast.interval_lower_bounds?.[0] ?? 0;
+      area[area.length - 1].y = forecast.interval_upper_bounds?.[0] ?? 0;
+    } else {
+      // pushing null data terminates previous point (if any)
+      line.push({
+        x: forecast.start_time,
+        y: null,
+      });
+      area.push({
+        x: forecast.start_time,
+        y0: null,
+        y: null,
+      });
+      line.push({
+        x: forecast.start_time,
+        y: forecast.centers?.[0] ?? 0,
+      });
+      area.push({
+        x: forecast.start_time,
+        y0: forecast.interval_lower_bounds?.[0] ?? 0,
+        y: forecast.interval_upper_bounds?.[0] ?? 0,
+      });
+    }
+
+    if (forecast.end_time) {
+      line.push({
+        x: forecast.end_time,
+        y: forecast.centers?.[0] ?? 0,
+      });
+      area.push({
+        x: forecast.end_time,
+        y0: forecast.interval_lower_bounds?.[0] ?? 0,
+        y: forecast.interval_upper_bounds?.[0] ?? 0,
+      });
+    }
+  });
+
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
     : Date.now() / 1000;
-  if (aggregation.latest) {
+  if (aggregation.latest?.end_time === null) {
     line.push({
       x: latestTimestamp,
       y: aggregation.latest.centers?.[0] ?? 0,
@@ -383,6 +426,19 @@ function buildChartData({
       y0: aggregation.latest.interval_lower_bounds?.[0] ?? 0,
       y: aggregation.latest.interval_upper_bounds?.[0] ?? 0,
     });
+  } else if (
+    aggregation.latest?.end_time &&
+    aggregation.latest.end_time >= latestTimestamp
+  ) {
+    line[line.length - 1] = {
+      x: latestTimestamp,
+      y: aggregation.latest.centers?.[0] ?? 0,
+    };
+    area[area.length - 1] = {
+      x: latestTimestamp,
+      y0: aggregation.latest.interval_lower_bounds?.[0] ?? 0,
+      y: aggregation.latest.interval_upper_bounds?.[0] ?? 0,
+    };
   }
 
   const points: Line = [];

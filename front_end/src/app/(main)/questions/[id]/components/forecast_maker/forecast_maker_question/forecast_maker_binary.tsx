@@ -58,13 +58,11 @@ const ForecastMakerBinary: FC<Props> = ({
 
   const [isForecastDirty, setIsForecastDirty] = useState(false);
 
-  const [withdrawError, setWithdrawError] = useState<ErrorResponse>();
-  const [submitError, setSubmitError] = useState<ErrorResponse>();
-
   useEffect(() => {
     setForecast(prevForecastValue);
   }, [prevForecastValue]);
 
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
 
@@ -91,6 +89,7 @@ const ForecastMakerBinary: FC<Props> = ({
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
+  const [withdrawError, setWithdrawError] = useState<ErrorResponse>();
   const handlePredictWithdraw = async () => {
     setWithdrawError(undefined);
 
@@ -129,44 +128,41 @@ const ForecastMakerBinary: FC<Props> = ({
           {t(predictionMessage)}
         </div>
       )}
-      <div className="flex flex-col items-center justify-center">
-        {canPredict && (
-          <>
-            <PredictButton
-              hasUserForecast={hasUserForecast}
-              isDirty={isForecastDirty}
-              isPending={isPending}
-              onSubmit={submit}
-              predictLabel={t("predict")}
-            />
-            <FormErrorMessage
-              className="mt-2 flex justify-center"
-              errors={submitError}
-            />
-            <div className="h-[32px] w-full">
-              {isPending && <LoadingIndicator />}
-            </div>
-          </>
-        )}
+      <div className="flex flex-col items-center justify-center gap-6">
+        <div className="flex gap-3">
+          {canPredict && (
+            <>
+              <PredictButton
+                hasUserForecast={hasUserForecast}
+                isDirty={isForecastDirty}
+                isPending={isPending}
+                onSubmit={submit}
+                predictLabel={t("predict")}
+              />
+              {prevForecast && (
+                <>
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    disabled={withdrawalIsPending}
+                    onClick={withdraw}
+                  >
+                    {t("withdraw")}
+                  </Button>
+                </>
+              )}
+            </>
+          )}
+        </div>
 
-        {canPredict && prevForecast && (
-          <>
-            <Button
-              variant="primary"
-              type="submit"
-              disabled={withdrawalIsPending}
-              onClick={withdraw}
-            >
-              {t("withdraw")}
-            </Button>
-            <FormErrorMessage
-              className="mt-2 flex justify-center"
-              errors={withdrawError}
-            />
-            <div className="h-[32px] w-full">
-              {withdrawalIsPending && <LoadingIndicator />}
-            </div>
-          </>
+        <FormErrorMessage
+          className="mt-2 flex justify-center"
+          errors={submitError || withdrawError}
+        />
+        {(isPending || withdrawalIsPending) && (
+          <div className="h-[32px] w-full">
+            <LoadingIndicator />
+          </div>
         )}
 
         <QuestionUnresolveButton question={question} permission={permission} />

@@ -2,7 +2,10 @@
 import { useTranslations } from "next-intl";
 import React, { FC, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
@@ -120,6 +123,29 @@ const ForecastMakerContinuous: FC<Props> = ({
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
+
+  const [withdrawError, setWithdrawError] = useState<ErrorResponse>();
+  const handlePredictWithdraw = async () => {
+    setWithdrawError(undefined);
+
+    if (!prevForecastValue) return;
+
+    const response = await withdrawForecasts(post.id, [
+      {
+        question: question.id,
+        // withdrawAt: new Date().toISOString(), // TODO: implement
+      },
+    ]);
+    setIsDirty(false);
+
+    if (response && "errors" in response && !!response.errors) {
+      setWithdrawError(response.errors[0]);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
   return (
     <>
       <ContinuousSlider
@@ -154,14 +180,32 @@ const ForecastMakerContinuous: FC<Props> = ({
               hasUserForecast={hasUserForecast}
               isPending={isPending}
             />
+
+            <FormErrorMessage
+              className="mt-2 flex justify-center"
+              errors={submitError}
+            />
+
+            {prevForecast && (
+              <>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+                <FormErrorMessage
+                  className="mt-2 flex justify-center"
+                  errors={withdrawError}
+                />
+              </>
+            )}
           </div>
-
-          <FormErrorMessage
-            className="mt-2 flex justify-center"
-            errors={submitError}
-          />
-
-          <div className="h-[32px]">{isPending && <LoadingIndicator />}</div>
+          <div className="h-[32px]">
+            {(isPending || withdrawalIsPending) && <LoadingIndicator />}
+          </div>
         </>
       )}
       {predictionMessage && (

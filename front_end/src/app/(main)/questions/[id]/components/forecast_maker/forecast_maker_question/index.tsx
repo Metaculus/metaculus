@@ -36,10 +36,11 @@ const QuestionForecastMaker: FC<Props> = ({
   const t = useTranslations();
 
   const activeUserForecast =
-    (question.my_forecasts?.latest?.end_time || new Date().getTime() + 1000) >
+    (question.my_forecasts?.latest?.end_time ||
+      new Date().getTime() / 1000 + 1000) <=
     new Date().getTime() / 1000
-      ? question.my_forecasts?.latest
-      : undefined;
+      ? undefined
+      : question.my_forecasts?.latest;
 
   return (
     <ForecastMakerContainer
