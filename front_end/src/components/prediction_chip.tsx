@@ -47,17 +47,17 @@ const PredictionChip: FC<Props> = ({
   );
 
   const renderUserForecast = () => {
-    const lastUserForecast = question.my_forecasts?.history.at(-1);
+    const latestAggregation = question.aggregations.recency_weighted.latest;
 
     if (
       showUserForecast &&
       question.my_forecasts?.history.length &&
-      lastUserForecast?.centers?.length
+      latestAggregation
     ) {
       const displayValue = getDisplayUserValue(
         question.my_forecasts,
-        lastUserForecast.centers[0],
-        lastUserForecast.start_time,
+        latestAggregation.centers?.[0],
+        latestAggregation.start_time,
         question.type,
         question.scaling
       );
