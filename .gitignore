@@ -161,6 +161,7 @@ some_data.csv
 profile.dump
 .env.sh
 staticfiles
+trace.zip
 
 # Sandbox Files
 .personal/
