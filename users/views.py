@@ -500,7 +500,7 @@ def _handle_spam_detection(
 ) -> Response:
     user.soft_delete()
     user.save()
-    logger.warning(
+    logger.info(
         f"User {user.username} was soft deleted for spam bio: {bio_plus_websites}\n"
         f"AI Reasoning: {reasoning}"
     )
@@ -570,9 +570,8 @@ async def _ask_gpt_to_check_for_spam(
             temperature=0,
         )
         is_spam = "TRUE" in gpt_response
-        logger.debug(f"Spam identification: {is_spam}")
     except Exception as e:
-        logger.warning(f"AI call failed while checking for spam: {e}")
+        logger.info(f"AI call failed while checking for spam defaulting to FALSE. Error: {e}")
         is_spam = False
         gpt_response = "AI call failed"
     return is_spam, gpt_response

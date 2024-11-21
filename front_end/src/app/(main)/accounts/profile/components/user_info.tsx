@@ -51,7 +51,7 @@ const UserInfo: FC<UserInfoProps> = ({
       if (state?.errors?.error_code === "SPAM_DETECTED") {
         setEditMode(false);
         alert(
-          "Your account has been deactivated for detected spam. Please contact support@metaculus.com if you believe this was a mistake."
+          "Your account has been deactivated for detected spam. Please contact support@metaculus.com if you believe this was a mistake and we will reactivate your account."
         );
         setTimeout(() => {
           LogOut();

@@ -115,7 +115,7 @@ class User(TimeStampedModel, AbstractUser):
                 - Spam/Ad/Inappropriate content in profile bio
                 - Manual review for bot and spam accounts
 
-                If you believe this was done in error, please contact support@metaculus.com."""
+                If you believe this was done in error, please contact support@metaculus.com and we will reactivate your account."""
             ),
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=[self.email],
