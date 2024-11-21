@@ -103,5 +103,5 @@
 }
 
 .thecurve blockquote {
-  @apply my-4 border-s-4 border-gray-300 bg-gray-100 p-4 text-blue-300 dark:border-gray-300-dark dark:bg-gray-200-dark dark:text-blue-300;
+  @apply my-4 border-s-4 border-gray-300-dark bg-gray-200-dark p-4 text-blue-300;
 }

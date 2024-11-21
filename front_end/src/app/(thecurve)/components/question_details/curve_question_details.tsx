@@ -29,7 +29,7 @@ const CurveQuestionDetails: FC<Props> = ({
   const collapseLabel = _collapseLabel ?? t("collapse");
 
   return (
-    <div className={classNames("flex flex-col")}>
+    <div className="flex flex-col">
       {!!question.group_of_questions?.resolution_criteria && (
         <>
           <h3 className="m-0 mt-3 text-lg font-normal leading-5 text-blue-500 dark:text-blue-500">
