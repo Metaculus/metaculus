@@ -12,6 +12,7 @@ from users.views import _ask_gpt_to_check_for_spam
 from rest_framework.response import Response
 from django.utils import timezone
 from users.views import _combine_bio_and_websites_from_request_data
+from users.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -270,7 +271,7 @@ Map: [<u>https://maps.app.goo.gl/Q1XsM5bAsR5dZ1Qu9</u>](https://maps.app.goo.gl/
 
 Phone: 0986235238
 
-\#tk88, #tk88\_casino, #nhacai\_tk88, #tk88\_bet, #tk88bet
+#tk88, #tk88_casino, #nhacai_tk88, #tk88_bet, #tk88bet
 """,
             "tk88ibet@gmail.com",
             True,

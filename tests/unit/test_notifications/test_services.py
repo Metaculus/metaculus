@@ -10,7 +10,7 @@ from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_notifications.factories import factory_notification
 from tests.unit.test_posts.factories import factory_post
-from utils.email import send_email_async
+
 
 class TestNotificationNewComments:
     def test_get_email_context_group(self, user1, user2, mocker):
@@ -32,7 +32,9 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_1),
                 new_comments_count=0,
                 new_comment_ids=[
-                    factory_comment(author=user2, on_post=post_1, text_en="Comment 1").pk,
+                    factory_comment(
+                        author=user2, on_post=post_1, text_en="Comment 1"
+                    ).pk,
                     post_1_duplicated_comment.pk,
                 ],
             ),
@@ -63,8 +65,12 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_1),
                 new_comments_count=0,
                 new_comment_ids=[
-                    factory_comment(author=user2, on_post=post_1, text_en="Comment 3").pk,
-                    factory_comment(author=user2, on_post=post_1, text_en="Comment 4").pk,
+                    factory_comment(
+                        author=user2, on_post=post_1, text_en="Comment 3"
+                    ).pk,
+                    factory_comment(
+                        author=user2, on_post=post_1, text_en="Comment 4"
+                    ).pk,
                     post_1_duplicated_comment.pk,
                 ],
             ),
