@@ -9,7 +9,6 @@ import {
 import ProfileApi from "@/services/profile";
 import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
-import { signOut } from "@/services/auth";
 
 export type ChangeUsernameState = {
   errors?: any;
