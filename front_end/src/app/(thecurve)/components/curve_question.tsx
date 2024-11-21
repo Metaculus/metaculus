@@ -68,7 +68,7 @@ const CurveQuestion: FC<Props> = ({
         {isExpanded && (
           <>
             <div
-              className="absolute left-0 top-[100%-50px] z-50 w-full overflow-y-scroll bg-blue-800 p-5 py-0 lg:!max-h-[510px]"
+              className="absolute left-0 top-[100%-50px] z-[100] w-full overflow-y-scroll bg-blue-800 p-5 py-0 lg:!max-h-[510px]"
               style={{ maxHeight: `${maxDetailsHeight}px` }}
             >
               <CurveQuestionDetails

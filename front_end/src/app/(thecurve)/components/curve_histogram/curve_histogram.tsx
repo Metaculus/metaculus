@@ -61,7 +61,7 @@ const CurveHistogram: FC<Props> = ({
               fill: "light" + color,
             },
           }}
-          barRatio={1.7}
+          barRatio={1.2}
           x={(d) => d.x + 0.5}
         />
         <VictoryAxis
