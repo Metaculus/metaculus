@@ -19,6 +19,7 @@ import {
   POST_NOT_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_STATUS_FILTER,
+  POST_PAGE_FILTER,
   POST_TAGS_FILTER,
   POST_TEXT_SEARCH_FILTER,
   POST_TOPIC_FILTER,
@@ -73,6 +74,10 @@ export function generateFiltersFromSearchParams(
 ): PostsParams {
   const { defaultOrderBy, defaultForMainFeed } = options;
   const filters: PostsParams = {};
+
+  if (typeof searchParams[POST_PAGE_FILTER] === "string") {
+    filters.page = Number(searchParams[POST_PAGE_FILTER]);
+  }
 
   if (typeof searchParams[POST_TEXT_SEARCH_FILTER] === "string") {
     filters.search = searchParams[POST_TEXT_SEARCH_FILTER];

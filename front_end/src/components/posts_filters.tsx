@@ -18,6 +18,7 @@ import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
 import {
   POST_ORDER_BY_FILTER,
+  POST_PAGE_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
 import useSearchInputState from "@/hooks/use_search_input_state";
@@ -90,6 +91,7 @@ const PostsFilters: FC<Props> = ({
     defaultOrder) as QuestionOrder;
 
   const [popoverFilters, activeFilters] = useMemo(() => {
+    deleteParam(POST_PAGE_FILTER, false);
     const activeFilters: ActiveFilter[] = filters.flatMap((filterSection) =>
       filterSection.options
         .filter((o) => o.active)
@@ -101,7 +103,7 @@ const PostsFilters: FC<Props> = ({
     );
 
     return [filters, activeFilters];
-  }, [filters]);
+  }, [filters, deleteParam]);
   const handleOrderChange = (order: QuestionOrder) => {
     const withNavigation = false;
 
