@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { getPost } from "@/app/(main)/questions/actions";
@@ -15,13 +15,27 @@ import Step3 from "./steps/Step3";
 import Step4 from "./steps/Step4";
 import Step5 from "./steps/Step5";
 
+type OnboardingLocalStorage = {
+  selectedTopic?: number;
+  currentStep?: number | null;
+};
+const ONBOARDING_KEY = "onboardingState";
+const getLocalStorageOnboardingData = (): OnboardingLocalStorage => {
+  const storedValue = localStorage.getItem(ONBOARDING_KEY);
+  return storedValue !== null ? JSON.parse(storedValue) : {};
+};
+
 const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   isOpen,
   onClose,
 }) => {
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
+  const [currentStep, setCurrentStep] = useState(
+    () => getLocalStorageOnboardingData().currentStep || 1
+  );
+  const [selectedTopic, setSelectedTopic] = useState<number | null>(
+    getLocalStorageOnboardingData().selectedTopic || null
+  );
   const [questionData, setQuestionData] = useState<PostWithForecasts | null>(
     null
   );
@@ -37,6 +51,20 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       modalContentRef.current.scrollTop = 0;
     }
   };
+
+  // Save state into local storage
+  useEffect(() => {
+    if (!user?.is_onboarding_complete) {
+      if (currentStep > 1 && currentStep < 5) {
+        localStorage.setItem(
+          ONBOARDING_KEY,
+          JSON.stringify({ selectedTopic, currentStep })
+        );
+      } else {
+        localStorage.removeItem(ONBOARDING_KEY);
+      }
+    }
+  }, [user?.is_onboarding_complete, selectedTopic, currentStep]);
 
   useEffect(() => {
     async function fetchQuestionData() {
