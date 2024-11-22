@@ -1,5 +1,7 @@
+"use client";
+
 import { useRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { getPost } from "@/app/(main)/questions/actions";
@@ -21,8 +23,11 @@ type OnboardingLocalStorage = {
 };
 const ONBOARDING_KEY = "onboardingState";
 const getLocalStorageOnboardingData = (): OnboardingLocalStorage => {
-  const storedValue = localStorage.getItem(ONBOARDING_KEY);
-  return storedValue !== null ? JSON.parse(storedValue) : {};
+  const storedValue =
+    typeof window !== "undefined" &&
+    window.localStorage &&
+    localStorage.getItem(ONBOARDING_KEY);
+  return storedValue ? JSON.parse(storedValue) : {};
 };
 
 const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({

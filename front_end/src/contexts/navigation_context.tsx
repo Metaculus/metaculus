@@ -13,11 +13,13 @@ import {
 type NavigationContextType = {
   previousPath: null | string;
   currentPath: null | string;
+  currentPathname: null | string;
 };
 
 export const NavigationContext = createContext<NavigationContextType>({
   previousPath: null,
   currentPath: null,
+  currentPathname: null,
 });
 
 const NavigationProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -25,6 +27,7 @@ const NavigationProvider: FC<PropsWithChildren> = ({ children }) => {
   const [path, setPath] = useState<NavigationContextType>({
     previousPath: null,
     currentPath: null,
+    currentPathname: null,
   });
   const searchParams = useSearchParams();
 
@@ -34,7 +37,11 @@ const NavigationProvider: FC<PropsWithChildren> = ({ children }) => {
     setPath((prevPath) => {
       return fullPath === prevPath.currentPath
         ? prevPath
-        : { previousPath: prevPath.currentPath, currentPath: fullPath };
+        : {
+            previousPath: prevPath.currentPath,
+            currentPath: fullPath,
+            currentPathname: pathname,
+          };
     });
   }, [pathname, searchParams]);
 

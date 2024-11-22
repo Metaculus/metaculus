@@ -10,7 +10,7 @@ import { useNavigation } from "@/contexts/navigation_context";
 const OnboardingCheck: React.FC = () => {
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
-  const { previousPath, currentPath } = useNavigation();
+  const { previousPath, currentPathname } = useNavigation();
   const pathname = usePathname();
 
   // We want to avoid situations where a user skips the tutorial
@@ -28,7 +28,7 @@ const OnboardingCheck: React.FC = () => {
     // Checks if the hook has already been refreshed.
     // Sometimes, it takes a moment for useNavigation to update from the previous route's values,
     // so we need to perform this check to ensure we have updated values of previousPath
-    const hookUpdated = currentPath === pathname;
+    const hookUpdated = currentPathname === pathname;
 
     if (
       hookUpdated &&
@@ -39,7 +39,7 @@ const OnboardingCheck: React.FC = () => {
       // Start the onboarding process
       setCurrentModal({ type: "onboarding" });
     }
-  }, [user?.id, currentPath]);
+  }, [user?.id, currentPathname]);
 
   return null; // This component doesn't render anything
 };
