@@ -134,6 +134,9 @@ const NumericQuestionInput: React.FC<{
       }
     }
     if (min !== undefined && max !== undefined) {
+      if (isNaN(min) || isNaN(max)) {
+        current_errors.push("Provide correct min and max values");
+      }
       if (min >= max) {
         current_errors.push("Minimum value should be less than maximum value");
       }
@@ -235,7 +238,7 @@ const NumericQuestionInput: React.FC<{
                   type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
-                    min !== undefined && !Number.isNaN(min)
+                    !isNil(min) && !Number.isNaN(min)
                       ? format(new Date(min * 1000), "yyyy-MM-dd'T'HH:mm")
                       : undefined
                   }
@@ -252,7 +255,7 @@ const NumericQuestionInput: React.FC<{
                   type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
-                    max !== undefined && !Number.isNaN(max)
+                    !isNil(max) && !Number.isNaN(max)
                       ? format(new Date(max * 1000), "yyyy-MM-dd'T'HH:mm")
                       : undefined
                   }
