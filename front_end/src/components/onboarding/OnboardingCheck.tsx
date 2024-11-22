@@ -39,7 +39,7 @@ const OnboardingCheck: React.FC = () => {
       // Start the onboarding process
       setCurrentModal({ type: "onboarding" });
     }
-  }, [currentPath]);
+  }, [user?.id, currentPath]);
 
   return null; // This component doesn't render anything
 };
