@@ -60,6 +60,7 @@ const PostsFeedScrollRestoration: FC<Props> = ({
       timeoutId && clearTimeout(timeoutId);
     };
   }, [fullPathname, initialQuestions.length, pageNumber]);
+
   return null;
 };
 

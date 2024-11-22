@@ -104,9 +104,10 @@ const PostsFilters: FC<Props> = ({
     return [filters, activeFilters];
   }, [filters]);
 
+  // reset page param after applying new filters
   useEffect(() => {
     deleteParam(POST_PAGE_FILTER, false);
-  }, [popoverFilters, deleteParam]);
+  }, [filters, deleteParam]);
 
   const handleOrderChange = (order: QuestionOrder) => {
     const withNavigation = false;
@@ -184,7 +185,10 @@ const PostsFilters: FC<Props> = ({
       <div className="block">
         <SearchInput
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            deleteParam(POST_PAGE_FILTER, true);
+            setSearch(e.target.value);
+          }}
           onErase={eraseSearch}
           placeholder={t("questionSearchPlaceholder")}
         />
