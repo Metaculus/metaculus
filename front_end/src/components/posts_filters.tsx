@@ -4,7 +4,7 @@ import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, useEffect, useMemo } from "react";
 
 import { getFilterChipColor } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
@@ -91,7 +91,6 @@ const PostsFilters: FC<Props> = ({
     defaultOrder) as QuestionOrder;
 
   const [popoverFilters, activeFilters] = useMemo(() => {
-    deleteParam(POST_PAGE_FILTER, false);
     const activeFilters: ActiveFilter[] = filters.flatMap((filterSection) =>
       filterSection.options
         .filter((o) => o.active)
@@ -103,7 +102,12 @@ const PostsFilters: FC<Props> = ({
     );
 
     return [filters, activeFilters];
-  }, [filters, deleteParam]);
+  }, [filters]);
+
+  useEffect(() => {
+    deleteParam(POST_PAGE_FILTER, false);
+  }, [popoverFilters, deleteParam]);
+
   const handleOrderChange = (order: QuestionOrder) => {
     const withNavigation = false;
 

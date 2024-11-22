@@ -35,7 +35,6 @@ import {
   PostForecastType,
   PostStatus,
 } from "@/types/post";
-import { Category, Tag } from "@/types/projects";
 import { QuestionOrder, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 

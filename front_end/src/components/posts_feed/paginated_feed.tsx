@@ -1,6 +1,5 @@
 "use client";
 import { sendGAEvent } from "@next/third-parties/google";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, useEffect, useState } from "react";
 
@@ -17,6 +16,7 @@ import { PostWithForecasts, PostWithNotebook } from "@/types/post";
 import { logError } from "@/utils/errors";
 
 import EmptyCommunityFeed from "./empty_community_feed";
+import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import InReviewBox from "./in_review_box";
 import { FormErrorMessage } from "../ui/form_field";
 
@@ -37,8 +37,6 @@ const PaginatedPostsFeed: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-  const pathname = usePathname();
-  const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
   const pageNumber = Number(params.get(POST_PAGE_FILTER));
   const [paginatedPosts, setPaginatedPosts] =
     useState<PostWithForecasts[]>(initialQuestions);
@@ -64,38 +62,6 @@ const PaginatedPostsFeed: FC<Props> = ({
       setBannerisVisible(true);
     }
   }, [initialQuestions, setBannerisVisible]);
-
-  useEffect(() => {
-    const cacheKey = `scroll-${fullPathname}`;
-    let timeoutId = undefined;
-    const saveScrollPosition = () => {
-      const currentScroll = window.scrollY;
-      if (currentScroll > 0) {
-        sessionStorage.setItem(cacheKey, currentScroll.toString());
-      }
-    };
-
-    const savedScrollPosition = sessionStorage.getItem(cacheKey);
-
-    if (savedScrollPosition && initialQuestions.length > 0 && !!pageNumber) {
-      timeoutId = setTimeout(() => {
-        window.scrollTo({
-          top: parseInt(savedScrollPosition),
-          behavior: "smooth",
-        });
-
-        sessionStorage.removeItem(cacheKey);
-        window.addEventListener("scrollend", saveScrollPosition);
-      }, 1000);
-    } else {
-      window.addEventListener("scrollend", saveScrollPosition);
-    }
-
-    return () => {
-      window.removeEventListener("scrollend", saveScrollPosition);
-      timeoutId && clearTimeout(timeoutId);
-    };
-  }, [initialQuestions, fullPathname, pathname]);
 
   useEffect(() => {
     // capture search event from AwaitedPostsFeed
@@ -168,6 +134,10 @@ const PaginatedPostsFeed: FC<Props> = ({
         {paginatedPosts.map((p) => (
           <Fragment key={p.id}>{renderPost(p)}</Fragment>
         ))}
+        <PostsFeedScrollRestoration
+          pageNumber={pageNumber}
+          initialQuestions={initialQuestions}
+        />
       </div>
 
       {hasMoreData ? (
