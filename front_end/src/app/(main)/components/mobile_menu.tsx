@@ -280,7 +280,6 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
           className="fixed inset-x-0 top-12 z-40 bg-blue-200-dark p-2 shadow-md"
         >
           <GlobalSearch
-            inputRef={searchInputRef}
             onSubmit={handleSearchSubmit}
             isMobile={true}
           />

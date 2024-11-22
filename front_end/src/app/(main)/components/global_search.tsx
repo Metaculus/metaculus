@@ -1,75 +1,52 @@
 "use client";
-import React, { useState, RefObject, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import SearchInput from "@/components/search_input";
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import { encodeQueryParams } from "@/utils/navigation";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
 
 interface GlobalSearchProps {
-  globalSearch?: boolean;
-  inputRef?: RefObject<HTMLInputElement>;
-  onSubmit?: () => void;
   className?: string;
   isMobile?: boolean;
+  onSubmit?: () => void;
 }
 
 const GlobalSearch: React.FC<GlobalSearchProps> = ({
-  globalSearch,
-  inputRef,
-  onSubmit,
   className,
   isMobile = false,
+  onSubmit,
 }) => {
   const t = useTranslations();
   const router = useRouter();
-  const [isHidden, setIsHidden] = useState(true); // Start hidden
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isHidden, setIsHidden] = useState(true);
+
+  const {
+    globalSearch,
+    setGlobalSearch,
+    isVisible: otherSearchIsVisible,
+  } = useGlobalSearchContext();
 
   useEffect(() => {
-    if (isMobile) {
-      setIsHidden(false);
-      setIsLoading(false);
-      return;
-    }
+    setIsHidden(otherSearchIsVisible);
+  }, [otherSearchIsVisible]);
 
-    const checkVisibility = () => {
-      const isExistingSearchVisible =
-        document.body.getAttribute("data-existing-search-visible") === "true";
-      setIsHidden(isExistingSearchVisible);
-      setIsLoading(false); // Set loading to false after checking visibility
-    };
+  const eraseSearch = () => {
+    setGlobalSearch("");
+  };
 
-    // Delay the initial check to allow for DOM rendering
-    const initialCheckTimeout = setTimeout(() => {
-      checkVisibility();
-    }, 100); // Adjust this delay as needed
-
-    const observer = new MutationObserver(checkVisibility);
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["data-existing-search-visible"],
-    });
-
-    return () => {
-      observer.disconnect();
-      clearTimeout(initialCheckTimeout);
-    };
-  }, [isMobile]);
-
-  const handleSearchSubmit = useCallback(
-    (query: string) => {
-      router.push(
-        `/questions` + encodeQueryParams({ [POST_TEXT_SEARCH_FILTER]: query })
-      );
-      onSubmit?.();
-    },
-    [router, onSubmit]
-  );
+  const handleSearchSubmit = (searchQuery: string) => {
+    onSubmit?.();
+    router.push(
+      `/questions` +
+        encodeQueryParams({ [POST_TEXT_SEARCH_FILTER]: searchQuery })
+    );
+  };
 
   const visibilityClass = isMobile
     ? "flex xl:hidden"
-    : isHidden || isLoading
+    : isHidden
       ? "hidden"
       : "hidden xl:flex";
 
@@ -78,14 +55,14 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
       className={`self-center xl:ml-4 xl:items-center ${visibilityClass} ${className}`}
     >
       <SearchInput
-        onChange={() => {}} // This is now handled internally in SearchInput
-        onErase={() => {}} // This is now handled internally in SearchInput
+        value={globalSearch}
+        onChange={(e) => setGlobalSearch(e.target.value)}
+        onErase={eraseSearch}
         onSubmit={handleSearchSubmit}
         placeholder={t("questionSearchPlaceholder")}
         size="base"
         className="w-full"
         globalSearch={true}
-        inputRef={inputRef}
       />
     </div>
   );

@@ -7,22 +7,23 @@ import React, { FC, Fragment, PropsWithChildren } from "react";
 
 import { getArticleTypeFilters } from "@/app/(main)/news/helpers/filters";
 import SearchInput from "@/components/search_input";
-import {
-  POST_NEWS_TYPE_FILTER,
-  POST_TEXT_SEARCH_FILTER,
-} from "@/constants/posts_feed";
-import useSearchInputState from "@/hooks/use_search_input_state";
+import { POST_NEWS_TYPE_FILTER } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
+import VisibilityObserver from "@/components/visibility_observer";
 
 const FILTERS = getArticleTypeFilters();
 
 const NewsFilters: React.FC = () => {
   const { params, setParam, deleteParam } = useSearchParams();
 
-  const [search, setSearch] = useSearchInputState(POST_TEXT_SEARCH_FILTER);
+  const { globalSearch, setGlobalSearch, setIsVisible } =
+    useGlobalSearchContext();
+
   const eraseSearch = () => {
-    setSearch("");
+    setGlobalSearch("");
   };
+
   const t = useTranslations();
 
   const postFilterParam = params.get(POST_NEWS_TYPE_FILTER);
@@ -42,12 +43,22 @@ const NewsFilters: React.FC = () => {
 
   return (
     <div>
-      <SearchInput
-        onChange={(e) => setSearch(e.target.value)}
-        onErase={eraseSearch}
-        placeholder={t("articlesSearchPlaceholder")}
-        className="mx-auto mb-6 max-w-2xl"
-      />
+      <VisibilityObserver
+        onVisibilityChange={(v) => {
+          setIsVisible(v);
+        }}
+      >
+        <SearchInput
+          value={globalSearch}
+          onChange={(e) => {
+            setGlobalSearch(e.target.value);
+          }}
+          onErase={eraseSearch}
+          placeholder={t("articlesSearchPlaceholder")}
+          className="mx-auto mb-6 max-w-2xl"
+        />
+      </VisibilityObserver>
+
       <TabGroup selectedIndex={selectedIndex} manual onChange={handleTabChange}>
         <TabList className="mb-6 flex flex-wrap justify-center gap-x-3 gap-y-1 font-serif text-base text-blue-700 dark:text-blue-700-dark">
           <FilterTab>All</FilterTab>
