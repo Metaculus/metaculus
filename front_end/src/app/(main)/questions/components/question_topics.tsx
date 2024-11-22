@@ -8,12 +8,13 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import classNames from "classnames";
-import clsx from "clsx";
 import { useTranslations } from "next-intl";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, useMemo, useState } from "react";
 
+import clsx from "clsx";
+
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 import Button from "@/components/ui/button";
 import {
   FeedType,
@@ -25,6 +26,7 @@ import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 
 import TopicItem from "./topic_item";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 const EXPAND_THRESHOLD = 2;
 
@@ -57,6 +59,10 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const isMobileExpandable =
     hotTopics.length + hotCategories.length > EXPAND_THRESHOLD;
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+
+  const isCommunitiesDiscoveryEnabled = useFeatureFlagEnabled(
+    "communitiesDiscovery"
+  );
 
   const { bannerIsVissible: isTranslationBannerVisible } =
     useContentTranslatedBannerProvider();
@@ -148,17 +154,19 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               />
             </>
           )}
-          <TopicItem
-            emoji="👥"
-            text={t("communities")}
-            onClick={() => {
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "Communities",
-              });
-              switchFeed(FeedType.COMMUNITIES);
-            }}
-            isActive={currentFeed === FeedType.COMMUNITIES}
-          />
+          {isCommunitiesDiscoveryEnabled && (
+            <TopicItem
+              emoji="👥"
+              text={t("communities")}
+              onClick={() => {
+                sendGAEvent("event", "sidebarClick", {
+                  event_category: "Communities",
+                });
+                switchFeed(FeedType.COMMUNITIES);
+              }}
+              isActive={currentFeed === FeedType.COMMUNITIES}
+            />
+          )}
           <TopicItem
             isActive={false}
             emoji="🤖🔭"
