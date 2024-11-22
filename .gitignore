@@ -162,9 +162,3 @@ profile.dump
 .env.sh
 staticfiles
 trace.zip
-
-# Sandbox Files
-.personal/
-.sandbox/
-sandbox/
-sandbox.py

@@ -3,6 +3,8 @@ import textwrap
 import numpy as np
 import asyncio
 import logging
+from typing import cast
+
 
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
@@ -31,7 +33,7 @@ from users.serializers import (
     PasswordChangeSerializer,
     EmailChangeSerializer,
 )
-from users.services import (
+from users.services.common import (
     get_users,
     user_unsubscribe_tags,
     send_email_change_confirmation_email,
@@ -39,6 +41,7 @@ from users.services import (
 )
 from utils.openai import generate_text_async
 from django.conf import settings
+from users.services.spam_detection import check_for_spam
 
 logger = logging.getLogger(__name__)
 
@@ -452,129 +455,26 @@ def update_profile_api_view(request: Request) -> Response:
     serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
 
-    assert isinstance(request.data, dict)
-    is_spam, reasoning = _check_for_spam(user, request.data)
+
+    is_spam, _ = check_for_spam(user, cast(dict, serializer.validated_data))
 
     if is_spam:
-        return _handle_spam_detection(
-            user, _combine_bio_and_websites_from_request_data(request.data), reasoning
+        user.soft_delete()
+        user.save()
+        return Response(
+            data={
+                "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
+                "error_code": "SPAM_DETECTED",
+            },
+            status=status.HTTP_403_FORBIDDEN,
         )
     assert isinstance(serializer, UserUpdateProfileSerializer)
-    return _update_user_profile(user, serializer)
-
-
-def _combine_bio_and_websites_from_request_data(request_data: dict) -> str:
-    bio: str | None = request_data.get("bio")
-    website: str | None = request_data.get("website")
-    if not bio:
-        return ""
-    bio_plus_websites = bio + (f"\n\nWebsite: {website}" if website else "")
-    return bio_plus_websites
-
-
-def _check_for_spam(user: User, request_data: dict) -> tuple[bool, str]:  # NOSONAR
-    days_since_joined = (timezone.now() - user.date_joined).days
-    days_since_joined_threshold = 7
-    bio_plus_websites = _combine_bio_and_websites_from_request_data(request_data)
-
-    if not bio_plus_websites:
-        return False, "No bio to check for spam"
-
-    if len(bio_plus_websites) < 10:
-        return False, "Bio is too short to be spam"
-
-    if days_since_joined > days_since_joined_threshold:
-        return (
-            False,
-            f"The user has been a member for more than {days_since_joined_threshold} days",
-        )
-
-    if len(bio_plus_websites) > 25000:
-        return True, "Bio is more than 25000 characters"
-
-    return asyncio.run(_ask_gpt_to_check_for_spam(bio_plus_websites, user.email))
-
-
-def _handle_spam_detection(
-    user: User, bio_plus_websites: str, reasoning: str
-) -> Response:
-    user.soft_delete()
-    user.save()
-    logger.info(
-        f"User {user.username} was soft deleted for spam bio: {bio_plus_websites}\n"
-        f"AI Reasoning: {reasoning}"
-    )
-    return Response(
-        data={
-            "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
-            "error_code": "SPAM_DETECTED",
-        },
-        status=status.HTTP_403_FORBIDDEN,
-    )
-
-
-def _update_user_profile(
-    user: User, serializer: UserUpdateProfileSerializer
-) -> Response:
     unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
     if unsubscribe_tags is not None:
         user_unsubscribe_tags(user, unsubscribe_tags)
     serializer.save()
     return Response(UserPrivateSerializer(user).data)
 
-
-async def _ask_gpt_to_check_for_spam(
-    bio_plus_websites: str, email: str
-) -> tuple[bool, str]:
-    if not settings.OPENAI_API_KEY:
-        return False, "No API key set, so not checking for spam"
-
-    system_prompt = textwrap.dedent(
-        """
-        You are a content moderator for Metaculus.
-        Metaculus is a site that hosts tournaments where people compete to predict the future outcome of events.
-        Government officials, businesses, nonprofits, and others uses these predictions to make better decisions.
-
-        Your job is to identify if a user is normal, or is a spammer/bot given their bio and username.
-        - Watch out for any text trying to sell something combined with weird emails
-        - Anything a random good intentioned user or staff member would not write.
-        - If they don't give a link, then don't mark them as spam (unless they are really clearly trying to sell something with a lot of spam like language)
-
-        You will be given a bio and a username.
-        The bio will be in the <[#bio]> tags.
-        Say SPAM if you see more than one opening and closing tag for <[#bio]>.
-
-        In the end you will respond with TRUE or FALSE. Give your reasoning then say TRUE (if it is spam) or FALSE (if it is not spam).
-        Do not say TRUE or FALSE except as your last line.
-        """
-    )
-    prompt = textwrap.dedent(
-        f"""
-        Is the following user a spammer or bot?
-
-        Their email is {email}.
-
-        Here is the bio:
-        <[#bio]>
-        {bio_plus_websites}
-        </[#bio]>
-
-        Lets take this step by step. Give your reasoning then say TRUE (if it is spam) or FALSE (if it is not spam).
-        """
-    )
-    try:
-        gpt_response = await generate_text_async(
-            model="gpt-4o-mini",
-            system_prompt=system_prompt,
-            prompt=prompt,
-            temperature=0,
-        )
-        is_spam = "TRUE" in gpt_response
-    except Exception as e:
-        logger.info(f"AI call failed while checking for spam defaulting to FALSE. Error: {e}")
-        is_spam = False
-        gpt_response = "AI call failed"
-    return is_spam, gpt_response
 
 
 @api_view(["POST"])
