@@ -2,9 +2,6 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { useEffect } from "react";
 
-import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
-import { logError } from "@/utils/errors";
-
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
 
@@ -25,8 +22,6 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
 
   const handleSkipTutorial = () => {
     sendGAEvent({ event: "onboardingSkipped", event_category: "onboarding" });
-    // Mark tutorial as complete
-    updateProfileAction({ is_onboarding_complete: true }).catch(logError);
     onClose();
   };
 
