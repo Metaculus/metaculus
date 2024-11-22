@@ -1,5 +1,6 @@
 "use client";
 import { sendGAEvent } from "@next/third-parties/google";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, useEffect, useState } from "react";
 
@@ -36,8 +37,9 @@ const PaginatedPostsFeed: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-
-  const pageNumber = Number(filters.page);
+  const pathname = usePathname();
+  const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+  const pageNumber = Number(params.get(POST_PAGE_FILTER));
   const [paginatedPosts, setPaginatedPosts] =
     useState<PostWithForecasts[]>(initialQuestions);
   const [offset, setOffset] = useState(
@@ -62,6 +64,38 @@ const PaginatedPostsFeed: FC<Props> = ({
       setBannerisVisible(true);
     }
   }, [initialQuestions, setBannerisVisible]);
+
+  useEffect(() => {
+    const cacheKey = `scroll-${fullPathname}`;
+    let timeoutId = undefined;
+    const saveScrollPosition = () => {
+      const currentScroll = window.scrollY;
+      if (currentScroll > 0) {
+        sessionStorage.setItem(cacheKey, currentScroll.toString());
+      }
+    };
+
+    const savedScrollPosition = sessionStorage.getItem(cacheKey);
+
+    if (savedScrollPosition && initialQuestions.length > 0 && !!pageNumber) {
+      timeoutId = setTimeout(() => {
+        window.scrollTo({
+          top: parseInt(savedScrollPosition),
+          behavior: "smooth",
+        });
+
+        sessionStorage.removeItem(cacheKey);
+        window.addEventListener("scrollend", saveScrollPosition);
+      }, 1000);
+    } else {
+      window.addEventListener("scrollend", saveScrollPosition);
+    }
+
+    return () => {
+      window.removeEventListener("scrollend", saveScrollPosition);
+      timeoutId && clearTimeout(timeoutId);
+    };
+  }, [initialQuestions, fullPathname, pathname]);
 
   useEffect(() => {
     // capture search event from AwaitedPostsFeed
@@ -90,10 +124,12 @@ const PaginatedPostsFeed: FC<Props> = ({
         }
 
         if (!hasNextPage) setHasMoreData(false);
-        setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
-        setParam(POST_PAGE_FILTER, `${offset / POSTS_PER_PAGE + 1}`, false);
-        setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
-        shallowNavigateToSearchParams();
+        if (!!newPosts.length) {
+          setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
+          setParam(POST_PAGE_FILTER, `${offset / POSTS_PER_PAGE + 1}`, false);
+          setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
+          shallowNavigateToSearchParams();
+        }
       } catch (err) {
         logError(err);
         const error = err as Error & { digest?: string };

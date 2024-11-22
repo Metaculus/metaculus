@@ -66,16 +66,17 @@ export const POST_STATUS_LABEL_MAP = {
 type FiltersFromSearchParamsOptions = {
   defaultOrderBy?: string;
   defaultForMainFeed?: boolean;
+  withoutPageParam?: boolean;
 };
 
 export function generateFiltersFromSearchParams(
   searchParams: SearchParams,
   options: FiltersFromSearchParamsOptions = {}
 ): PostsParams {
-  const { defaultOrderBy, defaultForMainFeed } = options;
+  const { defaultOrderBy, defaultForMainFeed, withoutPageParam } = options;
   const filters: PostsParams = {};
 
-  if (typeof searchParams[POST_PAGE_FILTER] === "string") {
+  if (!withoutPageParam && typeof searchParams[POST_PAGE_FILTER] === "string") {
     filters.page = Number(searchParams[POST_PAGE_FILTER]);
   }
 
