@@ -9,6 +9,11 @@ import BaseModal from "@/components/base_modal";
 import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
 import { logError } from "@/utils/errors";
+import {
+  deleteOnboardingStoredState,
+  getOnboardingStoredState,
+  setOnboardingStoredState,
+} from "@/utils/onboarding";
 
 import { onboardingTopics } from "./OnboardingSettings";
 import Step1 from "./steps/Step1";
@@ -17,29 +22,16 @@ import Step3 from "./steps/Step3";
 import Step4 from "./steps/Step4";
 import Step5 from "./steps/Step5";
 
-type OnboardingLocalStorage = {
-  selectedTopic?: number;
-  currentStep?: number | null;
-};
-const ONBOARDING_KEY = "onboardingState";
-const getLocalStorageOnboardingData = (): OnboardingLocalStorage => {
-  const storedValue =
-    typeof window !== "undefined" &&
-    window.localStorage &&
-    localStorage.getItem(ONBOARDING_KEY);
-  return storedValue ? JSON.parse(storedValue) : {};
-};
-
 const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   isOpen,
   onClose,
 }) => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(
-    () => getLocalStorageOnboardingData().currentStep || 1
+    () => getOnboardingStoredState().currentStep || 1
   );
   const [selectedTopic, setSelectedTopic] = useState<number | null>(
-    getLocalStorageOnboardingData().selectedTopic || null
+    getOnboardingStoredState().selectedTopic || null
   );
   const [questionData, setQuestionData] = useState<PostWithForecasts | null>(
     null
@@ -61,12 +53,9 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   useEffect(() => {
     if (!user?.is_onboarding_complete) {
       if (currentStep > 1 && currentStep < 5) {
-        localStorage.setItem(
-          ONBOARDING_KEY,
-          JSON.stringify({ selectedTopic, currentStep })
-        );
+        setOnboardingStoredState({ selectedTopic, currentStep });
       } else {
-        localStorage.removeItem(ONBOARDING_KEY);
+        deleteOnboardingStoredState();
       }
     }
   }, [user?.is_onboarding_complete, selectedTopic, currentStep]);

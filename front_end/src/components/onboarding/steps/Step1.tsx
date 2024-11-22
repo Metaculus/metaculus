@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { logError } from "@/utils/errors";
+import { setOnboardingSuppressed } from "@/utils/onboarding";
 
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
@@ -33,6 +34,8 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
   const handleCloseTutorial = () => {
     // Temporarily hide tutorial
     sendGAEvent({ event: "onboardingClosed", event_category: "onboarding" });
+    // Mark as temporarily suppressed
+    setOnboardingSuppressed();
     onClose();
   };
 
