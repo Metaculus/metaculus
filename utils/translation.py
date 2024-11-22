@@ -269,7 +269,6 @@ def translate_fields_for_object_coroutines(obj, field_names, languages):
                 target_field=build_localized_fieldname(field_name, lang),
             )
             for lang in languages
-            if lang != source_lang
         )
 
     return co_routines
