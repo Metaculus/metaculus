@@ -1,23 +1,15 @@
-"use client";
 import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Field, Input } from "@headlessui/react";
 import classNames from "classnames";
-import {
-  ChangeEventHandler,
-  FC,
-  FormEvent,
-  RefObject,
-  useEffect,
-  useState,
-} from "react";
-import { useSearchParams } from "next/navigation";
+import { ChangeEventHandler, FC, FormEvent } from "react";
 
 import Button from "@/components/ui/button";
 
 type Size = "base" | "lg";
 
 type Props = {
+  value: string;
   onChange: ChangeEventHandler<HTMLInputElement>;
   onErase: () => void;
   onSubmit?: (value: string) => void;
@@ -25,10 +17,10 @@ type Props = {
   placeholder?: string;
   className?: string;
   globalSearch?: boolean;
-  inputRef?: RefObject<HTMLInputElement>;
 };
 
 const SearchInput: FC<Props> = ({
+  value,
   onChange,
   onErase,
   onSubmit,
@@ -36,31 +28,7 @@ const SearchInput: FC<Props> = ({
   placeholder,
   className,
   globalSearch,
-  inputRef,
 }) => {
-  const [value, setValue] = useState("");
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const urlSearchQuery = searchParams.get("search");
-    if (urlSearchQuery) {
-      setValue(urlSearchQuery);
-    } else {
-      // Clear the search input if there's no search param in the URL
-      setValue("");
-    }
-  }, [searchParams]);
-
-  const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setValue(e.target.value);
-    onChange(e);
-  };
-
-  const handleErase = () => {
-    setValue("");
-    onErase();
-  };
-
   return (
     <Field
       as={onSubmit ? "form" : "div"}
@@ -79,21 +47,20 @@ const SearchInput: FC<Props> = ({
         name="search"
         type="search"
         value={value}
-        onChange={handleChange}
+        onChange={onChange}
         className={classNames(
-          "mx-auto block size-full rounded-full border border-blue-500  pl-3 pr-16 font-medium placeholder:text-gray-700 dark:border-blue-500 dark:bg-gray-0-dark placeholder:dark:text-gray-700-dark",
+          "mx-auto block size-full rounded-full border border-blue-500 pl-3  pr-16 text-base font-medium placeholder:text-gray-700 dark:border-blue-500 dark:bg-gray-0-dark placeholder:dark:text-gray-700-dark sm:text-sm",
           globalSearch
             ? " border border-blue-700 bg-black/5 text-white placeholder:text-white/50 dark:border-blue-700 dark:bg-blue-800 dark:placeholder:text-white/50"
             : "bg-gray-0"
         )}
         placeholder={placeholder}
-        ref={inputRef}
       />
       <span className="absolute inset-y-0 right-0 inline-flex h-full justify-center">
         {!!value && (
           <Button
             variant="text"
-            onClick={handleErase}
+            onClick={onErase}
             type="button"
             className={classNames(
               "md:-mr-3",

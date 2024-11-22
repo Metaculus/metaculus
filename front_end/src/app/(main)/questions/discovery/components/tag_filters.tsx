@@ -16,6 +16,7 @@ const TagFilters: FC = () => {
 
   return (
     <SearchInput
+      value={searchQuery}
       onChange={(event) => setSearchQuery(event.target.value)}
       onErase={() => setSearchQuery("")}
       placeholder={t("tagSearchPlaceholder")}

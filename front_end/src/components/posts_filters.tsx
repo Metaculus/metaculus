@@ -16,13 +16,11 @@ import SearchInput from "@/components/search_input";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
-import {
-  POST_ORDER_BY_FILTER,
-  POST_PAGE_FILTER,
-  POST_TEXT_SEARCH_FILTER,
-} from "@/constants/posts_feed";
+import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
+import VisibilityObserver from "./visibility_observer";
 
 type ActiveFilter = {
   id: string;
@@ -77,6 +75,13 @@ const PostsFilters: FC<Props> = ({
     navigateToSearchParams,
   } = useSearchParams();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
+
+  const { globalSearch, setGlobalSearch, setIsVisible } =
+    useGlobalSearchContext();
+
+  const eraseSearch = () => {
+    setGlobalSearch("");
+  };
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
     defaultOrder) as QuestionOrder;
@@ -170,19 +175,25 @@ const PostsFilters: FC<Props> = ({
   const removeFilter = (filterId: string, filterValue: string) => {
     deleteParam(filterId, true, filterValue);
   };
-  const handleSearchSubmit = (query: string) => {
-    setParam(POST_TEXT_SEARCH_FILTER, query, true);
-  };
 
   return (
     <div>
       <div className="block">
-        <SearchInput
-          onSubmit={handleSearchSubmit}
-          onChange={() => {}} // This is now handled internally in SearchInput
-          onErase={() => {}} // This is now handled internally in SearchInput
-          placeholder={t("questionSearchPlaceholder")}
-        />
+        <VisibilityObserver
+          onVisibilityChange={(v) => {
+            setIsVisible(v);
+          }}
+        >
+          <SearchInput
+            value={globalSearch}
+            onChange={(e) => {
+              deleteParam(POST_PAGE_FILTER, true);
+              setGlobalSearch(e.target.value);
+            }}
+            onErase={eraseSearch}
+            placeholder={t("questionSearchPlaceholder")}
+          />
+        </VisibilityObserver>
         <div className="mx-0 my-3 flex flex-wrap items-center justify-between gap-2">
           <ButtonGroup
             value={order}

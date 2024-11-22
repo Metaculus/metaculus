@@ -25,14 +25,12 @@ export default async function RootLayout({
 }>) {
   return (
     <div className="flex min-h-screen flex-col">
-      <GlobalSearchVisibilityController>
-        <GlobalHeader />
-        <Bulletins />
-        <div className="flex-grow">{children}</div>
-        <FeedbackFloat />
-        <Footer />
-        <CookiesBanner />
-      </GlobalSearchVisibilityController>
+      <GlobalHeader />
+      <Bulletins />
+      <div className="flex-grow">{children}</div>
+      <FeedbackFloat />
+      <Footer />
+      <CookiesBanner />
     </div>
   );
 }
