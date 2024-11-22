@@ -42,7 +42,6 @@ const PostsFeedScrollRestoration: FC<Props> = ({
       scrollPathName === fullPathname
     ) {
       timeoutId = setTimeout(() => {
-        console.log("SCROLLING");
         window.scrollTo({
           top: parseInt(scrollPosition),
           behavior: "smooth",
