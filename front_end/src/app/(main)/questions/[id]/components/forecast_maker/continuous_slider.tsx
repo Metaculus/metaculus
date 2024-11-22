@@ -8,10 +8,11 @@ import MultiSlider, {
   MultiSliderValue,
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
-import InlineSelect from "@/components/ui/inline_select";
+import Switch from "@/components/ui/switch";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousAreaGraphType } from "@/types/charts";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import classNames from "classnames";
 
 import ContinuousPredictionChart from "./continuous_prediction_chart";
 import { useHideCP } from "../cp_provider";
@@ -42,18 +43,31 @@ const ContinuousSlider: FC<Props> = ({
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
 
   return (
-    <div>
-      <InlineSelect<ContinuousAreaGraphType>
-        options={[
-          { label: t("pdfLabel"), value: "pmf" },
-          { label: t("cdfLabel"), value: "cdf" },
-        ]}
-        defaultValue={graphType}
-        className="appearance-none border-none !p-0 text-sm"
-        onChange={(e) =>
-          setGraphType(e.target.value as ContinuousAreaGraphType)
-        }
-      />
+    <div className="mt-[-28px] flex flex-col">
+      <div className="mr-0 flex w-fit items-center gap-2 self-end sm:mr-2">
+        <p
+          className={classNames(
+            "m-0",
+            graphType === "cdf" ? "opacity-60" : "opacity-90"
+          )}
+          title="probability density function"
+        >
+          {t("pdf")}
+        </p>
+        <Switch
+          checked={graphType === "cdf"}
+          onChange={(checked) => setGraphType(checked ? "cdf" : "pmf")}
+        />
+        <p
+          className={classNames(
+            "m-0",
+            graphType === "cdf" ? "opacity-90" : "opacity-60"
+          )}
+          title="cumulative density function"
+        >
+          {t("cdf")}
+        </p>
+      </div>
       <ContinuousPredictionChart
         dataset={dataset}
         graphType={graphType}

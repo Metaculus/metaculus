@@ -1,11 +1,10 @@
-import { fromUnixTime } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
 import ContinuousAreaChart, {
   ContinuousAreaGraphInput,
 } from "@/components/charts/continuous_area_chart";
-import InlineSelect from "@/components/ui/inline_select";
+import Switch from "@/components/ui/switch";
 import {
   ContinuousAreaGraphType,
   ContinuousAreaHoverState,
@@ -14,6 +13,7 @@ import { AggregationQuestion, Aggregations } from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
+import classNames from "classnames";
 
 type Props = {
   questionData: AggregationQuestion;
@@ -80,19 +80,6 @@ const ContinuousAggregationChart: FC<Props> = ({
 
   return (
     <div className="my-5">
-      <div className="flex">
-        <InlineSelect<ContinuousAreaGraphType>
-          options={[
-            { label: t("pdfLabel"), value: "pmf" },
-            { label: t("cdfLabel"), value: "cdf" },
-          ]}
-          defaultValue={graphType}
-          className="appearance-none border-none !p-0 text-sm"
-          onChange={(e) =>
-            setGraphType(e.target.value as ContinuousAreaGraphType)
-          }
-        />
-      </div>
       <ContinuousAreaChart
         height={150}
         scaling={scaling}
