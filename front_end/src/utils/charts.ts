@@ -273,13 +273,37 @@ export function getDisplayValue(
   questionType: QuestionType,
   scaling: Scaling,
   precision?: number,
-  truncation?: number
+  truncation?: number,
+  range?: number[]
 ): string {
   if (value === undefined || value === null) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
-  return displayValue(scaledValue, questionType, precision, truncation);
+  const centerDisplay = displayValue(
+    scaledValue,
+    questionType,
+    precision,
+    truncation
+  );
+  if (range) {
+    const scaledLower = scaleInternalLocation(range[0], scaling);
+    const lowerDisplay = displayValue(
+      scaledLower,
+      questionType,
+      precision,
+      truncation
+    );
+    const scaledUpper = scaleInternalLocation(range[1], scaling);
+    const upperDisplay = displayValue(
+      scaledUpper,
+      questionType,
+      precision,
+      truncation
+    );
+    return `${centerDisplay} (${lowerDisplay} - ${upperDisplay})`;
+  }
+  return centerDisplay;
 }
 
 export function getChoiceOptionValue(
@@ -314,7 +338,8 @@ export function getDisplayUserValue(
   value: number | undefined,
   valueTimestamp: number,
   questionOrQuestionType: Question | QuestionType,
-  scaling?: Scaling
+  scaling?: Scaling,
+  showRange?: boolean
 ): string {
   let qType: string;
   let rMin: number | null;
@@ -349,25 +374,60 @@ export function getDisplayUserValue(
   }
 
   let center: number;
+  let lower: number | undefined = undefined;
+  let upper: number | undefined = undefined;
   if (qType === QuestionType.Binary) {
     center = closestUserForecast.forecast_values[1];
   } else {
     center = closestUserForecast.centers![0];
+    lower = showRange
+      ? closestUserForecast.interval_lower_bounds![0]
+      : undefined;
+    upper = showRange
+      ? closestUserForecast.interval_upper_bounds![0]
+      : undefined;
   }
   if (value === undefined) {
     return "...";
   }
-  const scaledValue = scaleInternalLocation(center, {
+  const scaledCenter = scaleInternalLocation(center, {
     range_min: rMin ?? 0,
     range_max: rMax ?? 1,
     zero_point: zPoint,
   });
+  const scaledLower = lower
+    ? scaleInternalLocation(lower, {
+        range_min: rMin ?? 0,
+        range_max: rMax ?? 1,
+        zero_point: zPoint,
+      })
+    : null;
+  const scaledUpper = upper
+    ? scaleInternalLocation(upper, {
+        range_min: rMin ?? 0,
+        range_max: rMax ?? 1,
+        zero_point: zPoint,
+      })
+    : null;
+
   if (qType === QuestionType.Date) {
-    return format(fromUnixTime(scaledValue), "yyyy-MM-dd");
+    const displayCenter = format(fromUnixTime(scaledCenter), "yyyy-MM-dd");
+    if (showRange) {
+      const displayLower = format(fromUnixTime(scaledLower!), "yyyy-MM-dd");
+      const displayUpper = format(fromUnixTime(scaledUpper!), "yyyy-MM-dd");
+      return `${displayCenter} (${displayLower} - ${displayUpper})`;
+    }
+    return displayCenter;
   } else if (qType === QuestionType.Numeric) {
-    return abbreviatedNumber(scaledValue);
+    const displayCenter = abbreviatedNumber(scaledCenter);
+    if (showRange) {
+      const displayLower = abbreviatedNumber(scaledLower!);
+      const displayUpper = abbreviatedNumber(scaledUpper!);
+      return `${displayCenter} (${displayLower} - ${displayUpper})`;
+    }
+    return displayCenter;
   } else {
-    return `${Math.round(scaledValue * 1000) / 10}%`;
+    return `${Math.round(scaledCenter * 1000) / 10}%`;
   }
 }
 

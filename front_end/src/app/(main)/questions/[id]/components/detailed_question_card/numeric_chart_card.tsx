@@ -161,7 +161,15 @@ const NumericChartCard: FC<Props> = ({
             text={getDisplayValue(
               cursorData?.center,
               question.type,
-              question.scaling
+              question.scaling,
+              undefined,
+              undefined,
+              cursorData?.interval_lower_bound
+                ? [
+                    cursorData!.interval_lower_bound as number,
+                    cursorData!.interval_upper_bound as number,
+                  ]
+                : []
             )}
             variant="prediction"
           />
@@ -170,11 +178,13 @@ const NumericChartCard: FC<Props> = ({
           <CursorDetailItem
             title={t("myPrediction")}
             text={getDisplayUserValue(
+              // TODO: switch to getDisplayValue, adding more details to cursorData
               question.my_forecasts,
               cursorData!.center as number,
               cursorData!.timestamp as number,
               question.type,
-              question.scaling
+              question.scaling,
+              true
             )}
             variant="my-prediction"
           />
