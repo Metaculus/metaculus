@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 import pytest  # noqa
 from freezegun import freeze_time
@@ -298,16 +298,16 @@ def test_annotate_unread_comment_count(user1, user2, user_admin):
         user=user1,
         post=post,
         comments_count=2,
-        viewed_at=datetime.datetime(2024, 6, 1),
+        viewed_at=datetime(2024, 6, 1),
         divergence=0.95,
     )
     factory_post_snapshot(
-        user=user2, post=post, comments_count=1, viewed_at=datetime.datetime(2024, 6, 2)
+        user=user2, post=post, comments_count=1, viewed_at=datetime(2024, 6, 2)
     )
 
-    factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 1))
-    factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 2))
-    factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 3))
+    factory_comment(on_post=post, created_at=datetime(2024, 6, 1))
+    factory_comment(on_post=post, created_at=datetime(2024, 6, 2))
+    factory_comment(on_post=post, created_at=datetime(2024, 6, 3))
 
     assert (
         Post.objects.filter(pk=post.id).annotate_unread_comment_count(user1.id).first()
@@ -326,12 +326,12 @@ def test_annotate_weekly_movement(user1, conditional_1):
         factory_forecast(
             question=conditional_1.question_yes,
             author=user1,
-            start_time=datetime.datetime(2024, 7, 8),
+            start_time=datetime(2024, 7, 8),
         )
         factory_forecast(
             question=conditional_1.question_no,
             author=user1,
-            start_time=datetime.datetime(2024, 7, 7),
+            start_time=datetime(2024, 7, 7),
         )
 
     # Previous month
@@ -339,7 +339,7 @@ def test_annotate_weekly_movement(user1, conditional_1):
         factory_forecast(
             question=conditional_1.question_no,
             author=user1,
-            start_time=datetime.datetime(2024, 6, idx + 1),
+            start_time=datetime(2024, 6, idx + 1),
         )
 
     assert (
