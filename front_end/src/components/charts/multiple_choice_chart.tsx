@@ -7,6 +7,7 @@ import {
   CursorCoordinatesPropType,
   DomainTuple,
   LineSegment,
+  PointProps,
   VictoryArea,
   VictoryAxis,
   VictoryChart,
@@ -187,47 +188,39 @@ const MultipleChoiceChart: FC<Props> = ({
   );
 
   // Define a custom "X" symbol function
-  const GetSymbol = (props: {
-    x: number;
-    y: number;
-    size: number;
-    datum: {
-      symbol: string;
-    };
-    style: {
-      stroke: string;
-    };
-  }) => {
-    const { x, y, size } = props;
-    const symbol = props.datum.symbol;
-    const stroke = props.style.stroke;
+  const GetSymbol: React.FC<PointProps> = (props: PointProps) => {
+    const { x, y, datum, size, style } = props;
+    const symbol = datum.symbol;
+    const stroke = style.stroke;
+
     if (symbol === "x") {
       return (
         <g>
           <line
-            x1={x - size}
-            y1={y - size}
-            x2={x + size}
-            y2={y + size}
+            x1={x! - (size! as number)}
+            y1={y! - (size! as number)}
+            x2={x! + (size! as number)}
+            y2={y! + (size! as number)}
             stroke={stroke}
             strokeWidth={2}
           />
           <line
-            x1={x - size}
-            y1={y + size}
-            x2={x + size}
-            y2={y - size}
+            x1={x! - (size! as number)}
+            y1={y! + (size! as number)}
+            x2={x! + (size! as number)}
+            y2={y! - (size! as number)}
             stroke={stroke}
             strokeWidth={2}
           />
         </g>
       );
     }
+
     return (
       <circle
         cx={x}
         cy={y}
-        r={size}
+        radius={size! as number}
         stroke={stroke}
         fill={"none"}
         strokeWidth={2}

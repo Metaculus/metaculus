@@ -46,7 +46,7 @@ export type ContinuousAreaType = "community" | "user";
 
 export type ContinuousAreaHoverState = {
   x: number;
-  yData: Record<ContinuousAreaType, number>;
+  yData: Record<ContinuousAreaType, number | null>;
 };
 
 export type ContinuousAreaGraphType = "pmf" | "cdf";

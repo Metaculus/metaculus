@@ -55,7 +55,7 @@ export function getNumericChartTypeFromQuestion(
 }
 
 export function generateNumericDomain(
-  timestamps: (number | null)[],
+  timestamps: number[],
   zoom: TimelineChartZoomOption
 ): Tuple<number> {
   const validTimestamps = uniq(timestamps.filter((t) => t !== null));
@@ -224,11 +224,14 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
 }
 
 export function displayValue(
-  value: number,
+  value: number | null,
   questionType: QuestionType,
   precision?: number,
   truncation?: number
 ): string {
+  if (value === null) {
+    return "...";
+  }
   precision = precision ?? 3;
   truncation = truncation ?? 0;
   if (questionType === QuestionType.Date) {

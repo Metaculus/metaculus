@@ -13,6 +13,7 @@ import {
   QuestionType,
   Scaling,
 } from "@/types/question";
+import { ChoiceItem } from "@/types/choices";
 import {
   displayValue,
   findPreviousTimestamp,
@@ -83,8 +84,8 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
               key={idx}
               choiceItem={choiceItem}
               valueLabel={getQuestionTooltipLabel(
-                choiceItem.timestamps ?? timestamps,
-                choiceItem.values,
+                choiceItem.aggregationTimestamps ?? timestamps,
+                choiceItem.aggregationValues,
                 cursorTimestamp,
                 type,
                 scaling
@@ -116,8 +117,8 @@ const generateChoiceItemsFromAggregations = (
   aggregations: Aggregations,
   scaling: Scaling,
   qType: QuestionType
-) => {
-  const choiceItems = [];
+): ChoiceItem[] => {
+  const choiceItems: ChoiceItem[] = [];
   let index = 0;
   for (const key in aggregations) {
     const aggregationKey = key as keyof Aggregations;
@@ -126,26 +127,31 @@ const generateChoiceItemsFromAggregations = (
     if (aggregation?.history && !!aggregation.history.length) {
       const item = {
         choice: key,
-        values:
+        aggregationTimestamps: aggregation.history.map(
+          (forecast) => forecast.start_time
+        ),
+        aggregationValues:
           aggregationKey === AggregationMethod.metaculus_prediction &&
           qType === QuestionType.Binary
             ? aggregation.history.map(
                 (forecast) => forecast.forecast_values?.[1] ?? 0
               )
             : aggregation.history.map((forecast) => forecast.centers?.[0] ?? 0),
-        minValues: aggregation.history.map(
+        aggregationMinValues: aggregation.history.map(
           (forecast) => forecast.interval_lower_bounds?.[0] ?? 0
         ),
-        maxValues: aggregation.history.map(
+        aggregationMaxValues: aggregation.history.map(
           (forecast) => forecast.interval_upper_bounds?.[0] ?? 0
         ),
-        timestamps: aggregation.history.map((forecast) => forecast.start_time),
+        aggregationForecasterCounts: aggregation.history.map(
+          (forecast) => forecast.forecaster_count ?? 0
+        ),
+        userValues: [],
+        userTimestamps: [],
         color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
         active: true,
-        resolution: undefined,
+        resolution: null,
         highlighted: false,
-        rangeMin: scaling.range_min ?? 0,
-        rangeMax: scaling.range_max ?? 1,
         scaling,
       };
       choiceItems.push(item);
@@ -157,7 +163,7 @@ const generateChoiceItemsFromAggregations = (
 
 function getQuestionTooltipLabel(
   timestamps: number[],
-  values: number[],
+  values: (number | null)[],
   cursorTimestamp: number,
   qType: QuestionType,
   scaling: Scaling
@@ -178,10 +184,14 @@ function getQuestionTooltipLabel(
     return "...";
   }
 
+  const val = values[cursorIndex];
+  if (val === null) {
+    return "...";
+  }
   if (qType === QuestionType.Binary) {
-    return displayValue(values[cursorIndex], qType);
+    return displayValue(val, qType);
   } else {
-    const scaledValue = scaleInternalLocation(values[cursorIndex], {
+    const scaledValue = scaleInternalLocation(val, {
       range_min: scaling.range_min ?? 0,
       range_max: scaling.range_max ?? 1,
       zero_point: scaling.zero_point,
