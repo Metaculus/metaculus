@@ -220,7 +220,7 @@ const MultipleChoiceChart: FC<Props> = ({
       <circle
         cx={x}
         cy={y}
-        radius={size! as number}
+        r={size! as number}
         stroke={stroke}
         fill={"none"}
         strokeWidth={2}
