@@ -44,10 +44,12 @@ const NumericChartCard: FC<Props> = ({
       };
     }
 
-    console.log({ aggregate, cursorTimestamp });
+    const latest = aggregate.latest;
     const index =
       cursorTimestamp === null
-        ? aggregate.history.length - 1
+        ? latest && !latest.end_time
+          ? aggregate.history.length - 1
+          : -1
         : cursorTimestamp === undefined
           ? -1
           : aggregate.history.findIndex(
@@ -59,12 +61,12 @@ const NumericChartCard: FC<Props> = ({
 
     const forecast = index === -1 ? null : aggregate.history[index];
     let timestamp = cursorTimestamp;
-    const lastAggregate = aggregate.history[aggregate.history.length - 1];
     if (
-      lastAggregate &&
       timestamp === null &&
       question.my_forecasts?.latest?.start_time &&
-      lastAggregate.start_time < question.my_forecasts.latest.start_time
+      !question.my_forecasts?.latest?.end_time &&
+      forecast &&
+      forecast.start_time < question.my_forecasts.latest.start_time
     ) {
       timestamp = question.my_forecasts.latest.start_time;
       return {

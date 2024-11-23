@@ -195,6 +195,17 @@ export function canPredictQuestion(post: PostWithForecasts) {
   );
 }
 
+export function canWithdrawForecast(
+  question: QuestionWithForecasts,
+  permission?: ProjectPermissions
+) {
+  return (
+    question.status === QuestionStatus.OPEN &&
+    question.my_forecasts?.latest?.end_time === null &&
+    permission !== ProjectPermissions.VIEWER
+  );
+}
+
 export function getConditionTitle(
   postTitle: string,
   condition: Question

@@ -3,6 +3,7 @@
   "newsletterFormDescription": "Sign up for Metaculus news, special forecasting reports, and event invitations.",
   "predict": "Predict",
   "withdraw": "Withdraw",
+  "withdrawForecast": "Withdraw Forecast",
   "saveChange": "Save Change",
   "reaffirm": "Reaffirm",
   "rescalePrediction": "Auto-sum to 100%",

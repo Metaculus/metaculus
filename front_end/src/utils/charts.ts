@@ -280,7 +280,7 @@ export function getDisplayValue(
 }
 
 export function getChoiceOptionValue(
-  value: number,
+  value: number | null,
   questionType?: QuestionType,
   scaling?: Scaling
 ) {
@@ -327,7 +327,7 @@ export function getDisplayUserValue(
     }
   });
   if (closestUserForecastIndex === -1) {
-    return "?";
+    return "...";
   }
   const closestUserForecast = myForecasts.history[closestUserForecastIndex];
 
@@ -526,56 +526,125 @@ export function generateScale({
 export function generateChoiceItemsFromMultipleChoiceForecast(
   question: QuestionWithMultipleChoiceForecasts,
   config?: {
+    withMinMax?: boolean;
     activeCount?: number;
+    preselectedQuestionId?: number;
+    locale?: string;
+    preserveOrder?: boolean;
   }
 ): ChoiceItem[] {
-  const { activeCount } = config ?? {};
+  const { activeCount, preserveOrder } = config ?? {};
 
   const latest = question.aggregations.recency_weighted.latest;
+  if (!latest) {
+    return [];
+  }
 
   const choiceOrdering: number[] = question.options!.map((_, i) => i);
-  choiceOrdering.sort((a, b) => {
-    const aCenter = latest?.forecast_values[a] ?? 0;
-    const bCenter = latest?.forecast_values[b] ?? 0;
-    return bCenter - aCenter;
-  });
+  if (!preserveOrder) {
+    choiceOrdering.sort((a, b) => {
+      const aCenter = latest?.forecast_values[a] ?? 0;
+      const bCenter = latest?.forecast_values[b] ?? 0;
+      return bCenter - aCenter;
+    });
+  }
 
-  const history = question.aggregations.recency_weighted.history;
-  const choiceItems = choiceOrdering.map((order, index) => {
-    const label = question.options![order];
+  const labels = question.options!;
+  const aggregationHistory = question.aggregations.recency_weighted.history;
+  const userHistory = question.my_forecasts?.history;
+
+  const aggregationTimestamps: number[] = [];
+  aggregationHistory.forEach((forecast) => {
+    aggregationTimestamps.push(forecast.start_time);
+    if (forecast.end_time) {
+      aggregationTimestamps.push(forecast.end_time);
+    }
+  });
+  const sortedAggregationTimestamps = uniq(aggregationTimestamps).sort(
+    (a, b) => a - b
+  );
+  const userTimestamps: number[] = [];
+  userHistory?.forEach((forecast) => {
+    userTimestamps.push(forecast.start_time);
+    if (forecast.end_time) {
+      userTimestamps.push(forecast.end_time);
+    }
+  });
+  const sortedUserTimestamps = uniq(userTimestamps).sort((a, b) => a - b);
+
+  const choiceItems: ChoiceItem[] = labels.map((choice, index) => {
+    const userValues: (number | null)[] = [];
+    const aggregationValues: (number | null)[] = [];
+    const aggregationMinValues: (number | null)[] = [];
+    const aggregationMaxValues: (number | null)[] = [];
+    const aggregationForecasterCounts: number[] = [];
+    sortedUserTimestamps.forEach((timestamp) => {
+      const userForecast = userHistory?.find((forecast) => {
+        return (
+          forecast.start_time <= timestamp &&
+          (forecast.end_time === null || forecast.end_time > timestamp)
+        );
+      });
+      userValues.push(userForecast?.forecast_values[index] || null);
+    });
+    sortedAggregationTimestamps.forEach((timestamp) => {
+      const aggregationForecast = aggregationHistory.find((forecast) => {
+        return (
+          forecast.start_time <= timestamp &&
+          (forecast.end_time === null || forecast.end_time > timestamp)
+        );
+      });
+      aggregationValues.push(aggregationForecast?.centers![index] || null);
+      aggregationMinValues.push(
+        aggregationForecast?.interval_lower_bounds![index] || null
+      );
+      aggregationMaxValues.push(
+        aggregationForecast?.interval_upper_bounds![index] || null
+      );
+      aggregationForecasterCounts.push(
+        aggregationForecast?.forecaster_count || 0
+      );
+    });
+
     return {
-      choice: label,
-      values: history.map((forecast) => forecast.centers![order]),
-      minValues: history.map(
-        (forecast) => forecast.interval_lower_bounds![order]
-      ),
-      maxValues: history.map(
-        (forecast) => forecast.interval_upper_bounds![order]
-      ),
-      forecastersCount: history.map((forecast) => forecast.forecaster_count),
+      choice: choice,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       highlighted: false,
+      active: true,
       resolution: question.resolution,
       displayedResolution: question.resolution
-        ? label === question.resolution
+        ? choice === question.resolution
           ? "Yes"
           : "No"
         : undefined,
-      rangeMin: 0,
-      rangeMax: 1,
+      aggregationTimestamps: sortedAggregationTimestamps,
+      aggregationValues: aggregationValues,
+      aggregationMinValues: aggregationMinValues,
+      aggregationMaxValues: aggregationMaxValues,
+      aggregationForecasterCounts: aggregationForecasterCounts,
+      userTimestamps: sortedUserTimestamps,
+      userValues: userValues,
+      // userMinValues: undefined,  // used in continuous group questions
+      // userMaxValues: undefined, // used in continuous group questions
     };
   });
+  // reorder choice items
+  const orderedChoiceItems = choiceOrdering.map((order) => choiceItems[order]);
+  // move resolved choice to the front
   const resolutionIndex = choiceOrdering.findIndex(
     (order) => question.options![order] === question.resolution
   );
   if (resolutionIndex !== -1) {
-    const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);
-    choiceItems.unshift(resolutionItem);
+    const [resolutionItem] = orderedChoiceItems.splice(resolutionIndex, 1);
+    orderedChoiceItems.unshift(resolutionItem);
   }
-  return choiceItems.map((item, index) => ({
-    ...item,
-    active: !!activeCount ? index <= activeCount - 1 : true,
-  }));
+  // set inactive items
+  if (activeCount) {
+    orderedChoiceItems.forEach((item, index) => {
+      item.active = index < activeCount;
+    });
+  }
+  return orderedChoiceItems;
 }
 
 export function generateChoiceItemsFromGroupQuestions(
@@ -588,7 +657,13 @@ export function generateChoiceItemsFromGroupQuestions(
     preserveOrder?: boolean;
   }
 ): ChoiceItem[] {
-  const { activeCount, preselectedQuestionId, locale } = config ?? {};
+  const {
+    // withMinMax,
+    activeCount,
+    preselectedQuestionId,
+    locale,
+    preserveOrder,
+  } = config ?? {};
 
   const latests: (AggregateForecast | undefined)[] = questions.map(
     (question) => question.aggregations.recency_weighted.latest
@@ -597,55 +672,125 @@ export function generateChoiceItemsFromGroupQuestions(
     return [];
   }
   const choiceOrdering: number[] = latests.map((_, i) => i);
-  if (!config?.preserveOrder) {
+  if (!preserveOrder) {
     choiceOrdering.sort((a, b) => {
       const aCenter = latests[a]?.centers![0] ?? 0;
       const bCenter = latests[b]?.centers![0] ?? 0;
       return bCenter - aCenter;
     });
   }
+  const preselectedQuestionLabel = preselectedQuestionId
+    ? questions.find((q) => q.id === preselectedQuestionId)?.label
+    : undefined;
 
-  return choiceOrdering.map((order, index) => {
-    const question = questions[order];
-    const history = question.aggregations.recency_weighted.history;
+  const choiceItems: ChoiceItem[] = questions.map((question, index) => {
     const label = question.label;
+    const aggregationHistory = question.aggregations.recency_weighted.history;
+    const userHistory = question.my_forecasts?.history;
+
+    const aggregationTimestamps: number[] = [];
+    aggregationHistory.forEach((forecast) => {
+      aggregationTimestamps.push(forecast.start_time);
+      if (forecast.end_time) {
+        aggregationTimestamps.push(forecast.end_time);
+      }
+    });
+    const sortedAggregationTimestamps = uniq(aggregationTimestamps).sort(
+      (a, b) => a - b
+    );
+    const userTimestamps: number[] = [];
+    userHistory?.forEach((forecast) => {
+      userTimestamps.push(forecast.start_time);
+      if (forecast.end_time) {
+        userTimestamps.push(forecast.end_time);
+      }
+    });
+    const sortedUserTimestamps = uniq(userTimestamps).sort((a, b) => a - b);
+
+    const userValues: (number | null)[] = [];
+    const userMinValues: (number | null)[] = [];
+    const userMaxValues: (number | null)[] = [];
+    const aggregationValues: (number | null)[] = [];
+    const aggregationMinValues: (number | null)[] = [];
+    const aggregationMaxValues: (number | null)[] = [];
+    const aggregationForecasterCounts: number[] = [];
+    sortedUserTimestamps.forEach((timestamp) => {
+      const userForecast = userHistory?.find((forecast) => {
+        return (
+          forecast.start_time <= timestamp &&
+          (forecast.end_time === null || forecast.end_time > timestamp)
+        );
+      });
+      if (question.type === "binary") {
+        userValues.push(userForecast?.forecast_values[1] || null);
+      } else {
+        // continuous
+        userValues.push(userForecast?.centers![0] || null);
+        userMinValues.push(userForecast?.interval_lower_bounds![0] || null);
+        userMaxValues.push(userForecast?.interval_upper_bounds![0] || null);
+      }
+    });
+    sortedAggregationTimestamps.forEach((timestamp) => {
+      const aggregationForecast = aggregationHistory.find((forecast) => {
+        return (
+          forecast.start_time <= timestamp &&
+          (forecast.end_time === null || forecast.end_time > timestamp)
+        );
+      });
+      aggregationValues.push(aggregationForecast?.centers![0] || null);
+      aggregationMinValues.push(
+        aggregationForecast?.interval_lower_bounds![0] || null
+      );
+      aggregationMaxValues.push(
+        aggregationForecast?.interval_upper_bounds![0] || null
+      );
+      aggregationForecasterCounts.push(
+        aggregationForecast?.forecaster_count || 0
+      );
+    });
+
     return {
       choice: label,
-      values: history.map((forecast) => forecast.centers![0]),
-      minValues: history.map(
-        (forecast) =>
-          forecast.interval_lower_bounds![order] ??
-          forecast.interval_lower_bounds![0]
-      ),
-      maxValues: history.map(
-        (forecast) =>
-          forecast.interval_upper_bounds![order] ??
-          forecast.interval_upper_bounds![0]
-      ),
-      forecastersCount: history.map((forecast) => forecast.forecaster_count),
-      timestamps: history.map((forecast) => forecast.start_time),
+      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      highlighted: false,
+      active: true,
+      resolution: question.resolution,
+      displayedResolution: !!question.resolution
+        ? formatResolution(question.resolution, question.type, locale ?? "en")
+        : null,
       closeTime: Math.min(
         new Date(question.scheduled_close_time).getTime(),
         new Date(
           question.actual_resolve_time ?? question.scheduled_resolve_time
         ).getTime()
       ),
-      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      active: preselectedQuestionId
-        ? preselectedQuestionId === question.id
-        : !!activeCount
-          ? index <= activeCount - 1
-          : true,
-      highlighted: false,
-      resolution: question.resolution,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,
-      displayedResolution: !!question.resolution
-        ? formatResolution(question.resolution, question.type, locale ?? "en")
-        : null,
+      aggregationTimestamps: sortedAggregationTimestamps,
+      aggregationValues: aggregationValues,
+      aggregationMinValues: aggregationMinValues,
+      aggregationMaxValues: aggregationMaxValues,
+      aggregationForecasterCounts: aggregationForecasterCounts,
+      userTimestamps: sortedUserTimestamps,
+      userValues: userValues,
+      userMinValues: question.type === "binary" ? undefined : userMinValues, // used in continuous group questions
+      userMaxValues: question.type === "binary" ? undefined : userMaxValues, // used in continuous group questions
     };
   });
+  // reorder choice items
+  const orderedChoiceItems = choiceOrdering.map((order) => choiceItems[order]);
+  // set inactive items
+  if (activeCount) {
+    orderedChoiceItems.forEach((item, index) => {
+      if (preselectedQuestionLabel) {
+        item.active = preselectedQuestionLabel === item.choice;
+      } else {
+        item.active = index < activeCount;
+      }
+    });
+  }
+  return orderedChoiceItems;
 }
 
 export function getFanOptionsFromContinuousGroup(
@@ -700,6 +845,9 @@ export function getGroupQuestionsTimestamps(
         ...question.aggregations.recency_weighted.history.map(
           (x) => x.start_time
         ),
+        ...question.aggregations.recency_weighted.history.map(
+          (x) => x.end_time ?? x.start_time
+        ),
       ],
       []
     )
@@ -740,7 +888,7 @@ export const interpolateYValue = (xValue: number, line: Line) => {
   const p1 = line[i];
   const p2 = line[i + 1];
 
-  if (!p1 || !p2) return 0;
+  if (!p1.y || !p2.y) return 0;
 
   const t = (xValue - p1.x) / (p2.x - p1.x);
   return p1.y + t * (p2.y - p1.y);

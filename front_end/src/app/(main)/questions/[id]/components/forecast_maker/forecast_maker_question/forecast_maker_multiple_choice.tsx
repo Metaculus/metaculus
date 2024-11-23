@@ -23,7 +23,6 @@ import {
   Question,
   QuestionWithMultipleChoiceForecasts,
   UserForecast,
-  UserForecastHistory,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
@@ -41,7 +40,7 @@ import QuestionUnresolveButton from "../resolution/unresolve_button";
 
 type ChoiceOption = {
   name: string;
-  communityForecast?: number | null;
+  communityForecast: number | null;
   forecast: number | null;
   color: ThemeColor;
 };
@@ -130,6 +129,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       })
     );
   }, [choiceOrdering, question.my_forecasts?.latest?.forecast_values]);
+
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
       setIsDirty(true);
@@ -386,7 +386,10 @@ function generateChoiceOptions(
     return {
       name: question.options![order],
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      communityForecast: latest?.forecast_values[order] ?? null,
+      communityForecast:
+        latest && !latest.end_time
+          ? Math.round(latest.forecast_values[order] * 1000) / 1000
+          : null,
       forecast: activeUserForecast
         ? Math.round(activeUserForecast.forecast_values[order] * 1000) / 10
         : null,

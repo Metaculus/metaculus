@@ -93,7 +93,6 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       preselectedQuestionId?: number
     ): ChoiceItem[] => {
       return generateChoiceItemsFromGroupQuestions(questions, {
-        withMinMax: true,
         activeCount: maxVisibleCheckboxes,
         preselectedQuestionId,
         preserveOrder: type === "binary",
@@ -124,25 +123,30 @@ const MultipleChoiceGroupChart: FC<Props> = ({
 
   const [cursorTimestamp, tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
-
   const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
     () =>
       choiceItems
         .filter(({ active }) => active)
         .map(
           (
-            { choice, values, color, timestamps: optionTimestamps, closeTime },
+            {
+              choice,
+              aggregationValues,
+              color,
+              aggregationTimestamps: timestamps,
+              closeTime,
+            },
             index
           ) => {
             return {
               choiceLabel: choice,
               color,
               valueLabel: getQuestionTooltipLabel({
-                timestamps: optionTimestamps ?? timestamps,
-                values,
+                timestamps,
+                values: aggregationValues,
                 cursorTimestamp,
-                closeTime,
                 question: questions[index],
+                closeTime,
               }),
             };
           }
@@ -150,30 +154,30 @@ const MultipleChoiceGroupChart: FC<Props> = ({
     [choiceItems, cursorTimestamp, questions, timestamps]
   );
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
-    if (!userForecasts) {
+    if (!user) {
       return [];
     }
-
-    return userForecasts.map(
-      (
-        { choice, values, color, timestamps: optionTimestamps, unscaledValues },
-        index
-      ) => {
-        return {
-          choiceLabel: choice,
-          color,
-          valueLabel: getQuestionTooltipLabel({
-            timestamps: optionTimestamps ?? timestamps,
-            values:
-              type === "binary" ? values ?? [] : unscaledValues ?? values ?? [],
-            cursorTimestamp,
-            question: questions[index],
-            isUserPrediction: true,
-          }),
-        };
-      }
-    );
-  }, [userForecasts, timestamps, type, cursorTimestamp, questions]);
+    return choiceItems
+      .filter(({ active }) => active)
+      .map(
+        (
+          { choice, userValues, color, userTimestamps: timestamps, closeTime },
+          index
+        ) => {
+          return {
+            choiceLabel: choice,
+            color,
+            valueLabel: getQuestionTooltipLabel({
+              timestamps,
+              values: userValues,
+              cursorTimestamp,
+              question: questions[index],
+              closeTime,
+            }),
+          };
+        }
+      );
+  }, [choiceItems, cursorTimestamp, questions, timestamps]);
 
   const forecastersCount = useMemo(() => {
     // display cursor based value when viewing a single active option
@@ -184,7 +188,8 @@ const MultipleChoiceGroupChart: FC<Props> = ({
         return null;
       }
 
-      const actualTimestamps = selectedChoice.timestamps ?? timestamps;
+      const actualTimestamps =
+        selectedChoice.aggregationTimestamps ?? timestamps;
       const closestTimestamp = findPreviousTimestamp(
         actualTimestamps,
         cursorTimestamp
@@ -193,7 +198,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
         (timestamp) => timestamp === closestTimestamp
       );
 
-      return selectedChoice.forecastersCount?.[cursorIndex] ?? null;
+      return selectedChoice.aggregationForecasterCounts?.[cursorIndex] ?? null;
     }
 
     // otherwise display the value when option is highlighted
@@ -203,7 +208,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
     if (!highlightedChoice) {
       return null;
     }
-    return highlightedChoice.forecastersCount?.at(-1) ?? null;
+    return highlightedChoice.aggregationForecasterCounts?.at(-1) ?? null;
   }, [choiceItems, cursorTimestamp, timestamps]);
 
   return (
@@ -213,7 +218,6 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       forecastersCount={forecastersCount}
       choiceItems={!!hideCP ? [] : choiceItems}
       timestamps={timestamps}
-      userForecasts={userForecasts}
       tooltipDate={tooltipDate}
       onCursorChange={isCPRevealed ? handleCursorChange : undefined}
       onChoiceItemsUpdate={setChoiceItems}
@@ -239,22 +243,20 @@ function getQuestionTooltipLabel({
   values,
   cursorTimestamp,
   question,
-  isUserPrediction,
   closeTime,
 }: {
   timestamps: number[];
-  values: number[];
+  values: (number | null)[];
   cursorTimestamp: number;
   question: Question;
   isUserPrediction?: boolean;
   closeTime?: number | undefined;
 }) {
-  const hasValue = isUserPrediction
-    ? cursorTimestamp >= Math.min(...timestamps)
-    : cursorTimestamp >= Math.min(...timestamps) &&
-      cursorTimestamp <= Math.max(...timestamps, closeTime ?? 0);
+  const hasValue =
+    cursorTimestamp >= Math.min(...timestamps) &&
+    cursorTimestamp <= Math.max(...timestamps, closeTime ?? 0);
   if (!hasValue) {
-    return "?";
+    return "...";
   }
 
   const closestTimestamp = findPreviousTimestamp(timestamps, cursorTimestamp);
@@ -263,6 +265,7 @@ function getQuestionTooltipLabel({
   );
 
   const value = !isNil(cursorIndex) ? values[cursorIndex] : null;
+
   return getDisplayValue(value, question.type, question.scaling);
 }
 

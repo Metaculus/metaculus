@@ -79,7 +79,7 @@ const MultipleChoiceTile: FC<Props> = ({
               ({
                 choice,
                 color,
-                values,
+                aggregationValues,
                 resolution,
                 displayedResolution,
                 scaling,
@@ -88,7 +88,9 @@ const MultipleChoiceTile: FC<Props> = ({
                   key={`choice-option-${choice}`}
                   choice={choice}
                   color={color}
-                  values={hideCP ? [null as unknown as number] : values}
+                  values={
+                    hideCP ? [null as unknown as number] : aggregationValues
+                  }
                   resolution={resolution}
                   displayedResolution={displayedResolution}
                   questionType={questionType}
@@ -143,7 +145,7 @@ const MultipleChoiceTile: FC<Props> = ({
 const ChoiceOption: FC<{
   choice: string;
   color: ThemeColor;
-  values: number[];
+  values: (number | null)[];
   displayedResolution?: Resolution | null;
   resolution?: Resolution | null;
   questionType?: QuestionType;

@@ -1,7 +1,7 @@
 "use client";
 
 import { getUnixTime } from "date-fns";
-import { merge } from "lodash";
+import { merge, uniq } from "lodash";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -174,19 +174,11 @@ const NumericChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const timestamps: number[] = [];
-          aggregation.history.forEach((forecast) => {
-            if (
-              !timestamps.length ||
-              (timestamps &&
-                timestamps[timestamps.length - 1] < forecast.start_time)
-            ) {
-              timestamps.push(forecast.start_time);
-            }
-            if (forecast.end_time) {
-              timestamps.push(forecast.end_time);
-            }
-          });
+          const timestamps = uniq([
+            ...aggregation.history.map((f) => f.start_time),
+            ...aggregation.history.map((f) => f.end_time ?? f.start_time),
+            actualCloseTime ?? Date.now() / 1000,
+          ]).sort((a, b) => a - b);
 
           onCursorChange(
             timestamps[timestamps.findIndex((t) => t > value) - 1]

@@ -192,16 +192,16 @@ const MultipleChoiceChart: FC<Props> = ({
     y: number;
     size: number;
     datum: {
-      valueNull: boolean;
+      symbol: string;
     };
     style: {
       stroke: string;
     };
   }) => {
     const { x, y, size } = props;
-    const valueNull = props.datum.valueNull;
+    const symbol = props.datum.symbol;
     const stroke = props.style.stroke;
-    if (valueNull) {
+    if (symbol === "x") {
       return (
         <g>
           <line
@@ -332,35 +332,22 @@ const MultipleChoiceChart: FC<Props> = ({
             );
           })}
 
-          {userForecasts?.map((option) => {
-            let prevValue: number | null = null;
-            return (
+          {graphs.map(({ active, scatter, color, highlighted }, index) =>
+            active && (!isHighlightActive || highlighted) ? (
               <VictoryScatter
-                key={option.choice}
-                data={
-                  option.values
-                    ? option.values.map((value, index) => {
-                        const dataPoint = {
-                          y: value ?? prevValue,
-                          x: option.timestamps?.[index],
-                          valueNull: value === null,
-                        };
-                        prevValue = value;
-                        return dataPoint;
-                      })
-                    : []
-                }
+                key={`multiple-choice-scatter-${index}`}
+                data={scatter}
                 dataComponent={<GetSymbol />}
                 style={{
                   data: {
-                    stroke: getThemeColor(option.color),
+                    stroke: getThemeColor(color),
                     fill: "none",
                     strokeWidth: 2,
                   },
                 }}
               />
-            );
-          })}
+            ) : null
+          )}
 
           <VictoryAxis
             dependentAxis
@@ -397,6 +384,7 @@ const MultipleChoiceChart: FC<Props> = ({
 export type ChoiceGraph = {
   line: Line;
   area?: Area;
+  scatter?: Line;
   resolutionPoint?: {
     x?: number;
     y: number;
@@ -444,33 +432,124 @@ function buildChartData({
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
       choice,
-      values,
-      minValues,
-      maxValues,
+      aggregationTimestamps,
+      aggregationValues,
+      aggregationMinValues,
+      aggregationMaxValues,
+      userTimestamps,
+      userValues,
+      userMaxValues,
+      userMinValues,
       color,
       active,
       highlighted,
-      timestamps: choiceTimestamps,
       closeTime,
       resolution,
-      rangeMin,
-      rangeMax,
       scaling: choiceScaling,
     }) => {
-      const actualTimestamps = choiceTimestamps ?? timestamps;
+      const rescale = (val: number) => {
+        if (scaling) {
+          return unscaleNominalLocation(
+            scaleInternalLocation(val, choiceScaling!),
+            scaling
+          );
+        }
+        return val;
+      };
+
+      const scatter: Line = [];
+      const line: Line = [];
+      const area: Area = [];
+
+      userTimestamps.forEach((timestamp, timestampIndex) => {
+        const userValue = userValues[timestampIndex];
+        const userMaxValue = userMaxValues
+          ? userMaxValues[timestampIndex]
+          : null;
+        const userMinValue = userMinValues
+          ? userMinValues[timestampIndex]
+          : null;
+        // build user scatter points
+        if (
+          !scatter.length ||
+          userValue ||
+          scatter[scatter.length - 1].y === null
+        ) {
+          // we are either starting or have a real value or previous value is null
+          scatter.push({
+            x: timestamp,
+            y: userValue ? rescale(userValue) : null,
+            y1: userMinValue ? rescale(userMinValue) : null,
+            y2: userMaxValue ? rescale(userMaxValue) : null,
+            symbol: "circle",
+          });
+        } else {
+          // we have a null vlalue while previous was real
+          scatter.push({
+            x: timestamp,
+            y: scatter[scatter.length - 1].y,
+            y1: scatter[scatter.length - 1].y1,
+            y2: scatter[scatter.length - 1].y2,
+            symbol: "x",
+          });
+          scatter.push({
+            x: timestamp,
+            y: null,
+            y1: null,
+            y2: null,
+            symbol: "circle",
+          });
+        }
+      });
+      aggregationTimestamps.forEach((timestamp, timestampIndex) => {
+        const aggregationValue = aggregationValues[timestampIndex];
+        const aggregationMinValue = aggregationMinValues[timestampIndex];
+        const aggregationMaxValue = aggregationMaxValues[timestampIndex];
+        // build line and area (CP data)
+        if (
+          !line.length ||
+          aggregationValue ||
+          line[line.length - 1].y === null
+        ) {
+          // we are either starting or have a real value or previous value is null
+          line.push({
+            x: timestamp,
+            y: aggregationValue ? rescale(aggregationValue) : null,
+          });
+          area.push({
+            x: timestamp,
+            y: aggregationMaxValue ? rescale(aggregationMaxValue) : null,
+            y0: aggregationMinValue ? rescale(aggregationMinValue) : null,
+          });
+        } else {
+          // we have a null vlalue while previous was real
+          line.push({
+            x: timestamp,
+            y: line[line.length - 1].y,
+          });
+          area.push({
+            x: timestamp,
+            y: area[area.length - 1].y,
+            y0: area[area.length - 1].y0,
+          });
+          line.push({
+            x: timestamp,
+            y: null,
+          });
+          area.push({
+            x: timestamp,
+            y: null,
+            y0: null,
+          });
+        }
+      });
 
       const item: ChoiceGraph = {
         choice,
         color,
-        line: actualTimestamps.map((timestamp, timestampIndex) => ({
-          x: timestamp,
-          y: scaling
-            ? unscaleNominalLocation(
-                scaleInternalLocation(values[timestampIndex], choiceScaling!),
-                scaling
-              )
-            : values[timestampIndex] ?? 0,
-        })),
+        line: line,
+        area: area,
+        scatter: scatter,
         active,
         highlighted,
       };
@@ -479,38 +558,20 @@ function buildChartData({
           x: closeTime ? closeTime / 1000 : latestTimestamp,
           y: item.line.at(-1)!.y,
         });
-      }
-
-      if (minValues && maxValues) {
-        item.area = actualTimestamps.map((timestamp, timestampIndex) => ({
-          x: timestamp,
-          y: scaling
-            ? unscaleNominalLocation(
-                scaleInternalLocation(
-                  maxValues[timestampIndex],
-                  choiceScaling!
-                ),
-                scaling
-              )
-            : values[timestampIndex] ?? 0,
-          y0: scaling
-            ? unscaleNominalLocation(
-                scaleInternalLocation(
-                  minValues[timestampIndex],
-                  choiceScaling!
-                ),
-                scaling
-              )
-            : values[timestampIndex] ?? 0,
-        }));
+        item.area!.push({
+          x: closeTime ? closeTime / 1000 : latestTimestamp,
+          y: item.area!.at(-1)!.y,
+          y0: item.area!.at(-1)!.y0,
+        });
       }
 
       if (!isNil(resolution)) {
+        const resolveTime = closeTime ? closeTime / 1000 : latestTimestamp;
         if (resolution === choice) {
           // multiple choice case
           item.resolutionPoint = {
-            x: closeTime ? closeTime / 1000 : latestTimestamp,
-            y: rangeMax ?? 1,
+            x: resolveTime,
+            y: 1,
           };
         }
 
@@ -521,15 +582,7 @@ function buildChartData({
         ) {
           // binary group and out of borders cases
           item.resolutionPoint = {
-            x: Math.min(
-              Math.max(
-                closeTime
-                  ? closeTime / 1000
-                  : actualTimestamps[actualTimestamps.length - 1],
-                actualTimestamps[actualTimestamps.length - 1]
-              ),
-              latestTimestamp
-            ),
+            x: resolveTime,
             y:
               resolution === "no" || resolution === "below_lower_bound" ? 0 : 1,
           };
@@ -538,15 +591,7 @@ function buildChartData({
         if (isFinite(Number(resolution))) {
           // continuous group case
           item.resolutionPoint = {
-            x: Math.min(
-              Math.max(
-                closeTime
-                  ? closeTime / 1000
-                  : actualTimestamps[actualTimestamps.length - 1],
-                actualTimestamps[actualTimestamps.length - 1]
-              ),
-              latestTimestamp
-            ),
+            x: resolveTime,
             y: scaling
               ? unscaleNominalLocation(Number(resolution), scaling)
               : Number(resolution) ?? 0,

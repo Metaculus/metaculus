@@ -28,7 +28,6 @@ type Props = {
   timestamps: number[];
   onCursorChange?: (value: number, format: TickFormat) => void;
   actualCloseTime?: number | null;
-  userForecasts?: UserChoiceItem[];
   isClosed?: boolean;
 
   title?: string;
@@ -55,7 +54,6 @@ const MultiChoicesChartView: FC<Props> = ({
   timestamps,
   onCursorChange,
   actualCloseTime,
-  userForecasts,
   isClosed,
 
   title,
@@ -176,7 +174,6 @@ const MultiChoicesChartView: FC<Props> = ({
           yLabel={embedMode ? undefined : yLabel}
           onChartReady={handleChartReady}
           onCursorChange={onCursorChange}
-          userForecasts={userForecasts}
           questionType={questionType}
           scaling={scaling}
           isClosed={isClosed}
