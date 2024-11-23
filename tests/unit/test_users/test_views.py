@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from django.utils import timezone
 from users.models import User
 from users.services.spam_detection import ask_gpt_to_check_profile_for_spam
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +24,9 @@ class TestUserProfileUpdate:
     def test_update_bio_with_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker, True)
+        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(
+            mocker, True
+        )
 
         days_since_joining = self.spam_free_pass_threshold - 1
         self.set_up_user(user1, days_since_joining)
@@ -43,7 +46,9 @@ class TestUserProfileUpdate:
     def test_update_bio_without_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker, False)
+        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(
+            mocker, False
+        )
 
         self.set_up_user(user1, 1)
 
@@ -59,7 +64,9 @@ class TestUserProfileUpdate:
     def test_update_bio_empty_string(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker, False)
+        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(
+            mocker, False
+        )
 
         self.set_up_user(user1, 1)
         self.assert_successful_response(
@@ -71,10 +78,12 @@ class TestUserProfileUpdate:
             gpt_spam_call_should_be_made=False,
         )
 
-    def test_update_profile_without_bio(
+    def test_update_profile_without_bio_but_with_website(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker, False)
+        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(
+            mocker, False
+        )
 
         self.set_up_user(user1, 1)
 
@@ -89,19 +98,45 @@ class TestUserProfileUpdate:
             user1,
             mock_gpt_spam_check,
             mock_send_mail,
+            gpt_spam_call_should_be_made=True,
+        )
+
+    def test_update_profile_with_no_bio_or_website(
+        self, user1_client: APIClient, mocker: Mock, user1: User
+    ) -> None:
+        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(
+            mocker, False
+        )
+
+        self.set_up_user(user1, 1)
+
+        self.assert_successful_response(
+            {
+                "twitter": "twitterhandle",
+                "location": "New York",
+                "occupation": "Developer",
+            },
+            user1_client,
+            user1,
+            mock_gpt_spam_check,
+            mock_send_mail,
             gpt_spam_call_should_be_made=False,
         )
 
     def test_update_bio_long_time_member(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker, True)
+        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(
+            mocker, True
+        )
 
         days_since_joining = self.spam_free_pass_threshold + 1
         self.set_up_user(user1, days_since_joining)
 
         self.assert_successful_response(
-            {"bio": "This would normally be spam, but the account has been around for a while"},
+            {
+                "bio": "This would normally be spam, but the account has been around for a while"
+            },
             user1_client,
             user1,
             mock_gpt_spam_check,
@@ -112,7 +147,9 @@ class TestUserProfileUpdate:
     def test_update_bio_and_website(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
-        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(mocker, False)
+        mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(
+            mocker, False
+        )
 
         self.set_up_user(user1, 1)
 
@@ -191,11 +228,16 @@ class TestUserProfileUpdate:
         ), "Message should mention support email"
 
 
-def mock_spam_detection_and_email(mocker: Mock, gpt_spam_check_returns_positive: bool) -> tuple[Mock, Mock]:
+def mock_spam_detection_and_email(
+    mocker: Mock, gpt_spam_check_returns_positive: bool
+) -> tuple[Mock, Mock]:
     mock_gpt_spam_check = mocker.patch(
         f"{ask_gpt_to_check_profile_for_spam.__module__}.{ask_gpt_to_check_profile_for_spam.__name__}"
     )
-    mock_gpt_spam_check.return_value = (gpt_spam_check_returns_positive, "Mocked reasoning")
+    mock_gpt_spam_check.return_value = (
+        gpt_spam_check_returns_positive,
+        "Mocked reasoning",
+    )
     mock_send_mail = mocker.patch("misc.tasks.send_email_async.send")
     return mock_gpt_spam_check, mock_send_mail
 
