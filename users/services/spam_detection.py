@@ -1,22 +1,27 @@
 import asyncio
 import textwrap
+from typing import cast
+import logging
 
 from django.conf import settings
 from django.utils import timezone
 
+from users.serializers import UserUpdateProfileSerializer
 from users.models import User
 from utils.openai import generate_text_async
-import logging
+from misc.tasks import send_email_async
 
 logger = logging.getLogger(__name__)
 
-def check_for_spam(user: User, request_data: dict) -> tuple[bool, str]:  # NOSONAR
+def check_profile_update_for_spam(user: User, valid_serializer: UserUpdateProfileSerializer) -> tuple[bool, str]:
     days_since_joined = (timezone.now() - user.date_joined).days
     days_since_joined_threshold = 7
+    request_data = cast(dict, valid_serializer.validated_data)
 
     bio: str | None = request_data.get("bio")
     website: str | None = request_data.get("website")
-    bio_plus_websites = (bio if bio else "") + (f"\n\nWebsite: {website}" if website else "")
+    website = f"\n\nWebsite: {website}" if website else ""
+    bio_plus_websites = (bio + website) if bio else ""
 
     idenficated_as_spam = False
     reasoning = ""
@@ -33,7 +38,7 @@ def check_for_spam(user: User, request_data: dict) -> tuple[bool, str]:  # NOSON
         idenficated_as_spam = True
         reasoning = "Bio is more than 25000 characters"
     else:
-        idenficated_as_spam, reasoning = asyncio.run(_ask_gpt_to_check_for_spam(bio_plus_websites, user.email))
+        idenficated_as_spam, reasoning = asyncio.run(ask_gpt_to_check_profile_for_spam(bio_plus_websites, user.email))
 
     if idenficated_as_spam:
         logger.warning(
@@ -43,7 +48,7 @@ def check_for_spam(user: User, request_data: dict) -> tuple[bool, str]:  # NOSON
     return idenficated_as_spam, reasoning
 
 
-async def _ask_gpt_to_check_for_spam(
+async def ask_gpt_to_check_profile_for_spam(
     bio_plus_websites: str, email: str
 ) -> tuple[bool, str]:
     if not settings.OPENAI_API_KEY:
@@ -95,3 +100,19 @@ async def _ask_gpt_to_check_for_spam(
         is_spam = False
         gpt_response = "AI call failed"
     return is_spam, gpt_response
+
+def send_deactivation_email(user_email: str) -> None:
+    send_email_async.send(
+        subject="Your Metaculus Account Has Been Deactivated",
+        message=textwrap.dedent(
+            """Your Metaculus account has been deactivated by an administrator or an automated system. Possible reasons could include
+            - Suspicious activity
+            - Spam/Ad/Inappropriate content in comments
+            - Spam/Ad/Inappropriate content in profile bio
+            - Manual review for bot and spam accounts
+
+            If you believe this was done in error, please contact support@metaculus.com"""
+        ),
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[user_email],
+    )

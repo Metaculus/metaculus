@@ -11,10 +11,9 @@ from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_notifications.factories import factory_notification
 from tests.unit.test_posts.factories import factory_post
 
-
 class TestNotificationNewComments:
     def test_get_email_context_group(self, user1, user2, mocker):
-        mocker.patch("utils.email.send_email_async")
+        mocker.patch("misc.tasks.send_email_async.send")
         fn = mocker.patch("posts.services.feed.get_similar_posts_for_posts")
         fn.return_value = []
         post_1 = factory_post(author=user1)

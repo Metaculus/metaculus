@@ -1,10 +1,7 @@
 from datetime import timedelta
-import textwrap
 import numpy as np
-import asyncio
 import logging
 from typing import cast
-
 
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
@@ -39,9 +36,7 @@ from users.services.common import (
     send_email_change_confirmation_email,
     change_email_from_token,
 )
-from utils.openai import generate_text_async
-from django.conf import settings
-from users.services.spam_detection import check_for_spam
+from users.services.spam_detection import check_profile_update_for_spam, send_deactivation_email
 
 logger = logging.getLogger(__name__)
 
@@ -455,12 +450,12 @@ def update_profile_api_view(request: Request) -> Response:
     serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
 
-
-    is_spam, _ = check_for_spam(user, cast(dict, serializer.validated_data))
+    is_spam, _ = check_profile_update_for_spam(user, cast(UserUpdateProfileSerializer, serializer))
 
     if is_spam:
         user.soft_delete()
         user.save()
+        send_deactivation_email(user.email)
         return Response(
             data={
                 "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
@@ -468,8 +463,7 @@ def update_profile_api_view(request: Request) -> Response:
             },
             status=status.HTTP_403_FORBIDDEN,
         )
-    assert isinstance(serializer, UserUpdateProfileSerializer)
-    unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
+    unsubscribe_tags: list[str] | None = serializer.validated_data.get("unsubscribed_mailing_tags")
     if unsubscribe_tags is not None:
         user_unsubscribe_tags(user, unsubscribe_tags)
     serializer.save()
