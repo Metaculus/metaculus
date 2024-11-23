@@ -1,6 +1,9 @@
 import pytest
+from datetime import datetime, timezone as dt_timezone
 
 from questions.models import Question
+from tests.unit.fixtures import *  # noqa
+from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_conditional, create_question
 
 
@@ -26,3 +29,22 @@ def conditional_1(question_binary, question_numeric):
             question_type=Question.QuestionType.NUMERIC, title="If No"
         ),
     )
+
+
+@pytest.fixture()
+def question_binary_with_forecast_user_1(user1):
+    post = factory_post()
+    question = create_question(
+        post=post,
+        question_type=Question.QuestionType.BINARY,
+        open_time=datetime(2000, 1, 1, tzinfo=dt_timezone.utc),
+        scheduled_close_time=datetime(3000, 1, 1, tzinfo=dt_timezone.utc),
+    )
+    post.question = question
+    post.save()
+    question.user_forecasts.create(
+        author=user1,
+        probability_yes=0.6,
+        start_time=datetime(2001, 1, 1, tzinfo=dt_timezone.utc),
+    )
+    return question

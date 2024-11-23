@@ -42,7 +42,7 @@ def anon_client(create_client_for_user):
 
 
 @pytest.fixture
-def user1_client(create_client_for_user, user1):
+def user1_client(create_client_for_user, user1) -> APIClient:
     return create_client_for_user(user=user1)
 
 

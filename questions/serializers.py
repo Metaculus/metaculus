@@ -514,7 +514,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
 
 class ForecastWithdrawSerializer(serializers.Serializer):
-    question = serializers.IntegerField()
+    question = serializers.IntegerField(required=True)
     withdraw_at = serializers.DateTimeField(required=False)
 
 
