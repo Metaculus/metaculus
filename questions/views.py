@@ -1,7 +1,6 @@
 from django.db import transaction
 from django.http import Http404
 from django.utils import timezone
-from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
