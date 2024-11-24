@@ -35,7 +35,6 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "axios": "^1.7.2",
     "better-react-mathjax": "^2.0.3",
     "classnames": "^2.5.1",
     "d3": "^7.9.0",
