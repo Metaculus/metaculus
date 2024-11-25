@@ -33,6 +33,8 @@ const DatetimeUtc: React.FC<DatetimeUtcProps> = ({
     if (!isNil(defaultValue)) {
       // Convert stored UTC value to local time for rendering
       const localDate = parseISO(defaultValue);
+      if (isNaN(localDate.getTime())) return;
+
       const localDateString = format(localDate, "yyyy-MM-dd'T'HH:mm");
       setLocalValue(localDateString);
     }
