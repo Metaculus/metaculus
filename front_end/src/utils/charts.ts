@@ -127,11 +127,11 @@ export function generateTimestampXScale(
     cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
   } else if (timeRange < halfYear) {
     ticks = d3.timeDay.range(start, end);
-    format = d3.timeFormat("%b %Y");
+    format = d3.timeFormat("%b %d");
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear) {
     ticks = d3.timeMonth.range(start, end);
-    format = d3.timeFormat("%b %Y");
+    format = d3.timeFormat("%b %d");
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear * 2) {
     ticks = d3.timeMonth.range(start, end);
