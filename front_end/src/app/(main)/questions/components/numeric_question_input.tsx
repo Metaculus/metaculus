@@ -243,7 +243,6 @@ const NumericQuestionInput: React.FC<{
                     !isNil(min) && !Number.isNaN(min)
                       ? new Date(min * 1000).toISOString()
                       : undefined
-                    // ? format(new Date(min * 1000), "yyyy-MM-dd'T'HH:mm")
                   }
                   onChange={(dateString) => {
                     setMin(new Date(dateString).getTime() / 1000);

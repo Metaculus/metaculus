@@ -155,7 +155,6 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 value !== "knownValue"
                   ? setValue("resolutionValue", value)
                   : setValue("resolutionValue", undefined);
-                console.log(value);
               }}
               variant="tertiary"
             />
