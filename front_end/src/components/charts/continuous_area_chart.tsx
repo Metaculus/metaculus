@@ -35,10 +35,11 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
 
-type ContinuousAreaColor = "orange" | "green";
+type ContinuousAreaColor = "orange" | "green" | "red";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   community: "green",
   user: "orange",
+  user_previous: "orange",
 };
 
 export type ContinuousAreaGraphInput = Array<{
@@ -159,7 +160,9 @@ const ContinuousAreaChart: FC<Props> = ({
             color: getThemeColor(
               chart.color === "orange"
                 ? METAC_COLORS.orange["800"]
-                : METAC_COLORS.olive["700"]
+                : chart.color === "green"
+                  ? METAC_COLORS.olive["700"]
+                  : METAC_COLORS.orange["500"]
             ),
             type: chart.type,
           }))}
@@ -189,6 +192,7 @@ const ContinuousAreaChart: FC<Props> = ({
             yData: {
               community: 0,
               user: 0,
+              user_previous: 0,
             },
           }
         );
@@ -233,9 +237,15 @@ const ContinuousAreaChart: FC<Props> = ({
                 data: {
                   fill:
                     chart.color === "orange"
-                      ? getThemeColor(METAC_COLORS.orange["700"])
-                      : undefined,
-                  opacity: 0.3,
+                      ? getThemeColor(
+                          METAC_COLORS.orange[
+                            chart.type === "user" ? "700" : "400"
+                          ]
+                        )
+                      : chart.color === "green"
+                        ? getThemeColor(METAC_COLORS.olive["500"])
+                        : undefined,
+                  opacity: chart.type === "user_previous" ? 0.1 : 0.3,
                 },
               }}
             />
@@ -248,8 +258,14 @@ const ContinuousAreaChart: FC<Props> = ({
                 data: {
                   stroke:
                     chart.color === "orange"
-                      ? getThemeColor(METAC_COLORS.orange["800"])
-                      : undefined,
+                      ? getThemeColor(
+                          METAC_COLORS.orange[
+                            chart.type === "user" ? "800" : "500"
+                          ]
+                        )
+                      : chart.color === "green"
+                        ? getThemeColor(METAC_COLORS.olive["500"])
+                        : undefined,
                   strokeDasharray: chart.color === "orange" ? "2,2" : undefined,
                 },
               }}

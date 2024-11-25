@@ -85,6 +85,8 @@
   "secondQuartile": "median",
   "thirdQuartile": "upper 75%",
   "you": "you",
+  "youPrevious": "you (previous)",
+  "overlayPreviousForecast": "Overlay Previous Forecast",
   "resolutionDescriptionBinary": "Did this actually happen?",
   "resolutionDescriptionMultipleChoice": "Which of these actually happened?",
   "resolutionDescriptionContinuous": "What was the final result?",
