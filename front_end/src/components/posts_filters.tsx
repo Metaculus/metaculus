@@ -4,7 +4,7 @@ import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, useEffect, useMemo } from "react";
 
 import { getFilterChipColor } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
@@ -18,6 +18,7 @@ import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
 import {
   POST_ORDER_BY_FILTER,
+  POST_PAGE_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
 import useSearchInputState from "@/hooks/use_search_input_state";
@@ -102,6 +103,12 @@ const PostsFilters: FC<Props> = ({
 
     return [filters, activeFilters];
   }, [filters]);
+
+  // reset page param after applying new filters
+  useEffect(() => {
+    deleteParam(POST_PAGE_FILTER, false);
+  }, [filters, deleteParam]);
+
   const handleOrderChange = (order: QuestionOrder) => {
     const withNavigation = false;
 
@@ -178,7 +185,10 @@ const PostsFilters: FC<Props> = ({
       <div className="block">
         <SearchInput
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            deleteParam(POST_PAGE_FILTER, true);
+            setSearch(e.target.value);
+          }}
           onErase={eraseSearch}
           placeholder={t("questionSearchPlaceholder")}
         />
