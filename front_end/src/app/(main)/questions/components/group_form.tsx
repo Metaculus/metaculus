@@ -156,7 +156,9 @@ const GroupForm: React.FC<Props> = ({
         };
       } else if (subtype === QuestionType.Date) {
         if (x.scaling.range_max === null || x.scaling.range_min === null) {
-          setError("Please enter a max or min value for numeric questions");
+          setError(
+            "Please enter a range_max and range_min value for date questions"
+          );
           break_out = true;
           return;
         }
@@ -460,7 +462,7 @@ const GroupForm: React.FC<Props> = ({
                 </InputContainer>
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4">
-                    <div className="flex flex-row gap-4">
+                    <div className="flex flex-col gap-4 md:flex-row">
                       <InputContainer
                         labelText={t("closingDate")}
                         className="w-full"
@@ -603,6 +605,7 @@ const GroupForm: React.FC<Props> = ({
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
                         }
+                        chartWidth={720}
                         onChange={({
                           min: range_min,
                           max: range_max,
