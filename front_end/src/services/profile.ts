@@ -35,6 +35,7 @@ class ProfileApi {
     website?: string;
     unsubscribed_mailing_tags?: SubscriptionEmailType[];
     unsubscribed_preference_tags?: ProfilePreferencesType[];
+    is_onboarding_complete?: boolean;
   }) {
     return patch<CurrentUser, typeof props>("/users/me/update/", props);
   }
