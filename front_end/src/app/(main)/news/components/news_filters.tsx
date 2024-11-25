@@ -3,7 +3,7 @@
 import { Tab, TabGroup, TabList } from "@headlessui/react";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import React, { FC, Fragment, PropsWithChildren } from "react";
+import React, { FC, Fragment, PropsWithChildren, useCallback } from "react";
 
 import { getArticleTypeFilters } from "@/app/(main)/news/helpers/filters";
 import SearchInput from "@/components/search_input";
@@ -11,6 +11,8 @@ import { POST_NEWS_TYPE_FILTER } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import VisibilityObserver from "@/components/visibility_observer";
+import { debounce } from "lodash";
+import { sendGAEvent } from "@next/third-parties/google";
 
 const FILTERS = getArticleTypeFilters();
 
@@ -25,6 +27,16 @@ const NewsFilters: React.FC = () => {
   };
 
   const t = useTranslations();
+
+  const debouncedGAEvent = useCallback(
+    debounce(() => {
+      sendGAEvent({
+        event: "feedSearch",
+        event_category: "fromNews",
+      });
+    }, 2000),
+    []
+  );
 
   const postFilterParam = params.get(POST_NEWS_TYPE_FILTER);
   const selectedIndex = postFilterParam
@@ -51,6 +63,7 @@ const NewsFilters: React.FC = () => {
         <SearchInput
           value={globalSearch}
           onChange={(e) => {
+            debouncedGAEvent();
             setGlobalSearch(e.target.value);
           }}
           onErase={eraseSearch}

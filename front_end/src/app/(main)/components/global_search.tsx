@@ -1,11 +1,14 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import SearchInput from "@/components/search_input";
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import { encodeQueryParams } from "@/utils/navigation";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
+import { sendGAEvent } from "@next/third-parties/google";
+import useDebounce from "@/hooks/use_debounce";
+import { debounce } from "lodash";
 
 interface GlobalSearchProps {
   className?: string;
@@ -22,6 +25,16 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   const router = useRouter();
   const [isHidden, setIsHidden] = useState(true);
 
+  const debouncedGAEvent = useCallback(
+    debounce(() => {
+      sendGAEvent({
+        event: "feedSearch",
+        event_category: "fromNavbar",
+      });
+    }, 2000),
+    []
+  );
+
   const {
     globalSearch,
     setGlobalSearch,
@@ -37,6 +50,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   };
 
   const handleSearchSubmit = (searchQuery: string) => {
+    debouncedGAEvent();
     onSubmit?.();
     router.push(
       `/questions` +

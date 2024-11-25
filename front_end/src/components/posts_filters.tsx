@@ -4,7 +4,7 @@ import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 
 import { getFilterChipColor } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
@@ -21,6 +21,7 @@ import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import VisibilityObserver from "./visibility_observer";
+import { debounce } from "lodash";
 
 type ActiveFilter = {
   id: string;
@@ -78,6 +79,16 @@ const PostsFilters: FC<Props> = ({
 
   const { globalSearch, setGlobalSearch, setIsVisible } =
     useGlobalSearchContext();
+
+  const debouncedGAEvent = useCallback(
+    debounce(() => {
+      sendGAEvent({
+        event: "feedSearch",
+        event_category: "fromPostsFilter",
+      });
+    }, 2000),
+    []
+  );
 
   const eraseSearch = () => {
     setGlobalSearch("");
@@ -187,6 +198,7 @@ const PostsFilters: FC<Props> = ({
           <SearchInput
             value={globalSearch}
             onChange={(e) => {
+              debouncedGAEvent();
               deleteParam(POST_PAGE_FILTER, true);
               setGlobalSearch(e.target.value);
             }}
