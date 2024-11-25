@@ -168,6 +168,14 @@ async def adetect_language_for_object(obj, fields):
         return (obj, None)
 
     lang = await agoogle_translate_detect_language(text)
+    supported_languages = [
+        lang[0]
+        for lang in settings.LANGUAGES
+        if lang[0] != settings.ORIGINAL_LANGUAGE_CODE
+    ]
+    if lang not in supported_languages:
+        lang = "en"
+
     return (obj, lang)
 
 
