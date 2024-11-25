@@ -8,6 +8,7 @@ import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import { encodeQueryParams } from "@/utils/navigation";
 import VisibilityObserver from "@/components/visibility_observer";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
+import { sendGAEvent } from "@next/third-parties/google";
 
 type Props = {};
 
@@ -22,6 +23,11 @@ const HomeSearch: FC<Props> = () => {
       `/questions` +
         encodeQueryParams({ [POST_TEXT_SEARCH_FILTER]: searchQuery })
     );
+
+    sendGAEvent({
+      event: "feedSearch",
+      event_category: "fromHomepage",
+    });
   };
 
   const { setIsVisible } = useGlobalSearchContext();
