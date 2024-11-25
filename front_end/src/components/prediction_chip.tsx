@@ -7,7 +7,7 @@ import { CSSProperties, FC, PropsWithChildren } from "react";
 
 import { PostStatus } from "@/types/post";
 import { Question } from "@/types/question";
-import { getDisplayUserValue, getDisplayValue } from "@/utils/charts";
+import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
 type Size = "compact" | "large";
@@ -47,17 +47,12 @@ const PredictionChip: FC<Props> = ({
   );
 
   const renderUserForecast = () => {
-    const latestAggregation = question.aggregations.recency_weighted.latest;
+    if (showUserForecast && question.my_forecasts?.history.length) {
+      const timestamp = question.my_forecasts.history.at(-1)?.start_time;
 
-    if (
-      showUserForecast &&
-      question.my_forecasts?.history.length &&
-      latestAggregation
-    ) {
-      const displayValue = getDisplayUserValue(
+      const displayValue = getUserPredictionDisplayValue(
         question.my_forecasts,
-        latestAggregation.centers?.[0],
-        latestAggregation.start_time,
+        timestamp,
         question.type,
         question.scaling
       );
