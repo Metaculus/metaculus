@@ -36,7 +36,10 @@ from users.services.common import (
     send_email_change_confirmation_email,
     change_email_from_token,
 )
-from users.services.spam_detection import check_profile_update_for_spam, send_deactivation_email
+from users.services.spam_detection import (
+    check_profile_update_for_spam,
+    send_deactivation_email,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -450,7 +453,9 @@ def update_profile_api_view(request: Request) -> Response:
     serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
 
-    is_spam, _ = check_profile_update_for_spam(user, cast(UserUpdateProfileSerializer, serializer))
+    is_spam, _ = check_profile_update_for_spam(
+        user, cast(UserUpdateProfileSerializer, serializer)
+    )
 
     if is_spam:
         user.soft_delete()
@@ -463,12 +468,13 @@ def update_profile_api_view(request: Request) -> Response:
             },
             status=status.HTTP_403_FORBIDDEN,
         )
-    unsubscribe_tags: list[str] | None = serializer.validated_data.get("unsubscribed_mailing_tags")
+    unsubscribe_tags: list[str] | None = serializer.validated_data.get(
+        "unsubscribed_mailing_tags"
+    )
     if unsubscribe_tags is not None:
         user_unsubscribe_tags(user, unsubscribe_tags)
     serializer.save()
     return Response(UserPrivateSerializer(user).data)
-
 
 
 @api_view(["POST"])

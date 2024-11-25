@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 from datetime import timedelta, datetime
-import textwrap
 
 import dateutil.parser
 from django.contrib.auth.models import AbstractUser, UserManager
@@ -8,7 +7,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
-from django.conf import settings
 from utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
