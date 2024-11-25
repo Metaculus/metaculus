@@ -10,7 +10,7 @@ from users.serializers import UserUpdateProfileSerializer
 from users.models import User
 from utils.openai import generate_text_async
 from misc.tasks import send_email_async
-
+import time
 logger = logging.getLogger(__name__)
 
 
@@ -32,8 +32,10 @@ def check_profile_update_for_spam(
     else:
         bio_plus_website = ""
 
+    start_time = time.time()
     idenficated_as_spam = False
     reasoning = ""
+    gpt_was_used = False
     if not bio_plus_website:
         idenficated_as_spam = False
         reasoning = "No bio to check for spam"
@@ -43,18 +45,22 @@ def check_profile_update_for_spam(
     elif days_since_joined > days_since_joined_threshold:
         idenficated_as_spam = False
         reasoning = f"The user has been a member for more than {days_since_joined_threshold} days"
-    elif len(bio_plus_website) > 25000:
+    elif len(bio_plus_website) > 17500:
         idenficated_as_spam = True
-        reasoning = "Bio is more than 25000 characters"
+        reasoning = "Bio is more than 17500 characters"
     else:
         idenficated_as_spam, reasoning = asyncio.run(
             ask_gpt_to_check_profile_for_spam(bio_plus_website, user.email)
         )
+        gpt_was_used = True
+    end_time = time.time()
+    duration = end_time - start_time
 
     if idenficated_as_spam:
         logger.warning(
-            f"User {user.username} was soft deleted for spam bio: {bio_plus_website}\n"
-            f"Reasoning: {reasoning}"
+            f"User {user.username} was soft deleted for spam bio: {bio_plus_website[:100]}... "
+            f"The reason was: {reasoning[:100]}... "
+            f"It took {duration:.2f} seconds to check. gpt_was_used: {gpt_was_used}"
         )
     return idenficated_as_spam, reasoning
 
@@ -98,6 +104,7 @@ async def ask_gpt_to_check_profile_for_spam(
             system_prompt=system_prompt,
             prompt=prompt,
             temperature=0,
+            timeout=3
         )
         is_spam = "TRUE" in gpt_response
     except Exception as e:

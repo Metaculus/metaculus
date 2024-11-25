@@ -19,7 +19,7 @@ def get_openai_client_async() -> AsyncOpenAI:
 
 
 async def generate_text_async(
-    model: str, prompt: str, system_prompt: str | None = None, temperature: float = 0
+    model: str, prompt: str, system_prompt: str | None = None, temperature: float = 0, timeout: float | None = None
 ) -> str:
     messages = [{"role": "user", "content": prompt}]
     if system_prompt is not None:
@@ -28,7 +28,10 @@ async def generate_text_async(
     client = get_openai_client_async()
     async with client as client:
         response = await client.chat.completions.create(
-            model=model, messages=messages, temperature=temperature  # type: ignore
+            model=model,
+            messages=messages, # type: ignore
+            temperature=temperature,
+            timeout=timeout
         )
         response_text = response.choices[0].message.content
 
