@@ -1,17 +1,11 @@
 import { format, formatISO, parseISO } from "date-fns";
 import { isNil } from "lodash";
-import React, {
-  ChangeEvent,
-  InputHTMLAttributes,
-  useEffect,
-  useState,
-} from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 
-import { Input } from "@/components/ui/form_field";
+import { Input, InputProps } from "@/components/ui/form_field";
 import { logError } from "@/utils/errors";
 
-interface DatetimeUtcProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange"> {
+interface DatetimeUtcProps extends Omit<InputProps, "onChange"> {
   defaultValue?: string;
   onChange?: (value: string) => void;
   onError?: (error: any) => void;
@@ -46,12 +40,12 @@ const DatetimeUtc: React.FC<DatetimeUtcProps> = ({
 
     try {
       // Convert local time to UTC for storage
-      const localDate = new Date(localDateString);
-      const utcDateString = formatISO(localDate, {
-        representation: "complete",
-      });
-
       if (onChange) {
+        const localDate = new Date(localDateString);
+        const utcDateString = formatISO(localDate, {
+          representation: "complete",
+        });
+
         onChange(utcDateString);
       }
     } catch (e) {

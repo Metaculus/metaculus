@@ -314,8 +314,7 @@ const NumericQuestionInput: React.FC<{
             }}
             checked={zeroPoint !== null && zeroPoint !== undefined}
           />
-          {zeroPoint !== null &&
-            zeroPoint !== undefined &&
+          {!isNil(zeroPoint) &&
             (questionType == QuestionType.Numeric ? (
               <div className="ml-2">
                 <span className="mr-2">Zero Point</span>
@@ -332,17 +331,16 @@ const NumericQuestionInput: React.FC<{
             ) : (
               <div className="ml-2">
                 <span className="mr-2">Zero Point</span>
-                <Input
+                <DatetimeUtc
                   readOnly={hasForecasts}
                   disabled={hasForecasts}
-                  type="datetime-local"
-                  onChange={(e) => {
-                    setZeroPoint(new Date(e.target.value).getTime() / 1000);
+                  className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                  defaultValue={new Date(
+                    !Number.isNaN(zeroPoint) ? zeroPoint * 1000 : 0
+                  ).toISOString()}
+                  onChange={(dateString) => {
+                    setZeroPoint(new Date(dateString).getTime() / 1000);
                   }}
-                  defaultValue={format(
-                    new Date(!Number.isNaN(zeroPoint) ? zeroPoint * 1000 : 0),
-                    "yyyy-MM-dd'T'HH:mm"
-                  )}
                 />
               </div>
             ))}
