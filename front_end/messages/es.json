@@ -775,6 +775,8 @@
   "nuclearSecurityDescription": "Cuantificar los riesgos globales para mantenernos seguros y protegidos para un futuro próspero",
   "climateChange": "cambio climático",
   "climateChangeDescription": "Predecir los cambios a largo plazo en los patrones de temperatura y clima causados por la actividad humana",
+  "remindMeLater": "Recuérdamelo más tarde",
+  "onboardingRemindMeLaterDescription": "(Siempre puedes encontrar el tutorial más tarde en el menú en la parte superior de cada página)",
   "onboardingStep1Question1": "¿Debería llevar un paraguas?",
   "onboardingStep1Question2": "¿Nos dirigimos a una recesión?",
   "onboardingStep1Question3": "¿Saldrá mi equipo victorioso?",

@@ -33,6 +33,8 @@ wait_and_fail_if_release_failed() {
 # at build time :/
 FRONTEND_ENV_FILE=$(mktemp)
 env | grep NEXT_PUBLIC > $FRONTEND_ENV_FILE
+# This needs to be propagated too, so source maps are uploaded to Sentry
+env | grep SENTRY_AUTH_TOKEN >> $FRONTEND_ENV_FILE
 
 docker buildx build \
     --secret id=frontend_env,src=$FRONTEND_ENV_FILE \
