@@ -50,7 +50,9 @@ export default async function Questions({
               </Suspense>
             ) : (
               <>
-                <FeedFilters />
+                <div id="existing-search">
+                  <FeedFilters />
+                </div>
                 <Suspense
                   key={JSON.stringify(searchParams)}
                   fallback={

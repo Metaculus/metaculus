@@ -6,6 +6,9 @@ import { FC, useState } from "react";
 import SearchInput from "@/components/search_input";
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import { encodeQueryParams } from "@/utils/navigation";
+import VisibilityObserver from "@/components/visibility_observer";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
+import { sendGAEvent } from "@next/third-parties/google";
 
 type Props = {};
 
@@ -20,18 +23,31 @@ const HomeSearch: FC<Props> = () => {
       `/questions` +
         encodeQueryParams({ [POST_TEXT_SEARCH_FILTER]: searchQuery })
     );
+
+    sendGAEvent({
+      event: "feedSearch",
+      event_category: "fromHomepage",
+    });
   };
 
+  const { setIsVisible } = useGlobalSearchContext();
+
   return (
-    <SearchInput
-      value={searchQuery}
-      onChange={(event) => setSearchQuery(event.target.value)}
-      onErase={() => setSearchQuery("")}
-      onSubmit={handleSearchSubmit}
-      placeholder={t("forecastsSearchPlaceholder")}
-      size="lg"
-      className="md:max-w-xl"
-    />
+    <VisibilityObserver
+      onVisibilityChange={(v) => {
+        setIsVisible(v);
+      }}
+    >
+      <SearchInput
+        value={searchQuery}
+        onChange={(event) => setSearchQuery(event.target.value)}
+        onErase={() => setSearchQuery("")}
+        onSubmit={handleSearchSubmit}
+        placeholder={t("questionSearchPlaceholder")}
+        size="lg"
+        className="md:max-w-xl"
+      />
+    </VisibilityObserver>
   );
 };
 
