@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
 import Checkbox from "@/components/ui/checkbox";
+import DatetimeUtc from "@/components/ui/datetime_utc";
 import { Input } from "@/components/ui/form_field";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
@@ -36,6 +37,7 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound: boolean | undefined | null;
   defaultZeroPoint: number | undefined | null;
   hasForecasts: boolean;
+  chartWidth?: number;
 }> = ({
   onChange,
   questionType,
@@ -45,6 +47,7 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound,
   defaultZeroPoint,
   hasForecasts,
+  chartWidth = 800,
 }) => {
   const [errors, setError] = useState<string[]>([]);
   const [max, setMax] = useState(defaultMax);
@@ -232,35 +235,34 @@ const NumericQuestionInput: React.FC<{
             <div className="flex w-full flex-col gap-4 md:flex-row">
               <div className="flex w-full flex-col gap-2">
                 <span className="mr-2">Min</span>
-                <Input
+                <DatetimeUtc
                   readOnly={hasForecasts}
                   disabled={hasForecasts}
-                  type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
                     !isNil(min) && !Number.isNaN(min)
-                      ? format(new Date(min * 1000), "yyyy-MM-dd'T'HH:mm")
+                      ? new Date(min * 1000).toISOString()
                       : undefined
+                    // ? format(new Date(min * 1000), "yyyy-MM-dd'T'HH:mm")
                   }
-                  onChange={(e) => {
-                    setMin(new Date(e.target.value).getTime() / 1000);
+                  onChange={(dateString) => {
+                    setMin(new Date(dateString).getTime() / 1000);
                   }}
                 />
               </div>
               <div className="flex w-full flex-col gap-2">
                 <span className="mr-2">Max</span>
-                <Input
+                <DatetimeUtc
                   readOnly={hasForecasts}
                   disabled={hasForecasts}
-                  type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
                     !isNil(max) && !Number.isNaN(max)
-                      ? format(new Date(max * 1000), "yyyy-MM-dd'T'HH:mm")
+                      ? new Date(max * 1000).toISOString()
                       : undefined
                   }
-                  onChange={(e) => {
-                    setMax(new Date(e.target.value).getTime() / 1000);
+                  onChange={(dateString) => {
+                    setMax(new Date(dateString).getTime() / 1000);
                   }}
                 />
               </div>
@@ -415,7 +417,7 @@ const NumericQuestionInput: React.FC<{
               question={question}
               readOnly={false}
               height={100}
-              width={800}
+              width={chartWidth}
               showCP={false}
             />
           </>

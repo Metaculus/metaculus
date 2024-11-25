@@ -152,7 +152,10 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               buttons={unambiguousOptions}
               onChange={(value) => {
                 setValue("unambiguousType", value);
-                value !== "knownValue" && setValue("resolutionValue", value);
+                value !== "knownValue"
+                  ? setValue("resolutionValue", value)
+                  : setValue("resolutionValue", undefined);
+                console.log(value);
               }}
               variant="tertiary"
             />

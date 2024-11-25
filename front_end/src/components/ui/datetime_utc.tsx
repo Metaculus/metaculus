@@ -1,4 +1,5 @@
 import { format, formatISO, parseISO } from "date-fns";
+import { isNil } from "lodash";
 import React, {
   ChangeEvent,
   InputHTMLAttributes,
@@ -29,7 +30,7 @@ const DatetimeUtc: React.FC<DatetimeUtcProps> = ({
   const [localValue, setLocalValue] = useState<string>("");
 
   useEffect(() => {
-    if (defaultValue) {
+    if (!isNil(defaultValue)) {
       // Convert stored UTC value to local time for rendering
       const localDate = parseISO(defaultValue);
       const localDateString = format(localDate, "yyyy-MM-dd'T'HH:mm");
