@@ -72,6 +72,7 @@
   "metaculusPredictionLabel": "Metaculus Prediction",
   "userPredictionLabel": "User Prediction",
   "myPrediction": "My Prediction",
+  "myPredictionPrevious": "My Prediction (previous)",
   "myPredictionValue": "My Prediction: <forecast>{forecastValue}</forecast>",
   "myCoverageLabel": "My Coverage",
   "predictionLabel": "Prediction",

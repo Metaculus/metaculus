@@ -25,6 +25,8 @@ type Props = {
     pmf: number[];
   };
   onChange: (forecast: MultiSliderValue[], weights: number[]) => void;
+  overlayPreviousForecast: boolean;
+  setOverlayPreviousForecast: (value: boolean) => void;
   question: QuestionWithNumericForecasts;
   disabled?: boolean;
 };
@@ -34,6 +36,8 @@ const ContinuousSlider: FC<Props> = ({
   weights,
   dataset,
   onChange,
+  overlayPreviousForecast,
+  setOverlayPreviousForecast,
   question,
   disabled = false,
 }) => {
@@ -42,10 +46,6 @@ const ContinuousSlider: FC<Props> = ({
   const t = useTranslations();
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
   const previousForecast = question.my_forecasts?.latest;
-  const [overlayPreviousForecast, setOverlayPreviousForecast] =
-    useState<boolean>(
-      !!previousForecast?.forecast_values && !previousForecast.slider_values
-    );
 
   return (
     <div>
@@ -63,16 +63,12 @@ const ContinuousSlider: FC<Props> = ({
         />
         {previousForecast && (
           <div className="ml-auto flex items-center">
-            <input
-              type="checkbox"
-              id="overlayPreviousForecast"
+            <Checkbox
               checked={overlayPreviousForecast}
-              onChange={(e) => setOverlayPreviousForecast(e.target.checked)}
-              className="mr-1"
-            />
-            <label htmlFor="overlayPreviousForecast" className="text-sm">
-              {t("overlayPreviousForecast")}
-            </label>
+              onChange={(checked) => setOverlayPreviousForecast(checked)}
+              className={"text-sm"}
+              label={t("overlayPreviousForecast")}
+            ></Checkbox>
           </div>
         )}
       </div>
