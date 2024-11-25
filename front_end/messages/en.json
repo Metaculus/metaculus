@@ -901,6 +901,8 @@
   "onboardingStep1Paragraph2": "Let's make a few quick predictions to get you started.",
   "onboardingStep1Paragraph3": "First, pick a topic you care about.",
   "skipTutorial": "Skip Tutorial",
+  "remindMeLater": "Remind me later",
+  "onboardingRemindMeLaterDescription": "(You can always find the tutorial later in the menu at the top of every page)",
   "skipQuestions": "Skip question",
   "onboardingStep2Title": "Here's a real Metaculus question about {topicName}:",
   "onboardingStep2CommunityThinks": "Other forecasters tend to think this is",

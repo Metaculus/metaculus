@@ -47,6 +47,9 @@ const config: Config = {
       scrollMargin: {
         nav: "70px",
       },
+      zIndex: {
+        "100": "100",
+      },
     },
   },
   plugins: [

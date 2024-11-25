@@ -99,6 +99,7 @@ export async function updateProfileAction(
       | "unsubscribed_mailing_tags"
       | "unsubscribed_preferences_tags"
       | "hide_community_prediction"
+      | "is_onboarding_complete"
     >
   >
 ) {

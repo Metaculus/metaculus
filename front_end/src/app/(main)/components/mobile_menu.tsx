@@ -1,11 +1,10 @@
 "use client";
 import {
+  faArrowLeft,
   faBars,
   faMagnifyingGlass,
   faMinus,
-  faXmark,
   faPlus,
-  faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -18,7 +17,7 @@ import {
 import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, PropsWithChildren, useState, useRef, useEffect } from "react";
+import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
 import { LogOut } from "@/app/(main)/accounts/actions";
 import LanguageMenu from "@/components/language_menu";
@@ -153,7 +152,9 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                 <MenuLink href={"/accounts/settings/"}>
                   {t("settings")}
                 </MenuLink>
-                <MenuLink href={"/?start_onboarding=true"}>
+                <MenuLink
+                  onClick={() => setCurrentModal({ type: "onboarding" })}
+                >
                   {t("tutorial")}
                 </MenuLink>
                 {user.is_superuser && (
@@ -245,7 +246,9 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                   <MenuLink href={"/accounts/settings/"}>
                     {t("settings")}
                   </MenuLink>
-                  <MenuLink href={"/?start_onboarding=true"}>
+                  <MenuLink
+                    onClick={() => setCurrentModal({ type: "onboarding" })}
+                  >
                     {t("tutorial")}
                   </MenuLink>
                   {user.is_superuser && (
@@ -279,10 +282,7 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
           ref={searchContainerRef}
           className="fixed inset-x-0 top-12 z-40 bg-blue-200-dark p-2 shadow-md"
         >
-          <GlobalSearch
-            onSubmit={handleSearchSubmit}
-            isMobile={true}
-          />
+          <GlobalSearch onSubmit={handleSearchSubmit} isMobile={true} />
         </div>
       )}
     </>

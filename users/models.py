@@ -56,6 +56,9 @@ class User(TimeStampedModel, AbstractUser):
     )
     hide_community_prediction = models.BooleanField(default=False)
 
+    # Onboarding
+    is_onboarding_complete = models.BooleanField(default=False)
+
     objects: models.Manager["User"] = UserManager()
 
     class Meta:
