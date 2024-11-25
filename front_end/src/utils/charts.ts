@@ -305,20 +305,19 @@ export function getChoiceOptionValue(
   }
 }
 
-export function getDisplayUserValue(
+export function getUserPredictionDisplayValue(
   myForecasts: UserForecastHistory,
-  value: number | undefined,
-  valueTimestamp: number,
-  questionOrQuestionType: Question | QuestionType,
-  scaling?: Scaling
+  timestamp: number | null | undefined,
+  questionType: QuestionType,
+  scaling: Scaling
 ): string {
-  let qType: string;
-  let rMin: number | null;
-  let rMax: number | null;
-  let zPoint: number | null;
+  if (!timestamp) {
+    return "?";
+  }
+
   let closestUserForecastIndex = -1;
   myForecasts?.history.forEach((forecast, index) => {
-    if (forecast.start_time <= valueTimestamp) {
+    if (forecast.start_time <= timestamp) {
       closestUserForecastIndex = index;
     }
   });
@@ -326,42 +325,19 @@ export function getDisplayUserValue(
     return "?";
   }
   const closestUserForecast = myForecasts.history[closestUserForecastIndex];
-
-  if (typeof questionOrQuestionType === "object") {
-    // Handle the case where the input is a Question object
-    qType = questionOrQuestionType.type;
-    rMin = questionOrQuestionType.scaling.range_min;
-    rMax = questionOrQuestionType.scaling.range_max;
-    zPoint = questionOrQuestionType.scaling.zero_point;
-  } else {
-    // Handle the case where the input is individual parameters
-    qType = questionOrQuestionType;
-    rMin = scaling!.range_min ?? 0;
-    rMax = scaling!.range_max ?? 1;
-    zPoint = scaling!.zero_point ?? null;
+  if (!closestUserForecast) {
+    return "?";
   }
 
-  let center: number;
-  if (qType === QuestionType.Binary) {
-    center = closestUserForecast.forecast_values[1];
-  } else {
-    center = closestUserForecast.centers![0];
+  const value =
+    questionType === QuestionType.Binary
+      ? closestUserForecast.forecast_values[1]
+      : closestUserForecast.centers?.[0];
+  if (!value) {
+    return "?";
   }
-  if (value === undefined) {
-    return "...";
-  }
-  const scaledValue = scaleInternalLocation(center, {
-    range_min: rMin ?? 0,
-    range_max: rMax ?? 1,
-    zero_point: zPoint,
-  });
-  if (qType === QuestionType.Date) {
-    return format(fromUnixTime(scaledValue), "yyyy-MM-dd");
-  } else if (qType === QuestionType.Numeric) {
-    return abbreviatedNumber(scaledValue);
-  } else {
-    return `${Math.round(scaledValue * 1000) / 10}%`;
-  }
+
+  return getDisplayValue(value, questionType, scaling);
 }
 
 type GenerateScaleParams = {
