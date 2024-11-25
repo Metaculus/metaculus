@@ -35,7 +35,7 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
 
-type ContinuousAreaColor = "orange" | "green" | "red";
+type ContinuousAreaColor = "orange" | "green";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   community: "green",
   user: "orange",
@@ -159,10 +159,8 @@ const ContinuousAreaChart: FC<Props> = ({
             line: chart.graphLine,
             color: getThemeColor(
               chart.color === "orange"
-                ? METAC_COLORS.orange["800"]
-                : chart.color === "green"
-                  ? METAC_COLORS.olive["700"]
-                  : METAC_COLORS.orange["500"]
+                ? METAC_COLORS.orange[chart.type === "user" ? "800" : "500"]
+                : METAC_COLORS.olive["700"]
             ),
             type: chart.type,
           }))}

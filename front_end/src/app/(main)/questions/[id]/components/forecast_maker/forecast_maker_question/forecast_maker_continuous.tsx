@@ -54,7 +54,6 @@ const ForecastMakerContinuous: FC<Props> = ({
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const withCommunityQuartiles = !user || !hideCP;
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
-  const previousForecast = question.my_forecasts?.latest;
   const hasUserForecast = !!prevForecastValue.forecast;
   const t = useTranslations();
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
@@ -81,7 +80,6 @@ const ForecastMakerContinuous: FC<Props> = ({
     [forecast, question.open_lower_bound, question.open_upper_bound, weights]
   );
 
-  const previousUserCdf = previousForecast?.forecast_values;
   const userCdf: number[] = dataset.cdf;
   const communityCdf: number[] | undefined =
     question.aggregations.recency_weighted.latest?.forecast_values;
