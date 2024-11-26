@@ -27,18 +27,16 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
   children,
 }) => {
   return (
-    <div
-      className={classNames(
-        "rounded",
-        {
-          primary: "bg-blue-200 dark:bg-blue-200-dark",
-          light: "bg-gray-0 dark:bg-gray-0-dark",
-        }[variant]
-      )}
-    >
-      <Disclosure defaultOpen={defaultOpen}>
-        <DisclosureButton className="w-full">
-          {({ open }) => (
+    <Disclosure defaultOpen={defaultOpen}>
+      {({ open }) => (
+        <div
+          className={classNames("rounded", {
+            "bg-blue-200 dark:bg-blue-200-dark": variant === "primary",
+            "bg-gray-0 dark:bg-gray-0-dark": variant === "light",
+            "bg-opacity-50": !open,
+          })}
+        >
+          <DisclosureButton className="w-full">
             <div
               className={classNames(
                 "flex w-full items-center gap-2.5 p-3 text-base hover:text-blue-700 hover:dark:text-blue-700-dark",
@@ -46,6 +44,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
                 {
                   "text-blue-700 dark:text-blue-700-dark": open,
                   "text-blue-600 dark:text-blue-600-dark": !open,
+                  "xs:px-4": variant === "light",
                 }
               )}
             >
@@ -58,11 +57,17 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
               />
               <span>{title}</span>
             </div>
-          )}
-        </DisclosureButton>
-        <DisclosurePanel className={"p-3 pt-0"}>{children}</DisclosurePanel>
-      </Disclosure>
-    </div>
+          </DisclosureButton>
+          <DisclosurePanel
+            className={classNames("p-3 pt-0", {
+              "xs:px-4": variant === "light",
+            })}
+          >
+            {children}
+          </DisclosurePanel>
+        </div>
+      )}
+    </Disclosure>
   );
 };
 
