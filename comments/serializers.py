@@ -185,7 +185,7 @@ def serialize_comment_many(
                 flatten([c.key_factors.all() for c in objects]),
                 current_user=current_user,
             ),
-            key=lambda x: x.comment_id,
+            key=lambda x: x["comment_id"],
         )
 
     return [
@@ -203,17 +203,12 @@ def serialize_comment_many(
 
 
 def serialize_key_factor(key_factor: KeyFactor) -> dict:
-    votes_summary = defaultdict(int)
-
-    for vote in key_factor.votes.all():
-        votes_summary[vote.score] += 1
-
     return {
         "id": key_factor.id,
         "text": key_factor.text,
+        "comment_id": key_factor.comment_id,
         "user_vote": key_factor.user_vote,
         "votes_score": key_factor.votes_score,
-        "votes_summary": votes_summary,
     }
 
 
@@ -222,9 +217,7 @@ def serialize_key_factors_many(
 ):
     # Get original ordering of the comments
     ids = [p.pk for p in key_factors]
-    qs = KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors]).prefetch_related(
-        "votes"
-    )
+    qs = KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors])
 
     if current_user and not current_user.is_anonymous:
         qs = qs.annotate_user_vote(current_user)

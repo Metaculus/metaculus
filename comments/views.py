@@ -88,7 +88,7 @@ def comments_list_api_view(request: Request):
     )
     paginated_comments = paginator.paginate_queryset(comments, request)
 
-    data = serialize_comment_many(paginated_comments, request.user)
+    data = serialize_comment_many(paginated_comments, request.user, with_key_factors=True)
 
     return paginator.get_paginated_response(data)
 
