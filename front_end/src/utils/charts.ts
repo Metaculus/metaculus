@@ -634,7 +634,7 @@ export function getFanOptionsFromContinuousGroup(
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
     .map(({ name, cdf, resolved, question }) => ({
       name,
-      quartiles: computeQuartilesFromCDF(cdf),
+      quartiles: cdf.length > 0 ? computeQuartilesFromCDF(cdf) : undefined,
       resolved,
       question,
     }));
@@ -649,11 +649,13 @@ export function getFanOptionsFromBinaryGroup(
       const resolved = q.resolution !== null;
       return {
         name: q.label,
-        quartiles: {
-          median: aggregation?.centers?.[0] ?? 0,
-          lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,
-          upper75: aggregation?.interval_upper_bounds?.[0] ?? 0,
-        },
+        quartiles: !!aggregation
+          ? {
+              median: aggregation.centers?.[0] ?? 0,
+              lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
+              upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
+            }
+          : undefined,
         resolved,
         question: q,
         resolvedAt: new Date(q.scheduled_resolve_time),
