@@ -667,6 +667,9 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return super().clean_fields(exclude=exclude)
 
+    def is_private(self):
+        return self.default_project.default_permission is None
+
 
 class PostSubscription(TimeStampedModel):
     # typing

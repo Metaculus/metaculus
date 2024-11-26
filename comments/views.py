@@ -19,7 +19,7 @@ from comments.serializers import (
     serialize_comment_many,
     CommentFilterSerializer,
 )
-from comments.services.common import create_comment
+from comments.services.common import create_comment, trigger_update_comment_translations
 from comments.services.feed import get_comments_feed
 from notifications.services import NotificationCommentReport, NotificationPostParams
 from posts.services.common import get_post_permission_for_user
@@ -135,6 +135,8 @@ def comment_create_api_view(request: Request):
         **serializer.validated_data, included_forecast=forecast, user=user
     )
 
+    trigger_update_comment_translations(new_comment, force=False)
+
     return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
 
 
@@ -162,6 +164,7 @@ def comment_edit_api_view(request: Request, pk: int):
     comment.edit_history.append(comment_diff.id)
     comment.text = text
     comment.save(update_fields=["text", "edit_history"])
+    trigger_update_comment_translations(comment, force=False)
 
     return Response({}, status=status.HTTP_200_OK)
 
@@ -282,4 +285,7 @@ def comment_create_oldapi_view(request: Request):
         user=user,
         text=text,
     )
+
+    trigger_update_comment_translations(new_comment, force=False)
+
     return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
