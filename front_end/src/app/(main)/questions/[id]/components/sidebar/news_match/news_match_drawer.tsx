@@ -42,7 +42,7 @@ const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
                 {t("showMoreNews")}
               </Button>
             )}
-            <div className="size-fit pr-2 text-sm text-gray-900 dark:text-gray-900-dark">
+            <div className="size-fit text-sm text-gray-900 dark:text-gray-900-dark">
               {t.rich("learnMoreAboutNewsMatch", {
                 link: (chunks) => (
                   <Link
