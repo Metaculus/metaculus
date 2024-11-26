@@ -52,7 +52,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
               <FontAwesomeIcon
                 icon={faChevronUp}
                 className={classNames(
-                  "h-4 text-blue-500 duration-75 ease-linear",
+                  "h-4 text-blue-500 duration-75 ease-linear dark:text-blue-500-dark",
                   open && "rotate-180"
                 )}
               />
