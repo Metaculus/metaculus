@@ -18,6 +18,7 @@ urlpatterns = [
         "comments/<int:pk>/report/", views.comment_report_api_view, name="comment-report"
     ),
     path("comments/create/", views.comment_create_api_view, name="comment-create"),
+    path("key-factors/<int:pk>/vote/", views.key_factor_vote_view, name="key-factor-vote"),
 ]
 
 

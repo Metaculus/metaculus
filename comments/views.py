@@ -11,7 +11,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from comments.constants import CommentReportType
-from comments.models import ChangedMyMindEntry, Comment, CommentVote, CommentDiff
+from comments.models import (
+    ChangedMyMindEntry,
+    Comment,
+    CommentVote,
+    CommentDiff,
+    KeyFactor,
+    KeyFactorVote,
+)
 from comments.serializers import (
     CommentWriteSerializer,
     OldAPICommentWriteSerializer,
@@ -21,6 +28,7 @@ from comments.serializers import (
 )
 from comments.services.common import create_comment
 from comments.services.feed import get_comments_feed
+from comments.services.key_factors import key_factor_vote
 from notifications.services import NotificationCommentReport, NotificationPostParams
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -88,7 +96,9 @@ def comments_list_api_view(request: Request):
     )
     paginated_comments = paginator.paginate_queryset(comments, request)
 
-    data = serialize_comment_many(paginated_comments, request.user, with_key_factors=True)
+    data = serialize_comment_many(
+        paginated_comments, request.user, with_key_factors=True
+    )
 
     return paginator.get_paginated_response(data)
 
@@ -283,3 +293,15 @@ def comment_create_oldapi_view(request: Request):
         text=text,
     )
     return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def key_factor_vote_view(request: Request, pk: int):
+    key_factor = get_object_or_404(KeyFactor, pk=pk)
+    vote = serializers.ChoiceField(
+        required=False, allow_null=True, choices=KeyFactorVote.VoteScore.choices
+    ).run_validation(request.data.get("vote"))
+
+    score = key_factor_vote(key_factor, user=request.user, vote=vote)
+
+    return Response({"score": score})

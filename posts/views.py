@@ -1,12 +1,12 @@
 import logging
-import requests
 from collections import defaultdict
 
-from django.utils import timezone
+import requests
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
@@ -47,17 +47,17 @@ from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post
 from projects.permissions import ObjectPermission
+from questions.models import AggregateForecast, Question
 from questions.serializers import (
     QuestionApproveSerializer,
 )
 from questions.types import AggregationMethod
-from questions.models import AggregateForecast, Question
 from users.models import User
+from utils.csv_utils import build_csv
 from utils.files import UserUploadedImage, generate_filename
 from utils.frontend import build_question_embed_url
 from utils.paginator import CountlessLimitOffsetPagination
 from utils.the_math.aggregations import get_aggregation_history
-from utils.csv_utils import build_csv
 
 
 @api_view(["GET"])
@@ -209,6 +209,7 @@ def post_detail(request: Request, pk):
         current_user=request.user,
         with_cp=with_cp,
         with_subscriptions=True,
+        with_key_factors=True,
     )
 
     if not posts:

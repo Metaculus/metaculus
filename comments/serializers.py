@@ -1,4 +1,3 @@
-from collections import defaultdict
 from typing import Iterable
 
 from django.db.models.query import QuerySet
@@ -217,7 +216,7 @@ def serialize_key_factors_many(
 ):
     # Get original ordering of the comments
     ids = [p.pk for p in key_factors]
-    qs = KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors])
+    qs = KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors]).filter_active()
 
     if current_user and not current_user.is_anonymous:
         qs = qs.annotate_user_vote(current_user)

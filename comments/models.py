@@ -180,6 +180,9 @@ class KeyFactorQuerySet(models.QuerySet):
     def for_post(self, post: Post):
         return self.filter(comment__on_post=post)
 
+    def filter_active(self):
+        return self.filter(is_active=True)
+
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option
