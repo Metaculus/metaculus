@@ -3,27 +3,40 @@
 import { Tab, TabGroup, TabList } from "@headlessui/react";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import React, { FC, Fragment, PropsWithChildren } from "react";
+import React, { FC, Fragment, PropsWithChildren, useCallback } from "react";
 
 import { getArticleTypeFilters } from "@/app/(main)/news/helpers/filters";
 import SearchInput from "@/components/search_input";
-import {
-  POST_NEWS_TYPE_FILTER,
-  POST_TEXT_SEARCH_FILTER,
-} from "@/constants/posts_feed";
-import useSearchInputState from "@/hooks/use_search_input_state";
+import { POST_NEWS_TYPE_FILTER } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
+import VisibilityObserver from "@/components/visibility_observer";
+import { debounce } from "lodash";
+import { sendGAEvent } from "@next/third-parties/google";
 
 const FILTERS = getArticleTypeFilters();
 
 const NewsFilters: React.FC = () => {
   const { params, setParam, deleteParam } = useSearchParams();
 
-  const [search, setSearch] = useSearchInputState(POST_TEXT_SEARCH_FILTER);
+  const { globalSearch, setGlobalSearch, setIsVisible } =
+    useGlobalSearchContext();
+
   const eraseSearch = () => {
-    setSearch("");
+    setGlobalSearch("");
   };
+
   const t = useTranslations();
+
+  const debouncedGAEvent = useCallback(
+    debounce(() => {
+      sendGAEvent({
+        event: "feedSearch",
+        event_category: "fromNews",
+      });
+    }, 2000),
+    []
+  );
 
   const postFilterParam = params.get(POST_NEWS_TYPE_FILTER);
   const selectedIndex = postFilterParam
@@ -42,13 +55,23 @@ const NewsFilters: React.FC = () => {
 
   return (
     <div>
-      <SearchInput
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        onErase={eraseSearch}
-        placeholder={t("articlesSearchPlaceholder")}
-        className="mx-auto mb-6 max-w-2xl"
-      />
+      <VisibilityObserver
+        onVisibilityChange={(v) => {
+          setIsVisible(v);
+        }}
+      >
+        <SearchInput
+          value={globalSearch}
+          onChange={(e) => {
+            debouncedGAEvent();
+            setGlobalSearch(e.target.value);
+          }}
+          onErase={eraseSearch}
+          placeholder={t("articlesSearchPlaceholder")}
+          className="mx-auto mb-6 max-w-2xl"
+        />
+      </VisibilityObserver>
+
       <TabGroup selectedIndex={selectedIndex} manual onChange={handleTabChange}>
         <TabList className="mb-6 flex flex-wrap justify-center gap-x-3 gap-y-1 font-serif text-base text-blue-700 dark:text-blue-700-dark">
           <FilterTab>All</FilterTab>

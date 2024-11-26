@@ -82,7 +82,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
       <div className={classNames(treeDepth > 1 && "pr-1.5")}>
         <button
           className={classNames(
-            "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm rounded-sm px-1.5 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark md:px-2",
+            "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm px-1.5 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark md:px-2",
             {
               "border border-transparent bg-blue-400/50 dark:bg-blue-700/30":
                 !childrenExpanded,
@@ -132,8 +132,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
             const opacityClass =
               treeDepth % 2 === 1
-                ? "bg-blue-100 dark:bg-blue-100-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md" +
-                  (treeDepth === 1 ? " overflow-hidden" : "")
+                ? "bg-blue-100 dark:bg-blue-100-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md"
                 : treeDepth === 2
                   ? "bg-blue-200 dark:bg-blue-200-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md"
                   : "bg-blue-200 dark:bg-blue-200-dark border-r-0 pr-0.5";
@@ -240,16 +239,33 @@ const Comment: FC<CommentProps> = ({
     }
   };
 
+  // scroll to comment from URL hash
   useEffect(() => {
     const match = window.location.hash.match(/#comment-(\d+)/);
     if (!match) return;
 
     const focus_comment_id = Number(match[1]);
     if (focus_comment_id === comment.id) {
-      commentRef.current?.scrollIntoView({
-        behavior: "smooth",
-        inline: "center",
-      });
+      // timeout is used as a workaround to pages where we render client components, that can't be rendered on the server
+      // (e.g. markdown editor), therefore, the actual Y position of the comment is not known until
+      // the client-side rendering is complete
+      const timeoutId = setTimeout(() => {
+        if (commentRef.current) {
+          const headerOffset = 48;
+          const extraOffset = 12;
+          const offset = headerOffset + extraOffset;
+
+          const targetTop =
+            commentRef.current.getBoundingClientRect().top +
+            window.scrollY -
+            offset;
+          window.scrollTo({ top: targetTop, behavior: "smooth" });
+        }
+      }, 1000);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
   }, [comment.id]);
 

@@ -40,7 +40,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-50"
+        className="z-100 relative"
         onClose={isImmersive ? () => {} : onClose}
         onWheel={(e) => isImmersive && e.stopPropagation()}
       >

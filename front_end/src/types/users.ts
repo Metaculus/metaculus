@@ -54,6 +54,7 @@ export type CurrentUser = User & {
   unsubscribed_mailing_tags: SubscriptionEmailType[];
   unsubscribed_preferences_tags: ProfilePreferencesType[];
   hide_community_prediction: boolean;
+  is_onboarding_complete: boolean;
 };
 
 export enum ProfilePageMode {

@@ -54,6 +54,16 @@ const CurveHistogram: FC<Props> = ({
         padding={{ top: 0, bottom: 25, left: 10, right: 10 }}
         height={height}
       >
+        <VictoryBar
+          data={histogramData}
+          style={{
+            data: {
+              fill: "light" + color,
+            },
+          }}
+          barRatio={1.2}
+          x={(d) => d.x + 0.5}
+        />
         <VictoryAxis
           tickValues={range(0, 101)}
           tickFormat={(x: number) => (x % 10 === 0 ? `${x}%` : "")}
@@ -64,16 +74,6 @@ const CurveHistogram: FC<Props> = ({
             axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
             grid: { stroke: "none" },
           }}
-        />
-        <VictoryBar
-          data={histogramData}
-          style={{
-            data: {
-              fill: "light" + color,
-            },
-          }}
-          barRatio={1.7}
-          x={(d) => d.x + 0.5}
         />
         {choiceOptions[0].forecast && (
           <VictoryScatter

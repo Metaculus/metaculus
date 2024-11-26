@@ -159,20 +159,24 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return QuestionStatus.OPEN
 
-    def get_global_leaderboard_dates(self) -> tuple[datetime, datetime] | None:
+    def get_global_leaderboard_dates(
+        self, gl_dates: list[tuple[datetime, datetime]] | None = None
+    ) -> tuple[datetime, datetime] | None:
         # returns the global leaderboard dates that this question counts for
-        from scoring.models import global_leaderboard_dates
 
         forecast_horizon_start = self.open_time
         forecast_horizon_end = self.scheduled_close_time
         if forecast_horizon_start is None or forecast_horizon_end is None:
             return (None, None)
-        global_leaderboard_dates = global_leaderboard_dates()
+        if gl_dates is None:
+            from scoring.models import global_leaderboard_dates
+
+            gl_dates = global_leaderboard_dates()
 
         # iterate over the global leaderboard dates in reverse order
         # to find the shortest interval that this question counts for
         shortest_window = (None, None)
-        for gl_start, gl_end in global_leaderboard_dates[::-1]:
+        for gl_start, gl_end in gl_dates[::-1]:
             if forecast_horizon_start < gl_start or gl_end < forecast_horizon_start:
                 continue
             if forecast_horizon_end > gl_end + timedelta(days=3):

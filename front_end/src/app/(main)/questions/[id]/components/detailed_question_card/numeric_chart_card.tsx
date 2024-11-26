@@ -8,7 +8,7 @@ import NumericChart from "@/components/charts/numeric_chart";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { Question } from "@/types/question";
-import { getDisplayUserValue, getDisplayValue } from "@/utils/charts";
+import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
 
@@ -36,7 +36,7 @@ const NumericChartCard: FC<Props> = ({
   const cursorData = useMemo(() => {
     if (!isCPRevealed) {
       return {
-        timestamp: cursorTimestamp,
+        timestamp: question.my_forecasts?.latest?.start_time ?? null,
         forecasterCount: nrForecasters ?? 0,
         interval_lower_bound: null,
         center: null,
@@ -160,10 +160,9 @@ const NumericChartCard: FC<Props> = ({
         {!!question.my_forecasts?.history.length && (
           <CursorDetailItem
             title={t("myPrediction")}
-            text={getDisplayUserValue(
+            text={getUserPredictionDisplayValue(
               question.my_forecasts,
-              cursorData!.center as number,
-              cursorData!.timestamp as number,
+              cursorData.timestamp,
               question.type,
               question.scaling
             )}

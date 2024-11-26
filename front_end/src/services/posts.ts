@@ -19,6 +19,7 @@ import { get, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {
+  page?: number;
   topic?: string;
   answered_by_me?: boolean;
   search?: string;

@@ -137,17 +137,19 @@ const MultipleChoiceGroupChart: FC<Props> = ({
             return {
               choiceLabel: choice,
               color,
-              valueLabel: getQuestionTooltipLabel({
-                timestamps: optionTimestamps ?? timestamps,
-                values,
-                cursorTimestamp,
-                closeTime,
-                question: questions[index],
-              }),
+              valueLabel: hideCP
+                ? "-"
+                : getQuestionTooltipLabel({
+                    timestamps: optionTimestamps ?? timestamps,
+                    values,
+                    cursorTimestamp,
+                    closeTime,
+                    question: questions[index],
+                  }),
             };
           }
         ),
-    [choiceItems, cursorTimestamp, questions, timestamps]
+    [choiceItems, cursorTimestamp, hideCP, questions, timestamps]
   );
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     if (!userForecasts) {
@@ -208,7 +210,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
 
   return (
     <MultiChoicesChartView
-      tooltipChoices={!!hideCP ? [] : tooltipChoices}
+      tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
       forecastersCount={forecastersCount}
       choiceItems={!!hideCP ? [] : choiceItems}

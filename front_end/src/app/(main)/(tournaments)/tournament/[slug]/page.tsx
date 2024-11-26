@@ -88,9 +88,8 @@ export default async function TournamentSlug({ params }: Props) {
               alt=""
               fill
               priority
-              sizes="(max-width: 1200px) 100vw, 780px"
               className="size-full object-cover object-center"
-              quality={100}
+              unoptimized
             />
           </div>
         )}

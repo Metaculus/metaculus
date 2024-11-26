@@ -67,6 +67,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "is_staff",
             "unsubscribed_mailing_tags",
             "hide_community_prediction",
+            "is_onboarding_complete",
         )
 
 
@@ -93,6 +94,7 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "profile_picture",
             "unsubscribed_mailing_tags",
             "hide_community_prediction",
+            "is_onboarding_complete",
         )
 
 

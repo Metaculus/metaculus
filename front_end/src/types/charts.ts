@@ -29,7 +29,7 @@ export type NumericChartType = "date" | "numeric" | "binary";
 
 export type FanOption = {
   name: string;
-  quartiles: Quartiles;
+  quartiles: Quartiles | undefined;
   resolved: boolean;
   question: QuestionWithNumericForecasts;
 };

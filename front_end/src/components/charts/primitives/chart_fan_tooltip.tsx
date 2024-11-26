@@ -11,7 +11,7 @@ const HEIGHT = 70;
 type Props = ComponentProps<typeof VictoryLabel> & {
   items: Record<
     string,
-    { quartiles: Quartiles; question: QuestionWithNumericForecasts }
+    { quartiles: Quartiles | undefined; question: QuestionWithNumericForecasts }
   >;
   width: number;
   chartHeight: number;
@@ -43,6 +43,9 @@ const ChartFanTooltip: FC<Props> = ({
 
   const padding = 10;
   const position = y + padding + HEIGHT > chartHeight ? "top" : "bottom";
+  if (!quartiles) {
+    return null;
+  }
 
   return (
     <g style={{ pointerEvents: "none" }}>
