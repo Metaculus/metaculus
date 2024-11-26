@@ -16,3 +16,8 @@ export type NewsArticle = {
   media_label: string;
   user_vote: VoteDirection;
 };
+
+export type NotebookIndex = Record<
+  number,
+  Array<{ questionId: number; weight: number }>
+>;

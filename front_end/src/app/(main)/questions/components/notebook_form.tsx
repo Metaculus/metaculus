@@ -78,7 +78,7 @@ const NotebookForm: React.FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
-  console.log(post);
+
   const t = useTranslations();
   const notebookSchema = createNotebookSchema(t);
   const control = useForm({

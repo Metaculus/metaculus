@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,10 +28,13 @@ import {
 } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
-import { PostWithNotebook } from "@/types/post";
+import { PostWithForecastsAndWeight, PostWithNotebook } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
+
+import NotebookIndex from "../../components/notebook_index/notebook_index";
+import { NotebookIndexes } from "../../constants/indexes";
 
 type Props = {
   params: { id: number; slug: string[] };
@@ -68,6 +72,22 @@ export default async function IndividualNotebook({ params }: Props) {
     );
   }
 
+  const isIndexNotebook = !isNil(NotebookIndexes[params.id]);
+  let indexQuestions: PostWithForecastsAndWeight[] = [];
+  if (isIndexNotebook) {
+    const questionIds = NotebookIndexes[params.id].map((q) => q.questionId);
+    const questionWeightsMap = Object.fromEntries(
+      NotebookIndexes[params.id].map((q) => [q.questionId, q.weight])
+    );
+    const { results: questions } = await PostsApi.getPostsWithCP({
+      ids: questionIds,
+    });
+    indexQuestions = questions.map((question) => ({
+      ...question,
+      weight: questionWeightsMap[question.id] || 0,
+    }));
+  }
+
   const locale = await getLocale();
   const t = await getTranslations();
   const questionTitle = getQuestionTitle(postData);
@@ -79,124 +99,134 @@ export default async function IndividualNotebook({ params }: Props) {
         <Header />
       )}
 
-      <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
-        {postData.notebook.image_url &&
-        postData.notebook.image_url.startsWith("https:") ? (
-          <Image
-            src={postData.notebook.image_url}
-            alt=""
-            // fill
-            priority
-            width={1088}
-            height={180}
-            sizes="(max-width: 1200px) 100%, 1088px"
-            className="relative mb-8 h-auto max-h-72 w-full object-cover"
-            quality={100}
-          />
-        ) : (
-          <Image
-            className="mb-8 h-auto max-h-72 w-full object-cover"
-            src={imagePlaceholder}
-            alt=""
-            placeholder={"blur"}
-            quality={100}
-          />
-        )}
-
-        <PostHeader post={postData} questionTitle={questionTitle} />
-
-        <h1
-          id={NOTEBOOK_TITLE}
-          className="mb-4 mt-0 font-serif text-3xl leading-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl sm:leading-tight"
-        >
-          {postData.title}
-        </h1>
-        <div className="flex justify-between gap-2">
-          <div className="flex flex-wrap items-center text-gray-700 dark:text-gray-700-dark">
-            <span className="whitespace-nowrap">
-              by{" "}
-              <Link
-                href={`/accounts/profile/${postData.author_id}`}
-                className="font-bold no-underline hover:underline"
-              >
-                {postData.author_username}
-              </Link>
-            </span>
-            <CircleDivider className="mx-1" />
-
-            <span className="whitespace-nowrap">
-              {formatDate(locale, new Date(postData.published_at))}
-            </span>
-            <CircleDivider className="mx-1" />
-            <span className="whitespace-nowrap">
-              Edited on{" "}
-              {formatDate(locale, new Date(postData.notebook.edited_at))}
-            </span>
-            <CircleDivider className="mx-1" />
-            <span className="whitespace-nowrap">
-              {t("estimatedReadingTime", {
-                minutes: estimateReadingTime(postData.notebook.markdown),
-              })}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <SharePostMenu questionTitle={questionTitle} />
-            <PostDropdownMenu post={postData} />
-          </div>
-        </div>
-
-        <hr className="my-4 border-gray-400 dark:border-gray-400-dark" />
-
-        <div className="block md:flex md:gap-8">
-          <div className="inline w-full md:mt-3 md:min-w-56 md:max-w-56">
-            <NotebookContentSections
-              commentsCount={postData.comment_count ?? 0}
-              unreadComments={postData.unread_comment_count}
+      {!isIndexNotebook ? (
+        <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
+          {postData.notebook.image_url &&
+          postData.notebook.image_url.startsWith("https:") ? (
+            <Image
+              src={postData.notebook.image_url}
+              alt=""
+              // fill
+              priority
+              width={1088}
+              height={180}
+              sizes="(max-width: 1200px) 100%, 1088px"
+              className="relative mb-8 h-auto max-h-72 w-full object-cover"
+              quality={100}
             />
-          </div>
-          <div className="w-full">
-            <NotebookEditor
-              postData={postData as PostWithNotebook}
-              contentId={NOTEBOOK_CONTENT_SECTION}
+          ) : (
+            <Image
+              className="mb-8 h-auto max-h-72 w-full object-cover"
+              src={imagePlaceholder}
+              alt=""
+              placeholder={"blur"}
+              quality={100}
             />
-            {!!postData.projects.category?.length && (
-              <div>
-                <div>{t("Categories") + ":"}</div>
+          )}
+
+          <PostHeader post={postData} questionTitle={questionTitle} />
+
+          <h1
+            id={NOTEBOOK_TITLE}
+            className="mb-4 mt-0 font-serif text-3xl leading-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl sm:leading-tight"
+          >
+            {postData.title}
+          </h1>
+          <div className="flex justify-between gap-2">
+            <div className="flex flex-wrap items-center text-gray-700 dark:text-gray-700-dark">
+              <span className="whitespace-nowrap">
+                by{" "}
+                <Link
+                  href={`/accounts/profile/${postData.author_id}`}
+                  className="font-bold no-underline hover:underline"
+                >
+                  {postData.author_username}
+                </Link>
+              </span>
+              <CircleDivider className="mx-1" />
+
+              <span className="whitespace-nowrap">
+                {formatDate(locale, new Date(postData.published_at))}
+              </span>
+              <CircleDivider className="mx-1" />
+              <span className="whitespace-nowrap">
+                Edited on{" "}
+                {formatDate(locale, new Date(postData.notebook.edited_at))}
+              </span>
+              <CircleDivider className="mx-1" />
+              <span className="whitespace-nowrap">
+                {t("estimatedReadingTime", {
+                  minutes: estimateReadingTime(postData.notebook.markdown),
+                })}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <SharePostMenu questionTitle={questionTitle} />
+              <PostDropdownMenu post={postData} />
+            </div>
+          </div>
+
+          <hr className="my-4 border-gray-400 dark:border-gray-400-dark" />
+
+          <div className="block md:flex md:gap-8">
+            <div className="inline w-full md:mt-3 md:min-w-56 md:max-w-56">
+              <NotebookContentSections
+                commentsCount={postData.comment_count ?? 0}
+                unreadComments={postData.unread_comment_count}
+              />
+            </div>
+            <div className="w-full">
+              <NotebookEditor
+                postData={postData as PostWithNotebook}
+                contentId={NOTEBOOK_CONTENT_SECTION}
+              />
+              {!!postData.projects.category?.length && (
                 <div>
-                  {postData.projects.category?.map((category) => (
-                    <div key={category.id}>
-                      <Link
-                        href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
-                      >
-                        {category.name}
-                      </Link>
-                    </div>
-                  ))}
+                  <div>{t("Categories") + ":"}</div>
+                  <div>
+                    {postData.projects.category?.map((category) => (
+                      <div key={category.id}>
+                        <Link
+                          href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
+                        >
+                          {category.name}
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            {!!postData.projects.tag?.length && (
-              <div>
-                <div>{t("tags") + ":"}</div>
+              )}
+              {!!postData.projects.tag?.length && (
                 <div>
-                  {postData.projects.tag?.map((tag) => (
-                    <div key={tag.id}>
-                      <Link href={`/questions?${POST_TAGS_FILTER}=${tag.slug}`}>
-                        {tag.name}
-                      </Link>
-                    </div>
-                  ))}
+                  <div>{t("tags") + ":"}</div>
+                  <div>
+                    {postData.projects.tag?.map((tag) => (
+                      <div key={tag.id}>
+                        <Link
+                          href={`/questions?${POST_TAGS_FILTER}=${tag.slug}`}
+                        >
+                          {tag.name}
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            <CommentFeed
-              postData={postData}
-              id={NOTEBOOK_COMMENTS_TITLE}
-              inNotebook={true}
-            />
+              )}
+              <CommentFeed
+                postData={postData}
+                id={NOTEBOOK_COMMENTS_TITLE}
+                inNotebook={true}
+              />
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      ) : (
+        <NotebookIndex
+          postData={postData}
+          questionTitle={questionTitle}
+          indexQuestions={indexQuestions}
+        />
+      )}
     </>
   );
 }
