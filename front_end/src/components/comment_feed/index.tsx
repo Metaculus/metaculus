@@ -305,7 +305,7 @@ const CommentFeed: FC<Props> = ({
       <section
         id={id}
         className={classNames(
-          "max-w-full text-gray-900 dark:text-gray-900-dark",
+          "max-w-full rounded text-gray-900 dark:text-gray-900-dark",
           {
             "mt-6 w-full px-0 md:px-3": inNotebook,
           },
