@@ -15,6 +15,7 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 
 import ContinuousPredictionChart from "./continuous_prediction_chart";
 import { useHideCP } from "../cp_provider";
+import Checkbox from "@/components/ui/checkbox";
 
 type Props = {
   forecast: MultiSliderValue[];
@@ -24,6 +25,8 @@ type Props = {
     pmf: number[];
   };
   onChange: (forecast: MultiSliderValue[], weights: number[]) => void;
+  overlayPreviousForecast: boolean;
+  setOverlayPreviousForecast: (value: boolean) => void;
   question: QuestionWithNumericForecasts;
   disabled?: boolean;
 };
@@ -33,6 +36,8 @@ const ContinuousSlider: FC<Props> = ({
   weights,
   dataset,
   onChange,
+  overlayPreviousForecast,
+  setOverlayPreviousForecast,
   question,
   disabled = false,
 }) => {
@@ -40,23 +45,38 @@ const ContinuousSlider: FC<Props> = ({
   const { hideCP } = useHideCP();
   const t = useTranslations();
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
+  const previousForecast = question.my_forecasts?.latest;
 
   return (
     <div>
-      <InlineSelect<ContinuousAreaGraphType>
-        options={[
-          { label: t("pdfLabel"), value: "pmf" },
-          { label: t("cdfLabel"), value: "cdf" },
-        ]}
-        defaultValue={graphType}
-        className="appearance-none border-none !p-0 text-sm"
-        onChange={(e) =>
-          setGraphType(e.target.value as ContinuousAreaGraphType)
-        }
-      />
+      <div className="mb-2 flex items-center">
+        <InlineSelect<ContinuousAreaGraphType>
+          options={[
+            { label: t("pdfLabel"), value: "pmf" },
+            { label: t("cdfLabel"), value: "cdf" },
+          ]}
+          defaultValue={graphType}
+          className="appearance-none border-none !p-0 text-sm"
+          onChange={(e) =>
+            setGraphType(e.target.value as ContinuousAreaGraphType)
+          }
+        />
+        {previousForecast && (
+          <div className="ml-auto flex items-center">
+            <Checkbox
+              checked={overlayPreviousForecast}
+              onChange={(checked) => setOverlayPreviousForecast(checked)}
+              className={"text-sm"}
+              label={t("overlayPreviousForecast")}
+            ></Checkbox>
+          </div>
+        )}
+      </div>
+
       <ContinuousPredictionChart
         dataset={dataset}
         graphType={graphType}
+        overlayPreviousForecast={overlayPreviousForecast}
         question={question}
         readOnly={disabled}
         showCP={!user || !hideCP || !!question.resolution}

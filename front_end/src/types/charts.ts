@@ -41,7 +41,7 @@ export enum TimelineChartZoomOption {
   All = "all",
 }
 
-export type ContinuousAreaType = "community" | "user";
+export type ContinuousAreaType = "community" | "user" | "user_previous";
 
 export type ContinuousAreaHoverState = {
   x: number;
