@@ -27,7 +27,14 @@ class CustomTranslationAdmin(admin.ModelAdmin):
         activate(settings.ORIGINAL_LANGUAGE_CODE)
         return super().get_form(request, obj, **kwargs)
 
-    # def get_all_translated_fields_for_field(self, field):
+    def should_update_translations(self, obj):
+        return True
+
+    def save_model(self, request, obj: "TranslatedModel", form, change):
+        super().save_model(request, obj, form, change)
+
+        if self.should_update_translations(obj):
+            obj.trigger_translation_if_dirty()
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
@@ -157,11 +164,6 @@ class TranslatedModel(models.Model):
             update_translations.send(app_label, model_name, self.pk)
 
     def save(self, *args, **kwargs):
-        skip_translations = kwargs.get("skip_translations", False)
-        if skip_translations:
-            kwargs.pop("skip_translations")
-            return super().save(*args, **kwargs)
-
         initial_update_fields = kwargs.get("update_fields", None)
 
         extra_update_fields = self.update_fields_with_original_content(
@@ -173,9 +175,6 @@ class TranslatedModel(models.Model):
             kwargs["update_fields"] = initial_update_fields + extra_update_fields
 
         super().save(*args, **kwargs)
-
-        # Now post a dramatiq task to detect the language and update outdated translations
-        self.trigger_translation_if_dirty()
 
 
 class TimeStampedModel(models.Model):
