@@ -22,6 +22,7 @@ export function parseComment(
     changed_my_mind: comment.changed_my_mind,
     mentioned_users: comment.mentioned_users,
     is_current_content_translated: comment.is_current_content_translated,
+    key_factors: comment.key_factors,
   };
 }
 

@@ -957,5 +957,6 @@
   "joinAgiWorkshop": "Join the AGI Readiness Workshop on Saturday at 4pm to generate and discuss more questions.",
   "visitTournamentPage": "If you’d like to change your forecasts, visit the Tournament Page.",
   "forecastedAllQuestions": "You’ve forecasted on all {questionNumber} questions!",
-  "answerAfterEditing": "Answers cannot be edited after submission."
+  "answerAfterEditing": "Answers cannot be edited after submission.",
+  "keyFactor": "Key Factor"
 }

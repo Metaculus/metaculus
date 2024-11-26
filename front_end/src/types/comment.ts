@@ -33,6 +33,7 @@ export type BECommentType = {
     title: string;
   };
   is_current_content_translated?: boolean;
+  key_factors?: KeyFactor[];
 };
 
 export type CommentType = BECommentType & {
@@ -47,4 +48,12 @@ export type ForecastType = {
   continuous_cdf: number[];
   quartiles: number[];
   question_type: QuestionType;
+};
+
+export type KeyFactor = {
+  id: number;
+  text: string;
+  comment_id: string;
+  user_vote: number | null;
+  votes_score: number;
 };
