@@ -60,6 +60,10 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         url = reverse("admin:posts_post_change", args=[post.id])
         return format_html('<a href="{}">{}</a>', url, f"Post-{post.id}")
 
+    def should_update_translations(self, obj):
+        is_private = obj.post.default_project.default_permission is None
+        return not is_private
+
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
         if "post_link" in fields:
@@ -95,6 +99,10 @@ class ConditionalAdmin(admin.ModelAdmin):
     search_fields = ["id"]
     autocomplete_fields = ["condition", "condition_child"]
 
+    def should_update_translations(self, obj):
+        is_private = obj.post.default_project.default_permission is None
+        return not is_private
+
     def get_actions(self, request):
         actions = super().get_actions(request)
         if "delete_selected" in actions:
@@ -111,6 +119,10 @@ class GroupOfQuestionsAdmin(CustomTranslationAdmin):
         if "delete_selected" in actions:
             del actions["delete_selected"]
         return actions
+
+    def should_update_translations(self, obj):
+        is_private = obj.post.default_project.default_permission is None
+        return not is_private
 
 
 @admin.register(Forecast)
