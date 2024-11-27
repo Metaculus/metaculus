@@ -89,25 +89,12 @@ export default function PostHeader({
         </span>
         {allowModifications && (
           <>
-            <a
+            <Link
               className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 no-underline dark:bg-blue-400-dark dark:text-blue-700-dark"
               href={`/questions/create/${edit_type}?post_id=${post.id}`}
             >
               {t("edit")}
-            </a>
-            {post.curation_status === PostStatus.APPROVED &&
-            [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
-              post.user_permission
-            ) &&
-            post.forecasts_count! < 1 ? (
-              <Button
-                onClick={async () => {
-                  setIsApprovalModalOpen(true);
-                }}
-              >
-                {t("editOpenAndCpRevealTimes")}
-              </Button>
-            ) : null}
+            </Link>
           </>
         )}
         {!post.notebook && (
