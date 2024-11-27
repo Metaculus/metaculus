@@ -239,16 +239,33 @@ const Comment: FC<CommentProps> = ({
     }
   };
 
+  // scroll to comment from URL hash
   useEffect(() => {
     const match = window.location.hash.match(/#comment-(\d+)/);
     if (!match) return;
 
     const focus_comment_id = Number(match[1]);
     if (focus_comment_id === comment.id) {
-      commentRef.current?.scrollIntoView({
-        behavior: "smooth",
-        inline: "center",
-      });
+      // timeout is used as a workaround to pages where we render client components, that can't be rendered on the server
+      // (e.g. markdown editor), therefore, the actual Y position of the comment is not known until
+      // the client-side rendering is complete
+      const timeoutId = setTimeout(() => {
+        if (commentRef.current) {
+          const headerOffset = 48;
+          const extraOffset = 12;
+          const offset = headerOffset + extraOffset;
+
+          const targetTop =
+            commentRef.current.getBoundingClientRect().top +
+            window.scrollY -
+            offset;
+          window.scrollTo({ top: targetTop, behavior: "smooth" });
+        }
+      }, 1000);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
   }, [comment.id]);
 

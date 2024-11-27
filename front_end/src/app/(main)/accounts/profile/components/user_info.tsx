@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useEffect, useState } from "react";
-import { useFormState } from "react-dom";
+import { useFormState, useFormStatus } from "react-dom";
 import { Controller, useForm } from "react-hook-form";
 
 import {
@@ -21,6 +21,7 @@ import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { UserProfile } from "@/types/users";
+import { LogOut } from "@/app/(main)/accounts/actions";
 
 import SocialMediaSection from "./social_media_section";
 
@@ -47,15 +48,23 @@ const UserInfo: FC<UserInfoProps> = ({
   );
   useEffect(() => {
     if (!state?.user) {
+      if (state?.errors?.error_code === "SPAM_DETECTED") {
+        setEditMode(false);
+        alert(
+          "Your account has been deactivated for detected spam. Please contact support@metaculus.com if you believe this was a mistake."
+        );
+        LogOut();
+      }
       return;
     }
 
     setUser(state.user);
     setEditMode(false);
-  }, [setUser, state?.user]);
+  }, [setUser, state?.user, state?.errors]);
 
   const keyStatStyles =
     "flex w-1/3 flex-col min-h-[90px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
+
   return (
     <form action={formAction}>
       {
@@ -64,11 +73,7 @@ const UserInfo: FC<UserInfoProps> = ({
         >
           {isCurrentUser && (
             <div className="flex flex-col">
-              {editMode && (
-                <Button variant="primary" type="submit">
-                  {t("submit")}
-                </Button>
-              )}
+              {editMode && <SubmitButton />}
               {!editMode && (
                 <Button variant="link" onClick={() => setEditMode(true)}>
                   {t("edit")}
@@ -252,6 +257,17 @@ const UserInfo: FC<UserInfoProps> = ({
         </div>
       </div>
     </form>
+  );
+};
+
+const SubmitButton = () => {
+  const { pending } = useFormStatus();
+  const t = useTranslations();
+
+  return (
+    <Button variant="primary" type="submit" disabled={pending}>
+      {pending ? t("pending") : t("submit")}
+    </Button>
   );
 };
 

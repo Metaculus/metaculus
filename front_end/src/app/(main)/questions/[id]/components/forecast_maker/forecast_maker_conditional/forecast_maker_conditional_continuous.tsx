@@ -315,6 +315,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     }
   };
 
+  const previousForecast = activeOptionData?.question.my_forecasts?.latest;
+  const [overlayPreviousForecast, setOverlayPreviousForecast] =
+    useState<boolean>(
+      !!previousForecast?.forecast_values && !previousForecast.slider_values
+    );
+
   const userCdf: number[] | undefined =
     activeOptionData &&
     getNumericForecastDataset(
@@ -323,6 +329,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       activeOptionData.question.open_lower_bound!,
       activeOptionData.question.open_upper_bound!
     ).cdf;
+  const userPreviousCdf: number[] | undefined =
+    overlayPreviousForecast && previousForecast
+      ? previousForecast.forecast_values
+      : undefined;
   const communityCdf: number[] | undefined =
     activeOptionData?.question.aggregations.recency_weighted.latest
       ?.forecast_values;
@@ -361,6 +371,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             question={option.question}
             forecast={option.sliderForecast}
             weights={option.weights}
+            overlayPreviousForecast={overlayPreviousForecast}
+            setOverlayPreviousForecast={setOverlayPreviousForecast}
             dataset={getNumericForecastDataset(
               option.sliderForecast,
               option.weights,
@@ -449,6 +461,19 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               belowLower: communityCdf![0],
               aboveUpper: 1 - communityCdf![communityCdf!.length - 1],
             }
+          }
+          userPreviousBounds={
+            userPreviousCdf
+              ? {
+                  belowLower: userPreviousCdf[0],
+                  aboveUpper: 1 - userPreviousCdf[userPreviousCdf.length - 1],
+                }
+              : undefined
+          }
+          userPreviousQuartiles={
+            userPreviousCdf
+              ? computeQuartilesFromCDF(userPreviousCdf)
+              : undefined
           }
           communityQuartiles={
             communityCdf && computeQuartilesFromCDF(communityCdf)

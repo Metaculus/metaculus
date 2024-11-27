@@ -10,6 +10,7 @@ import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 
+import GlobalSearch from "../global_search";
 import ContentTranslatedBanner from "../content_translated_banner";
 import MobileMenu from "../mobile_menu";
 
@@ -53,6 +54,9 @@ const Header: FC = () => {
             <span className="inline xs:hidden">M</span>
           </h1>
         </Link>
+
+        {/* Global Search */}
+        <GlobalSearch />
 
         {/*Common items for desktop and mobile*/}
         <ul className="flex flex-auto list-none items-stretch justify-end p-0 text-sm font-medium">

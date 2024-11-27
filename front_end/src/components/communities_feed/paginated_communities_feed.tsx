@@ -1,6 +1,7 @@
 "use client";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import React, { FC, useState } from "react";
 
 import { fetchMoreCommunities } from "@/app/(main)/c/actions";
 import Button from "@/components/ui/button";
@@ -73,6 +74,13 @@ const PaginatedCommunitiesFeed: FC<Props> = ({
             </span>
           ),
         })}
+        <p>
+          {t.rich("introducingCommunitiesContact", {
+            contact: (chunks) => (
+              <Link href="mailto:christian@metaculus.com">{chunks}</Link>
+            ),
+          })}
+        </p>
       </div>
       {!!followedCommunities.length && (
         <>

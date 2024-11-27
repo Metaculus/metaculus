@@ -125,14 +125,6 @@ class Comment(TimeStampedModel, TranslatedModel):  # type: ignore
         if self.parent:
             self.root = self.root or self.parent.root or self.parent
 
-        on_bots_tournament = (
-            self.on_post is not None
-            and self.on_post.default_project is not None
-            and self.on_post.default_project.include_bots_in_leaderboard
-        )
-        if self.author.is_bot and on_bots_tournament:
-            kwargs["skip_translations"] = True
-
         return super().save(**kwargs)
 
 

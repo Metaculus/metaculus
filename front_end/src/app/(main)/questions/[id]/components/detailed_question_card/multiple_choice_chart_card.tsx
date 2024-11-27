@@ -98,9 +98,11 @@ const MultipleChoiceChartCard: FC<Props> = ({
         .map(({ choice, values, color }) => ({
           choiceLabel: choice,
           color,
-          valueLabel: getForecastPctDisplayValue(values[cursorIndex]),
+          valueLabel: hideCP
+            ? "-"
+            : getForecastPctDisplayValue(values[cursorIndex]),
         })),
-    [choiceItems, cursorIndex]
+    [choiceItems, cursorIndex, hideCP]
   );
 
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
@@ -144,7 +146,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
 
   return (
     <MultiChoicesChartView
-      tooltipChoices={hideCP ? [] : tooltipChoices}
+      tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
       choiceItems={hideCP ? [] : choiceItems}
       timestamps={timestamps}

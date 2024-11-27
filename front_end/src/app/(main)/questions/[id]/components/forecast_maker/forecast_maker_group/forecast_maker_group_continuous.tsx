@@ -267,6 +267,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     }
   }, [postId, questionsToSubmit]);
 
+  const previousForecast = activeGroupOption?.question.my_forecasts?.latest;
+  const [overlayPreviousForecast, setOverlayPreviousForecast] =
+    useState<boolean>(
+      !!previousForecast?.forecast_values && !previousForecast.slider_values
+    );
+
   const userCdf: number[] | undefined =
     activeGroupOption &&
     getNumericForecastDataset(
@@ -275,6 +281,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       activeGroupOption?.question.open_lower_bound!,
       activeGroupOption?.question.open_upper_bound!
     ).cdf;
+  const userPreviousCdf: number[] | undefined =
+    overlayPreviousForecast && previousForecast
+      ? previousForecast.forecast_values
+      : undefined;
   const communityCdf: number[] | undefined =
     activeGroupOption?.question.aggregations.recency_weighted.latest
       ?.forecast_values;
@@ -312,6 +322,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             <ContinuousSlider
               question={option.question}
               forecast={normalizedUserForecast}
+              overlayPreviousForecast={overlayPreviousForecast}
+              setOverlayPreviousForecast={setOverlayPreviousForecast}
               weights={option.userWeights}
               dataset={dataset}
               onChange={(forecast, weight) =>
@@ -387,6 +399,19 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               }
             }
             userQuartiles={activeGroupOption.userQuartiles ?? undefined}
+            userPreviousBounds={
+              userPreviousCdf
+                ? {
+                    belowLower: userPreviousCdf[0],
+                    aboveUpper: 1 - userPreviousCdf[userPreviousCdf.length - 1],
+                  }
+                : undefined
+            }
+            userPreviousQuartiles={
+              userPreviousCdf
+                ? computeQuartilesFromCDF(userPreviousCdf)
+                : undefined
+            }
             communityBounds={
               communityCdf && {
                 belowLower: communityCdf[0],

@@ -12,6 +12,8 @@ type Props = {
   question: QuestionWithNumericForecasts;
   userBounds?: Bounds;
   userQuartiles?: Quartiles;
+  userPreviousBounds?: Bounds;
+  userPreviousQuartiles?: Quartiles;
   communityBounds?: Bounds;
   communityQuartiles?: Quartiles;
   withUserQuartiles?: boolean;
@@ -24,6 +26,8 @@ const NumericForecastTable: FC<Props> = ({
   question,
   userBounds,
   userQuartiles,
+  userPreviousBounds,
+  userPreviousQuartiles,
   withUserQuartiles = true,
   communityBounds,
   communityQuartiles,
@@ -41,6 +45,13 @@ const NumericForecastTable: FC<Props> = ({
           <>
             <div className="w-full text-orange-800 dark:text-orange-800-dark">
               {t("myPrediction")}
+            </div>
+          </>
+        )}
+        {withUserQuartiles && userPreviousQuartiles && (
+          <>
+            <div className="w-full text-orange-800 dark:text-orange-800-dark">
+              {t("myPredictionPrevious")}
             </div>
           </>
         )}
@@ -121,6 +132,49 @@ const NumericForecastTable: FC<Props> = ({
                 {question.open_upper_bound && <div>...</div>}
               </>
             )}
+          </div>
+        )}
+        {withUserQuartiles && userPreviousQuartiles && (
+          <div className="w-full text-center">
+            <>
+              {question.open_lower_bound && (
+                <div>
+                  {userPreviousBounds &&
+                    (userPreviousBounds.belowLower * 100).toFixed(1)}
+                  %
+                </div>
+              )}
+              <div>
+                {checkQuartilesOutOfBorders(userPreviousQuartiles?.lower25)}
+                {getDisplayValue(
+                  userPreviousQuartiles?.lower25,
+                  question.type,
+                  question.scaling,
+                  4
+                )}
+              </div>
+              <div>
+                {checkQuartilesOutOfBorders(userPreviousQuartiles?.median)}
+                {getDisplayValue(
+                  userPreviousQuartiles?.median,
+                  question.type,
+                  question.scaling,
+                  4
+                )}
+              </div>
+              <div>
+                {checkQuartilesOutOfBorders(userPreviousQuartiles?.upper75)}
+                {getDisplayValue(
+                  userPreviousQuartiles?.upper75,
+                  question.type,
+                  question.scaling,
+                  4
+                )}
+              </div>
+              {question.open_upper_bound && (
+                <div>{(userPreviousBounds!.aboveUpper * 100).toFixed(1)}%</div>
+              )}
+            </>
           </div>
         )}
 

@@ -19,6 +19,7 @@ import {
   POST_NOT_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_STATUS_FILTER,
+  POST_PAGE_FILTER,
   POST_TAGS_FILTER,
   POST_TEXT_SEARCH_FILTER,
   POST_TOPIC_FILTER,
@@ -34,7 +35,6 @@ import {
   PostForecastType,
   PostStatus,
 } from "@/types/post";
-import { Category, Tag } from "@/types/projects";
 import { QuestionOrder, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 
@@ -65,14 +65,19 @@ export const POST_STATUS_LABEL_MAP = {
 type FiltersFromSearchParamsOptions = {
   defaultOrderBy?: string;
   defaultForMainFeed?: boolean;
+  withoutPageParam?: boolean;
 };
 
 export function generateFiltersFromSearchParams(
   searchParams: SearchParams,
   options: FiltersFromSearchParamsOptions = {}
 ): PostsParams {
-  const { defaultOrderBy, defaultForMainFeed } = options;
+  const { defaultOrderBy, defaultForMainFeed, withoutPageParam } = options;
   const filters: PostsParams = {};
+
+  if (!withoutPageParam && typeof searchParams[POST_PAGE_FILTER] === "string") {
+    filters.page = Number(searchParams[POST_PAGE_FILTER]);
+  }
 
   if (typeof searchParams[POST_TEXT_SEARCH_FILTER] === "string") {
     filters.search = searchParams[POST_TEXT_SEARCH_FILTER];
