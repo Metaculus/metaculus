@@ -59,7 +59,8 @@ class AuthApi {
     turnstileHeaders: Record<string, any>,
     add_to_project?: number,
     campaign_key?: string,
-    campaign_data?: object
+    campaign_data?: object,
+    redirect_url?: string
   ) {
     return post<
       SignUpResponse,
@@ -71,6 +72,7 @@ class AuthApi {
         add_to_project?: number;
         campaign_key?: string;
         campaign_data?: object;
+        redirect_url?: string;
       }
     >(
       "/auth/signup/",
@@ -82,6 +84,7 @@ class AuthApi {
         add_to_project,
         campaign_key,
         campaign_data,
+        redirect_url,
       },
       { headers: turnstileHeaders }
     );

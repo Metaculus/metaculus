@@ -25,6 +25,7 @@ import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import { usePathname } from "next/navigation";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -50,6 +51,8 @@ export const SignupForm: FC<{
     },
   });
 
+  const currentLocation = usePathname();
+
   const {
     register,
     watch,
@@ -61,7 +64,10 @@ export const SignupForm: FC<{
   } = methods;
 
   const onSubmit = async (data: SignUpSchema) => {
-    const response = await signUpAction(data);
+    const response = await signUpAction({
+      ...data,
+      redirectUrl: currentLocation,
+    });
 
     if (response && response.errors) {
       let error;
