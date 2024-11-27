@@ -14,6 +14,7 @@ export const POST_STATUS_FILTER = "status";
 export const POST_CATEGORIES_FILTER = "categories";
 export const POST_TAGS_FILTER = "tags";
 export const POST_FORECASTER_ID_FILTER = "forecaster_id";
+export const POST_WITHDRAWN_FILTER = "withdrawn";
 export const POST_NOT_FORECASTER_ID_FILTER = "not_forecaster_id";
 export const POST_FOR_MAIN_FEED = "for_main_feed";
 export const POST_AUTHOR_FILTER = "author";

@@ -16,6 +16,7 @@ import {
   POST_COMMENTED_BY_FILTER,
   POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
+  POST_WITHDRAWN_FILTER,
   POST_NOT_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_STATUS_FILTER,
@@ -118,6 +119,9 @@ export function generateFiltersFromSearchParams(
 
   if (typeof searchParams[POST_FORECASTER_ID_FILTER] === "string") {
     filters.forecaster_id = searchParams[POST_FORECASTER_ID_FILTER];
+  }
+  if (typeof searchParams[POST_WITHDRAWN_FILTER] === "string") {
+    filters.withdrawn = searchParams[POST_WITHDRAWN_FILTER];
   }
   if (typeof searchParams[POST_AUTHOR_FILTER] === "string") {
     filters.author = searchParams[POST_AUTHOR_FILTER];
@@ -247,13 +251,31 @@ export function getFilterSectionParticipation({
     options: [
       {
         id: POST_FORECASTER_ID_FILTER,
-        label: t("predicted"),
+        label: t("searchOptionPredicted"),
         value: user.id.toString(),
         active: !!params.get(POST_FORECASTER_ID_FILTER),
       },
       {
+        id: POST_WITHDRAWN_FILTER,
+        label: t("searchOptionActivePrediction"),
+        value: false.toString(),
+        active:
+          !!params.get(POST_FORECASTER_ID_FILTER) &&
+          params.get(POST_WITHDRAWN_FILTER) === "false",
+        shouldEnforceSearch: false,
+      },
+      {
+        id: POST_WITHDRAWN_FILTER,
+        label: t("searchOptionWithdrawnPrediction"),
+        value: true.toString(),
+        active:
+          !!params.get(POST_FORECASTER_ID_FILTER) &&
+          params.get(POST_WITHDRAWN_FILTER) === "true",
+        shouldEnforceSearch: false,
+      },
+      {
         id: POST_NOT_FORECASTER_ID_FILTER,
-        label: t("notPredicted"),
+        label: t("searchOptionNotPredicted"),
         value: user.id.toString(),
         active: !!params.get(POST_NOT_FORECASTER_ID_FILTER),
       },

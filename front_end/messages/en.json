@@ -178,6 +178,8 @@
   "searchOptionDraft": "Draft",
   "searchOptionAny": "Any",
   "searchOptionPredicted": "Predicted",
+  "searchOptionActivePrediction": "Active Prediction",
+  "searchOptionWithdrawnPrediction": "Withdrawn",
   "searchOptionNotPredicted": "Not Predicted",
   "searchOptionAuthored": "Authored",
   "searchOptionUpvoted": "Upvoted",

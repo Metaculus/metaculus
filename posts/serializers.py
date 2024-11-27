@@ -223,6 +223,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     public_figure = serializers.CharField(required=False)
     usernames = serializers.ListField(child=serializers.CharField(), required=False)
     forecaster_id = serializers.IntegerField(required=False, allow_null=True)
+    withdrawn = serializers.BooleanField(required=False, allow_null=True)
     not_forecaster_id = serializers.IntegerField(required=False, allow_null=True)
     similar_to_post_id = serializers.IntegerField(required=False, allow_null=True)
 
