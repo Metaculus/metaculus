@@ -18,6 +18,6 @@ export type NewsArticle = {
 };
 
 export type NotebookIndex = Record<
-  number,
+  string,
   Array<{ questionId: number; weight: number }>
 >;

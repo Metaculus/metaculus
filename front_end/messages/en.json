@@ -972,5 +972,11 @@
   "major": "Major",
   "finishRegistration": "Finish Registration",
   "keyFactor": "Key Factor",
-  "keyFactors": "Key Factors"
+  "keyFactors": "Key Factors",
+  "notAvailable": "Not available",
+  "indexesTitle": "Project",
+  "indexScore": "Index value: <bold>{value}</bold>",
+  "indexQuestion": "Question",
+  "indexWeight": "Weight",
+  "indexCP": "CP"
 }

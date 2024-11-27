@@ -34,7 +34,7 @@ import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
 
 import NotebookIndex from "../../components/notebook_index/notebook_index";
-import { NotebookIndexes } from "../../constants/indexes";
+import { NOTEBOOK_INDEXES } from "../../constants/indexes";
 
 type Props = {
   params: { id: number; slug: string[] };
@@ -72,12 +72,13 @@ export default async function IndividualNotebook({ params }: Props) {
     );
   }
 
-  const isIndexNotebook = !isNil(NotebookIndexes[params.id]);
+  const slugParam = params.slug[0];
+  const isIndexNotebook = !isNil(NOTEBOOK_INDEXES[slugParam]);
   let indexQuestions: PostWithForecastsAndWeight[] = [];
   if (isIndexNotebook) {
-    const questionIds = NotebookIndexes[params.id].map((q) => q.questionId);
+    const questionIds = NOTEBOOK_INDEXES[slugParam].map((q) => q.questionId);
     const questionWeightsMap = Object.fromEntries(
-      NotebookIndexes[params.id].map((q) => [q.questionId, q.weight])
+      NOTEBOOK_INDEXES[slugParam].map((q) => [q.questionId, q.weight])
     );
     const { results: questions } = await PostsApi.getPostsWithCP({
       ids: questionIds,

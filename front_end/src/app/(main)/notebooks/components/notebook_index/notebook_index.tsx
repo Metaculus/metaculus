@@ -7,6 +7,8 @@ import { PostWithForecasts, PostWithForecastsAndWeight } from "@/types/post";
 import "./styles.css";
 import IndexQuestions from "./index_questions";
 
+import { useTranslations } from "next-intl";
+
 type Props = {
   postData: PostWithForecasts;
   questionTitle: string;
@@ -18,13 +20,15 @@ const NotebookIndex: FC<Props> = ({
   questionTitle,
   indexQuestions,
 }) => {
+  const t = useTranslations();
+
   // calculate value using formula
   const indexValue = 45;
   return (
     <main className="mx-auto mb-24 mt-12 flex w-full max-w-3xl flex-1 flex-col bg-gray-0 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark">
-      <div className="flex items-center justify-between bg-blue-700 p-2 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-t bg-blue-700 p-2 py-2.5">
         <p className="m-0 ml-3 text-xl font-light uppercase leading-7 text-gray-0">
-          Project
+          {t("indexesTitle")}
         </p>
         <SharePostMenu
           questionTitle={questionTitle}
@@ -39,10 +43,14 @@ const NotebookIndex: FC<Props> = ({
           <MarkdownEditor mode="read" markdown={postData.notebook.markdown} />
         )}
         <p className="text-3xl capitalize leading-9">
-          Index value: <b>{indexValue}</b>
+          {t.rich("indexScore", {
+            value: indexValue,
+            bold: (chunks) => <b>{chunks}</b>,
+          })}
         </p>
+
+        <IndexQuestions indexQuestions={indexQuestions} />
       </div>
-      <IndexQuestions indexQuestions={indexQuestions} />
     </main>
   );
 };
