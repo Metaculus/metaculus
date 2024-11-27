@@ -13,7 +13,6 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from sql_util.aggregates import SubqueryAggregate
 
-from notifications.models import Notification
 from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
