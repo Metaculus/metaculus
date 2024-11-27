@@ -21,6 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { InputContainer } from "@/components/ui/input_container";
 import { useServerAction } from "@/hooks/use_server_action";
 import { SuccessCard } from "./cards";
+import { usePathname } from "next/navigation";
 
 export interface CampaignRegistrationProps {
   campaignKey: string;
@@ -208,6 +209,8 @@ export const RegistrationAndSignupForm: FC<
   const { watch, setValue, formState, handleSubmit, setError, clearErrors } =
     methods;
 
+  const currentLocation = usePathname();
+
   const onSubmit = async (data: SignUpSchema) => {
     const response = await signUpAction({
       ...data,
@@ -219,6 +222,7 @@ export const RegistrationAndSignupForm: FC<
         institution: watch("institution"),
         major: watch("major"),
       },
+      redirectUrl: currentLocation,
     });
 
     if (response && response.errors) {

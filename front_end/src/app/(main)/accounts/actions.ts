@@ -64,7 +64,7 @@ export type SignUpActionState =
   | null;
 
 export async function signUpAction(
-  validatedSignupData: SignUpSchema
+  validatedSignupData: SignUpSchema & { redirectUrl?: string }
 ): Promise<SignUpActionState> {
   const headersList = headers();
 
@@ -80,7 +80,8 @@ export async function signUpAction(
       },
       validatedSignupData.addToProject,
       validatedSignupData.campaignKey,
-      validatedSignupData.campaignData
+      validatedSignupData.campaignData,
+      validatedSignupData.redirectUrl
     );
 
     if (response.is_active && response.token) {
