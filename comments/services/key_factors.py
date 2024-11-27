@@ -5,8 +5,6 @@ from users.models import User
 def key_factor_vote(
     key_factor: KeyFactor, user: User, vote: int = None
 ) -> dict[int, int]:
-    # TODO: check permissions
-
     # Deleting existing vote
     key_factor.votes.filter(user=user).delete()
 
