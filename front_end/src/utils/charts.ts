@@ -348,7 +348,7 @@ export function getUserPredictionDisplayValue(
   showRange?: boolean
 ): string {
   if (!timestamp) {
-    return "?";
+    return "...";
   }
 
   let closestUserForecastIndex = -1;
@@ -365,7 +365,7 @@ export function getUserPredictionDisplayValue(
   }
   const closestUserForecast = myForecasts.history[closestUserForecastIndex];
   if (!closestUserForecast) {
-    return "?";
+    return "...";
   }
 
   let center: number;

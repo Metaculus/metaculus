@@ -324,8 +324,8 @@ function generateChoiceOptions(
   permission?: ProjectPermissions,
   post?: Post
 ): QuestionOption[] {
-  const latest = questions[0].aggregations.recency_weighted.latest;
   return questions.map((question, index) => {
+    const latest = question.aggregations.recency_weighted.latest;
     return {
       id: question.id,
       name: question.label,

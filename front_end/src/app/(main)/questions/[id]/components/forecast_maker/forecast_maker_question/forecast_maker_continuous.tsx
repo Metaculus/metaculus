@@ -72,6 +72,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     prevForecastValue?.weights ?? [1]
   );
   const previousForecast = question.my_forecasts?.latest;
+  console.log(previousForecast);
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(
       !!previousForecast?.forecast_values && !previousForecast.slider_values

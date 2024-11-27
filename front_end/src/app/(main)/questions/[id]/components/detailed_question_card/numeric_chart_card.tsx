@@ -49,9 +49,9 @@ const NumericChartCard: FC<Props> = ({
       );
     } else if (
       cursorTimestamp === null &&
-      !isNil(aggregation.latest?.end_time)
+      isNil(aggregation.latest?.end_time)
     ) {
-      forecastIndex = history.length - 1;
+      forecastIndex = aggregation.history.length - 1;
     }
     return forecastIndex === -1 ? null : aggregation.history[forecastIndex];
   };

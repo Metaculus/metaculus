@@ -146,30 +146,30 @@ const NumericForecastTable: FC<Props> = ({
               )}
               <div>
                 {checkQuartilesOutOfBorders(userPreviousQuartiles?.lower25)}
-                {getDisplayValue(
-                  userPreviousQuartiles?.lower25,
-                  question.type,
-                  question.scaling,
-                  4
-                )}
+                {getDisplayValue({
+                  value: userPreviousQuartiles?.lower25,
+                  questionType: question.type,
+                  scaling: question.scaling,
+                  precision: 4,
+                })}
               </div>
               <div>
                 {checkQuartilesOutOfBorders(userPreviousQuartiles?.median)}
-                {getDisplayValue(
-                  userPreviousQuartiles?.median,
-                  question.type,
-                  question.scaling,
-                  4
-                )}
+                {getDisplayValue({
+                  value: userPreviousQuartiles?.median,
+                  questionType: question.type,
+                  scaling: question.scaling,
+                  precision: 4,
+                })}
               </div>
               <div>
                 {checkQuartilesOutOfBorders(userPreviousQuartiles?.upper75)}
-                {getDisplayValue(
-                  userPreviousQuartiles?.upper75,
-                  question.type,
-                  question.scaling,
-                  4
-                )}
+                {getDisplayValue({
+                  value: userPreviousQuartiles?.upper75,
+                  questionType: question.type,
+                  scaling: question.scaling,
+                  precision: 4,
+                })}
               </div>
               {question.open_upper_bound && (
                 <div>{(userPreviousBounds!.aboveUpper * 100).toFixed(1)}%</div>
