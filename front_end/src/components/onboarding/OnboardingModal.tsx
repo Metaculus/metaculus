@@ -1,9 +1,19 @@
-import { useRouter } from "next/navigation";
-import React, { useState, useEffect, useRef } from "react";
+"use client";
 
+import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { getPost } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
+import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
+import { logError } from "@/utils/errors";
+import {
+  deleteOnboardingStoredState,
+  getOnboardingStoredState,
+  setOnboardingStoredState,
+} from "@/utils/onboarding";
 
 import { onboardingTopics } from "./OnboardingSettings";
 import Step1 from "./steps/Step1";
@@ -16,8 +26,13 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   isOpen,
   onClose,
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
+  const { user } = useAuth();
+  const [currentStep, setCurrentStep] = useState(
+    () => getOnboardingStoredState().currentStep || 1
+  );
+  const [selectedTopic, setSelectedTopic] = useState<number | null>(
+    getOnboardingStoredState().selectedTopic || null
+  );
   const [questionData, setQuestionData] = useState<PostWithForecasts | null>(
     null
   );
@@ -33,6 +48,17 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       modalContentRef.current.scrollTop = 0;
     }
   };
+
+  // Save state into local storage
+  useEffect(() => {
+    if (!user?.is_onboarding_complete) {
+      if (currentStep > 1 && currentStep < 5) {
+        setOnboardingStoredState({ selectedTopic, currentStep });
+      } else {
+        deleteOnboardingStoredState();
+      }
+    }
+  }, [user?.is_onboarding_complete, selectedTopic, currentStep]);
 
   useEffect(() => {
     async function fetchQuestionData() {
@@ -59,6 +85,12 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   }, [selectedTopic, currentStep]);
 
   const handleNext = () => {
+    // Treat tutorial as done when user opens 4th page
+    if (currentStep == 4 && !user?.is_onboarding_complete) {
+      // Mark tutorial as complete
+      updateProfileAction({ is_onboarding_complete: true }).catch(logError);
+    }
+
     if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
       scrollToTop();

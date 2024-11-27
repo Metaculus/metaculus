@@ -1,6 +1,8 @@
 from datetime import timedelta
-
 import numpy as np
+import logging
+from typing import cast
+
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
@@ -28,12 +30,18 @@ from users.serializers import (
     PasswordChangeSerializer,
     EmailChangeSerializer,
 )
-from users.services import (
+from users.services.common import (
     get_users,
     user_unsubscribe_tags,
     send_email_change_confirmation_email,
     change_email_from_token,
 )
+from users.services.spam_detection import (
+    check_profile_update_for_spam,
+    send_deactivation_email,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def get_score_scatter_plot_data(
@@ -440,18 +448,32 @@ def change_username_api_view(request: Request):
 
 
 @api_view(["PATCH"])
-def update_profile_api_view(request: Request):
-    user = request.user
+def update_profile_api_view(request: Request) -> Response:
+    user: User = request.user
     serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
 
-    unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
+    is_spam, _ = check_profile_update_for_spam(
+        user, cast(UserUpdateProfileSerializer, serializer)
+    )
+
+    if is_spam:
+        user.soft_delete()
+        user.save()
+        send_deactivation_email(user.email)
+        return Response(
+            data={
+                "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
+                "error_code": "SPAM_DETECTED",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    unsubscribe_tags: list[str] | None = serializer.validated_data.get(
+        "unsubscribed_mailing_tags"
+    )
     if unsubscribe_tags is not None:
         user_unsubscribe_tags(user, unsubscribe_tags)
-
     serializer.save()
-    user.save()
-
     return Response(UserPrivateSerializer(user).data)
 
 

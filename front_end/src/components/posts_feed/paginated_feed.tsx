@@ -9,12 +9,14 @@ import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { POSTS_PER_PAGE } from "@/constants/posts_feed";
+import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import useSearchParams from "@/hooks/use_search_params";
 import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, PostWithNotebook } from "@/types/post";
 import { logError } from "@/utils/errors";
 
 import EmptyCommunityFeed from "./empty_community_feed";
+import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import InReviewBox from "./in_review_box";
 import { FormErrorMessage } from "../ui/form_field";
 
@@ -34,10 +36,15 @@ const PaginatedPostsFeed: FC<Props> = ({
   isCommunity,
 }) => {
   const t = useTranslations();
-
+  const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
+  const pageNumber = Number(params.get(POST_PAGE_FILTER));
   const [paginatedPosts, setPaginatedPosts] =
     useState<PostWithForecasts[]>(initialQuestions);
-  const [offset, setOffset] = useState(POSTS_PER_PAGE);
+  const [offset, setOffset] = useState(
+    !isNaN(pageNumber) && pageNumber > 0
+      ? pageNumber * POSTS_PER_PAGE
+      : POSTS_PER_PAGE
+  );
   const [hasMoreData, setHasMoreData] = useState(
     initialQuestions.length >= POSTS_PER_PAGE
   );
@@ -83,8 +90,12 @@ const PaginatedPostsFeed: FC<Props> = ({
         }
 
         if (!hasNextPage) setHasMoreData(false);
-        setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
-        setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
+        if (!!newPosts.length) {
+          setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
+          setParam(POST_PAGE_FILTER, `${offset / POSTS_PER_PAGE + 1}`, false);
+          setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
+          shallowNavigateToSearchParams();
+        }
       } catch (err) {
         logError(err);
         const error = err as Error & { digest?: string };
@@ -92,7 +103,6 @@ const PaginatedPostsFeed: FC<Props> = ({
       } finally {
         setIsLoading(false);
       }
-      setIsLoading(false);
     }
   };
 
@@ -124,6 +134,10 @@ const PaginatedPostsFeed: FC<Props> = ({
         {paginatedPosts.map((p) => (
           <Fragment key={p.id}>{renderPost(p)}</Fragment>
         ))}
+        <PostsFeedScrollRestoration
+          pageNumber={pageNumber}
+          initialQuestions={initialQuestions}
+        />
       </div>
 
       {hasMoreData ? (

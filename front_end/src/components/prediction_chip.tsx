@@ -7,7 +7,7 @@ import { CSSProperties, FC, PropsWithChildren } from "react";
 
 import { PostStatus } from "@/types/post";
 import { Question } from "@/types/question";
-import { getDisplayUserValue, getDisplayValue } from "@/utils/charts";
+import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
 type Size = "compact" | "large";

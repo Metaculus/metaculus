@@ -52,8 +52,8 @@ const SidebarQuestionTags: FC<Props> = ({
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 self-stretch border-t border-gray-300 @lg:border-0 dark:border-gray-300-dark">
-      <div className="mt-4 flex flex-wrap content-start items-start gap-2.5 self-stretch @lg:m-0">
+    <div className="flex flex-col items-center justify-center gap-4 self-stretch">
+      <div className="flex flex-wrap content-start items-start gap-2.5 self-stretch @lg:m-0">
         {tournament.map((element) => (
           <Chip
             color="orange"

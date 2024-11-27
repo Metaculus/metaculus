@@ -128,11 +128,11 @@ export function generateTimestampXScale(
     cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
   } else if (timeRange < halfYear) {
     ticks = d3.timeDay.range(start, end);
-    format = d3.timeFormat("%b %Y");
+    format = d3.timeFormat("%b %d");
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear) {
     ticks = d3.timeMonth.range(start, end);
-    format = d3.timeFormat("%b %Y");
+    format = d3.timeFormat("%b %d");
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear * 2) {
     ticks = d3.timeMonth.range(start, end);
@@ -340,23 +340,22 @@ export function getChoiceOptionValue(
   }
 }
 
-export function getDisplayUserValue(
+export function getUserPredictionDisplayValue(
   myForecasts: UserForecastHistory,
-  value: number | undefined,
-  valueTimestamp: number,
-  questionOrQuestionType: Question | QuestionType,
+  timestamp: number | null | undefined,
+  questionType: Question | QuestionType,
   scaling?: Scaling,
   showRange?: boolean
 ): string {
-  let qType: string;
-  let rMin: number | null;
-  let rMax: number | null;
-  let zPoint: number | null;
+  if (!timestamp) {
+    return "?";
+  }
+
   let closestUserForecastIndex = -1;
   myForecasts?.history.forEach((forecast, index) => {
     if (
-      forecast.start_time <= valueTimestamp &&
-      (!forecast.end_time || forecast.end_time > valueTimestamp)
+      forecast.start_time <= timestamp &&
+      (!forecast.end_time || forecast.end_time > timestamp)
     ) {
       closestUserForecastIndex = index;
     }
@@ -365,25 +364,14 @@ export function getDisplayUserValue(
     return "...";
   }
   const closestUserForecast = myForecasts.history[closestUserForecastIndex];
-
-  if (typeof questionOrQuestionType === "object") {
-    // Handle the case where the input is a Question object
-    qType = questionOrQuestionType.type;
-    rMin = questionOrQuestionType.scaling.range_min;
-    rMax = questionOrQuestionType.scaling.range_max;
-    zPoint = questionOrQuestionType.scaling.zero_point;
-  } else {
-    // Handle the case where the input is individual parameters
-    qType = questionOrQuestionType;
-    rMin = scaling!.range_min ?? 0;
-    rMax = scaling!.range_max ?? 1;
-    zPoint = scaling!.zero_point ?? null;
+  if (!closestUserForecast) {
+    return "?";
   }
 
   let center: number;
   let lower: number | undefined = undefined;
   let upper: number | undefined = undefined;
-  if (qType === QuestionType.Binary) {
+  if (questionType === QuestionType.Binary) {
     center = closestUserForecast.forecast_values[1];
   } else {
     center = closestUserForecast.centers![0];
@@ -394,30 +382,24 @@ export function getDisplayUserValue(
       ? closestUserForecast.interval_upper_bounds![0]
       : undefined;
   }
-  if (value === undefined) {
-    return "...";
-  }
-  const scaledCenter = scaleInternalLocation(center, {
-    range_min: rMin ?? 0,
-    range_max: rMax ?? 1,
-    zero_point: zPoint,
-  });
+  const scaledCenter = scaleInternalLocation(
+    center,
+    scaling ?? { range_min: 0, range_max: 1, zero_point: null }
+  );
   const scaledLower = lower
-    ? scaleInternalLocation(lower, {
-        range_min: rMin ?? 0,
-        range_max: rMax ?? 1,
-        zero_point: zPoint,
-      })
+    ? scaleInternalLocation(
+        lower,
+        scaling ?? { range_min: 0, range_max: 1, zero_point: null }
+      )
     : null;
   const scaledUpper = upper
-    ? scaleInternalLocation(upper, {
-        range_min: rMin ?? 0,
-        range_max: rMax ?? 1,
-        zero_point: zPoint,
-      })
+    ? scaleInternalLocation(
+        upper,
+        scaling ?? { range_min: 0, range_max: 1, zero_point: null }
+      )
     : null;
 
-  if (qType === QuestionType.Date) {
+  if (questionType === QuestionType.Date) {
     const displayCenter = format(fromUnixTime(scaledCenter), "yyyy-MM-dd");
     if (showRange) {
       const displayLower = !!scaledLower
@@ -429,7 +411,7 @@ export function getDisplayUserValue(
       return `${displayCenter} (${displayLower} - ${displayUpper})`;
     }
     return displayCenter;
-  } else if (qType === QuestionType.Numeric) {
+  } else if (questionType === QuestionType.Numeric) {
     const displayCenter = abbreviatedNumber(scaledCenter);
     if (showRange) {
       const displayLower = !!scaledLower
@@ -887,7 +869,7 @@ export function getFanOptionsFromContinuousGroup(
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
     .map(({ name, cdf, resolved, question }) => ({
       name,
-      quartiles: computeQuartilesFromCDF(cdf),
+      quartiles: cdf.length > 0 ? computeQuartilesFromCDF(cdf) : undefined,
       resolved,
       question,
     }));
@@ -902,11 +884,13 @@ export function getFanOptionsFromBinaryGroup(
       const resolved = q.resolution !== null;
       return {
         name: q.label,
-        quartiles: {
-          median: aggregation?.centers?.[0] ?? 0,
-          lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,
-          upper75: aggregation?.interval_upper_bounds?.[0] ?? 0,
-        },
+        quartiles: !!aggregation
+          ? {
+              median: aggregation.centers?.[0] ?? 0,
+              lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
+              upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
+            }
+          : undefined,
         resolved,
         question: q,
         resolvedAt: new Date(q.scheduled_resolve_time),

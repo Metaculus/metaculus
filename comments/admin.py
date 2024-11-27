@@ -32,3 +32,6 @@ class CommentAdmin(CustomTranslationAdmin):
         "included_forecast",
         "is_private",
     ]
+
+    def should_update_translations(self, obj):
+        return not obj.on_post.is_private()

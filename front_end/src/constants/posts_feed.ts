@@ -6,6 +6,7 @@ export enum FeedType {
   COMMUNITIES = "communities",
 }
 
+export const POST_PAGE_FILTER = "page";
 export const POST_TOPIC_FILTER = "topic";
 export const POST_TEXT_SEARCH_FILTER = "search";
 export const POST_TYPE_FILTER = "forecast_type";

@@ -118,9 +118,11 @@ const MultipleChoiceChartCard: FC<Props> = ({
         .map(({ choice, aggregationValues, color }) => ({
           choiceLabel: choice,
           color,
-          valueLabel: getForecastPctDisplayValue(
-            aggregationValues[aggregationCursorIndex]
-          ),
+          valueLabel: hideCP
+            ? "..."
+            : getForecastPctDisplayValue(
+                aggregationValues[aggregationCursorIndex]
+              ),
         })),
     [choiceItems, aggregationCursorIndex]
   );
@@ -148,7 +150,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
 
   return (
     <MultiChoicesChartView
-      tooltipChoices={hideCP ? [] : tooltipChoices}
+      tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
       choiceItems={hideCP ? [] : choiceItems}
       timestamps={allTimestamps}

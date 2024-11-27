@@ -4,7 +4,7 @@ import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 
 import { getFilterChipColor } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
@@ -16,13 +16,12 @@ import SearchInput from "@/components/search_input";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
-import {
-  POST_ORDER_BY_FILTER,
-  POST_TEXT_SEARCH_FILTER,
-} from "@/constants/posts_feed";
-import useSearchInputState from "@/hooks/use_search_input_state";
+import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
+import VisibilityObserver from "./visibility_observer";
+import { debounce } from "lodash";
 
 type ActiveFilter = {
   id: string;
@@ -78,12 +77,21 @@ const PostsFilters: FC<Props> = ({
   } = useSearchParams();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
-  const [search, setSearch] = useSearchInputState(
-    POST_TEXT_SEARCH_FILTER,
-    inputConfig
+  const { globalSearch, setGlobalSearch, setIsVisible } =
+    useGlobalSearchContext();
+
+  const debouncedGAEvent = useCallback(
+    debounce(() => {
+      sendGAEvent({
+        event: "feedSearch",
+        event_category: "fromPostsFilter",
+      });
+    }, 2000),
+    []
   );
+
   const eraseSearch = () => {
-    setSearch("");
+    setGlobalSearch("");
   };
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
@@ -102,6 +110,12 @@ const PostsFilters: FC<Props> = ({
 
     return [filters, activeFilters];
   }, [filters]);
+
+  // reset page param after applying new filters
+  useEffect(() => {
+    deleteParam(POST_PAGE_FILTER, false);
+  }, [filters, deleteParam]);
+
   const handleOrderChange = (order: QuestionOrder) => {
     const withNavigation = false;
 
@@ -176,12 +190,22 @@ const PostsFilters: FC<Props> = ({
   return (
     <div>
       <div className="block">
-        <SearchInput
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onErase={eraseSearch}
-          placeholder={t("questionSearchPlaceholder")}
-        />
+        <VisibilityObserver
+          onVisibilityChange={(v) => {
+            setIsVisible(v);
+          }}
+        >
+          <SearchInput
+            value={globalSearch}
+            onChange={(e) => {
+              debouncedGAEvent();
+              deleteParam(POST_PAGE_FILTER, true);
+              setGlobalSearch(e.target.value);
+            }}
+            onErase={eraseSearch}
+            placeholder={t("questionSearchPlaceholder")}
+          />
+        </VisibilityObserver>
         <div className="mx-0 my-3 flex flex-wrap items-center justify-between gap-2">
           <ButtonGroup
             value={order}

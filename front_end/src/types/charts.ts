@@ -30,7 +30,7 @@ export type NumericChartType = "date" | "numeric" | "binary";
 
 export type FanOption = {
   name: string;
-  quartiles: Quartiles;
+  quartiles: Quartiles | undefined;
   resolved: boolean;
   question: QuestionWithNumericForecasts;
 };
@@ -42,7 +42,7 @@ export enum TimelineChartZoomOption {
   All = "all",
 }
 
-export type ContinuousAreaType = "community" | "user";
+export type ContinuousAreaType = "community" | "user" | "user_previous";
 
 export type ContinuousAreaHoverState = {
   x: number;

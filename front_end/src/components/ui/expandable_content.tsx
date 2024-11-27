@@ -20,7 +20,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   expandLabel: _expandLabel,
   collapseLabel: _collapseLabel,
   maxCollapsedHeight = 128,
-  gradientClassName = "from-gray-0 dark:from-gray-0-dark",
+  gradientClassName = "from-blue-200 dark:from-blue-200-dark",
   className,
   children,
 }) => {
