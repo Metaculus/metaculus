@@ -7,7 +7,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
-
 from utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
@@ -90,7 +89,7 @@ class User(TimeStampedModel, AbstractUser):
         self.old_usernames.append((self.username, timezone.now().isoformat()))
         self.username = val
 
-    def soft_delete(self: "User"):
+    def soft_delete(self: "User") -> None:
         # set to inactive
         self.is_active = False
 

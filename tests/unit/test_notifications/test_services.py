@@ -14,7 +14,7 @@ from tests.unit.test_posts.factories import factory_post
 
 class TestNotificationNewComments:
     def test_get_email_context_group(self, user1, user2, mocker):
-        mocker.patch("utils.email.send_email_async")
+        mocker.patch("misc.tasks.send_email_async.send")
         fn = mocker.patch("posts.services.feed.get_similar_posts_for_posts")
         fn.return_value = []
         post_1 = factory_post(author=user1)
@@ -32,7 +32,9 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_1),
                 new_comments_count=0,
                 new_comment_ids=[
-                    factory_comment(author=user2, on_post=post_1, text_en="Comment 1").pk,
+                    factory_comment(
+                        author=user2, on_post=post_1, text_en="Comment 1"
+                    ).pk,
                     post_1_duplicated_comment.pk,
                 ],
             ),
@@ -63,8 +65,12 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_1),
                 new_comments_count=0,
                 new_comment_ids=[
-                    factory_comment(author=user2, on_post=post_1, text_en="Comment 3").pk,
-                    factory_comment(author=user2, on_post=post_1, text_en="Comment 4").pk,
+                    factory_comment(
+                        author=user2, on_post=post_1, text_en="Comment 3"
+                    ).pk,
+                    factory_comment(
+                        author=user2, on_post=post_1, text_en="Comment 4"
+                    ).pk,
                     post_1_duplicated_comment.pk,
                 ],
             ),
