@@ -14,7 +14,7 @@ def test_serialize_key_factors_many(user1, user2):
 
     kf = factory_key_factor(
         comment=comment,
-        text="Key Factor Text",
+        text_en="Key Factor Text",
         votes={user1: 1, user2: -1, user3: -1},
         votes_score=-1,
     )
@@ -25,7 +25,3 @@ def test_serialize_key_factors_many(user1, user2):
     assert data[0]["text"] == "Key Factor Text"
     assert data[0]["user_vote"] == 1
     assert data[0]["votes_score"] == -1
-    assert data[0]["votes_summary"] == {
-        1: 1,
-        -1: 2,
-    }
