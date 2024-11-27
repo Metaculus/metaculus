@@ -201,8 +201,7 @@ class Leaderboard(TimeStampedModel):
             questions = [
                 q
                 for q in questions
-                if q.get_global_leaderboard_dates(global_leaderboard_dates=gl_dates)
-                == window
+                if q.get_global_leaderboard_dates(gl_dates=gl_dates) == window
             ]
 
         return list(questions)
