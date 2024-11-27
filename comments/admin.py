@@ -34,6 +34,9 @@ class CommentAdmin(CustomTranslationAdmin):
     ]
     search_fields = ["id", "text"]
 
+    def should_update_translations(self, obj):
+        return not obj.on_post.is_private()
+
 
 @admin.register(KeyFactor)
 class KeyFactorAdmin(CustomTranslationAdmin):

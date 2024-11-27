@@ -68,6 +68,11 @@ const ForecastMakerContinuous: FC<Props> = ({
   const [weights, setWeights] = useState<number[]>(
     prevForecastValue?.weights ?? [1]
   );
+  const previousForecast = question.my_forecasts?.latest;
+  const [overlayPreviousForecast, setOverlayPreviousForecast] =
+    useState<boolean>(
+      !!previousForecast?.forecast_values && !previousForecast.slider_values
+    );
 
   const dataset = useMemo(
     () =>
@@ -81,6 +86,10 @@ const ForecastMakerContinuous: FC<Props> = ({
   );
 
   const userCdf: number[] = dataset.cdf;
+  const userPreviousCdf: number[] | undefined =
+    overlayPreviousForecast && previousForecast
+      ? previousForecast.forecast_values
+      : undefined;
   const communityCdf: number[] | undefined =
     question.aggregations.recency_weighted.latest?.forecast_values;
 
@@ -131,6 +140,8 @@ const ForecastMakerContinuous: FC<Props> = ({
           setWeights(weight);
           setIsDirty(true);
         }}
+        overlayPreviousForecast={overlayPreviousForecast}
+        setOverlayPreviousForecast={setOverlayPreviousForecast}
         question={question}
         disabled={!canPredict}
       />
@@ -176,6 +187,17 @@ const ForecastMakerContinuous: FC<Props> = ({
           aboveUpper: 1 - userCdf[userCdf.length - 1],
         }}
         userQuartiles={userCdf ? computeQuartilesFromCDF(userCdf) : undefined}
+        userPreviousBounds={
+          userPreviousCdf
+            ? {
+                belowLower: userPreviousCdf[0],
+                aboveUpper: 1 - userPreviousCdf[userPreviousCdf.length - 1],
+              }
+            : undefined
+        }
+        userPreviousQuartiles={
+          userPreviousCdf ? computeQuartilesFromCDF(userPreviousCdf) : undefined
+        }
         communityBounds={
           communityCdf
             ? {

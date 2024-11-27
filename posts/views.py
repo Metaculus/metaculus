@@ -42,6 +42,7 @@ from posts.services.common import (
     submit_for_review_post,
     post_make_draft,
     compute_hotness,
+    trigger_update_post_translations,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
@@ -237,6 +238,8 @@ def post_create_api_view(request):
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
 
+    trigger_update_post_translations(post, with_comments=False, force=False)
+
     return Response(
         serialize_post(post, with_cp=False, current_user=request.user),
         status=status.HTTP_201_CREATED,
@@ -278,6 +281,8 @@ def post_update_api_view(request, pk):
     serializer.is_valid(raise_exception=True)
 
     post = update_post(post, **serializer.validated_data)
+
+    trigger_update_post_translations(post, with_comments=False, force=False)
 
     return Response(
         serialize_post(post, with_cp=False, current_user=request.user),
