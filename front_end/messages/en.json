@@ -455,6 +455,7 @@
   "profileBioPlaceholder": "Tell us a little about yourself.",
   "username": "username",
   "introducingCommunities": "<bold>Introducing Communities</bold> – a new feature where members create, discuss, and resolve their own questions on various topics. Follow your favorite communities to stay informed, and contribute to forecasts in areas that matter to you.",
+  "introducingCommunitiesContact": "Want to create your own Community? <contact>Reach out</contact> to get started.",
   "noOpenCommunityQuestions": "Your community currently does not have any questions open for forecasting",
   "noUpcomingCommunityQuestions": "Your community currently does not have any upcoming questions",
   "noClosedCommunityQuestions": "No closed questions yet",

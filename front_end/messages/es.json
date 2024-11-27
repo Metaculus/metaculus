@@ -417,6 +417,8 @@
   "website": "Sitio web",
   "profileBioPlaceholder": "Cuéntanos un poco sobre ti.",
   "username": "nombre de usuario",
+  "introducingCommunities": "<bold>Presentamos Comunidades</bold>: una nueva función donde los miembros crean, discuten y resuelven sus propias preguntas sobre diversos temas. Sigue tus comunidades favoritas para mantenerte informado y contribuye con pronósticos en las áreas que te interesan.",
+  "introducingCommunitiesContact": "¿Quieres crear tu propia Comunidad? <contact>Contáctanos</contact> para comenzar.",
   "noResults": "No se encontraron resultados",
   "noTags": "No se encontraron etiquetas",
   "homeTitle": "Pronósticos para un <highlight>mundo complejo</highlight>",
