@@ -6,18 +6,11 @@ from django.utils.html import format_html
 from django.urls import reverse
 
 from posts.models import Post, Notebook
+from posts.services.common import trigger_update_post_translations
 from questions.models import Question
 from utils.csv_utils import export_data_for_questions
 
 from utils.models import CustomTranslationAdmin
-
-from utils.translation import (
-    update_translations_for_model,
-    queryset_filter_outdated_translations,
-    detect_and_update_content_language,
-)
-from comments.services.feed import get_comments_feed
-from comments.models import Comment
 
 
 @admin.register(Post)
@@ -55,6 +48,10 @@ class PostAdmin(CustomTranslationAdmin):
     def other_project_count(self, obj):
         return obj.projects.count()
 
+    def should_update_translations(self, obj):
+        is_private = obj.default_project.default_permission is None
+        return not is_private
+
     def get_actions(self, request):
         actions = super().get_actions(request)
         if "delete_selected" in actions:
@@ -78,34 +75,9 @@ class PostAdmin(CustomTranslationAdmin):
 
         return response
 
-    def update_translations(self, request, comments_qs):
-        # TODO: properly extract this in a service method and do it in a scalable way
-        for post in comments_qs:
-            post.trigger_translation_if_dirty()
-            if post.question is not None:
-                post.question.trigger_translation_if_dirty()
-            if post.notebook is not None:
-                post.notebook.trigger_translation_if_dirty()
-            if post.group_of_questions is not None:
-                post.group_of_questions.trigger_translation_if_dirty()
-            if post.conditional is not None:
-                post.conditional.condition.trigger_translation_if_dirty()
-                if hasattr(post.conditional.condition, "post"):
-                    post.conditional.condition.post.trigger_translation_if_dirty()
-
-                post.conditional.condition_child.trigger_translation_if_dirty()
-                if hasattr(post.conditional.condition_child, "post"):
-                    post.conditional.condition_child.post.trigger_translation_if_dirty()
-
-                post.conditional.question_yes.trigger_translation_if_dirty()
-                post.conditional.question_no.trigger_translation_if_dirty()
-
-            batch_size = 10
-            comments_qs = get_comments_feed(qs=Comment.objects.filter(), post=post)
-
-            comments_qs = queryset_filter_outdated_translations(comments_qs)
-            detect_and_update_content_language(comments_qs, batch_size)
-            update_translations_for_model(comments_qs, batch_size)
+    def update_translations(self, request, posts_qs):
+        for post in posts_qs:
+            trigger_update_post_translations(post, with_comments=True, force=True)
 
 
 @admin.register(Notebook)

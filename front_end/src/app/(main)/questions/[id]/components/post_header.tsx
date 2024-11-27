@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
-import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions/";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
+import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions/";
 import Button from "@/components/ui/button";
 import {
   PostStatus,
@@ -17,7 +18,6 @@ import { TournamentType } from "@/types/projects";
 import PostApprovalModal from "./post_approval_modal";
 import PostSubscribeButton from "./subscribe_button";
 import { draftPost, submitPostForReview } from "../../actions";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 export default function PostHeader({
   post,
@@ -83,31 +83,18 @@ export default function PostHeader({
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row gap-3 pt-3 lg:hidden lg:pt-0">
+      <div className="flex flex-row gap-3 pt-4">
         <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
           {typeLabel}
         </span>
         {allowModifications && (
           <>
-            <Button
+            <Link
+              className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 no-underline dark:bg-blue-400-dark dark:text-blue-700-dark"
               href={`/questions/create/${edit_type}?post_id=${post.id}`}
-              className="h-7"
             >
               {t("edit")}
-            </Button>
-            {post.curation_status === PostStatus.APPROVED &&
-            [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
-              post.user_permission
-            ) &&
-            post.forecasts_count! < 1 ? (
-              <Button
-                onClick={async () => {
-                  setIsApprovalModalOpen(true);
-                }}
-              >
-                {t("editOpenAndCpRevealTimes")}
-              </Button>
-            ) : null}
+            </Link>
           </>
         )}
         {!post.notebook && (
