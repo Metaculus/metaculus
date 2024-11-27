@@ -21,35 +21,39 @@ const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
 
   return (
     <div className="w-full @container">
-      <SectionToggle defaultOpen title={t("newsMatch")}>
-        {articles.slice(0, articleDisplayLimit).map((article: NewsArticle) => (
-          <NewsMatchArticle
-            key={article.id}
-            article={article}
-            questionId={questionId}
-          />
-        ))}
-        <div className="flex flex-col items-center justify-between @md:flex-row">
-          {articles.length > articleDisplayLimit && (
-            <Button
-              variant="tertiary"
-              className="mb-4"
-              onClick={() => setArticleDisplayLimit((prev) => prev + 5)}
-            >
-              {t("showMoreNews")}
-            </Button>
-          )}
-          <div className="size-fit pr-2 text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
-            {t.rich("learnMoreAboutNewsMatch", {
-              link: (chunks) => (
-                <Link
-                  href="/faq/#related-news"
-                  className="text-blue-700 dark:text-blue-700-dark"
-                >
-                  {chunks}
-                </Link>
-              ),
-            })}
+      <SectionToggle defaultOpen title={t("newsMatch")} variant="light">
+        <div className="pt-1">
+          {articles
+            .slice(0, articleDisplayLimit)
+            .map((article: NewsArticle) => (
+              <NewsMatchArticle
+                key={article.id}
+                article={article}
+                questionId={questionId}
+              />
+            ))}
+          <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">
+            {articles.length > articleDisplayLimit && (
+              <Button
+                variant="tertiary"
+                className="mb-4"
+                onClick={() => setArticleDisplayLimit((prev) => prev + 5)}
+              >
+                {t("showMoreNews")}
+              </Button>
+            )}
+            <div className="size-fit text-sm text-gray-900 dark:text-gray-900-dark">
+              {t.rich("learnMoreAboutNewsMatch", {
+                link: (chunks) => (
+                  <Link
+                    href="/faq/#related-news"
+                    className="text-blue-700 dark:text-blue-700-dark"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </div>
           </div>
         </div>
       </SectionToggle>

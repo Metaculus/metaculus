@@ -135,25 +135,6 @@ export default async function IndividualQuestion({
 
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
-  const t = await getTranslations();
-
-  let typeLabel = t("notebook");
-  if (postData.group_of_questions) {
-    typeLabel = t("group");
-  } else if (postData.conditional) {
-    typeLabel = t("conditional");
-  } else if (postData.question) {
-    typeLabel = t("question");
-  }
-
-  let edit_type = "question";
-  if (postData.group_of_questions) {
-    edit_type = "group";
-  } else if (postData.conditional) {
-    edit_type = "conditional";
-  } else if (postData.notebook) {
-    edit_type = "notebook";
-  }
 
   const allowModifications =
     postData.user_permission === ProjectPermissions.ADMIN ||
@@ -171,23 +152,10 @@ export default async function IndividualQuestion({
         ) : (
           <Header />
         )}
-        <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">
-          <div className="hidden gap-3 lg:flex">
-            <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
-              {typeLabel}
-            </span>
-            {allowModifications && (
-              <a
-                className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 no-underline dark:bg-blue-400-dark dark:text-blue-700-dark"
-                href={`/questions/create/${edit_type}?post_id=${postData.id}`}
-              >
-                {t("edit")}
-              </a>
-            )}
-          </div>
+        <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4 md:py-10">
           <div className="flex gap-4">
             <div className="flex w-full flex-col gap-4">
-              <section className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
+              <section className="w-[48rem] max-w-full rounded border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
                 <PostHeader post={postData} questionTitle={questionTitle} />
                 {!postData.conditional && (
                   <div className="mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
@@ -251,16 +219,17 @@ export default async function IndividualQuestion({
                     preselectedQuestionId={preselectedGroupQuestionId}
                   />
                 )}
-
-                <BackgroundInfo post={postData} />
-                <HistogramDrawer post={postData} />
-                <Sidebar
-                  postData={postData}
-                  allowModifications={allowModifications}
-                  layout="mobile"
-                  questionTitle={questionTitle}
-                />
+                <div className="flex flex-col gap-2.5">
+                  <BackgroundInfo post={postData} />
+                  <HistogramDrawer post={postData} />
+                </div>
               </section>
+              <Sidebar
+                postData={postData}
+                allowModifications={allowModifications}
+                layout="mobile"
+                questionTitle={questionTitle}
+              />
               <CommentFeed
                 postData={postData}
                 postPermissions={postData.user_permission}

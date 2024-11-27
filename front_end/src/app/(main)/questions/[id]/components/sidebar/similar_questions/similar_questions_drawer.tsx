@@ -19,7 +19,7 @@ const SimilarQuestionsDrawer: FC<Props> = ({ questions }) => {
 
   return (
     <div className="w-full @container">
-      <SectionToggle defaultOpen title={t("similarQuestions")}>
+      <SectionToggle defaultOpen title={t("similarQuestions")} variant="light">
         <div className="flex flex-col items-center justify-center gap-2">
           {questions
             .slice(0, questionsDisplayLimit)
