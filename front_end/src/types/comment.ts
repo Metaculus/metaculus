@@ -54,6 +54,6 @@ export type KeyFactor = {
   id: number;
   text: string;
   comment_id: string;
-  user_vote: number | null;
+  user_vote: VoteDirection | null;
   votes_score: number;
 };

@@ -961,5 +961,6 @@
   "visitTournamentPage": "If you’d like to change your forecasts, visit the Tournament Page.",
   "forecastedAllQuestions": "You’ve forecasted on all {questionNumber} questions!",
   "answerAfterEditing": "Answers cannot be edited after submission.",
-  "keyFactor": "Key Factor"
+  "keyFactor": "Key Factor",
+  "keyFactors": "Key Factors"
 }

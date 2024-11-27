@@ -28,7 +28,7 @@ export type EditCommentParams = {
   author: number;
 };
 
-export type VoteCommentParams = {
+export type VoteParams = {
   id: number;
   vote: number | null;
   user: number;
@@ -90,10 +90,8 @@ class CommentsApi {
     );
   }
 
-  static async voteComment(
-    voteData: VoteCommentParams
-  ): Promise<Response | null> {
-    return await post<null, VoteCommentParams>(
+  static async voteComment(voteData: VoteParams): Promise<Response | null> {
+    return await post<null, VoteParams>(
       `/comments/${voteData.id}/vote/`,
       voteData
     );
@@ -110,6 +108,13 @@ class CommentsApi {
 
   static async report(commentId: number, reason: CommentReportReason) {
     return post(`/comments/${commentId}/report/`, { reason });
+  }
+
+  static async voteKeyFactor(voteData: VoteParams): Promise<Response | null> {
+    return await post<null, VoteParams>(
+      `/key-factors/${voteData.id}/vote/`,
+      voteData
+    );
   }
 }
 
