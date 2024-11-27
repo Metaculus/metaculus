@@ -44,12 +44,12 @@ const ContinuousPredictionChart: FC<Props> = ({
   const cursorDisplayData = useMemo(() => {
     if (!hoverState) return null;
 
-    const xLabel = getDisplayValue(
-      hoverState.x,
-      question.type,
-      question.scaling,
-      5
-    );
+    const xLabel = getDisplayValue({
+      value: hoverState.x,
+      questionType: question.type,
+      scaling: question.scaling,
+      precision: 5,
+    });
     return {
       xLabel,
       yUserLabel: readOnly

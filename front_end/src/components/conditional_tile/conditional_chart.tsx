@@ -106,7 +106,11 @@ const ConditionalChart: FC<Props> = ({
 
       const prediction = aggregate.latest?.centers![0];
       const formattedPrediction = prediction
-        ? getDisplayValue(prediction, question.type, question.scaling)
+        ? getDisplayValue({
+            value: prediction,
+            questionType: question.type,
+            scaling: question.scaling,
+          })
         : "";
 
       const continuousAreaChartData = [

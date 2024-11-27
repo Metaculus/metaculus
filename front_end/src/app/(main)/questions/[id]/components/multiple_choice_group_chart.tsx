@@ -266,7 +266,11 @@ function getQuestionTooltipLabel({
 
   const value = !isNil(cursorIndex) ? values[cursorIndex] : null;
 
-  return getDisplayValue(value, question.type, question.scaling);
+  return getDisplayValue({
+    value,
+    questionType: question.type,
+    scaling: question.scaling,
+  });
 }
 
 export default MultipleChoiceGroupChart;

@@ -268,14 +268,21 @@ export function displayValue(
  *
  * Accepts a Question or the individual parameters of a Question
  */
-export function getDisplayValue(
-  value: number | null | undefined,
-  questionType: QuestionType,
-  scaling: Scaling,
-  precision?: number,
-  truncation?: number,
-  range?: number[]
-): string {
+export function getDisplayValue({
+  value,
+  questionType,
+  scaling,
+  precision,
+  truncation,
+  range,
+}: {
+  value: number | null | undefined;
+  questionType: QuestionType;
+  scaling: Scaling;
+  precision?: number;
+  truncation?: number;
+  range?: number[];
+}): string {
   if (value === undefined || value === null) {
     return "...";
   }
@@ -413,16 +420,24 @@ export function getDisplayUserValue(
   if (qType === QuestionType.Date) {
     const displayCenter = format(fromUnixTime(scaledCenter), "yyyy-MM-dd");
     if (showRange) {
-      const displayLower = format(fromUnixTime(scaledLower!), "yyyy-MM-dd");
-      const displayUpper = format(fromUnixTime(scaledUpper!), "yyyy-MM-dd");
+      const displayLower = !!scaledLower
+        ? format(fromUnixTime(scaledLower), "yyyy-MM-dd")
+        : "...";
+      const displayUpper = !!scaledUpper
+        ? format(fromUnixTime(scaledUpper), "yyyy-MM-dd")
+        : "...";
       return `${displayCenter} (${displayLower} - ${displayUpper})`;
     }
     return displayCenter;
   } else if (qType === QuestionType.Numeric) {
     const displayCenter = abbreviatedNumber(scaledCenter);
     if (showRange) {
-      const displayLower = abbreviatedNumber(scaledLower!);
-      const displayUpper = abbreviatedNumber(scaledUpper!);
+      const displayLower = !!scaledLower
+        ? abbreviatedNumber(scaledLower)
+        : "...";
+      const displayUpper = !!scaledUpper
+        ? abbreviatedNumber(scaledUpper)
+        : "...";
       return `${displayCenter} (${displayLower} - ${displayUpper})`;
     }
     return displayCenter;
@@ -562,12 +577,12 @@ export function generateScale({
       if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
         const unscaled = unscaleNominalLocation(x, domainScaling);
         return (
-          getDisplayValue(
-            unscaled,
-            displayType as QuestionType,
-            rangeScaling,
-            3
-          ) + displayLabel
+          getDisplayValue({
+            value: unscaled,
+            questionType: displayType as QuestionType,
+            scaling: rangeScaling,
+            precision: 3,
+          }) + displayLabel
         );
       }
       return "";
@@ -575,12 +590,12 @@ export function generateScale({
     cursorFormat: (x) => {
       const unscaled = unscaleNominalLocation(x, domainScaling);
       return (
-        getDisplayValue(
-          unscaled,
-          displayType as QuestionType,
-          rangeScaling,
-          6
-        ) + displayLabel
+        getDisplayValue({
+          value: unscaled,
+          questionType: displayType as QuestionType,
+          scaling: rangeScaling,
+          precision: 6,
+        }) + displayLabel
       );
     },
   };
@@ -612,7 +627,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
     });
   }
 
-  const labels = question.options!;
+  const labels = question.options ? question.options : [];
   const aggregationHistory = question.aggregations.recency_weighted.history;
   const userHistory = question.my_forecasts?.history;
 
@@ -657,12 +672,20 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
           (forecast.end_time === null || forecast.end_time > timestamp)
         );
       });
-      aggregationValues.push(aggregationForecast?.centers![index] || null);
+      aggregationValues.push(
+        !!aggregationForecast?.centers
+          ? aggregationForecast.centers[index]
+          : null
+      );
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds![index] || null
+        !!aggregationForecast?.interval_lower_bounds
+          ? aggregationForecast.interval_lower_bounds[index]
+          : null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds![index] || null
+        !!aggregationForecast?.interval_upper_bounds
+          ? aggregationForecast.interval_upper_bounds[index]
+          : null
       );
       aggregationForecasterCounts.push(
         aggregationForecast?.forecaster_count || 0
@@ -687,8 +710,6 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       aggregationForecasterCounts: aggregationForecasterCounts,
       userTimestamps: sortedUserTimestamps,
       userValues: userValues,
-      // userMinValues: undefined,  // used in continuous group questions
-      // userMaxValues: undefined, // used in continuous group questions
     };
   });
   // reorder choice items
@@ -713,27 +734,21 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
 export function generateChoiceItemsFromGroupQuestions(
   questions: QuestionWithNumericForecasts[],
   config?: {
-    withMinMax?: boolean;
     activeCount?: number;
     preselectedQuestionId?: number;
     locale?: string;
     preserveOrder?: boolean;
   }
 ): ChoiceItem[] {
-  const {
-    // withMinMax,
-    activeCount,
-    preselectedQuestionId,
-    locale,
-    preserveOrder,
-  } = config ?? {};
+  if (questions.length == 0) {
+    return [];
+  }
+  const { activeCount, preselectedQuestionId, locale, preserveOrder } =
+    config ?? {};
 
   const latests: (AggregateForecast | undefined)[] = questions.map(
     (question) => question.aggregations.recency_weighted.latest
   );
-  if (latests.length == 0) {
-    return [];
-  }
   const choiceOrdering: number[] = latests.map((_, i) => i);
   if (!preserveOrder) {
     choiceOrdering.sort((a, b) => {
@@ -784,7 +799,7 @@ export function generateChoiceItemsFromGroupQuestions(
           (forecast.end_time === null || forecast.end_time > timestamp)
         );
       });
-      if (question.type === "binary") {
+      if (question.type === QuestionType.Binary) {
         userValues.push(userForecast?.forecast_values[1] || null);
       } else {
         // continuous
@@ -837,8 +852,10 @@ export function generateChoiceItemsFromGroupQuestions(
       aggregationForecasterCounts: aggregationForecasterCounts,
       userTimestamps: sortedUserTimestamps,
       userValues: userValues,
-      userMinValues: question.type === "binary" ? undefined : userMinValues, // used in continuous group questions
-      userMaxValues: question.type === "binary" ? undefined : userMaxValues, // used in continuous group questions
+      userMinValues:
+        question.type === QuestionType.Binary ? undefined : userMinValues, // used in continuous group questions
+      userMaxValues:
+        question.type === QuestionType.Binary ? undefined : userMaxValues, // used in continuous group questions
     };
   });
   // reorder choice items

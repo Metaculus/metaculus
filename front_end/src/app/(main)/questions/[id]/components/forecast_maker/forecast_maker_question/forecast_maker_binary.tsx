@@ -90,22 +90,20 @@ const ForecastMakerBinary: FC<Props> = ({
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
-  const [withdrawError, setWithdrawError] = useState<ErrorResponse>();
   const handlePredictWithdraw = async () => {
-    setWithdrawError(undefined);
+    setSubmitError(undefined);
 
     if (!prevForecastValue) return;
 
     const response = await withdrawForecasts(post.id, [
       {
         question: question.id,
-        // withdrawAt: new Date().toISOString(), // TODO: implement
       },
     ]);
     setIsForecastDirty(false);
 
     if (response && "errors" in response && !!response.errors) {
-      setWithdrawError(response.errors[0]);
+      setSubmitError(response.errors[0]);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -140,7 +138,7 @@ const ForecastMakerBinary: FC<Props> = ({
                 onSubmit={submit}
                 predictLabel={t("predict")}
               />
-              {prevForecast && (
+              {!!prevForecastValue && (
                 <>
                   <Button
                     variant="primary"
@@ -158,7 +156,7 @@ const ForecastMakerBinary: FC<Props> = ({
 
         <FormErrorMessage
           className="mt-2 flex justify-center"
-          errors={submitError || withdrawError}
+          errors={submitError}
         />
         {(isPending || withdrawalIsPending) && (
           <div className="h-[32px] w-full">

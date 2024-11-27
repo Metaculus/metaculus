@@ -50,11 +50,11 @@ const PredictionChip: FC<Props> = ({
     const latest = question.my_forecasts?.latest;
 
     if (showUserForecast && latest && !latest.end_time) {
-      const displayValue = getDisplayValue(
-        latest.centers ? latest.centers[0] : latest.forecast_values[1],
-        question.type,
-        question.scaling
-      );
+      const displayValue = getDisplayValue({
+        value: latest.centers ? latest.centers[0] : latest.forecast_values[1],
+        questionType: question.type,
+        scaling: question.scaling,
+      });
 
       return (
         <p className="m-2 text-orange-800 dark:text-orange-800-dark">
@@ -70,7 +70,11 @@ const PredictionChip: FC<Props> = ({
   const latest = question.aggregations.recency_weighted.latest;
   const communityPredictionDisplayValue =
     latest && !latest.end_time
-      ? getDisplayValue(latest.centers![0], question.type, question.scaling)
+      ? getDisplayValue({
+          value: latest.centers![0],
+          questionType: question.type,
+          scaling: question.scaling,
+        })
       : null;
 
   switch (status) {

@@ -148,6 +148,16 @@ const NumericChart: FC<Props> = ({
     }
   }, [onChartReady, prevWidth, chartWidth]);
 
+  const timestamps = useMemo(
+    () =>
+      uniq([
+        ...aggregation.history.map((f) => f.start_time),
+        ...aggregation.history.map((f) => f.end_time ?? f.start_time),
+        actualCloseTime ?? Date.now() / 1000,
+      ]).sort((a, b) => a - b),
+    [actualCloseTime, aggregation.history]
+  );
+
   const CursorContainer = (
     <VictoryCursorContainer
       cursorDimension={"x"}
@@ -174,12 +184,6 @@ const NumericChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const timestamps = uniq([
-            ...aggregation.history.map((f) => f.start_time),
-            ...aggregation.history.map((f) => f.end_time ?? f.start_time),
-            actualCloseTime ?? Date.now() / 1000,
-          ]).sort((a, b) => a - b);
-
           onCursorChange(
             timestamps[timestamps.findIndex((t) => t > value) - 1]
           );

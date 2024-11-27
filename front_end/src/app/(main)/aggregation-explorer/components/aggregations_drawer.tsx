@@ -21,6 +21,7 @@ import {
 } from "@/utils/charts";
 
 import AggregationTooltip from "./aggregation_tooltip";
+import { isNil } from "lodash";
 
 type Props = {
   questionData: AggregationQuestion;
@@ -185,7 +186,7 @@ function getQuestionTooltipLabel(
   }
 
   const val = values[cursorIndex];
-  if (val === null) {
+  if (isNil(val)) {
     return "...";
   }
   if (qType === QuestionType.Binary) {

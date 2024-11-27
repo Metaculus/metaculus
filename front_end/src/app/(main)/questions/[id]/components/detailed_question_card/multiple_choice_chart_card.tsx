@@ -61,8 +61,8 @@ const MultipleChoiceChartCard: FC<Props> = ({
     question.aggregations.recency_weighted.history.length;
   const prevTimestampsCount = usePrevious(aggregationTimestampCount);
 
-  const userTimestamps = choiceItems[0].userTimestamps;
-  const aggregationTimestamps = choiceItems[0].aggregationTimestamps;
+  const userTimestamps = choiceItems[0]?.userTimestamps ?? [];
+  const aggregationTimestamps = choiceItems[0]?.aggregationTimestamps ?? [];
   const latestTimestamp = Math.max(
     aggregationTimestamps.at(-1) || 0,
     userTimestamps.at(-1) || 0,
@@ -138,13 +138,13 @@ const MultipleChoiceChartCard: FC<Props> = ({
   const forecastersCount = useMemo(() => {
     // okay to search for the first item since all items have the same values
     const aggregationForecasterCounts =
-      choiceItems.at(0)?.aggregationForecasterCounts;
+      choiceItems[0]?.aggregationForecasterCounts;
     if (!aggregationForecasterCounts) {
       return null;
     }
 
     return aggregationForecasterCounts[aggregationCursorIndex] ?? null;
-  }, [choiceItems, cursorTimestamp]);
+  }, [aggregationCursorIndex, choiceItems]);
 
   return (
     <MultiChoicesChartView

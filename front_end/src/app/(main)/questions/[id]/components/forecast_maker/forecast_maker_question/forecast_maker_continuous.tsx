@@ -125,9 +125,8 @@ const ForecastMakerContinuous: FC<Props> = ({
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
-  const [withdrawError, setWithdrawError] = useState<ErrorResponse>();
   const handlePredictWithdraw = async () => {
-    setWithdrawError(undefined);
+    setSubmitError(undefined);
 
     if (!prevForecastValue) return;
 
@@ -140,7 +139,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     setIsDirty(false);
 
     if (response && "errors" in response && !!response.errors) {
-      setWithdrawError(response.errors[0]);
+      setSubmitError(response.errors[0]);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -181,13 +180,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               hasUserForecast={hasUserForecast}
               isPending={isPending}
             />
-
-            <FormErrorMessage
-              className="mt-2 flex justify-center"
-              errors={submitError}
-            />
-
-            {prevForecast && (
+            {!!prevForecastValue && (
               <>
                 <Button
                   variant="primary"
@@ -197,12 +190,12 @@ const ForecastMakerContinuous: FC<Props> = ({
                 >
                   {t("withdraw")}
                 </Button>
-                <FormErrorMessage
-                  className="mt-2 flex justify-center"
-                  errors={withdrawError}
-                />
               </>
             )}
+            <FormErrorMessage
+              className="mt-2 flex justify-center"
+              errors={submitError}
+            />
           </div>
           <div className="h-[32px]">
             {(isPending || withdrawalIsPending) && <LoadingIndicator />}

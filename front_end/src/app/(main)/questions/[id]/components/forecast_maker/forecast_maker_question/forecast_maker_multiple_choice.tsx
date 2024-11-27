@@ -221,9 +221,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
-  const [withdrawError, setWithdrawError] = useState<ErrorResponse>();
   const handlePredictWithdraw = async () => {
-    setWithdrawError(undefined);
+    setSubmitError(undefined);
 
     if (!activeUserForecast) return;
 
@@ -236,7 +235,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     setIsDirty(false);
 
     if (response && "errors" in response && !!response.errors) {
-      setWithdrawError(response.errors[0]);
+      setSubmitError(response.errors[0]);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -355,7 +354,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       </div>
       <FormErrorMessage
         className="ml-auto mt-2 flex w-full justify-center"
-        errors={submitError || withdrawError}
+        errors={submitError}
       />
       <div className="h-[32px] w-full">
         {(isPending || withdrawalIsPending) && <LoadingIndicator />}

@@ -187,47 +187,6 @@ const MultipleChoiceChart: FC<Props> = ({
     />
   );
 
-  // Define a custom "X" symbol function
-  const GetSymbol: React.FC<PointProps> = (props: PointProps) => {
-    const { x, y, datum, size, style } = props;
-    const symbol = datum.symbol;
-    const stroke = style.stroke;
-
-    if (symbol === "x") {
-      return (
-        <g>
-          <line
-            x1={x! - (size! as number)}
-            y1={y! - (size! as number)}
-            x2={x! + (size! as number)}
-            y2={y! + (size! as number)}
-            stroke={stroke}
-            strokeWidth={2}
-          />
-          <line
-            x1={x! - (size! as number)}
-            y1={y! + (size! as number)}
-            x2={x! + (size! as number)}
-            y2={y! - (size! as number)}
-            stroke={stroke}
-            strokeWidth={2}
-          />
-        </g>
-      );
-    }
-
-    return (
-      <circle
-        cx={x}
-        cy={y}
-        r={size! as number}
-        stroke={stroke}
-        fill={"none"}
-        strokeWidth={2}
-      />
-    );
-  };
-
   return (
     <ChartContainer
       ref={chartContainerRef}
@@ -330,7 +289,7 @@ const MultipleChoiceChart: FC<Props> = ({
               <VictoryScatter
                 key={`multiple-choice-scatter-${index}`}
                 data={scatter}
-                dataComponent={<GetSymbol />}
+                dataComponent={<PredictionSymbol />}
                 style={{
                   data: {
                     stroke: getThemeColor(color),
@@ -613,5 +572,53 @@ function buildChartData({
 
   return { xScale, yScale, graphs, xDomain };
 }
+
+// Define a custom "X" symbol function
+const PredictionSymbol: React.FC<PointProps> = (props: PointProps) => {
+  const { x, y, datum, size, style } = props;
+  if (
+    typeof x !== "number" ||
+    typeof y !== "number" ||
+    typeof size !== "number"
+  ) {
+    return null;
+  }
+  const symbol = datum.symbol;
+  const stroke = style.stroke;
+
+  if (symbol === "x") {
+    return (
+      <g>
+        <line
+          x1={x - size}
+          y1={y - size}
+          x2={x + size}
+          y2={y + size}
+          stroke={stroke}
+          strokeWidth={2}
+        />
+        <line
+          x1={x - size}
+          y1={y + size}
+          x2={x + size}
+          y2={y - size}
+          stroke={stroke}
+          strokeWidth={2}
+        />
+      </g>
+    );
+  }
+
+  return (
+    <circle
+      cx={x}
+      cy={y}
+      r={size}
+      stroke={stroke}
+      fill={"none"}
+      strokeWidth={2}
+    />
+  );
+};
 
 export default memo(MultipleChoiceChart);
