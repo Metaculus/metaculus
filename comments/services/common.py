@@ -75,3 +75,20 @@ def create_comment(
         run_on_post_comment_create.send(obj.id)
 
     return obj
+
+
+def trigger_update_comment_translations(comment: Comment, force: bool = False):
+    if force:
+        comment.trigger_translation_if_dirty()
+        return
+
+    on_post = comment.on_post
+    author = comment.author
+    on_bots_tournament = (
+        on_post.default_project is not None
+        and on_post.default_project.include_bots_in_leaderboard
+    )
+
+    on_private_post = on_post.is_private() is None
+    if not (author.is_bot and on_bots_tournament) and not on_private_post:
+        comment.trigger_translation_if_dirty()

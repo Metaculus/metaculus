@@ -35,7 +35,9 @@ const AwaitedPostsFeed: FC<Props> = async ({
 
   const { results: questions, count } = await PostsApi.getPostsWithCP({
     ...filters,
-    limit: POSTS_PER_PAGE,
+    limit:
+      (!isNaN(Number(filters.page)) ? Number(filters.page) : 1) *
+      POSTS_PER_PAGE,
   });
 
   return (

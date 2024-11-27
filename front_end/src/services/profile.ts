@@ -35,8 +35,13 @@ class ProfileApi {
     website?: string;
     unsubscribed_mailing_tags?: SubscriptionEmailType[];
     unsubscribed_preference_tags?: ProfilePreferencesType[];
+    is_onboarding_complete?: boolean;
   }) {
-    return patch<CurrentUser, typeof props>("/users/me/update/", props);
+    const response = await patch<CurrentUser, typeof props>(
+      "/users/me/update/",
+      props
+    );
+    return response;
   }
 
   static async changePassword(password: string, new_password: string) {

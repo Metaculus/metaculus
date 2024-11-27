@@ -64,12 +64,12 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
           </Link>
         </MenuItem>
         <MenuItem>
-          <Link
-            className="flex items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
-            href={"/?start_onboarding=true"}
+          <a
+            className="flex cursor-pointer items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
+            onClick={() => setCurrentModal({ type: "onboarding" })}
           >
             {t("tutorial")}
-          </Link>
+          </a>
         </MenuItem>
         {user.is_superuser && (
           <MenuItem>

@@ -196,9 +196,13 @@ class Leaderboard(TimeStampedModel):
 
         if self.start_time and self.end_time:
             # global leaderboard
+            gl_dates = global_leaderboard_dates()
             window = (self.start_time, self.end_time)
             questions = [
-                q for q in questions if q.get_global_leaderboard_dates() == window
+                q
+                for q in questions
+                if q.get_global_leaderboard_dates(global_leaderboard_dates=gl_dates)
+                == window
             ]
 
         return list(questions)

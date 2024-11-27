@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { POST_ORDER_BY_FILTER } from "@/constants/posts_feed";
+import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
 import useDebounce from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
@@ -30,7 +30,8 @@ const useSearchInputState = (paramName: string, config?: Config) => {
       if (withNavigation && !params.get(POST_ORDER_BY_FILTER)) {
         setParam(POST_ORDER_BY_FILTER, QuestionOrder.RankDesc, withNavigation);
       }
-
+      // Auto-remove page filter on input change
+      deleteParam(POST_PAGE_FILTER, false);
       setParam(paramName, debouncedSearch, withNavigation);
     } else {
       // Auto-remove -rank ordering for server search
@@ -40,7 +41,8 @@ const useSearchInputState = (paramName: string, config?: Config) => {
       ) {
         deleteParam(POST_ORDER_BY_FILTER, withNavigation);
       }
-
+      // Auto-remove page filter on input change
+      deleteParam(POST_PAGE_FILTER, false);
       deleteParam(paramName, withNavigation);
     }
 

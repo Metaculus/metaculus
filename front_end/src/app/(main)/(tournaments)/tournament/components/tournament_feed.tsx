@@ -23,7 +23,8 @@ type Props = {
 const TournamentFeed: FC<Props> = ({ tournament }) => {
   const searchParams = useSearchParams();
   const questionFilters = generateFiltersFromSearchParams(
-    Object.fromEntries(searchParams)
+    Object.fromEntries(searchParams),
+    { withoutPageParam: true }
   );
   const pageFilters: PostsParams = {
     statuses: PostStatus.APPROVED,
@@ -46,7 +47,8 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
       setBannerisVisible(true);
     }
   }, [questions, setBannerisVisible, tournament]);
-
+  const relevantParams = Object.fromEntries(searchParams);
+  const { page, ...otherParams } = relevantParams;
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -58,7 +60,7 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
         const { questions } = (await fetchPosts(
           pageFilters,
           0,
-          POSTS_PER_PAGE
+          (!isNaN(Number(page)) ? Number(page) : 1) * POSTS_PER_PAGE
         )) as { questions: PostWithForecasts[]; count: number };
 
         setQuestions(questions);
@@ -70,9 +72,10 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
         setIsLoading(false);
       }
     };
+
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [JSON.stringify(otherParams)]);
 
   return isLoading ? (
     <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />

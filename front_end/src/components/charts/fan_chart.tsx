@@ -65,6 +65,7 @@ const FanChart: FC<Props> = ({
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
+  const filteredOptions = [...options].filter((o) => o.resolved || o.quartiles);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -79,7 +80,11 @@ const FanChart: FC<Props> = ({
     [options]
   );
 
-  const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
+  const labels = adjustLabelsForDisplay(
+    filteredOptions,
+    chartWidth,
+    actualTheme
+  );
   const yScale = generateScale({
     displayType: options[0].question.type,
     axisLength: height,
@@ -93,10 +98,13 @@ const FanChart: FC<Props> = ({
 
   const tooltipItems = useMemo(
     () =>
-      options.reduce<
+      filteredOptions.reduce<
         Record<
           string,
-          { quartiles: Quartiles; question: QuestionWithNumericForecasts }
+          {
+            quartiles: Quartiles | undefined;
+            question: QuestionWithNumericForecasts;
+          }
         >
       >(
         (acc, el) => ({
@@ -105,7 +113,7 @@ const FanChart: FC<Props> = ({
         }),
         {}
       ),
-    [options]
+    [filteredOptions]
   );
 
   const shouldDisplayChart = !!chartWidth;
@@ -252,7 +260,7 @@ function buildChartData(options: FanOption[]) {
     [];
   const zeroPoints: number[] = [];
   options.forEach((option) => {
-    if (option.question.scaling.zero_point !== null) {
+    if (option.question.scaling.zero_point !== null && !!option.quartiles) {
       zeroPoints.push(option.question.scaling.zero_point);
     }
   });
@@ -282,20 +290,22 @@ function buildChartData(options: FanOption[]) {
 
   if (options[0].question.type === QuestionType.Binary) {
     for (const option of options) {
-      line.push({
-        x: option.name,
-        y: option.quartiles.median,
-      });
-      area.push({
-        x: option.name,
-        y0: option.quartiles.lower25,
-        y: option.quartiles.upper75,
-      });
-      points.push({
-        x: option.name,
-        y: option.quartiles.median,
-        resolved: false,
-      });
+      if (!!option.quartiles) {
+        line.push({
+          x: option.name,
+          y: option.quartiles.median,
+        });
+        area.push({
+          x: option.name,
+          y0: option.quartiles.lower25,
+          y: option.quartiles.upper75,
+        });
+        points.push({
+          x: option.name,
+          y: option.quartiles.median,
+          resolved: false,
+        });
+      }
       if (option.resolved) {
         resolutionPoints.push({
           x: option.name,
@@ -306,41 +316,46 @@ function buildChartData(options: FanOption[]) {
     }
   } else {
     for (const option of options) {
-      // scale up the values to nominal values
-      // then unscale by the derived scaling
-      const median = unscaleNominalLocation(
-        scaleInternalLocation(option.quartiles.median, option.question.scaling),
-        scaling
-      );
-      const lower25 = unscaleNominalLocation(
-        scaleInternalLocation(
-          option.quartiles.lower25,
-          option.question.scaling
-        ),
-        scaling
-      );
-      const upper75 = unscaleNominalLocation(
-        scaleInternalLocation(
-          option.quartiles.upper75,
-          option.question.scaling
-        ),
-        scaling
-      );
+      if (!!option.quartiles) {
+        // scale up the values to nominal values
+        // then unscale by the derived scaling
+        const median = unscaleNominalLocation(
+          scaleInternalLocation(
+            option.quartiles.median,
+            option.question.scaling
+          ),
+          scaling
+        );
+        const lower25 = unscaleNominalLocation(
+          scaleInternalLocation(
+            option.quartiles.lower25,
+            option.question.scaling
+          ),
+          scaling
+        );
+        const upper75 = unscaleNominalLocation(
+          scaleInternalLocation(
+            option.quartiles.upper75,
+            option.question.scaling
+          ),
+          scaling
+        );
 
-      line.push({
-        x: option.name,
-        y: median,
-      });
-      area.push({
-        x: option.name,
-        y0: lower25,
-        y: upper75,
-      });
-      points.push({
-        x: option.name,
-        y: median,
-        resolved: false,
-      });
+        line.push({
+          x: option.name,
+          y: median,
+        });
+        area.push({
+          x: option.name,
+          y0: lower25,
+          y: upper75,
+        });
+        points.push({
+          x: option.name,
+          y: median,
+          resolved: false,
+        });
+      }
       if (option.resolved) {
         resolutionPoints.push({
           x: option.name,

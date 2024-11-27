@@ -15,6 +15,7 @@ import { cdfToPmf } from "@/utils/math";
 
 type Props = {
   question: QuestionWithNumericForecasts;
+  overlayPreviousForecast?: boolean;
   dataset: {
     cdf: number[];
     pmf: number[];
@@ -28,6 +29,7 @@ type Props = {
 
 const ContinuousPredictionChart: FC<Props> = ({
   question,
+  overlayPreviousForecast,
   dataset,
   graphType,
   readOnly = false,
@@ -59,6 +61,13 @@ const ContinuousPredictionChart: FC<Props> = ({
           : graphType === "pmf"
             ? (hoverState.yData.user * 200).toFixed(3)
             : getForecastPctDisplayValue(hoverState.yData.user),
+      yUserPreviousLabel: readOnly
+        ? null
+        : !hoverState.yData.user_previous
+          ? null
+          : graphType === "pmf"
+            ? (hoverState.yData.user_previous * 200).toFixed(3)
+            : getForecastPctDisplayValue(hoverState.yData.user_previous),
       yCommunityLabel: !hoverState.yData.community
         ? null
         : graphType === "pmf"
@@ -86,6 +95,14 @@ const ContinuousPredictionChart: FC<Props> = ({
       });
     }
 
+    if (overlayPreviousForecast && question.my_forecasts?.latest) {
+      charts.push({
+        pmf: cdfToPmf(question.my_forecasts.latest.forecast_values),
+        cdf: question.my_forecasts.latest.forecast_values,
+        type: "user_previous",
+      });
+    }
+
     if (!readOnly || !!question.my_forecasts?.latest) {
       charts.push({
         pmf: dataset.pmf,
@@ -102,6 +119,7 @@ const ContinuousPredictionChart: FC<Props> = ({
     readOnly,
     showCP,
     question.my_forecasts?.latest,
+    overlayPreviousForecast,
   ]);
 
   return (
@@ -133,6 +151,16 @@ const ContinuousPredictionChart: FC<Props> = ({
                 </span>
                 {" ("}
                 {t("you")}
+                {")"}
+              </span>
+            )}
+            {cursorDisplayData.yUserPreviousLabel !== null && (
+              <span>
+                <span className="font-bold text-gray-900 dark:text-gray-900-dark">
+                  {cursorDisplayData.yUserPreviousLabel}
+                </span>
+                {" ("}
+                {t("youPrevious")}
                 {")"}
               </span>
             )}

@@ -24,7 +24,7 @@ from projects.services.common import (
     unsubscribe_project,
     update_with_add_posts_to_main_feed,
 )
-from users.services import get_users_by_usernames
+from users.services.common import get_users_by_usernames
 from utils.cache import cache_get_or_set
 
 
