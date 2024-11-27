@@ -723,6 +723,14 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
 
         after_forecast_actions(question, user)
 
+        # remove global subscriptions
+        PostSubscription.objects.filter(
+            user=user,
+            post=post,
+            type=PostSubscription.SubscriptionType.CP_CHANGE,
+            is_global=True,
+        ).delete()
+
     # Running forecast post triggers
     for post in posts:
         # There may be situations where async jobs from `create_forecast` complete after

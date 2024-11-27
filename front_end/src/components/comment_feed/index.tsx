@@ -26,6 +26,7 @@ import { logError } from "@/utils/errors";
 
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
+import { isNil } from "lodash";
 
 export type SortOption = "created_at" | "-created_at" | "-vote_score";
 type FeedOptions = "public" | "private";
@@ -99,8 +100,8 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
     if (postData.question.type === QuestionType.MultipleChoice) {
       return false;
     }
-
-    return !!postData.question.my_forecasts?.history.length;
+    const latest = postData.question.my_forecasts?.latest;
+    return !!latest && isNil(latest.end_time);
   }
 
   return false;

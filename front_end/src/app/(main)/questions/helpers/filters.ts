@@ -262,7 +262,6 @@ export function getFilterSectionParticipation({
         active:
           !!params.get(POST_FORECASTER_ID_FILTER) &&
           params.get(POST_WITHDRAWN_FILTER) === "false",
-        shouldEnforceSearch: false,
       },
       {
         id: POST_WITHDRAWN_FILTER,
@@ -271,7 +270,6 @@ export function getFilterSectionParticipation({
         active:
           !!params.get(POST_FORECASTER_ID_FILTER) &&
           params.get(POST_WITHDRAWN_FILTER) === "true",
-        shouldEnforceSearch: false,
       },
       {
         id: POST_NOT_FORECASTER_ID_FILTER,

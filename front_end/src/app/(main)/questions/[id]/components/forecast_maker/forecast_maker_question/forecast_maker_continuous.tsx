@@ -31,6 +31,7 @@ import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
+import { isNil } from "lodash";
 
 type Props = {
   post: PostWithForecasts;
@@ -71,8 +72,11 @@ const ForecastMakerContinuous: FC<Props> = ({
   const [weights, setWeights] = useState<number[]>(
     prevForecastValue?.weights ?? [1]
   );
-  const previousForecast = question.my_forecasts?.latest;
-  console.log(previousForecast);
+  const previousForecast =
+    !!question.my_forecasts?.latest &&
+    isNil(question.my_forecasts.latest.end_time)
+      ? question.my_forecasts.latest
+      : undefined;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(
       !!previousForecast?.forecast_values && !previousForecast.slider_values
@@ -155,7 +159,6 @@ const ForecastMakerContinuous: FC<Props> = ({
   const [withdraw, withdrawalIsPending] = useServerAction(
     handlePredictWithdraw
   );
-
   return (
     <>
       <ContinuousSlider
@@ -192,7 +195,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               hasUserForecast={hasUserForecast}
               isPending={isPending}
             />
-            {!!prevForecastValue && (
+            {!!previousForecast && (
               <>
                 <Button
                   variant="primary"

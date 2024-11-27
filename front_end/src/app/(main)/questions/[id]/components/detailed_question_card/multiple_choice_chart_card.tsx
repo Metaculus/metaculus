@@ -152,7 +152,8 @@ const MultipleChoiceChartCard: FC<Props> = ({
     <MultiChoicesChartView
       tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
-      choiceItems={hideCP ? [] : choiceItems}
+      choiceItems={choiceItems}
+      hideCP={hideCP}
       timestamps={allTimestamps}
       forecastersCount={forecastersCount}
       tooltipDate={tooltipDate}

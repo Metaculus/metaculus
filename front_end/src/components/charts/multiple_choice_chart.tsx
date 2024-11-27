@@ -57,6 +57,7 @@ type Props = {
   withZoomPicker?: boolean;
   height?: number;
   yLabel?: string;
+  hideCP?: boolean;
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
   extraTheme?: VictoryThemeDefinition;
@@ -75,10 +76,10 @@ const MultipleChoiceChart: FC<Props> = ({
   withZoomPicker = false,
   height = 150,
   yLabel,
+  hideCP,
   onCursorChange,
   onChartReady,
   extraTheme,
-  userForecasts,
   questionType,
   scaling,
   isClosed,
@@ -119,6 +120,7 @@ const MultipleChoiceChart: FC<Props> = ({
         actualCloseTime,
         aggregation,
         extraTheme,
+        hideCP,
       }),
     [
       timestamps,
@@ -362,6 +364,7 @@ function buildChartData({
   scaling,
   aggregation,
   extraTheme,
+  hideCP,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -373,6 +376,7 @@ function buildChartData({
   scaling?: Scaling;
   aggregation?: boolean;
   extraTheme?: VictoryThemeDefinition;
+  hideCP?: boolean;
 }): ChartData {
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
@@ -453,48 +457,50 @@ function buildChartData({
           });
         }
       });
-      aggregationTimestamps.forEach((timestamp, timestampIndex) => {
-        const aggregationValue = aggregationValues[timestampIndex];
-        const aggregationMinValue = aggregationMinValues[timestampIndex];
-        const aggregationMaxValue = aggregationMaxValues[timestampIndex];
-        // build line and area (CP data)
-        if (
-          !line.length ||
-          aggregationValue ||
-          line[line.length - 1].y === null
-        ) {
-          // we are either starting or have a real value or previous value is null
-          line.push({
-            x: timestamp,
-            y: aggregationValue ? rescale(aggregationValue) : null,
-          });
-          area.push({
-            x: timestamp,
-            y: aggregationMaxValue ? rescale(aggregationMaxValue) : null,
-            y0: aggregationMinValue ? rescale(aggregationMinValue) : null,
-          });
-        } else {
-          // we have a null vlalue while previous was real
-          line.push({
-            x: timestamp,
-            y: line[line.length - 1].y,
-          });
-          area.push({
-            x: timestamp,
-            y: area[area.length - 1].y,
-            y0: area[area.length - 1].y0,
-          });
-          line.push({
-            x: timestamp,
-            y: null,
-          });
-          area.push({
-            x: timestamp,
-            y: null,
-            y0: null,
-          });
-        }
-      });
+      if (!hideCP) {
+        aggregationTimestamps.forEach((timestamp, timestampIndex) => {
+          const aggregationValue = aggregationValues[timestampIndex];
+          const aggregationMinValue = aggregationMinValues[timestampIndex];
+          const aggregationMaxValue = aggregationMaxValues[timestampIndex];
+          // build line and area (CP data)
+          if (
+            !line.length ||
+            aggregationValue ||
+            line[line.length - 1].y === null
+          ) {
+            // we are either starting or have a real value or previous value is null
+            line.push({
+              x: timestamp,
+              y: aggregationValue ? rescale(aggregationValue) : null,
+            });
+            area.push({
+              x: timestamp,
+              y: aggregationMaxValue ? rescale(aggregationMaxValue) : null,
+              y0: aggregationMinValue ? rescale(aggregationMinValue) : null,
+            });
+          } else {
+            // we have a null vlalue while previous was real
+            line.push({
+              x: timestamp,
+              y: line[line.length - 1].y,
+            });
+            area.push({
+              x: timestamp,
+              y: area[area.length - 1].y,
+              y0: area[area.length - 1].y0,
+            });
+            line.push({
+              x: timestamp,
+              y: null,
+            });
+            area.push({
+              x: timestamp,
+              y: null,
+              y0: null,
+            });
+          }
+        });
+      }
 
       const item: ChoiceGraph = {
         choice,
