@@ -233,10 +233,7 @@ export default async function IndividualQuestion({
                 layout="mobile"
                 questionTitle={questionTitle}
               />
-              <CommentFeed
-                postData={postData}
-                postPermissions={postData.user_permission}
-              />
+              <CommentFeed postData={postData} />
             </div>
             <Sidebar
               postData={postData}

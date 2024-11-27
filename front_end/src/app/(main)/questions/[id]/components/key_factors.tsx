@@ -1,4 +1,5 @@
-import Link from "next/link";
+"use client";
+
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -42,12 +43,13 @@ const KeyFactorItem: FC<KeyFactorBlockProps> = ({
           userVote: user_vote ?? null,
         }}
       />
-      <Link
+      {/* Link component does not trigger hash event trigger, so we use <a> instead */}
+      <a
         href={`#comment-${comment_id}`}
         className="no-underline hover:underline"
       >
         {text}
-      </Link>
+      </a>
     </div>
   );
 };
