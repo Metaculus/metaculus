@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -41,12 +42,12 @@ const KeyFactorItem: FC<KeyFactorBlockProps> = ({
           userVote: user_vote ?? null,
         }}
       />
-      <a
+      <Link
         href={`#comment-${comment_id}`}
         className="no-underline hover:underline"
       >
         {text}
-      </a>
+      </Link>
     </div>
   );
 };
