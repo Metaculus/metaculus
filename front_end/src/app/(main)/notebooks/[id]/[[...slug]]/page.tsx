@@ -191,7 +191,6 @@ export default async function IndividualNotebook({ params }: Props) {
             )}
             <CommentFeed
               postData={postData}
-              postPermissions={postData.user_permission}
               id={NOTEBOOK_COMMENTS_TITLE}
               inNotebook={true}
             />

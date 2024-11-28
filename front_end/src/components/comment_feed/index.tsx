@@ -17,9 +17,10 @@ import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
+import useHash from "@/hooks/use_hash";
 import { getCommentsParams } from "@/services/comments";
 import { BECommentType, CommentType } from "@/types/comment";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
@@ -80,7 +81,6 @@ function parseCommentsArray(
 
 type Props = {
   postData?: PostWithForecasts;
-  postPermissions?: ProjectPermissions;
   profileId?: number;
   rootCommentStructure?: boolean;
   id?: string;
@@ -111,7 +111,6 @@ const COMMENTS_PER_PAGE = 10;
 
 const CommentFeed: FC<Props> = ({
   postData,
-  postPermissions,
   profileId,
   rootCommentStructure = true,
   id,
@@ -120,10 +119,27 @@ const CommentFeed: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
 
-  const [isInitialRender, setIsInitialRender] = useState(true);
+  /**
+   * Returns commentId to focus on if id is provided and comment is not already rendered
+   */
+  const getCommentIdToFocusOn = () => {
+    const match =
+      typeof window !== "undefined" &&
+      window.location.hash.match(/comment-(\d+)/);
+
+    const focus_comment_id = match ? match[1] : undefined;
+    // Check whether comment is already rendered. In this case we don't need to re-fetch the page
+    const isCommentLoaded =
+      focus_comment_id &&
+      document.getElementById(`comment-${focus_comment_id}`);
+
+    if (focus_comment_id && !isCommentLoaded) return focus_comment_id;
+  };
+
   const [feedFilters, setFeedFilters] = useState<getCommentsParams>(() => ({
     is_private: false,
     sort: "-created_at",
+    focus_comment_id: getCommentIdToFocusOn() || undefined,
   }));
 
   const [comments, setComments] = useState<CommentType[]>([]);
@@ -162,6 +178,8 @@ const CommentFeed: FC<Props> = ({
       setOffset(0);
       setFeedFilters({
         ...feedFilters,
+        // We want to reset focus comment in case of filters change
+        focus_comment_id: undefined,
         [key]: value,
       });
     },
@@ -215,6 +233,26 @@ const CommentFeed: FC<Props> = ({
     }
   };
 
+  const hash = useHash();
+
+  // Track #comment-id hash changes to load & focus on target comment
+  useEffect(() => {
+    if (hash) {
+      const focus_comment_id = getCommentIdToFocusOn();
+      if (
+        focus_comment_id &&
+        // Ensure we don't make duplicated calls
+        focus_comment_id != feedFilters.focus_comment_id
+      ) {
+        setOffset(0);
+        setFeedFilters({
+          ...feedFilters,
+          focus_comment_id,
+        });
+      }
+    }
+  }, [hash]);
+
   // Handling filters change
   useEffect(() => {
     let finalFilters = {
@@ -222,12 +260,6 @@ const CommentFeed: FC<Props> = ({
       offset,
     };
 
-    if (isInitialRender && window.location.hash) {
-      const match = window.location.hash.match(/#comment-(\d+)/);
-      finalFilters.focus_comment_id = match ? match[1] : undefined;
-    }
-
-    setIsInitialRender(false);
     void fetchComments(true, finalFilters);
   }, [feedFilters]);
 

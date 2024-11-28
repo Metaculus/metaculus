@@ -1,10 +1,12 @@
 import pytest  # noqa
 
 from comments.services.common import create_comment
+from comments.services.key_factors import key_factor_vote
 from notifications.models import Notification
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
 from tests.unit.fixtures import *  # noqa
+from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import factory_forecast
@@ -92,3 +94,16 @@ def test_create_comment__mentioned_groups(
     assert Notification.objects.filter(
         recipient__username=username, type="post_new_comments"
     ).exists()
+
+
+def test_key_factor_vote(user1, user2):
+    comment = factory_comment(author=user1, on_post=factory_post(author=user1))
+    kf = factory_key_factor(
+        comment=comment,
+        text="Key Factor Text",
+        votes={user2: -1},
+    )
+
+    assert key_factor_vote(kf, user1, vote=-1) == -2
+    assert key_factor_vote(kf, user1) == -1
+    assert key_factor_vote(kf, user1, vote=1) == 0
