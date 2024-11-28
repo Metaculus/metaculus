@@ -3,7 +3,10 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
@@ -31,6 +34,7 @@ import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import { useServerAction } from "@/hooks/use_server_action";
 
 type Props = {
   postId: number;
@@ -61,10 +65,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
 
-  const prevYesForecastValue = extractPrevNumericForecastValue(prevYesForecast);
-  const prevNoForecastValue = extractPrevNumericForecastValue(prevNoForecast);
+  const latestYes = question_yes.my_forecasts?.latest;
+  const latestNo = question_no.my_forecasts?.latest;
+  const prevYesForecastValue =
+    latestYes && !latestYes.end_time ? latestYes.slider_values : null;
+  const prevNoForecastValue =
+    latestNo && !latestNo.end_time ? latestNo.slider_values : null;
   const hasUserForecast =
-    !!prevYesForecastValue.forecast || !!prevNoForecastValue.forecast;
+    !!prevYesForecastValue?.forecast || !!prevNoForecastValue?.forecast;
 
   const [questionOptions, setQuestionOptions] = useState<
     Array<
@@ -315,10 +323,35 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     }
   };
 
+  const handlePredictWithdraw = async () => {
+    setSubmitErrors([]);
+
+    if (!prevYesForecastValue && !prevNoForecastValue) return;
+
+    const response = await withdrawForecasts(postId, [
+      ...(prevYesForecastValue ? [{ question: questionYesId }] : []),
+      ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
+    ]);
+    questionOptions.forEach((q) => {
+      q.isDirty = false;
+    });
+
+    if (
+      response &&
+      "non_field_errors" in response &&
+      !!response.non_field_errors
+    ) {
+      setSubmitErrors([response]);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
   const previousForecast = activeOptionData?.question.my_forecasts?.latest;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(
-      !!previousForecast?.forecast_values && !previousForecast.slider_values
+      !previousForecast?.end_time && !!previousForecast?.forecast_values
     );
 
   const userCdf: number[] | undefined =
@@ -333,9 +366,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     overlayPreviousForecast && previousForecast
       ? previousForecast.forecast_values
       : undefined;
+  const aggregateLatest =
+    activeOptionData?.question.aggregations.recency_weighted.latest;
   const communityCdf: number[] | undefined =
-    activeOptionData?.question.aggregations.recency_weighted.latest
-      ?.forecast_values;
+    aggregateLatest && !aggregateLatest.end_time
+      ? aggregateLatest.forecast_values
+      : undefined;
 
   return (
     <>
@@ -437,6 +473,20 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             isPending={isSubmitting}
             isDisabled={!questionsToSubmit.length}
           />
+          {(!!prevYesForecastValue || !!prevNoForecastValue) &&
+            question_yes.withdraw_permitted &&
+            question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+              <>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              </>
+            )}
         </div>
       )}
       {submitErrors.map((errResponse, index) => (
