@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -17,9 +18,12 @@ const CommentKeyFactor: FC<Props> = ({ keyFactor: { text } }) => {
       <div className="w-full text-nowrap uppercase text-gray-500 dark:text-gray-600-dark md:w-fit">
         {t("keyFactor")}
       </div>
-      <div className="order-1 grow-0 text-blue-800 dark:text-blue-800-dark">
+      <Link
+        href="#key-factors"
+        className="text-blue-800 no-underline hover:underline dark:text-blue-800-dark"
+      >
         {text}
-      </div>
+      </Link>
     </div>
   );
 };

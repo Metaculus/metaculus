@@ -15,7 +15,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ keyFactors }) => {
   const t = useTranslations();
 
   return (
-    <SectionToggle title={t("keyFactors")} defaultOpen>
+    <SectionToggle title={t("keyFactors")} defaultOpen id="key-factors">
       <div className="flex flex-col gap-2.5">
         {keyFactors.map((kf) => (
           <KeyFactorItem keyFactor={kf} key={`post-key-factor-${kf.id}`} />
@@ -35,21 +35,23 @@ const KeyFactorItem: FC<KeyFactorBlockProps> = ({
   const t = useTranslations();
 
   return (
-    <div className="flex items-center gap-3 rounded bg-gray-0 p-3 dark:bg-gray-0-dark">
+    <div className="relative flex items-center gap-3 rounded border border-transparent bg-gray-0 p-3 hover:border-blue-500 dark:bg-gray-0-dark [&>.target]:hover:underline">
+      {/* Link component does not trigger hash event trigger, so we use <a> instead */}
+      <a
+        href={`#comment-${comment_id}`}
+        className="absolute left-0 z-0 h-full w-full"
+      ></a>
       <KeyFactorVoter
+        className="z-10"
         voteData={{
           keyFactorId: id,
           votesScore: votes_score,
           userVote: user_vote ?? null,
         }}
       />
-      {/* Link component does not trigger hash event trigger, so we use <a> instead */}
-      <a
-        href={`#comment-${comment_id}`}
-        className="no-underline hover:underline"
-      >
+      <div className="target decoration-blue-500 underline-offset-4 dark:decoration-blue-500-dark">
         {text}
-      </a>
+      </div>
     </div>
   );
 };
