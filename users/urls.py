@@ -28,4 +28,9 @@ urlpatterns = [
         views.email_change_confirm_api_view,
         name="user-change-email-confirm",
     ),
+    path(
+        "users/me/register_campaign/",
+        views.register_campaign,
+        name="user-register-campaign",
+    ),
 ]
