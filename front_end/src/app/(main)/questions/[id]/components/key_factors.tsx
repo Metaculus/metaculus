@@ -44,8 +44,6 @@ type KeyFactorBlockProps = {
 const KeyFactorItem: FC<KeyFactorBlockProps> = ({
   keyFactor: { text, id, votes_score, user_vote, comment_id },
 }) => {
-  const t = useTranslations();
-
   return (
     <div className="relative flex items-center gap-3 rounded border border-transparent bg-gray-0 p-3 hover:border-blue-500 dark:bg-gray-0-dark dark:hover:border-blue-500-dark [&>.target]:hover:underline">
       {/* Link component does not trigger hash event trigger, so we use <a> instead */}
