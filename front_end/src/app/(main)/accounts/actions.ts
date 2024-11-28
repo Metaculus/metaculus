@@ -10,6 +10,7 @@ import {
   signUpSchema,
 } from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
+import ProfileApi from "@/services/profile";
 import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { FetchError } from "@/types/fetch";
@@ -67,11 +68,6 @@ export async function signUpAction(
 ): Promise<SignUpActionState> {
   const headersList = headers();
 
-  let addToProject;
-  if (validatedSignupData.addToProject) {
-    addToProject = parseInt(validatedSignupData.addToProject);
-  }
-
   try {
     const response = await AuthApi.signUp(
       validatedSignupData.email,
@@ -82,7 +78,9 @@ export async function signUpAction(
         "cf-turnstile-response": validatedSignupData.turnstileToken,
         "CF-Connecting-IP": headersList.get("CF-Connecting-IP"),
       },
-      addToProject
+      validatedSignupData.addToProject,
+      validatedSignupData.campaignKey,
+      validatedSignupData.campaignData
     );
 
     if (response.is_active && response.token) {
@@ -103,4 +101,21 @@ export async function signUpAction(
 export async function LogOut() {
   deleteServerSession();
   return redirect("/");
+}
+
+export async function registerUserCampaignAction(
+  key: string,
+  details: object,
+  addToProject?: number
+): Promise<{ errors?: any }> {
+  try {
+    await ProfileApi.registerUserCampaign(key, details, addToProject);
+    return { errors: null };
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
 }

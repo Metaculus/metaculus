@@ -18,7 +18,9 @@ export const signUpSchema = z.intersection(
     turnstileToken: z.string({
       required_error: "Turnstile token is required",
     }),
-    addToProject: z.string().optional(),
+    addToProject: z.number().optional(),
+    campaignKey: z.string().optional(),
+    campaignData: z.record(z.any()).optional(),
   }),
   z
     .object({

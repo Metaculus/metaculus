@@ -9,6 +9,7 @@ export type ErrorProps = {
   errors?: ErrorResponse;
   name?: keyof ErrorResponse;
   className?: string;
+  strict?: boolean;
 };
 
 export interface InputProps

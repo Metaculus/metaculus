@@ -417,6 +417,8 @@
   "website": "Webová stránka",
   "profileBioPlaceholder": "ekněte nám něco o sobě.",
   "username": "uživatelské jméno",
+  "introducingCommunities": "<bold>Představujeme Komunity</bold> – novou funkci, kde členové vytvářejí, diskutují a řeší vlastní otázky na různá témata. Sledujte své oblíbené komunity, abyste byli informováni, a přispívejte k prognózám v oblastech, na kterých vám záleží.",
+  "introducingCommunitiesContact": "Chcete vytvořit vlastní komunitu? <contact>Kontaktujte nás</contact> a začněte.",
   "noResults": "Žádné výsledky nenalezeny",
   "noTags": "Žádné štítky nenalezeny",
   "homeTitle": "Prognózování pro <highlight>komplexní svět</highlight>",

@@ -37,7 +37,11 @@ class ProfileApi {
     unsubscribed_preference_tags?: ProfilePreferencesType[];
     is_onboarding_complete?: boolean;
   }) {
-    return patch<CurrentUser, typeof props>("/users/me/update/", props);
+    const response = await patch<CurrentUser, typeof props>(
+      "/users/me/update/",
+      props
+    );
+    return response;
   }
 
   static async changePassword(password: string, new_password: string) {
@@ -62,6 +66,18 @@ class ProfileApi {
 
   static async searchUsers(query: string) {
     return await get<PaginatedPayload<UserProfile>>(`/users/?search=${query}`);
+  }
+
+  static async registerUserCampaign(
+    key: string,
+    details: object,
+    add_to_project?: number
+  ) {
+    return post<void>("/users/me/register_campaign/", {
+      key,
+      details,
+      add_to_project,
+    });
   }
 }
 

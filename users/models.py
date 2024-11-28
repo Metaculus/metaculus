@@ -7,7 +7,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
-
 from utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
@@ -90,7 +89,7 @@ class User(TimeStampedModel, AbstractUser):
         self.old_usernames.append((self.username, timezone.now().isoformat()))
         self.username = val
 
-    def soft_delete(self: "User"):
+    def soft_delete(self: "User") -> None:
         # set to inactive
         self.is_active = False
 
@@ -103,3 +102,29 @@ class User(TimeStampedModel, AbstractUser):
         self.posts.update(curation_status=Post.CurationStatus.DELETED)
 
         self.save()
+
+
+class UserCampaignRegistration(TimeStampedModel):
+    """
+    This model stores registration details for a user as part of an
+    campaign/initiative (e.g.: joint project with an external party).
+    It includes a reference to the user, a JSON field for extra details,
+    and key for tracking registration initiatives/campaigns.
+    """
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="registration_details"
+    )
+
+    details = models.JSONField(default=dict, blank=True, null=False)
+
+    key = models.CharField(
+        max_length=200,
+        help_text="Key to track the campaign the user registered through.",
+    )
+
+    class Meta:
+        unique_together = ["user", "key"]
+
+    def __str__(self):
+        return f"UserCampaignRegistration {self.user.username}({self.key})"

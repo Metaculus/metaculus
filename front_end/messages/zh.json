@@ -413,6 +413,8 @@
   "website": "網站",
   "profileBioPlaceholder": "告訴我們一些關於你的信息。",
   "username": "用戶名",
+  "introducingCommunities": "<bold>社区功能介绍</bold>：一项新功能，成员可以就各种主题创建、讨论和解决自己的问题。关注您喜欢的社区以随时了解动态，并在您关心的领域贡献预测。",
+  "introducingCommunitiesContact": "想创建自己的社区吗？<contact>联系我们</contact>，开始吧。",
   "noResults": "未找到結果",
   "noTags": "未找到標籤",
   "homeTitle": "為<highlight>複雜世界</highlight>進行預測",
