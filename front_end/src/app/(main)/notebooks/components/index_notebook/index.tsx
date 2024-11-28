@@ -81,7 +81,7 @@ function calculateIndex(posts: PostWithForecastsAndWeight[]): number {
     return 0;
   }
 
-  const scoreSome = posts.reduce((acc, post) => {
+  const scoreSum = posts.reduce((acc, post) => {
     if (!post.question) {
       return acc;
     }
@@ -131,7 +131,7 @@ function calculateIndex(posts: PostWithForecastsAndWeight[]): number {
     return acc + post.weight * postValue;
   }, 0);
 
-  return scoreSome / weightSum;
+  return scoreSum / weightSum;
 }
 
 export default IndexNotebook;
