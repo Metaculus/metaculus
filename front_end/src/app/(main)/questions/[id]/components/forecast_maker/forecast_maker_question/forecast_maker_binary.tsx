@@ -102,8 +102,12 @@ const ForecastMakerBinary: FC<Props> = ({
     ]);
     setIsForecastDirty(false);
 
-    if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors[0]);
+    if (
+      response &&
+      "non_field_errors" in response &&
+      !!response.non_field_errors
+    ) {
+      setSubmitError(response);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(

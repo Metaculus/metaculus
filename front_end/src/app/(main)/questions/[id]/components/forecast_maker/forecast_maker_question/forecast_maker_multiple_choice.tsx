@@ -229,13 +229,16 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     const response = await withdrawForecasts(post.id, [
       {
         question: question.id,
-        // withdrawAt: new Date().toISOString(), // TODO: implement
       },
     ]);
     setIsDirty(false);
 
-    if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors[0]);
+    if (
+      response &&
+      "non_field_errors" in response &&
+      !!response.non_field_errors
+    ) {
+      setSubmitError(response);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
