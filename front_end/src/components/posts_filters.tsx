@@ -3,6 +3,7 @@
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
+import { debounce } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo } from "react";
 
@@ -17,11 +18,11 @@ import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
 import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
-import { useGlobalSearchContext } from "@/contexts/global_search_context";
+
 import VisibilityObserver from "./visibility_observer";
-import { debounce } from "lodash";
 
 type ActiveFilter = {
   id: string;
@@ -135,7 +136,8 @@ const PostsFilters: FC<Props> = ({
   const handlePopOverFilterChange = (
     filterId: string,
     optionValue: string | string[] | null,
-    replaceInfo?: FilterReplaceInfo
+    replaceInfo?: FilterReplaceInfo,
+    extraValues?: Record<string, string>
   ) => {
     onPopOverFilterChange?.(
       { filterId, optionValue, replaceInfo },
@@ -150,7 +152,15 @@ const PostsFilters: FC<Props> = ({
         return;
       }
 
-      replaceParams(replaceIds, [{ name: optionId, value: optionValue }]);
+      replaceParams(replaceIds, [
+        { name: optionId, value: optionValue },
+        ...(extraValues
+          ? Object.entries(extraValues).map(([key, value]) => ({
+              name: key,
+              value,
+            }))
+          : []),
+      ]);
       return;
     }
 

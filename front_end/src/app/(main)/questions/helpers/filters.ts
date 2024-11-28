@@ -253,12 +253,17 @@ export function getFilterSectionParticipation({
         id: POST_FORECASTER_ID_FILTER,
         label: t("searchOptionPredicted"),
         value: user.id.toString(),
-        active: !!params.get(POST_FORECASTER_ID_FILTER),
+        active:
+          !!params.get(POST_FORECASTER_ID_FILTER) &&
+          !params.get(POST_WITHDRAWN_FILTER),
       },
       {
         id: POST_WITHDRAWN_FILTER,
         label: t("searchOptionActivePrediction"),
-        value: false.toString(),
+        value: "false",
+        extraValues: {
+          [POST_FORECASTER_ID_FILTER]: user.id.toString(),
+        },
         active:
           !!params.get(POST_FORECASTER_ID_FILTER) &&
           params.get(POST_WITHDRAWN_FILTER) === "false",
@@ -266,7 +271,10 @@ export function getFilterSectionParticipation({
       {
         id: POST_WITHDRAWN_FILTER,
         label: t("searchOptionWithdrawnPrediction"),
-        value: true.toString(),
+        value: "true",
+        extraValues: {
+          [POST_FORECASTER_ID_FILTER]: user.id.toString(),
+        },
         active:
           !!params.get(POST_FORECASTER_ID_FILTER) &&
           params.get(POST_WITHDRAWN_FILTER) === "true",
