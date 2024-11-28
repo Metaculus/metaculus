@@ -2400,6 +2400,14 @@ export default function FAQ() {
             you hadn't withdrawn (your peer score might not behave in that exact
             way since it depends on others' forecasts over time).
           </p>
+          {/* Feature Flag: prediction-withdrawal */}
+          <p>
+            Note that this is a new feature, and it is temporarily only
+            available on questions that do not contribute to leaderboards with
+            monetary rewards. After data is gathered on its use and the impact
+            on community prediction reliability, it may be rolled out to all
+            questions.
+          </p>
         </div>
         <div>
           <h3
