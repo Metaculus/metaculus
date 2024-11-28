@@ -8,7 +8,7 @@ type Props = {
   value: number;
 };
 
-const WeightChip: FC<Props> = ({ value }) => {
+const IndexWeightChip: FC<Props> = ({ value }) => {
   const t = useTranslations();
 
   const isNegative = value < 0;
@@ -53,4 +53,4 @@ const WeightChip: FC<Props> = ({ value }) => {
   );
 };
 
-export default WeightChip;
+export default IndexWeightChip;

@@ -24,7 +24,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "@/components/ui/table";
-import { useBreakpoint } from "@/hooks/tailwind";
+import useScreenSize from "@/hooks/use_screen_size";
 import { PostWithForecasts, PostWithForecastsAndWeight } from "@/types/post";
 import { getDisplayValue } from "@/utils/charts";
 import { getPostLink } from "@/utils/navigation";
@@ -32,7 +32,7 @@ import { getPostLink } from "@/utils/navigation";
 import CommunityPrediction, {
   IndexCommunityPrediction,
 } from "./index_community_prediction";
-import WeightChip from "./weight_chip";
+import IndexWeightChip from "./index_weight_chip";
 
 type TableItem = {
   title: string;
@@ -47,13 +47,14 @@ type Props = {
   indexQuestions: PostWithForecastsAndWeight[];
 };
 
-const IndexQuestions: FC<Props> = ({ indexQuestions }) => {
+const IndexQuestionsTable: FC<Props> = ({ indexQuestions }) => {
   const t = useTranslations();
 
   const data = useMemo(() => getTableData(indexQuestions), [indexQuestions]);
   const questionsCount = data.length;
 
-  const isLargeScreen = useBreakpoint("md");
+  const { width } = useScreenSize();
+  const isLargeScreen = width >= 768;
 
   const columns = useMemo(() => {
     if (!isLargeScreen) {
@@ -80,14 +81,19 @@ const IndexQuestions: FC<Props> = ({ indexQuestions }) => {
       }),
       columnHelper.accessor("weight", {
         header: t("indexWeight"),
-        cell: (info) => <WeightChip value={info.getValue()} />,
+        cell: (info) => <IndexWeightChip value={info.getValue()} />,
         meta: {
           className: "text-center",
         },
       }),
       columnHelper.accessor("communityPrediction", {
         header: t("indexCP"),
-        cell: (info) => <CommunityPrediction {...info.getValue()} />,
+        cell: (info) => (
+          <CommunityPrediction
+            post={info.row.original.post}
+            {...info.getValue()}
+          />
+        ),
         meta: {
           className: "text-center",
         },
@@ -197,7 +203,6 @@ function getTableData(questions: PostWithForecastsAndWeight[]): TableItem[] {
       communityPrediction: {
         rawValue: cpRawValue,
         displayValue: cpDisplayValue,
-        weekMovement: null, // TODO: calculate movement
       },
       post,
     });
@@ -214,10 +219,10 @@ const MobileQuestionCell: FC<CellContext<TableItem, string>> = ({ row }) => {
       <Link href={getPostLink(post)} className="absolute inset-0" />
 
       <span className="text-sm font-medium leading-5">{title}</span>
-      <CommunityPrediction {...communityPrediction} />
-      <WeightChip value={weight} />
+      <CommunityPrediction post={post} {...communityPrediction} />
+      <IndexWeightChip value={weight} />
     </div>
   );
 };
 
-export default IndexQuestions;
+export default IndexQuestionsTable;

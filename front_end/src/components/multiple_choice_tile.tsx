@@ -14,7 +14,12 @@ import PredictionChip from "@/components/prediction_chip";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, UserChoiceItem } from "@/types/choices";
 import { PostStatus, Resolution } from "@/types/post";
-import { Question, QuestionType, Scaling } from "@/types/question";
+import {
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+  Scaling,
+} from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { getChoiceOptionValue } from "@/utils/charts";
 
@@ -30,7 +35,7 @@ type Props = {
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
   userForecasts?: UserChoiceItem[];
-  question?: Question;
+  question?: QuestionWithForecasts;
   questionType?: QuestionType;
   scaling?: Scaling | undefined;
   hideCP?: boolean;

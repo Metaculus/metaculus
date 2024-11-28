@@ -2,17 +2,19 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import CPWeeklyMovement from "@/components/cp_weekly_movement";
+import { PostWithForecasts } from "@/types/post";
+
 export type IndexCommunityPrediction = {
   rawValue: number | null;
   displayValue: string;
-  weekMovement: number | null;
 };
 
-const CommunityPrediction: FC<IndexCommunityPrediction> = ({
-  rawValue,
-  displayValue,
-  weekMovement,
-}) => {
+type Props = {
+  post: PostWithForecasts;
+} & IndexCommunityPrediction;
+
+const CommunityPrediction: FC<Props> = ({ rawValue, displayValue, post }) => {
   const t = useTranslations();
 
   if (isNil(rawValue)) {
@@ -24,10 +26,11 @@ const CommunityPrediction: FC<IndexCommunityPrediction> = ({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-row items-center gap-1 md:flex-col md:gap-0.5">
       <span className="font-bold text-gray-700 dark:text-gray-700-dark">
         {displayValue}
       </span>
+      {!!post.question && <CPWeeklyMovement question={post.question} />}
     </div>
   );
 };

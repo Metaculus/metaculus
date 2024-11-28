@@ -978,5 +978,6 @@
   "indexScore": "Index value: <bold>{value}</bold>",
   "indexQuestion": "Question",
   "indexWeight": "Weight",
-  "indexCP": "CP"
+  "indexCP": "CP",
+  "weeklyMovementChange": "{value} this week"
 }

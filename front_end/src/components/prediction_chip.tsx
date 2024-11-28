@@ -5,15 +5,16 @@ import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
 import { CSSProperties, FC, PropsWithChildren } from "react";
 
+import CPWeeklyMovement from "@/components/cp_weekly_movement";
 import { PostStatus } from "@/types/post";
-import { Question } from "@/types/question";
+import { Question, QuestionWithForecasts } from "@/types/question";
 import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
 type Size = "compact" | "large";
 
 type Props = {
-  question: Question;
+  question: QuestionWithForecasts;
   status: PostStatus;
   prediction?: number;
   size?: Size;
@@ -143,17 +144,20 @@ const PredictionChip: FC<Props> = ({
       return (
         <span className={classNames("inline-flex flex-col", className)}>
           {!!predictionDisplayValue && (
-            <Chip
-              size={size}
-              className={classNames(
-                "bg-olive-700 dark:bg-olive-700-dark",
-                chipClassName
-              )}
-              style={unresovledChipStyle}
-            >
-              <FontAwesomeIcon icon={faUserGroup} size="xs" />
-              {predictionDisplayValue}
-            </Chip>
+            <>
+              <Chip
+                size={size}
+                className={classNames(
+                  "bg-olive-700 dark:bg-olive-700-dark",
+                  chipClassName
+                )}
+                style={unresovledChipStyle}
+              >
+                <FontAwesomeIcon icon={faUserGroup} size="xs" />
+                {predictionDisplayValue}
+              </Chip>
+              <CPWeeklyMovement question={question} className="my-1" />
+            </>
           )}
           {!!nr_forecasters && (
             <p>
