@@ -211,14 +211,14 @@ def get_posts_feed(
     order_desc, order_type = parse_order_by(order_by)
 
     if order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE and not (
-        active_forecaster_id or withdrawn_forecaster_id
+        forecaster_id
     ):
         order_type = "created_at"
 
     if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
         qs = qs.annotate_unread_comment_count(user_id=user.id)
     if order_type == PostFilterSerializer.Order.SCORE:
-        if not (active_forecaster_id or withdrawn_forecaster_id):
+        if not (forecaster_id):
             raise ValidationError(
                 "Can not order by score without forecaster_id provided"
             )
