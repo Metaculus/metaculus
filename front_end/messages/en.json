@@ -967,5 +967,7 @@
   "undergraduateStudentQuestion": "Are you currently an undergraduate student?",
   "institution": "Institution",
   "major": "Major",
-  "finishRegistration": "Finish Registration"
+  "finishRegistration": "Finish Registration",
+  "keyFactor": "Key Factor",
+  "keyFactors": "Key Factors"
 }
