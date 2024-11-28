@@ -20,7 +20,7 @@ const CommentKeyFactor: FC<Props> = ({ keyFactor: { text } }) => {
       </div>
       <Link
         href="#key-factors"
-        className="text-blue-800 no-underline hover:underline dark:text-blue-800-dark"
+        className="w-full text-blue-800 no-underline hover:underline dark:text-blue-800-dark md:w-fit"
       >
         {text}
       </Link>

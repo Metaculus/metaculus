@@ -1,9 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import KeyFactorVoter from "@/components/comment_feed/key_factor_voter";
+import Button from "@/components/ui/button";
 import SectionToggle from "@/components/ui/section_toggle";
 import { KeyFactor } from "@/types/comment";
 
@@ -13,13 +14,24 @@ type KeyFactorsSectionProps = {
 
 const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ keyFactors }) => {
   const t = useTranslations();
+  const [displayLimit, setDisplayLimit] = useState(4);
 
   return (
     <SectionToggle title={t("keyFactors")} defaultOpen id="key-factors">
       <div className="flex flex-col gap-2.5">
-        {keyFactors.map((kf) => (
+        {keyFactors.slice(0, displayLimit).map((kf) => (
           <KeyFactorItem keyFactor={kf} key={`post-key-factor-${kf.id}`} />
         ))}
+        <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">
+          {keyFactors.length > displayLimit && (
+            <Button
+              variant="tertiary"
+              onClick={() => setDisplayLimit((prev) => prev + 10)}
+            >
+              {t("showMore")}
+            </Button>
+          )}
+        </div>
       </div>
     </SectionToggle>
   );
@@ -35,7 +47,7 @@ const KeyFactorItem: FC<KeyFactorBlockProps> = ({
   const t = useTranslations();
 
   return (
-    <div className="relative flex items-center gap-3 rounded border border-transparent bg-gray-0 p-3 hover:border-blue-500 dark:bg-gray-0-dark [&>.target]:hover:underline">
+    <div className="relative flex items-center gap-3 rounded border border-transparent bg-gray-0 p-3 hover:border-blue-500 dark:bg-gray-0-dark dark:hover:border-blue-500-dark [&>.target]:hover:underline">
       {/* Link component does not trigger hash event trigger, so we use <a> instead */}
       <a
         href={`#comment-${comment_id}`}
