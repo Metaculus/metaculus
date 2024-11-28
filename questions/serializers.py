@@ -672,6 +672,9 @@ def serialize_question(
                         "weighted_coverage"
                     ] = score.coverage
 
+    # Feature Flag: prediction-withdrawal
+    serialized_data["withdraw_permitted"] = not post.default_project.prize_pool
+
     return serialized_data
 
 

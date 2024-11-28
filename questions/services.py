@@ -699,6 +699,15 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         permission = get_post_permission_for_user(post, user=user)
         ObjectPermission.can_forecast(permission, raise_exception=True)
 
+        # Feature Flag: prediction-withdrawal
+        if post.default_project.prize_pool:
+            raise ValidationError(
+                "You cannot withdraw your prediction "
+                "on questions in tournaments with prize pools!"
+            )
+
+        # Feature Flag: prediction-withdrawal
+
         withdraw_at = withdrawal["withdraw_at"]
 
         # withdraw standing prediction at withdraw_at time, and delete any

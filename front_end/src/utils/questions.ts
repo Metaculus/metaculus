@@ -28,6 +28,7 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
+import { Tournament } from "@/types/projects";
 
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";

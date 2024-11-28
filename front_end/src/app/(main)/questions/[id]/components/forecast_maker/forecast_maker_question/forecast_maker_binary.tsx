@@ -138,18 +138,19 @@ const ForecastMakerBinary: FC<Props> = ({
                 onSubmit={submit}
                 predictLabel={t("predict")}
               />
-              {!!prevForecastValue && (
-                <>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    disabled={withdrawalIsPending}
-                    onClick={withdraw}
-                  >
-                    {t("withdraw")}
-                  </Button>
-                </>
-              )}
+              {!!prevForecastValue &&
+                question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                  <>
+                    <Button
+                      variant="primary"
+                      type="submit"
+                      disabled={withdrawalIsPending}
+                      onClick={withdraw}
+                    >
+                      {t("withdraw")}
+                    </Button>
+                  </>
+                )}
             </>
           )}
         </div>

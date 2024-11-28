@@ -87,7 +87,10 @@ const ForecastMakerGroupControls: FC<Props> = ({
               ),
             },
           ],
-          ...(canWithdrawForecast(question as QuestionWithForecasts, permission)
+          ...(canWithdrawForecast(
+            question as QuestionWithForecasts,
+            permission
+          ) && question.withdraw_permitted // Feature Flag: prediction-withdrawal
             ? [
                 {
                   id: "withdraw",
