@@ -301,8 +301,14 @@ const Comment: FC<CommentProps> = ({
       name: t("copyLink"),
       onClick: () => {
         const urlWithoutHash = window.location.href.split("#")[0];
-        copyToClipboard(`${urlWithoutHash}#comment-${comment.id}`);
+        void copyToClipboard(`${urlWithoutHash}#comment-${comment.id}`);
       },
+    },
+    {
+      hidden: !user?.is_staff,
+      id: "copyId",
+      name: t("copyId"),
+      onClick: () => copyToClipboard(comment.id.toString()),
     },
     {
       hidden: !user?.id,
