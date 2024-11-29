@@ -33,6 +33,7 @@ def factory_post(
         )
     )
     post.projects.add(*projects)
+    post.update_pseudo_materialized_fields()
 
     return post
 
