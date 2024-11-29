@@ -16,12 +16,12 @@ const CommentKeyFactor: FC<Props> = ({ keyFactor: { text } }) => {
       <div className="w-full text-nowrap text-xs uppercase text-gray-500 dark:text-gray-600-dark md:w-fit">
         {t("keyFactor")}
       </div>
-      <Link
+      <a
         href="#key-factors"
         className="w-full text-sm text-blue-800 no-underline hover:underline dark:text-blue-800-dark md:w-fit"
       >
         {text}
-      </Link>
+      </a>
     </div>
   );
 };
