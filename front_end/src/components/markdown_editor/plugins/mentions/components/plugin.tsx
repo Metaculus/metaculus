@@ -1,12 +1,29 @@
-import { BeautifulMentionsPlugin } from "lexical-beautiful-mentions";
-import { FC } from "react";
+import {
+  BeautifulMentionsPlugin,
+  useBeautifulMentions,
+} from "lexical-beautiful-mentions";
+import { FC, useEffect, useRef } from "react";
 
 import useUserMentionsContext from "./default_mentions_context";
 import { Menu, MenuItem } from "./menu";
 import { queryMentions } from "../utils";
 
-const MentionsPlugin: FC = () => {
+type Props = {
+  initialMention?: string;
+};
+
+const MentionsPlugin: FC<Props> = ({ initialMention }) => {
   const { defaultUserMentions } = useUserMentionsContext();
+  const { insertMention } = useBeautifulMentions();
+
+  const insertedReplyMention = useRef(false);
+
+  useEffect(() => {
+    if (initialMention && !insertedReplyMention.current) {
+      insertMention({ trigger: "@", value: initialMention });
+      insertedReplyMention.current = true;
+    }
+  }, [insertMention, initialMention]);
 
   return (
     <BeautifulMentionsPlugin

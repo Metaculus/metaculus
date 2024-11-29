@@ -70,6 +70,7 @@ type Props = {
   shouldConfirmLeave?: boolean;
   withUgcLinks?: boolean;
   className?: string;
+  initialMention?: string;
 };
 
 const PlainTextCodeEditorDescriptor: CodeBlockEditorDescriptor = {
@@ -95,6 +96,7 @@ const MarkdownEditor: FC<Props> = ({
   className,
   shouldConfirmLeave = false,
   withUgcLinks,
+  initialMention,
 }) => {
   const { theme } = useAppTheme();
   const [errorMarkdown, setErrorMarkdown] = useState<string | null>(null);
@@ -120,7 +122,13 @@ const MarkdownEditor: FC<Props> = ({
     linkPlugin({
       withUgcLinks,
     }),
-    ...(withUserMentions ? [mentionsPlugin()] : []),
+    ...(withUserMentions
+      ? [
+          mentionsPlugin({
+            initialMention,
+          }),
+        ]
+      : []),
     quotePlugin(),
     markdownShortcutPlugin(),
     codeBlockPlugin({

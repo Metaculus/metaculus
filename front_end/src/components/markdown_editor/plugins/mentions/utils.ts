@@ -2,18 +2,6 @@ import { searchUsers } from "@/app/(main)/questions/actions";
 
 import { MentionData, MentionItem } from "./types";
 
-export function generateMentionLink(value: string, data?: MentionData) {
-  if (!data || !Object.keys(data).length) {
-    if (["moderators", "predictors", "admins", "members"].includes(value)) {
-      return `/faq/#${value}-tag`;
-    }
-
-    return null;
-  }
-
-  return `/accounts/profile/${data.userId}`;
-}
-
 export async function queryMentions(
   _trigger: string,
   query: string | null | undefined,
