@@ -35,7 +35,7 @@ const IndexWeightChip: FC<Props> = ({ value }) => {
               : "text-olive-800 dark:text-olive-800-dark"
           )}
         >
-          {Math.abs(value).toFixed(1)}
+          {Math.round(Math.abs(value) * 10) / 10}
         </span>
         {!!value && (
           <FontAwesomeIcon
