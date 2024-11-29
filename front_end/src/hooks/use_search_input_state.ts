@@ -10,10 +10,15 @@ import { QuestionOrder } from "@/types/question";
 type Config = {
   debounceTime?: number;
   mode?: "server" | "client";
+  modifySearchParams?: boolean;
 };
 
 const useSearchInputState = (paramName: string, config?: Config) => {
-  const { debounceTime = 500, mode = "server" } = config ?? {};
+  const {
+    debounceTime = 500,
+    mode = "server",
+    modifySearchParams = false,
+  } = config ?? {};
 
   const { params, setParam, deleteParam, shallowNavigateToSearchParams } =
     useSearchParams();
@@ -26,7 +31,7 @@ const useSearchInputState = (paramName: string, config?: Config) => {
   const prevDebouncedSearch = usePrevious(search);
 
   useEffect(() => {
-    if (isNil(prevDebouncedSearch)) {
+    if (isNil(prevDebouncedSearch) || !modifySearchParams) {
       return;
     }
 
@@ -57,7 +62,13 @@ const useSearchInputState = (paramName: string, config?: Config) => {
       shallowNavigateToSearchParams();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, prevDebouncedSearch, mode, paramName]);
+  }, [
+    debouncedSearch,
+    prevDebouncedSearch,
+    mode,
+    paramName,
+    modifySearchParams,
+  ]);
 
   return [search, setSearch] as const;
 };
