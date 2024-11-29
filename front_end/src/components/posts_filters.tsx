@@ -77,7 +77,7 @@ const PostsFilters: FC<Props> = ({
   } = useSearchParams();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
-  const { globalSearch, setGlobalSearch, setIsVisible } =
+  const { globalSearch, setGlobalSearch, setIsVisible, setModifySearchParams } =
     useGlobalSearchContext();
 
   const debouncedGAEvent = useCallback(
@@ -89,6 +89,14 @@ const PostsFilters: FC<Props> = ({
     }, 2000),
     []
   );
+
+  useEffect(() => {
+    setModifySearchParams(true);
+
+    return () => {
+      setModifySearchParams(false);
+    };
+  }, []);
 
   const eraseSearch = () => {
     setGlobalSearch("");
