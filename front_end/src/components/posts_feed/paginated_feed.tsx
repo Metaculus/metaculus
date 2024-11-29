@@ -1,5 +1,6 @@
 "use client";
 import { sendGAEvent } from "@next/third-parties/google";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, useEffect, useState } from "react";
 
@@ -37,7 +38,10 @@ const PaginatedPostsFeed: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-  const pageNumber = Number(params.get(POST_PAGE_FILTER));
+  const pageNumberParam = params.get(POST_PAGE_FILTER);
+  const pageNumber = !isNil(pageNumberParam)
+    ? Number(params.get(POST_PAGE_FILTER))
+    : 1;
   const [paginatedPosts, setPaginatedPosts] =
     useState<PostWithForecasts[]>(initialQuestions);
   const [offset, setOffset] = useState(
@@ -135,6 +139,7 @@ const PaginatedPostsFeed: FC<Props> = ({
           <Fragment key={p.id}>{renderPost(p)}</Fragment>
         ))}
         <PostsFeedScrollRestoration
+          serverPage={filters.page ?? null}
           pageNumber={pageNumber}
           initialQuestions={initialQuestions}
         />
