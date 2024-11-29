@@ -1,9 +1,8 @@
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 import { PostWithForecasts } from "@/types/post";
 import {
-  PredictionInputMessage,
   QuestionType,
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
@@ -22,7 +21,7 @@ type Props = {
   groupVariable: string;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const ForecastMakerGroup: FC<Props> = ({

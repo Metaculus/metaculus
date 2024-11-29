@@ -14,6 +14,7 @@
   "predictionUpcomingMessage": "This question is in the Upcoming stage, and will be open for predictions soon",
   "predictionUnapprovedMessage": "This question must be approved by moderators before you can begin predicting",
   "predictionClosedMessage": "This question is closed for predictions, and is waiting to be resolved",
+  "predictionConditionalPartiallyClosedMessage": "The question \"{closedQuestion}\" has closed, so these conditionals are closed for forecasting. They will resolve when the question \"{activeQuestion}\" resolves.",
   "resolve": "Resolve",
   "unresolve": "Unresolve",
   "preview": "Preview",

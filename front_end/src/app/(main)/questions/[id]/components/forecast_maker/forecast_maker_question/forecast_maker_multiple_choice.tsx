@@ -3,7 +3,7 @@ import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
@@ -16,7 +16,6 @@ import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   AggregateForecastHistory,
-  PredictionInputMessage,
   Question,
   QuestionWithMultipleChoiceForecasts,
   UserForecastHistory,
@@ -48,7 +47,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const ForecastMakerMultipleChoice: FC<Props> = ({
@@ -262,7 +261,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       </table>
       {predictionMessage && (
         <div className="my-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       <div className="mt-5 flex flex-wrap items-center justify-center gap-4 border-b border-b-blue-400 pb-5 dark:border-b-blue-400-dark">

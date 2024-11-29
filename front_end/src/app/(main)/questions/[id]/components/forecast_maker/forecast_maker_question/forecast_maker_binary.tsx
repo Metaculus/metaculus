@@ -1,7 +1,7 @@
 "use client";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, ReactNode, useEffect, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { FormErrorMessage } from "@/components/ui/form_field";
@@ -10,10 +10,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import { sendGAPredictEvent } from "./ga_events";
@@ -30,7 +27,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage?: PredictionInputMessage;
+  predictionMessage?: ReactNode;
 };
 
 const ForecastMakerBinary: FC<Props> = ({
@@ -99,7 +96,7 @@ const ForecastMakerBinary: FC<Props> = ({
       />
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       <div className="flex flex-col items-center justify-center">
