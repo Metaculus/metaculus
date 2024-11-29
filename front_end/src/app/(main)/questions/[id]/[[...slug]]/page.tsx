@@ -118,6 +118,11 @@ export default async function IndividualQuestion({
 }: Props) {
   const postData = await cachedGetPost(params.id);
   const defaultProject = postData.projects.default_project;
+  const keyFactors = (postData.key_factors ?? []).sort((a, b) =>
+    b.votes_score === a.votes_score
+      ? Math.random() - 0.5
+      : b.votes_score - a.votes_score
+  );
 
   if (postData.notebook) {
     return redirect(
@@ -220,8 +225,8 @@ export default async function IndividualQuestion({
                   />
                 )}
                 <div className="flex flex-col gap-2.5">
-                  {!!postData.key_factors?.length && (
-                    <KeyFactorsSection keyFactors={postData.key_factors} />
+                  {!!keyFactors.length && (
+                    <KeyFactorsSection keyFactors={keyFactors} />
                   )}
                   <BackgroundInfo post={postData} />
                   <HistogramDrawer post={postData} />
