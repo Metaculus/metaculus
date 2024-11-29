@@ -65,11 +65,7 @@ const IndexNotebook: FC<Props> = async ({
 
         <IndexQuestionsTable indexQuestions={indexQuestions} />
 
-        <CommentFeed
-          postData={postData}
-          postPermissions={postData.user_permission}
-          inNotebook
-        />
+        <CommentFeed postData={postData} inNotebook />
       </div>
     </main>
   );
