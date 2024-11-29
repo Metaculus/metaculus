@@ -1,11 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import React, { FC } from "react";
 
+import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import CommentFeed from "@/components/comment_feed";
-import MarkdownEditor from "@/components/markdown_editor";
 import { SharePostMenu } from "@/components/post_actions";
 import PostsApi from "@/services/posts";
-import { PostWithForecasts, PostWithForecastsAndWeight } from "@/types/post";
+import {
+  PostWithForecasts,
+  PostWithForecastsAndWeight,
+  PostWithNotebook,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { scaleInternalLocation } from "@/utils/charts";
 
@@ -54,7 +58,7 @@ const IndexNotebook: FC<Props> = async ({
           {postData.title}
         </h1>
         {postData.notebook && (
-          <MarkdownEditor mode="read" markdown={postData.notebook.markdown} />
+          <NotebookEditor postData={postData as PostWithNotebook} />
         )}
         <p className="text-3xl capitalize leading-9">
           {t.rich("indexScore", {
