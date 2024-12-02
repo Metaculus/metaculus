@@ -36,6 +36,7 @@ class CommentSerializer(serializers.ModelSerializer):
     changed_my_mind = serializers.SerializerMethodField(read_only=True)
     text = serializers.SerializerMethodField()
     on_post_data = serializers.SerializerMethodField()
+    included_forecast = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Comment
@@ -82,6 +83,11 @@ class CommentSerializer(serializers.ModelSerializer):
 
         return {"id": value.on_post_id, "title": getattr(value.on_post, "title", "")}
 
+    def get_included_forecast(self, value: Comment):
+        if value.is_soft_deleted or not value.included_forecast:
+            return None
+        return ForecastSerializer(value.included_forecast).data
+
 
 class OldAPICommentWriteSerializer(serializers.Serializer):
     comment_text = serializers.CharField(required=True)
@@ -127,10 +133,6 @@ def serialize_comment(
 
     # Permissions
     # serialized_data["user_permission"] = post.user_permission
-
-    forecast = comment.included_forecast
-    if forecast is not None:
-        serialized_data["included_forecast"] = ForecastSerializer(forecast).data
 
     serialized_data["mentioned_users"] = BaseUserSerializer(mentions, many=True).data
 

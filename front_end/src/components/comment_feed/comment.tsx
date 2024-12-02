@@ -334,7 +334,7 @@ const Comment: FC<CommentProps> = ({
     {
       hidden: !user?.is_staff,
       id: "deleteUser",
-      name: t("softDeleteUserButton"),
+      name: t("markUserAsSpamButton"),
       onClick: async () => {
         // change this to the "soft_delete_button" component with modal
         const response = await softDeleteUserAction(comment.author.id);

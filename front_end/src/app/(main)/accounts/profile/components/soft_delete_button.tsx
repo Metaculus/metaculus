@@ -23,7 +23,7 @@ const SoftDeleteButton: FC<SoftDeleteButtonProps> = ({ id }) => {
   return (
     <>
       <Button onClick={() => setModalIsOpen(true)}>
-        {t("softDeleteUserButton")}
+        {t("markUserAsSpamButton")}
       </Button>
       <SoftDeleteModal
         isOpen={modalIsOpen}
@@ -46,7 +46,7 @@ const SoftDeleteModal: FC<SoftDeleteModalType> = ({ isOpen, onClose, id }) => {
   };
 
   return (
-    <BaseModal label={t("softDeleteUser?")} isOpen={isOpen} onClose={onClose}>
+    <BaseModal label={t("markUserAsSpam?")} isOpen={isOpen} onClose={onClose}>
       <form
         method="post"
         action={handleSubmit}
