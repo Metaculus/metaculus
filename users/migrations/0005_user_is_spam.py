@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0004_alter_usercampaignregistration_key'),
+        ("users", "0004_alter_usercampaignregistration_key"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='is_spam',
+            model_name="user",
+            name="is_spam",
             field=models.BooleanField(default=False),
         ),
     ]
