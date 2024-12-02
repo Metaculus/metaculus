@@ -391,8 +391,8 @@ def serialize_profile(
 @api_view(["POST"])
 @permission_classes([IsAdminUser])
 def mark_as_spam_user_api_view(request, pk):
-    user_to_delete: User = get_object_or_404(User, pk=pk)
-    user_to_delete.mark_as_spam()
+    user_to_mark_as_spam: User = get_object_or_404(User, pk=pk)
+    user_to_mark_as_spam.mark_as_spam()
     return Response(status=status.HTTP_200_OK)
 
 
