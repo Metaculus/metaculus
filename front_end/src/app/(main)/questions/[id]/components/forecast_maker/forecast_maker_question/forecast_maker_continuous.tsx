@@ -1,4 +1,5 @@
 "use client";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useMemo, useState } from "react";
 
@@ -31,7 +32,6 @@ import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
-import { isNil } from "lodash";
 
 type Props = {
   post: PostWithForecasts;
@@ -151,12 +151,14 @@ const ForecastMakerContinuous: FC<Props> = ({
     ]);
     setIsDirty(false);
 
-    if (
-      response &&
-      "non_field_errors" in response &&
-      !!response.non_field_errors
-    ) {
-      setSubmitError(response);
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitError(errors);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(

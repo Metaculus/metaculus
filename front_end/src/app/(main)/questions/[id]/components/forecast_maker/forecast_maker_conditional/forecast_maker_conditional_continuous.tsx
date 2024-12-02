@@ -11,6 +11,7 @@ import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import {
@@ -34,7 +35,6 @@ import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
-import { useServerAction } from "@/hooks/use_server_action";
 
 type Props = {
   postId: number;
@@ -336,12 +336,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       q.isDirty = false;
     });
 
-    if (
-      response &&
-      "non_field_errors" in response &&
-      !!response.non_field_errors
-    ) {
-      setSubmitErrors([response]);
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitErrors(errors);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(

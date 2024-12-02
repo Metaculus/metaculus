@@ -7,6 +7,7 @@ import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
+import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
@@ -18,7 +19,6 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
-import Button from "@/components/ui/button";
 
 import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
@@ -102,12 +102,14 @@ const ForecastMakerBinary: FC<Props> = ({
     ]);
     setIsForecastDirty(false);
 
-    if (
-      response &&
-      "non_field_errors" in response &&
-      !!response.non_field_errors
-    ) {
-      setSubmitError(response);
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitError(errors);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(

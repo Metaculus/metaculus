@@ -233,12 +233,14 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     ]);
     setIsDirty(false);
 
-    if (
-      response &&
-      "non_field_errors" in response &&
-      !!response.non_field_errors
-    ) {
-      setSubmitError(response);
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitError(errors);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(

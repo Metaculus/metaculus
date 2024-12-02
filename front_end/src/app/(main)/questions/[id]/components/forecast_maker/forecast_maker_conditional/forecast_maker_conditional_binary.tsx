@@ -11,12 +11,14 @@ import {
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import {
   PredictionInputMessage,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import { sendGAConditionalPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
@@ -26,14 +28,11 @@ import ConditionalForecastTable, {
 } from "../conditional_forecast_table";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
-import { useServerAction } from "@/hooks/use_server_action";
 
 type Props = {
   postId: number;
   postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
-  prevYesForecast?: any;
-  prevNoForecast?: any;
   canPredict: boolean;
   predictionMessage: PredictionInputMessage;
   projects: Post["projects"];
@@ -43,8 +42,6 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   postId,
   postTitle,
   conditional,
-  prevYesForecast,
-  prevNoForecast,
   canPredict,
   predictionMessage,
   projects,
@@ -61,11 +58,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const latestNo = question_no.my_forecasts?.latest;
   const prevYesForecastValue =
     latestYes && !latestYes.end_time
-      ? Math.round(latestYes.forecast_values[1] * 10000) / 100
+      ? extractPrevBinaryForecastValue(latestYes.forecast_values[1])
       : null;
   const prevNoForecastValue =
     latestNo && !latestNo.end_time
-      ? Math.round(latestNo.forecast_values[1] * 10000) / 100
+      ? extractPrevBinaryForecastValue(latestNo.forecast_values[1])
       : null;
   const hasUserForecast = !!prevYesForecastValue || !!prevNoForecastValue;
 
@@ -73,11 +70,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const latestAggregationNo = question_no.my_forecasts?.latest;
   const prevYesAggregationValue =
     latestAggregationYes && !latestAggregationYes.end_time
-      ? Math.round(latestAggregationYes.forecast_values[1] * 100) / 100
+      ? extractPrevBinaryForecastValue(latestAggregationYes.forecast_values[1])
       : null;
   const prevNoAggregationValue =
     latestAggregationNo && !latestAggregationNo.end_time
-      ? Math.round(latestAggregationNo.forecast_values[1] * 100) / 100
+      ? extractPrevBinaryForecastValue(latestAggregationNo.forecast_values[1])
       : null;
 
   const [questionOptions, setQuestionOptions] = useState<
@@ -241,7 +238,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     questionsToSubmit.forEach((q) => {
       sendGAConditionalPredictEvent(
         projects,
-        q.id === questionYesId ? !!prevYesForecast : !!prevNoForecast,
+        q.id === questionYesId ? !!prevYesForecastValue : !!prevNoForecastValue,
         hideCP
       );
     });
@@ -270,16 +267,16 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       ...(prevYesForecastValue ? [{ question: questionYesId }] : []),
       ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
     ]);
-    questionOptions.forEach((q) => {
-      q.isDirty = false;
-    });
+    setQuestionOptions((prev) => ({ ...prev, isDirty: false }));
 
-    if (
-      response &&
-      "non_field_errors" in response &&
-      !!response.non_field_errors
-    ) {
-      setSubmitErrors([response]);
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitErrors(errors);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -365,16 +362,14 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             {(!!prevYesForecastValue || !!prevNoForecastValue) &&
               question_yes.withdraw_permitted &&
               question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
-                <>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    disabled={withdrawalIsPending}
-                    onClick={withdraw}
-                  >
-                    {t("withdraw")}
-                  </Button>
-                </>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
               )}
           </>
         )}
