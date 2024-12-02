@@ -40,8 +40,6 @@ type Props = {
   postId: number;
   postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
-  prevYesForecast?: any;
-  prevNoForecast?: any;
   canPredict: boolean;
   predictionMessage: PredictionInputMessage;
   projects: Post["projects"];
@@ -51,8 +49,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   postId,
   postTitle,
   conditional,
-  prevYesForecast,
-  prevNoForecast,
   canPredict,
   predictionMessage,
   projects,
@@ -68,9 +64,13 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const latestYes = question_yes.my_forecasts?.latest;
   const latestNo = question_no.my_forecasts?.latest;
   const prevYesForecastValue =
-    latestYes && !latestYes.end_time ? latestYes.slider_values : null;
+    latestYes && !latestYes.end_time
+      ? extractPrevNumericForecastValue(latestYes)
+      : null;
   const prevNoForecastValue =
-    latestNo && !latestNo.end_time ? latestNo.slider_values : null;
+    latestNo && !latestNo.end_time
+      ? extractPrevNumericForecastValue(latestNo)
+      : null;
   const hasUserForecast =
     !!prevYesForecastValue?.forecast || !!prevNoForecastValue?.forecast;
 
@@ -302,7 +302,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     questionsToSubmit.forEach((q) => {
       sendGAConditionalPredictEvent(
         projects,
-        q.id === questionYesId ? !!prevYesForecast : !!prevNoForecast,
+        q.id === questionYesId ? !!prevYesForecastValue : !!prevNoForecastValue,
         hideCP
       );
     });
@@ -332,9 +332,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       ...(prevYesForecastValue ? [{ question: questionYesId }] : []),
       ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
     ]);
-    questionOptions.forEach((q) => {
-      q.isDirty = false;
-    });
+    setQuestionOptions((prev) =>
+      prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
+    );
 
     const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
@@ -478,16 +478,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           {(!!prevYesForecastValue || !!prevNoForecastValue) &&
             question_yes.withdraw_permitted &&
             question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
-              <>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
-                >
-                  {t("withdraw")}
-                </Button>
-              </>
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={withdrawalIsPending}
+                onClick={withdraw}
+              >
+                {t("withdraw")}
+              </Button>
             )}
         </div>
       )}
@@ -534,8 +532,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           isDirty={activeOptionData.isDirty}
           hasUserForecast={
             activeTableOption === questionYesId
-              ? !!prevYesForecast
-              : !!prevNoForecast
+              ? !!prevYesForecastValue
+              : !!prevNoForecastValue
           }
         />
       )}
