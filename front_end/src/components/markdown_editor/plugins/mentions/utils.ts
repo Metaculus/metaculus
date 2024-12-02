@@ -32,18 +32,10 @@ export async function queryMentions(
     return clientSearch(query, fallbackMentions);
   }
 
-  return [
+  return sortUsernames(query, [
     ...users.results.map((user) => ({ value: user.username, userId: user.id })),
     ...usersGroupMentions,
-  ].sort((a, b) => {
-    const usernameA = a.value.toLowerCase();
-    const usernameB = b.value.toLowerCase();
-    const search = query.toLowerCase();
-
-    const startsWithA = usernameA.startsWith(search) ? 0 : 1;
-    const startsWithB = usernameB.startsWith(search) ? 0 : 1;
-    return startsWithA - startsWithB;
-  });
+  ]);
 }
 
 const clientSearch = (query: string, mentions: MentionItem[]) =>
