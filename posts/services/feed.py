@@ -162,13 +162,9 @@ def get_posts_feed(
         qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
             user_last_forecasts_date__isnull=False
         )
-        if withdrawn is False:
+        if withdrawn is not None:
             qs = qs.annotate_has_active_forecast(forecaster_id).filter(
-                has_active_forecast=True
-            )
-        if withdrawn is True:
-            qs = qs.annotate_has_active_forecast(forecaster_id).filter(
-                has_active_forecast=False
+                has_active_forecast=not withdrawn
             )
     if not_forecaster_id:
         qs = qs.annotate_user_last_forecasts_date(not_forecaster_id).filter(
@@ -223,7 +219,7 @@ def get_posts_feed(
     if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
         qs = qs.annotate_unread_comment_count(user_id=user.id)
     if order_type == PostFilterSerializer.Order.SCORE:
-        if not (forecaster_id):
+        if not forecaster_id:
             raise ValidationError(
                 "Can not order by score without forecaster_id provided"
             )
