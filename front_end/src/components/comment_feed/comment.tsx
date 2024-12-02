@@ -20,6 +20,7 @@ import {
 } from "@/app/(main)/questions/actions";
 import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
+import KeyFactor from "@/components/comment_feed/comment_key_factor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import { Admin } from "@/components/icons/admin";
@@ -300,8 +301,14 @@ const Comment: FC<CommentProps> = ({
       name: t("copyLink"),
       onClick: () => {
         const urlWithoutHash = window.location.href.split("#")[0];
-        copyToClipboard(`${urlWithoutHash}#comment-${comment.id}`);
+        void copyToClipboard(`${urlWithoutHash}#comment-${comment.id}`);
       },
+    },
+    {
+      hidden: !user?.is_staff,
+      id: "copyId",
+      name: t("copyId"),
+      onClick: () => copyToClipboard(comment.id.toString()),
     },
     {
       hidden: !user?.id,
@@ -378,6 +385,10 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
+      {comment.key_factors &&
+        comment.key_factors.map((kf) => (
+          <KeyFactor keyFactor={kf} key={`key-factor-${kf.id}`} />
+        ))}
       <div>
         <CmmOverlay
           forecast={100 * userForecast}
@@ -392,7 +403,6 @@ const Comment: FC<CommentProps> = ({
           }}
           cmmContext={cmmContext}
         />
-
         <div className="mb-1 flex flex-col items-start gap-1">
           <span className="inline-flex items-center text-base">
             <a
@@ -411,12 +421,6 @@ const Comment: FC<CommentProps> = ({
                 <Admin className="ml-2 text-lg" />
               )}
             </a>
-            {/*
-          {comment.is_moderator && !comment.is_admin && (
-            <Moderator className="ml-2 text-lg" />
-          )}
-          {comment.is_admin && <Admin className="ml-2 text-lg" />}
-          */}
             <span className="mx-1 opacity-55">·</span>
             <CommentDate comment={comment} />
           </span>
@@ -436,7 +440,6 @@ const Comment: FC<CommentProps> = ({
             />
           )}
         </div>
-
         {/* TODO: fix TS error */}
         {/* {comment.parent && onProfile && (
         <div>
@@ -447,7 +450,6 @@ const Comment: FC<CommentProps> = ({
           </a>
         </div>
       )} */}
-
         <div className="break-anywhere">
           {isEditing && (
             <MarkdownEditor
@@ -589,7 +591,6 @@ const Comment: FC<CommentProps> = ({
           isReplying={isReplying}
         />
       )}
-
       {comment.children?.length > 0 && (
         <CommentChildrenTree
           commentChildren={comment.children}

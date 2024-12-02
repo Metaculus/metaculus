@@ -1,3 +1,4 @@
+import { KeyFactor } from "@/types/comment";
 import {
   Question,
   QuestionType,
@@ -153,6 +154,7 @@ export type Post<QT = Question> = {
   unread_comment_count?: number;
   last_viewed_at?: string;
   is_current_content_translated?: boolean;
+  key_factors?: KeyFactor[];
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {

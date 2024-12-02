@@ -9,9 +9,11 @@ from utils.frontend import (
 )
 
 
-def send_activation_email(user: User):
+def send_activation_email(user: User, redirect_url: str | None):
     confirmation_token = default_token_generator.make_token(user)
-    activation_link = build_frontend_account_activation_url(user.id, confirmation_token)
+    activation_link = build_frontend_account_activation_url(
+        user.id, confirmation_token, redirect_url
+    )
 
     send_email_with_template(
         user.email,
@@ -21,6 +23,7 @@ def send_activation_email(user: User):
             "email": user.email,
             "username": user.username,
             "activation_link": activation_link,
+            "redirect_url": redirect_url,
         },
     )
 

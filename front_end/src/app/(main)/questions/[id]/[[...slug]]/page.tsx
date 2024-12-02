@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { permanentRedirect } from "next/dist/client/components/redirect";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { cache } from "react";
 
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
@@ -27,6 +26,7 @@ import DetailedQuestionCard from "../components/detailed_question_card";
 import ForecastMaker from "../components/forecast_maker";
 import ContinuousGroupTimeline from "../components/forecast_timeline_drawer";
 import HistogramDrawer from "../components/histogram_drawer";
+import KeyFactorsSection from "../components/key_factors";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
@@ -118,6 +118,11 @@ export default async function IndividualQuestion({
 }: Props) {
   const postData = await cachedGetPost(params.id);
   const defaultProject = postData.projects.default_project;
+  const keyFactors = (postData.key_factors ?? []).sort((a, b) =>
+    b.votes_score === a.votes_score
+      ? Math.random() - 0.5
+      : b.votes_score - a.votes_score
+  );
 
   if (postData.notebook) {
     return redirect(
@@ -220,6 +225,9 @@ export default async function IndividualQuestion({
                   />
                 )}
                 <div className="flex flex-col gap-2.5">
+                  {!!keyFactors.length && (
+                    <KeyFactorsSection keyFactors={keyFactors} />
+                  )}
                   <BackgroundInfo post={postData} />
                   <HistogramDrawer post={postData} />
                 </div>
@@ -230,10 +238,7 @@ export default async function IndividualQuestion({
                 layout="mobile"
                 questionTitle={questionTitle}
               />
-              <CommentFeed
-                postData={postData}
-                postPermissions={postData.user_permission}
-              />
+              <CommentFeed postData={postData} />
             </div>
             <Sidebar
               postData={postData}
