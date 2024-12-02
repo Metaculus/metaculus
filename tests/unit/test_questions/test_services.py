@@ -5,10 +5,11 @@ import pytest  # noqa
 from django.utils.timezone import make_aware
 
 from posts.services.common import create_post, approve_post
+from questions.models import Question
 from questions.services import resolve_question
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_posts.factories import factory_post
-from tests.unit.test_questions.fixtures import *  # noqa
+from tests.unit.test_questions.factories import create_question
 
 
 @freezegun.freeze_time("2024-11-1")
