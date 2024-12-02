@@ -344,16 +344,14 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             />
             {activeUserForecast &&
               question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
-                <>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    disabled={withdrawalIsPending}
-                    onClick={withdraw}
-                  >
-                    {t("withdraw")}
-                  </Button>
-                </>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
               )}
           </div>
         )}

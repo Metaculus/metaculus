@@ -202,16 +202,14 @@ const ForecastMakerContinuous: FC<Props> = ({
             />
             {!!previousForecast &&
               question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
-                <>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    disabled={withdrawalIsPending}
-                    onClick={withdraw}
-                  >
-                    {t("withdraw")}
-                  </Button>
-                </>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
               )}
             <FormErrorMessage
               className="mt-2 flex justify-center"
