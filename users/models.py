@@ -23,8 +23,7 @@ class User(TimeStampedModel, AbstractUser):
     # Profile data
     bio = models.TextField(default="", blank=True)
     is_bot = models.BooleanField(default=False)
-
-    is_spam = models.BooleanField(default=False)
+    is_spam = models.BooleanField(default=False, db_index=True)
 
     old_usernames = models.JSONField(default=list, null=False, editable=False)
 

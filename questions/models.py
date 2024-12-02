@@ -300,8 +300,6 @@ class Forecast(models.Model):
         indexes = [
             models.Index(fields=["author", "question", "start_time"]),
         ]
-        base_manager_name = "objects"
-        default_manager_name = "objects"
 
     def __str__(self):
         pv = self.get_prediction_values()
