@@ -167,6 +167,21 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def annotate_user_is_following(self, user: User):
+        """
+        Annotate with a boolean flag representing whether the user
+        is following the respective posts.
+        """
+        subscription_exists_subquery = PostSubscription.objects.filter(
+            post=OuterRef("pk"), user=user
+        )
+
+        return self.annotate(
+            user_is_following=Coalesce(
+                Exists(subscription_exists_subquery), Value(False)
+            )
+        )
+
     def annotate_unread_comment_count(self, user_id: int):
         """
         Annotate last forecast date for user on predicted questions

@@ -16,8 +16,8 @@ class ProfileApi {
     return await get<CurrentUser>("/users/me/");
   }
 
-  static async softDeleteUser(id: number): Promise<Response | null> {
-    return post(`/users/${id}/soft-delete/`, {});
+  static async markUserAsSpam(id: number): Promise<Response | null> {
+    return post(`/users/${id}/mark-as-spam/`, {});
   }
 
   static async getProfileById(id: number): Promise<CurrentUser> {

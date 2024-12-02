@@ -16,20 +16,28 @@ interface GlobalSearchContextProps {
   setIsVisible: (a: boolean) => void;
   globalSearch: string;
   setGlobalSearch: (s: string) => void;
+  setModifySearchParams: (b: boolean) => void;
 }
 const GlobalSearchContext = createContext<GlobalSearchContextProps>({
   isVisible: false,
   setIsVisible: (a) => {},
   globalSearch: "",
   setGlobalSearch: (s) => {},
+  setModifySearchParams: (b: boolean) => {},
 });
 
 export const GlobalSearchProvider: FC<PropsWithChildren<{}>> = ({
   children,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [modifySearchParams, setModifySearchParams] = useState(false);
   const [globalSearch, setGlobalSearch] = useSearchInputState(
-    POST_TEXT_SEARCH_FILTER
+    POST_TEXT_SEARCH_FILTER,
+    {
+      debounceTime: 500,
+      mode: "server",
+      modifySearchParams,
+    }
   );
 
   const [delayedIsVisible, setDelayedIsVisible] = useState(false);
@@ -47,6 +55,7 @@ export const GlobalSearchProvider: FC<PropsWithChildren<{}>> = ({
         setIsVisible,
         globalSearch,
         setGlobalSearch,
+        setModifySearchParams,
       }}
     >
       {children}

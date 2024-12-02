@@ -12,7 +12,7 @@ export const metadata = {
 export default async function Page() {
   const user = await ProfileApi.getMyProfile();
 
-  if (user && user.registered_campaign_keys.indexOf("projM123") >= 0) {
+  if (user && user.registered_campaign_keys.includes("projM123")) {
     return (
       <>
         <Header />

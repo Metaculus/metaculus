@@ -301,8 +301,14 @@ const Comment: FC<CommentProps> = ({
       name: t("copyLink"),
       onClick: () => {
         const urlWithoutHash = window.location.href.split("#")[0];
-        copyToClipboard(`${urlWithoutHash}#comment-${comment.id}`);
+        void copyToClipboard(`${urlWithoutHash}#comment-${comment.id}`);
       },
+    },
+    {
+      hidden: !user?.is_staff,
+      id: "copyId",
+      name: t("copyId"),
+      onClick: () => copyToClipboard(comment.id.toString()),
     },
     {
       hidden: !user?.id,
@@ -328,7 +334,7 @@ const Comment: FC<CommentProps> = ({
     {
       hidden: !user?.is_staff,
       id: "deleteUser",
-      name: t("softDeleteUserButton"),
+      name: t("markUserAsSpamButton"),
       onClick: async () => {
         // change this to the "soft_delete_button" component with modal
         const response = await softDeleteUserAction(comment.author.id);

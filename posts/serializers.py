@@ -231,6 +231,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
 
     search = serializers.CharField(required=False, allow_null=True)
     for_main_feed = serializers.BooleanField(required=False, allow_null=True)
+    following = serializers.BooleanField(required=False, allow_null=True)
 
     # Key lookup filters
     open_time = serializers.DateTimeField(required=False, allow_null=True)

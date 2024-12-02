@@ -1,11 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import KeyFactorVoter from "@/components/comment_feed/key_factor_voter";
 import Button from "@/components/ui/button";
 import SectionToggle from "@/components/ui/section_toggle";
+import useHash from "@/hooks/use_hash";
 import { KeyFactor } from "@/types/comment";
 
 type KeyFactorsSectionProps = {
@@ -15,6 +16,12 @@ type KeyFactorsSectionProps = {
 const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ keyFactors }) => {
   const t = useTranslations();
   const [displayLimit, setDisplayLimit] = useState(4);
+  const hash = useHash();
+
+  useEffect(() => {
+    // Expands the key factor list when you follow the #key-factors link.
+    if (hash === "key-factors") setDisplayLimit(keyFactors.length);
+  }, [hash, keyFactors.length]);
 
   return (
     <SectionToggle title={t("keyFactors")} defaultOpen id="key-factors">
