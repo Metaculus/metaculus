@@ -59,7 +59,6 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             permission={permission}
-            prevForecast={activeUserForecast?.slider_values}
             canPredict={
               canPredict &&
               question.open_time !== undefined &&

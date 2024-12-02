@@ -36,7 +36,6 @@ import QuestionUnresolveButton from "../resolution/unresolve_button";
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
-  prevForecast?: any;
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
@@ -47,7 +46,6 @@ const ForecastMakerContinuous: FC<Props> = ({
   post,
   question,
   permission,
-  prevForecast,
   canPredict,
   canResolve,
   predictionMessage,
@@ -56,8 +54,15 @@ const ForecastMakerContinuous: FC<Props> = ({
   const { hideCP } = useHideCP();
   const [isDirty, setIsDirty] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const previousForecast =
+    !!question.my_forecasts?.latest &&
+    isNil(question.my_forecasts.latest.end_time)
+      ? question.my_forecasts.latest
+      : undefined;
+  const prevForecastValue = previousForecast
+    ? extractPrevNumericForecastValue(previousForecast.slider_values)
+    : {};
   const withCommunityQuartiles = !user || !hideCP;
-  const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const hasUserForecast = !!prevForecastValue.forecast;
   const t = useTranslations();
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
@@ -72,11 +77,6 @@ const ForecastMakerContinuous: FC<Props> = ({
   const [weights, setWeights] = useState<number[]>(
     prevForecastValue?.weights ?? [1]
   );
-  const previousForecast =
-    !!question.my_forecasts?.latest &&
-    isNil(question.my_forecasts.latest.end_time)
-      ? question.my_forecasts.latest
-      : undefined;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(
       !!previousForecast?.forecast_values && !previousForecast.slider_values
@@ -142,7 +142,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   const handlePredictWithdraw = async () => {
     setSubmitError(undefined);
 
-    if (!prevForecastValue) return;
+    if (!previousForecast) return;
 
     const response = await withdrawForecasts(post.id, [
       {
