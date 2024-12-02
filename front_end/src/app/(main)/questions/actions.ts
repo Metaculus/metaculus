@@ -285,17 +285,7 @@ export async function reportComment(
 
 export async function searchUsers(query: string) {
   try {
-    const usersResponse = await ProfileApi.searchUsers(query);
-    usersResponse.results.sort((a, b) => {
-      const usernameA = a.username.toLowerCase();
-      const usernameB = b.username.toLowerCase();
-      const search = query.toLowerCase();
-
-      const startsWithA = usernameA.startsWith(search) ? 0 : 1;
-      const startsWithB = usernameB.startsWith(search) ? 0 : 1;
-      return startsWithA - startsWithB;
-    });
-    return usersResponse;
+    return await ProfileApi.searchUsers(query);
   } catch (err) {
     const error = err as FetchError;
 
