@@ -236,11 +236,19 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
         return f"Group of Questions {self.post}"
 
 
+class ForecastNoSpamManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(author__is_spam=False)
+
+
 class Forecast(models.Model):
     # typing
     id: int
     author_id: int
-    objects: QuerySet["Forecast"]
+
+    # custom manager for filtering out spam by default
+    objects = ForecastNoSpamManager()
+    all_objects = models.Manager()
 
     # times
     start_time = models.DateTimeField(
@@ -292,6 +300,8 @@ class Forecast(models.Model):
         indexes = [
             models.Index(fields=["author", "question", "start_time"]),
         ]
+        base_manager_name = "objects"
+        default_manager_name = "objects"
 
     def __str__(self):
         pv = self.get_prediction_values()

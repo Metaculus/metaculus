@@ -24,6 +24,8 @@ class User(TimeStampedModel, AbstractUser):
     bio = models.TextField(default="", blank=True)
     is_bot = models.BooleanField(default=False)
 
+    is_spam = models.BooleanField(default=False)
+
     old_usernames = models.JSONField(default=list, null=False, editable=False)
 
     # Social Link
@@ -88,6 +90,10 @@ class User(TimeStampedModel, AbstractUser):
     def update_username(self, val: str):
         self.old_usernames.append((self.username, timezone.now().isoformat()))
         self.username = val
+
+    def mark_as_spam(self):
+        self.is_spam = True
+        self.soft_delete()
 
     def soft_delete(self: "User") -> None:
         # set to inactive

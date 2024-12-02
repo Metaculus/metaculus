@@ -115,20 +115,22 @@ class UserAdmin(admin.ModelAdmin):
         "id",
         "email",
         "is_active",
+        "is_spam",
         "is_bot",
-        "date_joined",
-        "last_login",
+        "duration_joined_to_last_login",
         "authored_posts",
         "duration_before_first_post",
         "forecasted",
+        "duration_to_last_forecast",
         "authored_comments",
         "bio_length",
     ]
     can_delete = False
-    actions = ["soft_delete_selected", "hard_delete_selected"]
+    actions = ["mark_selected_as_spam", "soft_delete_selected", "hard_delete_selected"]
     search_fields = ["username", "email", "pk"]
     list_filter = [
         "is_active",
+        "is_spam",
         "is_bot",
         "date_joined",
         LastLoginFilter,
@@ -149,7 +151,7 @@ class UserAdmin(admin.ModelAdmin):
         qs = qs.annotate(
             authored_posts_count=Count("posts"),
             authored_comments_count=Count("comment"),
-            forecasted=Exists(Forecast.objects.filter(author=OuterRef("pk"))),
+            forecasted=Exists(Forecast.all_objects.filter(author=OuterRef("pk"))),
         )
         return qs
 
@@ -162,6 +164,11 @@ class UserAdmin(admin.ModelAdmin):
 
     authored_posts.admin_order_field = "authored_posts_count"
     authored_posts.short_description = "Posts"
+
+    def duration_joined_to_last_login(self, obj):
+        if obj.last_login:
+            return obj.last_login - obj.date_joined
+        return None
 
     def duration_before_first_post(self, obj):
         posts = obj.posts.order_by("created_at")
@@ -176,6 +183,16 @@ class UserAdmin(admin.ModelAdmin):
 
     forecasted.boolean = True  # Display as a boolean icon in admin
 
+    def duration_to_last_forecast(self, obj):
+        if not getattr(obj, "forecasted", False):
+            return None
+        forecasts = Forecast.all_objects.filter(author=obj).order_by("-start_time")
+        if forecasts.exists():
+            return forecasts.first().start_time - obj.date_joined
+        return None
+
+    duration_to_last_forecast.short_description = "Time to Last Forecast"
+
     def authored_comments(self, obj):
         return getattr(obj, "authored_comments_count", 0)
 
@@ -183,6 +200,10 @@ class UserAdmin(admin.ModelAdmin):
 
     def bio_length(self, obj):
         return len(obj.bio) if obj.bio else 0
+
+    def mark_selected_as_spam(self, request, queryset: QuerySet[User]):
+        for user in queryset:
+            user.mark_as_spam()
 
     def soft_delete_selected(self, request, queryset: QuerySet[User]):
         for user in queryset:

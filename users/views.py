@@ -390,9 +390,9 @@ def serialize_profile(
 
 @api_view(["POST"])
 @permission_classes([IsAdminUser])
-def soft_delete_user_api_view(request, pk):
+def mark_as_spam_user_api_view(request, pk):
     user_to_delete: User = get_object_or_404(User, pk=pk)
-    user_to_delete.soft_delete()
+    user_to_delete.mark_as_spam()
     return Response(status=status.HTTP_200_OK)
 
 
@@ -460,8 +460,7 @@ def update_profile_api_view(request: Request) -> Response:
     )
 
     if is_spam:
-        user.soft_delete()
-        user.save()
+        user.mark_as_spam()
         send_deactivation_email(user.email)
         return Response(
             data={

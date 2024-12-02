@@ -7,9 +7,9 @@ urlpatterns = [
     path("users/me/", views.current_user_api_view, name="user-me"),
     path("users/<int:pk>/", views.user_profile_api_view, name="user-profile"),
     path(
-        "users/<int:pk>/soft-delete/",
-        views.soft_delete_user_api_view,
-        name="user-soft-delete",
+        "users/<int:pk>/mark-as-spam/",
+        views.mark_as_spam_user_api_view,
+        name="user-mark-as-spam",
     ),
     path(
         "users/change-username/",
