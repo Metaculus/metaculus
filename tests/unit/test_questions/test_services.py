@@ -47,6 +47,7 @@ class TestResolveConditionalQuestion:
         approve_post(
             post, make_aware(datetime(2024, 10, 1)), make_aware(datetime(2024, 10, 1))
         )
+        post.update_pseudo_materialized_fields()
 
         return post
 
