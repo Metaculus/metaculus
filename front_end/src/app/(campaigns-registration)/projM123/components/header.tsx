@@ -27,7 +27,7 @@ const Header: FC = () => {
 
       <div className="z-10 flex h-full items-center justify-center gap-2 pr-4">
         {user && <NavUserButton btnClassName="text-[13px] h-full " />}
-        <ThemeToggle />
+        {/* <ThemeToggle /> */}
       </div>
     </header>
   );

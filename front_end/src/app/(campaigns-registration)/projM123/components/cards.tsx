@@ -1,100 +1,51 @@
 "use client";
 
-import React, { FC, PropsWithChildren } from "react";
-import { useModal } from "@/contexts/modal_context";
-import { usePathname, useRouter } from "next/navigation";
+import React from "react";
+import { useRouter } from "next/navigation";
 
-import clsx from "clsx";
 import Button from "@/components/ui/button";
+import { useModal } from "@/contexts/modal_context";
+import { HeroSection } from "./hero-section";
 
-const Card: FC<PropsWithChildren<{ className?: string }>> = ({
-  children,
-  className,
-}) => {
-  return (
-    <div
-      className={clsx(
-        "text-md w-[256px] max-w-full bg-gray-0 p-6  dark:bg-gray-0-dark ",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-};
-
-export const ChoicesCards = () => {
+export const SucessfullyRegistered = () => {
+  const router = useRouter();
   const { setCurrentModal } = useModal();
-  const router = useRouter();
-  const pathname = usePathname();
 
   return (
-    <div className="flex flex-col gap-4 text-gray-900 dark:text-gray-900-dark sm:flex-row">
-      <div
-        className="cursor-pointer"
-        onClick={() => setCurrentModal({ type: "signin" })}
-      >
-        <Card>I already have a Metaculus account</Card>
-      </div>
-
-      <div
-        className="cursor-pointer"
+    <div className="flex w-full flex-col items-center gap-7 bg-blue-200 p-8 sm:w-[415px]">
+      <p className="my-0 text-base text-gray-900 dark:text-gray-900-dark">
+        You are registered!
+      </p>
+      <Button
+        variant="tertiary"
         onClick={() => {
-          router.push(`${pathname}/signup-and-register`);
+          router.push(`/questions`);
         }}
+        className=""
       >
-        <Card>I don't have a Metaculus account</Card>
+        Practice questions
+      </Button>
+      <Button
+        variant="tertiary"
+        onClick={() => {
+          setCurrentModal({ type: "onboarding" });
+        }}
+        className=""
+      >
+        Forecasting tutorial
+      </Button>
+    </div>
+  );
+};
+
+export const SuccessAndVerifyEmail = () => {
+  return (
+    <HeroSection className="m-5 w-full max-w-[896px] pb-10">
+      <div className="flex w-full flex-col items-center gap-7 bg-blue-200 p-8 sm:w-[415px]">
+        <p className="my-0 text-center text-base text-gray-900 dark:text-gray-900-dark">
+          You have successfully registered! Confirm your email now.
+        </p>
       </div>
-    </div>
-  );
-};
-
-export const SuccessCard = () => {
-  const router = useRouter();
-
-  return (
-    <div className="flex flex-col gap-4 sm:flex-row">
-      <Card className="w-[415px]">
-        <div className="flex flex-col items-center gap-7">
-          <p className="text-base text-gray-900 dark:text-gray-900-dark">
-            You have successfully registered!
-          </p>
-          <Button
-            variant="tertiary"
-            onClick={() => {
-              router.push(`/questions`);
-            }}
-            className=""
-          >
-            Start practicing
-          </Button>
-        </div>
-      </Card>
-    </div>
-  );
-};
-
-export const AlreadyRegisteredCard = () => {
-  const router = useRouter();
-
-  return (
-    <div className="flex max-h-48 flex-col gap-4 sm:flex-row">
-      <Card className="w-[415px]">
-        <div className="flex flex-col items-center gap-7">
-          <p className="text-base text-gray-900 dark:text-gray-900-dark">
-            You are already registered.
-          </p>
-          <Button
-            variant="tertiary"
-            onClick={() => {
-              router.push(`/questions`);
-            }}
-            className=""
-          >
-            Start practicing
-          </Button>
-        </div>
-      </Card>
-    </div>
+    </HeroSection>
   );
 };

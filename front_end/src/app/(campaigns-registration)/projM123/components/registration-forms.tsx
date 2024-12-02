@@ -20,8 +20,8 @@ import { ErrorResponse } from "@/types/fetch";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InputContainer } from "@/components/ui/input_container";
 import { useServerAction } from "@/hooks/use_server_action";
-import { SuccessCard } from "./cards";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { CAMPAIGN_URL_BASE_PATH } from "../constants";
 
 export interface CampaignRegistrationProps {
   campaignKey: string;
@@ -61,7 +61,6 @@ const AccountSignupFragment: FC<{
         <Input
           autoComplete="username"
           className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("registrationUsernamePlaceholder")}
           type="text"
           errors={errors}
           {...register("username")}
@@ -90,7 +89,6 @@ const AccountSignupFragment: FC<{
       <InputContainer labelText={"Email"}>
         <Input
           className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("registrationEmailPlaceholder")}
           type="email"
           errors={errors}
           {...register("email")}
@@ -127,7 +125,6 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
         <Input
           autoComplete="full-name"
           className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("fullName")}
           type="text"
           errors={errors}
           {...register("fullName")}
@@ -138,7 +135,6 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
         <Input
           autoComplete="Country"
           className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("country")}
           type="text"
           errors={errors}
           {...register("country")}
@@ -163,7 +159,6 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
             <Input
               autoComplete="Institution"
               className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-              placeholder={t("institution")}
               type="text"
               errors={errors}
               {...register("institution")}
@@ -174,7 +169,6 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
             <Input
               autoComplete="Major"
               className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-              placeholder={t("major")}
               type="text"
               errors={errors}
               {...register("major")}
@@ -386,7 +380,7 @@ export const RegistrationForm: FC<
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(submit)}
-        className="flex flex-col gap-4 bg-gray-0 p-8 dark:bg-gray-0-dark"
+        className="flex flex-col gap-4 bg-gray-0 px-[68px] py-8 dark:bg-gray-0-dark"
       >
         <div className="flex flex-col gap-4">
           <ExtraDataRegistrationFragment errors={errors} />
@@ -418,12 +412,12 @@ export const RegistrationPage: FC<CampaignRegistrationProps> = ({
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-  const [successfullyRegistered, setSuccessfullyRegistered] = useState(false);
+  const router = useRouter();
 
   if (!user) {
     return (
       <div>
-        <p className="text-sm text-gray-800 dark:text-gray-800-dark">
+        <p className="text-center text-sm text-gray-800 dark:text-gray-800-dark">
           First you need to{" "}
           <Button
             variant="link"
@@ -437,18 +431,14 @@ export const RegistrationPage: FC<CampaignRegistrationProps> = ({
     );
   }
 
-  if (successfullyRegistered) {
-    return <SuccessCard />;
-  }
-
   return (
     <div className="flex flex-col items-center">
       <p className="text-xs text-gray-600 dark:text-gray-600-dark">
         Logged in as <span className="font-extrabold">{user.username}</span>
       </p>
-      <div className="mt-1">
+      <div className="mt-1 w-full">
         <RegistrationForm
-          onSuccess={() => setSuccessfullyRegistered(true)}
+          onSuccess={() => router.refresh()}
           campaignKey={campaignKey}
           addToProject={addToProject}
         />
@@ -461,17 +451,12 @@ export const RegistrationAndSignUpPage: FC<CampaignRegistrationProps> = ({
   campaignKey,
   addToProject,
 }) => {
-  const [successfullyRegistered, setSuccessfullyRegistered] = useState(false);
-
-  if (successfullyRegistered) {
-    return <SuccessCard />;
-  }
-
+  const router = useRouter();
   return (
     <div className="flex flex-col items-center">
       <div className="mt-1">
         <RegistrationAndSignupForm
-          onSuccess={() => setSuccessfullyRegistered(true)}
+          onSuccess={() => router.push(`${CAMPAIGN_URL_BASE_PATH}/success/`)}
           campaignKey={campaignKey}
           addToProject={addToProject}
         />
