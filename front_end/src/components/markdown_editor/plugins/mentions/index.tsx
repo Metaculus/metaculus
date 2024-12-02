@@ -15,6 +15,7 @@ import { LexicalBeautifulMentionVisitor } from "./LexicalBeautifulMentionVisitor
 
 export const mentionsPlugin = realmPlugin<{
   initialMention?: string;
+  isStuff?: boolean;
 }>({
   init(realm, params) {
     realm.pubIn({
@@ -24,7 +25,10 @@ export const mentionsPlugin = realmPlugin<{
       ],
       [addExportVisitor$]: LexicalBeautifulMentionVisitor,
       [addComposerChild$]: () => (
-        <MentionsPlugin initialMention={params?.initialMention} />
+        <MentionsPlugin
+          initialMention={params?.initialMention}
+          isStuff={params?.isStuff}
+        />
       ),
     });
   },

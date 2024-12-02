@@ -10,9 +10,10 @@ import { queryMentions } from "../utils";
 
 type Props = {
   initialMention?: string;
+  isStuff?: boolean;
 };
 
-const MentionsPlugin: FC<Props> = ({ initialMention }) => {
+const MentionsPlugin: FC<Props> = ({ initialMention, isStuff }) => {
   const { defaultUserMentions } = useUserMentionsContext();
   const { insertMention } = useBeautifulMentions();
 
@@ -29,11 +30,12 @@ const MentionsPlugin: FC<Props> = ({ initialMention }) => {
     <BeautifulMentionsPlugin
       triggers={["@"]}
       onSearch={(trigger, queryString) =>
-        queryMentions(trigger, queryString, defaultUserMentions)
+        queryMentions(trigger, queryString, defaultUserMentions, isStuff)
       }
       menuComponent={Menu}
       menuItemComponent={MenuItem}
       menuItemLimit={false}
+      autoSpace={false}
     />
   );
 };

@@ -1,18 +1,21 @@
 import { searchUsers } from "@/app/(main)/questions/actions";
 
-import { MentionData, MentionItem } from "./types";
+import { MentionItem } from "./types";
 
 export async function queryMentions(
   _trigger: string,
   query: string | null | undefined,
-  defaultUserMentions?: MentionItem[]
+  defaultUserMentions?: MentionItem[],
+  isStuff?: boolean
 ): Promise<MentionItem[]> {
   const usersGroupMentions = [
     { value: "moderators" },
-    { value: "predictors" },
     { value: "admins" },
     { value: "members" },
   ];
+  if (isStuff) {
+    usersGroupMentions.push({ value: "predictors" });
+  }
   const fallbackUserMentions = defaultUserMentions ? defaultUserMentions : [];
   const fallbackMentions = [...fallbackUserMentions, ...usersGroupMentions];
 

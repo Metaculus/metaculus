@@ -1,11 +1,9 @@
 import { BeautifulMentionComponentProps } from "lexical-beautiful-mentions";
 import { forwardRef } from "react";
 
-import { MentionData } from "../types";
-
 const CustomMentionComponent = forwardRef<
   HTMLAnchorElement,
-  BeautifulMentionComponentProps<MentionData>
+  BeautifulMentionComponentProps
 >(({ trigger, value, data: myData, children, ...other }, ref) => {
   return (
     <span {...other} ref={ref}>
