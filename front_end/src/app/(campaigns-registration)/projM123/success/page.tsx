@@ -1,8 +1,7 @@
 import ProfileApi from "@/services/profile";
 import Header from "../components/header";
-import { RegistrationAndSignUpPage } from "../components/registration-forms";
 import { redirect } from "next/navigation";
-import { ContestHeader } from "../components/hero-section";
+import { SuccessAndVerifyEmail } from "../components/cards";
 import { CAMPAIGN_KEY, CAMPAIGN_URL_BASE_PATH } from "../constants";
 
 export default async function Page() {
@@ -15,14 +14,10 @@ export default async function Page() {
   return (
     <>
       <Header />
-
       <main className="flex flex-grow justify-center">
         <div className="mt-10 flex size-full flex-col items-center">
           <div className="max-w-[629px]">
-            <ContestHeader />
-            <div className="mt-6 w-full">
-              <RegistrationAndSignUpPage campaignKey={CAMPAIGN_KEY} />
-            </div>
+            <SuccessAndVerifyEmail />
           </div>
         </div>
       </main>
