@@ -653,10 +653,16 @@ def after_forecast_actions(question: Question, user: User):
 
     run_build_question_forecasts.send(question.id)
 
+    # There may be situations where async jobs from `create_forecast` complete after
+    # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
+    # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
+    #
+    # As a temporary solution, we introduce a 10-second delay before execution
+    # to ensure all forecasts are processed.
+    run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
+
 
 def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
-    from posts.services.common import get_post_permission_for_user
-
     posts = set()
 
     for forecast in forecasts:
@@ -664,30 +670,11 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
         post = question.get_post()
         posts.add(post)
 
-        # Check permissions
-        permission = get_post_permission_for_user(post, user=user)
-        ObjectPermission.can_forecast(permission, raise_exception=True)
-
-        if not question.open_time or question.open_time > timezone.now():
-            raise ValidationError("You cannot forecast on this question yet!")
-
         create_forecast(question=question, user=user, **forecast)
         after_forecast_actions(question, user)
 
-    # Running forecast post triggers
-    for post in posts:
-        # There may be situations where async jobs from `create_forecast` complete after
-        # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
-        # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
-        #
-        # As a temporary solution, we introduce a 10-second delay before execution
-        # to ensure all forecasts are processed.
-        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
-
 
 def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
-    from posts.services.common import get_post_permission_for_user
-
     posts = set()
 
     for withdrawal in withdrawals:
@@ -695,18 +682,12 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         post = question.get_post()
         posts.add(post)
 
-        # Check permissions
-        permission = get_post_permission_for_user(post, user=user)
-        ObjectPermission.can_forecast(permission, raise_exception=True)
-
         # Feature Flag: prediction-withdrawal
         if post.default_project.prize_pool:
             raise ValidationError(
                 "You cannot withdraw your prediction "
                 "on questions in tournaments with prize pools!"
             )
-
-        # Feature Flag: prediction-withdrawal
 
         withdraw_at = withdrawal["withdraw_at"]
 
@@ -739,16 +720,6 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
             type=PostSubscription.SubscriptionType.CP_CHANGE,
             is_global=True,
         ).delete()
-
-    # Running forecast post triggers
-    for post in posts:
-        # There may be situations where async jobs from `create_forecast` complete after
-        # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
-        # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
-        #
-        # As a temporary solution, we introduce a 10-second delay before execution
-        # to ensure all forecasts are processed.
-        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
 def get_recency_weighted_for_questions(
