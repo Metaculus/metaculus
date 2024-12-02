@@ -12,7 +12,6 @@ from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription, Notebook
 from posts.services.subscriptions import create_subscription_cp_change
 from posts.tasks import run_on_post_forecast
-from projects.permissions import ObjectPermission
 from projects.models import Project
 from questions.constants import ResolutionType
 from questions.models import (
