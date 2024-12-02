@@ -88,14 +88,11 @@ def unresolve_api_view(request, pk: int):
 def bulk_create_forecasts_api_view(request):
     now = timezone.now()
     serializer = ForecastWriteSerializer(data=request.data, many=True)
-    serializer.is_valid()
+    serializer.is_valid(raise_exception=True)
 
     validated_data = serializer.validated_data
 
-    if serializer.errors:
-        raise ValidationError({"errors": serializer.errors})
-
-    if not serializer.validated_data:
+    if not validated_data:
         raise ValidationError("At least one forecast is required")
 
     # Prefetching questions for bulk optimization
@@ -143,14 +140,11 @@ def bulk_create_forecasts_api_view(request):
 def bulk_withdraw_forecasts_api_view(request):
     now = timezone.now()
     serializer = ForecastWithdrawSerializer(data=request.data, many=True)
-    serializer.is_valid()
+    serializer.is_valid(raise_exception=True)
 
     validated_data = serializer.validated_data
 
-    if serializer.errors:
-        raise ValidationError({"errors": serializer.errors})
-
-    if not serializer.validated_data:
+    if not validated_data:
         raise ValidationError("At least one forecast must be withdawn")
 
     # Prefetching questions for bulk optimization

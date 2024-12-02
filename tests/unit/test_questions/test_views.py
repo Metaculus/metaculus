@@ -6,10 +6,6 @@ from tests.unit.fixtures import *  # noqa
 from tests.unit.test_questions.fixtures import *  # noqa
 
 
-class TestQuestionForeacst:
-    url = reverse("create-forecast")
-
-
 class TestQuestionWithdraw:
     url = reverse("create-withdraw")
 
