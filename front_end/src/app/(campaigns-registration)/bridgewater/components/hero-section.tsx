@@ -38,7 +38,7 @@ export const ChoicesButtons = () => {
 export const ContestHeader: FC = () => {
   return (
     <div className="flex h-full w-full max-w-[629px] flex-col items-start px-5 sm:items-center sm:px-8">
-      <div className="mt-10 flex text-2xl font-semibold text-blue-800 sm:text-4xl ">
+      <div className="mt-10 flex text-2xl font-semibold text-blue-800 dark:text-blue-800-dark sm:text-4xl ">
         <span className="">Bridgewater</span>
         <div className="m-3 flex items-center">
           <XIcon className="size-4" />
@@ -46,11 +46,11 @@ export const ContestHeader: FC = () => {
         <span className="">Bridgewater</span>
       </div>
 
-      <div className="mt-2 text-2xl font-semibold text-blue-600  sm:text-4xl">
+      <div className="mt-2 text-2xl font-semibold text-blue-600 dark:text-blue-600-dark  sm:text-4xl">
         Forecasting Contest
       </div>
 
-      <p className="mt-5 text-base text-blue-800 opacity-70 sm:text-center sm:text-xl">
+      <p className="mt-5 text-base text-blue-800 dark:text-blue-800-dark opacity-70 sm:text-center sm:text-xl">
         Register to forecast, explore opportunities with Bridgewater Associates,
         and compete for <span className="font-bold">$25,000 in prizes!</span>
       </p>
@@ -65,7 +65,7 @@ export const HeroSection: FC<PropsWithChildren<{ className?: string }>> = ({
   return (
     <div
       className={clsx(
-        "flex flex-col items-center rounded-md bg-white",
+        "flex flex-col items-center rounded-md bg-gray-0 dark:bg-gray-0-dark",
         className
       )}
     >
