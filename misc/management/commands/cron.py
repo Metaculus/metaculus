@@ -122,16 +122,15 @@ class Command(BaseCommand):
         #
         # Notification jobs
         #
-        if settings.MAIL_FREQUENCY_MIN:
-            scheduler.add_job(
-                close_old_connections(job_send_notification_groups.send),
-                trigger=CronTrigger.from_crontab(
-                    f"0-59/{settings.MAIL_FREQUENCY_MIN} * * * *"
-                ),  # Every Hour at :00
-                id="notifications_job_send_notification_groups",
-                max_instances=1,
-                replace_existing=True,
-            )
+        scheduler.add_job(
+            close_old_connections(job_send_notification_groups.send),
+            trigger=CronTrigger.from_crontab(
+                "0 8,18 * * *"
+            ),  # Every day at 8 AM and 6 PM UTC
+            id="notifications_job_send_notification_groups",
+            max_instances=1,
+            replace_existing=True,
+        )
 
         #
         # ITN Sync Job
