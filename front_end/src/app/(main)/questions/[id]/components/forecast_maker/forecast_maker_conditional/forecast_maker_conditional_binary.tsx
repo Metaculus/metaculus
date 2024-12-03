@@ -2,7 +2,7 @@
 import classNames from "classnames";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
@@ -10,10 +10,7 @@ import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import { sendGAConditionalPredictEvent } from "./ga_events";
@@ -32,7 +29,7 @@ type Props = {
   prevYesForecast?: any;
   prevNoForecast?: any;
   canPredict: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
   projects: Post["projects"];
 };
 
@@ -276,7 +273,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
         {predictionMessage && (
           <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-            {t(predictionMessage)}
+            {predictionMessage}
           </div>
         )}
         {canPredict && (

@@ -102,7 +102,9 @@ class PostReadSerializer(serializers.ModelSerializer):
         if not obj.open_time or obj.open_time > now:
             return Post.CurationStatus.APPROVED
 
-        if now < obj.scheduled_close_time:
+        if now < obj.scheduled_close_time and (
+            not obj.actual_close_time or now < obj.actual_close_time
+        ):
             return Post.PostStatusChange.OPEN
 
         return Post.PostStatusChange.CLOSED

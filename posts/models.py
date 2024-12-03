@@ -502,7 +502,16 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             else:
                 self.actual_close_time = max(close_times)
         elif self.conditional:
-            self.actual_close_time = self.conditional.condition_child.actual_close_time
+            self.actual_close_time = min(
+                filter(
+                    bool,
+                    [
+                        self.conditional.condition.actual_close_time,
+                        self.conditional.condition_child.actual_close_time,
+                    ],
+                ),
+                default=None,
+            )
         else:
             self.actual_close_time = None
 
@@ -533,15 +542,25 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             open_time = self.question.open_time
         elif self.conditional_id:
             open_time = max(
-                self.conditional.condition.open_time,
-                self.conditional.condition_child.open_time,
+                filter(
+                    bool,
+                    [
+                        self.conditional.condition.open_time,
+                        self.conditional.condition_child.open_time,
+                    ],
+                ),
+                default=None,
             )
-        elif self.group_of_questions_id:
-            questions = self.group_of_questions.questions.all()
-            open_times = [x.open_time for x in questions if x.open_time]
 
-            if open_times:
-                open_time = min(open_times)
+        elif self.group_of_questions_id:
+            open_time = min(
+                [
+                    x.open_time
+                    for x in self.group_of_questions.questions.all()
+                    if x.open_time
+                ],
+                default=None,
+            )
 
         self.open_time = open_time
 
