@@ -56,7 +56,7 @@ const MainFeedFilters: FC<Props> = ({ forFeedHome = true }) => {
         value: QuestionOrder.WeeklyMovementDesc,
         label: t("movers"),
       },
-      ...(forFeedHome
+      ...(forFeedHome && user
         ? [
             {
               value: QuestionOrder.Following,
