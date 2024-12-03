@@ -107,8 +107,11 @@ const PostsFilters: FC<Props> = ({
     setGlobalSearch("");
   };
 
+  const hasFollowingShortcut = mainSortOptions.find(
+    (o) => o.value === QuestionOrder.Following
+  );
   const order = (params.get(POST_ORDER_BY_FILTER) ??
-    params.get(POST_FOLLOWING_FILTER) ??
+    (hasFollowingShortcut ? params.get(POST_FOLLOWING_FILTER) : null) ??
     defaultOrder) as QuestionOrder;
 
   const [popoverFilters, activeFilters] = useMemo(() => {
