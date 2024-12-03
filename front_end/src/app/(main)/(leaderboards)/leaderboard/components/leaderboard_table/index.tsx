@@ -90,12 +90,13 @@ const LeaderboardTable: FC<Props> = ({
                 navigationUrl = categoryUrl;
               } else {
                 navigationUrl = entry.user
-                  ? `/contributions/?${SCORING_CATEGORY_FILTER}=${category}&${CONTRIBUTIONS_USER_FILTER}=${entry.user.id}&${SCORING_YEAR_FILTER}=${year}&duration=${duration}`
+                  ? `/contributions/${category}/${entry.user.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`
                   : `/questions/track-record`;
               }
               if (entry.user && entry.user.id === userEntry?.user?.id) {
                 return (
                   <UserLeaderboardRow
+                    key={`user-leaderboard-row-${entry.user.id}`}
                     userEntry={userEntry}
                     year={year}
                     duration={duration}

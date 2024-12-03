@@ -1,7 +1,7 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useMemo, useState } from "react";
+import React, { FC, ReactNode, useMemo, useState } from "react";
 
 import {
   createForecasts,
@@ -15,10 +15,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -39,7 +36,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage?: PredictionInputMessage;
+  predictionMessage?: ReactNode;
 };
 
 const ForecastMakerContinuous: FC<Props> = ({
@@ -223,7 +220,7 @@ const ForecastMakerContinuous: FC<Props> = ({
       )}
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       <NumericForecastTable

@@ -45,7 +45,7 @@ const MedalCategories: FC<Props> = ({ medalEntries, userId }) => {
                 href={
                   category.name === "tournament"
                     ? `/tournament/${categoryMedal.projectId}`
-                    : `/contributions/?${SCORING_CATEGORY_FILTER}=${category.name}&${CONTRIBUTIONS_USER_FILTER}=${userId}&${SCORING_YEAR_FILTER}=${categoryMedal.year}&duration=${categoryMedal.duration}`
+                    : `/contributions/${category.name}/${userId}/?${SCORING_YEAR_FILTER}=${categoryMedal.year}&duration=${categoryMedal.duration}`
                 }
               />
             ))}

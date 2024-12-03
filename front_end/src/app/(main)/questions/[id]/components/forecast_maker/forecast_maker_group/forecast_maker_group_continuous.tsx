@@ -6,7 +6,14 @@ import { differenceInMilliseconds } from "date-fns";
 import { isNil } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
@@ -51,7 +58,7 @@ type Props = {
   groupVariable: string;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const ForecastMakerGroupContinuous: FC<Props> = ({
@@ -338,7 +345,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       })}
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       {!!activeGroupOption &&

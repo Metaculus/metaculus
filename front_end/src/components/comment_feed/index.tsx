@@ -3,6 +3,7 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
+import { isNil } from "lodash";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
@@ -153,8 +154,14 @@ const CommentFeed: FC<Props> = ({
   const includeUserForecast = shouldIncludeForecast(postData);
 
   const commentAuthorMentionItems: MentionItem[] = useMemo(
-    () => extractUniqueAuthors(comments),
-    [comments]
+    () =>
+      extractUniqueAuthors({
+        authorId: postData?.author_id,
+        authorUsername: postData?.author_username,
+        coauthors: postData?.coauthors,
+        comments,
+      }),
+    [comments, postData]
   );
 
   const { setBannerisVisible } = useContentTranslatedBannerProvider();
@@ -467,8 +474,28 @@ const CommentFeed: FC<Props> = ({
   );
 };
 
-function extractUniqueAuthors(comments: CommentType[]): MentionItem[] {
+function extractUniqueAuthors({
+  authorId,
+  authorUsername,
+  coauthors,
+  comments,
+}: {
+  comments: CommentType[];
+  authorId?: number;
+  authorUsername?: string;
+  coauthors?: { id: number; username: string }[];
+}): MentionItem[] {
   const authorMap = new Map<number, string>();
+
+  if (!isNil(authorId) && !isNil(authorUsername)) {
+    authorMap.set(authorId, authorUsername);
+  }
+
+  if (!isNil(coauthors)) {
+    for (const coauthor of coauthors) {
+      authorMap.set(coauthor.id, coauthor.username);
+    }
+  }
 
   const traverseComments = (commentList: CommentType[]) => {
     for (const comment of commentList) {

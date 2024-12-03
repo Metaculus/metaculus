@@ -1,30 +1,21 @@
 import { searchUsers } from "@/app/(main)/questions/actions";
 
-import { MentionData, MentionItem } from "./types";
-
-export function generateMentionLink(value: string, data?: MentionData) {
-  if (!data || !Object.keys(data).length) {
-    if (["moderators", "predictors", "admins", "members"].includes(value)) {
-      return `/faq/#${value}-tag`;
-    }
-
-    return null;
-  }
-
-  return `/accounts/profile/${data.userId}`;
-}
+import { MentionItem } from "./types";
 
 export async function queryMentions(
   _trigger: string,
   query: string | null | undefined,
-  defaultUserMentions?: MentionItem[]
+  defaultUserMentions?: MentionItem[],
+  isStuff?: boolean
 ): Promise<MentionItem[]> {
   const usersGroupMentions = [
     { value: "moderators" },
-    { value: "predictors" },
     { value: "admins" },
     { value: "members" },
   ];
+  if (isStuff) {
+    usersGroupMentions.push({ value: "predictors" });
+  }
   const fallbackUserMentions = defaultUserMentions ? defaultUserMentions : [];
   const fallbackMentions = [...fallbackUserMentions, ...usersGroupMentions];
 
@@ -41,13 +32,28 @@ export async function queryMentions(
     return clientSearch(query, fallbackMentions);
   }
 
-  return [
+  return sortUsernames(query, [
     ...users.results.map((user) => ({ value: user.username, userId: user.id })),
     ...usersGroupMentions,
-  ];
+  ]);
 }
 
 const clientSearch = (query: string, mentions: MentionItem[]) =>
-  mentions.filter((mention) =>
-    mention.value.toLowerCase().includes(query?.toLowerCase() ?? "")
+  sortUsernames(
+    query,
+    mentions.filter((mention) =>
+      mention.value.toLowerCase().includes(query?.toLowerCase() ?? "")
+    )
   );
+
+const sortUsernames = (query: string, mentions: MentionItem[]) => {
+  return [...mentions].sort((a, b) => {
+    const usernameA = a.value.toLowerCase();
+    const usernameB = b.value.toLowerCase();
+    const search = query.toLowerCase();
+
+    const startsWithA = usernameA.startsWith(search) ? 0 : 1;
+    const startsWithB = usernameB.startsWith(search) ? 0 : 1;
+    return startsWithA - startsWithB;
+  });
+};

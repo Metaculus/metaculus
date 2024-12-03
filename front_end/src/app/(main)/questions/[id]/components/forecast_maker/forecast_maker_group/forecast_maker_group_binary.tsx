@@ -66,7 +66,7 @@ type Props = {
   groupVariable: string;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const ForecastMakerGroupBinary: FC<Props> = ({
@@ -268,7 +268,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       </table>
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       {!!highlightedQuestion?.resolution && (

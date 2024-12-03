@@ -10,7 +10,7 @@ from tests.unit.test_comments.factories import factory_comment, factory_key_fact
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import factory_forecast
-from tests.unit.test_questions.fixtures import *  # noqa
+from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_users.factories import factory_user
 
 

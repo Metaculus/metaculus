@@ -1,13 +1,9 @@
 import { parseISO } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionType,
-  QuestionWithForecasts,
-} from "@/types/question";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { formatResolution } from "@/utils/questions";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
@@ -22,7 +18,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const QuestionForecastMaker: FC<Props> = ({

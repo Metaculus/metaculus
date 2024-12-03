@@ -628,6 +628,8 @@ const GroupForm: React.FC<Props> = ({
                             })
                           );
                         }}
+                        control={control}
+                        index={index}
                       />
                     )}
                   </div>
