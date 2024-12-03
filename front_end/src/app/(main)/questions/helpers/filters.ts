@@ -51,13 +51,14 @@ const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
 
 // TODO: translate
 export const POST_STATUS_LABEL_MAP = {
+  [PostStatus.DRAFT]: "Draft",
+  [PostStatus.PENDING]: "In Review",
+  [PostStatus.UPCOMING]: "Upcoming",
   [PostStatus.APPROVED]: "Approved",
   [PostStatus.OPEN]: "Open",
-  [PostStatus.UPCOMING]: "Upcoming",
-  [PostStatus.RESOLVED]: "Resolved",
   [PostStatus.CLOSED]: "Closed",
-  [PostStatus.PENDING]: "In Review",
-  [PostStatus.DRAFT]: "Draft",
+  [PostStatus.PENDING_RESOLUTION]: "Pending Resolution",
+  [PostStatus.RESOLVED]: "Resolved",
   [PostStatus.DELETED]: "Deleted",
   [PostStatus.REJECTED]: "Rejected Posts",
 };

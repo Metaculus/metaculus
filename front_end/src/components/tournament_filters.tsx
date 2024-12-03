@@ -118,6 +118,7 @@ function getTournamentPostsFilters({
         PostStatus.OPEN,
         PostStatus.UPCOMING,
         PostStatus.CLOSED,
+        PostStatus.PENDING_RESOLUTION,
         PostStatus.RESOLVED,
         PostStatus.DELETED,
       ],

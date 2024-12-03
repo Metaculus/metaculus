@@ -28,6 +28,7 @@ const MainFeedFilters: FC = () => {
         statuses: [
           PostStatus.OPEN,
           PostStatus.CLOSED,
+          PostStatus.PENDING_RESOLUTION,
           PostStatus.RESOLVED,
           PostStatus.UPCOMING,
         ],
