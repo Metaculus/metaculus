@@ -56,7 +56,7 @@ export type TournamentPreview = {
   close_date: string;
   is_ongoing: boolean;
   created_at: string;
-  posts_count: number;
+  leaderboard_questions_count: number;
   user_permission: ProjectPermissions;
   score_type: string;
 };
