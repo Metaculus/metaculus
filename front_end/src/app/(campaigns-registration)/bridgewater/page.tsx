@@ -43,7 +43,7 @@ export default async function Page() {
           </div>
         </HeroSection>
 
-        <div className="mx-8 text-blue-800 sm:mx-12 md:max-w-[670px]">
+        <div className="mx-8 text-blue-800 dark:text-blue-800-dark sm:mx-12 md:max-w-[670px]">
           <p>
             For the second year, Metaculus is teaming up with Bridgewater - a
             premier asset management firm - for a unique forecasting
