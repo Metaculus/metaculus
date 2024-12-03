@@ -1,27 +1,26 @@
 "use client";
 
+import { isNil, uniq } from "lodash";
 import { FC, useCallback, useState, memo, useMemo } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
-import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
+import { ChoiceItem } from "@/types/choices";
 import {
   AggregationMethod,
   AggregationQuestion,
-  Aggregations,
   QuestionType,
   Scaling,
 } from "@/types/question";
-import { ChoiceItem } from "@/types/choices";
 import {
   displayValue,
   findPreviousTimestamp,
+  generateChoiceItemsFromAggregations,
   scaleInternalLocation,
 } from "@/utils/charts";
 
 import AggregationTooltip from "./aggregation_tooltip";
-import { isNil } from "lodash";
 
 type Props = {
   questionData: AggregationQuestion;
@@ -29,17 +28,30 @@ type Props = {
 };
 
 const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
-  const { aggregations, actual_close_time, scaling, type } = questionData;
-  const timestamps = useMemo(
-    () => getAggregationTimestamps(aggregations),
-    [aggregations]
-  );
+  const { actual_close_time, scaling, type } = questionData;
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
     [actual_close_time]
   );
   const [choiceItems, setChoiceItems] = useState(
-    generateChoiceItemsFromAggregations(aggregations, scaling, type)
+    generateChoiceItemsFromAggregations(questionData)
+  );
+  const timestamps = useMemo(
+    () =>
+      uniq(
+        choiceItems.reduce(
+          (acc: number[], item: ChoiceItem) => [
+            ...acc,
+            ...(item.aggregationTimestamps ?? []),
+          ],
+          [
+            ...(actualCloseTime
+              ? [Math.min(actualCloseTime / 1000, new Date().getTime() / 1000)]
+              : [new Date().getTime() / 1000]),
+          ]
+        )
+      ).sort((a, b) => a - b),
+    [choiceItems, actualCloseTime]
   );
   const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
@@ -100,66 +112,6 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
       </div>
     </>
   );
-};
-
-const getAggregationTimestamps = (aggregations: Aggregations) => {
-  for (const key in aggregations) {
-    const aggregationKey = key as keyof Aggregations;
-    const aggregation = aggregations[aggregationKey];
-
-    if (aggregation?.history && !!aggregation.history.length) {
-      return aggregation.history.map((forecast) => forecast.start_time);
-    }
-  }
-  return [];
-};
-
-const generateChoiceItemsFromAggregations = (
-  aggregations: Aggregations,
-  scaling: Scaling,
-  qType: QuestionType
-): ChoiceItem[] => {
-  const choiceItems: ChoiceItem[] = [];
-  let index = 0;
-  for (const key in aggregations) {
-    const aggregationKey = key as keyof Aggregations;
-    const aggregation = aggregations[aggregationKey];
-
-    if (aggregation?.history && !!aggregation.history.length) {
-      const item = {
-        choice: key,
-        aggregationTimestamps: aggregation.history.map(
-          (forecast) => forecast.start_time
-        ),
-        aggregationValues:
-          aggregationKey === AggregationMethod.metaculus_prediction &&
-          qType === QuestionType.Binary
-            ? aggregation.history.map(
-                (forecast) => forecast.forecast_values?.[1] ?? 0
-              )
-            : aggregation.history.map((forecast) => forecast.centers?.[0] ?? 0),
-        aggregationMinValues: aggregation.history.map(
-          (forecast) => forecast.interval_lower_bounds?.[0] ?? 0
-        ),
-        aggregationMaxValues: aggregation.history.map(
-          (forecast) => forecast.interval_upper_bounds?.[0] ?? 0
-        ),
-        aggregationForecasterCounts: aggregation.history.map(
-          (forecast) => forecast.forecaster_count ?? 0
-        ),
-        userValues: [],
-        userTimestamps: [],
-        color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-        active: true,
-        resolution: null,
-        highlighted: false,
-        scaling,
-      };
-      choiceItems.push(item);
-      index++;
-    }
-  }
-  return choiceItems;
 };
 
 function getQuestionTooltipLabel(

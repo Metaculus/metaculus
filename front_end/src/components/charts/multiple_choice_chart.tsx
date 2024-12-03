@@ -133,6 +133,7 @@ const MultipleChoiceChart: FC<Props> = ({
       actualCloseTime,
       aggregation,
       extraTheme,
+      hideCP,
     ]
   );
   const isHighlightActive = useMemo(
@@ -378,9 +379,17 @@ function buildChartData({
   extraTheme?: VictoryThemeDefinition;
   hideCP?: boolean;
 }): ChartData {
+  const closeTimes = choiceItems
+    .map(({ closeTime }) => closeTime)
+    .filter((t) => t !== undefined);
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
-    : Date.now() / 1000;
+    : closeTimes.length === choiceItems.length
+      ? Math.min(
+          Math.max(...closeTimes.map((t) => t! / 1000)),
+          Date.now() / 1000
+        )
+      : Date.now() / 1000;
   const xDomain = aggregation
     ? generateNumericDomain([...timestamps], zoom)
     : generateNumericDomain([...timestamps, latestTimestamp], zoom);

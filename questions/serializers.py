@@ -620,7 +620,7 @@ def serialize_question(
                         },
                     ).data
                 )
-                if forecasts and not full_forecast_values
+                if forecasts
                 else None
             )
 

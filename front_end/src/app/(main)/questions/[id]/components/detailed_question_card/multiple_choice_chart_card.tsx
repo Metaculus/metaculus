@@ -1,8 +1,8 @@
 "use client";
+import { uniq } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
-import { uniq } from "lodash";
 
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
 import { useAuth } from "@/contexts/auth_context";
@@ -61,8 +61,16 @@ const MultipleChoiceChartCard: FC<Props> = ({
     question.aggregations.recency_weighted.history.length;
   const prevTimestampsCount = usePrevious(aggregationTimestampCount);
 
-  const userTimestamps = choiceItems[0]?.userTimestamps ?? [];
-  const aggregationTimestamps = choiceItems[0]?.aggregationTimestamps ?? [];
+  const userTimestamps = useMemo(() => {
+    return (
+      question.my_forecasts?.history.map(({ start_time }) => start_time) ?? []
+    );
+  }, [question.my_forecasts?.history]);
+  const aggregationTimestamps = useMemo(() => {
+    return question.aggregations.recency_weighted.history.map(
+      ({ start_time }) => start_time
+    );
+  }, [question.aggregations.recency_weighted.history]);
   const latestTimestamp = Math.max(
     aggregationTimestamps.at(-1) || 0,
     userTimestamps.at(-1) || 0,
@@ -124,7 +132,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
                 aggregationValues[aggregationCursorIndex]
               ),
         })),
-    [choiceItems, aggregationCursorIndex]
+    [choiceItems, aggregationCursorIndex, hideCP]
   );
 
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
