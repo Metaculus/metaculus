@@ -28,7 +28,6 @@ import { logError } from "@/utils/errors";
 
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
-import { isNil } from "lodash";
 
 export type SortOption = "created_at" | "-created_at" | "-vote_score";
 type FeedOptions = "public" | "private";

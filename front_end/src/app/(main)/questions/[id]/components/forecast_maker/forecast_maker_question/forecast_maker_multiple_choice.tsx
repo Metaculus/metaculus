@@ -334,17 +334,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             >
               {t("discardChangesButton")}
             </Button>
-            <PredictButton
-              onSubmit={submit}
-              isDirty={isDirty}
-              hasUserForecast={forecastHasValues}
-              isPending={isPending}
-              isDisabled={!isForecastValid}
-            />
             {activeUserForecast &&
               question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
                 <Button
-                  variant="primary"
+                  variant="secondary"
                   type="submit"
                   disabled={withdrawalIsPending}
                   onClick={withdraw}
@@ -352,6 +345,13 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                   {t("withdraw")}
                 </Button>
               )}
+            <PredictButton
+              onSubmit={submit}
+              isDirty={isDirty}
+              hasUserForecast={forecastHasValues}
+              isPending={isPending}
+              isDisabled={!isForecastValid}
+            />
           </div>
         )}
       </div>

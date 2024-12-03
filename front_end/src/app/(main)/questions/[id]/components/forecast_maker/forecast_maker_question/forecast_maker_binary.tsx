@@ -134,17 +134,10 @@ const ForecastMakerBinary: FC<Props> = ({
         <div className="flex gap-3">
           {canPredict && (
             <>
-              <PredictButton
-                hasUserForecast={hasUserForecast}
-                isDirty={isForecastDirty}
-                isPending={isPending}
-                onSubmit={submit}
-                predictLabel={t("predict")}
-              />
               {!!prevForecastValue &&
                 question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
                   <Button
-                    variant="primary"
+                    variant="secondary"
                     type="submit"
                     disabled={withdrawalIsPending}
                     onClick={withdraw}
@@ -152,6 +145,13 @@ const ForecastMakerBinary: FC<Props> = ({
                     {t("withdraw")}
                   </Button>
                 )}
+              <PredictButton
+                hasUserForecast={hasUserForecast}
+                isDirty={isForecastDirty}
+                isPending={isPending}
+                onSubmit={submit}
+                predictLabel={t("predict")}
+              />
             </>
           )}
         </div>

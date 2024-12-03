@@ -346,6 +346,18 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                 >
                   {t("discardChangesButton")}
                 </Button>
+                {(!!prevYesForecastValue || !!prevNoForecastValue) &&
+                  question_yes.withdraw_permitted &&
+                  question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                    <Button
+                      variant="secondary"
+                      type="submit"
+                      disabled={withdrawalIsPending}
+                      onClick={withdraw}
+                    >
+                      {t("withdraw")}
+                    </Button>
+                  )}
               </>
             )}
 
@@ -356,18 +368,6 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
               isPending={isSubmitting}
               isDisabled={!questionsToSubmit.length}
             />
-            {(!!prevYesForecastValue || !!prevNoForecastValue) &&
-              question_yes.withdraw_permitted &&
-              question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
-                <Button
-                  variant="primary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
-                >
-                  {t("withdraw")}
-                </Button>
-              )}
           </>
         )}
       </div>

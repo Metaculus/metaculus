@@ -191,16 +191,10 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
 
-            <PredictButton
-              onSubmit={submit}
-              isDirty={isDirty}
-              hasUserForecast={hasUserForecast}
-              isPending={isPending}
-            />
             {!!previousForecast &&
               question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
                 <Button
-                  variant="primary"
+                  variant="secondary"
                   type="submit"
                   disabled={withdrawalIsPending}
                   onClick={withdraw}
@@ -208,6 +202,12 @@ const ForecastMakerContinuous: FC<Props> = ({
                   {t("withdraw")}
                 </Button>
               )}
+            <PredictButton
+              onSubmit={submit}
+              isDirty={isDirty}
+              hasUserForecast={hasUserForecast}
+              isPending={isPending}
+            />
             <FormErrorMessage
               className="mt-2 flex justify-center"
               errors={submitError}

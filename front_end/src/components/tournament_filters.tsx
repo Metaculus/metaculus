@@ -19,6 +19,7 @@ import {
   POST_FORECASTER_ID_FILTER,
   POST_NOT_FORECASTER_ID_FILTER,
   POST_STATUS_FILTER,
+  POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
@@ -133,13 +134,37 @@ function getTournamentPostsFilters({
       options: [
         {
           id: POST_FORECASTER_ID_FILTER,
-          label: t("predicted"),
+          label: t("searchOptionPredicted"),
           value: user.id.toString(),
-          active: !!params.get(POST_FORECASTER_ID_FILTER),
+          active:
+            !!params.get(POST_FORECASTER_ID_FILTER) &&
+            !params.get(POST_WITHDRAWN_FILTER),
+        },
+        {
+          id: POST_WITHDRAWN_FILTER,
+          label: t("searchOptionActivePrediction"),
+          value: "false",
+          extraValues: {
+            [POST_FORECASTER_ID_FILTER]: user.id.toString(),
+          },
+          active:
+            !!params.get(POST_FORECASTER_ID_FILTER) &&
+            params.get(POST_WITHDRAWN_FILTER) === "false",
+        },
+        {
+          id: POST_WITHDRAWN_FILTER,
+          label: t("searchOptionWithdrawnPrediction"),
+          value: "true",
+          extraValues: {
+            [POST_FORECASTER_ID_FILTER]: user.id.toString(),
+          },
+          active:
+            !!params.get(POST_FORECASTER_ID_FILTER) &&
+            params.get(POST_WITHDRAWN_FILTER) === "true",
         },
         {
           id: POST_NOT_FORECASTER_ID_FILTER,
-          label: t("notPredicted"),
+          label: t("searchOptionNotPredicted"),
           value: user.id.toString(),
           active: !!params.get(POST_NOT_FORECASTER_ID_FILTER),
         },

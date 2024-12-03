@@ -61,11 +61,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const latestNo = question_no.my_forecasts?.latest;
   const prevYesForecastValue =
     latestYes && !latestYes.end_time
-      ? extractPrevNumericForecastValue(latestYes)
+      ? extractPrevNumericForecastValue(latestYes.slider_values)
       : null;
   const prevNoForecastValue =
     latestNo && !latestNo.end_time
-      ? extractPrevNumericForecastValue(latestNo)
+      ? extractPrevNumericForecastValue(latestNo.slider_values)
       : null;
   const hasUserForecast =
     !!prevYesForecastValue?.forecast || !!prevNoForecastValue?.forecast;
@@ -348,9 +348,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
   const previousForecast = activeOptionData?.question.my_forecasts?.latest;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
-    useState<boolean>(
-      !previousForecast?.end_time && !!previousForecast?.forecast_values
-    );
+    useState<boolean>(!!previousForecast && !previousForecast?.slider_values);
 
   const userCdf: number[] | undefined =
     activeOptionData &&
@@ -462,6 +460,18 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               >
                 {t("discardChangesButton")}
               </Button>
+              {(!!prevYesForecastValue || !!prevNoForecastValue) &&
+                question_yes.withdraw_permitted &&
+                question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={withdrawalIsPending}
+                    onClick={withdraw}
+                  >
+                    {t("withdraw")}
+                  </Button>
+                )}
             </>
           )}
           <PredictButton
@@ -471,18 +481,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             isPending={isSubmitting}
             isDisabled={!questionsToSubmit.length}
           />
-          {(!!prevYesForecastValue || !!prevNoForecastValue) &&
-            question_yes.withdraw_permitted &&
-            question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
-              <Button
-                variant="primary"
-                type="submit"
-                disabled={withdrawalIsPending}
-                onClick={withdraw}
-              >
-                {t("withdraw")}
-              </Button>
-            )}
         </div>
       )}
       {submitErrors.map((errResponse, index) => (
