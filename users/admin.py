@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
 
-from users.models import User
+from users.models import User, UserCampaignRegistration
 from questions.models import Forecast
 
 
@@ -211,3 +211,9 @@ class UserAdmin(admin.ModelAdmin):
 
     def hard_delete_selected(self, request, queryset: QuerySet[User]):
         queryset.delete()
+
+
+@admin.register(UserCampaignRegistration)
+class UserCampaignRegistrationAdmin(admin.ModelAdmin):
+    list_display = ["user", "key", "details"]
+    readonly_fields = ["user", "key", "details"]
