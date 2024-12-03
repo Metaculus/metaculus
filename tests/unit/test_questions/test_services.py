@@ -96,7 +96,7 @@ class TestResolveConditionalQuestion:
             == make_aware(datetime(2024, 11, 1))
         )
 
-    def test_conditional_child_and_parent_resolved(
+    def test_conditional_child_and_parent_resolved__unresolve(
         self, post_conditional, post_child, post_parent
     ):
         """
