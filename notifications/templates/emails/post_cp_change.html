@@ -1,5 +1,5 @@
 <!-- FILE: undefined -->
-{% load i18n %} {% load static %} {% load urls %}
+{% load i18n %} {% load static %} {% load urls %} {% load utils %}
 <!doctype html>
 <html lang="und" dir="auto" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 
@@ -65,6 +65,11 @@
         width: 100% !important;
         max-width: 100%;
       }
+
+      .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
     }
 
   </style>
@@ -72,6 +77,11 @@
     .moz-text-html .mj-column-per-100 {
       width: 100% !important;
       max-width: 100%;
+    }
+
+    .moz-text-html .mj-column-per-50 {
+      width: 50% !important;
+      max-width: 50%;
     }
 
   </style>
@@ -200,18 +210,6 @@
                         <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} <h4>Here are some other questions you may be interested in:</h4> {% endblocktrans %}</div>
                       </td>
                     </tr>
-                    <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% for post in similar_posts %} <div style="margin-bottom: 8px">
-                            <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                              {{ post.title }}
-                            </a>
-                            <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                              <img class="question_graph_img" src="{% build_question_graph_image_url post.id %}" style="border: none; display: block; outline: none; width: 100%; height: auto;" height="auto">
-                            </a>
-                          </div> {% endfor %}</div>
-                      </td>
-                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -221,7 +219,48 @@
         </tbody>
       </table>
     </div>
-    <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <!--[if mso | IE]></td></tr></table><![endif]-->
+    <!-- {% for chunk in similar_posts|chunks:2 %} -->
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
+        <tbody>
+          <tr>
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0px;text-align:center;">
+              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><![endif]-->
+              <!-- {% for post in chunk %} -->
+              <!--[if mso | IE]><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+              <div class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                  <tbody>
+                    <tr>
+                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
+                          <div style="margin-bottom: 8px">
+                            <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
+                              {{ post.title }}
+                            </a>
+                            <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
+                              <img class="question_graph_img" src="{% build_question_graph_image_url post.id %}" style="border: none; display: block; outline: none; width: 100%; height: auto;" height="auto">
+                            </a>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td><![endif]-->
+              <!-- {% endfor %} -->
+              <!--[if mso | IE]></tr></table><![endif]-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--[if mso | IE]></td></tr></table><![endif]-->
+    <!-- {% endfor %} -->
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
     <div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;">
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
         <tbody>
