@@ -113,7 +113,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_1_parent_open_child_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_open: Post,
     ):
@@ -147,7 +147,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_2_parent_open_child_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_closed: Post,
     ):
@@ -181,7 +181,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_3_parent_open_child_resolved(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_open: Post,
     ):
@@ -218,7 +218,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_4_parent_open_child_unresolved_to_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_open: Post,
     ):
@@ -258,7 +258,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_5_parent_open_child_unresolved_to_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_closed: Post,
     ):
@@ -298,7 +298,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_6_parent_closed_child_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_open: Post,
     ):
@@ -332,7 +332,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_7_parent_closed_child_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_closed: Post,
     ):
@@ -366,7 +366,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_8_parent_closed_child_resolved(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_open: Post,
     ):
@@ -403,7 +403,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_9_parent_closed_child_unresolved_to_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_open: Post,
     ):
@@ -443,7 +443,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_10_parent_closed_child_unresolved_to_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_closed: Post,
     ):
@@ -483,7 +483,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_11_parent_resolved_child_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_open: Post,
     ):
@@ -521,7 +521,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_12_parent_resolved_child_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_closed: Post,
     ):
@@ -559,7 +559,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_13_parent_resolved_child_resolved(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_open: Post,
     ):
@@ -603,7 +603,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_14_parent_resolved_child_unresolved_to_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_open: Post,
     ):
@@ -649,7 +649,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_15_parent_resolved_child_unresolved_to_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_closed: Post,
     ):
@@ -695,7 +695,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_16_parent_unresolved_to_open_child_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_open: Post,
     ):
@@ -735,7 +735,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_17_parent_unresolved_to_open_child_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_closed: Post,
     ):
@@ -775,7 +775,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_18_parent_unresolved_to_open_child_resolved(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_open: Post,
     ):
@@ -820,7 +820,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_19_parent_unresolved_to_open_child_unresolved_to_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_open: Post,
     ):
@@ -868,7 +868,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_20_parent_unresolved_to_open_child_unresolved_to_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_open: Post,
         post_child_closed: Post,
     ):
@@ -916,7 +916,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_21_parent_unresolved_to_closed_child_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_open: Post,
     ):
@@ -956,7 +956,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_22_parent_unresolved_to_closed_child_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_closed: Post,
     ):
@@ -996,7 +996,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_23_parent_unresolved_to_closed_child_resolved(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_open: Post,
     ):
@@ -1041,7 +1041,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_24_parent_unresolved_to_closed_child_unresolved_to_open(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_open: Post,
     ):
@@ -1089,7 +1089,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_25_parent_unresolved_to_closed_child_unresolved_to_closed(
         self,
-        user1: User,
+        user1: User,  # noqa
         post_parent_closed: Post,
         post_child_closed: Post,
     ):
