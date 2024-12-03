@@ -3,6 +3,7 @@
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
+import { debounce } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo } from "react";
 
@@ -16,12 +17,16 @@ import SearchInput from "@/components/search_input";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
-import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import {
+  POST_FOLLOWING_FILTER,
+  POST_ORDER_BY_FILTER,
+  POST_PAGE_FILTER,
+} from "@/constants/posts_feed";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
-import { useGlobalSearchContext } from "@/contexts/global_search_context";
+
 import VisibilityObserver from "./visibility_observer";
-import { debounce } from "lodash";
 
 type ActiveFilter = {
   id: string;
@@ -103,6 +108,7 @@ const PostsFilters: FC<Props> = ({
   };
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
+    params.get(POST_FOLLOWING_FILTER) ??
     defaultOrder) as QuestionOrder;
 
   const [popoverFilters, activeFilters] = useMemo(() => {
@@ -128,11 +134,16 @@ const PostsFilters: FC<Props> = ({
     const withNavigation = false;
 
     clearPopupFilters(withNavigation);
-
-    if (order === defaultOrder) {
+    // clear order filter and apply following only
+    if (order === QuestionOrder.Following) {
       deleteParam(POST_ORDER_BY_FILTER, withNavigation);
+      setParam(POST_FOLLOWING_FILTER, QuestionOrder.Following, withNavigation);
     } else {
-      setParam(POST_ORDER_BY_FILTER, order, withNavigation);
+      if (order === defaultOrder) {
+        deleteParam(POST_ORDER_BY_FILTER, withNavigation);
+      } else {
+        setParam(POST_ORDER_BY_FILTER, order, withNavigation);
+      }
     }
 
     if (onOrderChange) onOrderChange(order, setParam);
