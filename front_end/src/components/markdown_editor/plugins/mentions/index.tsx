@@ -13,15 +13,23 @@ import CustomMentionComponent from "./components/mention";
 import MentionsPlugin from "./components/plugin";
 import { LexicalBeautifulMentionVisitor } from "./LexicalBeautifulMentionVisitor";
 
-export const mentionsPlugin = realmPlugin({
-  init(realm) {
+export const mentionsPlugin = realmPlugin<{
+  initialMention?: string;
+  isStuff?: boolean;
+}>({
+  init(realm, params) {
     realm.pubIn({
       [addLexicalNode$]: [
         ...createBeautifulMentionNode(CustomMentionComponent),
         PlaceholderNode,
       ],
       [addExportVisitor$]: LexicalBeautifulMentionVisitor,
-      [addComposerChild$]: () => <MentionsPlugin />,
+      [addComposerChild$]: () => (
+        <MentionsPlugin
+          initialMention={params?.initialMention}
+          isStuff={params?.isStuff}
+        />
+      ),
     });
   },
 });
