@@ -519,6 +519,7 @@ const QuestionForm: FC<Props> = ({
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
             hasForecasts={hasForecasts && mode !== "create"}
+            control={control}
             onChange={({
               min: rangeMin,
               max: rangeMax,

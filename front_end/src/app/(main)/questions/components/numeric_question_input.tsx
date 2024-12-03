@@ -2,10 +2,11 @@ import { format } from "date-fns";
 import { isNil } from "lodash";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { FieldValues, UseFormReturn } from "react-hook-form";
 
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
-import { Input } from "@/components/ui/form_field";
+import { FormError, Input } from "@/components/ui/form_field";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
 
@@ -38,6 +39,8 @@ const NumericQuestionInput: React.FC<{
   defaultZeroPoint: number | undefined | null;
   hasForecasts: boolean;
   chartWidth?: number;
+  control?: UseFormReturn<FieldValues, any, undefined>;
+  index?: number;
 }> = ({
   onChange,
   questionType,
@@ -48,6 +51,8 @@ const NumericQuestionInput: React.FC<{
   defaultZeroPoint,
   hasForecasts,
   chartWidth = 800,
+  control,
+  index,
 }) => {
   const [errors, setError] = useState<string[]>([]);
   const [max, setMax] = useState(defaultMax);
@@ -118,10 +123,10 @@ const NumericQuestionInput: React.FC<{
 
   const runChecks = () => {
     const current_errors = [];
-    if (max === undefined) {
+    if (isNil(max)) {
       current_errors.push("Max is required");
     }
-    if (min === undefined) {
+    if (isNil(min)) {
       current_errors.push("Min is required");
     }
 
@@ -136,7 +141,7 @@ const NumericQuestionInput: React.FC<{
             );
       }
     }
-    if (min !== undefined && max !== undefined) {
+    if (!isNil(min) && !isNil(max)) {
       if (isNaN(min) || isNaN(max)) {
         current_errors.push("Provide correct min and max values");
       }
@@ -245,8 +250,20 @@ const NumericQuestionInput: React.FC<{
                       : undefined
                   }
                   onChange={(dateString) => {
+                    control?.clearErrors(`min-value-${index}`);
                     setMin(new Date(dateString).getTime() / 1000);
                   }}
+                  onError={(error: { message: string }) => {
+                    control &&
+                      control.setError(`min-value-${index}`, {
+                        type: "manual",
+                        message: error.message,
+                      });
+                  }}
+                />
+                <FormError
+                  errors={control?.formState.errors[`min-value-${index}`]}
+                  name={`min-value`}
                 />
               </div>
               <div className="flex w-full flex-col gap-2">
@@ -261,8 +278,19 @@ const NumericQuestionInput: React.FC<{
                       : undefined
                   }
                   onChange={(dateString) => {
+                    control?.clearErrors(`max-value-${index}`);
                     setMax(new Date(dateString).getTime() / 1000);
                   }}
+                  onError={(error: { message: string }) => {
+                    control?.setError(`max-value-${index}`, {
+                      type: "manual",
+                      message: error.message,
+                    });
+                  }}
+                />
+                <FormError
+                  errors={control?.formState.errors[`max-value-${index}`]}
+                  name={`max-value`}
                 />
               </div>
             </div>
