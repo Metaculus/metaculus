@@ -13,6 +13,7 @@ from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
 
+from questions.constants import ResolutionType
 from projects.permissions import ObjectPermission
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
@@ -58,6 +59,44 @@ class ProjectsQuerySet(models.QuerySet):
                 SubqueryAggregate(
                     "default_posts__id",
                     filter=Q(curation_status=Post.CurationStatus.APPROVED),
+                    aggregate=Count,
+                ),
+                0,
+            )
+        )
+
+    def annotate_leaderboard_questions_count(self):
+        from posts.models import Post
+
+        return self.annotate(
+            leaderboard_questions_count=Coalesce(
+                SubqueryAggregate(
+                    "posts__related_questions__question_id",
+                    filter=Q(post__curation_status=Post.CurationStatus.APPROVED)
+                    & Q(question__open_time__gte=OuterRef("start_date"))
+                    & Q(question__scheduled_close_time__lte=OuterRef("close_date"))
+                    & ~Q(
+                        question__resolution__in=[
+                            ResolutionType.AMBIGUOUS,
+                            ResolutionType.ANNULLED,
+                        ]
+                    ),
+                    aggregate=Count,
+                ),
+                0,
+            )
+            + Coalesce(
+                SubqueryAggregate(
+                    "default_posts__related_questions__question_id",
+                    filter=Q(post__curation_status=Post.CurationStatus.APPROVED)
+                    & Q(question__open_time__gte=OuterRef("start_date"))
+                    & Q(question__scheduled_close_time__lte=OuterRef("close_date"))
+                    & ~Q(
+                        question__resolution__in=[
+                            ResolutionType.AMBIGUOUS,
+                            ResolutionType.ANNULLED,
+                        ]
+                    ),
                     aggregate=Count,
                 ),
                 0,
