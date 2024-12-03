@@ -1,6 +1,6 @@
 from django_dynamic_fixture import G
 
-from comments.models import Comment
+from comments.models import Comment, KeyFactor, KeyFactorVote
 from posts.models import Post
 from users.models import User
 from utils.dtypes import setdefaults_not_null
@@ -24,3 +24,15 @@ def factory_comment(
         on_post.update_comment_count()
 
     return c
+
+
+def factory_key_factor(
+    *, comment: Comment = None, votes: dict[User, int] = None, **kwargs
+) -> KeyFactor:
+    votes = votes or {}
+    cf = G(KeyFactor, **setdefaults_not_null(kwargs, comment=comment))
+
+    for user, score in votes.items():
+        KeyFactorVote.objects.create(key_factor=cf, score=score, user=user)
+
+    return cf

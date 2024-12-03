@@ -14,6 +14,7 @@
   "predictionUpcomingMessage": "This question is in the Upcoming stage, and will be open for predictions soon",
   "predictionUnapprovedMessage": "This question must be approved by moderators before you can begin predicting",
   "predictionClosedMessage": "This question is closed for predictions, and is waiting to be resolved",
+  "predictionConditionalPartiallyClosedMessage": "The question \"{closedQuestion}\" has closed, so these conditionals are closed for forecasting. They will resolve when the question \"{activeQuestion}\" resolves.",
   "resolve": "Resolve",
   "unresolve": "Unresolve",
   "preview": "Preview",
@@ -34,6 +35,7 @@
   "report": "Report",
   "delete": "Delete",
   "copyLink": "Copy Link",
+  "copyId": "Copy ID",
   "continueButton": "Continue",
   "submit": "Submit",
   "submitTagsFeedback": "Submit Tags Feedback",
@@ -447,8 +449,8 @@
   "myDivergence": "My Divergence",
   "profile": "Profile",
   "changeUsernameButton": "change",
-  "softDeleteUserButton": "Soft Delete User",
-  "softDeleteUser?": "Are you sure you want to soft delete this user?",
+  "markUserAsSpamButton": "Mark User as Spam",
+  "markUserAsSpam?": "Are you sure you want to mark this user as spam?",
   "memberSince": "Member Since",
   "bio": "Bio",
   "website": "Website",
@@ -967,5 +969,7 @@
   "undergraduateStudentQuestion": "Are you currently an undergraduate student?",
   "institution": "Institution",
   "major": "Major",
-  "finishRegistration": "Finish Registration"
+  "finishRegistration": "Finish Registration",
+  "keyFactor": "Key Factor",
+  "keyFactors": "Key Factors"
 }

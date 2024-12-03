@@ -6,6 +6,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from comments.models import KeyFactor
+from comments.serializers import serialize_key_factors_many
 from misc.models import ITNArticle
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -100,7 +102,9 @@ class PostReadSerializer(serializers.ModelSerializer):
         if not obj.open_time or obj.open_time > now:
             return Post.CurationStatus.APPROVED
 
-        if now < obj.scheduled_close_time:
+        if now < obj.scheduled_close_time and (
+            not obj.actual_close_time or now < obj.actual_close_time
+        ):
             return Post.PostStatusChange.OPEN
 
         return Post.PostStatusChange.CLOSED
@@ -228,6 +232,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
 
     search = serializers.CharField(required=False, allow_null=True)
     for_main_feed = serializers.BooleanField(required=False, allow_null=True)
+    following = serializers.BooleanField(required=False, allow_null=True)
 
     # Key lookup filters
     open_time = serializers.DateTimeField(required=False, allow_null=True)
@@ -337,6 +342,7 @@ def serialize_post(
     current_user: User = None,
     with_subscriptions: bool = False,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
+    with_key_factors: bool = False,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -414,6 +420,12 @@ def serialize_post(
             }
         )
 
+    if with_key_factors:
+        serialized_data["key_factors"] = serialize_key_factors_many(
+            KeyFactor.objects.for_post(post).filter_active().order_by("-votes_score"),
+            current_user=current_user,
+        )
+
     is_current_content_translated = (
         post.is_current_content_translated()
         or (post.question is not None and post.question.is_current_content_translated())
@@ -431,6 +443,7 @@ def serialize_post_many(
     current_user: User = None,
     with_subscriptions: bool = False,
     group_cutoff: int = None,
+    with_key_factors: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -481,6 +494,7 @@ def serialize_post_many(
                 for q, v in aggregate_forecasts.items()
                 if q in post.get_questions()
             },
+            with_key_factors=with_key_factors,
         )
         for post in posts
     ]

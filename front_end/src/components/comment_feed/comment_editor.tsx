@@ -21,6 +21,7 @@ interface CommentEditorProps {
   shouldIncludeForecast?: boolean;
   onSubmit?: (newComment: CommentType) => void;
   isReplying?: boolean;
+  replyUsername?: string;
   isPrivateFeed?: boolean;
 }
 
@@ -31,6 +32,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   onSubmit,
   shouldIncludeForecast,
   isReplying = false,
+  replyUsername,
   isPrivateFeed = false,
 }) => {
   const t = useTranslations();
@@ -158,6 +160,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
             shouldConfirmLeave={isMarkdownDirty}
             withUgcLinks
             withUserMentions
+            initialMention={replyUsername}
           />
         </div>
       )}

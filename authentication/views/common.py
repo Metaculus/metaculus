@@ -64,6 +64,7 @@ def signup_api_view(request):
     project = serializer.validated_data.get("add_to_project", None)
     campaign_key = serializer.validated_data.get("campaign_key", None)
     campaign_data = serializer.validated_data.get("campaign_data", None)
+    redirect_url = serializer.validated_data.get("redirect_url", None)
 
     user = User.objects.create_user(
         username=username,
@@ -106,7 +107,7 @@ def signup_api_view(request):
         token_obj, _ = Token.objects.get_or_create(user=user)
         token = token_obj.key
     else:
-        send_activation_email(user)
+        send_activation_email(user, redirect_url)
 
     return Response(
         {
