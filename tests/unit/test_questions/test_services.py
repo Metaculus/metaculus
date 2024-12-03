@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 
 from posts.services.common import create_post, approve_post
 from questions.models import Question
-from questions.services import resolve_question
+from questions.services import resolve_question, unresolve_question
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_question
@@ -96,11 +96,47 @@ class TestResolveConditionalQuestion:
             == make_aware(datetime(2024, 11, 1))
         )
 
-    def test_conditional_parent_resolved(
+    def test_conditional_child_and_parent_resolved(
         self, post_conditional, post_child, post_parent
     ):
         """
-        Both Condition and Child are resolved
+        Unresolving conditional post
+        """
+
+        assert not post_conditional.resolved
+
+        # Close child question
+        resolve_question(
+            post_child.question,
+            "yes",
+            actual_resolve_time=make_aware(datetime(2024, 11, 1)),
+        )
+        resolve_question(
+            post_parent.question,
+            "no",
+            actual_resolve_time=make_aware(datetime(2024, 11, 1)),
+        )
+        post_conditional.refresh_from_db()
+        assert post_conditional.resolved
+        assert post_conditional.actual_close_time
+        assert post_conditional.conditional.question_no.resolution == "yes"
+        assert post_conditional.conditional.question_yes.resolution == "annulled"
+
+        # Unresolve action
+        unresolve_question(post_child.question)
+        post_conditional.refresh_from_db()
+
+        assert not post_conditional.resolved
+        assert post_conditional.actual_close_time
+        assert not post_conditional.conditional.question_no.resolution
+        # For Luke: shouldn't other branch resolution become None instead of being annulled?
+        assert post_conditional.conditional.question_yes.resolution == "annulled"
+
+    def test_conditional_parent_unresolve(
+        self, post_conditional, post_child, post_parent
+    ):
+        """
+        Unresolved conditions
         """
 
         assert not post_conditional.resolved
@@ -134,7 +170,7 @@ class TestResolveConditionalQuestion:
 
     def test_conditional_child_resolved(self, post_conditional, post_child):
         """
-        Both Condition and Child are resolved
+        Condition not resolved, Child resolved
         """
 
         assert not post_conditional.resolved
