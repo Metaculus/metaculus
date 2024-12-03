@@ -436,7 +436,7 @@ export const RegistrationPage: FC<CampaignRegistrationProps> = ({
       <p className="text-xs text-gray-600 dark:text-gray-600-dark">
         Logged in as <span className="font-extrabold">{user.username}</span>
       </p>
-      <div className="mt-1 w-full">
+      <div className="mt-1 w-full max-w-[640px] px-8">
         <RegistrationForm
           onSuccess={() => router.refresh()}
           campaignKey={campaignKey}
