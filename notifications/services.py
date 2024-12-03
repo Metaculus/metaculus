@@ -3,6 +3,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone as dt_timezone, timedelta
 
 from dateutil.parser import parse as date_parse
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from comments.constants import CommentReportType
@@ -230,6 +231,7 @@ class NotificationTypeBase:
             cls.email_template,
             context=context,
             use_async=False,
+            from_email=settings.EMAIL_NOTIFICATIONS_USER,
         )
 
 

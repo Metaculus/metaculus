@@ -239,6 +239,9 @@ EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg2.metaculus.com>"
 )
+EMAIL_NOTIFICATIONS_USER = os.environ.get(
+    "EMAIL_NOTIFICATIONS_USER", "Metaculus Notifications <notifications@mg2.metaculus.com>"
+)
 EMAIL_SENDER_NO_REPLY = os.environ.get(
     "EMAIL_SENDER_NO_REPLY", "Metaculus NoReply <no-reply@mg2.metaculus.com>"
 )
