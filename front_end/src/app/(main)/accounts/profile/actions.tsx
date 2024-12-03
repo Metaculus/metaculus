@@ -47,7 +47,7 @@ export default async function changeUsernameAction(
 
 export async function softDeleteUserAction(userId: number) {
   try {
-    return await ProfileApi.softDeleteUser(userId);
+    return await ProfileApi.markUserAsSpam(userId);
   } catch (err) {
     const error = err as FetchError;
 

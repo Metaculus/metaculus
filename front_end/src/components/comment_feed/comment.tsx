@@ -188,9 +188,7 @@ const Comment: FC<CommentProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isReplying, setIsReplying] = useState(false);
-  const [commentMarkdown, setCommentMarkdown] = useState(
-    parseUserMentions(comment.text, comment.mentioned_users)
-  );
+  const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
@@ -334,7 +332,7 @@ const Comment: FC<CommentProps> = ({
     {
       hidden: !user?.is_staff,
       id: "deleteUser",
-      name: t("softDeleteUserButton"),
+      name: t("markUserAsSpamButton"),
       onClick: async () => {
         // change this to the "soft_delete_button" component with modal
         const response = await softDeleteUserAction(comment.author.id);
@@ -461,7 +459,10 @@ const Comment: FC<CommentProps> = ({
           )}{" "}
           {!isEditing && (
             <MarkdownEditor
-              markdown={commentMarkdown}
+              markdown={parseUserMentions(
+                commentMarkdown,
+                comment.mentioned_users
+              )}
               mode={"read"}
               withUgcLinks
             />
@@ -496,12 +497,7 @@ const Comment: FC<CommentProps> = ({
                     const newCommentData = newCommentDataResponse.results.find(
                       (q) => q.id === comment.id
                     );
-                    setCommentMarkdown(
-                      parseUserMentions(
-                        commentMarkdown,
-                        newCommentData?.mentioned_users
-                      )
-                    );
+                    setCommentMarkdown(commentMarkdown);
                   }
                   setIsEditing(false);
                 }
@@ -583,7 +579,7 @@ const Comment: FC<CommentProps> = ({
         <CommentEditor
           parentId={comment.id}
           postId={comment.on_post}
-          text={formatMention(comment)}
+          replyUsername={comment.author.username}
           onSubmit={(newComment: CommentType) => {
             addNewChildrenComment(comment, newComment);
             setIsReplying(false);
@@ -618,10 +614,6 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
   comment.children.map((nestedComment) => {
     addNewChildrenComment(nestedComment, newComment);
   });
-}
-
-function formatMention(comment: CommentType) {
-  return `[@${comment.author.username}](/accounts/profile/${comment.author.id})`;
 }
 
 export default Comment;

@@ -39,6 +39,7 @@ import {
 } from "@/components/markdown_editor/embedded_math_jax";
 import { linkPlugin } from "@/components/markdown_editor/plugins/link";
 import { mentionsPlugin } from "@/components/markdown_editor/plugins/mentions";
+import { useAuth } from "@/contexts/auth_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { logErrorWithScope } from "@/utils/errors";
@@ -70,6 +71,7 @@ type Props = {
   shouldConfirmLeave?: boolean;
   withUgcLinks?: boolean;
   className?: string;
+  initialMention?: string;
 };
 
 const PlainTextCodeEditorDescriptor: CodeBlockEditorDescriptor = {
@@ -95,7 +97,9 @@ const MarkdownEditor: FC<Props> = ({
   className,
   shouldConfirmLeave = false,
   withUgcLinks,
+  initialMention,
 }) => {
+  const { user } = useAuth();
   const { theme } = useAppTheme();
   const [errorMarkdown, setErrorMarkdown] = useState<string | null>(null);
   const editorRef = useRef<MDXEditorMethods>(null);
@@ -120,7 +124,14 @@ const MarkdownEditor: FC<Props> = ({
     linkPlugin({
       withUgcLinks,
     }),
-    ...(withUserMentions ? [mentionsPlugin()] : []),
+    ...(withUserMentions
+      ? [
+          mentionsPlugin({
+            initialMention,
+            isStuff: user?.is_staff || user?.is_superuser,
+          }),
+        ]
+      : []),
     quotePlugin(),
     markdownShortcutPlugin(),
     codeBlockPlugin({
