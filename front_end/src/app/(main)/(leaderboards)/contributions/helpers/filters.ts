@@ -16,6 +16,8 @@ type ContributionParams = {
 };
 export function getContributionParams(searchParams: SearchParams) {
   const params: ContributionParams = {
+    // used for backwards compatibility redirect
+    // currently this value is extracted from URL param
     category: getSearchParamValue<CategoryKey>(
       searchParams,
       SCORING_CATEGORY_FILTER,
@@ -25,6 +27,8 @@ export function getContributionParams(searchParams: SearchParams) {
     duration: getSearchParamValue(searchParams, SCORING_DURATION_FILTER, "1"),
   };
 
+  // used for backwards compatibility redirect
+  // currently this value is extracted from URL param
   const userParam = searchParams[CONTRIBUTIONS_USER_FILTER];
   if (userParam && typeof userParam === "string" && !isNaN(Number(userParam))) {
     params.userId = Number(userParam);
