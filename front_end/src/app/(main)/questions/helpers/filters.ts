@@ -26,6 +26,7 @@ import {
   POST_TYPE_FILTER,
   POST_UPVOTED_BY_FILTER,
   POST_USERNAMES_FILTER,
+  POST_FOLLOWING_FILTER,
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
@@ -77,6 +78,10 @@ export function generateFiltersFromSearchParams(
 
   if (!withoutPageParam && typeof searchParams[POST_PAGE_FILTER] === "string") {
     filters.page = Number(searchParams[POST_PAGE_FILTER]);
+  }
+
+  if (typeof searchParams[POST_FOLLOWING_FILTER] === "string") {
+    filters.following = Boolean(searchParams[POST_FOLLOWING_FILTER]);
   }
 
   if (typeof searchParams[POST_TEXT_SEARCH_FILTER] === "string") {
@@ -256,6 +261,12 @@ export function getFilterSectionParticipation({
         label: t("notPredicted"),
         value: user.id.toString(),
         active: !!params.get(POST_NOT_FORECASTER_ID_FILTER),
+      },
+      {
+        id: POST_FOLLOWING_FILTER,
+        label: t("followed"),
+        value: QuestionOrder.Following,
+        active: !!params.get(POST_FOLLOWING_FILTER),
       },
     ],
   };
