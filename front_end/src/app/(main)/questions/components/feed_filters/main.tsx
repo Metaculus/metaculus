@@ -32,6 +32,7 @@ const MainFeedFilters: FC<Props> = ({ forFeedHome = true }) => {
         statuses: [
           PostStatus.OPEN,
           PostStatus.CLOSED,
+          PostStatus.PENDING_RESOLUTION,
           PostStatus.RESOLVED,
           PostStatus.UPCOMING,
         ],
