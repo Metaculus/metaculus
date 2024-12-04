@@ -973,7 +973,7 @@
   "forecastedAllQuestions": "You’ve forecasted on all {questionNumber} questions!",
   "answerAfterEditing": "Answers cannot be edited after submission.",
   "fullName": "Full Name",
-  "country": "Country",
+  "country": "Country of Residence",
   "undergraduateStudentQuestion": "Are you currently an undergraduate student?",
   "institution": "Institution",
   "major": "Major",

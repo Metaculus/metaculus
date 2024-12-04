@@ -1,4 +1,3 @@
-"use client";
 import { FC } from "react";
 
 export const XIcon: FC<{ className?: string }> = ({ className }) => {
