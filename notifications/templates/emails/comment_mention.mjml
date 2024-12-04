@@ -1,0 +1,31 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+
+                <mj-text>
+                    Hello {{recipient.username}},
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans with author_id=params.author_id author_username=params.author_username mention_label=params.mention_label %}
+                    {{author_username}} mentioned {{mention}} on&nbsp;
+                    {% endblocktrans %}
+                    <a href="{{params.comment_url}}">
+                        {{ params.post.post_title }}
+                    </a>:
+                    <div>
+                        > {{ comment.preview_text | safe }}
+                    </div>
+                </mj-text>
+
+            </mj-column>
+        </mj-section>
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+        <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
+    </mj-body>
+</mjml>

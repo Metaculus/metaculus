@@ -72,3 +72,18 @@ def comments_extract_user_mentions_mapping(
                 comments_mapping[comment_id].append(user)
 
     return comments_mapping
+
+
+def get_mention_for_user(user: User, unique_mentions: Iterable[str]) -> str:
+    """
+    Extracts mention label for given user. Not ideal, but should cover 90% of the cases
+    """
+
+    username = user.username.lower()
+    priority = [username, "predictors", "moderators", "curators", "admins"]
+
+    for mention in priority:
+        if mention in unique_mentions:
+            return mention
+
+    return username
