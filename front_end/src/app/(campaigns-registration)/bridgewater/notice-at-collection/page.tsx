@@ -115,11 +115,10 @@ export default function NoticeAtCollection() {
 
               <tr>
                 <td className="px-4 py-6 align-top">
-                  <b>Residency</b>, specifically whether you are a resident of
-                  the United States
+                  <b>Residency</b>, specifically the country in which you reside
                 </td>
                 <td className="px-4 py-6 align-top">
-                  Briefly for an initial sign-up period.
+                  For the duration of the tournament.
                 </td>
                 <td className="px-4 py-6 align-top">
                   Residency is used to verify eligibility for this tournament.
@@ -157,13 +156,9 @@ export default function NoticeAtCollection() {
                   Metaculus uses your forecasting submissions to determine
                   ranking and winners of the tournament. Metaculus also uses
                   forecasting submissions to fine tune its own algorithms.
-                  Metaculus collects comments on your participation in the
-                  tournament to enable its contractual counterparty Bridgewater
-                  to determine what potential recruitment outreach may be
-                  appropriate at the conclusion of the tournament.
                 </td>
                 <td className="px-4 py-6 align-top">
-                  Comments about your participation in the tournament may be
+                  Your submissions in the tournament may be
                   shared with Bridgewater
                 </td>
               </tr>
