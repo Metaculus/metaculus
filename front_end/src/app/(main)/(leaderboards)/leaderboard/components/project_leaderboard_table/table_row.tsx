@@ -28,7 +28,7 @@ const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
   const highlight = user?.id === userId;
 
   return (
-    <tr className="h-8">
+    <tr>
       <Td className="sticky left-0 text-left" highlight={highlight}>
         {medal ? (
           <MedalIcon type={medal} className="mr-2 inline-block size-4" />
@@ -81,7 +81,7 @@ const Td: FC<
 > = ({ highlight, className, children }) => (
   <td
     className={classNames(
-      "px-2 text-sm leading-4",
+      "px-4 py-2.5 text-sm leading-4",
       highlight
         ? "bg-orange-100 dark:bg-orange-100-dark"
         : "bg-gray-0 dark:bg-gray-0-dark",
