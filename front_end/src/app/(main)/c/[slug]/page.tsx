@@ -39,7 +39,7 @@ export default async function IndividualCommunity({
         <CommunityInfo community={community} />
 
         <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
-          <FeedFilters />
+          <FeedFilters forFeedHome={false} />
           <Suspense
             key={JSON.stringify(searchParams)}
             fallback={
