@@ -82,6 +82,7 @@ export enum PostStatus {
   OPEN = "open",
   UPCOMING = "upcoming",
   CLOSED = "closed",
+  PENDING_RESOLUTION = "pending_resolution",
   RESOLVED = "resolved",
   DELETED = "deleted",
 }
