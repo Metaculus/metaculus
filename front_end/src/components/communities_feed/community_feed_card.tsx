@@ -11,7 +11,7 @@ import communityPlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
 import { Community } from "@/types/projects";
-import { getNotebookSummary } from "@/utils/questions";
+import { getMarkdownSummary } from "@/utils/questions";
 
 import Button from "../ui/button";
 import "./styles.css";
@@ -48,7 +48,7 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
           {!!width && (
             <MarkdownEditor
               mode="read"
-              markdown={getNotebookSummary(community.description, width, 44, 7)}
+              markdown={getMarkdownSummary(community.description, width, 44, 7)}
               contentEditableClassName="community font-serif *:m-0"
               withUgcLinks
             />

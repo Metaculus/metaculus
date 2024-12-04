@@ -10,7 +10,7 @@ import useContainerSize from "@/hooks/use_container_size";
 import { PostWithNotebook } from "@/types/post";
 import { formatDate } from "@/utils/date_formatters";
 import { getPostLink } from "@/utils/navigation";
-import { estimateReadingTime, getNotebookSummary } from "@/utils/questions";
+import { estimateReadingTime, getMarkdownSummary } from "@/utils/questions";
 
 type Props = {
   post: PostWithNotebook;
@@ -51,7 +51,7 @@ const NewsCard: FC<Props> = ({ post }) => {
             {!!width && (
               <MarkdownEditor
                 mode="read"
-                markdown={getNotebookSummary(post.notebook.markdown, width, 48)}
+                markdown={getMarkdownSummary(post.notebook.markdown, width, 48)}
                 contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
                 withUgcLinks
               />

@@ -48,7 +48,7 @@ export function extractPostResolution(post: Post): Resolution | null {
   return null;
 }
 
-export function getNotebookSummary(
+export function getMarkdownSummary(
   markdown: string,
   width: number,
   height: number,
