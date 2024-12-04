@@ -79,8 +79,8 @@ const IndexNotebook: FC<Props> = async ({
                 message={t("weeklyMovementChange", {
                   value: Math.abs(indexWeeklyMovement),
                 })}
-                className="text-base "
-                iconClassName="text-base "
+                className="text-base"
+                iconClassName="text-base"
               />
             </div>
           }
