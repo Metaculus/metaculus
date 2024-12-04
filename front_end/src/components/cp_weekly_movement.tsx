@@ -8,15 +8,23 @@ import { FC } from "react";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
 
-type Props = {
-  question: QuestionWithForecasts;
-  className?: string;
-};
+type Props =
+  | {
+      question: QuestionWithForecasts;
+      indexMovement?: never;
+      className?: string;
+    }
+  | { question?: never; indexMovement: number; className?: string };
 
-const CPWeeklyMovement: FC<Props> = ({ question, className }) => {
+const CPWeeklyMovement: FC<Props> = ({
+  question,
+  className,
+  indexMovement,
+}) => {
   const t = useTranslations();
-  const weeklyMovement = getQuestionWeeklyMovement(question);
-
+  const weeklyMovement = indexMovement ?? getQuestionWeeklyMovement(question);
+  const percantagePoints =
+    question?.type === QuestionType.Binary ? ` ${t("percentagePoints")}` : "";
   if (!weeklyMovement) {
     return null;
   }
@@ -25,25 +33,28 @@ const CPWeeklyMovement: FC<Props> = ({ question, className }) => {
 
   return (
     <div className={classNames("flex gap-1", className)}>
-      <FontAwesomeIcon
-        className={classNames(
-          "text-sm",
-          isNegative
-            ? "text-salmon-600 dark:text-salmon-600-dark"
-            : "text-olive-700 dark:text-olive-700-dark"
-        )}
-        icon={isNegative ? faCaretDown : faCaretUp}
-      />
       <span
         className={classNames(
-          "text-xs font-medium leading-4",
+          `${indexMovement ? "text-base" : "text-xs"} font-medium leading-4`,
           isNegative
             ? "text-salmon-600 dark:text-salmon-600-dark"
             : "text-olive-700 dark:text-olive-700-dark"
         )}
       >
+        <FontAwesomeIcon
+          className={classNames(
+            `${indexMovement ? "text-base" : "text-sm"}`,
+            isNegative
+              ? "text-salmon-600 dark:text-salmon-600-dark"
+              : "text-olive-700 dark:text-olive-700-dark"
+          )}
+          icon={isNegative ? faCaretDown : faCaretUp}
+        />{" "}
         {t("weeklyMovementChange", {
-          value: displayValue(Math.abs(weeklyMovement), question.type),
+          value: `${displayValue(
+            Math.abs(weeklyMovement),
+            question?.type ?? QuestionType.Numeric
+          )}${percantagePoints}`,
         })}
       </span>
     </div>
@@ -59,7 +70,6 @@ function getQuestionWeeklyMovement(
   ) {
     return null;
   }
-
   const latestAggregation = question.aggregations.recency_weighted.latest;
   const historyAggregation = question.aggregations.recency_weighted.history;
   if (!latestAggregation) {
@@ -71,8 +81,9 @@ function getQuestionWeeklyMovement(
 
   const weekAgoDate = subWeeks(latestDate, 1);
   const weekAgoCP =
-    historyAggregation.find((el) => fromUnixTime(el.start_time) >= weekAgoDate)
-      ?.centers?.[0] ?? null;
+    historyAggregation.find(
+      (el) => el.end_time && fromUnixTime(el.end_time) >= weekAgoDate
+    )?.centers?.[0] ?? null;
 
   if (!latestCP || !weekAgoCP) {
     return null;

@@ -14,7 +14,7 @@ import classNames from "classnames";
 import { isNil } from "lodash";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import React, { FC, useMemo } from "react";
+import React, { FC, ReactNode, useMemo } from "react";
 
 import {
   Table,
@@ -45,9 +45,10 @@ const columnHelper = createColumnHelper<TableItem>();
 
 type Props = {
   indexQuestions: PostWithForecastsAndWeight[];
+  HeadingSection?: ReactNode;
 };
 
-const IndexQuestionsTable: FC<Props> = ({ indexQuestions }) => {
+const IndexQuestionsTable: FC<Props> = ({ indexQuestions, HeadingSection }) => {
   const t = useTranslations();
 
   const data = useMemo(() => getTableData(indexQuestions), [indexQuestions]);
@@ -127,7 +128,7 @@ const IndexQuestionsTable: FC<Props> = ({ indexQuestions }) => {
   });
 
   return (
-    <Table>
+    <Table HeadingSection={HeadingSection}>
       <TableHead>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>

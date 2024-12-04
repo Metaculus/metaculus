@@ -1,8 +1,10 @@
+import { fromUnixTime, subWeeks } from "date-fns";
 import { getTranslations } from "next-intl/server";
 import React, { FC } from "react";
 
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import CommentFeed from "@/components/comment_feed";
+import CPWeeklyMovement from "@/components/cp_weekly_movement";
 import { SharePostMenu } from "@/components/post_actions";
 import PostsApi from "@/services/posts";
 import {
@@ -40,7 +42,8 @@ const IndexNotebook: FC<Props> = async ({
     weight: questionWeightsMap[question.id] || 0,
   }));
 
-  const indexValue = calculateIndex(indexQuestions);
+  const { index: indexValue, indexWeekAgo } = calculateIndex(indexQuestions);
+  const indexWeeklyMovement = Math.round(indexValue - indexWeekAgo);
 
   return (
     <main className="mx-auto mb-24 mt-12 flex w-full max-w-3xl flex-1 flex-col bg-gray-0 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark">
@@ -60,14 +63,21 @@ const IndexNotebook: FC<Props> = async ({
         {postData.notebook && (
           <NotebookEditor postData={postData as PostWithNotebook} />
         )}
-        <p className="text-3xl capitalize leading-9">
-          {t.rich("indexScore", {
-            value: Math.round(indexValue),
-            bold: (chunks) => <b>{chunks}</b>,
-          })}
-        </p>
 
-        <IndexQuestionsTable indexQuestions={indexQuestions} />
+        <IndexQuestionsTable
+          indexQuestions={indexQuestions}
+          HeadingSection={
+            <div className="flex flex-col items-center border-b border-gray-300 bg-blue-100 px-4 py-4 text-center leading-4 dark:border-gray-300-dark dark:bg-blue-100-dark">
+              <p className="m-0 mb-2 text-3xl capitalize leading-9">
+                {t.rich("indexScore", {
+                  value: Math.round(indexValue),
+                  bold: (chunks) => <b>{chunks}</b>,
+                })}
+              </p>
+              <CPWeeklyMovement indexMovement={indexWeeklyMovement} />
+            </div>
+          }
+        />
 
         <CommentFeed postData={postData} inNotebook />
       </div>
@@ -75,63 +85,91 @@ const IndexNotebook: FC<Props> = async ({
   );
 };
 
-function calculateIndex(posts: PostWithForecastsAndWeight[]): number {
+function calculateIndex(posts: PostWithForecastsAndWeight[]): {
+  index: number;
+  indexWeekAgo: number;
+} {
   const weightSum = posts.reduce((acc, post) => acc + post.weight, 0);
   if (weightSum === 0) {
-    return 0;
+    return { index: 0, indexWeekAgo: 0 };
   }
 
-  const scoreSum = posts.reduce((acc, post) => {
-    if (!post.question) {
-      return acc;
-    }
-
-    const latestAggregation =
-      post.question.aggregations.recency_weighted.latest;
-    if (!latestAggregation) {
-      return acc;
-    }
-
-    let postValue = 0;
-    switch (post.question.type) {
-      case QuestionType.Binary: {
-        const cp = latestAggregation.centers?.at(-1);
-        if (!cp) {
-          break;
-        }
-
-        const median = scaleInternalLocation(cp, {
-          range_min: 0,
-          range_max: 100,
-          zero_point: null,
-        });
-
-        postValue = 2 * median - 1;
-        break;
+  const { scoreSum, weeklyScoreSum } = posts.reduce(
+    (acc, post) => {
+      if (!post.question) {
+        return acc;
       }
-      case QuestionType.Numeric: {
-        const scaling = post.question.scaling;
-        const min = scaling.range_min;
-        const max = scaling.range_max;
-        if (!min || !max) {
-          break;
-        }
 
-        const cp = latestAggregation.centers?.at(-1);
-        if (!cp) {
-          break;
-        }
-        const median = scaleInternalLocation(cp, scaling);
-
-        postValue = (2 * median - max - min) / (max - min);
-        break;
+      const latestAggregation =
+        post.question.aggregations.recency_weighted.latest;
+      const historyAggregation =
+        post.question.aggregations.recency_weighted.history;
+      if (!latestAggregation) {
+        return acc;
       }
-    }
 
-    return acc + post.weight * postValue;
-  }, 0);
+      let postValue = 0;
+      let postWeeklyMovement = 0;
+      const cp = latestAggregation.centers?.at(-1);
+      const latestDate = fromUnixTime(latestAggregation.start_time);
+      const weekAgoDate = subWeeks(latestDate, 1);
+      const weekAgoCP = historyAggregation.find(
+        (el) => fromUnixTime(el.start_time) >= weekAgoDate
+      )?.centers?.[0];
 
-  return scoreSum / weightSum;
+      switch (post.question.type) {
+        case QuestionType.Binary: {
+          if (!cp) {
+            break;
+          }
+
+          const median = scaleInternalLocation(cp, {
+            range_min: 0,
+            range_max: 100,
+            zero_point: null,
+          });
+          postValue = 2 * median - 1;
+
+          const medianWeekAgo = scaleInternalLocation(weekAgoCP ?? cp, {
+            range_min: 0,
+            range_max: 100,
+            zero_point: null,
+          });
+          postWeeklyMovement = 2 * medianWeekAgo - 1;
+          break;
+        }
+        case QuestionType.Numeric: {
+          const scaling = post.question.scaling;
+          const min = scaling.range_min;
+          const max = scaling.range_max;
+          if (!min || !max) {
+            break;
+          }
+
+          if (!cp) {
+            break;
+          }
+          const median = scaleInternalLocation(cp, scaling);
+          postValue = (2 * median - max - min) / (max - min);
+
+          const medianWeekAgo = scaleInternalLocation(weekAgoCP ?? cp, scaling);
+          postWeeklyMovement = (2 * medianWeekAgo - max - min) / (max - min);
+          break;
+        }
+      }
+
+      return {
+        scoreSum: acc.scoreSum + post.weight * postValue,
+        weeklyScoreSum: acc.weeklyScoreSum + post.weight * postWeeklyMovement,
+      };
+    },
+    { scoreSum: 0, weeklyScoreSum: 0 }
+  );
+
+  return {
+    index: scoreSum / weightSum,
+    indexWeekAgo: weeklyScoreSum / weightSum,
+  };
 }
 
 export default IndexNotebook;

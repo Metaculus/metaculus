@@ -979,5 +979,6 @@
   "indexQuestion": "Question",
   "indexWeight": "Weight",
   "indexCP": "CP",
-  "weeklyMovementChange": "{value} this week"
+  "weeklyMovementChange": "{value} this week",
+  "percentagePoints": "percentage points"
 }
