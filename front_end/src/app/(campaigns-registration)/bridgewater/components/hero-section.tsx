@@ -43,7 +43,7 @@ export const ContestHeader: FC = () => {
         <div className="m-3 flex items-center">
           <XIcon className="size-4" />
         </div>
-        <span className="">Bridgewater</span>
+        <span className="">Metaculus</span>
       </div>
 
       <div className="mt-2 text-2xl font-semibold text-blue-600 dark:text-blue-600-dark  sm:text-4xl">

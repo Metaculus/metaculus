@@ -4,6 +4,7 @@ import { SucessfullyRegistered } from "./components/cards";
 import { redirect } from "next/navigation";
 import { ChoicesButtons, HeroSection } from "./components/hero-section";
 import { CAMPAIGN_KEY, CAMPAIGN_URL_BASE_PATH } from "./constants";
+import Link from "next/link";
 
 export const metadata = {
   title: "Bridgewater x Metaculus",
@@ -53,7 +54,8 @@ export default async function Page() {
           </p>
           <p>
             The most accurate forecasters will be eligible for $25,000 in prizes
-            and potential opportunities with Bridgewater.
+            and potential opportunities with{" "}
+            <Link href={"https://www.bridgewater.com/"}>Bridgewater.</Link>
           </p>
           <p>
             Register for the contest today and be notified as soon as questions
