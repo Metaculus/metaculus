@@ -5,11 +5,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
+import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
-import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
+import {
+  FormError,
+  FormErrorMessage,
+  Input,
+  Textarea,
+} from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { CommunityUpdateParams } from "@/services/projects";
 import { ProjectPermissions } from "@/types/post";
@@ -53,7 +59,7 @@ const visibilityTypeToProps = (
 const CommunitySettings: FC<Props> = ({ community }) => {
   const t = useTranslations();
   const router = useRouter();
-  const { handleSubmit, formState, register, watch, setValue, reset } =
+  const { handleSubmit, formState, register, watch, setValue, reset, control } =
     useForm<CommunitySettingsSchema>({
       defaultValues: {
         name: community.name,
@@ -98,7 +104,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
         setIsLoading(false);
       }
     },
-    [community.id, community.slug, router]
+    [community.id, community.slug, router, reset]
   );
 
   const visibilityType = watch();
@@ -182,13 +188,34 @@ const CommunitySettings: FC<Props> = ({ community }) => {
             </div>
           </div>
         </InputContainer>
-        <InputContainer labelText={t("communityDescription")}>
-          <Textarea
-            {...register("description")}
-            errors={formState.errors.description}
-            className="min-h-32 rounded border border-gray-500 p-5 text-base font-normal text-gray-800 dark:border-gray-500-dark dark:bg-blue-50-dark dark:text-gray-800-dark"
+        <div>
+          <InputContainer labelText={t("communityDescription")}>
+            <Textarea
+              {...register("description")}
+              errors={formState.errors.description}
+              className="hidden"
+            />
+          </InputContainer>
+          <Controller
+            control={control}
+            name="description"
+            render={({ field: { value } }) => (
+              <MarkdownEditor
+                mode="write"
+                markdown={value as string}
+                onChange={(markdown: string) => {
+                  setValue("description", markdown, { shouldDirty: true });
+                }}
+                className="mt-2 w-full"
+                withUgcLinks
+              />
+            )}
           />
-        </InputContainer>
+          <FormError
+            errors={formState.errors.description}
+            name={"description"}
+          />
+        </div>
       </div>
       {!isLoading && <FormErrorMessage errors={error} />}
     </form>

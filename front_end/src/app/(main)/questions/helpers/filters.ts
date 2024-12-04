@@ -27,6 +27,7 @@ import {
   POST_TYPE_FILTER,
   POST_UPVOTED_BY_FILTER,
   POST_USERNAMES_FILTER,
+  POST_FOLLOWING_FILTER,
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
@@ -52,13 +53,14 @@ const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
 
 // TODO: translate
 export const POST_STATUS_LABEL_MAP = {
+  [PostStatus.DRAFT]: "Draft",
+  [PostStatus.PENDING]: "In Review",
+  [PostStatus.UPCOMING]: "Upcoming",
   [PostStatus.APPROVED]: "Approved",
   [PostStatus.OPEN]: "Open",
-  [PostStatus.UPCOMING]: "Upcoming",
-  [PostStatus.RESOLVED]: "Resolved",
   [PostStatus.CLOSED]: "Closed",
-  [PostStatus.PENDING]: "In Review",
-  [PostStatus.DRAFT]: "Draft",
+  [PostStatus.PENDING_RESOLUTION]: "Pending Resolution",
+  [PostStatus.RESOLVED]: "Resolved",
   [PostStatus.DELETED]: "Deleted",
   [PostStatus.REJECTED]: "Rejected Posts",
 };
@@ -78,6 +80,10 @@ export function generateFiltersFromSearchParams(
 
   if (!withoutPageParam && typeof searchParams[POST_PAGE_FILTER] === "string") {
     filters.page = Number(searchParams[POST_PAGE_FILTER]);
+  }
+
+  if (typeof searchParams[POST_FOLLOWING_FILTER] === "string") {
+    filters.following = Boolean(searchParams[POST_FOLLOWING_FILTER]);
   }
 
   if (typeof searchParams[POST_TEXT_SEARCH_FILTER] === "string") {
@@ -284,6 +290,12 @@ export function getFilterSectionParticipation({
         label: t("searchOptionNotPredicted"),
         value: user.id.toString(),
         active: !!params.get(POST_NOT_FORECASTER_ID_FILTER),
+      },
+      {
+        id: POST_FOLLOWING_FILTER,
+        label: t("followed"),
+        value: QuestionOrder.Following,
+        active: !!params.get(POST_FOLLOWING_FILTER),
       },
     ],
   };

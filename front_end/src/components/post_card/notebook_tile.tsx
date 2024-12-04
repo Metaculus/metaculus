@@ -6,7 +6,7 @@ import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
 import { Notebook } from "@/types/post";
-import { getNotebookSummary } from "@/utils/questions";
+import { getMarkdownSummary } from "@/utils/questions";
 
 type Props = {
   notebook: Notebook;
@@ -20,8 +20,9 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
       {!!width && (
         <MarkdownEditor
           mode="read"
-          markdown={getNotebookSummary(notebook.markdown, width, 80)}
+          markdown={getMarkdownSummary(notebook.markdown, width, 80)}
           contentEditableClassName="!m-0 *:m-0 line-clamp-2 !text-sm !text-gray-800 !dark:text-gray-800-dark"
+          withUgcLinks
         />
       )}
       {notebook.image_url && notebook.image_url.startsWith("https:") ? (

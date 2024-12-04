@@ -130,6 +130,10 @@ def get_posts_feed(
                 Q(actual_close_time__isnull=False, resolved=False)
                 | Q(scheduled_close_time__lte=timezone.now(), resolved=False)
             )
+        if status == "pending_resolution":
+            q |= Q(notebook__isnull=True) & Q(
+                resolved=False, scheduled_resolve_time__lte=timezone.now()
+            )
         if status == "resolved":
             q |= Q(notebook__isnull=True) & Q(
                 resolved=True, curation_status=Post.CurationStatus.APPROVED

@@ -16,6 +16,7 @@ export const POST_TAGS_FILTER = "tags";
 export const POST_FORECASTER_ID_FILTER = "forecaster_id";
 export const POST_WITHDRAWN_FILTER = "withdrawn";
 export const POST_NOT_FORECASTER_ID_FILTER = "not_forecaster_id";
+export const POST_FOLLOWING_FILTER = "following";
 export const POST_FOR_MAIN_FEED = "for_main_feed";
 export const POST_AUTHOR_FILTER = "author";
 export const POST_USERNAMES_FILTER = "usernames";
