@@ -149,7 +149,7 @@
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans with author_id=params.author_id author_username=params.author_username mention_label=params.mention_label %} {{author_username}} mentioned {{mention}} on {% endblocktrans %} <a href="{{params.comment_url}}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans with author_id=params.author_id author_username=params.author_username mention_label=params.mention_label %} {{author_username}} mentioned {{mention_label}} on {% endblocktrans %} <a href="{{params.comment_url}}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
                             {{ params.post.post_title }}
                           </a>: <div style="padding: 15px 0"> > {{ params.preview_text | safe }}
                           </div>

@@ -13,7 +13,7 @@
 
                 <mj-text>
                     {% blocktrans with author_id=params.author_id author_username=params.author_username mention_label=params.mention_label %}
-                    {{author_username}} mentioned {{mention}} on
+                    {{author_username}} mentioned {{mention_label}} on
                     {% endblocktrans %}
                     <a href="{{params.comment_url}}">
                         {{ params.post.post_title }}
