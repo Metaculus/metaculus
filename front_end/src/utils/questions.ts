@@ -48,14 +48,14 @@ export function extractPostResolution(post: Post): Resolution | null {
   return null;
 }
 
-export function getNotebookSummary(
+export function getMarkdownSummary(
   markdown: string,
   width: number,
-  height: number
+  height: number,
+  charWidth?: number
 ) {
-  const approxCharWidth = 8;
+  const approxCharWidth = charWidth ?? 8;
   const approxLineHeight = 20;
-
   const charsPerLine = Math.floor(width / approxCharWidth);
   const maxLines = Math.floor(height / approxLineHeight);
   const maxChars = charsPerLine * maxLines;
