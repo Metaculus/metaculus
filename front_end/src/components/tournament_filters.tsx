@@ -16,6 +16,7 @@ import {
 } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import {
+  POST_FOLLOWING_FILTER,
   POST_FORECASTER_ID_FILTER,
   POST_NOT_FORECASTER_ID_FILTER,
   POST_STATUS_FILTER,
@@ -23,7 +24,6 @@ import {
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
-import { Category, Tag } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 
@@ -143,6 +143,12 @@ function getTournamentPostsFilters({
           label: t("notPredicted"),
           value: user.id.toString(),
           active: !!params.get(POST_NOT_FORECASTER_ID_FILTER),
+        },
+        {
+          id: POST_FOLLOWING_FILTER,
+          label: t("followed"),
+          value: QuestionOrder.Following,
+          active: !!params.get(POST_FOLLOWING_FILTER),
         },
       ],
     });

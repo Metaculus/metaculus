@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useRef, useState } from "react";
 
 import communityPlaceholder from "@/app/assets/images/tournament.webp";
+import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { useNavigation } from "@/contexts/navigation_context";
 import { ProjectPermissions } from "@/types/post";
@@ -86,9 +87,13 @@ const CommunityInfo: FC<Props> = ({ community }) => {
       </div>
 
       {community.description && (
-        <p className="my-5 line-clamp-3 max-h-[60px] text-sm text-blue-900/60 dark:text-blue-900-dark/60 xs:line-clamp-2 xs:max-h-10">
-          {community.description}
-        </p>
+        <div className="mb-5 text-sm text-blue-900/60 dark:text-blue-900-dark/60">
+          <MarkdownEditor
+            mode="read"
+            markdown={community.description}
+            withUgcLinks
+          />
+        </div>
       )}
 
       <div

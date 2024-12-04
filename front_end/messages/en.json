@@ -644,6 +644,7 @@
   "childResolutionCriteria": "Child Resolution Criteria",
   "loadMoreComments": "Load more comments",
   "followers": "Followers",
+  "followed": "Followed",
   "followButton": "Follow",
   "followingButton": "Following",
   "unfollowButton": "Unfollow",
