@@ -50,6 +50,7 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
               mode="read"
               markdown={getNotebookSummary(community.description, width, 44, 7)}
               contentEditableClassName="community font-serif *:m-0"
+              withUgcLinks
             />
           )}
         </div>

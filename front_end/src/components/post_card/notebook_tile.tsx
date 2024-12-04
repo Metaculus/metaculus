@@ -22,6 +22,7 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
           mode="read"
           markdown={getNotebookSummary(notebook.markdown, width, 80)}
           contentEditableClassName="!m-0 *:m-0 line-clamp-2 !text-sm !text-gray-800 !dark:text-gray-800-dark"
+          withUgcLinks
         />
       )}
       {notebook.image_url && notebook.image_url.startsWith("https:") ? (

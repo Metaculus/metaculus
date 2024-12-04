@@ -53,6 +53,7 @@ const NewsCard: FC<Props> = ({ post }) => {
                 mode="read"
                 markdown={getNotebookSummary(post.notebook.markdown, width, 48)}
                 contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                withUgcLinks
               />
             )}
           </div>
