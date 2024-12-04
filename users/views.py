@@ -162,19 +162,27 @@ def get_calibration_curve_data(
         user is not None and aggregation_method is not None
     ):
         raise ValueError("Either user or aggregation_method must be provided only")
-    public_questions = Question.objects.filter_public()
+
+    five_years_ago = timezone.now() - timedelta(days=365 * 5)
+    public_questions_in_past = Question.objects.filter_public().filter(
+        actual_resolve_time__gte=five_years_ago,
+    )
+
     if user is not None:
         forecasts = Forecast.objects.filter(
-            question__in=public_questions,
+            question__in=public_questions_in_past,
             question__type="binary",
             question__resolution__in=["no", "yes"],
+            question__scheduled_resolve_time__lt=timezone.now(),
             author=user,
         ).prefetch_related("question")
     else:
         forecasts = AggregateForecast.objects.filter(
-            question__in=public_questions,
+            question__in=public_questions_in_past,
             question__type="binary",
             question__resolution__in=["no", "yes"],
+            question__scheduled_resolve_time__lt=timezone.now(), # Removes questions that have resolved before close time, which have a bias toward 'yes' resolutions
+            question__include_bots_in_aggregates=False,
             method=aggregation_method,
         ).prefetch_related("question")
 
@@ -211,11 +219,11 @@ def get_calibration_curve_data(
         resolutions.append(int(question.resolution == "yes"))
 
     calibration_curve = []
-    v = 0.125 / 3
+    small_bin_size = 0.125 / 3
     for p_min, p_max in [
-        (0 * v, 1 * v),
-        (1 * v, 2 * v),
-        (2 * v, 3 * v),
+        (0 * small_bin_size, 1 * small_bin_size),
+        (1 * small_bin_size, 2 * small_bin_size),
+        (2 * small_bin_size, 3 * small_bin_size),
         (0.125, 0.175),
         (0.175, 0.225),
         (0.225, 0.275),
@@ -231,30 +239,34 @@ def get_calibration_curve_data(
         (0.725, 0.775),
         (0.775, 0.825),
         (0.825, 0.875),
-        (0.875 + 0 * v, 0.875 + 1 * v),
-        (0.875 + 1 * v, 0.875 + 2 * v),
-        (0.875 + 2 * v, 1.00),
+        (0.875 + 0 * small_bin_size, 0.875 + 1 * small_bin_size),
+        (0.875 + 1 * small_bin_size, 0.875 + 2 * small_bin_size),
+        (0.875 + 2 * small_bin_size, 1.00),
     ]:
-        res = []
-        ws = []
+        resolutions_for_bucket = []
+        weights_for_bucket = []
         bin_center = (p_min + p_max) / 2
         for value, weight, resolution in zip(values, weights, resolutions):
             if p_min <= value < p_max:
-                res.append(resolution)
-                ws.append(weight)
-        count = max(len(res), 1)
-        middle_quartile = np.average(res, weights=ws) if sum(ws) > 0 else None
-        lower_quartile = binom.ppf(0.05, count, p_min) / count
+                resolutions_for_bucket.append(resolution)
+                weights_for_bucket.append(weight)
+        count = max(len(resolutions_for_bucket), 1)
+        average_resolution = (
+            np.average(resolutions_for_bucket, weights=weights_for_bucket)
+            if sum(weights_for_bucket) > 0
+            else None
+        )
+        lower_confidence_interval = binom.ppf(0.05, count, p_min) / count
         perfect_calibration = binom.ppf(0.50, count, bin_center) / count
-        upper_quartile = binom.ppf(0.95, count, p_max) / count
+        upper_confidence_interval = binom.ppf(0.95, count, p_max) / count
 
         calibration_curve.append(
             {
                 "bin_lower": p_min,
                 "bin_upper": p_max,
-                "lower_quartile": lower_quartile,
-                "middle_quartile": middle_quartile,
-                "upper_quartile": upper_quartile,
+                "lower_confidence_interval": lower_confidence_interval,
+                "average_resolution": average_resolution,
+                "upper_confidence_interval": upper_confidence_interval,
                 "perfect_calibration": perfect_calibration,
             }
         )
