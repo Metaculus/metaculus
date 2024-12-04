@@ -13,13 +13,13 @@
 
                 <mj-text>
                     {% blocktrans with author_id=params.author_id author_username=params.author_username mention_label=params.mention_label %}
-                    {{author_username}} mentioned {{mention}} on&nbsp;
+                    {{author_username}} mentioned {{mention}} on
                     {% endblocktrans %}
                     <a href="{{params.comment_url}}">
                         {{ params.post.post_title }}
                     </a>:
-                    <div>
-                        > {{ comment.preview_text | safe }}
+                    <div style="padding: 15px 0">
+                        > {{ params.preview_text | safe }}
                     </div>
                 </mj-text>
 

@@ -702,6 +702,5 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
                 ),
             },
         },
-        use_async=False,
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+        use_async=False
     )
