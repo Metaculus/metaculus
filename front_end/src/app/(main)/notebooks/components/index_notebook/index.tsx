@@ -4,7 +4,6 @@ import React, { FC } from "react";
 
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import CommentFeed from "@/components/comment_feed";
-import CPWeeklyMovement from "@/components/cp_weekly_movement";
 import { SharePostMenu } from "@/components/post_actions";
 import PostsApi from "@/services/posts";
 import {
@@ -18,6 +17,7 @@ import { scaleInternalLocation } from "@/utils/charts";
 import IndexQuestionsTable from "./index_questions_table";
 
 import "./styles.css";
+import WeeklyMovement from "@/components/weekly_movement";
 
 type Props = {
   postData: PostWithForecasts;
@@ -74,7 +74,14 @@ const IndexNotebook: FC<Props> = async ({
                   bold: (chunks) => <b>{chunks}</b>,
                 })}
               </p>
-              <CPWeeklyMovement indexMovement={indexWeeklyMovement} />
+              <WeeklyMovement
+                weeklyMovement={indexWeeklyMovement}
+                message={t("weeklyMovementChange", {
+                  value: Math.abs(indexWeeklyMovement),
+                })}
+                className="text-base "
+                iconClassName="text-base "
+              />
             </div>
           }
         />
@@ -109,7 +116,7 @@ function calculateIndex(posts: PostWithForecastsAndWeight[]): {
       }
 
       let postValue = 0;
-      let postWeeklyMovement = 0;
+      let postValueWeekAgo = 0;
       const cp = latestAggregation.centers?.at(-1);
       const latestDate = fromUnixTime(latestAggregation.start_time);
       const weekAgoDate = subWeeks(latestDate, 1);
@@ -135,7 +142,7 @@ function calculateIndex(posts: PostWithForecastsAndWeight[]): {
             range_max: 100,
             zero_point: null,
           });
-          postWeeklyMovement = 2 * medianWeekAgo - 1;
+          postValueWeekAgo = 2 * medianWeekAgo - 1;
           break;
         }
         case QuestionType.Numeric: {
@@ -153,14 +160,14 @@ function calculateIndex(posts: PostWithForecastsAndWeight[]): {
           postValue = (2 * median - max - min) / (max - min);
 
           const medianWeekAgo = scaleInternalLocation(weekAgoCP ?? cp, scaling);
-          postWeeklyMovement = (2 * medianWeekAgo - max - min) / (max - min);
+          postValueWeekAgo = (2 * medianWeekAgo - max - min) / (max - min);
           break;
         }
       }
 
       return {
         scoreSum: acc.scoreSum + post.weight * postValue,
-        weeklyScoreSum: acc.weeklyScoreSum + post.weight * postWeeklyMovement,
+        weeklyScoreSum: acc.weeklyScoreSum + post.weight * postValueWeekAgo,
       };
     },
     { scoreSum: 0, weeklyScoreSum: 0 }

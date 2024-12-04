@@ -1,63 +1,38 @@
-import { faCaretUp, faCaretDown } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { fromUnixTime, subWeeks } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
+import WeeklyMovement from "./weekly_movement";
 
-type Props =
-  | {
-      question: QuestionWithForecasts;
-      indexMovement?: never;
-      className?: string;
-    }
-  | { question?: never; indexMovement: number; className?: string };
+type Props = {
+  question: QuestionWithForecasts;
+  className?: string;
+};
 
-const CPWeeklyMovement: FC<Props> = ({
-  question,
-  className,
-  indexMovement,
-}) => {
+const CPWeeklyMovement: FC<Props> = ({ question, className }) => {
   const t = useTranslations();
-  const weeklyMovement = indexMovement ?? getQuestionWeeklyMovement(question);
+  const weeklyMovement = getQuestionWeeklyMovement(question);
   const percantagePoints =
     question?.type === QuestionType.Binary ? ` ${t("percentagePoints")}` : "";
+
   if (!weeklyMovement) {
     return null;
   }
 
-  const isNegative = weeklyMovement < 0;
-
   return (
-    <div className={classNames("flex gap-1", className)}>
-      <span
-        className={classNames(
-          `${indexMovement ? "text-base" : "text-xs"} font-medium leading-4`,
-          isNegative
-            ? "text-salmon-600 dark:text-salmon-600-dark"
-            : "text-olive-700 dark:text-olive-700-dark"
-        )}
-      >
-        <FontAwesomeIcon
-          className={classNames(
-            `${indexMovement ? "text-base" : "text-sm"}`,
-            isNegative
-              ? "text-salmon-600 dark:text-salmon-600-dark"
-              : "text-olive-700 dark:text-olive-700-dark"
-          )}
-          icon={isNegative ? faCaretDown : faCaretUp}
-        />{" "}
-        {t("weeklyMovementChange", {
-          value: `${displayValue(
-            Math.abs(weeklyMovement),
-            question?.type ?? QuestionType.Numeric
-          )}${percantagePoints}`,
-        })}
-      </span>
-    </div>
+    <WeeklyMovement
+      weeklyMovement={weeklyMovement}
+      message={t("weeklyMovementChange", {
+        value: `${displayValue(
+          Math.abs(weeklyMovement),
+          question.type
+        )}${percantagePoints}`,
+      })}
+      className="text-xs"
+      iconClassName="text-sm"
+    />
   );
 };
 
