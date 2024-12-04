@@ -8,9 +8,13 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import communityPlaceholder from "@/app/assets/images/tournament.webp";
+import MarkdownEditor from "@/components/markdown_editor";
+import useContainerSize from "@/hooks/use_container_size";
 import { Community } from "@/types/projects";
+import { getMarkdownSummary } from "@/utils/questions";
 
 import Button from "../ui/button";
+import "./styles.css";
 
 type Props = {
   community: Community;
@@ -19,7 +23,7 @@ type Props = {
 const CommunityFeedCard: FC<Props> = ({ community }) => {
   const t = useTranslations();
   const router = useRouter();
-
+  const { ref, width } = useContainerSize<HTMLDivElement>();
   return (
     <Link
       href={`/c/${community.slug}`}
@@ -37,9 +41,19 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
         </Button>
       </div>
       {community.description && (
-        <p className="m-0 my-2.5 line-clamp-3 max-h-[60px] text-sm text-blue-900/60 dark:text-blue-900-dark/60 xs:line-clamp-2 xs:max-h-10">
-          {community.description}
-        </p>
+        <div
+          ref={ref}
+          className="m-0 my-2.5 line-clamp-3 max-h-[60px] text-sm xs:line-clamp-2 xs:max-h-10"
+        >
+          {!!width && (
+            <MarkdownEditor
+              mode="read"
+              markdown={getMarkdownSummary(community.description, width, 44, 7)}
+              contentEditableClassName="community font-serif *:m-0"
+              withUgcLinks
+            />
+          )}
+        </div>
       )}
 
       <hr className="text mb-4 mt-auto border-blue-400 dark:border-blue-400-dark" />
