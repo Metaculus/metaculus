@@ -181,7 +181,7 @@ def get_calibration_curve_data(
             question__in=public_questions_in_past,
             question__type="binary",
             question__resolution__in=["no", "yes"],
-            question__scheduled_resolve_time__lt=timezone.now(), # Removes questions that have resolved before close time, which have a bias toward 'yes' resolutions
+            question__scheduled_resolve_time__lt=timezone.now(),  # Removes questions that have resolved before close time, which have a bias toward 'yes' resolutions
             question__include_bots_in_aggregates=False,
             method=aggregation_method,
         ).prefetch_related("question")
