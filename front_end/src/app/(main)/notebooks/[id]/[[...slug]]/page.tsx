@@ -32,6 +32,9 @@ import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
 
+import IndexNotebook from "../../components/index_notebook";
+import { NOTEBOOK_INDEXES } from "../../constants/indexes";
+
 type Props = {
   params: { id: number; slug: string[] };
 };
@@ -71,13 +74,37 @@ export default async function IndividualNotebook({ params }: Props) {
   const locale = await getLocale();
   const t = await getTranslations();
   const questionTitle = getQuestionTitle(postData);
+
+  const HeaderElement = isCommunityQuestion ? (
+    <CommunityHeader community={currentCommunity} />
+  ) : (
+    <Header />
+  );
+
+  const slugParam = params.slug[0];
+  const indexNotebook = NOTEBOOK_INDEXES[slugParam];
+  if (!!indexNotebook) {
+    const questionIds = indexNotebook.map((q) => q.questionId);
+    const questionWeightsMap = Object.fromEntries(
+      indexNotebook.map((q) => [q.questionId, q.weight])
+    );
+
+    return (
+      <>
+        {HeaderElement}
+        <IndexNotebook
+          postData={postData}
+          questionTitle={questionTitle}
+          questionIds={questionIds}
+          questionWeightsMap={questionWeightsMap}
+        />
+      </>
+    );
+  }
+
   return (
     <>
-      {isCommunityQuestion ? (
-        <CommunityHeader community={currentCommunity} />
-      ) : (
-        <Header />
-      )}
+      {HeaderElement}
 
       <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
         {postData.notebook.image_url &&
@@ -191,7 +218,6 @@ export default async function IndividualNotebook({ params }: Props) {
             )}
             <CommentFeed
               postData={postData}
-              postPermissions={postData.user_permission}
               id={NOTEBOOK_COMMENTS_TITLE}
               inNotebook={true}
             />

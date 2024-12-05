@@ -1,3 +1,4 @@
+import { KeyFactor } from "@/types/comment";
 import {
   Question,
   QuestionType,
@@ -81,6 +82,7 @@ export enum PostStatus {
   OPEN = "open",
   UPCOMING = "upcoming",
   CLOSED = "closed",
+  PENDING_RESOLUTION = "pending_resolution",
   RESOLVED = "resolved",
   DELETED = "deleted",
 }
@@ -153,6 +155,7 @@ export type Post<QT = Question> = {
   unread_comment_count?: number;
   last_viewed_at?: string;
   is_current_content_translated?: boolean;
+  key_factors?: KeyFactor[];
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {
@@ -160,6 +163,8 @@ export type PostWithNotebook = Omit<Post, "notebook"> & {
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;
+
+export type PostWithForecastsAndWeight = PostWithForecasts & { weight: number };
 
 export enum PostSubscriptionType {
   CP_CHANGE = "cp_change",

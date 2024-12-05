@@ -16,8 +16,8 @@ class ProfileApi {
     return await get<CurrentUser>("/users/me/");
   }
 
-  static async softDeleteUser(id: number): Promise<Response | null> {
-    return post(`/users/${id}/soft-delete/`, {});
+  static async markUserAsSpam(id: number): Promise<Response | null> {
+    return post(`/users/${id}/mark-as-spam/`, {});
   }
 
   static async getProfileById(id: number): Promise<CurrentUser> {
@@ -66,6 +66,18 @@ class ProfileApi {
 
   static async searchUsers(query: string) {
     return await get<PaginatedPayload<UserProfile>>(`/users/?search=${query}`);
+  }
+
+  static async registerUserCampaign(
+    key: string,
+    details: object,
+    add_to_project?: number
+  ) {
+    return post<void>("/users/me/register_campaign/", {
+      key,
+      details,
+      add_to_project,
+    });
   }
 }
 

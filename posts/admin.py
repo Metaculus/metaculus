@@ -41,7 +41,7 @@ class PostAdmin(CustomTranslationAdmin):
         "group_of_questions",
         "coauthors",
     ]
-    search_fields = ["title_original"]
+    search_fields = ["id", "title_original"]
     readonly_fields = ["notebook"]
     actions = ["export_selected_posts_data", "update_translations"]
 

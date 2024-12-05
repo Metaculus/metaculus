@@ -180,14 +180,24 @@ class NotificationTypeBase:
         pass
 
     @classmethod
-    def send(cls, recipient: User, params: ParamsType, mailing_tag: MailingTags = None):
+    def schedule(
+        cls,
+        recipient: User,
+        params: ParamsType,
+        mailing_tag: MailingTags = None,
+        **kwargs,
+    ):
+        """
+        Schedules a notification to be sent using a cron job.
+        """
+
         # Skip notification sending if it was ignored
         if mailing_tag and mailing_tag in recipient.unsubscribed_mailing_tags:
             return
 
             # Create notification object
         notification = Notification.objects.create(
-            type=cls.type, recipient=recipient, params=asdict(params)
+            type=cls.type, recipient=recipient, params=asdict(params), **kwargs
         )
 
         return notification
@@ -643,4 +653,37 @@ def get_notification_handler_by_type(
 ) -> type[NotificationTypeBase]:
     return next(
         cls for cls in NOTIFICATION_TYPE_REGISTRY if cls.type == notification_type
+    )
+
+
+def send_comment_mention_notification(recipient, comment: Comment, mention: str):
+    """
+    Send instant notification of mention in a comment
+    """
+
+    mention_label = "you" if mention == recipient.username.lower() else mention
+    preview_text = generate_email_comment_preview_text(
+        comment.text, mention, max_chars=1024
+    )[0]
+
+    return send_email_with_template(
+        recipient.email,
+        _(
+            f"{comment.author.username} mentioned {mention_label} on “{comment.on_post.title}”"
+        ),
+        "emails/comment_mention.html",
+        context={
+            "recipient": recipient,
+            "params": {
+                "post": NotificationPostParams.from_post(comment.on_post),
+                "author_id": comment.author_id,
+                "author_username": comment.author.username,
+                "mention_label": mention_label,
+                "preview_text": preview_text,
+                "comment_url": build_post_comment_url(
+                    comment.on_post_id, comment.on_post.title, comment.id
+                ),
+            },
+        },
+        use_async=False,
     )

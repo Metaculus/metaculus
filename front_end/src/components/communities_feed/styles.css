@@ -1,0 +1,22 @@
+.community p,
+.community ul,
+.community ol {
+  @apply block text-blue-900/60 dark:text-blue-900-dark/60;
+}
+
+.community a {
+  @apply text-blue-900/60 dark:text-blue-900-dark/60;
+}
+
+.community table .sticky-column {
+  @apply sticky left-0 bg-gray-50 dark:bg-gray-100-dark;
+}
+
+.community table thead td,
+.community table thead th {
+  @apply border-b border-gray-300 pr-2 text-blue-900/60 dark:border-gray-300-dark dark:text-blue-900-dark/60;
+}
+
+.community blockquote {
+  @apply my-4 border-s-4 border-gray-300 bg-gray-100 p-4 text-blue-900/60 dark:border-gray-300-dark dark:bg-gray-200-dark dark:text-blue-900-dark/60;
+}

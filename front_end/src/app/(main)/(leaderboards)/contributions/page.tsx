@@ -1,16 +1,11 @@
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import invariant from "ts-invariant";
 
-import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SearchParams } from "@/types/navigation";
 
-import ContributionsHero from "./components/contributions_hero";
-import GlobalContributions from "./components/global_contributions";
+import { CONTRIBUTIONS_USER_FILTER } from "./search_params";
 import { getContributionParams } from "../contributions/helpers/filters";
-import {
-  getLeaderboardTimeInterval,
-  mapCategoryKeyToLeaderboardType,
-} from "../helpers/filters";
+import { SCORING_CATEGORY_FILTER } from "../search_params";
 
 export default async function Contributions({
   searchParams,
@@ -19,32 +14,14 @@ export default async function Contributions({
 }) {
   const params = getContributionParams(searchParams);
   invariant(params.userId, "User ID is required");
+  const remainingSearchParams = new URLSearchParams(
+    searchParams as Record<string, string>
+  );
+  remainingSearchParams.delete(SCORING_CATEGORY_FILTER);
+  remainingSearchParams.delete(CONTRIBUTIONS_USER_FILTER);
 
-  const timeInterval = getLeaderboardTimeInterval(params.year, params.duration);
-  const leaderboardType =
-    mapCategoryKeyToLeaderboardType(
-      params.category,
-      Number(params.year) + Number(params.duration)
-    ) ?? "baseline_global";
-
-  return (
-    <main className="mx-auto mb-auto w-full max-w-7xl p-3 text-blue-700 dark:text-blue-700-dark">
-      <ContributionsHero
-        year={params.year}
-        category={params.category}
-        duration={params.duration}
-        userId={params.userId}
-      />
-
-      <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
-        <GlobalContributions
-          userId={params.userId}
-          startTime={timeInterval.startTime}
-          endTime={timeInterval.endTime}
-          leaderboardType={leaderboardType}
-          category={params.category}
-        />
-      </Suspense>
-    </main>
+  const queryString = remainingSearchParams.toString();
+  redirect(
+    `/contributions/${params.category}/${params.userId}${queryString ? `?${queryString}` : ""}`
   );
 }

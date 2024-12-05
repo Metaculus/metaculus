@@ -10,7 +10,7 @@ import CommentsApi, {
   EditCommentParams,
   getCommentsParams,
   ToggleCMMCommentParams,
-  VoteCommentParams,
+  VoteParams,
 } from "@/services/comments";
 import PostsApi, { ApprovePostParams, PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
@@ -264,8 +264,12 @@ export async function createComment(commentData: CreateCommentParams) {
   }
 }
 
-export async function voteComment(voteData: VoteCommentParams) {
+export async function voteComment(voteData: VoteParams) {
   return await CommentsApi.voteComment(voteData);
+}
+
+export async function voteKeyFactor(voteData: VoteParams) {
+  return await CommentsApi.voteKeyFactor(voteData);
 }
 
 export async function toggleCMMComment(cmmParam: ToggleCMMCommentParams) {

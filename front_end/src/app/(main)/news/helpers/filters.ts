@@ -1,5 +1,6 @@
 import {
   POST_NEWS_TYPE_FILTER,
+  POST_PAGE_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
@@ -36,6 +37,10 @@ export function generateFiltersFromSearchParams(
 
   if (typeof searchParams[POST_NEWS_TYPE_FILTER] === "string") {
     filters.news_type = searchParams[POST_NEWS_TYPE_FILTER];
+  }
+
+  if (typeof searchParams[POST_PAGE_FILTER] === "string") {
+    filters.page = Number(searchParams[POST_PAGE_FILTER]);
   }
 
   return filters;

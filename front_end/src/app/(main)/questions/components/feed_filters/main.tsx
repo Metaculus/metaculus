@@ -16,7 +16,11 @@ import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
-const MainFeedFilters: FC = () => {
+type Props = {
+  forFeedHome?: boolean;
+};
+
+const MainFeedFilters: FC<Props> = ({ forFeedHome = true }) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
@@ -28,6 +32,7 @@ const MainFeedFilters: FC = () => {
         statuses: [
           PostStatus.OPEN,
           PostStatus.CLOSED,
+          PostStatus.PENDING_RESOLUTION,
           PostStatus.RESOLVED,
           PostStatus.UPCOMING,
         ],
@@ -52,12 +57,20 @@ const MainFeedFilters: FC = () => {
         value: QuestionOrder.WeeklyMovementDesc,
         label: t("movers"),
       },
+      ...(forFeedHome && user
+        ? [
+            {
+              value: QuestionOrder.Following,
+              label: t("followed"),
+            },
+          ]
+        : []),
       {
         value: QuestionOrder.PublishTimeDesc,
         label: t("new"),
       },
     ],
-    [t]
+    [t, forFeedHome]
   );
 
   const sortOptions = useMemo(

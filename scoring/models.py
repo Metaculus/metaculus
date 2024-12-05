@@ -153,6 +153,7 @@ class Leaderboard(TimeStampedModel):
         invalid_statuses = [
             Post.CurationStatus.DELETED,
             Post.CurationStatus.DRAFT,
+            Post.CurationStatus.PENDING,
             Post.CurationStatus.REJECTED,
         ]
 
@@ -201,8 +202,7 @@ class Leaderboard(TimeStampedModel):
             questions = [
                 q
                 for q in questions
-                if q.get_global_leaderboard_dates(global_leaderboard_dates=gl_dates)
-                == window
+                if q.get_global_leaderboard_dates(gl_dates=gl_dates) == window
             ]
 
         return list(questions)

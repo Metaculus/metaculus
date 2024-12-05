@@ -1,9 +1,8 @@
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 import { PostConditional, PostWithForecasts } from "@/types/post";
 import {
-  PredictionInputMessage,
   QuestionType,
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
@@ -17,7 +16,7 @@ type Props = {
   post: PostWithForecasts;
   conditional: PostConditional<QuestionWithForecasts>;
   canPredict: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const ForecastMakerConditional: FC<Props> = ({
@@ -41,6 +40,7 @@ const ForecastMakerConditional: FC<Props> = ({
     : false;
   const conditionClosedOrResolved =
     parentSuccessfullyResolved || parentIsClosed;
+
   return (
     <ForecastMakerContainer
       resolutionCriteria={[

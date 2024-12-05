@@ -59,6 +59,7 @@ const DatetimeUtc: React.FC<DatetimeUtcProps> = ({
       type="datetime-local"
       defaultValue={localValue}
       onChange={handleChange}
+      onBlur={handleChange}
       {...props}
     />
   );
