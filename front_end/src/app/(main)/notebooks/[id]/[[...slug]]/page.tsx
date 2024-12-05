@@ -108,33 +108,25 @@ export default async function IndividualNotebook({ params }: Props) {
 
       <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
         {postData.notebook.image_url &&
-        postData.notebook.image_url.startsWith("https:") ? (
-          <Image
-            src={postData.notebook.image_url}
-            alt=""
-            // fill
-            priority
-            width={1088}
-            height={180}
-            sizes="(max-width: 1200px) 100%, 1088px"
-            className="relative mb-8 h-auto max-h-72 w-full object-cover"
-            quality={100}
-          />
-        ) : (
-          <Image
-            className="mb-8 h-auto max-h-72 w-full object-cover"
-            src={imagePlaceholder}
-            alt=""
-            placeholder={"blur"}
-            quality={100}
-          />
-        )}
+          postData.notebook.image_url.startsWith("https:") && (
+            <Image
+              src={postData.notebook.image_url}
+              alt=""
+              // fill
+              priority
+              width={1088}
+              height={180}
+              sizes="(max-width: 1200px) 100%, 1088px"
+              className="relative mb-8 h-auto max-h-72 w-full object-cover"
+              quality={100}
+            />
+          )}
 
         <PostHeader post={postData} questionTitle={questionTitle} />
 
         <h1
           id={NOTEBOOK_TITLE}
-          className="mb-4 mt-0 font-serif text-3xl leading-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl sm:leading-tight"
+          className="mb-4 mt-2 font-serif text-3xl leading-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl sm:leading-tight lg:mt-3"
         >
           {postData.title}
         </h1>
