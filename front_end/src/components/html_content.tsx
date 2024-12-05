@@ -47,7 +47,11 @@ const HtmlContent: FC<Props> = ({ content, className }) => {
         return null;
       }
 
-      return <SectionToggle title={title}>{contentNodes}</SectionToggle>;
+      return (
+        <div className="my-2.5">
+          <SectionToggle title={title}>{contentNodes}</SectionToggle>
+        </div>
+      );
     }
 
     if (node.attribs?.["ng-show"] === toggleKey.current) {

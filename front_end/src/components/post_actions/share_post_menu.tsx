@@ -1,6 +1,7 @@
 "use client";
 import { faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -17,9 +18,14 @@ import { useBreakpoint } from "@/hooks/tailwind";
 type Props = {
   questionTitle: string;
   questionId?: number;
+  btnClassName?: string;
 };
 
-export const SharePostMenu: FC<Props> = ({ questionTitle, questionId }) => {
+export const SharePostMenu: FC<Props> = ({
+  questionTitle,
+  questionId,
+  btnClassName,
+}) => {
   const isLargeScreen = useBreakpoint("md");
   const t = useTranslations();
   const { updateIsOpen } = useEmbedModalContext();
@@ -72,7 +78,7 @@ export const SharePostMenu: FC<Props> = ({ questionTitle, questionId }) => {
     >
       <Button
         variant="secondary"
-        className="!rounded border-0"
+        className={classNames("!rounded border-0", btnClassName)}
         presentationType="icon"
       >
         <FontAwesomeIcon icon={faShareNodes} className="text-lg" />
