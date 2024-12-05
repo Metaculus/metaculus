@@ -661,23 +661,6 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
     Send instant notification of mention in a comment
     """
 
-    # Step 1: Create a NotificationNewComments instance with is_sent=True.
-    # This is a tmp workaround and ensures the comment mention is marked as processed
-    # and prevents it from being included in the "Post New Comments" notification.
-    # This avoids duplicating a single comment across both "Mention" and "New Comment" notification types.
-    # The deduplication logic is handled in the `notify_new_comments` service.
-    NotificationNewComments.schedule(
-        recipient,
-        NotificationNewComments.ParamsType(
-            post=NotificationPostParams.from_post(comment.on_post),
-            new_comments_count=1,
-            new_comment_ids=[comment.id],
-        ),
-        # Mark as processed
-        email_sent=True,
-    )
-
-    # Step 2: send a real notification
     mention_label = "you" if mention == recipient.username.lower() else mention
     preview_text = generate_email_comment_preview_text(
         comment.text, mention, max_chars=1024
@@ -702,5 +685,5 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
                 ),
             },
         },
-        use_async=False
+        use_async=False,
     )
