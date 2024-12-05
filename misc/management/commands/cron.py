@@ -124,9 +124,7 @@ class Command(BaseCommand):
         #
         scheduler.add_job(
             close_old_connections(job_send_notification_groups.send),
-            trigger=CronTrigger.from_crontab(
-                "0 8,18 * * *"
-            ),  # Every day at 8 AM and 6 PM UTC
+            trigger=CronTrigger.from_crontab("0 0 * * *"),  # Every day at 00:00 UTC
             id="notifications_job_send_notification_groups",
             max_instances=1,
             replace_existing=True,

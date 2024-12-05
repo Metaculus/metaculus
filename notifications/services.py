@@ -289,6 +289,7 @@ class NotificationTypeSimilarPostsMixin:
 class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTypeBase):
     type = "post_new_comments"
     email_template = "emails/post_new_comments.html"
+    comments_to_display = 8
 
     @dataclass
     class ParamsType:
@@ -320,20 +321,15 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
             .only("id", "text", "author__username", "on_post__title")
         )
 
-        post_has_mention = False
         data = []
 
         for comment in comments:
-            preview_text, has_mention = generate_email_comment_preview_text(
+            preview_text, _ = generate_email_comment_preview_text(
                 comment.text, recipient_username
             )
 
-            if has_mention:
-                post_has_mention = True
-
             data.append(
                 {
-                    "has_mention": has_mention,
                     "author_username": comment.author.username,
                     "preview_text": preview_text,
                     "url": build_post_comment_url(
@@ -342,10 +338,7 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
                 }
             )
 
-        # Comments with mention go first
-        data = sorted(data, key=lambda x: x["has_mention"], reverse=True)
-
-        return data, post_has_mention
+        return data
 
     @classmethod
     def _merge_notifications_params(
@@ -373,33 +366,26 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
 
     @classmethod
     def get_email_context_group(cls, notifications: list[Notification]):
-        comments_to_display = 8
         recipient = notifications[0].recipient
         serialized_notifications = []
 
         for post_id, params in cls._merge_notifications_params(notifications).items():
-            preview_comments, has_mention = cls._generate_previews(
+            preview_comments = cls._generate_previews(
                 recipient.username, params["new_comment_ids"]
             )
 
             # Limit total comments
             comments_count = len(preview_comments)
-            read_more_count = comments_count - comments_to_display
+            read_more_count = comments_count - cls.comments_to_display
 
             serialized_notifications.append(
                 {
                     **params,
-                    "comments": preview_comments[:comments_to_display],
-                    "has_mention": has_mention,
+                    "comments": preview_comments[:cls.comments_to_display],
                     "comments_count": comments_count,
                     "read_more_count": read_more_count if read_more_count > 0 else 0,
                 }
             )
-
-        # Comments with mention go first
-        serialized_notifications = sorted(
-            serialized_notifications, key=lambda x: x["has_mention"], reverse=True
-        )
 
         return {
             "recipient": recipient,
