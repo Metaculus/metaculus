@@ -76,7 +76,11 @@ def comments_extract_user_mentions_mapping(
 
 def get_mention_for_user(user: User, unique_mentions: Iterable[str]) -> str:
     """
-    Extracts mention label for given user. Not ideal, but should cover 90% of the cases
+    Extracts the approximate mention label for a given user.
+    This method is triggered when we know the user was mentioned in the comment body,
+    but we don’t have visibility into which mention was used.
+    While not ideal, this function attempts to guess the most likely and relevant mention type
+    that triggered the notification.
     """
 
     username = user.username.lower()
