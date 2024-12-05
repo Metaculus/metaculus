@@ -69,7 +69,7 @@ const CalibrationChart: React.FC<{
           <VictoryScatter
             data={calibrationData.map(
               (d: TrackRecordCalibrationCurveItem, index: number) => {
-                const y = d.middle_quartile;
+                const y = d.average_resolution;
                 return {
                   x: (d.bin_lower + d.bin_upper) / 2,
                   y0: y - 0.01,
@@ -112,8 +112,8 @@ const CalibrationChart: React.FC<{
                 (d: TrackRecordCalibrationCurveItem, index: number) => {
                   return {
                     x: (d.bin_lower + d.bin_upper) / 2,
-                    y0: d.lower_quartile,
-                    y: d.upper_quartile,
+                    y0: d.lower_confidence_interval,
+                    y: d.upper_confidence_interval,
                     binWidth: d.bin_upper - d.bin_lower,
                   };
                 }
@@ -162,14 +162,16 @@ const CalibrationChart: React.FC<{
           </div>
         </div>
       </div>
-      <SectionToggle title="Details" defaultOpen={false}>
-        <span className="pt-3 text-sm text-gray-600 dark:text-gray-400">
-          {t("calibrationCurveInfoMain")}
-          <br />
-          <br />
-          {t("calibrationCurveInfo")}
-        </span>
-      </SectionToggle>
+      <div className="mt-4">
+        <SectionToggle title="Details" defaultOpen={false}>
+          <span className="pt-3 text-sm text-gray-600 dark:text-gray-400">
+            {t("calibrationCurveInfoMain")}
+            <br />
+            <br />
+            {t("calibrationCurveInfo")}
+          </span>
+        </SectionToggle>
+      </div>
     </div>
   );
 };

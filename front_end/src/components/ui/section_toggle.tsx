@@ -10,7 +10,7 @@ import {
 import classNames from "classnames";
 import { FC, PropsWithChildren } from "react";
 
-export type SectionVariant = "primary" | "light";
+export type SectionVariant = "primary" | "light" | "gold";
 
 type Props = {
   title?: string;
@@ -35,26 +35,51 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
           className={classNames("rounded", {
             "bg-blue-200 dark:bg-blue-200-dark": variant === "primary",
             "bg-gray-0 dark:bg-gray-0-dark": variant === "light",
+            "bg-gold-200 dark:bg-gold-200-dark": variant === "gold",
             "bg-opacity-50": !open,
           })}
         >
           <DisclosureButton className="w-full">
             <div
               className={classNames(
-                "flex w-full items-center gap-2.5 p-3 text-base hover:text-blue-700 hover:dark:text-blue-700-dark",
+                "flex w-full items-center gap-2.5 p-3 text-base",
                 className,
                 {
-                  "text-blue-700 dark:text-blue-700-dark": open,
-                  "text-blue-600 dark:text-blue-600-dark": !open,
-                  "xs:px-4": variant === "light",
+                  // Default variant
+                  ...(variant === "primary" && {
+                    "hover:text-blue-700 hover:dark:text-blue-700-dark": true,
+                    "text-blue-700 dark:text-blue-700-dark": open,
+                    "text-blue-600 dark:text-blue-600-dark": !open,
+                  }),
+
+                  // Light variant
+                  ...(variant === "light" && {
+                    "hover:text-blue-700 hover:dark:text-blue-700-dark": true,
+                    "text-blue-700 dark:text-blue-700-dark": open,
+                    "text-blue-600 dark:text-blue-600-dark": !open,
+                    "xs:px-4": true,
+                  }),
+
+                  // Golden variant
+                  ...(variant === "gold" && {
+                    "hover:text-gray-800 hover:dark:text-gray-800-dark": true,
+                    "text-gray-800 dark:text-gray-800-dark": open,
+                    "text-gray-600 dark:text-gray-600-dark": !open,
+                  }),
                 }
               )}
             >
               <FontAwesomeIcon
                 icon={faChevronUp}
                 className={classNames(
-                  "h-4 text-blue-500 duration-75 ease-linear dark:text-blue-500-dark",
-                  open && "rotate-180"
+                  "h-4 duration-75 ease-linear",
+                  open && "rotate-180",
+                  {
+                    "text-blue-500 dark:text-blue-500-dark": [
+                      "primary",
+                      "light",
+                    ].includes(variant),
+                  }
                 )}
               />
               <span>{title}</span>
