@@ -10,7 +10,7 @@
 </mj-raw>
 
 <mj-head>
-  <mj-breakpoint width="480px" />
+  <mj-breakpoint width="440px" />
 
 
   {% comment %}
