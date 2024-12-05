@@ -678,3 +678,10 @@ def download_csv(request, pk: int):
         headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
     )
     return response
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def random_post_id(request):
+    post = Post.objects.filter_permission(user=request.user).order_by("?").first()
+    return Response({"id": post.id, "url_title": post.url_title})

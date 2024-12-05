@@ -8,10 +8,11 @@ import { FC } from "react";
 import NavUserButton from "@/components/auth";
 import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
+import RandomButton from "@/components/random_button";
 import ThemeToggle from "@/components/theme_toggle";
 
-import GlobalSearch from "../global_search";
 import ContentTranslatedBanner from "../content_translated_banner";
+import GlobalSearch from "../global_search";
 import MobileMenu from "../mobile_menu";
 
 const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
@@ -57,6 +58,7 @@ const Header: FC = () => {
 
         {/* Global Search */}
         <GlobalSearch />
+        <RandomButton />
 
         {/*Common items for desktop and mobile*/}
         <ul className="flex flex-auto list-none items-stretch justify-end p-0 text-sm font-medium">
