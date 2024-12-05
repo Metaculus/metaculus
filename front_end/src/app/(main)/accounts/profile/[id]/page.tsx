@@ -64,6 +64,7 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
         <div className="flex flex-col">
           <h1 className="mt-0 inline text-3xl md:text-4xl">
             {profile.username}
+            {profile.is_bot && " 🤖"}
           </h1>
           {isCurrentUser && (
             <span className="inline">

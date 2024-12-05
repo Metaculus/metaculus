@@ -9,7 +9,11 @@ import { FeedType } from "@/constants/posts_feed";
 
 import MyPredictionsFilters from "./my_predictions";
 
-const FeedFilters: FC = () => {
+type Props = {
+  forFeedHome?: boolean;
+};
+
+const FeedFilters: FC<Props> = ({ forFeedHome = true }) => {
   const { currentFeed } = useFeed();
 
   switch (currentFeed) {
@@ -20,7 +24,7 @@ const FeedFilters: FC = () => {
     case FeedType.IN_REVIEW:
       return <InReviewFeed />;
     default:
-      return <MainFeedFilters />;
+      return <MainFeedFilters forFeedHome={forFeedHome} />;
   }
 };
 

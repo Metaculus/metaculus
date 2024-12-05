@@ -1,5 +1,10 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { differenceInMilliseconds, isValid } from "date-fns";
+import {
+  differenceInMilliseconds,
+  fromUnixTime,
+  isValid,
+  subWeeks,
+} from "date-fns";
 import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -16,13 +21,13 @@ import {
   Resolution,
 } from "@/types/post";
 import {
-  QuestionLinearGraphType,
   Question,
+  QuestionLinearGraphType,
   QuestionType,
+  QuestionWithForecasts,
   QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
   Scaling,
-  QuestionWithForecasts,
 } from "@/types/question";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -48,14 +53,14 @@ export function extractPostResolution(post: Post): Resolution | null {
   return null;
 }
 
-export function getNotebookSummary(
+export function getMarkdownSummary(
   markdown: string,
   width: number,
-  height: number
+  height: number,
+  charWidth?: number
 ) {
-  const approxCharWidth = 8;
+  const approxCharWidth = charWidth ?? 8;
   const approxLineHeight = 20;
-
   const charsPerLine = Math.floor(width / approxCharWidth);
   const maxLines = Math.floor(height / approxLineHeight);
   const maxChars = charsPerLine * maxLines;

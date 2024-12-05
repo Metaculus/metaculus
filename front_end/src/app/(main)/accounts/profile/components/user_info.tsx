@@ -7,6 +7,7 @@ import { FC, ReactNode, useEffect, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { Controller, useForm } from "react-hook-form";
 
+import { LogOut } from "@/app/(main)/accounts/actions";
 import {
   updateProfileFormAction,
   UpdateProfileState,
@@ -21,7 +22,6 @@ import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { UserProfile } from "@/types/users";
-import { LogOut } from "@/app/(main)/accounts/actions";
 
 import SocialMediaSection from "./social_media_section";
 

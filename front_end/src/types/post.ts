@@ -82,6 +82,7 @@ export enum PostStatus {
   OPEN = "open",
   UPCOMING = "upcoming",
   CLOSED = "closed",
+  PENDING_RESOLUTION = "pending_resolution",
   RESOLVED = "resolved",
   DELETED = "deleted",
 }
@@ -162,6 +163,8 @@ export type PostWithNotebook = Omit<Post, "notebook"> & {
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;
+
+export type PostWithForecastsAndWeight = PostWithForecasts & { weight: number };
 
 export enum PostSubscriptionType {
   CP_CHANGE = "cp_change",
