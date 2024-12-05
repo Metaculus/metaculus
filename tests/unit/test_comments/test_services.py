@@ -2,15 +2,15 @@ import pytest  # noqa
 
 from comments.services.common import create_comment
 from comments.services.key_factors import key_factor_vote
-from notifications.models import Notification
+from comments.services.notifications import notify_mentioned_users
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.factories import factory_forecast
 from tests.unit.test_questions.conftest import *  # noqa
+from tests.unit.test_questions.factories import factory_forecast
 from tests.unit.test_users.factories import factory_user
 
 
@@ -35,65 +35,64 @@ def test_create_comment__happy_path(post, user1):
     assert snapshot.comments_count == 1
 
 
-def test_create_comment__mentioned_users(
-    post, user1, user2, await_queue, transactional_db
-):
-    assert not Notification.objects.filter(
-        recipient=user1, type="post_new_comments"
-    ).exists()
-
-    comment = create_comment(user=user2, on_post=post, text="Comment to mention @user1")
-
-    await_queue()
-
-    # Check notifications
-    notification = Notification.objects.get(recipient=user1, type="post_new_comments")
-
-    assert notification.params["post"]["post_id"] == post.id
-    assert notification.params["new_comment_ids"] == [comment.id]
-
-
 @pytest.mark.parametrize(
-    "mention,username",
+    "target_username,mention,mention_label",
     [
-        ["@predictors", "user_predictor"],
-        ["@admins", "user_admin"],
-        ["@moderators", "user_curator"],
-        ["@curators", "user_curator"],
+        ["user2", "user2", "you"],
+        ["user_admin", "admins", "admins"],
+        ["user_curator", "curators", "curators"],
+        ["user_curator", "moderators", "moderators"],
+        ["user_forecaster", "predictors", "predictors"],
     ],
 )
-def test_create_comment__mentioned_groups(
-    await_queue, transactional_db, question_binary, mention, username
+def test_notify_mentioned_users(
+    mocker,
+    user1,
+    user2,
+    question_binary,
+    target_username,
+    mention,
+    mention_label,
 ):
     user_admin = factory_user(username="user_admin")
+
     user_curator = factory_user(username="user_curator")
-    user_predictor = factory_user(username="user_predictor")
+    user_forecaster = factory_user(username="user_forecaster")
 
     post = factory_post(
+        author=user1,
+        title_en="Commented Post",
         default_project=factory_project(
-            # Private Projects
             default_permission=ObjectPermission.FORECASTER,
             override_permissions={
-                user_admin.pk: ObjectPermission.ADMIN,
-                user_curator.pk: ObjectPermission.CURATOR,
+                user_admin.id: ObjectPermission.ADMIN,
+                user_curator.id: ObjectPermission.CURATOR,
             },
         ),
-        curation_status=Post.CurationStatus.APPROVED,
         question=question_binary,
     )
+    factory_forecast(author=user_forecaster, question=question_binary)
 
-    # Forecasters
-    factory_forecast(author=user_predictor, question=question_binary)
-    create_comment(
-        user=factory_user(), on_post=post, text=f"Comment to mention {mention}"
+    mock_send_email_with_template = mocker.patch(
+        "notifications.services.send_email_with_template"
     )
 
-    await_queue()
+    notify_mentioned_users(
+        create_comment(user=user1, on_post=post, text=f"@{mention} How **are** you?")
+    )
 
-    assert Notification.objects.count() == 1
-    assert Notification.objects.filter(
-        recipient__username=username, type="post_new_comments"
-    ).exists()
+    mock_send_email_with_template.assert_called_once()
+
+    assert (
+        mock_send_email_with_template.call_args.args[1]
+        == f"user1 mentioned {mention_label} on “Commented Post”"
+    )
+
+    context = mock_send_email_with_template.call_args.kwargs["context"]
+    assert context["recipient"].username == target_username
+    assert context["params"]["mention_label"] == mention_label
+    assert context["params"]["preview_text"] == f"<b>@{mention}</b> How are you?"
+    assert context["params"]["author_id"] == user1.id
 
 
 def test_key_factor_vote(user1, user2):

@@ -239,7 +239,7 @@ def comment_report_api_view(request, pk=int):
         staff = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
 
         for user in staff:
-            NotificationCommentReport.send(
+            NotificationCommentReport.schedule(
                 user,
                 NotificationCommentReport.ParamsType(
                     post=NotificationPostParams.from_post(post),
