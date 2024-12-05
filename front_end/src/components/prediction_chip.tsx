@@ -156,7 +156,10 @@ const PredictionChip: FC<Props> = ({
                 <FontAwesomeIcon icon={faUserGroup} size="xs" />
                 {predictionDisplayValue}
               </Chip>
-              <CPWeeklyMovement question={question} className="my-1" />
+              <CPWeeklyMovement
+                question={question}
+                className="my-1 max-w-[100px]"
+              />
             </>
           )}
           {!!nr_forecasters && (

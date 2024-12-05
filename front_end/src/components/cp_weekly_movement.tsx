@@ -1,9 +1,11 @@
+import classNames from "classnames";
 import { fromUnixTime, subWeeks } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
+
 import WeeklyMovement from "./weekly_movement";
 
 type Props = {
@@ -14,23 +16,23 @@ type Props = {
 const CPWeeklyMovement: FC<Props> = ({ question, className }) => {
   const t = useTranslations();
   const weeklyMovement = getQuestionWeeklyMovement(question);
-  const percantagePoints =
+  const percentagePoints =
     question?.type === QuestionType.Binary ? ` ${t("percentagePoints")}` : "";
 
   if (!weeklyMovement) {
     return null;
   }
 
+  const message = `${displayValue(
+    Math.abs(weeklyMovement),
+    question.type
+  )}${percentagePoints}`.replace("%", "");
+
   return (
     <WeeklyMovement
       weeklyMovement={weeklyMovement}
-      message={t("weeklyMovementChange", {
-        value: `${displayValue(
-          Math.abs(weeklyMovement),
-          question.type
-        )}${percantagePoints}`,
-      })}
-      className="text-xs"
+      message={t("weeklyMovementChange", { value: message })}
+      className={classNames("text-xs", className)}
       iconClassName="text-sm"
     />
   );

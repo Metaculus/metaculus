@@ -5,6 +5,7 @@ import React, { FC } from "react";
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu } from "@/components/post_actions";
+import WeeklyMovement from "@/components/weekly_movement";
 import PostsApi from "@/services/posts";
 import {
   PostWithForecasts,
@@ -17,7 +18,6 @@ import { scaleInternalLocation } from "@/utils/charts";
 import IndexQuestionsTable from "./index_questions_table";
 
 import "./styles.css";
-import WeeklyMovement from "@/components/weekly_movement";
 
 type Props = {
   postData: PostWithForecasts;
