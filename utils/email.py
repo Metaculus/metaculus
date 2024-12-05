@@ -16,6 +16,7 @@ def send_email_with_template(
     template_name: str,
     context: dict = None,
     use_async: bool = True,
+    from_email=None,
 ):
     convert_to_html_content = render_to_string(
         template_name=template_name, context=context
@@ -28,7 +29,7 @@ def send_email_with_template(
     kwargs = dict(
         subject=str(subject),
         message=plain_message,
-        from_email=settings.EMAIL_HOST_USER,
+        from_email=from_email or settings.EMAIL_HOST_USER,
         recipient_list=[to],
         html_message=convert_to_html_content,
     )
