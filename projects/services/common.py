@@ -144,7 +144,7 @@ def notify_project_subscriptions_post_open(post: Post):
 
     # Ensure post is available for users
     for subscription in subscriptions:
-        NotificationPostStatusChange.send(
+        NotificationPostStatusChange.schedule(
             subscription.user,
             NotificationPostStatusChange.ParamsType(
                 post=NotificationPostParams.from_post(post),

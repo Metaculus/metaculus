@@ -107,11 +107,7 @@ const PostsFilters: FC<Props> = ({
     setGlobalSearch("");
   };
 
-  const hasFollowingShortcut = mainSortOptions.find(
-    (o) => o.value === QuestionOrder.Following
-  );
   const order = (params.get(POST_ORDER_BY_FILTER) ??
-    (hasFollowingShortcut ? params.get(POST_FOLLOWING_FILTER) : null) ??
     defaultOrder) as QuestionOrder;
 
   const [popoverFilters, activeFilters] = useMemo(() => {
@@ -137,16 +133,11 @@ const PostsFilters: FC<Props> = ({
     const withNavigation = false;
 
     clearPopupFilters(withNavigation);
-    // clear order filter and apply following only
-    if (order === QuestionOrder.Following) {
+
+    if (order === defaultOrder) {
       deleteParam(POST_ORDER_BY_FILTER, withNavigation);
-      setParam(POST_FOLLOWING_FILTER, QuestionOrder.Following, withNavigation);
     } else {
-      if (order === defaultOrder) {
-        deleteParam(POST_ORDER_BY_FILTER, withNavigation);
-      } else {
-        setParam(POST_ORDER_BY_FILTER, order, withNavigation);
-      }
+      setParam(POST_ORDER_BY_FILTER, order, withNavigation);
     }
 
     if (onOrderChange) onOrderChange(order, setParam);

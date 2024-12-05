@@ -14,10 +14,11 @@ import GlobalModals from "@/components/global_modals";
 import AppThemeProvided from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
+import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import ProfileApi from "@/services/profile";
-import { GlobalSearchProvider } from "@/contexts/global_search_context";
+
 import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
 
 const PostHogPageView = dynamic(
