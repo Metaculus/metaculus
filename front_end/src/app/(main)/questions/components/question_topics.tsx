@@ -17,6 +17,7 @@ import { useContentTranslatedBannerProvider } from "@/app/providers";
 import Button from "@/components/ui/button";
 import {
   FeedType,
+  POST_FOLLOWING_FILTER,
   POST_FORECASTER_ID_FILTER,
   POST_TOPIC_FILTER,
 } from "@/constants/posts_feed";
@@ -41,7 +42,7 @@ type Props = {
 const QuestionTopics: FC<Props> = ({ topics }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const { params, setParam, deleteParam } = useSearchParams();
+  const { params, setParam, deleteParams } = useSearchParams();
 
   const { switchFeed, currentFeed, clearInReview } = useFeed();
   const selectedTopic = params.get(POST_TOPIC_FILTER);
@@ -64,7 +65,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const selectTopic = (topic: Topic) => {
     clearInReview();
     setParam(POST_TOPIC_FILTER, topic.slug);
-    deleteParam(POST_FORECASTER_ID_FILTER);
+    deleteParams([POST_FORECASTER_ID_FILTER, POST_FOLLOWING_FILTER]);
     setIsMobileExpanded(false);
   };
 
@@ -145,6 +146,17 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   switchFeed(FeedType.MY_QUESTIONS_AND_POSTS);
                 }}
                 isActive={currentFeed === FeedType.MY_QUESTIONS_AND_POSTS}
+              />
+              <TopicItem
+                text={t("followingButton")}
+                emoji={"🔎 "}
+                onClick={() => {
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: t("followingButton"),
+                  });
+                  switchFeed(FeedType.FOLLOWING);
+                }}
+                isActive={currentFeed === FeedType.FOLLOWING}
               />
             </>
           )}

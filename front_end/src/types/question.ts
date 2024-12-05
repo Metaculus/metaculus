@@ -28,7 +28,6 @@ export enum QuestionOrder {
   HotAsc = "hotness",
   RankDesc = "-rank",
   CreatedDesc = "-created_at",
-  Following = "true", // used for main feed shortcut and filters popup
 }
 
 export type Scaling = {
