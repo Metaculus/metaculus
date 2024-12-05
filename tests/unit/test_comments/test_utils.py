@@ -1,4 +1,5 @@
 import re
+import pytest
 
 from comments.utils import USERNAME_PATTERN, get_mention_for_user
 from tests.unit.fixtures import *  # noqa
