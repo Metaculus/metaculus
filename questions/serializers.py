@@ -379,6 +379,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
     percentiles = serializers.JSONField(allow_null=True, required=False)
 
     slider_values = serializers.JSONField(allow_null=True, required=False)
+    source = serializers.CharField(allow_null=True, required=False)
 
     class Meta:
         model = Forecast
@@ -389,7 +390,13 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "probability_yes_per_category",
             "percentiles",
             "slider_values",
+            "source",
         )
+
+    def validate_source(self, source):
+        if source not in [None, Forecast.SourceChoices.UI, Forecast.SourceChoices.API]:
+            raise serializers.ValidationError("Invalid source")
+        return source
 
     def binary_validation(self, probability_yes):
         if probability_yes is None:
