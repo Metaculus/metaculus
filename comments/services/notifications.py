@@ -1,11 +1,11 @@
 from comments.models import Comment
 from notifications.constants import MailingTags
-from notifications.services import NotificationNewComments, NotificationPostParams
-from ..utils import comment_extract_user_mentions
+from notifications.services import send_comment_mention_notification
+from ..utils import comment_extract_user_mentions, get_mention_for_user
 
 
 def notify_mentioned_users(comment: Comment):
-    users, _ = comment_extract_user_mentions(comment)
+    users, unique_mentions = comment_extract_user_mentions(comment)
 
     users = (
         users.exclude(pk=comment.author_id)
@@ -14,11 +14,5 @@ def notify_mentioned_users(comment: Comment):
     )
 
     for user in users:
-        NotificationNewComments.send(
-            user,
-            NotificationNewComments.ParamsType(
-                post=NotificationPostParams.from_post(comment.on_post),
-                new_comments_count=1,
-                new_comment_ids=[comment.id],
-            ),
-        )
+        mention = get_mention_for_user(user, unique_mentions)
+        send_comment_mention_notification(user, comment, mention)

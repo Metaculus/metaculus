@@ -147,7 +147,7 @@ function getTournamentPostsFilters({
         {
           id: POST_FOLLOWING_FILTER,
           label: t("followed"),
-          value: QuestionOrder.Following,
+          value: "true",
           active: !!params.get(POST_FOLLOWING_FILTER),
         },
       ],

@@ -44,9 +44,7 @@ const ProjectLeaderboard: FC<Props> = async ({
   return (
     <SectionToggle
       title={leaderboardTitle}
-      className={classNames({
-        "bg-gold-200 dark:bg-gold-200-dark": !isQuestionSeries,
-      })}
+      variant={isQuestionSeries ? "primary" : "gold"}
     >
       <ProjectLeaderboardTable
         leaderboardDetails={leaderboardDetails}

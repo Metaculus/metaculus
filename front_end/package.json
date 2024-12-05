@@ -29,6 +29,7 @@
     "@next/third-parties": "^14.2.15",
     "@sentry/nextjs": "^8.33.1",
     "@tailwindcss/container-queries": "^0.1.1",
+    "@tanstack/react-table": "^8.20.5",
     "@types/d3": "^7.4.3",
     "@types/lodash": "^4.17.7",
     "@types/negotiator": "^0.6.3",
