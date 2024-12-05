@@ -30,6 +30,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
           PostStatus.PENDING,
           PostStatus.UPCOMING,
           PostStatus.APPROVED,
+          PostStatus.OPEN,
           PostStatus.CLOSED,
           PostStatus.PENDING_RESOLUTION,
           PostStatus.RESOLVED,
