@@ -44,7 +44,7 @@ const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
         hideCP={hideCP}
         isClosed={isClosed}
       />
-      {hideCP && <RevealCPButton />}
+      {hideCP && <RevealCPButton className="mb-3" />}
     </>
   );
 };

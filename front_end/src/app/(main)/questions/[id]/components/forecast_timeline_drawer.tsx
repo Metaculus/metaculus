@@ -65,7 +65,7 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
         preselectedQuestionId={preselectedQuestionId}
         hideCP={hideCP}
       />
-      {hideCP && <RevealCPButton />}
+      {hideCP && <RevealCPButton className="mb-3" />}
     </>
   );
 };
