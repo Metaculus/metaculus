@@ -247,7 +247,7 @@ def notify_post_cp_change(post: Post):
             )
 
         if max_sorting_diff and max_sorting_diff >= subscription.cp_change_threshold:
-            NotificationPostCPChange.send(
+            NotificationPostCPChange.schedule(
                 subscription.user,
                 NotificationPostCPChange.ParamsType(
                     post=NotificationPostParams.from_post(post),
@@ -308,7 +308,7 @@ def notify_new_comments(post: Post):
     for subscription in subscriptions:
         user = subscription.user
 
-        NotificationNewComments.send(
+        NotificationNewComments.schedule(
             user,
             NotificationNewComments.ParamsType(
                 post=NotificationPostParams.from_post(post),
@@ -362,7 +362,7 @@ def notify_milestone(post: Post):
     ).select_related("user")
 
     for subscription in subscriptions:
-        NotificationPostMilestone.send(
+        NotificationPostMilestone.schedule(
             subscription.user,
             NotificationPostMilestone.ParamsType(
                 post=NotificationPostParams.from_post(post),
@@ -388,7 +388,7 @@ def notify_post_status_change(post: Post, event: Post.PostStatusChange):
     ).select_related("user")
 
     for subscription in subscriptions:
-        NotificationPostStatusChange.send(
+        NotificationPostStatusChange.schedule(
             subscription.user,
             NotificationPostStatusChange.ParamsType(
                 post=NotificationPostParams.from_post(post), event=event
@@ -422,7 +422,7 @@ def notify_date():
     )
 
     for subscription in subscriptions:
-        NotificationPostSpecificTime.send(
+        NotificationPostSpecificTime.schedule(
             subscription.user,
             NotificationPostSpecificTime.ParamsType(
                 post=NotificationPostParams.from_post(subscription.post)

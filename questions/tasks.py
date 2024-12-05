@@ -131,4 +131,4 @@ def resolve_question_and_send_notifications(question_id: int):
 
     # Sending notifications
     for user, params in user_notification_params.items():
-        NotificationPredictedQuestionResolved.send(user, params)
+        NotificationPredictedQuestionResolved.schedule(user, params)
