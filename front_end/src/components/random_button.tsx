@@ -6,6 +6,9 @@ import { FC, useState } from "react";
 import { fetchRandomPostId } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 
+import { Die } from "./icons/die";
+import "./icons/die.css";
+
 const RandomButton: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -27,27 +30,10 @@ const RandomButton: FC = () => {
       onClick={handleRandomClick}
       disabled={isLoading}
       aria-label="Random Question"
-      style={{
-        width: "50px",
-        height: "50px",
-        background: "transparent",
-        border: "0px solid #000",
-        borderRadius: "0px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: "20px",
-        transition: "transform 0.3s ease",
-        cursor: "pointer",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "rotate(360deg)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "rotate(0deg)";
-      }}
+      style={{ background: "transparent" }}
+      className={"dieButton"}
     >
-      {"🎲"}
+      <Die className="die" />
     </Button>
   );
 };
