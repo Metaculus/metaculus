@@ -25,14 +25,14 @@ export default async function TheCurve() {
       statuses: PostStatus.APPROVED,
       tournaments: THECURVE_TOURNAMENT_SLUG,
       forecaster_id: String(user.id),
-      limit: tournament.posts_count,
+      limit: tournament.leaderboard_questions_count,
     };
 
     const response = await PostsApi.getPosts(tournamentFilter);
     predictedQuestions = response.results.length;
   }
   const notPredictedQuestions =
-    tournament.posts_count - (predictedQuestions ?? 0);
+    tournament.leaderboard_questions_count - (predictedQuestions ?? 0);
 
   return (
     <>
@@ -43,7 +43,7 @@ export default async function TheCurve() {
       <main className="flex flex-grow justify-center">
         <CurveIntro
           tournamentSlug={THECURVE_TOURNAMENT_SLUG}
-          questionNumber={tournament.posts_count}
+          questionNumber={tournament.leaderboard_questions_count}
           forecastedNumber={predictedQuestions}
         />
       </main>

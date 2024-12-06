@@ -114,8 +114,8 @@ def tournaments_list_api_view(request: Request):
             show_on_homepage=show_on_homepage,
         )
         .filter_tournament()
-        .annotate_posts_count()
-        .order_by("-posts_count")
+        .annotate_leaderboard_questions_count()
+        .order_by("-leaderboard_questions_count")
         .defer("description")
         .prefetch_related("primary_leaderboard")
     )
@@ -124,7 +124,9 @@ def tournaments_list_api_view(request: Request):
 
     for obj in qs.all():
         serialized_tournament = TournamentShortSerializer(obj).data
-        serialized_tournament["posts_count"] = obj.posts_count
+        serialized_tournament["leaderboard_questions_count"] = (
+            obj.leaderboard_questions_count
+        )
 
         data.append(serialized_tournament)
 
@@ -134,7 +136,11 @@ def tournaments_list_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tournament_by_slug_api_view(request: Request, slug: str):
-    qs = get_projects_qs(user=request.user).filter_tournament().annotate_posts_count()
+    qs = (
+        get_projects_qs(user=request.user)
+        .filter_tournament()
+        .annotate_leaderboard_questions_count()
+    )
 
     try:
         pk = int(slug)
@@ -143,7 +149,7 @@ def tournament_by_slug_api_view(request: Request, slug: str):
         obj = get_object_or_404(qs, slug=slug)
 
     data = TournamentSerializer(obj).data
-    data["posts_count"] = obj.posts_count
+    data["leaderboard_questions_count"] = obj.leaderboard_questions_count
 
     if request.user.is_authenticated:
         data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
