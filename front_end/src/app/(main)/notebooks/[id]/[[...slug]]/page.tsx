@@ -16,9 +16,9 @@ import {
   NOTEBOOK_TITLE,
 } from "@/app/(main)/notebooks/constants/page_sections";
 import PostHeader from "@/app/(main)/questions/[id]/components/post_header";
-import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
+import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import CircleDivider from "@/components/ui/circle_divider";
 import { defaultDescription } from "@/constants/metadata";
 import {
@@ -27,7 +27,7 @@ import {
 } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
-import { PostWithNotebook } from "@/types/post";
+import { PostStatus, PostWithNotebook } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
@@ -160,6 +160,16 @@ export default async function IndividualNotebook({ params }: Props) {
             </span>
           </div>
           <div className="flex items-center gap-1">
+            {postData.curation_status == PostStatus.APPROVED && (
+              <>
+                <div className="mr-3 hidden lg:block">
+                  <PostSubscribeButton post={postData} />
+                </div>
+                <div className="lg:hidden">
+                  <PostSubscribeButton post={postData} mini />
+                </div>
+              </>
+            )}
             <SharePostMenu questionTitle={questionTitle} />
             <PostDropdownMenu post={postData} />
           </div>
