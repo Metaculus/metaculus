@@ -296,6 +296,19 @@ class Forecast(models.Model):
         related_name="forecasts",
     )
 
+    class SourceChoices(models.TextChoices):
+        API = "api"
+        UI = "ui"
+
+    # logging the source of the forecast for data purposes
+    source = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        choices=SourceChoices.choices,
+        default="",
+    )
+
     slider_values = models.JSONField(null=True)
 
     class Meta:

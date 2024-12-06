@@ -19,6 +19,7 @@ class QuestionsApi {
         probability_yes: forecastData.probabilityYes,
         probability_yes_per_category: forecastData.probabilityYesPerCategory,
         slider_values: sliderValues,
+        source: "ui",
       }))
     );
   }

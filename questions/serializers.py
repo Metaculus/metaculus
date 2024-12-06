@@ -379,6 +379,12 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
     percentiles = serializers.JSONField(allow_null=True, required=False)
 
     slider_values = serializers.JSONField(allow_null=True, required=False)
+    source = serializers.CharField(
+        allow_null=True,
+        required=False,
+        allow_blank=True,
+        choices=Forecast.SourceChoices.choices,
+    )
 
     class Meta:
         model = Forecast
@@ -389,6 +395,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "probability_yes_per_category",
             "percentiles",
             "slider_values",
+            "source",
         )
 
     def binary_validation(self, probability_yes):
