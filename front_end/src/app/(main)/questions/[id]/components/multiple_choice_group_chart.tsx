@@ -130,10 +130,14 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       choiceItems
         .filter(({ active }) => active)
         .map(
-          (
-            { choice, values, color, timestamps: optionTimestamps, closeTime },
-            index
-          ) => {
+          ({
+            id,
+            choice,
+            values,
+            color,
+            timestamps: optionTimestamps,
+            closeTime,
+          }) => {
             return {
               choiceLabel: choice,
               color,
@@ -144,7 +148,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
                     values,
                     cursorTimestamp,
                     closeTime,
-                    question: questions[index],
+                    question: questions.find((q) => q.id === id),
                   }),
             };
           }
@@ -247,7 +251,7 @@ function getQuestionTooltipLabel({
   timestamps: number[];
   values: number[];
   cursorTimestamp: number;
-  question: Question;
+  question?: Question;
   isUserPrediction?: boolean;
   closeTime?: number | undefined;
 }) {
@@ -255,7 +259,7 @@ function getQuestionTooltipLabel({
     ? cursorTimestamp >= Math.min(...timestamps)
     : cursorTimestamp >= Math.min(...timestamps) &&
       cursorTimestamp <= Math.max(...timestamps, closeTime ?? 0);
-  if (!hasValue) {
+  if (!hasValue || !question) {
     return "?";
   }
 
