@@ -32,7 +32,6 @@ const useFeed = () => {
     if (selectedTopic) return null;
     if (guessedById) return FeedType.MY_PREDICTIONS;
     if (following) return FeedType.FOLLOWING;
-    if (postStatus === PostStatus.PENDING) return FeedType.IN_REVIEW;
 
     if (
       user &&
@@ -86,9 +85,6 @@ const useFeed = () => {
         setParam(POST_FOR_MAIN_FEED, "false");
         deleteParam(POST_STATUS_FILTER);
         user && setParam(POST_USERNAMES_FILTER, user.username.toString());
-      }
-      if (feedType === FeedType.IN_REVIEW) {
-        user && setParam(POST_STATUS_FILTER, PostStatus.PENDING);
       }
       if (feedType === FeedType.COMMUNITIES) {
         setParam(POST_COMMUNITIES_FILTER, "true");
