@@ -4,6 +4,7 @@ import { ThemeColor } from "@/types/theme";
 import { Scaling } from "./question";
 
 export type ChoiceItem = {
+  id?: number;
   choice: string;
   timestamps?: number[];
   closeTime?: number;

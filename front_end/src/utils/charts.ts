@@ -582,6 +582,7 @@ export function generateChoiceItemsFromGroupQuestions(
     const history = question.aggregations.recency_weighted.history;
     const label = question.label;
     return {
+      id: question.id,
       choice: label,
       values: history.map((forecast) => forecast.centers![0]),
       minValues: history.map(
