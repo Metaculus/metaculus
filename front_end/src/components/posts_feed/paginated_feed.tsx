@@ -1,6 +1,7 @@
 "use client";
 import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, useEffect, useState } from "react";
 
@@ -16,6 +17,7 @@ import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, PostWithNotebook } from "@/types/post";
 import { logError } from "@/utils/errors";
 
+import { SCROLL_CACHE_KEY } from "./constants";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import InReviewBox from "./in_review_box";
@@ -37,7 +39,9 @@ const PaginatedPostsFeed: FC<Props> = ({
   isCommunity,
 }) => {
   const t = useTranslations();
+  const pathname = usePathname();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
+
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
     ? Number(params.get(POST_PAGE_FILTER))
@@ -105,6 +109,17 @@ const PaginatedPostsFeed: FC<Props> = ({
         const error = err as Error & { digest?: string };
         setError(error);
       } finally {
+        const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+        const currentScroll = window.scrollY;
+        if (currentScroll >= 0) {
+          sessionStorage.setItem(
+            SCROLL_CACHE_KEY,
+            JSON.stringify({
+              scrollPathName: fullPathname,
+              scrollPosition: currentScroll.toString(),
+            })
+          );
+        }
         setIsLoading(false);
       }
     }
