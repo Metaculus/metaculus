@@ -1,8 +1,7 @@
-import { usePathname } from "next/navigation";
 import React, { FC, Suspense } from "react";
 
-import PostSubscribeButton from "@/app/(main)/questions/[id]/components/subscribe_button";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
+import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import NewsMatch from "./news_match";

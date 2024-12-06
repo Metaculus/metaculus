@@ -6,6 +6,7 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
+import { getDefaultSubscriptionProps } from "@/components/post_subscribe/subscribe_button/utils";
 import SubscriptionSectionCPChange from "@/components/post_subscribe/subscription_types_customisation/subscription_cp_change";
 import SubscriptionSectionMilestone from "@/components/post_subscribe/subscription_types_customisation/subscription_milestone";
 import SubscriptionSectionNewComments from "@/components/post_subscribe/subscription_types_customisation/subscription_new_comments";
@@ -23,8 +24,6 @@ import {
   PostSubscriptionSpecificTimeConfig,
   PostSubscriptionType,
 } from "@/types/post";
-
-import { getDefaultSubscriptionProps } from "../../app/(main)/questions/[id]/components/subscribe_button/utils";
 
 type Props = {
   isOpen: boolean;
@@ -157,64 +156,73 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   ]);
 
   const subscriptionTypes = useMemo(
-    () => [
-      {
-        type: PostSubscriptionType.CP_CHANGE,
-        title: t("followModalCommunityPredictionChanges"),
-        render: (subscription: PostSubscriptionConfigItem) => (
-          <SubscriptionSectionCPChange
-            post={post}
-            subscription={subscription as PostSubscriptionCPCHange}
-            onChange={(name, value) =>
-              handleSubscriptionChange(subscription.type, name, value)
-            }
-          />
-        ),
-      },
-      {
-        type: PostSubscriptionType.NEW_COMMENTS,
-        title: t("comments"),
-        render: (subscription: PostSubscriptionConfigItem) => (
-          <SubscriptionSectionNewComments
-            post={post}
-            subscription={subscription as PostSubscriptionNewComments}
-            onChange={(name, value) =>
-              handleSubscriptionChange(subscription.type, name, value)
-            }
-          />
-        ),
-      },
-      {
-        type: PostSubscriptionType.MILESTONE,
-        title: t("followModalMilestones"),
-        render: (subscription: PostSubscriptionConfigItem) => (
-          <SubscriptionSectionMilestone
-            post={post}
-            subscription={subscription as PostSubscriptionMilestone}
-            onChange={(name, value) =>
-              handleSubscriptionChange(subscription.type, name, value)
-            }
-          />
-        ),
-      },
-      {
-        type: PostSubscriptionType.SPECIFIC_TIME,
-        title: t("followModalSpecificTime"),
-        render: (subscription: PostSubscriptionConfigItem) => (
-          <SubscriptionSectionSpecificTime
-            post={post}
-            subscription={subscription as PostSubscriptionSpecificTimeConfig}
-            onChange={(name, value, index) => {
-              handleSubscriptionChange(subscription.type, name, value, index);
-            }}
-          />
-        ),
-      },
-      {
-        type: PostSubscriptionType.STATUS_CHANGE,
-        title: t("followModalStatusChanges"),
-      },
-    ],
+    () =>
+      [
+        {
+          type: PostSubscriptionType.CP_CHANGE,
+          title: t("followModalCommunityPredictionChanges"),
+          render: (subscription: PostSubscriptionConfigItem) => (
+            <SubscriptionSectionCPChange
+              post={post}
+              subscription={subscription as PostSubscriptionCPCHange}
+              onChange={(name, value) =>
+                handleSubscriptionChange(subscription.type, name, value)
+              }
+            />
+          ),
+        },
+        {
+          type: PostSubscriptionType.NEW_COMMENTS,
+          title: t("comments"),
+          render: (subscription: PostSubscriptionConfigItem) => (
+            <SubscriptionSectionNewComments
+              post={post}
+              subscription={subscription as PostSubscriptionNewComments}
+              onChange={(name, value) =>
+                handleSubscriptionChange(subscription.type, name, value)
+              }
+            />
+          ),
+        },
+        {
+          type: PostSubscriptionType.MILESTONE,
+          title: t("followModalMilestones"),
+          render: (subscription: PostSubscriptionConfigItem) => (
+            <SubscriptionSectionMilestone
+              post={post}
+              subscription={subscription as PostSubscriptionMilestone}
+              onChange={(name, value) =>
+                handleSubscriptionChange(subscription.type, name, value)
+              }
+            />
+          ),
+        },
+        {
+          type: PostSubscriptionType.SPECIFIC_TIME,
+          title: t("followModalSpecificTime"),
+          render: (subscription: PostSubscriptionConfigItem) => (
+            <SubscriptionSectionSpecificTime
+              post={post}
+              subscription={subscription as PostSubscriptionSpecificTimeConfig}
+              onChange={(name, value, index) => {
+                handleSubscriptionChange(subscription.type, name, value, index);
+              }}
+            />
+          ),
+        },
+        {
+          type: PostSubscriptionType.STATUS_CHANGE,
+          title: t("followModalStatusChanges"),
+        },
+      ].filter((obj) => {
+        // We want to hide some subscription types for Notebook
+        return post.notebook
+          ? [
+              PostSubscriptionType.NEW_COMMENTS,
+              PostSubscriptionType.SPECIFIC_TIME,
+            ].includes(obj.type)
+          : true;
+      }),
     [handleSubscriptionChange, post, t]
   );
 
