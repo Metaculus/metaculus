@@ -81,7 +81,8 @@ export default async function IndividualNotebook({ params }: Props) {
     <Header />
   );
 
-  const slugParam = params.slug[0];
+  // we can pass custom slug for indexes in params
+  const slugParam = params.slug?.[0] ?? postData.slug;
   const indexNotebook = NOTEBOOK_INDEXES[slugParam];
   if (!!indexNotebook) {
     const questionIds = indexNotebook.map((q) => q.questionId);
