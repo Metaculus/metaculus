@@ -7,7 +7,6 @@ import { fetchRandomPostId } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 
 import { Die } from "./icons/die";
-import "./icons/die.css";
 
 const RandomButton: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +30,8 @@ const RandomButton: FC = () => {
       disabled={isLoading}
       aria-label="Random Question"
       style={{ background: "transparent" }}
-      className={"dieButton"}
+      className="flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-none border-0 bg-transparent text-xl transition-transform hover:animate-spin"
+      // className={"dieButton"}
     >
       <Die className="die" />
     </Button>
