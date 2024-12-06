@@ -301,9 +301,10 @@ class Forecast(models.Model):
     # logging the source of the forecast for data purposes
     source = models.CharField(
         max_length=30,
+        blank=True,
         null=True,
         choices=SourceChoices.choices,
-        default=None,
+        default="",
     )
 
     slider_values = models.JSONField(null=True)
