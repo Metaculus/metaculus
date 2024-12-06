@@ -12,7 +12,7 @@ const CommentKeyFactor: FC<Props> = ({ keyFactor: { text } }) => {
   const t = useTranslations();
 
   return (
-    <div className="left-5 top-5 order-none my-2 box-border flex flex-col items-center gap-1.5 rounded border border-blue-500 bg-blue-300 p-3 dark:border-blue-500-dark dark:bg-blue-300-dark md:flex-row md:gap-3">
+    <div className="left-5 top-5 order-none mb-2 box-border flex flex-col items-center gap-1.5 rounded border border-blue-500 bg-blue-300 p-3 dark:border-blue-500-dark dark:bg-blue-300-dark md:flex-row md:gap-3">
       <div className="w-full text-nowrap text-xs uppercase text-gray-500 dark:text-gray-600-dark md:w-fit">
         {t("keyFactor")}
       </div>

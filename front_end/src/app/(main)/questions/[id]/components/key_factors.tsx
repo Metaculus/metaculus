@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
+import { COMMENT_SCROLL_OFFSET } from "@/components/comment_feed/constants";
 import KeyFactorVoter from "@/components/comment_feed/key_factor_voter";
 import Button from "@/components/ui/button";
 import SectionToggle from "@/components/ui/section_toggle";
@@ -56,6 +57,19 @@ const KeyFactorItem: FC<KeyFactorBlockProps> = ({
       {/* Link component does not trigger hash event trigger, so we use <a> instead */}
       <a
         href={`#comment-${comment_id}`}
+        onClick={(e) => {
+          const target = document.getElementById(`comment-${comment_id}`);
+          if (target) {
+            e.preventDefault();
+
+            const y =
+              target.getBoundingClientRect().top +
+              window.scrollY -
+              COMMENT_SCROLL_OFFSET;
+
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }
+        }}
         className="absolute left-0 z-0 h-full w-full"
       ></a>
       <KeyFactorVoter

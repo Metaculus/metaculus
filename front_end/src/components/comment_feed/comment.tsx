@@ -37,6 +37,7 @@ import { logError } from "@/utils/errors";
 import { canPredictQuestion } from "@/utils/questions";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
+import { COMMENT_SCROLL_OFFSET } from "./constants";
 import IncludedForecast from "./included_forecast";
 
 import { SortOption, sortComments } from ".";
@@ -250,14 +251,10 @@ const Comment: FC<CommentProps> = ({
       // the client-side rendering is complete
       const timeoutId = setTimeout(() => {
         if (commentRef.current) {
-          const headerOffset = 48;
-          const extraOffset = 12;
-          const offset = headerOffset + extraOffset;
-
           const targetTop =
             commentRef.current.getBoundingClientRect().top +
             window.scrollY -
-            offset;
+            COMMENT_SCROLL_OFFSET;
           window.scrollTo({ top: targetTop, behavior: "smooth" });
         }
       }, 1000);
