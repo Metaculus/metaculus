@@ -148,7 +148,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
                     values,
                     cursorTimestamp,
                     closeTime,
-                    question: questions.find((q) => q.id === id) as Question,
+                    question: questions.find((q) => q.id === id),
                   }),
             };
           }
@@ -251,7 +251,7 @@ function getQuestionTooltipLabel({
   timestamps: number[];
   values: number[];
   cursorTimestamp: number;
-  question: Question;
+  question?: Question;
   isUserPrediction?: boolean;
   closeTime?: number | undefined;
 }) {
