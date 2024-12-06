@@ -206,6 +206,10 @@ class PostsApi {
 
     return response;
   }
+
+  static async getRandomPostId(): Promise<{ id: number; post_slug: string }> {
+    return await get<{ id: number; post_slug: string }>("/posts/random/");
+  }
 }
 
 export default PostsApi;

@@ -1,14 +1,16 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+
+import { sendGAEvent } from "@next/third-parties/google";
+import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import React, { useState, useEffect, useCallback } from "react";
+
 import SearchInput from "@/components/search_input";
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
-import { encodeQueryParams } from "@/utils/navigation";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
-import { sendGAEvent } from "@next/third-parties/google";
 import useDebounce from "@/hooks/use_debounce";
-import { debounce } from "lodash";
+import { encodeQueryParams } from "@/utils/navigation";
 
 interface GlobalSearchProps {
   className?: string;
