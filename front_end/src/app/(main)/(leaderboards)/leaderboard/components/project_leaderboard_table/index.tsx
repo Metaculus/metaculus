@@ -100,7 +100,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
             variant="tertiary"
             onClick={handleLoadMoreClick}
           >
-            Load More
+            {t("loadMoreButton")}
           </Button>
         </div>
       )}
