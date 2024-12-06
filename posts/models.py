@@ -502,16 +502,21 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             else:
                 self.actual_close_time = max(close_times)
         elif self.conditional:
-            self.actual_close_time = min(
-                filter(
-                    bool,
-                    [
-                        self.conditional.condition.actual_close_time,
-                        self.conditional.condition_child.actual_close_time,
-                    ],
-                ),
-                default=None,
-            )
+            if self.conditional.condition.resolution:
+                self.actual_close_time = min(
+                    filter(
+                        bool,
+                        [
+                            self.conditional.condition.actual_close_time,
+                            self.conditional.condition_child.actual_close_time,
+                        ],
+                    ),
+                    default=None,
+                )
+            else:
+                self.actual_close_time = (
+                    self.conditional.condition_child.actual_close_time
+                )
         else:
             self.actual_close_time = None
 

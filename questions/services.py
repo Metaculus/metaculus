@@ -461,7 +461,11 @@ def unresolve_question(question: Question):
     question.resolution = None
     question.resolution_set_time = None
     question.actual_resolve_time = None
-    question.actual_close_time = None
+    question.actual_close_time = (
+        None
+        if timezone.now() < question.scheduled_close_time
+        else question.scheduled_close_time
+    )
     question.save()
 
     # Check if the question is part of any/all conditionals
