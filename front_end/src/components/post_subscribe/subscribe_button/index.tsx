@@ -4,7 +4,7 @@ import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useState } from "react";
 
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import PostSubscribeCustomizeModal from "@/components/post_subscribe/post_subscribe_customise_modal";
@@ -14,7 +14,10 @@ import { useModal } from "@/contexts/modal_context";
 import { Post, PostSubscription } from "@/types/post";
 
 import PostSubscribeSuccessModal from "./post_subscribe_success_modal";
-import { getInitialSubscriptions } from "./utils";
+import {
+  getInitialNotebookSubscriptions,
+  getInitialQuestionSubscriptions,
+} from "./utils";
 
 type Props = {
   post: Post;
@@ -43,7 +46,9 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
       try {
         const newSubscriptions = await changePostSubscriptions(
           post.id,
-          getInitialSubscriptions()
+          post.notebook
+            ? getInitialNotebookSubscriptions()
+            : getInitialQuestionSubscriptions()
         );
         sendGAEvent("event", "questionFollowed");
         // Click on this button automatically subscribes user to the default notifications
@@ -54,7 +59,7 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
         setIsLoading(false);
       }
     }
-  }, [post.id, setCurrentModal, user]);
+  }, [post.id, post.notebook, setCurrentModal, user]);
 
   return (
     <>
