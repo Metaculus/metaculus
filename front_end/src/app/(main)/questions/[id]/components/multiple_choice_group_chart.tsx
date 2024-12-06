@@ -259,7 +259,7 @@ function getQuestionTooltipLabel({
     ? cursorTimestamp >= Math.min(...timestamps)
     : cursorTimestamp >= Math.min(...timestamps) &&
       cursorTimestamp <= Math.max(...timestamps, closeTime ?? 0);
-  if (!hasValue) {
+  if (!hasValue || !question) {
     return "?";
   }
 
