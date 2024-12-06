@@ -28,10 +28,14 @@ const useSearchInputState = (paramName: string, config?: Config) => {
     return search ? decodeURIComponent(search) : "";
   });
   const debouncedSearch = useDebounce(search, debounceTime);
-  const prevDebouncedSearch = usePrevious(search);
+  const prevDebouncedSearch = usePrevious(debouncedSearch);
 
   useEffect(() => {
-    if (isNil(prevDebouncedSearch) || !modifySearchParams) {
+    if (
+      isNil(prevDebouncedSearch) ||
+      !modifySearchParams ||
+      prevDebouncedSearch === debouncedSearch
+    ) {
       return;
     }
 
