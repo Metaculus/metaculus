@@ -579,8 +579,20 @@ export function generateChoiceItemsFromGroupQuestions(
 
   return choiceOrdering.map((order, index) => {
     const question = questions[order];
-    const history = question.aggregations.recency_weighted.history;
     const label = question.label;
+    const closeTime = Math.min(
+      new Date(question.scheduled_close_time).getTime(),
+      new Date(
+        question.actual_resolve_time ?? question.scheduled_resolve_time
+      ).getTime()
+    );
+    // Filter out CP values after the closeTime
+    const history = question.aggregations.recency_weighted.history.filter(
+      (forecast) => {
+        return forecast.start_time * 1000 < closeTime;
+      }
+    );
+
     return {
       id: question.id,
       choice: label,
@@ -597,12 +609,7 @@ export function generateChoiceItemsFromGroupQuestions(
       ),
       forecastersCount: history.map((forecast) => forecast.forecaster_count),
       timestamps: history.map((forecast) => forecast.start_time),
-      closeTime: Math.min(
-        new Date(question.scheduled_close_time).getTime(),
-        new Date(
-          question.actual_resolve_time ?? question.scheduled_resolve_time
-        ).getTime()
-      ),
+      closeTime,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       active: preselectedQuestionId
         ? preselectedQuestionId === question.id
