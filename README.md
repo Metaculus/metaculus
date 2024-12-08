@@ -170,11 +170,22 @@ This will handle asynchronous tasks such as scoring questions, evaluating metric
 # Misc
 Here are some other useful things to know about
 
-## Mjml
-We use mjml to generate html emails. To edit emails, you'll edit a mjml template and in order to have the html automatically updated, you'll need to run the following command:
-```bash
-poetry run python manage.py mjml_compose
-```
+## MJML Email Templates
+
+We use **MJML** to generate HTML emails. To edit email templates, you'll work with MJML files. Follow these steps to
+ensure the HTML updates automatically after changes:
+
+1. **Install MJML Dependencies**\
+   Use the following command to globally install MJML and related dependencies:
+   ```bash
+   npm install -g mjml mjml-column
+	```
+2. **Compose MJML Templates**\
+   Run the following command to process and update the MJML templates:
+
+   ```bash
+   poetry run python manage.py mjml_compose
+   ```
 
 ## Setup a test database
 If you want to populate your database with some example data, you can load our testing database dump (available as a [release](https://github.com/Metaculus/metaculus/releases/latest) artifact).
@@ -218,6 +229,7 @@ By default, we use the Mailgun provider.
 `.env` Configuration:
 - `MAILGUN_API_KEY`
 - `EMAIL_HOST_USER`
+- `EMAIL_NOTIFICATIONS_USER`
 
 
 # Bug Bounty

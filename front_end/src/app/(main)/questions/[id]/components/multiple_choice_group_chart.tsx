@@ -128,16 +128,14 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       choiceItems
         .filter(({ active }) => active)
         .map(
-          (
-            {
-              choice,
-              aggregationValues,
-              color,
-              aggregationTimestamps: timestamps,
-              closeTime,
-            },
-            index
-          ) => {
+          ({
+            id,
+            choice,
+            aggregationValues,
+            color,
+            aggregationTimestamps: timestamps,
+            closeTime,
+          }) => {
             return {
               choiceLabel: choice,
               color,
@@ -147,13 +145,13 @@ const MultipleChoiceGroupChart: FC<Props> = ({
                     timestamps,
                     values: aggregationValues,
                     cursorTimestamp,
-                    question: questions[index],
                     closeTime,
+                    question: questions.find((q) => q.id === id),
                   }),
             };
           }
         ),
-    [choiceItems, cursorTimestamp, hideCP, questions, timestamps]
+    [choiceItems, cursorTimestamp, hideCP, questions]
   );
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     if (!user) {
@@ -179,7 +177,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
           };
         }
       );
-  }, [choiceItems, cursorTimestamp, questions, timestamps]);
+  }, [choiceItems, cursorTimestamp, questions, user]);
 
   const forecastersCount = useMemo(() => {
     // display cursor based value when viewing a single active option
@@ -251,14 +249,14 @@ function getQuestionTooltipLabel({
   timestamps: number[];
   values: (number | null)[];
   cursorTimestamp: number;
-  question: Question;
+  question?: Question;
   isUserPrediction?: boolean;
   closeTime?: number | undefined;
 }) {
   const hasValue =
     cursorTimestamp >= Math.min(...timestamps) &&
     cursorTimestamp <= Math.max(...timestamps, closeTime ?? 0);
-  if (!hasValue) {
+  if (!hasValue || !question) {
     return "...";
   }
 

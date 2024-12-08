@@ -127,13 +127,20 @@ def get_posts_feed(
             )
         if status == "closed":
             q |= Q(notebook__isnull=True) & (
-                Q(actual_close_time__isnull=False, resolved=False)
-                | Q(scheduled_close_time__lte=timezone.now(), resolved=False)
+                Q(curation_status=Post.CurationStatus.APPROVED)
+                & (
+                    Q(actual_close_time__isnull=False, resolved=False)
+                    | Q(scheduled_close_time__lte=timezone.now(), resolved=False)
+                )
             )
         if status == "pending_resolution":
-            q |= Q(notebook__isnull=True) & Q(
-                resolved=False, scheduled_resolve_time__lte=timezone.now()
+            q |= (
+                Q(notebook__isnull=True)
+                & Q(curation_status=Post.CurationStatus.APPROVED)
+                & Q(resolved=False, scheduled_resolve_time__lte=timezone.now())
             )
+            if order_by in [None, "-" + PostFilterSerializer.Order.HOTNESS]:
+                order_by = "-" + PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME
         if status == "resolved":
             q |= Q(notebook__isnull=True) & Q(
                 resolved=True, curation_status=Post.CurationStatus.APPROVED
@@ -239,8 +246,11 @@ def get_posts_feed(
 
         qs = qs.annotate_divergence(forecaster_id)
     if order_type == PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME:
-        qs = qs.filter(scheduled_resolve_time__isnull=False, resolved=False)
-
+        qs = qs.filter(
+            scheduled_resolve_time__isnull=False,
+            resolved=False,
+            curation_status=Post.CurationStatus.APPROVED,
+        )
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
     return qs.distinct("id", order_type).only("pk")

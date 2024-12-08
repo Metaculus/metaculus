@@ -5,6 +5,8 @@ import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostWithForecasts } from "@/types/post";
 
+import { SCROLL_CACHE_KEY } from "./constants";
+
 type Props = {
   initialQuestions: PostWithForecasts[];
   serverPage: number | null;
@@ -36,12 +38,11 @@ const PostsFeedScrollRestoration: FC<Props> = ({
   }, []);
 
   useEffect(() => {
-    const cacheKey = `feed-scroll-restoration`;
     const saveScrollPosition = () => {
       const currentScroll = window.scrollY;
       if (currentScroll >= 0) {
         sessionStorage.setItem(
-          cacheKey,
+          SCROLL_CACHE_KEY,
           JSON.stringify({
             scrollPathName: fullPathname,
             scrollPosition: currentScroll.toString(),
@@ -50,7 +51,7 @@ const PostsFeedScrollRestoration: FC<Props> = ({
       }
     };
 
-    const savedScrollData = sessionStorage.getItem(cacheKey);
+    const savedScrollData = sessionStorage.getItem(SCROLL_CACHE_KEY);
     const parsedScrollData = savedScrollData ? JSON.parse(savedScrollData) : {};
     const { scrollPathName, scrollPosition } = parsedScrollData;
 
@@ -66,7 +67,7 @@ const PostsFeedScrollRestoration: FC<Props> = ({
         behavior: "smooth",
       });
 
-      sessionStorage.removeItem(cacheKey);
+      sessionStorage.removeItem(SCROLL_CACHE_KEY);
       window.addEventListener("scrollend", saveScrollPosition);
     } else {
       window.addEventListener("scrollend", saveScrollPosition);

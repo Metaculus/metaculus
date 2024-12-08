@@ -771,6 +771,7 @@ export function generateChoiceItemsFromAggregations(
       );
     });
     choiceItems.push({
+      id: question.id,
       choice: aggregationKey,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       highlighted: false,

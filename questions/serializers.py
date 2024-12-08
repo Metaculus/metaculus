@@ -480,7 +480,12 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         question_id = data.get("question")
         if not question_id:
             raise serializers.ValidationError("question is required")
-        question = Question.objects.get(id=question_id)
+        question = Question.objects.filter(id=question_id).first()
+        if not question:
+            raise serializers.ValidationError(
+                f"question with id {question_id} does not exist. "
+                "Check if you are forecasting with the Post Id accidentally instead."
+            )
 
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")
