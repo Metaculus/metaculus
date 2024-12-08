@@ -51,19 +51,19 @@ const ForecastMakerContinuous: FC<Props> = ({
   const { hideCP } = useHideCP();
   const [isDirty, setIsDirty] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
-  const previousForecast =
-    !!question.my_forecasts?.latest &&
-    isNil(question.my_forecasts.latest.end_time)
-      ? question.my_forecasts.latest
+  const previousForecast = question.my_forecasts?.latest;
+  const activeForecast =
+    !!previousForecast && isNil(previousForecast.end_time)
+      ? previousForecast
       : undefined;
-  const prevForecastValue = previousForecast
-    ? extractPrevNumericForecastValue(previousForecast.slider_values)
+  const activeForecastSliderValues = activeForecast
+    ? extractPrevNumericForecastValue(activeForecast.slider_values)
     : {};
   const withCommunityQuartiles = !user || !hideCP;
-  const hasUserForecast = !!prevForecastValue.forecast;
+  const hasUserForecast = !!activeForecastSliderValues.forecast;
   const t = useTranslations();
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
-    prevForecastValue?.forecast ?? [
+    activeForecastSliderValues?.forecast ?? [
       {
         left: 0.4,
         center: 0.5,
@@ -72,7 +72,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     ]
   );
   const [weights, setWeights] = useState<number[]>(
-    prevForecastValue?.weights ?? [1]
+    activeForecastSliderValues?.weights ?? [1]
   );
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(
