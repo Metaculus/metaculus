@@ -72,24 +72,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       ? undefined
       : question.my_forecasts?.latest;
 
-  const choiceOrdering = useMemo(() => {
-    const latest = question.aggregations.recency_weighted.latest;
-    const choiceOrdering: number[] = question.options!.map((_, i) => i);
-    choiceOrdering.sort((a, b) => {
-      const aCenter = latest?.forecast_values[a] ?? 0;
-      const bCenter = latest?.forecast_values[b] ?? 0;
-      return bCenter - aCenter;
-    });
-
-    return choiceOrdering;
-  }, [question.aggregations.recency_weighted.latest, question.options]);
-
   const [isDirty, setIsDirty] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
       question.aggregations.recency_weighted,
-      choiceOrdering,
       activeUserForecast
     )
   );
@@ -114,10 +101,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      choiceOrdering.map((order, index) => {
+      question.options!.map((_, index) => {
         const choiceOption = prev[index];
         const userForecast =
-          question.my_forecasts?.latest?.forecast_values[order] ?? null;
+          question.my_forecasts?.latest?.forecast_values[index] ?? null;
 
         return {
           ...choiceOption,
@@ -127,7 +114,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         };
       })
     );
-  }, [choiceOrdering, question.my_forecasts?.latest?.forecast_values]);
+  }, [question.options, question.my_forecasts?.latest?.forecast_values]);
 
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
@@ -379,26 +366,25 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 function generateChoiceOptions(
   question: Question,
   aggregate: AggregateForecastHistory,
-  choiceOrdering: number[],
   activeUserForecast: UserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
 
-  const choiceItems = choiceOrdering.map((order, index) => {
+  const choiceItems = question.options!.map((option, index) => {
     return {
-      name: question.options![order],
+      name: option,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       communityForecast:
         latest && !latest.end_time
-          ? Math.round(latest.forecast_values[order] * 1000) / 1000
+          ? Math.round(latest.forecast_values[index] * 1000) / 1000
           : null,
       forecast: activeUserForecast
-        ? Math.round(activeUserForecast.forecast_values[order] * 1000) / 10
+        ? Math.round(activeUserForecast.forecast_values[index] * 1000) / 10
         : null,
     };
   });
-  const resolutionIndex = choiceOrdering.findIndex(
-    (order) => question.options![order] === question.resolution
+  const resolutionIndex = question.options!.findIndex(
+    (_, index) => question.options![index] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);

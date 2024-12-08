@@ -904,6 +904,7 @@ export function generateChoiceItemsFromGroupQuestions(
     });
 
     return {
+      id: question.id,
       choice: label,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       highlighted: false,

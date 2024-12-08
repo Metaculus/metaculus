@@ -123,36 +123,34 @@ const MultipleChoiceGroupChart: FC<Props> = ({
 
   const [cursorTimestamp, tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
-  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
-    () =>
-      choiceItems
-        .filter(({ active }) => active)
-        .map(
-          ({
-            id,
-            choice,
-            aggregationValues,
+  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(() => {
+    return choiceItems
+      .filter(({ active }) => active)
+      .map(
+        ({
+          id,
+          choice,
+          aggregationValues,
+          color,
+          aggregationTimestamps: timestamps,
+          closeTime,
+        }) => {
+          return {
+            choiceLabel: choice,
             color,
-            aggregationTimestamps: timestamps,
-            closeTime,
-          }) => {
-            return {
-              choiceLabel: choice,
-              color,
-              valueLabel: hideCP
-                ? "-"
-                : getQuestionTooltipLabel({
-                    timestamps,
-                    values: aggregationValues,
-                    cursorTimestamp,
-                    closeTime,
-                    question: questions.find((q) => q.id === id),
-                  }),
-            };
-          }
-        ),
-    [choiceItems, cursorTimestamp, hideCP, questions]
-  );
+            valueLabel: hideCP
+              ? "-"
+              : getQuestionTooltipLabel({
+                  timestamps,
+                  values: aggregationValues,
+                  cursorTimestamp,
+                  closeTime,
+                  question: questions.find((q) => q.id === id),
+                }),
+          };
+        }
+      );
+  }, [choiceItems, cursorTimestamp, hideCP, questions]);
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     if (!user) {
       return [];
