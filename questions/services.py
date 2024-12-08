@@ -1,9 +1,10 @@
 import logging
 from collections.abc import Iterable
 from datetime import datetime
+from typing import cast
 
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -11,7 +12,6 @@ from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription, Notebook
 from posts.services.subscriptions import create_subscription_cp_change
 from posts.tasks import run_on_post_forecast
-from projects.permissions import ObjectPermission
 from projects.models import Project
 from questions.constants import ResolutionType
 from questions.models import (
@@ -597,14 +597,18 @@ def create_forecast(
     now = timezone.now()
     post = question.get_post()
 
-    prev_forecasts = (
-        Forecast.objects.filter(question=question, author=user)
+    forecast_to_end = (
+        Forecast.objects.filter(
+            Q(end_time__isnull=True) | Q(end_time__gt=now),
+            question=question,
+            author=user,
+        )
         .order_by("start_time")
         .last()
     )
-    if prev_forecasts:
-        prev_forecasts.end_time = now
-        prev_forecasts.save()
+    if forecast_to_end:
+        forecast_to_end.end_time = now
+        forecast_to_end.save()
 
     forecast = Forecast.objects.create(
         question=question,
@@ -620,8 +624,14 @@ def create_forecast(
     )
     forecast.save()
 
+    return forecast
+
+
+def after_forecast_actions(question: Question, user: User):
+    post = question.get_post()
+
     # Update cache
-    PostUserSnapshot.update_last_forecast_date(question.get_post(), user)
+    PostUserSnapshot.update_last_forecast_date(post, user)
     post.update_forecasts_count()
 
     # Auto-subscribe user to CP changes
@@ -642,12 +652,16 @@ def create_forecast(
 
     run_build_question_forecasts.send(question.id)
 
-    return forecast
+    # There may be situations where async jobs from `create_forecast` complete after
+    # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
+    # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
+    #
+    # As a temporary solution, we introduce a 10-second delay before execution
+    # to ensure all forecasts are processed.
+    run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
 def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
-    from posts.services.common import get_post_permission_for_user
-
     posts = set()
 
     for forecast in forecasts:
@@ -655,24 +669,56 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
         post = question.get_post()
         posts.add(post)
 
-        # Check permissions
-        permission = get_post_permission_for_user(post, user=user)
-        ObjectPermission.can_forecast(permission, raise_exception=True)
-
-        if not question.open_time or question.open_time > timezone.now():
-            raise ValidationError("You cannot forecast on this question yet!")
-
         create_forecast(question=question, user=user, **forecast)
+        after_forecast_actions(question, user)
 
-    # Running forecast post triggers
-    for post in posts:
-        # There may be situations where async jobs from `create_forecast` complete after
-        # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
-        # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
-        #
-        # As a temporary solution, we introduce a 10-second delay before execution
-        # to ensure all forecasts are processed.
-        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
+
+def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
+    posts = set()
+
+    for withdrawal in withdrawals:
+        question = cast(Question, withdrawal["question"])
+        post = question.get_post()
+        posts.add(post)
+
+        # Feature Flag: prediction-withdrawal
+        if post.default_project.prize_pool:
+            raise ValidationError(
+                "You cannot withdraw your prediction "
+                "on questions in tournaments with prize pools!"
+            )
+
+        withdraw_at = withdrawal["withdraw_at"]
+
+        # withdraw standing prediction at withdraw_at time, and delete any
+        # forecasts set after that time (this is to future proof from
+        # preregistering forecasts)
+        user_forecasts = question.user_forecasts.filter(
+            Q(end_time__isnull=True) | Q(end_time__gt=withdraw_at),
+            author=user,
+        ).order_by("start_time")
+
+        if not user_forecasts.exists():
+            raise ValidationError(
+                f"User {user.id} has no forecast at {withdraw_at} to "
+                f"withdraw for question {question.id}"
+            )
+
+        forecast_to_terminate = user_forecasts.first()
+        forecast_to_terminate.end_time = withdraw_at
+        forecast_to_terminate.save()
+        forecasts_to_delete = user_forecasts.exclude(pk=forecast_to_terminate.pk)
+        forecasts_to_delete.delete()
+
+        after_forecast_actions(question, user)
+
+        # remove global subscriptions
+        PostSubscription.objects.filter(
+            user=user,
+            post=post,
+            type=PostSubscription.SubscriptionType.CP_CHANGE,
+            is_global=True,
+        ).delete()
 
 
 def get_recency_weighted_for_questions(

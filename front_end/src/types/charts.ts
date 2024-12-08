@@ -17,13 +17,14 @@ export type BaseChartData = {
   yScale: Scale;
 };
 
-export type Line<X = number, Y = number> = Array<{
+export type Line<X = number, Y = number | null> = Array<{
   x: X;
   y: Y;
   y1?: Y;
   y2?: Y;
+  symbol?: string;
 }>;
-export type Area<X = number, Y = number> = Array<{ x: X; y: Y; y0?: Y }>;
+export type Area<X = number, Y = number | null> = Array<{ x: X; y: Y; y0?: Y }>;
 
 export type NumericChartType = "date" | "numeric" | "binary";
 
@@ -45,7 +46,7 @@ export type ContinuousAreaType = "community" | "user" | "user_previous";
 
 export type ContinuousAreaHoverState = {
   x: number;
-  yData: Record<ContinuousAreaType, number>;
+  yData: Record<ContinuousAreaType, number | null>;
 };
 
 export type ContinuousAreaGraphType = "pmf" | "cdf";

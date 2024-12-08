@@ -48,7 +48,7 @@ const ContinuousAggregationChart: FC<Props> = ({
       yUserLabel: null,
       yCommunityLabel:
         graphType === "pmf"
-          ? (hoverState.yData.community * 200).toFixed(3)
+          ? ((hoverState.yData.community ?? 0) * 200).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
   }, [graphType, hoverState, scaling, qType]);

@@ -518,6 +518,11 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         return data
 
 
+class ForecastWithdrawSerializer(serializers.Serializer):
+    question = serializers.IntegerField(required=True)
+    withdraw_at = serializers.DateTimeField(required=False)
+
+
 def serialize_question(
     question: Question,
     with_cp: bool = False,
@@ -620,7 +625,7 @@ def serialize_question(
                         },
                     ).data
                 )
-                if forecasts and not full_forecast_values
+                if forecasts
                 else None
             )
 
@@ -671,6 +676,9 @@ def serialize_question(
                     serialized_data["my_forecasts"]["score_data"][
                         "weighted_coverage"
                     ] = score.coverage
+
+    # Feature Flag: prediction-withdrawal
+    serialized_data["withdraw_permitted"] = not post.default_project.prize_pool
 
     return serialized_data
 

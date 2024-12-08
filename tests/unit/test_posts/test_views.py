@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.utils import timezone
 from django.utils.timezone import make_aware
@@ -16,7 +16,7 @@ from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import create_question
-from tests.unit.test_questions.conftest import * # noqa
+from tests.unit.test_questions.conftest import *  # noqa
 
 
 class TestPostCreate:
@@ -117,18 +117,18 @@ class TestPostCreate:
         question = create_question(
             title_original="Starship Reaches Orbit in 2024?",
             question_type=Question.QuestionType.BINARY,
-            open_time=timezone.make_aware(datetime.datetime(2024, 3, 1)),
-            scheduled_close_time=timezone.make_aware(datetime.datetime(2024, 5, 1)),
-            scheduled_resolve_time=timezone.make_aware(datetime.datetime(2024, 5, 2)),
+            open_time=timezone.make_aware(datetime(2024, 3, 1)),
+            scheduled_close_time=timezone.make_aware(datetime(2024, 5, 1)),
+            scheduled_resolve_time=timezone.make_aware(datetime(2024, 5, 2)),
         )
         factory_post(author=user1, question=question)
 
         question_numeric = create_question(
             title_original="Starship Booster Tower Catch Attempt in 2024?",
             question_type=Question.QuestionType.NUMERIC,
-            open_time=timezone.make_aware(datetime.datetime(2024, 3, 1)),
-            scheduled_close_time=timezone.make_aware(datetime.datetime(2024, 4, 1)),
-            scheduled_resolve_time=timezone.make_aware(datetime.datetime(2024, 4, 2)),
+            open_time=timezone.make_aware(datetime(2024, 3, 1)),
+            scheduled_close_time=timezone.make_aware(datetime(2024, 4, 1)),
+            scheduled_resolve_time=timezone.make_aware(datetime(2024, 4, 2)),
         )
         factory_post(author=user1, question=question_numeric)
 
@@ -247,9 +247,9 @@ def test_posts_list__filters(user1, user1_client):
     factory_post(
         author=user1,
         published_at=make_aware(
-            datetime.datetime(2024, 10, 1),
+            datetime(2024, 10, 1),
         ),
-        scheduled_resolve_time=make_aware(datetime.datetime(2024, 10, 14)),
+        scheduled_resolve_time=make_aware(datetime(2024, 10, 14)),
     )
 
     assert len(user1_client.get(url).data["results"]) == 1
@@ -321,7 +321,7 @@ def test_post_view_event_api_view(user1, user1_client):
     snapshot = PostUserSnapshot.objects.filter(post_id=post.pk).get()
     assert snapshot.user_id == user1.id
     assert snapshot.comments_count == 1
-    assert snapshot.viewed_at == make_aware(datetime.datetime(2024, 6, 1))
+    assert snapshot.viewed_at == make_aware(datetime(2024, 6, 1))
 
     factory_comment(on_post=post)
 
@@ -332,17 +332,17 @@ def test_post_view_event_api_view(user1, user1_client):
     snapshot = PostUserSnapshot.objects.filter(post_id=post.pk).get()
     assert snapshot.user_id == user1.id
     assert snapshot.comments_count == 2
-    assert snapshot.viewed_at == make_aware(datetime.datetime(2024, 6, 2))
+    assert snapshot.viewed_at == make_aware(datetime(2024, 6, 2))
 
 
 @freeze_time("2024-09-17T12:44Z")
 def test_post_subscriptions_update(user1, user1_client):
     post = factory_post(
         author=user1,
-        published_at=make_aware(datetime.datetime(2024, 1, 1)),
-        open_time=make_aware(datetime.datetime(2024, 1, 1)),
-        scheduled_close_time=make_aware(datetime.datetime(2024, 6, 1)),
-        scheduled_resolve_time=make_aware(datetime.datetime(2024, 6, 1)),
+        published_at=make_aware(datetime(2024, 1, 1)),
+        open_time=make_aware(datetime(2024, 1, 1)),
+        scheduled_close_time=make_aware(datetime(2024, 6, 1)),
+        scheduled_resolve_time=make_aware(datetime(2024, 6, 1)),
     )
 
     # Create subscriptions
@@ -485,11 +485,9 @@ def test_approve_post(user1, user1_client, question_binary):
 
     post.refresh_from_db()
 
-    assert post.question.open_time == make_aware(datetime.datetime(2024, 11, 17, 11))
-    assert post.question.cp_reveal_time == make_aware(
-        datetime.datetime(2024, 11, 18, 11)
-    )
-    assert post.open_time == make_aware(datetime.datetime(2024, 11, 17, 11))
+    assert post.question.open_time == make_aware(datetime(2024, 11, 17, 11))
+    assert post.question.cp_reveal_time == make_aware(datetime(2024, 11, 18, 11))
+    assert post.open_time == make_aware(datetime(2024, 11, 17, 11))
 
     # Approve again
     response = user1_client.post(

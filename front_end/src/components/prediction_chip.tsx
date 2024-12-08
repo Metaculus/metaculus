@@ -48,15 +48,14 @@ const PredictionChip: FC<Props> = ({
   );
 
   const renderUserForecast = () => {
-    if (showUserForecast && question.my_forecasts?.history.length) {
-      const timestamp = question.my_forecasts.history.at(-1)?.start_time;
+    const latest = question.my_forecasts?.latest;
 
-      const displayValue = getUserPredictionDisplayValue(
-        question.my_forecasts,
-        timestamp,
-        question.type,
-        question.scaling
-      );
+    if (showUserForecast && latest && !latest.end_time) {
+      const displayValue = getDisplayValue({
+        value: latest.centers ? latest.centers[0] : latest.forecast_values[1],
+        questionType: question.type,
+        scaling: question.scaling,
+      });
 
       return (
         <p className="m-2 text-orange-800 dark:text-orange-800-dark">
@@ -68,6 +67,16 @@ const PredictionChip: FC<Props> = ({
 
     return null;
   };
+
+  const latest = question.aggregations.recency_weighted.latest;
+  const communityPredictionDisplayValue =
+    latest && !latest.end_time
+      ? getDisplayValue({
+          value: latest.centers![0],
+          questionType: question.type,
+          scaling: question.scaling,
+        })
+      : null;
 
   switch (status) {
     case PostStatus.PENDING:
@@ -100,6 +109,25 @@ const PredictionChip: FC<Props> = ({
           >
             {formattedResolution}
           </Chip>
+          {!!communityPredictionDisplayValue && (
+            <Chip
+              size={size}
+              className={classNames(
+                "bg-olive-700 dark:bg-olive-700-dark",
+                chipClassName,
+                "mt-2"
+              )}
+              style={unresovledChipStyle}
+            >
+              <FontAwesomeIcon icon={faUserGroup} size="xs" />
+              {communityPredictionDisplayValue}
+            </Chip>
+          )}
+          {!!nr_forecasters && (
+            <p>
+              {nr_forecasters} {t("forecasters")}
+            </p>
+          )}
           {renderUserForecast()}
           {size !== "compact" && !!nr_forecasters && (
             <p>
@@ -114,19 +142,33 @@ const PredictionChip: FC<Props> = ({
           <Chip
             size={size}
             className={classNames(
-              "bg-olive-700 dark:bg-olive-700-dark",
+              "bg-purple-800 dark:bg-purple-800-dark",
               chipClassName
             )}
             style={unresovledChipStyle}
           >
-            <FontAwesomeIcon icon={faUserGroup} size="xs" />
             {t("Closed")}
           </Chip>
+          {!!communityPredictionDisplayValue && (
+            <Chip
+              size={size}
+              className={classNames(
+                "bg-olive-700 dark:bg-olive-700-dark",
+                chipClassName,
+                "mt-2"
+              )}
+              style={unresovledChipStyle}
+            >
+              <FontAwesomeIcon icon={faUserGroup} size="xs" />
+              {communityPredictionDisplayValue}
+            </Chip>
+          )}
           {!!nr_forecasters && (
             <p>
               {nr_forecasters} {t("forecasters")}
             </p>
           )}
+          {renderUserForecast()}
         </span>
       );
     default: {
@@ -138,12 +180,9 @@ const PredictionChip: FC<Props> = ({
         );
       }
 
-      const predictionDisplayValue = prediction
-        ? getDisplayValue(prediction, question.type, question.scaling)
-        : null;
       return (
         <span className={classNames("inline-flex flex-col", className)}>
-          {!!predictionDisplayValue && (
+          {!!communityPredictionDisplayValue && (
             <>
               <Chip
                 size={size}
@@ -154,7 +193,7 @@ const PredictionChip: FC<Props> = ({
                 style={unresovledChipStyle}
               >
                 <FontAwesomeIcon icon={faUserGroup} size="xs" />
-                {predictionDisplayValue}
+                {communityPredictionDisplayValue}
               </Chip>
               <CPWeeklyMovement
                 question={question}

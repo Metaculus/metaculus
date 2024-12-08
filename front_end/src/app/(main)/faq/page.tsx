@@ -202,6 +202,9 @@ export default function FAQ() {
               </a>
             </li>
             <li>
+              <a href="#howwithdraw">How can I withdraw my prediction?</a>
+            </li>
+            <li>
               <a href="#range-interface">How do I use the range interface?</a>
             </li>
             <li>
@@ -2372,6 +2375,38 @@ export default function FAQ() {
           <p>
             You&apos;re also encouraged to predict early, however, and you are
             awarded bonus points for being among the earliest predictors.
+          </p>
+        </div>
+        <div>
+          <h3
+            id="howwithdraw"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            How can I withdraw my prediction?
+          </h3>
+          <p>
+            If you've made a prediction on a question and it is still open for
+            predicting, you can withdraw your prediction by pressing the
+            "withdraw" button. For group questions, the "withdraw" button is
+            nested in the "..." menu next to the option you wish to withdraw.
+          </p>
+          <p>
+            Withdrawing your prediction ends the current prediction at the time
+            of withdrawal. Your previous prediction stands, but you will no
+            longer be accruing score for that question going forward. For
+            example, if you foreacst right at the question opening and then
+            withdraw your prediction half way through the question's lifetime,
+            then your baseline score will be exactly half of what it would be if
+            you hadn't withdrawn (your peer score might not behave in that exact
+            way since it depends on others' forecasts over time).
+          </p>
+          {/* Feature Flag: prediction-withdrawal */}
+          <p>
+            Note that this is a new feature, and it is temporarily only
+            available on questions that do not contribute to leaderboards with
+            monetary rewards. After data is gathered on its use and the impact
+            on community prediction reliability, it may be rolled out to all
+            questions.
           </p>
         </div>
         <div>

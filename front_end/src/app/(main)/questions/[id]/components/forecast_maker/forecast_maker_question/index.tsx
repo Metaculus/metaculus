@@ -31,6 +31,13 @@ const QuestionForecastMaker: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
+  const activeUserForecast =
+    (question.my_forecasts?.latest?.end_time ||
+      new Date().getTime() / 1000 + 1000) <=
+    new Date().getTime() / 1000
+      ? undefined
+      : question.my_forecasts?.latest;
+
   return (
     <ForecastMakerContainer
       resolutionCriteria={[
@@ -48,7 +55,6 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             permission={permission}
-            prevForecast={question.my_forecasts?.latest?.slider_values}
             canPredict={
               canPredict &&
               question.open_time !== undefined &&
@@ -66,7 +72,7 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             permission={permission}
-            prevForecast={question.my_forecasts?.latest?.forecast_values[1]}
+            prevForecast={activeUserForecast?.forecast_values[1]}
             canPredict={
               canPredict &&
               question.open_time !== undefined &&
