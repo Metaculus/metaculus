@@ -14,6 +14,7 @@ import { QuestionWithMultipleChoiceForecasts } from "@/types/question";
 import {
   findPreviousTimestamp,
   generateChoiceItemsFromMultipleChoiceForecast,
+  getQuestionTimestamps,
 } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
@@ -44,7 +45,6 @@ const MultipleChoiceChartCard: FC<Props> = ({
   isCPRevealed,
 }) => {
   const t = useTranslations();
-  const { user } = useAuth();
 
   const actualCloseTime = question.actual_close_time
     ? new Date(question.actual_close_time).getTime()
@@ -57,84 +57,55 @@ const MultipleChoiceChartCard: FC<Props> = ({
     generateList(question)
   );
 
-  const aggregationTimestampCount =
-    question.aggregations.recency_weighted.history.length;
-  const prevTimestampsCount = usePrevious(aggregationTimestampCount);
-
-  const userTimestamps = useMemo(() => {
-    return (
-      question.my_forecasts?.history.map(({ start_time }) => start_time) ?? []
-    );
-  }, [question.my_forecasts?.history]);
-  const aggregationTimestamps = useMemo(() => {
-    return question.aggregations.recency_weighted.history.map(
-      ({ start_time }) => start_time
-    );
-  }, [question.aggregations.recency_weighted.history]);
-  const latestTimestamp = Math.max(
-    aggregationTimestamps.at(-1) || 0,
-    userTimestamps.at(-1) || 0,
-    ...(actualCloseTime ? [actualCloseTime] : [])
+  const aggregationTimestamps = useMemo(
+    () =>
+      choiceItems[0]?.aggregationTimestamps
+        ? choiceItems[0].aggregationTimestamps
+        : [],
+    [choiceItems]
   );
-  const allTimestamps = uniq([
-    ...aggregationTimestamps,
-    ...userTimestamps,
-    latestTimestamp,
-  ]).sort((a, b) => a - b);
+  const userTimestamps = useMemo(
+    () => choiceItems[0]?.userTimestamps ?? [],
+    [choiceItems]
+  );
 
-  const userTimestampsCount = question.my_forecasts?.history.length;
-  const prevUserTimestampsCount = usePrevious(userTimestampsCount);
-  // sync BE driven data with local state
-  useEffect(() => {
-    if (
-      (prevTimestampsCount &&
-        prevTimestampsCount !== aggregationTimestampCount) ||
-      (userTimestampsCount && userTimestampsCount !== prevUserTimestampsCount)
-    ) {
-      setChoiceItems(generateList(question));
+  const [cursorTimestamp, tooltipDate, handleCursorChange] = useTimestampCursor(
+    aggregationTimestamps
+  );
+
+  const aggregationCursorIndex = useMemo(() => {
+    return aggregationTimestamps.indexOf(
+      findPreviousTimestamp(aggregationTimestamps, cursorTimestamp)
+    );
+  }, [aggregationTimestamps, cursorTimestamp]);
+  const userCursorIndex = useMemo(() => {
+    return userTimestamps.indexOf(
+      findPreviousTimestamp(userTimestamps, cursorTimestamp)
+    );
+  }, [userTimestamps, cursorTimestamp]);
+
+  const forecastersCount = useMemo(() => {
+    const aggregationForecasterCounts =
+      choiceItems[0]?.aggregationForecasterCounts;
+    if (!aggregationForecasterCounts) {
+      return null;
     }
-  }, [
-    prevTimestampsCount,
-    question,
-    aggregationTimestampCount,
-    userTimestampsCount,
-    prevUserTimestampsCount,
-  ]);
+    return aggregationForecasterCounts[aggregationCursorIndex] ?? null;
+  }, [aggregationCursorIndex, choiceItems]);
 
-  const [cursorTimestamp, tooltipDate, handleCursorChange] =
-    useTimestampCursor(allTimestamps);
-
-  const aggregationCursorIndex = useMemo(
-    () =>
-      aggregationTimestamps.indexOf(
-        findPreviousTimestamp(aggregationTimestamps, cursorTimestamp)
-      ),
-    [cursorTimestamp, aggregationTimestamps]
-  );
-  const userCursorIndex = useMemo(
-    () =>
-      userTimestamps.indexOf(
-        findPreviousTimestamp(userTimestamps, cursorTimestamp)
-      ),
-    [cursorTimestamp, userTimestamps]
-  );
-
-  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
-    () =>
-      choiceItems
-        .filter(({ active }) => active)
-        .map(({ choice, aggregationValues, color }) => ({
-          choiceLabel: choice,
-          color,
-          valueLabel: hideCP
-            ? "..."
-            : getForecastPctDisplayValue(
-                aggregationValues[aggregationCursorIndex]
-              ),
-        })),
-    [choiceItems, aggregationCursorIndex, hideCP]
-  );
-
+  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(() => {
+    return choiceItems
+      .filter(({ active }) => active)
+      .map(({ choice, aggregationValues, color }) => ({
+        choiceLabel: choice,
+        color,
+        valueLabel: hideCP
+          ? "..."
+          : getForecastPctDisplayValue(
+              aggregationValues[aggregationCursorIndex]
+            ),
+      }));
+  }, [choiceItems, aggregationCursorIndex, hideCP]);
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     return choiceItems
       .filter(({ active }) => active)
@@ -145,24 +116,13 @@ const MultipleChoiceChartCard: FC<Props> = ({
       }));
   }, [choiceItems, userCursorIndex]);
 
-  const forecastersCount = useMemo(() => {
-    // okay to search for the first item since all items have the same values
-    const aggregationForecasterCounts =
-      choiceItems[0]?.aggregationForecasterCounts;
-    if (!aggregationForecasterCounts) {
-      return null;
-    }
-
-    return aggregationForecasterCounts[aggregationCursorIndex] ?? null;
-  }, [aggregationCursorIndex, choiceItems]);
-
   return (
     <MultiChoicesChartView
       tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
       choiceItems={choiceItems}
       hideCP={hideCP}
-      timestamps={allTimestamps}
+      timestamps={aggregationTimestamps}
       forecastersCount={forecastersCount}
       tooltipDate={tooltipDate}
       onCursorChange={isCPRevealed ? handleCursorChange : undefined}

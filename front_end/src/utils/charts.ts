@@ -30,6 +30,7 @@ import {
   AggregateForecast,
   AggregationQuestion,
   Aggregations,
+  QuestionWithForecasts,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -990,6 +991,17 @@ export function getFanOptionsFromBinaryGroup(
       };
     })
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
+}
+
+export function getQuestionTimestamps(
+  question: QuestionWithForecasts
+): number[] {
+  return uniq([
+    ...question.aggregations.recency_weighted.history.map((x) => x.start_time),
+    ...question.aggregations.recency_weighted.history.map(
+      (x) => x.end_time ?? x.start_time
+    ),
+  ]).sort((a, b) => a - b);
 }
 
 export function getGroupQuestionsTimestamps(

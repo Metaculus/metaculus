@@ -108,19 +108,6 @@ const NumericChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState(defaultZoom);
-  console.log({
-    questionType,
-    actualCloseTime,
-    scaling,
-    height,
-    aggregation,
-    myForecasts,
-    width: chartWidth,
-    zoom,
-    extraTheme,
-    isCPRevealed,
-    openTime,
-  });
   const { line, area, yDomain, xDomain, xScale, yScale, points } = useMemo(
     () =>
       buildChartData({
@@ -150,7 +137,6 @@ const NumericChart: FC<Props> = ({
       openTime,
     ]
   );
-  console.log({ line, area, yDomain, xDomain, xScale, yScale, points });
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
     return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
