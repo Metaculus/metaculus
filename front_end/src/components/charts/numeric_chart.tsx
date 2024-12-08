@@ -108,6 +108,19 @@ const NumericChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState(defaultZoom);
+  console.log({
+    questionType,
+    actualCloseTime,
+    scaling,
+    height,
+    aggregation,
+    myForecasts,
+    width: chartWidth,
+    zoom,
+    extraTheme,
+    isCPRevealed,
+    openTime,
+  });
   const { line, area, yDomain, xDomain, xScale, yScale, points } = useMemo(
     () =>
       buildChartData({
@@ -137,6 +150,7 @@ const NumericChart: FC<Props> = ({
       openTime,
     ]
   );
+  console.log({ line, area, yDomain, xDomain, xScale, yScale, points });
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
     return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
@@ -370,7 +384,17 @@ function buildChartData({
   const area: Area = [];
 
   aggregation.history.forEach((forecast) => {
-    if (line.length && line[line.length - 1].x === forecast.start_time) {
+    if (!line.length) {
+      line.push({
+        x: forecast.start_time,
+        y: forecast.centers?.[0] ?? 0,
+      });
+      area.push({
+        x: forecast.start_time,
+        y0: forecast.interval_lower_bounds?.[0] ?? 0,
+        y: forecast.interval_upper_bounds?.[0] ?? 0,
+      });
+    } else if (line.length && line[line.length - 1].x === forecast.start_time) {
       line[line.length - 1].y = forecast.centers?.[0] ?? 0;
       area[area.length - 1].y0 = forecast.interval_lower_bounds?.[0] ?? 0;
       area[area.length - 1].y = forecast.interval_upper_bounds?.[0] ?? 0;
@@ -396,7 +420,7 @@ function buildChartData({
       });
     }
 
-    if (forecast.end_time) {
+    if (!!forecast.end_time) {
       line.push({
         x: forecast.end_time,
         y: forecast.centers?.[0] ?? 0,
