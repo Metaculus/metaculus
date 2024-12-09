@@ -2,7 +2,7 @@
 
 import { sendGAEvent } from "@next/third-parties/google";
 import { debounce } from "lodash";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { useState, useEffect, useCallback } from "react";
 
@@ -12,7 +12,6 @@ import {
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
-import useDebounce from "@/hooks/use_debounce";
 import { QuestionOrder } from "@/types/question";
 import { encodeQueryParams } from "@/utils/navigation";
 
