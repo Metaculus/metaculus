@@ -12,7 +12,8 @@ type Props = {
   onChange: (
     filterId: string,
     optionValue: string | null,
-    replaceInfo?: FilterReplaceInfo
+    replaceInfo?: FilterReplaceInfo,
+    extraValues?: Record<string, string>
   ) => void;
 };
 
@@ -26,9 +27,9 @@ const ToggleChipFilter: FC<Props> = ({ filterId, options, onChange }) => {
       : undefined;
 
     if (option.active) {
-      onChange(filterId, null, replaceInfo);
+      onChange(filterId, null, replaceInfo, option.extraValues);
     } else {
-      onChange(filterId, option.value, replaceInfo);
+      onChange(filterId, option.value, replaceInfo, option.extraValues);
     }
   };
 

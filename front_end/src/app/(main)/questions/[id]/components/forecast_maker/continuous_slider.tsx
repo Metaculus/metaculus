@@ -8,6 +8,7 @@ import MultiSlider, {
   MultiSliderValue,
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
+import Checkbox from "@/components/ui/checkbox";
 import InlineSelect from "@/components/ui/inline_select";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousAreaGraphType } from "@/types/charts";
@@ -15,7 +16,6 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 
 import ContinuousPredictionChart from "./continuous_prediction_chart";
 import { useHideCP } from "../cp_provider";
-import Checkbox from "@/components/ui/checkbox";
 
 type Props = {
   forecast: MultiSliderValue[];

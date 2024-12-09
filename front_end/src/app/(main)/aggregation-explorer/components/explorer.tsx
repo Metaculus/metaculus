@@ -103,7 +103,14 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         aggregationMethods: aggregation_methods as string,
       });
     }
-  }, [aggregation_methods, fetchData, include_bots, question_id]);
+  }, [
+    inputText,
+    post_id,
+    aggregation_methods,
+    fetchData,
+    include_bots,
+    question_id,
+  ]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();

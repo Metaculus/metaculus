@@ -82,15 +82,15 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     () =>
       questions.reduce<
         Record<number, { forecast?: MultiSliderValue[]; weights?: number[] }>
-      >(
-        (acc, question) => ({
+      >((acc, question) => {
+        const latest = question.my_forecasts?.latest;
+        return {
           ...acc,
           [question.id]: extractPrevNumericForecastValue(
-            question.my_forecasts?.latest?.slider_values
+            latest && !latest.end_time ? latest.slider_values : undefined
           ),
-        }),
-        {}
-      ),
+        };
+      }, {}),
     [questions]
   );
   const hasUserForecast = useMemo(() => {

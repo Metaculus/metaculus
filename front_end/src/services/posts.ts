@@ -30,6 +30,7 @@ export type PostsParams = PaginationParams & {
   usernames?: string | string[];
   tags?: string | string[];
   forecaster_id?: string;
+  withdrawn?: string;
   not_forecaster_id?: string;
   author?: string;
   upvoted_by?: string;

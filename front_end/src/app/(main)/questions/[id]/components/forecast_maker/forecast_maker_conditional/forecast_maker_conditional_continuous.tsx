@@ -3,11 +3,15 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
@@ -32,8 +36,6 @@ type Props = {
   postId: number;
   postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
-  prevYesForecast?: any;
-  prevNoForecast?: any;
   canPredict: boolean;
   predictionMessage: ReactNode;
   projects: Post["projects"];
@@ -43,8 +45,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   postId,
   postTitle,
   conditional,
-  prevYesForecast,
-  prevNoForecast,
   canPredict,
   predictionMessage,
   projects,
@@ -57,10 +57,18 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
 
-  const prevYesForecastValue = extractPrevNumericForecastValue(prevYesForecast);
-  const prevNoForecastValue = extractPrevNumericForecastValue(prevNoForecast);
+  const latestYes = question_yes.my_forecasts?.latest;
+  const latestNo = question_no.my_forecasts?.latest;
+  const prevYesForecastValue =
+    latestYes && !latestYes.end_time
+      ? extractPrevNumericForecastValue(latestYes.slider_values)
+      : null;
+  const prevNoForecastValue =
+    latestNo && !latestNo.end_time
+      ? extractPrevNumericForecastValue(latestNo.slider_values)
+      : null;
   const hasUserForecast =
-    !!prevYesForecastValue.forecast || !!prevNoForecastValue.forecast;
+    !!prevYesForecastValue?.forecast || !!prevNoForecastValue?.forecast;
 
   const [questionOptions, setQuestionOptions] = useState<
     Array<
@@ -290,7 +298,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     questionsToSubmit.forEach((q) => {
       sendGAConditionalPredictEvent(
         projects,
-        q.id === questionYesId ? !!prevYesForecast : !!prevNoForecast,
+        q.id === questionYesId ? !!prevYesForecastValue : !!prevNoForecastValue,
         hideCP
       );
     });
@@ -311,11 +319,36 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     }
   };
 
+  const handlePredictWithdraw = async () => {
+    setSubmitErrors([]);
+
+    if (!prevYesForecastValue && !prevNoForecastValue) return;
+
+    const response = await withdrawForecasts(postId, [
+      ...(prevYesForecastValue ? [{ question: questionYesId }] : []),
+      ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
+    ]);
+    setQuestionOptions((prev) =>
+      prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
+    );
+
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitErrors(errors);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
   const previousForecast = activeOptionData?.question.my_forecasts?.latest;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
-    useState<boolean>(
-      !!previousForecast?.forecast_values && !previousForecast.slider_values
-    );
+    useState<boolean>(!!previousForecast && !previousForecast?.slider_values);
 
   const userCdf: number[] | undefined =
     activeOptionData &&
@@ -329,9 +362,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     overlayPreviousForecast && previousForecast
       ? previousForecast.forecast_values
       : undefined;
+  const aggregateLatest =
+    activeOptionData?.question.aggregations.recency_weighted.latest;
   const communityCdf: number[] | undefined =
-    activeOptionData?.question.aggregations.recency_weighted.latest
-      ?.forecast_values;
+    aggregateLatest && !aggregateLatest.end_time
+      ? aggregateLatest.forecast_values
+      : undefined;
 
   return (
     <>
@@ -345,11 +381,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         onChange={setActiveTableOption}
         formatForecastValue={(value) => {
           if (activeOptionData && value) {
-            return getDisplayValue(
+            return getDisplayValue({
               value,
-              activeOptionData.question.type,
-              activeOptionData.question.scaling
-            );
+              questionType: activeOptionData.question.type,
+              scaling: activeOptionData.question.scaling,
+            });
           } else {
             return "-";
           }
@@ -424,6 +460,18 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               >
                 {t("discardChangesButton")}
               </Button>
+              {(!!prevYesForecastValue || !!prevNoForecastValue) &&
+                question_yes.withdraw_permitted &&
+                question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={withdrawalIsPending}
+                    onClick={withdraw}
+                  >
+                    {t("withdraw")}
+                  </Button>
+                )}
             </>
           )}
           <PredictButton
@@ -478,8 +526,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           isDirty={activeOptionData.isDirty}
           hasUserForecast={
             activeTableOption === questionYesId
-              ? !!prevYesForecast
-              : !!prevNoForecast
+              ? !!prevYesForecastValue
+              : !!prevNoForecastValue
           }
         />
       )}

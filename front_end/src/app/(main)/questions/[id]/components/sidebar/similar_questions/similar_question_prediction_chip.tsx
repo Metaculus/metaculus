@@ -47,7 +47,11 @@ const SimilarPredictionChip: FC<Props> = ({
         <FontAwesomeIcon icon={faUserGroup} className="!w-[13px]" />
         <span>
           {prediction
-            ? getDisplayValue(prediction, question.type, question.scaling)
+            ? getDisplayValue({
+                value: prediction,
+                questionType: question.type,
+                scaling: question.scaling,
+              })
             : ""}
         </span>
       </span>

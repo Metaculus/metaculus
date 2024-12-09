@@ -100,8 +100,8 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
     if (postData.question.type === QuestionType.MultipleChoice) {
       return false;
     }
-
-    return !!postData.question.my_forecasts?.history.length;
+    const latest = postData.question.my_forecasts?.latest;
+    return !!latest && isNil(latest.end_time);
   }
 
   return false;
