@@ -149,7 +149,9 @@ def tournament_by_slug_api_view(request: Request, slug: str):
         obj = get_object_or_404(qs, slug=slug)
 
     data = TournamentSerializer(obj).data
-    data["leaderboard_questions_count"] = obj.leaderboard_questions_count
+    data["leaderboard_questions_count"] = getattr(
+        obj, "leaderboard_questions_count", None
+    )
 
     if request.user.is_authenticated:
         data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()

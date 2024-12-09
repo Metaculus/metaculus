@@ -73,8 +73,6 @@ class ProjectsQuerySet(models.QuerySet):
                 SubqueryAggregate(
                     "posts__related_questions__question_id",
                     filter=Q(post__curation_status=Post.CurationStatus.APPROVED)
-                    & Q(question__open_time__gte=OuterRef("start_date"))
-                    & Q(question__scheduled_close_time__lte=OuterRef("close_date"))
                     & ~Q(
                         question__resolution__in=[
                             ResolutionType.AMBIGUOUS,
@@ -89,8 +87,6 @@ class ProjectsQuerySet(models.QuerySet):
                 SubqueryAggregate(
                     "default_posts__related_questions__question_id",
                     filter=Q(post__curation_status=Post.CurationStatus.APPROVED)
-                    & Q(question__open_time__gte=OuterRef("start_date"))
-                    & Q(question__scheduled_close_time__lte=OuterRef("close_date"))
                     & ~Q(
                         question__resolution__in=[
                             ResolutionType.AMBIGUOUS,
