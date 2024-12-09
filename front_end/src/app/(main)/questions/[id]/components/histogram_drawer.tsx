@@ -13,6 +13,7 @@ import RevealCPButton from "./reveal_cp_button";
 const Histogram = dynamic(() => import("@/components/charts/histogram"), {
   ssr: false,
 });
+const toggleSectionPadding = 24;
 
 type Props = {
   post: PostWithForecasts;
@@ -42,21 +43,21 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     const mean = question.aggregations.recency_weighted.latest.means![0];
 
     return (
-      <SectionToggle title={t("histogram")} defaultOpen>
-        {hideCP ? (
-          <RevealCPButton />
-        ) : (
-          <div ref={chartContainerRef}>
+      <div ref={chartContainerRef}>
+        <SectionToggle title={t("histogram")} defaultOpen>
+          {hideCP ? (
+            <RevealCPButton />
+          ) : (
             <Histogram
               histogramData={histogramData}
               median={median}
               mean={mean}
               color={"gray"}
-              width={chartWidth}
+              width={chartWidth - toggleSectionPadding}
             />
-          </div>
-        )}
-      </SectionToggle>
+          )}
+        </SectionToggle>
+      </div>
     );
   } else if (
     post.conditional?.question_yes.type === "binary" &&
@@ -91,42 +92,44 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     }
 
     return (
-      <SectionToggle title={t("histogram")}>
-        {hideCP ? (
-          <RevealCPButton />
-        ) : (
-          <div ref={chartContainerRef}>
-            {histogramData_yes && (
-              <>
-                <div className="mb-2 text-center text-xs">
-                  {t("parentResolvesAsYes")}
-                </div>
-                <Histogram
-                  histogramData={histogramData_yes}
-                  median={median_yes}
-                  mean={mean_yes}
-                  color="gray"
-                  width={chartWidth}
-                />
-              </>
-            )}
-            {histogramData_no && (
-              <>
-                <div className="mb-2 text-center text-xs">
-                  {t("parentResolvesAsNo")}
-                </div>
-                <Histogram
-                  histogramData={histogramData_no}
-                  median={median_no}
-                  mean={mean_no}
-                  color="blue"
-                  width={chartWidth}
-                />
-              </>
-            )}
-          </div>
-        )}
-      </SectionToggle>
+      <div ref={chartContainerRef}>
+        <SectionToggle title={t("histogram")}>
+          {hideCP ? (
+            <RevealCPButton />
+          ) : (
+            <>
+              {histogramData_yes && (
+                <>
+                  <div className="mb-2 text-center text-xs">
+                    {t("parentResolvesAsYes")}
+                  </div>
+                  <Histogram
+                    histogramData={histogramData_yes}
+                    median={median_yes}
+                    mean={mean_yes}
+                    color="gray"
+                    width={chartWidth - toggleSectionPadding}
+                  />
+                </>
+              )}
+              {histogramData_no && (
+                <>
+                  <div className="mb-2 text-center text-xs">
+                    {t("parentResolvesAsNo")}
+                  </div>
+                  <Histogram
+                    histogramData={histogramData_no}
+                    median={median_no}
+                    mean={mean_no}
+                    color="blue"
+                    width={chartWidth - toggleSectionPadding}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </SectionToggle>
+      </div>
     );
   }
 };
