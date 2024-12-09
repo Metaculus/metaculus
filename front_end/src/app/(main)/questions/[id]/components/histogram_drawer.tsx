@@ -1,14 +1,18 @@
 "use client";
-
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import React from "react";
 
-import Histogram from "@/components/charts/histogram";
 import SectionToggle from "@/components/ui/section_toggle";
+import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
 
 import { useHideCP } from "./cp_provider";
 import RevealCPButton from "./reveal_cp_button";
+
+const Histogram = dynamic(() => import("@/components/charts/histogram"), {
+  ssr: false,
+});
 
 type Props = {
   post: PostWithForecasts;
@@ -17,6 +21,9 @@ type Props = {
 const HistogramDrawer: React.FC<Props> = ({ post }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
+
+  const { ref: chartContainerRef, width: chartWidth } =
+    useContainerSize<HTMLDivElement>();
 
   if (post.question?.type === "binary") {
     const question = post.question;
@@ -39,12 +46,15 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
         {hideCP ? (
           <RevealCPButton />
         ) : (
-          <Histogram
-            histogramData={histogramData}
-            median={median}
-            mean={mean}
-            color={"gray"}
-          />
+          <div ref={chartContainerRef}>
+            <Histogram
+              histogramData={histogramData}
+              median={median}
+              mean={mean}
+              color={"gray"}
+              width={chartWidth}
+            />
+          </div>
         )}
       </SectionToggle>
     );
@@ -85,7 +95,7 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
         {hideCP ? (
           <RevealCPButton />
         ) : (
-          <>
+          <div ref={chartContainerRef}>
             {histogramData_yes && (
               <>
                 <div className="mb-2 text-center text-xs">
@@ -96,6 +106,7 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
                   median={median_yes}
                   mean={mean_yes}
                   color="gray"
+                  width={chartWidth}
                 />
               </>
             )}
@@ -109,10 +120,11 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
                   median={median_no}
                   mean={mean_no}
                   color="blue"
+                  width={chartWidth}
                 />
               </>
             )}
-          </>
+          </div>
         )}
       </SectionToggle>
     );

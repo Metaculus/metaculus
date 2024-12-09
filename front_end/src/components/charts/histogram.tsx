@@ -19,6 +19,7 @@ type HistogramProps = {
   median: number | undefined;
   mean: number | undefined;
   color: "blue" | "gray";
+  width?: number;
 };
 
 const Histogram: React.FC<HistogramProps> = ({
@@ -26,6 +27,7 @@ const Histogram: React.FC<HistogramProps> = ({
   median,
   mean,
   color,
+  width,
 }) => {
   const t = useTranslations();
   const { theme } = useAppTheme();
@@ -69,14 +71,15 @@ const Histogram: React.FC<HistogramProps> = ({
         }}
         containerComponent={<VictoryContainer responsive={true} />}
         padding={{ top: 0, bottom: 15, left: 10, right: 10 }}
-        height={48}
+        height={75}
+        width={width ?? undefined}
       >
         <VictoryAxis
           tickValues={range(0, 101)}
           tickFormat={(x: number) => (x % 10 === 0 ? `${x}%` : "")}
           style={{
             tickLabels: {
-              fontSize: 5,
+              fontSize: 8,
             },
             axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
             grid: { stroke: "none" },
