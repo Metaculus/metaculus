@@ -837,7 +837,8 @@ export function generateChoiceItemsFromGroupQuestions(
     ? questions.find((q) => q.id === preselectedQuestionId)?.label
     : undefined;
 
-  const choiceItems: ChoiceItem[] = questions.map((question, index) => {
+  const choiceItems: ChoiceItem[] = choiceOrdering.map((order, index) => {
+    const question = questions[order];
     const label = question.label;
     const userHistory = question.my_forecasts?.history;
 
@@ -949,11 +950,8 @@ export function generateChoiceItemsFromGroupQuestions(
         question.type === QuestionType.Binary ? undefined : userMaxValues, // used in continuous group questions
     };
   });
-  // reorder choice items
-  const orderedChoiceItems = choiceOrdering.map((order) => choiceItems[order]);
-  // set inactive items
   if (activeCount) {
-    orderedChoiceItems.forEach((item, index) => {
+    choiceItems.forEach((item, index) => {
       if (preselectedQuestionLabel) {
         item.active = preselectedQuestionLabel === item.choice;
       } else {
@@ -961,7 +959,7 @@ export function generateChoiceItemsFromGroupQuestions(
       }
     });
   }
-  return orderedChoiceItems;
+  return choiceItems;
 }
 
 export function getFanOptionsFromContinuousGroup(
