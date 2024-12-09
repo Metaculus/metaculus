@@ -72,7 +72,7 @@ const Histogram: React.FC<HistogramProps> = ({
         containerComponent={<VictoryContainer responsive={true} />}
         padding={{ top: 0, bottom: 15, left: 10, right: 10 }}
         height={75}
-        width={width ?? undefined}
+        width={!!width ? width : undefined}
       >
         <VictoryAxis
           tickValues={range(0, 101)}
