@@ -621,6 +621,7 @@ def create_forecast(
         distribution_components=None,
         slider_values=slider_values if question.type in ["date", "numeric"] else None,
         post=post,
+        **kwargs,
     )
     forecast.save()
 
