@@ -108,7 +108,10 @@ const MarkdownEditor: FC<Props> = ({
 
   // Transform MathJax syntax to JSX embeds to properly utilise the MarkJax renderer
   const formattedMarkdown = useMemo(
-    () => escapePlainTextSymbols(transformMathJax(markdown)),
+    () =>
+      escapePlainTextSymbols(
+        transformMathJax(formatBlockquoteNewlines(markdown))
+      ),
     [markdown]
   );
 
@@ -193,6 +196,7 @@ const MarkdownEditor: FC<Props> = ({
   if (errorMarkdown) {
     return <div className="whitespace-pre-line">{errorMarkdown}</div>;
   }
+
   return (
     <MDXEditor
       ref={editorRef}
@@ -211,7 +215,11 @@ const MarkdownEditor: FC<Props> = ({
       onChange={(value) => {
         // Revert the MathJax transformation before passing the markdown to the parent component
         onChange &&
-          onChange(escapePlainTextSymbols(revertMathJaxTransform(value)));
+          onChange(
+            escapePlainTextSymbols(
+              revertMathJaxTransform(formatBlockquoteNewlines(value))
+            )
+          );
       }}
       onError={(err) => {
         logErrorWithScope(err.error, err.source);
@@ -251,6 +259,10 @@ function escapePlainTextSymbols(str: string) {
     .replace(/^{(?![^}]*})/g, "\\{");
 
   return tempStr;
+}
+
+function formatBlockquoteNewlines(markdown: string): string {
+  return markdown.replace(/>\s*\n/g, "> \u00A0\n");
 }
 
 export default dynamic(() => Promise.resolve(MarkdownEditor), {
