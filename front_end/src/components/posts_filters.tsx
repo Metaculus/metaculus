@@ -148,7 +148,8 @@ const PostsFilters: FC<Props> = ({
   const handlePopOverFilterChange = (
     filterId: string,
     optionValue: string | string[] | null,
-    replaceInfo?: FilterReplaceInfo
+    replaceInfo?: FilterReplaceInfo,
+    extraValues?: Record<string, string>
   ) => {
     onPopOverFilterChange?.(
       { filterId, optionValue, replaceInfo },
@@ -163,7 +164,15 @@ const PostsFilters: FC<Props> = ({
         return;
       }
 
-      replaceParams(replaceIds, [{ name: optionId, value: optionValue }]);
+      replaceParams(replaceIds, [
+        { name: optionId, value: optionValue },
+        ...(extraValues
+          ? Object.entries(extraValues).map(([key, value]) => ({
+              name: key,
+              value,
+            }))
+          : []),
+      ]);
       return;
     }
 

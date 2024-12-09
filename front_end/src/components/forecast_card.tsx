@@ -199,13 +199,6 @@ const ForecastCard: FC<Props> = ({
             </div>
           );
         case QuestionType.MultipleChoice:
-          const visibleChoicesCount = 3;
-          const choices = generateChoiceItemsFromMultipleChoiceForecast(
-            question,
-            {
-              activeCount: visibleChoicesCount,
-            }
-          );
           return (
             <MultipleChoiceChartCard
               question={question}
@@ -236,7 +229,6 @@ const ForecastCard: FC<Props> = ({
                 (forecast) => forecast.start_time === cursorValue
               )
             : null;
-
           const forecast =
             cursorIndex !== null && cursorIndex !== -1
               ? question.aggregations.recency_weighted.history[cursorIndex]

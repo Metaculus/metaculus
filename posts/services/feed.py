@@ -36,6 +36,7 @@ def get_posts_feed(
     notebook_type: Notebook.NotebookType = None,
     usernames: list[str] = None,
     forecaster_id: int = None,
+    withdrawn: bool = None,
     not_forecaster_id: int = None,
     similar_to_post_id: int = None,
     for_main_feed: bool = None,
@@ -172,6 +173,10 @@ def get_posts_feed(
         qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
             user_last_forecasts_date__isnull=False
         )
+        if withdrawn is not None:
+            qs = qs.annotate_has_active_forecast(forecaster_id).filter(
+                has_active_forecast=not withdrawn
+            )
     if not_forecaster_id:
         qs = qs.annotate_user_last_forecasts_date(not_forecaster_id).filter(
             user_last_forecasts_date__isnull=True
@@ -217,9 +222,8 @@ def get_posts_feed(
     # Ordering
     order_desc, order_type = parse_order_by(order_by)
 
-    if (
-        order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
-        and not forecaster_id
+    if order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE and not (
+        forecaster_id
     ):
         order_type = "created_at"
 

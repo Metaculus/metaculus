@@ -390,7 +390,15 @@ def get_user_forecast_history(
     if minimize:
         timesteps = minimize_history(timesteps)
 
-    forecast_sets: dict[datetime, ForecastSet] = dict()
+    forecast_sets: dict[datetime, ForecastSet] = {
+        timestep: ForecastSet(
+            forecasts_values=[],
+            timestep=timestep,
+            users=[],
+            timesteps=[],
+        )
+        for timestep in timesteps
+    }
     for forecast in forecasts:
         # Find active timesteps using bisect to find the start & end indexes
         start_index = bisect_left(timesteps, forecast.start_time)
@@ -401,13 +409,6 @@ def get_user_forecast_history(
         )
         forecast_values = forecast.get_prediction_values()
         for timestep in timesteps[start_index:end_index]:
-            if timestep not in forecast_sets:
-                forecast_sets[timestep] = ForecastSet(
-                    forecasts_values=[],
-                    timestep=timestep,
-                    users=[],
-                    timesteps=[],
-                )
             forecast_sets[timestep].forecasts_values.append(forecast_values)
             forecast_sets[timestep].users.append(forecast.author)
             forecast_sets[timestep].timesteps.append(forecast.start_time)
@@ -513,19 +514,23 @@ def get_aggregation_history(
                 else question.type == "binary" and i == (len(forecast_history) - 1)
             )
 
-            new_entry: AggregateForecast = calculate_aggregation_entry(
-                forecast_set,
-                question.type,
-                weights,
-                method=method,
-                include_stats=include_stats,
-                histogram=include_histogram,
-            )
-            new_entry.question = question
-            new_entry.method = method
-            if aggregation_history:
-                aggregation_history[-1].end_time = new_entry.start_time
-            aggregation_history.append(new_entry)
+            if forecast_set.forecasts_values:
+                new_entry: AggregateForecast = calculate_aggregation_entry(
+                    forecast_set,
+                    question.type,
+                    weights,
+                    method=method,
+                    include_stats=include_stats,
+                    histogram=include_histogram,
+                )
+                new_entry.question = question
+                new_entry.method = method
+                if aggregation_history and aggregation_history[-1].end_time is None:
+                    aggregation_history[-1].end_time = new_entry.start_time
+                aggregation_history.append(new_entry)
+            else:
+                if aggregation_history:
+                    aggregation_history[-1].end_time = forecast_set.timestep
 
         full_summary[method] = aggregation_history
 

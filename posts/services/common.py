@@ -8,6 +8,8 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
+from comments.models import Comment
+from comments.services.feed import get_comments_feed
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -31,16 +33,14 @@ from users.models import User
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregations_at_time
 from utils.the_math.measures import prediction_difference_for_sorting
-from .subscriptions import notify_post_status_change
-from ..tasks import run_notify_post_status_change
-
 from utils.translation import (
     update_translations_for_model,
     queryset_filter_outdated_translations,
     detect_and_update_content_language,
 )
-from comments.services.feed import get_comments_feed
-from comments.models import Comment
+from .search import generate_post_content_for_embedding_vectorization
+from .subscriptions import notify_post_status_change
+from ..tasks import run_notify_post_status_change, run_post_indexing
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +117,6 @@ def create_post(
     obj.update_pseudo_materialized_fields()
 
     # Run async tasks
-    from ..tasks import run_post_indexing
-
     run_post_indexing.send(obj.id)
 
     return obj
@@ -195,6 +193,9 @@ def update_post(
     news_type: Project = None,
     **kwargs,
 ):
+    # Content for embedding generation before update
+    original_embedding_content = generate_post_content_for_embedding_vectorization(post)
+
     # Updating non-side effect fields
     post, _ = model_update(
         instance=post,
@@ -229,6 +230,13 @@ def update_post(
         update_notebook(post.notebook, **notebook)
 
     post.update_pseudo_materialized_fields()
+
+    # Compare the text content before and after the post update for embedding generation
+    # If the content has changed, re-run the post indexing process
+    if original_embedding_content != generate_post_content_for_embedding_vectorization(
+        post
+    ):
+        run_post_indexing.send(post.id)
 
     return post
 
