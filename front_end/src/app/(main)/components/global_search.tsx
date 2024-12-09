@@ -1,10 +1,12 @@
 "use client";
+
 import { sendGAEvent } from "@next/third-parties/google";
 import { debounce } from "lodash";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { useState, useEffect, useCallback } from "react";
 
+import RandomButton from "@/components/random_button";
 import SearchInput from "@/components/search_input";
 import {
   POST_ORDER_BY_FILTER,
@@ -85,6 +87,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
         className="w-full"
         globalSearch={true}
       />
+      <RandomButton />
     </div>
   );
 };

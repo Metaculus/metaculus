@@ -10,8 +10,8 @@ import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 
-import GlobalSearch from "../global_search";
 import ContentTranslatedBanner from "../content_translated_banner";
+import GlobalSearch from "../global_search";
 import MobileMenu from "../mobile_menu";
 
 const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
