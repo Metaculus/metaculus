@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db.models import Q, Case, When, IntegerField
 from django.utils.crypto import get_random_string
@@ -130,6 +131,7 @@ def send_email_change_confirmation_email(user: User, new_email: str):
             "new_email": new_email,
             "reset_link": reset_link,
         },
+        from_email=settings.EMAIL_HOST_USER
     )
 
 

@@ -5,7 +5,10 @@ import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -18,7 +21,7 @@ import {
   AggregateForecastHistory,
   Question,
   QuestionWithMultipleChoiceForecasts,
-  UserForecastHistory,
+  UserForecast,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
@@ -36,7 +39,7 @@ import QuestionUnresolveButton from "../resolution/unresolve_button";
 
 type ChoiceOption = {
   name: string;
-  communityForecast?: number | null;
+  communityForecast: number | null;
   forecast: number | null;
   color: ThemeColor;
 };
@@ -62,25 +65,19 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const { user } = useAuth();
   const { hideCP } = useHideCP();
 
-  const choiceOrdering = useMemo(() => {
-    const latest = question.aggregations.recency_weighted.latest;
-    const choiceOrdering: number[] = question.options!.map((_, i) => i);
-    choiceOrdering.sort((a, b) => {
-      const aCenter = latest?.forecast_values[a] ?? 0;
-      const bCenter = latest?.forecast_values[b] ?? 0;
-      return bCenter - aCenter;
-    });
-
-    return choiceOrdering;
-  }, [question.aggregations.recency_weighted.latest, question.options]);
+  const activeUserForecast =
+    (question.my_forecasts?.latest?.end_time ||
+      new Date().getTime() / 1000 + 1000) <=
+    new Date().getTime() / 1000
+      ? undefined
+      : question.my_forecasts?.latest;
 
   const [isDirty, setIsDirty] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
       question.aggregations.recency_weighted,
-      choiceOrdering,
-      question.my_forecasts ?? { history: [] }
+      activeUserForecast
     )
   );
 
@@ -104,10 +101,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      choiceOrdering.map((order, index) => {
+      question.options!.map((_, index) => {
         const choiceOption = prev[index];
         const userForecast =
-          question.my_forecasts?.latest?.forecast_values[order] ?? null;
+          question.my_forecasts?.latest?.forecast_values[index] ?? null;
 
         return {
           ...choiceOption,
@@ -117,7 +114,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         };
       })
     );
-  }, [choiceOrdering, question.my_forecasts?.latest?.forecast_values]);
+  }, [question.options, question.my_forecasts?.latest?.forecast_values]);
+
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
       setIsDirty(true);
@@ -208,6 +206,33 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
+
+  const handlePredictWithdraw = async () => {
+    setSubmitError(undefined);
+
+    if (!activeUserForecast) return;
+
+    const response = await withdrawForecasts(post.id, [
+      {
+        question: question.id,
+      },
+    ]);
+    setIsDirty(false);
+
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitError(errors);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
   return (
     <>
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
@@ -296,6 +321,17 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             >
               {t("discardChangesButton")}
             </Button>
+            {activeUserForecast &&
+              question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )}
             <PredictButton
               onSubmit={submit}
               isDirty={isDirty}
@@ -310,7 +346,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         className="ml-auto mt-2 flex w-full justify-center"
         errors={submitError}
       />
-      <div className="h-[32px] w-full">{isPending && <LoadingIndicator />}</div>
+      <div className="h-[32px] w-full">
+        {(isPending || withdrawalIsPending) && <LoadingIndicator />}
+      </div>
       <div className="flex flex-col items-center justify-center">
         <QuestionUnresolveButton question={question} permission={permission} />
 
@@ -328,23 +366,25 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 function generateChoiceOptions(
   question: Question,
   aggregate: AggregateForecastHistory,
-  choiceOrdering: number[],
-  my_forecasts: UserForecastHistory
+  activeUserForecast: UserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
 
-  const choiceItems = choiceOrdering.map((order, index) => {
+  const choiceItems = question.options!.map((option, index) => {
     return {
-      name: question.options![order],
+      name: option,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      communityForecast: latest?.forecast_values[order] ?? null,
-      forecast: my_forecasts.latest
-        ? Math.round(my_forecasts.latest.forecast_values[order] * 1000) / 10
+      communityForecast:
+        latest && !latest.end_time
+          ? Math.round(latest.forecast_values[index] * 1000) / 1000
+          : null,
+      forecast: activeUserForecast
+        ? Math.round(activeUserForecast.forecast_values[index] * 1000) / 10
         : null,
     };
   });
-  const resolutionIndex = choiceOrdering.findIndex(
-    (order) => question.options![order] === question.resolution
+  const resolutionIndex = question.options!.findIndex(
+    (_, index) => question.options![index] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);

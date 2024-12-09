@@ -6,10 +6,11 @@
   {% load i18n %}
   {% load static %}
   {% load urls %}
+  {% load utils %}
 </mj-raw>
 
 <mj-head>
-  <mj-breakpoint width="420px" />
+  <mj-breakpoint width="440px" />
 
 
   {% comment %}

@@ -3,16 +3,22 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useState } from "react";
 
-import { unresolveQuestion as unresolveQuestionAction } from "@/app/(main)/questions/actions";
+import {
+  unresolveQuestion as unresolveQuestionAction,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import LocalDaytime from "@/components/ui/local_daytime";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { Post, ProjectPermissions, QuestionStatus } from "@/types/post";
-import { Question } from "@/types/question";
+import { Question, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/errors";
-import { canChangeQuestionResolution } from "@/utils/questions";
+import {
+  canChangeQuestionResolution,
+  canWithdrawForecast,
+} from "@/utils/questions";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import IncludeBotsInfo from "../../sidebar/question_info/include_bots_info";
@@ -81,6 +87,19 @@ const ForecastMakerGroupControls: FC<Props> = ({
               ),
             },
           ],
+          ...(canWithdrawForecast(
+            question as QuestionWithForecasts,
+            permission
+          ) && question.withdraw_permitted // Feature Flag: prediction-withdrawal
+            ? [
+                {
+                  id: "withdraw",
+                  name: t("withdrawForecast"),
+                  onClick: () =>
+                    withdrawForecasts(post!.id, [{ question: question.id }]),
+                },
+              ]
+            : []),
           ...(canChangeQuestionResolution(question, permission)
             ? [
                 {

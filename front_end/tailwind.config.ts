@@ -23,10 +23,15 @@ const config: Config = {
           from: { transform: "translateX(100%)" },
           to: { transform: "translateX(-100%)" },
         },
+        spin: {
+          "0%": { transform: "rotate(0deg)" },
+          "90%, 100%": { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         "loading-slide":
           "loading-slide cubic-bezier(0.3, 1, 0.7, 0) 1.7s infinite",
+        spin: "spin 1s infinite",
       },
       fontFamily: {
         sans: [

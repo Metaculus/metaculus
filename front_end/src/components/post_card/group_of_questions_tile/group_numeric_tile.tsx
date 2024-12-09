@@ -92,7 +92,6 @@ const GroupNumericTile: FC<Props> = ({
     const sortedQuestions = sortGroupPredictionOptions(questions);
     const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
     const choices = generateChoiceItemsFromGroupQuestions(questions, {
-      withMinMax: true,
       activeCount: visibleChoicesCount,
       locale,
     });

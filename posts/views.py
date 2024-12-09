@@ -46,7 +46,7 @@ from posts.services.common import (
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
-from posts.utils import check_can_edit_post
+from posts.utils import check_can_edit_post, get_post_slug
 from projects.permissions import ObjectPermission
 from questions.models import AggregateForecast, Question
 from questions.serializers import (
@@ -678,3 +678,16 @@ def download_csv(request, pk: int):
         headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
     )
     return response
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def random_post_id(request):
+    post = (
+        Post.objects.filter_permission(user=request.user)
+        .filter_questions()
+        .filter_active()
+        .order_by("?")
+        .first()
+    )
+    return Response({"id": post.id, "post_slug": get_post_slug(post)})

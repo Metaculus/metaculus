@@ -48,10 +48,10 @@ const ProjectLeaderboardTable: FC<Props> = ({
   );
 
   return (
-    <>
+    <div className="overflow-y-hidden rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
       <table className="mb-0 w-full border-separate whitespace-nowrap">
         <thead>
-          <tr className="h-8">
+          <tr>
             <TableHeader className="sticky left-0 text-left">
               {t("rank")}
             </TableHeader>
@@ -94,15 +94,17 @@ const ProjectLeaderboardTable: FC<Props> = ({
         </tbody>
       </table>
       {hasMore && (
-        <Button
-          className="mx-auto my-1 !flex"
-          variant="tertiary"
-          onClick={handleLoadMoreClick}
-        >
-          Load More
-        </Button>
+        <div className="w-full py-2.5">
+          <Button
+            className="mx-auto !flex"
+            variant="tertiary"
+            onClick={handleLoadMoreClick}
+          >
+            {t("loadMoreButton")}
+          </Button>
+        </div>
       )}
-    </>
+    </div>
   );
 };
 

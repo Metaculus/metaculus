@@ -127,18 +127,20 @@ export default async function TournamentSlug({ params }: Props) {
           </div>
           <HtmlContent content={tournament.description} />
 
-          <ProjectLeaderboard
-            projectId={tournament.id}
-            userId={currentUser?.id}
-            prizePool={tournament.prize_pool}
-            isQuestionSeries={isQuestionSeries}
-          />
-          {currentUser && (
-            <ProjectContributions
-              project={tournament}
-              userId={currentUser.id}
+          <div className="mt-3 flex flex-col gap-3">
+            <ProjectLeaderboard
+              projectId={tournament.id}
+              userId={currentUser?.id}
+              prizePool={tournament.prize_pool}
+              isQuestionSeries={isQuestionSeries}
             />
-          )}
+            {currentUser && (
+              <ProjectContributions
+                project={tournament}
+                userId={currentUser.id}
+              />
+            )}
+          </div>
         </div>
 
         <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">

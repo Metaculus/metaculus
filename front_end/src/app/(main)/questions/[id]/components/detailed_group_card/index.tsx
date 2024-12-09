@@ -124,12 +124,16 @@ const DetailedGroupCard: FC<Props> = ({
     }
     case GroupOfQuestionsGraphType.FanGraph:
       return (
-        <NumericGroupChart
-          questions={questions as QuestionWithNumericForecasts[]}
-          withLabel
-          isCPRevealed={isCPRevealed}
-          cpRevealTime={closestCPRevealTime}
-        />
+        <>
+          <NumericGroupChart
+            questions={questions as QuestionWithNumericForecasts[]}
+            withLabel
+            isCPRevealed={isCPRevealed}
+            cpRevealTime={closestCPRevealTime}
+            hideCP={hideCP}
+          />
+          {hideCP && <RevealCPButton />}
+        </>
       );
     default:
       return null;

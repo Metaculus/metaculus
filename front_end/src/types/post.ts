@@ -164,6 +164,8 @@ export type PostWithNotebook = Omit<Post, "notebook"> & {
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;
 
+export type PostWithForecastsAndWeight = PostWithForecasts & { weight: number };
+
 export enum PostSubscriptionType {
   CP_CHANGE = "cp_change",
   NEW_COMMENTS = "new_comments",

@@ -1,5 +1,10 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { differenceInMilliseconds, isValid } from "date-fns";
+import {
+  differenceInMilliseconds,
+  fromUnixTime,
+  isValid,
+  subWeeks,
+} from "date-fns";
 import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -16,18 +21,19 @@ import {
   Resolution,
 } from "@/types/post";
 import {
-  QuestionLinearGraphType,
   Question,
+  QuestionLinearGraphType,
   QuestionType,
+  QuestionWithForecasts,
   QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
   Scaling,
-  QuestionWithForecasts,
 } from "@/types/question";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
+import { Tournament } from "@/types/projects";
 
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
@@ -195,6 +201,17 @@ export function canPredictQuestion(post: PostWithForecasts) {
   );
 }
 
+export function canWithdrawForecast(
+  question: QuestionWithForecasts,
+  permission?: ProjectPermissions
+) {
+  return (
+    question.status === QuestionStatus.OPEN &&
+    question.my_forecasts?.latest?.end_time === null &&
+    permission !== ProjectPermissions.VIEWER
+  );
+}
+
 export function getConditionTitle(
   postTitle: string,
   condition: Question
@@ -264,11 +281,31 @@ export const generateUserForecastsForMultipleQuestion = (
 
   return options.map((choice, index) => {
     const userForecasts = question.my_forecasts?.history;
+    const values: (number | null)[] = [];
+    const timestamps: number[] = [];
+    userForecasts?.forEach((forecast) => {
+      if (
+        timestamps.length &&
+        timestamps[timestamps.length - 1] === forecast.start_time
+      ) {
+        // new forecast starts at the end of the previous, so overwrite values
+        values[values.length - 1] = forecast.forecast_values[index];
+      } else {
+        // just add the forecast
+        values.push(forecast.forecast_values[index]);
+        timestamps.push(forecast.start_time);
+      }
+
+      if (forecast.end_time) {
+        // this forecast ends, add it to timestamps and a null value
+        timestamps.push(forecast.end_time);
+        values.push(null);
+      }
+    });
     return {
       choice,
-      values:
-        userForecasts?.map((forecast) => forecast.forecast_values[index]) ?? [],
-      timestamps: userForecasts?.map((forecast) => forecast.start_time) ?? [],
+      values: values,
+      timestamps: timestamps,
       color:
         MULTIPLE_CHOICE_COLOR_SCALE[choiceOrdering.indexOf(index)] ??
         METAC_COLORS.gray["400"],

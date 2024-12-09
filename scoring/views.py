@@ -20,6 +20,7 @@ from scoring.serializers import (
 from scoring.utils import get_contributions
 from users.models import User
 from users.views import serialize_profile
+from questions.models import AggregationMethod
 
 
 @api_view(["GET"])
@@ -205,4 +206,4 @@ def medal_contributions(
 def metaculus_track_record(
     request: Request,
 ):
-    return Response(serialize_profile(aggregation_method="recency_weighted"))
+    return Response(serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED))

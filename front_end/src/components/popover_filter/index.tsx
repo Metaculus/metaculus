@@ -62,7 +62,8 @@ type Props = {
   onChange: (
     filterId: string,
     optionValue: string | string[] | null,
-    replaceInfo?: FilterReplaceInfo
+    replaceInfo?: FilterReplaceInfo,
+    extraValues?: Record<string, string>
   ) => void;
   onClear: () => void;
   fullScreenEnabled?: boolean;

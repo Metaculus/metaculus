@@ -14,7 +14,12 @@ import PredictionChip from "@/components/prediction_chip";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, UserChoiceItem } from "@/types/choices";
 import { PostStatus, Resolution } from "@/types/post";
-import { Question, QuestionType, Scaling } from "@/types/question";
+import {
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+  Scaling,
+} from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { getChoiceOptionValue } from "@/utils/charts";
 
@@ -30,7 +35,7 @@ type Props = {
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
   userForecasts?: UserChoiceItem[];
-  question?: Question;
+  question?: QuestionWithForecasts;
   questionType?: QuestionType;
   scaling?: Scaling | undefined;
   hideCP?: boolean;
@@ -79,7 +84,7 @@ const MultipleChoiceTile: FC<Props> = ({
               ({
                 choice,
                 color,
-                values,
+                aggregationValues,
                 resolution,
                 displayedResolution,
                 scaling,
@@ -88,7 +93,9 @@ const MultipleChoiceTile: FC<Props> = ({
                   key={`choice-option-${choice}`}
                   choice={choice}
                   color={color}
-                  values={hideCP ? [null as unknown as number] : values}
+                  values={
+                    hideCP ? [null as unknown as number] : aggregationValues
+                  }
                   resolution={resolution}
                   displayedResolution={displayedResolution}
                   questionType={questionType}
@@ -143,7 +150,7 @@ const MultipleChoiceTile: FC<Props> = ({
 const ChoiceOption: FC<{
   choice: string;
   color: ThemeColor;
-  values: number[];
+  values: (number | null)[];
   displayedResolution?: Resolution | null;
   resolution?: Resolution | null;
   questionType?: QuestionType;

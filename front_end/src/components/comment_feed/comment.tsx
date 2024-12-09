@@ -29,6 +29,7 @@ import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
+import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
@@ -193,7 +194,7 @@ const Comment: FC<CommentProps> = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const { user } = useAuth();
-
+  const scrollTo = useScrollTo();
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
@@ -250,15 +251,7 @@ const Comment: FC<CommentProps> = ({
       // the client-side rendering is complete
       const timeoutId = setTimeout(() => {
         if (commentRef.current) {
-          const headerOffset = 48;
-          const extraOffset = 12;
-          const offset = headerOffset + extraOffset;
-
-          const targetTop =
-            commentRef.current.getBoundingClientRect().top +
-            window.scrollY -
-            offset;
-          window.scrollTo({ top: targetTop, behavior: "smooth" });
+          scrollTo(commentRef.current.getBoundingClientRect().top);
         }
       }, 1000);
 

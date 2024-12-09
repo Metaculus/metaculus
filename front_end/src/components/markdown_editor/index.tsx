@@ -45,15 +45,11 @@ import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { logErrorWithScope } from "@/utils/errors";
 
 import {
-  revertMathJaxTransform,
-  transformMathJax,
-} from "./embedded_math_jax/helpers";
-import {
   embeddedQuestionDescriptor,
   EmbedQuestionAction,
 } from "./embedded_question";
-
 import "./editor.css";
+import { processMarkdown } from "./helpers";
 
 type EditorMode = "write" | "read";
 
@@ -108,7 +104,7 @@ const MarkdownEditor: FC<Props> = ({
 
   // Transform MathJax syntax to JSX embeds to properly utilise the MarkJax renderer
   const formattedMarkdown = useMemo(
-    () => escapePlainTextSymbols(transformMathJax(markdown)),
+    () => processMarkdown(markdown),
     [markdown]
   );
 
@@ -193,6 +189,7 @@ const MarkdownEditor: FC<Props> = ({
   if (errorMarkdown) {
     return <div className="whitespace-pre-line">{errorMarkdown}</div>;
   }
+
   return (
     <MDXEditor
       ref={editorRef}
@@ -210,8 +207,7 @@ const MarkdownEditor: FC<Props> = ({
       markdown={formattedMarkdown}
       onChange={(value) => {
         // Revert the MathJax transformation before passing the markdown to the parent component
-        onChange &&
-          onChange(escapePlainTextSymbols(revertMathJaxTransform(value)));
+        onChange && onChange(processMarkdown(value, true));
       }}
       onError={(err) => {
         logErrorWithScope(err.error, err.source);
@@ -229,29 +225,6 @@ const MarkdownEditor: FC<Props> = ({
     />
   );
 };
-
-// escape < and { that is not correctly used
-function escapePlainTextSymbols(str: string) {
-  const tags: any = [];
-  const tagRegex = /<\/?\s*[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*?)?>/g;
-  let tempStr = str.replace(tagRegex, function (match) {
-    tags.push(match);
-    return "___HTML_TAG___";
-  });
-
-  tempStr = tempStr.replace(/([^\\])</g, "$1\\<").replace(/^</g, "\\<");
-
-  let index = 0;
-  tempStr = tempStr.replace(/___HTML_TAG___/g, function () {
-    return tags[index++];
-  });
-
-  tempStr = tempStr
-    .replace(/([^{]){(?![^}]*})/g, "$1\\{")
-    .replace(/^{(?![^}]*})/g, "\\{");
-
-  return tempStr;
-}
 
 export default dynamic(() => Promise.resolve(MarkdownEditor), {
   ssr: false,

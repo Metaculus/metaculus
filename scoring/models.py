@@ -153,6 +153,7 @@ class Leaderboard(TimeStampedModel):
         invalid_statuses = [
             Post.CurationStatus.DELETED,
             Post.CurationStatus.DRAFT,
+            Post.CurationStatus.PENDING,
             Post.CurationStatus.REJECTED,
         ]
 

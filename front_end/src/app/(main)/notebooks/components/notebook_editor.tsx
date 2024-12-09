@@ -6,11 +6,11 @@ import { useLocale, useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
 
 import { updateNotebook } from "@/app/(main)/questions/actions";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 import MarkdownEditor from "@/components/markdown_editor";
 import PostDefaultProject from "@/components/post_default_project";
 import Button from "@/components/ui/button";
 import { PostStatus, PostWithNotebook, ProjectPermissions } from "@/types/post";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 interface NotebookEditorProps {
   postData: PostWithNotebook;

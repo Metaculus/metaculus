@@ -202,6 +202,9 @@ export default function FAQ() {
               </a>
             </li>
             <li>
+              <a href="#howwithdraw">How can I withdraw my prediction?</a>
+            </li>
+            <li>
               <a href="#range-interface">How do I use the range interface?</a>
             </li>
             <li>
@@ -1168,7 +1171,6 @@ export default function FAQ() {
         <Image
           src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_2.jpg"
           alt="The two conditionals next to each other"
-          layout="responsive"
           width={730}
           height={75}
         />
@@ -1211,7 +1213,6 @@ export default function FAQ() {
         <Image
           src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_3.jpg"
           alt="The Conditional Pair forecasting interface"
-          layout="responsive"
           width={754}
           height={253}
         />
@@ -1224,7 +1225,6 @@ export default function FAQ() {
         <Image
           src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_1.jpg"
           alt="The Conditional Pair feed tile"
-          layout="responsive"
           width={746}
           height={142}
         />
@@ -2369,9 +2369,281 @@ export default function FAQ() {
             closes, and you are encouraged to do so: as new information comes to
             light, it is beneficial to take it into account.
           </p>
+        </div>
+        <div>
+          <h3
+            id="howwithdraw"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            How can I withdraw my prediction?
+          </h3>
           <p>
-            You&apos;re also encouraged to predict early, however, and you are
-            awarded bonus points for being among the earliest predictors.
+            If you&apos;ve made a prediction on a question and it is still open
+            for predicting, you can withdraw your prediction by pressing the
+            &quot;withdraw&quot; button. For group questions, the
+            &quot;withdraw&quot; button is nested in the &quot;...&quot; menu
+            next to the option you wish to withdraw.
+          </p>
+          <Image
+            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/withdraw_button.jpg"
+            alt="Prediction Interface"
+            className="my-4"
+            width={700}
+            height={400}
+          />
+          <p>
+            Once you’ve withdrawn, you no longer have a prediction standing for
+            that question. Of course, after withdrawing, you can make a new
+            prediction any time and start accruing scores again. Concretely,
+            this means that, starting from the moment you withdrew and until you
+            make a new prediction:
+          </p>
+          <p>
+            <ul className="list-disc pl-5">
+              <li>
+                You stop accruing scores, including Peer scores, Baseline
+                scores, etc.
+              </li>
+              <li>You stop accruing Coverage for the Peer leaderboards.</li>
+              <li>
+                You aren’t part of the Community Prediction or other aggregates.
+              </li>
+            </ul>
+          </p>
+          <p>
+            None of those behaviours are retroactive: you still get scores and
+            coverage for times up until you withdrew, and your past predictions
+            are not removed from the Community Prediction.
+          </p>
+          <p>
+            Let’s work through an example. A 5-day question has 3 forecasters,
+            Alex, Bailey and Cedar, who makes these forecasts:
+          </p>
+          <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-300-dark">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-100-dark">
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  day
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  1
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  2
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  3
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  4
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  5
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  Alex
+                </td>
+                {[80, 80, 80, 80, 80].map((percentage, i) => (
+                  <td
+                    key={i}
+                    className="border border-gray-300 p-2 dark:border-gray-300-dark"
+                  >
+                    {percentage}%
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  Bailey
+                </td>
+                {[60, 60, 60, null, null].map((percentage, i) => (
+                  <td
+                    key={i}
+                    className="border border-gray-300 p-2 dark:border-gray-300-dark"
+                  >
+                    {percentage ? `${percentage}%` : ""}
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  Cedar
+                </td>
+                {[null, 20, 20, 20, 20].map((percentage, i) => (
+                  <td
+                    key={i}
+                    className="border border-gray-300 p-2 dark:border-gray-300-dark"
+                  >
+                    {percentage ? `${percentage}%` : ""}
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  Community Prediction
+                </td>
+                {[70, 60, 60, 50, 50].map((percentage, i) => (
+                  <td
+                    key={i}
+                    className="border border-gray-300 p-2 dark:border-gray-300-dark"
+                  >
+                    {percentage}%
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            As you can see, Bailey withdraws at the end of the third day, and
+            Cedar only joins the second day. This changes the community
+            prediction on day 4: it is now 50%. But this does not retroactively
+            change the Community prediction on day 2: it is still the case that
+            it was 60% on day 2.
+          </p>
+          <p>
+            To complete the example, let’s say the question resolves Yes. Here
+            are the scores and coverages that each forecaster will get for each
+            day:
+          </p>
+
+          <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-300-dark">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-100-dark">
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  day
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  1
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  2
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  3
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  4
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  5
+                </th>
+                <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  Total
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  Alex
+                </td>
+                {[
+                  { baseline: "+14", peer: "+6", coverage: "0.2" },
+                  { baseline: "+14", peer: "+17", coverage: "0.2" },
+                  { baseline: "+14", peer: "+17", coverage: "0.2" },
+                  { baseline: "+14", peer: "+28", coverage: "0.2" },
+                  { baseline: "+14", peer: "+28", coverage: "0.2" },
+                  { baseline: "+70", peer: "+96", coverage: "1.0" },
+                ].map((data, i) => (
+                  <td
+                    key={i}
+                    className="border border-gray-300 p-2 dark:border-gray-300-dark"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div>Baseline: {data.baseline}</div>
+                      <div>Peer: {data.peer}</div>
+                      <div>Coverage: {data.coverage}</div>
+                    </div>
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  Bailey
+                </td>
+                {[
+                  { baseline: "+5", peer: "-6", coverage: "0.2" },
+                  { baseline: "+5", peer: "+8", coverage: "0.2" },
+                  { baseline: "+5", peer: "+8", coverage: "0.2" },
+                  { baseline: "0", peer: "0", coverage: "0" },
+                  { baseline: "0", peer: "0", coverage: "0" },
+                  { baseline: "+15", peer: "+10", coverage: "0.6" },
+                ].map((data, i) => (
+                  <td
+                    key={i}
+                    className="border border-gray-300 p-2 dark:border-gray-300-dark"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div>Baseline: {data.baseline}</div>
+                      <div>Peer: {data.peer}</div>
+                      <div>Coverage: {data.coverage}</div>
+                    </div>
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
+                  Cedar
+                </td>
+                {[
+                  { baseline: "0", peer: "0", coverage: "0" },
+                  { baseline: "-17", peer: "-25", coverage: "0.2" },
+                  { baseline: "-17", peer: "-25", coverage: "0.2" },
+                  { baseline: "-17", peer: "-28", coverage: "0.2" },
+                  { baseline: "-17", peer: "-28", coverage: "0.2" },
+                  { baseline: "-68", peer: "-106", coverage: "0.8" },
+                ].map((data, i) => (
+                  <td
+                    key={i}
+                    className="border border-gray-300 p-2 dark:border-gray-300-dark"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div>Baseline: {data.baseline}</div>
+                      <div>Peer: {data.peer}</div>
+                      <div>Coverage: {data.coverage}</div>
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Bailey did not get any scores for days 4 and 5 when they were
+            withdrawn, just like Cedar did not get any scores for day 1 before
+            they made their first prediction.
+          </p>
+          <p>
+            To quickly see which questions you’ve ever predicted, withdrawn
+            from, or still have a standing prediction on, there are filters in
+            the filter menu:
+          </p>
+          <Image
+            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/search_filters.jpg"
+            alt="Search Filters"
+            className="my-4"
+            width={700}
+            height={500}
+          />
+          <p>And withdrawals show up as crosses in the timeline graphs:</p>
+          <Image
+            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/timeline_withdraw.jpg"
+            alt="Prediction Interface"
+            className="my-4"
+            width={300}
+            height={300}
+          />
+          {/* Feature Flag: prediction-withdrawal */}
+          <p>
+            Note: as of December 2024, withdrawing is only enabled on questions
+            that are not linked to a prize pool. After the effects of this
+            change become better understood, this policy may be revised
+            accordingly.
           </p>
         </div>
         <div>
@@ -2407,7 +2679,6 @@ export default function FAQ() {
             src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/interface.png"
             alt="Prediction Interface"
             className="my-4"
-            layout="responsive"
             width={769}
             height={773}
           />
@@ -2431,7 +2702,6 @@ export default function FAQ() {
             src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/cumulative.png"
             alt="Cumulative Interface"
             className="my-4"
-            layout="responsive"
             width={771}
             height={776}
           />
@@ -2857,7 +3127,6 @@ export default function FAQ() {
             src="https://metaculus-public.s3.us-west-2.amazonaws.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
             alt="Reaffirming a prediction"
             className="my-4"
-            layout="responsive"
             width={922}
             height={575}
           />
