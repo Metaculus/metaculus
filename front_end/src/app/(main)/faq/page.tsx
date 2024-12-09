@@ -2369,10 +2369,6 @@ export default function FAQ() {
             closes, and you are encouraged to do so: as new information comes to
             light, it is beneficial to take it into account.
           </p>
-          <p>
-            You&apos;re also encouraged to predict early, however, and you are
-            awarded bonus points for being among the earliest predictors.
-          </p>
         </div>
         <div>
           <h3
@@ -2646,7 +2642,8 @@ export default function FAQ() {
           <p>
             Note: as of December 2024, withdrawing is only enabled on questions
             that are not linked to a prize pool. After the effects of this
-            change become better understood, may revise this policy accordingly.
+            change become better understood, this policy may be revised
+            accordingly.
           </p>
         </div>
         <div>
