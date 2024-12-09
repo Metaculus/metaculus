@@ -86,6 +86,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         setErrorMessage(newComment.errors?.message);
         return;
       }
+      setIsEditing(true);
       setHasIncludedForecast(false);
       setMarkdown("");
       setIsMarkdownDirty(false);
