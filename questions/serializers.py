@@ -1,9 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
-import django
-import django.utils
-import django.utils.timezone
+from django.utils import timezone
 import numpy as np
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -550,10 +548,7 @@ def serialize_question(
     }
 
     if with_cp:
-        if (
-            question.cp_reveal_time
-            and question.cp_reveal_time > django.utils.timezone.now()
-        ):
+        if question.cp_reveal_time and question.cp_reveal_time > timezone.now():
             # don't show any forecasts
             aggregate_forecasts = []
 
@@ -678,7 +673,13 @@ def serialize_question(
                     ] = score.coverage
 
     # Feature Flag: prediction-withdrawal
-    serialized_data["withdraw_permitted"] = not post.default_project.prize_pool
+    serialized_data["withdraw_permitted"] = not (
+        post.default_project.prize_pool
+        and (
+            not post.default_project.close_date
+            or (post.default_project.close_date > timezone.now())
+        )
+    )
 
     return serialized_data
 

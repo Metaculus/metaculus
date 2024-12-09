@@ -682,7 +682,10 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         posts.add(post)
 
         # Feature Flag: prediction-withdrawal
-        if post.default_project.prize_pool:
+        if post.default_project.prize_pool and (
+            not post.default_project.close_date
+            or (post.default_project.close_date > timezone.now())
+        ):
             raise ValidationError(
                 "You cannot withdraw your prediction "
                 "on questions in tournaments with prize pools!"
