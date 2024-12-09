@@ -69,11 +69,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
   const prevYesAggregationValue =
     latestAggregationYes && !latestAggregationYes.end_time
-      ? latestAggregationYes.centers![0]
+      ? latestAggregationYes.centers?.[0]
       : null;
   const prevNoAggregationValue =
     latestAggregationNo && !latestAggregationNo.end_time
-      ? latestAggregationNo.centers![0]
+      ? latestAggregationNo.centers?.[0]
       : null;
 
   const [questionOptions, setQuestionOptions] = useState<
