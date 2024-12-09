@@ -1,14 +1,18 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import { sendGAEvent } from "@next/third-parties/google";
+import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import React, { useState, useEffect, useCallback } from "react";
+
 import SearchInput from "@/components/search_input";
-import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
-import { encodeQueryParams } from "@/utils/navigation";
+import {
+  POST_ORDER_BY_FILTER,
+  POST_TEXT_SEARCH_FILTER,
+} from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
-import { sendGAEvent } from "@next/third-parties/google";
-import useDebounce from "@/hooks/use_debounce";
-import { debounce } from "lodash";
+import { QuestionOrder } from "@/types/question";
+import { encodeQueryParams } from "@/utils/navigation";
 
 interface GlobalSearchProps {
   className?: string;
@@ -54,7 +58,10 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
     onSubmit?.();
     router.push(
       `/questions` +
-        encodeQueryParams({ [POST_TEXT_SEARCH_FILTER]: searchQuery })
+        encodeQueryParams({
+          [POST_TEXT_SEARCH_FILTER]: searchQuery,
+          [POST_ORDER_BY_FILTER]: QuestionOrder.RankDesc,
+        })
     );
   };
 
