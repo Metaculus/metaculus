@@ -19,7 +19,7 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
-import { Resolution } from "@/types/post";
+import { QuestionStatus, Resolution } from "@/types/post";
 import {
   QuestionType,
   QuestionWithNumericForecasts,
@@ -839,8 +839,19 @@ export function generateChoiceItemsFromGroupQuestions(
 
   const choiceItems: ChoiceItem[] = questions.map((question, index) => {
     const label = question.label;
-    const aggregationHistory = question.aggregations.recency_weighted.history;
     const userHistory = question.my_forecasts?.history;
+
+    const closeTime = Math.min(
+      new Date(question.scheduled_close_time).getTime(),
+      new Date(
+        question.actual_resolve_time ?? question.scheduled_resolve_time
+      ).getTime()
+    );
+
+    const aggregationHistory =
+      question.aggregations.recency_weighted.history.filter((forecast) => {
+        return forecast.start_time * 1000 < closeTime;
+      });
 
     const aggregationTimestamps: number[] = [];
     aggregationHistory.forEach((forecast) => {
@@ -849,6 +860,14 @@ export function generateChoiceItemsFromGroupQuestions(
         aggregationTimestamps.push(forecast.end_time);
       }
     });
+
+    if (
+      question.status === QuestionStatus.RESOLVED ||
+      question.status === QuestionStatus.CLOSED
+    ) {
+      aggregationTimestamps.push(closeTime / 1000);
+    }
+
     const sortedAggregationTimestamps = uniq(aggregationTimestamps).sort(
       (a, b) => a - b
     );
@@ -913,12 +932,7 @@ export function generateChoiceItemsFromGroupQuestions(
       displayedResolution: !!question.resolution
         ? formatResolution(question.resolution, question.type, locale ?? "en")
         : null,
-      closeTime: Math.min(
-        new Date(question.scheduled_close_time).getTime(),
-        new Date(
-          question.actual_resolve_time ?? question.scheduled_resolve_time
-        ).getTime()
-      ),
+      closeTime,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,
