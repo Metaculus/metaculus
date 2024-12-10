@@ -1,5 +1,6 @@
 "use client";
 import classNames from "classnames";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
@@ -7,7 +8,7 @@ import CPRevealTime from "@/components/charts/cp_reveal_time";
 import NumericChart from "@/components/charts/numeric_chart";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { Question } from "@/types/question";
+import { AggregateForecastHistory, Question } from "@/types/question";
 import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
@@ -30,9 +31,31 @@ const NumericChartCard: FC<Props> = ({
 
   const [isChartReady, setIsChartReady] = useState(false);
 
-  const aggregate = question.aggregations.recency_weighted;
+  const aggregation = question.aggregations.recency_weighted;
 
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+
+  const getCursorForecast = (
+    cursorTimestamp: number | null | undefined,
+    aggregation: AggregateForecastHistory
+  ) => {
+    let forecastIndex: number = -1;
+    if (!isNil(cursorTimestamp)) {
+      forecastIndex = aggregation.history.findIndex(
+        (f) =>
+          cursorTimestamp !== null &&
+          f.start_time <= cursorTimestamp &&
+          (f.end_time === null || f.end_time > cursorTimestamp)
+      );
+    } else if (
+      cursorTimestamp === null &&
+      isNil(aggregation.latest?.end_time)
+    ) {
+      forecastIndex = aggregation.history.length - 1;
+    }
+    return forecastIndex === -1 ? null : aggregation.history[forecastIndex];
+  };
+
   const cursorData = useMemo(() => {
     if (!isCPRevealed) {
       return {
@@ -43,45 +66,33 @@ const NumericChartCard: FC<Props> = ({
         interval_upper_bound: null,
       };
     }
-    const index = aggregate.history.findIndex(
-      (f) => f.start_time === cursorTimestamp
-    );
+    const forecast = getCursorForecast(cursorTimestamp, aggregation);
 
-    const forecast =
-      index === -1
-        ? aggregate.history[aggregate.history.length - 1]
-        : aggregate.history[index];
     let timestamp = cursorTimestamp;
-    const lastAggregate = aggregate.history[aggregate.history.length - 1];
     if (
-      lastAggregate &&
       timestamp === null &&
       question.my_forecasts?.latest?.start_time &&
-      lastAggregate.start_time < question.my_forecasts.latest.start_time
+      !question.my_forecasts?.latest?.end_time &&
+      forecast &&
+      forecast.start_time < question.my_forecasts.latest.start_time
     ) {
       timestamp = question.my_forecasts.latest.start_time;
       return {
         timestamp,
-        forecasterCount: forecast.forecaster_count,
-        interval_lower_bound: forecast.interval_lower_bounds![0],
-        center: forecast.centers![0],
-        interval_upper_bound: forecast.interval_upper_bounds![0],
+        forecasterCount: forecast?.forecaster_count ?? 0,
+        interval_lower_bound: forecast?.interval_lower_bounds![0],
+        center: forecast?.centers![0],
+        interval_upper_bound: forecast?.interval_upper_bounds![0],
       };
     }
     return {
-      timestamp: forecast.start_time ?? cursorTimestamp,
-      forecasterCount: forecast.forecaster_count,
-      interval_lower_bound: forecast.interval_lower_bounds![0],
-      center: forecast.centers![0],
-      interval_upper_bound: forecast.interval_upper_bounds![0],
+      timestamp: forecast?.start_time ?? cursorTimestamp,
+      forecasterCount: forecast?.forecaster_count ?? 0,
+      interval_lower_bound: forecast?.interval_lower_bounds![0],
+      center: forecast?.centers![0],
+      interval_upper_bound: forecast?.interval_upper_bounds![0],
     };
-  }, [
-    cursorTimestamp,
-    aggregate.history,
-    question.my_forecasts,
-    isCPRevealed,
-    nrForecasters,
-  ]);
+  }, [isCPRevealed, cursorTimestamp, nrForecasters]);
 
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
@@ -149,11 +160,17 @@ const NumericChartCard: FC<Props> = ({
         {!hideCP && isCPRevealed && (
           <CursorDetailItem
             title={t("communityPredictionLabel")}
-            text={getDisplayValue(
-              cursorData?.center,
-              question.type,
-              question.scaling
-            )}
+            text={getDisplayValue({
+              value: cursorData?.center,
+              questionType: question.type,
+              scaling: question.scaling,
+              range: cursorData?.interval_lower_bound
+                ? [
+                    cursorData!.interval_lower_bound as number,
+                    cursorData!.interval_upper_bound as number,
+                  ]
+                : [],
+            })}
             variant="prediction"
           />
         )}
@@ -164,7 +181,8 @@ const NumericChartCard: FC<Props> = ({
               question.my_forecasts,
               cursorData.timestamp,
               question.type,
-              question.scaling
+              question.scaling,
+              true
             )}
             variant="my-prediction"
           />

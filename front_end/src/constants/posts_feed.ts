@@ -2,6 +2,7 @@ export enum FeedType {
   HOME = "home",
   MY_PREDICTIONS = "my_predictions",
   MY_QUESTIONS_AND_POSTS = "my_questions_and_posts",
+  FOLLOWING = "following",
   IN_REVIEW = "in_review",
   COMMUNITIES = "communities",
 }
@@ -14,6 +15,7 @@ export const POST_STATUS_FILTER = "status";
 export const POST_CATEGORIES_FILTER = "categories";
 export const POST_TAGS_FILTER = "tags";
 export const POST_FORECASTER_ID_FILTER = "forecaster_id";
+export const POST_WITHDRAWN_FILTER = "withdrawn";
 export const POST_NOT_FORECASTER_ID_FILTER = "not_forecaster_id";
 export const POST_FOLLOWING_FILTER = "following";
 export const POST_FOR_MAIN_FEED = "for_main_feed";

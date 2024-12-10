@@ -87,15 +87,15 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
   const prevForecastValuesMap = useMemo(
     () =>
-      questions.reduce<Record<number, number | null>>(
-        (acc, question) => ({
+      questions.reduce<Record<number, number | null>>((acc, question) => {
+        const latest = question.my_forecasts?.latest;
+        return {
           ...acc,
           [question.id]: extractPrevBinaryForecastValue(
-            question.my_forecasts?.latest?.forecast_values[1]
+            latest && !latest.end_time ? latest.forecast_values[1] : null
           ),
-        }),
-        {}
-      ),
+        };
+      }, {}),
     [questions]
   );
   const hasUserForecast = useMemo(
@@ -325,11 +325,11 @@ function generateChoiceOptions(
   post?: Post
 ): QuestionOption[] {
   return questions.map((question, index) => {
+    const latest = question.aggregations.recency_weighted.latest;
     return {
       id: question.id,
       name: question.label,
-      communityForecast:
-        question.aggregations.recency_weighted.latest?.centers![0] ?? null,
+      communityForecast: latest && !latest.end_time ? latest.centers![0] : null,
       forecast: prevForecastValuesMap[question.id] ?? null,
       resolution: question.resolution,
       isDirty: false,

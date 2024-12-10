@@ -28,7 +28,6 @@ export enum QuestionOrder {
   HotAsc = "hotness",
   RankDesc = "-rank",
   CreatedDesc = "-created_at",
-  Following = "true", // used for main feed shortcut and filters popup
 }
 
 export type Scaling = {
@@ -210,6 +209,7 @@ export type Question = {
   open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
+  withdraw_permitted?: boolean; // Feature Flag: prediction-withdrawal
 };
 
 export type QuestionWithNumericForecasts = Question & {

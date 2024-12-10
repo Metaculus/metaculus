@@ -7,6 +7,7 @@ import {
   CursorCoordinatesPropType,
   DomainTuple,
   LineSegment,
+  PointProps,
   VictoryArea,
   VictoryAxis,
   VictoryChart,
@@ -56,6 +57,7 @@ type Props = {
   withZoomPicker?: boolean;
   height?: number;
   yLabel?: string;
+  hideCP?: boolean;
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
   extraTheme?: VictoryThemeDefinition;
@@ -74,10 +76,10 @@ const MultipleChoiceChart: FC<Props> = ({
   withZoomPicker = false,
   height = 150,
   yLabel,
+  hideCP,
   onCursorChange,
   onChartReady,
   extraTheme,
-  userForecasts,
   questionType,
   scaling,
   isClosed,
@@ -118,6 +120,7 @@ const MultipleChoiceChart: FC<Props> = ({
         actualCloseTime,
         aggregation,
         extraTheme,
+        hideCP,
       }),
     [
       timestamps,
@@ -130,6 +133,7 @@ const MultipleChoiceChart: FC<Props> = ({
       actualCloseTime,
       aggregation,
       extraTheme,
+      hideCP,
     ]
   );
   const isHighlightActive = useMemo(
@@ -185,6 +189,7 @@ const MultipleChoiceChart: FC<Props> = ({
       }}
     />
   );
+
   return (
     <ChartContainer
       ref={chartContainerRef}
@@ -282,28 +287,22 @@ const MultipleChoiceChart: FC<Props> = ({
             );
           })}
 
-          {userForecasts?.map((question) => {
-            return (
+          {graphs.map(({ active, scatter, color, highlighted }, index) =>
+            active && (!isHighlightActive || highlighted) ? (
               <VictoryScatter
-                key={question.choice}
-                data={
-                  question.values
-                    ? question.values.map((value, index) => ({
-                        y: value,
-                        x: question.timestamps?.[index],
-                      }))
-                    : []
-                }
+                key={`multiple-choice-scatter-${index}`}
+                data={scatter}
+                dataComponent={<PredictionSymbol />}
                 style={{
                   data: {
-                    stroke: getThemeColor(question.color),
+                    stroke: getThemeColor(color),
                     fill: "none",
                     strokeWidth: 2,
                   },
                 }}
               />
-            );
-          })}
+            ) : null
+          )}
 
           <VictoryAxis
             dependentAxis
@@ -340,6 +339,7 @@ const MultipleChoiceChart: FC<Props> = ({
 export type ChoiceGraph = {
   line: Line;
   area?: Area;
+  scatter?: Line;
   resolutionPoint?: {
     x?: number;
     y: number;
@@ -365,6 +365,7 @@ function buildChartData({
   scaling,
   aggregation,
   extraTheme,
+  hideCP,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -376,10 +377,19 @@ function buildChartData({
   scaling?: Scaling;
   aggregation?: boolean;
   extraTheme?: VictoryThemeDefinition;
+  hideCP?: boolean;
 }): ChartData {
+  const closeTimes = choiceItems
+    .map(({ closeTime }) => closeTime)
+    .filter((t) => t !== undefined);
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
-    : Date.now() / 1000;
+    : closeTimes.length === choiceItems.length
+      ? Math.min(
+          Math.max(...closeTimes.map((t) => t! / 1000)),
+          Date.now() / 1000
+        )
+      : Date.now() / 1000;
   const xDomain = aggregation
     ? generateNumericDomain([...timestamps], zoom)
     : generateNumericDomain([...timestamps, latestTimestamp], zoom);
@@ -387,33 +397,126 @@ function buildChartData({
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
       choice,
-      values,
-      minValues,
-      maxValues,
+      aggregationTimestamps,
+      aggregationValues,
+      aggregationMinValues,
+      aggregationMaxValues,
+      userTimestamps,
+      userValues,
+      userMaxValues,
+      userMinValues,
       color,
       active,
       highlighted,
-      timestamps: choiceTimestamps,
       closeTime,
       resolution,
-      rangeMin,
-      rangeMax,
       scaling: choiceScaling,
     }) => {
-      const actualTimestamps = choiceTimestamps ?? timestamps;
+      const rescale = (val: number) => {
+        if (scaling) {
+          return unscaleNominalLocation(
+            scaleInternalLocation(val, choiceScaling!),
+            scaling
+          );
+        }
+        return val;
+      };
+
+      const scatter: Line = [];
+      const line: Line = [];
+      const area: Area = [];
+
+      userTimestamps.forEach((timestamp, timestampIndex) => {
+        const userValue = userValues[timestampIndex];
+        const userMaxValue = userMaxValues
+          ? userMaxValues[timestampIndex]
+          : null;
+        const userMinValue = userMinValues
+          ? userMinValues[timestampIndex]
+          : null;
+        // build user scatter points
+        if (
+          !scatter.length ||
+          userValue ||
+          scatter[scatter.length - 1].y === null
+        ) {
+          // we are either starting or have a real value or previous value is null
+          scatter.push({
+            x: timestamp,
+            y: userValue ? rescale(userValue) : null,
+            y1: userMinValue ? rescale(userMinValue) : null,
+            y2: userMaxValue ? rescale(userMaxValue) : null,
+            symbol: "circle",
+          });
+        } else {
+          // we have a null vlalue while previous was real
+          scatter.push({
+            x: timestamp,
+            y: scatter[scatter.length - 1].y,
+            y1: scatter[scatter.length - 1].y1,
+            y2: scatter[scatter.length - 1].y2,
+            symbol: "x",
+          });
+          scatter.push({
+            x: timestamp,
+            y: null,
+            y1: null,
+            y2: null,
+            symbol: "circle",
+          });
+        }
+      });
+      if (!hideCP) {
+        aggregationTimestamps.forEach((timestamp, timestampIndex) => {
+          const aggregationValue = aggregationValues[timestampIndex];
+          const aggregationMinValue = aggregationMinValues[timestampIndex];
+          const aggregationMaxValue = aggregationMaxValues[timestampIndex];
+          // build line and area (CP data)
+          if (
+            !line.length ||
+            aggregationValue ||
+            line[line.length - 1].y === null
+          ) {
+            // we are either starting or have a real value or previous value is null
+            line.push({
+              x: timestamp,
+              y: aggregationValue ? rescale(aggregationValue) : null,
+            });
+            area.push({
+              x: timestamp,
+              y: aggregationMaxValue ? rescale(aggregationMaxValue) : null,
+              y0: aggregationMinValue ? rescale(aggregationMinValue) : null,
+            });
+          } else {
+            // we have a null vlalue while previous was real
+            line.push({
+              x: timestamp,
+              y: line[line.length - 1].y,
+            });
+            area.push({
+              x: timestamp,
+              y: area[area.length - 1].y,
+              y0: area[area.length - 1].y0,
+            });
+            line.push({
+              x: timestamp,
+              y: null,
+            });
+            area.push({
+              x: timestamp,
+              y: null,
+              y0: null,
+            });
+          }
+        });
+      }
 
       const item: ChoiceGraph = {
         choice,
         color,
-        line: actualTimestamps.map((timestamp, timestampIndex) => ({
-          x: timestamp,
-          y: scaling
-            ? unscaleNominalLocation(
-                scaleInternalLocation(values[timestampIndex], choiceScaling!),
-                scaling
-              )
-            : values[timestampIndex] ?? 0,
-        })),
+        line: line,
+        area: area,
+        scatter: scatter,
         active,
         highlighted,
       };
@@ -422,38 +525,20 @@ function buildChartData({
           x: closeTime ? closeTime / 1000 : latestTimestamp,
           y: item.line.at(-1)!.y,
         });
-      }
-
-      if (minValues && maxValues) {
-        item.area = actualTimestamps.map((timestamp, timestampIndex) => ({
-          x: timestamp,
-          y: scaling
-            ? unscaleNominalLocation(
-                scaleInternalLocation(
-                  maxValues[timestampIndex],
-                  choiceScaling!
-                ),
-                scaling
-              )
-            : values[timestampIndex] ?? 0,
-          y0: scaling
-            ? unscaleNominalLocation(
-                scaleInternalLocation(
-                  minValues[timestampIndex],
-                  choiceScaling!
-                ),
-                scaling
-              )
-            : values[timestampIndex] ?? 0,
-        }));
+        item.area!.push({
+          x: closeTime ? closeTime / 1000 : latestTimestamp,
+          y: item.area!.at(-1)!.y,
+          y0: item.area!.at(-1)!.y0,
+        });
       }
 
       if (!isNil(resolution)) {
+        const resolveTime = closeTime ? closeTime / 1000 : latestTimestamp;
         if (resolution === choice) {
           // multiple choice case
           item.resolutionPoint = {
-            x: closeTime ? closeTime / 1000 : latestTimestamp,
-            y: rangeMax ?? 1,
+            x: resolveTime,
+            y: 1,
           };
         }
 
@@ -464,15 +549,7 @@ function buildChartData({
         ) {
           // binary group and out of borders cases
           item.resolutionPoint = {
-            x: Math.min(
-              Math.max(
-                closeTime
-                  ? closeTime / 1000
-                  : actualTimestamps[actualTimestamps.length - 1],
-                actualTimestamps[actualTimestamps.length - 1]
-              ),
-              latestTimestamp
-            ),
+            x: resolveTime,
             y:
               resolution === "no" || resolution === "below_lower_bound" ? 0 : 1,
           };
@@ -481,15 +558,7 @@ function buildChartData({
         if (isFinite(Number(resolution))) {
           // continuous group case
           item.resolutionPoint = {
-            x: Math.min(
-              Math.max(
-                closeTime
-                  ? closeTime / 1000
-                  : actualTimestamps[actualTimestamps.length - 1],
-                actualTimestamps[actualTimestamps.length - 1]
-              ),
-              latestTimestamp
-            ),
+            x: resolveTime,
             y: scaling
               ? unscaleNominalLocation(Number(resolution), scaling)
               : Number(resolution) ?? 0,
@@ -518,5 +587,53 @@ function buildChartData({
 
   return { xScale, yScale, graphs, xDomain };
 }
+
+// Define a custom "X" symbol function
+const PredictionSymbol: React.FC<PointProps> = (props: PointProps) => {
+  const { x, y, datum, size, style } = props;
+  if (
+    typeof x !== "number" ||
+    typeof y !== "number" ||
+    typeof size !== "number"
+  ) {
+    return null;
+  }
+  const symbol = datum.symbol;
+  const stroke = style.stroke;
+
+  if (symbol === "x") {
+    return (
+      <g>
+        <line
+          x1={x - size}
+          y1={y - size}
+          x2={x + size}
+          y2={y + size}
+          stroke={stroke}
+          strokeWidth={2}
+        />
+        <line
+          x1={x - size}
+          y1={y + size}
+          x2={x + size}
+          y2={y - size}
+          stroke={stroke}
+          strokeWidth={2}
+        />
+      </g>
+    );
+  }
+
+  return (
+    <circle
+      cx={x}
+      cy={y}
+      r={size}
+      stroke={stroke}
+      fill={"none"}
+      strokeWidth={2}
+    />
+  );
+};
 
 export default memo(MultipleChoiceChart);

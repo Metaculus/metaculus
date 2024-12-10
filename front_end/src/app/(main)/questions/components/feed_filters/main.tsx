@@ -10,17 +10,20 @@ import {
 } from "@/app/(main)/questions/helpers/filters";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
-import { POST_STATUS_FILTER } from "@/constants/posts_feed";
+import {
+  POST_FOLLOWING_FILTER,
+  POST_STATUS_FILTER,
+} from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
 type Props = {
-  forFeedHome?: boolean;
+  following?: boolean;
 };
 
-const MainFeedFilters: FC<Props> = ({ forFeedHome = true }) => {
+const MainFeedFilters: FC<Props> = ({ following }) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
@@ -57,20 +60,12 @@ const MainFeedFilters: FC<Props> = ({ forFeedHome = true }) => {
         value: QuestionOrder.WeeklyMovementDesc,
         label: t("movers"),
       },
-      ...(forFeedHome && user
-        ? [
-            {
-              value: QuestionOrder.Following,
-              label: t("followed"),
-            },
-          ]
-        : []),
       {
         value: QuestionOrder.PublishTimeDesc,
         label: t("new"),
       },
     ],
-    [t, forFeedHome]
+    [t]
   );
 
   const sortOptions = useMemo(
@@ -95,6 +90,10 @@ const MainFeedFilters: FC<Props> = ({ forFeedHome = true }) => {
       withNavigation?: boolean
     ) => void
   ) => {
+    if (following) {
+      setFilterParam(POST_FOLLOWING_FILTER, "true", false);
+    }
+
     if (
       [
         QuestionOrder.ActivityDesc,
@@ -114,6 +113,7 @@ const MainFeedFilters: FC<Props> = ({ forFeedHome = true }) => {
       sortOptions={sortOptions}
       onOrderChange={onOrderChange}
       defaultOrder={QuestionOrder.HotDesc}
+      showRandomButton
     />
   );
 };

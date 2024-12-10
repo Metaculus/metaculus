@@ -154,7 +154,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         ):
             return QuestionStatus.RESOLVED
 
-        if self.actual_close_time and self.actual_close_time <= now:
+        if self.scheduled_close_time <= now or (
+            self.actual_close_time and self.actual_close_time <= now
+        ):
             return QuestionStatus.CLOSED
 
         return QuestionStatus.OPEN
@@ -292,6 +294,19 @@ class Forecast(models.Model):
         editable=False,
         blank=False,
         related_name="forecasts",
+    )
+
+    class SourceChoices(models.TextChoices):
+        API = "api"
+        UI = "ui"
+
+    # logging the source of the forecast for data purposes
+    source = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        choices=SourceChoices.choices,
+        default="",
     )
 
     slider_values = models.JSONField(null=True)

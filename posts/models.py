@@ -155,6 +155,18 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def annotate_has_active_forecast(self, author_id: int):
+        """
+        Annotates if user has active forecast for post
+        """
+        return self.annotate(
+            has_active_forecast=Exists(
+                Forecast.objects.filter(
+                    post_id=OuterRef("pk"), author_id=author_id, end_time__isnull=True
+                )
+            )
+        )
+
     def annotate_user_is_following(self, user: User):
         """
         Annotate with a boolean flag representing whether the user

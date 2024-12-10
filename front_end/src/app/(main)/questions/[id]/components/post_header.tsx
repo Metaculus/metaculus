@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { useContentTranslatedBannerProvider } from "@/app/providers";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions/";
+import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Button from "@/components/ui/button";
 import {
   PostStatus,
@@ -16,7 +17,6 @@ import {
 import { TournamentType } from "@/types/projects";
 
 import PostApprovalModal from "./post_approval_modal";
-import PostSubscribeButton from "./subscribe_button";
 import { draftPost, submitPostForReview } from "../../actions";
 
 export default function PostHeader({
@@ -83,7 +83,7 @@ export default function PostHeader({
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row gap-3 pt-4">
+      <div className="flex flex-row gap-3">
         <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
           {typeLabel}
         </span>

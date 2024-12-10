@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("add_posts_to_main_feed", models.BooleanField(default=False)),
@@ -172,7 +172,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
             ],
@@ -198,7 +198,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 (

@@ -17,14 +17,11 @@ const InfoToggle: FC<PropsWithChildren<Props>> = ({ title, children }) => {
       {({ open }) => (
         <div
           className={classNames(
-            "relative my-4 border border-gray-300 dark:border-gray-300-dark",
-            open
-              ? ""
-              : "border-b-transparent border-l-transparent border-r-transparent"
+            "relative border-t border-gray-300 py-4 dark:border-gray-300-dark"
           )}
         >
-          <DisclosureButton className="absolute -top-[8.5px] left-0 flex h-4 w-full pl-5">
-            <legend className="bg-gray-0 px-1 text-sm leading-4 text-gray-600 dark:bg-gray-0-dark dark:text-gray-600-dark">
+          <DisclosureButton className="flex w-full pl-5">
+            <legend className="px-1 text-sm leading-4 text-gray-600 dark:text-gray-600-dark">
               <svg
                 viewBox="-6 -6 12 12"
                 width="1em"

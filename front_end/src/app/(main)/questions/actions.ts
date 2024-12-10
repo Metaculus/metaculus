@@ -14,7 +14,10 @@ import CommentsApi, {
 } from "@/services/comments";
 import PostsApi, { ApprovePostParams, PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
-import QuestionsApi, { ForecastPayload } from "@/services/questions";
+import QuestionsApi, {
+  ForecastPayload,
+  WithdrawalPayload,
+} from "@/services/questions";
 import { FetchError } from "@/types/fetch";
 import { PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
@@ -47,6 +50,10 @@ export async function fetchPosts(
     limit,
   });
   return { questions: response.results, count: response.count };
+}
+
+export async function fetchRandomPostId() {
+  return await PostsApi.getRandomPostId();
 }
 
 export async function fetchEmbedPosts(search: string) {
@@ -114,6 +121,21 @@ export async function createForecasts(
 ) {
   try {
     const response = await QuestionsApi.createForecasts(forecasts);
+    revalidate && revalidatePath(`/questions/${postId}`);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return error.data;
+  }
+}
+
+export async function withdrawForecasts(
+  postId: number,
+  withdrawals: WithdrawalPayload[],
+  revalidate = true
+) {
+  try {
+    const response = await QuestionsApi.withdrawForecasts(withdrawals);
     revalidate && revalidatePath(`/questions/${postId}`);
   } catch (err) {
     const error = err as FetchError;

@@ -57,8 +57,8 @@ def check_profile_update_for_spam(
     duration = end_time - start_time
 
     if idenficated_as_spam:
-        logger.warning(
-            f"User {user.username} was soft deleted for spam bio: {bio_plus_website[:100]}... "
+        logger.info(
+            f"User: {user.username} ID: {user.id} was soft deleted for spam bio: {bio_plus_website[:100]}... "
             f"The reason was: {reasoning[:100]}... "
             f"It took {duration:.2f} seconds to check. gpt_was_used: {gpt_was_used}"
         )

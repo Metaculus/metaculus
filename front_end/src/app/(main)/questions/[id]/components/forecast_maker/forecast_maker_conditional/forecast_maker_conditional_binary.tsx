@@ -4,10 +4,14 @@ import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
@@ -26,8 +30,6 @@ type Props = {
   postId: number;
   postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
-  prevYesForecast?: any;
-  prevNoForecast?: any;
   canPredict: boolean;
   predictionMessage: ReactNode;
   projects: Post["projects"];
@@ -37,8 +39,6 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   postId,
   postTitle,
   conditional,
-  prevYesForecast,
-  prevNoForecast,
   canPredict,
   predictionMessage,
   projects,
@@ -47,13 +47,34 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const { user } = useAuth();
   const { hideCP } = useHideCP();
 
-  const prevYesForecastValue = extractPrevBinaryForecastValue(prevYesForecast);
-  const prevNoForecastValue = extractPrevBinaryForecastValue(prevNoForecast);
-  const hasUserForecast = !!prevYesForecastValue || !!prevNoForecastValue;
-
   const { condition, condition_child, question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
+
+  const latestYes = question_yes.my_forecasts?.latest;
+  const latestNo = question_no.my_forecasts?.latest;
+  const prevYesForecastValue =
+    latestYes && !latestYes.end_time
+      ? extractPrevBinaryForecastValue(latestYes.forecast_values[1])
+      : null;
+  const prevNoForecastValue =
+    latestNo && !latestNo.end_time
+      ? extractPrevBinaryForecastValue(latestNo.forecast_values[1])
+      : null;
+  const hasUserForecast = !!prevYesForecastValue || !!prevNoForecastValue;
+
+  const latestAggregationYes =
+    question_yes.aggregations?.recency_weighted.latest;
+  const latestAggregationNo = question_no.aggregations?.recency_weighted.latest;
+
+  const prevYesAggregationValue =
+    latestAggregationYes && !latestAggregationYes.end_time
+      ? latestAggregationYes.centers?.[0]
+      : null;
+  const prevNoAggregationValue =
+    latestAggregationNo && !latestAggregationNo.end_time
+      ? latestAggregationNo.centers?.[0]
+      : null;
 
   const [questionOptions, setQuestionOptions] = useState<
     Array<
@@ -67,16 +88,14 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       name: t("ifYes"),
       value: prevYesForecastValue,
       isDirty: false,
-      communitiesForecast:
-        question_yes.aggregations.recency_weighted.latest?.centers![0],
+      communitiesForecast: prevYesAggregationValue,
     },
     {
       id: questionNoId,
       name: t("ifNo"),
       value: prevNoForecastValue,
       isDirty: false,
-      communitiesForecast:
-        question_no.aggregations.recency_weighted.latest?.centers![0],
+      communitiesForecast: prevNoAggregationValue,
     },
   ]);
   const [activeTableOption, setActiveTableOption] = useState(
@@ -218,7 +237,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     questionsToSubmit.forEach((q) => {
       sendGAConditionalPredictEvent(
         projects,
-        q.id === questionYesId ? !!prevYesForecast : !!prevNoForecast,
+        q.id === questionYesId ? !!prevYesForecastValue : !!prevNoForecastValue,
         hideCP
       );
     });
@@ -237,6 +256,33 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       setSubmitErrors(errors);
     }
   };
+
+  const handlePredictWithdraw = async () => {
+    setSubmitErrors([]);
+
+    if (!prevYesForecastValue && !prevNoForecastValue) return;
+
+    const response = await withdrawForecasts(postId, [
+      ...(prevYesForecastValue ? [{ question: questionYesId }] : []),
+      ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
+    ]);
+    setQuestionOptions((prev) =>
+      prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
+    );
+
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitErrors(errors);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
 
   return (
     <>
@@ -304,6 +350,18 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                 >
                   {t("discardChangesButton")}
                 </Button>
+                {(!!prevYesForecastValue || !!prevNoForecastValue) &&
+                  question_yes.withdraw_permitted &&
+                  question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                    <Button
+                      variant="secondary"
+                      type="submit"
+                      disabled={withdrawalIsPending}
+                      onClick={withdraw}
+                    >
+                      {t("withdraw")}
+                    </Button>
+                  )}
               </>
             )}
 

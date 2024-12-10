@@ -5,8 +5,13 @@
             <h4>Here are some other questions you may be interested in:</h4>
             {% endblocktrans %}
         </mj-text>
+    </mj-column>
+</mj-section>
+<!-- {% for chunk in similar_posts|chunks:2 %} -->
+<mj-section background-color="#ffffff" padding-top="0px">
+    <!-- {% for post in chunk %} -->
+    <mj-column width="50%">
         <mj-text>
-            {% for post in similar_posts %}
             <div style="margin-bottom: 8px">
                 <a href="{% post_url post.id post.title %}">
                     {{ post.title }}
@@ -15,7 +20,8 @@
                     <img class="question_graph_img" src='{% build_question_graph_image_url post.id %}'/>
                 </a>
             </div>
-            {% endfor %}
         </mj-text>
     </mj-column>
+    <!-- {% endfor %} -->
 </mj-section>
+<!-- {% endfor %} -->

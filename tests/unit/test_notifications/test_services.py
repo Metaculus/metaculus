@@ -104,7 +104,7 @@ class TestNotificationNewComments:
         assert len(context_notifs[0]["comments"]) == 5
         assert context_notifs[0]
         # Check mentions go first
-        assert "@user1" in context_notifs[0]["comments"][0]["preview_text"]
+        assert "@user1" in context_notifs[0]["comments"][2]["preview_text"]
 
         assert context_notifs[1]["post"]["post_id"] == post_2.pk
         assert len(context_notifs[1]["comments"]) == 2

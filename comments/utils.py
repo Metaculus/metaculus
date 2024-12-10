@@ -8,7 +8,7 @@ from comments.models import Comment
 from users.models import User
 
 # Regex pattern to find all @<username> mentions
-USERNAME_PATTERN = r"@\(?(\w+)\)?"
+USERNAME_PATTERN = r"@\(?([\w.]+)\)?"
 
 
 def comment_extract_user_mentions(
@@ -72,3 +72,22 @@ def comments_extract_user_mentions_mapping(
                 comments_mapping[comment_id].append(user)
 
     return comments_mapping
+
+
+def get_mention_for_user(user: User, unique_mentions: Iterable[str]) -> str:
+    """
+    Extracts the approximate mention label for a given user.
+    This method is triggered when we know the user was mentioned in the comment body,
+    but we don’t have visibility into which mention was used.
+    While not ideal, this function attempts to guess the most likely and relevant mention type
+    that triggered the notification.
+    """
+
+    username = user.username.lower()
+    priority = [username, "predictors", "moderators", "curators", "admins"]
+
+    for mention in priority:
+        if mention in unique_mentions:
+            return mention
+
+    return username
