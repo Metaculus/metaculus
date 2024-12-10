@@ -191,7 +191,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
 
-            {!!previousForecast &&
+            {!!activeForecast &&
               question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
                 <Button
                   variant="secondary"
