@@ -867,6 +867,7 @@
   "RevealTemporarily": "Reveal Temporarily",
   "CPIsHidden": "Community Prediction is hidden",
   "createdByUserOnDate": "Created by {user} on {date}",
+  "edited": "edited",
   "tournamentShowPostsToMainFeed": "Show tournament posts in main feed",
   "tournamentHidePostsToMainFeed": "Hide tournament posts in main feed",
   "me": "me",
