@@ -1,17 +1,38 @@
 import "@github/relative-time-element";
-import { useLocale } from "next-intl";
-import { FC, useState, useEffect, useRef } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { FC, useMemo } from "react";
 
 import { CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
 export const CommentDate: FC<{ comment: CommentType }> = ({ comment }) => {
   const locale = useLocale();
+  const t = useTranslations();
+  const wasEdited = useMemo(
+    () =>
+      comment.edited_at &&
+      new Date(comment.created_at).getTime() !=
+        new Date(comment.edited_at).getTime(),
+    [comment.edited_at, comment.created_at]
+  );
+
   return (
     <a href={`#comment-${comment.id}`} className="no-underline opacity-55">
       <relative-time datetime={comment.created_at} format="relative">
         {formatDate(locale, new Date(comment.created_at))}
       </relative-time>
+      {wasEdited && (
+        <>
+          <span className="mx-1">·</span>
+          <span className="text-sm">
+            ({t("edited")}&nbsp;
+            <relative-time datetime={comment.edited_at} format="relative">
+              ({formatDate(locale, new Date(comment.edited_at))})
+            </relative-time>
+            )
+          </span>
+        </>
+      )}
     </a>
   );
 };

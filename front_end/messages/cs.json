@@ -745,6 +745,7 @@
   "deselectAll": "zrušit výběr všech",
   "forecastDataIsEmpty": "Údaje o prognóze jsou prázdné",
   "me": "mě",
+  "edited": "upraveno",
   "tournamentShowPostsToMainFeed": "Zobrazit turnajové příspěvky v hlavním kanálu",
   "tournamentHidePostsToMainFeed": "Skrýt turnajové příspěvky v hlavním kanálu",
   "forecastDisclaimer": "Na základě {predictionCount} předpovědí od {forecasterCount} prognostiků",
