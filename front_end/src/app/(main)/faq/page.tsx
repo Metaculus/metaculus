@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import MathJaxContent from "@/components/math_jax_content";
 
@@ -3256,7 +3257,8 @@ export default function FAQ() {
             What are Metaculus Pro Forecasters?
           </h3>
           <p>
-            For certain projects, Metaculus employs Pro Forecasters who have
+            For certain projects, Metaculus employs{" "}
+            <Link href={"/pro-forecasters"}>Pro Forecasters</Link> who have
             demonstrated excellent forecasting ability and who have a history of
             clearly describing their rationales. Pros forecast on private and
             public sets of questions to produce well-calibrated forecasts and

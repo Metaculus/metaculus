@@ -1,6 +1,17 @@
+import Link from "next/link";
 import { ReactNode } from "react";
 
 import { CategoryKey } from "@/types/scoring";
+
+const ProForecastersInfo: ReactNode = (
+  <div>
+    These leaderboards award medals to decorate valued members of the Metaculus
+    community. We also use these leaderboards to select Pro Forecasters.
+    <br />
+    Read more about becoming a Pro Forecaster{" "}
+    <Link href={"/pro-forecasters"}>here</Link>.
+  </div>
+);
 
 export const RANKING_CATEGORIES: Record<
   CategoryKey,
@@ -16,9 +27,13 @@ export const RANKING_CATEGORIES: Record<
     translationKey: "all",
     shortTranslationKey: "all",
     explanation: (
-      <span>
-        <a href="/help/medals-faq/">Learn more</a> about Metaculus Medals
-      </span>
+      <>
+        <span>
+          <Link href="/help/medals-faq/">Learn more</Link> about Metaculus
+          Medals
+        </span>
+        {ProForecastersInfo}
+      </>
     ),
   },
   baseline: {
@@ -26,14 +41,17 @@ export const RANKING_CATEGORIES: Record<
     translationKey: "baselineAccuracy",
     shortTranslationKey: "baselineAccuracyShort",
     explanation: (
-      <span>
-        <strong>Baseline Accuracy</strong> measures how accurate a user was
-        compared to chance. User scores are determined by summing their{" "}
-        <a href="/help/scores-faq/#baseline-score">Baseline scores</a> for all
-        questions within a time period. This category rewards forecasters who
-        are both accurate and forecast on many questions. Learn more{" "}
-        <a href="/help/medals-faq/#baseline-medals">here</a>.
-      </span>
+      <>
+        <span>
+          <strong>Baseline Accuracy</strong> measures how accurate a user was
+          compared to chance. User scores are determined by summing their{" "}
+          <Link href="/help/scores-faq/#baseline-score">Baseline scores</Link>{" "}
+          for all questions within a time period. This category rewards
+          forecasters who are both accurate and forecast on many questions.
+          Learn more <Link href="/help/medals-faq/#baseline-medals">here</Link>.
+        </span>
+        {ProForecastersInfo}
+      </>
     ),
   },
   peer: {
@@ -41,16 +59,20 @@ export const RANKING_CATEGORIES: Record<
     translationKey: "peerAccuracy",
     shortTranslationKey: "peerAccuracyShort",
     explanation: (
-      <span>
-        <strong>Peer Accuracy</strong> measures how accurate a user was compared
-        to others. Users are ranked by the sum of their{" "}
-        <a href="/help/scores-faq/#peer-score">Peer scores</a>, divided by the
-        sum of their <a href="/help/scores-faq/#coverage">Coverages</a>. This
-        creates a weighted average, where each prediction is counted
-        proportionally to how long it was standing. To reduce the impact of
-        luck, all forecasters start with a prior of 30 questions with a score of
-        0. Learn more <a href="/help/medals-faq/#peer-medals">here</a>.
-      </span>
+      <>
+        <span>
+          <strong>Peer Accuracy</strong> measures how accurate a user was
+          compared to others. Users are ranked by the sum of their{" "}
+          <Link href="/help/scores-faq/#peer-score">Peer scores</Link>, divided
+          by the sum of their{" "}
+          <Link href="/help/scores-faq/#coverage">Coverages</Link>. This creates
+          a weighted average, where each prediction is counted proportionally to
+          how long it was standing. To reduce the impact of luck, all
+          forecasters start with a prior of 30 questions with a score of 0.
+          Learn more <Link href="/help/medals-faq/#peer-medals">here</Link>.
+        </span>
+        {ProForecastersInfo}
+      </>
     ),
   },
   comments: {
@@ -58,14 +80,17 @@ export const RANKING_CATEGORIES: Record<
     translationKey: "comments",
     shortTranslationKey: "comments",
     explanation: (
-      <span>
-        The <strong>Comments</strong> category rewards writing insightful
-        comments determined by the number of upvotes. Medals are awarded
-        annually with rankings determined by an{" "}
-        <a href="/help/medals-faq/#h-indexes">h-index</a> to reward a balance of
-        both the # of comments and their quality. Learn more{" "}
-        <a href="/help/medals-faq/#comments-medals">here</a>.
-      </span>
+      <>
+        <span>
+          The <strong>Comments</strong> category rewards writing insightful
+          comments determined by the number of upvotes. Medals are awarded
+          annually with rankings determined by an{" "}
+          <Link href="/help/medals-faq/#h-indexes">h-index</Link> to reward a
+          balance of both the # of comments and their quality. Learn more{" "}
+          <Link href="/help/medals-faq/#comments-medals">here</Link>.
+        </span>
+        {ProForecastersInfo}
+      </>
     ),
   },
   questionWriting: {
@@ -73,14 +98,17 @@ export const RANKING_CATEGORIES: Record<
     translationKey: "questionWriting",
     shortTranslationKey: "questionWritingShort",
     explanation: (
-      <span>
-        The <strong>Question Writing</strong> category rewards authoring
-        engaging questions as determined by the number of forecasters divided by
-        ten. Medals are awarded annually with rankings determined by an{" "}
-        <a href="/help/medals-faq/#h-indexes">h-index</a> to reward a balance of
-        both the # of questions and their engagement. Learn more{" "}
-        <a href="/help/medals-faq/#question-writing-medals">here</a>.
-      </span>
+      <>
+        <span>
+          The <strong>Question Writing</strong> category rewards authoring
+          engaging questions as determined by the number of forecasters divided
+          by ten. Medals are awarded annually with rankings determined by an{" "}
+          <Link href="/help/medals-faq/#h-indexes">h-index</Link> to reward a
+          balance of both the # of questions and their engagement. Learn more{" "}
+          <Link href="/help/medals-faq/#question-writing-medals">here</Link>.
+        </span>
+        {ProForecastersInfo}
+      </>
     ),
   },
   tournament: {
