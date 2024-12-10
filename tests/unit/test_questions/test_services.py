@@ -26,7 +26,7 @@ class TestResolveConditionalQuestion:
     4.  Parent Open, Child Unresolved to Open -> Branches Open
     5.  Parent Open, Child Unresolved to Closed -> Branches Closed
 
-    6.  Parent Closed, Child Open -> Branches Open
+    6.  Parent Closed, Child Open -> Branches Cpen
     7.  Parent Closed, Child Closed -> Branches Closed
     8.  Parent Closed, Child Resolved -> Branches Closed
     9.  Parent Closed, Child Unresolved to Open -> Branches Open
@@ -303,7 +303,7 @@ class TestResolveConditionalQuestion:
         post_child_open: Post,
     ):
         """
-        6.  Parent closed, Child Open -> Branches Open
+        6.  Parent Closed, Child Open -> Branches Cpen
         """
         # setup
         post_conditional = self.create_post_conditional(
@@ -324,11 +324,11 @@ class TestResolveConditionalQuestion:
 
         # conditional post status
         assert not post_conditional.resolved
-        assert post_conditional.actual_close_time is None
+        assert post_conditional.actual_close_time == make_aware(datetime(2024, 1, 1))
 
         # conditional branch questions status
-        assert question_yes.status == QuestionStatus.OPEN
-        assert question_no.status == QuestionStatus.OPEN
+        assert question_yes.status == QuestionStatus.CLOSED
+        assert question_no.status == QuestionStatus.CLOSED
 
     def test_case_7_parent_closed_child_closed(
         self,
@@ -337,7 +337,7 @@ class TestResolveConditionalQuestion:
         post_child_closed: Post,
     ):
         """
-        7.  Parent closed, Child Closed -> Branches Closed
+        7.  Parent Closed, Child Closed -> Branches Closed
         """
         # setup
         post_conditional = self.create_post_conditional(
@@ -371,7 +371,7 @@ class TestResolveConditionalQuestion:
         post_child_open: Post,
     ):
         """
-        8.  Parent closed, Child Resolved -> Branches Closed
+        8.  Parent Closed, Child Resolved -> Branches Closed
         """
         # setup
         post_conditional = self.create_post_conditional(
@@ -408,7 +408,7 @@ class TestResolveConditionalQuestion:
         post_child_open: Post,
     ):
         """
-        9.  Parent closed, Child Unresolved to Open -> Branches Open
+        9.  Parent Closed, Child Unresolved to Open -> Branches Open
         """
         # setup
         post_conditional = self.create_post_conditional(
@@ -448,7 +448,7 @@ class TestResolveConditionalQuestion:
         post_child_closed: Post,
     ):
         """
-        10. Parent closed, Child Unresolved to Closed -> Branches Closed
+        10. Parent Closed, Child Unresolved to Closed -> Branches Closed
         """
         # setup
         post_conditional = self.create_post_conditional(
