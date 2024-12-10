@@ -29,13 +29,13 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
+                        editable=False
                     ),
                 ),
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("name", models.CharField(max_length=200, null=True)),
@@ -81,13 +81,13 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
+                        editable=False
                     ),
                 ),
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 (
@@ -170,13 +170,13 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
+                        editable=False
                     ),
                 ),
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 (
@@ -227,13 +227,13 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
+                        editable=False
                     ),
                 ),
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("calculated_on", models.DateTimeField(auto_now_add=True)),
@@ -258,13 +258,13 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
+                        editable=False
                     ),
                 ),
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 (

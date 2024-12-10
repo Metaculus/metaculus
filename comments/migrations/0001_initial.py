@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -25,15 +24,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "created_at",
-                    models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
-                    ),
+                    models.DateTimeField(editable=False),
                 ),
                 (
                     "edited_at",
-                    models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
-                    ),
+                    models.DateTimeField(editable=False, null=True),
                 ),
             ],
         ),
@@ -52,13 +47,13 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
+                        editable=False
                     ),
                 ),
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("is_soft_deleted", models.BooleanField(null=True)),
@@ -85,13 +80,13 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
+                        editable=False
                     ),
                 ),
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("text_diff", models.TextField()),
@@ -115,13 +110,13 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
+                        editable=False
                     ),
                 ),
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 (

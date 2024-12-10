@@ -1,23 +1,21 @@
 from collections.abc import Iterable
 
+from django.conf import settings
+from django.contrib import admin
+from django.contrib import messages
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, activate, get_language
-from django.conf import settings
-from django.contrib import admin
 
-from utils.types import DjangoModelType
-from django.contrib import messages
-
+from utils.tasks import update_translations
 from utils.translation import (
     get_translation_fields_for_model,
     build_supported_localized_fieldname,
     is_translation_dirty,
 )
-
-from utils.tasks import update_translations
+from utils.types import DjangoModelType
 
 
 class CustomTranslationAdmin(admin.ModelAdmin):
@@ -183,11 +181,25 @@ class TimeStampedModel(models.Model):
     ``created_on`` and ``modified_on`` fields.
     """
 
-    created_at = models.DateTimeField(default=timezone.now, editable=False)
-    edited_at = models.DateTimeField(default=timezone.now, editable=False, null=True)
+    created_at = models.DateTimeField(editable=False)
+    edited_at = models.DateTimeField(editable=False, null=True)
 
     class Meta:
         abstract = True
+
+    def save(self, *args, update_fields: list[str] = None, **kwargs):
+        if not self.created_at:
+            self.created_at = timezone.now()
+
+        # Ensure created_at and edited_at are equal upon creation
+        self.edited_at = timezone.now() if self.edited_at else self.created_at
+
+        # Ensure we include edited_at field
+        # If `update_fields` specified
+        if update_fields is not None:
+            update_fields = list(update_fields) + ["edited_at"]
+
+        return super().save(*args, update_fields=update_fields, **kwargs)
 
 
 validate_alpha_slug = RegexValidator(
