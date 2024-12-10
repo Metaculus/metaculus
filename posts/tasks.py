@@ -44,4 +44,7 @@ def run_notify_post_status_change(post_id: int, event: Post.PostStatusChange):
 
 @dramatiq.actor
 def run_post_indexing(post_id):
-    update_post_search_embedding_vector(Post.objects.get(pk=post_id))
+    try:
+        update_post_search_embedding_vector(Post.objects.get(pk=post_id))
+    except Post.DoesNotExist:
+        logger.warning(f"Post {post_id} does not exist")

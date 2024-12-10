@@ -34,7 +34,8 @@ const ConditionalChart: FC<Props> = ({
 }) => {
   const resolved = question.resolution !== null;
   const aggregate = question.aggregations.recency_weighted;
-  const userForecasts = question.my_forecasts;
+  const aggregateLatest = aggregate.latest;
+  const userLatest = question.my_forecasts?.latest;
   const isCPRevealed = question.cp_reveal_time
     ? new Date(question.cp_reveal_time) <= new Date()
     : true;
@@ -50,9 +51,15 @@ const ConditionalChart: FC<Props> = ({
   }
   switch (question.type) {
     case QuestionType.Binary: {
-      const pctCandidate = aggregate.latest?.centers![0];
+      const pctCandidate =
+        aggregateLatest && !aggregateLatest.end_time
+          ? aggregateLatest.centers![0]
+          : undefined;
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
-      const userForecast = userForecasts?.latest?.forecast_values[1];
+      const userForecast =
+        userLatest && !userLatest.end_time
+          ? userLatest.forecast_values[1]
+          : null;
       const userPct = userForecast ? Math.round(userForecast * 100) : null;
 
       const themeProgressColor = chartTheme?.line?.style?.data?.stroke;
@@ -66,9 +73,7 @@ const ConditionalChart: FC<Props> = ({
             renderLabel={(value) => {
               if (value === null) {
                 return (
-                  <div className="justify-center p-0 font-normal">
-                    No data yet
-                  </div>
+                  <div className="justify-center p-0 font-normal">No data</div>
                 );
               }
               if (hideCP) {
@@ -103,20 +108,34 @@ const ConditionalChart: FC<Props> = ({
       if (aggregate.history.length === 0) {
         return <div className="text-center text-xs">No data yet</div>;
       }
+      if (aggregateLatest && aggregateLatest.end_time) {
+        return <div className="text-center text-xs">No data</div>;
+      }
 
-      const prediction = aggregate.latest?.centers![0];
+      const prediction =
+        aggregateLatest && !aggregateLatest.end_time
+          ? aggregateLatest.centers![0]
+          : undefined;
       const formattedPrediction = prediction
-        ? getDisplayValue(prediction, question.type, question.scaling)
+        ? getDisplayValue({
+            value: prediction,
+            questionType: question.type,
+            scaling: question.scaling,
+          })
         : "";
 
-      const continuousAreaChartData = [
-        {
-          pmf: cdfToPmf(aggregate.latest!.forecast_values),
-          cdf: aggregate.latest!.forecast_values,
-          type: "community" as ContinuousAreaType,
-        },
-      ];
-      const prevForecast = userForecasts?.latest?.slider_values;
+      const continuousAreaChartData =
+        aggregateLatest && !aggregateLatest.end_time
+          ? [
+              {
+                pmf: cdfToPmf(aggregateLatest.forecast_values),
+                cdf: aggregateLatest.forecast_values,
+                type: "community" as ContinuousAreaType,
+              },
+            ]
+          : [];
+      const prevForecast =
+        userLatest && !userLatest.end_time ? userLatest.slider_values : null;
       const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
       const dataset =
         prevForecastValue?.forecast && prevForecastValue?.weights

@@ -49,7 +49,9 @@ const PostSubscribeSuccessModal: FC<Props> = ({
       label={
         post.group_of_questions
           ? t("followModalYouAreFollowingThisGroup")
-          : t("followModalYouAreFollowingThisQuestion")
+          : post.notebook
+            ? t("followModalYouAreFollowingThisNotebook")
+            : t("followModalYouAreFollowingThisQuestion")
       }
       isOpen={isOpen}
       onClose={onClose}
@@ -58,7 +60,9 @@ const PostSubscribeSuccessModal: FC<Props> = ({
         <p className="text-base leading-tight">
           {post.group_of_questions
             ? t("followModalSuccessMessageDefaultNotificationGroup")
-            : t("followModalSuccessMessageDefaultNotificationQuestion")}
+            : post.notebook
+              ? t("followModalSuccessMessageDefaultNotificationNotebook")
+              : t("followModalSuccessMessageDefaultNotificationQuestion")}
         </p>
         <div className="flex w-full justify-end">
           <div className="flex w-fit gap-2">

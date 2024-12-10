@@ -34,13 +34,20 @@ export const getDefaultSubscriptionProps = () =>
   }) as const;
 
 /**
- * Returns default subscription used when clicking "follow" button
+ * Returns default Notebook subscription used when clicking "follow" button
  */
-export const getInitialSubscriptions = (): PostSubscription[] => [
+export const getInitialNotebookSubscriptions = (): PostSubscription[] => [
   {
     type: PostSubscriptionType.NEW_COMMENTS,
     ...getDefaultSubscriptionProps()[PostSubscriptionType.NEW_COMMENTS],
   },
+];
+
+/**
+ * Returns default Question subscription used when clicking "follow" button
+ */
+export const getInitialQuestionSubscriptions = (): PostSubscription[] => [
+  ...getInitialNotebookSubscriptions(),
   {
     type: PostSubscriptionType.STATUS_CHANGE,
     ...getDefaultSubscriptionProps()[PostSubscriptionType.STATUS_CHANGE],

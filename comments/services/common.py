@@ -69,8 +69,9 @@ def create_comment(
     # Update comments read cache counter
     PostUserSnapshot.update_viewed_at(on_post, user)
 
-    # Send related notifications
-    if on_post:
+    # Send related notifications and update counters
+    # Only if comment is public
+    if on_post and not obj.is_private:
         on_post.update_comment_count()
         run_on_post_comment_create.send(obj.id)
 

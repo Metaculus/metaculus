@@ -147,7 +147,9 @@ def comment_create_api_view(request: Request):
 
     trigger_update_comment_translations(new_comment, force=False)
 
-    return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
+    return Response(
+        serialize_comment_many([new_comment])[0], status=status.HTTP_201_CREATED
+    )
 
 
 @api_view(["POST"])

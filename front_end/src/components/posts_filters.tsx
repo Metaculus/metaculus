@@ -26,6 +26,7 @@ import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
 
+import RandomButton from "./random_button";
 import VisibilityObserver from "./visibility_observer";
 
 type ActiveFilter = {
@@ -60,6 +61,7 @@ type Props = {
     ) => void
   ) => void;
   inputConfig?: { mode: "client" | "server"; debounceTime?: number };
+  showRandomButton?: boolean;
 };
 
 const PostsFilters: FC<Props> = ({
@@ -70,6 +72,7 @@ const PostsFilters: FC<Props> = ({
   onPopOverFilterChange,
   onOrderChange,
   inputConfig,
+  showRandomButton,
 }) => {
   const t = useTranslations();
   const {
@@ -148,7 +151,8 @@ const PostsFilters: FC<Props> = ({
   const handlePopOverFilterChange = (
     filterId: string,
     optionValue: string | string[] | null,
-    replaceInfo?: FilterReplaceInfo
+    replaceInfo?: FilterReplaceInfo,
+    extraValues?: Record<string, string>
   ) => {
     onPopOverFilterChange?.(
       { filterId, optionValue, replaceInfo },
@@ -163,7 +167,15 @@ const PostsFilters: FC<Props> = ({
         return;
       }
 
-      replaceParams(replaceIds, [{ name: optionId, value: optionValue }]);
+      replaceParams(replaceIds, [
+        { name: optionId, value: optionValue },
+        ...(extraValues
+          ? Object.entries(extraValues).map(([key, value]) => ({
+              name: key,
+              value,
+            }))
+          : []),
+      ]);
       return;
     }
 
@@ -208,16 +220,19 @@ const PostsFilters: FC<Props> = ({
             setIsVisible(v);
           }}
         >
-          <SearchInput
-            value={globalSearch}
-            onChange={(e) => {
-              debouncedGAEvent();
-              deleteParam(POST_PAGE_FILTER, true);
-              setGlobalSearch(e.target.value);
-            }}
-            onErase={eraseSearch}
-            placeholder={t("questionSearchPlaceholder")}
-          />
+          <div className="flex items-center gap-3">
+            <SearchInput
+              value={globalSearch}
+              onChange={(e) => {
+                debouncedGAEvent();
+                deleteParam(POST_PAGE_FILTER, true);
+                setGlobalSearch(e.target.value);
+              }}
+              onErase={eraseSearch}
+              placeholder={t("questionSearchPlaceholder")}
+            />
+            {showRandomButton && <RandomButton />}
+          </div>
         </VisibilityObserver>
         <div className="mx-0 my-3 flex flex-wrap items-center justify-between gap-2">
           <ButtonGroup

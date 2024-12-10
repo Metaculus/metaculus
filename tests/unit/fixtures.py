@@ -37,15 +37,21 @@ def create_client_for_user() -> Callable[[User | None], APIClient]:
 
 
 @pytest.fixture()
-def anon_client(create_client_for_user: Callable[[User | None], APIClient]) -> APIClient:
+def anon_client(
+    create_client_for_user: Callable[[User | None], APIClient]
+) -> APIClient:
     return create_client_for_user(None)
 
 
 @pytest.fixture
-def user1_client(create_client_for_user: Callable[[User | None], APIClient], user1: User) -> APIClient:
+def user1_client(
+    create_client_for_user: Callable[[User | None], APIClient], user1: User
+) -> APIClient:
     return create_client_for_user(user1)
 
 
 @pytest.fixture
-def user2_client(create_client_for_user: Callable[[User | None], APIClient], user2: User) -> APIClient:
+def user2_client(
+    create_client_for_user: Callable[[User | None], APIClient], user2: User
+) -> APIClient:
     return create_client_for_user(user2)

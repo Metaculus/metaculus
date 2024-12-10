@@ -382,6 +382,8 @@ components:
               type: string
               example: "num"
 
+
+
     Forecast:
       type: object
       oneOf:
@@ -502,6 +504,14 @@ components:
         oneOf:
           - $ref: '#/components/schemas/BinaryForecast'
           - $ref: '#/components/schemas/ContinuousForecast'
+
+    Withdrawal:
+      type: object
+      required:
+        - question
+      properties:
+        question:
+          type: integer
 
     Comment:
       type: object
@@ -1611,7 +1621,7 @@ paths:
                   - $ref: '#/components/schemas/ContinuousQuestionCSV'
   /api/questions/forecast/:
     post:
-      summary: Submit question forecasts
+      summary: Submit forecasts for questions
       description: This endpoint supports multiple simultaneous predictions, so the base object is a list of foreacsts.
         Pass one forecast object for single questions and multiple forecast objects for group of questions or conditional forecasts.
       tags:
@@ -1732,6 +1742,21 @@ paths:
           description: Forecasts submitted successfully
         '400':
           description: Invalid request format
+  /api/questions/withdraw/:
+    post:
+      summary: Withdraw current forecasts for questions
+      description: This endpoint supports multiple simultaneous withdrawals, so the base object is a list of withdrawals.
+        Pass one withdrawal object for single questions and multiple withdrawal objects for group of questions or conditional forecasts.
+      tags:
+        - Questions & Forecasts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Withdrawal'
   /api/comments/create/:
     post:
       summary: Create a new comment

@@ -11,6 +11,9 @@ export type FilterOption = {
   label: string;
   active: boolean;
   value: string;
+  // currently only supported by FilterOptionType.ToggleChip type
+  // TODO: revisit popup component to have more scalable solution for allowing multiple filters per option
+  extraValues?: Record<string, string>;
 };
 
 type BaseFilterSection = {

@@ -154,7 +154,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         ):
             return QuestionStatus.RESOLVED
 
-        if self.actual_close_time and self.actual_close_time < now:
+        if self.scheduled_close_time < now or (
+            self.actual_close_time and self.actual_close_time < now
+        ):
             return QuestionStatus.CLOSED
 
         return QuestionStatus.OPEN

@@ -36,7 +36,7 @@ const QuestionNumericTile: FC<Props> = ({
   const prediction = latest?.centers![0];
 
   const continuousAreaChartData = [];
-  if (latest) {
+  if (latest && !latest.end_time) {
     continuousAreaChartData.push({
       pmf: cdfToPmf(latest.forecast_values),
       cdf: latest.forecast_values,
@@ -45,7 +45,7 @@ const QuestionNumericTile: FC<Props> = ({
   }
 
   const userForecast = question.my_forecasts?.latest;
-  if (!!userForecast) {
+  if (!!userForecast && !userForecast.end_time) {
     continuousAreaChartData.push({
       pmf: cdfToPmf(userForecast.forecast_values),
       cdf: userForecast.forecast_values,
