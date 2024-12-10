@@ -1,10 +1,13 @@
 "use client";
+
 import { sendGAEvent } from "@next/third-parties/google";
+import classNames from "classnames";
 import { debounce } from "lodash";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { useState, useEffect, useCallback } from "react";
 
+import RandomButton from "@/components/random_button";
 import SearchInput from "@/components/search_input";
 import {
   POST_ORDER_BY_FILTER,
@@ -73,7 +76,11 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
 
   return (
     <div
-      className={`self-center xl:ml-4 xl:items-center ${visibilityClass} ${className}`}
+      className={classNames(
+        "items-center self-center xl:ml-4 xl:items-center",
+        visibilityClass,
+        className
+      )}
     >
       <SearchInput
         value={globalSearch}
@@ -85,6 +92,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
         className="w-full"
         globalSearch={true}
       />
+      <RandomButton />
     </div>
   );
 };

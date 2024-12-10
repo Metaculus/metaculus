@@ -113,6 +113,7 @@ const MainFeedFilters: FC<Props> = ({ following }) => {
       sortOptions={sortOptions}
       onOrderChange={onOrderChange}
       defaultOrder={QuestionOrder.HotDesc}
+      showRandomButton
     />
   );
 };

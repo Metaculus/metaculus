@@ -573,7 +573,7 @@
   "duplicate": "Duplicate",
   "downloadCSV": "Download CSV",
   "partnersUseForecasts": "Our partners use Metaculus forecasts to gain insight into complex challenges and decisions.",
-  "learnHowYouCanPartner": "Learn how you can partner with Metaculus to host a forecasting tournament, collaborate on forecasting research, hire our Pro Forecasters for custom projects, or set up a private forecasting space for your organization.",
+  "learnHowYouCanPartner": "Learn how you can partner with Metaculus to host a forecasting tournament, collaborate on forecasting research, hire our <link>Pro Forecasters</link> for custom projects, or set up a private forecasting space for your organization.",
   "workingWithNonProfits": "We love working with non-profits in our core focus areas. If you’re a non-profit seeking forecasting and modeling capacity or are interested in collaborating on a grant, please reach out!",
   "reachOutToLearnMore": "Please reach out to learn more about working with Metaculus or with any questions, comments or concerns. We’ll get back to you soon.",
   "feelFreeToJustSayHello": "Feel free to just say hello, too - we love hearing from the forecasting community!",
@@ -986,5 +986,18 @@
   "indexWeight": "Weight",
   "indexCP": "CP",
   "weeklyMovementChange": "{value} this week",
-  "percentagePoints": "percentage points"
+  "percentagePoints": "percentage points",
+  "proForecastersTitle": "About Metaculus Pro Forecasters",
+  "proForecastersDescription": "For certain projects Metaculus employs Pro Forecasters who have demonstrated excellent forecasting ability and who have a history of clearly describing their rationales. Pros forecast on private and public sets of questions to produce well-calibrated forecasts and descriptive rationales for our partners.<br></br><br></br>If you’re interested in hiring Metaculus Pro Forecasters for a project, contact us at <email>support@metaculus.com</email> with the subject <strong>\"Project Inquiry\"</strong>.",
+  "meetProForecasters": "Meet a few of our Pro Forecasters:",
+  "whyUseProForecastersTitle": "Why Use Pro Forecasters?",
+  "whyUseProForecastersInfo": "The Metaculus community has demonstrated [excellent accuracy and calibration](link to calibration page) on the questions it has forecasted. However, sometimes there are questions of particular importance – either to the world or to certain stakeholders – where excellent calibration and transparent reasoning are of the utmost importance. Pro Forecasters are selected from the most accurate Metaculus forecasters and describe their reasoning when making forecasts, providing enhanced confidence in the calibration of the predictions and ensuring that stakeholders can understand what is driving the forecasts.",
+  "selectingProForecastersTitle": "Selecting Pro Forecasters",
+  "selectingProForecastersInfo": "Pro Forecasters are carefully selected from forecasters who have fulfilled certain criteria to ensure the quality of their predictions and reasoning.",
+  "excellentForecastAbilityTitle": "Excellent Forecasting Ability",
+  "excellentForecastAbilityInfo": "Pro Forecasters must demonstrate excellent forecasting ability. This means not only that they have excellent accuracy, but also that they have a history of making insightful comments that clearly explain their reasoning. Accuracy alone is not enough, a Pro Forecaster must be able to both make accurate forecasts and explain the underlying reasoning behind those forecasts.<br></br><br></br>Our Pro selection methodology uses the <link>Metaculus Leaderboards</link>, combining the Peer Accuracy, Baseline Accuracy, and Comments leaderboards to produce a weighted average score across those leaderboards and across different leaderboard periods. Pros are selected from forecasters who have the highest score on this combined metric, representing the very best forecasters from all of Metaculus. Note that while the Peer score is weighted highest in this combined metric, the weighting is such that forecasters must have good scores in all categories.",
+  "robustTrackRecordsTitle": "Robust Track Records",
+  "robustTrackRecordsInfo": "Pro Forecasters must have at least 75 resolved questions and must have made predictions across multiple subject areas, with at least one year of experience making predictions.<br></br><br></br>We also consider recruiting forecasters who have demonstrated excellent forecasting ability elsewhere.",
+  "clearCommentsAndCommunicationTitle": "Clear Comments and Communication",
+  "clearCommentsAndCommunicationInfo": "Our Pros work on projects for external partners who value clear reasoning to better interpret the forecasts. We select Pros who have a history of making clear and insightful comments, and who are willing to disagree with their peers, but in a polite and respectful manner."
 }

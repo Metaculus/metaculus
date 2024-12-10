@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -20,7 +21,11 @@ const EngageBlock: FC = () => {
           </span>
         </h2>
         <div className="text-lg text-blue-200 dark:text-blue-200-dark lg:max-w-2xl">
-          <p className="my-8">{t("learnHowYouCanPartner")}</p>
+          <p className="my-8">
+            {t.rich("learnHowYouCanPartner", {
+              link: (chunks) => <Link href={"/pro-forecasters"}>{chunks}</Link>,
+            })}
+          </p>
           <p className="my-0">{t("workingWithNonProfits")}</p>
         </div>
       </div>
