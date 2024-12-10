@@ -7,9 +7,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="h-full min-h-screen">
       <Bulletins />
-      <div className="mx-auto flex flex-grow">{children}</div>
+      <div className="h-full">{children}</div>
       <CookiesBanner />
     </div>
   );
