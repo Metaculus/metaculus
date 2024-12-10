@@ -22,6 +22,7 @@ class PostAdmin(CustomTranslationAdmin):
         "published_at",
         "default_project",
         "other_project_count",
+        "hotness",
     ]
     list_filter = [
         "curation_status",
