@@ -377,7 +377,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
     percentiles = serializers.JSONField(allow_null=True, required=False)
 
     slider_values = serializers.JSONField(allow_null=True, required=False)
-    source = serializers.CharField(
+    source = serializers.ChoiceField(
         allow_null=True,
         required=False,
         allow_blank=True,
