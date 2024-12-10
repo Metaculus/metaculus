@@ -1,5 +1,5 @@
 import IsabelJuniewiczImage from "../assets/Isabel Juniewicz.png";
-import PeterHurfordImage from "../assets/Peter Hurford.png";
+import PeterWildefordImage from "../assets/Peter Wildeford.png";
 import PhilippSchoeneggerImage from "../assets/Philipp Schoenegger.jpeg";
 import ScottEastmanImageImage from "../assets/Scott Eastman.jpeg";
 import ProForecasterLink from "../components/link";
@@ -27,7 +27,7 @@ export const PRO_FORECASTERS: ProForecaster[] = [
       </>
     ),
     linkedInUrl: "https://www.linkedin.com/in/peterhurford8/",
-    image: PeterHurfordImage,
+    image: PeterWildefordImage,
   },
   {
     id: "2",
