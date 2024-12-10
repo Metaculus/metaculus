@@ -5,6 +5,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     initial = True
 
     dependencies = []
@@ -24,7 +25,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "created_at",
-                    models.DateTimeField(editable=False),
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, editable=False
+                    ),
                 ),
                 (
                     "edited_at",
@@ -47,7 +50,7 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        editable=False
+                        default=django.utils.timezone.now, editable=False
                     ),
                 ),
                 (
@@ -80,7 +83,7 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        editable=False
+                        default=django.utils.timezone.now, editable=False
                     ),
                 ),
                 (
@@ -110,7 +113,7 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        editable=False
+                        default=django.utils.timezone.now, editable=False
                     ),
                 ),
                 (

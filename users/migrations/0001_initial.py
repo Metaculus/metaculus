@@ -101,7 +101,7 @@ class Migration(migrations.Migration):
                 (
                     "created_at",
                     models.DateTimeField(
-                        editable=False
+                        default=django.utils.timezone.now, editable=False
                     ),
                 ),
                 (

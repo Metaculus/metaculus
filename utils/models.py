@@ -181,16 +181,13 @@ class TimeStampedModel(models.Model):
     ``created_on`` and ``modified_on`` fields.
     """
 
-    created_at = models.DateTimeField(editable=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
     edited_at = models.DateTimeField(editable=False, null=True)
 
     class Meta:
         abstract = True
 
     def save(self, *args, update_fields: list[str] = None, **kwargs):
-        if not self.created_at:
-            self.created_at = timezone.now()
-
         # Ensure created_at and edited_at are equal upon creation
         self.edited_at = timezone.now() if self.edited_at else self.created_at
 
