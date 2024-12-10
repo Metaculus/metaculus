@@ -52,6 +52,10 @@ export async function fetchPosts(
   return { questions: response.results, count: response.count };
 }
 
+export async function fetchRandomPostId() {
+  return await PostsApi.getRandomPostId();
+}
+
 export async function fetchEmbedPosts(search: string) {
   const response = await PostsApi.getPostsWithCP({
     search: search || undefined,

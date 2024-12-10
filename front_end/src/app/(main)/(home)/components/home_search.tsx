@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import RandomButton from "@/components/random_button";
 import SearchInput from "@/components/search_input";
 import VisibilityObserver from "@/components/visibility_observer";
 import {
@@ -45,15 +46,18 @@ const HomeSearch: FC<Props> = () => {
         setIsVisible(v);
       }}
     >
-      <SearchInput
-        value={searchQuery}
-        onChange={(event) => setSearchQuery(event.target.value)}
-        onErase={() => setSearchQuery("")}
-        onSubmit={handleSearchSubmit}
-        placeholder={t("questionSearchPlaceholder")}
-        size="lg"
-        className="md:max-w-xl"
-      />
+      <div className="flex items-center gap-3">
+        <SearchInput
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          onErase={() => setSearchQuery("")}
+          onSubmit={handleSearchSubmit}
+          placeholder={t("questionSearchPlaceholder")}
+          size="lg"
+          className="md:max-w-xl"
+        />
+        <RandomButton />
+      </div>
     </VisibilityObserver>
   );
 };
