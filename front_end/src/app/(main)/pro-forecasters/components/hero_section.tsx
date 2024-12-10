@@ -3,6 +3,8 @@ import { FC } from "react";
 
 import RichText from "@/components/rich_text";
 
+import ProForecasterLink from "./link";
+
 const ProForecastersHero: FC = () => {
   const t = useTranslations();
 
@@ -17,12 +19,9 @@ const ProForecastersHero: FC = () => {
             t.rich("proForecastersDescription", {
               ...tags,
               email: (chunks) => (
-                <a
-                  href="mailto:support@metaculus.com"
-                  className="text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
-                >
+                <ProForecasterLink href="mailto:support@metaculus.com">
                   {chunks}
-                </a>
+                </ProForecasterLink>
               ),
             })
           }
