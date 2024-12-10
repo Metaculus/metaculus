@@ -97,7 +97,7 @@ class Comment(TimeStampedModel, TranslatedModel):
         related_name="thread_comments",
     )
     # auto_now_add=True must be disabled when the migration is run
-    is_soft_deleted = models.BooleanField(null=True)
+    is_soft_deleted = models.BooleanField(default=False, db_index=True)
     text = models.TextField()
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"

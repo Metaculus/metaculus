@@ -1,14 +1,19 @@
 "use client";
-
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import React from "react";
 
-import Histogram from "@/components/charts/histogram";
 import SectionToggle from "@/components/ui/section_toggle";
+import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
 
 import { useHideCP } from "./cp_provider";
 import RevealCPButton from "./reveal_cp_button";
+
+const Histogram = dynamic(() => import("@/components/charts/histogram"), {
+  ssr: false,
+});
+const toggleSectionPadding = 24;
 
 type Props = {
   post: PostWithForecasts;
@@ -17,6 +22,9 @@ type Props = {
 const HistogramDrawer: React.FC<Props> = ({ post }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
+
+  const { ref: chartContainerRef, width: chartWidth } =
+    useContainerSize<HTMLDivElement>();
 
   if (post.question?.type === "binary") {
     const question = post.question;
@@ -35,18 +43,21 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     const mean = question.aggregations.recency_weighted.latest.means![0];
 
     return (
-      <SectionToggle title={t("histogram")} defaultOpen>
-        {hideCP ? (
-          <RevealCPButton />
-        ) : (
-          <Histogram
-            histogramData={histogramData}
-            median={median}
-            mean={mean}
-            color={"gray"}
-          />
-        )}
-      </SectionToggle>
+      <div ref={chartContainerRef}>
+        <SectionToggle title={t("histogram")} defaultOpen>
+          {hideCP ? (
+            <RevealCPButton />
+          ) : (
+            <Histogram
+              histogramData={histogramData}
+              median={median}
+              mean={mean}
+              color={"gray"}
+              width={chartWidth - toggleSectionPadding}
+            />
+          )}
+        </SectionToggle>
+      </div>
     );
   } else if (
     post.conditional?.question_yes.type === "binary" &&
@@ -81,40 +92,44 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     }
 
     return (
-      <SectionToggle title={t("histogram")}>
-        {hideCP ? (
-          <RevealCPButton />
-        ) : (
-          <>
-            {histogramData_yes && (
-              <>
-                <div className="mb-2 text-center text-xs">
-                  {t("parentResolvesAsYes")}
-                </div>
-                <Histogram
-                  histogramData={histogramData_yes}
-                  median={median_yes}
-                  mean={mean_yes}
-                  color="gray"
-                />
-              </>
-            )}
-            {histogramData_no && (
-              <>
-                <div className="mb-2 text-center text-xs">
-                  {t("parentResolvesAsNo")}
-                </div>
-                <Histogram
-                  histogramData={histogramData_no}
-                  median={median_no}
-                  mean={mean_no}
-                  color="blue"
-                />
-              </>
-            )}
-          </>
-        )}
-      </SectionToggle>
+      <div ref={chartContainerRef}>
+        <SectionToggle title={t("histogram")}>
+          {hideCP ? (
+            <RevealCPButton />
+          ) : (
+            <>
+              {histogramData_yes && (
+                <>
+                  <div className="mb-2 text-center text-xs">
+                    {t("parentResolvesAsYes")}
+                  </div>
+                  <Histogram
+                    histogramData={histogramData_yes}
+                    median={median_yes}
+                    mean={mean_yes}
+                    color="gray"
+                    width={chartWidth - toggleSectionPadding}
+                  />
+                </>
+              )}
+              {histogramData_no && (
+                <>
+                  <div className="mb-2 text-center text-xs">
+                    {t("parentResolvesAsNo")}
+                  </div>
+                  <Histogram
+                    histogramData={histogramData_no}
+                    median={median_no}
+                    mean={mean_no}
+                    color="blue"
+                    width={chartWidth - toggleSectionPadding}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </SectionToggle>
+      </div>
     );
   }
 };

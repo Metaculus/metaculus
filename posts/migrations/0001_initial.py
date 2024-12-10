@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("markdown", models.TextField()),
@@ -79,7 +79,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 (
@@ -167,7 +167,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("score", models.IntegerField()),
@@ -197,7 +197,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 (
@@ -292,7 +292,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 (

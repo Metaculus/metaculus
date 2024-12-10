@@ -1,6 +1,7 @@
 "use client";
 
 import { sendGAEvent } from "@next/third-parties/google";
+import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
@@ -139,27 +140,25 @@ const CommentEditor: FC<CommentEditorProps> = ({
       {/*comment.included_forecast && (
         <IncludedForecast author="test" forecastValue={test} />
       )*/}
-      {isEditing && (
-        <div className="border border-gray-500 dark:border-gray-500-dark">
-          <MarkdownEditor
-            key={rerenderKey}
-            mode="write"
-            markdown={markdown}
-            onChange={handleMarkdownChange}
-            shouldConfirmLeave={isMarkdownDirty}
-            withUgcLinks
-            withUserMentions
-            initialMention={replyUsername}
-          />
-        </div>
-      )}
-      {!isEditing && (
+      <div
+        className={classNames(
+          "border border-gray-500 dark:border-gray-500-dark",
+          { hidden: !isEditing }
+        )}
+      >
         <MarkdownEditor
-          mode="read"
+          key={rerenderKey}
+          mode="write"
           markdown={markdown}
+          onChange={handleMarkdownChange}
+          shouldConfirmLeave={isMarkdownDirty}
           withUgcLinks
           withUserMentions
+          initialMention={replyUsername}
         />
+      </div>
+      {!isEditing && (
+        <MarkdownEditor mode="read" markdown={markdown} withUgcLinks />
       )}
       {(isReplying || hasInteracted) && (
         <div className="my-4 flex items-center justify-end gap-3">
