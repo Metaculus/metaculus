@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("details", models.JSONField(blank=True, default=dict)),
