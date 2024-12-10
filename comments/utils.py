@@ -8,7 +8,7 @@ from comments.models import Comment
 from users.models import User
 
 # Regex pattern to find all @<username> mentions
-USERNAME_PATTERN = r"@\(?(\w.+)\)?"
+USERNAME_PATTERN = r"@\(?([\w.]+)\)?"
 
 
 def comment_extract_user_mentions(
