@@ -1,6 +1,7 @@
 "use client";
 
 import { sendGAEvent } from "@next/third-parties/google";
+import classNames from "classnames";
 import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -75,7 +76,11 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
 
   return (
     <div
-      className={`self-center xl:ml-4 xl:items-center ${visibilityClass} ${className}`}
+      className={classNames(
+        "items-center self-center xl:ml-4 xl:items-center",
+        visibilityClass,
+        className
+      )}
     >
       <SearchInput
         value={globalSearch}
