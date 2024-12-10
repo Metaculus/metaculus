@@ -1,5 +1,6 @@
 "use client";
 import classNames from "classnames";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
@@ -11,7 +12,6 @@ import { AggregateForecastHistory, Question } from "@/types/question";
 import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
-import { isNil } from "lodash";
 
 type Props = {
   question: Question;
