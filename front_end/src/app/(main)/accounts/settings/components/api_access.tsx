@@ -17,9 +17,7 @@ const ApiAccess: FC<Props> = ({ token }) => {
       <h2 className="mb-5 mt-3 px-1"> {t("apiAccess")}</h2>
       <div className="text-sm">
         <p>
-          {t("apiAcessText")}
-          {" "}
-          <Link href="/api">{t("documentation")}</Link>
+          {t("apiAcessText")} <Link href="/api">{t("documentation")}</Link>
         </p>
         <span>{t("yourAPITokenIs")}</span>
         <pre>{token}</pre>
