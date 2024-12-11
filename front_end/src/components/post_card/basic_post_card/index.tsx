@@ -91,9 +91,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
               <Chip
                 key={globalLeaderboard.id}
                 href={`/questions/?${POST_TAGS_FILTER}=${globalLeaderboard.slug}&for_main_feed=false`}
-                color={
-                  globalLeaderboard.is_global_leaderboard ? "gray" : "blue"
-                }
+                color="gray"
                 onClick={() =>
                   sendGAEvent("event", "questionTagClicked", {
                     event_category: globalLeaderboard.name,
