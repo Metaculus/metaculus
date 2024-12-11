@@ -1,12 +1,16 @@
 "use client";
 
+import { sendGAEvent } from "@next/third-parties/google";
 import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
+import Chip from "@/components/ui/chip";
+import { POST_TAGS_FILTER } from "@/constants/posts_feed";
 import { Post } from "@/types/post";
+import { TournamentType } from "@/types/projects";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions";
 
@@ -33,6 +37,9 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   const { title } = post;
   const resolutionData = extractPostResolution(post);
   const defaultProject = post.projects.default_project;
+  const globalLeaderboard = post.projects.tag?.find(
+    (project) => project.is_global_leaderboard
+  );
   let newCommentsCount = post.comment_count ? post.comment_count : 0;
   if (post.unread_comment_count !== undefined) {
     newCommentsCount = post.unread_comment_count;
@@ -71,6 +78,32 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         <div className="hidden lg:inline-flex">
           <PostDefaultProject defaultProject={defaultProject} />
         </div>
+        {/* This is awkward, takes logic internal to PostDefaultProject and
+        button from sidebar_question_tags.tsx. Should rework. */}
+        {globalLeaderboard &&
+          (![
+            TournamentType.Tournament,
+            TournamentType.GlobalLeaderboard,
+            TournamentType.QuestionSeries,
+          ].includes(defaultProject.type) ||
+            !defaultProject.default_permission) && (
+            <div className="flex items-center gap-2">
+              <Chip
+                key={globalLeaderboard.id}
+                href={`/questions/?${POST_TAGS_FILTER}=${globalLeaderboard.slug}&for_main_feed=false`}
+                color={
+                  globalLeaderboard.is_global_leaderboard ? "gray" : "blue"
+                }
+                onClick={() =>
+                  sendGAEvent("event", "questionTagClicked", {
+                    event_category: globalLeaderboard.name,
+                  })
+                }
+              >
+                {globalLeaderboard.name}
+              </Chip>
+            </div>
+          )}
       </div>
     </div>
   );

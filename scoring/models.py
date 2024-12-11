@@ -9,8 +9,8 @@ from questions.types import AggregationMethod
 from users.models import User
 from utils.models import TimeStampedModel
 
-GLOBAL_LEADERBOARD_STRING = "Global Leaderboard"
-GLOBAL_LEADERBOARD_SLUG = "global_leaderboard"
+GLOBAL_LEADERBOARD_STRING = "Leaderboard"
+GLOBAL_LEADERBOARD_SLUG = "leaderboard"
 
 
 class UserWeight(TimeStampedModel):

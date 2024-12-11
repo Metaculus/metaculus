@@ -145,7 +145,6 @@ def serialize_projects(
 
         if obj == default_project:
             data["default_project"] = serialized_data
-
     return data
 
 
