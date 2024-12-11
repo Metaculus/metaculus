@@ -631,7 +631,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         for gl_dates in to_set_gl_dates:
             tag_name, tag_slug = generate_global_leaderboard_tag_name_and_slug(gl_dates)
             tag, _ = Project.objects.get_or_create(
-                type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug
+                type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug, order=1
             )
             to_set_tags.append(tag)
 

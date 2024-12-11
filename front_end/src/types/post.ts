@@ -52,6 +52,7 @@ export type Tag = {
   id: number;
   name: string;
   slug: string;
+  is_global_leaderboard: boolean;
 };
 
 export type Topic = {

@@ -169,7 +169,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         forecast_horizon_start = self.open_time
         forecast_horizon_end = self.scheduled_close_time
         if forecast_horizon_start is None or forecast_horizon_end is None:
-            return (None, None)
+            return None
         if gl_dates is None:
             from scoring.models import global_leaderboard_dates
 
