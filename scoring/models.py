@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db import models
 from django.db.models.query import QuerySet, Q
@@ -157,6 +157,75 @@ class Leaderboard(TimeStampedModel):
             Post.CurationStatus.REJECTED,
         ]
 
+        if self.project and self.project.type == Project.ProjectTypes.SITE_MAIN:
+            # global leaderboard
+            if self.start_time is None or self.end_time is None:
+                raise ValueError("Global leaderboards must have start and end times")
+            questions = Question.objects.filter(
+                Q(related_posts__post__projects__add_posts_to_main_feed=True)
+                | Q(related_posts__post__default_project__add_posts_to_main_feed=True)
+            )
+
+            if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
+                # post must be published
+                return list(
+                    questions.filter(
+                        related_posts__post__published_at__lt=self.end_time
+                    ).distinct("pk")
+                )
+            elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
+                # post must be published, and can't be resolved before the start_time
+                # of the leaderboard
+                return list(
+                    questions.filter(
+                        Q(scheduled_close_time__gte=self.start_time)
+                        & (
+                            Q(actual_close_time__isnull=True)
+                            | Q(actual_close_time__gte=self.start_time)
+                        ),
+                        related_posts__post__published_at__lt=self.end_time,
+                    )
+                    .exclude(related_posts__post__curation_status__in=invalid_statuses)
+                    .distinct("pk")
+                )
+
+            close_grace_period = timedelta(days=3)
+            resolve_grace_period = timedelta(days=100)
+            questions = questions.filter(
+                Q(actual_resolve_time__isnull=True)
+                | Q(actual_resolve_time__lte=self.end_time + resolve_grace_period),
+                open_time__gte=self.start_time,
+                open_time__lt=self.end_time,
+                scheduled_close_time__lte=self.end_time + close_grace_period,
+            )
+            from scoring.models import global_leaderboard_dates
+
+            gl_dates = global_leaderboard_dates()
+            checked_intervals: list[tuple[datetime, datetime]] = []
+            for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
+                if (
+                    (self.start_time, self.end_time) == (start, end)
+                    or start < self.start_time
+                    or self.end_time < end
+                ):
+                    continue
+                to_add = True
+                for checked_start, checked_end in checked_intervals:
+                    if checked_start < start and end < checked_end:
+                        to_add = False
+                        break
+                if to_add:
+                    checked_intervals.append((start, end))
+                    questions = questions.filter(
+                        Q(open_time__lt=start)
+                        | Q(scheduled_close_time__gt=end + close_grace_period)
+                        | Q(actual_resolve_time__gt=end + resolve_grace_period)
+                    )
+            questions = questions.exclude(
+                related_posts__post__curation_status__in=invalid_statuses
+            ).distinct("pk")
+            return list(questions)
+
         if self.project:
             questions = (
                 Question.objects.filter(
@@ -170,40 +239,6 @@ class Leaderboard(TimeStampedModel):
             questions = Question.objects.all().exclude(
                 related_posts__post__curation_status__in=invalid_statuses
             )
-
-        if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
-            # post must be published
-            return list(
-                questions.filter(
-                    related_posts__post__published_at__lt=self.end_time
-                ).distinct("pk")
-            )
-        elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
-            # post must be published, and can't be resolved before the start_time
-            # of the leaderboard
-
-            return list(
-                questions.filter(
-                    Q(scheduled_close_time__gte=self.start_time)
-                    & (
-                        Q(actual_close_time__isnull=True)
-                        | Q(actual_close_time__gte=self.start_time)
-                    ),
-                    related_posts__post__published_at__lt=self.end_time,
-                )
-                .exclude(related_posts__post__curation_status__in=invalid_statuses)
-                .distinct("pk")
-            )
-
-        if self.start_time and self.end_time:
-            # global leaderboard
-            gl_dates = global_leaderboard_dates()
-            window = (self.start_time, self.end_time)
-            questions = [
-                q
-                for q in questions
-                if q.get_global_leaderboard_dates(gl_dates=gl_dates) == window
-            ]
 
         return list(questions)
 

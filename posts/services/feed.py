@@ -85,8 +85,7 @@ def get_posts_feed(
         qs = qs.filter_projects(tournaments)
 
     if for_main_feed:
-        site_main_project = get_site_main_project()
-        qs = qs.filter_projects(site_main_project)
+        qs = qs.filter_for_main_feed()
 
     if show_on_homepage:
         qs = qs.filter(show_on_homepage=True)

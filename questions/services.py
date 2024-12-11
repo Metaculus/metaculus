@@ -537,33 +537,7 @@ def unresolve_question(question: Question):
     )
 
     # Update leaderboards
-    post = question.get_post()
-    projects: QuerySet[Project] = [post.default_project] + list(post.projects.all())
-    for project in projects:
-        if project.type == Project.ProjectTypes.SITE_MAIN:
-            continue
-        leaderboards = project.leaderboards.all()
-        for leaderboard in leaderboards:
-            update_project_leaderboard(project, leaderboard)
-
-    main_site_project = post.projects.filter(
-        type=Project.ProjectTypes.SITE_MAIN
-    ).first()
-    if main_site_project:
-        global_leaderboard_window = question.get_global_leaderboard_dates()
-        if global_leaderboard_window is not None:
-            global_leaderboards = Leaderboard.objects.filter(
-                project__type=Project.ProjectTypes.SITE_MAIN,
-                start_time=global_leaderboard_window[0],
-                end_time=global_leaderboard_window[1],
-            ).exclude(
-                score_type__in=[
-                    Leaderboard.ScoreTypes.COMMENT_INSIGHT,
-                    Leaderboard.ScoreTypes.QUESTION_WRITING,
-                ]
-            )
-            for leaderboard in global_leaderboards:
-                update_project_leaderboard(main_site_project, leaderboard)
+    update_leaderboards_for_question(question)
 
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
@@ -581,6 +555,39 @@ def close_question(question: Question, actual_close_time: datetime | None = None
     # Based on child questions
     post.update_pseudo_materialized_fields()
     post.save()
+
+
+def update_leaderboards_for_question(question: Question):
+    post = question.get_post()
+    projects: QuerySet[Project] = [post.default_project] + list(post.projects.all())
+    update_global_leaderboards = False
+    for project in projects:
+        if project.type == Project.ProjectTypes.SITE_MAIN:
+            # global leaderboards handled separately
+            update_global_leaderboards = True
+            continue
+        update_global_leaderboards = (
+            update_global_leaderboards or project.add_posts_to_main_feed
+        )
+        leaderboards = project.leaderboards.all()
+        for leaderboard in leaderboards:
+            update_project_leaderboard(project, leaderboard)
+
+    if update_global_leaderboards:
+        global_leaderboard_window = question.get_global_leaderboard_dates()
+        if global_leaderboard_window is not None:
+            global_leaderboards = Leaderboard.objects.filter(
+                project__type=Project.ProjectTypes.SITE_MAIN,
+                start_time=global_leaderboard_window[0],
+                end_time=global_leaderboard_window[1],
+            ).exclude(
+                score_type__in=[
+                    Leaderboard.ScoreTypes.COMMENT_INSIGHT,
+                    Leaderboard.ScoreTypes.QUESTION_WRITING,
+                ]
+            )
+            for leaderboard in global_leaderboards:
+                update_project_leaderboard(leaderboad=leaderboard)
 
 
 @transaction.atomic()
