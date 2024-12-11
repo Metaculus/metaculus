@@ -8,11 +8,10 @@ from notifications.services import (
     NotificationPostParams,
     NotificationQuestionParams,
 )
-from projects.models import Project
 from questions.models import Question
 from questions.services import build_question_forecasts
-from scoring.models import Score, Leaderboard
-from scoring.utils import score_question, update_project_leaderboard
+from scoring.models import Score
+from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
 
