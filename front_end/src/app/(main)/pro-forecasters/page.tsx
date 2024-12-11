@@ -1,3 +1,5 @@
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -42,6 +44,7 @@ export default function ProForecastersPage() {
       />
       <ProForecastersInfoSection
         title={t("excellentForecastAbilityTitle")}
+        titleIcon={TitleIcon}
         info={
           <RichText>
             {(tags) =>
@@ -59,6 +62,7 @@ export default function ProForecastersPage() {
       />
       <ProForecastersInfoSection
         title={t("robustTrackRecordsTitle")}
+        titleIcon={TitleIcon}
         info={
           <RichText>
             {(tags) => t.rich("robustTrackRecordsInfo", tags)}
@@ -67,6 +71,7 @@ export default function ProForecastersPage() {
       />
       <ProForecastersInfoSection
         title={t("clearCommentsAndCommunicationTitle")}
+        titleIcon={TitleIcon}
         info={t("clearCommentsAndCommunicationInfo")}
       />
     </main>
@@ -75,4 +80,11 @@ export default function ProForecastersPage() {
 
 const Divider: FC = () => (
   <hr className="m-0 w-full border-blue-400 dark:border-blue-400-dark" />
+);
+
+const TitleIcon = (
+  <FontAwesomeIcon
+    icon={faCheck}
+    className="h-[28px] w-[25px] text-mc-option-3 dark:text-mc-option-3-dark"
+  />
 );
