@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
+
 import CollapsibleBox from "../ui/collapsible_box";
 
 const InReviewBox: FC = () => {
@@ -24,6 +26,13 @@ const InReviewBox: FC = () => {
       <p className="mb-0 mt-2">
         {t.rich("inReviewBox4", {
           link: (chunks) => <Link href="/question-writing/">{chunks}</Link>,
+        })}
+      </p>
+      <p className="mb-0 mt-2 text-sm">
+        {t.rich("expressionOfInterestFormMessage", {
+          link: (chunks) => (
+            <a href={EXPRESSION_OF_INTEREST_FORM_URL}>{chunks}</a>
+          ),
         })}
       </p>
     </CollapsibleBox>
