@@ -22,6 +22,9 @@ class ProjectsQuerySet(models.QuerySet):
     def filter_topic(self):
         return self.filter(type=Project.ProjectTypes.TOPIC)
 
+    def filter_news_category(self):
+        return self.filter(type=Project.ProjectTypes.NEWS_CATEGORY)
+
     def filter_category(self):
         return self.filter(type=Project.ProjectTypes.CATEGORY)
 
@@ -241,7 +244,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     # Annotated fields
-    followers_count = models.PositiveIntegerField(default=0, db_index=True)
+    followers_count = models.PositiveIntegerField(default=0, db_index=True, editable=False)
 
     posts_count: int = 0
     is_subscribed: bool = False
