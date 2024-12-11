@@ -56,9 +56,9 @@ type Props = {
   allCategories: Category[];
   tournament_id: number | null;
   community_id?: number | null;
+  news_category_id: number | null;
   tournaments: TournamentPreview[];
   siteMain: Tournament;
-  news_type: string | undefined | null;
 };
 
 const NotebookForm: React.FC<Props> = ({
@@ -69,7 +69,7 @@ const NotebookForm: React.FC<Props> = ({
   community_id,
   tournaments,
   siteMain,
-  news_type,
+  news_category_id,
 }) => {
   const { user } = useAuth();
   const [markdown, setMarkdown] = useState(post?.notebook?.markdown ?? "");
@@ -90,10 +90,17 @@ const NotebookForm: React.FC<Props> = ({
   );
   const [isCategoriesDirty, setIsCategoriesDirty] = useState(false);
 
+  const defaultProjectId =
+    post?.projects?.default_project?.id ??
+    community_id ??
+    tournament_id ??
+    news_category_id;
+
+  // Only works for Tournaments & question series
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
-      ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
+      ? [...tournaments, siteMain].find((x) => x.id === tournament_id)
       : siteMain;
   const isFormDirty =
     !!Object.keys(control.formState.dirtyFields).length ||
@@ -110,10 +117,9 @@ const NotebookForm: React.FC<Props> = ({
       url_title: data["url_title"],
       default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
-      news_type: news_type,
       notebook: {
         markdown: markdown,
-        type: news_type ? "news" : "discussion",
+        type: news_category_id ? "news" : "discussion",
         image_url: null,
       },
     };
@@ -150,10 +156,7 @@ const NotebookForm: React.FC<Props> = ({
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue(
-              "default_project",
-              community_id ? community_id : defaultProject.id
-            );
+            control.setValue("default_project", defaultProjectId);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -171,16 +174,19 @@ const NotebookForm: React.FC<Props> = ({
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        {!community_id && defaultProject.type !== TournamentType.Community && (
-          <ProjectPickerInput
-            tournaments={tournaments}
-            siteMain={siteMain}
-            currentProject={defaultProject}
-            onChange={(project) => {
-              control.setValue("default_project", project.id);
-            }}
-          />
-        )}
+        {!community_id &&
+          !news_category_id &&
+          defaultProject?.type !== TournamentType.Community &&
+          defaultProject?.type !== TournamentType.NewsCategory && (
+            <ProjectPickerInput
+              tournaments={tournaments}
+              siteMain={siteMain}
+              currentProject={defaultProject}
+              onChange={(project) => {
+                control.setValue("default_project", project.id);
+              }}
+            />
+          )}
         <InputContainer labelText={t("longTitle")}>
           <Textarea
             {...control.register("title")}
