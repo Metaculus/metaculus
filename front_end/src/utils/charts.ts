@@ -1068,7 +1068,7 @@ export const getClosestYValue = (xValue: number, line: Line) => {
 export const interpolateYValue = (xValue: number, line: Line) => {
   const i = findLastIndex(line, (point) => point.x <= xValue);
   const p1 = line[i];
-  const p2 = line[i + 1];
+  const p2 = line[i + 1] ?? line[i];
 
   if (!p1.y || !p2.y) return 0;
 
