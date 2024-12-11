@@ -414,7 +414,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     user_last_forecasts_date = None
     divergence: int = None
 
-    objects = PostManager()
+    objects: PostManager = PostManager()
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it

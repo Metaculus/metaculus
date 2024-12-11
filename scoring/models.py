@@ -162,8 +162,7 @@ class Leaderboard(TimeStampedModel):
             if self.start_time is None or self.end_time is None:
                 raise ValueError("Global leaderboards must have start and end times")
             questions = Question.objects.filter(
-                Q(related_posts__post__projects__add_posts_to_main_feed=True)
-                | Q(related_posts__post__default_project__add_posts_to_main_feed=True)
+                related_posts__post__in=Post.objects.filter_for_main_feed()
             )
 
             if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
@@ -184,9 +183,7 @@ class Leaderboard(TimeStampedModel):
                             | Q(actual_close_time__gte=self.start_time)
                         ),
                         related_posts__post__published_at__lt=self.end_time,
-                    )
-                    .exclude(related_posts__post__curation_status__in=invalid_statuses)
-                    .distinct("pk")
+                    ).exclude(related_posts__post__curation_status__in=invalid_statuses)
                 )
 
             close_grace_period = timedelta(days=3)
@@ -223,18 +220,14 @@ class Leaderboard(TimeStampedModel):
                     )
             questions = questions.exclude(
                 related_posts__post__curation_status__in=invalid_statuses
-            ).distinct("pk")
+            )
             return list(questions)
 
         if self.project:
-            questions = (
-                Question.objects.filter(
-                    Q(related_posts__post__projects=self.project)
-                    | Q(related_posts__post__default_project=self.project)
-                )
-                .exclude(related_posts__post__curation_status__in=invalid_statuses)
-                .distinct("pk")
-            )
+            questions = Question.objects.filter(
+                Q(related_posts__post__projects=self.project)
+                | Q(related_posts__post__default_project=self.project)
+            ).exclude(related_posts__post__curation_status__in=invalid_statuses)
         else:
             questions = Question.objects.all().exclude(
                 related_posts__post__curation_status__in=invalid_statuses
