@@ -30,7 +30,13 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
-from scoring.models import Score, ArchivedScore
+from scoring.models import (
+    Score,
+    ArchivedScore,
+    global_leaderboard_dates,
+    generate_global_leaderboard_tag_name_and_slug,
+    GLOBAL_LEADERBOARD_STRING,
+)
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
 
@@ -592,9 +598,54 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         self.set_scheduled_resolve_time()
         self.set_open_time()
         self.set_resolved()
+        self.update_global_leaderboard_tags()
         self.save()
         # Note: No risk of infinite loops since conditionals can't father other conditionals
         self.updated_related_conditionals()
+
+    def update_global_leaderboard_tags(self):
+        # set or update the tags for this post with respect to the global
+        # leaderboard(s) this is a part of
+        # Should be run on question creation, and then again when any (sub)question
+        # resolves as question resolution timing can effect which leaderboard it is a
+        # part of
+
+        # if this post is not eligible for global leaderboards, don't do anything
+        if (
+            not self.default_project.type == Project.ProjectTypes.SITE_MAIN
+            and not self.projects.filter(type=Project.ProjectTypes.SITE_MAIN).exists()
+        ):
+            return
+
+        # first, get global leaderboard dates for all questions in this post
+        to_set_gl_dates = set()
+        for question in self.get_questions():
+            dates = question.get_global_leaderboard_dates(
+                gl_dates=global_leaderboard_dates()
+            )
+            if dates is not None:
+                to_set_gl_dates.add(dates)
+        # for each set of global leaderboard dates, make sure we have a connection
+        # to the tag
+        to_set_tags = []
+        for gl_dates in to_set_gl_dates:
+            tag_name, tag_slug = generate_global_leaderboard_tag_name_and_slug(gl_dates)
+            tag, _ = Project.objects.get_or_create(
+                type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug
+            )
+            to_set_tags.append(tag)
+
+        current_gl_tags = self.projects.filter_tags().filter(
+            name__endswith=GLOBAL_LEADERBOARD_STRING
+        )
+        seen = set()
+        for tag in current_gl_tags:
+            seen.add(tag)
+            if tag not in to_set_tags:
+                self.projects.remove(tag)
+        for tag in to_set_tags:
+            if tag not in seen:
+                self.projects.add(tag)
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
