@@ -123,7 +123,7 @@ export default function NoticeAtCollection() {
                 <td className="px-4 py-6 align-top">
                   Residency is used to verify eligibility for this tournament.
                 </td>
-                <td className="px-4 py-6 align-top">No</td>
+                <td className="px-4 py-6 align-top">Yes</td>
               </tr>
 
               <tr>
