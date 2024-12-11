@@ -34,9 +34,7 @@ def global_leaderboard(
     end_time = request.GET.get("endTime", None)
     leaderboard_type = request.GET.get("leaderboardType", None)
     # filtering
-    leaderboards = Leaderboard.objects.filter(
-        project__filter_for_main_feed=True
-    )
+    leaderboards = Leaderboard.objects.filter(project__add_posts_to_main_feed=True)
     if start_time:
         leaderboards = leaderboards.filter(start_time=start_time)
     if end_time:
@@ -144,17 +142,15 @@ def user_medals(
     return Response(entries)
 
 
+# @cache_page(60 * 30)
 @api_view(["GET"])
 @permission_classes([AllowAny])
-@cache_page(60 * 30)
 def medal_contributions(
     request: Request,
 ):
     user_id = request.GET.get("userId", None)
     user = get_object_or_404(User, pk=user_id)
-    project_id = request.GET.get(
-        "projectId", get_site_main_project().id
-    )
+    project_id = request.GET.get("projectId", get_site_main_project().id)
 
     projects = get_projects_qs(user=request.user)
     project: Project = get_object_or_404(projects, pk=project_id)
@@ -207,4 +203,6 @@ def medal_contributions(
 def metaculus_track_record(
     request: Request,
 ):
-    return Response(serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED))
+    return Response(
+        serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED)
+    )
