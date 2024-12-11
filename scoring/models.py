@@ -211,7 +211,7 @@ class Leaderboard(TimeStampedModel):
         return list(questions)
 
 
-def generate_global_leaderboard_tag_name_and_slug(
+def name_and_slug_for_global_leaderboard_dates(
     gl_dates: tuple[datetime, datetime]
 ) -> tuple[str, str]:
     """

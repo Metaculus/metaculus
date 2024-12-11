@@ -34,7 +34,7 @@ from scoring.models import (
     Score,
     ArchivedScore,
     global_leaderboard_dates,
-    generate_global_leaderboard_tag_name_and_slug,
+    name_and_slug_for_global_leaderboard_dates,
     GLOBAL_LEADERBOARD_STRING,
 )
 from users.models import User
@@ -590,7 +590,6 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             ]
             for conditional in related_conditionals:
                 conditional.post.update_pseudo_materialized_fields()
-                print("Updated conditional in post: ", conditional.post)
 
     def update_pseudo_materialized_fields(self):
         self.set_scheduled_close_time()
@@ -606,45 +605,35 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     def update_global_leaderboard_tags(self):
         # set or update the tags for this post with respect to the global
         # leaderboard(s) this is a part of
-        # Should be run on question creation, and then again when any (sub)question
-        # resolves as question resolution timing can effect which leaderboard it is a
-        # part of
 
-        # if this post is not eligible for global leaderboards, don't do anything
+        # Skip if post is not eligible for global leaderboards
         if (
             not self.default_project.type == Project.ProjectTypes.SITE_MAIN
             and not self.projects.filter(type=Project.ProjectTypes.SITE_MAIN).exists()
         ):
             return
 
-        # first, get global leaderboard dates for all questions in this post
-        to_set_gl_dates = set()
-        for question in self.get_questions():
-            dates = question.get_global_leaderboard_dates(
-                gl_dates=global_leaderboard_dates()
-            )
-            if dates is not None:
-                to_set_gl_dates.add(dates)
-        # for each set of global leaderboard dates, make sure we have a connection
-        # to the tag
+        # Get all global leaderboard dates and create/get corresponding tags
         to_set_tags = []
-        for gl_dates in to_set_gl_dates:
-            tag_name, tag_slug = generate_global_leaderboard_tag_name_and_slug(gl_dates)
-            tag, _ = Project.objects.get_or_create(
-                type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug, order=1
-            )
-            to_set_tags.append(tag)
+        gl_dates = global_leaderboard_dates()
+        for question in self.get_questions():
+            dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
+            if dates:
+                tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
+                tag, _ = Project.objects.get_or_create(
+                    type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug, order=1
+                )
+                to_set_tags.append(tag)
 
+        # Update post's global leaderboard tags
         current_gl_tags = self.projects.filter_tags().filter(
             name__endswith=GLOBAL_LEADERBOARD_STRING
         )
-        seen = set()
         for tag in current_gl_tags:
-            seen.add(tag)
             if tag not in to_set_tags:
                 self.projects.remove(tag)
         for tag in to_set_tags:
-            if tag not in seen:
+            if tag not in current_gl_tags:
                 self.projects.add(tag)
 
     # Relations
