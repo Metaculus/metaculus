@@ -756,6 +756,7 @@
   "deselectAll": "deseleccionar todo",
   "forecastDataIsEmpty": "Los datos de pronóstico están vacíos",
   "createdByUserOnDate": "Creado por {user} el {date}",
+  "edited": "editado",
   "tournamentShowPostsToMainFeed": "Mostrar publicaciones del torneo en el feed principal",
   "tournamentHidePostsToMainFeed": "Ocultar publicaciones del torneo en el feed principal",
   "me": "yo",
