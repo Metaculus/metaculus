@@ -4,27 +4,32 @@ import { ThemeColor } from "@/types/theme";
 import { Scaling } from "./question";
 
 export type ChoiceItem = {
-  choice: string;
-  timestamps?: number[];
-  closeTime?: number;
-  values: number[];
-  minValues?: number[];
-  maxValues?: number[];
-  forecastersCount?: number[];
+  id?: number;
+  choice: string; // multiple choice option or subquestion label
   color: ThemeColor;
-  active: boolean;
   highlighted: boolean;
-  resolution?: Resolution | null;
+  active: boolean;
+  resolution: Resolution | null;
   displayedResolution?: Resolution | null;
-  rangeMin?: number | null;
-  rangeMax?: number | null;
-  scaling?: Scaling;
+  closeTime?: number; // group only
+  rangeMin?: number | null; // continuous group only
+  rangeMax?: number | null; // continuous group only
+  scaling?: Scaling; // continuous group only
+  aggregationTimestamps: number[];
+  aggregationValues: (number | null)[];
+  aggregationMinValues: (number | null)[];
+  aggregationMaxValues: (number | null)[];
+  aggregationForecasterCounts: number[];
+  userTimestamps: number[];
+  userValues: (number | null)[];
+  userMinValues?: (number | null)[]; // continuous group only
+  userMaxValues?: (number | null)[]; // continuous group only
 };
 
 export type UserChoiceItem = {
   choice: string;
   timestamps?: number[];
-  values?: number[];
+  values?: (number | null)[];
   color: ThemeColor;
   unscaledValues?: number[]; // This array is needed to display the correct value for the continuous group in the chart tooltip
 };

@@ -13,19 +13,25 @@ from users.serializers import UserPublicSerializer
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug")
+        fields = ("id", "name", "slug", "type")
+
+
+class NewsCategorySerialize(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ("id", "name", "slug", "type")
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "description")
+        fields = ("id", "name", "slug", "description", "type")
 
 
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "emoji", "section")
+        fields = ("id", "name", "slug", "emoji", "section", "type")
 
 
 class MiniTournamentSerializer(serializers.ModelSerializer):
@@ -115,6 +121,8 @@ def serialize_project(obj: Project):
             serializer = MiniTournamentSerializer
         case obj.ProjectTypes.SITE_MAIN:
             serializer = MiniTournamentSerializer
+        case obj.ProjectTypes.NEWS_CATEGORY:
+            serializer = NewsCategorySerialize
         case obj.ProjectTypes.COMMUNITY:
             serializer = CommunitySerializer
         case _:

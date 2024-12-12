@@ -143,18 +143,18 @@ function getForecastData(
   return {
     candles,
     democratPrediction: democratPrediction
-      ? getDisplayValue(
-          democratPrediction,
-          democratQuestion.type,
-          democratQuestion.scaling
-        )
+      ? getDisplayValue({
+          value: democratPrediction,
+          questionType: democratQuestion.type,
+          scaling: democratQuestion.scaling,
+        })
       : undefined,
     republicanPrediction: republicanPrediction
-      ? getDisplayValue(
-          republicanPrediction,
-          republicanQuestion.type,
-          republicanQuestion.scaling
-        )
+      ? getDisplayValue({
+          value: republicanPrediction,
+          questionType: republicanQuestion.type,
+          scaling: republicanQuestion.scaling,
+        })
       : undefined,
   };
 }

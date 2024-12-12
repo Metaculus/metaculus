@@ -17,6 +17,7 @@ import {
   FormError,
   FormErrorMessage,
   Input,
+  MarkdownEditorField,
   Textarea,
 } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
@@ -49,7 +50,7 @@ type PostCreationData = {
   default_project: number;
 };
 
-export const createQuestionSchemas = (
+const createQuestionSchemas = (
   t: ReturnType<typeof useTranslations>,
   post: PostWithForecasts | null
 ) => {
@@ -75,7 +76,7 @@ export const createQuestionSchemas = (
       message: t("errorMinLength", { field: "String", minLength: 4 }),
     }),
     resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
-    fine_print: z.string(),
+    fine_print: z.string().optional(),
     open_time: z.nullable(z.date().optional()).refine(
       (value) => {
         if (!post) {
@@ -297,12 +298,13 @@ const QuestionForm: FC<Props> = ({
     }
   };
 
-  const control = useForm({
+  // TODO: refactor validation schema setup to properly populate useForm generic
+  const form = useForm({
     mode: "all",
     resolver: zodResolver(getFormSchema(questionType)),
   });
   if (questionType) {
-    control.setValue("type", questionType);
+    form.setValue("type", questionType);
   }
 
   const isEditingActivePost =
@@ -320,15 +322,15 @@ const QuestionForm: FC<Props> = ({
       </div>
       <form
         onSubmit={async (e) => {
-          if (!control.getValues("default_project")) {
-            control.setValue(
+          if (!form.getValues("default_project")) {
+            form.setValue(
               "default_project",
               community_id ? community_id : defaultProject.id
             );
           }
 
           // e.preventDefault(); // Good for debugging
-          await control.handleSubmit(
+          await form.handleSubmit(
             async (data) => {
               await submitQuestion(data);
             },
@@ -338,7 +340,7 @@ const QuestionForm: FC<Props> = ({
           )(e);
         }}
         onChange={async () => {
-          const data = control.getValues();
+          const data = form.getValues();
           data["type"] = questionType;
         }}
         className="mt-4 flex w-full flex-col gap-6"
@@ -354,22 +356,22 @@ const QuestionForm: FC<Props> = ({
             siteMain={siteMain}
             currentProject={defaultProject}
             onChange={(project) => {
-              control.setValue("default_project", project.id);
+              form.setValue("default_project", project.id);
             }}
           />
         )}
         <FormError
-          errors={control.formState.errors}
+          errors={form.formState.errors}
           className="text-red-500 dark:text-red-500-dark"
-          {...control.register("type")}
+          {...form.register("type")}
         />
         <InputContainer
           labelText={t("longTitle")}
           explanation={t("longTitleExplanation")}
         >
           <Textarea
-            {...control.register("title")}
-            errors={control.formState.errors.title}
+            {...form.register("title")}
+            errors={form.formState.errors.title}
             defaultValue={post?.title}
             className="min-h-32 w-full rounded border border-gray-500 p-5 text-xl font-normal dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
@@ -379,8 +381,8 @@ const QuestionForm: FC<Props> = ({
           explanation={t("shortTitleExplanation")}
         >
           <Input
-            {...control.register("url_title")}
-            errors={control.formState.errors.url_title}
+            {...form.register("url_title")}
+            errors={form.formState.errors.url_title}
             defaultValue={post?.url_title}
             className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
@@ -391,12 +393,13 @@ const QuestionForm: FC<Props> = ({
             link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
             markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
           })}
+          isNativeFormControl={false}
         >
-          <Textarea
-            {...control.register("description")}
-            errors={control.formState.errors.description}
-            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
+          <MarkdownEditorField
+            control={form.control}
+            name={"description"}
             defaultValue={post?.question?.description}
+            errors={form.formState.errors.description}
           />
         </InputContainer>
         <div className="flex w-full flex-col gap-4 md:flex-row">
@@ -404,7 +407,7 @@ const QuestionForm: FC<Props> = ({
             <Input
               type="datetime-local"
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              {...control.register("scheduled_close_time", {
+              {...form.register("scheduled_close_time", {
                 setValueAs: (value: string) => {
                   if (value === "" || value == null) {
                     return null;
@@ -413,7 +416,7 @@ const QuestionForm: FC<Props> = ({
                   return new Date(value);
                 },
               })}
-              errors={control.formState.errors.scheduled_close_time}
+              errors={form.formState.errors.scheduled_close_time}
               defaultValue={
                 post?.question?.scheduled_close_time
                   ? format(
@@ -431,7 +434,7 @@ const QuestionForm: FC<Props> = ({
             <Input
               type="datetime-local"
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              {...control.register("scheduled_resolve_time", {
+              {...form.register("scheduled_resolve_time", {
                 setValueAs: (value: string) => {
                   if (value === "" || value == null) {
                     return null;
@@ -440,7 +443,7 @@ const QuestionForm: FC<Props> = ({
                   return new Date(value);
                 },
               })}
-              errors={control.formState.errors.scheduled_resolve_time}
+              errors={form.formState.errors.scheduled_resolve_time}
               defaultValue={
                 post?.question?.scheduled_resolve_time
                   ? format(
@@ -458,7 +461,7 @@ const QuestionForm: FC<Props> = ({
               <Input
                 type="datetime-local"
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                {...control.register("open_time", {
+                {...form.register("open_time", {
                   setValueAs: (value: string) => {
                     if (value === "" || value == null) {
                       return null;
@@ -467,7 +470,7 @@ const QuestionForm: FC<Props> = ({
                     return new Date(value);
                   },
                 })}
-                errors={control.formState.errors.open_time}
+                errors={form.formState.errors.open_time}
                 defaultValue={
                   post?.question?.open_time
                     ? format(
@@ -485,7 +488,7 @@ const QuestionForm: FC<Props> = ({
               <Input
                 type="datetime-local"
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                {...control.register("cp_reveal_time", {
+                {...form.register("cp_reveal_time", {
                   setValueAs: (value: string) => {
                     if (value === "" || value == null) {
                       return null;
@@ -494,7 +497,7 @@ const QuestionForm: FC<Props> = ({
                     return new Date(value);
                   },
                 })}
-                errors={control.formState.errors.cp_reveal_time}
+                errors={form.formState.errors.cp_reveal_time}
                 defaultValue={
                   post?.question?.cp_reveal_time
                     ? format(
@@ -519,7 +522,7 @@ const QuestionForm: FC<Props> = ({
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
             hasForecasts={hasForecasts && mode !== "create"}
-            control={control}
+            control={form}
             onChange={({
               min: rangeMin,
               max: rangeMax,
@@ -527,13 +530,13 @@ const QuestionForm: FC<Props> = ({
               open_lower_bound: openLowerBound,
               zero_point: zeroPoint,
             }) => {
-              control.setValue("scaling", {
+              form.setValue("scaling", {
                 range_min: rangeMin,
                 range_max: rangeMax,
                 zero_point: zeroPoint,
               });
-              control.setValue("open_lower_bound", openLowerBound);
-              control.setValue("open_upper_bound", openUpperBound);
+              form.setValue("open_lower_bound", openLowerBound);
+              form.setValue("open_upper_bound", openUpperBound);
             }}
           />
         )}
@@ -554,8 +557,8 @@ const QuestionForm: FC<Props> = ({
               explanation={t("groupVariableDescription")}
             >
               <Input
-                {...control.register("group_variable")}
-                errors={control.formState.errors.group_variable}
+                {...form.register("group_variable")}
+                errors={form.formState.errors.group_variable}
                 defaultValue={post?.question?.group_variable}
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               />
@@ -568,7 +571,7 @@ const QuestionForm: FC<Props> = ({
                     <div key={opt_index} className="flex">
                       <div className="w-full">
                         <Input
-                          {...control.register(`options.${opt_index}`)}
+                          {...form.register(`options.${opt_index}`)}
                           readOnly={hasForecasts && mode !== "create"}
                           className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           value={option}
@@ -585,7 +588,7 @@ const QuestionForm: FC<Props> = ({
                           }}
                           errors={
                             // @ts-ignore
-                            control.formState.errors.options?.[opt_index]
+                            form.formState.errors.options?.[opt_index]
                           }
                         />
                       </div>
@@ -598,7 +601,7 @@ const QuestionForm: FC<Props> = ({
                               const newOptionsArray = [...prev].filter(
                                 (_, index) => index !== opt_index
                               );
-                              control.setValue("options", newOptionsArray);
+                              form.setValue("options", newOptionsArray);
                               return newOptionsArray;
                             });
                           }}
@@ -624,31 +627,25 @@ const QuestionForm: FC<Props> = ({
           explanation={t.rich("resolutionCriteriaExplanation", {
             markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
           })}
+          isNativeFormControl={false}
         >
-          <Textarea
-            {...control.register("resolution_criteria")}
-            errors={control.formState.errors.resolution_criteria}
-            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
-            defaultValue={
-              post?.question?.resolution_criteria
-                ? post?.question?.resolution_criteria
-                : undefined
-            }
+          <MarkdownEditorField
+            control={form.control}
+            name={"resolution_criteria"}
+            defaultValue={post?.question?.resolution_criteria}
+            errors={form.formState.errors.resolution_criteria}
           />
         </InputContainer>
         <InputContainer
           labelText={t("finePrint")}
           explanation={t("finePrintDescription")}
+          isNativeFormControl={false}
         >
-          <Textarea
-            {...control.register("fine_print")}
-            errors={control.formState.errors.fine_print}
-            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
-            defaultValue={
-              post?.question?.fine_print
-                ? post?.question?.fine_print
-                : undefined
-            }
+          <MarkdownEditorField
+            control={form.control}
+            name={"fine_print"}
+            defaultValue={post?.question?.fine_print}
+            errors={form.formState.errors.fine_print}
           />
         </InputContainer>
 

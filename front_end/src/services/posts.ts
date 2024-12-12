@@ -30,6 +30,7 @@ export type PostsParams = PaginationParams & {
   usernames?: string | string[];
   tags?: string | string[];
   forecaster_id?: string;
+  withdrawn?: string;
   not_forecaster_id?: string;
   author?: string;
   upvoted_by?: string;
@@ -205,6 +206,10 @@ class PostsApi {
     revalidateTag("related-articles");
 
     return response;
+  }
+
+  static async getRandomPostId(): Promise<{ id: number; post_slug: string }> {
+    return await get<{ id: number; post_slug: string }>("/posts/random/");
   }
 }
 

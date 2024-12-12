@@ -3,7 +3,11 @@ import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
+import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
@@ -42,8 +46,9 @@ const ForecastMakerBinary: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
+  const latest = question.aggregations.recency_weighted.latest;
   const communityForecast =
-    question.aggregations.recency_weighted.latest?.centers![0];
+    latest && !latest.end_time ? latest.centers![0] : undefined;
 
   const prevForecastValue = extractPrevBinaryForecastValue(prevForecast);
   const hasUserForecast = !!prevForecastValue;
@@ -51,12 +56,11 @@ const ForecastMakerBinary: FC<Props> = ({
 
   const [isForecastDirty, setIsForecastDirty] = useState(false);
 
-  const [submitError, setSubmitError] = useState<ErrorResponse>();
-
   useEffect(() => {
     setForecast(prevForecastValue);
   }, [prevForecastValue]);
 
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
 
@@ -82,6 +86,33 @@ const ForecastMakerBinary: FC<Props> = ({
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
+
+  const handlePredictWithdraw = async () => {
+    setSubmitError(undefined);
+
+    if (!prevForecastValue) return;
+
+    const response = await withdrawForecasts(post.id, [
+      {
+        question: question.id,
+      },
+    ]);
+    setIsForecastDirty(false);
+
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitError(errors);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
   return (
     <>
       <BinarySlider
@@ -99,24 +130,40 @@ const ForecastMakerBinary: FC<Props> = ({
           {predictionMessage}
         </div>
       )}
-      <div className="flex flex-col items-center justify-center">
-        {canPredict && (
-          <>
-            <PredictButton
-              hasUserForecast={hasUserForecast}
-              isDirty={isForecastDirty}
-              isPending={isPending}
-              onSubmit={submit}
-              predictLabel={t("predict")}
-            />
-            <FormErrorMessage
-              className="mt-2 flex justify-center"
-              errors={submitError}
-            />
-            <div className="h-[32px] w-full">
-              {isPending && <LoadingIndicator />}
-            </div>
-          </>
+      <div className="flex flex-col items-center justify-center gap-6">
+        <div className="flex gap-3">
+          {canPredict && (
+            <>
+              {!!prevForecastValue &&
+                question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={withdrawalIsPending}
+                    onClick={withdraw}
+                  >
+                    {t("withdraw")}
+                  </Button>
+                )}
+              <PredictButton
+                hasUserForecast={hasUserForecast}
+                isDirty={isForecastDirty}
+                isPending={isPending}
+                onSubmit={submit}
+                predictLabel={t("predict")}
+              />
+            </>
+          )}
+        </div>
+
+        <FormErrorMessage
+          className="mt-2 flex justify-center"
+          errors={submitError}
+        />
+        {(isPending || withdrawalIsPending) && (
+          <div className="h-[32px] w-full">
+            <LoadingIndicator />
+          </div>
         )}
 
         <QuestionUnresolveButton question={question} permission={permission} />

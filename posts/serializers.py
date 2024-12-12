@@ -132,7 +132,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
     notebook = NotebookWriteSerializer(required=False)
     categories = serializers.ListField(child=serializers.IntegerField(), required=False)
-    news_type = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = Post
@@ -145,7 +144,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "default_project",
             "notebook",
             "categories",
-            "news_type",
         )
 
     def get_user(self):
@@ -165,17 +163,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
 
     def validate_categories(self, values: list[int]) -> list[Project]:
         return validate_categories(lookup_field="id", lookup_values=values)
-
-    def validate_news_type(self, value) -> list[Project]:
-        if not value:
-            return value
-
-        obj = Project.objects.filter_news().filter(name__iexact=value).first()
-
-        if not obj:
-            raise ValidationError("Wrong news type")
-
-        return obj
 
 
 class PostUpdateSerializer(PostWriteSerializer):
@@ -227,6 +214,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     public_figure = serializers.CharField(required=False)
     usernames = serializers.ListField(child=serializers.CharField(), required=False)
     forecaster_id = serializers.IntegerField(required=False, allow_null=True)
+    withdrawn = serializers.BooleanField(required=False, allow_null=True)
     not_forecaster_id = serializers.IntegerField(required=False, allow_null=True)
     similar_to_post_id = serializers.IntegerField(required=False, allow_null=True)
 

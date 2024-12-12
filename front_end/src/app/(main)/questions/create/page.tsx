@@ -3,11 +3,14 @@ import React from "react";
 
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 
 import QuestionTypePicker from "../components/question_type_picker";
+
+const linkClassName =
+  "text-blue-800 hover:text-blue-900 dark:text-blue-800-dark dark:hover:text-blue-900-dark";
 
 export const metadata = {
   title: "Create a Question | Metaculus",
@@ -52,17 +55,14 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
           <p>
             {t.rich("createQuestionDescription1", {
               link1: (chunks) => (
-                <a
-                  href="/question-writing"
-                  className="text-blue-800 hover:text-blue-900 dark:text-blue-800-dark dark:hover:text-blue-900-dark"
-                >
+                <a href="/question-writing" className={linkClassName}>
                   {chunks}
                 </a>
               ),
               link2: (chunks) => (
                 <a
                   href="/questions/956/suggest-questions-to-launch/"
-                  className="text-blue-800 hover:text-blue-900 dark:text-blue-800-dark dark:hover:text-blue-900-dark"
+                  className={linkClassName}
                 >
                   {chunks}
                 </a>
@@ -70,6 +70,18 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
             })}
           </p>
           <p>{t("createQuestionDescription2")}</p>
+          <p>
+            {t.rich("expressionOfInterestFormMessage", {
+              link: (chunks) => (
+                <a
+                  href={EXPRESSION_OF_INTEREST_FORM_URL}
+                  className={linkClassName}
+                >
+                  {chunks}
+                </a>
+              ),
+            })}
+          </p>
         </div>
         <h2 className="mt-0 text-lg font-light capitalize">
           {t("singleQuestion")}

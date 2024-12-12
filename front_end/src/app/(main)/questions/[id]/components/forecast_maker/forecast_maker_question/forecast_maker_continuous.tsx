@@ -1,8 +1,12 @@
 "use client";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
@@ -29,7 +33,6 @@ import QuestionUnresolveButton from "../resolution/unresolve_button";
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
-  prevForecast?: any;
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
@@ -40,7 +43,6 @@ const ForecastMakerContinuous: FC<Props> = ({
   post,
   question,
   permission,
-  prevForecast,
   canPredict,
   canResolve,
   predictionMessage,
@@ -49,12 +51,19 @@ const ForecastMakerContinuous: FC<Props> = ({
   const { hideCP } = useHideCP();
   const [isDirty, setIsDirty] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const previousForecast = question.my_forecasts?.latest;
+  const activeForecast =
+    !!previousForecast && isNil(previousForecast.end_time)
+      ? previousForecast
+      : undefined;
+  const activeForecastSliderValues = activeForecast
+    ? extractPrevNumericForecastValue(activeForecast.slider_values)
+    : {};
   const withCommunityQuartiles = !user || !hideCP;
-  const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
-  const hasUserForecast = !!prevForecastValue.forecast;
+  const hasUserForecast = !!activeForecastSliderValues.forecast;
   const t = useTranslations();
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
-    prevForecastValue?.forecast ?? [
+    activeForecastSliderValues?.forecast ?? [
       {
         left: 0.4,
         center: 0.5,
@@ -63,9 +72,8 @@ const ForecastMakerContinuous: FC<Props> = ({
     ]
   );
   const [weights, setWeights] = useState<number[]>(
-    prevForecastValue?.weights ?? [1]
+    activeForecastSliderValues?.weights ?? [1]
   );
-  const previousForecast = question.my_forecasts?.latest;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(
       !!previousForecast?.forecast_values && !previousForecast.slider_values
@@ -87,8 +95,9 @@ const ForecastMakerContinuous: FC<Props> = ({
     overlayPreviousForecast && previousForecast
       ? previousForecast.forecast_values
       : undefined;
+  const latest = question.aggregations.recency_weighted.latest;
   const communityCdf: number[] | undefined =
-    question.aggregations.recency_weighted.latest?.forecast_values;
+    latest && !latest.end_time ? latest?.forecast_values : undefined;
 
   const handleAddComponent = () => {
     setForecast([
@@ -126,6 +135,32 @@ const ForecastMakerContinuous: FC<Props> = ({
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
+
+  const handlePredictWithdraw = async () => {
+    setSubmitError(undefined);
+
+    if (!previousForecast) return;
+
+    const response = await withdrawForecasts(post.id, [
+      {
+        question: question.id,
+      },
+    ]);
+    setIsDirty(false);
+
+    const errors: ErrorResponse[] = [];
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
+      }
+    }
+    if (errors.length) {
+      setSubmitError(errors);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
   return (
     <>
       <ContinuousSlider
@@ -156,20 +191,31 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
 
+            {!!activeForecast &&
+              question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )}
             <PredictButton
               onSubmit={submit}
               isDirty={isDirty}
               hasUserForecast={hasUserForecast}
               isPending={isPending}
             />
+            <FormErrorMessage
+              className="mt-2 flex justify-center"
+              errors={submitError}
+            />
           </div>
-
-          <FormErrorMessage
-            className="mt-2 flex justify-center"
-            errors={submitError}
-          />
-
-          <div className="h-[32px]">{isPending && <LoadingIndicator />}</div>
+          <div className="h-[32px]">
+            {(isPending || withdrawalIsPending) && <LoadingIndicator />}
+          </div>
         </>
       )}
       {predictionMessage && (

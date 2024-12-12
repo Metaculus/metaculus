@@ -14,6 +14,7 @@ export function parseComment(
     on_post: comment.on_post,
     on_post_data: comment.on_post_data,
     created_at: comment.created_at,
+    edited_at: comment.edited_at,
     is_soft_deleted: comment.is_soft_deleted,
     included_forecast: comment.included_forecast,
     is_private: comment.is_private,
@@ -30,7 +31,7 @@ export function parseUserMentions(
   markdown: string,
   mentionedUsers?: AuthorType[]
 ): string {
-  const userTagPattern = /@(\(([^)]+)\)|(\w+))/g;
+  const userTagPattern = /@(\(([^)]+)\)|([\w.]+))/g;
 
   function isInsideSquareBrackets(index: number) {
     let insideBrackets = false;

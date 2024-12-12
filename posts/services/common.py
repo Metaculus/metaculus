@@ -8,6 +8,8 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
+from comments.models import Comment
+from comments.services.feed import get_comments_feed
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -31,16 +33,14 @@ from users.models import User
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregations_at_time
 from utils.the_math.measures import prediction_difference_for_sorting
-from .subscriptions import notify_post_status_change
-from ..tasks import run_notify_post_status_change
-
 from utils.translation import (
     update_translations_for_model,
     queryset_filter_outdated_translations,
     detect_and_update_content_language,
 )
-from comments.services.feed import get_comments_feed
-from comments.models import Comment
+from .search import generate_post_content_for_embedding_vectorization
+from .subscriptions import notify_post_status_change
+from ..tasks import run_notify_post_status_change, run_post_indexing
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,6 @@ def create_post(
     notebook: dict = None,
     author: User = None,
     url_title: str = None,
-    news_type: Project = None,
 ) -> Post:
     site_main = get_site_main_project()
 
@@ -102,23 +101,20 @@ def create_post(
     obj.full_clean()
     obj.save()
 
-    # Populating projects
-    projects = categories + ([news_type] if news_type else [])
-    if obj.default_project in projects:
-        projects.remove(obj.default_project)
+    # Populating categories
+    if obj.default_project in categories:
+        categories.remove(obj.default_project)
 
     # Make post visible in the main feed
     if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
-        projects.append(site_main)
+        categories.append(site_main)
 
-    obj.projects.add(*projects)
+    obj.projects.add(*categories)
 
     # Sync status fields
     obj.update_pseudo_materialized_fields()
 
     # Run async tasks
-    from ..tasks import run_post_indexing
-
     run_post_indexing.send(obj.id)
 
     return obj
@@ -159,32 +155,6 @@ def trigger_update_post_translations(
         update_translations_for_model(comments_qs, batch_size)
 
 
-def update_post_projects(
-    post: Post, categories: list[Project] = None, news: list[Project] = None
-):
-    projects_map = {
-        Project.ProjectTypes.CATEGORY: categories,
-        Project.ProjectTypes.NEWS_CATEGORY: news,
-    }
-
-    existing_projects = set(post.projects.all())
-
-    for project_type, projects in projects_map.items():
-        if projects is None:
-            continue
-
-        # Clean existing project types
-        existing_projects = {p for p in existing_projects if p.type != project_type}
-
-        # Update with new ones
-        existing_projects |= set(projects)
-
-    if post.default_project in existing_projects:
-        existing_projects.remove(post.default_project)
-
-    post.projects.set(existing_projects)
-
-
 def update_post(
     post: Post,
     categories: list[Project] = None,
@@ -192,9 +162,11 @@ def update_post(
     conditional: dict = None,
     group_of_questions: dict = None,
     notebook: dict = None,
-    news_type: Project = None,
     **kwargs,
 ):
+    # Content for embedding generation before update
+    original_embedding_content = generate_post_content_for_embedding_vectorization(post)
+
     # Updating non-side effect fields
     post, _ = model_update(
         instance=post,
@@ -202,7 +174,14 @@ def update_post(
         data=kwargs,
     )
 
-    update_post_projects(post, categories, news_type)
+    # Update post categories
+    if categories:
+        post.projects.set(
+            # Keep existing non-category secondary projects
+            {p for p in post.projects.all() if p.type != Project.ProjectTypes.CATEGORY}
+            # Append updated set of categories
+            | set(categories)
+        )
 
     if question:
         if not post.question:
@@ -229,6 +208,13 @@ def update_post(
         update_notebook(post.notebook, **notebook)
 
     post.update_pseudo_materialized_fields()
+
+    # Compare the text content before and after the post update for embedding generation
+    # If the content has changed, re-run the post indexing process
+    if original_embedding_content != generate_post_content_for_embedding_vectorization(
+        post
+    ):
+        run_post_indexing.send(post.id)
 
     return post
 

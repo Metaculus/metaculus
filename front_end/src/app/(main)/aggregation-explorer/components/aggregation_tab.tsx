@@ -131,7 +131,11 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
           />
           <CursorDetailItem
             title={t("communityPredictionLabel")}
-            text={getDisplayValue(cursorData.center, qType, scaling)}
+            text={getDisplayValue({
+              value: cursorData.center,
+              questionType: qType,
+              scaling,
+            })}
             variant="prediction"
           />
         </div>

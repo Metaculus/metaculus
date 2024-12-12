@@ -192,11 +192,11 @@ function getTableData(questions: PostWithForecastsAndWeight[]): TableItem[] {
 
     const cpRawValue =
       post.question.aggregations.recency_weighted.latest?.centers?.[0] ?? null;
-    const cpDisplayValue = getDisplayValue(
-      cpRawValue,
-      post.question.type,
-      post.question.scaling
-    );
+    const cpDisplayValue = getDisplayValue({
+      value: cpRawValue,
+      questionType: post.question.type,
+      scaling: post.question.scaling,
+    });
 
     data.push({
       title: post.title,

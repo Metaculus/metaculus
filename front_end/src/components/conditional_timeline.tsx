@@ -24,17 +24,6 @@ const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
   const timestamps = getGroupQuestionsTimestamps(questions);
   const { hideCP } = useHideCP();
 
-  if (hideCP) {
-    return (
-      <>
-        <h3 className="m-0 text-start text-base font-normal leading-5">
-          {t("forecastTimelineHeading")}
-        </h3>
-        <RevealCPButton />
-      </>
-    );
-  }
-
   const type = getQuestionLinearChartType(groupType);
 
   if (!type) {
@@ -42,17 +31,21 @@ const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
   }
 
   return (
-    <MultipleChoiceGroupChart
-      questions={questions}
-      timestamps={timestamps}
-      type={type}
-      actualCloseTime={
-        conditional.condition_child.actual_close_time
-          ? new Date(conditional.condition_child.actual_close_time).getTime()
-          : null
-      }
-      isClosed={isClosed}
-    />
+    <>
+      <MultipleChoiceGroupChart
+        questions={questions}
+        timestamps={timestamps}
+        type={type}
+        actualCloseTime={
+          conditional.condition_child.actual_close_time
+            ? new Date(conditional.condition_child.actual_close_time).getTime()
+            : null
+        }
+        hideCP={hideCP}
+        isClosed={isClosed}
+      />
+      {hideCP && <RevealCPButton className="mb-3" />}
+    </>
   );
 };
 

@@ -181,32 +181,34 @@ const GroupForecastTable: FC<Props> = ({
                   })}
                 >
                   <PredictionCell
-                    communityValue={getDisplayValue(
-                      showCP ? option.communityQuartiles?.lower25 : undefined,
-                      (
+                    communityValue={getDisplayValue({
+                      value: showCP
+                        ? option.communityQuartiles?.lower25
+                        : undefined,
+                      questionType: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
                       ).type,
-                      (
+                      scaling: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
-                      ).scaling
-                    )}
-                    userValue={getDisplayValue(
-                      option.userQuartiles?.lower25,
-                      (
+                      ).scaling,
+                    })}
+                    userValue={getDisplayValue({
+                      value: option.userQuartiles?.lower25,
+                      questionType: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
                       ).type,
-                      (
+                      scaling: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
-                      ).scaling
-                    )}
+                      ).scaling,
+                    })}
                     isDirty={option.isDirty}
                   />
                 </Td>
@@ -216,32 +218,34 @@ const GroupForecastTable: FC<Props> = ({
                   })}
                 >
                   <PredictionCell
-                    communityValue={getDisplayValue(
-                      showCP ? option.communityQuartiles?.median : undefined,
-                      (
+                    communityValue={getDisplayValue({
+                      value: showCP
+                        ? option.communityQuartiles?.median
+                        : undefined,
+                      questionType: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
                       ).type,
-                      (
+                      scaling: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
-                      ).scaling
-                    )}
-                    userValue={getDisplayValue(
-                      option.userQuartiles?.median,
-                      (
+                      ).scaling,
+                    })}
+                    userValue={getDisplayValue({
+                      value: option.userQuartiles?.median,
+                      questionType: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
                       ).type,
-                      (
+                      scaling: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
-                      ).scaling
-                    )}
+                      ).scaling,
+                    })}
                     isDirty={option.isDirty}
                   />
                 </Td>
@@ -253,34 +257,34 @@ const GroupForecastTable: FC<Props> = ({
                   <div className="flex">
                     <div className="w-full">
                       <PredictionCell
-                        communityValue={getDisplayValue(
-                          showCP
+                        communityValue={getDisplayValue({
+                          value: showCP
                             ? option.communityQuartiles?.upper75
                             : undefined,
-                          (
+                          questionType: (
                             questions.find(
                               (question) => question.id === option.id
                             ) as Question
                           ).type,
-                          (
+                          scaling: (
                             questions.find(
                               (question) => question.id === option.id
                             ) as Question
-                          ).scaling
-                        )}
-                        userValue={getDisplayValue(
-                          option.userQuartiles?.upper75,
-                          (
+                          ).scaling,
+                        })}
+                        userValue={getDisplayValue({
+                          value: option.userQuartiles?.upper75,
+                          questionType: (
                             questions.find(
                               (question) => question.id === option.id
                             ) as Question
                           ).type,
-                          (
+                          scaling: (
                             questions.find(
                               (question) => question.id === option.id
                             ) as Question
-                          ).scaling
-                        )}
+                          ).scaling,
+                        })}
                         isDirty={option.isDirty}
                       />
                     </div>

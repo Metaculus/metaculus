@@ -44,7 +44,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
 
   return (
     <section className="flex w-full flex-col items-center gap-3.5 text-blue-800 dark:text-blue-800-dark max-sm:pt-3 sm:m-8 sm:mb-6 sm:gap-6">
-      <div className="flex flex-col gap-3.5">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col items-center justify-center gap-3">
           {category !== "all" && (
             <Link
@@ -64,7 +64,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
             )}
           </div>
         </div>
-        <div className="max-w-3xl px-5 py-2 text-center text-sm font-normal text-gray-700 dark:text-gray-700-dark sm:py-0 sm:text-base">
+        <div className="max-w-3xl px-5 py-2 text-center text-sm font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
           {RANKING_CATEGORIES[category].explanation}
         </div>
       </div>

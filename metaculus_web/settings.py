@@ -239,6 +239,9 @@ EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg2.metaculus.com>"
 )
+EMAIL_NOTIFICATIONS_USER = os.environ.get(
+    "EMAIL_NOTIFICATIONS_USER", "Metaculus Notifications <notifications@mg2.metaculus.com>"
+)
 EMAIL_SENDER_NO_REPLY = os.environ.get(
     "EMAIL_SENDER_NO_REPLY", "Metaculus NoReply <no-reply@mg2.metaculus.com>"
 )
@@ -277,12 +280,6 @@ FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000")
 )
 
 SEND_ALL_MAIL_TO = os.environ.get("SEND_ALL_MAIL_TO", None)
-MAIL_FREQUENCY_MIN = int(os.environ.get("MAIL_FREQUENCY_MIN", 20))
-
-if MAIL_FREQUENCY_MIN > 59:
-    raise Exception(
-        "MAIL_FREQUENCY_MIN must be between 1 and 59 (used in cron tab as 0-59/MAIL_FREQUENCY_MIN * * * *)"
-    )
 
 # Redis endpoint
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")

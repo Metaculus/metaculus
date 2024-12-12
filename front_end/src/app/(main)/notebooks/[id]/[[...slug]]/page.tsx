@@ -16,9 +16,9 @@ import {
   NOTEBOOK_TITLE,
 } from "@/app/(main)/notebooks/constants/page_sections";
 import PostHeader from "@/app/(main)/questions/[id]/components/post_header";
-import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
+import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import CircleDivider from "@/components/ui/circle_divider";
 import { defaultDescription } from "@/constants/metadata";
 import {
@@ -27,7 +27,7 @@ import {
 } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
-import { PostWithNotebook } from "@/types/post";
+import { PostStatus, PostWithNotebook } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
@@ -81,7 +81,8 @@ export default async function IndividualNotebook({ params }: Props) {
     <Header />
   );
 
-  const slugParam = params.slug[0];
+  // we can pass custom slug for indexes in params
+  const slugParam = params.slug?.[0] ?? postData.slug;
   const indexNotebook = NOTEBOOK_INDEXES[slugParam];
   if (!!indexNotebook) {
     const questionIds = indexNotebook.map((q) => q.questionId);
@@ -108,33 +109,25 @@ export default async function IndividualNotebook({ params }: Props) {
 
       <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
         {postData.notebook.image_url &&
-        postData.notebook.image_url.startsWith("https:") ? (
-          <Image
-            src={postData.notebook.image_url}
-            alt=""
-            // fill
-            priority
-            width={1088}
-            height={180}
-            sizes="(max-width: 1200px) 100%, 1088px"
-            className="relative mb-8 h-auto max-h-72 w-full object-cover"
-            quality={100}
-          />
-        ) : (
-          <Image
-            className="mb-8 h-auto max-h-72 w-full object-cover"
-            src={imagePlaceholder}
-            alt=""
-            placeholder={"blur"}
-            quality={100}
-          />
-        )}
+          postData.notebook.image_url.startsWith("https:") && (
+            <Image
+              src={postData.notebook.image_url}
+              alt=""
+              // fill
+              priority
+              width={1088}
+              height={180}
+              sizes="(max-width: 1200px) 100%, 1088px"
+              className="relative mb-8 h-auto max-h-72 w-full object-cover"
+              quality={100}
+            />
+          )}
 
         <PostHeader post={postData} questionTitle={questionTitle} />
 
         <h1
           id={NOTEBOOK_TITLE}
-          className="mb-4 mt-0 font-serif text-3xl leading-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl sm:leading-tight"
+          className="mb-4 mt-2 font-serif text-3xl leading-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl sm:leading-tight lg:mt-3"
         >
           {postData.title}
         </h1>
@@ -167,6 +160,16 @@ export default async function IndividualNotebook({ params }: Props) {
             </span>
           </div>
           <div className="flex items-center gap-1">
+            {postData.curation_status == PostStatus.APPROVED && (
+              <>
+                <div className="mr-3 hidden lg:block">
+                  <PostSubscribeButton post={postData} />
+                </div>
+                <div className="lg:hidden">
+                  <PostSubscribeButton post={postData} mini />
+                </div>
+              </>
+            )}
             <SharePostMenu questionTitle={questionTitle} />
             <PostDropdownMenu post={postData} />
           </div>

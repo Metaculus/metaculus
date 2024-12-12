@@ -36,16 +36,6 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
     return null;
   }
 
-  if (hideCP) {
-    return (
-      <>
-        <h3 className="m-0 text-start text-base font-normal leading-5">
-          {t("forecastTimelineHeading")}
-        </h3>
-        <RevealCPButton />
-      </>
-    );
-  }
   const sortedQuestions = sortGroupPredictionOptions(
     questions as QuestionWithNumericForecasts[]
   );
@@ -61,18 +51,22 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
   }
 
   return (
-    <MultipleChoiceGroupChart
-      questions={sortedQuestions}
-      timestamps={timestamps}
-      type={type}
-      actualCloseTime={
-        post.actual_close_time
-          ? new Date(post.actual_close_time).getTime()
-          : null
-      }
-      isClosed={isClosed}
-      preselectedQuestionId={preselectedQuestionId}
-    />
+    <>
+      <MultipleChoiceGroupChart
+        questions={sortedQuestions}
+        timestamps={timestamps}
+        type={type}
+        actualCloseTime={
+          post.actual_close_time
+            ? new Date(post.actual_close_time).getTime()
+            : null
+        }
+        isClosed={isClosed}
+        preselectedQuestionId={preselectedQuestionId}
+        hideCP={hideCP}
+      />
+      {hideCP && <RevealCPButton className="mb-3" />}
+    </>
   );
 };
 

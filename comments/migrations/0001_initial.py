@@ -31,9 +31,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "edited_at",
-                    models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
-                    ),
+                    models.DateTimeField(editable=False, null=True),
                 ),
             ],
         ),
@@ -58,7 +56,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("is_soft_deleted", models.BooleanField(null=True)),
@@ -91,7 +89,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("text_diff", models.TextField()),
@@ -121,7 +119,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 (

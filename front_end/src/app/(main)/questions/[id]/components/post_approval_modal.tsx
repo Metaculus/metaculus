@@ -89,32 +89,34 @@ const PostApprovalModal: FC<{
               ? t("postGroupOfQuestionsApprovalSubtitle")
               : t("postQuestionApprovalSubtitle")}
         </p>
-        <div className="mb-4 flex flex-col gap-2">
-          <span>{t("openTime")}</span>
-          <DatetimeUtc
-            placeholder="date when forecasts will open"
-            min={currentDateTime}
-            onChange={(dt) =>
-              setApprovalData({
-                ...approvalData,
-                open_time: dt,
-              })
-            }
-            defaultValue={approvalData.open_time}
-          />
-          <span>{t("cpRevealTime")}</span>
-          <DatetimeUtc
-            placeholder="time when the cp will be revealed"
-            min={currentDateTime}
-            onChange={(dt) =>
-              setApprovalData({
-                ...approvalData,
-                cp_reveal_time: dt,
-              })
-            }
-            defaultValue={approvalData.cp_reveal_time}
-          />
-        </div>
+        {!post.notebook && (
+          <div className="mb-4 flex flex-col gap-2">
+            <span>{t("openTime")}</span>
+            <DatetimeUtc
+              placeholder="date when forecasts will open"
+              min={currentDateTime}
+              onChange={(dt) =>
+                setApprovalData({
+                  ...approvalData,
+                  open_time: dt,
+                })
+              }
+              defaultValue={approvalData.open_time}
+            />
+            <span>{t("cpRevealTime")}</span>
+            <DatetimeUtc
+              placeholder="time when the cp will be revealed"
+              min={currentDateTime}
+              onChange={(dt) =>
+                setApprovalData({
+                  ...approvalData,
+                  cp_reveal_time: dt,
+                })
+              }
+              defaultValue={approvalData.cp_reveal_time}
+            />
+          </div>
+        )}
         <div className="flex w-full justify-end gap-2">
           <Button
             onClick={() => setIsOpen(false)}
