@@ -447,6 +447,12 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
+    # Custom traces configuration
+
+    # Capture all for non-prod envs
+    if ENV != ENV_PROD:
+        return 1.0
+
     if re.match(r"^/api/posts/\d+/similar-posts/?$", url) or url == "/api/medals/":
         return 0.1
 
