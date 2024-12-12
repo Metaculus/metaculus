@@ -50,7 +50,7 @@ export const ContestHeader: FC = () => {
         Forecasting Contest
       </div>
 
-      <p className="mt-5 text-base text-blue-800 dark:text-blue-800-dark opacity-70 sm:text-center sm:text-xl">
+      <p className="mt-5 text-base text-blue-800 opacity-70 dark:text-blue-800-dark sm:text-center sm:text-xl">
         Register to forecast, explore opportunities with Bridgewater Associates,
         and compete for <span className="font-bold">$25,000 in prizes!</span>
       </p>
