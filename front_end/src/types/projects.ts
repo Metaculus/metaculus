@@ -6,7 +6,7 @@ type TopicSection = "hot_categories" | "hot_topics";
 export type Project = {
   id: number;
   name: string;
-  type: string;
+  type: TournamentType;
   slug: string;
   posts_count: number;
 };
@@ -22,7 +22,7 @@ export type Category = Project & {
 
 export type Tag = Project;
 export type NewsCategory = Project & {
-  type: "news_category";
+  type: TournamentType.NewsCategory;
 };
 
 export enum TournamentType {
@@ -68,7 +68,7 @@ export type Tournament = TournamentPreview & {
 };
 
 export type Community = Project & {
-  type: "community";
+  type: TournamentType.Community;
   description: string;
   header_image: string;
   header_logo: string;
