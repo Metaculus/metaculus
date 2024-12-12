@@ -5,16 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
-import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import {
-  FormError,
   FormErrorMessage,
   Input,
-  Textarea,
+  MarkdownEditorField,
 } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { CommunityUpdateParams } from "@/services/projects";
@@ -189,32 +187,17 @@ const CommunitySettings: FC<Props> = ({ community }) => {
           </div>
         </InputContainer>
         <div>
-          <InputContainer labelText={t("communityDescription")}>
-            <Textarea
-              {...register("description")}
+          <InputContainer
+            labelText={t("communityDescription")}
+            isNativeFormControl={false}
+          >
+            <MarkdownEditorField
+              control={control}
+              name={"description"}
               errors={formState.errors.description}
-              className="hidden"
+              defaultValue={community.description}
             />
           </InputContainer>
-          <Controller
-            control={control}
-            name="description"
-            render={({ field: { value } }) => (
-              <MarkdownEditor
-                mode="write"
-                markdown={value as string}
-                onChange={(markdown: string) => {
-                  setValue("description", markdown, { shouldDirty: true });
-                }}
-                className="mt-2 w-full"
-                withUgcLinks
-              />
-            )}
-          />
-          <FormError
-            errors={formState.errors.description}
-            name={"description"}
-          />
         </div>
       </div>
       {!isLoading && <FormErrorMessage errors={error} />}
