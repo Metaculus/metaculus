@@ -36,7 +36,7 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
   const categoryOptions = useMemo(
     () =>
       categories.map((obj) => ({
-        label: obj.name,
+        label: obj.name.replace(/\snews$/i, ""),
         value: obj.slug,
       })),
     [categories]

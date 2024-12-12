@@ -9,7 +9,7 @@ import {
   FetchOptions,
 } from "@/types/fetch";
 
-import { extractError, logError } from "./errors";
+import { extractError } from "./errors";
 
 class ApiError extends Error {
   public digest: string;
@@ -140,23 +140,11 @@ const appFetch = async <T>(
     delete finalOptions.headers["Content-Type"];
   }
 
-  try {
-    const response = await fetch(finalUrl, finalOptions);
-    // consume response in order to fix SocketError: other side is closed
-    // https://stackoverflow.com/questions/76931498/typeerror-terminated-cause-socketerror-other-side-closed-in-fetch-nodejs
-    const clonedRes = response.clone();
-    return await handleResponse<T>(clonedRes);
-  } catch (error) {
-    const statusCode = (error as ErrorResponse)?.response?.status;
-    const digest = (error as ApiError)?.digest;
-
-    if (digest != "NEXT_NOT_FOUND" && (!statusCode || statusCode >= 500)) {
-      console.error("Fetch error:", error);
-    }
-
-    logError(error, `Fetch error: ${error}. finalUrl: ${finalUrl}`);
-    throw error;
-  }
+  const response = await fetch(finalUrl, finalOptions);
+  // consume response in order to fix SocketError: other side is closed
+  // https://stackoverflow.com/questions/76931498/typeerror-terminated-cause-socketerror-other-side-closed-in-fetch-nodejs
+  const clonedRes = response.clone();
+  return await handleResponse<T>(clonedRes);
 };
 
 const get = async <T>(
