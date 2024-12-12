@@ -11,15 +11,15 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 import os
+import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 import dj_database_url
+import django.conf.locale
 import sentry_sdk
 from sentry_sdk.integrations.dramatiq import DramatiqIntegration
-
-import django.conf.locale
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -242,7 +242,8 @@ EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg2.metaculus.com>"
 )
 EMAIL_NOTIFICATIONS_USER = os.environ.get(
-    "EMAIL_NOTIFICATIONS_USER", "Metaculus Notifications <notifications@mg2.metaculus.com>"
+    "EMAIL_NOTIFICATIONS_USER",
+    "Metaculus Notifications <notifications@mg2.metaculus.com>",
 )
 EMAIL_SENDER_NO_REPLY = os.environ.get(
     "EMAIL_SENDER_NO_REPLY", "Metaculus NoReply <no-reply@mg2.metaculus.com>"
@@ -445,6 +446,9 @@ def traces_sampler(sampling_context):
         for starts_with in exclude_endpoints:
             if url.startswith(starts_with):
                 return 0
+
+    if re.match(r"^/api/posts/\d+/similar-posts/?$", url) or url == "/api/medals/":
+        return 0.1
 
     return 0.5
 
