@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 import os
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import dj_database_url
@@ -444,14 +446,14 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
-    return 1.0
+    return 0.5
 
 
 if os.environ.get("SENTRY_DNS", None):
     sentry_sdk.init(
         dsn=os.environ.get("SENTRY_DNS"),
         traces_sampler=traces_sampler,
-        profiles_sample_rate=1.0,
+        profiles_sample_rate=0.5,
         environment=ENV,
         integrations=[
             DramatiqIntegration(),
