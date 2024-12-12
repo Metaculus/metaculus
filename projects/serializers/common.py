@@ -5,8 +5,8 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from projects.serializers.communities import CommunitySerializer
 from projects.models import Project, ProjectUserPermission
+from projects.serializers.communities import CommunitySerializer
 from users.serializers import UserPublicSerializer
 
 
@@ -19,7 +19,7 @@ class TagSerializer(serializers.ModelSerializer):
 class NewsCategorySerialize(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "type")
+        fields = ("id", "name", "slug", "type", "default_permission")
 
 
 class CategorySerializer(serializers.ModelSerializer):
