@@ -1,5 +1,6 @@
 import difflib
 
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
@@ -116,6 +117,7 @@ def comment_delete_api_view(request: Request, pk: int):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@transaction.non_atomic_requests
 def comment_create_api_view(request: Request):
     user = request.user
     serializer = CommentWriteSerializer(data=request.data)
@@ -144,8 +146,6 @@ def comment_create_api_view(request: Request):
     new_comment = create_comment(
         **serializer.validated_data, included_forecast=forecast, user=user
     )
-
-    trigger_update_comment_translations(new_comment, force=False)
 
     return Response(
         serialize_comment_many([new_comment])[0], status=status.HTTP_201_CREATED
@@ -297,8 +297,6 @@ def comment_create_oldapi_view(request: Request):
         user=user,
         text=text,
     )
-
-    trigger_update_comment_translations(new_comment, force=False)
 
     return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
 
