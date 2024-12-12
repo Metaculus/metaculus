@@ -59,6 +59,7 @@
     "react-error-boundary": "^4.0.13",
     "react-hook-form": "^7.52.1",
     "react-hot-toast": "^2.4.1",
+    "react-merge-refs": "^2.1.1",
     "remark": "^15.0.1",
     "sass": "^1.77.6",
     "sharp": "^0.33.5",
