@@ -18,17 +18,26 @@ export function extractError(field_error: any): string | undefined {
 }
 
 export function logError(error: Error | unknown, message?: string) {
-  const statusCode = (error as ErrorResponse)?.response?.status;
-  const digest = (error as ErrorResponse)?.digest;
+  const errorResponse = (error as ErrorResponse) ?? {};
+  const { status = "unknown", url = "unknown" } = errorResponse?.response ?? {};
+  const { digest = "unknown" } = errorResponse;
 
-  if (!statusCode || statusCode >= 500) {
+  // Capture exception in Sentry for server errors or unknown status
+  if (!status || status >= 500) {
     Sentry.captureException(error);
   }
 
-  console.error(
-    `${message ?? "Error:"} status_code=${statusCode} digest=${JSON.stringify(digest)} message=${JSON.stringify(message)} error=${JSON.stringify(error)}`,
-    error
-  );
+  const logChunks = [
+    message ?? "Error:",
+    `status_code=${status}`,
+    `url=${url}`,
+    `digest=${JSON.stringify(digest)}`,
+    `message=${JSON.stringify(message)}`,
+    `error=${JSON.stringify(error)}`,
+  ];
+
+  // Log the complete message
+  console.error(logChunks.join(" "), error);
 }
 
 export function logErrorWithScope(
