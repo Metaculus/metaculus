@@ -1,5 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
+import { ErrorResponse } from "@/types/fetch";
+
 export function extractError(field_error: any): string | undefined {
   if (typeof field_error === "string") return field_error;
 
@@ -16,8 +18,17 @@ export function extractError(field_error: any): string | undefined {
 }
 
 export function logError(error: Error | unknown, message?: string) {
-  Sentry.captureException(error);
-  console.error(message ?? error);
+  const statusCode = (error as ErrorResponse)?.response?.status;
+  const digest = (error as ErrorResponse)?.digest;
+
+  if (!statusCode || statusCode >= 500) {
+    Sentry.captureException(error);
+  }
+
+  console.error(
+    `${message ?? "Error:"} status_code=${statusCode} digest=${JSON.stringify(digest)} message=${JSON.stringify(message)} error=${JSON.stringify(error)}`,
+    error
+  );
 }
 
 export function logErrorWithScope(
