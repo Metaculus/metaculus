@@ -26,8 +26,8 @@ export default function ContestRules() {
 
       <PageWrapper>
         <h1>
-          Official Competition Rules for the Bridgewater Open Forecasting Tournament (the
-          `&quot;Tournament`&quot;)
+          Official Competition Rules for the Bridgewater Open Forecasting
+          Tournament (the `&quot;Tournament`&quot;)
         </h1>
 
         <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
@@ -36,8 +36,9 @@ export default function ContestRules() {
           <li>
             <b>Description of Tournament.</b> The Tournament, run by Metaculus,
             Inc. (`&quot;Metaculus`&quot;), will test participants&apos; ability
-            to make probabilistic forecasts on questions
-            concerning future events across a variety of question types (binary, continuous, multiple choice, and conditional). Bridgewater Associates, LP
+            to make probabilistic forecasts on questions concerning future
+            events across a variety of question types (binary, continuous,
+            multiple choice, and conditional). Bridgewater Associates, LP
             (`&quot;Bridgewater`&quot;) may reach out to participants who
             perform well in the Tournament to gauge their interest in beginning
             a recruitment process for employment with Bridgewater. By entering
@@ -47,7 +48,8 @@ export default function ContestRules() {
             used to identify or contact a specific individual, such as your name
             and email address) (`&quot;Personal Information`&quot;), with
             Bridgewater, and consent to Bridgewater contacting you via email
-            following the competition regarding potential employment opportunities with Bridgewater.
+            following the competition regarding potential employment
+            opportunities with Bridgewater.
           </li>
           <li>
             <b>How to Enter and Participate.</b> Any person wishing to
@@ -59,25 +61,28 @@ export default function ContestRules() {
             probabilistic forecasts. To qualify for any of the prizes, you need
             to achieve a sufficiently high Peer Score, as assessed by
             Metaculus&apos; Tournament Scoring Rules. Note that you may update
-            your forecasts as frequently as you want. No purchase or payment is necessary to enter or win. You
-            may enter only once. Entering more than once will void all entries
-            and result in disqualification. You may not enter more times than
-            indicated by using multiple email addresses, identities, or devices
-            in an attempt to circumvent the rules. Participants are not allowed
-            to share accounts – forecasts must be your own work.
+            your forecasts as frequently as you want. No purchase or payment is
+            necessary to enter or win. You may enter only once. Entering more
+            than once will void all entries and result in disqualification. You
+            may not enter more times than indicated by using multiple email
+            addresses, identities, or devices in an attempt to circumvent the
+            rules. Participants are not allowed to share accounts – forecasts
+            must be your own work.
           </li>
           <li>
-            <b>Eligibility.</b> Participants must be 18 years of age or older as of February 3, 2025.
-            Employees and contractors of Metaculus and Bridgewater and their affiliates,
-            subsidiaries, and agencies, and members of their immediate family or
-            persons living in the same household are not eligible to
-            participate. Void where prohibited.
+            <b>Eligibility.</b> Participants must be 18 years of age or older as
+            of February 3, 2025. Employees and contractors of Metaculus and
+            Bridgewater and their affiliates, subsidiaries, and agencies, and
+            members of their immediate family or persons living in the same
+            household are not eligible to participate. Void where prohibited.
           </li>
           <li>
             <b>Timing.</b> The Tournament webpage will be made available on
-            January 3, 2025. Practice questions will be available from January 13,
-            2025 or earlier to February 3, 2025. Official scored forecasting begins February 3, 2025, with additional questions posted February 10, 2025 and February 17,
-            2025. Final rankings will be determined and winners announced in early April.
+            January 3, 2025. Practice questions will be available from January
+            13, 2025 or earlier to February 3, 2025. Official scored forecasting
+            begins February 3, 2025, with additional questions posted February
+            10, 2025 and February 17, 2025. Final rankings will be determined
+            and winners announced in early April.
           </li>
           <li>
             <b>Prizes.</b> The Tournament will have a total prize pool of
@@ -91,13 +96,15 @@ export default function ContestRules() {
             according to Metaculus&apos; Tournament Scoring Rules. Winners will
             receive payouts that depend on their rank and forecasting
             performance, according to their score. A total of $25,000 will be
-            awarded across a maximum of 250 prize disbursements. Payouts may be paid in the form of cash or a cash equivalent,
-            which may include but is not limited to prepaid virtual cards, gift cards, or similar methods, at the discretion
-            of Metaculus. Metaculus reserves the right to determine the specific form of payment, and no alternative form of
-            payment will be offered unless explicitly provided by Metaculus. Participants
-            will be scored using Metaculus Tournament Scoring Rules. The details
-            of these scoring rules are mathematical (you may view the details
-            here), but there are three key features:
+            awarded across a maximum of 250 prize disbursements. Payouts may be
+            paid in the form of cash or a cash equivalent, which may include but
+            is not limited to prepaid virtual cards, gift cards, or similar
+            methods, at the discretion of Metaculus. Metaculus reserves the
+            right to determine the specific form of payment, and no alternative
+            form of payment will be offered unless explicitly provided by
+            Metaculus. Participants will be scored using Metaculus Tournament
+            Scoring Rules. The details of these scoring rules are mathematical
+            (you may view the details here), but there are three key features:
             <ul className="ml-6 mt-4 list-inside list-disc space-y-4">
               <li>
                 You should expect to receive the highest score if you report
@@ -107,31 +114,32 @@ export default function ContestRules() {
                 confidence intervals actually reflects how confident you are.
               </li>
               <li>
-                The scoring rules reward forecasters for being more accurate than the rest of the
-                participants (Peer Score). This means it&apos;s worth doing
-                equally a good job on questions that are difficult as it is for
-                those which are relatively easy, as although your absolute
-                accuracy might be worse for the former, you can still increase
-                your score by beating the crowd.
+                The scoring rules reward forecasters for being more accurate
+                than the rest of the participants (Peer Score). This means
+                it&apos;s worth doing equally a good job on questions that are
+                difficult as it is for those which are relatively easy, as
+                although your absolute accuracy might be worse for the former,
+                you can still increase your score by beating the crowd.
               </li>
               <li>
                 The score you are awarded is time-averaged over the time for
-                which the question is open, such that the score you earn depends upon
-                your predictions&apos; accuracy and when they are made. This
-                means both that you should make your first prediction early, so
-                as to be rewarded over more of the question&apos;s lifetime, and
-                also that you should update your prediction anytime new
-                information comes to light that alters your best estimate of the
-                probability.
+                which the question is open, such that the score you earn depends
+                upon your predictions&apos; accuracy and when they are made.
+                This means both that you should make your first prediction
+                early, so as to be rewarded over more of the question&apos;s
+                lifetime, and also that you should update your prediction
+                anytime new information comes to light that alters your best
+                estimate of the probability.
               </li>
             </ul>
             <p className="ml-6 mt-4">
               Metaculus will decide the final resolution of all questions at its
-              sole and absolute discretion. Ambiguous or annulled question resolutions will be avoided to the
-              maximum extent possible, but in the rare instances where they
-              occur, those questions will no longer be scored as part of the
-              tournament. Prize recipients will be required to verify their
-              identity. Taxes and fees are paid by recipients.
+              sole and absolute discretion. Ambiguous or annulled question
+              resolutions will be avoided to the maximum extent possible, but in
+              the rare instances where they occur, those questions will no
+              longer be scored as part of the tournament. Prize recipients will
+              be required to verify their identity. Taxes and fees are paid by
+              recipients.
             </p>
           </li>
           <li>
@@ -368,13 +376,14 @@ export default function ContestRules() {
               criteria must comply with all applicable laws and these Terms
               (collectively, `&quot;Competition Rules`&quot;). Such Competition
               Rules will also include how and when a Participant User must
-              submit Competition Entries (defined below) and the rights that any third party will be granted in such Competition Entry upon selecting any
-              such Competition Entry as a winner (`&quot;Winning Entry`&quot;).
-              Certain rights granted in the Competition Entries and Winning
-              Entries are described in Section 9 (Do I have to grant any
-              licenses to Metaculus or to other users?) below. The Competition
-              Rules may impose additional restrictions or requirements for
-              Competitions.
+              submit Competition Entries (defined below) and the rights that any
+              third party will be granted in such Competition Entry upon
+              selecting any such Competition Entry as a winner (`&quot;Winning
+              Entry`&quot;). Certain rights granted in the Competition Entries
+              and Winning Entries are described in Section 9 (Do I have to grant
+              any licenses to Metaculus or to other users?) below. The
+              Competition Rules may impose additional restrictions or
+              requirements for Competitions.
             </p>
             <p className="ml-6">
               Each Participant User will comply with all Competition Rules.
@@ -457,18 +466,19 @@ export default function ContestRules() {
               license stated in the second paragraph of this Section 8, as well
               as a license to display, perform, and distribute your Competition
               Entry for the purpose of making that Competition Entry accessible
-              to any third parties described in the Competition Rules, making that Competition Entry available to other
-              Metaculus users as part of a Dataset, and providing the Services
-              necessary to do so. You are also granting to any of
-              Metaculus&apos; customers who have entered into a sponsorship or
-              other arrangement with us to host the Competition in which you
-              participate, the same scope of licensed rights to those granted to
-              Metaculus to use your Competition Entry. If you win a Competition,
-              your Competition Entry for such Competition may be subject to
-              further licensing as stated in the Competition Rules, and these
-              Terms, but other than the limited licenses stated in these Terms,
-              the intellectual property rights in your Competition Entries will
-              not be transferred or licensed to the Competition Sponsor.
+              to any third parties described in the Competition Rules, making
+              that Competition Entry available to other Metaculus users as part
+              of a Dataset, and providing the Services necessary to do so. You
+              are also granting to any of Metaculus&apos; customers who have
+              entered into a sponsorship or other arrangement with us to host
+              the Competition in which you participate, the same scope of
+              licensed rights to those granted to Metaculus to use your
+              Competition Entry. If you win a Competition, your Competition
+              Entry for such Competition may be subject to further licensing as
+              stated in the Competition Rules, and these Terms, but other than
+              the limited licenses stated in these Terms, the intellectual
+              property rights in your Competition Entries will not be
+              transferred or licensed to the Competition Sponsor.
             </p>
 
             <li className="font-bold">
