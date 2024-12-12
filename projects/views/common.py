@@ -15,6 +15,7 @@ from projects.serializers.common import (
     TagSerializer,
     ProjectUserSerializer,
     TournamentShortSerializer,
+    NewsCategorySerialize,
 )
 from projects.services.common import (
     get_projects_qs,
@@ -35,6 +36,21 @@ def topics_list_api_view(request: Request):
 
     data = [
         {**TopicSerializer(obj).data, "posts_count": obj.posts_count}
+        for obj in qs.all()
+    ]
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def news_categories_list_api_view(request: Request):
+    qs = (
+        get_projects_qs(user=request.user).filter_news_category().annotate_posts_count()
+    )
+
+    data = [
+        {**NewsCategorySerialize(obj).data, "posts_count": obj.posts_count}
         for obj in qs.all()
     ]
 

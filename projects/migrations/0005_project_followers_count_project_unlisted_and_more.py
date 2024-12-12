@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="project",
             name="followers_count",
-            field=models.PositiveIntegerField(db_index=True, default=0),
+            field=models.PositiveIntegerField(db_index=True, default=0, editable=False),
         ),
         migrations.AddField(
             model_name="project",
