@@ -6,7 +6,7 @@ type TopicSection = "hot_categories" | "hot_topics";
 export type Project = {
   id: number;
   name: string;
-  type: string;
+  type: TournamentType;
   slug: string;
   posts_count: number;
 };

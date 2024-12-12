@@ -102,7 +102,8 @@ const NotebookForm: React.FC<Props> = ({
     post?.projects?.default_project?.id ??
     community_id ??
     tournament_id ??
-    news_category_id;
+    news_category_id ??
+    siteMain.id;
 
   // Only works for Tournaments & question series
   const defaultProject = post
