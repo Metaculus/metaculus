@@ -123,7 +123,9 @@ export default function NoticeAtCollection() {
                 <td className="px-4 py-6 align-top">
                   Residency is used to verify eligibility for this tournament.
                 </td>
-                <td className="px-4 py-6 align-top">Residency information may be shared with Bridgewater</td>
+                <td className="px-4 py-6 align-top">
+                  Residency information may be shared with Bridgewater
+                </td>
               </tr>
 
               <tr>
@@ -158,8 +160,8 @@ export default function NoticeAtCollection() {
                   forecasting submissions to fine tune its own algorithms.
                 </td>
                 <td className="px-4 py-6 align-top">
-                  Your submissions in the tournament may be
-                  shared with Bridgewater
+                  Your submissions in the tournament may be shared with
+                  Bridgewater
                 </td>
               </tr>
 
