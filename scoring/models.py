@@ -161,7 +161,7 @@ class Leaderboard(TimeStampedModel):
             # global leaderboard
             if self.start_time is None or self.end_time is None:
                 raise ValueError("Global leaderboards must have start and end times")
-            questions = Question.objects.filter(
+            questions = Question.objects.filter_public().filter(
                 related_posts__post__in=Post.objects.filter_for_main_feed()
             )
 

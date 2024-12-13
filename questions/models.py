@@ -28,12 +28,7 @@ class QuestionQuerySet(QuerySet):
 
     def filter_public(self):
         return self.filter(
-            Q(post__default_project__default_permission__isnull=False)
-            | Q(group__post__default_project__default_permission__isnull=False)
-            | Q(conditional_no__post__default_project__default_permission__isnull=False)
-            | Q(
-                conditional_yes__post__default_project__default_permission__isnull=False
-            )
+            related_posts__post__default_project__default_permission__isnull=False
         )
 
     def prefetch_related_post(self):

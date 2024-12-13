@@ -403,6 +403,7 @@ def update_project_leaderboard(
         raise ValueError("Either project or leaderboard must be provided")
 
     leaderboard = leaderboard or project.primary_leaderboard
+    project = project or leaderboard.project
     if not leaderboard:
         raise ValueError("Leaderboard not found")
 
