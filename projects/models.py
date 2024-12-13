@@ -155,12 +155,10 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         HOT_TOPICS = "hot_topics"
         HOT_CATEGORIES = "hot_categories"
 
-
     class Visibility(models.TextChoices):
         NORMAL = "normal"
         NOT_IN_MAIN_FEED = "not_in_main_feed"
         UNLISTED = "unlisted"
-
 
     type = models.CharField(
         max_length=32,
