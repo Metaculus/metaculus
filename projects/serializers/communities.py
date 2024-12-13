@@ -28,15 +28,15 @@ class CommunityUpdateSerializer(serializers.ModelSerializer):
             #
             # - Public:
             #       default_permission: Forecaster
-            #       unlisted: False
+            #       visibility: NOT_IN_MAIN_FEED
             # - Draft:
             #       default_permission: None
-            #       unlisted: False
+            #       visibility: NOT_IN_MAIN_FEED
             # - Unlisted:
             #       default_permission: Forecaster
-            #       unlisted: True
+            #       visibility: unlisted
             "default_permission",
-            "unlisted",
+            "visibility",
         )
 
     def validate_slug(self, value: str):
@@ -66,7 +66,7 @@ class CommunitySerializer(serializers.ModelSerializer):
             "header_logo",
             "followers_count",
             "default_permission",
-            "unlisted",
+            "visibility",
             "created_by",
         )
 

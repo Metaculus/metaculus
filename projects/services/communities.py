@@ -31,7 +31,10 @@ def get_communities_feed(
 
     # If hidden from the main feed
     if unlisted is not None:
-        qs = qs.filter(unlisted=unlisted)
+        if unlisted:
+            qs = qs.filter(visibility=Project.Visibility.UNLISTED)
+        else:
+            qs = qs.exclude(visibility=Project.Visibility.UNLISTED)
 
     if is_subscribed is not None and user:
         qs = qs.filter(is_subscribed=is_subscribed)
