@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import cast
 
 from django.db import transaction
-from django.db.models import QuerySet, Q
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 

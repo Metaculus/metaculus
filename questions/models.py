@@ -46,7 +46,6 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     aggregate_forecasts: QuerySet["AggregateForecast"]
     scores: QuerySet["Score"]
     archived_scores: QuerySet["ArchivedScore"]
-    objects: QuestionQuerySet["Question"]
     id: int
     group_id: int | None
 
@@ -57,7 +56,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     user_archived_scores: list["ArchivedScore"]
 
     # utility
-    objects: models.Manager["Question"] = QuestionManager()
+    objects = QuestionManager()
 
     # Common fields
     class QuestionType(models.TextChoices):
