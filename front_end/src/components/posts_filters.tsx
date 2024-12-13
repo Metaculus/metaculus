@@ -160,7 +160,6 @@ const PostsFilters: FC<Props> = ({
     );
 
     if (replaceInfo) {
-      console.log("change", filterId, optionValue, replaceInfo, extraValues);
       const { optionId, replaceIds } = replaceInfo;
 
       if (!optionValue) {
