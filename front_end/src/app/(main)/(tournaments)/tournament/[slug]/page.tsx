@@ -9,7 +9,6 @@ import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
-import TournamentControls from "@/app/(main)/(tournaments)/tournament/components/tournament_controls";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
@@ -86,9 +85,6 @@ export default async function TournamentSlug({ params }: Props) {
           >
             {title}
           </Link>
-          {currentUser?.is_superuser && (
-            <TournamentControls tournament={tournament} />
-          )}
         </div>
         {!!tournament.header_image && (
           <div className="relative h-[130px] w-full">
