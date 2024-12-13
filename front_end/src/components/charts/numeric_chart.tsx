@@ -139,7 +139,6 @@ const NumericChart: FC<Props> = ({
       openTime,
     ]
   );
-  console.log("xDomain", xDomain, xScale);
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
     return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
