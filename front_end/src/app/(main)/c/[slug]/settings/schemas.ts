@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { ProjectPermissions } from "@/types/post";
+import { ProjectVisibility } from "@/types/projects";
 
 export const communitySettingsSchema = z.object({
   name: z.string().min(1),
@@ -11,7 +12,7 @@ export const communitySettingsSchema = z.object({
     .max(50),
   description: z.string(),
   default_permission: z.nativeEnum(ProjectPermissions).nullable(),
-  unlisted: z.boolean(),
+  visibility: z.nativeEnum(ProjectVisibility),
 });
 
 export type CommunitySettingsSchema = z.infer<typeof communitySettingsSchema>;

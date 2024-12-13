@@ -4,6 +4,7 @@ import {
   Category,
   Community,
   NewsCategory,
+  ProjectVisibility,
   Tag,
   Topic,
   Tournament,
@@ -34,7 +35,7 @@ export type CommunityUpdateParams = {
   slug?: string;
   description?: string;
   default_permission?: ProjectPermissions | null;
-  unlisted?: boolean;
+  visibility?: ProjectVisibility;
 };
 
 class ProjectsApi {

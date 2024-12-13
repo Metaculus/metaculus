@@ -82,7 +82,6 @@ export type Community = Project & {
   followers_count: number;
   default_permission: ProjectPermissions;
   user_permission?: ProjectPermissions;
-  unlisted: boolean;
   visibility: ProjectVisibility;
   is_subscribed?: boolean;
   created_by: UserBase;

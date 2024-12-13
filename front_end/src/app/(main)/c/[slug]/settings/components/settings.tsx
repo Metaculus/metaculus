@@ -17,7 +17,11 @@ import {
 import { InputContainer } from "@/components/ui/input_container";
 import { CommunityUpdateParams } from "@/services/projects";
 import { ProjectPermissions } from "@/types/post";
-import { Community, CommunitySettingsMode } from "@/types/projects";
+import {
+  Community,
+  CommunitySettingsMode,
+  ProjectVisibility,
+} from "@/types/projects";
 import { logError } from "@/utils/errors";
 
 import { updateCommunity } from "../actions";
@@ -31,27 +35,39 @@ type VisibilityType = "public" | "unlisted" | "draft";
 const propsToVisibilityType = (
   community: CommunityUpdateParams
 ): VisibilityType | undefined => {
-  if (community.default_permission && !community.unlisted) return "public";
-  if (community.unlisted) return "unlisted";
+  if (community.default_permission) {
+    if (community.visibility == ProjectVisibility.Unlisted) return "unlisted";
+
+    return "public";
+  }
 
   return "draft";
 };
 
 const visibilityTypeToProps = (
+  community: Community,
   type: VisibilityType
 ): Partial<CommunityUpdateParams> => {
   if (type === "public")
     return {
       default_permission: ProjectPermissions.FORECASTER,
-      unlisted: false,
+      visibility:
+        community.visibility === ProjectVisibility.Normal
+          ? // Keep original visibility if was configured as "normal"
+            ProjectVisibility.Normal
+          : // Otherwise, set "not in main feed"
+            ProjectVisibility.NotInMainFeed,
     };
   if (type === "unlisted")
     return {
       default_permission: ProjectPermissions.FORECASTER,
-      unlisted: true,
+      visibility: ProjectVisibility.Unlisted,
     };
 
-  return { default_permission: null, unlisted: false };
+  return {
+    default_permission: null,
+    visibility: ProjectVisibility.Unlisted,
+  };
 };
 
 const CommunitySettings: FC<Props> = ({ community }) => {
@@ -64,7 +80,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
         description: community.description,
         slug: community.slug,
         default_permission: community.default_permission,
-        unlisted: community.unlisted,
+        visibility: community.visibility,
       },
       resolver: zodResolver(communitySettingsSchema),
     });
@@ -126,7 +142,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
             buttons={visibilityOptions}
             value={propsToVisibilityType(visibilityType)!}
             onChange={(val) => {
-              Object.entries(visibilityTypeToProps(val)).forEach(
+              Object.entries(visibilityTypeToProps(community, val)).forEach(
                 ([key, value]) => {
                   setValue(key as keyof CommunityUpdateParams, value, {
                     shouldDirty: true,
