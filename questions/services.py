@@ -559,7 +559,7 @@ def close_question(question: Question, actual_close_time: datetime | None = None
 
 def update_leaderboards_for_question(question: Question):
     post = question.get_post()
-    projects: QuerySet[Project] = [post.default_project] + list(post.projects.all())
+    projects = [post.default_project] + list(post.projects.all())
     update_global_leaderboards = False
     for project in projects:
         if project.type == Project.ProjectTypes.SITE_MAIN:
@@ -587,7 +587,7 @@ def update_leaderboards_for_question(question: Question):
                 ]
             )
             for leaderboard in global_leaderboards:
-                update_project_leaderboard(leaderboad=leaderboard)
+                update_project_leaderboard(leaderboard=leaderboard)
 
 
 @transaction.atomic()
