@@ -81,6 +81,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "created_at",
             "score_type",
             "default_permission",
+            "visibility",
             "is_current_content_translated",
         )
 
