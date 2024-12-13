@@ -353,6 +353,20 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def filter_for_main_feed(self):
+        """
+        Returns posts with projects that are visible in main feed
+        """
+
+        return self.filter(
+            Q(default_project__add_posts_to_main_feed=True)
+            | Exists(
+                Post.projects.through.objects.filter(
+                    post_id=OuterRef("pk"), project__add_posts_to_main_feed=True
+                )
+            )
+        )
+
     def filter_questions(self):
         """
         Filter by question post type
@@ -400,7 +414,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     user_last_forecasts_date = None
     divergence: int = None
 
-    objects = PostManager()
+    objects: PostManager = PostManager()
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it

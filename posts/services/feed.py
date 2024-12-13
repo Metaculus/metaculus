@@ -8,7 +8,6 @@ from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
 from posts.services.search import perform_post_search, qs_filter_similar_posts
 from projects.models import Project
-from projects.services.common import get_site_main_project
 from users.models import User
 from utils.cache import cache_get_or_set
 from utils.dtypes import evenly_distribute_items
@@ -85,8 +84,7 @@ def get_posts_feed(
         qs = qs.filter_projects(tournaments)
 
     if for_main_feed:
-        site_main_project = get_site_main_project()
-        qs = qs.filter_projects(site_main_project)
+        qs = qs.filter_for_main_feed()
 
     if show_on_homepage:
         qs = qs.filter(show_on_homepage=True)

@@ -222,6 +222,7 @@ class ProjectAdmin(CustomTranslationAdmin):
     list_filter = [
         "type",
         "show_on_homepage",
+        "add_posts_to_main_feed",
         ProjectDefaultPermissionFilter,
     ]
     search_fields = ["type", "name_original", "slug"]

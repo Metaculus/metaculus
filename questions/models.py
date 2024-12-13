@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from django_better_admin_arrayfield.models.fields import ArrayField
 from django.db import models
-from django.db.models import Count, Q, QuerySet
+from django.db.models import Count, QuerySet
 from django.utils import timezone
+from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
@@ -28,12 +28,7 @@ class QuestionQuerySet(QuerySet):
 
     def filter_public(self):
         return self.filter(
-            Q(post__default_project__default_permission__isnull=False)
-            | Q(group__post__default_project__default_permission__isnull=False)
-            | Q(conditional_no__post__default_project__default_permission__isnull=False)
-            | Q(
-                conditional_yes__post__default_project__default_permission__isnull=False
-            )
+            related_posts__post__default_project__default_permission__isnull=False
         )
 
     def prefetch_related_post(self):
@@ -51,7 +46,6 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     aggregate_forecasts: QuerySet["AggregateForecast"]
     scores: QuerySet["Score"]
     archived_scores: QuerySet["ArchivedScore"]
-    objects: QuestionQuerySet["Question"]
     id: int
     group_id: int | None
 
@@ -62,7 +56,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     user_archived_scores: list["ArchivedScore"]
 
     # utility
-    objects: models.Manager["Question"] = QuestionManager()
+    objects = QuestionManager()
 
     # Common fields
     class QuestionType(models.TextChoices):
