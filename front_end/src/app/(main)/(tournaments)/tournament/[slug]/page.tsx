@@ -19,7 +19,7 @@ import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
-import { TournamentType } from "@/types/projects";
+import { ProjectVisibility, TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 
 import TournamentFeed from "../components/tournament_feed";
@@ -43,6 +43,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: tournament.name,
     description: !!parsedDescription ? parsedDescription : defaultDescription,
+    // Hide unlisted pages from search engines
+    ...(tournament.visibility === ProjectVisibility.Unlisted
+      ? {
+          robots: {
+            index: false,
+            follow: false,
+          },
+        }
+      : {}),
   };
 }
 

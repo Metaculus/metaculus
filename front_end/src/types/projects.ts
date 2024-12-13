@@ -3,6 +3,12 @@ import { UserBase, UserProfile } from "@/types/users";
 
 type TopicSection = "hot_categories" | "hot_topics";
 
+export enum ProjectVisibility {
+  Normal = "normal",
+  NotInMainFeed = "not_in_main_feed",
+  Unlisted = "unlisted",
+}
+
 export type Project = {
   id: number;
   name: string;
@@ -63,6 +69,7 @@ export type Tournament = TournamentPreview & {
   meta_description: string;
   is_subscribed?: boolean;
   add_posts_to_main_feed: boolean;
+  visibility: ProjectVisibility;
   default_permission?: ProjectPermissions | null;
   is_current_content_translated?: boolean;
 };
@@ -76,6 +83,7 @@ export type Community = Project & {
   default_permission: ProjectPermissions;
   user_permission?: ProjectPermissions;
   unlisted: boolean;
+  visibility: ProjectVisibility;
   is_subscribed?: boolean;
   created_by: UserBase;
 };
