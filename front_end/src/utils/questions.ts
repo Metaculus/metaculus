@@ -20,7 +20,9 @@ import {
   QuestionStatus,
   Resolution,
 } from "@/types/post";
+import { Tournament } from "@/types/projects";
 import {
+  ForecastAvailability,
   Question,
   QuestionLinearGraphType,
   QuestionType,
@@ -33,7 +35,6 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
-import { Tournament } from "@/types/projects";
 
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
@@ -451,31 +452,51 @@ export function parseQuestionId(questionUrlOrId: string): {
   return result;
 }
 
-export function getGroupCPRevealTime(questions: QuestionWithForecasts[]) {
-  const cdRevealTimes: number[] = [];
-  for (const q of questions) {
+export function getGroupForecastAvailability(
+  groupQuestions: QuestionWithForecasts[]
+): ForecastAvailability {
+  const cpRevealTimes: Array<{ raw: string; formatted: number }> = [];
+  for (const q of groupQuestions) {
     if (q.cp_reveal_time) {
-      cdRevealTimes.push(new Date(q.cp_reveal_time).getTime());
+      cpRevealTimes.push({
+        raw: q.cp_reveal_time,
+        formatted: new Date(q.cp_reveal_time).getTime(),
+      });
     }
   }
 
-  let closestCPRevealTime: Date | null = null;
-  if (cdRevealTimes.length) {
-    const candidate = Math.min(...cdRevealTimes);
-    const candidateDate = new Date(candidate);
-    if (isValid(candidateDate)) {
-      closestCPRevealTime = candidateDate;
+  let closestCPRevealTime: string | null = null;
+  if (cpRevealTimes.length) {
+    const minDate = Math.min(...cpRevealTimes.map((t) => t.formatted));
+    const candidate = cpRevealTimes.find((t) => t.formatted === minDate);
+    if (candidate && isValid(new Date(candidate.raw))) {
+      closestCPRevealTime = candidate.raw;
     }
   }
-
-  const isCPRevealed = closestCPRevealTime
-    ? closestCPRevealTime <= new Date()
-    : true;
 
   return {
-    closestCPRevealTime: closestCPRevealTime
-      ? closestCPRevealTime.toString()
-      : undefined,
-    isCPRevealed,
+    isEmpty: groupQuestions.every(getIsQuestionForecastEmpty),
+    cpRevealsOn:
+      closestCPRevealTime && new Date(closestCPRevealTime) >= new Date()
+        ? closestCPRevealTime
+        : null,
   };
 }
+
+export function getQuestionForecastAvailability(
+  question: QuestionWithForecasts
+): ForecastAvailability {
+  return {
+    isEmpty:
+      !question.aggregations.recency_weighted.history.length &&
+      !question.my_forecasts?.history.length,
+    cpRevealsOn:
+      question.cp_reveal_time && new Date(question.cp_reveal_time) >= new Date()
+        ? question.cp_reveal_time
+        : null,
+  };
+}
+
+const getIsQuestionForecastEmpty = (question: QuestionWithForecasts): boolean =>
+  !question.aggregations.recency_weighted.history.length &&
+  !question.my_forecasts?.history.length;
