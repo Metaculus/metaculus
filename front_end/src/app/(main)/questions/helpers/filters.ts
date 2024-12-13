@@ -296,6 +296,7 @@ export function getFilterSectionParticipation({
         label: t("followed"),
         value: "true",
         active: !!params.get(POST_FOLLOWING_FILTER),
+        isPersisted: true,
       },
     ],
   };
