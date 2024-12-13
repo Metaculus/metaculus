@@ -454,7 +454,7 @@ def traces_sampler(sampling_context):
     if re.match(r"^/api/posts/\d+/similar-posts/?$", url) or url == "/api/medals/":
         return 0.1
 
-    return 0.5
+    return 0.25
 
 
 if os.environ.get("SENTRY_DNS", None):
