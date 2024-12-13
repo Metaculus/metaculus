@@ -440,8 +440,6 @@ def traces_sampler(sampling_context):
     wsgi_environ = sampling_context.get("wsgi_environ", {})
     url = wsgi_environ.get("PATH_INFO")
 
-    print(url)
-
     if url:
         for starts_with in exclude_endpoints:
             if url.startswith(starts_with):
