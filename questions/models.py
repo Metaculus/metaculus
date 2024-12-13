@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from django_better_admin_arrayfield.models.fields import ArrayField
 from django.db import models
-from django.db.models import Count, Q, QuerySet
+from django.db.models import Count, QuerySet
 from django.utils import timezone
+from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
