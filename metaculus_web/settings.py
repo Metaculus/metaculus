@@ -440,6 +440,8 @@ def traces_sampler(sampling_context):
     wsgi_environ = sampling_context.get("wsgi_environ", {})
     url = wsgi_environ.get("PATH_INFO")
 
+    print(url)
+
     if url:
         for starts_with in exclude_endpoints:
             if url.startswith(starts_with):
@@ -454,7 +456,7 @@ def traces_sampler(sampling_context):
     if re.match(r"^/api/posts/\d+/similar-posts/?$", url) or url == "/api/medals/":
         return 0.1
 
-    return 0.5
+    return 0.25
 
 
 if os.environ.get("SENTRY_DNS", None):
