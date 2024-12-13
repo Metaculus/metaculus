@@ -11,13 +11,13 @@ class LocaleOverrideMiddleware:
     # code, but this is not an officially supported language by Django, so its builtin
     # locale middleware will default to english for any non-supported languages. We want to
     # bypass that, and activate the ORIGINAL_LANGUAGE_CODE when that's
-    # what the client requests.
+    # what the client requests, or when the client doesn't set the Accept-Language header
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         original_lang_code = settings.ORIGINAL_LANGUAGE_CODE
-        if request.headers.get("Accept-Language", None) == original_lang_code:
+        if request.headers.get("Accept-Language", None) in [original_lang_code, None]:
             activate(original_lang_code)
         response = self.get_response(request)
         return response
