@@ -127,6 +127,7 @@ def tournaments_list_api_view(request: Request):
             permission=permission,
             show_on_homepage=show_on_homepage,
         )
+        .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
         .annotate_posts_count()
         .order_by("-posts_count")
