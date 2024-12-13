@@ -1,4 +1,5 @@
 {
+  "createArticle": "+ Vytvořit článek",
   "newsletterFormHeading": "Odebírejte newsletter Metaculus",
   "newsletterFormDescription": "Přihlašte se k odběru novinek z platformy Metaculus, zajímavých forecastingových reportů a pozvánek na akce.",
   "predict": "Predikovat",
@@ -745,6 +746,7 @@
   "deselectAll": "zrušit výběr všech",
   "forecastDataIsEmpty": "Údaje o prognóze jsou prázdné",
   "me": "mě",
+  "edited": "upraveno",
   "tournamentShowPostsToMainFeed": "Zobrazit turnajové příspěvky v hlavním kanálu",
   "tournamentHidePostsToMainFeed": "Skrýt turnajové příspěvky v hlavním kanálu",
   "forecastDisclaimer": "Na základě {predictionCount} předpovědí od {forecasterCount} prognostiků",

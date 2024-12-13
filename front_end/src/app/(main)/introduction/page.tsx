@@ -133,9 +133,9 @@ export default async function IntroductionPage() {
         </ol>
 
         <p>
-          That’s what a calibration plot gets you. Here’s our snapshot from Oct 2024, measured over
-          literally thousands of questions and millions of predictions by the
-          Metaculus community:
+          That’s what a calibration plot gets you. Here’s our snapshot from Oct
+          2024, measured over literally thousands of questions and millions of
+          predictions by the Metaculus community:
         </p>
 
         <Image

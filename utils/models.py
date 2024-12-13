@@ -122,7 +122,7 @@ class TranslatedModel(models.Model):
             and len(current_lang_translated_field_vals) > 0
         )
 
-    def update_fields_with_original_content(self, initial_update_fields):
+    def update_fields_with_original_content(self, initial_update_fields=None):
         # Depending on the initial_update_fields, it sets the fields corresponding
         # to the original content on this object to the value set taken from te field
         # without the language prefix, which is what the django-modeltranslations
@@ -155,24 +155,15 @@ class TranslatedModel(models.Model):
                 extra_update_fields.append(default_field_name)
         return extra_update_fields
 
-    def trigger_translation_if_dirty(self):
+    def trigger_translation_if_dirty(self, should_update_default_fields=True):
         model = self.__class__
+        if should_update_default_fields:
+            update_fields = self.update_fields_with_original_content()
+            self.save(update_fields=update_fields)
+
         if is_translation_dirty(self):
             app_label, model_name = model._meta.app_label, model._meta.model_name
             update_translations.send(app_label, model_name, self.pk)
-
-    def save(self, *args, **kwargs):
-        initial_update_fields = kwargs.get("update_fields", None)
-
-        extra_update_fields = self.update_fields_with_original_content(
-            initial_update_fields
-        )
-
-        if initial_update_fields:
-            # Extend the update_fields with the ones containing the original content
-            kwargs["update_fields"] = initial_update_fields + extra_update_fields
-
-        super().save(*args, **kwargs)
 
 
 class TimeStampedModel(models.Model):

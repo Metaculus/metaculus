@@ -25,7 +25,7 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
           withUgcLinks
         />
       )}
-      {notebook.image_url && notebook.image_url.startsWith("https:") ? (
+      {notebook.image_url && notebook.image_url.startsWith("https:") && (
         <Image
           src={notebook.image_url}
           alt=""
@@ -33,13 +33,6 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
           height={300}
           quality={100}
           className="h-24 min-w-44 max-w-44 rounded object-cover"
-        />
-      ) : (
-        <Image
-          src={imagePlaceholder}
-          alt=""
-          className="h-24 min-w-44 max-w-44 rounded object-cover"
-          quality={100}
         />
       )}
     </div>
