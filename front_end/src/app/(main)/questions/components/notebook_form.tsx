@@ -8,9 +8,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
-import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
-import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
+import {
+  FormErrorMessage,
+  Input,
+  MarkdownEditorField,
+  Textarea,
+} from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
@@ -47,8 +51,12 @@ const createNotebookSchema = (t: ReturnType<typeof useTranslations>) => {
         message: t("errorMaxLength", { field: "String", maxLength: 60 }),
       }),
     default_project: z.number(),
+    markdown: z.string().min(1, {
+      message: t("errorMinLength", { field: "String", minLength: 1 }),
+    }),
   });
 };
+type FormData = z.infer<ReturnType<typeof createNotebookSchema>>;
 
 type Props = {
   mode: "create" | "edit";
@@ -56,9 +64,9 @@ type Props = {
   allCategories: Category[];
   tournament_id: number | null;
   community_id?: number | null;
+  news_category_id: number | null;
   tournaments: TournamentPreview[];
   siteMain: Tournament;
-  news_type: string | undefined | null;
 };
 
 const NotebookForm: React.FC<Props> = ({
@@ -69,11 +77,9 @@ const NotebookForm: React.FC<Props> = ({
   community_id,
   tournaments,
   siteMain,
-  news_type,
+  news_category_id,
 }) => {
   const { user } = useAuth();
-  const [markdown, setMarkdown] = useState(post?.notebook?.markdown ?? "");
-  const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -81,28 +87,36 @@ const NotebookForm: React.FC<Props> = ({
 
   const t = useTranslations();
   const notebookSchema = createNotebookSchema(t);
-  const control = useForm({
+  const form = useForm<FormData>({
     mode: "all",
     resolver: zodResolver(notebookSchema),
   });
+
+  // TODO: consider refactoring this field to be part of zod schema
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
   const [isCategoriesDirty, setIsCategoriesDirty] = useState(false);
 
+  const defaultProjectId =
+    post?.projects?.default_project?.id ??
+    community_id ??
+    tournament_id ??
+    news_category_id ??
+    siteMain.id;
+
+  // Only works for Tournaments & question series
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
-      ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
+      ? [...tournaments, siteMain].find((x) => x.id === tournament_id)
       : siteMain;
   const isFormDirty =
-    !!Object.keys(control.formState.dirtyFields).length ||
-    isMarkdownDirty ||
-    isCategoriesDirty;
+    !!Object.keys(form.formState.dirtyFields).length || isCategoriesDirty;
 
   const router = useRouter();
 
-  const submitQuestion = async (data: any) => {
+  const submitQuestion = async (data: FormData) => {
     setIsLoading(true);
     setError(undefined);
     let post_data = {
@@ -110,10 +124,9 @@ const NotebookForm: React.FC<Props> = ({
       url_title: data["url_title"],
       default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
-      news_type: news_type,
       notebook: {
-        markdown: markdown,
-        type: news_type ? "news" : "discussion",
+        markdown: data["markdown"],
+        type: news_category_id ? "news" : "discussion",
         image_url: null,
       },
     };
@@ -149,14 +162,11 @@ const NotebookForm: React.FC<Props> = ({
       <form
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
-          if (!control.getValues("default_project")) {
-            control.setValue(
-              "default_project",
-              community_id ? community_id : defaultProject.id
-            );
+          if (!form.getValues("default_project")) {
+            form.setValue("default_project", defaultProjectId);
           }
           // e.preventDefault(); // Good for debugging
-          await control.handleSubmit(
+          await form.handleSubmit(
             async (data) => {
               await submitQuestion(data);
             },
@@ -171,40 +181,41 @@ const NotebookForm: React.FC<Props> = ({
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        {!community_id && defaultProject.type !== TournamentType.Community && (
-          <ProjectPickerInput
-            tournaments={tournaments}
-            siteMain={siteMain}
-            currentProject={defaultProject}
-            onChange={(project) => {
-              control.setValue("default_project", project.id);
-            }}
-          />
-        )}
+        {!community_id &&
+          !news_category_id &&
+          defaultProject?.type !== TournamentType.Community &&
+          defaultProject?.type !== TournamentType.NewsCategory && (
+            <ProjectPickerInput
+              tournaments={tournaments}
+              siteMain={siteMain}
+              currentProject={defaultProject}
+              onChange={(project) => {
+                form.setValue("default_project", project.id);
+              }}
+            />
+          )}
         <InputContainer labelText={t("longTitle")}>
           <Textarea
-            {...control.register("title")}
-            errors={control.formState.errors.title}
+            {...form.register("title")}
+            errors={form.formState.errors.title}
             defaultValue={post?.title}
             className="min-h-36 rounded border border-gray-500 p-5 text-xl font-normal dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
         <InputContainer labelText={t("shortTitle")}>
           <Input
-            {...control.register("url_title")}
-            errors={control.formState.errors.url_title}
+            {...form.register("url_title")}
+            errors={form.formState.errors.url_title}
             defaultValue={post?.url_title}
             className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
-        <div className="rounded border border-gray-300 dark:border-gray-300-dark">
-          <MarkdownEditor
-            markdown={markdown}
-            onChange={(value) => {
-              setMarkdown(value);
-              setIsMarkdownDirty(true);
-            }}
-            mode="write"
+        <div className="flex flex-col gap-1.5">
+          <MarkdownEditorField
+            control={form.control}
+            name={"markdown"}
+            defaultValue={post?.notebook?.markdown}
+            errors={form.formState.errors.markdown}
           />
         </div>
         <InputContainer labelText={t("categories")}>

@@ -3,6 +3,7 @@ import { ProjectPermissions } from "@/types/post";
 import {
   Category,
   Community,
+  NewsCategory,
   Tag,
   Topic,
   Tournament,
@@ -45,6 +46,16 @@ class ProjectsApi {
 
   static async getCategories(): Promise<Category[]> {
     return await get<Category[]>("/projects/categories/");
+  }
+
+  static async getNewsCategories(): Promise<NewsCategory[]> {
+    return await get<NewsCategory[]>(
+      "/projects/news-categories/",
+      { next: { revalidate: 86400 } },
+      {
+        passAuthHeader: false,
+      }
+    );
   }
 
   static async getTags(params?: TagsParams): Promise<Tag[]> {

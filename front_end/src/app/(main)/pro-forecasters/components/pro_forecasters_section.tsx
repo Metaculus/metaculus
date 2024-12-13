@@ -15,9 +15,12 @@ const ProForecasterCard: FC<ProForecaster> = ({
   return (
     <div className="flex gap-6">
       <Image
+        width={180}
+        height={180}
         src={image}
         alt={name}
         className="size-[72px] shrink-0 rounded-2xl object-cover md:size-[180px]"
+        quality={100}
       />
 
       <div className="-mt-1 flex flex-col gap-2">

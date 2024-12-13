@@ -69,7 +69,6 @@ def create_post(
     notebook: dict = None,
     author: User = None,
     url_title: str = None,
-    news_type: Project = None,
 ) -> Post:
     site_main = get_site_main_project()
 
@@ -102,16 +101,15 @@ def create_post(
     obj.full_clean()
     obj.save()
 
-    # Populating projects
-    projects = categories + ([news_type] if news_type else [])
-    if obj.default_project in projects:
-        projects.remove(obj.default_project)
+    # Populating categories
+    if obj.default_project in categories:
+        categories.remove(obj.default_project)
 
     # Make post visible in the main feed
     if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
-        projects.append(site_main)
+        categories.append(site_main)
 
-    obj.projects.add(*projects)
+    obj.projects.add(*categories)
 
     # Sync status fields
     obj.update_pseudo_materialized_fields()
@@ -157,32 +155,6 @@ def trigger_update_post_translations(
         update_translations_for_model(comments_qs, batch_size)
 
 
-def update_post_projects(
-    post: Post, categories: list[Project] = None, news: list[Project] = None
-):
-    projects_map = {
-        Project.ProjectTypes.CATEGORY: categories,
-        Project.ProjectTypes.NEWS_CATEGORY: news,
-    }
-
-    existing_projects = set(post.projects.all())
-
-    for project_type, projects in projects_map.items():
-        if projects is None:
-            continue
-
-        # Clean existing project types
-        existing_projects = {p for p in existing_projects if p.type != project_type}
-
-        # Update with new ones
-        existing_projects |= set(projects)
-
-    if post.default_project in existing_projects:
-        existing_projects.remove(post.default_project)
-
-    post.projects.set(existing_projects)
-
-
 def update_post(
     post: Post,
     categories: list[Project] = None,
@@ -190,7 +162,6 @@ def update_post(
     conditional: dict = None,
     group_of_questions: dict = None,
     notebook: dict = None,
-    news_type: Project = None,
     **kwargs,
 ):
     # Content for embedding generation before update
@@ -203,7 +174,14 @@ def update_post(
         data=kwargs,
     )
 
-    update_post_projects(post, categories, news_type)
+    # Update post categories
+    if categories:
+        post.projects.set(
+            # Keep existing non-category secondary projects
+            {p for p in post.projects.all() if p.type != Project.ProjectTypes.CATEGORY}
+            # Append updated set of categories
+            | set(categories)
+        )
 
     if question:
         if not post.question:

@@ -1,4 +1,5 @@
 {
+  "createArticle": "+ Create Article",
   "newsletterFormHeading": "Join Our Newsletter",
   "newsletterFormDescription": "Sign up for Metaculus news, special forecasting reports, and event invitations.",
   "predict": "Predict",
@@ -867,6 +868,7 @@
   "RevealTemporarily": "Reveal Temporarily",
   "CPIsHidden": "Community Prediction is hidden",
   "createdByUserOnDate": "Created by {user} on {date}",
+  "edited": "edited",
   "tournamentShowPostsToMainFeed": "Show tournament posts in main feed",
   "tournamentHidePostsToMainFeed": "Hide tournament posts in main feed",
   "me": "me",
@@ -972,7 +974,7 @@
   "forecastedAllQuestions": "You’ve forecasted on all {questionNumber} questions!",
   "answerAfterEditing": "Answers cannot be edited after submission.",
   "fullName": "Full Name",
-  "country": "Country",
+  "country": "Country of Residence",
   "undergraduateStudentQuestion": "Are you currently an undergraduate student?",
   "institution": "Institution",
   "major": "Major",
@@ -991,7 +993,7 @@
   "proForecastersDescription": "For certain projects Metaculus employs Pro Forecasters who have demonstrated excellent forecasting ability and who have a history of clearly describing their rationales. Pros forecast on private and public sets of questions to produce well-calibrated forecasts and descriptive rationales for our partners.<br></br><br></br>If you’re interested in hiring Metaculus Pro Forecasters for a project, contact us at <email>support@metaculus.com</email> with the subject <strong>\"Project Inquiry\"</strong>.",
   "meetProForecasters": "Meet a few of our Pro Forecasters:",
   "whyUseProForecastersTitle": "Why Use Pro Forecasters?",
-  "whyUseProForecastersInfo": "The Metaculus community has demonstrated [excellent accuracy and calibration](link to calibration page) on the questions it has forecasted. However, sometimes there are questions of particular importance – either to the world or to certain stakeholders – where excellent calibration and transparent reasoning are of the utmost importance. Pro Forecasters are selected from the most accurate Metaculus forecasters and describe their reasoning when making forecasts, providing enhanced confidence in the calibration of the predictions and ensuring that stakeholders can understand what is driving the forecasts.",
+  "whyUseProForecastersInfo": "The Metaculus community has demonstrated <link>excellent accuracy and calibration</link> on the questions it has forecasted. However, sometimes there are questions of particular importance – either to the world or to certain stakeholders – where excellent calibration and transparent reasoning are of the utmost importance. Pro Forecasters are selected from the most accurate Metaculus forecasters and describe their reasoning when making forecasts, providing enhanced confidence in the calibration of the predictions and ensuring that stakeholders can understand what is driving the forecasts.",
   "selectingProForecastersTitle": "Selecting Pro Forecasters",
   "selectingProForecastersInfo": "Pro Forecasters are carefully selected from forecasters who have fulfilled certain criteria to ensure the quality of their predictions and reasoning.",
   "excellentForecastAbilityTitle": "Excellent Forecasting Ability",
@@ -999,5 +1001,6 @@
   "robustTrackRecordsTitle": "Robust Track Records",
   "robustTrackRecordsInfo": "Pro Forecasters must have at least 75 resolved questions and must have made predictions across multiple subject areas, with at least one year of experience making predictions.<br></br><br></br>We also consider recruiting forecasters who have demonstrated excellent forecasting ability elsewhere.",
   "clearCommentsAndCommunicationTitle": "Clear Comments and Communication",
-  "clearCommentsAndCommunicationInfo": "Our Pros work on projects for external partners who value clear reasoning to better interpret the forecasts. We select Pros who have a history of making clear and insightful comments, and who are willing to disagree with their peers, but in a polite and respectful manner."
+  "clearCommentsAndCommunicationInfo": "Our Pros work on projects for external partners who value clear reasoning to better interpret the forecasts. We select Pros who have a history of making clear and insightful comments, and who are willing to disagree with their peers, but in a polite and respectful manner.",
+  "expressionOfInterestFormMessage": "We sometimes recruit upstanding members of the community who are great at providing constructive feedback on submitted questions to become paid moderators. Fill out our <link>expression of interest form</link> if you would like to be considered."
 }

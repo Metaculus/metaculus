@@ -1,22 +1,30 @@
 "use client";
 
 import { Tab, TabGroup, TabList } from "@headlessui/react";
-import classNames from "classnames";
-import { useTranslations } from "next-intl";
-import React, { FC, Fragment, PropsWithChildren, useCallback } from "react";
-
-import { getArticleTypeFilters } from "@/app/(main)/news/helpers/filters";
-import SearchInput from "@/components/search_input";
-import { POST_NEWS_TYPE_FILTER } from "@/constants/posts_feed";
-import useSearchParams from "@/hooks/use_search_params";
-import { useGlobalSearchContext } from "@/contexts/global_search_context";
-import VisibilityObserver from "@/components/visibility_observer";
-import { debounce } from "lodash";
 import { sendGAEvent } from "@next/third-parties/google";
+import classNames from "classnames";
+import { debounce } from "lodash";
+import { useTranslations } from "next-intl";
+import React, {
+  FC,
+  Fragment,
+  PropsWithChildren,
+  useCallback,
+  useMemo,
+} from "react";
 
-const FILTERS = getArticleTypeFilters();
+import SearchInput from "@/components/search_input";
+import VisibilityObserver from "@/components/visibility_observer";
+import { POST_NEWS_TYPE_FILTER } from "@/constants/posts_feed";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
+import useSearchParams from "@/hooks/use_search_params";
+import { NewsCategory } from "@/types/projects";
 
-const NewsFilters: React.FC = () => {
+type Props = {
+  categories: NewsCategory[];
+};
+
+const NewsFilters: React.FC<Props> = ({ categories }) => {
   const { params, setParam, deleteParam } = useSearchParams();
 
   const { globalSearch, setGlobalSearch, setIsVisible } =
@@ -25,6 +33,14 @@ const NewsFilters: React.FC = () => {
   const eraseSearch = () => {
     setGlobalSearch("");
   };
+  const categoryOptions = useMemo(
+    () =>
+      categories.map((obj) => ({
+        label: obj.name.replace(/\snews$/i, ""),
+        value: obj.slug,
+      })),
+    [categories]
+  );
 
   const t = useTranslations();
 
@@ -40,11 +56,12 @@ const NewsFilters: React.FC = () => {
 
   const postFilterParam = params.get(POST_NEWS_TYPE_FILTER);
   const selectedIndex = postFilterParam
-    ? FILTERS.findIndex((filter) => filter.value === postFilterParam) + 1
+    ? categoryOptions.findIndex((filter) => filter.value === postFilterParam) +
+      1
     : 0;
   const handleTabChange = (index: number) => {
     if (index) {
-      const filter = FILTERS.at(index - 1);
+      const filter = categoryOptions.at(index - 1);
       if (filter) {
         setParam(POST_NEWS_TYPE_FILTER, filter.value);
       }
@@ -75,7 +92,7 @@ const NewsFilters: React.FC = () => {
       <TabGroup selectedIndex={selectedIndex} manual onChange={handleTabChange}>
         <TabList className="mb-6 flex flex-wrap justify-center gap-x-3 gap-y-1 font-serif text-base text-blue-700 dark:text-blue-700-dark">
           <FilterTab>All</FilterTab>
-          {FILTERS.map((filter) => (
+          {categoryOptions.map((filter) => (
             <FilterTab key={filter.value}>{filter.label}</FilterTab>
           ))}
         </TabList>
