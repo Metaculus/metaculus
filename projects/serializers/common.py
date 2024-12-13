@@ -53,7 +53,7 @@ class MiniTournamentSerializer(serializers.ModelSerializer):
             "created_at",
             "edited_at",
             "default_permission",
-            "add_posts_to_main_feed",
+            "visibility",
             "is_current_content_translated",
         )
 
@@ -103,7 +103,7 @@ class TournamentSerializer(TournamentShortSerializer):
             "header_logo",
             "meta_description",
             "edited_at",
-            "add_posts_to_main_feed",
+            "visibility",
         )
 
 

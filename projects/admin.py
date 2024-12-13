@@ -11,7 +11,6 @@ from django_select2.forms import ModelSelect2MultipleWidget
 
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
-from projects.services.common import update_with_add_posts_to_main_feed
 from questions.models import Question
 from scoring.utils import update_project_leaderboard
 from utils.csv_utils import export_data_for_questions
@@ -214,7 +213,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         "type",
         "created_at",
         "default_permission",
-        "add_posts_to_main_feed",
+        "visibility",
         "order",
         "view_default_posts_link",
         "view_posts_link",
@@ -222,7 +221,7 @@ class ProjectAdmin(CustomTranslationAdmin):
     list_filter = [
         "type",
         "show_on_homepage",
-        "add_posts_to_main_feed",
+        "visibility",
         ProjectDefaultPermissionFilter,
     ]
     search_fields = ["type", "name_original", "slug"]
@@ -237,7 +236,6 @@ class ProjectAdmin(CustomTranslationAdmin):
         "update_leaderboards",
         "export_questions_data_for_projects",
         "update_translations",
-        "toggle_add_posts_to_main_feed",
     ]
 
     change_form_template = "admin/projects/project_change_form.html"
@@ -291,14 +289,6 @@ class ProjectAdmin(CustomTranslationAdmin):
     export_questions_data_for_projects.short_description = (
         "Download Question Data for Selected Projects"
     )
-
-    def toggle_add_posts_to_main_feed(self, request, queryset: QuerySet[Project]):
-        for project in queryset:
-            update_with_add_posts_to_main_feed(
-                project, not project.add_posts_to_main_feed
-            )
-
-    toggle_add_posts_to_main_feed.short_description = "Toggle Add Posts to Main Feed"
 
     def view_default_posts_link(self, obj):
         count = Post.objects.filter(default_project=obj).distinct().count()

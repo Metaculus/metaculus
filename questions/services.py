@@ -567,7 +567,8 @@ def update_leaderboards_for_question(question: Question):
             update_global_leaderboards = True
             continue
         update_global_leaderboards = (
-            update_global_leaderboards or project.add_posts_to_main_feed
+            update_global_leaderboards
+            or project.visibility == Project.Visibility.NORMAL
         )
         leaderboards = project.leaderboards.all()
         for leaderboard in leaderboards:

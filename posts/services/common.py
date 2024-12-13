@@ -105,10 +105,6 @@ def create_post(
     if obj.default_project in categories:
         categories.remove(obj.default_project)
 
-    # Make post visible in the main feed
-    if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
-        categories.append(site_main)
-
     obj.projects.add(*categories)
 
     # Sync status fields

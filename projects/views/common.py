@@ -1,6 +1,5 @@
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -23,7 +22,6 @@ from projects.services.common import (
     invite_user_to_project,
     subscribe_project,
     unsubscribe_project,
-    update_with_add_posts_to_main_feed,
 )
 from users.services.common import get_users_by_usernames
 from utils.cache import cache_get_or_set
@@ -230,18 +228,6 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
 
         member.permission = permission
         member.save(update_fields=["permission"])
-
-    return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(["POST"])
-def toggle_add_posts_to_main_feed_api_view(request: Request, project_id: int):
-    project = get_object_or_404(Project, pk=project_id)
-
-    if not request.user.is_superuser:
-        raise PermissionDenied("You do not have permission to toggle this flag")
-
-    update_with_add_posts_to_main_feed(project, not project.add_posts_to_main_feed)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
