@@ -54,7 +54,7 @@ def update_community(
     # Updating non-side effect fields
     community, _ = model_update(
         instance=community,
-        fields=["slug", "name", "description", "default_permission", "unlisted"],
+        fields=["slug", "name", "description", "default_permission", "visibility"],
         data=kwargs,
     )
 

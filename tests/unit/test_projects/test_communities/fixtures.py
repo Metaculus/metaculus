@@ -29,5 +29,6 @@ def community_private():
         type=Project.ProjectTypes.COMMUNITY,
         name="Metaculus Community",
         default_permission=None,
+        visibility=Project.Visibility.UNLISTED,
         slug="community_private",
     )

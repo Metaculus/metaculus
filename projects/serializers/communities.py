@@ -50,6 +50,14 @@ class CommunityUpdateSerializer(serializers.ModelSerializer):
 
         return value
 
+    def validate_visibility(self, value):
+        # Prevent regular users from changing a post to a normal visibility,
+        # as that would add the post to the main feed.
+        if self.instance.visibility != value and value == Project.Visibility.NORMAL:
+            raise ValidationError(_("Wrong visibility type"))
+
+        return value
+
 
 class CommunitySerializer(serializers.ModelSerializer):
     created_by = BaseUserSerializer()
