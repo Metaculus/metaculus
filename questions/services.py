@@ -237,16 +237,26 @@ def create_conditional(
     condition = Question.objects.get(pk=condition_id)
     condition_child = Question.objects.get(pk=condition_child_id)
 
+    question_yes = clone_question(
+        condition_child, title=f"{condition.title} (Yes) → {condition_child.title}"
+    )
+    question_yes.scheduled_close_time = min(
+        condition.scheduled_close_time, condition_child.scheduled_close_time
+    )
+    question_yes.save()
+    question_no = clone_question(
+        condition_child, title=f"{condition.title} (No) → {condition_child.title}"
+    )
+    question_no.scheduled_close_time = min(
+        condition.scheduled_close_time, condition_child.scheduled_close_time
+    )
+    question_no.save()
+
     obj = Conditional(
         condition_id=condition_id,
         condition_child_id=condition_child_id,
-        # Autogen questions
-        question_yes=clone_question(
-            condition_child, title=f"{condition.title} (Yes) → {condition_child.title}"
-        ),
-        question_no=clone_question(
-            condition_child, title=f"{condition.title} (No) → {condition_child.title}"
-        ),
+        question_yes=question_yes,
+        question_no=question_no,
     )
 
     obj.full_clean()
