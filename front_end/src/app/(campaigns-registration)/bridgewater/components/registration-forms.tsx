@@ -20,8 +20,11 @@ import { ErrorResponse } from "@/types/fetch";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InputContainer } from "@/components/ui/input_container";
 import { useServerAction } from "@/hooks/use_server_action";
-import { SuccessCard } from "./cards";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { CAMPAIGN_URL_BASE_PATH } from "../constants";
+import Checkbox from "@/components/ui/checkbox";
+import Link from "next/link";
+import SocialButtons from "@/components/auth/social_buttons";
 
 export interface CampaignRegistrationProps {
   campaignKey: string;
@@ -36,6 +39,7 @@ export const tournamentRegistrationSchema = z
     undergrad: z.boolean(),
     institution: z.string().optional(),
     major: z.string().optional(),
+    accepted_terms: z.boolean(),
   })
   .refine((data) => !data.undergrad || data.institution, {
     message: "Institution is required",
@@ -61,7 +65,6 @@ const AccountSignupFragment: FC<{
         <Input
           autoComplete="username"
           className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("registrationUsernamePlaceholder")}
           type="text"
           errors={errors}
           {...register("username")}
@@ -90,7 +93,6 @@ const AccountSignupFragment: FC<{
       <InputContainer labelText={"Email"}>
         <Input
           className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("registrationEmailPlaceholder")}
           type="email"
           errors={errors}
           {...register("email")}
@@ -111,11 +113,11 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
     () => [
       {
         value: "yes",
-        label: t("yes"),
+        label: t("yes").toUpperCase(),
       },
       {
         value: "no",
-        label: t("no"),
+        label: t("no").toUpperCase(),
       },
     ],
     [t]
@@ -127,7 +129,6 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
         <Input
           autoComplete="full-name"
           className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("fullName")}
           type="text"
           errors={errors}
           {...register("fullName")}
@@ -138,7 +139,6 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
         <Input
           autoComplete="Country"
           className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-          placeholder={t("country")}
           type="text"
           errors={errors}
           {...register("country")}
@@ -163,7 +163,6 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
             <Input
               autoComplete="Institution"
               className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-              placeholder={t("institution")}
               type="text"
               errors={errors}
               {...register("institution")}
@@ -174,7 +173,6 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
             <Input
               autoComplete="Major"
               className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-              placeholder={t("major")}
               type="text"
               errors={errors}
               {...register("major")}
@@ -188,7 +186,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
 
 export const RegistrationAndSignupForm: FC<
   {
-    onSuccess: () => void;
+    onSuccess: (email: string) => void;
   } & CampaignRegistrationProps
 > = ({ onSuccess, campaignKey, addToProject }) => {
   const t = useTranslations();
@@ -219,8 +217,9 @@ export const RegistrationAndSignupForm: FC<
         full_name: watch("fullName"),
         country: watch("country"),
         undegrad: watch("undergrad"),
-        institution: watch("institution"),
-        major: watch("major"),
+        institution: watch("undergrad") ? watch("institution") : undefined,
+        major: watch("undergrad") ? watch("major") : undefined,
+        accepted_terms: watch("accepted_terms"),
       },
       redirectUrl: currentLocation,
     });
@@ -240,7 +239,7 @@ export const RegistrationAndSignupForm: FC<
         }
       }
     } else {
-      onSuccess();
+      onSuccess(watch("email"));
     }
 
     if (Object.keys(formState.errors).length > 0) {
@@ -268,7 +267,7 @@ export const RegistrationAndSignupForm: FC<
         <div className="flex flex-col gap-8 sm:flex-row">
           <div className="flex flex-1 flex-col gap-4">
             <p className="text-sm text-gray-600 dark:text-gray-600">
-              Your Metaculus account
+              These are for your new Metaculus account
             </p>
             <AccountSignupFragment errors={errors} />
           </div>
@@ -276,7 +275,7 @@ export const RegistrationAndSignupForm: FC<
 
           <div className="flex flex-1 flex-col gap-4">
             <p className="text-sm text-gray-600 dark:text-gray-600">
-              Tournament registration
+              These are to register for the tournament
             </p>
             <ExtraDataRegistrationFragment errors={errors} />
           </div>
@@ -309,14 +308,60 @@ export const RegistrationAndSignupForm: FC<
             className="text-red-500-dark"
           />
 
+          <Checkbox
+            className="flex gap-1 text-xs text-gray-900 dark:text-gray-900-dark"
+            errors={errors}
+            onChange={(checked) => setValue("accepted_terms", checked)}
+            label="accepted_terms"
+          >
+            <span>
+              I have read and agree to the{" "}
+              <a
+                href="/bridgewater/notice-at-collection/"
+                onClick={(e) => e.stopPropagation()}
+                target="_blank"
+              >
+                Notice at Collection
+              </a>
+              {" and the "}
+              <a
+                href="/bridgewater/contest-rules/"
+                onClick={(e) => e.stopPropagation()}
+                target="_blank"
+              >
+                Official Competition Rules
+              </a>
+              {", "}
+              agree to share my information with Bridgewater Associates, and I
+              agree to be contacted by the Bridgewater recruitment team.
+            </span>
+          </Checkbox>
+
           <Button
             variant="primary"
             className=""
             type="submit"
-            disabled={isPending || !isTurnstileValidated}
+            disabled={
+              isPending || !isTurnstileValidated || !watch("accepted_terms")
+            }
           >
             {t("finishRegistration")}
           </Button>
+
+          <div className="text-center text-xs text-gray-900 dark:text-gray-900-dark">
+            {t.rich("registrationTerms", {
+              terms: (chunks) => (
+                <Link target="_blank" href={"/terms-of-use/"}>
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link target="_blank" href={"/privacy-policy/"}>
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </div>
         </div>
       </form>
     </FormProvider>
@@ -333,10 +378,11 @@ export const RegistrationForm: FC<
     resolver: zodResolver(tournamentRegistrationSchema),
     defaultValues: {
       undergrad: false,
+      accepted_terms: false,
     },
   });
 
-  const { watch, formState, handleSubmit, setError } = methods;
+  const { watch, formState, handleSubmit, setError, setValue } = methods;
 
   const onSubmit = async () => {
     const response = await registerUserCampaignAction(
@@ -345,8 +391,9 @@ export const RegistrationForm: FC<
         full_name: watch("fullName"),
         country: watch("country"),
         undegrad: watch("undergrad"),
-        institution: watch("institution"),
-        major: watch("major"),
+        institution: watch("undergrad") ? watch("institution") : undefined,
+        major: watch("undergrad") ? watch("major") : undefined,
+        accepted_terms: watch("accepted_terms"),
       },
       addToProject
     );
@@ -386,7 +433,7 @@ export const RegistrationForm: FC<
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(submit)}
-        className="flex flex-col gap-4 bg-gray-0 p-8 dark:bg-gray-0-dark"
+        className="flex flex-col gap-4 bg-gray-0 px-[68px] py-8 dark:bg-gray-0-dark"
       >
         <div className="flex flex-col gap-4">
           <ExtraDataRegistrationFragment errors={errors} />
@@ -397,12 +444,42 @@ export const RegistrationForm: FC<
           name="non_field_errors"
           className="text-red-500-dark"
         />
+
+        <Checkbox
+          className="flex gap-1 text-xs text-gray-900 dark:text-gray-900-dark"
+          errors={errors}
+          onChange={(checked) => setValue("accepted_terms", checked)}
+          label="accepted_terms"
+        >
+          <span>
+            I have read and agree to the{" "}
+            <a
+              href="/bridgewater/notice-at-collection/"
+              onClick={(e) => e.stopPropagation()}
+              target="_blank"
+            >
+              Notice at Collection
+            </a>
+            {" and the "}
+            <a
+              href="/bridgewater/contest-rules/"
+              onClick={(e) => e.stopPropagation()}
+              target="_blank"
+            >
+              Official Competition Rules
+            </a>
+            {", "}
+            agree to share my information with Bridgewater Associates, and I
+            agree to be contacted by the Bridgewater recruitment team.
+          </span>
+        </Checkbox>
+
         <div className="mt-7 flex flex-col items-center gap-7">
           <Button
             variant="primary"
             className=""
             type="submit"
-            disabled={isPending}
+            disabled={isPending || !watch("accepted_terms")}
           >
             {t("finishRegistration")}
           </Button>
@@ -418,12 +495,12 @@ export const RegistrationPage: FC<CampaignRegistrationProps> = ({
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-  const [successfullyRegistered, setSuccessfullyRegistered] = useState(false);
+  const router = useRouter();
 
   if (!user) {
     return (
       <div>
-        <p className="text-sm text-gray-800 dark:text-gray-800-dark">
+        <p className="text-center text-sm text-gray-800 dark:text-gray-800-dark">
           First you need to{" "}
           <Button
             variant="link"
@@ -437,18 +514,14 @@ export const RegistrationPage: FC<CampaignRegistrationProps> = ({
     );
   }
 
-  if (successfullyRegistered) {
-    return <SuccessCard />;
-  }
-
   return (
     <div className="flex flex-col items-center">
       <p className="text-xs text-gray-600 dark:text-gray-600-dark">
         Logged in as <span className="font-extrabold">{user.username}</span>
       </p>
-      <div className="mt-1">
+      <div className="mt-1 w-full max-w-[640px] px-8">
         <RegistrationForm
-          onSuccess={() => setSuccessfullyRegistered(true)}
+          onSuccess={() => router.refresh()}
           campaignKey={campaignKey}
           addToProject={addToProject}
         />
@@ -461,17 +534,16 @@ export const RegistrationAndSignUpPage: FC<CampaignRegistrationProps> = ({
   campaignKey,
   addToProject,
 }) => {
-  const [successfullyRegistered, setSuccessfullyRegistered] = useState(false);
-
-  if (successfullyRegistered) {
-    return <SuccessCard />;
-  }
-
+  const router = useRouter();
   return (
     <div className="flex flex-col items-center">
       <div className="mt-1">
         <RegistrationAndSignupForm
-          onSuccess={() => setSuccessfullyRegistered(true)}
+          onSuccess={(email) =>
+            router.push(
+              `${CAMPAIGN_URL_BASE_PATH}/success/?email=${encodeURIComponent(email)}`
+            )
+          }
           campaignKey={campaignKey}
           addToProject={addToProject}
         />

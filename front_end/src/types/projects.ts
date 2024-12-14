@@ -3,28 +3,26 @@ import { UserBase, UserProfile } from "@/types/users";
 
 type TopicSection = "hot_categories" | "hot_topics";
 
-export type Topic = {
+export type Project = {
   id: number;
   name: string;
+  type: TournamentType;
   slug: string;
+  posts_count: number;
+};
+
+export type Topic = Project & {
   emoji: string;
   section: TopicSection;
-  posts_count: number;
 };
 
-export type Category = {
-  id: number;
-  name: string;
-  slug: string;
+export type Category = Project & {
   description: string;
-  posts_count: number;
 };
 
-export type Tag = {
-  id: number;
-  name: string;
-  slug: string;
-  posts_count: number;
+export type Tag = Project;
+export type NewsCategory = Project & {
+  type: TournamentType.NewsCategory;
 };
 
 export enum TournamentType {
@@ -32,6 +30,7 @@ export enum TournamentType {
   Tournament = "tournament",
   GlobalLeaderboard = "global_leaderboard",
   Community = "community",
+  NewsCategory = "news_category",
 }
 
 export enum TournamentsSortBy {
@@ -45,18 +44,14 @@ export type TournamentMember = {
   permission: ProjectPermissions;
 };
 
-export type TournamentPreview = {
-  id: number;
+export type TournamentPreview = Project & {
   type: TournamentType;
-  name: string;
-  slug: string | null;
   header_image: string;
   prize_pool: string | null;
   start_date: string;
   close_date: string;
   is_ongoing: boolean;
   created_at: string;
-  posts_count: number;
   user_permission: ProjectPermissions;
   score_type: string;
 };
@@ -72,11 +67,8 @@ export type Tournament = TournamentPreview & {
   is_current_content_translated?: boolean;
 };
 
-export type Community = {
-  id: number;
-  name: string;
-  type: "community";
-  slug: string;
+export type Community = Project & {
+  type: TournamentType.Community;
   description: string;
   header_image: string;
   header_logo: string;
@@ -84,7 +76,6 @@ export type Community = {
   default_permission: ProjectPermissions;
   user_permission?: ProjectPermissions;
   unlisted: boolean;
-  posts_count: number;
   is_subscribed?: boolean;
   created_by: UserBase;
 };

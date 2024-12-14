@@ -61,7 +61,9 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         return format_html('<a href="{}">{}</a>', url, f"Post-{post.id}")
 
     def should_update_translations(self, obj):
-        is_private = obj.post.default_project.default_permission is None
+        is_private = (
+            obj.related_posts.first().post.default_project.default_permission is None
+        )
         return not is_private
 
     def get_fields(self, request, obj=None):
