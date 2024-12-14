@@ -9,7 +9,7 @@ from posts.jobs import job_close_question
 from posts.models import Post
 from questions.constants import QuestionStatus, ResolutionType
 from questions.models import Question
-from questions.services import resolve_question, unresolve_question, close_question
+from questions.services import resolve_question, unresolve_question
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_question
@@ -160,7 +160,6 @@ class TestResolveConditionalQuestion:
         )
         parent = post_conditional.conditional.condition
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
@@ -272,7 +271,6 @@ class TestResolveConditionalQuestion:
         )
         parent = post_conditional.conditional.condition
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
@@ -312,7 +310,6 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_open
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
@@ -347,9 +344,7 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_closed
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
@@ -383,7 +378,6 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_open
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
@@ -421,7 +415,6 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_open
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
@@ -462,9 +455,7 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_closed
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
@@ -543,7 +534,6 @@ class TestResolveConditionalQuestion:
         )
         parent = post_conditional.conditional.condition
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
@@ -672,7 +662,6 @@ class TestResolveConditionalQuestion:
         )
         parent = post_conditional.conditional.condition
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
@@ -759,7 +748,6 @@ class TestResolveConditionalQuestion:
         )
         parent = post_conditional.conditional.condition
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
@@ -893,7 +881,6 @@ class TestResolveConditionalQuestion:
         )
         parent = post_conditional.conditional.condition
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
@@ -941,7 +928,6 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_open
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
@@ -982,9 +968,7 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_closed
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
@@ -1024,7 +1008,6 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_open
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
@@ -1070,7 +1053,6 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_open
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
@@ -1119,9 +1101,7 @@ class TestResolveConditionalQuestion:
             user1, post_parent_closed, post_child_closed
         )
         parent = post_conditional.conditional.condition
-        # close_question(parent)
         child = post_conditional.conditional.condition_child
-        # close_question(child)
         question_yes = post_conditional.conditional.question_yes
         question_no = post_conditional.conditional.question_no
 
