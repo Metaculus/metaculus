@@ -117,6 +117,28 @@ class UserAdmin(admin.ModelAdmin):
         "is_active",
         "is_spam",
         "is_bot",
+    ]
+    search_fields = ["username", "email", "pk"]
+    list_filter = ["is_active", "is_spam", "is_bot"]
+
+
+# Proxy model for Heavyweight admin view
+class UserHeavyweight(User):
+    class Meta:
+        proxy = True
+        verbose_name = "User (Heavyweight View)"
+        verbose_name_plural = "Users (Heavyweight View)"
+
+
+@admin.register(UserHeavyweight)
+class UserAdmin(admin.ModelAdmin):
+    list_display = [
+        "username",
+        "id",
+        "email",
+        "is_active",
+        "is_spam",
+        "is_bot",
         "duration_joined_to_last_login",
         "authored_posts",
         "duration_before_first_post",
