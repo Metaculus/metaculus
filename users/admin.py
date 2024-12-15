@@ -118,8 +118,27 @@ class UserAdmin(admin.ModelAdmin):
         "is_spam",
         "is_bot",
     ]
+    can_delete = False
+    actions = ["mark_selected_as_spam", "soft_delete_selected", "hard_delete_selected"]
     search_fields = ["username", "email", "pk"]
     list_filter = ["is_active", "is_spam", "is_bot"]
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+        return actions
+
+    def mark_selected_as_spam(self, request, queryset: QuerySet[User]):
+        for user in queryset:
+            user.mark_as_spam()
+
+    def soft_delete_selected(self, request, queryset: QuerySet[User]):
+        for user in queryset:
+            user.soft_delete()
+
+    def hard_delete_selected(self, request, queryset: QuerySet[User]):
+        queryset.delete()
 
 
 # Proxy model for Heavyweight admin view
