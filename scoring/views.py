@@ -19,7 +19,7 @@ from scoring.serializers import (
     ContributionSerializer,
 )
 from scoring.utils import get_contributions
-from users.models import User
+from users.models import User, log_user_activity
 from users.views import serialize_profile
 from questions.models import AggregationMethod
 
@@ -148,6 +148,7 @@ def user_medals(
 def medal_contributions(
     request: Request,
 ):
+    log_user_activity(request)
     user_id = request.GET.get("userId", None)
     user = get_object_or_404(User, pk=user_id)
     project_id = request.GET.get("projectId", get_site_main_project().id)

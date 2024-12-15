@@ -32,6 +32,7 @@ from comments.services.key_factors import key_factor_vote
 from notifications.services import NotificationCommentReport, NotificationPostParams
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
+from users.models import log_user_activity
 
 
 class RootCommentsPagination(LimitOffsetPagination):
@@ -117,6 +118,7 @@ def comment_delete_api_view(request: Request, pk: int):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def comment_create_api_view(request: Request):
+    log_user_activity(request)
     user = request.user
     serializer = CommentWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
