@@ -97,6 +97,8 @@ class User(TimeStampedModel, AbstractUser):
         self.username = val
 
     def mark_as_spam(self):
+        if self.verification_level >= 4:
+            return
         self.is_spam = True
         self.soft_delete()
 
