@@ -1,11 +1,12 @@
 from datetime import timedelta
 
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
 
-from users.models import User, UserCampaignRegistration
+from users.models import User, UserCampaignRegistration, UserActivityLog
 from questions.models import Forecast
 
 
@@ -115,6 +116,7 @@ class UserAdmin(admin.ModelAdmin):
         "id",
         "email",
         "is_active",
+        "verified",
         "is_spam",
         "is_bot",
         "duration_joined_to_last_login",
@@ -130,6 +132,7 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ["username", "email", "pk"]
     list_filter = [
         "is_active",
+        "verified",
         "is_spam",
         "is_bot",
         "date_joined",
@@ -213,7 +216,73 @@ class UserAdmin(admin.ModelAdmin):
         queryset.delete()
 
 
+# Proxy model for lightweight admin view
+class UserLightweight(User):
+    class Meta:
+        proxy = True
+        verbose_name = "User (Lightweight View)"
+        verbose_name_plural = "Users (Lightweight View)"
+
+
+@admin.register(UserLightweight)
+class UserLightweightAdmin(admin.ModelAdmin):
+    list_display = [
+        "username",
+        "id",
+        "email",
+        "is_active",
+        "verified",
+        "is_spam",
+        "is_bot",
+    ]
+    search_fields = ["username", "email", "pk"]
+    list_filter = ["is_active", "verified", "is_spam", "is_bot"]
+
+
 @admin.register(UserCampaignRegistration)
 class UserCampaignRegistrationAdmin(admin.ModelAdmin):
     list_display = ["user", "key", "details"]
     readonly_fields = ["user", "key", "details"]
+
+
+class HasUserFilter(admin.SimpleListFilter):
+    title = "Has User"
+    parameter_name = "has_user"
+
+    def lookups(self, request, model_admin):
+        return [("Yes", "Has User"), ("No", "Does Not Have User")]
+
+    def queryset(self, request, queryset):
+        if self.value() == "Yes":
+            return queryset.filter(user__isnull=False)
+        if self.value() == "No":
+            return queryset.filter(user__isnull=True)
+        return queryset
+
+
+class UserVerifiedFilter(admin.SimpleListFilter):
+    title = "User Verified"
+    parameter_name = "user_verified"
+
+    def lookups(self, request, model_admin):
+        return [("Yes", "Yes"), ("No", "No")]
+
+    def queryset(self, request, queryset):
+        if self.value() == "Yes":
+            return queryset.filter(user__verified=True)
+        if self.value() == "No":
+            return queryset.filter(Q(user__verified=False) | Q(user__isnull=True))
+        return queryset
+
+
+@admin.register(UserActivityLog)
+class UserActivityLogAdmin(admin.ModelAdmin):
+    list_display = ["user", "user__verified", "ip_address", "endpoint", "timestamp"]
+    readonly_fields = ["user", "ip_address", "endpoint", "timestamp"]
+    search_fields = ["user__username", "user__email", "ip_address", "endpoint"]
+    list_filter = [
+        AutocompleteFilterFactory("User", "user"),
+        HasUserFilter,
+        UserVerifiedFilter,
+        "endpoint",
+    ]

@@ -20,7 +20,7 @@ from posts.models import Post
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.models import Score
-from users.models import User
+from users.models import User, log_user_activity
 from users.serializers import (
     UserPrivateSerializer,
     UserPublicSerializer,
@@ -414,7 +414,7 @@ def current_user_api_view(request):
     A lightweight profile data of the current user
     Should contain minimum profile data without heavy calcs
     """
-
+    log_user_activity(request)
     return Response(UserPrivateSerializer(request.user).data)
 
 
@@ -463,6 +463,7 @@ def change_username_api_view(request: Request):
 
 @api_view(["PATCH"])
 def update_profile_api_view(request: Request) -> Response:
+    log_user_activity(request)
     user: User = request.user
     serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
