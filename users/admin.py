@@ -131,7 +131,7 @@ class UserHeavyweight(User):
 
 
 @admin.register(UserHeavyweight)
-class UserAdmin(admin.ModelAdmin):
+class UserHeavyweightAdmin(admin.ModelAdmin):
     list_display = [
         "username",
         "id",
