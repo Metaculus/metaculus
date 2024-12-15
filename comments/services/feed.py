@@ -29,7 +29,9 @@ def get_comments_feed(
         qs = qs.filter(is_private=False)
 
     if not include_deleted:
-        qs = qs.filter(is_soft_deleted=False)
+        qs = qs.filter(
+            Q(is_soft_deleted=False) | Q(child_comments__is_soft_deleted=False)
+        )
 
     qs = qs.annotate_vote_score()
 
