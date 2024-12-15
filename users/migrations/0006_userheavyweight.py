@@ -7,24 +7,23 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0005_user_is_spam'),
+        ("users", "0005_user_is_spam"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='UserHeavyweight',
-            fields=[
-            ],
+            name="UserHeavyweight",
+            fields=[],
             options={
-                'verbose_name': 'User (Heavyweight View)',
-                'verbose_name_plural': 'Users (Heavyweight View)',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "User (Heavyweight View)",
+                "verbose_name_plural": "Users (Heavyweight View)",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('users.user',),
+            bases=("users.user",),
             managers=[
-                ('objects', django.contrib.auth.models.UserManager()),
+                ("objects", django.contrib.auth.models.UserManager()),
             ],
         ),
     ]
