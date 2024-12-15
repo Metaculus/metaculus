@@ -31,7 +31,7 @@ def get_comments_feed(
     if not include_deleted:
         qs = qs.filter(
             Q(is_soft_deleted=False) | Q(child_comments__is_soft_deleted=False)
-        )
+        ).distinct()
 
     qs = qs.annotate_vote_score()
 
