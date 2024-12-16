@@ -4,12 +4,13 @@ import { FC } from "react";
 
 import Chip from "@/components/ui/chip";
 import { POST_TAGS_FILTER } from "@/constants/posts_feed";
+import { Tag } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
 import { getProjectLink } from "@/utils/navigation";
 
 type Props = {
   defaultProject: Tournament;
-  globalLeaderboard?: Tournament;
+  globalLeaderboard?: Tag;
 };
 
 const PostDefaultProject: FC<Props> = ({
