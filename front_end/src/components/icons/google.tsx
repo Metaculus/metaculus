@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import cn from "@/utils/cn";
 
 export function Google({ className, ...props }: React.SVGProps<SVGSVGElement>) {
   return (
@@ -8,7 +8,7 @@ export function Google({ className, ...props }: React.SVGProps<SVGSVGElement>) {
       viewBox="0 0 16 17"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={clsx("size-[1em]", className)}
+      className={cn("size-[1em]", className)}
       {...props}
     >
       <path

@@ -1,12 +1,14 @@
 "use client";
 
-import { FC, PropsWithChildren } from "react";
-import clsx from "clsx";
 import Image from "next/image";
-import { XIcon } from "./x-icon";
-import { useModal } from "@/contexts/modal_context";
 import { usePathname } from "next/navigation";
+import { FC, PropsWithChildren } from "react";
+
 import Button from "@/components/ui/button";
+import { useModal } from "@/contexts/modal_context";
+import cn from "@/utils/cn";
+
+import { XIcon } from "./x-icon";
 
 export const ChoicesButtons = () => {
   const { setCurrentModal } = useModal();
@@ -64,7 +66,7 @@ export const HeroSection: FC<PropsWithChildren<{ className?: string }>> = ({
 }) => {
   return (
     <div
-      className={clsx(
+      className={cn(
         "flex flex-col items-center rounded-md bg-gray-0 dark:bg-gray-0-dark",
         className
       )}

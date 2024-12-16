@@ -5,8 +5,9 @@ import {
   faMinus,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { DetailedHTMLProps, FC, HTMLAttributes } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = DetailedHTMLProps<
   HTMLAttributes<HTMLDivElement>,
@@ -35,7 +36,7 @@ const SliderThumb: FC<Props> = ({
 }) => (
   <div
     {...props}
-    className={classNames(
+    className={cn(
       "absolute flex cursor-pointer items-center focus:outline-none",
       className
     )}
@@ -57,7 +58,7 @@ const SliderThumb: FC<Props> = ({
         e.preventDefault();
         onClickIn?.();
       }}
-      className={classNames(
+      className={cn(
         "flex items-center border border-gray-900 bg-blue-100 text-center dark:border-gray-900-dark dark:bg-blue-100-dark",
         "active:bg-blue-400 active:dark:bg-blue-400-dark",
         active ? "size-5 text-center" : "size-4 rounded-full",
@@ -93,7 +94,7 @@ const ArrowButton: FC<ArrowButtonProps> = ({
   className,
 }) => (
   <button
-    className={classNames(
+    className={cn(
       "invisible flex items-center rounded-full bg-blue-200 px-1.5 py-1 text-center text-gray-500 hover:text-gray-700 active:text-blue-800 group-hover:visible dark:bg-blue-800 dark:hover:text-gray-300 dark:active:text-blue-200",
       className
     )}

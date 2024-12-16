@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
@@ -14,6 +13,7 @@ import {
   Question,
 } from "@/types/question";
 import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 
 import CursorDetailItem from "./numeric_cursor_item";
 
@@ -142,7 +142,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "flex w-full flex-col",
         isChartReady ? "opacity-100" : "opacity-0"
       )}
@@ -183,7 +183,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         />
       </div>
       <div
-        className={classNames(
+        className={cn(
           "my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
           { "sm:grid-cols-3": !!question.my_forecasts?.history.length }
         )}

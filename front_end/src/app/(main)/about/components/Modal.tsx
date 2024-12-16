@@ -1,8 +1,8 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import clsx from "clsx";
-import { useEffect } from "react";
+
+import cn from "@/utils/cn";
 
 import IconButton from "./IconButton";
 
@@ -25,7 +25,7 @@ function ModalPanel({
   afterPanel,
 }: ModalPanelProps) {
   return (
-    <DialogPanel className={clsx("flex max-h-full", className || "max-w-full")}>
+    <DialogPanel className={cn("flex max-h-full", className || "max-w-full")}>
       {beforePanel}
       <div className="relative max-h-full w-full rounded bg-white text-blue-900 dark:bg-gray-900 dark:text-white">
         {!hideClose && (
@@ -42,10 +42,9 @@ function ModalPanel({
         <div className="max-h-full overflow-auto p-7">
           {title ? (
             <DialogTitle
-              className={clsx(
-                "mb-4 mt-0 text-blue-900 dark:text-blue-900-dark",
-                { "mr-3": !hideClose }
-              )}
+              className={cn("mb-4 mt-0 text-blue-900 dark:text-blue-900-dark", {
+                "mr-3": !hideClose,
+              })}
             >
               {title}
             </DialogTitle>

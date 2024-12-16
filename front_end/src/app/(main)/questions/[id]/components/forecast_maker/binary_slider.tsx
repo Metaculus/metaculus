@@ -1,11 +1,11 @@
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { SemanticName } from "rc-slider/lib/interface";
 import { CSSProperties, FC, useCallback, useEffect, useState } from "react";
 
 import Slider from "@/components/sliders/slider";
+import cn from "@/utils/cn";
 
 const DEFAULT_SLIDER_VALUE = 50;
 export const BINARY_FORECAST_PRECISION = 3;
@@ -82,7 +82,7 @@ const BinarySlider: FC<Props> = ({
 
   return (
     <>
-      <div className={classNames("group relative mx-6 mt-8 h-16", className)}>
+      <div className={cn("group relative mx-6 mt-8 h-16", className)}>
         <Slider
           inputMin={BINARY_MIN_VALUE}
           inputMax={BINARY_MAX_VALUE}

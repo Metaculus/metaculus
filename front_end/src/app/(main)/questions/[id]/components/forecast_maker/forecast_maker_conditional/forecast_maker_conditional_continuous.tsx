@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
@@ -16,6 +15,7 @@ import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -394,10 +394,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       {questionOptions.map((option) => (
         <div
           key={option.id}
-          className={classNames(
-            "mt-3",
-            option.id !== activeTableOption && "hidden"
-          )}
+          className={cn("mt-3", option.id !== activeTableOption && "hidden")}
         >
           <ContinuousSlider
             question={option.question}

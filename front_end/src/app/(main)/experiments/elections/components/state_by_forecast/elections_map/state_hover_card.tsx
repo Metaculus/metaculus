@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, MouseEvent, useEffect, useState } from "react";
@@ -6,6 +5,7 @@ import { FC, MouseEvent, useEffect, useState } from "react";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { StateByForecastItem } from "@/types/experiments";
+import cn from "@/utils/cn";
 
 type Props = {
   x: number;
@@ -59,7 +59,7 @@ const StateHoverCard: FC<Props> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       style={positionStyles}
-      className={classNames(
+      className={cn(
         "z-10 flex w-fit max-w-96 flex-col items-start justify-start gap-3 rounded bg-blue-200 p-4 font-sans shadow-md dark:bg-blue-200-dark",
         isLargeScreen
           ? "md:absolute"
@@ -81,17 +81,14 @@ const StateHoverCard: FC<Props> = ({
             {mapArea.link ? (
               <div className="flex flex-row">
                 <div
-                  className={classNames(
-                    "text-left text-3xl",
-                    partyPartyTextClassNames
-                  )}
+                  className={cn("text-left text-3xl", partyPartyTextClassNames)}
                 >
                   {Math.round(100 * favouriteProbability)}%
                 </div>
               </div>
             ) : (
               <div
-                className={classNames(
+                className={cn(
                   "shrink text-left text-base font-medium leading-5",
                   partyPartyTextClassNames
                 )}
@@ -105,7 +102,7 @@ const StateHoverCard: FC<Props> = ({
               {mapArea.votes}
             </div>
             <div
-              className={classNames(
+              className={cn(
                 "w-min text-left text-sm font-medium leading-4",
                 partyPartyTextClassNames
               )}

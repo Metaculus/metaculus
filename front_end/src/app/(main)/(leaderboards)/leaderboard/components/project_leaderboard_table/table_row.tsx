@@ -1,9 +1,9 @@
-import classNames from "classnames";
 import { isNil } from "lodash";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import { LeaderboardEntry } from "@/types/scoring";
+import cn from "@/utils/cn";
 
 import MedalIcon from "../../../components/medal_icon";
 
@@ -80,7 +80,7 @@ const Td: FC<
   }>
 > = ({ highlight, className, children }) => (
   <td
-    className={classNames(
+    className={cn(
       "px-4 py-2.5 text-sm leading-4",
       highlight
         ? "bg-orange-100 dark:bg-orange-100-dark"

@@ -1,7 +1,6 @@
 "use client";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
@@ -20,6 +19,7 @@ import {
   LeaderboardEntry,
   LeaderboardType,
 } from "@/types/scoring";
+import cn from "@/utils/cn";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 import { isUnsuccessfullyResolved } from "@/utils/questions";
 
@@ -120,7 +120,7 @@ const ContributionsTable: FC<Props> = ({
       <thead>
         <tr className="bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark">
           <InfoHeaderTd
-            className={classNames(
+            className={cn(
               "text-center font-mono",
               { "w-28": category === "questionWriting" },
               { "w-24": category === "comments" },
@@ -193,7 +193,7 @@ const ContributionsTable: FC<Props> = ({
             className="border-b border-gray-300 bg-gray-0 text-gray-800 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-800-dark"
           >
             <td
-              className={classNames(
+              className={cn(
                 "flex items-center justify-center px-0 py-1.5 font-mono text-sm font-medium leading-4",
                 {
                   "dark:text-conditionals-green-700-dark text-conditional-green-700":
@@ -266,10 +266,7 @@ const InfoHeaderTd: FC<
     HTMLTableCellElement
   >
 > = ({ className, children, ...props }) => (
-  <td
-    className={classNames("px-4 py-1.5 text-sm leading-4", className)}
-    {...props}
-  >
+  <td className={cn("px-4 py-1.5 text-sm leading-4", className)} {...props}>
     {children}
   </td>
 );
@@ -281,10 +278,7 @@ const HeaderTd: FC<
   >
 > = ({ className, children, ...props }) => (
   <td
-    className={classNames(
-      "cursor-pointer py-4 text-sm font-bold leading-4",
-      className
-    )}
+    className={cn("cursor-pointer py-4 text-sm font-bold leading-4", className)}
     {...props}
   >
     {children}
@@ -294,7 +288,7 @@ const HeaderTd: FC<
 const SortArrow: FC<{ isAsc: boolean }> = ({ isAsc }) => (
   <FontAwesomeIcon
     icon={faCaretDown}
-    className={classNames("ml-2", {
+    className={cn("ml-2", {
       "rotate-180": isAsc,
     })}
   />

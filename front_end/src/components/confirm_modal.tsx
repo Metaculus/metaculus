@@ -17,7 +17,7 @@ const ConfirmModal: FC<Props> = ({ isOpen, onClose, onConfirm }) => {
 
   return (
     <BaseModal
-      className="max-w-xs !overflow-y-auto"
+      className="max-w-xs overflow-y-auto"
       isOpen={isOpen}
       onClose={onClose}
     >

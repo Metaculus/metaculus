@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
 
@@ -7,6 +6,7 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Community } from "@/types/projects";
+import cn from "@/utils/cn";
 
 import {
   subscribeProject,
@@ -59,7 +59,7 @@ const CommunityFollow: FC<Props> = ({
   }, [community.id, setFollowersCount]);
 
   return (
-    <div className={classNames("w-[85px]", className)}>
+    <div className={cn("w-[85px]", className)}>
       {user && isFollowing ? (
         <Button
           variant="secondary"
