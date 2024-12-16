@@ -4,11 +4,15 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
-import CPRevealTime from "@/components/charts/cp_reveal_time";
 import NumericChart from "@/components/charts/numeric_chart";
+import CPRevealTime from "@/components/cp_reveal_time";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { AggregateForecastHistory, Question } from "@/types/question";
+import {
+  AggregateForecastHistory,
+  ForecastAvailability,
+  Question,
+} from "@/types/question";
 import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
@@ -16,15 +20,15 @@ import CursorDetailItem from "./numeric_cursor_item";
 type Props = {
   question: Question;
   hideCP?: boolean;
-  isCPRevealed?: boolean;
   nrForecasters?: number;
+  forecastAvailability?: ForecastAvailability;
 };
 
-const NumericChartCard: FC<Props> = ({
+const DetailedContinuousChartCard: FC<Props> = ({
   question,
   hideCP,
-  isCPRevealed,
   nrForecasters,
+  forecastAvailability,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -57,17 +61,18 @@ const NumericChartCard: FC<Props> = ({
   };
 
   const cursorData = useMemo(() => {
-    if (!isCPRevealed) {
+    if (!!forecastAvailability?.cpRevealsOn) {
       return {
-        timestamp: question.my_forecasts?.latest?.start_time ?? null,
+        timestamp:
+          cursorTimestamp ?? question.my_forecasts?.latest?.start_time ?? null,
         forecasterCount: nrForecasters ?? 0,
         interval_lower_bound: null,
         center: null,
         interval_upper_bound: null,
       };
     }
-    const forecast = getCursorForecast(cursorTimestamp, aggregation);
 
+    const forecast = getCursorForecast(cursorTimestamp, aggregation);
     let timestamp = cursorTimestamp;
     if (
       timestamp === null &&
@@ -77,22 +82,55 @@ const NumericChartCard: FC<Props> = ({
       forecast.start_time < question.my_forecasts.latest.start_time
     ) {
       timestamp = question.my_forecasts.latest.start_time;
+      const forecasterCount = !!forecastAvailability?.cpRevealsOn
+        ? forecast?.forecaster_count ?? 0
+        : nrForecasters ?? 0;
+
       return {
         timestamp,
-        forecasterCount: forecast?.forecaster_count ?? 0,
-        interval_lower_bound: forecast?.interval_lower_bounds![0],
-        center: forecast?.centers![0],
-        interval_upper_bound: forecast?.interval_upper_bounds![0],
+        forecasterCount,
+        interval_lower_bound: forecast?.interval_lower_bounds?.[0] ?? null,
+        center: forecast?.centers?.[0] ?? null,
+        interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,
       };
     }
+
     return {
       timestamp: forecast?.start_time ?? cursorTimestamp,
       forecasterCount: forecast?.forecaster_count ?? 0,
-      interval_lower_bound: forecast?.interval_lower_bounds![0],
-      center: forecast?.centers![0],
-      interval_upper_bound: forecast?.interval_upper_bounds![0],
+      interval_lower_bound: forecast?.interval_lower_bounds?.[0] ?? null,
+      center: forecast?.centers?.[0] ?? null,
+      interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,
     };
-  }, [isCPRevealed, cursorTimestamp, nrForecasters]);
+  }, [
+    cursorTimestamp,
+    aggregation,
+    question.my_forecasts,
+    nrForecasters,
+    forecastAvailability,
+  ]);
+
+  const cpCursorElement = useMemo(() => {
+    if (forecastAvailability?.cpRevealsOn) {
+      return <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />;
+    }
+
+    if (forecastAvailability?.isEmpty) {
+      return t("noForecastsYet");
+    }
+
+    return getDisplayValue({
+      value: cursorData?.center,
+      questionType: question.type,
+      scaling: question.scaling,
+      range: cursorData?.interval_lower_bound
+        ? [
+            cursorData!.interval_lower_bound as number,
+            cursorData!.interval_upper_bound as number,
+          ]
+        : [],
+    });
+  }, [t, cursorData, forecastAvailability, question.scaling, question.type]);
 
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
@@ -115,7 +153,7 @@ const NumericChartCard: FC<Props> = ({
           myForecasts={question.my_forecasts}
           resolution={question.resolution}
           resolveTime={question.actual_resolve_time}
-          onCursorChange={isCPRevealed ? handleCursorChange : undefined}
+          onCursorChange={handleCursorChange}
           yLabel={t("communityPredictionLabel")}
           onChartReady={handleChartReady}
           questionType={question.type}
@@ -131,17 +169,18 @@ const NumericChartCard: FC<Props> = ({
               : TimelineChartZoomOption.TwoMonths
           }
           withZoomPicker
-          hideCP={hideCP || !isCPRevealed}
-          isCPRevealed={isCPRevealed}
+          hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
+          withUserForecastTimestamps={!!forecastAvailability?.cpRevealsOn}
+          isEmptyDomain={
+            !!forecastAvailability?.isEmpty ||
+            !!forecastAvailability?.cpRevealsOn
+          }
           openTime={
             question.open_time
               ? new Date(question.open_time).getTime()
               : undefined
           }
         />
-        {!isCPRevealed && (
-          <CPRevealTime cpRevealTime={question.cp_reveal_time} />
-        )}
       </div>
       <div
         className={classNames(
@@ -151,33 +190,17 @@ const NumericChartCard: FC<Props> = ({
       >
         <CursorDetailItem
           title={t("totalForecastersLabel")}
-          text={
-            isCPRevealed
-              ? cursorData!.forecasterCount?.toString()
-              : String(nrForecasters)
-          }
+          content={cursorData.forecasterCount.toString()}
         />
-        {!hideCP && isCPRevealed && (
-          <CursorDetailItem
-            title={t("communityPredictionLabel")}
-            text={getDisplayValue({
-              value: cursorData?.center,
-              questionType: question.type,
-              scaling: question.scaling,
-              range: cursorData?.interval_lower_bound
-                ? [
-                    cursorData!.interval_lower_bound as number,
-                    cursorData!.interval_upper_bound as number,
-                  ]
-                : [],
-            })}
-            variant="prediction"
-          />
-        )}
+        <CursorDetailItem
+          title={t("communityPredictionLabel")}
+          content={cpCursorElement}
+          variant="prediction"
+        />
         {!!question.my_forecasts?.history.length && (
           <CursorDetailItem
             title={t("myPrediction")}
-            text={getUserPredictionDisplayValue(
+            content={getUserPredictionDisplayValue(
               question.my_forecasts,
               cursorData.timestamp,
               question.type,
@@ -192,4 +215,4 @@ const NumericChartCard: FC<Props> = ({
   );
 };
 
-export default NumericChartCard;
+export default DetailedContinuousChartCard;

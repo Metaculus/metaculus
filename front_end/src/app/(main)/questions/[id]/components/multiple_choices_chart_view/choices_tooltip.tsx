@@ -15,7 +15,7 @@ type Props = {
 const ChoicesTooltip: FC<Props> = ({ date, choices, userChoices }) => {
   const t = useTranslations();
   const containUserChoices =
-    userChoices && !userChoices.every((choice) => choice.valueLabel === "?");
+    userChoices && !userChoices.every((choice) => choice.valueElement === "?");
 
   return (
     <table>
@@ -37,7 +37,7 @@ const ChoicesTooltip: FC<Props> = ({ date, choices, userChoices }) => {
             </td>
           )}
         </tr>
-        {choices.map(({ color, choiceLabel, valueLabel }, idx) => (
+        {choices.map(({ color, choiceLabel, valueElement }, idx) => (
           <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
             <td className="px-1.5 py-1">
               <ChoiceIcon color={color} />
@@ -45,11 +45,11 @@ const ChoicesTooltip: FC<Props> = ({ date, choices, userChoices }) => {
             <th className="px-1.5 py-1 text-left text-sm font-bold">
               {choiceLabel}
             </th>
-            <td className="px-1.5 py-1 text-right text-sm">{valueLabel}</td>
+            <td className="px-1.5 py-1 text-right text-sm">{valueElement}</td>
             {containUserChoices && (
               <td className="px-1.5 py-1 text-right text-sm">
                 {userChoices!.find((item) => item.choiceLabel === choiceLabel)
-                  ?.valueLabel || "?"}
+                  ?.valueElement || "?"}
               </td>
             )}
           </tr>

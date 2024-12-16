@@ -9,7 +9,10 @@ import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
-import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
+import {
+  generateUserForecastsForMultipleQuestion,
+  getQuestionForecastAvailability,
+} from "@/utils/questions";
 
 import QuestionNumericTile from "./question_numeric_tile";
 
@@ -30,11 +33,8 @@ const QuestionChartTile: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const isForecastEmpty =
-    question.aggregations.recency_weighted.history.length === 0;
-  const isCPRevealed = question.cp_reveal_time
-    ? new Date(question.cp_reveal_time) <= new Date()
-    : true;
+  const forecastAvailability = getQuestionForecastAvailability(question);
+
   if (curationStatus === PostStatus.PENDING) {
     return (
       <div>
@@ -46,13 +46,10 @@ const QuestionChartTile: FC<Props> = ({
     );
   }
 
-  if (isForecastEmpty) {
-    if (curationStatus !== PostStatus.OPEN) {
-      return null;
-    }
-    if (forecasters === 0) {
-      return <div>{t("forecastDataIsEmpty")}</div>;
-    }
+  // hide the card if the question is not opened yet
+  // otherwise, we should the chart with "No forecasts yet" message on the chart itself
+  if (forecastAvailability.isEmpty && curationStatus !== PostStatus.OPEN) {
+    return null;
   }
 
   const defaultChartZoom: TimelineChartZoomOption = user
@@ -69,7 +66,7 @@ const QuestionChartTile: FC<Props> = ({
           curationStatus={curationStatus}
           defaultChartZoom={defaultChartZoom}
           hideCP={hideCP}
-          isCPRevealed={isCPRevealed}
+          forecastAvailability={forecastAvailability}
           forecasters={forecasters}
         />
       );
@@ -83,19 +80,28 @@ const QuestionChartTile: FC<Props> = ({
       const actualCloseTime = question.actual_close_time
         ? new Date(question.actual_close_time).getTime()
         : null;
+      const openTime = question.open_time
+        ? new Date(question.open_time).getTime()
+        : undefined;
+
+      const timestamps: number[] = !forecastAvailability.cpRevealsOn
+        ? question.aggregations.recency_weighted.history.map(
+            (forecast) => forecast.start_time
+          )
+        : userForecasts?.flatMap((option) => option.timestamps ?? []) ?? [];
+
       return (
         <MultipleChoiceTile
-          timestamps={question.aggregations.recency_weighted.history.map(
-            (forecast) => forecast.start_time
-          )}
+          timestamps={timestamps}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
           defaultChartZoom={defaultChartZoom}
           question={question}
           userForecasts={userForecasts}
           hideCP={hideCP}
-          isCPRevealed={isCPRevealed}
           actualCloseTime={actualCloseTime}
+          openTime={openTime}
+          forecastAvailability={forecastAvailability}
         />
       );
     }
