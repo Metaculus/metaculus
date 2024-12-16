@@ -1,16 +1,17 @@
+import { differenceInMilliseconds } from "date-fns";
 import { useLocale } from "next-intl";
 import { FC, useMemo } from "react";
 
-import FanGraphGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/fan_graph_group_chart";
-import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
-import MultipleChoiceTile from "@/components/multiple_choice_tile";
-import PredictionChip from "@/components/prediction_chip";
+import {
+  ContinuousMultipleChoiceTile,
+  FanGraphMultipleChoiceTile,
+} from "@/components/multiple_choice_tile";
 import { useAuth } from "@/contexts/auth_context";
 import {
   GroupOfQuestionsGraphType,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { PostStatus, PostWithForecasts } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   generateChoiceItemsFromGroupQuestions,
@@ -20,30 +21,24 @@ import {
 import {
   generateUserForecasts,
   getGroupForecastAvailability,
-  getPredictionQuestion,
   sortGroupPredictionOptions,
 } from "@/utils/questions";
 
 const CHART_HEIGHT = 100;
+const VISIBLE_CHOICES_COUNT = 3;
 
 type Props = {
   questions: QuestionWithNumericForecasts[];
-  curationStatus: PostStatus;
   post: PostWithForecasts;
   hideCP?: boolean;
-  forecasters?: number;
 };
 
-const GroupContinuousTile: FC<Props> = ({
-  questions,
-  curationStatus,
-  post,
-  hideCP,
-  forecasters,
-}) => {
+const GroupContinuousTile: FC<Props> = ({ questions, post, hideCP }) => {
   const { user } = useAuth();
   const locale = useLocale();
-  const isBinaryGroup = questions[0].type === QuestionType.Binary;
+
+  const questionType = questions[0].type;
+  const isBinaryGroup = questionType === QuestionType.Binary;
   const scaling = useMemo(
     () => (isBinaryGroup ? undefined : getContinuousGroupScaling(questions)),
     [isBinaryGroup, questions]
@@ -51,51 +46,43 @@ const GroupContinuousTile: FC<Props> = ({
   const forecastAvailability = getGroupForecastAvailability(questions);
 
   const groupGraphType = post.group_of_questions?.graph_type;
+
   switch (groupGraphType) {
     case GroupOfQuestionsGraphType.FanGraph: {
-      const predictionQuestion = getPredictionQuestion(
-        questions,
-        curationStatus
+      const sortedFanGraphQuestions = [...questions].sort((a, b) =>
+        differenceInMilliseconds(
+          new Date(b.scheduled_resolve_time),
+          new Date(a.scheduled_resolve_time)
+        )
       );
-      return (
-        <div className="flex justify-between">
-          <div className="mr-3 inline-flex flex-col justify-center gap-0.5 text-xs font-semibold text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
-            <span className="whitespace-nowrap text-base text-olive-800 dark:text-olive-800-dark">
-              {predictionQuestion.fanName}:
-            </span>
-            <PredictionChip
-              question={predictionQuestion}
-              prediction={
-                predictionQuestion.aggregations.recency_weighted.latest
-                  ?.centers![0]
-              }
-              status={curationStatus}
-              hideCP={hideCP}
-            />
+      const choices = generateChoiceItemsFromGroupQuestions(
+        sortedFanGraphQuestions,
+        {
+          activeCount: VISIBLE_CHOICES_COUNT,
+          locale,
+          preserveOrder: true,
+        }
+      );
 
-            <ForecastersCounter forecasters={forecasters} className="p-1" />
-          </div>
-          <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
-            <FanGraphGroupChart
-              questions={questions}
-              height={CHART_HEIGHT}
-              pointSize={8}
-              hideCP={hideCP}
-              withTooltip={false}
-              forecastAvailability={forecastAvailability}
-            />
-          </div>
-        </div>
+      return (
+        <FanGraphMultipleChoiceTile
+          choices={choices}
+          visibleChoicesCount={VISIBLE_CHOICES_COUNT}
+          questions={questions}
+          questionType={questions[0].type}
+          hideCP={hideCP}
+          forecastAvailability={forecastAvailability}
+          chartHeight={CHART_HEIGHT}
+        />
       );
     }
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
-      const visibleChoicesCount = 3;
       const sortedQuestions = sortGroupPredictionOptions(questions);
       const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
         withUserTimestamps: !!forecastAvailability.cpRevealsOn,
       });
       const choices = generateChoiceItemsFromGroupQuestions(questions, {
-        activeCount: visibleChoicesCount,
+        activeCount: VISIBLE_CHOICES_COUNT,
         locale,
       });
       const actualCloseTime = post.actual_close_time
@@ -105,12 +92,12 @@ const GroupContinuousTile: FC<Props> = ({
         ? new Date(post.open_time).getTime()
         : undefined;
       return (
-        <MultipleChoiceTile
+        <ContinuousMultipleChoiceTile
           choices={choices}
           timestamps={timestamps}
           actualCloseTime={actualCloseTime}
           openTime={openTime}
-          visibleChoicesCount={visibleChoicesCount}
+          visibleChoicesCount={VISIBLE_CHOICES_COUNT}
           defaultChartZoom={
             user
               ? TimelineChartZoomOption.All
@@ -125,7 +112,7 @@ const GroupContinuousTile: FC<Props> = ({
                 )
               : undefined
           }
-          questionType={questions[0].type}
+          questionType={questionType}
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
         />

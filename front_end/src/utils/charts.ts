@@ -825,8 +825,8 @@ export function generateChoiceItemsFromGroupQuestions(
   const choiceOrdering: number[] = latests.map((_, i) => i);
   if (!preserveOrder) {
     choiceOrdering.sort((a, b) => {
-      const aCenter = latests[a]?.centers![0] ?? 0;
-      const bCenter = latests[b]?.centers![0] ?? 0;
+      const aCenter = latests[a]?.centers?.[0] ?? 0;
+      const bCenter = latests[b]?.centers?.[0] ?? 0;
       return bCenter - aCenter;
     });
   }

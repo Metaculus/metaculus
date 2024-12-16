@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import MultipleChoiceTile from "@/components/multiple_choice_tile";
+import { ContinuousMultipleChoiceTile } from "@/components/multiple_choice_tile";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
@@ -91,7 +91,7 @@ const QuestionChartTile: FC<Props> = ({
         : userForecasts?.flatMap((option) => option.timestamps ?? []) ?? [];
 
       return (
-        <MultipleChoiceTile
+        <ContinuousMultipleChoiceTile
           timestamps={timestamps}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
