@@ -246,6 +246,18 @@ class ProjectAdmin(CustomTranslationAdmin):
             del actions["delete_selected"]
         return actions
 
+    def save_model(self, request, obj: Project, form, change):
+        # Force visibility states for such project types
+        if obj.type in (
+            Project.ProjectTypes.CATEGORY,
+            Project.ProjectTypes.TAG,
+            Project.ProjectTypes.TOPIC,
+            Project.ProjectTypes.PERSONAL_PROJECT,
+        ):
+            obj.visibility = Project.Visibility.NOT_IN_MAIN_FEED
+
+        return super().save_model(request, obj, form, change)
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
 
