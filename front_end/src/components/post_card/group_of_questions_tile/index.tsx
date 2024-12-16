@@ -12,19 +12,11 @@ import GroupContinuousTile from "./group_continuous_tile";
 
 type Props = {
   questions: QuestionWithForecasts[];
-  curationStatus: PostStatus;
   post: PostWithForecasts;
   hideCP?: boolean;
-  forecasters?: number;
 };
 
-const GroupOfQuestionsTile: FC<Props> = ({
-  questions,
-  curationStatus,
-  post,
-  hideCP,
-  forecasters,
-}) => {
+const GroupOfQuestionsTile: FC<Props> = ({ questions, post, hideCP }) => {
   const t = useTranslations();
   const groupType = questions.at(0)?.type;
 
@@ -35,10 +27,8 @@ const GroupOfQuestionsTile: FC<Props> = ({
   return (
     <GroupContinuousTile
       questions={questions as QuestionWithNumericForecasts[]}
-      curationStatus={curationStatus}
       post={post}
       hideCP={hideCP}
-      forecasters={forecasters}
     />
   );
 };
