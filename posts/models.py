@@ -359,10 +359,11 @@ class PostQuerySet(models.QuerySet):
         """
 
         return self.filter(
-            Q(default_project__add_posts_to_main_feed=True)
+            Q(default_project__visibility=Project.Visibility.NORMAL)
             | Exists(
                 Post.projects.through.objects.filter(
-                    post_id=OuterRef("pk"), project__add_posts_to_main_feed=True
+                    post_id=OuterRef("pk"),
+                    project__visibility=Project.Visibility.NORMAL,
                 )
             )
         )

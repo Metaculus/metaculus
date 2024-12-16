@@ -747,7 +747,6 @@
   "forecastDataIsEmpty": "Údaje o prognóze jsou prázdné",
   "me": "mě",
   "edited": "upraveno",
-  "tournamentShowPostsToMainFeed": "Zobrazit turnajové příspěvky v hlavním kanálu",
   "tournamentHidePostsToMainFeed": "Skrýt turnajové příspěvky v hlavním kanálu",
   "forecastDisclaimer": "Na základě {predictionCount} předpovědí od {forecasterCount} prognostiků",
   "embedCodeSnippet": "K vložení této stránky na svou vlastní webovou stránku můžete použít níže uvedený úryvek kódu. Výšku a šířku můžete změnit podle svých potřeb.",

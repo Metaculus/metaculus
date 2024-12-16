@@ -28,15 +28,15 @@ class CommunityUpdateSerializer(serializers.ModelSerializer):
             #
             # - Public:
             #       default_permission: Forecaster
-            #       unlisted: False
+            #       visibility: NOT_IN_MAIN_FEED
             # - Draft:
             #       default_permission: None
-            #       unlisted: False
+            #       visibility: NOT_IN_MAIN_FEED
             # - Unlisted:
             #       default_permission: Forecaster
-            #       unlisted: True
+            #       visibility: unlisted
             "default_permission",
-            "unlisted",
+            "visibility",
         )
 
     def validate_slug(self, value: str):
@@ -47,6 +47,14 @@ class CommunityUpdateSerializer(serializers.ModelSerializer):
             .exists()
         ):
             raise ValidationError(_("Community with the same slug already exists"))
+
+        return value
+
+    def validate_visibility(self, value):
+        # Prevent regular users from changing a post to a normal visibility,
+        # as that would add the post to the main feed.
+        if self.instance.visibility != value and value == Project.Visibility.NORMAL:
+            raise ValidationError(_("Wrong visibility type"))
 
         return value
 
@@ -66,7 +74,7 @@ class CommunitySerializer(serializers.ModelSerializer):
             "header_logo",
             "followers_count",
             "default_permission",
-            "unlisted",
+            "visibility",
             "created_by",
         )
 

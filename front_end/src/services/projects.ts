@@ -4,6 +4,7 @@ import {
   Category,
   Community,
   NewsCategory,
+  ProjectVisibility,
   Tag,
   Topic,
   Tournament,
@@ -34,7 +35,7 @@ export type CommunityUpdateParams = {
   slug?: string;
   description?: string;
   default_permission?: ProjectPermissions | null;
-  unlisted?: boolean;
+  visibility?: ProjectVisibility;
 };
 
 class ProjectsApi {
@@ -140,10 +141,6 @@ class ProjectsApi {
 
   static async unsubscribe(projectId: number) {
     return post(`/projects/${projectId}/unsubscribe/`, {});
-  }
-
-  static async toggleAddPostsToMainFeed(projectId: number) {
-    return post(`/projects/${projectId}/toggle_add_posts_to_main_feed/`, {});
   }
 
   static async getCommunities(
