@@ -1,25 +1,21 @@
 import classNames from "classnames";
+import { intlFormatDistance } from "date-fns";
 import { useTranslations } from "next-intl";
-import React, { FC } from "react";
+import React, { CSSProperties, FC, PropsWithChildren } from "react";
 
-import LocalDaytime from "../ui/local_daytime";
+import CPRevealTime from "@/components/cp_reveal_time";
+import LocalDaytime from "@/components/ui/local_daytime";
 
 type Props = {
-  cpRevealTime?: string;
   className?: string;
   textClassName?: string;
 };
 
-const CPRevealTime: FC<Props> = ({
-  cpRevealTime,
+const ChartOverflowContainer: FC<PropsWithChildren<Props>> = ({
   className,
   textClassName,
+  children,
 }) => {
-  const t = useTranslations();
-  if (!cpRevealTime) {
-    return null;
-  }
-
   return (
     <div
       className={classNames(
@@ -33,10 +29,10 @@ const CPRevealTime: FC<Props> = ({
           textClassName
         )}
       >
-        {t("cpWillRevealOn")} <LocalDaytime date={cpRevealTime} />
+        {children}
       </p>
     </div>
   );
 };
 
-export default CPRevealTime;
+export default ChartOverflowContainer;

@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
@@ -9,6 +8,7 @@ import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
 import {
+  getGroupForecastAvailability,
   getQuestionLinearChartType,
   sortGroupPredictionOptions,
 } from "@/utils/questions";
@@ -23,7 +23,6 @@ type Props = {
 
 const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
   const { hideCP } = useHideCP();
-  const t = useTranslations();
   const questions = post.group_of_questions
     ?.questions as QuestionWithNumericForecasts[];
   const groupType = questions?.at(0)?.type;
@@ -36,10 +35,13 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
     return null;
   }
 
+  const forecastAvailability = getGroupForecastAvailability(questions);
   const sortedQuestions = sortGroupPredictionOptions(
     questions as QuestionWithNumericForecasts[]
   );
-  const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
+  const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
+    withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+  });
   const isClosed = post.actual_close_time
     ? new Date(post.actual_close_time).getTime() < Date.now()
     : false;
@@ -61,9 +63,13 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
             ? new Date(post.actual_close_time).getTime()
             : null
         }
+        openTime={
+          post.open_time ? new Date(post.open_time).getTime() : undefined
+        }
         isClosed={isClosed}
         preselectedQuestionId={preselectedQuestionId}
         hideCP={hideCP}
+        forecastAvailability={forecastAvailability}
       />
       {hideCP && <RevealCPButton className="mb-3" />}
     </>

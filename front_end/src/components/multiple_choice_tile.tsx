@@ -4,18 +4,19 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import React, { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ChoiceIcon from "@/components/choice_icon";
 import ResolutionIcon from "@/components/icons/resolution";
+import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionChip from "@/components/prediction_chip";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, UserChoiceItem } from "@/types/choices";
 import { PostStatus, Resolution } from "@/types/post";
 import {
-  Question,
+  ForecastAvailability,
   QuestionType,
   QuestionWithForecasts,
   Scaling,
@@ -23,11 +24,10 @@ import {
 import { ThemeColor } from "@/types/theme";
 import { getChoiceOptionValue } from "@/utils/charts";
 
-import CPRevealTime from "./charts/cp_reveal_time";
-
 type Props = {
   timestamps: number[];
   actualCloseTime?: number | null;
+  openTime: number | undefined;
   choices: ChoiceItem[];
   visibleChoicesCount: number;
   defaultChartZoom?: TimelineChartZoomOption;
@@ -39,13 +39,13 @@ type Props = {
   questionType?: QuestionType;
   scaling?: Scaling | undefined;
   hideCP?: boolean;
-  isCPRevealed?: boolean;
-  cpRevealTime?: string;
+  forecastAvailability?: ForecastAvailability;
 };
 
 const MultipleChoiceTile: FC<Props> = ({
   timestamps,
   actualCloseTime,
+  openTime,
   choices,
   visibleChoicesCount,
   defaultChartZoom,
@@ -57,11 +57,9 @@ const MultipleChoiceTile: FC<Props> = ({
   questionType,
   scaling,
   hideCP,
-  isCPRevealed,
-  cpRevealTime,
+  forecastAvailability,
 }) => {
   const t = useTranslations();
-
   const visibleChoices = choices.slice(0, visibleChoicesCount);
   const otherItemsCount = choices.length - visibleChoices.length;
 
@@ -133,14 +131,16 @@ const MultipleChoiceTile: FC<Props> = ({
             userForecasts={userForecasts}
             questionType={questionType}
             scaling={scaling}
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
+            openTime={openTime}
           />
-          {!isCPRevealed && (
-            <CPRevealTime
-              className="text-xs lg:text-sm"
-              textClassName="!max-w-[300px]"
-              cpRevealTime={question?.cp_reveal_time ?? cpRevealTime}
-            />
-          )}
+          <ForecastAvailabilityChartOverflow
+            forecastAvailability={forecastAvailability}
+            className="text-xs lg:text-sm"
+          />
         </div>
       )}
     </div>

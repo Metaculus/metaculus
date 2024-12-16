@@ -66,6 +66,8 @@ type Props = {
   scaling?: Scaling;
   isClosed?: boolean;
   aggregation?: boolean;
+  isEmptyDomain?: boolean;
+  openTime?: number;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -84,6 +86,8 @@ const MultipleChoiceChart: FC<Props> = ({
   scaling,
   isClosed,
   aggregation,
+  isEmptyDomain,
+  openTime,
 }) => {
   const t = useTranslations();
   const {
@@ -99,11 +103,15 @@ const MultipleChoiceChart: FC<Props> = ({
     : chartTheme;
   const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
-  const defaultCursor = isClosed
-    ? actualCloseTime
-      ? actualCloseTime / 1000
-      : timestamps[timestamps.length - 1]
-    : Date.now() / 1000;
+  const defaultCursor = useMemo(
+    () =>
+      isClosed
+        ? actualCloseTime
+          ? actualCloseTime / 1000
+          : timestamps[timestamps.length - 1]
+        : Date.now() / 1000,
+    [actualCloseTime, isClosed, timestamps]
+  );
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
@@ -121,6 +129,8 @@ const MultipleChoiceChart: FC<Props> = ({
         aggregation,
         extraTheme,
         hideCP,
+        isAggregationsEmpty: isEmptyDomain,
+        openTime,
       }),
     [
       timestamps,
@@ -134,6 +144,8 @@ const MultipleChoiceChart: FC<Props> = ({
       aggregation,
       extraTheme,
       hideCP,
+      isEmptyDomain,
+      openTime,
     ]
   );
   const isHighlightActive = useMemo(
@@ -366,6 +378,8 @@ function buildChartData({
   aggregation,
   extraTheme,
   hideCP,
+  isAggregationsEmpty,
+  openTime,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -378,21 +392,29 @@ function buildChartData({
   aggregation?: boolean;
   extraTheme?: VictoryThemeDefinition;
   hideCP?: boolean;
+  isAggregationsEmpty?: boolean;
+  openTime?: number;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
     .filter((t) => t !== undefined);
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
-    : closeTimes.length === choiceItems.length
+    : !!closeTimes.length && closeTimes.length === choiceItems.length
       ? Math.min(
           Math.max(...closeTimes.map((t) => t! / 1000)),
           Date.now() / 1000
         )
       : Date.now() / 1000;
-  const xDomain = aggregation
-    ? generateNumericDomain([...timestamps], zoom)
-    : generateNumericDomain([...timestamps, latestTimestamp], zoom);
+
+  const domainTimestamps =
+    isAggregationsEmpty && !!openTime
+      ? [openTime / 1000, latestTimestamp]
+      : aggregation
+        ? timestamps
+        : [...timestamps, latestTimestamp];
+
+  const xDomain = generateNumericDomain(domainTimestamps, zoom);
 
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({

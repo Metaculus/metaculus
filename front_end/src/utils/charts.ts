@@ -42,7 +42,7 @@ import {
   getForecastPctDisplayValue,
 } from "./forecasts";
 
-export function getNumericChartTypeFromQuestion(
+export function getContinuousChartTypeFromQuestion(
   type: QuestionType
 ): QuestionType | undefined {
   switch (type) {
@@ -599,9 +599,6 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const { activeCount, preserveOrder } = config ?? {};
 
   const latest = question.aggregations.recency_weighted.latest;
-  if (!latest) {
-    return [];
-  }
 
   const choiceOrdering: number[] = question.options!.map((_, i) => i);
   if (!preserveOrder) {
@@ -1018,8 +1015,28 @@ export function getQuestionTimestamps(
 }
 
 export function getGroupQuestionsTimestamps(
-  questions: QuestionWithNumericForecasts[]
+  questions: QuestionWithNumericForecasts[],
+  options?: {
+    withUserTimestamps?: boolean;
+  }
 ): number[] {
+  const { withUserTimestamps } = options ?? {};
+
+  if (withUserTimestamps) {
+    return uniq(
+      questions.reduce<number[]>(
+        (acc, question) => [
+          ...acc,
+          ...(question.my_forecasts?.history?.map((x) => x.start_time) ?? []),
+          ...(question.my_forecasts?.history?.map(
+            (x) => x.end_time ?? x.start_time
+          ) ?? []),
+        ],
+        []
+      )
+    ).sort((a, b) => a - b);
+  }
+
   return uniq(
     questions.reduce<number[]>(
       (acc, question) => [
