@@ -243,6 +243,15 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         choices=Visibility.choices,
         default=Visibility.NOT_IN_MAIN_FEED,
         db_index=True,
+        help_text=(
+            "Sets the visibility of this project.<br>"
+            "<ul>"
+            "<li><strong>Normal</strong> is visible on the main feed, contributes to global leaderboards/medals, and lists the project in the tournaments/question series page.</li>"
+            "<li><strong>Not In Main Feed</strong> is not visible in the main feed, but can be searched for, doesn't contribute to global leaderboards/medals, and lists the project in the tournaments/question series page.</li>"
+            "<li><strong>Unlisted</strong> is not visible in the main feed, not searchable, and doesn't contribute to global leaderboards/medals.</li>"
+            "</ul><br />"
+            "If this project is not of type <code>site_main</code>, <code>tournament</code>, or <code>question_series</code>, this field should be <strong>Not In Main Feed</strong> to remain neutral."
+        ),
     )
 
     # Whether we should display tournament on the homepage
