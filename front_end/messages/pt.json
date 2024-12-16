@@ -850,7 +850,6 @@
   "CPIsHidden": "A Previsão da Comunidade está oculta",
   "createdByUserOnDate": "Criado por {user} em {date}",
   "edited": "editado",
-  "tournamentShowPostsToMainFeed": "Mostrar postagens do torneio no feed principal",
   "tournamentHidePostsToMainFeed": "Ocultar postagens do torneio no feed principal",
   "me": "eu",
   "forecastDisclaimer": "Baseado em {predictionCount} previsões feitas por {forecasterCount} previsores",

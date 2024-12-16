@@ -1,15 +1,19 @@
 import classNames from "classnames";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 type Variant = "default" | "prediction" | "my-prediction";
 
 type Props = {
   title: string;
-  text: string;
+  content: ReactNode;
   variant?: Variant;
 };
 
-const CursorDetailItem: FC<Props> = ({ title, text, variant = "default" }) => {
+const CursorDetailItem: FC<Props> = ({
+  title,
+  content,
+  variant = "default",
+}) => {
   return (
     <div className="flex flex-col items-center whitespace-normal">
       <span className="text-xs">{title}</span>
@@ -25,7 +29,7 @@ const CursorDetailItem: FC<Props> = ({ title, text, variant = "default" }) => {
           }
         )}
       >
-        {text}
+        {content}
       </span>
     </div>
   );

@@ -8,11 +8,10 @@ from notifications.services import (
     NotificationPostParams,
     NotificationQuestionParams,
 )
-from projects.models import Project
 from questions.models import Question
 from questions.services import build_question_forecasts
-from scoring.models import Score, Leaderboard
-from scoring.utils import score_question, update_project_leaderboard
+from scoring.models import Score
+from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
 
@@ -86,35 +85,16 @@ def resolve_question_and_send_notifications(question_id: int):
     ] = {}
 
     # Update leaderboards
-    post = question.get_post()
-    projects = [post.default_project] + list(post.projects.all())
-    for project in projects:
-        if project.type == Project.ProjectTypes.SITE_MAIN:
-            continue
+    from questions.services import update_leaderboards_for_question
 
-        leaderboards = project.leaderboards.all()
-        for leaderboard in leaderboards:
-            update_project_leaderboard(project, leaderboard)
-
-    main_site_project = post.projects.filter(
-        type=Project.ProjectTypes.SITE_MAIN
-    ).first()
-    if main_site_project:
-        global_leaderboard_window = question.get_global_leaderboard_dates()
-        if global_leaderboard_window is not None:
-            global_leaderboards = Leaderboard.objects.filter(
-                start_time=global_leaderboard_window[0],
-                end_time=global_leaderboard_window[1],
-            )
-            for leaderboard in global_leaderboards:
-                update_project_leaderboard(main_site_project, leaderboard)
+    update_leaderboards_for_question(question)
 
     # Send notifications
     for score in scores:
         if score.user not in user_notification_params:
             user_notification_params[score.user] = (
                 NotificationPredictedQuestionResolved.ParamsType(
-                    post=NotificationPostParams.from_post(post),
+                    post=NotificationPostParams.from_post(question.get_post()),
                     question=NotificationQuestionParams.from_question(question),
                     resolution=question.resolution,
                     forecasts_count=score.forecasts_count,

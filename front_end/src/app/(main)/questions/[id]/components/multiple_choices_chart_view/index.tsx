@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import CPRevealTime from "@/components/charts/cp_reveal_time";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
@@ -27,9 +26,11 @@ type Props = {
   onChoiceItemsUpdate: (choiceItems: ChoiceItem[]) => void;
   timestamps: number[];
   onCursorChange?: (value: number, format: TickFormat) => void;
+  openTime?: number;
   actualCloseTime?: number | null;
   isClosed?: boolean;
   hideCP?: boolean;
+  isEmptyDomain?: boolean;
 
   title?: string;
   yLabel?: string;
@@ -41,8 +42,6 @@ type Props = {
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
-  isCPRevealed?: boolean;
-  cpRevealTime?: string;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -54,9 +53,11 @@ const MultiChoicesChartView: FC<Props> = ({
   forecastersCount,
   timestamps,
   onCursorChange,
+  openTime,
   actualCloseTime,
   isClosed,
   hideCP,
+  isEmptyDomain,
 
   title,
   yLabel,
@@ -68,8 +69,6 @@ const MultiChoicesChartView: FC<Props> = ({
   chartHeight,
   chartTheme,
   embedMode = false,
-  isCPRevealed = true,
-  cpRevealTime,
 }) => {
   const { user } = useAuth();
   const t = useTranslations();
@@ -190,8 +189,9 @@ const MultiChoicesChartView: FC<Props> = ({
                 ? TimelineChartZoomOption.All
                 : TimelineChartZoomOption.TwoMonths
           }
+          isEmptyDomain={isEmptyDomain}
+          openTime={openTime}
         />
-        {!isCPRevealed && <CPRevealTime cpRevealTime={cpRevealTime} />}
       </div>
 
       {withLegend && (

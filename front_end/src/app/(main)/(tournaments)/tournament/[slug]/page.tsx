@@ -9,7 +9,6 @@ import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
-import TournamentControls from "@/app/(main)/(tournaments)/tournament/components/tournament_controls";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
@@ -19,7 +18,7 @@ import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
-import { TournamentType } from "@/types/projects";
+import { ProjectVisibility, TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 
 import TournamentFeed from "../components/tournament_feed";
@@ -43,6 +42,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: tournament.name,
     description: !!parsedDescription ? parsedDescription : defaultDescription,
+    // Hide unlisted pages from search engines
+    ...(tournament.visibility === ProjectVisibility.Unlisted
+      ? {
+          robots: {
+            index: false,
+            follow: false,
+          },
+        }
+      : {}),
   };
 }
 
@@ -77,9 +85,6 @@ export default async function TournamentSlug({ params }: Props) {
           >
             {title}
           </Link>
-          {currentUser?.is_superuser && (
-            <TournamentControls tournament={tournament} />
-          )}
         </div>
         {!!tournament.header_image && (
           <div className="relative h-[130px] w-full">

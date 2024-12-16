@@ -1,6 +1,7 @@
 "use client";
 import { isNil, merge } from "lodash";
-import React, { FC, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+import React, { FC, ReactNode, useMemo, useState } from "react";
 import {
   VictoryArea,
   VictoryAxis,
@@ -13,8 +14,10 @@ import {
   VictoryVoronoiContainer,
 } from "victory";
 
+import ChartOverflowContainer from "@/components/charts/cp_reveal_time_overflow";
 import ChartFanTooltip from "@/components/charts/primitives/chart_fan_tooltip";
 import FanPoint from "@/components/charts/primitives/fan_point";
+import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
@@ -26,6 +29,7 @@ import {
   QuestionWithNumericForecasts,
   QuestionType,
   Question,
+  ForecastAvailability,
 } from "@/types/question";
 import {
   generateScale,
@@ -35,7 +39,7 @@ import {
   unscaleNominalLocation,
 } from "@/utils/charts";
 
-import CPRevealTime from "./cp_reveal_time";
+import CPRevealTime from "../cp_reveal_time";
 
 const TOOLTIP_WIDTH = 150;
 
@@ -47,8 +51,7 @@ type Props = {
   extraTheme?: VictoryThemeDefinition;
   pointSize?: number;
   hideCP?: boolean;
-  isCPRevealed?: boolean;
-  cpRevealTime?: string;
+  forecastAvailability?: ForecastAvailability;
 };
 
 const FanChart: FC<Props> = ({
@@ -59,9 +62,10 @@ const FanChart: FC<Props> = ({
   extraTheme,
   pointSize,
   hideCP,
-  isCPRevealed = true,
-  cpRevealTime,
+  forecastAvailability,
 }) => {
+  const t = useTranslations();
+
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
@@ -202,7 +206,7 @@ const FanChart: FC<Props> = ({
             }
           />
           <VictoryAxis tickFormat={(_, index) => labels[index]} />
-          {!hideCP && isCPRevealed && (
+          {!hideCP && !forecastAvailability?.cpRevealsOn && (
             <VictoryScatter
               data={points.map((point) => ({
                 ...point,
@@ -241,13 +245,11 @@ const FanChart: FC<Props> = ({
           />
         </VictoryChart>
       )}
-      {!isCPRevealed && (
-        <CPRevealTime
-          className="text-xs lg:text-sm"
-          textClassName="!max-w-[300px]"
-          cpRevealTime={cpRevealTime}
-        />
-      )}
+      <ForecastAvailabilityChartOverflow
+        forecastAvailability={forecastAvailability}
+        className="text-xs lg:text-sm"
+        textClassName="!max-w-[300px]"
+      />
     </div>
   );
 };

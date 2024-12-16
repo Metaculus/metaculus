@@ -1,14 +1,14 @@
 "use client";
 import { sendGAEvent } from "@next/third-parties/google";
-import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { getQuestionForecastAvailability } from "@/utils/questions";
 
+import DetailedContinuousChartCard from "./continuous_chart_card";
 import DetailsQuestionCardErrorBoundary from "./error_boundary";
-import MultipleChoiceChartCard from "./multiple_choice_chart_card";
-import NumericChartCard from "./numeric_chart_card";
+import DetailedMultipleChoiceChartCard from "./multiple_choice_chart_card";
 import { useHideCP } from "../cp_provider";
 import RevealCPButton from "../reveal_cp_button";
 
@@ -23,15 +23,10 @@ const DetailedQuestionCard: FC<Props> = ({
   question,
   nrForecasters,
 }) => {
-  const isForecastEmpty =
-    question.aggregations.recency_weighted.history.length === 0;
-  const isCPRevealed = question.cp_reveal_time
-    ? new Date(question.cp_reveal_time) <= new Date()
-    : true;
+  const forecastAvailability = getQuestionForecastAvailability(question);
 
   const { hideCP } = useHideCP();
 
-  const t = useTranslations();
   useEffect(() => {
     if (!!question.my_forecasts?.history.length) {
       sendGAEvent("event", "visitPredictedQuestion", {
@@ -40,17 +35,8 @@ const DetailedQuestionCard: FC<Props> = ({
     }
   }, [question.my_forecasts?.history.length, question.type]);
 
-  if (isForecastEmpty) {
-    if (postStatus !== PostStatus.OPEN) {
-      return null;
-    }
-    if (nrForecasters === 0) {
-      return (
-        <div className="text-l m-4 w-full text-center">
-          {t("forecastDataIsEmpty")}
-        </div>
-      );
-    }
+  if (forecastAvailability.isEmpty && postStatus !== PostStatus.OPEN) {
+    return null;
   }
 
   switch (question.type) {
@@ -59,10 +45,10 @@ const DetailedQuestionCard: FC<Props> = ({
     case QuestionType.Binary:
       return (
         <DetailsQuestionCardErrorBoundary>
-          <NumericChartCard
+          <DetailedContinuousChartCard
             question={question}
-            hideCP={hideCP || !isCPRevealed}
-            isCPRevealed={isCPRevealed}
+            hideCP={hideCP}
+            forecastAvailability={forecastAvailability}
             nrForecasters={nrForecasters}
           />
           {hideCP && <RevealCPButton />}
@@ -71,10 +57,10 @@ const DetailedQuestionCard: FC<Props> = ({
     case QuestionType.MultipleChoice:
       return (
         <DetailsQuestionCardErrorBoundary>
-          <MultipleChoiceChartCard
+          <DetailedMultipleChoiceChartCard
             question={question}
             hideCP={hideCP}
-            isCPRevealed={isCPRevealed}
+            forecastAvailability={forecastAvailability}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>

@@ -1,15 +1,18 @@
-import { useTranslations } from "next-intl";
-import { FC } from "react";
+import React, { FC } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
-import CPRevealTime from "@/components/charts/cp_reveal_time";
 import NumericChart from "@/components/charts/numeric_chart";
+import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionChip from "@/components/prediction_chip";
 import { ContinuousAreaType, TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
-import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
-import { getNumericChartTypeFromQuestion } from "@/utils/charts";
+import {
+  QuestionWithNumericForecasts,
+  QuestionType,
+  ForecastAvailability,
+} from "@/types/question";
+import { getContinuousChartTypeFromQuestion } from "@/utils/charts";
 import { cdfToPmf } from "@/utils/math";
 
 const HEIGHT = 100;
@@ -20,7 +23,7 @@ type Props = {
   defaultChartZoom?: TimelineChartZoomOption;
   hideCP?: boolean;
   forecasters?: number;
-  isCPRevealed?: boolean;
+  forecastAvailability: ForecastAvailability;
 };
 
 const QuestionNumericTile: FC<Props> = ({
@@ -29,9 +32,8 @@ const QuestionNumericTile: FC<Props> = ({
   defaultChartZoom,
   hideCP,
   forecasters,
-  isCPRevealed,
+  forecastAvailability,
 }) => {
-  const t = useTranslations();
   const latest = question.aggregations.recency_weighted.latest;
   const prediction = latest?.centers![0];
 
@@ -73,7 +75,7 @@ const QuestionNumericTile: FC<Props> = ({
             myForecasts={question.my_forecasts}
             height={HEIGHT}
             questionType={
-              getNumericChartTypeFromQuestion(question.type) ??
+              getContinuousChartTypeFromQuestion(question.type) ??
               QuestionType.Numeric
             }
             actualCloseTime={
@@ -86,7 +88,11 @@ const QuestionNumericTile: FC<Props> = ({
             resolution={question.resolution}
             resolveTime={question.actual_resolve_time}
             hideCP={hideCP}
-            isCPRevealed={isCPRevealed}
+            withUserForecastTimestamps={!forecastAvailability.cpRevealsOn}
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
             openTime={
               question.open_time
                 ? new Date(question.open_time).getTime()
@@ -104,12 +110,10 @@ const QuestionNumericTile: FC<Props> = ({
           />
         )}
 
-        {!isCPRevealed && (
-          <CPRevealTime
-            className="pl-3 text-xs md:text-sm"
-            cpRevealTime={question.cp_reveal_time}
-          />
-        )}
+        <ForecastAvailabilityChartOverflow
+          forecastAvailability={forecastAvailability}
+          className="pl-3 text-xs md:text-sm"
+        />
       </div>
     </div>
   );
