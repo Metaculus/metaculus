@@ -111,6 +111,46 @@ const ScoreDisplay: FC<Props> = ({ question }) => {
                 </div>
               </div>
             )}
+            {cp_scores?.spot_baseline_score != null && (
+              <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-olive-800 dark:border-gray-400-dark dark:text-olive-800-dark">
+                <span className="text-sm font-normal">
+                  Community Spot Baseline Score
+                </span>
+                <div className="text-sm font-bold leading-6 text-olive-700 dark:text-olive-700-dark">
+                  {cp_scores.spot_baseline_score.toFixed(1)}
+                </div>
+              </div>
+            )}
+            {cp_scores?.spot_peer_score != null && (
+              <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-olive-800 dark:border-gray-400-dark dark:text-olive-800-dark">
+                <span className="text-sm font-normal">
+                  Community Spot Peer Score
+                </span>
+                <div className="text-sm font-bold leading-6 text-olive-700 dark:text-olive-700-dark">
+                  {cp_scores.spot_peer_score.toFixed(1)}
+                </div>
+              </div>
+            )}
+            {cp_scores?.relative_legacy_score != null && (
+              <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-olive-800 dark:border-gray-400-dark dark:text-olive-800-dark">
+                <span className="text-sm font-normal">
+                  Community Relative Legacy Score
+                </span>
+                <div className="text-sm font-bold leading-6 text-olive-700 dark:text-olive-700-dark">
+                  {cp_scores.relative_legacy_score.toFixed(2)}
+                </div>
+              </div>
+            )}
+            {cp_scores?.relative_legacy_arvhived_score != null && (
+              <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-olive-800 dark:border-gray-400-dark dark:text-olive-800-dark">
+                <span className="text-sm font-normal">
+                  Community Relative Legacy Archived Score
+                </span>
+                <div className="text-sm font-bold leading-6 text-olive-700 dark:text-olive-700-dark">
+                  {cp_scores.relative_legacy_arvhived_score.toFixed(2)}
+                </div>
+              </div>
+            )}
             {user_scores?.coverage != null && (
               <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-gray-700 dark:border-gray-400-dark dark:text-gray-700-dark">
                 <span className="text-sm font-normal">My Coverage</span>
