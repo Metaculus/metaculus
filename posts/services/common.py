@@ -2,7 +2,7 @@ import logging
 from collections.abc import Iterable
 from datetime import timedelta, date
 
-from django.db.models import Q, Count, Sum, Value, Case, When, F
+from django.db.models import Q, Count, Sum, Value, Case, When, F, QuerySet
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -67,10 +67,11 @@ def update_global_leaderboard_tags(post: Post):
     # set or update the tags for this post with respect to the global
     # leaderboard(s) this is a part of
 
+    projects: QuerySet[Project] = post.projects.all()
+
     # Skip if post is not eligible for global leaderboards
-    if (
-        not post.default_project.type == Project.ProjectTypes.SITE_MAIN
-        and not post.projects.filter(type=Project.ProjectTypes.SITE_MAIN).exists()
+    if not post.default_project.type == Project.ProjectTypes.SITE_MAIN and not next(
+        (p for p in projects if p.type == Project.ProjectTypes.SITE_MAIN), None
     ):
         return
 
@@ -87,9 +88,12 @@ def update_global_leaderboard_tags(post: Post):
             to_set_tags.append(tag)
 
     # Update post's global leaderboard tags
-    current_gl_tags = post.projects.filter_tags().filter(
-        name__endswith=GLOBAL_LEADERBOARD_STRING
-    )
+    current_gl_tags = [
+        p
+        for p in projects
+        if p.type == Project.ProjectTypes.TAG
+        and p.name.endswith(GLOBAL_LEADERBOARD_STRING)
+    ]
     for tag in current_gl_tags:
         if tag not in to_set_tags:
             post.projects.remove(tag)
