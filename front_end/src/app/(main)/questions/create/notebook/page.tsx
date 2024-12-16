@@ -51,9 +51,9 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
         community_id={community?.id}
         tournaments={allTournaments}
         siteMain={siteMain}
-        news_type={
-          searchParams["news_type"]
-            ? (searchParams["news_type"] as string)
+        news_category_id={
+          searchParams["news_category_id"]
+            ? Number(searchParams["news_category_id"])
             : null
         }
       />

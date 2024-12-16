@@ -1,4 +1,5 @@
 {
+  "createArticle": "+ Crear artículo",
   "newsletterFormHeading": "Únete a Nuestro Boletín",
   "newsletterFormDescription": "Suscríbete para recibir noticias de Metaculus, informes especiales de pronósticos e invitaciones a eventos.",
   "predict": "Predecir",
@@ -757,7 +758,6 @@
   "forecastDataIsEmpty": "Los datos de pronóstico están vacíos",
   "createdByUserOnDate": "Creado por {user} el {date}",
   "edited": "editado",
-  "tournamentShowPostsToMainFeed": "Mostrar publicaciones del torneo en el feed principal",
   "tournamentHidePostsToMainFeed": "Ocultar publicaciones del torneo en el feed principal",
   "me": "yo",
   "forecastDisclaimer": "Basado en {predictionCount} predicciones de {forecasterCount} pronosticadores",

@@ -18,7 +18,7 @@ def community_unlisted():
     return factory_project(
         type=Project.ProjectTypes.COMMUNITY,
         name="Metaculus Community",
-        unlisted=True,
+        visibility=Project.Visibility.UNLISTED,
         slug="community_unlisted",
     )
 
@@ -29,5 +29,6 @@ def community_private():
         type=Project.ProjectTypes.COMMUNITY,
         name="Metaculus Community",
         default_permission=None,
+        visibility=Project.Visibility.UNLISTED,
         slug="community_private",
     )

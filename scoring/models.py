@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db import models
 from django.db.models.query import QuerySet, Q
@@ -150,43 +150,31 @@ class Leaderboard(TimeStampedModel):
             return f"Leaderboard {self.name}"
         return f"{self.score_type} Leaderboard for {self.project.name}"
 
-    def get_questions(self) -> list[Question]:
+    def get_questions(self) -> QuerySet[Question]:
         from posts.models import Post
 
-        invalid_statuses = [
-            Post.CurationStatus.DELETED,
-            Post.CurationStatus.DRAFT,
-            Post.CurationStatus.PENDING,
-            Post.CurationStatus.REJECTED,
-        ]
+        questions = Question.objects.filter(
+            related_posts__post__curation_status=Post.CurationStatus.APPROVED
+        )
 
-        if self.project:
-            questions = (
-                Question.objects.filter(
-                    Q(related_posts__post__projects=self.project)
-                    | Q(related_posts__post__default_project=self.project)
-                )
-                .exclude(related_posts__post__curation_status__in=invalid_statuses)
-                .distinct("pk")
-            )
-        else:
-            questions = Question.objects.all().exclude(
-                related_posts__post__curation_status__in=invalid_statuses
+        if self.project and self.project.type == Project.ProjectTypes.SITE_MAIN:
+            # global leaderboard
+            if self.start_time is None or self.end_time is None:
+                raise ValueError("Global leaderboards must have start and end times")
+
+            questions = questions.filter_public().filter(
+                related_posts__post__in=Post.objects.filter_for_main_feed()
             )
 
-        if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
-            # post must be published
-            return list(
-                questions.filter(
+            if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
+                # post must be published
+                return questions.filter(
                     related_posts__post__published_at__lt=self.end_time
-                ).distinct("pk")
-            )
-        elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
-            # post must be published, and can't be resolved before the start_time
-            # of the leaderboard
-
-            return list(
-                questions.filter(
+                )
+            elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
+                # post must be published, and can't be resolved before the start_time
+                # of the leaderboard
+                return questions.filter(
                     Q(scheduled_close_time__gte=self.start_time)
                     & (
                         Q(actual_close_time__isnull=True)
@@ -194,21 +182,49 @@ class Leaderboard(TimeStampedModel):
                     ),
                     related_posts__post__published_at__lt=self.end_time,
                 )
-                .exclude(related_posts__post__curation_status__in=invalid_statuses)
-                .distinct("pk")
+
+            close_grace_period = timedelta(days=3)
+            resolve_grace_period = timedelta(days=100)
+
+            questions = questions.filter(
+                Q(actual_resolve_time__isnull=True)
+                | Q(actual_resolve_time__lte=self.end_time + resolve_grace_period),
+                open_time__gte=self.start_time,
+                open_time__lt=self.end_time,
+                scheduled_close_time__lte=self.end_time + close_grace_period,
             )
 
-        if self.start_time and self.end_time:
-            # global leaderboard
             gl_dates = global_leaderboard_dates()
-            window = (self.start_time, self.end_time)
-            questions = [
-                q
-                for q in questions
-                if q.get_global_leaderboard_dates(gl_dates=gl_dates) == window
-            ]
+            checked_intervals: list[tuple[datetime, datetime]] = []
+            for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
+                if (
+                    (self.start_time, self.end_time) == (start, end)
+                    or start < self.start_time
+                    or self.end_time < end
+                ):
+                    continue
+                to_add = True
+                for checked_start, checked_end in checked_intervals:
+                    if checked_start < start and end < checked_end:
+                        to_add = False
+                        break
+                if to_add:
+                    checked_intervals.append((start, end))
+                    questions = questions.filter(
+                        Q(open_time__lt=start)
+                        | Q(scheduled_close_time__gt=end + close_grace_period)
+                        | Q(actual_resolve_time__gt=end + resolve_grace_period)
+                    )
 
-        return list(questions)
+            return questions
+
+        if self.project:
+            return questions.filter(
+                Q(related_posts__post__projects=self.project)
+                | Q(related_posts__post__default_project=self.project)
+            )
+
+        return questions
 
 
 def name_and_slug_for_global_leaderboard_dates(

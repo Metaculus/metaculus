@@ -72,9 +72,19 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
             </span>
           )}
           {currentUser?.is_staff && (
-            <span className="inline">
-              <SoftDeleteButton id={id} />
-            </span>
+            <div className="mt-2 flex gap-3 text-sm">
+              {!profile.is_spam && <SoftDeleteButton id={id} />}
+              <span
+                className={`rounded px-2 py-1 ${profile.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"} dark:bg-opacity-20`}
+              >
+                {profile.is_active ? "Active" : "Inactive"}
+              </span>
+              <span
+                className={`rounded px-2 py-1 ${profile.is_spam ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"} dark:bg-opacity-20`}
+              >
+                {profile.is_spam ? "Spam" : "Not Spam"}
+              </span>
+            </div>
           )}
         </div>
         <div className="flex flex-row text-xs font-medium md:text-sm">

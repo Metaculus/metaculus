@@ -396,14 +396,16 @@ def assign_prizes(
 
 
 def update_project_leaderboard(
-    project: Project,
+    project: Project | None = None,
     leaderboard: Leaderboard | None = None,
 ) -> list[LeaderboardEntry]:
+    if project is None and leaderboard is None:
+        raise ValueError("Either project or leaderboard must be provided")
+
     leaderboard = leaderboard or project.primary_leaderboard
+    project = project or leaderboard.project
     if not leaderboard:
         raise ValueError("Leaderboard not found")
-    leaderboard.project = project
-    leaderboard.save()
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.MANUAL:
         return list(leaderboard.entries.all().order_by("rank"))
@@ -636,7 +638,6 @@ def get_contributions(
     for score in calculated_scores:
         if (score.question_id, score.aggregation_method) not in archived_pairs:
             scores.append(score)
-
     if "global" in leaderboard.score_type:
         # There are so many questions in global leaderboards that we don't
         # need to make unpopulated contributions for questions that have not

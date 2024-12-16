@@ -3,6 +3,8 @@ import { ProjectPermissions } from "@/types/post";
 import {
   Category,
   Community,
+  NewsCategory,
+  ProjectVisibility,
   Tag,
   Topic,
   Tournament,
@@ -33,7 +35,7 @@ export type CommunityUpdateParams = {
   slug?: string;
   description?: string;
   default_permission?: ProjectPermissions | null;
-  unlisted?: boolean;
+  visibility?: ProjectVisibility;
 };
 
 class ProjectsApi {
@@ -45,6 +47,16 @@ class ProjectsApi {
 
   static async getCategories(): Promise<Category[]> {
     return await get<Category[]>("/projects/categories/");
+  }
+
+  static async getNewsCategories(): Promise<NewsCategory[]> {
+    return await get<NewsCategory[]>(
+      "/projects/news-categories/",
+      { next: { revalidate: 86400 } },
+      {
+        passAuthHeader: false,
+      }
+    );
   }
 
   static async getTags(params?: TagsParams): Promise<Tag[]> {
@@ -129,10 +141,6 @@ class ProjectsApi {
 
   static async unsubscribe(projectId: number) {
     return post(`/projects/${projectId}/unsubscribe/`, {});
-  }
-
-  static async toggleAddPostsToMainFeed(projectId: number) {
-    return post(`/projects/${projectId}/toggle_add_posts_to_main_feed/`, {});
   }
 
   static async getCommunities(

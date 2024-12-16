@@ -182,9 +182,10 @@ components:
         default_permission:
           type: string
           example: "forecaster"
-        add_posts_to_main_feed:
-          type: boolean
-          example: true
+        visibility:
+          type: string
+          enum: [ normal, not_in_main_feed, unlisted ]
+          example: normal
 
     Category:
       type: object
@@ -1070,7 +1071,7 @@ paths:
                             created_at: "2023-11-08T16:55:29.484707Z"
                             edited_at: "2023-11-08T16:55:29.537784Z"
                             default_permission: "forecaster"
-                            add_posts_to_main_feed: true
+                            visibility: "normal"
                           topic:
                             - id: 15858
                               name: "Health & Pandemics"

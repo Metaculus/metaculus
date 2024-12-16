@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
 from scoring.models import Leaderboard, LeaderboardEntry
 from scoring.serializers import (
@@ -33,9 +34,7 @@ def global_leaderboard(
     end_time = request.GET.get("endTime", None)
     leaderboard_type = request.GET.get("leaderboardType", None)
     # filtering
-    leaderboards = Leaderboard.objects.filter(
-        project__type=Project.ProjectTypes.SITE_MAIN
-    )
+    leaderboards = Leaderboard.objects.filter(project__visibility=Project.Visibility.NORMAL)
     if start_time:
         leaderboards = leaderboards.filter(start_time=start_time)
     if end_time:
@@ -151,9 +150,7 @@ def medal_contributions(
 ):
     user_id = request.GET.get("userId", None)
     user = get_object_or_404(User, pk=user_id)
-    project_id = request.GET.get(
-        "projectId", Project.objects.get(type=Project.ProjectTypes.SITE_MAIN).id
-    )
+    project_id = request.GET.get("projectId", get_site_main_project().id)
 
     projects = get_projects_qs(user=request.user)
     project: Project = get_object_or_404(projects, pk=project_id)
@@ -206,4 +203,6 @@ def medal_contributions(
 def metaculus_track_record(
     request: Request,
 ):
-    return Response(serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED))
+    return Response(
+        serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED)
+    )

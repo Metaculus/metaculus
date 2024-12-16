@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
 
@@ -37,5 +39,5 @@ export type UserChoiceItem = {
 export type ChoiceTooltipItem = {
   color: ThemeColor;
   choiceLabel: string;
-  valueLabel: string;
+  valueElement: ReactNode;
 };

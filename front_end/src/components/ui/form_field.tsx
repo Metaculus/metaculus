@@ -1,7 +1,17 @@
+"use client";
+import { MDXEditorMethods } from "@mdxeditor/editor";
 import classNames from "classnames";
 import * as React from "react";
-import { FC, useEffect, useMemo } from "react";
+import { FC, useEffect, useMemo, useRef } from "react";
+import {
+  Control,
+  FieldValues,
+  Path,
+  PathValue,
+  useController,
+} from "react-hook-form";
 
+import MarkdownEditor from "@/components/markdown_editor";
 import { ErrorResponse } from "@/types/fetch";
 import { extractError } from "@/utils/errors";
 
@@ -118,3 +128,55 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
   }
 );
 Textarea.displayName = "Textarea";
+
+type MarkdownEditorFieldProps<T extends FieldValues = FieldValues> = {
+  control: Control<T>;
+  name: Path<T>;
+  defaultValue?: PathValue<T, Path<T>>;
+  errors?: ErrorResponse;
+};
+
+export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
+  control,
+  name,
+  errors,
+  defaultValue,
+}: MarkdownEditorFieldProps<T>) => {
+  const { field } = useController({ control, name, defaultValue });
+  const editorRef = useRef<MDXEditorMethods>(null);
+
+  return (
+    <>
+      <div className="relative rounded border border-gray-500 dark:border-gray-500-dark">
+        {/* This input is used to support following logic fron native forms
+           - populate FormData with input value when submitting via form action
+           - auto-scroll and focus input when validation error occurs
+         */}
+        <Textarea
+          className="hidden-scrollable-input pointer-events-none"
+          {...field}
+          readOnly
+          onFocus={() => {
+            editorRef.current?.focus();
+          }}
+        />
+
+        <MarkdownEditor
+          ref={editorRef}
+          mode="write"
+          markdown={field.value ?? ""}
+          onChange={field.onChange}
+          onBlur={field.onBlur}
+          className="w-full"
+        />
+      </div>
+      {errors && (
+        <FormError
+          name={name}
+          errors={errors}
+          className="text-sm font-bold capitalize"
+        />
+      )}
+    </>
+  );
+};

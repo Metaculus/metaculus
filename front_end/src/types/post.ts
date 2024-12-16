@@ -33,12 +33,6 @@ export enum NotebookType {
   Notebook = "notebook",
 }
 
-export enum ArticleType {
-  Programs = "programs",
-  Research = "research",
-  Platform = "platform",
-}
-
 export type ForecastType = PostForecastType | QuestionType | NotebookType;
 
 export type Category = {

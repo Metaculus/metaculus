@@ -1,4 +1,5 @@
 {
+  "createArticle": "+ Create Article",
   "newsletterFormHeading": "Join Our Newsletter",
   "newsletterFormDescription": "Sign up for Metaculus news, special forecasting reports, and event invitations.",
   "predict": "Predict",
@@ -71,7 +72,7 @@
   "forecastTimelineHeading": "Forecast Timeline",
   "totalPredictionsLabel": "Total Predictions",
   "totalForecastersLabel": "Total Forecasters",
-  "cpWillRevealOn": "The Community Prediction will be revealed on",
+  "cpRevealed": "Revealed",
   "communityPredictionLabel": "Community Prediction",
   "metaculusPredictionLabel": "Metaculus Prediction",
   "userPredictionLabel": "User Prediction",
@@ -864,11 +865,11 @@
   "selectAll": "select all",
   "deselectAll": "deselect all",
   "forecastDataIsEmpty": "Forecast data is empty",
+  "noForecastsYet": "No forecasts yet",
   "RevealTemporarily": "Reveal Temporarily",
   "CPIsHidden": "Community Prediction is hidden",
   "createdByUserOnDate": "Created by {user} on {date}",
   "edited": "edited",
-  "tournamentShowPostsToMainFeed": "Show tournament posts in main feed",
   "tournamentHidePostsToMainFeed": "Hide tournament posts in main feed",
   "me": "me",
   "forecastDisclaimer": "Based on {predictionCount} predictions by {forecasterCount} forecasters",
@@ -1001,5 +1002,5 @@
   "robustTrackRecordsInfo": "Pro Forecasters must have at least 75 resolved questions and must have made predictions across multiple subject areas, with at least one year of experience making predictions.<br></br><br></br>We also consider recruiting forecasters who have demonstrated excellent forecasting ability elsewhere.",
   "clearCommentsAndCommunicationTitle": "Clear Comments and Communication",
   "clearCommentsAndCommunicationInfo": "Our Pros work on projects for external partners who value clear reasoning to better interpret the forecasts. We select Pros who have a history of making clear and insightful comments, and who are willing to disagree with their peers, but in a polite and respectful manner.",
-  "expressionOfInterestFormMessage": "We sometimes recruit upstanding members of the community who are great at providing constructive feedback on submitted questions to become paid moderators. Fill out our <link>expression of interest form</link> if you would like to be considered.”"
+  "expressionOfInterestFormMessage": "We sometimes recruit upstanding members of the community who are great at providing constructive feedback on submitted questions to become paid moderators. Fill out our <link>expression of interest form</link> if you would like to be considered."
 }

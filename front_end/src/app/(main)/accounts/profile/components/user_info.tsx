@@ -19,7 +19,12 @@ import {
 import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
-import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import {
+  FormError,
+  Input,
+  MarkdownEditorField,
+  Textarea,
+} from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { UserProfile } from "@/types/users";
 
@@ -88,30 +93,12 @@ const UserInfo: FC<UserInfoProps> = ({
               </div>
               <div className="flex w-full content-center justify-between">
                 {editMode ? (
-                  <>
-                    <Textarea
-                      className="hidden"
-                      defaultValue={profile.bio}
-                      {...register("bio")}
-                    />
-                    <Controller
-                      control={control}
-                      name="bio"
-                      defaultValue={profile.bio}
-                      render={({ field: { value } }) => (
-                        <MarkdownEditor
-                          mode="write"
-                          markdown={value as string}
-                          onChange={(markdown: string) => {
-                            setValue("bio", markdown);
-                          }}
-                          className="w-full"
-                          withUgcLinks
-                        />
-                      )}
-                    />
-                    <FormError errors={state?.errors} name={"bio"} />
-                  </>
+                  <MarkdownEditorField
+                    control={control}
+                    name="bio"
+                    defaultValue={profile.bio}
+                    errors={state?.errors}
+                  />
                 ) : (
                   <div className="flex items-center whitespace-pre-line text-base font-light">
                     <MarkdownEditor

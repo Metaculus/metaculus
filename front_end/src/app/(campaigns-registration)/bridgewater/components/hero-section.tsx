@@ -40,7 +40,7 @@ export const ContestHeader: FC = () => {
     <div className="flex h-full w-full max-w-[629px] flex-col items-start px-5 sm:items-center sm:px-8">
       <div className="mt-10 flex text-2xl font-semibold text-blue-800 dark:text-blue-800-dark sm:text-4xl ">
         <span className="">Bridgewater</span>
-        <div className="m-3 flex items-center">
+        <div className="mx-3 flex items-center">
           <XIcon className="size-4" />
         </div>
         <span className="">Metaculus</span>
@@ -50,7 +50,7 @@ export const ContestHeader: FC = () => {
         Forecasting Contest
       </div>
 
-      <p className="mt-5 text-base text-blue-800 dark:text-blue-800-dark opacity-70 sm:text-center sm:text-xl">
+      <p className="mt-5 text-base text-blue-800 opacity-70 dark:text-blue-800-dark sm:text-center sm:text-xl">
         Register to forecast, explore opportunities with Bridgewater Associates,
         and compete for <span className="font-bold">$25,000 in prizes!</span>
       </p>

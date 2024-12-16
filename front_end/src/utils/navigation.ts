@@ -1,5 +1,5 @@
 import { Post } from "@/types/post";
-import { TournamentType } from "@/types/projects";
+import { Project, TournamentType } from "@/types/projects";
 import { Optional } from "@/types/utils";
 
 export function encodeQueryParams(params: Record<string, any>): string {
@@ -43,6 +43,17 @@ export const getPostLink = (
   if (!!post.notebook) return `/notebooks/${post.id}/${post.slug}/`;
 
   return `/questions/${post.id}/${post.slug}/`;
+};
+
+export const getProjectLink = (project: Project) => {
+  switch (project.type) {
+    case TournamentType.NewsCategory:
+      return `/news/?news_type=${project.slug}`;
+    case TournamentType.Community:
+      return `/c/${project.slug}/`;
+    default:
+      return `/tournament/${project.slug ?? project.id}`;
+  }
 };
 
 export const getWithDefaultHeader = (pathname: string): boolean =>

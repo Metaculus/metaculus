@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import cast
 
 from django.db import transaction
-from django.db.models import QuerySet, Q
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -201,30 +201,39 @@ def update_group_of_questions(
     return group
 
 
-def clone_question(question: Question, title: str = None):
+def clone_question(question: Question, title: str = None, **kwargs) -> Question:
     """
     Avoid auto-cloning to prevent unexpected side effects
     """
 
     return create_question(
         title=title,
-        description=question.description,
-        type=question.type,
-        possibilities=question.possibilities,
-        resolution=question.resolution,
-        range_max=question.range_max,
-        range_min=question.range_min,
-        zero_point=question.zero_point,
-        open_upper_bound=question.open_upper_bound,
-        open_lower_bound=question.open_lower_bound,
-        options=question.options,
-        group_variable=question.group_variable,
-        resolution_set_time=question.resolution_set_time,
-        actual_resolve_time=question.actual_resolve_time,
-        scheduled_close_time=question.scheduled_close_time,
-        scheduled_resolve_time=question.scheduled_resolve_time,
-        open_time=question.open_time,
-        actual_close_time=question.actual_close_time,
+        description=kwargs.pop("description", question.description),
+        type=kwargs.pop("type", question.type),
+        possibilities=kwargs.pop("possibilities", question.possibilities),
+        resolution=kwargs.pop("resolution", question.resolution),
+        range_max=kwargs.pop("range_max", question.range_max),
+        range_min=kwargs.pop("range_min", question.range_min),
+        zero_point=kwargs.pop("zero_point", question.zero_point),
+        open_upper_bound=kwargs.pop("open_upper_bound", question.open_upper_bound),
+        open_lower_bound=kwargs.pop("open_lower_bound", question.open_lower_bound),
+        options=kwargs.pop("options", question.options),
+        group_variable=kwargs.pop("group_variable", question.group_variable),
+        resolution_set_time=kwargs.pop(
+            "resolution_set_time", question.resolution_set_time
+        ),
+        actual_resolve_time=kwargs.pop(
+            "actual_resolve_time", question.actual_resolve_time
+        ),
+        scheduled_close_time=kwargs.pop(
+            "scheduled_close_time", question.scheduled_close_time
+        ),
+        scheduled_resolve_time=kwargs.pop(
+            "scheduled_resolve_time", question.scheduled_resolve_time
+        ),
+        open_time=kwargs.pop("open_time", question.open_time),
+        actual_close_time=kwargs.pop("actual_close_time", question.actual_close_time),
+        **kwargs,
     )
 
 
@@ -237,16 +246,26 @@ def create_conditional(
     condition = Question.objects.get(pk=condition_id)
     condition_child = Question.objects.get(pk=condition_child_id)
 
+    question_yes = clone_question(
+        condition_child,
+        title=f"{condition.title} (Yes) → {condition_child.title}",
+        scheduled_close_time=min(
+            condition.scheduled_close_time, condition_child.scheduled_close_time
+        ),
+    )
+    question_no = clone_question(
+        condition_child,
+        title=f"{condition.title} (No) → {condition_child.title}",
+        scheduled_close_time=min(
+            condition.scheduled_close_time, condition_child.scheduled_close_time
+        ),
+    )
+
     obj = Conditional(
         condition_id=condition_id,
         condition_child_id=condition_child_id,
-        # Autogen questions
-        question_yes=clone_question(
-            condition_child, title=f"{condition.title} (Yes) → {condition_child.title}"
-        ),
-        question_no=clone_question(
-            condition_child, title=f"{condition.title} (No) → {condition_child.title}"
-        ),
+        question_yes=question_yes,
+        question_no=question_no,
     )
 
     obj.full_clean()
@@ -461,7 +480,11 @@ def unresolve_question(question: Question):
     question.resolution = None
     question.resolution_set_time = None
     question.actual_resolve_time = None
-    question.actual_close_time = None
+    question.actual_close_time = (
+        None
+        if timezone.now() < question.scheduled_close_time
+        else question.scheduled_close_time
+    )
     question.save()
 
     # Check if the question is part of any/all conditionals
@@ -537,33 +560,7 @@ def unresolve_question(question: Question):
     )
 
     # Update leaderboards
-    post = question.get_post()
-    projects: QuerySet[Project] = [post.default_project] + list(post.projects.all())
-    for project in projects:
-        if project.type == Project.ProjectTypes.SITE_MAIN:
-            continue
-        leaderboards = project.leaderboards.all()
-        for leaderboard in leaderboards:
-            update_project_leaderboard(project, leaderboard)
-
-    main_site_project = post.projects.filter(
-        type=Project.ProjectTypes.SITE_MAIN
-    ).first()
-    if main_site_project:
-        global_leaderboard_window = question.get_global_leaderboard_dates()
-        if global_leaderboard_window is not None:
-            global_leaderboards = Leaderboard.objects.filter(
-                project__type=Project.ProjectTypes.SITE_MAIN,
-                start_time=global_leaderboard_window[0],
-                end_time=global_leaderboard_window[1],
-            ).exclude(
-                score_type__in=[
-                    Leaderboard.ScoreTypes.COMMENT_INSIGHT,
-                    Leaderboard.ScoreTypes.QUESTION_WRITING,
-                ]
-            )
-            for leaderboard in global_leaderboards:
-                update_project_leaderboard(main_site_project, leaderboard)
+    update_leaderboards_for_question(question)
 
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
@@ -581,6 +578,39 @@ def close_question(question: Question, actual_close_time: datetime | None = None
     # Based on child questions
     post.update_pseudo_materialized_fields()
     post.save()
+
+
+def update_leaderboards_for_question(question: Question):
+    post = question.get_post()
+    projects = [post.default_project] + list(post.projects.all())
+    update_global_leaderboards = False
+    for project in projects:
+        if project.visibility == Project.Visibility.NORMAL:
+            update_global_leaderboards = True
+
+        if project.type == Project.ProjectTypes.SITE_MAIN:
+            # global leaderboards handled separately
+            continue
+
+        leaderboards = project.leaderboards.all()
+        for leaderboard in leaderboards:
+            update_project_leaderboard(project, leaderboard)
+
+    if update_global_leaderboards:
+        global_leaderboard_window = question.get_global_leaderboard_dates()
+        if global_leaderboard_window is not None:
+            global_leaderboards = Leaderboard.objects.filter(
+                project__type=Project.ProjectTypes.SITE_MAIN,
+                start_time=global_leaderboard_window[0],
+                end_time=global_leaderboard_window[1],
+            ).exclude(
+                score_type__in=[
+                    Leaderboard.ScoreTypes.COMMENT_INSIGHT,
+                    Leaderboard.ScoreTypes.QUESTION_WRITING,
+                ]
+            )
+            for leaderboard in global_leaderboards:
+                update_project_leaderboard(leaderboard=leaderboard)
 
 
 @transaction.atomic()
