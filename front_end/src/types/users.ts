@@ -12,6 +12,8 @@ export type UserBase = {
   username: string;
   is_bot: boolean;
   is_staff: boolean;
+  is_active?: boolean;
+  is_spam?: boolean;
 };
 
 export type User = UserBase & {

@@ -127,11 +127,11 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
         <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
           <CursorDetailItem
             title={t("totalForecastersLabel")}
-            text={cursorData.forecasterCount?.toString()}
+            content={cursorData.forecasterCount?.toString()}
           />
           <CursorDetailItem
             title={t("communityPredictionLabel")}
-            text={getDisplayValue({
+            content={getDisplayValue({
               value: cursorData.center,
               questionType: qType,
               scaling,

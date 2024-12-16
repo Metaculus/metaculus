@@ -1,5 +1,6 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
@@ -15,8 +16,9 @@ import {
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
+import { getQuestionForecastAvailability } from "@/utils/questions";
 
-import CPRevealTime from "../charts/cp_reveal_time";
+import CPRevealTime from "../cp_reveal_time";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -32,23 +34,27 @@ const ConditionalChart: FC<Props> = ({
   chartTheme,
   hideCP,
 }) => {
+  const t = useTranslations();
+
   const resolved = question.resolution !== null;
   const aggregate = question.aggregations.recency_weighted;
   const aggregateLatest = aggregate.latest;
   const userLatest = question.my_forecasts?.latest;
-  const isCPRevealed = question.cp_reveal_time
-    ? new Date(question.cp_reveal_time) <= new Date()
-    : true;
 
-  if (!isCPRevealed) {
+  const forecastAvailability = getQuestionForecastAvailability(question);
+  if (forecastAvailability.cpRevealsOn) {
     return (
       <CPRevealTime
         className="!relative text-xs"
-        textClassName="m-0 !max-w-[300px] !pl-0"
-        cpRevealTime={question?.cp_reveal_time}
+        cpRevealTime={forecastAvailability.cpRevealsOn}
       />
     );
   }
+
+  if (forecastAvailability.isEmpty) {
+    return <div className="text-xs">{t("noForecastsYet")}</div>;
+  }
+
   switch (question.type) {
     case QuestionType.Binary: {
       const pctCandidate =

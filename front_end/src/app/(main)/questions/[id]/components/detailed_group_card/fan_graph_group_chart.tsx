@@ -2,7 +2,11 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import FanChart from "@/components/charts/fan_chart";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  ForecastAvailability,
+  QuestionType,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import {
   getFanOptionsFromBinaryGroup,
   getFanOptionsFromContinuousGroup,
@@ -14,20 +18,18 @@ type Props = {
   pointSize?: number;
   withLabel?: boolean;
   hideCP?: boolean;
+  forecastAvailability?: ForecastAvailability;
   withTooltip?: boolean;
-  isCPRevealed?: boolean;
-  cpRevealTime?: string;
 };
 
-const NumericGroupChart: FC<Props> = ({
+const FanGraphGroupChart: FC<Props> = ({
   questions,
   height,
   pointSize,
   withLabel,
   hideCP,
+  forecastAvailability,
   withTooltip = true,
-  isCPRevealed = true,
-  cpRevealTime,
 }) => {
   const t = useTranslations();
 
@@ -43,10 +45,9 @@ const NumericGroupChart: FC<Props> = ({
       yLabel={withLabel ? t("communityPredictionLabel") : undefined}
       withTooltip={withTooltip}
       hideCP={hideCP}
-      isCPRevealed={isCPRevealed}
-      cpRevealTime={cpRevealTime}
+      forecastAvailability={forecastAvailability}
     />
   );
 };
 
-export default NumericGroupChart;
+export default FanGraphGroupChart;

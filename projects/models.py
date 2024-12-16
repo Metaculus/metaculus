@@ -155,7 +155,10 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         HOT_TOPICS = "hot_topics"
         HOT_CATEGORIES = "hot_categories"
 
-    add_posts_to_main_feed = models.BooleanField(default=False)
+    class Visibility(models.TextChoices):
+        NORMAL = "normal"
+        NOT_IN_MAIN_FEED = "not_in_main_feed"
+        UNLISTED = "unlisted"
 
     type = models.CharField(
         max_length=32,
@@ -235,8 +238,21 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         db_index=True,
     )
     override_permissions = models.ManyToManyField(User, through="ProjectUserPermission")
-    # Not discoverable, but can still be accessed via the URL
-    unlisted = BooleanField(default=False, db_index=True)
+
+    visibility = models.CharField(
+        choices=Visibility.choices,
+        default=Visibility.NOT_IN_MAIN_FEED,
+        db_index=True,
+        help_text=(
+            "Sets the visibility of this project.<br>"
+            "<ul>"
+            "<li><strong>Normal</strong> is visible on the main feed, contributes to global leaderboards/medals, and lists the project in the tournaments/question series page.</li>"
+            "<li><strong>Not In Main Feed</strong> is not visible in the main feed, but can be searched for, doesn't contribute to global leaderboards/medals, and lists the project in the tournaments/question series page.</li>"
+            "<li><strong>Unlisted</strong> is not visible in the main feed, not searchable, and doesn't contribute to global leaderboards/medals.</li>"
+            "</ul><br />"
+            "If this project is not of type <code>site_main</code>, <code>tournament</code>, or <code>question_series</code>, this field should be <strong>Not In Main Feed</strong> to remain neutral."
+        ),
+    )
 
     # Whether we should display tournament on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
@@ -244,7 +260,9 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     # Annotated fields
-    followers_count = models.PositiveIntegerField(default=0, db_index=True, editable=False)
+    followers_count = models.PositiveIntegerField(
+        default=0, db_index=True, editable=False
+    )
 
     posts_count: int = 0
     is_subscribed: bool = False
@@ -257,6 +275,27 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
                 name="projects_unique_type_slug", fields=["type", "slug"]
             ),
         ]
+
+    # DEPRECATED FIELDS
+    # WILL BE REMOVED IN THE NEXT RELEASES
+    add_posts_to_main_feed = models.BooleanField(default=False)
+    add_posts_to_main_feed.system_check_deprecated_details = {
+        "msg": (
+            "The `Project.add_posts_to_main_feed` field has been deprecated "
+            "and will be removed in future versions. "
+        ),
+        "hint": "Please use `Project.visibility = Project.Visibility.NORMAL` instead",
+        "id": "Project.add_posts_to_main_feed",
+    }
+    unlisted = BooleanField(default=False, db_index=True)
+    unlisted.system_check_deprecated_details = {
+        "msg": (
+            "The `Project.unlisted` field has been deprecated "
+            "and will be removed in future versions. "
+        ),
+        "hint": "Please use `Project.visibility = Project.Visibility.UNLISTED` instead",
+        "id": "Project.unlisted",
+    }
 
     def __str__(self):
         return f"{self.type.capitalize()}: {self.name}"
