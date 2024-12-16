@@ -11,6 +11,7 @@ import {
 } from "react-hook-form";
 
 import MarkdownEditor from "@/components/markdown_editor";
+import DatetimeUtc from "@/components/ui/datetime_utc";
 import { ErrorResponse } from "@/types/fetch";
 import cn from "@/utils/cn";
 import { extractError } from "@/utils/errors";
@@ -111,6 +112,42 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   }
 );
 Input.displayName = "Input";
+
+type DateInputProps<T extends FieldValues = FieldValues> = {
+  control: Control<T>;
+  name: Path<T>;
+  defaultValue?: PathValue<T, Path<T>>;
+  errors?: ErrorResponse;
+  className?: string;
+};
+export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
+  ({ control, name, errors, defaultValue, className }) => {
+    const { field } = useController({ control, name, defaultValue });
+
+    return (
+      <>
+        <DatetimeUtc
+          ref={field.ref}
+          className={className}
+          name={field.name}
+          defaultValue={field.value}
+          onChange={(value) => {
+            if (!value) {
+              field.onChange(null);
+              return;
+            }
+
+            field.onChange(value);
+          }}
+          onBlur={field.onBlur}
+          withFormValidation
+        />
+        {errors && <FormError name={name} errors={errors} />}
+      </>
+    );
+  }
+);
+DateInput.displayName = "DateInput";
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
   ({ className, name, children, errors, ...props }, ref) => {
