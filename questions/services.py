@@ -10,7 +10,6 @@ from rest_framework.exceptions import ValidationError
 
 from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription, Notebook
-from posts.services.common import update_global_leaderboard_tags
 from posts.services.subscriptions import create_subscription_cp_change
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
@@ -460,6 +459,8 @@ def resolve_question(
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
     update_global_leaderboard_tags(post)
     post.save()
 
@@ -537,6 +538,8 @@ def unresolve_question(question: Question):
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
     update_global_leaderboard_tags(post)
     post.save()
 
@@ -580,6 +583,8 @@ def close_question(question: Question, actual_close_time: datetime | None = None
     # This method automatically sets post closure
     # Based on child questions
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
     update_global_leaderboard_tags(post)
     post.save()
 
