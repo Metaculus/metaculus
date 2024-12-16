@@ -4,9 +4,12 @@ from django.db import migrations, models
 from django.db.models import When, Case, Value, Q
 
 
-def migrate(apps, schema_editor):
+def migrate_project_visibility_field(apps, schema_editor):
     """
-    We assume that all existing users with an activated email have completed onboarding.
+    Merging `Project.unlisted` and `Post.add_posts_to_main_feed` flags into a new `Post.visibility` enum.
+
+    This change also updates private projects that were using `Project.add_posts_to_main_feed`
+    to the `not_in_main_feed` visibility setting - https://github.com/Metaculus/metaculus/pull/1657
     """
 
     Project = apps.get_model("projects", "Project")
@@ -46,5 +49,7 @@ class Migration(migrations.Migration):
                 default="not_in_main_feed",
             ),
         ),
-        migrations.RunPython(migrate, migrations.RunPython.noop),
+        migrations.RunPython(
+            migrate_project_visibility_field, migrations.RunPython.noop
+        ),
     ]
