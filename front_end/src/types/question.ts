@@ -286,3 +286,8 @@ export type CurveChoiceOption = {
   label: string;
   isDirty: boolean;
 };
+
+export type ForecastAvailability = {
+  isEmpty: boolean;
+  cpRevealsOn: string | null;
+};

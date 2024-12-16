@@ -1,14 +1,14 @@
 import { FC } from "react";
 
 import {
-  FilterOption,
   FilterReplaceInfo,
+  ToggleFilterOption,
 } from "@/components/popover_filter/types";
 import Chip from "@/components/ui/chip";
 
 type Props = {
   filterId: string;
-  options: FilterOption[];
+  options: ToggleFilterOption[];
   onChange: (
     filterId: string,
     optionValue: string | null,
@@ -18,11 +18,26 @@ type Props = {
 };
 
 const ToggleChipFilter: FC<Props> = ({ filterId, options, onChange }) => {
-  const handleOptionClick = (option: FilterOption) => {
+  const handleOptionClick = (option: ToggleFilterOption) => {
     const replaceInfo = option.id
       ? {
           optionId: option.id,
-          replaceIds: options.map((o) => o.id).filter((id) => !!id) as string[],
+          replaceIds: option.isPersisted
+            ? [] // don't remove other filters when toggling persisted option
+            : (options
+                .filter((o) => {
+                  if (!o.id) {
+                    return false;
+                  }
+
+                  // don't remove persisted filters when toggling other filters
+                  if (o.isPersisted) {
+                    return false;
+                  }
+
+                  return true;
+                })
+                .map((o) => o.id) as string[]),
         }
       : undefined;
 

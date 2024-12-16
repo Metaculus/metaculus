@@ -199,6 +199,7 @@ export default async function IndividualQuestion({
                       postData.actual_close_time ??
                       postData.scheduled_close_time
                     }
+                    openTime={postData.open_time}
                     questions={postData.group_of_questions.questions}
                     preselectedQuestionId={preselectedGroupQuestionId}
                     isClosed={isClosed}

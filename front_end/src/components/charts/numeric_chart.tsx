@@ -70,7 +70,8 @@ type Props = {
   resolution?: Resolution | null;
   resolveTime?: string | null;
   hideCP?: boolean;
-  isCPRevealed?: boolean;
+  withUserForecastTimestamps?: boolean;
+  isEmptyDomain?: boolean;
   openTime?: number;
 };
 
@@ -90,7 +91,8 @@ const NumericChart: FC<Props> = ({
   resolution,
   resolveTime,
   hideCP,
-  isCPRevealed,
+  withUserForecastTimestamps,
+  isEmptyDomain,
   openTime,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
@@ -120,7 +122,7 @@ const NumericChart: FC<Props> = ({
         width: chartWidth,
         zoom,
         extraTheme,
-        isCPRevealed,
+        isAggregationsEmpty: isEmptyDomain,
         openTime,
       }),
     [
@@ -133,7 +135,7 @@ const NumericChart: FC<Props> = ({
       chartWidth,
       zoom,
       extraTheme,
-      isCPRevealed,
+      isEmptyDomain,
       openTime,
     ]
   );
@@ -148,15 +150,25 @@ const NumericChart: FC<Props> = ({
     }
   }, [onChartReady, prevWidth, chartWidth]);
 
-  const timestamps = useMemo(
-    () =>
-      uniq([
-        ...aggregation.history.map((f) => f.start_time),
-        ...aggregation.history.map((f) => f.end_time ?? f.start_time),
-        actualCloseTime ?? Date.now() / 1000,
-      ]).sort((a, b) => a - b),
-    [actualCloseTime, aggregation.history]
-  );
+  const timestamps = useMemo(() => {
+    const startTimes = withUserForecastTimestamps
+      ? myForecasts?.history.map((f) => f.start_time) ?? []
+      : aggregation.history.map((f) => f.start_time);
+    const endTimes = withUserForecastTimestamps
+      ? myForecasts?.history.map((f) => f.end_time ?? f.start_time) ?? []
+      : aggregation.history.map((f) => f.end_time ?? f.start_time);
+
+    return uniq([
+      ...startTimes,
+      ...endTimes,
+      actualCloseTime ?? Date.now() / 1000,
+    ]).sort((a, b) => a - b);
+  }, [
+    actualCloseTime,
+    aggregation.history,
+    withUserForecastTimestamps,
+    myForecasts?.history,
+  ]);
 
   const CursorContainer = (
     <VictoryCursorContainer
@@ -351,7 +363,7 @@ function buildChartData({
   width,
   zoom,
   extraTheme,
-  isCPRevealed,
+  isAggregationsEmpty,
   openTime,
 }: {
   questionType: QuestionType;
@@ -363,7 +375,7 @@ function buildChartData({
   width: number;
   zoom: TimelineChartZoomOption;
   extraTheme?: VictoryThemeDefinition;
-  isCPRevealed?: boolean;
+  isAggregationsEmpty?: boolean;
   openTime?: number;
 }): ChartData {
   const line: Line = [];
@@ -490,7 +502,7 @@ function buildChartData({
   // TODO: add quartiles if continuous
 
   const domainTimestamps =
-    !isCPRevealed && openTime
+    isAggregationsEmpty && openTime
       ? [openTime / 1000, latestTimestamp]
       : [
           ...aggregation.history.map((f) => f.start_time),
