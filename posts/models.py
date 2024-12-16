@@ -30,13 +30,7 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
-from scoring.models import (
-    Score,
-    ArchivedScore,
-    global_leaderboard_dates,
-    name_and_slug_for_global_leaderboard_dates,
-    GLOBAL_LEADERBOARD_STRING,
-)
+from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
 
@@ -612,44 +606,9 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         self.set_scheduled_resolve_time()
         self.set_open_time()
         self.set_resolved()
-        self.update_global_leaderboard_tags()
         self.save()
         # Note: No risk of infinite loops since conditionals can't father other conditionals
         self.updated_related_conditionals()
-
-    def update_global_leaderboard_tags(self):
-        # set or update the tags for this post with respect to the global
-        # leaderboard(s) this is a part of
-
-        # Skip if post is not eligible for global leaderboards
-        if (
-            not self.default_project.type == Project.ProjectTypes.SITE_MAIN
-            and not self.projects.filter(type=Project.ProjectTypes.SITE_MAIN).exists()
-        ):
-            return
-
-        # Get all global leaderboard dates and create/get corresponding tags
-        to_set_tags = []
-        gl_dates = global_leaderboard_dates()
-        for question in self.get_questions():
-            dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
-            if dates:
-                tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
-                tag, _ = Project.objects.get_or_create(
-                    type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug, order=1
-                )
-                to_set_tags.append(tag)
-
-        # Update post's global leaderboard tags
-        current_gl_tags = self.projects.filter_tags().filter(
-            name__endswith=GLOBAL_LEADERBOARD_STRING
-        )
-        for tag in current_gl_tags:
-            if tag not in to_set_tags:
-                self.projects.remove(tag)
-        for tag in to_set_tags:
-            if tag not in current_gl_tags:
-                self.projects.add(tag)
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
