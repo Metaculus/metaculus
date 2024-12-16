@@ -338,3 +338,7 @@ export async function changePostSubscriptions(
   }
   return response;
 }
+
+export async function getPostCSVData(postId: number) {
+  return await PostsApi.getPostCSVData(postId);
+}

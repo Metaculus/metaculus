@@ -673,7 +673,7 @@ def download_csv(request, pk: int):
     csv_data = build_csv(aggregation_dict)
     filename = "_".join(post.title.split(" "))
     response = HttpResponse(
-        csv_data,
+        csv_data,  # string
         content_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
     )

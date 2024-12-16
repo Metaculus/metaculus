@@ -1,11 +1,15 @@
 "use client";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { saveAs } from "file-saver";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 
-import { changePostActivityBoost } from "@/app/(main)/questions/actions";
+import {
+  changePostActivityBoost,
+  getPostCSVData,
+} from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
@@ -45,6 +49,16 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
     return `/questions/create/question?mode=create&post_id=${post.id}`;
   };
 
+  const handleDownloadCSV = async () => {
+    try {
+      const response = await getPostCSVData(post.id);
+      const blob = await response.blob(); // Convert the response to a Blob
+      saveAs(blob, `post_${post.id}.csv`); // Use file-saver to trigger the download
+    } catch (error) {
+      toast.error("downloadCSVError");
+    }
+  };
+
   const items = useMemo(
     () => [
       ...(user?.is_superuser
@@ -73,9 +87,7 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
       {
         id: "downloadCSV",
         name: t("downloadCSV"),
-        onClick: () => {
-          window.open(`/api/posts/${post!.id}/download-csv/`);
-        },
+        onClick: handleDownloadCSV,
       },
     ],
     [changePostActivity, t, user?.is_superuser]

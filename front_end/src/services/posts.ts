@@ -211,6 +211,10 @@ class PostsApi {
   static async getRandomPostId(): Promise<{ id: number; post_slug: string }> {
     return await get<{ id: number; post_slug: string }>("/posts/random/");
   }
+
+  static async getPostCSVData(postId: number): Promise<Response> {
+    return await get<Response>(`/posts/${postId}/download-csv/`);
+  }
 }
 
 export default PostsApi;
