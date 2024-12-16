@@ -40,6 +40,8 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "bio",
             "website",
             "formerly_known_as",
+            "is_active",
+            "is_spam",
             "is_bot",
             "twitter",
             "linkedin",
