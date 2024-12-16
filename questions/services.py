@@ -576,13 +576,13 @@ def update_leaderboards_for_question(question: Question):
     projects = [post.default_project] + list(post.projects.all())
     update_global_leaderboards = False
     for project in projects:
+        if project.visibility == Project.Visibility.NORMAL:
+            update_global_leaderboards = True
+
         if project.type == Project.ProjectTypes.SITE_MAIN:
             # global leaderboards handled separately
-            update_global_leaderboards = True
             continue
-        update_global_leaderboards = (
-            update_global_leaderboards or project.add_posts_to_main_feed
-        )
+
         leaderboards = project.leaderboards.all()
         for leaderboard in leaderboards:
             update_project_leaderboard(project, leaderboard)

@@ -9,7 +9,10 @@ import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_but
 import { PostConditional } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import { getQuestionLinearChartType } from "@/utils/questions";
+import {
+  getGroupForecastAvailability,
+  getQuestionLinearChartType,
+} from "@/utils/questions";
 
 type Props = {
   conditional: PostConditional<QuestionWithNumericForecasts>;
@@ -19,16 +22,19 @@ type Props = {
 const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
   const t = useTranslations();
 
-  const groupType = conditional.question_no.type;
-  const questions = generateQuestions(t, conditional);
-  const timestamps = getGroupQuestionsTimestamps(questions);
   const { hideCP } = useHideCP();
 
+  const groupType = conditional.question_no.type;
   const type = getQuestionLinearChartType(groupType);
-
   if (!type) {
     return null;
   }
+
+  const questions = generateQuestions(t, conditional);
+  const forecastAvailability = getGroupForecastAvailability(questions);
+  const timestamps = getGroupQuestionsTimestamps(questions, {
+    withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+  });
 
   return (
     <>
@@ -41,7 +47,13 @@ const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
             ? new Date(conditional.condition_child.actual_close_time).getTime()
             : null
         }
+        openTime={
+          conditional.condition_child.open_time
+            ? new Date(conditional.condition_child.open_time).getTime()
+            : undefined
+        }
         hideCP={hideCP}
+        forecastAvailability={forecastAvailability}
         isClosed={isClosed}
       />
       {hideCP && <RevealCPButton className="mb-3" />}

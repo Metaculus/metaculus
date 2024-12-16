@@ -422,7 +422,10 @@ def current_user_api_view(request):
 @permission_classes([AllowAny])
 def user_profile_api_view(request, pk: int):
     qs = User.objects.all()
+    if not request.user.is_staff:
+        qs = qs.filter(is_active=True, is_spam=False)
     user = get_object_or_404(qs, pk=pk)
+
     return Response(serialize_profile(user))
 
 

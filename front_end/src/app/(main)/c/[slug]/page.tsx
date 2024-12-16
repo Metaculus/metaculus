@@ -1,10 +1,13 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { defaultDescription } from "@/constants/metadata";
 import { PostsParams } from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
+import { ProjectVisibility } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 
 import CommunityHeader from "../../components/headers/community_header";
@@ -17,6 +20,31 @@ type Props = {
   params: { slug: string };
   searchParams: SearchParams;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const community = await ProjectsApi.getCommunity(params.slug);
+
+  if (!community) {
+    return {};
+  }
+  const parsedDescription = community.description
+    .replace(/<[^>]*>/g, "")
+    .split("\n")[0];
+
+  return {
+    title: community.name,
+    description: !!parsedDescription ? parsedDescription : defaultDescription,
+    // Hide unlisted pages from search engines
+    ...(community.visibility === ProjectVisibility.Unlisted
+      ? {
+          robots: {
+            index: false,
+            follow: false,
+          },
+        }
+      : {}),
+  };
+}
 
 export default async function IndividualCommunity({
   params,
