@@ -54,7 +54,9 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
     try {
       const base64 = await getPostCSVData(post.id);
       const blob = base64ToBlob(base64);
-      saveAs(blob, `post_${post.id}.csv`); // Use file-saver to trigger the download
+      // "_".join(post.title.split(" "))
+      const filename = `${post.url_title.replaceAll(" ", "_")}.csv`;
+      saveAs(blob, filename); // Use file-saver to trigger the download
     } catch (error) {
       toast.error("downloadCSVError");
     }
