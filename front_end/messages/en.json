@@ -594,6 +594,7 @@
   "feelFreeToJustSayHello": "Feel free to just say hello, too - we love hearing from the forecasting community!",
   "contentBoosted": "Content boosted! value {score} activity. Total boost score for the week: {score_total}",
   "contentBuried": "Content buried! value {score} activity. Total boost score for the week: {score_total}",
+  "downloadCSVError": "Error downloading CSV",
   "cpRevealTime": "CP Reveal Time",
   "openTime": "Open Time",
   "Question": "Question",
