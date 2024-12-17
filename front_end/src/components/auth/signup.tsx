@@ -48,6 +48,7 @@ export const SignupForm: FC<{
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       isBot: forceIsBot ?? false,
+      addToProject,
     },
   });
 
@@ -110,14 +111,6 @@ export const SignupForm: FC<{
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
         <SignUpFragment errors={errors} forceIsBot={forceIsBot} />
-
-        {addToProject && (
-          <input
-            type="hidden"
-            {...register("addToProject")}
-            value={addToProject}
-          />
-        )}
         <div>
           <Button
             variant="primary"
