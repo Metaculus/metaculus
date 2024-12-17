@@ -57,9 +57,6 @@ function useStoredState<T>(
         error
       );
     }
-    // TODO: should we?
-    // TODO: ensure finished turoriasl are reopened with initial state
-    // TODO: hide control buttons on the last slide
     setValueState(defaultValue);
   }, [key, defaultValue]);
 

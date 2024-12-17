@@ -36,29 +36,33 @@ const StepsRouter: React.FC<OnboardingStep> = (props) => {
         </button>
       )}
       <CurrentStep {...props} />
-      <div className="mt-4 flex w-full justify-center gap-3">
-        <button
-          onClick={() => {
-            sendGAEvent({
-              event: "onboardingSkipped",
-              event_category: "onboarding",
-            });
-            handleComplete();
-          }}
-          className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
-        >
-          {t("skipTutorial")}
-        </button>
-        <button
-          onClick={handlePostpone}
-          className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
-        >
-          {t("remindMeLater")}
-        </button>
-      </div>
-      <p className="text-center opacity-60">
-        {t("onboardingRemindMeLaterDescription")}
-      </p>
+      {currentStep < STEPS.length - 1 && (
+        <>
+          <div className="mt-4 flex w-full justify-center gap-3">
+            <button
+              onClick={() => {
+                sendGAEvent({
+                  event: "onboardingSkipped",
+                  event_category: "onboarding",
+                });
+                handleComplete();
+              }}
+              className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
+            >
+              {t("skipTutorial")}
+            </button>
+            <button
+              onClick={handlePostpone}
+              className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
+            >
+              {t("remindMeLater")}
+            </button>
+          </div>
+          <p className="text-center opacity-60">
+            {t("onboardingRemindMeLaterDescription")}
+          </p>
+        </>
+      )}
     </>
   );
 };
