@@ -103,8 +103,8 @@ const SidebarQuestionTags: FC<Props> = ({
           <Chip
             key={element.id}
             href={`/questions/?${POST_TAGS_FILTER}=${element.slug}&for_main_feed=false`}
-            color="blue"
-            xMark={allowModifications}
+            color={element.is_global_leaderboard ? "gray" : "blue"}
+            xMark={element.is_global_leaderboard ? false : allowModifications}
             onXMarkClick={async () => {
               await removePostFromProject(postId, element.id);
               router.refresh();

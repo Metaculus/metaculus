@@ -1,5 +1,6 @@
-import clsx from "clsx";
 import { forwardRef } from "react";
+
+import cn from "@/utils/cn";
 
 export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
@@ -50,7 +51,7 @@ const Button = forwardRef(function Button(
   return (
     <Element
       ref={ref}
-      className={clsx(
+      className={cn(
         "inline-flex items-center justify-center rounded-full disabled:opacity-30",
         {
           xs: "gap-1 text-xs font-normal leading-none",

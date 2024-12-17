@@ -1,6 +1,5 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,6 +10,7 @@ import communityPlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
 import { Community } from "@/types/projects";
+import cn from "@/utils/cn";
 import { getMarkdownSummary } from "@/utils/questions";
 
 import Button from "../ui/button";
@@ -58,7 +58,7 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
 
       <hr className="text mb-4 mt-auto border-blue-400 dark:border-blue-400-dark" />
 
-      <div className={classNames("flex items-center")}>
+      <div className={cn("flex items-center")}>
         <p className="my-0 flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-500-dark">
           {t("followers")}
           <span className="font-bold text-blue-800 dark:text-blue-800-dark">

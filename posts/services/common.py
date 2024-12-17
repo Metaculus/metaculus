@@ -2,7 +2,7 @@ import logging
 from collections.abc import Iterable
 from datetime import timedelta, date
 
-from django.db.models import Q, Count, Sum, Value, Case, When, F
+from django.db.models import Q, Count, Sum, Value, Case, When, F, QuerySet
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -41,6 +41,11 @@ from utils.translation import (
 from .search import generate_post_content_for_embedding_vectorization
 from .subscriptions import notify_post_status_change
 from ..tasks import run_notify_post_status_change, run_post_indexing
+from scoring.models import (
+    global_leaderboard_dates,
+    name_and_slug_for_global_leaderboard_dates,
+    GLOBAL_LEADERBOARD_STRING,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +61,45 @@ def add_categories(categories: list[int], post: Post):
             raise ValidationError(f"Category with id {category_id} does not exist")
         post.projects.add(Project.objects.get(pk=category_id))
     post.save()
+
+
+def update_global_leaderboard_tags(post: Post):
+    # set or update the tags for this post with respect to the global
+    # leaderboard(s) this is a part of
+
+    projects: QuerySet[Project] = post.projects.all()
+
+    # Skip if post is not eligible for global leaderboards
+    if not post.default_project.type == Project.ProjectTypes.SITE_MAIN and not next(
+        (p for p in projects if p.type == Project.ProjectTypes.SITE_MAIN), None
+    ):
+        return
+
+    # Get all global leaderboard dates and create/get corresponding tags
+    to_set_tags = []
+    gl_dates = global_leaderboard_dates()
+    for question in post.get_questions():
+        dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
+        if dates:
+            tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
+            tag, _ = Project.objects.get_or_create(
+                type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug, order=1
+            )
+            to_set_tags.append(tag)
+
+    # Update post's global leaderboard tags
+    current_gl_tags = [
+        p
+        for p in projects
+        if p.type == Project.ProjectTypes.TAG
+        and p.name.endswith(GLOBAL_LEADERBOARD_STRING)
+    ]
+    for tag in current_gl_tags:
+        if tag not in to_set_tags:
+            post.projects.remove(tag)
+    for tag in to_set_tags:
+        if tag not in current_gl_tags:
+            post.projects.add(tag)
 
 
 def create_post(
@@ -106,6 +150,9 @@ def create_post(
         categories.remove(obj.default_project)
 
     obj.projects.add(*categories)
+
+    # Update global leaderboard tags
+    update_global_leaderboard_tags(obj)
 
     # Sync status fields
     obj.update_pseudo_materialized_fields()
@@ -178,6 +225,9 @@ def update_post(
             # Append updated set of categories
             | set(categories)
         )
+
+    # Update global leaderboard tags
+    update_global_leaderboard_tags(post)
 
     if question:
         if not post.question:

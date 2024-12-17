@@ -1,12 +1,12 @@
 "use client";
 
-import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
+import cn from "@/utils/cn";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions";
 
@@ -33,6 +33,9 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   const { title } = post;
   const resolutionData = extractPostResolution(post);
   const defaultProject = post.projects.default_project;
+  const globalLeaderboard = post.projects.tag?.find(
+    (project) => project.is_global_leaderboard
+  );
   let newCommentsCount = post.comment_count ? post.comment_count : 0;
   if (post.unread_comment_count !== undefined) {
     newCommentsCount = post.unread_comment_count;
@@ -40,7 +43,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "rounded bg-gray-0 dark:bg-gray-0-dark",
         { regular: "border", highlighted: "border border-l-4" }[borderVariant],
         {
@@ -69,7 +72,10 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           <PostStatus post={post} resolution={resolutionData} />
         </div>
         <div className="hidden lg:inline-flex">
-          <PostDefaultProject defaultProject={defaultProject} />
+          <PostDefaultProject
+            defaultProject={defaultProject}
+            globalLeaderboard={globalLeaderboard}
+          />
         </div>
       </div>
     </div>

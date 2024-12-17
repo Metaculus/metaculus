@@ -459,6 +459,9 @@ def resolve_question(
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
+    update_global_leaderboard_tags(post)
     post.save()
 
     # Calculate scores + notify forecasters
@@ -535,6 +538,9 @@ def unresolve_question(question: Question):
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
+    update_global_leaderboard_tags(post)
     post.save()
 
     # TODO: set up unresolution notifications
@@ -577,6 +583,9 @@ def close_question(question: Question, actual_close_time: datetime | None = None
     # This method automatically sets post closure
     # Based on child questions
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
+    update_global_leaderboard_tags(post)
     post.save()
 
 

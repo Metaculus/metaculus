@@ -1,6 +1,5 @@
 "use client";
 
-import classNames from "classnames";
 import { range } from "lodash";
 import { useTranslations } from "next-intl";
 import React from "react";
@@ -13,6 +12,7 @@ import {
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
+import cn from "@/utils/cn";
 
 type HistogramProps = {
   histogramData: { x: number; y: number }[];
@@ -42,7 +42,7 @@ const Histogram: React.FC<HistogramProps> = ({
           <span className="text-sm font-bold capitalize">
             {t("median")}{" "}
             <span
-              className={classNames(
+              className={cn(
                 color === "blue"
                   ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
                   : `placeholder:text-[light${color}]`
@@ -54,7 +54,7 @@ const Histogram: React.FC<HistogramProps> = ({
           <span className="ml-8 text-sm font-bold capitalize">
             {t("mean")}{" "}
             <span
-              className={classNames(
+              className={cn(
                 color === "blue"
                   ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
                   : `text-[light${color}]`

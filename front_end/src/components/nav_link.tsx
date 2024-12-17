@@ -1,8 +1,9 @@
 "use client";
-import classNames from "classnames";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ComponentProps, FC } from "react";
+
+import cn from "@/utils/cn";
 
 type LinkProps = ComponentProps<typeof Link> & {
   href: string;
@@ -22,7 +23,7 @@ const NavLink: FC<LinkProps> = ({
     <Link
       {...props}
       href={href}
-      className={classNames(props.className, { [activeClassName]: isActive })}
+      className={cn(props.className, { [activeClassName]: isActive })}
     >
       {children}
     </Link>

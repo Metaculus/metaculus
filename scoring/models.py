@@ -9,6 +9,9 @@ from questions.types import AggregationMethod
 from users.models import User
 from utils.models import TimeStampedModel
 
+GLOBAL_LEADERBOARD_STRING = "Leaderboard"
+GLOBAL_LEADERBOARD_SLUG = "leaderboard"
+
 
 class UserWeight(TimeStampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -222,6 +225,18 @@ class Leaderboard(TimeStampedModel):
             )
 
         return questions
+
+
+def name_and_slug_for_global_leaderboard_dates(
+    gl_dates: tuple[datetime, datetime]
+) -> tuple[str, str]:
+    """
+    Generates a tag name for a global leaderboard tag given the start and end dates
+    """
+    return (
+        f"{gl_dates[0].year}-{gl_dates[1].year} {GLOBAL_LEADERBOARD_STRING}",
+        f"{gl_dates[0].year}-{gl_dates[1].year}_{GLOBAL_LEADERBOARD_SLUG}",
+    )
 
 
 class LeaderboardEntry(TimeStampedModel):

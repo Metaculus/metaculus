@@ -1,8 +1,9 @@
 "use client";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { FC, PropsWithChildren } from "react";
+
+import cn from "@/utils/cn";
 
 const CollapsibleBox: FC<
   PropsWithChildren<{
@@ -20,12 +21,9 @@ const CollapsibleBox: FC<
         <div className="text-base font-semibold">{title}</div>
         <FontAwesomeIcon
           icon={faChevronDown}
-          className={classNames(
-            "ml-0.5 mr-1.5 transition-transform duration-300",
-            {
-              "rotate-180": expanded,
-            }
-          )}
+          className={cn("ml-0.5 mr-1.5 transition-transform duration-300", {
+            "rotate-180": expanded,
+          })}
         />
       </button>
       {expanded && (

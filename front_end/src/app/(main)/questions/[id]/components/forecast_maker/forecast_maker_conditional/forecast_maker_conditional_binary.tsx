@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
@@ -15,6 +14,7 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import cn from "@/utils/cn";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import { sendGAConditionalPredictEvent } from "./ga_events";
@@ -299,10 +299,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       {questionOptions.map((option) => (
         <div
           key={option.id}
-          className={classNames(
-            "mt-10",
-            option.id !== activeTableOption && "hidden"
-          )}
+          className={cn("mt-10", option.id !== activeTableOption && "hidden")}
         >
           <BinarySlider
             forecast={option.value}

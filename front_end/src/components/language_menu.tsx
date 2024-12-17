@@ -1,13 +1,13 @@
 "use client";
 
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import classNames from "classnames";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import useSearchParams from "@/hooks/use_search_params";
-import { useLocale } from "next-intl";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import cn from "@/utils/cn";
 
 type Props = {
   className?: string;
@@ -50,7 +50,7 @@ const LanguageMenu: FC<Props> = ({ className }) => {
     <Menu>
       <MenuButton
         aria-label="change language"
-        className={classNames(
+        className={cn(
           "flex h-full items-center text-lg no-underline",
           className
         )}
@@ -67,7 +67,7 @@ const LanguageMenu: FC<Props> = ({ className }) => {
             <MenuItem
               key={item.locale}
               as="button"
-              className={classNames(
+              className={cn(
                 "flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark",
                 locale == item.locale && "bg-blue-400-dark"
               )}

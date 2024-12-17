@@ -17,7 +17,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { useState, forwardRef, FC } from "react";
 
@@ -25,6 +24,7 @@ import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_m
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
+import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
 
 export const BINARY_MIN_VALUE = 0.001;
@@ -330,7 +330,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
       >
         <FontAwesomeIcon
           icon={faCaretUp}
-          className={classNames(
+          className={cn(
             "size-4 rounded-full",
             {
               "bg-gradient-to-b p-1 text-blue-700 group-hover:from-blue-400 group-hover:to-blue-100 dark:text-blue-700-dark dark:group-hover:from-blue-400-dark dark:group-hover:to-blue-100-dark":
@@ -357,7 +357,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
       // >
       //   <FontAwesomeIcon
       //     icon={faCaretUp}
-      //     className={classNames(
+      //     className={cn(
       //       "size-4 rounded-full",
       //       {
       //         "bg-gradient-to-b p-1 text-blue-700 group-hover:from-blue-400 group-hover:to-blue-100 dark:text-blue-700-dark dark:group-hover:from-blue-400-dark dark:group-hover:to-blue-100-dark":

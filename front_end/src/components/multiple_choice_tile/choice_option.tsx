@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { isNil } from "lodash";
 import React, { FC } from "react";
 
@@ -8,6 +7,7 @@ import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { getChoiceOptionValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 
 type Props = {
   choice: string;
@@ -44,7 +44,7 @@ const ChoiceOption: FC<Props> = ({
       )}
 
       <div
-        className={classNames(
+        className={cn(
           "resize-label line-clamp-2 w-full py-0.5 pr-1.5 text-left text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark",
           { "pl-1.5}": !hideIcon },
           labelClassName
