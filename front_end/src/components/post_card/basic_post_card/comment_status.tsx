@@ -3,12 +3,12 @@
 import { faComment as faRegularComment } from "@fortawesome/free-regular-svg-icons";
 import { faComment as faSolidComment } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
+import cn from "@/utils/cn";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 type Props = {
@@ -36,7 +36,7 @@ const CommentStatus: FC<Props> = ({
         <FontAwesomeIcon
           icon={faSolidComment}
           size="lg"
-          className={classNames(
+          className={cn(
             {
               blue: "text-blue-500 dark:text-blue-500-dark",
               purple: "text-purple-500 dark:text-purple-500",

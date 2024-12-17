@@ -1,10 +1,10 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { FC } from "react";
 
 import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -39,7 +39,7 @@ const SimilarPredictionChip: FC<Props> = ({
   {
     return (
       <span
-        className={classNames(
+        className={cn(
           "flex flex-row gap-0.5 text-xs font-medium text-olive-700 dark:text-olive-400",
           className
         )}

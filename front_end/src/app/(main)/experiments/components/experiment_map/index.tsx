@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import {
   ReactNode,
   useCallback,
@@ -12,6 +11,7 @@ import {
 
 import usePrevious from "@/hooks/use_previous";
 import { BaseMapArea, MapType } from "@/types/experiments";
+import cn from "@/utils/cn";
 
 import RawMap from "./raw_map";
 
@@ -213,7 +213,7 @@ const ExperimentMap = <T extends BaseMapArea>({
 
   return (
     <div
-      className={classNames("relative flex flex-col items-center gap-10", {
+      className={cn("relative flex flex-col items-center gap-10", {
         "pointer-events-none": !interactive,
       })}
     >

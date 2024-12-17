@@ -1,7 +1,6 @@
 "use client";
 
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
@@ -13,6 +12,7 @@ import { Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { CommentType } from "@/types/comment";
+import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
 
 interface CommentEditorProps {
@@ -141,10 +141,9 @@ const CommentEditor: FC<CommentEditorProps> = ({
         <IncludedForecast author="test" forecastValue={test} />
       )*/}
       <div
-        className={classNames(
-          "border border-gray-500 dark:border-gray-500-dark",
-          { hidden: !isEditing }
-        )}
+        className={cn("border border-gray-500 dark:border-gray-500-dark", {
+          hidden: !isEditing,
+        })}
       >
         <MarkdownEditor
           key={rerenderKey}

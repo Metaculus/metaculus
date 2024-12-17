@@ -1,10 +1,11 @@
 "use client";
 
-import React, { FC } from "react";
 import { useRouter } from "next/navigation";
+import React, { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { useModal } from "@/contexts/modal_context";
+
 import { HeroSection } from "./hero-section";
 
 export const SucessfullyRegistered = () => {

@@ -1,9 +1,9 @@
 "use client";
-import classNames from "classnames";
 import { FC } from "react";
 
 import useAppTheme from "@/hooks/use_app_theme";
 import { ThemeColor } from "@/types/theme";
+import cn from "@/utils/cn";
 
 type Props = {
   color: ThemeColor;
@@ -15,7 +15,7 @@ const ChoiceIcon: FC<Props> = ({ color, className }) => {
 
   return (
     <div
-      className={classNames("size-4 rounded-sm", className)}
+      className={cn("size-4 rounded-sm", className)}
       style={{ background: getThemeColor(color) }}
     />
   );

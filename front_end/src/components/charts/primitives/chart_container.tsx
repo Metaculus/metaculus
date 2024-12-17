@@ -1,10 +1,10 @@
 "use client";
 import { Tab, TabGroup, TabList } from "@headlessui/react";
-import classNames from "classnames";
 import { forwardRef, Fragment, PropsWithChildren, useState } from "react";
 
 import { TimelineChartZoomOption } from "@/types/charts";
 import { getChartZoomOptions } from "@/utils/charts";
+import cn from "@/utils/cn";
 
 type Props = {
   height: number;
@@ -38,7 +38,7 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
                 <Tab as={Fragment} key={option.value}>
                   {({ selected, hover }) => (
                     <button
-                      className={classNames(
+                      className={cn(
                         "ChartZoomButton rounded px-1.5 py-1 text-sm font-medium leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark",
                         { "text-gray-800 dark:text-gray-800-dark": selected },
                         {

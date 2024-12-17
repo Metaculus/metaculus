@@ -9,7 +9,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useState } from "react";
@@ -17,6 +16,7 @@ import { FC, PropsWithChildren, useEffect, useState } from "react";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useAuth } from "@/contexts/auth_context";
 import { Community } from "@/types/projects";
+import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
 
 import { fetchCommunities } from "../c/actions";
@@ -72,7 +72,7 @@ const CommunitiesDropdown: FC<Props> = ({ community }) => {
       {({ open }) => (
         <>
           <MenuButton
-            className={classNames(
+            className={cn(
               "ml-1 flex flex-col items-center justify-center gap-0 rounded p-1 px-[6px] no-underline hover:bg-blue-700",
               { "bg-blue-700": open }
             )}
