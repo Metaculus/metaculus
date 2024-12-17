@@ -7,8 +7,9 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
-import classNames from "classnames";
 import { FC, PropsWithChildren } from "react";
+
+import cn from "@/utils/cn";
 
 export type SectionVariant = "primary" | "light" | "gold";
 
@@ -32,7 +33,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
     <Disclosure defaultOpen={defaultOpen} as="div" id={id}>
       {({ open }) => (
         <div
-          className={classNames("rounded", {
+          className={cn("rounded", {
             "bg-blue-200 dark:bg-blue-200-dark": variant === "primary",
             "bg-gray-0 dark:bg-gray-0-dark": variant === "light",
             "bg-gold-200 dark:bg-gold-200-dark": variant === "gold",
@@ -41,7 +42,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
         >
           <DisclosureButton className="w-full">
             <div
-              className={classNames(
+              className={cn(
                 "flex w-full items-center gap-2.5 p-3 text-base",
                 className,
                 {
@@ -71,7 +72,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
             >
               <FontAwesomeIcon
                 icon={faChevronUp}
-                className={classNames(
+                className={cn(
                   "h-4 duration-75 ease-linear",
                   open && "rotate-180",
                   {
@@ -86,7 +87,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
             </div>
           </DisclosureButton>
           <DisclosurePanel
-            className={classNames("p-3 pt-0", {
+            className={cn("p-3 pt-0", {
               "xs:px-4": variant === "light",
             })}
           >

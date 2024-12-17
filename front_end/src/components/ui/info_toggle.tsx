@@ -4,8 +4,9 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
-import classNames from "classnames";
 import { FC, Fragment, PropsWithChildren } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   title: string;
@@ -16,7 +17,7 @@ const InfoToggle: FC<PropsWithChildren<Props>> = ({ title, children }) => {
     <Disclosure as={Fragment}>
       {({ open }) => (
         <div
-          className={classNames(
+          className={cn(
             "relative border-t border-gray-300 py-4 dark:border-gray-300-dark"
           )}
         >
@@ -26,7 +27,7 @@ const InfoToggle: FC<PropsWithChildren<Props>> = ({ title, children }) => {
                 viewBox="-6 -6 12 12"
                 width="1em"
                 height="1em"
-                className={classNames(
+                className={cn(
                   "disclosure-cross mr-1 inline-block align-[-3px] transition-transform duration-200",
                   {
                     "rotate-90": open,
@@ -39,7 +40,7 @@ const InfoToggle: FC<PropsWithChildren<Props>> = ({ title, children }) => {
                   x2="4"
                   y1="0"
                   y2="0"
-                  className={classNames(
+                  className={cn(
                     "fill-none stroke-current stroke-1 transition-opacity duration-200",
                     { "opacity-0": open }
                   )}

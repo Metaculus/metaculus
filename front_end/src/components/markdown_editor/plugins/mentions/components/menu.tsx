@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import {
   BeautifulMentionsMenuItemProps,
   BeautifulMentionsMenuProps,
@@ -6,6 +5,7 @@ import {
 import { forwardRef } from "react";
 
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import cn from "@/utils/cn";
 
 export function Menu({ loading, ...other }: BeautifulMentionsMenuProps) {
   if (loading) {
@@ -33,7 +33,7 @@ export const MenuItem = forwardRef<
 >(({ selected, item, ...props }, ref) => (
   <li
     ref={ref}
-    className={classNames(
+    className={cn(
       "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
       selected && "bg-gray-200 dark:bg-gray-200-dark"
     )}

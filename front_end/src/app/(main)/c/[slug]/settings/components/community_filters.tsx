@@ -3,7 +3,6 @@
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
@@ -13,6 +12,7 @@ import { POST_STATUS_FILTER } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { Community } from "@/types/projects";
+import cn from "@/utils/cn";
 
 type Props = {
   community: Community;
@@ -57,10 +57,10 @@ const CommunityFilters: FC<Props> = ({ community }) => {
           }
         />
         <Button
-          className={classNames(
-            "mr-auto whitespace-nowrap !border-blue-500 capitalize !text-blue-700 dark:!border-blue-500-dark dark:!text-blue-700-dark",
+          className={cn(
+            "mr-auto whitespace-nowrap border-blue-500 capitalize text-blue-700 dark:border-blue-500-dark dark:text-blue-700-dark",
             {
-              "!bg-blue-900 !text-white hover:!bg-blue-800 dark:!bg-blue-100 dark:!text-blue-900 dark:hover:!bg-blue-200":
+              "bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200":
                 status === PostStatus.PENDING,
             }
           )}
@@ -70,7 +70,7 @@ const CommunityFilters: FC<Props> = ({ community }) => {
         </Button>
       </div>
       <Button
-        className="whitespace-nowrap !border-blue-500 capitalize !text-blue-700 dark:!border-blue-500-dark dark:!text-blue-700-dark"
+        className="whitespace-nowrap border-blue-500 capitalize text-blue-700 dark:border-blue-500-dark dark:text-blue-700-dark"
         href={`/questions/create/?community_id=${community.id}`}
       >
         <FontAwesomeIcon icon={faPlus} width={14} />

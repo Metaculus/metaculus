@@ -1,10 +1,10 @@
-import classNames from "classnames";
 import { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
 
 import ShareElectionsMenu from "@/app/(main)/experiments/elections/components/share_elections_menu";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
+import cn from "@/utils/cn";
 
 import CardForecast from "./components/card_forecast";
 import ElectoralConsequences from "./components/electoral_consequences";
@@ -81,7 +81,7 @@ export default async function ElectionsExperiment() {
 
 const Skeleton: FC<{ className?: string }> = ({ className }) => (
   <div
-    className={classNames(
+    className={cn(
       "animate-pulse rounded-lg bg-gray-0 p-4 shadow-md dark:bg-gray-0-dark",
       className
     )}

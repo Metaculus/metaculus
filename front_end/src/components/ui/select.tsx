@@ -1,8 +1,8 @@
 import { Select as HeadlessSelect } from "@headlessui/react";
-import classNames from "classnames";
 import { ComponentPropsWithoutRef, forwardRef } from "react";
 
 import { SelectOption } from "@/components/ui/listbox";
+import cn from "@/utils/cn";
 
 type Props<T> = {
   name?: string;
@@ -21,7 +21,7 @@ const Select = <T extends string>(
   const { options, className, ...restProps } = props;
   return (
     <HeadlessSelect
-      className={classNames(
+      className={cn(
         "min-w-16 rounded-none border border-gray-600-dark bg-transparent py-1",
         className
       )}

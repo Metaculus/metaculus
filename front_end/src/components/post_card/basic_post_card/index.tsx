@@ -1,12 +1,12 @@
 "use client";
 
-import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
+import cn from "@/utils/cn";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions";
 
@@ -40,7 +40,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "rounded bg-gray-0 dark:bg-gray-0-dark",
         { regular: "border", highlighted: "border border-l-4" }[borderVariant],
         {

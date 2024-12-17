@@ -2,7 +2,6 @@
 
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
 
@@ -13,6 +12,7 @@ import Button from "@/components/ui/button";
 import { Post, PostSubscriptionType } from "@/types/post";
 import { CurrentUser } from "@/types/users";
 import { Require } from "@/types/utils";
+import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
 
 type PostWithSubscriptions = Require<Post, "subscriptions">;
@@ -101,12 +101,12 @@ const QuestionNotifications: FC<Props> = ({
             {posts.map((post, index) => (
               <tr
                 key={`sub-${post.id}`}
-                className={classNames({
+                className={cn({
                   "rounded-b": index === posts.length - 1,
                 })}
               >
                 <td
-                  className={classNames(
+                  className={cn(
                     "max-w-[500px] border border-blue-200 border-l-gray-300 p-2 dark:border-blue-200-dark dark:border-l-gray-300-dark",
                     {
                       "rounded-bl border-b-gray-300 dark:border-b-gray-300-dark":
@@ -123,7 +123,7 @@ const QuestionNotifications: FC<Props> = ({
                   </Button>
                 </td>
                 <td
-                  className={classNames(
+                  className={cn(
                     "border border-blue-200 p-2 dark:border-blue-200-dark",
                     {
                       "border-b-gray-300 dark:border-b-gray-300-dark":
@@ -134,7 +134,7 @@ const QuestionNotifications: FC<Props> = ({
                   {getSubscriptionsLabel(t, locale, post)}
                 </td>
                 <td
-                  className={classNames(
+                  className={cn(
                     "border border-blue-200 p-2 dark:border-blue-200-dark",
                     {
                       "border-b-gray-300 dark:border-b-gray-300-dark":
@@ -148,7 +148,7 @@ const QuestionNotifications: FC<Props> = ({
                   )}
                 </td>
                 <td
-                  className={classNames(
+                  className={cn(
                     "border border-blue-200 border-r-gray-300 p-2 dark:border-blue-200-dark dark:border-r-gray-300-dark",
                     {
                       "rounded-br border-b-gray-300 dark:border-b-gray-300-dark":

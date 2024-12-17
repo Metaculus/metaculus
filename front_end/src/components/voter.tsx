@@ -1,11 +1,11 @@
 "use client";
 import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { VoteDirection } from "@/types/votes";
+import cn from "@/utils/cn";
 
 type Props = {
   className?: string;
@@ -28,8 +28,12 @@ const Voter: FC<Props> = ({
 }) => {
   return (
     <div
-      className={classNames(
-        `inline-flex items-center text-sm leading-4 ${commentArea ? "rounded-sm border border-blue-500 bg-white dark:border-blue-600/50 dark:bg-gray-0-dark" : ""}`,
+      className={cn(
+        "inline-flex items-center text-sm leading-4",
+        {
+          "rounded-sm border border-blue-500 bg-white dark:border-blue-600/50 dark:bg-gray-0-dark":
+            commentArea,
+        },
         className
       )}
     >
@@ -64,7 +68,7 @@ const Voter: FC<Props> = ({
       </Button>
       {!!votes != null && votes !== 0 && (
         <span
-          className={classNames("text-gray-900 dark:text-gray-900-dark", {
+          className={cn("text-gray-900 dark:text-gray-900-dark", {
             "font-bold": !!userVote,
           })}
         >

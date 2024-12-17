@@ -1,5 +1,6 @@
-import clsx from "clsx";
 import { forwardRef } from "react";
+
+import cn from "@/utils/cn";
 
 import { ButtonSize, ButtonVariant, buttonVariantClassName } from "./Button";
 
@@ -29,7 +30,7 @@ const IconButton = forwardRef(function IconButton(
   return (
     <Element
       ref={ref}
-      className={clsx(
+      className={cn(
         "inline-flex items-center justify-center rounded-full disabled:opacity-30",
         {
           xs: "text-xs",

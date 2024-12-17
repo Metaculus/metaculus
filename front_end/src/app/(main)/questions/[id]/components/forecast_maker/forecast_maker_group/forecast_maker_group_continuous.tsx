@@ -1,7 +1,6 @@
 "use client";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { differenceInMilliseconds } from "date-fns";
 import { isNil } from "lodash";
 import { useSearchParams } from "next/navigation";
@@ -31,6 +30,7 @@ import {
   PredictionInputMessage,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import cn from "@/utils/cn";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -321,10 +321,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         return (
           <div
             key={option.id}
-            className={classNames(
-              "mt-3",
-              option.id !== activeTableOption && "hidden"
-            )}
+            className={cn("mt-3", option.id !== activeTableOption && "hidden")}
           >
             <ContinuousSlider
               question={option.question}

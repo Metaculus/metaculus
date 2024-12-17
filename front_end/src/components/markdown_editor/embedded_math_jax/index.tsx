@@ -12,12 +12,12 @@ import {
   usePublisher,
 } from "@mdxeditor/editor";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import classNames from "classnames";
 import React, { FC } from "react";
 
 import createEditorComponent from "@/components/markdown_editor/createJsxComponent";
 import MathJaxContent from "@/components/math_jax_content";
 import Button from "@/components/ui/button";
+import cn from "@/utils/cn";
 
 import useLexicalBackspaceNodeRemove from "../hooks/use_backspace_node_remove";
 
@@ -39,7 +39,7 @@ const EmbeddedMathJax: React.FC<MathJaxRendererProps> = ({ content }) => {
   return (
     <div
       ref={ref}
-      className={classNames(
+      className={cn(
         "items-center justify-center ring-blue-500 focus:outline-none focus:ring-2 dark:ring-blue-500-dark",
         isInline ? "inline-flex" : "flex w-full"
       )}

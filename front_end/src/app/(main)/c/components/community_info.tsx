@@ -2,7 +2,6 @@
 
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,6 +14,7 @@ import Button from "@/components/ui/button";
 import { useNavigation } from "@/contexts/navigation_context";
 import { ProjectPermissions } from "@/types/post";
 import { Community } from "@/types/projects";
+import cn from "@/utils/cn";
 
 import { useShowActiveCommunityContext } from "./community_context";
 import CommunityFollow from "./community_follow";
@@ -97,7 +97,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
       )}
 
       <div
-        className={classNames("flex items-center", {
+        className={cn("flex items-center", {
           "mt-4": !community.description,
         })}
       >

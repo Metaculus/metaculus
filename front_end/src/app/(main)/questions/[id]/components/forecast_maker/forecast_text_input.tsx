@@ -1,6 +1,7 @@
 import { Input } from "@headlessui/react";
-import classNames from "classnames";
 import { ChangeEvent, FC } from "react";
+
+import cn from "@/utils/cn";
 
 const INPUT_REGEX = /^(\d{1,2}\.?\d?)?%?$/;
 
@@ -54,7 +55,7 @@ const ForecastTextInput: FC<Props> = ({
 
   return (
     <Input
-      className={classNames(
+      className={cn(
         "h-6 w-12 border text-center text-sm font-medium leading-5",
         isDirty
           ? "border-orange-800 bg-orange-100 text-orange-800 dark:border-orange-800-dark dark:bg-orange-100-dark dark:text-orange-800-dark"

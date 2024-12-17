@@ -1,10 +1,10 @@
 import { faSquare, faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Checkbox as HeadlessCheckbox, Field, Label } from "@headlessui/react";
-import classNames from "classnames";
 import { FC, MouseEventHandler, ReactNode, TouchEventHandler } from "react";
 
 import { ErrorResponse } from "@/types/fetch";
+import cn from "@/utils/cn";
 
 import { FormError } from "./form_field";
 
@@ -47,7 +47,7 @@ const Checkbox: FC<Props> = ({
 }) => {
   return (
     <Field
-      className={classNames("hover:cursor-pointer", className)}
+      className={cn("hover:cursor-pointer", className)}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onTouchStart={onTouchStart}
@@ -73,7 +73,7 @@ const Checkbox: FC<Props> = ({
             <FontAwesomeIcon
               icon={faSquareCheck}
               size="xl"
-              className={classNames("mr-1", inputClassName, {
+              className={cn("mr-1", inputClassName, {
                 "opacity-20": disabled,
               })}
               color={color}
@@ -82,7 +82,7 @@ const Checkbox: FC<Props> = ({
             <FontAwesomeIcon
               icon={faSquare}
               size="xl"
-              className={classNames("mr-1", inputClassName, {
+              className={cn("mr-1", inputClassName, {
                 "opacity-20": disabled,
               })}
               color={color}
