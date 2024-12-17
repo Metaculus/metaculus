@@ -41,7 +41,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
       <Dialog
         as="div"
         className="relative z-100"
-        onClose={isImmersive ? () => {} : onClose}
+        onClose={onClose}
         onWheel={(e) => isImmersive && e.stopPropagation()}
       >
         <div

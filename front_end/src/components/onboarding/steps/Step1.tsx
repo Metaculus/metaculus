@@ -2,19 +2,14 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { useEffect } from "react";
 
-import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
-import { logError } from "@/utils/errors";
-import { setOnboardingSuppressed } from "@/utils/onboarding";
-
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
 
 interface Step1Props {
   onTopicSelect: (topicIndex: number) => void;
-  onClose: () => void;
 }
 
-const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
+const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => {
   const t = useTranslations();
 
   useEffect(() => {
@@ -23,21 +18,6 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
       event_category: "onboarding",
     });
   }, []);
-
-  const handleSkipTutorial = () => {
-    // Mark tutorial as complete
-    sendGAEvent({ event: "onboardingSkipped", event_category: "onboarding" });
-    updateProfileAction({ is_onboarding_complete: true }).catch(logError);
-    onClose();
-  };
-
-  const handleCloseTutorial = () => {
-    // Temporarily hide tutorial
-    sendGAEvent({ event: "onboardingClosed", event_category: "onboarding" });
-    // Mark as temporarily suppressed
-    setOnboardingSuppressed();
-    onClose();
-  };
 
   return (
     <div className="mt-[-16px] max-w-[800px] flex-row gap-3 p-0 md:flex-col md:p-5">
@@ -89,23 +69,6 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
           </button>
         ))}
       </div>
-      <div className="mt-4 flex w-full justify-center gap-3 md:mt-8">
-        <button
-          onClick={handleSkipTutorial}
-          className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
-        >
-          {t("skipTutorial")}
-        </button>
-        <button
-          onClick={handleCloseTutorial}
-          className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
-        >
-          {t("remindMeLater")}
-        </button>
-      </div>
-      <p className="text-center opacity-60">
-        {t("onboardingRemindMeLaterDescription")}
-      </p>
     </div>
   );
 };

@@ -1,18 +1,21 @@
 "use client";
 
+import { sendGAEvent } from "@next/third-parties/google";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import React, { useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { getPost } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import { useAuth } from "@/contexts/auth_context";
+import useStoredState from "@/hooks/use_stored_state";
+import { OnboardingStoredState } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
 import { logError } from "@/utils/errors";
 import {
-  deleteOnboardingStoredState,
-  getOnboardingStoredState,
-  setOnboardingStoredState,
+  ONBOARDING_STATE_KEY,
+  setOnboardingSuppressed,
 } from "@/utils/onboarding";
 
 import { onboardingTopics } from "./OnboardingSettings";
@@ -27,17 +30,24 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   onClose,
 }) => {
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(
-    () => getOnboardingStoredState().currentStep || 1
-  );
-  const [selectedTopic, setSelectedTopic] = useState<number | null>(
-    getOnboardingStoredState().selectedTopic || null
-  );
+
+  const [
+    { currentStep, selectedTopic, step3Prediction },
+    setOnboardingState,
+    pathOnboardingState,
+    deleteOnboardingState,
+  ] = useStoredState<OnboardingStoredState>(ONBOARDING_STATE_KEY, {
+    selectedTopic: null,
+    currentStep: 1,
+    step2Prediction: 50,
+    step3Prediction: 50,
+  });
+
+  const t = useTranslations();
+
   const [questionData, setQuestionData] = useState<PostWithForecasts | null>(
     null
   );
-  const [step2Prediction, setStep2Prediction] = useState(50);
-  const [step3Prediction, setStep3Prediction] = useState(50);
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   const router = useRouter();
 
@@ -53,9 +63,9 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   useEffect(() => {
     if (!user?.is_onboarding_complete) {
       if (currentStep > 1 && currentStep < 5) {
-        setOnboardingStoredState({ selectedTopic, currentStep });
+        pathOnboardingState({ selectedTopic, currentStep });
       } else {
-        deleteOnboardingStoredState();
+        deleteOnboardingState();
       }
     }
   }, [user?.is_onboarding_complete, selectedTopic, currentStep]);
@@ -70,6 +80,7 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
         const questionIndex = currentStep === 4 ? 1 : currentStep - 2;
         const questionId =
           onboardingTopics[selectedTopic].questions[questionIndex];
+
         try {
           const data = await getPost(questionId);
           setQuestionData(data);
@@ -81,7 +92,7 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       }
     }
 
-    fetchQuestionData();
+    void fetchQuestionData();
   }, [selectedTopic, currentStep]);
 
   const handleNext = () => {
@@ -92,11 +103,11 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
     }
 
     if (currentStep < 5) {
-      setCurrentStep(currentStep + 1);
+      pathOnboardingState({ currentStep: currentStep + 1 });
       scrollToTop();
       if (currentStep === 2) {
         // Reset prediction when moving from Step 2 to Step 3
-        setStep3Prediction(50);
+        pathOnboardingState({ step3Prediction: 50 });
       }
     } else {
       onClose();
@@ -106,20 +117,36 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
 
   const handlePrev = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      pathOnboardingState({ currentStep: currentStep - 1 });
       scrollToTop();
     }
   };
 
   const handleTopicSelect = (topicIndex: number) => {
-    setSelectedTopic(topicIndex);
+    pathOnboardingState({ selectedTopic: topicIndex });
     handleNext();
+  };
+
+  const handleSkipTutorial = () => {
+    // Mark tutorial as complete
+    sendGAEvent({ event: "onboardingSkipped", event_category: "onboarding" });
+    updateProfileAction({ is_onboarding_complete: true }).catch(logError);
+    deleteOnboardingState();
+    onClose();
+  };
+
+  const handleCloseTutorial = () => {
+    // Temporarily hide tutorial
+    sendGAEvent({ event: "onboardingClosed", event_category: "onboarding" });
+    // Mark as temporarily suppressed
+    setOnboardingSuppressed();
+    onClose();
   };
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <Step1 onTopicSelect={handleTopicSelect} onClose={onClose} />;
+        return <Step1 onTopicSelect={handleTopicSelect} />;
       case 2:
         return (
           <Step2
@@ -127,7 +154,9 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             onNext={handleNext}
             topicIndex={selectedTopic}
             questionData={questionData}
-            onPredictionChange={setStep2Prediction}
+            onPredictionChange={(value) =>
+              pathOnboardingState({ step2Prediction: value })
+            }
           />
         );
       case 3:
@@ -138,7 +167,9 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             topicIndex={selectedTopic}
             questionData={questionData}
             prediction={step3Prediction}
-            onPredictionChange={setStep3Prediction}
+            onPredictionChange={(value) =>
+              pathOnboardingState({ step3Prediction: value })
+            }
             isLoading={isLoadingQuestion}
           />
         );
@@ -150,7 +181,9 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             topicIndex={selectedTopic}
             questionData={questionData}
             prediction={step3Prediction}
-            onPredictionChange={setStep3Prediction}
+            onPredictionChange={(value) =>
+              pathOnboardingState({ step3Prediction: value })
+            }
           />
         );
       case 5:
@@ -170,11 +203,28 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleCloseTutorial}
       isImmersive={true}
       modalContentRef={modalContentRef}
     >
       {renderStep()}
+      <div className="mt-4 flex w-full justify-center gap-3 md:mt-8">
+        <button
+          onClick={handleSkipTutorial}
+          className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
+        >
+          {t("skipTutorial")}
+        </button>
+        <button
+          onClick={handleCloseTutorial}
+          className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
+        >
+          {t("remindMeLater")}
+        </button>
+      </div>
+      <p className="text-center opacity-60">
+        {t("onboardingRemindMeLaterDescription")}
+      </p>
     </BaseModal>
   );
 };
