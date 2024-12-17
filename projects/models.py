@@ -276,27 +276,6 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
             ),
         ]
 
-    # DEPRECATED FIELDS
-    # WILL BE REMOVED IN THE NEXT RELEASES
-    add_posts_to_main_feed = models.BooleanField(default=False)
-    add_posts_to_main_feed.system_check_deprecated_details = {
-        "msg": (
-            "The `Project.add_posts_to_main_feed` field has been deprecated "
-            "and will be removed in future versions. "
-        ),
-        "hint": "Please use `Project.visibility = Project.Visibility.NORMAL` instead",
-        "id": "Project.add_posts_to_main_feed",
-    }
-    unlisted = BooleanField(default=False, db_index=True)
-    unlisted.system_check_deprecated_details = {
-        "msg": (
-            "The `Project.unlisted` field has been deprecated "
-            "and will be removed in future versions. "
-        ),
-        "hint": "Please use `Project.visibility = Project.Visibility.UNLISTED` instead",
-        "id": "Project.unlisted",
-    }
-
     def __str__(self):
         return f"{self.type.capitalize()}: {self.name}"
 
