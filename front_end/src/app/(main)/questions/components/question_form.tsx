@@ -3,7 +3,6 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -14,6 +13,7 @@ import * as z from "zod";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
 import {
+  DateInput,
   FormError,
   FormErrorMessage,
   Input,
@@ -77,40 +77,50 @@ const createQuestionSchemas = (
     }),
     resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
     fine_print: z.string().optional(),
-    open_time: z.nullable(z.date().optional()).refine(
-      (value) => {
-        if (!post) {
-          return true;
-        }
+    open_time: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional()
+      .refine(
+        (value) => {
+          if (!post) {
+            return true;
+          }
 
-        if (post.status !== PostStatus.APPROVED) {
-          return true;
-        }
+          if (post.status !== PostStatus.APPROVED) {
+            return true;
+          }
 
-        return !!value;
-      },
-      {
-        message: t("errorRequired"),
-      }
-    ),
-    cp_reveal_time: z.nullable(z.date().optional()).refine(
-      (value) => {
-        if (!post) {
-          return true;
+          return !!value;
+        },
+        {
+          message: t("errorRequired"),
         }
+      ),
+    cp_reveal_time: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional()
+      .refine(
+        (value) => {
+          if (!post) {
+            return true;
+          }
 
-        if (post.status !== PostStatus.APPROVED) {
-          return true;
+          if (post.status !== PostStatus.APPROVED) {
+            return true;
+          }
+
+          return !!value;
+        },
+        {
+          message: t("errorRequired"),
         }
-
-        return !!value;
-      },
-      {
-        message: t("errorRequired"),
-      }
-    ),
-    scheduled_close_time: z.date(),
-    scheduled_resolve_time: z.date(),
+      ),
+    scheduled_close_time: z.string().datetime({ offset: true }),
+    scheduled_resolve_time: z.string().datetime({ offset: true }),
     default_project: z.nullable(z.union([z.number(), z.string()])),
   });
 
@@ -404,108 +414,48 @@ const QuestionForm: FC<Props> = ({
         </InputContainer>
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer labelText={t("closingDate")} className="w-full gap-2">
-            <Input
-              type="datetime-local"
-              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              {...form.register("scheduled_close_time", {
-                setValueAs: (value: string) => {
-                  if (value === "" || value == null) {
-                    return null;
-                  }
-
-                  return new Date(value);
-                },
-              })}
+            <DateInput
+              control={form.control}
+              name="scheduled_close_time"
+              defaultValue={post?.question?.scheduled_close_time}
               errors={form.formState.errors.scheduled_close_time}
-              defaultValue={
-                post?.question?.scheduled_close_time
-                  ? format(
-                      new Date(post.question.scheduled_close_time),
-                      "yyyy-MM-dd'T'HH:mm"
-                    )
-                  : undefined
-              }
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
           </InputContainer>
           <InputContainer
             labelText={t("resolvingDate")}
             className="w-full gap-2"
           >
-            <Input
-              type="datetime-local"
-              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              {...form.register("scheduled_resolve_time", {
-                setValueAs: (value: string) => {
-                  if (value === "" || value == null) {
-                    return null;
-                  }
-
-                  return new Date(value);
-                },
-              })}
+            <DateInput
+              control={form.control}
+              name="scheduled_resolve_time"
+              defaultValue={post?.question?.scheduled_resolve_time}
               errors={form.formState.errors.scheduled_resolve_time}
-              defaultValue={
-                post?.question?.scheduled_resolve_time
-                  ? format(
-                      new Date(post.question.scheduled_resolve_time),
-                      "yyyy-MM-dd'T'HH:mm"
-                    )
-                  : undefined
-              }
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
           </InputContainer>
         </div>
         {isEditingActivePost && (
           <div className="flex w-full flex-col gap-4 md:flex-row">
             <InputContainer labelText={t("openTime")} className="w-full gap-2">
-              <Input
-                type="datetime-local"
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                {...form.register("open_time", {
-                  setValueAs: (value: string) => {
-                    if (value === "" || value == null) {
-                      return null;
-                    }
-
-                    return new Date(value);
-                  },
-                })}
+              <DateInput
+                control={form.control}
+                name="open_time"
+                defaultValue={post?.question?.open_time}
                 errors={form.formState.errors.open_time}
-                defaultValue={
-                  post?.question?.open_time
-                    ? format(
-                        new Date(post.question.open_time),
-                        "yyyy-MM-dd'T'HH:mm"
-                      )
-                    : undefined
-                }
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               />
             </InputContainer>
             <InputContainer
               labelText={t("cpRevealTime")}
               className="w-full gap-2"
             >
-              <Input
-                type="datetime-local"
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                {...form.register("cp_reveal_time", {
-                  setValueAs: (value: string) => {
-                    if (value === "" || value == null) {
-                      return null;
-                    }
-
-                    return new Date(value);
-                  },
-                })}
+              <DateInput
+                control={form.control}
+                name="cp_reveal_time"
+                defaultValue={post?.question?.cp_reveal_time}
                 errors={form.formState.errors.cp_reveal_time}
-                defaultValue={
-                  post?.question?.cp_reveal_time
-                    ? format(
-                        new Date(post.question.cp_reveal_time),
-                        "yyyy-MM-dd'T'HH:mm"
-                      )
-                    : undefined
-                }
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               />
             </InputContainer>
           </div>
