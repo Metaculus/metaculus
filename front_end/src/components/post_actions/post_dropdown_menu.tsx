@@ -14,6 +14,7 @@ import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { Post } from "@/types/post";
+import { base64ToBlob } from "@/utils/files";
 
 type Props = {
   post: Post;
@@ -51,8 +52,8 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
 
   const handleDownloadCSV = async () => {
     try {
-      const response = await getPostCSVData(post.id);
-      const blob = await response.blob(); // Convert the response to a Blob
+      const base64 = await getPostCSVData(post.id);
+      const blob = base64ToBlob(base64);
       saveAs(blob, `post_${post.id}.csv`); // Use file-saver to trigger the download
     } catch (error) {
       toast.error("downloadCSVError");
