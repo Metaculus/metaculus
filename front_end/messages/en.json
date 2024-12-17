@@ -101,6 +101,20 @@
   "communityAbsoluteLogScore": "Community absolute log score:",
   "metaculusAbsoluteLogScore": "Metaculus absolute log score:",
   "metaculusRelativeLogScore": "Metaculus relative log score:",
+  "myBaselineScore": "My Baseline Score",
+  "myPeerScore": "My Peer Score",
+  "mySpotBaselineScore": "My Spot Baseline Score",
+  "mySpotPeerScore": "My Spot Peer Score",
+  "myRelativeLegacyScore": "My Relative Legacy Score",
+  "myRelativeLegacyArchivedScore": "My Relative Legacy Archived Score",
+  "communityBaselineScore": "Community Baseline Score",
+  "communityPeerScore": "Community Beer Score",
+  "communnitySpotBaselineScore": "Community Spot Baseline Score",
+  "communnitySpotPeerScore": "Community Spot Peer Score",
+  "communnityRelativeLegacyScore": "Community Relative Legacy Score",
+  "communnityRelativeLegacyArchivedScore": "Community Relative Legacy Archived Score",
+  "myCoverage": "My coverage",
+  "myWeightedCoverage": "My weighted coverage",
   "questionWillOpenAt": "This question will open {{date}}.",
   "questionNotOpenYet": "This question is not yet open for predictions.",
   "youMustLogInToComment": "You must log in to comment",
@@ -1002,5 +1016,6 @@
   "robustTrackRecordsInfo": "Pro Forecasters must have at least 75 resolved questions and must have made predictions across multiple subject areas, with at least one year of experience making predictions.<br></br><br></br>We also consider recruiting forecasters who have demonstrated excellent forecasting ability elsewhere.",
   "clearCommentsAndCommunicationTitle": "Clear Comments and Communication",
   "clearCommentsAndCommunicationInfo": "Our Pros work on projects for external partners who value clear reasoning to better interpret the forecasts. We select Pros who have a history of making clear and insightful comments, and who are willing to disagree with their peers, but in a polite and respectful manner.",
-  "expressionOfInterestFormMessage": "We sometimes recruit upstanding members of the community who are great at providing constructive feedback on submitted questions to become paid moderators. Fill out our <link>expression of interest form</link> if you would like to be considered."
+  "expressionOfInterestFormMessage": "We sometimes recruit upstanding members of the community who are great at providing constructive feedback on submitted questions to become paid moderators. Fill out our <link>expression of interest form</link> if you would like to be considered.",
+  "dateInputDetails": "Date and time is in your local timezone [{timezone}]"
 }

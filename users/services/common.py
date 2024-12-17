@@ -1,3 +1,5 @@
+import requests
+
 from django.conf import settings
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db.models import Q, Case, When, IntegerField
@@ -15,6 +17,7 @@ from utils.email import send_email_with_template
 from utils.frontend import build_frontend_email_change_url
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
+from users.serializers import UserPrivateSerializer
 
 
 def get_users(
@@ -131,7 +134,7 @@ def send_email_change_confirmation_email(user: User, new_email: str):
             "new_email": new_email,
             "reset_link": reset_link,
         },
-        from_email=settings.EMAIL_HOST_USER
+        from_email=settings.EMAIL_HOST_USER,
     )
 
 
@@ -150,5 +153,23 @@ def register_user_to_campaign(
             ProjectUserPermission.objects.create(
                 user=user, project=project, permission=ObjectPermission.FORECASTER
             )
+
+        if settings.CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR is not None:
+            [key, url] = settings.CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR.split(
+                ","
+            )
+
+            if key == campaign_key:
+                requests.post(
+                    url,
+                    headers={
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "user": UserPrivateSerializer(user).data,
+                        "registration_data": campaign_data,
+                    },
+                )
     except IntegrityError:
         raise ValidationError("User already registered")

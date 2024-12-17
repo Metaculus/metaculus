@@ -14,7 +14,6 @@ import {
   MenuItems,
   Transition,
 } from "@headlessui/react";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
@@ -26,6 +25,8 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Href } from "@/types/navigation";
 import { Community } from "@/types/projects";
+import cn from "@/utils/cn";
+
 import GlobalSearch from "./global_search";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
@@ -47,7 +48,7 @@ export const MenuLink: FC<
       as={href ? (regularLink ? "a" : Link) : "button"}
       {...(href ? { href } : {})}
       onClick={onClick}
-      className={classNames(
+      className={cn(
         "flex size-full items-center justify-center px-4 py-1.5 capitalize no-underline hover:bg-blue-400-dark",
         className
       )}

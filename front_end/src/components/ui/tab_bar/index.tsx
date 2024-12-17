@@ -1,5 +1,6 @@
-import classNames from "classnames";
 import { ReactNode } from "react";
+
+import cn from "@/utils/cn";
 
 import Tab from "./tab";
 
@@ -24,7 +25,7 @@ const TabBar = <T = string,>({
   className,
 }: Props<T>) => {
   return (
-    <div className={classNames("flex", className)}>
+    <div className={cn("flex", className)}>
       {options.map((option, index) => (
         <Tab
           key={`${option.value}`}
@@ -32,7 +33,7 @@ const TabBar = <T = string,>({
             onChange(option.value);
           }}
           active={option.value === value}
-          className={classNames(
+          className={cn(
             "relative grow rounded hover:z-10 focus:z-20",
             options.length > 1 &&
               (index === 0

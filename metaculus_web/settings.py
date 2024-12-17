@@ -503,3 +503,7 @@ LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)
 GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
     "GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY", None
 )
+
+CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(
+    "CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR", None
+)

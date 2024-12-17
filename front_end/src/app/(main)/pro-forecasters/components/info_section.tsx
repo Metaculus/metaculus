@@ -1,5 +1,6 @@
-import classNames from "classnames";
 import { FC, ReactNode } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   title: string;
@@ -19,7 +20,7 @@ const ProForecastersInfoSection: FC<Props> = ({
       <div className="flex gap-3">
         {titleIcon}
         <h2
-          className={classNames("m-0 font-bold", {
+          className={cn("m-0 font-bold", {
             "text-2xl": size === "lg",
             "text-xl": size === "md",
           })}

@@ -1,12 +1,10 @@
 "use client";
-import classNames from "classnames";
 import Link from "next/link";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 
 import { EmbedTheme } from "@/app/(embed)/questions/constants/embed_theme";
 import DetailedMultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
-import ChartOverflowContainer from "@/components/charts/cp_reveal_time_overflow";
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
@@ -24,6 +22,7 @@ import {
   getGroupQuestionsTimestamps,
   getContinuousChartTypeFromQuestion,
 } from "@/utils/charts";
+import cn from "@/utils/cn";
 import { getPostLink } from "@/utils/navigation";
 import {
   getGroupForecastAvailability,
@@ -196,7 +195,7 @@ const ForecastCard: FC<Props> = ({
               />
               <ForecastAvailabilityChartOverflow
                 forecastAvailability={forecastAvailability}
-                className="!justify-end pr-10 text-xs md:text-sm"
+                className="justify-end pr-10 text-xs md:text-sm"
               />
             </div>
           );
@@ -256,7 +255,7 @@ const ForecastCard: FC<Props> = ({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "ForecastCard relative flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md",
         className
       )}
@@ -279,7 +278,7 @@ const ForecastCard: FC<Props> = ({
       </div>
       <div
         ref={chartContainerRef}
-        className={classNames(
+        className={cn(
           "ForecastCard-graph-container flex size-full min-h-[120px] min-w-0 flex-1",
           post.conditional ? "items-center" : "items-start"
         )}

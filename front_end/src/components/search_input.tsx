@@ -1,10 +1,10 @@
 import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Field, Input } from "@headlessui/react";
-import classNames from "classnames";
 import { ChangeEventHandler, FC, FormEvent } from "react";
 
 import Button from "@/components/ui/button";
+import cn from "@/utils/cn";
 
 type Size = "base" | "lg";
 
@@ -32,7 +32,7 @@ const SearchInput: FC<Props> = ({
   return (
     <Field
       as={onSubmit ? "form" : "div"}
-      className={classNames(
+      className={cn(
         "relative flex w-full rounded-full text-sm text-gray-900 dark:text-gray-900-dark",
         { "h-8": size === "base" },
         { "h-12": size === "lg" },
@@ -48,7 +48,7 @@ const SearchInput: FC<Props> = ({
         type="search"
         value={value}
         onChange={onChange}
-        className={classNames(
+        className={cn(
           "mx-auto block size-full rounded-full border border-blue-500 pl-3  pr-16 text-base font-medium placeholder:text-gray-700 dark:border-blue-500 dark:bg-gray-0-dark placeholder:dark:text-gray-700-dark sm:text-sm",
           globalSearch
             ? " border border-blue-700 bg-black/5 text-white placeholder:text-white/50 dark:border-blue-700 dark:bg-blue-800 dark:placeholder:text-white/50"
@@ -62,7 +62,7 @@ const SearchInput: FC<Props> = ({
             variant="text"
             onClick={onErase}
             type="button"
-            className={classNames(
+            className={cn(
               "md:-mr-3",
               globalSearch
                 ? "text-gray-400 hover:text-gray-0 dark:text-blue-200 dark:hover:text-gray-0"
@@ -77,11 +77,11 @@ const SearchInput: FC<Props> = ({
           variant="text"
           type="submit"
           aria-label="Search"
-          className={classNames(globalSearch ? " hidden md:block" : "")}
+          className={cn(globalSearch ? " hidden md:block" : "")}
         >
           <FontAwesomeIcon
             icon={faMagnifyingGlass}
-            className={classNames(
+            className={cn(
               globalSearch
                 ? " text-blue-600"
                 : "text-blue-800 dark:text-blue-200"

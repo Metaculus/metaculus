@@ -1,5 +1,6 @@
-import classNames from "classnames";
 import { DetailedHTMLProps, FC, HTMLProps, ReactNode } from "react";
+
+import cn from "@/utils/cn";
 
 type TableProps = {
   title?: string;
@@ -14,7 +15,7 @@ export const Table: FC<TableProps> = ({
   ...props
 }) => (
   <div
-    className={classNames(
+    className={cn(
       "overflow-hidden rounded border border-gray-300 bg-gray-0 text-gray-800 @container dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-800-dark",
       className
     )}
@@ -30,22 +31,20 @@ export const TableHead: FC<
   DetailedHTMLProps<HTMLProps<HTMLTableSectionElement>, HTMLTableSectionElement>
 > = ({ className, ...props }) => (
   <thead
-    className={classNames("bg-blue-100 dark:bg-blue-100-dark", className)}
+    className={cn("bg-blue-100 dark:bg-blue-100-dark", className)}
     {...props}
   />
 );
 
 export const TableBody: FC<
   DetailedHTMLProps<HTMLProps<HTMLTableSectionElement>, HTMLTableSectionElement>
-> = ({ className, ...props }) => (
-  <tbody className={classNames(className)} {...props} />
-);
+> = ({ className, ...props }) => <tbody className={cn(className)} {...props} />;
 
 export const TableRow: FC<
   DetailedHTMLProps<HTMLProps<HTMLTableRowElement>, HTMLTableRowElement>
 > = ({ className, ...props }) => (
   <tr
-    className={classNames(
+    className={cn(
       "border-b border-gray-300 hover:bg-blue-200 dark:border-gray-300-dark dark:hover:bg-blue-200-dark",
       className
     )}
@@ -57,7 +56,7 @@ export const TableHeaderCell: FC<
   DetailedHTMLProps<HTMLProps<HTMLTableCellElement>, HTMLTableCellElement>
 > = ({ className, ...props }) => (
   <th
-    className={classNames(
+    className={cn(
       "px-4 py-2.5 text-left text-sm font-bold leading-4 text-gray-500 dark:text-gray-500-dark",
       className
     )}
@@ -69,7 +68,7 @@ export const TableCell: FC<
   DetailedHTMLProps<HTMLProps<HTMLTableCellElement>, HTMLTableCellElement>
 > = ({ className, ...props }) => (
   <td
-    className={classNames(
+    className={cn(
       "px-4 py-2.5 text-left text-gray-800 dark:text-gray-800-dark",
       className
     )}

@@ -1,9 +1,9 @@
 "use client";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import Button from "@/app/(main)/about/components/Button";
+import cn from "@/utils/cn";
 
 import { useHideCP } from "./cp_provider";
 
@@ -16,7 +16,7 @@ const RevealCPButton: FC<Props> = ({ className }) => {
   const t = useTranslations();
 
   return (
-    <div className={classNames("text-center", className)}>
+    <div className={cn("text-center", className)}>
       <div className="text-l m-4">{t("CPIsHidden")}</div>
       <Button onClick={() => setCurrentHideCP(false)}>
         {t("RevealTemporarily")}

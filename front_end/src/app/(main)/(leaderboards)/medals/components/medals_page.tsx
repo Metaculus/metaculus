@@ -1,10 +1,10 @@
-import classNames from "classnames";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import LeaderboardApi from "@/services/leaderboard";
+import cn from "@/utils/cn";
 
 import MedalIcon from "../../components/medal_icon";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
@@ -45,7 +45,7 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
         {categories?.map((category, index) => (
           <div
             key={index}
-            className={classNames(
+            className={cn(
               "flex w-full flex-col items-center justify-center rounded ",
               { "sm:col-span-2": category.name === "tournament" }
             )}

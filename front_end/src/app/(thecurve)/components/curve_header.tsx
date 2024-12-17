@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
@@ -7,6 +6,7 @@ import { FC } from "react";
 import NavUserButton from "@/components/auth";
 import { useAuth } from "@/contexts/auth_context";
 import { useSurvey } from "@/contexts/survey_context";
+import cn from "@/utils/cn";
 
 type Props = {
   layout: "landing" | "survey";
@@ -25,7 +25,7 @@ const CurveHeader: FC<Props> = ({
       <div className="flex h-full items-center">
         <Link
           href="/"
-          className={classNames(
+          className={cn(
             "inline-flex h-full max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center text-center no-underline lg:bg-blue-800 lg:dark:bg-gray-0-dark",
             {
               "bg-blue-800 lg:dark:bg-gray-0-dark": layout === "survey",
@@ -37,7 +37,7 @@ const CurveHeader: FC<Props> = ({
           </h1>
         </Link>
         <p
-          className={classNames("m-0 ml-3 text-lg font-bold lg:inline-block", {
+          className={cn("m-0 ml-3 text-lg font-bold lg:inline-block", {
             hidden: layout === "landing",
           })}
         >
