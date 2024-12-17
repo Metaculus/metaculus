@@ -30,7 +30,7 @@ const StepsRouter: React.FC<OnboardingStep> = (props) => {
 
   return (
     <>
-      {currentStep > 0 && currentStep < STEPS.length - 1 && (
+      {currentStep > 0 && (
         <button onClick={onPrev} className={onboardingStyles.backButton}>
           <FontAwesomeIcon icon={faArrowLeft} />
         </button>
