@@ -14,6 +14,7 @@ import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
+import { QuestionOrder } from "@/types/question";
 import { logError } from "@/utils/errors";
 
 type Props = {
@@ -24,7 +25,10 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
   const searchParams = useSearchParams();
   const questionFilters = generateFiltersFromSearchParams(
     Object.fromEntries(searchParams),
-    { withoutPageParam: true }
+    {
+      withoutPageParam: true,
+      defaultOrderBy: QuestionOrder.HotDesc,
+    }
   );
   const pageFilters: PostsParams = {
     statuses: PostStatus.APPROVED,
