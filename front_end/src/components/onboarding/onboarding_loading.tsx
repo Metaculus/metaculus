@@ -2,7 +2,7 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 
-const LoadingStep: React.FC = () => {
+const OnboardingLoading: React.FC = () => {
   return (
     <div className="flex min-h-dvh w-full items-center justify-center md:min-h-fit">
       <div className="flex w-dvw items-center justify-center md:w-fit md:min-w-[400px]">
@@ -16,4 +16,4 @@ const LoadingStep: React.FC = () => {
   );
 };
 
-export default LoadingStep;
+export default OnboardingLoading;

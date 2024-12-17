@@ -6,7 +6,7 @@ import ResetPasswordModal, {
 } from "@/components/auth/password_reset";
 import SignInModal from "@/components/auth/signin";
 import SignUpModal, { SignUpModalSuccess } from "@/components/auth/signup";
-import OnboardingModal from "@/components/onboarding/OnboardingModal";
+import OnboardingModal from "@/components/onboarding/onboarding_modal";
 import { useModal } from "@/contexts/modal_context";
 
 import ConfirmModal from "./confirm_modal";

@@ -1,9 +1,8 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type UseStoredStateReturn<T> = [
   T,
   (newValue: T | ((prev: T) => T)) => void,
-  (partialValue: Partial<T>) => void,
   () => void,
 ];
 
@@ -49,19 +48,6 @@ function useStoredState<T>(
     );
   }, []);
 
-  const patchValue = useCallback(
-    (partialValue: Partial<T>) => {
-      setValue((prev) => {
-        if (typeof prev === "object" && prev !== null) {
-          return { ...prev, ...partialValue };
-        }
-        // If prev is not an object, just overwrite with partialValue casted to T
-        return partialValue as T;
-      });
-    },
-    [setValue]
-  );
-
   const deleteValue = useCallback(() => {
     try {
       window.localStorage.removeItem(key);
@@ -71,10 +57,13 @@ function useStoredState<T>(
         error
       );
     }
+    // TODO: should we?
+    // TODO: ensure finished turoriasl are reopened with initial state
+    // TODO: hide control buttons on the last slide
     setValueState(defaultValue);
   }, [key, defaultValue]);
 
-  return [value, setValue, patchValue, deleteValue];
+  return [value, setValue, deleteValue];
 }
 
 export default useStoredState;

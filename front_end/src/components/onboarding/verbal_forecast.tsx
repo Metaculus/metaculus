@@ -11,7 +11,7 @@ const getVerbalDescription = (forecast: number): string => {
   return "Very Likely";
 };
 
-const VerbalForecast: React.FC<VerbalForecastProps> = ({ forecast }) => {
+const Verbal_forecast: React.FC<VerbalForecastProps> = ({ forecast }) => {
   return (
     <span className="font-semibold text-blue-800 dark:text-blue-300">
       {getVerbalDescription(forecast)}
@@ -19,4 +19,4 @@ const VerbalForecast: React.FC<VerbalForecastProps> = ({ forecast }) => {
   );
 };
 
-export default VerbalForecast;
+export default Verbal_forecast;

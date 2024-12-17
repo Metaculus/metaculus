@@ -2,14 +2,12 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { useEffect } from "react";
 
-import { onboardingTopics } from "../OnboardingSettings";
-import { onboardingStyles } from "../OnboardingStyles";
+import { OnboardingStep } from "@/types/onboarding";
 
-interface Step1Props {
-  onTopicSelect: (topicIndex: number) => void;
-}
+import Step from "./step";
+import { ONBOARDING_TOPICS } from "../utils";
 
-const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => {
+const Step0: React.FC<OnboardingStep> = ({ setTopic, onNext }) => {
   const t = useTranslations();
 
   useEffect(() => {
@@ -20,7 +18,7 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => {
   }, []);
 
   return (
-    <div className="mt-[-16px] max-w-[800px] flex-row gap-3 p-0 md:flex-col md:p-5">
+    <Step>
       <p className="my-2 mt-4 text-left text-xl font-semibold leading-relaxed text-blue-800  dark:text-blue-200  md:text-3xl md:leading-relaxed ">
         <span className="opacity-60">&quot;</span>
         {t("onboardingStep1Question1")}
@@ -38,18 +36,12 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => {
         </span>
       </p>
       <div className="my-4 md:my-6">
-        <p className={onboardingStyles.paragraph}>
-          {t("onboardingStep1Paragraph1")}
-        </p>
-        <p className={onboardingStyles.paragraph}>
-          {t("onboardingStep1Paragraph2")}
-        </p>
-        <p className={onboardingStyles.paragraph}>
-          {t("onboardingStep1Paragraph3")}
-        </p>
+        <Step.Paragraph>{t("onboardingStep1Paragraph1")}</Step.Paragraph>
+        <Step.Paragraph>{t("onboardingStep1Paragraph2")}</Step.Paragraph>
+        <Step.Paragraph>{t("onboardingStep1Paragraph3")}</Step.Paragraph>
       </div>
       <div className="mt-1 flex w-full flex-col gap-2 md:mt-5 md:flex-row md:gap-4">
-        {onboardingTopics.map((topic, index) => (
+        {ONBOARDING_TOPICS.map((topic, index) => (
           <button
             key={index}
             onClick={() => {
@@ -58,9 +50,9 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => {
                 event_category: "onboarding",
                 event_label: topic.name,
               });
-              onTopicSelect(index);
+              setTopic(index);
             }}
-            className={onboardingStyles.topic}
+            className="flex w-full flex-row items-center justify-start gap-3 rounded bg-blue-400/50 px-4 py-3 text-lg font-semibold text-blue-800 hover:bg-blue-500 dark:bg-blue-700/50 dark:text-blue-200 dark:hover:bg-blue-600 md:flex-col md:justify-center md:px-8 md:py-6 md:text-xl"
           >
             <span className="text-xl md:text-4xl md:leading-none">
               {topic.emoji}
@@ -69,8 +61,8 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => {
           </button>
         ))}
       </div>
-    </div>
+    </Step>
   );
 };
 
-export default Step1;
+export default Step0;

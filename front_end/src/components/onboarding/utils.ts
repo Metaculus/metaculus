@@ -1,4 +1,7 @@
-export const onboardingTopics = [
+import { OnboardingTopic } from "@/types/onboarding";
+import { PostWithForecasts } from "@/types/post";
+
+export const ONBOARDING_TOPICS: OnboardingTopic[] = [
   {
     name: "US Politics",
     questions: [11112, 11588, 26336],
@@ -40,3 +43,6 @@ export const onboardingTopics = [
     emoji: "🤖",
   },
 ];
+
+export const extractCommunityForecast = (post: PostWithForecasts) =>
+  post.question?.aggregations?.recency_weighted?.latest?.centers?.[0] ?? 0.5;

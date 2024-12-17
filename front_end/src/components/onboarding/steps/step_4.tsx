@@ -1,41 +1,24 @@
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React from "react";
 
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
+import Step from "@/components/onboarding/steps/step";
 import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
+import { OnboardingStep } from "@/types/onboarding";
 
-import { onboardingTopics } from "../OnboardingSettings";
-import { onboardingStyles } from "../OnboardingStyles";
-
-interface Step5Props {
-  onPrev: () => void;
-  onNext: () => void;
-  topicIndex: number | null;
-  closeModal: () => void;
-}
-
-const Step5: React.FC<Step5Props> = ({ onPrev, topicIndex, closeModal }) => {
+const Step4: React.FC<OnboardingStep> = ({ topic, handleComplete }) => {
   const router = useRouter();
   const { switchFeed, clearInReview } = useFeed();
   const { user } = useAuth();
   const t = useTranslations();
 
-  if (topicIndex === null) {
-    return <p>Error: No topic selected</p>;
-  }
-
-  const topic = onboardingTopics[topicIndex];
-  const thirdQuestionId = topic.questions[2];
-
-  const questionUrl = `/questions/${thirdQuestionId}`;
+  const nextQuestionUrl = `/questions/${topic.questions[2]}`;
 
   const forceNavigate = (url: string) => {
-    closeModal();
+    handleComplete();
     router.push(url);
   };
 
@@ -76,53 +59,49 @@ const Step5: React.FC<Step5Props> = ({ onPrev, topicIndex, closeModal }) => {
       event_category: "onboarding",
       event_label: "Viewed Another Question",
     });
-    forceNavigate(questionUrl);
+    forceNavigate(nextQuestionUrl);
   };
 
   return (
-    <div className={onboardingStyles.container}>
-      <button onClick={onPrev} className={onboardingStyles.backButton}>
-        <FontAwesomeIcon icon={faArrowLeft} />
-      </button>
-      <h3 className={`${onboardingStyles.title}`}>
-        {t("onboardingStep5NiceWork")}
-      </h3>
-      <p className={onboardingStyles.paragraph}>
-        {t("onboardingStep5AnyoneCanImprove")}
-      </p>
+    <Step>
+      <Step.Title>{t("onboardingStep5NiceWork")}</Step.Title>
+      <Step.Paragraph>{t("onboardingStep5AnyoneCanImprove")}</Step.Paragraph>
       <div className="flex flex-col gap-2 rounded-md bg-blue-200 p-3 dark:bg-blue-200-dark md:p-5">
         <span className="block text-xs font-bold uppercase tracking-wide opacity-70">
           {t("onboardingStep5DidYouKnow")}
         </span>
         {t("onboardingStep5ForecastingCompetition")}
       </div>
-      <p className={onboardingStyles.paragraph}>
+      <Step.Paragraph>
         <span className="font-bold">{t("onboardingStep5ReadyToExplore")}</span>{" "}
-      </p>
+      </Step.Paragraph>
       <div className="mx-auto flex w-full flex-col justify-stretch gap-4 md:flex-row ">
-        <button
+        <Step.Button
           onClick={handleViewMyPredictions}
-          className={`${onboardingStyles.smallButton} w-full md:w-fit`}
+          variant="small"
+          className="w-full md:w-fit"
         >
           {t("onboardingStep5ViewYourPredictions")}
-        </button>
-        <button
+        </Step.Button>
+        <Step.Button
           onClick={handleViewAnotherQuestion}
-          className={`${onboardingStyles.smallButton} w-full font-light md:w-fit`}
+          variant="small"
+          className="w-full font-light md:w-fit"
         >
           {t("onboardingStep5ForecastAnother")}{" "}
           <span className="font-bold">{topic.name}</span>{" "}
           {t("onboardingStep5Question")}
-        </button>
-        <button
+        </Step.Button>
+        <Step.Button
           onClick={handleViewQuestionFeed}
-          className={`${onboardingStyles.smallButton} w-full md:w-fit`}
+          variant="small"
+          className="w-full md:w-fit"
         >
           {t("onboardingStep5ViewQuestionFeed")}
-        </button>
+        </Step.Button>
       </div>
-    </div>
+    </Step>
   );
 };
 
-export default Step5;
+export default Step4;
