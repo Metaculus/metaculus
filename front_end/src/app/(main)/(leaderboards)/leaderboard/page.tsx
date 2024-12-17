@@ -1,9 +1,9 @@
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, Suspense } from "react";
 
 import { SearchParams } from "@/types/navigation";
 import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
+import cn from "@/utils/cn";
 
 import LeaderboardCategoriesTabBar from "./components/categories_tab_bar";
 import GlobalLeaderboard from "./components/global_leaderboard";
@@ -66,7 +66,7 @@ export default function GlobalLeaderboards({
         <LeaderboardHeader filters={filters} />
 
         <section
-          className={classNames(
+          className={cn(
             "flex flex-col gap-3 self-stretch overflow-hidden sm:flex-row",
             duration === "1"
               ? "grid-cols-[repeat(auto-fill,minmax(280px,1fr))] sm:grid"
@@ -120,7 +120,7 @@ export default function GlobalLeaderboards({
 
 const Skeleton: FC<{ className?: string }> = ({ className }) => (
   <div
-    className={classNames(
+    className={cn(
       "w-full max-w-3xl animate-pulse rounded bg-gray-0 p-4 shadow-md dark:bg-gray-0-dark",
       className
     )}

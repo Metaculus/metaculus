@@ -1,5 +1,6 @@
-import classNames from "classnames";
 import { FC } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   className?: string;
@@ -7,9 +8,7 @@ type Props = {
 
 const CircleDivider: FC<Props> = ({ className }) => {
   return (
-    <span
-      className={classNames("text-gray-400 dark:text-gray-400-dark", className)}
-    >
+    <span className={cn("text-gray-400 dark:text-gray-400-dark", className)}>
       •
     </span>
   );

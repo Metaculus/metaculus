@@ -1,6 +1,5 @@
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
@@ -13,6 +12,7 @@ import { StateByForecastItem } from "@/types/experiments";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 
 import MiddleVotesArrow from "./middle_votes_arrow";
 import StateByForecastCharts from "./state_by_forecast_charts";
@@ -63,7 +63,7 @@ const StateByForecast: FC<Props> = async ({
       <div className="relative mt-20 inline-flex w-full flex-col">
         <div className="flex w-full flex-col">
           <MiddleVotesArrow
-            className={classNames("absolute left-2/4 -translate-x-2/4")}
+            className={cn("absolute left-2/4 -translate-x-2/4")}
           />
           <div className="flex w-full justify-between">
             {democratPrediction && (

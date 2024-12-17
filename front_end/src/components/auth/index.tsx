@@ -3,7 +3,6 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
@@ -11,6 +10,7 @@ import { FC } from "react";
 import { LogOut } from "@/app/(main)/accounts/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import cn from "@/utils/cn";
 
 type Props = {
   btnClassName?: string;
@@ -35,7 +35,7 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
   return (
     <Menu>
       <MenuButton
-        className={classNames(
+        className={cn(
           "flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-200-dark",
           btnClassName
         )}

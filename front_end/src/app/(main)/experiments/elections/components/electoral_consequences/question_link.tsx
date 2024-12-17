@@ -1,10 +1,10 @@
 "use client";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/cn";
 import { getQuestionTitle } from "@/utils/questions";
 
 type Props = {
@@ -47,7 +47,7 @@ const QuestionLink: FC<Props> = ({ question }) => {
           </div>
           <div className="hidden text-gray-500 dark:text-gray-500-dark sm:block">
             <span
-              className={classNames("text-center", {
+              className={cn("text-center", {
                 "text-[#0252A5] dark:text-[#A7C3DC]": isHarris,
                 "text-[#E0152B] dark:text-[#E7858F]": !isHarris,
               })}

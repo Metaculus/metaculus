@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { FC, useState } from "react";
@@ -7,6 +6,7 @@ import ChoiceIcon from "@/components/choice_icon";
 import Button from "@/components/ui/button";
 import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ForecastType } from "@/types/comment";
+import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
@@ -44,7 +44,7 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
       <ol className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
         {choices.map((choice, index) => (
           <li
-            className={classNames("flex items-center gap-2 pr-2", {
+            className={cn("flex items-center gap-2 pr-2", {
               hidden: !showAll && index > 1,
             })}
             key={index}

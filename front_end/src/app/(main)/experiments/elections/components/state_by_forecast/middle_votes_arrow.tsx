@@ -1,7 +1,8 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { FC } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   className?: string;
@@ -9,12 +10,7 @@ type Props = {
 
 const MiddleVotesArrow: FC<Props> = ({ className }) => {
   return (
-    <div
-      className={classNames(
-        "flex flex-col items-center gap-1 text-sm",
-        className
-      )}
-    >
+    <div className={cn("flex flex-col items-center gap-1 text-sm", className)}>
       <span className="hidden font-sans text-gray-800 dark:text-gray-800-dark sm:block">
         270 votes to win
       </span>

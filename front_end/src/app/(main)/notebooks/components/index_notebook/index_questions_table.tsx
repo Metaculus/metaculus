@@ -10,7 +10,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import classNames from "classnames";
 import { isNil } from "lodash";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -27,6 +26,7 @@ import {
 import useScreenSize from "@/hooks/use_screen_size";
 import { PostWithForecasts, PostWithForecastsAndWeight } from "@/types/post";
 import { getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 import { getPostLink } from "@/utils/navigation";
 
 import CommunityPrediction, {
@@ -135,7 +135,7 @@ const IndexQuestionsTable: FC<Props> = ({ indexQuestions, HeadingSection }) => {
             {headerGroup.headers.map((header) => (
               <TableHeaderCell
                 key={header.id}
-                className={classNames(header.column.columnDef.meta?.className, {
+                className={cn(header.column.columnDef.meta?.className, {
                   "cursor-pointer select-none": header.column.getCanSort(),
                 })}
                 onClick={header.column.getToggleSortingHandler()}
@@ -163,14 +163,14 @@ const IndexQuestionsTable: FC<Props> = ({ indexQuestions, HeadingSection }) => {
         {table.getRowModel().rows.map((row, index) => (
           <TableRow
             key={row.id}
-            className={classNames("relative", {
+            className={cn("relative", {
               "border-b-0": index === questionsCount - 1,
             })}
           >
             {row.getVisibleCells().map((cell, cellIndex) => (
               <TableCell
                 key={cell.id}
-                className={classNames(cell.column.columnDef.meta?.className)}
+                className={cn(cell.column.columnDef.meta?.className)}
                 colSpan={cellIndex === 0 ? 2 : undefined}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}

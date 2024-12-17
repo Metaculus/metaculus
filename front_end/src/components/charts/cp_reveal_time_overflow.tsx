@@ -1,10 +1,6 @@
-import classNames from "classnames";
-import { intlFormatDistance } from "date-fns";
-import { useTranslations } from "next-intl";
-import React, { CSSProperties, FC, PropsWithChildren } from "react";
+import React, { FC, PropsWithChildren } from "react";
 
-import CPRevealTime from "@/components/cp_reveal_time";
-import LocalDaytime from "@/components/ui/local_daytime";
+import cn from "@/utils/cn";
 
 type Props = {
   className?: string;
@@ -18,13 +14,13 @@ const ChartOverflowContainer: FC<PropsWithChildren<Props>> = ({
 }) => {
   return (
     <div
-      className={classNames(
+      className={cn(
         "absolute inset-0 flex items-center justify-center text-center",
         className
       )}
     >
       <p
-        className={classNames(
+        className={cn(
           "max-w-[300px] pl-5 max-[425px]:max-w-[200px] md:max-w-max md:pl-0",
           textClassName
         )}

@@ -1,6 +1,5 @@
 "use client";
 import { MDXEditorMethods } from "@mdxeditor/editor";
-import classNames from "classnames";
 import * as React from "react";
 import { FC, useEffect, useMemo, useRef } from "react";
 import {
@@ -13,6 +12,7 @@ import {
 
 import MarkdownEditor from "@/components/markdown_editor";
 import { ErrorResponse } from "@/types/fetch";
+import cn from "@/utils/cn";
 import { extractError } from "@/utils/errors";
 
 export type ErrorProps = {
@@ -81,7 +81,7 @@ export const FormErrorMessage: FC<{ errors: any; className?: string }> = ({
       {message && (
         <div>
           <span
-            className={classNames(
+            className={cn(
               "text-xs text-red-500 dark:text-red-500-dark",
               className
             )}
@@ -117,7 +117,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
     return (
       <>
         <textarea
-          className={classNames("block rounded-s border p-1", className)}
+          className={cn("block rounded-s border p-1", className)}
           ref={ref}
           name={name}
           {...props}

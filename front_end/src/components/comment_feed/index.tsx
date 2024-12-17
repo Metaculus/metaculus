@@ -2,7 +2,6 @@
 
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { isNil } from "lodash";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -23,6 +22,7 @@ import { getCommentsParams } from "@/services/comments";
 import { BECommentType, CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 
@@ -343,7 +343,7 @@ const CommentFeed: FC<Props> = ({
     >
       <section
         id={id}
-        className={classNames(
+        className={cn(
           "max-w-full rounded text-gray-900 dark:text-gray-900-dark",
           {
             "mt-6 w-full px-0 md:px-3": inNotebook,
@@ -412,7 +412,7 @@ const CommentFeed: FC<Props> = ({
         {comments.map((comment: CommentType) => (
           <div
             key={comment.id}
-            className={classNames(
+            className={cn(
               "my-1.5 rounded-md border px-1.5 py-1 md:px-2.5 md:py-1.5",
               {
                 "border-blue-400 dark:border-blue-400-dark": !(

@@ -1,8 +1,8 @@
-import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import { Href } from "@/types/navigation";
+import cn from "@/utils/cn";
 
 type Props = {
   title: string;
@@ -20,7 +20,7 @@ const ConditionalCard: FC<PropsWithChildren<Props>> = ({
 }) => {
   const CardContent = (
     <div
-      className={classNames(
+      className={cn(
         "ConditionalSummary-card flex min-h-20 flex-col gap-2 border p-3",
         resolved
           ? "border-purple-800 dark:border-purple-800"
