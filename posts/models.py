@@ -265,7 +265,10 @@ class PostQuerySet(models.QuerySet):
                         Q(default_project_id=site_main_project.pk)
                         & Q(curation_status=Post.CurationStatus.PENDING)
                     )
-                    | Q(curation_status=Post.CurationStatus.APPROVED)
+                    | Q(
+                        curation_status=Post.CurationStatus.APPROVED,
+                        published_at__lte=timezone.now(),
+                    )
                 )
             )
         )
