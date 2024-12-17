@@ -8,12 +8,18 @@ from rest_framework.exceptions import ValidationError
 from projects.models import Project, ProjectUserPermission
 from projects.serializers.communities import CommunitySerializer
 from users.serializers import UserPublicSerializer
+from scoring.models import GLOBAL_LEADERBOARD_STRING
 
 
 class TagSerializer(serializers.ModelSerializer):
+    is_global_leaderboard = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "type")
+        fields = ("id", "name", "slug", "type", "is_global_leaderboard")
+
+    def get_is_global_leaderboard(self, obj: Project) -> bool:
+        return obj.name.endswith(GLOBAL_LEADERBOARD_STRING)
 
 
 class NewsCategorySerialize(serializers.ModelSerializer):
@@ -138,7 +144,9 @@ def serialize_projects(
     projects = set(projects) | {default_project}
     data = defaultdict(list)
 
-    for obj in projects:
+    # sort by order to allow any prioritized tags to be shown first
+    # e.g. global leaderboard tags
+    for obj in sorted(projects, key=lambda x: x.order, reverse=True):
         serialized_data = serialize_project(obj)
 
         if obj.default_permission:
@@ -146,7 +154,6 @@ def serialize_projects(
 
         if obj == default_project:
             data["default_project"] = serialized_data
-
     return data
 
 

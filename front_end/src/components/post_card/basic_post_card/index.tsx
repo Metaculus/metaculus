@@ -33,6 +33,9 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   const { title } = post;
   const resolutionData = extractPostResolution(post);
   const defaultProject = post.projects.default_project;
+  const globalLeaderboard = post.projects.tag?.find(
+    (project) => project.is_global_leaderboard
+  );
   let newCommentsCount = post.comment_count ? post.comment_count : 0;
   if (post.unread_comment_count !== undefined) {
     newCommentsCount = post.unread_comment_count;
@@ -69,7 +72,10 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           <PostStatus post={post} resolution={resolutionData} />
         </div>
         <div className="hidden lg:inline-flex">
-          <PostDefaultProject defaultProject={defaultProject} />
+          <PostDefaultProject
+            defaultProject={defaultProject}
+            globalLeaderboard={globalLeaderboard}
+          />
         </div>
       </div>
     </div>
