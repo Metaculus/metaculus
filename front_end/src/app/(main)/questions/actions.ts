@@ -125,7 +125,7 @@ export async function createForecasts(
   } catch (err) {
     const error = err as FetchError;
 
-    return { errors: error.data };
+    return error.data;
   }
 }
 
