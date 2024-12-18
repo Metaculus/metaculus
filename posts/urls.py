@@ -56,7 +56,7 @@ urlpatterns = [
         views.post_preview_image,
         name="post-preview-image",
     ),
-    path("posts/<int:pk>/download-csv/", views.download_csv, name="download-csv"),
+    path("posts/<int:pk>/download-data/", views.download_data, name="download-data"),
     path("posts/random/", views.random_post_id, name="random-post"),
 ]
 

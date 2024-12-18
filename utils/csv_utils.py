@@ -1,21 +1,19 @@
 import csv
-import re
-from io import StringIO
-import numpy as np
 import io
 import zipfile
 
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 
-from questions.models import Question, AggregateForecast, Forecast
 from comments.models import Comment
-from utils.the_math.formulas import unscaled_location_to_string_location
+from questions.models import Question, AggregateForecast, Forecast
+from scoring.models import Score, ArchivedScore
 
 
 def export_data_for_questions(
     questions: QuerySet[Question],
     include_user_forecasts: bool = False,
     include_comments: bool = False,
+    include_scores: bool = False,
     user_ids: list[int] | None = None,
     aggregation_dict: dict[Question, dict[str, list[AggregateForecast]]] | None = None,
 ) -> bytes:
@@ -73,6 +71,23 @@ def export_data_for_questions(
             .distinct()
         ).order_by("on_post_id", "created_at")
     )
+
+    scores = (
+        Score.objects.none()
+        if not include_scores
+        else (Score.objects.filter(question_id__in=question_ids))
+    )
+    archived_scores = (
+        ArchivedScore.objects.none()
+        if not include_scores
+        else (ArchivedScore.objects.filter(question_id__in=question_ids))
+    )
+    if user_ids:
+        scores = scores.filter(Q(user_id__in=user_ids) | Q(user__isnull=True))
+        archived_scores = archived_scores.filter(
+            Q(user_id__in=user_ids) | Q(user__isnull=True)
+        )
+    all_scores = scores.union(archived_scores)
 
     # question_data csv file
     question_output = io.StringIO()
@@ -219,6 +234,31 @@ def export_data_for_questions(
             ]
         )
 
+    # score_data csv file
+    score_output = io.StringIO()
+    score_writer = csv.writer(score_output)
+    score_writer.writerow(
+        [
+            "Question ID",
+            "User ID",
+            "User Username",
+            "Score Type",
+            "Score",
+            "Coverage",
+        ]
+    )
+    for score in all_scores:
+        score_writer.writerow(
+            [
+                score.question_id,
+                score.user_id,
+                score.user.username if score.user else score.aggregation_method,
+                score.score_type,
+                score.score,
+                score.coverage,
+            ]
+        )
+
     # create a zip file with both csv files
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
@@ -226,6 +266,8 @@ def export_data_for_questions(
         zip_file.writestr("forecast_data.csv", forecast_output.getvalue())
         if include_comments:
             zip_file.writestr("comment_data.csv", comment_output.getvalue())
+        if include_scores:
+            zip_file.writestr("score_data.csv", score_output.getvalue())
 
     # return the zip file
     return zip_buffer.getvalue()

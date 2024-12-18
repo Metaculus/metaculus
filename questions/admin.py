@@ -83,7 +83,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
 
-        data = export_data_for_questions(queryset, True, True)
+        data = export_data_for_questions(queryset, True, True, True)
         if data is None:
             self.message_user(request, "No questions selected.")
             return

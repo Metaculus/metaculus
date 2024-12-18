@@ -64,7 +64,7 @@ class PostAdmin(CustomTranslationAdmin):
 
         questions = Question.objects.filter(related_posts__post__in=queryset).distinct()
 
-        data = export_data_for_questions(questions, True, True)
+        data = export_data_for_questions(questions, True, True, True)
         if data is None:
             self.message_user(request, "No questions selected.")
             return

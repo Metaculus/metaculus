@@ -61,7 +61,7 @@ class ArchivedScore(TimeStampedModel):
 
     # typing
     question_id: int
-    objects: models.Manager["Score"]
+    objects: models.Manager["ArchivedScore"]
     user_id: int | None
 
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)

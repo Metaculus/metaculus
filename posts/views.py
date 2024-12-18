@@ -588,7 +588,7 @@ def post_preview_image(request: Request, pk):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def download_csv(request, pk: int):
+def download_data(request, pk: int):
     post = get_object_or_404(Post, pk=pk)
     user: User = request.user
     # Check permissions
@@ -663,6 +663,12 @@ def download_csv(request, pk: int):
         str(request.GET.get("include_comments", "false")).lower() == "true"
     )
 
+    # get include_scores
+    include_scores = (
+        can_view_private_data
+        and str(request.GET.get("include_scores", "false")).lower() == "true"
+    )
+
     # get include_bots
     include_bots = request.GET.get("include_bots", None)
 
@@ -708,6 +714,7 @@ def download_csv(request, pk: int):
         questions=questions,
         include_user_forecasts=can_view_private_data,
         include_comments=include_comments,
+        include_scores=include_scores,
         user_ids=user_ids,
         aggregation_dict=aggregation_dict or None,
     )

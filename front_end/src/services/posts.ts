@@ -213,7 +213,7 @@ class PostsApi {
   }
 
   static async getPostZipData(postId: number): Promise<Blob> {
-    return await get<Blob>(`/posts/${postId}/download-csv/`);
+    return await get<Blob>(`/posts/${postId}/download-data/`);
   }
 }
 
