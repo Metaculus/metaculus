@@ -67,7 +67,11 @@ const ContinuousSlider: FC<Props> = ({
               checked={overlayPreviousForecast}
               onChange={(checked) => setOverlayPreviousForecast(checked)}
               className={"text-sm"}
-              label={t("overlayPreviousForecast")}
+              label={
+                !!previousForecast.end_time
+                  ? t("overlayMostRecentForecast")
+                  : t("overlayCurrentForecast")
+              }
             ></Checkbox>
           </div>
         )}
