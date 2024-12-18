@@ -1,7 +1,6 @@
 "use client";
 
 import { Field, Input, Label } from "@headlessui/react";
-import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
 
@@ -64,7 +63,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
       </div>
 
       {isEditing && (
-        <div className={classNames("flex flex-col")}>
+        <div className="flex flex-col">
           <Field className="my-2 flex items-center gap-1">
             <Label>{t("Title")}</Label>
             <Input

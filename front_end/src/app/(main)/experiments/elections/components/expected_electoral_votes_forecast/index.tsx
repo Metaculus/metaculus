@@ -1,6 +1,5 @@
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
@@ -11,6 +10,7 @@ import PostsApi from "@/services/posts";
 import { Candle } from "@/types/experiments";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 type Props = {
@@ -53,7 +53,7 @@ const ExpectedElectoralVotesForecast: FC<Props> = async ({
           {t("538Votes")}
         </span>
         <span
-          className={classNames(
+          className={cn(
             "absolute left-2/4 top-[45px] z-10 mt-[-16px] h-[58px] w-[2px] -translate-x-2/4 bg-gray-400 mix-blend-luminosity dark:bg-gray-500"
           )}
         />

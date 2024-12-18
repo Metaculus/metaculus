@@ -1,7 +1,6 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useMemo } from "react";
 
@@ -9,6 +8,7 @@ import ChoiceCheckbox from "@/components/choice_checkbox";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { ChoiceItem } from "@/types/choices";
+import cn from "@/utils/cn";
 
 type Props = {
   choices: ChoiceItem[];
@@ -63,7 +63,7 @@ const ChoicesLegend: FC<Props> = ({
                 as={Button}
                 variant="text"
                 size="xs"
-                className={classNames("focus:outline-none", {
+                className={cn("focus:outline-none", {
                   "bg-gray-300 dark:bg-gray-300-dark": open,
                 })}
               >

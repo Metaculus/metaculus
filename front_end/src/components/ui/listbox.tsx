@@ -6,10 +6,10 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/react";
-import classNames from "classnames";
 import { Fragment, useMemo } from "react";
 
 import Button, { ButtonVariant } from "@/components/ui/button";
+import cn from "@/utils/cn";
 
 export type SelectOption<T> = {
   value: T;
@@ -53,7 +53,7 @@ const Listbox = <T extends string>({
       <ListboxButton
         as={Button}
         variant={buttonVariant}
-        className={classNames(className, {
+        className={cn(className, {
           "flex-row-reverse": arrowPosition === "right",
         })}
       >
@@ -65,7 +65,7 @@ const Listbox = <T extends string>({
           <ListboxOption as={Fragment} key={option.value} value={option.value}>
             {({ focus, selected }) => (
               <button
-                className={classNames(
+                className={cn(
                   "h-10 w-full whitespace-nowrap px-3 text-right text-sm",
                   {
                     "bg-gray-200 dark:bg-gray-200-dark": focus,

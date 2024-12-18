@@ -1,9 +1,9 @@
 "use client";
-import classNames from "classnames";
 import parse, { domToReact } from "html-react-parser";
 import { FC, ReactNode, useRef } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
+import cn from "@/utils/cn";
 
 const TOGGLE_CHILDREN_LOOKUP_LIMIT = 10;
 
@@ -63,7 +63,7 @@ const HtmlContent: FC<Props> = ({ content, className }) => {
   };
 
   return (
-    <div className={classNames("content", className)}>
+    <div className={cn("content", className)}>
       {parse(content, { replace: transform })}
     </div>
   );

@@ -1,6 +1,7 @@
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   forecasters?: number;
@@ -14,7 +15,7 @@ const ForecastersCounter: FC<Props> = ({ forecasters, className }) => {
   }
   return (
     <div
-      className={classNames(
+      className={cn(
         "text-xs text-gray-600-dark dark:text-gray-600-dark",
         className
       )}

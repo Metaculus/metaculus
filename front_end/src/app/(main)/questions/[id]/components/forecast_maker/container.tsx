@@ -1,6 +1,7 @@
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
+
+import cn from "@/utils/cn";
 
 import ResolutionCriteria, {
   type ResolutionCriteriaData,
@@ -20,7 +21,7 @@ const ForecastMakerContainer: FC<PropsWithChildren<Props>> = ({
   return (
     <section
       id="prediction-section"
-      className={classNames(
+      className={cn(
         "my-4 rounded bg-blue-200 p-3 dark:bg-blue-200-dark",
         className
       )}

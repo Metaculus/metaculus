@@ -2,6 +2,8 @@ from datetime import datetime
 
 import pytest  # noqa
 from freezegun import freeze_time
+from django.utils import timezone
+
 
 from posts.models import Post
 from projects.permissions import ObjectPermission
@@ -229,6 +231,7 @@ class TestPostPermissions:
 
         # Approve post
         p1.curation_status = Post.CurationStatus.APPROVED
+        p1.published_at = timezone.now()
         p1.save()
 
         # Post is visible for creator

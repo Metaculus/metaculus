@@ -2,7 +2,6 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect } from "react";
 
@@ -11,6 +10,7 @@ import MultiChipFilter from "@/components/popover_filter/multi_chip_filter";
 import ToggleChipFilter from "@/components/popover_filter/toggle_chip_filter";
 import Button from "@/components/ui/button";
 import { useBreakpoint } from "@/hooks/tailwind";
+import cn from "@/utils/cn";
 
 import { FilterOptionType, FilterReplaceInfo, FilterSection } from "./types";
 
@@ -41,7 +41,7 @@ const Panel: FC<PropsWithChildren<PanelProps>> = ({
 
   return (
     <PopoverPanel
-      className={classNames(
+      className={cn(
         "absolute right-0 top-10 z-[100] box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-gray-300 bg-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-gray-300-dark dark:bg-gray-0-dark",
         {
           "max-sm:fixed max-sm:top-0 max-sm:z-[1300] max-sm:h-dvh max-sm:w-screen max-sm:overflow-y-auto max-sm:px-5 max-sm:pb-0 max-sm:pt-5":
@@ -85,7 +85,7 @@ const PopoverFilter: FC<Props> = ({
         <>
           <PopoverButton
             as={Button}
-            className={classNames({
+            className={cn({
               "bg-gray-300 dark:bg-gray-300-dark": open,
             })}
             onClick={() =>

@@ -1,7 +1,8 @@
 import { faCaretUp, faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { FC } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   weeklyMovement: number;
@@ -19,9 +20,9 @@ const WeeklyMovement: FC<Props> = ({
   const isNegative = weeklyMovement < 0;
 
   return (
-    <div className={classNames("flex gap-1", className)}>
+    <div className={cn("flex gap-1", className)}>
       <span
-        className={classNames(
+        className={cn(
           "font-medium leading-4",
           isNegative
             ? "text-salmon-600 dark:text-salmon-600-dark"
@@ -29,7 +30,7 @@ const WeeklyMovement: FC<Props> = ({
         )}
       >
         <FontAwesomeIcon
-          className={classNames(
+          className={cn(
             isNegative
               ? "text-salmon-600 dark:text-salmon-600-dark"
               : "text-olive-700 dark:text-olive-700-dark",

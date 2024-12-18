@@ -31,7 +31,7 @@ export function parseUserMentions(
   markdown: string,
   mentionedUsers?: AuthorType[]
 ): string {
-  const userTagPattern = /@(\(([^)]+)\)|([\w.]+))/g;
+  const userTagPattern = /@(\(([^)]+)\)|([\w.+-_'~#%]+))/gu;
 
   function isInsideSquareBrackets(index: number) {
     let insideBrackets = false;
@@ -49,7 +49,10 @@ export function parseUserMentions(
         return match;
       }
 
-      const cleanedUsername = (group2 || group3).replace(/[@()]/g, "");
+      // remove only the leading "@" and clean parentheses around the username
+      let cleanedUsername = (group2 || group3).replace(/^@/, "");
+      cleanedUsername = cleanedUsername.replace(/^\(([^)]+)\)$/, "$1");
+
       switch (cleanedUsername.toLowerCase()) {
         case "moderators":
           return `[@${cleanedUsername}](/faq/#moderators-tag)`;

@@ -1,6 +1,5 @@
 "use client";
 import { MDXEditorMethods } from "@mdxeditor/editor";
-import classNames from "classnames";
 import * as React from "react";
 import { FC, useEffect, useMemo, useRef } from "react";
 import {
@@ -12,7 +11,9 @@ import {
 } from "react-hook-form";
 
 import MarkdownEditor from "@/components/markdown_editor";
+import DatetimeUtc from "@/components/ui/datetime_utc";
 import { ErrorResponse } from "@/types/fetch";
+import cn from "@/utils/cn";
 import { extractError } from "@/utils/errors";
 
 export type ErrorProps = {
@@ -81,7 +82,7 @@ export const FormErrorMessage: FC<{ errors: any; className?: string }> = ({
       {message && (
         <div>
           <span
-            className={classNames(
+            className={cn(
               "text-xs text-red-500 dark:text-red-500-dark",
               className
             )}
@@ -112,12 +113,48 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
+type DateInputProps<T extends FieldValues = FieldValues> = {
+  control: Control<T>;
+  name: Path<T>;
+  defaultValue?: PathValue<T, Path<T>>;
+  errors?: ErrorResponse;
+  className?: string;
+};
+export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
+  ({ control, name, errors, defaultValue, className }) => {
+    const { field } = useController({ control, name, defaultValue });
+
+    return (
+      <>
+        <DatetimeUtc
+          ref={field.ref}
+          className={className}
+          name={field.name}
+          defaultValue={field.value}
+          onChange={(value) => {
+            if (!value) {
+              field.onChange(null);
+              return;
+            }
+
+            field.onChange(value);
+          }}
+          onBlur={field.onBlur}
+          withFormValidation
+        />
+        {errors && <FormError name={name} errors={errors} />}
+      </>
+    );
+  }
+);
+DateInput.displayName = "DateInput";
+
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
   ({ className, name, children, errors, ...props }, ref) => {
     return (
       <>
         <textarea
-          className={classNames("block rounded-s border p-1", className)}
+          className={cn("block rounded-s border p-1", className)}
           ref={ref}
           name={name}
           {...props}

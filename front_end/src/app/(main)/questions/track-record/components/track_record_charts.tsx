@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -8,6 +7,7 @@ import {
   TrackRecordHistogramItem,
   TrackRecordScatterPlotItem,
 } from "@/types/track_record";
+import cn from "@/utils/cn";
 
 import CalibrationChart from "./charts/calibration_chart";
 import ScatterPlot from "./charts/scatter_plot";
@@ -31,7 +31,7 @@ const TrackRecordCharts: FC<Props> = ({
   const t = useTranslations();
 
   return (
-    <div className={classNames("flex flex-col rounded", className)}>
+    <div className={cn("flex flex-col rounded", className)}>
       {t("trackRecordShowStatistics")}
       <hr />
       <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
