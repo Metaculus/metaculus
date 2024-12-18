@@ -6,8 +6,8 @@ import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/
 import { extractCommunityForecast } from "@/components/onboarding/utils";
 import { OnboardingStep } from "@/types/onboarding";
 
-import Step, { QuestionParagraph } from "./step";
-import Verbal_forecast from "../verbal_forecast";
+import Step from "./step";
+import VerbalForecast from "../verbal_forecast";
 
 const Step1: React.FC<OnboardingStep> = ({
   onNext,
@@ -23,7 +23,11 @@ const Step1: React.FC<OnboardingStep> = ({
 
   const endOfModalRef = useRef<HTMLDivElement>(null);
   // Find related post for Step
-  const post = posts.find((obj) => obj.id === topic.questions[0])!;
+  const post = posts.find((obj) => obj.id === topic.questions[0]);
+
+  // Should not be the case
+  if (!post) return;
+
   const communityForecast = extractCommunityForecast(post);
 
   const handlePrediction = (type: "less" | "about" | "more") => {
@@ -88,7 +92,7 @@ const Step1: React.FC<OnboardingStep> = ({
         {communityForecast !== undefined && (
           <Step.QuestionParagraph>
             {t("onboardingStep2CommunityThinks")}{" "}
-            <Verbal_forecast forecast={communityForecast} />.{" "}
+            <VerbalForecast forecast={communityForecast} />.{" "}
             {t("onboardingStep2CommunityGives")}{" "}
             <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
               {(communityForecast * 100).toFixed(0)}%

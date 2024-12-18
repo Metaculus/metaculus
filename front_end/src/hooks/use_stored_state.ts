@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-type UseStoredStateReturn<T> = [
-  T,
-  (newValue: T | ((prev: T) => T)) => void,
-  () => void,
-];
-
-function useStoredState<T>(
-  key: string,
-  defaultValue: T
-): UseStoredStateReturn<T> {
+function useStoredState<T>(key: string, defaultValue: T) {
   const readStoredValue = useCallback((): T => {
     if (typeof window === "undefined") {
       return defaultValue; // SSR fallback
@@ -27,7 +18,7 @@ function useStoredState<T>(
     }
   }, [key, defaultValue]);
 
-  const [value, setValueState] = useState<T>(readStoredValue);
+  const [value, setValue] = useState<T>(readStoredValue);
 
   useEffect(() => {
     try {
@@ -40,14 +31,6 @@ function useStoredState<T>(
     }
   }, [key, value]);
 
-  const setValue = useCallback((newValue: T | ((prev: T) => T)) => {
-    setValueState((prev) =>
-      typeof newValue === "function"
-        ? (newValue as (prev: T) => T)(prev)
-        : newValue
-    );
-  }, []);
-
   const deleteValue = useCallback(() => {
     try {
       window.localStorage.removeItem(key);
@@ -57,10 +40,10 @@ function useStoredState<T>(
         error
       );
     }
-    setValueState(defaultValue);
+    setValue(defaultValue);
   }, [key, defaultValue]);
 
-  return [value, setValue, deleteValue];
+  return [value, setValue, deleteValue] as const;
 }
 
 export default useStoredState;

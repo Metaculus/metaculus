@@ -4,9 +4,9 @@ import React from "react";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import { OnboardingStep } from "@/types/onboarding";
 
-import Step, { QuestionParagraph } from "./step";
+import Step from "./step";
 import { extractCommunityForecast } from "../utils";
-import Verbal_forecast from "../verbal_forecast";
+import VerbalForecast from "../verbal_forecast";
 
 const Step2: React.FC<OnboardingStep> = ({
   onNext,
@@ -45,7 +45,7 @@ const Step2: React.FC<OnboardingStep> = ({
         {communityForecast !== undefined && (
           <Step.QuestionParagraph>
             {t("onboardingStep3CommunityThinks")}{" "}
-            <Verbal_forecast forecast={communityForecast} />.{" "}
+            <VerbalForecast forecast={communityForecast} />.{" "}
             {t("onboardingStep3CommunityGives")}{" "}
             <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
               {(communityForecast * 100).toFixed(0)}%
