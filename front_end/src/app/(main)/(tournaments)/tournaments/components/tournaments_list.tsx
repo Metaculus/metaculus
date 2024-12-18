@@ -78,6 +78,7 @@ const TournamentsList: FC<Props> = ({
               prizePool={item.prize_pool}
               closeDate={item.close_date}
               showCloseDate={item.type !== TournamentType.QuestionSeries}
+              isPrivate={item.default_permission === null}
             />
           ))}
         </div>

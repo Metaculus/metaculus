@@ -191,7 +191,8 @@ class TestPostCreate:
 
         post_id = response.data["id"]
         Post.objects.filter(pk=post_id).update(
-            curation_status=Post.CurationStatus.APPROVED
+            curation_status=Post.CurationStatus.APPROVED,
+            published_at=timezone.now(),
         )
 
         # Check is available for all users
