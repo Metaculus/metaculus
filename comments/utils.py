@@ -8,7 +8,7 @@ from comments.models import Comment
 from users.models import User
 
 # Regex pattern to find all @<username> mentions
-USERNAME_PATTERN = r"@\(?([\w.]+)\)?"
+USERNAME_PATTERN = r"@\(?([\w.+-_'~#%]+)\)?"
 
 
 def comment_extract_user_mentions(
@@ -18,7 +18,7 @@ def comment_extract_user_mentions(
     Extracts mentioned users query
     """
 
-    unique_mentions = {m.lower() for m in re.findall(USERNAME_PATTERN, comment.text)}
+    unique_mentions = {m.lower() for m in re.findall(USERNAME_PATTERN, comment.text, re.UNICODE)}
 
     if not unique_mentions:
         return User.objects.none(), {}

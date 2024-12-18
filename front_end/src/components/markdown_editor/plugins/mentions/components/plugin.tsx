@@ -36,6 +36,7 @@ const MentionsPlugin: FC<Props> = ({ initialMention, isStuff }) => {
       menuItemComponent={MenuItem}
       menuItemLimit={false}
       autoSpace={false}
+      allowSpaces={false}
     />
   );
 };

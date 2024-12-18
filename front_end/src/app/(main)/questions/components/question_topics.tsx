@@ -172,7 +172,18 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           />
           <TopicItem
             isActive={false}
-            emoji="🤖🔭"
+            emoji="🔭"
+            text="Bridgewater 2025"
+            href="/bridgewater/register/"
+            onClick={() =>
+              sendGAEvent("event", "sidebarClick", {
+                event_category: "Bridgewater 2025",
+              })
+            }
+          />
+          <TopicItem
+            isActive={false}
+            emoji="🤖"
             text="AI Benchmarking"
             href="/aib"
             onClick={() =>

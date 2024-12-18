@@ -42,6 +42,7 @@ const TournamentsBlock: FC = async () => {
             showCloseDate={tournament.type !== TournamentType.QuestionSeries}
             prizePool={tournament.prize_pool}
             withCount={false}
+            isPrivate={tournament.default_permission === null}
           />
         ))}
       </div>
