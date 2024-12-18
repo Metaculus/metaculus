@@ -936,5 +936,11 @@
   "youArePostingAPrivateComment": "Você está postando um comentário privado",
   "unread": "não lido",
   "contentTranslatedHeaderText": "Algum conteúdo nesta página foi traduzido automaticamente e pode estar incorreto.",
-  "showOriginalContent": "Mostrar original"
+  "showOriginalContent": "Mostrar original",
+  "discard": "Descartar",
+  "onboardingStep4AlmostDone": "Você está quase terminando este tutorial!",
+  "onboardingStep5WellDone": "Muito bem!",
+  "onboardingStep5SavePredictionsParagraph": "Gostaria de salvar as previsões que você fez?",
+  "onboardingYouPredicted": "Você previu",
+  "next": "Próximo"
 }

@@ -820,5 +820,11 @@
   "onboardingStep5Question": "Pregunta",
   "onboardingStep5ViewQuestionFeed": "Ver feed de preguntas",
   "youArePostingAPrivateComment": "Estás publicando un comentario privado",
-  "unread": "sin leer"
+  "unread": "sin leer",
+  "discard": "Descartar",
+  "onboardingStep4AlmostDone": "¡Casi has terminado con este tutorial!",
+  "onboardingStep5WellDone": "¡Bien hecho!",
+  "onboardingStep5SavePredictionsParagraph": "¿Te gustaría guardar las predicciones que has realizado?",
+  "onboardingYouPredicted": "Has predicho",
+  "next": "Siguiente"
 }

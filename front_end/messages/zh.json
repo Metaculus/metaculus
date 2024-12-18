@@ -798,5 +798,11 @@
   "onboardingStep5Question": "问题",
   "onboardingStep5ViewQuestionFeed": "查看问题流",
   "youArePostingAPrivateComment": "您正在發布私人評論",
-  "unread": "未读"
+  "unread": "未读",
+  "discard": "放弃",
+  "onboardingStep4AlmostDone": "您即将完成本教程！",
+  "onboardingStep5WellDone": "做得好！",
+  "onboardingStep5SavePredictionsParagraph": "您想保存所做的预测吗？",
+  "onboardingYouPredicted": "您预测了",
+  "next": "下一步"
 }
