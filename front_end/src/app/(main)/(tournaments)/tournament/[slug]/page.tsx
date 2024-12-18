@@ -99,8 +99,13 @@ export default async function TournamentSlug({ params }: Props) {
           </div>
         )}
         <div className="bg-gray-0 px-3 pb-4 dark:bg-gray-0-dark">
-          <div className="pb-2">
+          <div className="flex justify-between gap-1 pb-2">
             <h1>{tournament.name}</h1>
+            {tournament.default_permission === null && (
+              <strong className="mt-4 self-start rounded-sm bg-blue-300 px-1 text-sm uppercase text-gray-900 dark:bg-blue-300-dark dark:text-gray-900-dark">
+                {t("private")}
+              </strong>
+            )}
           </div>
           <div className="flex flex-row items-center justify-between">
             <div className="flex flex-wrap gap-9 py-4">
