@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
-import Onboarding_check from "@/components/onboarding/onboarding_check";
+import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
@@ -67,7 +67,7 @@ export default async function Home() {
 
   return (
     <main className="bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% pt-16 dark:from-blue-100-dark dark:to-blue-200-dark sm:pt-28">
-      <Onboarding_check />
+      <OnboardingCheck />
       <EmailConfirmation />
       <div className="mx-auto mb-24 flex w-full max-w-7xl flex-1 flex-col items-stretch px-4 text-blue-700 dark:text-blue-700-dark sm:px-8 md:px-12 lg:px-16">
         <div className="mb-6 flex flex-col items-center md:mb-12 lg:mb-14">
