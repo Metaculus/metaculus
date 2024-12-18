@@ -18,6 +18,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from misc.services.itn import get_post_similar_articles
+from misc.models import WhitelistUser
 from posts.models import (
     Post,
     Vote,
