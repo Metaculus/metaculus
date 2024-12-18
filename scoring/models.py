@@ -233,9 +233,16 @@ def name_and_slug_for_global_leaderboard_dates(
     """
     Generates a tag name for a global leaderboard tag given the start and end dates
     """
+    start_year = gl_dates[0].year
+    end_year = gl_dates[1].year
+    if end_year - start_year == 1:
+        return (
+            f"{start_year} {GLOBAL_LEADERBOARD_STRING}",
+            f"{start_year}_{GLOBAL_LEADERBOARD_SLUG}",
+        )
     return (
-        f"{gl_dates[0].year}-{gl_dates[1].year} {GLOBAL_LEADERBOARD_STRING}",
-        f"{gl_dates[0].year}-{gl_dates[1].year}_{GLOBAL_LEADERBOARD_SLUG}",
+        f"{start_year}-{end_year-1} {GLOBAL_LEADERBOARD_STRING}",
+        f"{start_year}_{end_year-1}_{GLOBAL_LEADERBOARD_SLUG}",
     )
 
 
