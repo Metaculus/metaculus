@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useState } from "react";
 
@@ -129,15 +128,6 @@ const ForecastMakerGroupControls: FC<Props> = ({
               copyToClipboard(
                 `${window.location.origin}${window.location.pathname}?${SLUG_POST_SUB_QUESTION_ID}=${question.id}`
               ).then();
-            },
-          },
-          {
-            id: "downloadCSV",
-            name: t("downloadCSV"),
-            onClick: () => {
-              window.open(
-                `/api/posts/${post!.id}/download-csv/?sub-question=${question.id}`
-              );
             },
           },
         ]}
