@@ -1,5 +1,4 @@
 import { sendGAEvent } from "@next/third-parties/google";
-import { useTranslations } from "next-intl";
 import React, { useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
@@ -8,6 +7,7 @@ import BaseModal from "@/components/base_modal";
 import OnboardingLoading from "@/components/onboarding/onboarding_loading";
 import StepsRouter from "@/components/onboarding/steps";
 import { ONBOARDING_TOPICS } from "@/components/onboarding/utils";
+import { useAuth } from "@/contexts/auth_context";
 import useStoredState from "@/hooks/use_stored_state";
 import { OnboardingStoredState, OnboardingTopic } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
@@ -36,10 +36,16 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [posts, setPosts] = useState<PostWithForecasts[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [topic, setTopic] = useState<OnboardingTopic | null>(null);
+  const { user } = useAuth();
 
   const [onboardingState, setOnboardingState, deleteOnboardingState] =
     useStoredState<OnboardingStoredState>(ONBOARDING_STATE_KEY, INITIAL_STATE);
   const { selectedTopicId, currentStep } = onboardingState;
+
+  useEffect(() => {
+    // Cleanup onboarding state after completion
+    if (user?.is_onboarding_complete) resetState();
+  }, [user?.is_onboarding_complete]);
 
   const scrollToTop = () => {
     if (modalContentRef.current) {
@@ -49,7 +55,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   // Topic change handler
   useEffect(() => {
-    if (selectedTopicId !== null && !posts.length) {
+    if (isOpen && selectedTopicId !== null && !posts.length) {
       const topicObject = ONBOARDING_TOPICS[selectedTopicId];
       setIsLoading(true);
       setTopic(topicObject);
@@ -75,7 +81,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       // Load posts
       void updatePosts();
     }
-  }, [selectedTopicId, posts.length]);
+  }, [isOpen, selectedTopicId, posts.length]);
 
   // Hide tutorial for 24h
   const handlePostponeTutorial = () => {
