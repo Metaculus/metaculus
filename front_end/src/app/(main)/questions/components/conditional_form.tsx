@@ -8,12 +8,12 @@ import { useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
+import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { useAuth } from "@/contexts/auth_context";
 import { Post, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
@@ -74,7 +74,6 @@ const ConditionalForm: React.FC<{
   const router = useRouter();
   const t = useTranslations();
   const { isLive, isDone } = getQuestionStatus(post);
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -183,11 +182,8 @@ const ConditionalForm: React.FC<{
           )(e);
         }}
       >
-        {post && user?.is_superuser && (
-          <a href={`/admin/posts/post/${post.id}/change`}>
-            {t("viewInDjangoAdmin")}
-          </a>
-        )}
+        <PostDjangoAdminLink post={post} />
+
         {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}

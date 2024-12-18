@@ -302,6 +302,13 @@ const Comment: FC<CommentProps> = ({
       onClick: () => copyToClipboard(comment.id.toString()),
     },
     {
+      hidden: !user?.is_staff,
+      id: "viewDjangoAdmin",
+      name: t("viewInDjangoAdmin"),
+      link: `/admin/comments/comment/${comment.id}/change/`,
+      openNewTab: true,
+    },
+    {
       hidden: !user?.id,
       id: "report",
       name: t("report"),

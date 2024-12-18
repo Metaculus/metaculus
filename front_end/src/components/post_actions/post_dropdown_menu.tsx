@@ -100,7 +100,7 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
       <DropdownMenu items={items}>
         <Button
           variant="secondary"
-          className="!rounded border-0"
+          className="rounded border-0"
           presentationType="icon"
         >
           <FontAwesomeIcon icon={faEllipsis} className="text-lg" />
