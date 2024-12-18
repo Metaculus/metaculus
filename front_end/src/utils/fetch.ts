@@ -71,6 +71,14 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     throw error;
   }
 
+  // Check the content type to determine how to process the response
+  const contentType = response.headers.get("content-type");
+
+  if (contentType && contentType.includes("text/csv")) {
+    // If the response is a CSV, return it as a Blob
+    return response.blob() as unknown as T;
+  }
+
   // Some endpoints might still have successful null response
   // So need to handle such cases
   const text = await response.text();

@@ -200,6 +200,7 @@ def _get_row_headers(question: Question) -> list[str]:
         "forecaster",
         "prediction_start_time",
         "prediction_end_time",
+        "number_of_forecasters",
     ]
     match question.type:
         case "binary":
@@ -253,6 +254,7 @@ def build_csv(
                     method,
                     forecast.start_time,
                     forecast.end_time,
+                    getattr(forecast, "forecaster_count", None),
                 ]
                 match question.type:
                     case "binary":

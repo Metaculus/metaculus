@@ -338,3 +338,11 @@ export async function changePostSubscriptions(
   }
   return response;
 }
+
+export async function getPostCSVData(postId: number) {
+  const blob = await PostsApi.getPostCSVData(postId);
+  const arrayBuffer = await blob.arrayBuffer();
+  const base64String = Buffer.from(arrayBuffer).toString("base64");
+
+  return `data:application/octet-stream;base64,${base64String}`;
+}
