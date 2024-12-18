@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FC } from "react";
 
 import NavUserButton from "@/components/auth";
+import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/cn";
 
@@ -26,6 +27,7 @@ const Header: FC = () => {
 
       <div className="z-10 flex h-full items-center justify-center gap-2 pr-4">
         {user && <NavUserButton btnClassName="text-[13px] h-full " />}
+        <ThemeToggle />
       </div>
     </header>
   );

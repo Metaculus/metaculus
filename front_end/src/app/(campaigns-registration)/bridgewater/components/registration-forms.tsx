@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useMemo, useRef, useState } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
@@ -19,16 +19,13 @@ import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
-import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
-
-import { CAMPAIGN_URL_BASE_PATH } from "../constants";
 
 export interface CampaignRegistrationProps {
   campaignKey: string;
   addToProject?: number;
+  className?: string;
 }
 
 export const tournamentRegistrationSchema = z
@@ -486,68 +483,5 @@ export const RegistrationForm: FC<
         </div>
       </form>
     </FormProvider>
-  );
-};
-
-export const RegistrationPage: FC<CampaignRegistrationProps> = ({
-  campaignKey,
-  addToProject,
-}) => {
-  const { user } = useAuth();
-  const { setCurrentModal } = useModal();
-  const router = useRouter();
-
-  if (!user) {
-    return (
-      <div>
-        <p className="text-center text-sm text-gray-800 dark:text-gray-800-dark">
-          First you need to{" "}
-          <Button
-            variant="link"
-            className="flex-inline"
-            onClick={() => setCurrentModal({ type: "signin" })}
-          >
-            Log in
-          </Button>
-        </p>{" "}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center">
-      <p className="text-xs text-gray-600 dark:text-gray-600-dark">
-        Logged in as <span className="font-extrabold">{user.username}</span>
-      </p>
-      <div className="mt-1 w-full max-w-[640px] px-8">
-        <RegistrationForm
-          onSuccess={() => router.refresh()}
-          campaignKey={campaignKey}
-          addToProject={addToProject}
-        />
-      </div>
-    </div>
-  );
-};
-
-export const RegistrationAndSignUpPage: FC<CampaignRegistrationProps> = ({
-  campaignKey,
-  addToProject,
-}) => {
-  const router = useRouter();
-  return (
-    <div className="flex flex-col items-center">
-      <div className="mt-1">
-        <RegistrationAndSignupForm
-          onSuccess={(email) =>
-            router.push(
-              `${CAMPAIGN_URL_BASE_PATH}/success/?email=${encodeURIComponent(email)}`
-            )
-          }
-          campaignKey={campaignKey}
-          addToProject={addToProject}
-        />
-      </div>
-    </div>
   );
 };

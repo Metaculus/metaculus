@@ -13,7 +13,7 @@ export default function ContestRules() {
   return (
     <>
       <Header />
-      <div className="mx-auto flex w-full justify-center pb-0 pt-10">
+      <div className="mx-auto mt-12 flex w-full justify-center pb-0 pt-10">
         {" "}
         <Button
           variant="secondary"
