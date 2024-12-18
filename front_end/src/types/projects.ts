@@ -59,6 +59,7 @@ export type TournamentPreview = Project & {
   is_ongoing: boolean;
   created_at: string;
   user_permission: ProjectPermissions;
+  default_permission: ProjectPermissions | null;
   score_type: string;
 };
 
