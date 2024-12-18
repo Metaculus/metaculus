@@ -807,5 +807,11 @@
   "onboardingStep5Question": "Otázku",
   "onboardingStep5ViewQuestionFeed": "Zobrazit feed otázek",
   "youArePostingAPrivateComment": "Píšete soukromý komentář",
-  "unread": "nepřečtené"
+  "unread": "nepřečtené",
+  "discard": "Zrušit",
+  "onboardingStep4AlmostDone": "S tímto tutoriálem jste skoro hotovi!",
+  "onboardingStep5WellDone": "Výborně!",
+  "onboardingStep5SavePredictionsParagraph": "Chcete uložit provedené předpovědi?",
+  "onboardingYouPredicted": "Předpověděli jste",
+  "next": "Další"
 }

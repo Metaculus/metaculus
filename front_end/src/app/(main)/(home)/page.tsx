@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
-import OnboardingCheck from "@/components/onboarding/OnboardingCheck";
+import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
