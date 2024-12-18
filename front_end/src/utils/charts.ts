@@ -31,6 +31,7 @@ import {
   AggregationQuestion,
   Aggregations,
   QuestionWithForecasts,
+  AggregateForecastHistory,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -1210,4 +1211,22 @@ export function getResolutionPoint({
     default:
       return null;
   }
+}
+
+export function getCursorForecast(
+  cursorTimestamp: number | null | undefined,
+  aggregation: AggregateForecastHistory
+): AggregateForecast | null {
+  let forecastIndex: number = -1;
+  if (!isNil(cursorTimestamp)) {
+    forecastIndex = aggregation.history.findIndex(
+      (f) =>
+        cursorTimestamp !== null &&
+        f.start_time <= cursorTimestamp &&
+        (f.end_time === null || f.end_time > cursorTimestamp)
+    );
+  } else if (cursorTimestamp === null && isNil(aggregation.latest?.end_time)) {
+    forecastIndex = aggregation.history.length - 1;
+  }
+  return forecastIndex === -1 ? null : aggregation.history[forecastIndex];
 }
