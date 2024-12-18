@@ -4,7 +4,6 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
-import { onboardingStyles } from "@/components/onboarding_old/OnboardingStyles";
 import { OnboardingStep } from "@/types/onboarding";
 
 import Step0 from "./step_0";
@@ -32,7 +31,10 @@ const StepsRouter: React.FC<OnboardingStep> = (props) => {
   return (
     <>
       {currentStep > 0 && currentStep < STEPS.length - 1 && (
-        <button onClick={onPrev} className={onboardingStyles.backButton}>
+        <button
+          onClick={onPrev}
+          className="absolute left-2 top-1 px-3 py-2 text-xl text-blue-800 no-underline opacity-25 hover:text-blue-900 hover:opacity-40 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark dark:disabled:text-blue-800-dark md:top-2.5"
+        >
           <FontAwesomeIcon icon={faArrowLeft} />
         </button>
       )}
