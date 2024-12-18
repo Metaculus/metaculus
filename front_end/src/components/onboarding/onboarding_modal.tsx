@@ -93,7 +93,9 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   // Mark tutorial as completed
   const handleCompleteTutorial = () => {
-    updateProfileAction({ is_onboarding_complete: true }).catch(logError);
+    updateProfileAction({ is_onboarding_complete: true }, false).catch(
+      logError
+    );
     resetState();
     onClose();
   };

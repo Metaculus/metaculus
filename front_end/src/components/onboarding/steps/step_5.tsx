@@ -4,8 +4,9 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { round } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
+import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { BINARY_FORECAST_PRECISION } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
@@ -41,6 +42,13 @@ const Step5: React.FC<OnboardingStep> = ({
     handleComplete();
     router.push(url);
   };
+
+  useEffect(() => {
+    // Mark tutorial as complete once user reaches this step
+    updateProfileAction({ is_onboarding_complete: true }, false).catch(
+      logError
+    );
+  }, []);
 
   const handleViewQuestionFeed = () => {
     sendGAEvent({

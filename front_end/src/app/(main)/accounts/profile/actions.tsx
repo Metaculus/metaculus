@@ -101,11 +101,12 @@ export async function updateProfileAction(
       | "hide_community_prediction"
       | "is_onboarding_complete"
     >
-  >
+  >,
+  revalidate = true
 ) {
   const response = await ProfileApi.updateProfile(profile);
 
-  revalidatePath("/");
+  revalidate && revalidatePath("/");
 
   return response;
 }
