@@ -74,8 +74,8 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   // Check the content type to determine how to process the response
   const contentType = response.headers.get("content-type");
 
-  if (contentType && contentType.includes("text/csv")) {
-    // If the response is a CSV, return it as a Blob
+  if (contentType && contentType.includes("application/zip")) {
+    // If the response is a ZIP, return it as a Blob
     return response.blob() as unknown as T;
   }
 

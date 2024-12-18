@@ -12,9 +12,22 @@ from comments.models import Comment
 from utils.the_math.formulas import unscaled_location_to_string_location
 
 
-def export_data_for_questions(questions: QuerySet[Question]):
+def export_data_for_questions(
+    questions: QuerySet[Question],
+    include_user_forecasts: bool = False,
+    include_comments: bool = False,
+    user_ids: list[int] | None = None,
+    aggregation_dict: dict[Question, dict[str, list[AggregateForecast]]] | None = None,
+) -> bytes:
     # generate a zip file with three csv files: question_data, forecast_data,
     # and comment_data
+    # If user_ids is give, aggregation_dict must also be provided as this method does
+    #     not recalculate aggregations
+    if user_ids and not aggregation_dict:
+        raise ValueError(
+            "If user_ids are provided, aggregation_dict must be "
+            "generated before this method"
+        )
 
     questions = questions.prefetch_related(
         "related_posts__post", "related_posts__post__default_project"
@@ -25,21 +38,41 @@ def export_data_for_questions(questions: QuerySet[Question]):
         return
 
     forecasts = (
-        Forecast.objects.filter(question_id__in=question_ids)
-        .select_related("question", "author")
-        .order_by("question_id", "start_time")
+        Forecast.objects.none()
+        if not include_user_forecasts
+        else (
+            Forecast.objects.filter(question_id__in=question_ids)
+            .select_related("question", "author")
+            .order_by("question_id", "start_time")
+        )
     )
-    aggregate_forecasts = (
-        AggregateForecast.objects.filter(question_id__in=question_ids)
-        .select_related("question")
-        .order_by("question_id", "start_time")
-    )
+    if user_ids:
+        forecasts = forecasts.filter(author_id__in=user_ids)
+    if aggregation_dict is not None:
+        aggregate_forecasts = []
+        for _, ad in aggregation_dict.items():
+            for _, afs in ad.items():
+                aggregate_forecasts.extend(afs)
+    else:
+        aggregate_forecasts = list(
+            AggregateForecast.objects.filter(question_id__in=question_ids)
+            .select_related("question")
+            .order_by("question_id", "start_time")
+        )
 
     comments = (
-        Comment.objects.filter(on_post_id__in=post_ids)
-        .prefetch_related("author")
-        .distinct()
-    ).order_by("on_post_id", "created_at")
+        Comment.objects.none()
+        if not include_comments
+        else (
+            Comment.objects.filter(
+                on_post_id__in=post_ids,
+                is_private=False,
+                is_soft_deleted=False,
+            )
+            .prefetch_related("author")
+            .distinct()
+        ).order_by("on_post_id", "created_at")
+    )
 
     # question_data csv file
     question_output = io.StringIO()
@@ -111,6 +144,7 @@ def export_data_for_questions(questions: QuerySet[Question]):
             "Forecaster Username",
             "Start Time",
             "End Time",
+            "Forecaster Count",
             "Probability Yes",
             "Probability Yes Per Category",
             "Continuous CDF",
@@ -124,6 +158,7 @@ def export_data_for_questions(questions: QuerySet[Question]):
                 forecast.author.username,
                 forecast.start_time,
                 forecast.end_time,
+                None,
                 forecast.probability_yes,
                 forecast.probability_yes_per_category,
                 forecast.continuous_cdf,
@@ -150,6 +185,7 @@ def export_data_for_questions(questions: QuerySet[Question]):
                 aggregate_forecast.method,
                 aggregate_forecast.start_time,
                 aggregate_forecast.end_time,
+                aggregate_forecast.forecaster_count,
                 probability_yes,
                 probability_yes_per_category,
                 continuous_cdf,
@@ -188,7 +224,8 @@ def export_data_for_questions(questions: QuerySet[Question]):
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
         zip_file.writestr("question_data.csv", question_output.getvalue())
         zip_file.writestr("forecast_data.csv", forecast_output.getvalue())
-        zip_file.writestr("comment_data.csv", comment_output.getvalue())
+        if include_comments:
+            zip_file.writestr("comment_data.csv", comment_output.getvalue())
 
     # return the zip file
     return zip_buffer.getvalue()
