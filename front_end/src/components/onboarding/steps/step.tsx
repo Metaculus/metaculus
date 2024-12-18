@@ -14,15 +14,13 @@ type StepProps = {
 const Step: React.FC<StepProps> & {
   Button: typeof Button;
   Paragraph: typeof Paragraph;
-  LargeParagraph: typeof LargeParagraph;
+  QuestionParagraph: typeof QuestionParagraph;
   Title: typeof Title;
   QuestionContainer: typeof QuestionContainer;
   QuestionTitle: typeof QuestionTitle;
 } = ({ children }) => {
   return (
-    <div className="-mt-4 flex max-w-3xl flex-row gap-3 p-0 md:flex-col md:p-5">
-      {children}
-    </div>
+    <div className="flex max-w-3xl flex-col gap-3 p-0 md:p-5">{children}</div>
   );
 };
 
@@ -38,21 +36,12 @@ export const Paragraph: FC<
   />
 );
 
-export const LargeParagraph: FC<
-  DetailedHTMLProps<HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>
-> = ({ className, ...props }) => (
-  <p
-    className={classNames("mb-4 text-base md:text-lg", className)}
-    {...props}
-  />
-);
-
 export const Title: FC<
   DetailedHTMLProps<HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>
 > = ({ className, ...props }) => (
   <p
     className={classNames(
-      "my-2 mt-5 text-xl font-semibold text-blue-800 dark:text-blue-200 md:mt-4 md:text-2xl",
+      "my-2 mt-8 text-xl font-semibold text-blue-800 dark:text-blue-200 md:mt-0 md:text-2xl",
       className
     )}
     {...props}
@@ -64,7 +53,7 @@ export const QuestionContainer: FC<
 > = ({ className, ...props }) => (
   <div
     className={classNames(
-      "rounded border border-blue-400 bg-blue-200 px-4 py-0 dark:border-blue-700/50 dark:bg-blue-800 md:px-6 md:py-1.5",
+      "flex flex-col gap-4 rounded border border-blue-400 bg-blue-200 px-4 py-4 dark:border-blue-700/50 dark:bg-blue-800 md:px-6",
       className
     )}
     {...props}
@@ -76,11 +65,17 @@ export const QuestionTitle: FC<
 > = ({ className, ...props }) => (
   <h3
     className={classNames(
-      "mt-4 text-lg font-medium text-blue-800 dark:text-blue-200 md:text-xl",
+      "m-0 text-lg font-medium text-blue-800 dark:text-blue-200 md:text-xl",
       className
     )}
     {...props}
   />
+);
+
+export const QuestionParagraph: FC<
+  DetailedHTMLProps<HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>
+> = ({ className, ...props }) => (
+  <p className={classNames("m-0 text-base md:text-lg", className)} {...props} />
 );
 
 const Button: FC<
@@ -111,6 +106,6 @@ Step.Paragraph = Paragraph;
 Step.Title = Title;
 Step.QuestionContainer = QuestionContainer;
 Step.QuestionTitle = QuestionTitle;
-Step.LargeParagraph = LargeParagraph;
+Step.QuestionParagraph = QuestionParagraph;
 
 export default Step;

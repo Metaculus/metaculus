@@ -12,8 +12,9 @@ import Step1 from "./step_1";
 import Step2 from "./step_2";
 import Step3 from "./step_3";
 import Step4 from "./step_4";
+import Step5 from "./step_5";
 
-const STEPS = [Step0, Step1, Step2, Step3, Step4];
+const STEPS = [Step0, Step1, Step2, Step3, Step4, Step5];
 
 const StepsRouter: React.FC<OnboardingStep> = (props) => {
   const t = useTranslations();
@@ -30,7 +31,7 @@ const StepsRouter: React.FC<OnboardingStep> = (props) => {
 
   return (
     <>
-      {currentStep > 0 && (
+      {currentStep > 0 && currentStep < STEPS.length - 1 && (
         <button onClick={onPrev} className={onboardingStyles.backButton}>
           <FontAwesomeIcon icon={faArrowLeft} />
         </button>

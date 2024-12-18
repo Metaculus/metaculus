@@ -4,7 +4,7 @@ import React from "react";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import { OnboardingStep } from "@/types/onboarding";
 
-import Step from "./step";
+import Step, { QuestionParagraph } from "./step";
 import { extractCommunityForecast } from "../utils";
 import Verbal_forecast from "../verbal_forecast";
 
@@ -21,6 +21,13 @@ const Step2: React.FC<OnboardingStep> = ({
   const communityForecast = extractCommunityForecast(post);
 
   const handleSubmit = () => {
+    if (typeof step3Prediction === "undefined") {
+      setOnboardingState((prev) => ({
+        ...prev,
+        step3Prediction: communityForecast * 100,
+      }));
+    }
+
     onNext();
   };
 
@@ -36,14 +43,14 @@ const Step2: React.FC<OnboardingStep> = ({
       <Step.QuestionContainer>
         <Step.QuestionTitle>{post.title}</Step.QuestionTitle>
         {communityForecast !== undefined && (
-          <Step.LargeParagraph>
+          <Step.QuestionParagraph>
             {t("onboardingStep3CommunityThinks")}{" "}
             <Verbal_forecast forecast={communityForecast} />.{" "}
             {t("onboardingStep3CommunityGives")}{" "}
             <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
               {(communityForecast * 100).toFixed(0)}%
             </span>
-          </Step.LargeParagraph>
+          </Step.QuestionParagraph>
         )}
       </Step.QuestionContainer>
       <p>{t("onboardingStep3WhatDoYouThink")}</p>
