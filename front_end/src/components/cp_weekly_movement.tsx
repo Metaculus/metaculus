@@ -1,10 +1,10 @@
-import classNames from "classnames";
 import { fromUnixTime, subWeeks } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
+import cn from "@/utils/cn";
 
 import WeeklyMovement from "./weekly_movement";
 
@@ -32,7 +32,7 @@ const CPWeeklyMovement: FC<Props> = ({ question, className }) => {
     <WeeklyMovement
       weeklyMovement={weeklyMovement}
       message={t("weeklyMovementChange", { value: message })}
-      className={classNames("text-xs", className)}
+      className={cn("text-xs", className)}
       iconClassName="text-sm"
     />
   );

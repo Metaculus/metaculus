@@ -1,9 +1,10 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
+
+import cn from "@/utils/cn";
 
 export type FocusAreaItem = {
   id: string;
@@ -19,7 +20,7 @@ const FocusAreaLink: FC<FocusAreaItem> = ({ title, text, Icon, href, id }) => {
   return (
     <Link
       href={href}
-      className={classNames(
+      className={cn(
         "flex flex-1 flex-col rounded-b-2xl border-t-[1rem] bg-gray-0 p-6 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark",
         {
           "border-t-[#47ac9ab2] dark:border-t-[#51b3a6]": id === "biosecurity",
@@ -30,7 +31,7 @@ const FocusAreaLink: FC<FocusAreaItem> = ({ title, text, Icon, href, id }) => {
       )}
     >
       <div
-        className={classNames(
+        className={cn(
           "my-2 flex size-16 items-center justify-center rounded-full text-black",
           {
             "bg-[#47ac9a80] dark:bg-[#51b3a6]": id === "biosecurity",

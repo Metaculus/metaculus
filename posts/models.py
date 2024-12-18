@@ -265,7 +265,10 @@ class PostQuerySet(models.QuerySet):
                         Q(default_project_id=site_main_project.pk)
                         & Q(curation_status=Post.CurationStatus.PENDING)
                     )
-                    | Q(curation_status=Post.CurationStatus.APPROVED)
+                    | Q(
+                        curation_status=Post.CurationStatus.APPROVED,
+                        published_at__lte=timezone.now(),
+                    )
                 )
             )
         )
@@ -599,7 +602,6 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             ]
             for conditional in related_conditionals:
                 conditional.post.update_pseudo_materialized_fields()
-                print("Updated conditional in post: ", conditional.post)
 
     def update_pseudo_materialized_fields(self):
         self.set_scheduled_close_time()

@@ -201,30 +201,39 @@ def update_group_of_questions(
     return group
 
 
-def clone_question(question: Question, title: str = None):
+def clone_question(question: Question, title: str = None, **kwargs) -> Question:
     """
     Avoid auto-cloning to prevent unexpected side effects
     """
 
     return create_question(
         title=title,
-        description=question.description,
-        type=question.type,
-        possibilities=question.possibilities,
-        resolution=question.resolution,
-        range_max=question.range_max,
-        range_min=question.range_min,
-        zero_point=question.zero_point,
-        open_upper_bound=question.open_upper_bound,
-        open_lower_bound=question.open_lower_bound,
-        options=question.options,
-        group_variable=question.group_variable,
-        resolution_set_time=question.resolution_set_time,
-        actual_resolve_time=question.actual_resolve_time,
-        scheduled_close_time=question.scheduled_close_time,
-        scheduled_resolve_time=question.scheduled_resolve_time,
-        open_time=question.open_time,
-        actual_close_time=question.actual_close_time,
+        description=kwargs.pop("description", question.description),
+        type=kwargs.pop("type", question.type),
+        possibilities=kwargs.pop("possibilities", question.possibilities),
+        resolution=kwargs.pop("resolution", question.resolution),
+        range_max=kwargs.pop("range_max", question.range_max),
+        range_min=kwargs.pop("range_min", question.range_min),
+        zero_point=kwargs.pop("zero_point", question.zero_point),
+        open_upper_bound=kwargs.pop("open_upper_bound", question.open_upper_bound),
+        open_lower_bound=kwargs.pop("open_lower_bound", question.open_lower_bound),
+        options=kwargs.pop("options", question.options),
+        group_variable=kwargs.pop("group_variable", question.group_variable),
+        resolution_set_time=kwargs.pop(
+            "resolution_set_time", question.resolution_set_time
+        ),
+        actual_resolve_time=kwargs.pop(
+            "actual_resolve_time", question.actual_resolve_time
+        ),
+        scheduled_close_time=kwargs.pop(
+            "scheduled_close_time", question.scheduled_close_time
+        ),
+        scheduled_resolve_time=kwargs.pop(
+            "scheduled_resolve_time", question.scheduled_resolve_time
+        ),
+        open_time=kwargs.pop("open_time", question.open_time),
+        actual_close_time=kwargs.pop("actual_close_time", question.actual_close_time),
+        **kwargs,
     )
 
 
@@ -237,16 +246,26 @@ def create_conditional(
     condition = Question.objects.get(pk=condition_id)
     condition_child = Question.objects.get(pk=condition_child_id)
 
+    question_yes = clone_question(
+        condition_child,
+        title=f"{condition.title} (Yes) → {condition_child.title}",
+        scheduled_close_time=min(
+            condition.scheduled_close_time, condition_child.scheduled_close_time
+        ),
+    )
+    question_no = clone_question(
+        condition_child,
+        title=f"{condition.title} (No) → {condition_child.title}",
+        scheduled_close_time=min(
+            condition.scheduled_close_time, condition_child.scheduled_close_time
+        ),
+    )
+
     obj = Conditional(
         condition_id=condition_id,
         condition_child_id=condition_child_id,
-        # Autogen questions
-        question_yes=clone_question(
-            condition_child, title=f"{condition.title} (Yes) → {condition_child.title}"
-        ),
-        question_no=clone_question(
-            condition_child, title=f"{condition.title} (No) → {condition_child.title}"
-        ),
+        question_yes=question_yes,
+        question_no=question_no,
     )
 
     obj.full_clean()
@@ -440,6 +459,9 @@ def resolve_question(
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
+    update_global_leaderboard_tags(post)
     post.save()
 
     # Calculate scores + notify forecasters
@@ -461,7 +483,11 @@ def unresolve_question(question: Question):
     question.resolution = None
     question.resolution_set_time = None
     question.actual_resolve_time = None
-    question.actual_close_time = None
+    question.actual_close_time = (
+        None
+        if timezone.now() < question.scheduled_close_time
+        else question.scheduled_close_time
+    )
     question.save()
 
     # Check if the question is part of any/all conditionals
@@ -512,6 +538,9 @@ def unresolve_question(question: Question):
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
+    update_global_leaderboard_tags(post)
     post.save()
 
     # TODO: set up unresolution notifications
@@ -554,6 +583,9 @@ def close_question(question: Question, actual_close_time: datetime | None = None
     # This method automatically sets post closure
     # Based on child questions
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
+    update_global_leaderboard_tags(post)
     post.save()
 
 

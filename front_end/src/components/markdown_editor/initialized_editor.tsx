@@ -28,7 +28,6 @@ import {
   toolbarPlugin,
   UndoRedo,
 } from "@mdxeditor/editor";
-import classNames from "classnames";
 import React, {
   FC,
   ForwardedRef,
@@ -54,6 +53,7 @@ import { mentionsPlugin } from "@/components/markdown_editor/plugins/mentions";
 import { useAuth } from "@/contexts/auth_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
+import cn from "@/utils/cn";
 import { logErrorWithScope } from "@/utils/errors";
 
 type EditorMode = "write" | "read";
@@ -208,14 +208,14 @@ const InitializedMarkdownEditor: FC<
   return (
     <MDXEditor
       ref={mergeRefs([editorRef, forwardedRef])}
-      className={classNames(
+      className={cn(
         "content markdown-editor",
         {
           "dark-theme": theme === "dark",
         },
         className
       )}
-      contentEditableClassName={classNames(
+      contentEditableClassName={cn(
         { "!p-0": mode === "read" },
         contentEditableClassName
       )}

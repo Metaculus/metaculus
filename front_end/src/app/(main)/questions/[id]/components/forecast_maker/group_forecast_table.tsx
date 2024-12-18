@@ -1,5 +1,4 @@
 import { Radio, RadioGroup } from "@headlessui/react";
-import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
 import {
   DetailedHTMLProps,
@@ -20,6 +19,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 import { formatResolution } from "@/utils/questions";
 
 export type ConditionalTableOption = {
@@ -93,7 +93,7 @@ const GroupForecastTable: FC<Props> = ({
             as="tr"
             key={option.id}
             value={option.id}
-            className={classNames("h-8 cursor-pointer", {
+            className={cn("h-8 cursor-pointer", {
               "bg-gray-100 dark:bg-gray-100-dark": option.id !== value,
               "bg-gray-0 dark:bg-gray-0-dark": option.id === value,
             })}
@@ -155,7 +155,7 @@ const GroupForecastTable: FC<Props> = ({
             as="tr"
             key={option.id}
             value={option.id}
-            className={classNames("h-8 cursor-pointer", {
+            className={cn("h-8 cursor-pointer", {
               "bg-gray-100 dark:bg-gray-100-dark": option.id !== value,
               "bg-gray-0 dark:bg-gray-0-dark": option.id === value,
             })}
@@ -163,7 +163,7 @@ const GroupForecastTable: FC<Props> = ({
             {({ checked, disabled }) => (
               <>
                 <Td
-                  className={classNames("border-r px-5", {
+                  className={cn("border-r px-5", {
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
@@ -176,7 +176,7 @@ const GroupForecastTable: FC<Props> = ({
                   </RadioButton>
                 </Td>
                 <Td
-                  className={classNames("border-r", {
+                  className={cn("border-r", {
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
@@ -213,7 +213,7 @@ const GroupForecastTable: FC<Props> = ({
                   />
                 </Td>
                 <Td
-                  className={classNames("border-r", {
+                  className={cn("border-r", {
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
@@ -250,7 +250,7 @@ const GroupForecastTable: FC<Props> = ({
                   />
                 </Td>
                 <Td
-                  className={classNames({
+                  className={cn({
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
@@ -310,7 +310,7 @@ const PredictionCell: FC<{
       {communityValue}
     </div>
     <div
-      className={classNames(
+      className={cn(
         "flex justify-center text-orange-800 dark:text-orange-800-dark",
         {
           "bg-orange-100 font-semibold dark:bg-orange-100-dark": isDirty,
@@ -331,7 +331,7 @@ const Th: FC<
   >
 > = ({ className, children, ...props }) => (
   <th
-    className={classNames(
+    className={cn(
       "border-gray-400 bg-gray-200 text-xs font-semibold dark:border-gray-400-dark dark:bg-gray-200-dark",
       className
     )}
@@ -350,7 +350,7 @@ const Td: FC<
   >
 > = ({ className, children, ...props }) => (
   <td
-    className={classNames(
+    className={cn(
       "border-gray-400 p-0 text-left text-xs dark:border-gray-400-dark",
       className
     )}

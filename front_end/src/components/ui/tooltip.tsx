@@ -14,8 +14,9 @@ import {
   useInteractions,
   useRole,
 } from "@floating-ui/react";
-import classNames from "classnames";
 import { FC, PropsWithChildren, ReactNode, useState } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   tooltipContent: ReactNode;
@@ -62,7 +63,7 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
   return (
     <>
       <div
-        className={classNames("inline-block", className)}
+        className={cn("inline-block", className)}
         tabIndex={0}
         ref={refs.setReference}
         {...getReferenceProps()}
@@ -72,7 +73,7 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
 
       {isOpen && (
         <div
-          className={classNames(
+          className={cn(
             "z-10 w-max max-w-[300px] rounded border bg-blue-900-dark p-2 text-sm open:block dark:border-gray-100 dark:bg-blue-900 dark:text-gray-100 sm:max-w-sm md:max-w-md",
             tooltipClassName
           )}

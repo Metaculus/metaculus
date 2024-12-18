@@ -7,8 +7,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
-import clsx from "clsx";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
@@ -24,6 +22,7 @@ import {
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
+import cn from "@/utils/cn";
 
 import TopicItem from "./topic_item";
 
@@ -75,8 +74,8 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
 
   return (
     <div
-      className={clsx(
-        "sticky z-40 mt-0 self-start sm:top-16 sm:mt-4 ",
+      className={cn(
+        "sticky z-40 mt-0 self-start sm:top-16 sm:mt-4",
         topPositionClasses
       )}
     >
@@ -84,14 +83,14 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
         {isMobileExpandable && (
           <>
             <div
-              className={classNames(
+              className={cn(
                 "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-800 sm:hidden",
                 isMobileExpanded && "hidden"
               )}
             />
 
             <div
-              className={classNames(
+              className={cn(
                 "absolute right-2 z-20 sm:hidden",
                 isMobileExpanded ? "bottom-3.5" : "top-3.5"
               )}
@@ -103,7 +102,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 presentationType="icon"
               >
                 <FontAwesomeIcon
-                  className={classNames({ "-rotate-180": !isMobileExpanded })}
+                  className={cn({ "-rotate-180": !isMobileExpanded })}
                   icon={faArrowUp}
                 />
               </Button>
@@ -112,7 +111,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
         )}
 
         <div
-          className={classNames(
+          className={cn(
             "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 md:w-64",
             isMobileExpanded ? "flex-wrap" : "pr-10"
           )}
@@ -173,7 +172,18 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           />
           <TopicItem
             isActive={false}
-            emoji="🤖🔭"
+            emoji="🔭"
+            text="Bridgewater 2025"
+            href="/bridgewater/register/"
+            onClick={() =>
+              sendGAEvent("event", "sidebarClick", {
+                event_category: "Bridgewater 2025",
+              })
+            }
+          />
+          <TopicItem
+            isActive={false}
+            emoji="🤖"
             text="AI Benchmarking"
             href="/aib"
             onClick={() =>

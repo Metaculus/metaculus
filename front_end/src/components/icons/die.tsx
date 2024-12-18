@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import cn from "@/utils/cn";
 
 const DIE_PATH =
   "M64 80c-8.8 0-16 7.2-16 16V416c0 8.8 7.2 16 16 16H384c8.8 " +
@@ -17,7 +17,7 @@ export function Die({ className, ...props }: React.SVGProps<SVGSVGElement>) {
       viewBox="0 0 450 510"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={clsx("size-[1em]", className)}
+      className={cn("size-[1em]", className)}
       {...props}
     >
       <path

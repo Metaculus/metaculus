@@ -1,5 +1,6 @@
-import classNames from "classnames";
 import { CSSProperties, FC, ReactNode } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   value: number | null;
@@ -21,7 +22,7 @@ const ProgressBar: FC<Props> = ({
   return (
     <div className="BinaryPredictionBar relative h-5">
       <div
-        className={classNames(
+        className={cn(
           "BinaryPredictionBar-inner absolute inset-x-0 top-0 h-5",
           disabled
             ? "bg-gray-300 text-gray-500 dark:bg-gray-300-dark dark:text-gray-500-dark"
@@ -34,7 +35,7 @@ const ProgressBar: FC<Props> = ({
       </div>
       {value !== null && !hideCP && (
         <div
-          className={classNames(
+          className={cn(
             "BinaryPredictionBar-outer absolute left-0 top-0 h-5 overflow-hidden text-gray-0 dark:text-gray-0-dark",
             disabled
               ? "bg-gray-500 dark:bg-gray-500-dark"

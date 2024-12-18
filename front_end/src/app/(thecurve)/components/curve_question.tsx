@@ -2,12 +2,12 @@
 
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/cn";
 
 import CurveQuestionDetails from "./question_details/curve_question_details";
 
@@ -49,7 +49,7 @@ const CurveQuestion: FC<Props> = ({
 
         <Button
           variant="text"
-          className={classNames(
+          className={cn(
             "sticky z-10 mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500",
             { invisible: isExpanded }
           )}

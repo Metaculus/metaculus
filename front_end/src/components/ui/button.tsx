@@ -1,7 +1,8 @@
 import { Button as HeadlessButton } from "@headlessui/react";
-import classNames from "classnames";
 import Link from "next/link";
 import { AnchorHTMLAttributes, ButtonHTMLAttributes, forwardRef } from "react";
+
+import cn from "@/utils/cn";
 
 type ButtonSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 export type ButtonVariant =
@@ -38,7 +39,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
         ref={ref}
         as={href ? Link : undefined}
         href={href ?? ""}
-        className={classNames(
+        className={cn(
           "inline-flex items-center justify-center rounded-full disabled:opacity-30",
           {
             xxs: "gap-0 rounded-sm border border-blue-400 text-sm font-normal leading-none disabled:opacity-50 dark:border-blue-600/50",

@@ -1,8 +1,8 @@
 import { Select as HeadlessSelect } from "@headlessui/react";
-import classNames from "classnames";
 import { ComponentPropsWithoutRef, forwardRef, Fragment, Ref } from "react";
 
 import { SelectOption } from "@/components/ui/listbox";
+import cn from "@/utils/cn";
 
 type Props<T> = {
   name?: string;
@@ -34,7 +34,7 @@ const InlineSelect = <T extends string>(
       </div>
       <HeadlessSelect as={Fragment}>
         <select
-          className={classNames(
+          className={cn(
             "rounded-none bg-transparent focus:outline-none",
             className
           )}

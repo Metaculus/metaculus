@@ -1,12 +1,12 @@
 "use client";
 
-import classNames from "classnames";
 import Link from "next/link";
 import { FC } from "react";
 
 import NavUserButton from "@/components/auth";
-import { useAuth } from "@/contexts/auth_context";
 import ThemeToggle from "@/components/theme_toggle";
+import { useAuth } from "@/contexts/auth_context";
+import cn from "@/utils/cn";
 
 const Header: FC = () => {
   const { user } = useAuth();
@@ -15,7 +15,7 @@ const Header: FC = () => {
       <div className="flex h-full items-center">
         <Link
           href="/"
-          className={classNames(
+          className={cn(
             "inline-flex h-full max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center text-center no-underline lg:bg-blue-800 lg:dark:bg-gray-0-dark"
           )}
         >

@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
@@ -11,6 +10,7 @@ import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem, UserChoiceItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
+import cn from "@/utils/cn";
 
 import ChoicesLegend from "./choices_legend";
 import ChoicesTooltip from "./choices_tooltip";
@@ -143,7 +143,7 @@ const MultiChoicesChartView: FC<Props> = ({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "flex w-full flex-col",
         isChartReady ? "opacity-100" : "opacity-0"
       )}

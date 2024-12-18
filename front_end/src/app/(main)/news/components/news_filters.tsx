@@ -2,7 +2,6 @@
 
 import { Tab, TabGroup, TabList } from "@headlessui/react";
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
 import { debounce } from "lodash";
 import { useTranslations } from "next-intl";
 import React, {
@@ -19,6 +18,7 @@ import { POST_NEWS_TYPE_FILTER } from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { NewsCategory } from "@/types/projects";
+import cn from "@/utils/cn";
 
 type Props = {
   categories: NewsCategory[];
@@ -105,7 +105,7 @@ const FilterTab: FC<PropsWithChildren> = ({ children }) => (
   <Tab as={Fragment}>
     {({ selected }) => (
       <button
-        className={classNames(
+        className={cn(
           "border-b p-2",
           selected
             ? "border-b-blue-900 text-blue-900 focus:outline-none dark:border-b-blue-900-dark dark:text-blue-900-dark"
