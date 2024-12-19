@@ -89,7 +89,7 @@ def update_global_leaderboard_tags(post: Post):
                     slug=tag_slug,
                     defaults={"name": tag_name, "order": 1},
                 )
-            except IntegrityError as e:
+            except IntegrityError:
                 # Unsure why this is happening, so for debugging purposes
                 # log error and continue - don't block the triggering event
                 # (e.g. question resolution)
