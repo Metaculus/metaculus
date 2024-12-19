@@ -76,16 +76,20 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
               <ChangeUsername />
             </span>
           )}
-          {currentUser?.is_staff && (
+          {(currentUser?.is_staff || currentUser?.is_superuser) && (
             <div className="mt-2 flex flex-col gap-3 text-sm md:flex-row">
               <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  href={`/admin/users/user/${profile.id}/change/`}
-                  target="_blank"
-                >
-                  {t("viewInDjangoAdmin")}
-                </Button>
-                {!profile.is_spam && <SoftDeleteButton id={id} />}
+                {currentUser.is_superuser && (
+                  <Button
+                    href={`/admin/users/user/${profile.id}/change/`}
+                    target="_blank"
+                  >
+                    {t("viewInDjangoAdmin")}
+                  </Button>
+                )}
+                {!profile.is_spam && currentUser.is_staff && (
+                  <SoftDeleteButton id={id} />
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <ProfileChip variant={profile.is_active ? "success" : "danger"}>
