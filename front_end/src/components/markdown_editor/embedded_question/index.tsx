@@ -1,4 +1,6 @@
 "use client";
+import "./styles.scss";
+
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -77,11 +79,7 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
             </Button>
           )}
 
-          <ForecastCard
-            post={postData}
-            className="bg-blue-200 hover:shadow-none dark:bg-blue-200-dark"
-            navigateToNewTab
-          />
+          <ForecastCard post={postData} navigateToNewTab />
         </div>
       ) : (
         <div className="mx-auto w-[400px] bg-blue-200 p-3 dark:bg-blue-200-dark">
