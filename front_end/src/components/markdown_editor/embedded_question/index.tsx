@@ -11,7 +11,6 @@ import {
   useLexicalNodeRemove,
   usePublisher,
 } from "@mdxeditor/editor";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, memo, useEffect, useState } from "react";
 
@@ -79,7 +78,12 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
             </Button>
           )}
 
-          <ForecastCard post={postData} navigateToNewTab />
+          <ForecastCard
+            post={postData}
+            withZoomPicker
+            navigateToNewTab
+            className="min-h-72"
+          />
         </div>
       ) : (
         <div className="mx-auto w-[400px] bg-blue-200 p-3 dark:bg-blue-200-dark">
