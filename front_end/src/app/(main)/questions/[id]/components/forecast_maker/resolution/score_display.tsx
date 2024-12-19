@@ -180,7 +180,6 @@ const ScoreDisplay: FC<Props> = ({ question }) => {
         </SectionToggle>
       )}
       {(!!user_scores || !!cp_scores) && (
-        // Learn more about scores here.
         <div className="mb-4 flex flex-col gap-3 text-base font-normal leading-5 opacity-90">
           <div>
             Learn more about scores{" "}
