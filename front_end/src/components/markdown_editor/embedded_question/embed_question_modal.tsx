@@ -46,13 +46,18 @@ const EmbedQuestionModal: FC<Props> = ({
     }
   }, [isOpen, debouncedSearch]);
 
-  const handlePostSelect = (id: number) => {
-    onQuestionSelect(id);
+  const closeModal = () => {
+    setSearch("");
     onClose();
   };
 
+  const handlePostSelect = (id: number) => {
+    onQuestionSelect(id);
+    closeModal();
+  };
+
   return (
-    <BaseModal label="Add Forecast" isOpen={isOpen} onClose={onClose}>
+    <BaseModal label="Add Forecast" isOpen={isOpen} onClose={closeModal}>
       <div className="max-h-full w-[520px] overflow-auto">
         <SearchInput
           value={search}

@@ -6,8 +6,8 @@ import { CSSProperties, FC, PropsWithChildren } from "react";
 
 import CPWeeklyMovement from "@/components/cp_weekly_movement";
 import { PostStatus } from "@/types/post";
-import { Question, QuestionWithForecasts } from "@/types/question";
-import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
+import { QuestionWithForecasts } from "@/types/question";
+import { getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
@@ -23,6 +23,7 @@ type Props = {
   unresovledChipStyle?: CSSProperties;
   showUserForecast?: boolean;
   hideCP?: boolean;
+  compact?: boolean;
 };
 
 const PredictionChip: FC<Props> = ({
@@ -35,6 +36,7 @@ const PredictionChip: FC<Props> = ({
   size,
   showUserForecast,
   hideCP,
+  compact,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
@@ -69,14 +71,20 @@ const PredictionChip: FC<Props> = ({
   };
 
   const latest = question.aggregations.recency_weighted.latest;
-  const communityPredictionDisplayValue =
-    latest && !latest.end_time
-      ? getDisplayValue({
-          value: latest.centers![0],
-          questionType: question.type,
-          scaling: question.scaling,
-        })
-      : null;
+  let communityPredictionDisplayValue: string | null = null;
+  if (prediction) {
+    communityPredictionDisplayValue = getDisplayValue({
+      value: prediction,
+      questionType: question.type,
+      scaling: question.scaling,
+    });
+  } else if (latest && !latest.end_time) {
+    communityPredictionDisplayValue = getDisplayValue({
+      value: latest.centers?.[0],
+      questionType: question.type,
+      scaling: question.scaling,
+    });
+  }
 
   switch (status) {
     case PostStatus.PENDING:
@@ -193,10 +201,12 @@ const PredictionChip: FC<Props> = ({
                 <FontAwesomeIcon icon={faUserGroup} size="xs" />
                 {communityPredictionDisplayValue}
               </Chip>
-              <CPWeeklyMovement
-                question={question}
-                className="my-1 max-w-[100px]"
-              />
+              {!compact && (
+                <CPWeeklyMovement
+                  question={question}
+                  className="my-1 max-w-[100px]"
+                />
+              )}
             </>
           )}
           {!!nr_forecasters && (

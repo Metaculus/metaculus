@@ -7,12 +7,12 @@ import NumericChart from "@/components/charts/numeric_chart";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
+import { ForecastAvailability, Question } from "@/types/question";
 import {
-  AggregateForecastHistory,
-  ForecastAvailability,
-  Question,
-} from "@/types/question";
-import { getUserPredictionDisplayValue, getDisplayValue } from "@/utils/charts";
+  getUserPredictionDisplayValue,
+  getDisplayValue,
+  getCursorForecast,
+} from "@/utils/charts";
 import cn from "@/utils/cn";
 
 import CursorDetailItem from "./numeric_cursor_item";
@@ -38,27 +38,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const aggregation = question.aggregations.recency_weighted;
 
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
-
-  const getCursorForecast = (
-    cursorTimestamp: number | null | undefined,
-    aggregation: AggregateForecastHistory
-  ) => {
-    let forecastIndex: number = -1;
-    if (!isNil(cursorTimestamp)) {
-      forecastIndex = aggregation.history.findIndex(
-        (f) =>
-          cursorTimestamp !== null &&
-          f.start_time <= cursorTimestamp &&
-          (f.end_time === null || f.end_time > cursorTimestamp)
-      );
-    } else if (
-      cursorTimestamp === null &&
-      isNil(aggregation.latest?.end_time)
-    ) {
-      forecastIndex = aggregation.history.length - 1;
-    }
-    return forecastIndex === -1 ? null : aggregation.history[forecastIndex];
-  };
 
   const cursorData = useMemo(() => {
     if (!!forecastAvailability?.cpRevealsOn) {
