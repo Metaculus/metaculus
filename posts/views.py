@@ -685,6 +685,7 @@ def download_csv(request, pk: int):
 def random_post_id(request):
     post = (
         Post.objects.filter_permission(user=request.user)
+        .filter_public()
         .filter_questions()
         .filter_active()
         .order_by("?")

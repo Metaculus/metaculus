@@ -16,6 +16,9 @@ const RandomButton: FC = () => {
     setIsLoading(true);
     try {
       const data = await fetchRandomPostId();
+      if (!data) {
+        return;
+      }
       router.push(`/questions/${data.id}/${data.post_slug}/`);
     } catch (error) {
       console.error("Error fetching random question:", error);
