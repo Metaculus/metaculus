@@ -181,27 +181,26 @@ def trigger_update_post_translations(
     post: Post, with_comments: bool = False, force: bool = False
 ):
     is_private = post.default_project.default_permission is None
-    if not force and is_private:
-        return
+    should_translate_if_dirty = not is_private or force
 
-    post.trigger_translation_if_dirty()
+    post.update_and_maybe_translate(should_translate_if_dirty)
     if post.question_id is not None:
-        post.question.trigger_translation_if_dirty()
+        post.question.update_and_maybe_translate(should_translate_if_dirty)
     if post.notebook_id is not None:
-        post.notebook.trigger_translation_if_dirty()
+        post.notebook.update_and_maybe_translate(should_translate_if_dirty)
     if post.group_of_questions_id is not None:
-        post.group_of_questions.trigger_translation_if_dirty()
+        post.group_of_questions.update_and_maybe_translate(should_translate_if_dirty)
     if post.conditional_id is not None:
-        post.conditional.condition.trigger_translation_if_dirty()
+        post.conditional.condition.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition, "post"):
-            post.conditional.condition.post.trigger_translation_if_dirty()
+            post.conditional.condition.post.update_and_maybe_translate(should_translate_if_dirty)
 
-        post.conditional.condition_child.trigger_translation_if_dirty()
+        post.conditional.condition_child.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition_child, "post"):
-            post.conditional.condition_child.post.trigger_translation_if_dirty()
+            post.conditional.condition_child.post.update_and_maybe_translate(should_translate_if_dirty)
 
-        post.conditional.question_yes.trigger_translation_if_dirty()
-        post.conditional.question_no.trigger_translation_if_dirty()
+        post.conditional.question_yes.update_and_maybe_translate(should_translate_if_dirty)
+        post.conditional.question_no.update_and_maybe_translate(should_translate_if_dirty)
 
     batch_size = 10
     comments_qs = get_comments_feed(qs=Comment.objects.filter(), post=post)
