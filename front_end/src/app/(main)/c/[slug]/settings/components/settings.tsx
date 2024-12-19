@@ -34,7 +34,7 @@ type VisibilityType = "public" | "unlisted" | "draft";
 
 const propsToVisibilityType = (
   community: CommunityUpdateParams
-): VisibilityType | undefined => {
+): VisibilityType => {
   if (community.default_permission) {
     if (community.visibility == ProjectVisibility.Unlisted) return "unlisted";
 
@@ -140,7 +140,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
           </Label>
           <ButtonGroup
             buttons={visibilityOptions}
-            value={propsToVisibilityType(visibilityType)!}
+            value={propsToVisibilityType(visibilityType)}
             onChange={(val) => {
               Object.entries(visibilityTypeToProps(community, val)).forEach(
                 ([key, value]) => {

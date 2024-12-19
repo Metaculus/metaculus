@@ -4,7 +4,7 @@ import { logError } from "@/utils/errors";
 
 import RefreshButton from "./refresh_button";
 
-const WithServerComponentErrorBoundary = <P extends {}>(
+const WithServerComponentErrorBoundary = <P extends Record<string, any>>(
   Component: FC<P>
 ): FC<P> => {
   const WrappedComponent = async (props: P) => {

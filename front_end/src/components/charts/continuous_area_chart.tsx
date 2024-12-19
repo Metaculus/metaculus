@@ -1,5 +1,5 @@
 "use client";
-import { merge } from "lodash";
+import { isNil, merge } from "lodash";
 import React, { FC, useMemo } from "react";
 import {
   Tuple,
@@ -269,7 +269,7 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           ))}
-          {resolutionPoint && (
+          {resolutionPoint && !isNil(resolutionPoint[0]) && (
             <VictoryScatter
               data={[
                 {
@@ -344,12 +344,12 @@ function generateNumericAreaGraph(data: {
     pmf.forEach((value, index) => {
       if (index === 0) {
         // add a point at the beginning to extend pmf to the edge
-        graph.push({ x: -1e-10, y: pmf[1] });
+        graph.push({ x: -1e-10, y: pmf[1] ?? null });
         return;
       }
       if (index === pmf.length - 1) {
         // add a point at the end to extend pmf to the edge
-        graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] });
+        graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] ?? null });
         return;
       }
       graph.push({ x: (index - 0.5) / (pmf.length - 2), y: value });

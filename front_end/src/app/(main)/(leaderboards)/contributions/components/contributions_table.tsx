@@ -62,21 +62,33 @@ const ContributionsTable: FC<Props> = ({
       [...contributions].sort((a, b) => {
         switch (sortingColumn) {
           case "score":
+            const aScore = a.score ?? 0;
+            const bScore = b.score ?? 0;
+
             return sortingDirection === "asc"
-              ? (a.score ?? 0) - (b.score ?? 0)
-              : (b.score ?? 0) - (a.score ?? 0);
+              ? aScore - bScore
+              : bScore - aScore;
           case "title":
+            const aTitle = a.question_title ?? "";
+            const bTitle = b.question_title ?? "";
+
             return sortingDirection === "asc"
-              ? a.question_title!.localeCompare(b.question_title!)
-              : b.question_title!.localeCompare(a.question_title!);
+              ? aTitle.localeCompare(bTitle)
+              : bTitle.localeCompare(aTitle);
           case "type":
+            const aType = a.question_type ?? "";
+            const bType = b.question_type ?? "";
+
             return sortingDirection === "asc"
-              ? a.question_type!.localeCompare(b.question_type!)
-              : b.question_type!.localeCompare(a.question_type!);
+              ? aType.localeCompare(bType)
+              : bType.localeCompare(aType);
           case "coverage":
+            const aCoverage = a.coverage ?? 0;
+            const bCoverage = b.coverage ?? 0;
+
             return sortingDirection === "asc"
-              ? (a.coverage ?? 0) - (b.coverage ?? 0)
-              : (b.coverage ?? 0) - (a.coverage ?? 0);
+              ? aCoverage - bCoverage
+              : bCoverage - aCoverage;
           default:
             return 0;
         }
@@ -101,7 +113,7 @@ const ContributionsTable: FC<Props> = ({
       : "-";
   };
 
-  const getQuestionTypeLabel = (type: QuestionType) => {
+  const getQuestionTypeLabel = (type: QuestionType | undefined) => {
     switch (type) {
       case QuestionType.Binary:
         return t("binary");
@@ -218,25 +230,23 @@ const ContributionsTable: FC<Props> = ({
               {["peer", "baseline"].includes(category) && (
                 <Link
                   className="no-underline"
-                  href={`/questions/${contribution.question_id!}`}
+                  href={`/questions/${contribution?.question_id}`}
                 >
-                  {contribution.question_title!}
+                  {contribution?.question_title}
                 </Link>
               )}
               {category === "questionWriting" && (
                 <Link
                   className="no-underline"
-                  /* TODO: change to actual comment url once BE support it */
-                  href={`/questions/${contribution.post_id!}`}
+                  href={`/questions/${contribution.post_id}`}
                 >
-                  {contribution.post_title!}
+                  {contribution.post_title}
                 </Link>
               )}
               {category === "comments" && (
                 <Link
                   className="block max-h-[15px] truncate no-underline"
-                  /* TODO: change to actual comment url once BE support it */
-                  href={`/questions/${contribution.post_id!}/#comment-${contribution.comment_id}`}
+                  href={`/questions/${contribution.post_id}/#comment-${contribution.comment_id}`}
                 >
                   <MarkdownEditor
                     mode="read"
@@ -250,7 +260,7 @@ const ContributionsTable: FC<Props> = ({
             </td>
             {isQuestionCategory && (
               <td className="flex items-center gap-2 self-stretch px-4 py-1.5 text-sm font-medium leading-4 text-blue-700 dark:text-blue-700-dark max-sm:hidden">
-                {getQuestionTypeLabel(contribution.question_type!)}
+                {getQuestionTypeLabel(contribution.question_type)}
               </td>
             )}
           </tr>
@@ -299,7 +309,7 @@ const getIsResolved = (contribution: Contribution) =>
   !isUnsuccessfullyResolved(contribution.question_resolution);
 
 const getCommentSummary = (markdown: string) => {
-  if ([">", "*"].includes(markdown[0])) {
+  if ([">", "*"].includes(markdown[0] ?? "")) {
     markdown = markdown.slice(1);
   }
   markdown = markdown.replace(/\<.*?\>/g, "");

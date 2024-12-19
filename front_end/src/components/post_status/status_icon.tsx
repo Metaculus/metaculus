@@ -53,14 +53,14 @@ const PostStatusIcon: FC<Props> = ({
     const nodes = svgRef.current.children;
 
     const shadedPath = nodes[0];
-    shadedPath.setAttribute("d", pathD);
+    shadedPath?.setAttribute("d", pathD);
 
     const outerCircle = nodes[1];
-    outerCircle.setAttribute("r", CLOCK_RADIUS.toString());
+    outerCircle?.setAttribute("r", CLOCK_RADIUS.toString());
 
     const radius = nodes[2];
-    radius.setAttribute("x2", x.toString());
-    radius.setAttribute("y2", y.toString());
+    radius?.setAttribute("x2", x.toString());
+    radius?.setAttribute("y2", y.toString());
   }, [scheduled_close_time, published_at, showClock]);
 
   const renderIcon = () => {

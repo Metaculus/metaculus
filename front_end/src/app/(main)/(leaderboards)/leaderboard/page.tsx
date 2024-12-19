@@ -36,6 +36,8 @@ export default function GlobalLeaderboards({
   // single category view
   if (categoryKeys.length === 1) {
     const categoryKey = categoryKeys[0];
+    if (!categoryKey) return null;
+
     const leaderboardType = mapCategoryKeyToLeaderboardType(
       categoryKey,
       Number(year) + Number(duration)

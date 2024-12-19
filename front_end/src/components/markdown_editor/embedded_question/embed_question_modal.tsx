@@ -120,7 +120,7 @@ const PredictionInfo: FC<{ question: QuestionWithNumericForecasts }> = ({
   question,
 }) => {
   const latest = question.aggregations.recency_weighted.latest;
-  const prediction = latest?.centers![0];
+  const prediction = latest?.centers?.[0];
 
   return (
     <div className="flex flex-row gap-2">

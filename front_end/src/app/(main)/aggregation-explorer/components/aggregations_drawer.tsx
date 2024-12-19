@@ -1,6 +1,7 @@
 "use client";
 
-import { isNil, uniq } from "lodash";
+import { uniq } from "lodash";
+import { isNil } from "lodash";
 import { FC, useCallback, useState, memo, useMemo } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
@@ -117,11 +118,12 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
 function getQuestionTooltipLabel(
   timestamps: number[],
   values: (number | null)[],
-  cursorTimestamp: number,
+  cursorTimestamp: number | null,
   qType: QuestionType,
   scaling: Scaling
 ) {
   const hasValue =
+    !isNil(cursorTimestamp) &&
     cursorTimestamp >= Math.min(...timestamps) &&
     cursorTimestamp <= Math.max(...timestamps);
   if (!hasValue) {
@@ -133,18 +135,15 @@ function getQuestionTooltipLabel(
     (timestamp) => timestamp === closestTimestamp
   );
 
-  if (values[cursorIndex] === undefined) {
+  const cursorValue = values[cursorIndex];
+  if (isNil(cursorValue)) {
     return "...";
   }
 
-  const val = values[cursorIndex];
-  if (isNil(val)) {
-    return "...";
-  }
   if (qType === QuestionType.Binary) {
-    return displayValue(val, qType);
+    return displayValue(cursorValue, qType);
   } else {
-    const scaledValue = scaleInternalLocation(val, {
+    const scaledValue = scaleInternalLocation(cursorValue, {
       range_min: scaling.range_min ?? 0,
       range_max: scaling.range_max ?? 1,
       zero_point: scaling.zero_point,

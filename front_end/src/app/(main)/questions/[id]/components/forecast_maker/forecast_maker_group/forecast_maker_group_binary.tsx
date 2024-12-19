@@ -177,6 +177,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       postId,
       questionsToSubmit.map((q) => {
         const forecastValue = round(
+          // okay to use non-null assertion here because we handle nullable state in questionsToSubmit calculation
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           q.forecast! / 100,
           BINARY_FORECAST_PRECISION
         );
@@ -329,7 +331,8 @@ function generateChoiceOptions(
     return {
       id: question.id,
       name: question.label,
-      communityForecast: latest && !latest.end_time ? latest.centers![0] : null,
+      communityForecast:
+        latest && !latest.end_time ? latest.centers?.[0] ?? null : null,
       forecast: prevForecastValuesMap[question.id] ?? null,
       resolution: question.resolution,
       isDirty: false,

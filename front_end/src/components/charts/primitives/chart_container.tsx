@@ -1,5 +1,6 @@
 "use client";
 import { Tab, TabGroup, TabList } from "@headlessui/react";
+import { isNil } from "lodash";
 import { forwardRef, Fragment, PropsWithChildren, useState } from "react";
 
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -21,7 +22,10 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
 
     const handleTabChange = (index: number) => {
       setSelectedIndex(index);
-      onZoomChange?.(tabOptions[index].value as TimelineChartZoomOption);
+      const tabOption = tabOptions[index];
+      if (onZoomChange && !isNil(tabOption)) {
+        onZoomChange(tabOption.value);
+      }
     };
 
     return (

@@ -15,9 +15,12 @@ const Step2: React.FC<OnboardingStep> = ({
   onboardingState: { step3Prediction },
   setOnboardingState,
 }) => {
-  // Find related post for Step
-  const post = posts.find((obj) => obj.id === topic.questions[1])!;
   const t = useTranslations();
+
+  // Find related post for Step
+  const post = posts.find((obj) => obj.id === topic.questions[1]);
+  // Should not be the case
+  if (!post) return null;
   const communityForecast = extractCommunityForecast(post);
 
   const handleSubmit = () => {

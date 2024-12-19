@@ -172,7 +172,7 @@ const getStateByItems = (
     }
 
     const aggregation = questionData.aggregations.recency_weighted;
-    const prediction = aggregation.latest?.centers![0];
+    const prediction = aggregation?.latest?.centers?.[0];
     if (!prediction) {
       return area;
     }
@@ -214,9 +214,9 @@ function getDemocratRepublicanPrediction({
   }
 
   const rawDemocratPrediction =
-    demQuestion.aggregations.recency_weighted.latest?.centers![0];
+    demQuestion?.aggregations?.recency_weighted?.latest?.centers?.[0];
   const rawRepublicanPrediction =
-    repQuestion.aggregations.recency_weighted.latest?.centers![0];
+    repQuestion?.aggregations?.recency_weighted?.latest?.centers?.[0];
 
   return {
     democratPrediction: rawDemocratPrediction

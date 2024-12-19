@@ -1,6 +1,7 @@
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
@@ -38,7 +39,7 @@ const StepsRouter: React.FC<OnboardingStep> = (props) => {
           <FontAwesomeIcon icon={faArrowLeft} />
         </button>
       )}
-      <CurrentStep {...props} />
+      {!isNil(CurrentStep) && <CurrentStep {...props} />}
       {currentStep < STEPS.length - 1 && (
         <>
           <div className="mt-4 flex w-full justify-center gap-3">

@@ -14,19 +14,20 @@ const AwaitedCommunitiesFeed: FC = async () => {
       limit: POSTS_PER_PAGE,
       is_subscribed: false,
     }),
-  ];
-
-  if (user) {
-    requests.push(
-      ProjectsApi.getCommunities({
-        is_subscribed: true,
-      })
-    );
-  }
+    ...(user
+      ? [
+          ProjectsApi.getCommunities({
+            is_subscribed: true,
+          }),
+        ]
+      : []),
+  ] as const;
 
   const [{ results: initialCommunities }, followedCommunitiesResponse] =
     await Promise.all(requests);
-  const followedCommunities = user ? followedCommunitiesResponse.results : [];
+  const followedCommunities = user
+    ? followedCommunitiesResponse?.results ?? []
+    : [];
   return (
     <PaginatedCommunitiesFeed
       followedCommunities={user ? followedCommunities : []}

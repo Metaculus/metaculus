@@ -110,8 +110,8 @@ const NumericQuestionInput: React.FC<{
     },
     type: questionType,
     scaling: {
-      range_max: max!,
-      range_min: min!,
+      range_max: max as number,
+      range_min: min as number,
       zero_point: zeroPoint,
     },
     open_lower_bound: openLowerBound,
@@ -186,8 +186,8 @@ const NumericQuestionInput: React.FC<{
       open_upper_bound: openUpperBound,
       open_lower_bound: openLowerBound,
       scaling: {
-        range_max: max!,
-        range_min: min!,
+        range_max: max as number,
+        range_min: min as number,
         zero_point: zeroPoint,
       },
     }));

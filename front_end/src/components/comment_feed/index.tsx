@@ -67,11 +67,15 @@ function parseCommentsArray(
 
   beComments.forEach((comment) => {
     if (comment.parent_id === null) {
-      rootComments.push(commentMap.get(comment.id)!);
+      const commentData = commentMap.get(comment.id);
+      if (commentData) {
+        rootComments.push(commentData);
+      }
     } else {
       const parentComment = commentMap.get(comment.parent_id);
-      if (parentComment) {
-        parentComment.children.push(commentMap.get(comment.id)!);
+      const childComment = commentMap.get(comment.id);
+      if (parentComment && childComment) {
+        parentComment.children.push(childComment);
       }
     }
   });
@@ -261,7 +265,7 @@ const CommentFeed: FC<Props> = ({
 
   // Handling filters change
   useEffect(() => {
-    let finalFilters = {
+    const finalFilters = {
       ...feedFilters,
       offset,
     };
