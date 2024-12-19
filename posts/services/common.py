@@ -82,20 +82,11 @@ def update_global_leaderboard_tags(post: Post):
         dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
         if dates:
             tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
-            try:
-                tag, _ = Project.objects.get_or_create(
+            tag = Project.objects.filter(type=Project.ProjectTypes.TAG, slug=tag_slug).first()
+            if tag is None:
+                tag = Project.objects.create(
                     type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug, order=1
                 )
-            except Exception as e:
-                # Unsure why this is happening, so for debugging purposes
-                # log error and continue - don't block the triggering event
-                # (e.g. question resolution)
-                logger.error(
-                    f"Error creating/getting global leaderboard tag for post {post.id}:"
-                    f" {e}.\nContext: tag_name: {tag_name}, tag_slug: {tag_slug}, "
-                    f"question: {question.id}, dates: {dates}"
-                )
-                return
             to_set_tags.append(tag)
 
     # Update post's global leaderboard tags
