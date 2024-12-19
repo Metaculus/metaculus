@@ -6,10 +6,10 @@ import WithServerComponentErrorBoundary from "@/components/server_component_erro
 import InfoToggle from "@/components/ui/info_toggle";
 import SectionToggle from "@/components/ui/section_toggle";
 import LeaderboardApi from "@/services/leaderboard";
-import { Tournament } from "@/types/projects";
+import { Project } from "@/types/projects";
 
 type Props = {
-  project: Tournament;
+  project: Project;
   userId: number;
 };
 
@@ -26,6 +26,14 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
   );
 
   const leaderboard = contributionsDetails.leaderboard;
+
+  if (
+    contributionsDetails.contributions.every(
+      (contribution) => !contribution.coverage
+    )
+  ) {
+    return null;
+  }
 
   return (
     <SectionToggle title={t("myScore")} variant="gold">
