@@ -104,7 +104,7 @@ async def ask_gpt_to_check_profile_for_spam(
             system_prompt=system_prompt,
             prompt=prompt,
             temperature=0,
-            timeout=3
+            timeout=7
         )
         is_spam = "TRUE" in gpt_response
     except Exception as e:
@@ -118,14 +118,16 @@ async def ask_gpt_to_check_profile_for_spam(
 
 def send_deactivation_email(user_email: str) -> None:
     send_email_async.send(
-        subject="Your Metaculus Account Has Been Deactivated",
+        subject="Metaculus Account Deactivation - Please note our links don't help SEO",
         message=textwrap.dedent(
             """Your Metaculus account has been deactivated by an automated system. Possible reasons could include
             - Suspicious activity
             - Spam/Ad/Inappropriate content in comments
             - Spam/Ad/Inappropriate content in profile bio
 
-            If you believe this was done in error, please contact support@metaculus.com"""
+            Just for reference, we set our links so that Google doesn't pick them up for SEO. Adding spam to the site does nothing to help your rankings.
+
+            If you believe you were marked as spam in error, please contact support@metaculus.com"""
         ),
         from_email=settings.EMAIL_HOST_USER,
         recipient_list=[user_email],
