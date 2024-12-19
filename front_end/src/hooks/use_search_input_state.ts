@@ -2,7 +2,7 @@ import { isNil } from "lodash";
 import { useEffect, useState } from "react";
 
 import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
-import useDebounce from "@/hooks/use_debounce";
+import { useDebouncedValue } from "@/hooks/use_debounce";
 import usePrevious from "@/hooks/use_previous";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
@@ -27,7 +27,7 @@ const useSearchInputState = (paramName: string, config?: Config) => {
     const search = params.get(paramName);
     return search ? decodeURIComponent(search) : "";
   });
-  const debouncedSearch = useDebounce(search, debounceTime);
+  const debouncedSearch = useDebouncedValue(search, debounceTime);
   const prevDebouncedSearch = usePrevious(debouncedSearch);
 
   useEffect(() => {
