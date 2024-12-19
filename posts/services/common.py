@@ -93,12 +93,12 @@ def update_global_leaderboard_tags(post: Post):
                 # Unsure why this is happening, so for debugging purposes
                 # log error and continue - don't block the triggering event
                 # (e.g. question resolution)
-                logger.error(
-                    f"Error creating/getting global leaderboard tag for post {post.id}:"
-                    f" {e}.\nContext: tag_name: {tag_name}, tag_slug: {tag_slug}, "
+                logger.exception(
+                    f"Error creating/getting global leaderboard tag for post {post.id}."
+                    f" Context: tag_name: {tag_name}, tag_slug: {tag_slug}, "
                     f"question: {question.id}, dates: {dates}"
                 )
-                return
+                tag = Project.objects.get(type=Project.ProjectTypes.TAG, slug=tag_slug)
             to_set_tags.append(tag)
 
     # Update post's global leaderboard tags
