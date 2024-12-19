@@ -55,7 +55,7 @@ const ChoiceOption: FC<Props> = ({
       {isNil(resolution) ? (
         <div className="resize-label py-0.5 pr-1.5 text-right text-sm font-bold leading-4 text-gray-900 dark:text-gray-900-dark">
           {getChoiceOptionValue(
-            values[values.length - 1],
+            values[values.length - 1] ?? null,
             questionType,
             scaling
           )}

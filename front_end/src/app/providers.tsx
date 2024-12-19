@@ -14,18 +14,20 @@ import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_
 
 export function CSPostHogProvider({ children }: { children: any }) {
   useEffect(() => {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_BASE_URL,
-      ui_host: process.env.NEXT_PUBLIC_POSTHOG_BASE_URL,
-      // set to 'always' to create profiles for anonymous users as well
-      person_profiles: "identified_only",
-      // Disable automatic pageview capture, as we capture manually
-      capture_pageview: false,
-      persistence:
-        getAnalyticsCookieConsentGiven() === "yes"
-          ? "localStorage+cookie"
-          : "memory",
-    });
+    if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+      posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+        api_host: process.env.NEXT_PUBLIC_POSTHOG_BASE_URL,
+        ui_host: process.env.NEXT_PUBLIC_POSTHOG_BASE_URL,
+        // set to 'always' to create profiles for anonymous users as well
+        person_profiles: "identified_only",
+        // Disable automatic pageview capture, as we capture manually
+        capture_pageview: false,
+        persistence:
+          getAnalyticsCookieConsentGiven() === "yes"
+            ? "localStorage+cookie"
+            : "memory",
+      });
+    }
   }, []);
 
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>;

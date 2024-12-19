@@ -1,4 +1,5 @@
 "use client";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useState } from "react";
 
@@ -89,13 +90,15 @@ const ForecastMakerGroupControls: FC<Props> = ({
           ...(canWithdrawForecast(
             question as QuestionWithForecasts,
             permission
-          ) && question.withdraw_permitted // Feature Flag: prediction-withdrawal
+          ) &&
+          question.withdraw_permitted && // Feature Flag: prediction-withdrawal
+          !isNil(post)
             ? [
                 {
                   id: "withdraw",
                   name: t("withdrawForecast"),
                   onClick: () =>
-                    withdrawForecasts(post!.id, [{ question: question.id }]),
+                    withdrawForecasts(post.id, [{ question: question.id }]),
                 },
               ]
             : []),

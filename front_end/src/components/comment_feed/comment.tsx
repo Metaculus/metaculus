@@ -472,10 +472,15 @@ const Comment: FC<CommentProps> = ({
           <>
             <Button
               onClick={async () => {
+                if (!user) {
+                  // usually, don't expect this, as action is available only for logged-in users
+                  return;
+                }
+
                 const response = await editComment({
                   id: comment.id,
                   text: commentMarkdown,
-                  author: user!.id,
+                  author: user.id,
                 });
                 if (response && "errors" in response) {
                   console.error(t("errorDeletingComment"), response.errors);

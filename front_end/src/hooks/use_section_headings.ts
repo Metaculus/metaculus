@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useEffect, useState } from "react";
 
 const useSectionHeadings = (sectionId: string) => {
@@ -20,7 +21,8 @@ const useSectionHeadings = (sectionId: string) => {
         const id = generateSlug(heading.textContent ?? "");
         headingCountMap[id] = (headingCountMap[id] || 0) + 1;
 
-        if (headingCountMap[id] > 1) {
+        const headingCount = headingCountMap[id];
+        if (!isNil(headingCount) && headingCount > 1) {
           heading.id = `${id}-${headingCountMap[id]}`;
         } else {
           heading.id = id;

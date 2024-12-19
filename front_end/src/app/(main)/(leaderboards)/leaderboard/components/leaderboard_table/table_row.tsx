@@ -11,9 +11,7 @@ import cn from "@/utils/cn";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import MedalIcon from "../../../components/medal_icon";
-import { CONTRIBUTIONS_USER_FILTER } from "../../../contributions/search_params";
 import {
-  SCORING_CATEGORY_FILTER,
   SCORING_DURATION_FILTER,
   SCORING_YEAR_FILTER,
 } from "../../../search_params";
@@ -137,7 +135,7 @@ export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
 
   const userHref = userEntry.medal
     ? "/medals"
-    : `/contributions/${category}/${userEntry.user!.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
+    : `/contributions/${category}/${userEntry.user?.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 
   return (
     <LeaderboardRow

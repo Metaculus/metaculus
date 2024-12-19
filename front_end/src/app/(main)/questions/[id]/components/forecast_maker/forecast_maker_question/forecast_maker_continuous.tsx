@@ -16,6 +16,7 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import { getCdfBounds } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -84,8 +85,8 @@ const ForecastMakerContinuous: FC<Props> = ({
       getNumericForecastDataset(
         forecast,
         weights,
-        question.open_lower_bound!,
-        question.open_upper_bound!
+        question.open_lower_bound,
+        question.open_upper_bound
       ),
     [forecast, question.open_lower_bound, question.open_upper_bound, weights]
   );
@@ -225,30 +226,13 @@ const ForecastMakerContinuous: FC<Props> = ({
       )}
       <NumericForecastTable
         question={question}
-        userBounds={{
-          belowLower: userCdf[0],
-          aboveUpper: 1 - userCdf[userCdf.length - 1],
-        }}
+        userBounds={getCdfBounds(userCdf)}
         userQuartiles={userCdf ? computeQuartilesFromCDF(userCdf) : undefined}
-        userPreviousBounds={
-          userPreviousCdf
-            ? {
-                belowLower: userPreviousCdf[0],
-                aboveUpper: 1 - userPreviousCdf[userPreviousCdf.length - 1],
-              }
-            : undefined
-        }
+        userPreviousBounds={getCdfBounds(userPreviousCdf)}
         userPreviousQuartiles={
           userPreviousCdf ? computeQuartilesFromCDF(userPreviousCdf) : undefined
         }
-        communityBounds={
-          communityCdf
-            ? {
-                belowLower: communityCdf[0],
-                aboveUpper: 1 - communityCdf[communityCdf.length - 1],
-              }
-            : undefined
-        }
+        communityBounds={getCdfBounds(communityCdf)}
         communityQuartiles={
           communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
         }

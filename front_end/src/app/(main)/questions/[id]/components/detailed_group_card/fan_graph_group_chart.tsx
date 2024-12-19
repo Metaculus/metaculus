@@ -36,7 +36,7 @@ const FanGraphGroupChart: FC<Props> = ({
   return (
     <FanChart
       options={
-        questions[0].type === QuestionType.Binary
+        questions[0]?.type === QuestionType.Binary
           ? getFanOptionsFromBinaryGroup(questions)
           : getFanOptionsFromContinuousGroup(questions)
       }
