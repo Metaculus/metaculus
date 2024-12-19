@@ -107,7 +107,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
             href={`/c/${community.slug}/settings`}
             className="!border-blue-500 !text-blue-700 dark:!border-blue-500-dark dark:!text-blue-700-dark"
           >
-            Manage Community
+            {t("manageCommunityButton")}
           </Button>
         ) : (
           <CommunityFollow

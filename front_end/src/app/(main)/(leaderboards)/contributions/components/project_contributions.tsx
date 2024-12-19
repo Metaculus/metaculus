@@ -6,10 +6,10 @@ import WithServerComponentErrorBoundary from "@/components/server_component_erro
 import InfoToggle from "@/components/ui/info_toggle";
 import SectionToggle from "@/components/ui/section_toggle";
 import LeaderboardApi from "@/services/leaderboard";
-import { Tournament } from "@/types/projects";
+import { Project } from "@/types/projects";
 
 type Props = {
-  project: Tournament;
+  project: Project;
   userId: number;
 };
 
