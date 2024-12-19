@@ -27,6 +27,14 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
 
   const leaderboard = contributionsDetails.leaderboard;
 
+  if (
+    contributionsDetails.contributions.every(
+      (contribution) => !contribution.coverage
+    )
+  ) {
+    return null;
+  }
+
   return (
     <SectionToggle title={t("myScore")} variant="gold">
       <div className="rounded border border-gray-300 bg-blue-100 dark:border-gray-300-dark dark:bg-blue-100-dark">
