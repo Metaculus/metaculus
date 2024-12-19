@@ -3,6 +3,7 @@ import {
   faArrowsUpToLine,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -74,7 +75,7 @@ const ScoreDisplay: FC<Props> = ({ question }) => {
           </div>
         )}
       </div>
-      {checkAdditionalScores(user_scores) && (
+      {checkAdditionalScores(user_scores, cp_scores) && (
         <SectionToggle title="Additional Scores" defaultOpen={false}>
           <div className="my-4 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
             {user_scores?.spot_baseline_score != null && (
@@ -178,20 +179,44 @@ const ScoreDisplay: FC<Props> = ({ question }) => {
           </div>
         </SectionToggle>
       )}
+      {(!!user_scores || !!cp_scores) && (
+        // Learn more about scores here.
+        <div className="mb-4 flex flex-col gap-3 text-base font-normal leading-5 opacity-90">
+          <div>
+            Learn more about scores{" "}
+            <Link
+              href="/help/scores-faq/"
+              className="text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
+            >
+              here
+            </Link>
+            .
+          </div>
+        </div>
+      )}
     </>
   );
 };
 
-function checkAdditionalScores(user_scores: ScoreData | undefined) {
-  if (!user_scores) return false;
+function checkAdditionalScores(
+  user_scores: ScoreData | undefined,
+  cp_scores: ScoreData | undefined
+) {
+  if (!user_scores && !cp_scores) return false;
   return [
-    user_scores.spot_baseline_score,
-    user_scores.spot_peer_score,
-    user_scores.relative_legacy_score,
-    user_scores.relative_legacy_arvhived_score,
-    user_scores.coverage,
-    user_scores.weighted_coverage,
-  ].some((score) => score != null);
+    user_scores?.spot_baseline_score,
+    user_scores?.spot_peer_score,
+    user_scores?.relative_legacy_score,
+    user_scores?.relative_legacy_arvhived_score,
+    user_scores?.coverage,
+    user_scores?.weighted_coverage,
+    cp_scores?.spot_baseline_score,
+    cp_scores?.spot_peer_score,
+    cp_scores?.relative_legacy_score,
+    cp_scores?.relative_legacy_arvhived_score,
+    cp_scores?.coverage,
+    cp_scores?.weighted_coverage,
+  ].some((score) => !!score);
 }
 
 export default ScoreDisplay;
