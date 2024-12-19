@@ -116,7 +116,9 @@ function dynamicRound(
   const split = stepString.split(".");
   let decimalPlaces = 0;
   if (split.length > 1) {
-    decimalPlaces = split[1].length;
+    // okay to do no-non-null-assertion because we know split.length > 1
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    decimalPlaces = split[1]!.length;
   }
   const multiplier = Math.pow(10, decimalPlaces);
   return clamp(Math.round(num * multiplier) / multiplier, inputMin, inputMax);

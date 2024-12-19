@@ -192,7 +192,7 @@ const ExperimentMap = <T extends BaseMapArea>({
         const x = bbox.x + bbox.width / 2 + mapArea.x_adjust;
         const y = bbox.y + bbox.height / 2 + mapArea.y_adjust;
         const stateLabel = createAreaLabelElement(mapArea, x, y);
-        mapAreas[0].appendChild(stateLabel);
+        mapAreas[0]?.appendChild(stateLabel);
         stateLabel.addEventListener("mouseenter", onMouseEnter);
         stateLabel.addEventListener("mouseleave", onMouseLeave);
         cleanupData.push({ areaPath, onMouseEnter, onMouseLeave, stateLabel });
@@ -205,7 +205,7 @@ const ExperimentMap = <T extends BaseMapArea>({
           areaPath.removeEventListener("mouseleave", onMouseLeave);
           stateLabel.removeEventListener("mouseenter", onMouseEnter);
           stateLabel.removeEventListener("mouseleave", onMouseLeave);
-          mapAreas[0].removeChild(stateLabel);
+          mapAreas[0]?.removeChild(stateLabel);
         }
       );
     };

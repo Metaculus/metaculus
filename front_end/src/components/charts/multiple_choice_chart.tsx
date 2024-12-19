@@ -402,7 +402,8 @@ function buildChartData({
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
     : !!closeTimes.length && closeTimes.length === choiceItems.length
       ? Math.min(
-          Math.max(...closeTimes.map((t) => t! / 1000)),
+          // @ts-expect-error we manually filter out undefined values, this is fixed on more recent typescript versions
+          Math.max(...closeTimes.map((t) => t / 1000)),
           Date.now() / 1000
         )
       : Date.now() / 1000;
@@ -435,9 +436,9 @@ function buildChartData({
       scaling: choiceScaling,
     }) => {
       const rescale = (val: number) => {
-        if (scaling) {
+        if (scaling && choiceScaling) {
           return unscaleNominalLocation(
-            scaleInternalLocation(val, choiceScaling!),
+            scaleInternalLocation(val, choiceScaling),
             scaling
           );
         }
@@ -460,7 +461,7 @@ function buildChartData({
         if (
           !scatter.length ||
           userValue ||
-          scatter[scatter.length - 1].y === null
+          isNil(scatter[scatter.length - 1]?.y)
         ) {
           // we are either starting or have a real value or previous value is null
           scatter.push({
@@ -472,13 +473,17 @@ function buildChartData({
           });
         } else {
           // we have a null vlalue while previous was real
-          scatter.push({
-            x: timestamp,
-            y: scatter[scatter.length - 1].y,
-            y1: scatter[scatter.length - 1].y1,
-            y2: scatter[scatter.length - 1].y2,
-            symbol: "x",
-          });
+          const lastScatterItem = scatter.at(-1);
+          if (!isNil(lastScatterItem)) {
+            scatter.push({
+              x: timestamp,
+              y: lastScatterItem.y,
+              y1: lastScatterItem.y1,
+              y2: lastScatterItem.y2,
+              symbol: "x",
+            });
+          }
+
           scatter.push({
             x: timestamp,
             y: null,
@@ -497,7 +502,7 @@ function buildChartData({
           if (
             !line.length ||
             aggregationValue ||
-            line[line.length - 1].y === null
+            isNil(line[line.length - 1]?.y)
           ) {
             // we are either starting or have a real value or previous value is null
             line.push({
@@ -511,15 +516,22 @@ function buildChartData({
             });
           } else {
             // we have a null vlalue while previous was real
-            line.push({
-              x: timestamp,
-              y: line[line.length - 1].y,
-            });
-            area.push({
-              x: timestamp,
-              y: area[area.length - 1].y,
-              y0: area[area.length - 1].y0,
-            });
+            const lastLineItem = line.at(-1);
+            if (!isNil(lastLineItem)) {
+              line.push({
+                x: timestamp,
+                y: lastLineItem.y,
+              });
+            }
+            const lastAreaItem = area.at(-1);
+            if (!isNil(lastAreaItem)) {
+              area.push({
+                x: timestamp,
+                y: lastAreaItem.y,
+                y0: lastAreaItem.y0,
+              });
+            }
+
             line.push({
               x: timestamp,
               y: null,
@@ -545,12 +557,12 @@ function buildChartData({
       if (item.line.length > 0) {
         item.line.push({
           x: closeTime ? closeTime / 1000 : latestTimestamp,
-          y: item.line.at(-1)!.y,
+          y: item.line.at(-1)?.y ?? null,
         });
-        item.area!.push({
+        item.area?.push({
           x: closeTime ? closeTime / 1000 : latestTimestamp,
-          y: item.area!.at(-1)!.y,
-          y0: item.area!.at(-1)!.y0,
+          y: item?.area?.at(-1)?.y ?? null,
+          y0: item?.area?.at(-1)?.y0 ?? null,
         });
       }
 

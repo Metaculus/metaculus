@@ -1,4 +1,3 @@
-import { fromUnixTime } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
@@ -66,13 +65,15 @@ const ContinuousAggregationChart: FC<Props> = ({
       const timestampIndex = activeAggregation.history.findIndex(
         (item) => item.start_time === selectedTimestamp
       );
-      charts.push({
-        pmf: cdfToPmf(
-          activeAggregation.history[timestampIndex].forecast_values
-        ),
-        cdf: activeAggregation.history[timestampIndex].forecast_values,
-        type: "community",
-      });
+      const historyItem = activeAggregation.history[timestampIndex];
+
+      if (historyItem) {
+        charts.push({
+          pmf: cdfToPmf(historyItem.forecast_values),
+          cdf: historyItem.forecast_values,
+          type: "community",
+        });
+      }
     }
 
     return charts;

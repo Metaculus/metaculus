@@ -1,6 +1,7 @@
 "use client";
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
@@ -87,29 +88,35 @@ const ContinuousSlider: FC<Props> = ({
       />
       {!disabled &&
         forecast.map((x, index) => {
+          const forecastValue = forecast[index];
+          const weightValue = weights[index];
+
           return (
             <div className="px-2.5" key={index}>
-              <MultiSlider
-                disabled={disabled}
-                key={`multi-slider-${index}`}
-                value={forecast[index]}
-                step={0.00001}
-                clampStep={0.035}
-                onChange={(value) => {
-                  const newForecast = [
-                    ...forecast.slice(0, index),
-                    {
-                      left: value.left,
-                      center: value.center,
-                      right: value.right,
-                    },
-                    ...forecast.slice(index + 1, forecast.length),
-                  ];
-                  onChange(newForecast, weights);
-                }}
-                shouldSyncWithDefault
-              />
-              {forecast.length > 1 ? (
+              {!isNil(forecastValue) && (
+                <MultiSlider
+                  disabled={disabled}
+                  key={`multi-slider-${index}`}
+                  value={forecastValue}
+                  step={0.00001}
+                  clampStep={0.035}
+                  onChange={(value) => {
+                    const newForecast = [
+                      ...forecast.slice(0, index),
+                      {
+                        left: value.left,
+                        center: value.center,
+                        right: value.right,
+                      },
+                      ...forecast.slice(index + 1, forecast.length),
+                    ];
+                    onChange(newForecast, weights);
+                  }}
+                  shouldSyncWithDefault
+                />
+              )}
+
+              {!!forecast.length && !isNil(weightValue) && (
                 <div className="flex flex-row justify-between">
                   <span className="inline pr-2 pt-2">weight:</span>
                   <div className="inline w-3/4">
@@ -118,7 +125,7 @@ const ContinuousSlider: FC<Props> = ({
                       inputMin={0}
                       inputMax={1}
                       step={0.00001}
-                      defaultValue={weights[index]}
+                      defaultValue={weightValue}
                       round={true}
                       onChange={(value) => {
                         const newWeights = [
@@ -148,7 +155,7 @@ const ContinuousSlider: FC<Props> = ({
                     }}
                   />
                 </div>
-              ) : null}
+              )}
             </div>
           );
         })}

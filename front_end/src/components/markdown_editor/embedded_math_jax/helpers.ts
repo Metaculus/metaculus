@@ -23,7 +23,8 @@ export const transformMathJax = (markdown: string): string => {
   // Restore the links
   markdown = markdown.replace(
     /__LINK_PLACEHOLDER_(\d+)__/g,
-    (_match, index) => links[index]
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    (_match, index) => links[index]!
   );
 
   return markdown;

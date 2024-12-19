@@ -33,7 +33,10 @@ function processCssVariables(
     variables.reduce(
       (acc, param) => {
         const [key, value] = param.split("=");
-        acc[key.replace(/-/g, "_")] = value;
+        if (key && value) {
+          acc[key.replace(/-/g, "_")] = value;
+        }
+
         return acc;
       },
       {} as Record<string, string>

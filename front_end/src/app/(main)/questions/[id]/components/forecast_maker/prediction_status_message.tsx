@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -37,11 +38,11 @@ const PredictionStatusMessage: FC<Props> = ({ post }) => {
             QuestionStatus.RESOLVED,
           ];
 
-          const closedQuestion = questions.find((obj) =>
-            targetStatuses.includes(obj.status!)
+          const closedQuestion = questions.find(
+            (obj) => !isNil(obj.status) && targetStatuses.includes(obj.status)
           );
           const activeQuestion = questions.find(
-            (obj) => !targetStatuses.includes(obj.status!)
+            (obj) => !isNil(obj.status) && !targetStatuses.includes(obj.status)
           );
 
           if (closedQuestion && activeQuestion) {

@@ -52,12 +52,14 @@ const Carousel: FC<PropsWithChildren<Props>> = ({
   const goPrevious = () => {
     const element = forecastsRef.current;
     if (!element) return;
-    element.scrollLeft = element.scrollLeft - element.children[1].clientWidth;
+    element.scrollLeft =
+      element.scrollLeft - (element.children[1]?.clientWidth ?? 0);
   };
   const goNext = () => {
     const element = forecastsRef.current;
     if (!element) return;
-    element.scrollLeft = element.scrollLeft + element.children[1].clientWidth;
+    element.scrollLeft =
+      element.scrollLeft + (element.children[1]?.clientWidth ?? 0);
   };
 
   return (

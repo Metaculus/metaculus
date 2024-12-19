@@ -35,7 +35,7 @@ const QuestionNumericTile: FC<Props> = ({
   forecastAvailability,
 }) => {
   const latest = question.aggregations.recency_weighted.latest;
-  const prediction = latest?.centers![0];
+  const prediction = latest?.centers?.[0];
 
   const continuousAreaChartData = [];
   if (latest && !latest.end_time) {

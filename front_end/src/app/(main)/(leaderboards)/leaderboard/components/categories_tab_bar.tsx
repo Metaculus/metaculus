@@ -28,7 +28,10 @@ const LeaderboardCategoriesTabBar: FC<Props> = ({ categoryKeys }) => {
   useEffect(() => {
     const activeCategoryIsMissing = !categoryKeys.includes(activeCategoryKey);
     if (activeCategoryIsMissing) {
-      updateActiveCategoryKey(categoryKeys[0]);
+      const fallbackCategory = categoryKeys[0];
+      if (fallbackCategory) {
+        updateActiveCategoryKey(fallbackCategory);
+      }
     }
   }, [activeCategoryKey, categoryKeys, updateActiveCategoryKey]);
 

@@ -39,8 +39,9 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
           y: value,
         })
       );
-    const median = question.aggregations.recency_weighted.latest.centers![0];
-    const mean = question.aggregations.recency_weighted.latest.means![0];
+    const median =
+      question?.aggregations?.recency_weighted?.latest?.centers?.[0];
+    const mean = question?.aggregations?.recency_weighted?.latest?.means?.[0];
 
     return (
       <div ref={chartContainerRef}>
@@ -72,8 +73,8 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
       x: index,
       y: value,
     }));
-    const median_yes = latest_yes.centers![0];
-    const mean_yes = latest_yes.means![0];
+    const median_yes = latest_yes.centers?.[0];
+    const mean_yes = latest_yes.means?.[0];
 
     const latest_no =
       post.conditional.question_no.aggregations.recency_weighted.latest;
@@ -84,8 +85,8 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
       x: index,
       y: value,
     }));
-    const median_no = latest_no.centers![0];
-    const mean_no = latest_no.means![0];
+    const median_no = latest_no.centers?.[0];
+    const mean_no = latest_no.means?.[0];
 
     if (!histogramData_yes && !histogramData_no) {
       return null;

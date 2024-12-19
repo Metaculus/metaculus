@@ -23,7 +23,9 @@ export function getColorInSpectrum(
   value = value < 0.5 ? value : value - 0.5;
 
   const result = startColor.map((c1, i) =>
-    Math.round(c1 + (endColor[i] - c1) * value * 2)
+    // okay to do no-non-null-assertion, as both startColor and endColor are tuples of 3 numbers
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    Math.round(c1 + (endColor[i]! - c1) * value * 2)
   ) as RGBColor;
 
   return rgbToHex(result);

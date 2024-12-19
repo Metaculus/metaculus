@@ -47,7 +47,7 @@ export type ForecastType = {
   probability_yes_per_category: number[];
   options: string[];
   continuous_cdf: number[];
-  quartiles: number[];
+  quartiles: [number, number, number];
   question_type: QuestionType;
 };
 

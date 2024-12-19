@@ -37,6 +37,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
     const currentRef = communityNameRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
         setShowActiveCommunity(!entry.isIntersecting);
       },
       { threshold: 1.0 }

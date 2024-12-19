@@ -90,8 +90,9 @@ export function getNumericForecastDataset(
           lowerOpen,
           upperOpen
         ),
-        normalizedWeights[index]
-      ) as number[]
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        normalizedWeights[index]!
+      ) as unknown as number[]
   );
   let cdf = componentCdfs.reduce((acc, componentCdf) =>
     math.add(acc, componentCdf)

@@ -1,3 +1,5 @@
+import { isNil } from "lodash";
+
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import ProjectsApi from "@/services/projects";
@@ -31,29 +33,30 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
     ? communitiesResponse.results[0]
     : undefined;
 
+  const groupType = post
+    ? post.group_of_questions?.questions[0]?.type
+    : (searchParams["subtype"] as string);
+
   return (
     <>
       {community ? <CommunityHeader community={community} /> : <Header />}
 
-      <GroupForm
-        // @ts-ignore
-        subtype={
-          post
-            ? post.group_of_questions?.questions[0]?.type
-            : searchParams["subtype"]
-        }
-        post={post}
-        mode={mode}
-        allCategories={allCategories}
-        tournament_id={
-          searchParams["tournament_id"]
-            ? Number(searchParams["tournament_id"])
-            : undefined
-        }
-        community_id={community?.id}
-        tournaments={allTournaments}
-        siteMain={siteMain}
-      />
+      {!isNil(groupType) && (
+        <GroupForm
+          subtype={groupType}
+          post={post}
+          mode={mode}
+          allCategories={allCategories}
+          tournament_id={
+            searchParams["tournament_id"]
+              ? Number(searchParams["tournament_id"])
+              : undefined
+          }
+          community_id={community?.id}
+          tournaments={allTournaments}
+          siteMain={siteMain}
+        />
+      )}
     </>
   );
 };

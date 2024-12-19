@@ -26,7 +26,7 @@ const Step1: React.FC<OnboardingStep> = ({
   const post = posts.find((obj) => obj.id === topic.questions[0]);
 
   // Should not be the case
-  if (!post) return;
+  if (!post) return null;
 
   const communityForecast = extractCommunityForecast(post);
 
