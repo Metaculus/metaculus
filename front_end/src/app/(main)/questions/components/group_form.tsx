@@ -8,14 +8,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import GroupFormBulkModal, {
   BulkBulkQuestionAttrs,
 } from "@/app/(main)/questions/components/group_form_bulk_modal";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
-import MarkdownEditor from "@/components/markdown_editor";
+import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import Button from "@/components/ui/button";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import {
@@ -97,6 +97,7 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
+
   const [isLoading, setIsLoading] = useState<boolean>();
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [error, setError] = useState<
@@ -319,6 +320,8 @@ const GroupForm: React.FC<Props> = ({
         }}
         className="mt-4 flex w-full flex-col gap-4 rounded"
       >
+        <PostDjangoAdminLink post={post} />
+
         {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}
