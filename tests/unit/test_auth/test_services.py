@@ -1,3 +1,5 @@
+import pytest
+
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.exceptions import ValidationError
 
