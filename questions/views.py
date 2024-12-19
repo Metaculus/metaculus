@@ -27,6 +27,7 @@ from questions.services import (
     create_forecast_bulk,
     withdraw_forecast_bulk,
 )
+from users.models import log_user_activity
 
 
 @api_view(["GET"])
@@ -86,6 +87,7 @@ def unresolve_api_view(request, pk: int):
 @api_view(["POST"])
 @transaction.non_atomic_requests
 def bulk_create_forecasts_api_view(request):
+    log_user_activity(request)
     now = timezone.now()
     serializer = ForecastWriteSerializer(data=request.data, many=True)
     serializer.is_valid(raise_exception=True)

@@ -133,3 +133,27 @@ class UserCampaignRegistration(TimeStampedModel):
 
     def __str__(self):
         return f"UserCampaignRegistration {self.user.username}({self.key})"
+
+
+class UserActivityLog(models.Model):
+    """
+    This model stores user activity logs.
+    """
+
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    endpoint = models.CharField(max_length=200)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    payload = models.JSONField(default=dict, blank=True, null=False)
+
+
+def log_user_activity(request):
+    user = request.user
+    if user.is_anonymous:
+        user = None
+    UserActivityLog.objects.create(
+        user=user,
+        ip_address=request.META.get("REMOTE_ADDR"),
+        endpoint=request.path,
+        payload=request.data,
+    )

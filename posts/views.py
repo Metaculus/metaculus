@@ -53,7 +53,7 @@ from questions.serializers import (
     QuestionApproveSerializer,
 )
 from questions.types import AggregationMethod
-from users.models import User
+from users.models import User, log_user_activity
 from utils.csv_utils import build_csv
 from utils.files import UserUploadedImage, generate_filename
 from utils.frontend import build_question_embed_url
@@ -221,6 +221,7 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    log_user_activity(request)
     # manually convert scaling to range_min, range_max, zero_point
     # TODO: move scaling handling
     qdatas = []
