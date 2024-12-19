@@ -17,7 +17,7 @@ from posts.jobs import (
     job_subscription_notify_milestone,
     job_check_post_open_event,
 )
-from posts.services.common import compute_hotness
+from posts.services.common import compute_feed_hotness
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -91,7 +91,7 @@ class Command(BaseCommand):
             replace_existing=True,
         )
         scheduler.add_job(
-            close_old_connections(compute_hotness),
+            close_old_connections(compute_feed_hotness),
             trigger=CronTrigger.from_crontab("*/10 * * * *"),  # Every 10 minutes
             id="posts_compute_hotness",
             max_instances=1,
