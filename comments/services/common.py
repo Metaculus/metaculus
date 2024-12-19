@@ -85,7 +85,7 @@ def create_comment(
 
 def trigger_update_comment_translations(comment: Comment, force: bool = False):
     if force:
-        comment.trigger_translation_if_dirty()
+        comment.update_and_maybe_translate()
         return
 
     on_post = comment.on_post
@@ -97,4 +97,4 @@ def trigger_update_comment_translations(comment: Comment, force: bool = False):
 
     on_private_post = on_post.is_private() is None
     if not (author.is_bot and on_bots_tournament) and not on_private_post:
-        comment.trigger_translation_if_dirty()
+        comment.update_and_maybe_translate()
