@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 import numpy as np
+from django.contrib.postgres.search import SearchVector, SearchQuery
 from django.db.models import Value, Case, When, FloatField, QuerySet
 from pgvector.django import CosineDistance
 
@@ -117,3 +118,33 @@ def _qs_filter_similar_posts(qs: QuerySet[Post], embedding_vector):
 
 def qs_filter_similar_posts(qs: QuerySet[Post], post: Post):
     return _qs_filter_similar_posts(qs, post.embedding_vector).exclude(pk=post.pk)
+
+
+def posts_full_text_search(qs: QuerySet[Post], query: str):
+    """
+    Performs a full-text search for posts.
+    Note: This method is not highly optimized since search vectors are not stored in the database.
+    Use with caution, especially when querying a large number of database rows!
+    """
+
+    # Constructs a fuzzy search query by splitting the input query into individual words.
+    # Each word is matched using a prefix search operator (":*"), enabling partial word matches.
+    # Words are joined with an AND operator ("&") to combine search criteria.
+    query = " & ".join(f"{word.strip()}:*" for word in query.split() if word.strip())
+
+    search_vector = (
+        SearchVector("related_questions__question__title")
+        + SearchVector("related_questions__question__description")
+        + SearchVector("related_questions__question__resolution_criteria")
+        + SearchVector("related_questions__question__fine_print")
+        + SearchVector("related_questions__question__options")
+        + SearchVector("group_of_questions__description")
+        + SearchVector("group_of_questions__resolution_criteria")
+        + SearchVector("group_of_questions__fine_print")
+    )
+
+    return (
+        qs.annotate(search=search_vector)
+        .filter(search=SearchQuery(query, search_type="raw"))
+        .distinct("pk")
+    )
