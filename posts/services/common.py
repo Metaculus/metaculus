@@ -4,6 +4,7 @@ from datetime import timedelta, date
 
 from django.db.models import Q, Count, Sum, Value, Case, When, F, QuerySet
 from django.db.models.functions import Coalesce
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
@@ -82,9 +83,22 @@ def update_global_leaderboard_tags(post: Post):
         dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
         if dates:
             tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
-            tag, _ = Project.objects.get_or_create(
-                type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug, order=1
-            )
+            try:
+                tag, _ = Project.objects.get_or_create(
+                    type=Project.ProjectTypes.TAG,
+                    slug=tag_slug,
+                    defaults={"name": tag_name, "order": 1},
+                )
+            except IntegrityError:
+                # Unsure why this is happening, so for debugging purposes
+                # log error and continue - don't block the triggering event
+                # (e.g. question resolution)
+                logger.exception(
+                    f"Error creating/getting global leaderboard tag for post {post.id}."
+                    f" Context: tag_name: {tag_name}, tag_slug: {tag_slug}, "
+                    f"question: {question.id}, dates: {dates}"
+                )
+                tag = Project.objects.get(type=Project.ProjectTypes.TAG, slug=tag_slug)
             to_set_tags.append(tag)
 
     # Update post's global leaderboard tags
