@@ -129,7 +129,7 @@ export const embeddedQuestionDescriptor: JsxComponentDescriptor = {
   props: [{ name: "id", type: "number", required: true }],
   kind: "flow",
   hasChildren: false,
-  Editor: createEditorComponent(EmbeddedQuestion),
+  Editor: createEditorComponent(MemorizedEmbeddedQuestion),
 };
 
 export default MemorizedEmbeddedQuestion;
