@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useState, memo, useMemo } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
-import useDebounce from "@/hooks/use_debounce";
+import { useDebouncedValue } from "@/hooks/use_debounce";
 import {
   AggregationQuestion,
   Aggregations,
@@ -48,7 +48,7 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
           .start_time
       : null
   );
-  const aggregationTimestamp = useDebounce(cursorTimestamp, 500);
+  const aggregationTimestamp = useDebouncedValue(cursorTimestamp, 500);
 
   const cursorData = useMemo(() => {
     if (!activeAggregation) {
