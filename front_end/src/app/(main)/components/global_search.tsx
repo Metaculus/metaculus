@@ -32,6 +32,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   const router = useRouter();
   const [isHidden, setIsHidden] = useState(true);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedGAEvent = useCallback(
     debounce(() => {
       sendGAEvent({

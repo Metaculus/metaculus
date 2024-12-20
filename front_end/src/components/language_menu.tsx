@@ -2,7 +2,7 @@
 
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 
@@ -14,7 +14,6 @@ type Props = {
 };
 
 const LanguageMenu: FC<Props> = ({ className }) => {
-  const router = useRouter();
   const { params } = useSearchParams();
   const pathname = usePathname();
   const locale = useLocale();

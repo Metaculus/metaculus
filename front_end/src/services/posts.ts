@@ -79,7 +79,7 @@ class PostsApi {
   }
 
   static async removePostFromProject(postId: number, projectId: number) {
-    await post<any>(`/posts/${postId}/remove_from_project/`, {
+    await post(`/posts/${postId}/remove_from_project/`, {
       project_id: projectId,
     });
   }
@@ -136,12 +136,18 @@ class PostsApi {
     });
   }
 
-  static async createQuestionPost(body: any): Promise<PostWithForecasts> {
-    return await post<PostWithForecasts>(`/posts/create/`, body);
+  static async createQuestionPost<
+    T extends PostWithForecasts | PostWithNotebook,
+    B,
+  >(body: B): Promise<T> {
+    return await post(`/posts/create/`, body);
   }
 
-  static async updatePost(id: number, body: any): Promise<PostWithForecasts> {
-    return await put<any, PostWithForecasts>(`/posts/${id}/update/`, body);
+  static async updatePost<T extends PostWithForecasts | PostWithNotebook, B>(
+    id: number,
+    body: B
+  ): Promise<T> {
+    return await put(`/posts/${id}/update/`, body);
   }
 
   static async submitForReview(id: number) {
@@ -164,7 +170,10 @@ class PostsApi {
   }
 
   static async uploadImage(formData: FormData): Promise<{ url: string }> {
-    return await post<{ url: string }>("/posts/upload-image/", formData);
+    return await post<{ url: string }, FormData>(
+      "/posts/upload-image/",
+      formData
+    );
   }
 
   static async sendPostReadEvent(postId: number) {

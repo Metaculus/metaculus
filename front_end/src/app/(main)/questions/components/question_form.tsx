@@ -7,10 +7,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
+import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import Button from "@/components/ui/button";
 import {
   DateInput,
@@ -23,7 +24,7 @@ import {
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
-import { useAuth } from "@/contexts/auth_context";
+import { ErrorResponse } from "@/types/fetch";
 import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
@@ -199,10 +200,9 @@ const QuestionForm: FC<Props> = ({
   community_id = null,
   post = null,
 }) => {
-  const { user } = useAuth();
   const router = useRouter();
   const t = useTranslations();
-  const { isLive, isDone, hasForecasts } = getQuestionStatus(post);
+  const { isDone, hasForecasts } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -211,7 +211,9 @@ const QuestionForm: FC<Props> = ({
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
-      ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
+      ? ([...tournaments, siteMain].filter(
+          (x) => x.id === tournament_id
+        )[0] as Tournament)
       : siteMain;
 
   if (isDone) {
@@ -246,7 +248,7 @@ const QuestionForm: FC<Props> = ({
       description: "",
     };
 
-  const submitQuestion = async (data: any) => {
+  const submitQuestion = async (data: FieldValues) => {
     setIsLoading(true);
     setError(undefined);
 
@@ -256,7 +258,7 @@ const QuestionForm: FC<Props> = ({
         ? optionsList.map((option) => option.trim())
         : [];
 
-    let post_data: PostCreationData = {
+    const post_data: PostCreationData = {
       title: data["title"],
       url_title: data["url_title"],
       default_project: data["default_project"],
@@ -355,11 +357,8 @@ const QuestionForm: FC<Props> = ({
         }}
         className="mt-4 flex w-full flex-col gap-6"
       >
-        {post && user?.is_superuser && (
-          <a href={`/admin/posts/post/${post.id}/change`}>
-            {t("viewInDjangoAdmin")}
-          </a>
-        )}
+        <PostDjangoAdminLink post={post} />
+
         {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}
@@ -464,11 +463,9 @@ const QuestionForm: FC<Props> = ({
           questionType === QuestionType.Numeric) && (
           <NumericQuestionInput
             questionType={questionType}
-            defaultMin={post?.question?.scaling.range_min!}
-            defaultMax={post?.question?.scaling.range_max!}
-            // @ts-ignore
+            defaultMin={post?.question?.scaling.range_min ?? undefined}
+            defaultMax={post?.question?.scaling.range_max ?? undefined}
             defaultOpenLowerBound={post?.question?.open_lower_bound}
-            // @ts-ignore
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
             hasForecasts={hasForecasts && mode !== "create"}
@@ -537,8 +534,11 @@ const QuestionForm: FC<Props> = ({
                             );
                           }}
                           errors={
-                            // @ts-ignore
-                            form.formState.errors.options?.[opt_index]
+                            (
+                              form.formState.errors.options as
+                                | ErrorResponse[]
+                                | undefined
+                            )?.[opt_index]
                           }
                         />
                       </div>

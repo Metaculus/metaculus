@@ -1,4 +1,5 @@
 "use client";
+import { FloatingPortal } from "@floating-ui/react";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
@@ -8,7 +9,7 @@ import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
-import { ChoiceItem, ChoiceTooltipItem, UserChoiceItem } from "@/types/choices";
+import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/cn";
 
@@ -207,18 +208,20 @@ const MultiChoicesChartView: FC<Props> = ({
       )}
 
       {isTooltipActive && !!tooltipChoices.length && (
-        <div
-          className="pointer-events-none z-20 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark"
-          ref={refs.setFloating}
-          style={floatingStyles}
-          {...getFloatingProps()}
-        >
-          <ChoicesTooltip
-            date={tooltipDate}
-            choices={tooltipChoices}
-            userChoices={tooltipUserChoices}
-          />
-        </div>
+        <FloatingPortal>
+          <div
+            className="pointer-events-none z-20 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark"
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+          >
+            <ChoicesTooltip
+              date={tooltipDate}
+              choices={tooltipChoices}
+              userChoices={tooltipUserChoices}
+            />
+          </div>
+        </FloatingPortal>
       )}
     </div>
   );

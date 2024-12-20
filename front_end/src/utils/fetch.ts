@@ -53,7 +53,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 
     try {
       errorData = await response.json();
-    } catch (err) {
+    } catch {
       errorData = {
         detail: "Unexpected Server Error",
       } as ApiErrorResponse;
@@ -163,7 +163,7 @@ const get = async <T>(
   return appFetch<T>(url, { ...options, method: "GET" }, config);
 };
 
-const post = async <T, B = Record<string, any>>(
+const post = async <T = Response, B = Record<string, unknown>>(
   url: string,
   body: B,
   options: FetchOptions = {}

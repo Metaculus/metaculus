@@ -15,6 +15,8 @@ const OnboardingCheck: React.FC = () => {
       // Start the onboarding process
       setCurrentModal({ type: "onboarding" });
     }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   return null; // This component doesn't render anything

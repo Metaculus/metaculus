@@ -9,13 +9,14 @@ import {
 } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import { getCdfBounds } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -84,8 +85,8 @@ const ForecastMakerContinuous: FC<Props> = ({
       getNumericForecastDataset(
         forecast,
         weights,
-        question.open_lower_bound!,
-        question.open_upper_bound!
+        question.open_lower_bound,
+        question.open_upper_bound
       ),
     [forecast, question.open_lower_bound, question.open_upper_bound, weights]
   );
@@ -131,7 +132,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     ]);
     setIsDirty(false);
     if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors[0]);
+      setSubmitError(response.errors);
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
@@ -148,14 +149,8 @@ const ForecastMakerContinuous: FC<Props> = ({
     ]);
     setIsDirty(false);
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (errors.length) {
-      setSubmitError(errors);
+      setSubmitError(response.errors);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -208,11 +203,12 @@ const ForecastMakerContinuous: FC<Props> = ({
               hasUserForecast={hasUserForecast}
               isPending={isPending}
             />
-            <FormErrorMessage
-              className="mt-2 flex justify-center"
-              errors={submitError}
-            />
           </div>
+          <FormError
+            errors={submitError}
+            className="mt-2 flex items-center justify-center"
+            detached
+          />
           <div className="h-[32px]">
             {(isPending || withdrawalIsPending) && <LoadingIndicator />}
           </div>
@@ -225,30 +221,13 @@ const ForecastMakerContinuous: FC<Props> = ({
       )}
       <NumericForecastTable
         question={question}
-        userBounds={{
-          belowLower: userCdf[0],
-          aboveUpper: 1 - userCdf[userCdf.length - 1],
-        }}
+        userBounds={getCdfBounds(userCdf)}
         userQuartiles={userCdf ? computeQuartilesFromCDF(userCdf) : undefined}
-        userPreviousBounds={
-          userPreviousCdf
-            ? {
-                belowLower: userPreviousCdf[0],
-                aboveUpper: 1 - userPreviousCdf[userPreviousCdf.length - 1],
-              }
-            : undefined
-        }
+        userPreviousBounds={getCdfBounds(userPreviousCdf)}
         userPreviousQuartiles={
           userPreviousCdf ? computeQuartilesFromCDF(userPreviousCdf) : undefined
         }
-        communityBounds={
-          communityCdf
-            ? {
-                belowLower: communityCdf[0],
-                aboveUpper: 1 - communityCdf[communityCdf.length - 1],
-              }
-            : undefined
-        }
+        communityBounds={getCdfBounds(communityCdf)}
         communityQuartiles={
           communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
         }

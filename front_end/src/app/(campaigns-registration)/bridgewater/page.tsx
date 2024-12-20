@@ -1,10 +1,12 @@
-import ProfileApi from "@/services/profile";
-import Header from "./components/header";
-import { SucessfullyRegistered } from "./components/cards";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
+import ProfileApi from "@/services/profile";
+
+import { SucessfullyRegistered } from "./components/cards";
+import Header from "./components/header";
 import { ChoicesButtons, HeroSection } from "./components/hero-section";
 import { CAMPAIGN_KEY, CAMPAIGN_URL_BASE_PATH } from "./constants";
-import Link from "next/link";
 
 export const metadata = {
   title: "Bridgewater x Metaculus",
@@ -58,9 +60,19 @@ export default async function Page() {
             <Link href={"https://www.bridgewater.com/"}>Bridgewater.</Link>
           </p>
           <p>
-            Register for the contest today and be notified as soon as questions
-            open. The earlier you forecast, the better your odds to beat the
+            Register for the contest and be notified as soon as questions open.
+            The earlier you forecast, the better your odds to beat the
             competition and win cash prizes!
+          </p>
+          <p>
+            <i>
+              Curious to see the questions, winners, and schools represented in
+              the previous Bridgewater x Metaculus contest? Find them{" "}
+              <Link href={"https://www.metaculus.com/tournament/bridgewater/"}>
+                here.
+              </Link>
+              .
+            </i>
           </p>
         </div>
       </main>

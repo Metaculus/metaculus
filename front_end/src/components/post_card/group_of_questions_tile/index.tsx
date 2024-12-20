@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { PostWithForecasts, PostStatus } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import {
   QuestionWithForecasts,
   QuestionWithNumericForecasts,

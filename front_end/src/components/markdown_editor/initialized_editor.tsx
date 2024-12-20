@@ -31,6 +31,7 @@ import {
 import React, {
   FC,
   ForwardedRef,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -53,6 +54,7 @@ import { mentionsPlugin } from "@/components/markdown_editor/plugins/mentions";
 import { useAuth } from "@/contexts/auth_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import cn from "@/utils/cn";
 import { logErrorWithScope } from "@/utils/errors";
 
@@ -121,6 +123,18 @@ const InitializedMarkdownEditor: FC<
   const formattedMarkdown = useMemo(
     () => processMarkdown(markdown),
     [markdown]
+  );
+
+  const handleEditorChange = useCallback(
+    (value: string) => {
+      // Revert the MathJax transformation before passing the markdown to the parent component
+      onChange?.(processMarkdown(value, true));
+    },
+    [onChange]
+  );
+  const debouncedHandleEditorChange = useDebouncedCallback(
+    handleEditorChange,
+    100
   );
 
   useEffect(() => {
@@ -220,10 +234,7 @@ const InitializedMarkdownEditor: FC<
         contentEditableClassName
       )}
       markdown={formattedMarkdown}
-      onChange={(value) => {
-        // Revert the MathJax transformation before passing the markdown to the parent component
-        onChange && onChange(processMarkdown(value, true));
-      }}
+      onChange={debouncedHandleEditorChange}
       onBlur={onBlur}
       onError={(err) => {
         logErrorWithScope(err.error, err.source);

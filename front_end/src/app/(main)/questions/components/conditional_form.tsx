@@ -4,16 +4,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { SetStateAction, useState } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { FieldValues, useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
+import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { useAuth } from "@/contexts/auth_context";
 import { Post, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
@@ -74,7 +74,6 @@ const ConditionalForm: React.FC<{
   const router = useRouter();
   const t = useTranslations();
   const { isLive, isDone } = getQuestionStatus(post);
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -99,7 +98,7 @@ const ConditionalForm: React.FC<{
     },
   });
 
-  const submitQuestion = async (data: any) => {
+  const submitQuestion = async (data: FieldValues) => {
     setIsLoading(true);
     setError(undefined);
     let parentId = conditionParent?.id;
@@ -119,7 +118,7 @@ const ConditionalForm: React.FC<{
       );
     }
 
-    let post_data: PostCreationData = {
+    const post_data: PostCreationData = {
       default_project: data["default_project"],
       conditional: {
         condition_id: parentId as number,
@@ -150,7 +149,9 @@ const ConditionalForm: React.FC<{
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
-      ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
+      ? ([...tournaments, siteMain].filter(
+          (x) => x.id === tournament_id
+        )[0] as Tournament)
       : siteMain;
 
   return (
@@ -183,11 +184,8 @@ const ConditionalForm: React.FC<{
           )(e);
         }}
       >
-        {post && user?.is_superuser && (
-          <a href={`/admin/posts/post/${post.id}/change`}>
-            {t("viewInDjangoAdmin")}
-          </a>
-        )}
+        <PostDjangoAdminLink post={post} />
+
         {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}
@@ -212,6 +210,8 @@ const ConditionalForm: React.FC<{
             <QuestionChartTile
               question={conditionParent}
               authorUsername={conditionParent.author_username}
+              // we expect status to be populated on BE for conditional questions
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               curationStatus={conditionParent.status!}
             />
           ) : (
@@ -238,6 +238,8 @@ const ConditionalForm: React.FC<{
             <QuestionChartTile
               question={conditionChild}
               authorUsername={conditionChild.author_username}
+              // we expect status to be populated on BE for conditional questions
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               curationStatus={conditionChild.status!}
             />
           ) : (
@@ -266,15 +268,11 @@ const ConditionalForm: React.FC<{
 };
 
 async function setConditionQuestion(
-  control: UseFormReturn<
-    {
-      condition_id: string | undefined;
-      condition_child_id: string | undefined;
-      default_project: number | null;
-    },
-    any,
-    undefined
-  >,
+  control: UseFormReturn<{
+    condition_id: string | undefined;
+    condition_child_id: string | undefined;
+    default_project: number | null;
+  }>,
   setQuestionState: (
     value: SetStateAction<QuestionWithForecasts | null>
   ) => void,
@@ -285,10 +283,10 @@ async function setConditionQuestion(
   try {
     let question: QuestionWithForecasts | null = null;
     if (parsedInput.questionId) {
-      question = await getQuestion(parsedInput.questionId!);
-    } else {
-      const post = await getPost(parsedInput.postId!);
-      question = post.question!;
+      question = await getQuestion(parsedInput.questionId);
+    } else if (parsedInput.postId) {
+      const post = await getPost(parsedInput.postId);
+      question = post.question ?? null;
     }
     if (
       question &&
@@ -306,7 +304,7 @@ async function setConditionQuestion(
       });
       setQuestionState(null);
     }
-  } catch (e) {
+  } catch {
     control.setError(fieldName, {
       type: "manual",
       message: "Invalid question ID/URL",

@@ -62,6 +62,7 @@ const Chip: FC<PropsWithChildren<Props>> = ({
     >
       <Button
         as={href ? Link : undefined}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         href={href!}
         onClick={onClick}
         className={cn(

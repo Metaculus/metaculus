@@ -9,7 +9,7 @@ import BaseModal from "@/components/base_modal";
 import PostStatus from "@/components/post_status";
 import SearchInput from "@/components/search_input";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import useDebounce from "@/hooks/use_debounce";
+import { useDebouncedValue } from "@/hooks/use_debounce";
 import { Post, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { formatPrediction } from "@/utils/forecasts";
@@ -29,7 +29,7 @@ const EmbedQuestionModal: FC<Props> = ({
   const t = useTranslations();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 300);
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [posts, setPosts] = useState<PostWithForecasts[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -46,13 +46,18 @@ const EmbedQuestionModal: FC<Props> = ({
     }
   }, [isOpen, debouncedSearch]);
 
-  const handlePostSelect = (id: number) => {
-    onQuestionSelect(id);
+  const closeModal = () => {
+    setSearch("");
     onClose();
   };
 
+  const handlePostSelect = (id: number) => {
+    onQuestionSelect(id);
+    closeModal();
+  };
+
   return (
-    <BaseModal label="Add Forecast" isOpen={isOpen} onClose={onClose}>
+    <BaseModal label="Add Forecast" isOpen={isOpen} onClose={closeModal}>
       <div className="max-h-full w-[520px] overflow-auto">
         <SearchInput
           value={search}
@@ -115,7 +120,7 @@ const PredictionInfo: FC<{ question: QuestionWithNumericForecasts }> = ({
   question,
 }) => {
   const latest = question.aggregations.recency_weighted.latest;
-  const prediction = latest?.centers![0];
+  const prediction = latest?.centers?.[0];
 
   return (
     <div className="flex flex-row gap-2">

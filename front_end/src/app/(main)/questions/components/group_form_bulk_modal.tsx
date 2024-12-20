@@ -21,7 +21,7 @@ export type BulkBulkQuestionAttrs = Partial<
 
 const GroupFormBulkModal: FC<{
   isOpen: boolean;
-  setIsOpen: any;
+  setIsOpen: (value: boolean) => void;
   onSubmit: (attrs: BulkBulkQuestionAttrs) => void;
   fields: Array<keyof BulkBulkQuestionAttrs>;
 }> = ({ isOpen, setIsOpen, fields, onSubmit }) => {

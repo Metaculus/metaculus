@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
+import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import Button from "@/components/ui/button";
 import {
   FormErrorMessage,
@@ -17,7 +18,6 @@ import {
 } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, Post, PostWithForecasts } from "@/types/post";
 import {
@@ -79,7 +79,6 @@ const NotebookForm: React.FC<Props> = ({
   siteMain,
   news_category_id,
 }) => {
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -119,7 +118,7 @@ const NotebookForm: React.FC<Props> = ({
   const submitQuestion = async (data: FormData) => {
     setIsLoading(true);
     setError(undefined);
-    let post_data = {
+    const post_data = {
       title: data["title"],
       url_title: data["url_title"],
       default_project: data["default_project"],
@@ -176,11 +175,8 @@ const NotebookForm: React.FC<Props> = ({
           )(e);
         }}
       >
-        {post && user?.is_superuser && (
-          <a href={`/admin/posts/post/${post.id}/change`}>
-            {t("viewInDjangoAdmin")}
-          </a>
-        )}
+        <PostDjangoAdminLink post={post} />
+
         {!community_id &&
           !news_category_id &&
           defaultProject?.type !== TournamentType.Community &&

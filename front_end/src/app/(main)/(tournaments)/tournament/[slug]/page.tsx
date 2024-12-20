@@ -21,6 +21,7 @@ import { ProjectVisibility, TournamentType } from "@/types/projects";
 import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
 
+import TournamentDropdownMenu from "../components/dropdown_menu";
 import TournamentFeed from "../components/tournament_feed";
 
 const LazyProjectMembers = dynamic(() => import("../components/members"), {
@@ -73,7 +74,7 @@ export default async function TournamentSlug({ params }: Props) {
       <div className="bg-gray-0 dark:bg-gray-0-dark">
         <div
           className={cn(
-            " flex flex-wrap items-center justify-between gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
+            "flex flex-wrap items-center justify-between gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
             tournament.type === TournamentType.QuestionSeries
               ? "bg-gray-500 dark:bg-gray-500-dark"
               : "bg-blue-600 dark:bg-blue-600-dark"
@@ -85,6 +86,7 @@ export default async function TournamentSlug({ params }: Props) {
           >
             {title}
           </Link>
+          <TournamentDropdownMenu tournament={tournament} />
         </div>
         {!!tournament.header_image && (
           <div className="relative h-[130px] w-full">
@@ -141,7 +143,6 @@ export default async function TournamentSlug({ params }: Props) {
             <ProjectLeaderboard
               projectId={tournament.id}
               userId={currentUser?.id}
-              prizePool={tournament.prize_pool}
               isQuestionSeries={isQuestionSeries}
             />
             {currentUser && (

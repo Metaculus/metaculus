@@ -68,6 +68,8 @@ const CurveForecastMaker: FC<Props> = ({
       post.id,
       questionsToSubmit.map((q) => {
         const forecastValue = round(
+          // okay to use no-non-null-assertion as forecast is checked in questionsToSubmit
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           q.forecast! / 100,
           BINARY_FORECAST_PRECISION
         );
@@ -87,7 +89,7 @@ const CurveForecastMaker: FC<Props> = ({
       prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
     );
     if (!(response && "errors" in response)) {
-      onPredict && onPredict();
+      onPredict?.();
     }
   }, [post, questionsToSubmit, onPredict]);
   const [submit, isPending] = useServerAction(handlePredictSubmit);

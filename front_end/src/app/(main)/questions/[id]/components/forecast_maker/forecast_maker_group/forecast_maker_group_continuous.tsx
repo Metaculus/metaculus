@@ -17,7 +17,7 @@ import React, {
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { ErrorResponse } from "@/types/fetch";
 import {
@@ -26,10 +26,8 @@ import {
   ProjectPermissions,
   QuestionStatus,
 } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
+import { getCdfBounds } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
   extractPrevNumericForecastValue,
@@ -66,7 +64,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   questions,
   canPredict,
   groupVariable,
-  canResolve,
   predictionMessage,
 }) => {
   const t = useTranslations();
@@ -123,7 +120,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     [questions, activeTableOption]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const questionsToSubmit = useMemo(
     () =>
       groupOptions.filter(
@@ -226,7 +223,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   }, [prevForecastValuesMap]);
 
   const handlePredictSubmit = useCallback(async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
       return;
@@ -242,8 +239,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             continuousCdf: getNumericForecastDataset(
               getNormalizedUserForecast(userForecast),
               userWeights,
-              question.open_lower_bound!,
-              question.open_upper_bound!
+              question.open_lower_bound,
+              question.open_upper_bound
             ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
@@ -260,17 +257,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     );
     setIsSubmitting(false);
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (response && "error" in response && !!response.error) {
-      errors.push(response.error);
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   }, [postId, questionsToSubmit]);
 
@@ -285,8 +273,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     getNumericForecastDataset(
       getNormalizedUserForecast(activeGroupOption.userForecast),
       activeGroupOption?.userWeights,
-      activeGroupOption?.question.open_lower_bound!,
-      activeGroupOption?.question.open_upper_bound!
+      activeGroupOption?.question.open_lower_bound,
+      activeGroupOption?.question.open_upper_bound
     ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
@@ -314,8 +302,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         const dataset = getNumericForecastDataset(
           normalizedUserForecast,
           option.userWeights,
-          option.question.open_lower_bound!,
-          option.question.open_upper_bound!
+          option.question.open_lower_bound,
+          option.question.open_upper_bound
         );
 
         return (
@@ -380,13 +368,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             )}
           </div>
         )}
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage
-          className="mb-2 flex justify-center"
-          key={`error-${index}`}
-          errors={errResponse}
-        />
-      ))}
+      <FormError
+        errors={submitError}
+        className="mt-2 flex items-center justify-center"
+        detached
+      />
       {activeGroupOptionPredictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
           {t(activeGroupOptionPredictionMessage)}
@@ -396,32 +382,15 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         <>
           <NumericForecastTable
             question={activeGroupOption.question}
-            userBounds={
-              userCdf && {
-                belowLower: userCdf[0],
-                aboveUpper: 1 - userCdf[userCdf.length - 1],
-              }
-            }
+            userBounds={getCdfBounds(userCdf)}
             userQuartiles={activeGroupOption.userQuartiles ?? undefined}
-            userPreviousBounds={
-              userPreviousCdf
-                ? {
-                    belowLower: userPreviousCdf[0],
-                    aboveUpper: 1 - userPreviousCdf[userPreviousCdf.length - 1],
-                  }
-                : undefined
-            }
+            userPreviousBounds={getCdfBounds(userPreviousCdf)}
             userPreviousQuartiles={
               userPreviousCdf
                 ? computeQuartilesFromCDF(userPreviousCdf)
                 : undefined
             }
-            communityBounds={
-              communityCdf && {
-                belowLower: communityCdf[0],
-                aboveUpper: 1 - communityCdf[communityCdf.length - 1],
-              }
-            }
+            communityBounds={getCdfBounds(communityCdf)}
             communityQuartiles={
               activeGroupOption.communityQuartiles ?? undefined
             }
@@ -429,7 +398,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             withCommunityQuartiles={!user || !hideCP}
             isDirty={activeGroupOption.isDirty}
             hasUserForecast={
-              !!prevForecastValuesMap[activeTableOption!].forecast
+              !isNil(activeTableOption) &&
+              !!prevForecastValuesMap[activeTableOption]?.forecast
             }
           />
 

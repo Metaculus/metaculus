@@ -1,0 +1,15 @@
+.ForecastCard {
+  @apply bg-blue-200 hover:shadow-none dark:bg-blue-200-dark;
+}
+
+.ConditionalSummary {
+  &-conditional-label {
+    @apply bg-blue-200 dark:bg-blue-200-dark;
+  }
+
+  &-condition {
+    .ConditionalSummary-card {
+      @apply bg-blue-200 dark:bg-blue-200-dark;
+    }
+  }
+}

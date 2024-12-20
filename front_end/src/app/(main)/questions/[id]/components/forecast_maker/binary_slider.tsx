@@ -29,7 +29,6 @@ type Props = {
 const BinarySlider: FC<Props> = ({
   onChange,
   forecast,
-  isDirty,
   communityForecast,
   onBecomeDirty,
   disabled = false,
@@ -55,20 +54,6 @@ const BinarySlider: FC<Props> = ({
     (value: number) => {
       setInputValue(value.toString() + "%");
       setSliderValue(value);
-      onBecomeDirty?.();
-      onChange(value);
-    },
-    [onBecomeDirty, onChange]
-  );
-  const handleInputChange = useCallback(
-    (value: string) => {
-      setInputValue(value);
-      onBecomeDirty?.();
-    },
-    [onBecomeDirty]
-  );
-  const handleInputForecastChange = useCallback(
-    (value: number) => {
       onBecomeDirty?.();
       onChange(value);
     },

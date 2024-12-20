@@ -36,7 +36,7 @@ const ButtonGroup = <T extends string>({
           variant={button.value === value ? activeVariant : variant}
           onClick={() => {
             onChange(button.value);
-            onClick && onClick(button.label);
+            onClick?.(button.label);
           }}
           href={button.href}
           className={cn(

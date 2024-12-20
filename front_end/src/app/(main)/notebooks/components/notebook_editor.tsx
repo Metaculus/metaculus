@@ -41,12 +41,12 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
     setIsEditing((prev) => !prev);
   };
 
-  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
   const locale = useLocale();
 
   useEffect(() => {
     if (postData.is_current_content_translated) {
-      setBannerisVisible(true);
+      setBannerIsVisible(true);
     }
   }, [postData, locale]);
 

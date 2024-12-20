@@ -140,7 +140,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({
                     onMouseOver: (_event, datum) => {
                       setHoverIndex(datum.index);
                     },
-                    onMouseOut: (_event, datum) => {
+                    onMouseOut: () => {
                       setHoverIndex(null);
                     },
                     onClick: () => [
@@ -315,15 +315,15 @@ function buildChartData({
   };
 }
 
-type CustomPointProps<T> = {
+type CustomPointProps = {
   hoverIndex: number | null;
   clickIndex: number | null;
 };
-const CustomPoint = <T extends string>({
+const CustomPoint = ({
   hoverIndex,
   clickIndex,
   ...props
-}: ComponentProps<typeof Point> & CustomPointProps<T>) => {
+}: ComponentProps<typeof Point> & CustomPointProps) => {
   const { getThemeColor } = useAppTheme();
 
   const isHovered = props.index === hoverIndex;

@@ -1,8 +1,10 @@
-import ProfileApi from "@/services/profile";
-import Header from "../components/header";
-import { RegistrationAndSignUpPage } from "../components/registration-forms";
 import { redirect } from "next/navigation";
+
+import ProfileApi from "@/services/profile";
+
+import Header from "../components/header";
 import { ContestHeader } from "../components/hero-section";
+import { RegistrationAndSignUpPage } from "../components/registration-forms";
 import { CAMPAIGN_KEY, CAMPAIGN_URL_BASE_PATH } from "../constants";
 
 export default async function Page() {

@@ -11,7 +11,7 @@ type Props = {
 };
 
 const NewsArticleVoteButtons: FC<Props> = ({
-  questionId, // will be used in api request
+  // questionId, // will be used in api request
   article: initialArticle,
 }) => {
   const [article, setArticle] = useState(initialArticle);

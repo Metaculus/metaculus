@@ -1,13 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import TrackRecordCharts from "@/app/(main)/questions/track-record/components/track_record_charts";
 import { UserProfile } from "@/types/users";
 
 const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
-  const t = useTranslations();
   const keyStatStyles =
     "flex w-full md:w-1/3 flex-col min-h-[100px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
 

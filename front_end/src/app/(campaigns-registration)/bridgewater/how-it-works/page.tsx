@@ -319,7 +319,7 @@ export default function HowItWorks() {
 
         <p className="mb-4">
           <b>Examples:</b> <i>&quot;When will humans land on Mars?&quot;</i>,{" "}
-          <i>&quot;"What will Germany&apos;s GDP growth be in 2025?&quot;</i>, …
+          <i>&quot;What will Germany&apos;s GDP growth be in 2025?&quot;</i>, …
         </p>
 
         <p className="mb-6">

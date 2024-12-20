@@ -45,6 +45,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   useEffect(() => {
     // Cleanup onboarding state after completion
     if (user?.is_onboarding_complete) resetState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.is_onboarding_complete]);
 
   const scrollToTop = () => {
@@ -57,6 +58,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   useEffect(() => {
     if (isOpen && selectedTopicId !== null && !posts.length) {
       const topicObject = ONBOARDING_TOPICS[selectedTopicId];
+      if (!topicObject) return;
+
       setIsLoading(true);
       setTopic(topicObject);
 
@@ -81,6 +84,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       // Load posts
       void updatePosts();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, selectedTopicId, posts.length]);
 
   // Hide tutorial for 24h
@@ -141,22 +145,20 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     >
       {isLoading ? (
         <OnboardingLoading />
-      ) : (
-        <>
-          <StepsRouter
-            topic={topic!}
-            onNext={onNext}
-            onPrev={onPrev}
-            onComplete={handleCompleteTutorial}
-            setTopic={setTopicId}
-            onboardingState={onboardingState}
-            setOnboardingState={setOnboardingState}
-            posts={posts}
-            handleComplete={handleCompleteTutorial}
-            handlePostpone={handlePostponeTutorial}
-          />
-        </>
-      )}
+      ) : !!topic ? (
+        <StepsRouter
+          topic={topic}
+          onNext={onNext}
+          onPrev={onPrev}
+          onComplete={handleCompleteTutorial}
+          setTopic={setTopicId}
+          onboardingState={onboardingState}
+          setOnboardingState={setOnboardingState}
+          posts={posts}
+          handleComplete={handleCompleteTutorial}
+          handlePostpone={handlePostponeTutorial}
+        />
+      ) : null}
     </BaseModal>
   );
 };
