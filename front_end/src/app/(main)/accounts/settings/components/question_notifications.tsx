@@ -14,6 +14,7 @@ import { CurrentUser } from "@/types/users";
 import { Require } from "@/types/utils";
 import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
+import { logError } from "@/utils/errors";
 
 type PostWithSubscriptions = Require<Post, "subscriptions">;
 type Props = {
@@ -30,7 +31,7 @@ const getSubscriptionsLabel = (
   if (postWithSubscriptions.subscriptions.length === 1) {
     const sub = postWithSubscriptions.subscriptions[0];
 
-    switch (sub.type) {
+    switch (sub?.type) {
       case PostSubscriptionType.STATUS_CHANGE:
         return t("followModalStatusChanges");
       case PostSubscriptionType.CP_CHANGE:
@@ -67,9 +68,14 @@ const QuestionNotifications: FC<Props> = ({
   }>();
 
   const handleUnfollow = useCallback(async () => {
+    if (!activeModal) {
+      logError(new Error("Active modal is not set"), "Couldn't unfollow post");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await changePostSubscriptions(activeModal!.post.id, [], true);
+      await changePostSubscriptions(activeModal?.post.id, [], true);
     } finally {
       setIsLoading(false);
     }
@@ -142,10 +148,7 @@ const QuestionNotifications: FC<Props> = ({
                     }
                   )}
                 >
-                  {formatDate(
-                    locale,
-                    new Date(post.subscriptions.at(-1)!.created_at)
-                  )}
+                  {getSubscriptionTimestampLabel(post, locale)}
                 </td>
                 <td
                   className={cn(
@@ -210,12 +213,7 @@ const QuestionNotifications: FC<Props> = ({
                   <div className="font-medium text-gray-500 dark:text-gray-500-dark">
                     {t("created")}
                   </div>
-                  <div>
-                    {formatDate(
-                      locale,
-                      new Date(post.subscriptions.at(-1)!.created_at)
-                    )}
-                  </div>
+                  <div>{getSubscriptionTimestampLabel(post, locale)}</div>
                 </div>
               </div>
             </div>
@@ -256,6 +254,18 @@ const QuestionNotifications: FC<Props> = ({
       )}
     </section>
   );
+};
+
+const getSubscriptionTimestampLabel = (
+  post: PostWithSubscriptions,
+  locale: string
+): string => {
+  const timestamp = post.subscriptions.at(-1)?.created_at;
+  if (!timestamp) {
+    return "";
+  }
+
+  return formatDate(locale, new Date(timestamp));
 };
 
 export default QuestionNotifications;

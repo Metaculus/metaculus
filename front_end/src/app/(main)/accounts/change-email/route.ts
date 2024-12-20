@@ -8,7 +8,9 @@ export async function GET(request: Request) {
 
   const { token } = search_params;
 
-  await ProfileApi.changeEmailConfirm(token);
+  if (token) {
+    await ProfileApi.changeEmailConfirm(token);
+  }
 
   return redirect("/accounts/settings");
 }

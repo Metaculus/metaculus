@@ -75,7 +75,7 @@ const CurveHistogram: FC<Props> = ({
             grid: { stroke: "none" },
           }}
         />
-        {choiceOptions[0].forecast && (
+        {choiceOptions[0]?.forecast && (
           <VictoryScatter
             data={[{ y: 0, x: choiceOptions[0].forecast * 100 }]}
             dataComponent={<CustomPoint color="#ff7000" />}

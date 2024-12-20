@@ -1,7 +1,6 @@
 "use client";
 import { isNil, merge } from "lodash";
-import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useMemo, useState } from "react";
+import React, { FC, useMemo, useState } from "react";
 import {
   VictoryArea,
   VictoryAxis,
@@ -14,7 +13,6 @@ import {
   VictoryVoronoiContainer,
 } from "victory";
 
-import ChartOverflowContainer from "@/components/charts/cp_reveal_time_overflow";
 import ChartFanTooltip from "@/components/charts/primitives/chart_fan_tooltip";
 import FanPoint from "@/components/charts/primitives/fan_point";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
@@ -39,8 +37,6 @@ import {
   unscaleNominalLocation,
 } from "@/utils/charts";
 
-import CPRevealTime from "../cp_reveal_time";
-
 const TOOLTIP_WIDTH = 150;
 
 type Props = {
@@ -64,8 +60,6 @@ const FanChart: FC<Props> = ({
   hideCP,
   forecastAvailability,
 }) => {
-  const t = useTranslations();
-
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
@@ -90,7 +84,9 @@ const FanChart: FC<Props> = ({
     actualTheme
   );
   const yScale = generateScale({
-    displayType: options[0].question.type,
+    // we expect fan graph to be rendered only for group questions, that expect some options
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    displayType: options[0]!.question.type,
     axisLength: height,
     direction: "vertical",
     scaling: scaling,
@@ -205,7 +201,7 @@ const FanChart: FC<Props> = ({
               />
             }
           />
-          <VictoryAxis tickFormat={(_, index) => labels[index]} />
+          <VictoryAxis tickFormat={(_, index) => labels[index] ?? ""} />
           {!hideCP && !forecastAvailability?.cpRevealsOn && (
             <VictoryScatter
               data={points.map((point) => ({
@@ -266,13 +262,22 @@ function buildChartData(options: FanOption[]) {
       zeroPoints.push(option.question.scaling.zero_point);
     }
   });
+
+  const rangeMaxValues: number[] = [];
+  const rangeMinValues: number[] = [];
+  for (const option of options) {
+    if (!isNil(option.question.scaling.range_max)) {
+      rangeMaxValues.push(option.question.scaling.range_max);
+    }
+
+    if (!isNil(option.question.scaling.range_min)) {
+      rangeMinValues.push(option.question.scaling.range_min);
+    }
+  }
+
   const scaling: Scaling = {
-    range_max: Math.max(
-      ...options.map((option) => option.question.scaling.range_max!)
-    ),
-    range_min: Math.min(
-      ...options.map((option) => option.question.scaling.range_min!)
-    ),
+    range_max: Math.max(...rangeMaxValues),
+    range_min: Math.min(...rangeMinValues),
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
   if (scaling.range_max === scaling.range_min && scaling.range_max === 0) {
@@ -284,13 +289,15 @@ function buildChartData(options: FanOption[]) {
   // so just ignore the log scaling in this case
   if (
     scaling.zero_point !== null &&
-    scaling.range_min! <= scaling.zero_point &&
-    scaling.zero_point <= scaling.range_max!
+    !isNil(scaling.range_min) &&
+    !isNil(scaling.range_max) &&
+    scaling.range_min <= scaling.zero_point &&
+    scaling.zero_point <= scaling.range_max
   ) {
     scaling.zero_point = null;
   }
 
-  if (options[0].question.type === QuestionType.Binary) {
+  if (options[0]?.question.type === QuestionType.Binary) {
     for (const option of options) {
       if (!!option.quartiles) {
         line.push({
@@ -447,6 +454,10 @@ function adjustLabelsForDisplay(
 
 function getResolutionPosition(question: Question, scaling: Scaling) {
   const resolution = question.resolution;
+  if (isNil(resolution)) {
+    // fallback, usually we don't expect this, as function will be called only for resolved questions
+    return 0;
+  }
 
   if (
     ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
@@ -459,7 +470,7 @@ function getResolutionPosition(question: Question, scaling: Scaling) {
   } else {
     return question.type === QuestionType.Numeric
       ? unscaleNominalLocation(Number(resolution), scaling)
-      : unscaleNominalLocation(new Date(resolution!).getTime() / 1000, scaling);
+      : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
   }
 }
 

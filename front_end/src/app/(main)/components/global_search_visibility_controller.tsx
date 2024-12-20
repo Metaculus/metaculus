@@ -13,6 +13,8 @@ export default function GlobalSearchVisibilityController({
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
+
         document.body.setAttribute(
           "data-existing-search-visible",
           entry.isIntersecting.toString()

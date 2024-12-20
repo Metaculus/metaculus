@@ -1,7 +1,7 @@
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
-import { round } from "lodash";
+import { isNil, round } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
@@ -19,7 +19,7 @@ import { PostWithForecasts } from "@/types/post";
 import { logError } from "@/utils/errors";
 
 type ForecastedPost = {
-  post: PostWithForecasts;
+  post: PostWithForecasts | null;
   forecast?: number;
   isLoading: boolean;
   isSubmitted: boolean;
@@ -92,7 +92,7 @@ const Step5: React.FC<OnboardingStep> = ({
 
   const [forecastedPosts, setForecastedPosts] = useState<ForecastedPost[]>(() =>
     [step2Prediction, step3Prediction].map((forecast, idx) => ({
-      post: posts[idx],
+      post: posts[idx] ?? null,
       forecast,
       isLoading: false,
       isSubmitted: false,
@@ -106,16 +106,40 @@ const Step5: React.FC<OnboardingStep> = ({
     setForecastedPosts((prev) =>
       prev.map((obj) => ({
         ...obj,
-        ...(postId === obj.post.id ? update : {}),
+        ...(postId === obj.post?.id ? update : {}),
       }))
     );
   };
 
   const handleDiscard = ({ post }: ForecastedPost) => {
-    setForecastedPosts((prev) => prev.filter((obj) => obj.post.id !== post.id));
+    setForecastedPosts((prev) =>
+      prev.filter((obj) => obj.post?.id !== post?.id)
+    );
   };
 
   const handleSubmit = async ({ post, forecast }: ForecastedPost) => {
+    if (isNil(post)) {
+      logError(
+        new Error("Post not found"),
+        "Error submitting onboarding forecast"
+      );
+      return;
+    }
+    if (isNil(post.question)) {
+      logError(
+        new Error("Question not found"),
+        "Error submitting onboarding forecast"
+      );
+      return;
+    }
+    if (isNil(forecast)) {
+      logError(
+        new Error("Forecast not found"),
+        "Error submitting onboarding forecast"
+      );
+      return;
+    }
+
     // Set loading
     updateForecastedPostState(post.id, { isLoading: true });
 
@@ -124,10 +148,10 @@ const Step5: React.FC<OnboardingStep> = ({
         post.id,
         [
           {
-            questionId: post.question!.id,
+            questionId: post.question.id,
             forecastData: {
               continuousCdf: null,
-              probabilityYes: round(forecast! / 100, BINARY_FORECAST_PRECISION),
+              probabilityYes: round(forecast / 100, BINARY_FORECAST_PRECISION),
               probabilityYesPerCategory: null,
             },
           },
@@ -155,13 +179,13 @@ const Step5: React.FC<OnboardingStep> = ({
         {forecastedPosts
           .filter(({ forecast }) => typeof forecast !== "undefined")
           .map((obj) => (
-            <Step.QuestionContainer key={`onboarding-forecast-${obj.post.id}`}>
-              <Step.QuestionTitle>{obj.post.title}</Step.QuestionTitle>
+            <Step.QuestionContainer key={`onboarding-forecast-${obj.post?.id}`}>
+              <Step.QuestionTitle>{obj.post?.title}</Step.QuestionTitle>
               <div className="flex flex-row items-center justify-between">
                 <div className="text-base md:text-lg">
                   {t("onboardingYouPredicted")}{" "}
                   <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
-                    {obj.forecast!.toFixed(0)}%
+                    {obj.forecast?.toFixed(0)}%
                   </span>
                 </div>
                 <div className="flex gap-2">

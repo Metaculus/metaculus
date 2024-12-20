@@ -26,9 +26,7 @@ const GlobalSearchContext = createContext<GlobalSearchContextProps>({
   setModifySearchParams: (b: boolean) => {},
 });
 
-export const GlobalSearchProvider: FC<PropsWithChildren<{}>> = ({
-  children,
-}) => {
+export const GlobalSearchProvider: FC<PropsWithChildren> = ({ children }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [modifySearchParams, setModifySearchParams] = useState(false);
   const [globalSearch, setGlobalSearch] = useSearchInputState(

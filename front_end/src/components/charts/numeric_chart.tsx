@@ -1,7 +1,7 @@
 "use client";
 
 import { getUnixTime } from "date-fns";
-import { merge, uniq } from "lodash";
+import { isNil, merge, uniq } from "lodash";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -197,7 +197,7 @@ const NumericChart: FC<Props> = ({
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
           onCursorChange(
-            timestamps[timestamps.findIndex((t) => t > value) - 1]
+            timestamps[timestamps.findIndex((t) => t > value) - 1] ?? null
           );
         }
       }}
@@ -208,14 +208,14 @@ const NumericChart: FC<Props> = ({
     !!chartWidth && !!xScale.ticks.length && yScale.ticks.length;
 
   const resolutionPoint = useMemo(() => {
-    if (!resolution || !resolveTime) {
+    if (!resolution || !resolveTime || isNil(actualCloseTime)) {
       return null;
     }
 
     return getResolutionPoint({
       questionType,
       resolution,
-      resolveTime: Math.min(getUnixTime(resolveTime), actualCloseTime! / 1000),
+      resolveTime: Math.min(getUnixTime(resolveTime), actualCloseTime / 1000),
       scaling,
     });
   }, [actualCloseTime, questionType, resolution, resolveTime, scaling]);
@@ -392,10 +392,15 @@ function buildChartData({
         y0: forecast.interval_lower_bounds?.[0] ?? 0,
         y: forecast.interval_upper_bounds?.[0] ?? 0,
       });
-    } else if (line.length && line[line.length - 1].x === forecast.start_time) {
-      line[line.length - 1].y = forecast.centers?.[0] ?? 0;
-      area[area.length - 1].y0 = forecast.interval_lower_bounds?.[0] ?? 0;
-      area[area.length - 1].y = forecast.interval_upper_bounds?.[0] ?? 0;
+    } else if (
+      line.length &&
+      line[line.length - 1]?.x === forecast.start_time
+    ) {
+      /* eslint-disable @typescript-eslint/no-non-null-assertion */
+      line[line.length - 1]!.y = forecast.centers?.[0] ?? 0;
+      area[area.length - 1]!.y0 = forecast.interval_lower_bounds?.[0] ?? 0;
+      area[area.length - 1]!.y = forecast.interval_upper_bounds?.[0] ?? 0;
+      /* eslint-enable @typescript-eslint/no-non-null-assertion */
     } else {
       // pushing null data terminates previous point (if any)
       line.push({
@@ -466,7 +471,7 @@ function buildChartData({
         x: forecast.start_time,
         y:
           questionType === "binary"
-            ? forecast.forecast_values[1]
+            ? forecast.forecast_values[1] ?? null
             : forecast.centers?.[0] ?? 0,
         y1:
           questionType === "binary"
@@ -484,7 +489,7 @@ function buildChartData({
         // forecast's start time, replace the end point record
         // with the new point
         const lastPoint = points[points.length - 1];
-        if (lastPoint.x === newPoint.x) {
+        if (lastPoint?.x === newPoint.x) {
           points.pop();
         }
       }
