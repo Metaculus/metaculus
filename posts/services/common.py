@@ -4,6 +4,7 @@ from datetime import timedelta, date
 
 from django.db.models import Q, Count, Sum, Value, Case, When, F, QuerySet
 from django.db.models.functions import Coalesce
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
@@ -82,9 +83,22 @@ def update_global_leaderboard_tags(post: Post):
         dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
         if dates:
             tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
-            tag, _ = Project.objects.get_or_create(
-                type=Project.ProjectTypes.TAG, name=tag_name, slug=tag_slug, order=1
-            )
+            try:
+                tag, _ = Project.objects.get_or_create(
+                    type=Project.ProjectTypes.TAG,
+                    slug=tag_slug,
+                    defaults={"name": tag_name, "order": 1},
+                )
+            except IntegrityError:
+                # Unsure why this is happening, so for debugging purposes
+                # log error and continue - don't block the triggering event
+                # (e.g. question resolution)
+                logger.exception(
+                    f"Error creating/getting global leaderboard tag for post {post.id}."
+                    f" Context: tag_name: {tag_name}, tag_slug: {tag_slug}, "
+                    f"question: {question.id}, dates: {dates}"
+                )
+                tag = Project.objects.get(type=Project.ProjectTypes.TAG, slug=tag_slug)
             to_set_tags.append(tag)
 
     # Update post's global leaderboard tags
@@ -167,27 +181,26 @@ def trigger_update_post_translations(
     post: Post, with_comments: bool = False, force: bool = False
 ):
     is_private = post.default_project.default_permission is None
-    if not force and is_private:
-        return
+    should_translate_if_dirty = not is_private or force
 
-    post.trigger_translation_if_dirty()
+    post.update_and_maybe_translate(should_translate_if_dirty)
     if post.question_id is not None:
-        post.question.trigger_translation_if_dirty()
+        post.question.update_and_maybe_translate(should_translate_if_dirty)
     if post.notebook_id is not None:
-        post.notebook.trigger_translation_if_dirty()
+        post.notebook.update_and_maybe_translate(should_translate_if_dirty)
     if post.group_of_questions_id is not None:
-        post.group_of_questions.trigger_translation_if_dirty()
+        post.group_of_questions.update_and_maybe_translate(should_translate_if_dirty)
     if post.conditional_id is not None:
-        post.conditional.condition.trigger_translation_if_dirty()
+        post.conditional.condition.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition, "post"):
-            post.conditional.condition.post.trigger_translation_if_dirty()
+            post.conditional.condition.post.update_and_maybe_translate(should_translate_if_dirty)
 
-        post.conditional.condition_child.trigger_translation_if_dirty()
+        post.conditional.condition_child.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition_child, "post"):
-            post.conditional.condition_child.post.trigger_translation_if_dirty()
+            post.conditional.condition_child.post.update_and_maybe_translate(should_translate_if_dirty)
 
-        post.conditional.question_yes.trigger_translation_if_dirty()
-        post.conditional.question_no.trigger_translation_if_dirty()
+        post.conditional.question_yes.update_and_maybe_translate(should_translate_if_dirty)
+        post.conditional.question_no.update_and_maybe_translate(should_translate_if_dirty)
 
     batch_size = 10
     comments_qs = get_comments_feed(qs=Comment.objects.filter(), post=post)
