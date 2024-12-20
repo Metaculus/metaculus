@@ -1,4 +1,4 @@
-name: check prettier formatting
+name: Check Linters and Prettier Formatter
 
 on:
   workflow_dispatch:
@@ -17,7 +17,6 @@ concurrency:
 
 jobs:
   run-linters:
-    name: Run linters
     runs-on: ubuntu-latest
     steps:
       - name: check out repository
