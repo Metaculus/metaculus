@@ -16,7 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prettier:
+  run-linters:
+    name: Run linters
     runs-on: ubuntu-latest
     steps:
       - name: check out repository
@@ -35,4 +36,7 @@ jobs:
         working-directory: front_end
       - name: check formatting
         run: npm run format:check
+        working-directory: front_end
+      - name: check linters
+        run: npm run lint
         working-directory: front_end
