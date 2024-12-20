@@ -1,7 +1,9 @@
 "use client";
 
-import { useAuth } from "@/contexts/auth_context";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useMemo, useRef, useState } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
@@ -13,18 +15,16 @@ import {
 } from "@/app/(main)/accounts/actions";
 import { signUpSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import Button from "@/components/ui/button";
-import { FormError, Input } from "@/components/ui/form_field";
-import { useModal } from "@/contexts/modal_context";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
-import { ErrorResponse } from "@/types/fetch";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { InputContainer } from "@/components/ui/input_container";
-import { useServerAction } from "@/hooks/use_server_action";
-import { usePathname, useRouter } from "next/navigation";
-import { CAMPAIGN_URL_BASE_PATH } from "../constants";
 import Checkbox from "@/components/ui/checkbox";
-import Link from "next/link";
-import SocialButtons from "@/components/auth/social_buttons";
+import { FormError, Input } from "@/components/ui/form_field";
+import { InputContainer } from "@/components/ui/input_container";
+import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
+import { useServerAction } from "@/hooks/use_server_action";
+import { ErrorResponse } from "@/types/fetch";
+
+import { CAMPAIGN_URL_BASE_PATH } from "../constants";
 
 export interface CampaignRegistrationProps {
   campaignKey: string;
@@ -225,7 +225,7 @@ export const RegistrationAndSignupForm: FC<
     });
 
     if (response && response.errors) {
-      for (let error in response.errors) {
+      for (const error in response.errors) {
         if (error === "message") {
           setError("non_field_errors" as keyof TournamentRegistrationSchema, {
             type: "custom",
@@ -399,7 +399,7 @@ export const RegistrationForm: FC<
     );
 
     if (response && response.errors) {
-      for (let error in response.errors) {
+      for (const error in response.errors) {
         if (error === "message") {
           setError("non_field_errors" as keyof TournamentRegistrationSchema, {
             type: "custom",

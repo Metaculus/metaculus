@@ -89,7 +89,7 @@ const CurveForecastMaker: FC<Props> = ({
       prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
     );
     if (!(response && "errors" in response)) {
-      onPredict && onPredict();
+      onPredict?.();
     }
   }, [post, questionsToSubmit, onPredict]);
   const [submit, isPending] = useServerAction(handlePredictSubmit);

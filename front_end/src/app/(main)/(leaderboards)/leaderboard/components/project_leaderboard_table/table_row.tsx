@@ -1,4 +1,3 @@
-import { isNil } from "lodash";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
@@ -91,12 +90,5 @@ const Td: FC<
     {children}
   </td>
 );
-
-const getUserPrize = (prizePool: number, percentPrize?: number): string => {
-  if (isNil(percentPrize)) return "-";
-
-  const prize = prizePool * percentPrize;
-  return prize >= 10 ? "$" + prize.toFixed(0) : "-";
-};
 
 export default TableRow;

@@ -8,7 +8,7 @@ import { PostSubscriptionNewComments } from "@/types/post";
 import { SubscriptionSectionProps } from "./types";
 
 const SubscriptionSectionNewComments: FC<
-  SubscriptionSectionProps<PostSubscriptionNewComments>
+  SubscriptionSectionProps<PostSubscriptionNewComments, "comments_frequency">
 > = ({ subscription, onChange }) => {
   const t = useTranslations();
 
@@ -38,7 +38,7 @@ const SubscriptionSectionNewComments: FC<
         onChange={(value) => onChange("comments_frequency", value)}
         as="ul"
       >
-        {options.map((option, optionIdx) => (
+        {options.map((option) => (
           <Radio as="li" key={option.id} value={option.id}>
             {({ checked, disabled }) => (
               <RadioButton checked={checked} disabled={disabled} size="small">

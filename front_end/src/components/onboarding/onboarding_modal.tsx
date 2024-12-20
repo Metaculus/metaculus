@@ -45,6 +45,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   useEffect(() => {
     // Cleanup onboarding state after completion
     if (user?.is_onboarding_complete) resetState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.is_onboarding_complete]);
 
   const scrollToTop = () => {
@@ -83,6 +84,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       // Load posts
       void updatePosts();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, selectedTopicId, posts.length]);
 
   // Hide tutorial for 24h

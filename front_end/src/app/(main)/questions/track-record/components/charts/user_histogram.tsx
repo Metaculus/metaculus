@@ -154,7 +154,7 @@ const mapHistogramData = (
   }[]
 ) => {
   const mappedArray = [] as { x: number; y: number }[];
-  userHistogram.forEach((data, index) => {
+  userHistogram.forEach((data) => {
     mappedArray.push(
       ...[
         { x: data.bin_start, y: Math.max(data.score_count, 0) },

@@ -16,7 +16,7 @@ export type ChangeUsernameState = {
 } | null;
 
 export default async function changeUsernameAction(
-  prevState: ChangeUsernameState,
+  _prevState: ChangeUsernameState,
   formData: FormData
 ): Promise<ChangeUsernameState> {
   const validatedFields = changeUsernameSchema.safeParse(
@@ -63,7 +63,7 @@ export type UpdateProfileState = {
 } | null;
 
 export async function updateProfileFormAction(
-  prevState: UpdateProfileState,
+  _prevState: UpdateProfileState,
   formData: FormData
 ): Promise<UpdateProfileState> {
   const validatedFields = updateProfileSchema.safeParse(
@@ -106,7 +106,9 @@ export async function updateProfileAction(
 ) {
   const response = await ProfileApi.updateProfile(profile);
 
-  revalidate && revalidatePath("/");
+  if (revalidate) {
+    revalidatePath("/");
+  }
 
   return response;
 }

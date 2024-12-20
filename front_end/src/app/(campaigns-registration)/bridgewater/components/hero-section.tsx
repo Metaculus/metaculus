@@ -30,7 +30,7 @@ export const ChoicesButtons = () => {
           className="cursor-pointer"
           href={`${pathname}/signup-and-register`}
         >
-          I don't have a Metaculus account
+          I don&apos;t have a Metaculus account
         </Button>
       </div>
     </>

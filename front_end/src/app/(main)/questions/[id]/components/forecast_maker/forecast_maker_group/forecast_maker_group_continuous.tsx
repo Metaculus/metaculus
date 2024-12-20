@@ -26,10 +26,7 @@ import {
   ProjectPermissions,
   QuestionStatus,
 } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
@@ -67,7 +64,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   questions,
   canPredict,
   groupVariable,
-  canResolve,
   predictionMessage,
 }) => {
   const t = useTranslations();

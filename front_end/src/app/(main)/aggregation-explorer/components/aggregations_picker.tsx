@@ -102,7 +102,7 @@ const AggregationMethodsPicker: React.FC<{
             <div
               className="group flex w-auto cursor-pointer flex-row items-center rounded bg-blue-200 p-2 text-sm dark:bg-blue-700"
               key={cat_index}
-              onClick={(e) => {
+              onClick={() => {
                 onChange([
                   ...methods.slice(0, cat_index),
                   ...methods.slice(cat_index + 1),

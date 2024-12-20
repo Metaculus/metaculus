@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
@@ -248,7 +248,7 @@ const QuestionForm: FC<Props> = ({
       description: "",
     };
 
-  const submitQuestion = async (data: any) => {
+  const submitQuestion = async (data: FieldValues) => {
     setIsLoading(true);
     setError(undefined);
 

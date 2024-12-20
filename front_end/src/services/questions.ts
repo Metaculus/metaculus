@@ -15,7 +15,7 @@ class QuestionsApi {
   static async createForecasts(
     forecasts: ForecastPayload[]
   ): Promise<Response> {
-    return await post<Response>(
+    return await post(
       `/questions/forecast/`,
       forecasts.map(({ questionId, forecastData, sliderValues }) => ({
         question: questionId,
@@ -31,7 +31,7 @@ class QuestionsApi {
   static async withdrawForecasts(
     withdrawals: WithdrawalPayload[]
   ): Promise<Response> {
-    return await post<Response>(`/questions/withdraw/`, withdrawals);
+    return await post(`/questions/withdraw/`, withdrawals);
   }
 
   static async resolve(

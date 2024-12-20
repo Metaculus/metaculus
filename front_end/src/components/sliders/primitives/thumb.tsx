@@ -1,9 +1,4 @@
-import {
-  faChevronLeft,
-  faChevronRight,
-  faPlus,
-  faMinus,
-} from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DetailedHTMLProps, FC, HTMLAttributes } from "react";
 

@@ -41,16 +41,16 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
-  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
 
   useEffect(() => {
     if (
       tournament?.is_current_content_translated ||
       questions.filter((q) => q.is_current_content_translated).length > 0
     ) {
-      setBannerisVisible(true);
+      setBannerIsVisible(true);
     }
-  }, [questions, setBannerisVisible, tournament]);
+  }, [questions, setBannerIsVisible, tournament]);
   const relevantParams = Object.fromEntries(searchParams);
   const { page, ...otherParams } = relevantParams;
   useEffect(() => {

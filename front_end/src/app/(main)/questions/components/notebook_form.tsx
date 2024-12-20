@@ -118,7 +118,7 @@ const NotebookForm: React.FC<Props> = ({
   const submitQuestion = async (data: FormData) => {
     setIsLoading(true);
     setError(undefined);
-    let post_data = {
+    const post_data = {
       title: data["title"],
       url_title: data["url_title"],
       default_project: data["default_project"],

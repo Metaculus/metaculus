@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useState } from "react";
+import { FC, useState } from "react";
 import toast from "react-hot-toast";
 
 import { reportComment } from "@/app/(main)/questions/actions";
@@ -19,20 +19,17 @@ const CommentReportModal: FC<Props> = ({ isOpen, onClose, comment }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleReport = useCallback(
-    async (reason: CommentReportReason) => {
-      setIsLoading(true);
-      try {
-        await reportComment(comment.id, reason);
-        toast(t("commentsReportSubmittedMessage"));
-      } finally {
-        setIsLoading(false);
-      }
+  const handleReport = async (reason: CommentReportReason) => {
+    setIsLoading(true);
+    try {
+      await reportComment(comment.id, reason);
+      toast(t("commentsReportSubmittedMessage"));
+    } finally {
+      setIsLoading(false);
+    }
 
-      onClose(true);
-    },
-    [comment.id, onClose]
-  );
+    onClose(true);
+  };
 
   return (
     <BaseModal

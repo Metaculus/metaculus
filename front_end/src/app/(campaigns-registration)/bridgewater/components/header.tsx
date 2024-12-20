@@ -4,7 +4,6 @@ import Link from "next/link";
 import { FC } from "react";
 
 import NavUserButton from "@/components/auth";
-import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/cn";
 

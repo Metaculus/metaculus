@@ -28,7 +28,7 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  let profile = await ProfileApi.getProfileById(params.id);
+  const profile = await ProfileApi.getProfileById(params.id);
 
   if (!profile) {
     return {};

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import React, { useEffect } from "react";
 
 export default function GlobalSearchVisibilityController({
   children,

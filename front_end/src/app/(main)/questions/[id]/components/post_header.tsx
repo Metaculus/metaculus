@@ -70,13 +70,13 @@ export default function PostHeader({
   }
 
   const [approvalModalOpen, setIsApprovalModalOpen] = useState(false);
-  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
   const locale = useLocale();
 
   useEffect(() => {
     if (post.is_current_content_translated) {
       setTimeout(() => {
-        setBannerisVisible(true);
+        setBannerIsVisible(true);
       }, 0);
     }
   }, [post, locale]);

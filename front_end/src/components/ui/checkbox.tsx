@@ -64,7 +64,7 @@ const Checkbox: FC<Props> = ({
             e.preventDefault();
             return false;
           }
-          onClick && onClick(e);
+          onClick?.(e);
         }}
         className="focus:outline-none"
       >

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 
-export const useServerAction = <P extends any[], R>(
+export const useServerAction = <P extends unknown[], R>(
   action: (...args: P) => Promise<R>,
   onFinished?: (_: R | undefined) => void
 ): [(...args: P) => Promise<R | undefined>, boolean] => {
@@ -14,6 +14,7 @@ export const useServerAction = <P extends any[], R>(
 
     if (onFinished) onFinished(result);
     resolver.current?.(result);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, finished]);
 
   const runAction = async (...args: P): Promise<R | undefined> => {

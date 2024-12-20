@@ -42,7 +42,7 @@ export function logError(error: Error | unknown, message?: string) {
 
 export function logErrorWithScope(
   error: Error | unknown,
-  payload: any,
+  payload: unknown,
   message?: string
 ) {
   Sentry.withScope(function (scope) {

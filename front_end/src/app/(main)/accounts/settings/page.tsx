@@ -20,11 +20,7 @@ export default async function Settings() {
     <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-gray-0 p-2 dark:bg-gray-0-dark sm:px-2 md:p-3 lg:my-4">
       <AccountPreferences user={currentUser} />
       <EmailNotifications user={currentUser} />
-      <QuestionNotifications
-        user={currentUser}
-        posts={posts}
-        revalidateSubscriptions
-      />
+      <QuestionNotifications posts={posts} revalidateSubscriptions />
       <ChangePassword />
       <ApiAccess token={token} />
     </main>

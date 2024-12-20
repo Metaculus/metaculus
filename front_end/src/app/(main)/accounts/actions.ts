@@ -4,11 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import {
-  signInSchema,
-  SignUpSchema,
-  signUpSchema,
-} from "@/app/(main)/accounts/schemas";
+import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
 import ProfileApi from "@/services/profile";
 import { deleteServerSession, setServerSession } from "@/services/session";

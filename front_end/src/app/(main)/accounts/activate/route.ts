@@ -1,15 +1,11 @@
 import { redirect } from "next/navigation";
+import invariant from "ts-invariant";
 
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
-import { SocialProviderType } from "@/types/auth";
 import { logError } from "@/utils/errors";
-import invariant from "ts-invariant";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { provider: SocialProviderType } }
-) {
+export async function GET(request: Request) {
   const url = new URL(request.url);
   const search_params = Object.fromEntries(url.searchParams.entries());
 

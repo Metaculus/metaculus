@@ -485,7 +485,6 @@ const Comment: FC<CommentProps> = ({
                 if (response && "errors" in response) {
                   console.error(t("errorDeletingComment"), response.errors);
                 } else {
-                  // TODO: remove once comment edit BE data include mentioned_users
                   const newCommentDataResponse = await getComments({
                     focus_comment_id: String(comment.id),
                     sort: "-created_at",
@@ -499,9 +498,6 @@ const Comment: FC<CommentProps> = ({
                       newCommentDataResponse.errors
                     );
                   } else {
-                    const newCommentData = newCommentDataResponse.results.find(
-                      (q) => q.id === comment.id
-                    );
                     setCommentMarkdown(commentMarkdown);
                   }
                   setIsEditing(false);

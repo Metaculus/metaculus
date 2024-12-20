@@ -29,10 +29,7 @@ import {
   QuestionStatus,
   Resolution,
 } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
@@ -74,7 +71,6 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   questions,
   groupVariable,
   canPredict,
-  canResolve,
   predictionMessage,
 }) => {
   const t = useTranslations();

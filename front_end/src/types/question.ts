@@ -141,7 +141,7 @@ export type BaseForecast = {
   my_forecasts: {
     timestamps: number[];
     medians: number[];
-    slider_values: any | null;
+    slider_values: unknown | null;
   } | null;
 };
 

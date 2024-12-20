@@ -1,5 +1,6 @@
-import { CategoryKey } from "@/types/scoring";
 import { isNil } from "lodash";
+
+import { CategoryKey } from "@/types/scoring";
 
 export const LEADERBOARD_CATEGORIES = [
   "baseline",

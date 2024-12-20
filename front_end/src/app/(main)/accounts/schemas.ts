@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { SubscriptionEmailType } from "@/types/notifications";
-
 export const signInSchema = z.object({
   login: z.string().min(1, { message: "Email/Username is required" }),
   password: z

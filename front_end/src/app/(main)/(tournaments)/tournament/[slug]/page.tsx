@@ -143,7 +143,6 @@ export default async function TournamentSlug({ params }: Props) {
             <ProjectLeaderboard
               projectId={tournament.id}
               userId={currentUser?.id}
-              prizePool={tournament.prize_pool}
               isQuestionSeries={isQuestionSeries}
             />
             {currentUser && (

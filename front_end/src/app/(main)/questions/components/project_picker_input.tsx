@@ -63,7 +63,7 @@ const ProjectPickerInput: React.FC<{
     <InputContainer labelText={t("projects")}>
       <Combobox
         immediate
-        onChange={(_) => {
+        onChange={() => {
           onChange(selectedProject);
         }}
       >
@@ -108,7 +108,7 @@ const ProjectPickerInput: React.FC<{
                       }`
                     }
                     value={project}
-                    onClick={(x) => {
+                    onClick={() => {
                       setSelectedProject(project);
                       onChange(project);
                       setQuery("");

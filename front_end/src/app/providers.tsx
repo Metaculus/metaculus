@@ -8,11 +8,12 @@ import {
   useState,
   FC,
   createContext,
+  ReactNode,
 } from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
 
-export function CSPostHogProvider({ children }: { children: any }) {
+export function CSPostHogProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
@@ -34,20 +35,20 @@ export function CSPostHogProvider({ children }: { children: any }) {
 }
 
 interface TranslationsBannerContextProps {
-  bannerIsVissible: boolean;
-  setBannerisVisible: (a: boolean) => void;
+  bannerIsVisible: boolean;
+  setBannerIsVisible: (a: boolean) => void;
 }
 const TranslationsBannerContext = createContext<TranslationsBannerContextProps>(
-  { bannerIsVissible: false, setBannerisVisible: (a) => {} }
+  { bannerIsVisible: false, setBannerIsVisible: () => {} }
 );
 
-export const TranslationsBannerProvider: FC<PropsWithChildren<{}>> = ({
+export const TranslationsBannerProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const [bannerIsVissible, setBannerisVisible] = useState(false);
+  const [bannerIsVisible, setBannerIsVisible] = useState(false);
   return (
     <TranslationsBannerContext.Provider
-      value={{ setBannerisVisible, bannerIsVissible }}
+      value={{ setBannerIsVisible, bannerIsVisible }}
     >
       {children}
     </TranslationsBannerContext.Provider>

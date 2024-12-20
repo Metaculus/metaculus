@@ -18,7 +18,7 @@ import { approvePost } from "../../actions";
 const PostApprovalModal: FC<{
   post: Post;
   isOpen: boolean;
-  setIsOpen: any;
+  setIsOpen: (value: boolean) => void;
 }> = ({ post, isOpen, setIsOpen }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
@@ -28,19 +28,6 @@ const PostApprovalModal: FC<{
     () => formatInTimeZone(new Date(), "UTC", "yyyy-MM-dd'T'HH:mm:ss'Z'"),
     []
   );
-
-  const questions = useMemo(() => {
-    if (post.question) return [post.question];
-    if (post.group_of_questions) return post.group_of_questions.questions;
-    if (post.conditional) return [{ id: post.id, title: post.title }];
-    return [];
-  }, [
-    post.group_of_questions,
-    post.question,
-    post.conditional,
-    post.id,
-    post.title,
-  ]);
 
   const [approvalData, setApprovalData] = useState<ApprovePostParams>(() => ({
     open_time: formatInTimeZone(

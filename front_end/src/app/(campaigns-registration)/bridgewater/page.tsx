@@ -1,10 +1,12 @@
-import ProfileApi from "@/services/profile";
-import Header from "./components/header";
-import { SucessfullyRegistered } from "./components/cards";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
+import ProfileApi from "@/services/profile";
+
+import { SucessfullyRegistered } from "./components/cards";
+import Header from "./components/header";
 import { ChoicesButtons, HeroSection } from "./components/hero-section";
 import { CAMPAIGN_KEY, CAMPAIGN_URL_BASE_PATH } from "./constants";
-import Link from "next/link";
 
 export const metadata = {
   title: "Bridgewater x Metaculus",

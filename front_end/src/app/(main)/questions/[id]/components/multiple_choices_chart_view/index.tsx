@@ -9,7 +9,7 @@ import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
-import { ChoiceItem, ChoiceTooltipItem, UserChoiceItem } from "@/types/choices";
+import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/cn";
 

@@ -42,7 +42,7 @@ const PostSubscribeSuccessModal: FC<Props> = ({
     }
 
     onClose(true);
-  }, [onClose, post.id]);
+  }, [onClose, onPostSubscriptionChange, post.id]);
 
   return (
     <BaseModal
