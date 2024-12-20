@@ -8,7 +8,7 @@ import {
 } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
@@ -121,7 +121,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const isPickerDirty = useMemo(
     () => questionOptions.some((option) => option.isDirty),
     [questionOptions]
@@ -269,7 +269,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   ]);
 
   const handlePredictSubmit = async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
       return;
@@ -307,20 +307,13 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     );
     setIsSubmitting(false);
 
-    const errors: ErrorResponse[] = [];
-
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   };
 
   const handlePredictWithdraw = async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!prevYesForecastValue && !prevNoForecastValue) return;
 
@@ -332,14 +325,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
     );
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -480,13 +467,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           />
         </div>
       )}
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage
-          className="mb-2 flex justify-center"
-          key={`error-${index}`}
-          errors={errResponse}
-        />
-      ))}
+      <FormError
+        errors={submitError}
+        className="flex items-center justify-center"
+        detached
+      />
       {!!activeOptionData && (
         <NumericForecastTable
           question={activeOptionData.question}
