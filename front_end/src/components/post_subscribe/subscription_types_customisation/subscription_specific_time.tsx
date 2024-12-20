@@ -19,7 +19,12 @@ import { formatDate } from "@/utils/date_formatters";
 import { SubscriptionSectionProps } from "./types";
 
 const SubscriptionSectionSpecificTime: FC<
-  SubscriptionSectionProps<PostSubscriptionSpecificTimeConfig>
+  SubscriptionSectionProps<
+    PostSubscriptionSpecificTimeConfig,
+    "subscriptions",
+    PostSubscriptionSpecificTime,
+    "recurrence_interval" | "next_trigger_datetime"
+  >
 > = ({ subscription, onChange, post }) => {
   const t = useTranslations();
   const locale = useLocale();

@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useEffect, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import { LogOut } from "@/app/(main)/accounts/actions";
 import {
@@ -23,7 +23,6 @@ import {
   FormError,
   Input,
   MarkdownEditorField,
-  Textarea,
 } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { UserProfile } from "@/types/users";
@@ -44,7 +43,7 @@ const UserInfo: FC<UserInfoProps> = ({
   const t = useTranslations();
   const { setUser } = useAuth();
   const [editMode, setEditMode] = useState(false);
-  const { register, setValue, control } = useForm<UpdateProfileSchema>({
+  const { register, control } = useForm<UpdateProfileSchema>({
     resolver: zodResolver(updateProfileSchema),
   });
   const [state, formAction] = useFormState<UpdateProfileState, FormData>(

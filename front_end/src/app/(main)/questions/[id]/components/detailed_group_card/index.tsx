@@ -25,7 +25,6 @@ import { useHideCP } from "../cp_provider";
 type Props = {
   questions: QuestionWithForecasts[];
   graphType: string;
-  nrForecasters: number;
   preselectedQuestionId?: number;
   isClosed?: boolean;
   actualCloseTime: string | null;
@@ -38,7 +37,6 @@ const DetailedGroupCard: FC<Props> = ({
   preselectedQuestionId,
   isClosed,
   graphType,
-  nrForecasters,
   actualCloseTime,
   openTime,
   postStatus,

@@ -23,12 +23,7 @@ type FormData = z.infer<typeof projectUserInviteSchema>;
 const MembersInvite: FC<Props> = ({ projectId, members }) => {
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const {
-    handleSubmit,
-    register,
-    reset,
-    formState: { errors },
-  } = useForm<FormData>({
+  const { handleSubmit, register, reset } = useForm<FormData>({
     resolver: zodResolver(projectUserInviteSchema),
   });
 

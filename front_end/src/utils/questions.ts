@@ -1,10 +1,5 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import {
-  differenceInMilliseconds,
-  fromUnixTime,
-  isValid,
-  subWeeks,
-} from "date-fns";
+import { differenceInMilliseconds, isValid } from "date-fns";
 import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -20,7 +15,6 @@ import {
   QuestionStatus,
   Resolution,
 } from "@/types/post";
-import { Tournament } from "@/types/projects";
 import {
   ForecastAvailability,
   Question,

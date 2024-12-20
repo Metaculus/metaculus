@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import RadioButton from "@/components/ui/radio_button";
 import { Question, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/cn";

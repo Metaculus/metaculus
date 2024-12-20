@@ -146,7 +146,6 @@ const ForecastCard: FC<Props> = ({
         <ConditionalTile
           postTitle={post.title}
           conditional={post.conditional}
-          curationStatus={post.status}
           chartTheme={embedTheme?.chart}
         />
       );

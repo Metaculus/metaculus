@@ -40,6 +40,7 @@ const ComboboxFilter: FC<Props> = ({
   );
   const [searchedOptions, setSearchedOptions] = useState<FilterOption[]>([]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchOptions = useCallback(
     debounce((q) => {
       if (optionsFetcher) optionsFetcher(q).then(setSearchedOptions);

@@ -15,9 +15,7 @@ import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import { QuestionOrder } from "@/types/question";
 import { encodeQueryParams } from "@/utils/navigation";
 
-type Props = {};
-
-const HomeSearch: FC<Props> = () => {
+const HomeSearch: FC = () => {
   const t = useTranslations();
   const router = useRouter();
 

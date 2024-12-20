@@ -20,7 +20,7 @@ export type ModalType =
 
 export type CurrentModal = {
   type: ModalType;
-  data?: any;
+  data?: Record<string, any>;
 };
 
 export type CurrentModalContextType = {

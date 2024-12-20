@@ -177,7 +177,6 @@ export default async function IndividualQuestion({
                   <ConditionalTile
                     postTitle={postData.title}
                     conditional={postData.conditional}
-                    curationStatus={postData.status}
                     nrForecasters={postData.nr_forecasters}
                     withNavigation
                     withCPRevealBtn
@@ -204,7 +203,6 @@ export default async function IndividualQuestion({
                     preselectedQuestionId={preselectedGroupQuestionId}
                     isClosed={isClosed}
                     graphType={postData.group_of_questions.graph_type}
-                    nrForecasters={postData.nr_forecasters}
                     postStatus={postData.status}
                   />
                 )}

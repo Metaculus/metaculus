@@ -10,7 +10,6 @@ import BaseModal from "@/components/base_modal";
 import PostSubscribeCustomizeModal from "@/components/post_subscribe/post_subscribe_customise_modal";
 import Button from "@/components/ui/button";
 import { Post, PostSubscriptionType } from "@/types/post";
-import { CurrentUser } from "@/types/users";
 import { Require } from "@/types/utils";
 import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
@@ -18,7 +17,6 @@ import { logError } from "@/utils/errors";
 
 type PostWithSubscriptions = Require<Post, "subscriptions">;
 type Props = {
-  user: CurrentUser;
   posts: PostWithSubscriptions[];
   revalidateSubscriptions?: boolean;
 };
@@ -55,7 +53,6 @@ const getSubscriptionsLabel = (
 };
 
 const QuestionNotifications: FC<Props> = ({
-  user,
   posts,
   revalidateSubscriptions,
 }) => {

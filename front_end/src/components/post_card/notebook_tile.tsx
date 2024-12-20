@@ -2,7 +2,6 @@
 import Image from "next/image";
 import { FC } from "react";
 
-import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
 import { Notebook } from "@/types/post";

@@ -50,7 +50,6 @@ const PostCard: FC<Props> = ({ post }) => {
             <ConditionalTile
               postTitle={post.title}
               conditional={post.conditional}
-              curationStatus={post.status}
               forecasters={post.nr_forecasters}
             />
           )}

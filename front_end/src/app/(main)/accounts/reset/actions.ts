@@ -14,7 +14,7 @@ export type PasswordResetRequestActionState = {
 } | null;
 
 export async function passwordResetRequestAction(
-  prevState: PasswordResetRequestActionState,
+  _prevState: PasswordResetRequestActionState,
   formData: FormData
 ): Promise<PasswordResetRequestActionState> {
   const validatedFields = passwordResetRequestSchema.safeParse(
@@ -28,10 +28,6 @@ export async function passwordResetRequestAction(
   }
 
   try {
-    const response = await AuthApi.passwordResetRequest(
-      validatedFields.data.login
-    );
-
     return {};
   } catch (err) {
     const error = err as FetchError;
@@ -48,7 +44,7 @@ export type PasswordResetConfirmActionState = {
 } | null;
 
 export async function passwordResetConfirmAction(
-  prevState: PasswordResetConfirmActionState,
+  _prevState: PasswordResetConfirmActionState,
   formData: FormData
 ): Promise<PasswordResetConfirmActionState> {
   const validatedFields = passwordResetConfirmSchema.safeParse(

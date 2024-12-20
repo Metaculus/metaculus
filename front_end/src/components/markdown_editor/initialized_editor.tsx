@@ -128,7 +128,7 @@ const InitializedMarkdownEditor: FC<
   const handleEditorChange = useCallback(
     (value: string) => {
       // Revert the MathJax transformation before passing the markdown to the parent component
-      onChange && onChange(processMarkdown(value, true));
+      onChange?.(processMarkdown(value, true));
     },
     [onChange]
   );

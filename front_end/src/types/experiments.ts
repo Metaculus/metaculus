@@ -1,5 +1,4 @@
 import { ExtendedQuartiles } from "@/types/question";
-import { ThemeColor } from "@/types/theme";
 
 export enum MapType {
   US = "us",

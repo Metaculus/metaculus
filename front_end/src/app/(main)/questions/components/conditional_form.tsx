@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { SetStateAction, useState } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { FieldValues, useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
@@ -98,7 +98,7 @@ const ConditionalForm: React.FC<{
     },
   });
 
-  const submitQuestion = async (data: any) => {
+  const submitQuestion = async (data: FieldValues) => {
     setIsLoading(true);
     setError(undefined);
     let parentId = conditionParent?.id;

@@ -51,7 +51,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
             "2xl": "gap-4 text-3xl font-medium leading-9",
           }[size],
           variant !== "link" &&
-            getPresentationTypeStyles(presentationType, size, variant),
+            getPresentationTypeStyles(presentationType, size),
           {
             primary:
               "border border-blue-900 bg-blue-900 text-gray-200 no-underline hover:border-blue-800 hover:bg-blue-800 active:border-gray-800 active:bg-gray-800 disabled:border-blue-900 disabled:bg-blue-900 dark:border-blue-900-dark dark:bg-blue-900-dark dark:text-gray-200-dark dark:hover:border-blue-800-dark dark:hover:bg-blue-800-dark dark:active:border-gray-800-dark dark:active:bg-gray-800-dark disabled:dark:border-blue-900-dark disabled:dark:bg-blue-900-dark",
@@ -73,11 +73,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
 );
 Button.displayName = "Button";
 
-function getPresentationTypeStyles(
-  type: PresentationType,
-  size: ButtonSize,
-  variant: ButtonVariant
-) {
+function getPresentationTypeStyles(type: PresentationType, size: ButtonSize) {
   switch (type) {
     case "icon":
       return {

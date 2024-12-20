@@ -167,13 +167,13 @@ const CommentFeed: FC<Props> = ({
     [comments, postData]
   );
 
-  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
 
   useEffect(() => {
     if (comments.filter((c) => c.is_current_content_translated).length > 0) {
-      setBannerisVisible(true);
+      setBannerIsVisible(true);
     }
-  }, [comments, setBannerisVisible]);
+  }, [comments, setBannerIsVisible]);
 
   const handleFilterChange = useCallback(
     (

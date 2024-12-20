@@ -15,7 +15,6 @@ import {
 import {
   findPreviousTimestamp,
   generateChoiceItemsFromMultipleChoiceForecast,
-  getQuestionTimestamps,
 } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 

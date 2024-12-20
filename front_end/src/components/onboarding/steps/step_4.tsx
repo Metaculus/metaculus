@@ -4,7 +4,7 @@ import React from "react";
 import Step from "@/components/onboarding/steps/step";
 import { OnboardingStep } from "@/types/onboarding";
 
-const Step4: React.FC<OnboardingStep> = ({ topic, handleComplete, onNext }) => {
+const Step4: React.FC<OnboardingStep> = ({ onNext }) => {
   const t = useTranslations();
 
   return (

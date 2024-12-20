@@ -123,7 +123,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
         [],
         revalidate
       );
-      onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
+      onPostSubscriptionChange?.(newSubscriptions);
       sendGAEvent("event", "questionUnfollowed");
     } finally {
       setIsLoading(false);
@@ -142,7 +142,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
         subscriptionsBE,
         revalidate
       );
-      onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
+      onPostSubscriptionChange?.(newSubscriptions);
       onClose(true);
     } finally {
       setIsLoading(false);

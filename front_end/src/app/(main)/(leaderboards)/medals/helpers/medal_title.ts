@@ -1,5 +1,6 @@
-import { Medal, MedalProjectType } from "@/types/scoring";
 import { isNil } from "lodash";
+
+import { Medal, MedalProjectType } from "@/types/scoring";
 
 export function getMedalDisplayTitle(medal: Medal): string {
   if (medal.projectType === MedalProjectType.Tournament) {
