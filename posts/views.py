@@ -27,6 +27,7 @@ from posts.models import (
     PostActivityBoost,
 )
 from posts.serializers import (
+    DownloadDataSerializer,
     PostFilterSerializer,
     OldQuestionFilterSerializer,
     PostWriteSerializer,
@@ -54,7 +55,6 @@ from questions.models import AggregateForecast, Question
 from questions.serializers import (
     QuestionApproveSerializer,
 )
-from questions.types import AggregationMethod
 from users.models import User
 from utils.csv_utils import export_data_for_questions
 from utils.files import UserUploadedImage, generate_filename
@@ -591,53 +591,12 @@ def post_preview_image(request: Request, pk):
 def download_data(request, pk: int):
     post = get_object_or_404(Post, pk=pk)
     user: User = request.user
+
     # Check permissions
     permission = get_post_permission_for_user(post, user=user)
     ObjectPermission.can_view(permission, raise_exception=True)
-    # Get question
-    if post.group_of_questions:
-        question_id = request.GET.get("sub-question", None)
-        if question_id is None:
-            questions = post.group_of_questions.questions.all()
-        else:
-            questions = post.group_of_questions.questions.filter(pk=question_id)
-            if not questions:
-                raise NotFound(f"Sub-question with id {question_id} not found.")
-    elif post.conditional:
-        questions = Question.objects.filter(
-            id__in=[post.conditional.question_yes_id, post.conditional.question_no_id]
-        )
-    elif post.question:
-        questions = Question.objects.filter(id=post.question_id)
-    else:
-        raise NotFound("Post has no questions")
 
-    # get and validate aggregation_methods
-    aggregation_methods: list[AggregationMethod] | None = request.GET.get(
-        "aggregation_methods", None
-    )
-    if aggregation_methods is not None:
-        if aggregation_methods == "all":
-            aggregation_methods = [
-                AggregationMethod.RECENCY_WEIGHTED,
-                AggregationMethod.UNWEIGHTED,
-                AggregationMethod.METACULUS_PREDICTION,
-            ]
-            if user.is_staff:
-                aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
-        else:
-            aggregation_methods = aggregation_methods.split(",")
-            for method in aggregation_methods:
-                if method not in AggregationMethod.values:
-                    raise PermissionDenied(f"Invalid aggregation method: {method}")
-            if not user.is_staff:
-                aggregation_methods = [
-                    method
-                    for method in aggregation_methods
-                    if method != AggregationMethod.SINGLE_AGGREGATION
-                ]
-
-    # get include_user_forecasts
+    # Context for the serializer
     can_view_private_data = (
         user.is_staff
         or WhitelistUser.objects.filter(
@@ -647,33 +606,41 @@ def download_data(request, pk: int):
             user=user,
         ).exists()
     )
+    serializer_context = {
+        "user": user,
+        "can_view_private_data": can_view_private_data,
+    }
 
-    # get user_ids
-    user_ids = request.GET.get("user_ids", None)
-    if user_ids:
-        if not can_view_private_data:
-            raise PermissionDenied(
-                "Current user can not view user-specific data. "
-                "Please remove user_ids parameter."
-            )
-        user_ids = user_ids.split(",")
+    # Serialize and validate GET parameters
+    serializer = DownloadDataSerializer(data=request.GET, context=serializer_context)
+    serializer.is_valid(raise_exception=True)
+    params = serializer.validated_data
 
-    # get include_comments
-    include_comments = (
-        str(request.GET.get("include_comments", "false")).lower() == "true"
-    )
+    # Extract validated parameters
+    sub_question = params.get("sub_question")
+    aggregation_methods = params.get("aggregation_methods")
+    user_ids = params.get("user_ids")
+    include_comments = params.get("include_comments", False)
+    include_scores = params.get("include_scores", False)
+    include_bots = params.get("include_bots")
+    minimize = params.get("minimize", True)
 
-    # get include_scores
-    include_scores = (
-        can_view_private_data
-        and str(request.GET.get("include_scores", "false")).lower() == "true"
-    )
-
-    # get include_bots
-    include_bots = request.GET.get("include_bots", None)
-
-    # to minimize the aggregation history or not
-    minimize = str(request.GET.get("minimize", "true")).lower() == "true"
+    # Get questions based on sub_question parameter
+    if post.group_of_questions:
+        if sub_question is None:
+            questions = post.group_of_questions.questions.all()
+        else:
+            questions = post.group_of_questions.questions.filter(pk=sub_question)
+            if not questions:
+                raise NotFound(f"Sub-question with id {sub_question} not found.")
+    elif post.conditional:
+        questions = Question.objects.filter(
+            id__in=[post.conditional.question_yes_id, post.conditional.question_no_id]
+        )
+    elif post.question:
+        questions = Question.objects.filter(id=post.question_id)
+    else:
+        raise NotFound("Post has no questions")
 
     if not aggregation_methods and (
         (user_ids is not None) or (include_bots is not None) or (not minimize)

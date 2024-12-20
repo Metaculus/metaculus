@@ -28,6 +28,7 @@ from questions.serializers import (
     GroupOfQuestionsUpdateSerializer,
 )
 from questions.services import get_aggregated_forecasts_for_questions
+from questions.types import AggregationMethod
 from users.models import User
 from utils.dtypes import flatten
 from utils.serializers import SerializerKeyLookupMixin
@@ -589,3 +590,75 @@ class PostRelatedArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ITNArticle
         fields = ("id", "title", "url", "favicon_url", "created_at", "media_label")
+
+
+class DownloadDataSerializer(serializers.Serializer):
+    sub_question = serializers.IntegerField(required=False)
+    aggregation_methods = serializers.CharField(required=False)
+    user_ids = serializers.CharField(required=False, allow_null=True)
+    include_comments = serializers.BooleanField(required=False, default=False)
+    include_scores = serializers.BooleanField(required=False, default=False)
+    include_bots = serializers.BooleanField(required=False, allow_null=True)
+    minimize = serializers.BooleanField(required=False, default=True)
+
+    def validate_aggregation_methods(self, value):
+        if value is None:
+            return
+        user: User = self.context["user"]
+        if value == "all":
+            aggregation_methods = [
+                AggregationMethod.RECENCY_WEIGHTED,
+                AggregationMethod.UNWEIGHTED,
+                AggregationMethod.METACULUS_PREDICTION,
+            ]
+            if user.is_staff:
+                aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
+            return aggregation_methods
+        methods = value.split(",")
+        invalid_methods = [
+            method for method in methods if method not in AggregationMethod.values
+        ]
+        if invalid_methods:
+            raise serializers.ValidationError(
+                f"Invalid aggregation method(s): {', '.join(invalid_methods)}"
+            )
+        if not user.is_staff:
+            methods = [
+                method
+                for method in methods
+                if method != AggregationMethod.SINGLE_AGGREGATION
+            ]
+        return methods
+
+    def validate_user_ids(self, value):
+        if not value:
+            return value
+        user_ids = value.split(",")
+        if not all(user_id.isdigit() for user_id in user_ids):
+            raise serializers.ValidationError(
+                "Invalid user_ids. Must be a comma-separated list of integers."
+            )
+        if not self.context["can_view_private_data"]:
+            raise serializers.ValidationError(
+                "Current user cannot view user-specific data. "
+                "Please remove user_ids parameter."
+            )
+        uids = [int(user_id) for user_id in user_ids]
+        return uids
+
+    def validate(self, attrs):
+        aggregation_methods = attrs.get("aggregation_methods")
+        user_ids = attrs.get("user_ids")
+        include_bots = attrs.get("include_bots")
+        minimize = attrs.get("minimize", True)
+
+        # Additional validation logic
+        if not aggregation_methods and (
+            user_ids is not None or include_bots is not None or not minimize
+        ):
+            raise serializers.ValidationError(
+                "If user_ids, include_bots, or minimize is set, "
+                "aggregation_methods must also be set."
+            )
+
+        return attrs
