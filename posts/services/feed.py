@@ -6,7 +6,11 @@ from rest_framework.exceptions import ValidationError
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
-from posts.services.search import perform_post_search, qs_filter_similar_posts
+from posts.services.search import (
+    perform_post_search,
+    qs_filter_similar_posts,
+    posts_full_text_search,
+)
 from projects.models import Project
 from users.models import User
 from utils.cache import cache_get_or_set
@@ -210,7 +214,14 @@ def get_posts_feed(
             # Force ordering by search rank
             order_by = "-rank"
         else:
-            qs = qs.filter(rank__gte=0.3)
+            q = Q(rank__gte=0.3)
+
+            # Full-text search is currently not fully optimized.
+            # To avoid overloading the database, it is applied only to filtered and narrowed queries.
+            if tournaments:
+                q = q | Q(pk__in=posts_full_text_search(qs, search))
+
+            qs = qs.filter(q)
 
     # Other filters
     qs = qs.filter(**kwargs)
