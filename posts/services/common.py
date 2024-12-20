@@ -30,6 +30,11 @@ from questions.services import (
     update_notebook,
 )
 from questions.types import AggregationMethod
+from scoring.models import (
+    global_leaderboard_dates,
+    name_and_slug_for_global_leaderboard_dates,
+    GLOBAL_LEADERBOARD_STRING,
+)
 from users.models import User
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregations_at_time
@@ -42,11 +47,6 @@ from utils.translation import (
 from .search import generate_post_content_for_embedding_vectorization
 from .subscriptions import notify_post_status_change
 from ..tasks import run_notify_post_status_change, run_post_indexing
-from scoring.models import (
-    global_leaderboard_dates,
-    name_and_slug_for_global_leaderboard_dates,
-    GLOBAL_LEADERBOARD_STRING,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -372,11 +372,24 @@ def compute_post_sorting_divergence_and_update_snapshots(post: Post):
     )
 
 
-def compute_hotness():
+def compute_feed_hotness():
+    """
+    Compute hotness for the entire feed
+    """
+
     qs = Post.objects.filter(
         curation_status=Post.CurationStatus.APPROVED,
         published_at__lte=timezone.now(),
     )
+
+    compute_hotness(qs)
+
+
+def compute_hotness(qs: QuerySet[Post]):
+    """
+    Compute hotness for the given queryset
+    """
+
     last_week_dt = timezone.now() - timedelta(days=7)
 
     qs = qs.annotate(
