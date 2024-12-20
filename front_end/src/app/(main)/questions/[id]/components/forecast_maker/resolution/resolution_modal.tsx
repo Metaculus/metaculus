@@ -118,7 +118,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
       } else {
-        onClose && onClose(true);
+        onClose?.(true);
       }
     },
     [onClose, question.id]
@@ -167,8 +167,16 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 step="any"
                 placeholder="numeric resolution"
                 className="max-w-xs bg-transparent"
-                min={open_lower_bound ? undefined : question.scaling.range_min!}
-                max={open_upper_bound ? undefined : question.scaling.range_max!}
+                min={
+                  open_lower_bound
+                    ? undefined
+                    : question?.scaling.range_min ?? undefined
+                }
+                max={
+                  open_upper_bound
+                    ? undefined
+                    : question?.scaling.range_max ?? undefined
+                }
                 {...register("resolutionValue")}
               />
             )}

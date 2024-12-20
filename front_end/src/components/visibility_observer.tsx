@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, ReactNode, PropsWithChildren } from "react";
+import React, { useEffect, useRef, PropsWithChildren } from "react";
 
 type VisibilityObserverProps = {
   onVisibilityChange: (isVisible: boolean) => void;
@@ -12,7 +12,7 @@ const VisibilityObserver: React.FC<
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        onVisibilityChange(entry.isIntersecting);
+        onVisibilityChange(entry?.isIntersecting ?? false);
       },
       { threshold: 0.1 } // Adjust threshold as needed
     );

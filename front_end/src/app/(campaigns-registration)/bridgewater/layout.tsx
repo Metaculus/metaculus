@@ -8,7 +8,6 @@ export default async function RootLayout({
 }>) {
   return (
     <div className="h-full min-h-screen">
-      <Bulletins />
       <div className="h-full">{children}</div>
       <CookiesBanner />
     </div>

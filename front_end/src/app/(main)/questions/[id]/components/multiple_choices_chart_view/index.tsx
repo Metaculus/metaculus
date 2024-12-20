@@ -1,4 +1,5 @@
 "use client";
+import { FloatingPortal } from "@floating-ui/react";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
@@ -207,18 +208,20 @@ const MultiChoicesChartView: FC<Props> = ({
       )}
 
       {isTooltipActive && !!tooltipChoices.length && (
-        <div
-          className="pointer-events-none z-20 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark"
-          ref={refs.setFloating}
-          style={floatingStyles}
-          {...getFloatingProps()}
-        >
-          <ChoicesTooltip
-            date={tooltipDate}
-            choices={tooltipChoices}
-            userChoices={tooltipUserChoices}
-          />
-        </div>
+        <FloatingPortal>
+          <div
+            className="pointer-events-none z-20 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark"
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+          >
+            <ChoicesTooltip
+              date={tooltipDate}
+              choices={tooltipChoices}
+              userChoices={tooltipUserChoices}
+            />
+          </div>
+        </FloatingPortal>
       )}
     </div>
   );

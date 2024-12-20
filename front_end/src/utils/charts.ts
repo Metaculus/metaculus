@@ -31,6 +31,8 @@ import {
   AggregationQuestion,
   Aggregations,
   QuestionWithForecasts,
+  AggregateForecastHistory,
+  Bounds,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -66,7 +68,7 @@ export function generateNumericDomain(
   if (latestTimestamp === undefined) {
     return [0, 0];
   }
-  const latestDate = fromUnixTime(latestTimestamp!);
+  const latestDate = fromUnixTime(latestTimestamp);
   let startDate: Date;
   switch (zoom) {
     case TimelineChartZoomOption.OneDay:
@@ -191,17 +193,21 @@ export function generateTimestampXScale(
  * scaling determined by zero_point
  */
 export function scaleInternalLocation(x: number, scaling: Scaling) {
-  let scaled_location = null;
   const { range_min, range_max, zero_point } = scaling;
+  if (isNil(range_max) || isNil(range_min)) {
+    return x;
+  }
+
+  let scaled_location: number;
   if (zero_point !== null) {
-    const derivRatio = (range_max! - zero_point) / (range_min! - zero_point);
+    const derivRatio = (range_max - zero_point) / (range_min - zero_point);
     scaled_location =
-      range_min! +
-      ((range_max! - range_min!) * (derivRatio ** x - 1)) / (derivRatio - 1);
+      range_min +
+      ((range_max - range_min) * (derivRatio ** x - 1)) / (derivRatio - 1);
   } else if (range_min === null || range_max === null) {
     scaled_location = x;
   } else {
-    scaled_location = range_min! + (range_max! - range_min!) * x;
+    scaled_location = range_min + (range_max - range_min) * x;
   }
   return scaled_location;
 }
@@ -212,16 +218,20 @@ export function scaleInternalLocation(x: number, scaling: Scaling) {
  * taking into account any logarithmic scaling determined by zero_point
  */
 export function unscaleNominalLocation(x: number, scaling: Scaling) {
-  let unscaled_location = null;
   const { range_min, range_max, zero_point } = scaling;
+  if (isNil(range_max) || isNil(range_min)) {
+    return x;
+  }
+
+  let unscaled_location: number;
   if (zero_point !== null) {
-    const derivRatio = (range_max! - zero_point) / (range_min! - zero_point);
+    const derivRatio = (range_max - zero_point) / (range_min - zero_point);
     unscaled_location =
       Math.log(
-        ((x - range_min!) * (derivRatio - 1)) / (range_max! - range_min!) + 1
+        ((x - range_min) * (derivRatio - 1)) / (range_max - range_min) + 1
       ) / Math.log(derivRatio);
   } else {
-    unscaled_location = (x - range_min!) / (range_max! - range_min!);
+    unscaled_location = (x - range_min) / (range_max - range_min);
   }
   return unscaled_location;
 }
@@ -297,14 +307,20 @@ export function getDisplayValue({
     truncation
   );
   if (range) {
-    const scaledLower = scaleInternalLocation(range[0], scaling);
+    const lowerX = range[0];
+    const upperX = range[1];
+    if (isNil(lowerX) || isNil(upperX)) {
+      return "...";
+    }
+
+    const scaledLower = scaleInternalLocation(lowerX, scaling);
     const lowerDisplay = displayValue(
       scaledLower,
       questionType,
       precision,
       truncation
     );
-    const scaledUpper = scaleInternalLocation(range[1], scaling);
+    const scaledUpper = scaleInternalLocation(upperX, scaling);
     const upperDisplay = displayValue(
       scaledUpper,
       questionType,
@@ -371,20 +387,24 @@ export function getUserPredictionDisplayValue(
     return "...";
   }
 
-  let center: number;
+  let center: number | undefined;
   let lower: number | undefined = undefined;
   let upper: number | undefined = undefined;
   if (questionType === QuestionType.Binary) {
     center = closestUserForecast.forecast_values[1];
   } else {
-    center = closestUserForecast.centers![0];
+    center = closestUserForecast.centers?.[0];
     lower = showRange
-      ? closestUserForecast.interval_lower_bounds![0]
+      ? closestUserForecast.interval_lower_bounds?.[0]
       : undefined;
     upper = showRange
-      ? closestUserForecast.interval_upper_bounds![0]
+      ? closestUserForecast.interval_upper_bounds?.[0]
       : undefined;
   }
+  if (isNil(center)) {
+    return "...";
+  }
+
   const scaledCenter = scaleInternalLocation(
     center,
     scaling ?? { range_min: 0, range_max: 1, zero_point: null }
@@ -472,11 +492,9 @@ export function generateScale({
   scaling = null,
   displayLabel = "",
   withCursorFormat = false,
-  cursorDisplayLabel = null,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
-  const domainSize = domainMax - domainMin;
   const domainScaling = {
     range_min: domainMin,
     range_max: domainMax,
@@ -485,7 +503,6 @@ export function generateScale({
 
   const rangeMin = scaling?.range_min ?? domainMin;
   const rangeMax = scaling?.range_max ?? domainMax;
-  const rangeSize = rangeMax - rangeMin;
   const zeroPoint = scaling?.zero_point ?? null;
   const rangeScaling = {
     range_min: rangeMin,
@@ -511,7 +528,7 @@ export function generateScale({
   } else {
     maxLabelCount = direction === "horizontal" ? 21 : 26;
   }
-  const tickCount = (maxLabelCount! - 1) * 5 + 1;
+  const tickCount = (maxLabelCount - 1) * 5 + 1;
 
   // console.log({
   //   displayType,
@@ -600,7 +617,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
 
   const latest = question.aggregations.recency_weighted.latest;
 
-  const choiceOrdering: number[] = question.options!.map((_, i) => i);
+  const choiceOrdering: number[] = question.options?.map((_, i) => i) ?? [];
   if (!preserveOrder) {
     choiceOrdering.sort((a, b) => {
       const aCenter = latest?.forecast_values[a] ?? 0;
@@ -656,17 +673,17 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       });
       aggregationValues.push(
         !!aggregationForecast?.centers
-          ? aggregationForecast.centers[index]
+          ? aggregationForecast.centers[index] ?? null
           : null
       );
       aggregationMinValues.push(
         !!aggregationForecast?.interval_lower_bounds
-          ? aggregationForecast.interval_lower_bounds[index]
+          ? aggregationForecast.interval_lower_bounds[index] ?? null
           : null
       );
       aggregationMaxValues.push(
         !!aggregationForecast?.interval_upper_bounds
-          ? aggregationForecast.interval_upper_bounds[index]
+          ? aggregationForecast.interval_upper_bounds[index] ?? null
           : null
       );
       aggregationForecasterCounts.push(
@@ -698,19 +715,24 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const orderedChoiceItems = choiceOrdering.map((order) => choiceItems[order]);
   // move resolved choice to the front
   const resolutionIndex = choiceOrdering.findIndex(
-    (order) => question.options![order] === question.resolution
+    (order) => question.options?.[order] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = orderedChoiceItems.splice(resolutionIndex, 1);
-    orderedChoiceItems.unshift(resolutionItem);
+    if (resolutionItem) {
+      orderedChoiceItems.unshift(resolutionItem);
+    }
   }
   // set inactive items
   if (activeCount) {
     orderedChoiceItems.forEach((item, index) => {
-      item.active = index < activeCount;
+      if (!isNil(item)) {
+        item.active = index < activeCount;
+      }
     });
   }
-  return orderedChoiceItems;
+
+  return orderedChoiceItems.filter((el) => !isNil(el)) as ChoiceItem[];
 }
 
 export function generateChoiceItemsFromAggregations(
@@ -757,12 +779,12 @@ export function generateChoiceItemsFromAggregations(
           (forecast.end_time === null || forecast.end_time > timestamp)
         );
       });
-      aggregationValues.push(aggregationForecast?.centers![0] || null);
+      aggregationValues.push(aggregationForecast?.centers?.[0] || null);
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds![0] || null
+        aggregationForecast?.interval_lower_bounds?.[0] || null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds![0] || null
+        aggregationForecast?.interval_upper_bounds?.[0] || null
       );
       aggregationForecasterCounts.push(
         aggregationForecast?.forecaster_count || 0
@@ -835,7 +857,10 @@ export function generateChoiceItemsFromGroupQuestions(
     : undefined;
 
   const choiceItems: ChoiceItem[] = choiceOrdering.map((order, index) => {
-    const question = questions[order];
+    // that's okay to do no-non-null-assertion, as choiceOrdering is generated based on questions array
+    // so we don't expect that it will have a different length
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const question = questions[order]!;
     const label = question.label;
     const userHistory = question.my_forecasts?.history;
 
@@ -896,9 +921,9 @@ export function generateChoiceItemsFromGroupQuestions(
         userValues.push(userForecast?.forecast_values[1] || null);
       } else {
         // continuous
-        userValues.push(userForecast?.centers![0] || null);
-        userMinValues.push(userForecast?.interval_lower_bounds![0] || null);
-        userMaxValues.push(userForecast?.interval_upper_bounds![0] || null);
+        userValues.push(userForecast?.centers?.[0] || null);
+        userMinValues.push(userForecast?.interval_lower_bounds?.[0] || null);
+        userMaxValues.push(userForecast?.interval_upper_bounds?.[0] || null);
       }
     });
     sortedAggregationTimestamps.forEach((timestamp) => {
@@ -908,12 +933,12 @@ export function generateChoiceItemsFromGroupQuestions(
           (forecast.end_time === null || forecast.end_time > timestamp)
         );
       });
-      aggregationValues.push(aggregationForecast?.centers![0] || null);
+      aggregationValues.push(aggregationForecast?.centers?.[0] || null);
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds![0] || null
+        aggregationForecast?.interval_lower_bounds?.[0] || null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds![0] || null
+        aggregationForecast?.interval_upper_bounds?.[0] || null
       );
       aggregationForecasterCounts.push(
         aggregationForecast?.forecaster_count || 0
@@ -1055,8 +1080,12 @@ export function getGroupQuestionsTimestamps(
 
 export function findPreviousTimestamp(
   timestamps: number[],
-  timestamp: number
+  timestamp: number | null | undefined
 ): number {
+  if (isNil(timestamp)) {
+    return 0;
+  }
+
   return timestamps.reduce(
     (prev, curr) => (curr <= timestamp && curr > prev ? curr : prev),
     0
@@ -1087,7 +1116,7 @@ export const interpolateYValue = (xValue: number, line: Line) => {
   const p1 = line[i];
   const p2 = line[i + 1] ?? line[i];
 
-  if (!p1.y || !p2.y) return 0;
+  if (!p1?.y || !p2?.y) return 0;
 
   const t = (xValue - p1.x) / (p2.x - p1.x);
   return p1.y + t * (p2.y - p1.y);
@@ -1119,19 +1148,25 @@ export function getTickLabelFontSize(actualTheme: VictoryThemeDefinition) {
 export function getContinuousGroupScaling(
   questions: QuestionWithNumericForecasts[]
 ) {
+  const rangeMaxPoints: number[] = [];
+  const rangeMinPoints: number[] = [];
   const zeroPoints: number[] = [];
   questions.forEach((question) => {
+    if (question.scaling.range_max !== null) {
+      rangeMaxPoints.push(question.scaling.range_max);
+    }
+
+    if (question.scaling.range_min !== null) {
+      rangeMinPoints.push(question.scaling.range_min);
+    }
+
     if (question.scaling.zero_point !== null) {
       zeroPoints.push(question.scaling.zero_point);
     }
   });
   const scaling: Scaling = {
-    range_max: Math.max(
-      ...questions.map((question) => question.scaling.range_max!)
-    ),
-    range_min: Math.min(
-      ...questions.map((question) => question.scaling.range_min!)
-    ),
+    range_max: Math.max(...rangeMaxPoints),
+    range_min: Math.min(...rangeMinPoints),
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
   // we can have mixes of log and linear scaled options
@@ -1139,8 +1174,10 @@ export function getContinuousGroupScaling(
   // so just igore the log scaling in this case
   if (
     scaling.zero_point !== null &&
-    scaling.range_min! <= scaling.zero_point &&
-    scaling.zero_point <= scaling.range_max!
+    !isNil(scaling.range_min) &&
+    !isNil(scaling.range_max) &&
+    scaling.range_min <= scaling.zero_point &&
+    scaling.zero_point <= scaling.range_max
   ) {
     scaling.zero_point = null;
   }
@@ -1210,4 +1247,41 @@ export function getResolutionPoint({
     default:
       return null;
   }
+}
+
+export function getCursorForecast(
+  cursorTimestamp: number | null | undefined,
+  aggregation: AggregateForecastHistory
+): AggregateForecast | null {
+  let forecastIndex: number = -1;
+  if (!isNil(cursorTimestamp)) {
+    forecastIndex = aggregation.history.findIndex(
+      (f) =>
+        cursorTimestamp !== null &&
+        f.start_time <= cursorTimestamp &&
+        (f.end_time === null || f.end_time > cursorTimestamp)
+    );
+  } else if (cursorTimestamp === null && isNil(aggregation.latest?.end_time)) {
+    forecastIndex = aggregation.history.length - 1;
+  }
+  return forecastIndex === -1
+    ? null
+    : aggregation.history[forecastIndex] ?? null;
+}
+
+export function getCdfBounds(cdf: number[] | undefined): Bounds | undefined {
+  if (!cdf) {
+    return;
+  }
+
+  const start = cdf.at(0);
+  const end = cdf.at(-1);
+  if (isNil(start) || isNil(end)) {
+    return;
+  }
+
+  return {
+    belowLower: start,
+    aboveUpper: 1 - end,
+  };
 }
