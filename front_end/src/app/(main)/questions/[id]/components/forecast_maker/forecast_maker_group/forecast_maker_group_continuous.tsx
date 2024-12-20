@@ -17,7 +17,7 @@ import React, {
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { ErrorResponse } from "@/types/fetch";
 import {
@@ -120,7 +120,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     [questions, activeTableOption]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const questionsToSubmit = useMemo(
     () =>
       groupOptions.filter(
@@ -223,7 +223,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   }, [prevForecastValuesMap]);
 
   const handlePredictSubmit = useCallback(async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
       return;
@@ -257,17 +257,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     );
     setIsSubmitting(false);
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (response && "error" in response && !!response.error) {
-      errors.push(response.error);
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   }, [postId, questionsToSubmit]);
 
@@ -377,13 +368,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             )}
           </div>
         )}
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage
-          className="mb-2 flex justify-center"
-          key={`error-${index}`}
-          errors={errResponse}
-        />
-      ))}
+      <FormError
+        errors={submitError}
+        className="mt-2 flex items-center justify-center"
+        detached
+      />
       {activeGroupOptionPredictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
           {t(activeGroupOptionPredictionMessage)}
