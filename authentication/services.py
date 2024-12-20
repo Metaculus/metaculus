@@ -51,13 +51,20 @@ def check_and_activate_user(user_id: int, token: str):
     Validates activation token and activates user
     """
 
-    user = User.objects.filter(pk=user_id, is_active=False).first()
+    user = User.objects.filter(pk=user_id).first()
+
+    if not user:
+        raise ValidationError({"token": ["Invalid user"]})
+
+    # Skip if user is already active
+    if user.is_active:
+        return user
+
+    if not default_token_generator.check_token(user, token):
+        raise ValidationError({"token": ["Activation Token is expired or invalid"]})
 
     if user.is_spam:
         raise ValidationError({"user": ["User is marked as spam"]})
-
-    if not user or not default_token_generator.check_token(user, token):
-        raise ValidationError({"token": ["Activation Token is expired or invalid"]})
 
     user.is_active = True
     user.save()
