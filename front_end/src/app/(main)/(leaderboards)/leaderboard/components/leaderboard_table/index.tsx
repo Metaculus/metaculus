@@ -107,7 +107,7 @@ const LeaderboardTable: FC<Props> = ({
               } else {
                 return (
                   <LeaderboardRow
-                    key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method!}`}
+                    key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method}`}
                     rowEntry={entry}
                     scoreType={leaderboardDetails.score_type}
                     href={navigationUrl}

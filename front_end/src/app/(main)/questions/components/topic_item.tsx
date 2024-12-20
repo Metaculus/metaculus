@@ -16,6 +16,7 @@ const TopicItem: FC<Props> = ({ isActive, onClick, text, emoji, href }) => {
   return (
     <Button
       as={href ? Link : undefined}
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       href={href!}
       className={cn(
         "w-auto cursor-pointer snap-start rounded-full p-1.5 px-2 text-sm leading-4 no-underline sm:w-full sm:p-2 sm:px-2.5 sm:text-base sm:leading-5",

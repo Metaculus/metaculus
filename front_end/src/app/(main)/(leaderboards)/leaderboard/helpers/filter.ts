@@ -54,7 +54,7 @@ export function extractLeaderboardFiltersFromParams(
     DEFAULT_LEADERBOARD_CATEGORY) as CategoryKey;
 
   const durations = getLeaderboardDurationFilters(t);
-  let duration: string = durations[0].value;
+  let duration: string = durations[0]?.value ?? "1";
   if (
     params[SCORING_DURATION_FILTER] &&
     typeof params[SCORING_DURATION_FILTER] === "string" &&
@@ -64,7 +64,7 @@ export function extractLeaderboardFiltersFromParams(
   }
 
   const periods = getLeaderboardTimePeriodFilters(duration);
-  let year: string = periods[periods.length - 1].value;
+  let year: string = periods[periods.length - 1]?.value ?? "2024";
   if (
     params[SCORING_YEAR_FILTER] &&
     typeof params[SCORING_YEAR_FILTER] === "string" &&

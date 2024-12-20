@@ -57,6 +57,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   useEffect(() => {
     if (isOpen && selectedTopicId !== null && !posts.length) {
       const topicObject = ONBOARDING_TOPICS[selectedTopicId];
+      if (!topicObject) return;
+
       setIsLoading(true);
       setTopic(topicObject);
 
@@ -141,22 +143,20 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     >
       {isLoading ? (
         <OnboardingLoading />
-      ) : (
-        <>
-          <StepsRouter
-            topic={topic!}
-            onNext={onNext}
-            onPrev={onPrev}
-            onComplete={handleCompleteTutorial}
-            setTopic={setTopicId}
-            onboardingState={onboardingState}
-            setOnboardingState={setOnboardingState}
-            posts={posts}
-            handleComplete={handleCompleteTutorial}
-            handlePostpone={handlePostponeTutorial}
-          />
-        </>
-      )}
+      ) : !!topic ? (
+        <StepsRouter
+          topic={topic}
+          onNext={onNext}
+          onPrev={onPrev}
+          onComplete={handleCompleteTutorial}
+          setTopic={setTopicId}
+          onboardingState={onboardingState}
+          setOnboardingState={setOnboardingState}
+          posts={posts}
+          handleComplete={handleCompleteTutorial}
+          handlePostpone={handlePostponeTutorial}
+        />
+      ) : null}
     </BaseModal>
   );
 };

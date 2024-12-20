@@ -37,13 +37,13 @@ const ChartFanTooltip: FC<Props> = ({
     return null;
   }
 
-  const quartiles = items[option].quartiles;
-  const question = items[option].question;
-  const resolved = !!question.resolution;
+  const quartiles = items[option]?.quartiles;
+  const question = items[option]?.question;
+  const resolved = !!question?.resolution;
 
   const padding = 10;
   const position = y + padding + HEIGHT > chartHeight ? "top" : "bottom";
-  if (!quartiles) {
+  if (!quartiles || !question) {
     return null;
   }
 

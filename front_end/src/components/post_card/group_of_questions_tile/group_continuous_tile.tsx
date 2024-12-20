@@ -37,7 +37,7 @@ const GroupContinuousTile: FC<Props> = ({ questions, post, hideCP }) => {
   const { user } = useAuth();
   const locale = useLocale();
 
-  const questionType = questions[0].type;
+  const questionType = questions[0]?.type;
   const isBinaryGroup = questionType === QuestionType.Binary;
   const scaling = useMemo(
     () => (isBinaryGroup ? undefined : getContinuousGroupScaling(questions)),
@@ -69,7 +69,7 @@ const GroupContinuousTile: FC<Props> = ({ questions, post, hideCP }) => {
           choices={choices}
           visibleChoicesCount={VISIBLE_CHOICES_COUNT}
           questions={questions}
-          questionType={questions[0].type}
+          questionType={questions[0]?.type}
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
           chartHeight={CHART_HEIGHT}

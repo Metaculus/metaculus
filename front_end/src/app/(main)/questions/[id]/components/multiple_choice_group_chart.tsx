@@ -253,7 +253,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
       openTime={openTime}
-      questionType={questions[0].type}
+      questionType={questions[0]?.type}
       scaling={scaling}
       title={t("forecastTimelineHeading")}
       yLabel={t("communityPredictionLabel")}
@@ -278,12 +278,13 @@ function getQuestionTooltipLabel({
 }: {
   timestamps: number[];
   values: (number | null)[];
-  cursorTimestamp: number;
+  cursorTimestamp: number | null;
   question?: Question;
   isUserPrediction?: boolean;
   closeTime?: number | undefined;
 }) {
   const hasValue =
+    !isNil(cursorTimestamp) &&
     cursorTimestamp >= Math.min(...timestamps) &&
     cursorTimestamp <= Math.max(...timestamps, closeTime ?? 0);
   if (!hasValue || !question) {

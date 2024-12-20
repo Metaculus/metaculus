@@ -222,6 +222,8 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     const response = await createForecasts(
       postId,
       questionsToSubmit.map((q) => {
+        // Okay to disable no-non-null-assertion rule, as value is checked in questionsToSubmit definition
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const forecastValue = round(q.value! / 100, BINARY_FORECAST_PRECISION);
 
         return {

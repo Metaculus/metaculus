@@ -30,6 +30,7 @@ import {
   PredictionInputMessage,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { getCdfBounds } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
   extractPrevNumericForecastValue,
@@ -242,8 +243,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             continuousCdf: getNumericForecastDataset(
               getNormalizedUserForecast(userForecast),
               userWeights,
-              question.open_lower_bound!,
-              question.open_upper_bound!
+              question.open_lower_bound,
+              question.open_upper_bound
             ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
@@ -285,8 +286,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     getNumericForecastDataset(
       getNormalizedUserForecast(activeGroupOption.userForecast),
       activeGroupOption?.userWeights,
-      activeGroupOption?.question.open_lower_bound!,
-      activeGroupOption?.question.open_upper_bound!
+      activeGroupOption?.question.open_lower_bound,
+      activeGroupOption?.question.open_upper_bound
     ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
@@ -314,8 +315,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         const dataset = getNumericForecastDataset(
           normalizedUserForecast,
           option.userWeights,
-          option.question.open_lower_bound!,
-          option.question.open_upper_bound!
+          option.question.open_lower_bound,
+          option.question.open_upper_bound
         );
 
         return (
@@ -396,32 +397,15 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         <>
           <NumericForecastTable
             question={activeGroupOption.question}
-            userBounds={
-              userCdf && {
-                belowLower: userCdf[0],
-                aboveUpper: 1 - userCdf[userCdf.length - 1],
-              }
-            }
+            userBounds={getCdfBounds(userCdf)}
             userQuartiles={activeGroupOption.userQuartiles ?? undefined}
-            userPreviousBounds={
-              userPreviousCdf
-                ? {
-                    belowLower: userPreviousCdf[0],
-                    aboveUpper: 1 - userPreviousCdf[userPreviousCdf.length - 1],
-                  }
-                : undefined
-            }
+            userPreviousBounds={getCdfBounds(userPreviousCdf)}
             userPreviousQuartiles={
               userPreviousCdf
                 ? computeQuartilesFromCDF(userPreviousCdf)
                 : undefined
             }
-            communityBounds={
-              communityCdf && {
-                belowLower: communityCdf[0],
-                aboveUpper: 1 - communityCdf[communityCdf.length - 1],
-              }
-            }
+            communityBounds={getCdfBounds(communityCdf)}
             communityQuartiles={
               activeGroupOption.communityQuartiles ?? undefined
             }
@@ -429,7 +413,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             withCommunityQuartiles={!user || !hideCP}
             isDirty={activeGroupOption.isDirty}
             hasUserForecast={
-              !!prevForecastValuesMap[activeTableOption!].forecast
+              !isNil(activeTableOption) &&
+              !!prevForecastValuesMap[activeTableOption]?.forecast
             }
           />
 

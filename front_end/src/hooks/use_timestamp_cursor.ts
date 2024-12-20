@@ -4,7 +4,7 @@ import { TickFormat } from "@/types/charts";
 
 const useTimestampCursor = (timestamps: number[]) => {
   const [cursorTimestamp, setCursorTimestamp] = useState(
-    timestamps[timestamps.length - 1]
+    timestamps.at(-1) ?? null
   );
   const [tooltipDate, setTooltipDate] = useState("");
 

@@ -7,7 +7,7 @@ import { getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 
 type Props = {
-  question: QuestionWithNumericForecasts;
+  question: QuestionWithNumericForecasts | null;
   isGroup?: boolean;
   className?: string;
 };
@@ -17,6 +17,10 @@ const SimilarPredictionChip: FC<Props> = ({
   isGroup = false,
   className,
 }) => {
+  if (!question) {
+    return null;
+  }
+
   if (
     ![QuestionType.Numeric, QuestionType.Date, QuestionType.Binary].includes(
       question.type
@@ -34,7 +38,7 @@ const SimilarPredictionChip: FC<Props> = ({
   if (isForecastEmpty) return null;
 
   const latest = question.aggregations.recency_weighted.latest;
-  const prediction = latest?.centers![0];
+  const prediction = latest?.centers?.[0];
 
   {
     return (
