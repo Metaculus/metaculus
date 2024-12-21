@@ -351,8 +351,8 @@ export async function changePostSubscriptions(
   return response;
 }
 
-export async function getPostCSVData(postId: number) {
-  const blob = await PostsApi.getPostCSVData(postId);
+export async function getPostZipData(postId: number) {
+  const blob = await PostsApi.getPostZipData(postId);
   const arrayBuffer = await blob.arrayBuffer();
   const base64String = Buffer.from(arrayBuffer).toString("base64");
 

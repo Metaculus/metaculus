@@ -35,6 +35,11 @@ urlpatterns = [
         views.project_unsubscribe_api_view,
         name="project-unsubscribe",
     ),
+    path(
+        "projects/<int:project_id>/download-data/",
+        views.download_data,
+        name="download-data",
+    ),
     # Communities
     path(
         "projects/communities/",

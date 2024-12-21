@@ -1583,7 +1583,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Post'
-  /api/posts/{postId}/download-csv/:
+  /api/posts/{postId}/download-data/:
     get:
       summary: Download CSV data for a Question. Will open a download prompt in the browser.
       tags:
@@ -1612,9 +1612,9 @@ paths:
           description: Aggregation methods to include in the CSV, no argument will only include recency_weighted. single_aggregation is in beta and not available except to site admins.
       responses:
         '200':
-          description: CSV data for the question
+          description: Zip data for the question
           content:
-            text/csv:
+            application/zip:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/BinaryQuestionCSV'

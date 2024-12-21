@@ -1,20 +1,34 @@
 import csv
-import re
-from io import StringIO
-import numpy as np
 import io
 import zipfile
 
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 
-from questions.models import Question, AggregateForecast, Forecast
 from comments.models import Comment
-from utils.the_math.formulas import unscaled_location_to_string_location
+from questions.models import Question, AggregateForecast, Forecast
+from scoring.models import Score, ArchivedScore
 
 
-def export_data_for_questions(questions: QuerySet[Question]):
-    # generate a zip file with three csv files: question_data, forecast_data,
-    # and comment_data
+def export_data_for_questions(
+    questions: QuerySet[Question],
+    include_user_forecasts: bool = False,
+    include_comments: bool = False,
+    include_scores: bool = False,
+    user_ids: list[int] | None = None,
+    aggregation_dict: dict[Question, dict[str, list[AggregateForecast]]] | None = None,
+) -> bytes:
+    # generate a zip file with up to 4 csv files:
+    #     question_data
+    #     forecast_data
+    #     comment_data
+    #     score_data
+    # If user_ids is give, aggregation_dict must also be provided as this method does
+    #     not recalculate aggregations
+    if user_ids and not aggregation_dict:
+        raise ValueError(
+            "If user_ids are provided, aggregation_dict must be "
+            "generated before this method"
+        )
 
     questions = questions.prefetch_related(
         "related_posts__post", "related_posts__post__default_project"
@@ -25,21 +39,58 @@ def export_data_for_questions(questions: QuerySet[Question]):
         return
 
     forecasts = (
-        Forecast.objects.filter(question_id__in=question_ids)
-        .select_related("question", "author")
-        .order_by("question_id", "start_time")
+        Forecast.objects.none()
+        if not include_user_forecasts
+        else (
+            Forecast.objects.filter(question_id__in=question_ids)
+            .select_related("question", "author")
+            .order_by("question_id", "start_time")
+        )
     )
-    aggregate_forecasts = (
-        AggregateForecast.objects.filter(question_id__in=question_ids)
-        .select_related("question")
-        .order_by("question_id", "start_time")
-    )
+    if user_ids:
+        forecasts = forecasts.filter(author_id__in=user_ids)
+    if aggregation_dict is not None:
+        aggregate_forecasts = []
+        for ad in aggregation_dict.values():
+            for afs in ad.values():
+                aggregate_forecasts.extend(afs)
+    else:
+        aggregate_forecasts = list(
+            AggregateForecast.objects.filter(question_id__in=question_ids)
+            .select_related("question")
+            .order_by("question_id", "start_time")
+        )
 
     comments = (
-        Comment.objects.filter(on_post_id__in=post_ids)
-        .prefetch_related("author")
-        .distinct()
-    ).order_by("on_post_id", "created_at")
+        Comment.objects.none()
+        if not include_comments
+        else (
+            Comment.objects.filter(
+                on_post_id__in=post_ids,
+                is_private=False,
+                is_soft_deleted=False,
+            )
+            .prefetch_related("author")
+            .distinct()
+        ).order_by("on_post_id", "created_at")
+    )
+
+    scores = (
+        Score.objects.none()
+        if not include_scores
+        else (Score.objects.filter(question_id__in=question_ids))
+    )
+    archived_scores = (
+        ArchivedScore.objects.none()
+        if not include_scores
+        else (ArchivedScore.objects.filter(question_id__in=question_ids))
+    )
+    if user_ids:
+        scores = scores.filter(Q(user_id__in=user_ids) | Q(user__isnull=True))
+        archived_scores = archived_scores.filter(
+            Q(user_id__in=user_ids) | Q(user__isnull=True)
+        )
+    all_scores = scores.union(archived_scores)
 
     # question_data csv file
     question_output = io.StringIO()
@@ -111,6 +162,7 @@ def export_data_for_questions(questions: QuerySet[Question]):
             "Forecaster Username",
             "Start Time",
             "End Time",
+            "Forecaster Count",
             "Probability Yes",
             "Probability Yes Per Category",
             "Continuous CDF",
@@ -124,6 +176,7 @@ def export_data_for_questions(questions: QuerySet[Question]):
                 forecast.author.username,
                 forecast.start_time,
                 forecast.end_time,
+                None,
                 forecast.probability_yes,
                 forecast.probability_yes_per_category,
                 forecast.continuous_cdf,
@@ -150,6 +203,7 @@ def export_data_for_questions(questions: QuerySet[Question]):
                 aggregate_forecast.method,
                 aggregate_forecast.start_time,
                 aggregate_forecast.end_time,
+                aggregate_forecast.forecaster_count,
                 probability_yes,
                 probability_yes_per_category,
                 continuous_cdf,
@@ -183,111 +237,40 @@ def export_data_for_questions(questions: QuerySet[Question]):
             ]
         )
 
+    # score_data csv file
+    score_output = io.StringIO()
+    score_writer = csv.writer(score_output)
+    score_writer.writerow(
+        [
+            "Question ID",
+            "User ID",
+            "User Username",
+            "Score Type",
+            "Score",
+            "Coverage",
+        ]
+    )
+    for score in all_scores:
+        score_writer.writerow(
+            [
+                score.question_id,
+                score.user_id,
+                score.user.username if score.user else score.aggregation_method,
+                score.score_type,
+                score.score,
+                score.coverage,
+            ]
+        )
+
     # create a zip file with both csv files
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
         zip_file.writestr("question_data.csv", question_output.getvalue())
         zip_file.writestr("forecast_data.csv", forecast_output.getvalue())
-        zip_file.writestr("comment_data.csv", comment_output.getvalue())
+        if include_comments:
+            zip_file.writestr("comment_data.csv", comment_output.getvalue())
+        if include_scores:
+            zip_file.writestr("score_data.csv", score_output.getvalue())
 
     # return the zip file
     return zip_buffer.getvalue()
-
-
-def _get_row_headers(question: Question) -> list[str]:
-    row_headers = [
-        "question",
-        "forecaster",
-        "prediction_start_time",
-        "prediction_end_time",
-        "number_of_forecasters",
-    ]
-    match question.type:
-        case "binary":
-            row_headers.append("prediction")
-            row_headers.append("aggregate_q1")
-            row_headers.append("aggregate_q3")
-        case "multiple_choice":
-            options = question.options  # type: ignore
-            stripped_labels = [re.sub(r"[\s-]+", "_", o) for o in options]
-            option_labels = ["prediction_" + label for label in stripped_labels]
-            row_headers.extend(option_labels)
-            q1_labels = ["aggregate_q1_" + label for label in stripped_labels]
-            row_headers.extend(q1_labels)
-            q3_labels = ["aggregate_q3_" + label for label in stripped_labels]
-            row_headers.extend(q3_labels)
-        case _:
-            row_headers.extend(
-                [
-                    "q1",
-                    "median",
-                    "q3",
-                    "q1_unformatted",
-                    "median_unformatted",
-                    "q3_unformatted",
-                    "probability_mass_below_lower_bound",
-                    "probability_mass_above_upper_bound",
-                ]
-            )
-            cdf_headers = [
-                "cdf_at_" + str(round(loc, 3)) for loc in np.linspace(0, 1, 201)
-            ]
-            row_headers.extend(cdf_headers)
-    return row_headers
-
-
-def build_csv(
-    aggregation_dict: dict[Question, dict[str, list[AggregateForecast | Forecast]]],
-) -> str:
-    if not aggregation_dict:
-        return ""
-    output = StringIO()
-    writer = csv.writer(output)
-    question = list(aggregation_dict.keys())[0]
-    writer.writerow(_get_row_headers(question))
-
-    for question, aggregations in aggregation_dict.items():
-        for method, forecasts in aggregations.items():
-            for forecast in forecasts:
-                new_row = [
-                    question.title,
-                    method,
-                    forecast.start_time,
-                    forecast.end_time,
-                    getattr(forecast, "forecaster_count", None),
-                ]
-                match question.type:
-                    case "binary":
-                        new_row.extend(
-                            [
-                                np.round(forecast.get_prediction_values()[1], 7),
-                                np.round(forecast.interval_lower_bounds[1], 7),
-                                np.round(forecast.interval_upper_bounds[1], 7),
-                            ]
-                        )
-                    case "multiple_choice":
-                        new_row.extend(np.round(forecast.get_prediction_values(), 7))
-                        new_row.extend(np.round(forecast.interval_lower_bounds, 7))
-                        new_row.extend(np.round(forecast.interval_upper_bounds, 7))
-                    case _:
-                        q1 = forecast.interval_lower_bounds[0]
-                        median = forecast.centers[0]
-                        q3 = forecast.interval_upper_bounds[0]
-                        cdf = forecast.forecast_values
-                        new_row.extend(
-                            [
-                                unscaled_location_to_string_location(q1, question),
-                                unscaled_location_to_string_location(median, question),
-                                unscaled_location_to_string_location(q3, question),
-                                np.round(q1, 7),
-                                np.round(median, 7),
-                                np.round(q3, 7),
-                                np.round(cdf[0], 7),
-                                np.round(1 - cdf[-1], 7),
-                            ]
-                        )
-                        new_row.extend(np.round(cdf, 7))
-                writer.writerow(new_row)
-
-    output.seek(0)
-    return output.getvalue()
