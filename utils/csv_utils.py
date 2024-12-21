@@ -17,8 +17,11 @@ def export_data_for_questions(
     user_ids: list[int] | None = None,
     aggregation_dict: dict[Question, dict[str, list[AggregateForecast]]] | None = None,
 ) -> bytes:
-    # generate a zip file with three csv files: question_data, forecast_data,
-    # and comment_data
+    # generate a zip file with up to 4 csv files:
+    #     question_data
+    #     forecast_data
+    #     comment_data
+    #     score_data
     # If user_ids is give, aggregation_dict must also be provided as this method does
     #     not recalculate aggregations
     if user_ids and not aggregation_dict:
@@ -48,8 +51,8 @@ def export_data_for_questions(
         forecasts = forecasts.filter(author_id__in=user_ids)
     if aggregation_dict is not None:
         aggregate_forecasts = []
-        for _, ad in aggregation_dict.items():
-            for _, afs in ad.items():
+        for ad in aggregation_dict.values():
+            for afs in ad.values():
                 aggregate_forecasts.extend(afs)
     else:
         aggregate_forecasts = list(

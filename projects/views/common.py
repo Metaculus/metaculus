@@ -12,6 +12,7 @@ from misc.models import WhitelistUser
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
+    DownloadDataSerializer,
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
@@ -275,18 +276,17 @@ def download_data(request, project_id: int):
     ):
         raise PermissionDenied("You are not allowed to download this project")
 
+    serializer = DownloadDataSerializer(data=request.GET)
+    serializer.is_valid(raise_exception=True)
+    params = serializer.validated_data
+    include_comments = params.get("include_comments", False)
+    include_scores = params.get("include_scores", False)
+    # TODO: consider adding support for other params supported by post download_data
+
     questions = Question.objects.filter(
         Q(related_posts__post__default_project=obj)
         | Q(related_posts__post__projects=obj)
     ).distinct()
-
-    # get include_comments
-    include_comments = (
-        str(request.GET.get("include_comments", "false")).lower() == "true"
-    )
-
-    # get include_scores
-    include_scores = str(request.GET.get("include_scores", "false")).lower() == "true"
 
     data = export_data_for_questions(
         questions=questions,

@@ -611,12 +611,9 @@ def download_data(request, pk: int):
         "can_view_private_data": can_view_private_data,
     }
 
-    # Serialize and validate GET parameters
     serializer = DownloadDataSerializer(data=request.GET, context=serializer_context)
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
-
-    # Extract validated parameters
     sub_question = params.get("sub_question")
     aggregation_methods = params.get("aggregation_methods")
     user_ids = params.get("user_ids")
