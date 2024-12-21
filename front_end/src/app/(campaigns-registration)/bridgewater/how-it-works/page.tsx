@@ -16,7 +16,7 @@ export default function HowItWorks() {
   return (
     <>
       <Header />
-      <div className="mx-auto flex w-full justify-center pb-0 pt-10">
+      <div className="mt-4 mx-auto flex w-full justify-center pb-0 pt-10">
         {" "}
         <Button
           variant="secondary"

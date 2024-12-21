@@ -37,7 +37,7 @@ export default async function Page() {
   return (
     <>
       <Header />
-      <main className="flex flex-col items-center justify-center p-3 sm:p-5 ">
+      <main className="mt-4 flex flex-col items-center justify-center p-3 sm:p-5 ">
         <HeroSection className="m-5 w-full max-w-[896px]">
           <div className="w-full px-5">
             <ChoicesButtons />
