@@ -19,9 +19,7 @@ from questions.models import (
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
-from utils.the_math.measures import (
-    percent_point_function,
-)
+from utils.the_math.measures import percent_point_function
 
 
 class QuestionSerializer(serializers.ModelSerializer):
