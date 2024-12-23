@@ -1,4 +1,5 @@
 "use client";
+import "./styles.css";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import dynamic from "next/dynamic";
 import React, { FC } from "react";
