@@ -804,5 +804,6 @@
   "onboardingStep5WellDone": "做得好！",
   "onboardingStep5SavePredictionsParagraph": "您想保存所做的预测吗？",
   "onboardingYouPredicted": "您预测了",
-  "next": "下一步"
+  "next": "下一步",
+  "postCreateErrorMinSubquestions": "一个问题组必须至少包含一个子问题"
 }

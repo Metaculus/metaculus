@@ -198,6 +198,12 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
             "group_variable",
         )
 
+    def validate_questions(self, data: list[str]):
+        if not data:
+            raise ValidationError("A question group must have at least one subquestion")
+
+        return data
+
 
 class GroupOfQuestionsUpdateSerializer(GroupOfQuestionsWriteSerializer):
     delete = serializers.ListField(child=serializers.IntegerField(), required=False)

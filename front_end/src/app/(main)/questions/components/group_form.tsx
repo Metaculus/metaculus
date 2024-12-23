@@ -132,6 +132,12 @@ const GroupForm: React.FC<Props> = ({
       return;
     }
 
+    if (subQuestions.length === 0) {
+      setError(t("postCreateErrorMinSubquestions"));
+      setIsLoading(false);
+      return;
+    }
+
     let break_out = false;
     const groupData = subQuestions.map((x) => {
       const subquestionData = {

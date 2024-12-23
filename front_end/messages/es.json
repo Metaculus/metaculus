@@ -826,5 +826,6 @@
   "onboardingStep5WellDone": "¡Bien hecho!",
   "onboardingStep5SavePredictionsParagraph": "¿Te gustaría guardar las predicciones que has realizado?",
   "onboardingYouPredicted": "Has predicho",
-  "next": "Siguiente"
+  "next": "Siguiente",
+  "postCreateErrorMinSubquestions": "Un grupo de preguntas debe tener al menos una subpregunta"
 }
