@@ -465,6 +465,7 @@ const Comment: FC<CommentProps> = ({
               )}
               mode={"read"}
               withUgcLinks
+              withTwitterPreview
             />
           )}
         </div>

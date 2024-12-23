@@ -2,6 +2,7 @@ import {
   revertMathJaxTransform,
   transformMathJax,
 } from "./embedded_math_jax/helpers";
+import { transformTwitterLinks } from "./embedded_twitter/helpers";
 
 // escape < and { that is not correctly used
 function escapePlainTextSymbols(str: string) {
@@ -32,13 +33,18 @@ function formatBlockquoteNewlines(markdown: string): string {
 
 export function processMarkdown(
   markdown: string,
-  revert: boolean = false
+  config?: { revert?: boolean; withTwitterPreview?: boolean }
 ): string {
+  const { revert, withTwitterPreview } = config ?? {};
+
   markdown = formatBlockquoteNewlines(markdown);
   markdown = revert
     ? revertMathJaxTransform(markdown)
     : transformMathJax(markdown);
   markdown = escapePlainTextSymbols(markdown);
+  if (withTwitterPreview) {
+    markdown = transformTwitterLinks(markdown);
+  }
 
   return markdown;
 }
