@@ -173,7 +173,7 @@ class PostQuerySet(models.QuerySet):
         is following the respective posts.
         """
         subscription_exists_subquery = PostSubscription.objects.filter(
-            post=OuterRef("pk"), user=user
+            post=OuterRef("pk"), user=user, is_global=False
         )
 
         return self.annotate(
