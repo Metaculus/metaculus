@@ -7,7 +7,6 @@ import {
   CursorCoordinatesPropType,
   DomainTuple,
   LineSegment,
-  Tuple,
   VictoryArea,
   VictoryAxis,
   VictoryChart,
@@ -36,15 +35,16 @@ import {
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
 import {
-  QuestionType,
-  UserForecastHistory,
-  Scaling,
   AggregateForecastHistory,
+  QuestionType,
+  Scaling,
+  UserForecastHistory,
 } from "@/types/question";
 import {
-  generateNumericDomain,
+  generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
+  generateYDomain,
   getLeftPadding,
   getResolutionPoint,
   getTickLabelFontSize,
@@ -229,7 +229,10 @@ const NumericChart: FC<Props> = ({
     >
       {shouldDisplayChart && (
         <VictoryChart
-          domain={{ y: yDomain, x: xDomain }}
+          domain={{
+            y: yDomain,
+            x: xDomain,
+          }}
           width={chartWidth}
           height={height}
           theme={actualTheme}
@@ -517,9 +520,8 @@ function buildChartData({
           latestTimestamp,
         ];
 
-  const xDomain = generateNumericDomain(domainTimestamps, zoom);
+  const xDomain = generateNumericXDomain(domainTimestamps, zoom);
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
-
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
   // TODO: implement general scaling:
   // const xScale: Scale = generateScale({
@@ -529,20 +531,26 @@ function buildChartData({
   //   domain: xDomain,
   // });
 
-  const yDomain: Tuple<number> = [0, 1];
-
+  const { originalYDomain, zoomedYDomain } = generateYDomain({
+    zoom,
+    minTimestamp: xDomain[0],
+    isChartEmpty: !domainTimestamps.length,
+    minValues: area.map((d) => ({ timestamp: d.x, y: d.y0 })),
+    maxValues: area.map((d) => ({ timestamp: d.x, y: d.y })),
+  });
   const yScale: Scale = generateScale({
     displayType: questionType,
     axisLength: height,
     direction: "vertical",
-    domain: yDomain,
+    domain: originalYDomain,
+    zoomedDomain: zoomedYDomain,
     scaling,
   });
 
   return {
     line,
     area,
-    yDomain,
+    yDomain: zoomedYDomain,
     xDomain,
     xScale,
     yScale,
