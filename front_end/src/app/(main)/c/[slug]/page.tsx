@@ -72,8 +72,7 @@ export default async function IndividualCommunity({
           <ProjectLeaderboard
             projectId={community.id}
             userId={currentUser?.id}
-            prizePool={null}
-            isQuestionSeries={true}
+            isQuestionSeries
           />
           {currentUser && (
             <ProjectContributions project={community} userId={currentUser.id} />
