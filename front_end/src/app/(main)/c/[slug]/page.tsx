@@ -10,7 +10,7 @@ import { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { ProjectVisibility, Project } from "@/types/projects";
+import { ProjectVisibility } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 
 import CommunityHeader from "../../components/headers/community_header";
