@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Iterable
 
 from django.db import models
 from django.db.models import QuerySet
@@ -16,6 +16,7 @@ from projects.serializers.common import (
     validate_tournaments,
     serialize_projects,
 )
+from projects.services.common import get_projects_for_posts
 from questions.models import Question, AggregateForecast
 from questions.serializers import (
     QuestionWriteSerializer,
@@ -49,7 +50,6 @@ class NotebookSerializer(serializers.ModelSerializer):
 
 
 class PostReadSerializer(serializers.ModelSerializer):
-    projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
@@ -66,7 +66,6 @@ class PostReadSerializer(serializers.ModelSerializer):
             "author_id",
             "author_username",
             "coauthors",
-            "projects",
             "created_at",
             "published_at",
             "edited_at",
@@ -80,9 +79,6 @@ class PostReadSerializer(serializers.ModelSerializer):
             "open_time",
             "nr_forecasters",
         )
-
-    def get_projects(self, obj: Post):
-        return serialize_projects(obj.projects.all(), obj.default_project)
 
     def get_author_username(self, obj: Post):
         return obj.author.username
@@ -331,12 +327,18 @@ def serialize_post(
     with_subscriptions: bool = False,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     with_key_factors: bool = False,
+    projects: Iterable[Project] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
     serialized_data = PostReadSerializer(post).data
 
+    # Appending projects
+    projects = projects or []
+    serialized_data["projects"] = serialize_projects(projects, post.default_project)
+
+    # Appending questions
     if post.question:
         serialized_data["question"] = serialize_question(
             post.question,
@@ -441,10 +443,9 @@ def serialize_post_many(
 
     qs = (
         qs.annotate_user_permission(user=current_user)
-        .prefetch_projects()
         .prefetch_questions()
         .prefetch_condition_post()
-        .select_related("author", "notebook")
+        .select_related("default_project", "author", "notebook")
         .prefetch_related("coauthors")
     )
     if current_user:
@@ -471,6 +472,9 @@ def serialize_post_many(
             flatten([p.get_questions() for p in posts]), group_cutoff=group_cutoff
         )
 
+    # Fetch projects
+    projects_map = get_projects_for_posts(posts, user=current_user)
+
     return [
         serialize_post(
             post,
@@ -483,6 +487,7 @@ def serialize_post_many(
                 if q in post.get_questions()
             },
             with_key_factors=with_key_factors,
+            projects=projects_map.get(post.id),
         )
         for post in posts
     ]
