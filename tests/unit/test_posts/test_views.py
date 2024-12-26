@@ -286,14 +286,52 @@ def test_posts_list__filters(user1, user1_client):
     )
 
 
-def test_question_detail(anon_client, user1):
-    post = factory_post(author=user1)
+def test_post_detail(anon_client, user1, user1_client):
+    post = factory_post(
+        author=user1,
+        projects=[
+            factory_project(
+                name_original="Project: Forecaster",
+                type=Project.ProjectTypes.TOURNAMENT,
+                default_permission=ObjectPermission.FORECASTER,
+            ),
+            factory_project(
+                name_original="Project: Viewer",
+                type=Project.ProjectTypes.TOURNAMENT,
+                default_permission=ObjectPermission.VIEWER,
+            ),
+            factory_project(
+                name_original="Project: Private",
+                type=Project.ProjectTypes.TOURNAMENT,
+                default_permission=None,
+                override_permissions={
+                    user1.id: ObjectPermission.FORECASTER,
+                },
+            ),
+        ],
+    )
 
     url = f"/api/posts/{post.pk}/"
     response = anon_client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data
+
+    # Check projects visibility
+    assert {x["name"] for x in response.data["projects"]["tournament"]} == {
+        "Project: Viewer",
+        "Project: Forecaster",
+    }
+
+    # Test for authorized user
+    response = user1_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+
+    # Check projects visibility
+    assert {x["name"] for x in response.data["projects"]["tournament"]} == {
+        "Project: Viewer",
+        "Project: Forecaster",
+        "Project: Private",
+    }
 
 
 def test_delete_post(user1_client, user1, user2_client):
