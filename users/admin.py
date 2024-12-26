@@ -7,7 +7,7 @@ from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
 
 from users.models import User, UserCampaignRegistration
 from users.services.spam_detection import (
-    check_data_for_spam,
+    check_profile_data_for_spam,
     send_deactivation_email,
 )
 from questions.models import Forecast
@@ -223,7 +223,7 @@ class UserAdmin(admin.ModelAdmin):
 
     def run_profile_spam_detection_on_selected(self, request, queryset: QuerySet[User]):
         for user in queryset:
-            is_spam, _ = check_data_for_spam(
+            is_spam, _ = check_profile_data_for_spam(
                 user=user,
                 bio=user.bio,
                 website=user.website,
