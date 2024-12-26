@@ -1,7 +1,6 @@
 from datetime import timedelta
 import numpy as np
 import logging
-from typing import cast
 
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
