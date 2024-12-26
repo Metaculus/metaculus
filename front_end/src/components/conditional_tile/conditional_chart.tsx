@@ -59,7 +59,7 @@ const ConditionalChart: FC<Props> = ({
     case QuestionType.Binary: {
       const pctCandidate =
         aggregateLatest && !aggregateLatest.end_time
-          ? aggregateLatest.centers![0]
+          ? aggregateLatest.centers?.[0]
           : undefined;
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
       const userForecast =
@@ -120,7 +120,7 @@ const ConditionalChart: FC<Props> = ({
 
       const prediction =
         aggregateLatest && !aggregateLatest.end_time
-          ? aggregateLatest.centers![0]
+          ? aggregateLatest.centers?.[0]
           : undefined;
       const formattedPrediction = prediction
         ? getDisplayValue({
@@ -148,8 +148,8 @@ const ConditionalChart: FC<Props> = ({
           ? getNumericForecastDataset(
               prevForecastValue.forecast,
               prevForecastValue.weights,
-              question.open_lower_bound!,
-              question.open_upper_bound!
+              question.open_lower_bound,
+              question.open_upper_bound
             )
           : null;
 

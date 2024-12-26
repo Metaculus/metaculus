@@ -16,7 +16,7 @@ export default function HowItWorks() {
   return (
     <>
       <Header />
-      <div className="mx-auto flex w-full justify-center pb-0 pt-10">
+      <div className="mx-auto mt-4 flex w-full justify-center pb-0 pt-10">
         {" "}
         <Button
           variant="secondary"
@@ -319,7 +319,7 @@ export default function HowItWorks() {
 
         <p className="mb-4">
           <b>Examples:</b> <i>&quot;When will humans land on Mars?&quot;</i>,{" "}
-          <i>&quot;"What will Germany&apos;s GDP growth be in 2025?&quot;</i>, …
+          <i>&quot;What will Germany&apos;s GDP growth be in 2025?&quot;</i>, …
         </p>
 
         <p className="mb-6">

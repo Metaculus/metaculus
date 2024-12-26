@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { isNil } from "lodash";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { FieldValues, UseFormReturn } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
@@ -39,7 +39,7 @@ const NumericQuestionInput: React.FC<{
   defaultZeroPoint: number | undefined | null;
   hasForecasts: boolean;
   chartWidth?: number;
-  control?: UseFormReturn<FieldValues, any, undefined>;
+  control?: UseFormReturn;
   index?: number;
 }> = ({
   onChange,
@@ -110,8 +110,8 @@ const NumericQuestionInput: React.FC<{
     },
     type: questionType,
     scaling: {
-      range_max: max!,
-      range_min: min!,
+      range_max: max as number,
+      range_min: min as number,
       zero_point: zeroPoint,
     },
     open_lower_bound: openLowerBound,
@@ -186,8 +186,8 @@ const NumericQuestionInput: React.FC<{
       open_upper_bound: openUpperBound,
       open_lower_bound: openLowerBound,
       scaling: {
-        range_max: max!,
-        range_min: min!,
+        range_max: max as number,
+        range_min: min as number,
         zero_point: zeroPoint,
       },
     }));

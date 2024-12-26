@@ -32,7 +32,7 @@ class CustomTranslationAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
         if self.should_update_translations(obj):
-            obj.trigger_translation_if_dirty()
+            obj.update_and_maybe_translate()
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
@@ -155,13 +155,13 @@ class TranslatedModel(models.Model):
                 extra_update_fields.append(default_field_name)
         return extra_update_fields
 
-    def trigger_translation_if_dirty(self, should_update_default_fields=True):
+    def update_and_maybe_translate(self, should_translate_if_dirty=True):
         model = self.__class__
-        if should_update_default_fields:
-            update_fields = self.update_fields_with_original_content()
-            self.save(update_fields=update_fields)
 
-        if is_translation_dirty(self):
+        update_fields = self.update_fields_with_original_content()
+        self.save(update_fields=update_fields)
+
+        if should_translate_if_dirty and is_translation_dirty(self):
             app_label, model_name = model._meta.app_label, model._meta.model_name
             update_translations.send(app_label, model_name, self.pk)
 

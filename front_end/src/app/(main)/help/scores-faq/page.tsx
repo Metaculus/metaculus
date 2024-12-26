@@ -422,13 +422,14 @@ export default function ScoresFAQ() {
         What is a spot score?
       </h2>
       <p>
-        A "spot" score is a specific version of the given score type (e.g. "spot
-        peer score") where the evaluation doesn't take prediction duration into
-        account. For a spot score, only the prediction at a specified time is
-        considered. Unless otherwise indicated, spot scores are evaluated at the
-        same time the Community Prediction is revealed. Coverage is 100% if
-        there is an active prediction at the time, and 0% if there is not. The
-        math is the same as the given score type.
+        A &quot;spot&quot; score is a specific version of the given score type
+        (e.g. &quot;spot peer score&quot;) where the evaluation doesn&apos;t
+        take prediction duration into account. For a spot score, only the
+        prediction at a specified time is considered. Unless otherwise
+        indicated, spot scores are evaluated at the same time the Community
+        Prediction is revealed. Coverage is 100% if there is an active
+        prediction at the time, and 0% if there is not. The math is the same as
+        the given score type.
       </p>
       <hr />
       <h2 className="scroll-mt-nav" id="baseline-score">

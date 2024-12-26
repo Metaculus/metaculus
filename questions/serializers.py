@@ -1,20 +1,14 @@
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
-from django.utils import timezone
 import numpy as np
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from posts.models import Post
-from questions.models import Forecast
-from users.models import User
-from utils.the_math.aggregations import get_aggregation_history
-from utils.the_math.formulas import get_scaled_quartiles_from_cdf
-from utils.the_math.measures import (
-    percent_point_function,
-)
 from questions.constants import ResolutionType
+from questions.models import Forecast
 from questions.models import (
     Question,
     Conditional,
@@ -22,6 +16,10 @@ from questions.models import (
     AggregateForecast,
     AggregationMethod,
 )
+from users.models import User
+from utils.the_math.aggregations import get_aggregation_history
+from utils.the_math.formulas import get_scaled_quartiles_from_cdf
+from utils.the_math.measures import percent_point_function
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -118,6 +116,19 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data: dict):
         # TODO: add validation for continuous question bounds
+
+        scheduled_resolve_time = data.get("scheduled_resolve_time")
+        scheduled_close_time = data.get("scheduled_close_time")
+
+        if (
+            scheduled_resolve_time
+            and scheduled_resolve_time
+            and scheduled_close_time > scheduled_resolve_time
+        ):
+            raise ValidationError(
+                "Question resolve time must be later than the close time"
+            )
+
         return data
 
 
@@ -197,6 +208,12 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
             "description",
             "group_variable",
         )
+
+    def validate_questions(self, data: list[str]):
+        if not data:
+            raise ValidationError("A question group must have at least one subquestion")
+
+        return data
 
 
 class GroupOfQuestionsUpdateSerializer(GroupOfQuestionsWriteSerializer):

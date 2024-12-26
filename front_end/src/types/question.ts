@@ -141,7 +141,7 @@ export type BaseForecast = {
   my_forecasts: {
     timestamps: number[];
     medians: number[];
-    slider_values: any | null;
+    slider_values: unknown | null;
   } | null;
 };
 
@@ -221,6 +221,7 @@ export type QuestionWithNumericForecasts = Question & {
 export type QuestionWithMultipleChoiceForecasts = Question & {
   type: QuestionType.MultipleChoice;
   forecasts: MultipleChoiceForecast;
+  options: string[];
 };
 
 export type QuestionWithForecasts =

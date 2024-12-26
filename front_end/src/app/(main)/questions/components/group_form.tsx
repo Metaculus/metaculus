@@ -74,8 +74,14 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
   });
 };
 
+type SupportedType =
+  | QuestionType.Binary
+  | QuestionType.Numeric
+  | QuestionType.MultipleChoice
+  | string;
+
 type Props = {
-  subtype: "binary" | "numeric" | "date";
+  subtype: SupportedType;
   tournament_id?: number;
   community_id?: number;
   post?: PostWithForecasts | null;
@@ -107,7 +113,9 @@ const GroupForm: React.FC<Props> = ({
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
-      ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
+      ? ([...tournaments, siteMain].filter(
+          (x) => x.id === tournament_id
+        )[0] as Tournament)
       : siteMain;
 
   const submitQuestion = async (data: any) => {
@@ -120,6 +128,12 @@ const GroupForm: React.FC<Props> = ({
     const labels = subQuestions.map((q) => q.label);
     if (new Set(labels).size !== labels.length) {
       setError("Duplicate sub question labels");
+      setIsLoading(false);
+      return;
+    }
+
+    if (subQuestions.length === 0) {
+      setError(t("postCreateErrorMinSubquestions"));
       setIsLoading(false);
       return;
     }
@@ -183,13 +197,13 @@ const GroupForm: React.FC<Props> = ({
     }
     const questionToDelete: number[] = [];
     if (post?.group_of_questions?.questions) {
-      forEach(post?.group_of_questions.questions, (sq, index) => {
+      forEach(post?.group_of_questions.questions, (sq) => {
         if (!subQuestions.map((x) => x.id).includes(sq.id)) {
           questionToDelete.push(sq.id);
         }
       });
     }
-    let post_data: PostCreationData = {
+    const post_data: PostCreationData = {
       title: data["title"],
       url_title: data["url_title"],
       default_project: data["default_project"],
@@ -248,8 +262,8 @@ const GroupForm: React.FC<Props> = ({
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
-  const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>(
-    subQuestions.map((x) => true)
+  const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<boolean[]>(
+    subQuestions.map(() => true)
   );
   const groupQuestionSchema = createGroupQuestionSchema(t);
   const form = useForm({
@@ -592,13 +606,10 @@ const GroupForm: React.FC<Props> = ({
                     {(subtype === QuestionType.Date ||
                       subtype === QuestionType.Numeric) && (
                       <NumericQuestionInput
-                        // @ts-ignore
                         questionType={subtype}
                         defaultMin={subQuestion.scaling.range_min}
                         defaultMax={subQuestion.scaling.range_max}
-                        // @ts-ignore
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
-                        // @ts-ignore
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
                         defaultZeroPoint={subQuestion.scaling.zero_point}
                         hasForecasts={

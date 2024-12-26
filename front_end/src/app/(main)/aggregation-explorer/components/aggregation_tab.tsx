@@ -43,10 +43,7 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
     [actual_close_time]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
-    activeAggregation
-      ? activeAggregation.history[activeAggregation.history.length - 1]
-          .start_time
-      : null
+    activeAggregation?.history?.at(-1)?.start_time ?? null
   );
   const aggregationTimestamp = useDebouncedValue(cursorTimestamp, 500);
 
@@ -61,8 +58,11 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
 
     const forecast =
       index === -1
-        ? activeAggregation.history[activeAggregation.history.length - 1]
+        ? activeAggregation.history.at(-1)
         : activeAggregation.history[index];
+    if (!forecast) {
+      return null;
+    }
 
     return {
       timestamp: forecast.start_time ?? cursorTimestamp,
@@ -75,10 +75,7 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
 
   const handleCursorChange = useCallback(
     (value: number | null) => {
-      const fallback = activeAggregation
-        ? activeAggregation.history[activeAggregation.history.length - 1]
-            .start_time
-        : null;
+      const fallback = activeAggregation?.history?.at(-1)?.start_time ?? null;
 
       setCursorTimestamp(value ?? fallback);
     },

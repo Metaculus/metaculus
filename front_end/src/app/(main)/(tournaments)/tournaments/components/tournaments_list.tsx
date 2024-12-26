@@ -7,7 +7,6 @@ import TournamentCard from "@/components/tournament_card";
 import Button from "@/components/ui/button";
 import useSearchParams from "@/hooks/use_search_params";
 import {
-  Tournament,
   TournamentPreview,
   TournamentsSortBy,
   TournamentType,

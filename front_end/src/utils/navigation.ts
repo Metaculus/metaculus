@@ -2,7 +2,10 @@ import { Post } from "@/types/post";
 import { Project, TournamentType } from "@/types/projects";
 import { Optional } from "@/types/utils";
 
-export function encodeQueryParams(params: Record<string, any>): string {
+type EncodableValue = string | number | boolean;
+export function encodeQueryParams(
+  params: Record<string, EncodableValue | Array<EncodableValue>>
+): string {
   const encodedParams = Object.entries(params)
     .filter(([, value]) => value !== undefined)
     .flatMap(([key, value]) => {

@@ -58,7 +58,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     hotTopics.length + hotCategories.length > EXPAND_THRESHOLD;
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
-  const { bannerIsVissible: isTranslationBannerVisible } =
+  const { bannerIsVisible: isTranslationBannerVisible } =
     useContentTranslatedBannerProvider();
 
   const selectTopic = (topic: Topic) => {

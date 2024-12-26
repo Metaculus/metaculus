@@ -409,8 +409,8 @@ def activity_boost_api_view(request, pk):
 
     PostActivityBoost.objects.create(user=request.user, post=post, score=score)
 
-    # Recalculate hotness
-    compute_hotness()
+    # Recalculate hotness for the given post
+    compute_hotness(Post.objects.filter(pk=pk))
 
     return Response(
         {"score_total": PostActivityBoost.get_post_score(pk)},
@@ -685,6 +685,7 @@ def download_csv(request, pk: int):
 def random_post_id(request):
     post = (
         Post.objects.filter_permission(user=request.user)
+        .filter_public()
         .filter_questions()
         .filter_active()
         .order_by("?")

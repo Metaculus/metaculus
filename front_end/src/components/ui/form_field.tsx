@@ -21,6 +21,7 @@ export type ErrorProps = {
   name?: keyof ErrorResponse;
   className?: string;
   strict?: boolean;
+  detached?: boolean;
 };
 
 export interface InputProps
@@ -34,13 +35,12 @@ export interface TextAreaProps
   rows?: number;
 }
 
-export interface SelectProps
-  extends React.InputHTMLAttributes<HTMLSelectElement> {
-  options: { value: string; label: string }[];
-  errors?: ErrorResponse;
-}
-
-export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
+export const FormError: FC<ErrorProps> = ({
+  errors,
+  name,
+  className,
+  detached,
+}) => {
   /**
    * If null => display only if no other things
    * */
@@ -65,16 +65,23 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
       setErrorText(undefined);
     }
   }, [errors, name]);
-  return <FormErrorMessage errors={errorText} className={className} />;
+  return (
+    <FormErrorMessage
+      errors={errorText}
+      className={className}
+      detached={detached}
+    />
+  );
 };
 
-export const FormErrorMessage: FC<{ errors: any; className?: string }> = ({
-  errors,
-  className,
-}) => {
+export const FormErrorMessage: FC<{
+  errors: any;
+  className?: string;
+  detached?: boolean;
+}> = ({ errors, className, detached }) => {
   const message = useMemo(
-    () => (errors ? extractError(errors) : null),
-    [errors]
+    () => (errors ? extractError(errors, { detached }) : null),
+    [detached, errors]
   );
 
   return (
@@ -83,7 +90,7 @@ export const FormErrorMessage: FC<{ errors: any; className?: string }> = ({
         <div>
           <span
             className={cn(
-              "text-xs text-red-500 dark:text-red-500-dark",
+              "whitespace-pre-wrap text-xs text-red-500 dark:text-red-500-dark",
               className
             )}
           >

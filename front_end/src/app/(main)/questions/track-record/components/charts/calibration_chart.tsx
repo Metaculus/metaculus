@@ -67,17 +67,15 @@ const CalibrationChart: React.FC<{
             label={t("fractionResolvedYes")}
           />
           <VictoryScatter
-            data={calibrationData.map(
-              (d: TrackRecordCalibrationCurveItem, index: number) => {
-                const y = d.average_resolution;
-                return {
-                  x: (d.bin_lower + d.bin_upper) / 2,
-                  y0: y - 0.01,
-                  y: y,
-                  symbol: "diamond",
-                };
-              }
-            )}
+            data={calibrationData.map((d: TrackRecordCalibrationCurveItem) => {
+              const y = d.average_resolution;
+              return {
+                x: (d.bin_lower + d.bin_upper) / 2,
+                y0: y - 0.01,
+                y: y,
+                symbol: "diamond",
+              };
+            })}
             style={{
               data: {
                 fill: getThemeColor(METAC_COLORS.gold["500"]),
@@ -86,17 +84,15 @@ const CalibrationChart: React.FC<{
             }}
           />
           <VictoryBar
-            data={calibrationData.map(
-              (d: TrackRecordCalibrationCurveItem, index: number) => {
-                const y = d.perfect_calibration;
-                return {
-                  x: (d.bin_lower + d.bin_upper) / 2,
-                  y0: y - 0.005,
-                  y: y + 0.005,
-                  binWidth: d.bin_upper - d.bin_lower,
-                };
-              }
-            )}
+            data={calibrationData.map((d: TrackRecordCalibrationCurveItem) => {
+              const y = d.perfect_calibration;
+              return {
+                x: (d.bin_lower + d.bin_upper) / 2,
+                y0: y - 0.005,
+                y: y + 0.005,
+                binWidth: d.bin_upper - d.bin_lower,
+              };
+            })}
             barWidth={({ datum }) => datum.binWidth * 400}
             style={{
               data: {
@@ -109,7 +105,7 @@ const CalibrationChart: React.FC<{
           {showIntervals && (
             <VictoryBar
               data={calibrationData.map(
-                (d: TrackRecordCalibrationCurveItem, index: number) => {
+                (d: TrackRecordCalibrationCurveItem) => {
                   return {
                     x: (d.bin_lower + d.bin_upper) / 2,
                     y0: d.lower_confidence_interval,

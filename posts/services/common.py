@@ -30,6 +30,11 @@ from questions.services import (
     update_notebook,
 )
 from questions.types import AggregationMethod
+from scoring.models import (
+    global_leaderboard_dates,
+    name_and_slug_for_global_leaderboard_dates,
+    GLOBAL_LEADERBOARD_STRING,
+)
 from users.models import User
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregations_at_time
@@ -42,11 +47,6 @@ from utils.translation import (
 from .search import generate_post_content_for_embedding_vectorization
 from .subscriptions import notify_post_status_change
 from ..tasks import run_notify_post_status_change, run_post_indexing
-from scoring.models import (
-    global_leaderboard_dates,
-    name_and_slug_for_global_leaderboard_dates,
-    GLOBAL_LEADERBOARD_STRING,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -181,27 +181,26 @@ def trigger_update_post_translations(
     post: Post, with_comments: bool = False, force: bool = False
 ):
     is_private = post.default_project.default_permission is None
-    if not force and is_private:
-        return
+    should_translate_if_dirty = not is_private or force
 
-    post.trigger_translation_if_dirty()
+    post.update_and_maybe_translate(should_translate_if_dirty)
     if post.question_id is not None:
-        post.question.trigger_translation_if_dirty()
+        post.question.update_and_maybe_translate(should_translate_if_dirty)
     if post.notebook_id is not None:
-        post.notebook.trigger_translation_if_dirty()
+        post.notebook.update_and_maybe_translate(should_translate_if_dirty)
     if post.group_of_questions_id is not None:
-        post.group_of_questions.trigger_translation_if_dirty()
+        post.group_of_questions.update_and_maybe_translate(should_translate_if_dirty)
     if post.conditional_id is not None:
-        post.conditional.condition.trigger_translation_if_dirty()
+        post.conditional.condition.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition, "post"):
-            post.conditional.condition.post.trigger_translation_if_dirty()
+            post.conditional.condition.post.update_and_maybe_translate(should_translate_if_dirty)
 
-        post.conditional.condition_child.trigger_translation_if_dirty()
+        post.conditional.condition_child.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition_child, "post"):
-            post.conditional.condition_child.post.trigger_translation_if_dirty()
+            post.conditional.condition_child.post.update_and_maybe_translate(should_translate_if_dirty)
 
-        post.conditional.question_yes.trigger_translation_if_dirty()
-        post.conditional.question_no.trigger_translation_if_dirty()
+        post.conditional.question_yes.update_and_maybe_translate(should_translate_if_dirty)
+        post.conditional.question_no.update_and_maybe_translate(should_translate_if_dirty)
 
     batch_size = 10
     comments_qs = get_comments_feed(qs=Comment.objects.filter(), post=post)
@@ -373,11 +372,24 @@ def compute_post_sorting_divergence_and_update_snapshots(post: Post):
     )
 
 
-def compute_hotness():
+def compute_feed_hotness():
+    """
+    Compute hotness for the entire feed
+    """
+
     qs = Post.objects.filter(
         curation_status=Post.CurationStatus.APPROVED,
         published_at__lte=timezone.now(),
     )
+
+    compute_hotness(qs)
+
+
+def compute_hotness(qs: QuerySet[Post]):
+    """
+    Compute hotness for the given queryset
+    """
+
     last_week_dt = timezone.now() - timedelta(days=7)
 
     qs = qs.annotate(

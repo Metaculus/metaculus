@@ -30,7 +30,7 @@ function getLocale(): string {
 
   try {
     return match(options, locales, defaultLocale);
-  } catch (err) {
+  } catch {
     return defaultLocale;
   }
 }

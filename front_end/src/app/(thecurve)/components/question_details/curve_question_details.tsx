@@ -14,14 +14,12 @@ import "./styles.css";
 
 type Props = {
   question: PostWithForecasts;
-  expandLabel?: string;
   collapseLabel?: string;
   onCollapse: () => void;
 };
 
 const CurveQuestionDetails: FC<Props> = ({
   question,
-  expandLabel: _expandLabel,
   collapseLabel: _collapseLabel,
   onCollapse,
 }) => {

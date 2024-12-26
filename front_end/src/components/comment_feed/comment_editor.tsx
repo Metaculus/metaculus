@@ -93,7 +93,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       setIsMarkdownDirty(false);
       updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
 
-      onSubmit && onSubmit(parseComment(newComment));
+      onSubmit?.(parseComment(newComment));
     } finally {
       setIsLoading(false);
     }
@@ -171,7 +171,9 @@ const CommentEditor: FC<CommentEditorProps> = ({
             className="p-2"
             onClick={() => {
               setIsEditing((prev) => !prev);
-              !!errorMessage && setErrorMessage("");
+              if (errorMessage) {
+                setErrorMessage("");
+              }
             }}
           >
             {isEditing ? t("preview") : t("edit")}

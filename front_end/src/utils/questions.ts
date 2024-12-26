@@ -1,10 +1,5 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import {
-  differenceInMilliseconds,
-  fromUnixTime,
-  isValid,
-  subWeeks,
-} from "date-fns";
+import { differenceInMilliseconds, isValid } from "date-fns";
 import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -20,7 +15,6 @@ import {
   QuestionStatus,
   Resolution,
 } from "@/types/post";
-import { Tournament } from "@/types/projects";
 import {
   ForecastAvailability,
   Question,
@@ -45,7 +39,7 @@ export function extractPostResolution(post: Post): Resolution | null {
   }
 
   if (post.group_of_questions) {
-    return post.group_of_questions?.questions[0]?.resolution;
+    return post.group_of_questions?.questions[0]?.resolution ?? null;
   }
 
   if (post.conditional) {
@@ -258,12 +252,13 @@ export function getPredictionQuestion(
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
 
   if (curationStatus === PostStatus.RESOLVED) {
-    return sortedQuestions[sortedQuestions.length - 1];
+    return sortedQuestions[sortedQuestions.length - 1] ?? null;
   }
 
   return (
     sortedQuestions.find((q) => q.resolution === null) ??
-    sortedQuestions[sortedQuestions.length - 1]
+    sortedQuestions[sortedQuestions.length - 1] ??
+    null
   );
 }
 
@@ -271,16 +266,16 @@ export const generateUserForecastsForMultipleQuestion = (
   question: QuestionWithMultipleChoiceForecasts
 ): UserChoiceItem[] | undefined => {
   const latest = question.aggregations.recency_weighted.latest;
-  const options = question.options!;
+  const options = question.options;
 
-  const choiceOrdering: number[] = options.map((_, i) => i);
+  const choiceOrdering: number[] = options?.map((_, i) => i) ?? [];
   choiceOrdering.sort((a, b) => {
     const aCenter = latest?.forecast_values[a] ?? 0;
     const bCenter = latest?.forecast_values[b] ?? 0;
     return bCenter - aCenter;
   });
 
-  return options.map((choice, index) => {
+  return options?.map((choice, index) => {
     const userForecasts = question.my_forecasts?.history;
     const values: (number | null)[] = [];
     const timestamps: number[] = [];
@@ -290,10 +285,10 @@ export const generateUserForecastsForMultipleQuestion = (
         timestamps[timestamps.length - 1] === forecast.start_time
       ) {
         // new forecast starts at the end of the previous, so overwrite values
-        values[values.length - 1] = forecast.forecast_values[index];
+        values[values.length - 1] = forecast.forecast_values[index] ?? null;
       } else {
         // just add the forecast
-        values.push(forecast.forecast_values[index]);
+        values.push(forecast.forecast_values[index] ?? null);
         timestamps.push(forecast.start_time);
       }
 
@@ -323,22 +318,31 @@ export const generateUserForecasts = (
 
     return {
       choice: question.label,
-      values: userForecasts?.history.map((forecast) =>
-        question.type === "binary"
-          ? forecast.forecast_values[1]
-          : scaling
-            ? unscaleNominalLocation(
-                scaleInternalLocation(forecast.centers![0], question.scaling),
-                scaling
-              )
-            : forecast.centers![0]
-      ),
+      values: userForecasts?.history.map((forecast) => {
+        if (question.type === QuestionType.Binary) {
+          return forecast.forecast_values[1] ?? 0;
+        }
+
+        if (!forecast.centers || isNil(forecast.centers[0])) {
+          return 0;
+        }
+
+        const value = forecast.centers[0];
+        if (scaling) {
+          return unscaleNominalLocation(
+            scaleInternalLocation(value, question.scaling),
+            scaling
+          );
+        }
+
+        return value;
+      }),
       timestamps: userForecasts?.history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       unscaledValues: userForecasts?.history.map((forecast) =>
-        question.type === "binary"
-          ? forecast.forecast_values[1]
-          : forecast.centers![0]
+        question.type === QuestionType.Binary
+          ? forecast.forecast_values[1] ?? 0
+          : forecast.centers?.[0] ?? 0
       ),
     };
   });
@@ -348,8 +352,8 @@ export function sortGroupPredictionOptions(
   questions: QuestionWithNumericForecasts[]
 ) {
   return [...questions].sort((a, b) => {
-    const aMean = a.aggregations.recency_weighted.latest?.centers![0] ?? 0;
-    const bMean = b.aggregations.recency_weighted.latest?.centers![0] ?? 0;
+    const aMean = a.aggregations.recency_weighted.latest?.centers?.[0] ?? 0;
+    const bMean = b.aggregations.recency_weighted.latest?.centers?.[0] ?? 0;
     return bMean - aMean;
   });
 }

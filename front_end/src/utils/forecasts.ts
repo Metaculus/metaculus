@@ -46,12 +46,12 @@ export function formatPrediction(
 }
 
 export function extractPrevBinaryForecastValue(
-  prevForecast: any
+  prevForecast: unknown
 ): number | null {
   return typeof prevForecast === "number" ? round(prevForecast * 100, 1) : null;
 }
 
-export function extractPrevNumericForecastValue(prevForecast: any): {
+export function extractPrevNumericForecastValue(prevForecast: unknown): {
   forecast?: MultiSliderValue[];
   weights?: number[];
 } {
@@ -61,11 +61,11 @@ export function extractPrevNumericForecastValue(prevForecast: any): {
 
   const result: { forecast?: MultiSliderValue[]; weights?: number[] } = {};
   if ("forecast" in prevForecast) {
-    result.forecast = prevForecast.forecast;
+    result.forecast = prevForecast.forecast as MultiSliderValue[];
   }
 
   if ("weights" in prevForecast) {
-    result.weights = prevForecast.weights;
+    result.weights = prevForecast.weights as number[];
   }
 
   return result;
@@ -90,8 +90,9 @@ export function getNumericForecastDataset(
           lowerOpen,
           upperOpen
         ),
-        normalizedWeights[index]
-      ) as number[]
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        normalizedWeights[index]!
+      ) as unknown as number[]
   );
   let cdf = componentCdfs.reduce((acc, componentCdf) =>
     math.add(acc, componentCdf)

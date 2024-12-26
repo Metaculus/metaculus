@@ -19,8 +19,9 @@ import QuestionsApi, {
   WithdrawalPayload,
 } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
-import { PostSubscription } from "@/types/post";
+import { PostSubscription, PostWithNotebook } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
+import { DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
 
 export async function fetchMorePosts(
@@ -73,14 +74,14 @@ export async function markPostAsRead(postId: number) {
   return await PostsApi.sendPostReadEvent(postId);
 }
 
-export async function createQuestionPost(body: any) {
+export async function createQuestionPost<T>(body: T) {
   const post = await PostsApi.createQuestionPost(body);
   return {
     post: post,
   };
 }
 
-export async function updatePost(postId: number, body: any) {
+export async function updatePost<T>(postId: number, body: T) {
   const post = await PostsApi.updatePost(postId, body);
   revalidatePath("/questions/create/group/");
   return {
@@ -103,7 +104,7 @@ export async function approvePost(postId: number, params: ApprovePostParams) {
 
 export async function removePostFromProject(postId: number, projectId: number) {
   try {
-    const resp = await PostsApi.removePostFromProject(postId, projectId);
+    await PostsApi.removePostFromProject(postId, projectId);
     return null;
   } catch (err) {
     const error = err as FetchError;
@@ -120,12 +121,16 @@ export async function createForecasts(
   revalidate = true
 ) {
   try {
-    const response = await QuestionsApi.createForecasts(forecasts);
-    revalidate && revalidatePath(`/questions/${postId}`);
+    await QuestionsApi.createForecasts(forecasts);
+    if (revalidate) {
+      revalidatePath(`/questions/${postId}`);
+    }
   } catch (err) {
     const error = err as FetchError;
 
-    return error.data;
+    return {
+      errors: error.data,
+    };
   }
 }
 
@@ -135,12 +140,16 @@ export async function withdrawForecasts(
   revalidate = true
 ) {
   try {
-    const response = await QuestionsApi.withdrawForecasts(withdrawals);
-    revalidate && revalidatePath(`/questions/${postId}`);
+    await QuestionsApi.withdrawForecasts(withdrawals);
+    if (revalidate) {
+      revalidatePath(`/questions/${postId}`);
+    }
   } catch (err) {
     const error = err as FetchError;
 
-    return error.data;
+    return {
+      errors: error.data,
+    };
   }
 }
 
@@ -175,7 +184,10 @@ export async function updateNotebook(
   markdown: string,
   title: string
 ) {
-  const response = await PostsApi.updatePost(postId, {
+  const response = await PostsApi.updatePost<
+    PostWithNotebook,
+    DeepPartial<PostWithNotebook>
+  >(postId, {
     title: title,
     notebook: {
       markdown,

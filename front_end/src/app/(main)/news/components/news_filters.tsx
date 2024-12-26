@@ -44,6 +44,7 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
 
   const t = useTranslations();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedGAEvent = useCallback(
     debounce(() => {
       sendGAEvent({

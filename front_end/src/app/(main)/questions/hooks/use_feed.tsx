@@ -68,7 +68,7 @@ const useFeed = () => {
 
       // If switching from another feed
       if (currentFeed) {
-        for (let p of Array.from(params)) {
+        for (const p of Array.from(params)) {
           deleteParam(p[0]);
         }
       } else {

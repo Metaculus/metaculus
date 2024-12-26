@@ -11,7 +11,6 @@ import {
   useLexicalNodeRemove,
   usePublisher,
 } from "@mdxeditor/editor";
-import { MathJax, MathJaxContext } from "better-react-mathjax";
 import React, { FC } from "react";
 
 import createEditorComponent from "@/components/markdown_editor/createJsxComponent";

@@ -27,7 +27,6 @@ import DisabledArrow from "./icons/DisabledArrow";
 type Props = {
   postTitle: string;
   conditional: PostConditional<QuestionWithForecasts>;
-  curationStatus: PostStatus;
   withNavigation?: boolean;
   chartTheme?: VictoryThemeDefinition;
   nrForecasters?: number;
@@ -38,7 +37,6 @@ type Props = {
 const ConditionalTile: FC<Props> = ({
   postTitle,
   conditional,
-  curationStatus,
   withNavigation,
   chartTheme,
   withCPRevealBtn,

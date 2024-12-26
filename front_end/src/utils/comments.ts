@@ -31,7 +31,8 @@ export function parseUserMentions(
   markdown: string,
   mentionedUsers?: AuthorType[]
 ): string {
-  const userTagPattern = /@(\(([^)]+)\)|([\w.+-_'~#%]+))/gu;
+  const userTagPattern =
+    /@(\(([^)]+)\)|([\w+\-_'~#%@]+(?:\.[\w+\-_'~#%@]+)*))/gu;
 
   function isInsideSquareBrackets(index: number) {
     let insideBrackets = false;

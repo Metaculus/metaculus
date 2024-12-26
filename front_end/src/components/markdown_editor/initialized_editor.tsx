@@ -48,6 +48,7 @@ import {
   embeddedQuestionDescriptor,
   EmbedQuestionAction,
 } from "@/components/markdown_editor/embedded_question";
+import { tweetDescriptor } from "@/components/markdown_editor/embedded_twitter";
 import { processMarkdown } from "@/components/markdown_editor/helpers";
 import { linkPlugin } from "@/components/markdown_editor/plugins/link";
 import { mentionsPlugin } from "@/components/markdown_editor/plugins/mentions";
@@ -63,6 +64,7 @@ type EditorMode = "write" | "read";
 const jsxComponentDescriptors: JsxComponentDescriptor[] = [
   mathJaxDescriptor,
   embeddedQuestionDescriptor,
+  tweetDescriptor,
 ];
 
 const PlainTextCodeEditorDescriptor: CodeBlockEditorDescriptor = {
@@ -90,6 +92,7 @@ export type MarkdownEditorProps = {
   withUgcLinks?: boolean;
   className?: string;
   initialMention?: string;
+  withTwitterPreview?: boolean;
 };
 
 /**
@@ -110,6 +113,7 @@ const InitializedMarkdownEditor: FC<
   shouldConfirmLeave = false,
   withUgcLinks,
   initialMention,
+  withTwitterPreview = false,
 }) => {
   const { user } = useAuth();
   const { theme } = useAppTheme();
@@ -121,14 +125,20 @@ const InitializedMarkdownEditor: FC<
 
   // Transform MathJax syntax to JSX embeds to properly utilise the MarkJax renderer
   const formattedMarkdown = useMemo(
-    () => processMarkdown(markdown),
-    [markdown]
+    () =>
+      processMarkdown(markdown, {
+        revert: false,
+        withTwitterPreview: mode === "read" && withTwitterPreview,
+      }),
+    [markdown, mode, withTwitterPreview]
   );
 
   const handleEditorChange = useCallback(
     (value: string) => {
       // Revert the MathJax transformation before passing the markdown to the parent component
-      onChange && onChange(processMarkdown(value, true));
+      onChange?.(
+        processMarkdown(value, { revert: true, withTwitterPreview: false })
+      );
     },
     [onChange]
   );

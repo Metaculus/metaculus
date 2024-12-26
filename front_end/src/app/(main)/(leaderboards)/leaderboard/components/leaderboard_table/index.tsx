@@ -3,9 +3,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { CONTRIBUTIONS_USER_FILTER } from "@/app/(main)/(leaderboards)/contributions/search_params";
 import { useBreakpoint } from "@/hooks/tailwind";
-import { CategoryKey, LeaderboardDetails, MedalsPath } from "@/types/scoring";
+import { CategoryKey, LeaderboardDetails } from "@/types/scoring";
 
 import LeaderboardRow, { UserLeaderboardRow } from "./table_row";
 import { RANKING_CATEGORIES } from "../../../ranking_categories";
@@ -107,7 +106,7 @@ const LeaderboardTable: FC<Props> = ({
               } else {
                 return (
                   <LeaderboardRow
-                    key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method!}`}
+                    key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method}`}
                     rowEntry={entry}
                     scoreType={leaderboardDetails.score_type}
                     href={navigationUrl}

@@ -1,13 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useState } from "react";
+import React, { FC } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import Checkbox from "@/components/ui/checkbox";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useServerAction } from "@/hooks/use_server_action";
-import { ProfilePreferencesType } from "@/types/preferences";
 import { CurrentUser } from "@/types/users";
 
 export type Props = {
@@ -16,35 +15,7 @@ export type Props = {
 
 const AccountPreferences: FC<Props> = ({ user }) => {
   const t = useTranslations();
-  const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
 
-  const handlePreferencesChange = useCallback(
-    async (preferenceType: ProfilePreferencesType, checked: boolean) => {
-      // remove after BE updates
-      if (user.unsubscribed_preferences_tags === undefined) {
-        user.unsubscribed_preferences_tags = [];
-      }
-
-      const preferences = checked
-        ? user.unsubscribed_preferences_tags?.filter(
-            (remote_type) => remote_type != preferenceType
-          )
-        : Array.from(
-            new Set([...user.unsubscribed_preferences_tags, preferenceType])
-          );
-
-      try {
-        // Update helper (BE) to handle unsubscribed_preferences_tags field
-
-        await updateProfileAction({
-          unsubscribed_preferences_tags: preferences,
-        });
-      } finally {
-        setLoadingIndex(null);
-      }
-    },
-    [user]
-  );
   const [updateProfile, isPending] = useServerAction(
     async (hide_community_prediction: boolean) => {
       await updateProfileAction({

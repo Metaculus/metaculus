@@ -16,7 +16,7 @@ import React, {
 import { createForecasts } from "@/app/(main)/questions/actions";
 import GroupQuestionResolution from "@/components/group_question_resolution";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
@@ -29,10 +29,7 @@ import {
   QuestionStatus,
   Resolution,
 } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
@@ -74,7 +71,6 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   questions,
   groupVariable,
   canPredict,
-  canResolve,
   predictionMessage,
 }) => {
   const t = useTranslations();
@@ -131,7 +127,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     );
   }, [permission, prevForecastValuesMap, questions]);
 
-  const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const questionsToSubmit = useMemo(
     () =>
       questionOptions.filter(
@@ -167,7 +163,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     );
   }, []);
   const handlePredictSubmit = useCallback(async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
       return;
@@ -177,6 +173,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       postId,
       questionsToSubmit.map((q) => {
         const forecastValue = round(
+          // okay to use non-null assertion here because we handle nullable state in questionsToSubmit calculation
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           q.forecast! / 100,
           BINARY_FORECAST_PRECISION
         );
@@ -195,17 +193,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
     );
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (response && "error" in response && !!response.error) {
-      errors.push(response.error);
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   }, [postId, questionsToSubmit]);
   const [submit, isPending] = useServerAction(handlePredictSubmit);
@@ -301,13 +290,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isDisabled={!questionsToSubmit.length}
             />
           </div>
-          {submitErrors.map((errResponse, index) => (
-            <FormErrorMessage
-              className="mt-2 flex justify-center"
-              key={`error-${index}`}
-              errors={errResponse}
-            />
-          ))}
+          <FormError
+            errors={submitError}
+            className="mt-2 flex items-center justify-center"
+            detached
+          />
           <div className="h-[32px] w-full">
             {isPending && <LoadingIndicator />}
           </div>
@@ -329,7 +316,8 @@ function generateChoiceOptions(
     return {
       id: question.id,
       name: question.label,
-      communityForecast: latest && !latest.end_time ? latest.centers![0] : null,
+      communityForecast:
+        latest && !latest.end_time ? latest.centers?.[0] ?? null : null,
       forecast: prevForecastValuesMap[question.id] ?? null,
       resolution: question.resolution,
       isDirty: false,

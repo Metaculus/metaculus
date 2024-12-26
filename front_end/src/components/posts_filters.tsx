@@ -17,11 +17,7 @@ import SearchInput from "@/components/search_input";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
-import {
-  POST_FOLLOWING_FILTER,
-  POST_ORDER_BY_FILTER,
-  POST_PAGE_FILTER,
-} from "@/constants/posts_feed";
+import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
@@ -71,7 +67,6 @@ const PostsFilters: FC<Props> = ({
   sortOptions: dropdownSortOptions,
   onPopOverFilterChange,
   onOrderChange,
-  inputConfig,
   showRandomButton,
 }) => {
   const t = useTranslations();
@@ -88,6 +83,7 @@ const PostsFilters: FC<Props> = ({
   const { globalSearch, setGlobalSearch, setIsVisible, setModifySearchParams } =
     useGlobalSearchContext();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedGAEvent = useCallback(
     debounce(() => {
       sendGAEvent({
@@ -104,6 +100,8 @@ const PostsFilters: FC<Props> = ({
     return () => {
       setModifySearchParams(false);
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const eraseSearch = () => {

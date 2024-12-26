@@ -7,7 +7,7 @@ import { OnboardingStep } from "@/types/onboarding";
 import Step from "./step";
 import { ONBOARDING_TOPICS } from "../utils";
 
-const Step0: React.FC<OnboardingStep> = ({ setTopic, onNext }) => {
+const Step0: React.FC<OnboardingStep> = ({ setTopic }) => {
   const t = useTranslations();
 
   useEffect(() => {

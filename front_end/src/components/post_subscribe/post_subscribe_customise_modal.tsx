@@ -123,7 +123,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
         [],
         revalidate
       );
-      onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
+      onPostSubscriptionChange?.(newSubscriptions);
       sendGAEvent("event", "questionUnfollowed");
     } finally {
       setIsLoading(false);
@@ -142,7 +142,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
         subscriptionsBE,
         revalidate
       );
-      onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
+      onPostSubscriptionChange?.(newSubscriptions);
       onClose(true);
     } finally {
       setIsLoading(false);
@@ -247,32 +247,34 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
           </div>
         )}
         <div className="mt-8 flex flex-col gap-4 pb-16">
-          {subscriptionTypes.map(({ type, title, render }, idx) => (
-            <section key={`subscription-${type}`}>
-              <div className="flex items-center gap-4">
-                <Switch
-                  checked={checkSubscriptionEnabled(type)}
-                  onChange={(checked) =>
-                    handleSwitchSubscription(checked, type)
-                  }
-                />
-                <h4 className="m-0">{title}</h4>
-              </div>
-              {checkSubscriptionEnabled(type) && (
-                <>
-                  <div>
-                    {render &&
-                      render(
-                        modalSubscriptions.find((sub) => sub.type === type)!
-                      )}
-                  </div>
-                  {render && idx < subscriptionTypes.length - 1 && (
-                    <hr className="mb-4 mt-8 border-gray-400 dark:border-gray-400-dark" />
-                  )}
-                </>
-              )}
-            </section>
-          ))}
+          {subscriptionTypes.map(({ type, title, render }, idx) => {
+            const enabled = checkSubscriptionEnabled(type);
+            const subscription = modalSubscriptions.find(
+              (sub) => sub.type === type
+            );
+
+            return (
+              <section key={`subscription-${type}`}>
+                <div className="flex items-center gap-4">
+                  <Switch
+                    checked={checkSubscriptionEnabled(type)}
+                    onChange={(checked) =>
+                      handleSwitchSubscription(checked, type)
+                    }
+                  />
+                  <h4 className="m-0">{title}</h4>
+                </div>
+                {enabled && !!subscription && (
+                  <>
+                    <div>{!!render && render(subscription)}</div>
+                    {!!render && idx < subscriptionTypes.length - 1 && (
+                      <hr className="mb-4 mt-8 border-gray-400 dark:border-gray-400-dark" />
+                    )}
+                  </>
+                )}
+              </section>
+            );
+          })}
         </div>
         <div className="flex w-full justify-end">
           <div className="flex w-fit gap-2">

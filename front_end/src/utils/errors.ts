@@ -2,17 +2,41 @@ import * as Sentry from "@sentry/nextjs";
 
 import { ErrorResponse } from "@/types/fetch";
 
-export function extractError(field_error: any): string | undefined {
-  if (typeof field_error === "string") return field_error;
+export function extractError(
+  field_error: any,
+  config?: { parentKey?: string; detached?: boolean }
+): string | undefined {
+  const { detached, parentKey } = config ?? {};
 
+  if (typeof field_error === "string") {
+    if (detached && parentKey) {
+      return `[${parentKey}] ${field_error}`;
+    }
+
+    return field_error;
+  }
+
+  let detachedResult: string = "";
   if (typeof field_error === "object" && field_error !== null) {
     for (const key in field_error) {
       if (field_error.hasOwnProperty(key)) {
-        const result = extractError(field_error[key]);
+        const value = field_error[key];
+        const result = extractError(field_error[key], {
+          parentKey: Array.isArray(value) ? key : parentKey,
+          detached,
+        });
         if (result !== undefined) {
-          return result;
+          if (!detached) {
+            return result;
+          }
+
+          detachedResult += detachedResult ? `\n${result}` : result;
         }
       }
+    }
+
+    if (detached && detachedResult) {
+      return detachedResult;
     }
   }
 }
@@ -42,7 +66,7 @@ export function logError(error: Error | unknown, message?: string) {
 
 export function logErrorWithScope(
   error: Error | unknown,
-  payload: any,
+  payload: unknown,
   message?: string
 ) {
   Sentry.withScope(function (scope) {
