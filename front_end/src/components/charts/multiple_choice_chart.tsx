@@ -37,9 +37,10 @@ import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
   findPreviousTimestamp,
-  generateNumericDomain,
+  generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
+  generateYDomain,
   getTickLabelFontSize,
   scaleInternalLocation,
   unscaleNominalLocation,
@@ -82,7 +83,7 @@ const MultipleChoiceChart: FC<Props> = ({
   onCursorChange,
   onChartReady,
   extraTheme,
-  questionType,
+  questionType = QuestionType.Binary,
   scaling,
   isClosed,
   aggregation,
@@ -115,7 +116,7 @@ const MultipleChoiceChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
-  const { xScale, yScale, graphs, xDomain } = useMemo(
+  const { xScale, yScale, graphs, xDomain, yDomain } = useMemo(
     () =>
       buildChartData({
         timestamps,
@@ -244,30 +245,39 @@ const MultipleChoiceChart: FC<Props> = ({
               />
             )
           }
-          domain={{ x: xDomain }}
+          domain={{
+            x: xDomain,
+            y: yDomain,
+          }}
         >
-          {graphs.map(({ line, color, active, highlighted }, index) => (
-            <VictoryLine
-              key={`multiple-choice-line-${index}`}
-              data={line}
-              style={{
-                data: {
-                  stroke: active ? getThemeColor(color) : "transparent",
-                  strokeOpacity: !isHighlightActive ? 1 : highlighted ? 1 : 0.2,
-                },
-              }}
-              interpolation="stepAfter"
-            />
-          ))}
-          {graphs.map(({ area, color, highlighted }, index) =>
-            !!area && highlighted ? (
+          {graphs.map(({ line, color, active, highlighted }, index) =>
+            active ? (
+              <VictoryLine
+                key={`multiple-choice-line-${index}`}
+                data={line}
+                style={{
+                  data: {
+                    stroke: getThemeColor(color),
+                    strokeOpacity: !isHighlightActive
+                      ? 1
+                      : highlighted
+                        ? 1
+                        : 0.2,
+                  },
+                }}
+                interpolation="stepAfter"
+              />
+            ) : null
+          )}
+          {graphs.map(({ area, color, highlighted, active }, index) =>
+            active ? (
               <VictoryArea
                 key={`multiple-choice-area-${index}`}
                 data={area}
                 style={{
                   data: {
                     fill: getThemeColor(color),
-                    opacity: 0.3,
+                    opacity: highlighted ? 0.3 : 0,
                   },
                 }}
                 interpolation="stepAfter"
@@ -364,6 +374,7 @@ export type ChoiceGraph = {
 type ChartData = BaseChartData & {
   graphs: ChoiceGraph[];
   xDomain: DomainTuple;
+  yDomain: DomainTuple;
 };
 
 function buildChartData({
@@ -387,7 +398,7 @@ function buildChartData({
   width: number;
   height: number;
   zoom: TimelineChartZoomOption;
-  questionType?: QuestionType;
+  questionType: QuestionType;
   scaling?: Scaling;
   aggregation?: boolean;
   extraTheme?: VictoryThemeDefinition;
@@ -407,15 +418,6 @@ function buildChartData({
           Date.now() / 1000
         )
       : Date.now() / 1000;
-
-  const domainTimestamps =
-    isAggregationsEmpty && !!openTime
-      ? [openTime / 1000, latestTimestamp]
-      : aggregation
-        ? timestamps
-        : [...timestamps, latestTimestamp];
-
-  const xDomain = generateNumericDomain(domainTimestamps, zoom);
 
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
@@ -604,22 +606,38 @@ function buildChartData({
     }
   );
 
+  const domainTimestamps =
+    isAggregationsEmpty && !!openTime
+      ? [openTime / 1000, latestTimestamp]
+      : aggregation
+        ? timestamps
+        : [...timestamps, latestTimestamp];
+
+  const xDomain = generateNumericXDomain(domainTimestamps, zoom);
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
-  const yScale =
-    questionType === "numeric" || questionType === "date"
-      ? generateScale({
-          displayType: questionType,
-          axisLength: height,
-          direction: "vertical",
-          scaling: scaling,
-        })
-      : generateScale({
-          displayType: "percent",
-          axisLength: height,
-        });
 
-  return { xScale, yScale, graphs, xDomain };
+  // @ts-expect-error we manually check, that areas are not nullable, this should be fixed on later ts versions
+  const areas: Area = graphs
+    .filter((g) => !isNil(g.area) && g.active)
+    .flatMap((g) => g.area);
+  const { originalYDomain, zoomedYDomain } = generateYDomain({
+    zoom,
+    minTimestamp: xDomain[0],
+    isChartEmpty: !domainTimestamps.length,
+    minValues: areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
+    maxValues: areas.map((a) => ({ timestamp: a.x, y: a.y })),
+  });
+  const yScale = generateScale({
+    displayType: questionType,
+    axisLength: height,
+    direction: "vertical",
+    scaling: scaling,
+    domain: originalYDomain,
+    zoomedDomain: zoomedYDomain,
+  });
+
+  return { xScale, yScale, graphs, xDomain, yDomain: zoomedYDomain };
 }
 
 // Define a custom "X" symbol function
