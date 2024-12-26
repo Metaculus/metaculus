@@ -70,6 +70,7 @@ class CommunitySerializer(serializers.ModelSerializer):
             "type",
             "slug",
             "description",
+            "order",
             "header_image",
             "header_logo",
             "followers_count",
@@ -113,7 +114,7 @@ def serialize_community_many(
 
     # Restore the original ordering
     objects = list(qs.all())
-    objects.sort(key=lambda obj: ids.index(obj.id))
+    objects.sort(key=lambda obj: obj.order or float("inf"))
 
     return [
         serialize_community(
