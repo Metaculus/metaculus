@@ -10,7 +10,6 @@ import Button from "@/components/ui/button";
 import Chip from "@/components/ui/chip";
 import {
   POST_CATEGORIES_FILTER,
-  POST_COMMUNITIES_FILTER,
   POST_TAGS_FILTER,
 } from "@/constants/posts_feed";
 import { useModal } from "@/contexts/modal_context";
