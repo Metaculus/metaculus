@@ -18,7 +18,7 @@ const Step2: React.FC<OnboardingStep> = ({
   const t = useTranslations();
 
   // Find related post for Step
-  const post = posts.find((obj) => obj.id === topic.questions[1]);
+  const post = posts.find((obj) => obj.id === topic?.questions?.[1]);
   // Should not be the case
   if (!post) return null;
   const communityForecast = extractCommunityForecast(post);
@@ -41,7 +41,7 @@ const Step2: React.FC<OnboardingStep> = ({
   return (
     <Step>
       <Step.Title>
-        {t("onboardingStep3Title", { topicName: topic.name })}
+        {t("onboardingStep3Title", { topicName: topic?.name })}
       </Step.Title>
       <Step.QuestionContainer>
         <Step.QuestionTitle>{post.title}</Step.QuestionTitle>
