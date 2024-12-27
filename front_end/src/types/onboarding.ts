@@ -18,7 +18,7 @@ export type OnboardingStep = {
   onNext: () => void;
   onPrev: () => void;
   onComplete: () => void;
-  topic: OnboardingTopic;
+  topic: OnboardingTopic | null;
   setTopic: (id: number) => void;
   handleComplete: () => void;
   handlePostpone: () => void;
