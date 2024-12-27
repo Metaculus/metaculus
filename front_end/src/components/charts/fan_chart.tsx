@@ -22,12 +22,12 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { Area, FanOption, Line } from "@/types/charts";
 import {
-  Scaling,
-  Quartiles,
-  QuestionWithNumericForecasts,
-  QuestionType,
-  Question,
   ForecastAvailability,
+  Quartiles,
+  Question,
+  QuestionType,
+  QuestionWithNumericForecasts,
+  Scaling,
 } from "@/types/question";
 import {
   generateScale,
@@ -276,8 +276,8 @@ function buildChartData(options: FanOption[]) {
   }
 
   const scaling: Scaling = {
-    range_max: Math.max(...rangeMaxValues),
-    range_min: Math.min(...rangeMinValues),
+    range_max: rangeMaxValues.length > 0 ? Math.max(...rangeMaxValues) : null,
+    range_min: rangeMinValues.length > 0 ? Math.min(...rangeMinValues) : null,
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
   if (scaling.range_max === scaling.range_min && scaling.range_max === 0) {

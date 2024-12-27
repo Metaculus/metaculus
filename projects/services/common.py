@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Iterable
 
 from django.db import IntegrityError
@@ -156,3 +157,30 @@ def get_projects_staff_users(
         }
         for project_id in project_ids
     }
+
+
+def get_projects_for_posts(
+    posts: Iterable[Post], user: User = None
+) -> dict[int, list[Project]]:
+    """
+    Retrieves a mapping of posts to their available projects for a given user.
+    """
+
+    post_projects = Post.projects.through.objects.filter(post__in=posts)
+
+    # Fetching projects available for the given user
+    available_projects_map = {
+        obj.id: obj
+        for obj in Project.objects.filter(
+            id__in=[x.project_id for x in post_projects]
+        ).filter_permission(user=user)
+    }
+
+    post_projects_map = defaultdict(list)
+
+    # Generating Post->Projects map
+    for m2m_obj in post_projects:
+        if project := available_projects_map.get(m2m_obj.project_id):
+            post_projects_map[m2m_obj.post_id].append(project)
+
+    return post_projects_map

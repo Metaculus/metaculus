@@ -69,7 +69,7 @@ const GroupContinuousTile: FC<Props> = ({ questions, post, hideCP }) => {
           choices={choices}
           visibleChoicesCount={VISIBLE_CHOICES_COUNT}
           questions={questions}
-          questionType={questions[0]?.type}
+          questionType={questionType}
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
           chartHeight={CHART_HEIGHT}

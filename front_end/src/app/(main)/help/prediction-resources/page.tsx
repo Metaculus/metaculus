@@ -1,3 +1,8 @@
+import {
+  GENERIC_DATA_SOURCES,
+  MACROECONOMICS_FINANCE_DATA_SOURCES,
+} from "./data_sources";
+import DataSourcesTable from "./table";
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -588,143 +593,13 @@ export default function PredictionResources() {
         General Data Sources (in no particular order)
       </h3>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-blue-950">
-          <thead>
-            <tr className="bg-metac-gray-100 dark:bg-metac-gray-900">
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Data Service
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Organization
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Topics
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Size
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Ease of Use
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Comments
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="border-b border-gray-300 px-4 py-2 text-sm dark:border-gray-700">
-                <a
-                  href="https://www.google.com/publicdata/directory"
-                  className="text-blue-600 hover:underline"
-                >
-                  Public Data Explorer
-                </a>
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Google
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                All topics
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Very large
-                <br />
-                <br />
-                Public Data Explorer aggregates public data from 113 dataset
-                providers (such as international organizations, national
-                statistical offices, non-governmental organizations, and
-                research institutions)
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Very Easy
-                <br />
-                <br />
-                This is a good place to start with your search for data, since
-                many datasets are available which are often straightforward to
-                find. There are sometimes also great visualizations
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                This is perhaps the best place to look for public data and
-                forecasts provided from third-party data providers
-                <br />
-                <br />
-                Highly recommended also is the{" "}
-                <a
-                  href="https://www.google.com/publicdata/explore?ds=n4ff2muj8bh2a_"
-                  className="text-blue-600 hover:underline"
-                >
-                  International Futures Forecasting Data
-                </a>{" "}
-                on long-term forecasting and global trend analysis available on
-                the Public Data Explorer
-              </td>
-            </tr>
-            {/* Add more rows here following the same pattern */}
-          </tbody>
-        </table>
-      </div>
+      <DataSourcesTable data={GENERIC_DATA_SOURCES} />
 
       <h3 className="mb-4 mt-8 text-xl font-semibold" id="macrofinance-sources">
         Macroeconomic & Financial Only Data Sources (in no particular order)
       </h3>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-blue-950">
-          <thead>
-            <tr className="bg-metac-gray-100 dark:bg-metac-gray-900">
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Data Service
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Organization
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Topics
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Size
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Ease of Use
-              </th>
-              <th className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Comments
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                <a
-                  href="https://www.bea.gov/about/index.htm"
-                  className="text-blue-600 hover:underline"
-                >
-                  Bureau of Economic Analysis
-                </a>
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                U.S. Department of Commerce
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Official macroeconomic and industry statistics, most notably
-                reports about the gross domestic product (GDP) of the United
-                States, as well as personal income, corporate profits and
-                government spending
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Large
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700">
-                Easy
-              </td>
-              <td className="border-b border-gray-300 px-4 py-2 dark:border-gray-700"></td>
-            </tr>
-            {/* Add more rows here following the same pattern */}
-          </tbody>
-        </table>
-      </div>
+      <DataSourcesTable data={MACROECONOMICS_FINANCE_DATA_SOURCES} />
     </PageWrapper>
   );
 }

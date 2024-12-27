@@ -6,7 +6,7 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-import { Tournament } from "./projects";
+import { Community, Tournament } from "./projects";
 
 export type Resolution =
   | "yes"
@@ -119,6 +119,7 @@ export type Post<QT = Question> = {
     tournament?: Tournament[];
     question_series?: Tournament[];
     tag?: Tag[];
+    community?: Community[];
   };
   title: string;
   url_title: string;

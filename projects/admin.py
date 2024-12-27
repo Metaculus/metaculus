@@ -206,8 +206,21 @@ class PostProjectInline(admin.TabularInline):
         return False
 
 
+class ProjectAdminForm(forms.ModelForm):
+    visibility = forms.ChoiceField(
+        choices=Project.Visibility.choices,
+        required=True,
+        initial=Project.Visibility.UNLISTED,
+    )
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+
 @admin.register(Project)
 class ProjectAdmin(CustomTranslationAdmin):
+    form = ProjectAdminForm
     list_display = [
         "name",
         "type",

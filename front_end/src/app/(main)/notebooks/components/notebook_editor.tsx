@@ -85,7 +85,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
 
       {!isEditing && (
         <div id={contentId}>
-          <MarkdownEditor mode="read" markdown={markdown} />
+          <MarkdownEditor mode="read" markdown={markdown} withTwitterPreview />
         </div>
       )}
     </div>

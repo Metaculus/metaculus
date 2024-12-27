@@ -1,4 +1,5 @@
 import "@github/relative-time-element";
+import { differenceInSeconds } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
@@ -11,8 +12,7 @@ export const CommentDate: FC<{ comment: CommentType }> = ({ comment }) => {
   const wasEdited = useMemo(
     () =>
       comment.edited_at &&
-      new Date(comment.created_at).getTime() !=
-        new Date(comment.edited_at).getTime(),
+      differenceInSeconds(comment.edited_at, comment.created_at) > 30,
     [comment.edited_at, comment.created_at]
   );
 

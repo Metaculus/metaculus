@@ -59,7 +59,7 @@ export function getContinuousChartTypeFromQuestion(
   }
 }
 
-export function generateNumericDomain(
+export function generateNumericXDomain(
   timestamps: number[],
   zoom: TimelineChartZoomOption
 ): Tuple<number> {
@@ -88,6 +88,58 @@ export function generateNumericDomain(
     Math.max(Math.min(...validTimestamps), getUnixTime(startDate)),
     latestTimestamp,
   ];
+}
+
+type GenerateYDomainParams = {
+  minValues: Array<{ timestamp: number; y: number | null | undefined }>;
+  maxValues: Array<{ timestamp: number; y: number | null | undefined }>;
+  minTimestamp: number;
+  zoom: TimelineChartZoomOption;
+  isChartEmpty: boolean;
+  zoomDomainPadding?: number;
+};
+export function generateYDomain({
+  zoom,
+  isChartEmpty,
+  minValues,
+  maxValues,
+  minTimestamp,
+  zoomDomainPadding = 0.05,
+}: GenerateYDomainParams): {
+  originalYDomain: Tuple<number>;
+  zoomedYDomain: Tuple<number>;
+} {
+  const originalYDomain: Tuple<number> = [0, 1];
+  const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
+
+  if (zoom === TimelineChartZoomOption.All || isChartEmpty) {
+    return fallback;
+  }
+
+  const min = minValues
+    .filter((d) => d.timestamp >= minTimestamp)
+    .map((d) => d.y)
+    .filter((value) => !isNil(value));
+  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
+  const minValue = min.length ? Math.min(...min) : null;
+  const max = maxValues
+    .filter((d) => d.timestamp >= minTimestamp)
+    .map((d) => d.y)
+    .filter((value) => !isNil(value));
+  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
+  const maxValue = max.length ? Math.max(...max) : null;
+
+  if (isNil(minValue) || isNil(maxValue)) {
+    return fallback;
+  }
+
+  return {
+    originalYDomain,
+    zoomedYDomain: [
+      Math.max(0, minValue - zoomDomainPadding),
+      Math.min(1, maxValue + zoomDomainPadding),
+    ],
+  };
 }
 
 export function generateTimestampXScale(
@@ -452,10 +504,11 @@ export function getUserPredictionDisplayValue(
 }
 
 type GenerateScaleParams = {
-  displayType: QuestionType | "percent";
+  displayType: QuestionType;
   axisLength: number;
   direction?: "horizontal" | "vertical";
   domain?: Tuple<number>;
+  zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
   displayLabel?: string;
   withCursorFormat?: boolean;
@@ -467,8 +520,7 @@ type GenerateScaleParams = {
  * for any axis
  *
  * @param displayType the type of the data, either "date", "numeric",
- *  or "percent". "percent" is a special case that will set other values
- *  automatically
+ *  or "binary".
  * @param axisLength the length of the axis in pixels which
  *  can be used to determine the number of ticks
  * @param domain the domain of the data, defaults to [0, 1],
@@ -477,8 +529,6 @@ type GenerateScaleParams = {
  *  which in turn is the same as a linear scaling along the given domain
  * @param displayLabel this is the label that will be appended to the
  *  formatted tick values, defaults to an empty string
- * @param withCursorFormat whether or not to generate a special cursor
- *  format for the hover state
  * @param cursorDisplayLabel specifies the label to appear on the cursor
  *  state, which defaults to the displayLabel
  *
@@ -489,9 +539,9 @@ export function generateScale({
   axisLength,
   direction = "horizontal",
   domain = [0, 1],
+  zoomedDomain = [0, 1],
   scaling = null,
   displayLabel = "",
-  withCursorFormat = false,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -509,6 +559,9 @@ export function generateScale({
     range_max: rangeMax,
     zero_point: zeroPoint,
   };
+
+  const zoomedDomainMin = zoomedDomain[0];
+  const zoomedDomainMax = zoomedDomain[1];
 
   // determine the number of ticks to label
   // based on the axis length and direction
@@ -544,35 +597,19 @@ export function generateScale({
   //   rangeScaling,
   // });
 
-  if (displayType === "percent") {
-    // special case for "percent" situation
-    displayLabel = "%";
-    const tickInterval = domainMax / (tickCount - 1);
-    const labeledTickInterval = domainMax / (maxLabelCount - 1);
-    return {
-      ticks: range(domainMin, domainMax + tickInterval / 2, tickInterval),
-      tickFormat: (x) => {
-        if (Math.round(x * 100) % Math.round(labeledTickInterval * 100) === 0) {
-          return `${Math.round(x * 100)}` + displayLabel;
-        }
-        return "";
-      },
-      cursorFormat: withCursorFormat
-        ? (x) => `${Math.round(x * 10000) / 100}` + displayLabel
-        : undefined,
-    };
-  }
-
-  const tickInterval = 1 / (tickCount - 1);
-  const labeledTickInterval = 1 / (maxLabelCount - 1);
+  const tickInterval = zoomedDomainMax / (tickCount - 1);
+  const labeledTickInterval = zoomedDomainMax / (maxLabelCount - 1);
   const majorTicks: number[] = range(
-    0,
-    1 + tickInterval / 100,
+    zoomedDomainMin,
+    zoomedDomainMax + tickInterval / 100,
     labeledTickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
-  const allTicks: number[] = range(0, 1 + tickInterval / 100, tickInterval).map(
-    (x) => Math.round(x * 1000) / 1000
-  );
+  const allTicks: number[] = range(
+    zoomedDomainMin,
+    zoomedDomainMax + tickInterval / 100,
+    tickInterval
+  ).map((x) => Math.round(x * 1000) / 1000);
+
   return {
     ticks: allTicks,
     tickFormat: (x) => {
@@ -1165,8 +1202,8 @@ export function getContinuousGroupScaling(
     }
   });
   const scaling: Scaling = {
-    range_max: Math.max(...rangeMaxPoints),
-    range_min: Math.min(...rangeMinPoints),
+    range_max: rangeMaxPoints.length > 0 ? Math.max(...rangeMaxPoints) : null,
+    range_min: rangeMinPoints.length > 0 ? Math.min(...rangeMinPoints) : null,
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
   // we can have mixes of log and linear scaled options

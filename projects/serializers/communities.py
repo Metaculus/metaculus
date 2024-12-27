@@ -70,6 +70,7 @@ class CommunitySerializer(serializers.ModelSerializer):
             "type",
             "slug",
             "description",
+            "order",
             "header_image",
             "header_logo",
             "followers_count",
@@ -111,9 +112,9 @@ def serialize_community_many(
     if current_user:
         qs = qs.annotate_is_subscribed(current_user)
 
-    # Restore the original ordering
+    # sort by order to allow any prioritized communities to be shown first
     objects = list(qs.all())
-    objects.sort(key=lambda obj: ids.index(obj.id))
+    objects.sort(key=lambda obj: obj.order or float("inf"))
 
     return [
         serialize_community(

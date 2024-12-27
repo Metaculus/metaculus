@@ -813,5 +813,6 @@
   "onboardingStep5WellDone": "Výborně!",
   "onboardingStep5SavePredictionsParagraph": "Chcete uložit provedené předpovědi?",
   "onboardingYouPredicted": "Předpověděli jste",
-  "next": "Další"
+  "next": "Další",
+  "postCreateErrorMinSubquestions": "Skupina otázek musí obsahovat alespoň jednu podotázku"
 }
