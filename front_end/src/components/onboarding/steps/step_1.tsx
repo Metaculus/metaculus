@@ -23,7 +23,7 @@ const Step1: React.FC<OnboardingStep> = ({
 
   const endOfModalRef = useRef<HTMLDivElement>(null);
   // Find related post for Step
-  const post = posts.find((obj) => obj.id === topic.questions[0]);
+  const post = posts.find((obj) => obj.id === topic?.questions?.[0]);
 
   // Should not be the case
   if (!post) return null;
@@ -85,7 +85,7 @@ const Step1: React.FC<OnboardingStep> = ({
   return (
     <Step>
       <Step.Title>
-        {t("onboardingStep2Title", { topicName: topic.name })}
+        {t("onboardingStep2Title", { topicName: topic?.name })}
       </Step.Title>
       <Step.QuestionContainer>
         <Step.QuestionTitle>{post.title}</Step.QuestionTitle>
