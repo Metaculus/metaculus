@@ -46,8 +46,20 @@ class WhitelistUser(TimeStampedModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="whitelists")
     project = models.ForeignKey(
-        Project, null=True, on_delete=models.CASCADE, related_name="whitelists"
+        Project,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="whitelists",
+        help_text="Optional. If provided, this allows the user to download user-level "
+        "data for the project. If neither project nor post is set, the user is "
+        "whitelisted for all data.",
     )
     post = models.ForeignKey(
-        Post, null=True, on_delete=models.CASCADE, related_name="whitelists"
+        Post,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="whitelists",
+        help_text="Optional. If provided, this allows the user to download user-level "
+        "data for the post. If neither project nor post is set, the user is "
+        "whitelisted for all data.",
     )

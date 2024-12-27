@@ -38,7 +38,7 @@ urlpatterns = [
     path(
         "projects/<int:project_id>/download-data/",
         views.download_data,
-        name="download-data",
+        name="projects-download-data",
     ),
     # Communities
     path(
