@@ -146,7 +146,7 @@ def serialize_projects(
 
     # sort by order to allow any prioritized tags to be shown first
     # e.g. global leaderboard tags
-    for obj in sorted(projects, key=lambda x: x.order, reverse=True):
+    for obj in sorted(projects, key=lambda x: x.order or float("inf")):
         serialized_data = serialize_project(obj)
 
         data[obj.type].append(serialized_data)
