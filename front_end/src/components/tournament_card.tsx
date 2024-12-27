@@ -112,7 +112,7 @@ const TournamentCard: FC<Props> = ({
           </div>
         )}
       </div>
-      {withCount && (
+      {withCount && questionsCount > 0 && (
         <div className="flex flex-col whitespace-break-spaces border-t border-blue-200 px-6 py-3 dark:border-blue-200-dark">
           <strong>{t("questionCount", { count: questionsCount })}</strong>
         </div>

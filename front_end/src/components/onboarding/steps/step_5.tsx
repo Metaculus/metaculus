@@ -36,7 +36,7 @@ const Step5: React.FC<OnboardingStep> = ({
   const { user } = useAuth();
   const t = useTranslations();
 
-  const nextQuestionUrl = `/questions/${topic.questions[2]}`;
+  const nextQuestionUrl = `/questions/${topic?.questions?.[2]}`;
 
   const forceNavigate = (url: string) => {
     handleComplete();
@@ -233,7 +233,7 @@ const Step5: React.FC<OnboardingStep> = ({
           className="w-full font-light md:w-fit"
         >
           {t("onboardingStep5ForecastAnother")}{" "}
-          <span className="font-bold">{topic.name}</span>{" "}
+          <span className="font-bold">{topic?.name}</span>{" "}
           {t("onboardingStep5Question")}
         </Step.Button>
         <Step.Button

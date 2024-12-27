@@ -20,7 +20,10 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { TrackRecordScatterPlotItem } from "@/types/track_record";
-import { generateNumericDomain, generateTimestampXScale } from "@/utils/charts";
+import {
+  generateNumericXDomain,
+  generateTimestampXScale,
+} from "@/utils/charts";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
 
@@ -299,7 +302,7 @@ function buildChartData({
       return "";
     }
   };
-  const xDomain = generateNumericDomain(
+  const xDomain = generateNumericXDomain(
     score_scatter_plot.map((data) => data.score_timestamp),
     "all" as TimelineChartZoomOption
   );

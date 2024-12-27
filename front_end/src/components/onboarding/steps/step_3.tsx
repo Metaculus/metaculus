@@ -18,7 +18,7 @@ const Step3: React.FC<OnboardingStep> = ({
   const t = useTranslations();
 
   // Find related post for Step
-  const post = posts.find((obj) => obj.id === topic.questions[1]);
+  const post = posts.find((obj) => obj.id === topic?.questions?.[1]);
   // Should not be the case
   if (!post) return null;
   const communityForecast = extractCommunityForecast(post);
@@ -37,7 +37,7 @@ const Step3: React.FC<OnboardingStep> = ({
       <Step.Title>{t("onboardingStep4Factors")}</Step.Title>
       <div>
         <ul className="list-none space-y-2">
-          {topic.factors.map((factor, index) => (
+          {topic?.factors.map((factor, index) => (
             <li
               key={index}
               className="flex flex-row items-center justify-between gap-4 rounded-md bg-purple-400/45 p-2.5 px-4 text-sm dark:bg-purple-600/25 md:text-base"

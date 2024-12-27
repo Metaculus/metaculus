@@ -36,9 +36,6 @@ from utils.models import TimeStampedModel, TranslatedModel
 
 
 class PostQuerySet(models.QuerySet):
-    def prefetch_projects(self):
-        return self.prefetch_related("projects").select_related("default_project")
-
     def prefetch_user_forecasts(self, user_id: int):
         question_relations = [
             "question",
@@ -173,7 +170,7 @@ class PostQuerySet(models.QuerySet):
         is following the respective posts.
         """
         subscription_exists_subquery = PostSubscription.objects.filter(
-            post=OuterRef("pk"), user=user
+            post=OuterRef("pk"), user=user, is_global=False
         )
 
         return self.annotate(
