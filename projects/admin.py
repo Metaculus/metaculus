@@ -12,6 +12,7 @@ from django_select2.forms import ModelSelect2MultipleWidget
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from questions.models import Question
+from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
 from utils.csv_utils import export_data_for_questions
 from utils.models import CustomTranslationAdmin
@@ -217,6 +218,13 @@ class ProjectAdminForm(forms.ModelForm):
         model = Project
         fields = "__all__"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["primary_leaderboard"].queryset = Leaderboard.objects.filter(
+                project=self.instance
+            )
+
 
 @admin.register(Project)
 class ProjectAdmin(CustomTranslationAdmin):
@@ -238,7 +246,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         ProjectDefaultPermissionFilter,
     ]
     search_fields = ["type", "name_original", "slug"]
-    autocomplete_fields = ["created_by", "primary_leaderboard"]
+    autocomplete_fields = ["created_by"]
     ordering = ["-created_at"]
     inlines = [
         ProjectUserPermissionInline,
