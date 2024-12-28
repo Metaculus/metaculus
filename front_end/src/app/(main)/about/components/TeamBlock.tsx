@@ -77,6 +77,15 @@ const people: Person[] = [
       "Christian oversees Metaculus’ communications and marketing efforts, working closely with the operations and program teams. Previously, he worked in the aerospace and defense industry as a marketing operations lead. He received his master’s in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before entering the science world, he wrote for <cite>The Onion AV Club</cite> and contributed material to <cite>Saturday Night Live</cite>.",
   },
   {
+    userId: 183695,
+    name: "Nikita Oleinykof",
+    position: "Software Developer",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/Nikita-Oleinykof.webp",
+    introduction:
+      "At Metaculus, Nikita focuses on delivering seamless, user-centered experiences. His contributions include enhancing core platform functionality, automating deployments, increasing test coverage for key logic, and integrating third-party services.",
+  },
+  {
     userId: 117502,
     name: "Ryan Beck",
     position: "Forecasting Program Coordinator",
