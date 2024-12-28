@@ -168,21 +168,6 @@ const people: Person[] = [
     ],
   },
   {
-    userId: 10,
-    name: "Greg Laughlin",
-    position: "Founder & R&D Fellow",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/greg_laughlin.webp",
-    introduction:
-      "Greg is a planet-finder, astrophysicist, and expert on numerical computation and time-series analysis from accretion disks to trading and finance. Greg has probed the limits of predictability, from microseconds in markets to the ultra-long term cosmic future. Greg is a Professor of Astronomy at Yale and holds a PhD from UCSC.",
-    socials: [
-      {
-        link: "https://www.linkedin.com/in/greg-laughlin-493616205/",
-        platform: "LinkedIn",
-      },
-    ],
-  },
-  {
     userId: 5,
     name: "Carroll “Max” Wainwright",
     position: "Founder & AI Advisor",
@@ -209,6 +194,24 @@ const people: Person[] = [
       {
         link: "https://www.linkedin.com/in/david-levine-521101255/",
         platform: "LinkedIn",
+      },
+    ],
+  },
+  {
+  name: "Joshua Elliott",
+  position: "Chief Scientist of Renaissance Philanthropy",
+  imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/Joshua-Elliott.webp",
+  introduction: `
+    Joshua Elliott is the Chief Scientist of Renaissance Philanthropy, with over 15 years of experience driving innovation across academia, government, and philanthropy. Most recently, he served as Programme Director at Quadrature Climate Foundation, leading strategies on solar radiation management, CO₂ removal, and resilience. He also launched the <a href="https://spec.tech/brains" target="_blank">Brains</a> non-profit science accelerator, created a skunkworks for <a href="https://projectinnerspace.org/" target="_blank">Project InnerSpace</a>, and incubated the <a href="https://www.arc-init.org/" target="_blank">ARC initiative</a> to advance responsible R&D for climate emergencies.
+    
+    Previously, Joshua spent six years at DARPA as a Program Manager in the Information Innovation Office, overseeing nearly $600M in federal R&D funding. He led programs in “AI for Science,” tackling challenges in computational science, climate, synthetic biology, and epidemiology, while exploring areas like artificial social intelligence, AI for education, and hybrid intelligent networks to optimize institutional decision-making.
+    
+    Before DARPA, he spent nearly a decade in academia, focusing on computational climate economics, energy systems modeling, and climate impacts on hydrology, agriculture, and migration (University of Chicago, Argonne National Lab). He co-founded the Center for Robust Decision-making in Climate and Energy Policy, started the Global Gridded Crop Modeling Intercomparison Project, and launched a climate informatics startup. Joshua holds a PhD in theoretical high-energy physics from McGill University.
+  `,
+  socials: [
+      {
+      link: "https://www.linkedin.com/in/joshuawrightelliott/",
+      platform: "LinkedIn",
       },
     ],
   },
@@ -278,19 +281,21 @@ const groups: Groups = {
     "Atakan Seçkin",
     "Molly Hickman",
     "Leonard Barrett",
-    "Connor McCormick",
     "Christian Williams",
     "Ryan Beck",
     "Sylvain Chevalier",
     "Nikos Bosse",
     "Elis Popescu",
     "Luke Sabor",
+    "Nikita Oleinykof",
+    "Hlib Kononenko",
+    "Ben Wilson",
   ],
   board: [
     "Anthony Aguirre",
-    "Greg Laughlin",
     "Carroll “Max” Wainwright",
     "David Levine",
+    "Joshua Elliott",
   ],
   advisors: [
     "Juan Cambeiro",
