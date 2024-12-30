@@ -113,6 +113,12 @@ export default function HowItWorks() {
           for their performance on both leaderboards. Prizes will be awarded
           after contest completion and following identity verification.
         </p>
+        <p>
+          Unlike last competition, this year there is no $50 minimum prize
+          awarded, which means the top performers are likely to receive a larger
+          share of the prize pool and there may be less than 125 prizes paid out
+          in each category.
+        </p>
 
         <h3 className="mb-3 text-xl font-semibold text-gray-600 dark:text-gray-300">
           Undergraduate Competition and Leaderboard
