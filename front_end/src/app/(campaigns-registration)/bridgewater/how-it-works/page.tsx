@@ -51,14 +51,14 @@ export default function HowItWorks() {
 
         <div className="relative w-full">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/bw-timeline-light_2.webp"
+            src="https://metaculus-web-media.s3.amazonaws.com/bw-timeline-light_4.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
             className="w-full dark:hidden"
           />
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/bw-timeline-dark_2.webp"
+            src="https://metaculus-web-media.s3.amazonaws.com/bw-timeline-dark_3.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
@@ -77,14 +77,14 @@ export default function HowItWorks() {
           >
             warmup questions
           </Link>{" "}
-          before the contest begins April 16th. Warmup questions won&apos;t
+          before the contest begins February 3rd. Warmup questions won&apos;t
           affect your contest ranking.
         </p>
 
         <div className="mb-8 rounded-md bg-green-100 px-4 pb-4 pt-2 dark:bg-green-900">
           <h4 className="font-bold text-gray-800 dark:text-white">
-            The Forecasting Contest officially begins at 11:00 AM ET on April
-            16, 2024.
+            The Forecasting Contest officially begins at 11:00 AM ET on February
+            3, 2025.
           </h4>
         </div>
 
@@ -108,11 +108,10 @@ export default function HowItWorks() {
         <p className="mb-6">
           Each of the two competitions and leaderboards features a $12,500 prize
           pool, for a total of $25,000. The top 125 forecasters within each
-          competition and leaderboard will win prizes, with a minimum payout of
-          $50 per prize. Competing undergraduate forecasters are eligible to be
-          ranked and receive prizes for their performance on both leaderboards.
-          Prizes will be awarded after contest completion and following identity
-          verification.
+          competition and leaderboard are eligible to will win prizes. Competing
+          undergraduate forecasters are eligible to be ranked and receive prizes
+          for their performance on both leaderboards. Prizes will be awarded
+          after contest completion and following identity verification.
         </p>
 
         <h3 className="mb-3 text-xl font-semibold text-gray-600 dark:text-gray-300">
@@ -121,12 +120,11 @@ export default function HowItWorks() {
 
         <p className="mb-6">
           The Undergraduate competition and leaderboard are open only to
-          undergraduate students currently enrolled in colleges and universities
-          within the United States. If you enroll in the Undergraduate
-          Competition, you will automatically also be included in the Open
-          Competition. This is your opportunity to stand out to the Bridgewater
-          recruiting team and compete for a share of the $12,500 Undergraduate
-          Prize Pool!
+          undergraduate students currently enrolled in colleges and
+          universities. If you enroll in the Undergraduate Competition, you will
+          automatically also be included in the Open Competition. This is your
+          opportunity to stand out to the Bridgewater recruiting team and
+          compete for a share of the $12,500 Undergraduate Prize Pool!
         </p>
 
         <h3 className="mb-3 text-xl font-semibold text-gray-600 dark:text-gray-300">
@@ -135,11 +133,11 @@ export default function HowItWorks() {
 
         <p className="mb-6">
           Alongside the Undergraduate Competition and Leaderboard, there is an
-          Open Competition and Leaderboard in which all current residents of the
-          United States can compete, with an associated $12,500 Open Prize Pool.
-          Experienced and new forecasters alike will have the chance to
-          demonstrate their skills and become eligible for a potential meeting
-          with the Bridgewater recruitment team.
+          Open Competition and Leaderboard in which anyone can compete, with an
+          associated $12,500 Open Prize Pool. Experienced and new forecasters
+          alike will have the chance to demonstrate their skills and become
+          eligible for a potential meeting with the Bridgewater recruitment
+          team.
         </p>
         <hr className="my-8 border-t-2 border-gray-300 dark:border-gray-700" />
 
@@ -187,7 +185,7 @@ export default function HowItWorks() {
           </li>
           <li>
             <Link
-              href="https://www.metaculus.com/questions/21883/introducing-simpler-fairer-tournament-scores/"
+              href="https://www.metaculus.com/help/scores-faq/#tournament-scores/"
               className="text-blue-600 hover:underline"
             >
               How prize is distributed in Metaculus tournaments
@@ -273,7 +271,7 @@ export default function HowItWorks() {
           between 0.1% and 99.9%. On the question page, simply drag the
           prediction slider until it matches your probability and click
           &quot;Predict&quot;. You can also use the arrows to refine your
-          probability or select the field and type the probability.
+          probability.
         </p>
 
         <div className="mb-8">
@@ -341,8 +339,8 @@ export default function HowItWorks() {
 
         <p className="mb-6">
           If you want to distribute your prediction in more than one section of
-          the range, you can add up to four independent bell curves to build
-          your distribution and assign a weight to each of them.
+          the range, you can add independent bell curves to build your
+          distribution and assign a weight to each of them.
         </p>
 
         <div className="mb-8">
