@@ -216,7 +216,7 @@ export const RegistrationAndSignupForm: FC<
       campaignData: {
         full_name: watch("fullName"),
         country: watch("country"),
-        undegrad: watch("undergrad"),
+        undergrad: watch("undergrad"),
         institution: watch("undergrad") ? watch("institution") : undefined,
         major: watch("undergrad") ? watch("major") : undefined,
         accepted_terms: watch("accepted_terms"),
@@ -390,7 +390,7 @@ export const RegistrationForm: FC<
       {
         full_name: watch("fullName"),
         country: watch("country"),
-        undegrad: watch("undergrad"),
+        undergrad: watch("undergrad"),
         institution: watch("undergrad") ? watch("institution") : undefined,
         major: watch("undergrad") ? watch("major") : undefined,
         accepted_terms: watch("accepted_terms"),
