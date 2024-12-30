@@ -10,7 +10,7 @@ import {
   Post,
   PostSubscription,
   PostWithForecasts,
-  PostWithNotebook,
+  NotebookPost,
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import { Require } from "@/types/utils";
@@ -127,7 +127,7 @@ class PostsApi {
   }
 
   static async getPostsForHomepage(): Promise<
-    (PostWithForecasts | PostWithNotebook)[]
+    (PostWithForecasts | NotebookPost)[]
   > {
     return await get(`/posts/homepage/`, {
       next: {
@@ -137,13 +137,13 @@ class PostsApi {
   }
 
   static async createQuestionPost<
-    T extends PostWithForecasts | PostWithNotebook,
+    T extends PostWithForecasts | NotebookPost,
     B,
   >(body: B): Promise<T> {
     return await post(`/posts/create/`, body);
   }
 
-  static async updatePost<T extends PostWithForecasts | PostWithNotebook, B>(
+  static async updatePost<T extends PostWithForecasts | NotebookPost, B>(
     id: number,
     body: B
   ): Promise<T> {

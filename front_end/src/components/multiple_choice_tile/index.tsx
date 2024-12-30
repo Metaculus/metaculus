@@ -1,20 +1,21 @@
 "use client";
 
 import { isNil } from "lodash";
-import React, { FC } from "react";
+import React, { FC, useCallback } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import FanGraphGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/fan_graph_group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionChip from "@/components/prediction_chip";
+import { ForecastPayload } from "@/services/questions";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { PostStatus } from "@/types/post";
 import {
   ForecastAvailability,
   QuestionType,
-  QuestionWithForecasts,
+  QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
@@ -37,8 +38,10 @@ type ContinuousMultipleChoiceTileProps = BaseProps & {
   defaultChartZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   chartTheme?: VictoryThemeDefinition;
-  question?: QuestionWithForecasts;
+  question?: QuestionWithMultipleChoiceForecasts;
   scaling?: Scaling | undefined;
+  onReaffirm?: (userForecast: ForecastPayload[]) => void;
+  canPredict?: boolean;
 };
 
 export const ContinuousMultipleChoiceTile: FC<
@@ -58,6 +61,8 @@ export const ContinuousMultipleChoiceTile: FC<
   scaling,
   hideCP,
   forecastAvailability,
+  onReaffirm,
+  canPredict,
 }) => {
   // when resolution chip is shown we want to hide the chart and display the chip
   // (e.g. multiple-choice question on questions feed)
@@ -66,6 +71,45 @@ export const ContinuousMultipleChoiceTile: FC<
   const isResolvedView =
     !isNil(question?.resolution) &&
     choices.every((choice) => isNil(choice.resolution));
+
+  const handleReaffirmClick = useCallback(() => {
+    if (!onReaffirm) return;
+
+    // multiple choice question
+    if (question) {
+      const latest = question.my_forecasts?.latest;
+      if (!latest || latest.end_time) {
+        return;
+      }
+
+      const forecastValue = question.options.reduce<Record<string, number>>(
+        (acc, el, index) => {
+          const optionForecast = latest.forecast_values[index];
+          if (optionForecast) {
+            acc[el] = optionForecast;
+          }
+          return acc;
+        },
+        {}
+      );
+
+      onReaffirm([
+        {
+          questionId: question.id,
+          forecastData: {
+            continuousCdf: null,
+            probabilityYes: null,
+            probabilityYesPerCategory: forecastValue,
+          },
+        },
+      ]);
+
+      return;
+    }
+
+    // group question
+    // TODO
+  }, [onReaffirm, question]);
 
   return (
     <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 pr-1 xs:grid">
@@ -78,6 +122,8 @@ export const ContinuousMultipleChoiceTile: FC<
             visibleChoicesCount={visibleChoicesCount}
             questionType={questionType}
             hideCP={hideCP}
+            canPredict={canPredict}
+            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
           />
         )}
       </div>

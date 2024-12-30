@@ -10,7 +10,7 @@ import PostsApi from "@/services/posts";
 import {
   PostWithForecasts,
   PostWithForecastsAndWeight,
-  PostWithNotebook,
+  NotebookPost,
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { scaleInternalLocation } from "@/utils/charts";
@@ -61,7 +61,7 @@ const IndexNotebook: FC<Props> = async ({
           {postData.title}
         </h1>
         {postData.notebook && (
-          <NotebookEditor postData={postData as PostWithNotebook} />
+          <NotebookEditor postData={postData as NotebookPost} />
         )}
 
         <IndexQuestionsTable

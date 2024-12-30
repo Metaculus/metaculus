@@ -1,10 +1,14 @@
-import { FC } from "react";
+"use client";
+import { FC, useCallback, useState } from "react";
 
 import HideCPProvider from "@/app/(main)/questions/[id]/components/cp_provider";
+import { createForecasts, getPost } from "@/app/(main)/questions/actions";
 import ConditionalTile from "@/components/conditional_tile";
 import NotebookTile from "@/components/post_card/notebook_tile";
 import { useAuth } from "@/contexts/auth_context";
+import { ForecastPayload } from "@/services/questions";
 import { PostStatus, PostWithForecasts } from "@/types/post";
+import { isGroupOfQuestionsPost, isQuestionPost } from "@/utils/questions";
 
 import BasicPostCard from "./basic_post_card";
 import PostCardErrorBoundary from "./error_boundary";
@@ -21,39 +25,51 @@ const PostCard: FC<Props> = ({ post }) => {
     user?.hide_community_prediction &&
     ![PostStatus.CLOSED, PostStatus.RESOLVED].includes(post.status);
 
+  const [internalPost, setInternalPost] = useState<PostWithForecasts>(post);
+
+  // submit reaffirmed forecast and update the post
+  const handleReaffirm = useCallback(
+    async (userForecast: ForecastPayload[]) => {
+      if (!userForecast.length) {
+        return;
+      }
+
+      await createForecasts(internalPost.id, userForecast, false);
+      const postResponse = await getPost(internalPost.id);
+      setInternalPost(postResponse);
+    },
+    [internalPost.id]
+  );
+
   return (
     <PostCardErrorBoundary>
       <BasicPostCard
-        post={post}
-        hideTitle={!!post.conditional}
-        borderVariant={post.notebook ? "highlighted" : "regular"}
-        borderColor={post.notebook ? "purple" : "blue"}
+        post={internalPost}
+        hideTitle={!!internalPost.conditional}
+        borderVariant={internalPost.notebook ? "highlighted" : "regular"}
+        borderColor={internalPost.notebook ? "purple" : "blue"}
       >
-        <HideCPProvider post={post}>
-          {!!post?.question && (
+        <HideCPProvider post={internalPost}>
+          {isQuestionPost(internalPost) && (
             <QuestionChartTile
-              question={post?.question}
-              authorUsername={post.author_username}
-              curationStatus={post.status}
+              post={internalPost}
               hideCP={hideCP}
-              forecasters={post.nr_forecasters}
+              onReaffirm={handleReaffirm}
             />
           )}
-          {!!post.group_of_questions && (
-            <GroupOfQuestionsTile
-              questions={post.group_of_questions.questions}
-              post={post}
-              hideCP={hideCP}
-            />
+          {isGroupOfQuestionsPost(internalPost) && (
+            <GroupOfQuestionsTile post={internalPost} hideCP={hideCP} />
           )}
-          {!!post.conditional && (
+          {!!internalPost.conditional && (
             <ConditionalTile
-              postTitle={post.title}
-              conditional={post.conditional}
-              forecasters={post.nr_forecasters}
+              postTitle={internalPost.title}
+              conditional={internalPost.conditional}
+              forecasters={internalPost.nr_forecasters}
             />
           )}
-          {!!post.notebook && <NotebookTile notebook={post.notebook} />}
+          {!!internalPost.notebook && (
+            <NotebookTile notebook={internalPost.notebook} />
+          )}
         </HideCPProvider>
       </BasicPostCard>
     </PostCardErrorBoundary>

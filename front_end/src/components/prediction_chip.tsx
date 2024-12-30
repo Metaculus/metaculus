@@ -6,7 +6,7 @@ import { CSSProperties, FC, PropsWithChildren } from "react";
 
 import CPWeeklyMovement from "@/components/cp_weekly_movement";
 import { PostStatus } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
@@ -22,6 +22,8 @@ type Props = {
   chipClassName?: string;
   unresovledChipStyle?: CSSProperties;
   showUserForecast?: boolean;
+  onReaffirm?: (userForecast: UserForecast) => void;
+  canPredict?: boolean;
   hideCP?: boolean;
   compact?: boolean;
 };
@@ -35,6 +37,8 @@ const PredictionChip: FC<Props> = ({
   unresovledChipStyle,
   size,
   showUserForecast,
+  onReaffirm,
+  canPredict = false,
   hideCP,
   compact,
 }) => {
@@ -62,7 +66,22 @@ const PredictionChip: FC<Props> = ({
       return (
         <p className="m-2 text-orange-800 dark:text-orange-800-dark">
           <FontAwesomeIcon icon={faUser} className="mr-1" />
-          {displayValue}
+          {displayValue}{" "}
+          {!!onReaffirm && canPredict && (
+            <button
+              className="lowercase underline hover:text-orange-600 dark:hover:text-orange-600-dark"
+              onClick={(e) => {
+                // prevent navigation, e.g. when rendered inside Next.js Link
+                e.stopPropagation();
+                e.nativeEvent.preventDefault();
+                e.nativeEvent.stopImmediatePropagation();
+
+                onReaffirm(latest);
+              }}
+            >
+              ({t("reaffirm")})
+            </button>
+          )}
         </p>
       );
     }
