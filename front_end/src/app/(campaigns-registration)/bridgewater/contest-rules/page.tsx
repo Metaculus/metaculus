@@ -29,6 +29,7 @@ export default function ContestRules() {
           Official Competition Rules for the Bridgewater Open Forecasting
           Tournament (the `&quot;Tournament`&quot;)
         </h1>
+        <p className="text-xs opacity-70">Last modified: December 30, 2024</p>
 
         <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
 
