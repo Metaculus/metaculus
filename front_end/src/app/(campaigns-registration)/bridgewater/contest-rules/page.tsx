@@ -71,10 +71,15 @@ export default function ContestRules() {
           </li>
           <li>
             <b>Eligibility.</b> Participants must be 18 years of age or older as
-            of February 3, 2025. Employees and contractors of Metaculus and
-            Bridgewater and their affiliates, subsidiaries, and agencies, and
-            members of their immediate family or persons living in the same
-            household are not eligible to participate. Void where prohibited.
+            of February 3, 2025. Employees of Metaculus and Bridgewater and
+            their affiliates, subsidiaries, and agencies, and members of their
+            immediate family or persons living in the same household are not
+            eligible to participate. In compliance with U.S. laws and
+            regulations, we cannot send monetary prizes, cash equivalents, or
+            physical prizes to individuals located in countries subject to U.S.
+            sanctions or export restrictions, including but not limited to
+            Russia, Cuba, North Korea, and others as determined by current
+            regulations. Void where prohibited. Void where prohibited.
           </li>
           <li>
             <b>Timing.</b> The Tournament webpage will be made available on
