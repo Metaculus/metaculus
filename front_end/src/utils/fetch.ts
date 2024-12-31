@@ -149,10 +149,7 @@ const appFetch = async <T>(
   }
 
   const response = await fetch(finalUrl, finalOptions);
-  // consume response in order to fix SocketError: other side is closed
-  // https://stackoverflow.com/questions/76931498/typeerror-terminated-cause-socketerror-other-side-closed-in-fetch-nodejs
-  const clonedRes = response.clone();
-  return await handleResponse<T>(clonedRes);
+  return await handleResponse<T>(response);
 };
 
 const get = async <T>(
