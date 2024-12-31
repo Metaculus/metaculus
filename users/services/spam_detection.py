@@ -89,7 +89,7 @@ def check_profile_data_for_spam(user: User, **args):
         identified_as_spam = True
         reasoning = "Bio is more than 17500 characters"
     else:
-        idenficated_as_spam, reasoning = asyncio.run(
+        identified_as_spam, reasoning = asyncio.run(
             ask_gpt_to_check_profile_for_spam(bio_plus_website)
         )
         gpt_was_used = True
