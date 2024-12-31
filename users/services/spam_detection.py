@@ -69,7 +69,7 @@ def check_data_for_spam(user: User, **args):
 
     if idenficated_as_spam:
         logger.info(
-            f"User: {user.username} ID: {user.id} was soft deleted "
+            f"User: {user.username} ID: {user.id} was detected as spam "
             f"for spam bio: {bio_plus_website[:100]}... "
             f"The reason was: {reasoning[:100]}... "
             f"It took {duration:.2f} seconds to check. "
@@ -78,9 +78,7 @@ def check_data_for_spam(user: User, **args):
     return idenficated_as_spam, reasoning
 
 
-async def ask_gpt_to_check_profile_for_spam(
-    bio_plus_websites: str
-) -> tuple[bool, str]:
+async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[bool, str]:
     if not settings.OPENAI_API_KEY:
         return False, "No API key set, so not checking for spam"
 
