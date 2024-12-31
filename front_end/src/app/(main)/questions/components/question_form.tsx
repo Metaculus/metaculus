@@ -31,7 +31,7 @@ import {
   TournamentPreview,
   TournamentType,
 } from "@/types/projects";
-import { QuestionType } from "@/types/question";
+import { DefaultCdfSize, QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions";
@@ -136,6 +136,7 @@ const createQuestionSchemas = (
       }),
       open_upper_bound: z.boolean().default(true),
       open_lower_bound: z.boolean().default(true),
+      cdf_size: z.number().default(DefaultCdfSize),
     })
   );
 
@@ -340,6 +341,7 @@ const QuestionForm: FC<Props> = ({
               community_id ? community_id : defaultProject.id
             );
           }
+          console.log("form.getValues()", form.getValues());
 
           // e.preventDefault(); // Good for debugging
           await form.handleSubmit(
@@ -468,6 +470,7 @@ const QuestionForm: FC<Props> = ({
             defaultOpenLowerBound={post?.question?.open_lower_bound}
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
+            defaultCdfSize={post?.question?.cdf_size}
             hasForecasts={hasForecasts && mode !== "create"}
             control={form}
             onChange={({
@@ -476,6 +479,7 @@ const QuestionForm: FC<Props> = ({
               open_upper_bound: openUpperBound,
               open_lower_bound: openLowerBound,
               zero_point: zeroPoint,
+              cdf_size: cdfSize,
             }) => {
               form.setValue("scaling", {
                 range_min: rangeMin,
@@ -484,6 +488,7 @@ const QuestionForm: FC<Props> = ({
               });
               form.setValue("open_lower_bound", openLowerBound);
               form.setValue("open_upper_bound", openUpperBound);
+              form.setValue("cdf_size", cdfSize);
             }}
           />
         )}

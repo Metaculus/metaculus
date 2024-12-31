@@ -10,6 +10,7 @@ from posts.models import Post
 from questions.constants import ResolutionType
 from questions.models import Forecast
 from questions.models import (
+    DEFAULT_CDF_SIZE,
     Question,
     Conditional,
     GroupOfQuestions,
@@ -106,6 +107,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "zero_point",
             "open_upper_bound",
             "open_lower_bound",
+            "cdf_size",
             "options",
             "group_variable",
             "label",
@@ -461,13 +463,14 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 f"continuous_cdf for question {question.id} must "
                 f"have {question.cdf_size} values.\n"
             )
-        min_diff = 0.01 / (question.cdf_size - 1)  # 0.00005
+        min_diff = np.round(0.01 / (question.cdf_size - 1), 10)  # 0.00005 by default
         if not all(inbound_pmf >= min_diff):
             errors += (
                 "continuous_cdf must be increasing by at least "
                 f"{min_diff} at every step.\n"
             )
-        max_diff = 0.59  # derived empirically from slider positions
+        # max diff for default CDF is derived empirically from slider positions
+        max_diff = 0.59 if len(continuous_cdf) == DEFAULT_CDF_SIZE else 1
         if not all(inbound_pmf <= max_diff):
             errors += (
                 "continuous_cdf must be increasing by no more than "

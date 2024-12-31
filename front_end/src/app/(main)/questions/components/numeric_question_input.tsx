@@ -7,7 +7,7 @@ import { UseFormReturn } from "react-hook-form";
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { DefaultCdfSize, QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
 import { cdfFromSliders, cdfToPmf } from "@/utils/math";
 
@@ -40,6 +40,7 @@ const NumericQuestionInput: React.FC<{
   defaultOpenUpperBound: boolean | undefined | null;
   defaultOpenLowerBound: boolean | undefined | null;
   defaultZeroPoint: number | undefined | null;
+  defaultCdfSize: number | undefined | null;
   hasForecasts: boolean;
   chartWidth?: number;
   control?: UseFormReturn;
@@ -52,6 +53,7 @@ const NumericQuestionInput: React.FC<{
   defaultOpenUpperBound,
   defaultOpenLowerBound,
   defaultZeroPoint,
+  defaultCdfSize,
   hasForecasts,
   chartWidth = 800,
   control,
@@ -77,7 +79,7 @@ const NumericQuestionInput: React.FC<{
       ? null
       : defaultZeroPoint
   );
-  const [cdfSize, setCdfSize] = useState(201);
+  const [cdfSize, setCdfSize] = useState(defaultCdfSize || DefaultCdfSize);
   const [isDiscrete, setIsDiscrete] = useState(false);
   const [question, setQuestion] = useState<QuestionWithNumericForecasts>({
     id: 1,
