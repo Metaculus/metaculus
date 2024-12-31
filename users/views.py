@@ -478,7 +478,8 @@ def update_profile_api_view(request: Request) -> Response:
         send_deactivation_email(user.email)
         return Response(
             data={
-                "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
+                "message": "This bio seems to be spam. Please contact "
+                "support@metaculus.com if you believe this was a mistake.",
                 "error_code": "SPAM_DETECTED",
             },
             status=status.HTTP_403_FORBIDDEN,

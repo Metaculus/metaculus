@@ -1,3 +1,4 @@
+import re
 import asyncio
 import textwrap
 from typing import cast
@@ -15,26 +16,54 @@ import time
 logger = logging.getLogger(__name__)
 
 
-def check_profile_update_for_spam(
-    user: User, valid_serializer: UserUpdateProfileSerializer
-) -> tuple[bool, str]:
-    days_since_joined = (timezone.now() - user.date_joined).days
-    days_since_joined_threshold = 7
-    request_data = cast(dict, valid_serializer.validated_data)
+def check_comment_data_for_spam(user: User, comment_text: str) -> tuple[bool, str]:
+    start_time = time.time()
+    identified_as_spam = False
+    reasoning = ""
+    gpt_was_used = False
 
-    if days_since_joined > days_since_joined_threshold:
-        idenficated_as_spam = False
-        reasoning = (
-            "The user has been a member for more than "
-            f"{days_since_joined_threshold} days"
+    # Identify improper mentions
+    # @ mentions with external links
+    external_mention_pattern = r"@\[.*?\]\(https?://[^\s]+?\s*.*?\)"
+    # proper internal mentions
+    internal_mention_pattern = r"@\[.*?\]\(/accounts/profile/\d+/?\)"
+    # all @ mentions in the comment
+    all_mentions = re.findall(r"@\[[^\]]+\]\([^\)]+\)", comment_text)
+    improper_mentions = []
+    for mention in all_mentions:
+        if re.match(external_mention_pattern, mention) and not re.match(
+            internal_mention_pattern, mention
+        ):
+            improper_mentions.append(mention)
+    if improper_mentions:
+        identified_as_spam = True
+        reasoning = "Comment contains improper @ mentions with external links"
+
+    end_time = time.time()
+    duration = end_time - start_time
+
+    if identified_as_spam:
+        logger.info(
+            f"User: {user.username} ID: {user.id} was soft deleted "
+            f"for spam comment: {comment_text[:100]}... "
+            f"The reason was: {reasoning[:100]}... "
+            f"It took {duration:.2f} seconds to check. "
+            f"gpt_was_used: {gpt_was_used}"
         )
+    return identified_as_spam, reasoning
+
+
+def check_new_comment_for_spam(user: User, comment_text: str) -> tuple[bool, str]:
+    if user.comment_set.count() > 0:
+        identified_as_spam = False
+        reasoning = "User has already posted a comment"
     else:
-        idenficated_as_spam, reasoning = check_data_for_spam(user, **request_data)
+        identified_as_spam, reasoning = check_comment_data_for_spam(user, comment_text)
 
-    return idenficated_as_spam, reasoning
+    return identified_as_spam, reasoning
 
 
-def check_data_for_spam(user: User, **args):
+def check_profile_data_for_spam(user: User, **args):
     bio: str | None = args.get("bio")
     website: str | None = args.get("website")
     if bio and website:
@@ -47,27 +76,27 @@ def check_data_for_spam(user: User, **args):
         bio_plus_website = ""
 
     start_time = time.time()
-    idenficated_as_spam = False
+    identified_as_spam = False
     reasoning = ""
     gpt_was_used = False
     if not bio_plus_website:
-        idenficated_as_spam = False
+        identified_as_spam = False
         reasoning = "No bio to check for spam"
     elif len(bio_plus_website) < 10:
-        idenficated_as_spam = False
+        identified_as_spam = False
         reasoning = "Bio is too short to be spam"
     elif len(bio_plus_website) > 17500:
-        idenficated_as_spam = True
+        identified_as_spam = True
         reasoning = "Bio is more than 17500 characters"
     else:
-        idenficated_as_spam, reasoning = asyncio.run(
+        identified_as_spam, reasoning = asyncio.run(
             ask_gpt_to_check_profile_for_spam(bio_plus_website)
         )
         gpt_was_used = True
     end_time = time.time()
     duration = end_time - start_time
 
-    if idenficated_as_spam:
+    if identified_as_spam:
         logger.info(
             f"User: {user.username} ID: {user.id} was detected as spam "
             f"for spam bio: {bio_plus_website[:100]}... "
@@ -75,7 +104,28 @@ def check_data_for_spam(user: User, **args):
             f"It took {duration:.2f} seconds to check. "
             f"gpt_was_used: {gpt_was_used}"
         )
-    return idenficated_as_spam, reasoning
+    return identified_as_spam, reasoning
+
+
+def check_profile_update_for_spam(
+    user: User, valid_serializer: UserUpdateProfileSerializer
+) -> tuple[bool, str]:
+    days_since_joined = (timezone.now() - user.date_joined).days
+    days_since_joined_threshold = 7
+    request_data = cast(dict, valid_serializer.validated_data)
+
+    if days_since_joined > days_since_joined_threshold:
+        identified_as_spam = False
+        reasoning = (
+            "The user has been a member for more than "
+            f"{days_since_joined_threshold} days"
+        )
+    else:
+        identified_as_spam, reasoning = check_profile_data_for_spam(
+            user, **request_data
+        )
+
+    return identified_as_spam, reasoning
 
 
 async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[bool, str]:
