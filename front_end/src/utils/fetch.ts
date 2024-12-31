@@ -74,8 +74,8 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   // Check the content type to determine how to process the response
   const contentType = response.headers.get("content-type");
 
-  if (contentType && contentType.includes("text/csv")) {
-    // If the response is a CSV, return it as a Blob
+  if (contentType && contentType.includes("application/zip")) {
+    // If the response is a ZIP, return it as a Blob
     return response.blob() as unknown as T;
   }
 
@@ -149,10 +149,7 @@ const appFetch = async <T>(
   }
 
   const response = await fetch(finalUrl, finalOptions);
-  // consume response in order to fix SocketError: other side is closed
-  // https://stackoverflow.com/questions/76931498/typeerror-terminated-cause-socketerror-other-side-closed-in-fetch-nodejs
-  const clonedRes = response.clone();
-  return await handleResponse<T>(clonedRes);
+  return await handleResponse<T>(response);
 };
 
 const get = async <T>(

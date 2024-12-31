@@ -97,7 +97,6 @@ const QuestionChartTile: FC<Props> = ({
           visibleChoicesCount={visibleChoicesCount}
           defaultChartZoom={defaultChartZoom}
           question={question}
-          userForecasts={userForecasts}
           hideCP={hideCP}
           actualCloseTime={actualCloseTime}
           openTime={openTime}

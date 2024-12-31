@@ -54,6 +54,7 @@ def resolve_question_and_send_notifications(question_id: int):
     spot_forecast_time = question.cp_reveal_time
     if spot_forecast_time:
         score_types.append(Score.ScoreTypes.SPOT_PEER)
+        score_types.append(Score.ScoreTypes.SPOT_BASELINE)
     score_question(
         question,
         question.resolution,
