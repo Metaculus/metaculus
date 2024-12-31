@@ -13,6 +13,7 @@ export const LEADERBOARD_CATEGORIES = [
 export const DEFAULT_LEADERBOARD_CATEGORY: CategoryKey = "all";
 
 const LEADERBOARD_YEARS = [
+  "2025,1",
   "2024,2",
   "2024,1",
   "2023,1",
