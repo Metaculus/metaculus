@@ -21,7 +21,7 @@ const buttonLinks = [
   {
     icon: faCoffee,
     text: "Warmup Questions",
-    url: "/tournaments/bridgewater/",
+    url: "/tournament/bridgewater-warmup/",
   },
   {
     icon: faQuestionCircle,
