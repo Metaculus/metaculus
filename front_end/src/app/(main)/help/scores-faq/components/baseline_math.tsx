@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import MathJaxContent from "@/components/math_jax_content";
+import KatexRenderer from "@/components/katex_renderer";
 
 import StyledDisclosure from "../../../components/styled_disclosure";
 
@@ -14,76 +14,68 @@ const BaselineMath = () => {
         <a href="/help/scores-faq/#log-score">log scores</a>, with the general
         form:
       </p>
-      <MathJaxContent
-        content={`\\[
-            \\text{Baseline score} = 100 \\times 
-            \\frac{
-            \\operatorname{log\\ score}(prediction) - \\operatorname{log\\ score}(baseline)
+      <KatexRenderer
+        equation="\text{Baseline score} = 100 \times
+            \frac{
+            \operatorname{log\ score}(prediction) - \operatorname{log\ score}(baseline)
             }{
-            \\text{scale}
-            }
-          \\]`}
+            \text{scale}
+            }"
+        inline={false}
       />
       <p>
         For binary and multiple choice questions, the{" "}
-        <MathJaxContent content={`\\(scale\\)`} /> is chosen so that a perfect
-        prediction (<MathJaxContent content={`\\(P(outcome) = 100 \\%\\)`} />)
+        <KatexRenderer equation="scale" inline /> is chosen so that a perfect
+        prediction (<KatexRenderer equation="P(outcome) = 100 \%" inline />)
         gives a score of +100. The formula for a binary question is:
       </p>
-      <MathJaxContent
-        content={`\\[
-            \\text{binary Baseline score} = 100 \\times \\frac{ \\ln(P(outcome)) - \\ln(50 \\%) }{ \\ln(2)}
-          \\]`}
+      <KatexRenderer
+        equation="\text{binary Baseline score} = 100 \times \frac{ \ln(P(outcome)) - \ln(50 \%) }{ \ln(2)}"
+        inline={false}
       />
       <p>
         Note that you can rearrange this formula into:{" "}
-        <MathJaxContent
-          content={`\\(100 \\times(\\log_2(P(outcome)) + 1)\\)`}
-        />
-        .
+        <KatexRenderer equation="100 \times(\log_2(P(outcome)) + 1)" inline />.
       </p>
       <p>The formula for a multiple choice question with N options is:</p>
-      <MathJaxContent
-        content={`\\[
-            \\text{multiple choice Baseline score} = 100 \\times \\frac{ \\ln(P(outcome)) - \\ln(\\frac{ 1}{ N}) }{ \\ln(N)}
-          \\]`}
+      <KatexRenderer
+        equation="\text{multiple choice Baseline score} = 100 \times \frac{ \ln(P(outcome)) - \ln(\frac{ 1}{ N}) }{ \ln(N)}"
+        inline={false}
       />
       <p>
-        For continuous questions, the <MathJaxContent content={`\\(scale\\)`} />{" "}
+        For continuous questions, the <KatexRenderer equation="scale" inline />{" "}
         was chosen empirically so that continuous scores have roughly the same
         average as binary scores. The formula for a continuous question is:
       </p>
-      <MathJaxContent
-        content={`\\[
-            \\text{continuous Baseline score} = 100 \\times \\frac{ \\ln(\\operatorname{pdf}(outcome)) - \\ln(baseline) }{ 2 }
-          \\]`}
+      <KatexRenderer
+        equation="\text{continuous Baseline score} = 100 \times \frac{ \ln(\operatorname{pdf}(outcome)) - \ln(baseline) }{ 2 }"
+        inline={false}
       />
       <p>
-        Where <MathJaxContent content={`\\(\\ln\\)`} /> is the natural
-        logarithm, <MathJaxContent content={`\\(P(outcome)\\)`} /> is the
-        probability predicted for the outcome that actually happened, and{" "}
-        <MathJaxContent content={`\\(\\operatorname{pdf}(outcome)\\)`} /> is the
+        Where <KatexRenderer equation="\ln" inline /> is the natural logarithm,{" "}
+        <KatexRenderer equation="P(outcome)" inline /> is the probability
+        predicted for the outcome that actually happened, and{" "}
+        <KatexRenderer equation="\operatorname{pdf}(outcome)" inline /> is the
         value of the predicted probability density function at the outcome.
       </p>
       <p>
-        The continuous <MathJaxContent content={`\\(baseline\\)`} /> depends on
+        The continuous <KatexRenderer equation="baseline" inline /> depends on
         whether the question has open or closed bounds:
       </p>
       <ul className="list-disc pl-5">
         <li>
           If both bounds are closed, the{" "}
-          <MathJaxContent content={`\\(baseline\\)`} /> is 1, corresponding to a
+          <KatexRenderer equation="baseline" inline /> is 1, corresponding to a
           uniform distribution in range.
         </li>
         <li>
-          If one bound is open, the{" "}
-          <MathJaxContent content={`\\(baseline\\)`} /> is 0.95, corresponding
-          to a uniform distribution in range + 5% probability out of the open
-          bound.
+          If one bound is open, the <KatexRenderer equation="baseline" inline />{" "}
+          is 0.95, corresponding to a uniform distribution in range + 5%
+          probability out of the open bound.
         </li>
         <li>
           If both bounds are open, the{" "}
-          <MathJaxContent content={`\\(baseline\\)`} /> is 0.9, corresponding to
+          <KatexRenderer equation="baseline" inline /> is 0.9, corresponding to
           a uniform distribution in range + 5% probability out of each open
           bound.
         </li>
