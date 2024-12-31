@@ -79,7 +79,7 @@ const people: Person[] = [
   {
     userId: 183708,
     name: "Hlib Kononenko",
-    position: "Software Developer",
+    position: "Senior Software Engineer",
     imgSrc:
       "https://metaculus-public.s3.us-west-2.amazonaws.com/Hlib-Kononenko.webp",
     introduction:
