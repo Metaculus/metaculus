@@ -5,7 +5,7 @@ import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
-import { PostWithForecasts, PostWithNotebook } from "@/types/post";
+import { PostWithForecasts, NotebookPost } from "@/types/post";
 import { encodeQueryParams } from "@/utils/navigation";
 
 import EmailConfirmation from "./components/email_confirmation";
@@ -63,7 +63,7 @@ export default async function Home() {
   ) as unknown as PostWithForecasts[];
   const postNotebooks = homepagePosts.filter(
     (post) => !!post.notebook
-  ) as unknown as PostWithNotebook[];
+  ) as unknown as NotebookPost[];
 
   return (
     <main className="bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% pt-16 dark:from-blue-100-dark dark:to-blue-200-dark sm:pt-28">

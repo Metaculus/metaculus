@@ -5,6 +5,7 @@ import React, { FC } from "react";
 
 import { ChoiceItem } from "@/types/choices";
 import { QuestionType } from "@/types/question";
+import cn from "@/utils/cn";
 
 import ChoiceOption from "./choice_option";
 
@@ -15,6 +16,8 @@ type Props = {
   hideCP?: boolean;
   hideChoiceIcon?: boolean;
   optionLabelClassName?: string;
+  onReaffirm?: () => void;
+  canPredict?: boolean;
 };
 
 const MultipleChoiceTileLegend: FC<Props> = ({
@@ -24,6 +27,8 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   questionType,
   hideChoiceIcon,
   optionLabelClassName,
+  onReaffirm,
+  canPredict = false,
 }) => {
   const t = useTranslations();
 
@@ -67,9 +72,41 @@ const MultipleChoiceTileLegend: FC<Props> = ({
           <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
             {t("otherWithCount", { count: otherItemsCount })}
           </div>
+          {canPredict && !!onReaffirm && (
+            <ReaffirmButton onReaffirm={onReaffirm} combined />
+          )}
         </div>
       )}
+      {!otherItemsCount && canPredict && !!onReaffirm && (
+        <ReaffirmButton onReaffirm={onReaffirm} />
+      )}
     </div>
+  );
+};
+
+const ReaffirmButton: FC<{ onReaffirm: () => void; combined?: boolean }> = ({
+  onReaffirm,
+  combined = false,
+}) => {
+  const t = useTranslations();
+
+  return (
+    <button
+      className={cn(
+        "resize-label flex py-0.5 text-left text-sm font-medium leading-4 text-orange-700 underline hover:text-orange-600 dark:text-orange-700 dark:hover:text-orange-600-dark",
+        { lowercase: combined }
+      )}
+      onClick={(e) => {
+        // prevent navigation, e.g. when rendered inside Next.js Link
+        e.stopPropagation();
+        e.nativeEvent.preventDefault();
+        e.nativeEvent.stopImmediatePropagation();
+
+        onReaffirm();
+      }}
+    >
+      {combined ? `(${t("reaffirm")})` : t("reaffirm")}
+    </button>
   );
 };
 

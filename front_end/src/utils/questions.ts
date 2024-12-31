@@ -1,5 +1,5 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { differenceInMilliseconds, isValid } from "date-fns";
+import { differenceInMilliseconds, isValid, parseISO } from "date-fns";
 import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -8,10 +8,14 @@ import { ConditionalTableOption } from "@/app/(main)/questions/[id]/components/f
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
 import {
+  ConditionalPost,
+  GroupOfQuestionsPost,
+  NotebookPost,
   Post,
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
+  QuestionPost,
   QuestionStatus,
   Resolution,
 } from "@/types/post";
@@ -32,6 +36,23 @@ import { formatDate } from "./date_formatters";
 
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
+
+export function isQuestionPost<QT>(post: Post<QT>): post is QuestionPost<QT> {
+  return !isNil(post.question);
+}
+export function isGroupOfQuestionsPost<QT>(
+  post: Post<QT>
+): post is GroupOfQuestionsPost<QT> {
+  return !isNil(post.group_of_questions);
+}
+export function isConditionalPost<QT>(
+  post: Post<QT>
+): post is ConditionalPost<QT> {
+  return !isNil(post.conditional);
+}
+export function isNotebookPost(post: Post): post is NotebookPost {
+  return !isNil(post.notebook);
+}
 
 export function extractPostResolution(post: Post): Resolution | null {
   if (post.question) {
@@ -189,11 +210,48 @@ export function formatResolution(
   return resolution;
 }
 
-export function canPredictQuestion(post: PostWithForecasts) {
-  return (
-    post.user_permission !== ProjectPermissions.VIEWER &&
-    post.status === PostStatus.OPEN
-  );
+type CanPredictParams = Pick<
+  Post,
+  | "user_permission"
+  | "status"
+  | "question"
+  | "group_of_questions"
+  | "conditional"
+>;
+export function canPredictQuestion({
+  user_permission,
+  status,
+  question,
+  group_of_questions,
+  conditional,
+}: CanPredictParams) {
+  // post level checks
+  if (
+    user_permission === ProjectPermissions.VIEWER ||
+    status !== PostStatus.OPEN
+  ) {
+    return false;
+  }
+
+  // question-specific checks
+  if (question) {
+    const { open_time } = question;
+
+    return !isNil(open_time) && parseISO(open_time) < new Date();
+  }
+
+  // group-specific checks
+  if (group_of_questions) {
+    return group_of_questions.questions.every(
+      (q) => q.status === QuestionStatus.OPEN
+    );
+  }
+
+  if (conditional) {
+    return true;
+  }
+
+  return false;
 }
 
 export function canWithdrawForecast(
