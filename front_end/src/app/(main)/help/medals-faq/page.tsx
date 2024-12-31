@@ -1,4 +1,4 @@
-import KatexRenderer from "@/components/katex_renderer";
+import MathJaxContent from "@/components/math_jax_content";
 
 import PageWrapper from "../../components/pagewrapper";
 
@@ -359,16 +359,16 @@ export default function MedalsFAQ() {
       </p>
       <p>2 + (1 + 2) / 5 = 2.6</p>
       <p>In general, the formula is:</p>
-      <KatexRenderer
-        equation={
-          "H_f = H + \\frac{ \\sum_{i=1}^{H+1} \\min(v_i, H+1) - H^2 }{ (H+1)^2 - H^2 }"
-        }
-        inline={false}
+      <MathJaxContent
+        block
+        content={`\\[
+H_f = H + \\frac{ \\sum_{i=1}^{H+1} \\min(v_i, H+1) - H^2 }{ (H+1)^2 - H^2 }
+\\]`}
       />
       <p>
-        Where <KatexRenderer equation="H" inline /> is your integer h-index, and{" "}
-        <KatexRenderer equation="v_i" inline /> is the number of upvotes on your
-        i-th most upvoted comment.
+        Where <MathJaxContent content={`\\( H \\)`} /> is your integer h-index,
+        and <MathJaxContent content={`\\( v_i \\)`} /> is the number of upvotes
+        on your i-th most upvoted comment.
       </p>
 
       <hr />

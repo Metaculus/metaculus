@@ -42,9 +42,9 @@ const StyledDisclosure: React.FC<StyledDisclosureProps> = ({
           <Transition
             enter="transition-all duration-300 ease-in-out"
             enterFrom="max-h-0 opacity-0 overflow-hidden"
-            enterTo="max-h-[2000px] opacity-100 overflow-hidden"
+            enterTo="max-h-[1000px] opacity-100 overflow-hidden"
             leave="transition-all duration-400 ease-in-out"
-            leaveFrom="max-h-[2000px] opacity-100 overflow-hidden"
+            leaveFrom="max-h-[1000px] opacity-100 overflow-hidden"
             leaveTo="max-h-0 opacity-0 overflow-hidden"
           >
             <DisclosurePanel className="rounded-t-none border border-blue-500 px-3 py-0 text-gray-700 dark:border-blue-600 md:px-5">

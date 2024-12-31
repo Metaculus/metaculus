@@ -1,4 +1,4 @@
-import KatexRenderer from "@/components/katex_renderer";
+import MathJaxContent from "@/components/math_jax_content";
 
 import BaselineMath from "./components/baseline_math";
 import FurtherMath from "./components/further_math";
@@ -297,24 +297,26 @@ export default function ScoresFAQ() {
         The logarithmic scoring rule, or &quot;log score&quot; for short, is
         defined as:
       </p>
-      <KatexRenderer
-        equation="\text{log score} = \ln(P(outcome))"
-        inline={false}
+      <MathJaxContent
+        content={` \\[
+    \\text{log score} = \\ln(P(outcome))
+    \\]`}
+        block
       />
       <p>
-        Where <KatexRenderer equation="\ln" inline /> is the natural logarithm
-        and <KatexRenderer equation="P(outcome)" inline />
-        is the probability predicted for the outcome that actually happened.
-        This log score applies to categorical predictions, where one of a
-        (usually) small set of outcomes can happen. On Metaculus those are
-        Binary and Multiple Choice questions. See the next section for the log
-        scores of continuous questions.
+        Where <MathJaxContent content={`\\(\\ln\\)`} /> is the natural logarithm
+        and <MathJaxContent content={`\\(P(outcome)\\)`} /> is the probability
+        predicted for the outcome that actually happened. This log score applies
+        to categorical predictions, where one of a (usually) small set of
+        outcomes can happen. On Metaculus those are Binary and Multiple Choice
+        questions. See the next section for the log scores of continuous
+        questions.
       </p>
       <p>Higher scores are better:</p>
       <ul className="ml-6 list-disc">
         <li>
           If you predicted 0% on the correct outcome, your score will be{" "}
-          <KatexRenderer equation={`-\\infty`} inline /> (minus infinity).
+          <MathJaxContent content={`\\(-\\infty\\)`} /> (minus infinity).
         </li>
         <li>
           If you predict 100% on the correct outcome, your score will be 0.
@@ -386,13 +388,15 @@ export default function ScoresFAQ() {
         roll) continuous, any outcome has mathematically 0 chance of happening.
         Thankfully we can adapt the log score in the form:
       </p>
-      <KatexRenderer
-        equation="\text{log score} = \ln(\operatorname{pdf}(outcome))"
-        inline={false}
+      <MathJaxContent
+        content={`\\[
+    \\text{log score} = \\ln(\\operatorname{pdf}(outcome))
+    \\]`}
+        block
       />
       <p>
-        Where <KatexRenderer equation="\ln" inline /> is the natural logarithm
-        and <KatexRenderer equation="\operatorname{pdf}(outcome)" inline /> is
+        Where <MathJaxContent content={`\\(\\ln\\)`} /> is the natural logarithm
+        and <MathJaxContent content={`\\(\\operatorname{pdf}(outcome)\\)`} /> is
         the value of the predicted{" "}
         <a href="https://en.wikipedia.org/wiki/Probability_density_function">
           probability density function
@@ -407,7 +411,7 @@ export default function ScoresFAQ() {
         This is also a proper scoring rule, and behaves in somewhat similar ways
         to the log score described above. One difference is that, contrary to
         probabilities that are always between 0 and 1,{" "}
-        <KatexRenderer equation="\operatorname{pdf}" inline /> values can be
+        <MathJaxContent content={`\\(\\operatorname{pdf}\\)`} /> values can be
         greater than 1. This means that the continuous log score can be greater
         than 0: in theory it has no maximum value, but in practice Metaculus
         restricts how sharp pdfs can get (see the maximum scores tabulated
@@ -576,12 +580,13 @@ export default function ScoresFAQ() {
             <tr>
               <td className="px-4 py-2 text-xs font-light md:text-sm">Alex</td>
               <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
-                <KatexRenderer equation="-1" inline />
+                <MathJaxContent content={`\\(-1\\)`} />
               </td>
               <td className="px-4 py-2 text-xs font-light md:text-sm">
-                <KatexRenderer
-                  equation="\frac{(A-B)+(A-C)}{2} = \frac{(-1-1)+(-1-2)}{2} = -2.5"
-                  inline={false}
+                <MathJaxContent
+                  content={`\\[
+          \\frac{(A-B)+(A-C)}{2} = \\frac{(-1-1)+(-1-2)}{2} = -2.5
+        \\]`}
                 />
               </td>
             </tr>
@@ -590,24 +595,26 @@ export default function ScoresFAQ() {
                 Bailey
               </td>
               <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
-                <KatexRenderer equation="1" inline />
+                <MathJaxContent content={`\\(1\\)`} />
               </td>
               <td className="px-4 py-2 text-xs font-light md:text-sm">
-                <KatexRenderer
-                  equation="\frac{(B-A)+(B-C)}{2} = \frac{(1-(-1))+(1-2)}{2} = 0.5"
-                  inline={false}
+                <MathJaxContent
+                  content={`\\[
+          \\frac{(B-A)+(B-C)}{2} = \\frac{(1-(-1))+(1-2)}{2} = 0.5
+        \\]`}
                 />
               </td>
             </tr>
             <tr>
               <td className="px-4 py-2 text-xs font-light md:text-sm">Cory</td>
               <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
-                <KatexRenderer equation="2" inline />
+                <MathJaxContent content={`\\(2\\)`} />
               </td>
               <td className="px-4 py-2 text-xs font-light md:text-sm">
-                <KatexRenderer
-                  equation="\frac{(C-A)+(C-B)}{2} = \frac{(2-(-1))+(2-1)}{2} = 2"
-                  inline={false}
+                <MathJaxContent
+                  content={`\\[
+          \\frac{(C-A)+(C-B)}{2} = \\frac{(2-(-1))+(2-1)}{2} = 2
+        \\]`}
                 />
               </td>
             </tr>
@@ -617,7 +624,11 @@ export default function ScoresFAQ() {
                 sum
               </td>
               <td className="px-4 py-2 text-xs font-light md:text-sm">
-                <KatexRenderer equation="-2.5+0.5+2 = 0" inline={false} />
+                <MathJaxContent
+                  content={`\\[
+          -2.5+0.5+2 = 0
+        \\]`}
+                />
               </td>
             </tr>
           </tbody>
@@ -853,9 +864,8 @@ export default function ScoresFAQ() {
         it resolves Yes, you expect on average a score of
       </p>
       <p>
-        <KatexRenderer
-          equation="80\% \times 68 + 20\% \times -132 = +28"
-          inline
+        <MathJaxContent
+          content={`\\(80\\% \\times 68 + 20\\% \\times -132 = +28\\)`}
         />
       </p>
       <p>
@@ -864,9 +874,8 @@ export default function ScoresFAQ() {
         it resolves Yes, you expect on average a score of
       </p>
       <p>
-        <KatexRenderer
-          equation="80\% \times 85 + 20\% \times -232 = +21"
-          inline
+        <MathJaxContent
+          content={`\\(80\\% \\times 85 + 20\\% \\times -232 = +21\\)`}
         />
       </p>
       <p>
@@ -981,14 +990,16 @@ export default function ScoresFAQ() {
         the median.
       </p>
       <p>It is based on the log score, with the formula:</p>
-      <KatexRenderer
-        equation="\text{Relative score} = \log_2(p) - \log_2(m)"
-        inline={false}
+      <MathJaxContent
+        block
+        content={`\\[
+\\text{Relative score} = \\log_2(p) - \\log_2(m)
+\\]`}
       />
       <p>
-        Where <KatexRenderer equation="p" inline /> is the prediction being
-        scored and <KatexRenderer equation="m" inline /> is the median of all
-        other predictions on that question.
+        Where <MathJaxContent content={`p`} /> is the prediction being scored
+        and <MathJaxContent content={`m`} /> is the median of all other
+        predictions on that question.
       </p>
       <p>
         As of late 2023, the Relative score is in the process of being replaced
@@ -1059,17 +1070,23 @@ export default function ScoresFAQ() {
         don’t get any prize.
       </p>
       <div className="w-full overflow-x-scroll">
-        <KatexRenderer
-          equation="\text{your total score} = \sum_\text{questions} \text{your peer score} * \text{question weight}"
-          inline={false}
+        <MathJaxContent
+          block
+          content={`\\[
+\\text{your total score} = \\sum_\\text{questions} \\text{your peer score} * \\text{question weight}
+\\]`}
         />
-        <KatexRenderer
-          equation="\text{your take} = \max ( \text{your total score}, 0)^2"
-          inline={false}
+        <MathJaxContent
+          block
+          content={`\\[
+\\text{your take} = \\max ( \\text{your total score}, 0)^2
+\\]`}
         />
-        <KatexRenderer
-          equation="\text{your \% prize} = \frac{\text{your take}}{\sum_\text{all users} \text{user take}}"
-          inline={false}
+        <MathJaxContent
+          block
+          content={`\\[
+\\text{your % prize} = \\frac{\\text{your take}}{\\sum_\\text{all users} \\text{user take}}
+\\]`}
         />
       </div>
       <p>
@@ -1120,9 +1137,11 @@ export default function ScoresFAQ() {
         Your tournament Take is the exponential of your Score, times your
         Coverage:
       </p>
-      <KatexRenderer
-        equation="\text{Take} = e^\text{Score} \times \text{Coverage}"
-        inline={false}
+      <MathJaxContent
+        block
+        content={`\\[
+\\text{Take} = e^\\text{Score} \\times \\text{Coverage}
+\\]`}
       />
       <p>
         Your Prize is how much money you earned on that tournament. It is

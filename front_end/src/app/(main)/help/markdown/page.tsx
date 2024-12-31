@@ -1,4 +1,4 @@
-import KatexRenderer from "@/components/katex_renderer";
+import MathJaxContent from "@/components/math_jax_content";
 
 import PageWrapper from "../../components/pagewrapper";
 
@@ -116,12 +116,13 @@ export default function MedalsFAQ() {
         Math
       </h2>
       <p>
-        We supplement Markdown with <a href="https://katex.org/">Latex</a>{" "}
-        equation processing. Mathematical formatting works by placing your
-        equation between <code>$</code> and <code>$</code> (for inline
-        equations) or <code>$$</code> and <code>$$</code> (for displayed
-        equations). More complicated equations can be put in an{" "}
-        <code>align</code> environment, like so
+        We supplement Markdown with{" "}
+        <a href="https://www.mathjax.org">MathJax</a> equation processing.
+        Mathematical formatting works by placing your equation between{" "}
+        <code>\(</code> and <code>\)</code> (for inline equations) or{" "}
+        <code>\[</code> and <code>\]</code> (for displayed equations). More
+        complicated equations can be put in an <code>align</code> environment,
+        like so
       </p>
       <pre>
         {`\\begin{align}
@@ -130,12 +131,13 @@ export default function MedalsFAQ() {
 \\end{align}`}
       </pre>
       <p>producing</p>
-      <KatexRenderer
-        equation={`\\begin{align}
+      <MathJaxContent
+        content={`\\[
+    \\begin{align}
     \\log_2 \\left ( \\frac{p}{0.5} \\right ) &= \\log_2 \\left ( p \\right ) + 1 \\\\
     \\log_2 \\left ( \\frac{p}{0.5} \\right ) &= \\frac{\\log(p) - \\log(0.5)}{\\log(1) - \\log(0.5)}
-    \\end{align}`}
-        inline={false}
+    \\end{align}
+    \\]`}
       />
 
       <hr />
