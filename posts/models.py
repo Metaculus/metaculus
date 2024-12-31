@@ -253,7 +253,13 @@ class PostQuerySet(models.QuerySet):
                         ObjectPermission.CURATOR,
                     ]
                 )
-                & Q(curation_status=Post.CurationStatus.PENDING)
+                & Q(
+                    # Admins should have access to draft and pending content
+                    curation_status__in=[
+                        Post.CurationStatus.DRAFT,
+                        Post.CurationStatus.PENDING,
+                    ]
+                )
             )
             | (
                 Q(_user_permission__isnull=False)

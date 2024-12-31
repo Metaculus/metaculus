@@ -308,7 +308,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             | Q(related_posts__post__projects__in=queryset)
         ).distinct()
 
-        data = export_data_for_questions(questions)
+        data = export_data_for_questions(questions, True, True, True)
         if data is None:
             self.message_user(request, "No questions selected.")
             return

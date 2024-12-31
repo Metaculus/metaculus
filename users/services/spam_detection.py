@@ -11,6 +11,7 @@ from users.models import User
 from utils.openai import generate_text_async
 from misc.tasks import send_email_async
 import time
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,8 +22,21 @@ def check_profile_update_for_spam(
     days_since_joined_threshold = 7
     request_data = cast(dict, valid_serializer.validated_data)
 
-    bio: str | None = request_data.get("bio")
-    website: str | None = request_data.get("website")
+    if days_since_joined > days_since_joined_threshold:
+        idenficated_as_spam = False
+        reasoning = (
+            "The user has been a member for more than "
+            f"{days_since_joined_threshold} days"
+        )
+    else:
+        idenficated_as_spam, reasoning = check_data_for_spam(user, **request_data)
+
+    return idenficated_as_spam, reasoning
+
+
+def check_data_for_spam(user: User, **args):
+    bio: str | None = args.get("bio")
+    website: str | None = args.get("website")
     if bio and website:
         bio_plus_website = f"{bio}\n\nWebsite: {website}"
     elif not bio and website:
@@ -42,15 +56,12 @@ def check_profile_update_for_spam(
     elif len(bio_plus_website) < 10:
         idenficated_as_spam = False
         reasoning = "Bio is too short to be spam"
-    elif days_since_joined > days_since_joined_threshold:
-        idenficated_as_spam = False
-        reasoning = f"The user has been a member for more than {days_since_joined_threshold} days"
     elif len(bio_plus_website) > 17500:
         idenficated_as_spam = True
         reasoning = "Bio is more than 17500 characters"
     else:
         idenficated_as_spam, reasoning = asyncio.run(
-            ask_gpt_to_check_profile_for_spam(bio_plus_website, user.email)
+            ask_gpt_to_check_profile_for_spam(bio_plus_website)
         )
         gpt_was_used = True
     end_time = time.time()
@@ -58,16 +69,16 @@ def check_profile_update_for_spam(
 
     if idenficated_as_spam:
         logger.info(
-            f"User: {user.username} ID: {user.id} was soft deleted for spam bio: {bio_plus_website[:100]}... "
+            f"User: {user.username} ID: {user.id} was detected as spam "
+            f"for spam bio: {bio_plus_website[:100]}... "
             f"The reason was: {reasoning[:100]}... "
-            f"It took {duration:.2f} seconds to check. gpt_was_used: {gpt_was_used}"
+            f"It took {duration:.2f} seconds to check. "
+            f"gpt_was_used: {gpt_was_used}"
         )
     return idenficated_as_spam, reasoning
 
 
-async def ask_gpt_to_check_profile_for_spam(
-    bio_plus_websites: str, email: str
-) -> tuple[bool, str]:
+async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[bool, str]:
     if not settings.OPENAI_API_KEY:
         return False, "No API key set, so not checking for spam"
 
@@ -77,8 +88,8 @@ async def ask_gpt_to_check_profile_for_spam(
         Metaculus is a site that hosts tournaments where people compete to predict the future outcome of events.
         Government officials, businesses, nonprofits, and others uses these predictions to make better decisions.
 
-        Your job is to identify if a user is normal, or is a spammer/bot given their bio and email.
-        - Watch out for any text trying to sell something combined with weird emails
+        Your job is to identify if a user is normal, or is a spammer/bot given their bio.
+        - Watch out for any text trying to sell something
         - Anything a random good intentioned user or staff member would not write.
         - If they don't give a link, then don't mark them as spam (unless they are really clearly trying to sell something with a lot of spam like language)
 
@@ -89,8 +100,6 @@ async def ask_gpt_to_check_profile_for_spam(
     prompt = textwrap.dedent(
         f"""
         Is the following user a spammer or bot?
-
-        Their email is {email}.
 
         Here is the bio:
         {bio_plus_websites}
@@ -104,7 +113,7 @@ async def ask_gpt_to_check_profile_for_spam(
             system_prompt=system_prompt,
             prompt=prompt,
             temperature=0,
-            timeout=7
+            timeout=7,
         )
         is_spam = "TRUE" in gpt_response
     except Exception as e:

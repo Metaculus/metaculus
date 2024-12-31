@@ -556,6 +556,7 @@ def unresolve_question(question: Question):
     spot_forecast_time = question.cp_reveal_time
     if spot_forecast_time:
         score_types.append(Score.ScoreTypes.SPOT_PEER)
+        score_types.append(Score.ScoreTypes.SPOT_BASELINE)
     score_question(
         question,
         None,  # None is the equivalent of unsetting scores
