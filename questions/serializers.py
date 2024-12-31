@@ -55,6 +55,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution_criteria",
             "fine_print",
             "label",
+            "cdf_size",
             "open_upper_bound",
             "open_lower_bound",
             "scaling",
@@ -455,9 +456,12 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             ],
             10,
         )
-        if len(continuous_cdf) != 201:
-            errors += "continuous_cdf must have 201 values.\n"
-        min_diff = 0.01 / 200  # 0.00005
+        if len(continuous_cdf) != question.cdf_size:
+            errors += (
+                f"continuous_cdf for question {question.id} must "
+                f"have {question.cdf_size} values.\n"
+            )
+        min_diff = 0.01 / (question.cdf_size - 1)  # 0.00005
         if not all(inbound_pmf >= min_diff):
             errors += (
                 "continuous_cdf must be increasing by at least "

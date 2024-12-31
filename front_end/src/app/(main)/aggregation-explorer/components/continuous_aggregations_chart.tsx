@@ -9,7 +9,11 @@ import {
   ContinuousAreaGraphType,
   ContinuousAreaHoverState,
 } from "@/types/charts";
-import { AggregationQuestion, Aggregations } from "@/types/question";
+import {
+  AggregationQuestion,
+  Aggregations,
+  DefaultCdfSize,
+} from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
@@ -26,7 +30,12 @@ const ContinuousAggregationChart: FC<Props> = ({
   selectedTimestamp,
 }) => {
   const t = useTranslations();
-  const { scaling, type: qType, aggregations } = questionData;
+  const {
+    scaling,
+    cdf_size: cdfSize,
+    type: qType,
+    aggregations,
+  } = questionData;
   const activeAggregation = aggregations[activeTab];
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
   const [hoverState, setHoverState] = useState<ContinuousAreaHoverState | null>(
@@ -47,10 +56,13 @@ const ContinuousAggregationChart: FC<Props> = ({
       yUserLabel: null,
       yCommunityLabel:
         graphType === "pmf"
-          ? ((hoverState.yData.community ?? 0) * 200).toFixed(3)
+          ? (
+              (hoverState.yData.community ?? 0) *
+              ((cdfSize || DefaultCdfSize) - 1)
+            ).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
-  }, [graphType, hoverState, scaling, qType]);
+  }, [graphType, hoverState, scaling, cdfSize, qType]);
 
   const handleCursorChange = useCallback(
     (value: ContinuousAreaHoverState | null) => {

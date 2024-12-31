@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { DefaultCdfSize, QuestionWithNumericForecasts } from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
@@ -86,9 +86,16 @@ const ForecastMakerContinuous: FC<Props> = ({
         forecast,
         weights,
         question.open_lower_bound,
-        question.open_upper_bound
+        question.open_upper_bound,
+        question.cdf_size || DefaultCdfSize
       ),
-    [forecast, question.open_lower_bound, question.open_upper_bound, weights]
+    [
+      forecast,
+      question.open_lower_bound,
+      question.open_upper_bound,
+      question.cdf_size,
+      weights,
+    ]
   );
 
   const userCdf: number[] = dataset.cdf;

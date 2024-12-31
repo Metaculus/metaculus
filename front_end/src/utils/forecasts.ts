@@ -75,7 +75,8 @@ export function getNumericForecastDataset(
   forecast: MultiSliderValue[],
   weights: number[],
   lowerOpen: boolean,
-  upperOpen: boolean
+  upperOpen: boolean,
+  cdfSize: number
 ) {
   const normalizedWeights = weights.map(
     (x) => x / weights.reduce((a, b) => a + b)
@@ -88,7 +89,8 @@ export function getNumericForecastDataset(
           component.center,
           component.right,
           lowerOpen,
-          upperOpen
+          upperOpen,
+          cdfSize
         ),
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         normalizedWeights[index]!
