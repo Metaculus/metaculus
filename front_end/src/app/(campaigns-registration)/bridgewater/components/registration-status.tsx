@@ -129,7 +129,7 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
           Forecasting Tutorial
         </span>{" "}
         or explore some{" "}
-        <Link href="/tournaments/bridgewater/">Warmup Questions</Link> to
+        <Link href="/tournament/bridgewater-warmup/">Warmup Questions</Link> to
         sharpen your skills!
       </p>
 
