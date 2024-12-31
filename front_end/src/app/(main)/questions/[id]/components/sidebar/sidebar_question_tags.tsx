@@ -38,11 +38,13 @@ const SidebarQuestionTags: FC<Props> = ({
     tag: _tag,
     tournament: _tournament,
     question_series: _question_series,
+    community: _community,
   } = tagData;
   const tag = _tag ?? [];
   const category = _category ?? [];
   const tournament = _tournament ?? [];
   const question_series = _question_series ?? [];
+  const community = _community ?? [];
 
   const [showAllTags, setShowAllTags] = useState(
     (tag.length ?? 0) < INITIAL_NUM_OF_TAGS
@@ -74,6 +76,21 @@ const SidebarQuestionTags: FC<Props> = ({
             color="orange"
             key={element.id}
             href={`/tournament/${element.slug ?? element.id}/`}
+            onClick={() =>
+              sendGAEvent("event", "questionTagClicked", {
+                event_category: element.name,
+              })
+            }
+          >
+            {element.name}
+          </Chip>
+        ))}
+
+        {community.map((element) => (
+          <Chip
+            color="orange"
+            key={element.id}
+            href={`/c/${element.slug}`}
             onClick={() =>
               sendGAEvent("event", "questionTagClicked", {
                 event_category: element.name,

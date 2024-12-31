@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 
 import {
   changePostActivityBoost,
-  getPostCSVData,
+  getPostZipData,
 } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
@@ -50,22 +50,22 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
     return `/questions/create/question?mode=create&post_id=${post.id}`;
   };
 
-  const handleDownloadCSV = async () => {
+  const handleDownloadQuestionData = async () => {
     try {
-      const base64 = await getPostCSVData(post.id);
+      const base64 = await getPostZipData(post.id);
       const blob = base64ToBlob(base64);
-      const filename = `${post.url_title.replaceAll(" ", "_")}.csv`;
+      const filename = `${post.url_title.replaceAll(" ", "_")}.zip`;
       saveAs(blob, filename);
     } catch (error) {
-      toast.error(t("downloadCSVError") + error);
+      toast.error(t("downloadQuestionDataError") + error);
     }
   };
 
   const menuItems: MenuItemProps[] = [
     {
-      id: "downloadCSV",
-      name: t("downloadCSV"),
-      onClick: handleDownloadCSV,
+      id: "downloadQuestionData",
+      name: t("downloadQuestionData"),
+      onClick: handleDownloadQuestionData,
     },
   ];
   if (user?.is_superuser) {

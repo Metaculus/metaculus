@@ -146,7 +146,7 @@ def serialize_projects(
 
     # sort by order to allow any prioritized tags to be shown first
     # e.g. global leaderboard tags
-    for obj in sorted(projects, key=lambda x: x.order, reverse=True):
+    for obj in sorted(projects, key=lambda x: x.order or float("inf")):
         serialized_data = serialize_project(obj)
 
         data[obj.type].append(serialized_data)
@@ -219,3 +219,19 @@ class ProjectUserSerializer(serializers.ModelSerializer):
             "user",
             "permission",
         )
+
+
+class DownloadDataSerializer(serializers.Serializer):
+    include_comments = serializers.BooleanField(required=False, default=False)
+    include_scores = serializers.BooleanField(required=False, default=False)
+
+    def validate(self, attrs):
+        allowed_fields = {"include_comments", "include_scores"}
+        input_fields = set(self.initial_data.keys())
+
+        # Check if there are any unexpected fields
+        unexpected_fields = input_fields - allowed_fields
+        if unexpected_fields:
+            raise ValidationError(f"Unexpected fields: {', '.join(unexpected_fields)}")
+
+        return attrs

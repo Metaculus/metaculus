@@ -12,6 +12,7 @@ from django_select2.forms import ModelSelect2MultipleWidget
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from questions.models import Question
+from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
 from utils.csv_utils import export_data_for_questions
 from utils.models import CustomTranslationAdmin
@@ -206,8 +207,28 @@ class PostProjectInline(admin.TabularInline):
         return False
 
 
+class ProjectAdminForm(forms.ModelForm):
+    visibility = forms.ChoiceField(
+        choices=Project.Visibility.choices,
+        required=True,
+        initial=Project.Visibility.UNLISTED,
+    )
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["primary_leaderboard"].queryset = Leaderboard.objects.filter(
+                project=self.instance
+            )
+
+
 @admin.register(Project)
 class ProjectAdmin(CustomTranslationAdmin):
+    form = ProjectAdminForm
     list_display = [
         "name",
         "type",
@@ -225,7 +246,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         ProjectDefaultPermissionFilter,
     ]
     search_fields = ["type", "name_original", "slug"]
-    autocomplete_fields = ["created_by", "primary_leaderboard"]
+    autocomplete_fields = ["created_by"]
     ordering = ["-created_at"]
     inlines = [
         ProjectUserPermissionInline,
@@ -287,7 +308,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             | Q(related_posts__post__projects__in=queryset)
         ).distinct()
 
-        data = export_data_for_questions(questions)
+        data = export_data_for_questions(questions, True, True, True)
         if data is None:
             self.message_user(request, "No questions selected.")
             return

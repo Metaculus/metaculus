@@ -145,7 +145,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     >
       {isLoading ? (
         <OnboardingLoading />
-      ) : !!topic ? (
+      ) : (
         <StepsRouter
           topic={topic}
           onNext={onNext}
@@ -158,7 +158,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           handleComplete={handleCompleteTutorial}
           handlePostpone={handlePostponeTutorial}
         />
-      ) : null}
+      )}
     </BaseModal>
   );
 };

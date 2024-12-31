@@ -585,120 +585,218 @@ components:
         user_vote:
           type: integer
           description: Current user's vote on this comment (-1, 0, 1).
-    BinaryQuestionCSV:
+    
+    QuestionDataCSV:
       type: object
       properties:
-        question:
+        Question ID:
+          type: integer
+          description: The ID of the question.
+          example: 3
+        Question Title:
           type: string
-          description: "The title of the (sub)question"
-        forecaster:
+          description: The title of the (sub)question.
+        Post ID:
+          type: integer
+          description: The ID of the post containing the question.
+        Post Curation Status:
           type: string
-          description: "The forecaster's username or aggregation method."
-        prediction_start_time:
+          enum: [ draft, pending, rejected, approved ]
+          example: pending
+        Post Published Time:
           type: string
           format: date-time
-          description: "The start time of the prediction"
-        prediction_end_time:
+          description: The time the post was published.
+        Default Project:
+          type: string
+          description: The default project for the Post.
+        Default Project ID:
+          type: integer
+          description: The ID of the default project for the Post.
+        Label:
+          type: string
+          description: For sub questions only. The label of the question.
+        Question Type:
+          type: string
+          description: The type of the question.
+          enum: [ binary, multiple_choice, numeric, date ]
+          example: binary
+        MC Options:
+          type: array
+          items:
+            type: string
+          description: For multiple choice questions only. The options for the question.
+        Scaling:
+          type: object
+          description: For continuous questions only. The scaling of the question.
+          properties:
+            Range Min:
+              type: number
+              format: float
+              description: The minimum value of the considered input range for the question. For date questions, this is a unix timestamp.
+            Range Max:
+              type: number
+              format: float
+              description: The maximum value of the considered input range for the question. For date questions, this is a unix timestamp.
+            Zero Point:
+              type: number
+              format: float
+              description: The zero point of the question. For date questions, this is a unix timestamp.
+            Open Lower Bound:
+              type: boolean
+              description: Whether the lower bound of the range is open or not.
+            Open Upper Bound:
+              type: boolean
+              description: Whether the upper bound of the range is open or not.
+        Open Time:
           type: string
           format: date-time
-          description: "The end time of the prediction"
-        prediction:
-          type: number
-          format: float
-          description: "The prediction value in range [0, 1]"
-        aggregate_q1:
-          type: number
-          format: float
-          description: "The first quartile of the aggregate prediction in range [0, 1]"
-        aggregate_q3:
-          type: number
-          format: float
-          description: "The third quartile of the aggregate prediction in range [0, 1]"
-    MultipleChoiceQuestionCSV:
+          description: The time the question was opened.
+        CP Reveal Time:
+          type: string
+          format: date-time
+          description: The time the CP was revealed. This is also the default setting for when Spot Scores are evaluated.
+        Scheduled Close Time:
+          type: string
+          format: date-time
+          description: The time the question is scheduled to close.
+        Actual Close Time:
+          type: string
+          format: date-time
+          description: The time the question actually closed.
+        Resolution:
+          type: string
+          description: The nominal resolution of the question. E.g. 'no', 'yes' for binary, '2022-01-01' for date, etc.
+        Resolution Known Time:
+          type: string
+          format: date-time
+          description: The time the question resolution was publicly known.
+        Include Bots in Aggregates:
+          type: boolean
+          description: Whether bots are included in the aggregates.
+    ForecastDataCSV:
       type: object
       properties:
-        question:
+        Question ID:
+          type: integer
+          description: The ID of the question this forecast is made on.
+          example: 3
+        Forecaster ID:
+          type: integer
+          description: The forecaster's ID. None if forecast is an Aggregation.
+          example: 421323
+        Forecaster Username:
           type: string
-          description: "The title of the (sub)question"
-        forecaster:
-          type: string
-          description: "The forecaster's username or aggregation method."
-        prediction_start_time:
+          description: The forecaster's username or aggregation method.
+          example: John Doe
+        Start Time:
           type: string
           format: date-time
-          description: "The start time of the prediction"
-        prediction_end_time:
+          description: The start time of the prediction
+        End Time:
           type: string
           format: date-time
-          description: "The end time of the prediction"
-      additionalProperties:
-        type: object
-        properties:
-          prediction_<CHOICE>:
-            type: number
-            format: float
-            description: "The prediction value for a specific choice"
-          aggregate_q1_<CHOICE>:
-            type: number
-            format: float
-            description: "The first quartile of the aggregate prediction for a specific choice"
-          aggregate_q3_<CHOICE>:
-            type: number
-            format: float
-            description: "The third quartile of the aggregate prediction for a specific choice"
-    ContinuousQuestionCSV:
+          description: The end time of the prediction
+        Forecaster Count:
+          type: integer
+          description: The number of forecasts that contributed to this Aggregation. null if not an Aggregation.
+          example: 3
+        Probability Yes:
+          type: number
+          format: float
+          description: For Binary Questions only. The prediction value in range [0, 1]
+          example: 0.5
+        Probability Yes Per Category:
+          type: array
+          items:
+            format: number
+            type: float
+          description: For Multiple Choice Questions only. The predictions for the possible outcomes all in range [0, 1]
+          example: [0.2, 0.5, 0.3]
+        Continuous CDF:
+          type: array
+          items:
+            format: number
+            type: float
+          description: For Continuous Questions only. The CDF of the prediction.
+          example: [0.01, 0.02, 0.03, ..., 0.74, 0.75]
+    ScoreDataCSV:
       type: object
       properties:
-        question:
+        Question ID:
+          type: integer
+          description: The ID of the question the score is for.
+          example: 42
+        User ID:
+          type: integer
+          description: The ID of the user who made the score.
+          example: 12345
+        User Username:
           type: string
-          description: "The title of the (sub)question"
-        forecaster:
+          description: The username of the user who made the score.
+          example: "john_doe"
+        Score Type:
           type: string
-          description: "The forecaster's username or aggregation method."
-        prediction_start_time:
+          enum: [ relative_legacy, peer, baseline, spot_peer, spot_baseline, manual ]
+          description: The type of score.
+          example: "peer"
+        Score:
+          type: number
+          format: float
+          description: The score value.
+          example: 85.5
+        Coverage:
+          type: number
+          format: float
+          description: The coverage that earned this score.
+          example: 0.95
+    CommentDataCSV:
+      type: object
+      properties:
+        Post ID:
+          type: integer
+          description: The ID of the post the comment is on.
+          example: 101
+        Author ID:
+          type: integer
+          description: The ID of the author of the comment.
+          example: 202
+        Author Username:
+          type: string
+          description: The username of the author of the comment.
+          example: "jane_doe"
+        Parent Comment ID:
+          type: integer
+          description: The ID of the parent comment, if any.
+          example: 303
+        Root Comment ID:
+          type: integer
+          description: The ID of the root comment, if any.
+          example: 404
+        Created At:
           type: string
           format: date-time
-          description: "The start time of the prediction"
-        prediction_end_time:
+          description: The time the comment was created.
+          example: "2023-10-01T12:34:56Z"
+        Comment Text:
           type: string
-          format: date-time
-          description: "The end time of the prediction"
-        q1:
-          type: number
-          format: string
-          description: "The first quartile of the prediction in nominal units"
-        median:
-          type: number
-          format: string
-          description: "The median of the prediction in nominal units"
-        q3:
-          type: number
-          format: string
-          description: "The third quartile of the prediction in nominal units"
-        q1_unformatted:
-          type: number
-          format: float
-          description: "The unformatted first quartile of the prediction"
-        median_unformatted:
-          type: number
-          format: float
-          description: "The unformatted median of the prediction"
-        q3_unformatted:
-          type: number
-          format: float
-          description: "The unformatted third quartile of the prediction"
-        probability_mass_below_lower_bound:
-          type: number
-          format: float
-          description: "Probability mass below the lower bound"
-        probability_mass_above_upper_bound:
-          type: number
-          format: float
-          description: "Probability mass above the upper bound"
-      additionalProperties:
-        type: number
-        format: float
-        description: "CDF values at increments from 0.0 to 1.0 in steps of 0.005"
+          description: The text of the comment.
+          example: "This is a sample comment text."
+
+
+    DataZip:
+      type: object
+      description: A zip file containing CSVs for Question data, Forecast data, and (optionally) Scoring data and Comment data.
+      properties:
+        question_data.csv:
+          $ref: '#/components/schemas/QuestionDataCSV'
+        forecast_data.csv:
+          $ref: '#/components/schemas/ForecastDataCSV'
+        score_data.csv:
+          $ref: '#/components/schemas/ScoreDataCSV'
+        comment_data.csv:
+          $ref: '#/components/schemas/CommentDataCSV'
+
 tags:
   - name: Feed
     description: |
@@ -1583,9 +1681,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Post'
-  /api/posts/{postId}/download-csv/:
+  /api/posts/{postId}/download-data/:
     get:
-      summary: Download CSV data for a Question. Will open a download prompt in the browser.
+      summary: Download data for a Question. Will open a download prompt in the browser. The return is a Zip file of CSVs.
       tags:
         - Utilities & Data
       parameters:
@@ -1595,13 +1693,13 @@ paths:
           schema:
             type: integer
           description: The ID of the post to retrieve. This is the number after `/questions/` in the URL of a question detail page. 
-        - name: sub-question
+        - name: sub_question
           in: query
           required: false
           schema:
             type: integer
           description: If this is a group or conditional question, and only a certain sub-question is needed, specify the sub-question ID.
-        - name: aggregation-methods
+        - name: aggregation_methods
           in: query
           required: false
           schema:
@@ -1609,17 +1707,86 @@ paths:
             items:
               type: string
               enum: [ recency_weighted, unweighted, metaculus_prediction, single_aggregation ]
-          description: Aggregation methods to include in the CSV, no argument will only include recency_weighted. single_aggregation is in beta and not available except to site admins.
+          description: Aggregation methods to include in the CSV, no argument will only include recency_weighted. single_aggregation is 
+            in beta and not available except to site admins. Including this parameter will trigger a recalculation of the aggregations, 
+            which may increase server response time. If the server times out, please consider removing this parameter.
+        - name: include_bots
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: If given, "aggregation_methods" parameter is also required. If not given, will take the value of the 
+            "include_bots_in_aggregations" property on the given Question. If true, will include bot forecasts in the recalculation 
+            of the aggregations, and not if False.
+        - name: user_ids
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          description: A list of user IDs. May only be given if the request user is authenticated, and whitelisted to download user-level 
+            forecast data. If given, "aggregation_methods" parameter is also required. The list of given user ids will recalculate the 
+            aggregations given only those users' forecasts.
+        - name: minimize
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Defaults to True. If False, "aggregation_methods" parameter is also required. If False, will include all data
+            points in the recalculated aggregations. For questions with many forecasts, this may result in a very large file, or
+            cause a server timeout. If the server times out, please consider removing this paramater.
+        - name: include_comments
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Defaults to False. If True, will include a CSV file containing all public comments.
+        - name: include_scores
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Defaults to False. If True, will include a CSV file containing all scores.
       responses:
         '200':
-          description: CSV data for the question
+          description: Zip data for the question. Contains question_data.csv and forecast_data.csv, and optionally comment_data.csv and score_data.csv
           content:
-            text/csv:
+            application/zip:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/BinaryQuestionCSV'
-                  - $ref: '#/components/schemas/MultipleChoiceQuestionCSV'
-                  - $ref: '#/components/schemas/ContinuousQuestionCSV'
+                $ref: '#/components/schemas/DataZip'
+  /api/projects/{projectId}/download-data/:
+    get:
+      summary: Download data for a whole Project. Will open a download prompt in the browser. The return is a Zip file of CSVs. Only available to site admins and Whitelisted users.
+      tags:
+        - Utilities & Data
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the Project to retrieve. 
+        - name: include_comments
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Defaults to False. If True, will include a CSV file containing all public comments.
+        - name: include_scores
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Defaults to False. If True, will include a CSV file containing all scores.
+      responses:
+        '200':
+          description: Zip data for the questions in the project. Contains question_data.csv and forecast_data.csv, and optionally comment_data.csv and score_data.csv
+          content:
+            application/zip:
+              schema:
+                $ref: '#/components/schemas/DataZip'
+                
   /api/questions/forecast/:
     post:
       summary: Submit forecasts for questions

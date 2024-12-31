@@ -32,7 +32,7 @@ import {
   TickFormat,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { ChoiceItem, UserChoiceItem } from "@/types/choices";
+import { ChoiceItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
@@ -62,7 +62,6 @@ type Props = {
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
   extraTheme?: VictoryThemeDefinition;
-  userForecasts?: UserChoiceItem[];
   questionType?: QuestionType;
   scaling?: Scaling;
   isClosed?: boolean;

@@ -244,13 +244,20 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         default=Visibility.NOT_IN_MAIN_FEED,
         db_index=True,
         help_text=(
-            "Sets the visibility of this project.<br>"
+            "Sets the visibility of this project:<br>"
             "<ul>"
-            "<li><strong>Normal</strong> is visible on the main feed, contributes to global leaderboards/medals, and lists the project in the tournaments/question series page.</li>"
-            "<li><strong>Not In Main Feed</strong> is not visible in the main feed, but can be searched for, doesn't contribute to global leaderboards/medals, and lists the project in the tournaments/question series page.</li>"
-            "<li><strong>Unlisted</strong> is not visible in the main feed, not searchable, and doesn't contribute to global leaderboards/medals.</li>"
-            "</ul><br />"
-            "If this project is not of type <code>site_main</code>, <code>tournament</code>, or <code>question_series</code>, this field should be <strong>Not In Main Feed</strong> to remain neutral."
+            "  <li><strong>Normal</strong>: Visible on the main feed, contributes to global leaderboards/medals, "
+            "      and lists the project in the tournaments/question series page.</li>"
+            "  <li><strong>Not In Main Feed</strong>: Not visible in the main feed but can be searched for, "
+            "      doesn’t contribute to global leaderboards/medals, and lists the project "
+            "      in the tournaments/question series page.</li>"
+            "  <li><strong>Unlisted</strong>: Not visible in the main feed, not searchable, and doesn’t contribute "
+            "      to global leaderboards/medals. This is the default visibility option for newly created "
+            "      Tournaments/Question Series. It ensures they don’t appear on the tournaments page until admins "
+            "      populate them with questions and are ready to make them public.</li>"
+            "</ul><br>"
+            "<strong>Note:</strong> If this project is <b>not</b> of type <code>site_main</code>, <code>tournament</code>, "
+            "or <code>question_series</code>, this field should be set to <strong>Not In Main Feed</strong> to remain neutral."
         ),
     )
 
@@ -278,6 +285,31 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def __str__(self):
         return f"{self.type.capitalize()}: {self.name}"
+
+    def save(self, *args, **kwargs):
+        creating = not self.pk
+        if self.primary_leaderboard and self.primary_leaderboard.project != self:
+            raise ValueError(
+                "Primary leaderboard must be associated with this project."
+            )
+        super().save(*args, **kwargs)
+        if (
+            creating
+            and not self.primary_leaderboard
+            and self.type
+            in (
+                self.ProjectTypes.TOURNAMENT,
+                self.ProjectTypes.QUESTION_SERIES,
+            )
+        ):
+            # create default leaderboard when creating a new tournament/question series
+            from scoring.models import Leaderboard
+
+            leaderboard = Leaderboard.objects.create(
+                project=self,
+                score_type=Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+            )
+            Project.objects.filter(pk=self.pk).update(primary_leaderboard=leaderboard)
 
     @property
     def is_ongoing(self):
