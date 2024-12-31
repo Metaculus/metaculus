@@ -200,8 +200,8 @@ class TestPostPermissions:
 
         # Post exists for creator
         assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
-        # Draft post should not be visible to anyone except creators
-        assert not Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
+        # Draft post should not be visible to anyone except creators and admins/curators
+        assert Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
         # Post is not visible for Forecaster
         assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
         # Post is not visible for a random user
