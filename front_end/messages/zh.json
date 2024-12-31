@@ -805,8 +805,5 @@
   "onboardingStep5SavePredictionsParagraph": "您想保存所做的预测吗？",
   "onboardingYouPredicted": "您预测了",
   "next": "下一步",
-  "postCreateErrorMinSubquestions": "一个问题组必须至少包含一个子问题",
-  "insertEquation": "插入公式",
-  "equation": "公式",
-  "visualization": "可视化"
+  "postCreateErrorMinSubquestions": "一个问题组必须至少包含一个子问题"
 }
