@@ -588,8 +588,8 @@ def post_preview_image(request: Request, pk):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def download_data(request, pk: int):
-    post = get_object_or_404(Post, pk=pk)
+def download_data(request, post_id: int):
+    post = get_object_or_404(Post, pk=post_id)
     user: User = request.user
 
     # Check permissions
@@ -611,7 +611,9 @@ def download_data(request, pk: int):
         "can_view_private_data": can_view_private_data,
     }
 
-    serializer = DownloadDataSerializer(data=request.GET, context=serializer_context)
+    serializer = DownloadDataSerializer(
+        data=request.query_params, context=serializer_context
+    )
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
     sub_question = params.get("sub_question")

@@ -276,7 +276,7 @@ def download_data(request, project_id: int):
     ):
         raise PermissionDenied("You are not allowed to download this project")
 
-    serializer = DownloadDataSerializer(data=request.GET)
+    serializer = DownloadDataSerializer(data=request.query_params)
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
     include_comments = params.get("include_comments", False)

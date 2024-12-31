@@ -652,12 +652,27 @@ class DownloadDataSerializer(serializers.Serializer):
         return uids
 
     def validate(self, attrs):
+        # Check if there are any unexpected fields
+        allowed_fields = {
+            "sub_question",
+            "aggregation_methods",
+            "user_ids",
+            "include_comments",
+            "include_scores",
+            "include_bots",
+            "minimize",
+        }
+        input_fields = set(self.initial_data.keys())
+        unexpected_fields = input_fields - allowed_fields
+        if unexpected_fields:
+            raise ValidationError(f"Unexpected fields: {', '.join(unexpected_fields)}")
+
+        # Aggregation validation logic
         aggregation_methods = attrs.get("aggregation_methods")
         user_ids = attrs.get("user_ids")
         include_bots = attrs.get("include_bots")
         minimize = attrs.get("minimize", True)
 
-        # Additional validation logic
         if not aggregation_methods and (
             user_ids is not None or include_bots is not None or not minimize
         ):
