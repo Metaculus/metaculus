@@ -286,6 +286,31 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     def __str__(self):
         return f"{self.type.capitalize()}: {self.name}"
 
+    def save(self, *args, **kwargs):
+        creating = not self.pk
+        if self.primary_leaderboard and self.primary_leaderboard.project != self:
+            raise ValueError(
+                "Primary leaderboard must be associated with this project."
+            )
+        super().save(*args, **kwargs)
+        if (
+            creating
+            and not self.primary_leaderboard
+            and self.type
+            in (
+                self.ProjectTypes.TOURNAMENT,
+                self.ProjectTypes.QUESTION_SERIES,
+            )
+        ):
+            # create default leaderboard when creating a new tournament/question series
+            from scoring.models import Leaderboard
+
+            leaderboard = Leaderboard.objects.create(
+                project=self,
+                score_type=Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+            )
+            Project.objects.filter(pk=self.pk).update(primary_leaderboard=leaderboard)
+
     @property
     def is_ongoing(self):
         if self.type in (
