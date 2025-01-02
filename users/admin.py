@@ -6,6 +6,10 @@ from django.urls import reverse
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
 
 from users.models import User, UserCampaignRegistration
+from users.services.spam_detection import (
+    check_profile_data_for_spam,
+    send_deactivation_email,
+)
 from questions.models import Forecast
 
 
@@ -126,7 +130,12 @@ class UserAdmin(admin.ModelAdmin):
         "bio_length",
     ]
     can_delete = False
-    actions = ["mark_selected_as_spam", "soft_delete_selected", "hard_delete_selected"]
+    actions = [
+        "mark_selected_as_spam",
+        "soft_delete_selected",
+        "hard_delete_selected",
+        "run_profile_spam_detection_on_selected",
+    ]
     search_fields = ["username", "email", "pk"]
     list_filter = [
         "is_active",
@@ -211,6 +220,18 @@ class UserAdmin(admin.ModelAdmin):
 
     def hard_delete_selected(self, request, queryset: QuerySet[User]):
         queryset.delete()
+
+    def run_profile_spam_detection_on_selected(self, request, queryset: QuerySet[User]):
+        for user in queryset:
+            is_spam, _ = check_profile_data_for_spam(
+                user=user,
+                bio=user.bio,
+                website=user.website,
+            )
+
+            if is_spam:
+                user.mark_as_spam()
+                send_deactivation_email(user.email)
 
 
 @admin.register(UserCampaignRegistration)

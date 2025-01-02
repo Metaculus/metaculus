@@ -9,7 +9,7 @@ import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionChip from "@/components/prediction_chip";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { ChoiceItem, UserChoiceItem } from "@/types/choices";
+import { ChoiceItem } from "@/types/choices";
 import { PostStatus } from "@/types/post";
 import {
   ForecastAvailability,
@@ -37,7 +37,6 @@ type ContinuousMultipleChoiceTileProps = BaseProps & {
   defaultChartZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   chartTheme?: VictoryThemeDefinition;
-  userForecasts?: UserChoiceItem[];
   question?: QuestionWithForecasts;
   scaling?: Scaling | undefined;
 };
@@ -54,7 +53,6 @@ export const ContinuousMultipleChoiceTile: FC<
   withZoomPicker,
   chartHeight = 100,
   chartTheme,
-  userForecasts,
   question,
   questionType,
   scaling,
@@ -88,12 +86,11 @@ export const ContinuousMultipleChoiceTile: FC<
           <MultipleChoiceChart
             timestamps={timestamps}
             actualCloseTime={actualCloseTime}
-            choiceItems={hideCP ? [] : choices}
+            choiceItems={choices}
             height={chartHeight}
             extraTheme={chartTheme}
             defaultZoom={defaultChartZoom}
             withZoomPicker={withZoomPicker}
-            userForecasts={userForecasts}
             questionType={questionType}
             scaling={scaling}
             isEmptyDomain={
@@ -101,6 +98,7 @@ export const ContinuousMultipleChoiceTile: FC<
               !!forecastAvailability?.cpRevealsOn
             }
             openTime={openTime}
+            hideCP={hideCP}
           />
           <ForecastAvailabilityChartOverflow
             forecastAvailability={forecastAvailability}

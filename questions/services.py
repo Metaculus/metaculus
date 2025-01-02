@@ -76,7 +76,9 @@ def build_question_forecasts(
     )[aggregation_method]
 
     # overwrite old history with new history, minimizing the amount deleted and created
-    previous_history = question.aggregate_forecasts.filter(method=aggregation_method)
+    previous_history = question.aggregate_forecasts.filter(
+        method=aggregation_method
+    ).order_by("start_time")
     to_overwrite, to_delete = (
         previous_history[: len(aggregation_history)],
         previous_history[len(aggregation_history) :],
@@ -556,6 +558,7 @@ def unresolve_question(question: Question):
     spot_forecast_time = question.cp_reveal_time
     if spot_forecast_time:
         score_types.append(Score.ScoreTypes.SPOT_PEER)
+        score_types.append(Score.ScoreTypes.SPOT_BASELINE)
     score_question(
         question,
         None,  # None is the equivalent of unsetting scores
