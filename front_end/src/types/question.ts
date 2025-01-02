@@ -1,5 +1,7 @@
 import { QuestionStatus, Resolution } from "@/types/post";
 
+export const DefaultCdfSize = 201;
+
 export enum QuestionType {
   Numeric = "numeric",
   Date = "date",
@@ -180,8 +182,12 @@ export type Question = {
   // Multiple-choice only
   options?: string[];
   group_variable?: string;
-  // Other
+  // Continuous only
   scaling: Scaling;
+  cdf_size: number | null;
+  open_lower_bound: boolean | null;
+  open_upper_bound: boolean | null;
+  // Other
   possibilities: {
     format?: string;
     high?: string;
@@ -205,8 +211,6 @@ export type Question = {
   display_divergences?: number[][];
   aggregations: Aggregations;
   my_forecasts?: UserForecastHistory;
-  open_lower_bound: boolean | null;
-  open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
   withdraw_permitted?: boolean; // Feature Flag: prediction-withdrawal
@@ -249,9 +253,11 @@ export type AggregationQuestion = {
   fine_print: string;
   id: number;
   label: string | null;
+  scaling: Scaling;
+  cdf_size: number | null;
   open_lower_bound: boolean | null;
-  open_time: string;
   open_upper_bound: boolean | null;
+  open_time: string;
   options: string[] | null;
   possibilities: {
     format?: string;
@@ -268,7 +274,6 @@ export type AggregationQuestion = {
   resolution: string | null;
   resolution_criteria: string;
   resolution_set_time: string | null;
-  scaling: Scaling;
   scheduled_close_time: string;
   scheduled_resolve_time: string;
   title: string;

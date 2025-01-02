@@ -9,7 +9,11 @@ import PredictionChip from "@/components/prediction_chip";
 import ProgressBar from "@/components/ui/progress_bar";
 import { ContinuousAreaType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import {
+  DefaultCdfSize,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
@@ -149,7 +153,8 @@ const ConditionalChart: FC<Props> = ({
               prevForecastValue.forecast,
               prevForecastValue.weights,
               question.open_lower_bound,
-              question.open_upper_bound
+              question.open_upper_bound,
+              question.cdf_size || DefaultCdfSize
             )
           : null;
 

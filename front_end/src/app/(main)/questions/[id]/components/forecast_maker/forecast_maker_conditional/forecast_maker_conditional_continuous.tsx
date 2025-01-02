@@ -13,7 +13,11 @@ import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
-import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  DefaultCdfSize,
+  Quartiles,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getCdfBounds, getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
@@ -284,7 +288,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             sliderForecast,
             weights,
             question.open_lower_bound,
-            question.open_upper_bound
+            question.open_upper_bound,
+            question.cdf_size || DefaultCdfSize
           ).cdf,
           probabilityYesPerCategory: null,
           probabilityYes: null,
@@ -343,7 +348,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       activeOptionData.sliderForecast,
       activeOptionData.weights,
       activeOptionData.question.open_lower_bound,
-      activeOptionData.question.open_upper_bound
+      activeOptionData.question.open_upper_bound,
+      activeOptionData.question.cdf_size || DefaultCdfSize
     ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
@@ -393,7 +399,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               option.sliderForecast,
               option.weights,
               option.question.open_lower_bound,
-              option.question.open_upper_bound
+              option.question.open_upper_bound,
+              option.question.cdf_size || DefaultCdfSize
             )}
             onChange={(forecast, weight) =>
               handleChange(option.id, forecast, weight)
@@ -520,7 +527,9 @@ function getUserQuartiles(
     forecast,
     weights,
     openLower,
-    openUpper
+    openUpper,
+    DefaultCdfSize // cdf size doesn't effect this since we're just
+    // computing quartiles at the next step
   );
   return computeQuartilesFromCDF(dataset.cdf);
 }

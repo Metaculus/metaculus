@@ -83,10 +83,11 @@ export function cdfFromSliders(
   center: number,
   right: number,
   lowerOpen: boolean,
-  upperOpen: boolean
+  upperOpen: boolean,
+  cdfSize: number
 ) {
   const params = logisticDistributionParamsFromSliders(left, center, right);
-  const step = 1 / 200;
+  const step = 1 / (cdfSize - 1);
   const xArr = Array.from(
     { length: Math.floor(1 / step) + 1 },
     (_, i) => i * step
