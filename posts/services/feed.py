@@ -45,6 +45,7 @@ def get_posts_feed(
     for_main_feed: bool = None,
     show_on_homepage: bool = None,
     following: bool = None,
+    upvoted_by: int = None,
     **kwargs,
 ) -> Post.objects:
     """
@@ -183,6 +184,9 @@ def get_posts_feed(
         qs = qs.annotate_user_last_forecasts_date(not_forecaster_id).filter(
             user_last_forecasts_date__isnull=True
         )
+
+    if upvoted_by:
+        qs = qs.filter(votes__user=upvoted_by)
 
     # Followed posts
     if user and user.is_authenticated and following:
