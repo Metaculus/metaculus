@@ -1,5 +1,6 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
@@ -15,6 +16,9 @@ import {
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
+import { getQuestionForecastAvailability } from "@/utils/questions";
+
+import CPRevealTime from "../cp_reveal_time";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -30,15 +34,38 @@ const ConditionalChart: FC<Props> = ({
   chartTheme,
   hideCP,
 }) => {
+  const t = useTranslations();
+
   const resolved = question.resolution !== null;
   const aggregate = question.aggregations.recency_weighted;
-  const userForecasts = question.my_forecasts;
+  const aggregateLatest = aggregate.latest;
+  const userLatest = question.my_forecasts?.latest;
+
+  const forecastAvailability = getQuestionForecastAvailability(question);
+  if (forecastAvailability.cpRevealsOn) {
+    return (
+      <CPRevealTime
+        className="!relative text-xs"
+        cpRevealTime={forecastAvailability.cpRevealsOn}
+      />
+    );
+  }
+
+  if (forecastAvailability.isEmpty) {
+    return <div className="text-xs">{t("noForecastsYet")}</div>;
+  }
 
   switch (question.type) {
     case QuestionType.Binary: {
-      const pctCandidate = aggregate.latest?.centers![0];
+      const pctCandidate =
+        aggregateLatest && !aggregateLatest.end_time
+          ? aggregateLatest.centers?.[0]
+          : undefined;
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
-      const userForecast = userForecasts?.latest?.forecast_values[1];
+      const userForecast =
+        userLatest && !userLatest.end_time
+          ? userLatest.forecast_values[1]
+          : null;
       const userPct = userForecast ? Math.round(userForecast * 100) : null;
 
       const themeProgressColor = chartTheme?.line?.style?.data?.stroke;
@@ -52,9 +79,7 @@ const ConditionalChart: FC<Props> = ({
             renderLabel={(value) => {
               if (value === null) {
                 return (
-                  <div className="justify-center p-0 font-normal">
-                    No data yet
-                  </div>
+                  <div className="justify-center p-0 font-normal">No data</div>
                 );
               }
               if (hideCP) {
@@ -89,28 +114,42 @@ const ConditionalChart: FC<Props> = ({
       if (aggregate.history.length === 0) {
         return <div className="text-center text-xs">No data yet</div>;
       }
+      if (aggregateLatest && aggregateLatest.end_time) {
+        return <div className="text-center text-xs">No data</div>;
+      }
 
-      const prediction = aggregate.latest?.centers![0];
+      const prediction =
+        aggregateLatest && !aggregateLatest.end_time
+          ? aggregateLatest.centers?.[0]
+          : undefined;
       const formattedPrediction = prediction
-        ? getDisplayValue(prediction, question.type, question.scaling)
+        ? getDisplayValue({
+            value: prediction,
+            questionType: question.type,
+            scaling: question.scaling,
+          })
         : "";
 
-      const continuousAreaChartData = [
-        {
-          pmf: cdfToPmf(aggregate.latest!.forecast_values),
-          cdf: aggregate.latest!.forecast_values,
-          type: "community" as ContinuousAreaType,
-        },
-      ];
-      const prevForecast = userForecasts?.latest?.slider_values;
+      const continuousAreaChartData =
+        aggregateLatest && !aggregateLatest.end_time
+          ? [
+              {
+                pmf: cdfToPmf(aggregateLatest.forecast_values),
+                cdf: aggregateLatest.forecast_values,
+                type: "community" as ContinuousAreaType,
+              },
+            ]
+          : [];
+      const prevForecast =
+        userLatest && !userLatest.end_time ? userLatest.slider_values : null;
       const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
       const dataset =
         prevForecastValue?.forecast && prevForecastValue?.weights
           ? getNumericForecastDataset(
               prevForecastValue.forecast,
               prevForecastValue.weights,
-              question.open_lower_bound!,
-              question.open_upper_bound!
+              question.open_lower_bound,
+              question.open_upper_bound
             )
           : null;
 

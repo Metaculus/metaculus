@@ -1,0 +1,3 @@
+[data-editor-block-type="image"] img {
+  @apply !max-h-none;
+}

@@ -1,18 +1,23 @@
 import logging
+from collections.abc import Iterable
 from datetime import timedelta, date
 
-from django.db.models import Q, Count, Sum, Value, Case, When, F
+from django.db.models import Q, Count, Sum, Value, Case, When, F, QuerySet
 from django.db.models.functions import Coalesce
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
+from comments.models import Comment
+from comments.services.feed import get_comments_feed
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import (
     notify_project_subscriptions_post_open,
     get_site_main_project,
+    get_projects_staff_users,
 )
 from questions.models import Question
 from questions.services import (
@@ -25,12 +30,23 @@ from questions.services import (
     update_notebook,
 )
 from questions.types import AggregationMethod
+from scoring.models import (
+    global_leaderboard_dates,
+    name_and_slug_for_global_leaderboard_dates,
+    GLOBAL_LEADERBOARD_STRING,
+)
 from users.models import User
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregations_at_time
 from utils.the_math.measures import prediction_difference_for_sorting
+from utils.translation import (
+    update_translations_for_model,
+    queryset_filter_outdated_translations,
+    detect_and_update_content_language,
+)
+from .search import generate_post_content_for_embedding_vectorization
 from .subscriptions import notify_post_status_change
-from ..tasks import run_notify_post_status_change
+from ..tasks import run_notify_post_status_change, run_post_indexing
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +64,58 @@ def add_categories(categories: list[int], post: Post):
     post.save()
 
 
+def update_global_leaderboard_tags(post: Post):
+    # set or update the tags for this post with respect to the global
+    # leaderboard(s) this is a part of
+
+    projects: QuerySet[Project] = post.projects.all()
+
+    # Skip if post is not eligible for global leaderboards
+    if not post.default_project.type == Project.ProjectTypes.SITE_MAIN and not next(
+        (p for p in projects if p.type == Project.ProjectTypes.SITE_MAIN), None
+    ):
+        return
+
+    # Get all global leaderboard dates and create/get corresponding tags
+    to_set_tags = []
+    gl_dates = global_leaderboard_dates()
+    for question in post.get_questions():
+        dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
+        if dates:
+            tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
+            try:
+                tag, _ = Project.objects.get_or_create(
+                    type=Project.ProjectTypes.TAG,
+                    slug=tag_slug,
+                    defaults={"name": tag_name, "order": 1},
+                )
+            except IntegrityError:
+                # Unsure why this is happening, so for debugging purposes
+                # log error and continue - don't block the triggering event
+                # (e.g. question resolution)
+                logger.exception(
+                    f"Error creating/getting global leaderboard tag for post {post.id}."
+                    f" Context: tag_name: {tag_name}, tag_slug: {tag_slug}, "
+                    f"question: {question.id}, dates: {dates}"
+                )
+                tag = Project.objects.get(type=Project.ProjectTypes.TAG, slug=tag_slug)
+            to_set_tags.append(tag)
+
+    # Update post's global leaderboard tags
+    current_gl_tags = [
+        p
+        for p in projects
+        if p.type == Project.ProjectTypes.TAG
+        and p.name.endswith(GLOBAL_LEADERBOARD_STRING)
+    ]
+    for tag in current_gl_tags:
+        if tag not in to_set_tags:
+            post.projects.remove(tag)
+    for tag in to_set_tags:
+        if tag not in current_gl_tags:
+            post.projects.add(tag)
+
+
 def create_post(
     *,
     title: str = None,
@@ -59,7 +127,6 @@ def create_post(
     notebook: dict = None,
     author: User = None,
     url_title: str = None,
-    news_type: Project = None,
 ) -> Post:
     site_main = get_site_main_project()
 
@@ -92,52 +159,56 @@ def create_post(
     obj.full_clean()
     obj.save()
 
-    # Populating projects
-    projects = categories + ([news_type] if news_type else [])
-    if obj.default_project in projects:
-        projects.remove(obj.default_project)
+    # Populating categories
+    if obj.default_project in categories:
+        categories.remove(obj.default_project)
 
-    # Make post visible in the main feed
-    if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
-        projects.append(site_main)
+    obj.projects.add(*categories)
 
-    obj.projects.add(*projects)
+    # Update global leaderboard tags
+    update_global_leaderboard_tags(obj)
 
     # Sync status fields
     obj.update_pseudo_materialized_fields()
 
     # Run async tasks
-    from ..tasks import run_post_indexing
-
     run_post_indexing.send(obj.id)
 
     return obj
 
 
-def update_post_projects(
-    post: Post, categories: list[Project] = None, news: list[Project] = None
+def trigger_update_post_translations(
+    post: Post, with_comments: bool = False, force: bool = False
 ):
-    projects_map = {
-        Project.ProjectTypes.CATEGORY: categories,
-        Project.ProjectTypes.NEWS_CATEGORY: news,
-    }
+    is_private = post.default_project.default_permission is None
+    should_translate_if_dirty = not is_private or force
 
-    existing_projects = set(post.projects.all())
+    post.update_and_maybe_translate(should_translate_if_dirty)
+    if post.question_id is not None:
+        post.question.update_and_maybe_translate(should_translate_if_dirty)
+    if post.notebook_id is not None:
+        post.notebook.update_and_maybe_translate(should_translate_if_dirty)
+    if post.group_of_questions_id is not None:
+        post.group_of_questions.update_and_maybe_translate(should_translate_if_dirty)
+    if post.conditional_id is not None:
+        post.conditional.condition.update_and_maybe_translate(should_translate_if_dirty)
+        if hasattr(post.conditional.condition, "post"):
+            post.conditional.condition.post.update_and_maybe_translate(should_translate_if_dirty)
 
-    for project_type, projects in projects_map.items():
-        if projects is None:
-            continue
+        post.conditional.condition_child.update_and_maybe_translate(should_translate_if_dirty)
+        if hasattr(post.conditional.condition_child, "post"):
+            post.conditional.condition_child.post.update_and_maybe_translate(should_translate_if_dirty)
 
-        # Clean existing project types
-        existing_projects = {p for p in existing_projects if p.type != project_type}
+        post.conditional.question_yes.update_and_maybe_translate(should_translate_if_dirty)
+        post.conditional.question_no.update_and_maybe_translate(should_translate_if_dirty)
 
-        # Update with new ones
-        existing_projects |= set(projects)
+    batch_size = 10
+    comments_qs = get_comments_feed(qs=Comment.objects.filter(), post=post)
 
-    if post.default_project in existing_projects:
-        existing_projects.remove(post.default_project)
-
-    post.projects.set(existing_projects)
+    if with_comments:
+        comments_qs = queryset_filter_outdated_translations(comments_qs)
+        detect_and_update_content_language(comments_qs, batch_size)
+        update_translations_for_model(comments_qs, batch_size)
 
 
 def update_post(
@@ -147,10 +218,10 @@ def update_post(
     conditional: dict = None,
     group_of_questions: dict = None,
     notebook: dict = None,
-    news_type: Project = None,
     **kwargs,
 ):
-    categories = list(categories or [])
+    # Content for embedding generation before update
+    original_embedding_content = generate_post_content_for_embedding_vectorization(post)
 
     # Updating non-side effect fields
     post, _ = model_update(
@@ -159,7 +230,17 @@ def update_post(
         data=kwargs,
     )
 
-    update_post_projects(post, categories, [news_type] if news_type else [])
+    # Update post categories
+    if categories:
+        post.projects.set(
+            # Keep existing non-category secondary projects
+            {p for p in post.projects.all() if p.type != Project.ProjectTypes.CATEGORY}
+            # Append updated set of categories
+            | set(categories)
+        )
+
+    # Update global leaderboard tags
+    update_global_leaderboard_tags(post)
 
     if question:
         if not post.question:
@@ -186,6 +267,13 @@ def update_post(
         update_notebook(post.notebook, **notebook)
 
     post.update_pseudo_materialized_fields()
+
+    # Compare the text content before and after the post update for embedding generation
+    # If the content has changed, re-run the post indexing process
+    if original_embedding_content != generate_post_content_for_embedding_vectorization(
+        post
+    ):
+        run_post_indexing.send(post.id)
 
     return post
 
@@ -284,10 +372,24 @@ def compute_post_sorting_divergence_and_update_snapshots(post: Post):
     )
 
 
-def compute_hotness():
-    qs = Post.objects.filter_active() | Post.objects.filter(
-        resolved=True, curation_status=Post.CurationStatus.APPROVED
+def compute_feed_hotness():
+    """
+    Compute hotness for the entire feed
+    """
+
+    qs = Post.objects.filter(
+        curation_status=Post.CurationStatus.APPROVED,
+        published_at__lte=timezone.now(),
     )
+
+    compute_hotness(qs)
+
+
+def compute_hotness(qs: QuerySet[Post]):
+    """
+    Compute hotness for the given queryset
+    """
+
     last_week_dt = timezone.now() - timedelta(days=7)
 
     qs = qs.annotate(
@@ -334,7 +436,6 @@ def compute_hotness():
                 ),
                 0,
             )
-            * 20
         )
         + Case(
             # approved in last week
@@ -362,6 +463,7 @@ def approve_post(post: Post, open_time: date, cp_reveal_time: date):
 
     post.save()
     Question.objects.bulk_update(questions, fields=["open_time", "cp_reveal_time"])
+    post.update_pseudo_materialized_fields()
 
 
 def submit_for_review_post(post: Post):
@@ -396,3 +498,19 @@ def handle_post_open(post: Post):
 
     # Handle post on followed projects subscriptions
     notify_project_subscriptions_post_open(post)
+
+
+def get_posts_staff_users(
+    posts: Iterable[Post],
+) -> dict[Post, dict[int, ObjectPermission]]:
+    """
+    Generates map of Curators/Admins for the given posts
+    """
+
+    post_default_projects_id_map = {post: post.default_project_id for post in posts}
+    project_staff_map = get_projects_staff_users(post_default_projects_id_map.values())
+
+    return {
+        post: project_staff_map[default_project_id]
+        for post, default_project_id in post_default_projects_id_map.items()
+    }

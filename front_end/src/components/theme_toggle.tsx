@@ -1,8 +1,8 @@
 "use client";
-import classNames from "classnames";
 import { FC, useEffect, useState } from "react";
 
 import useAppTheme from "@/hooks/use_app_theme";
+import cn from "@/utils/cn";
 
 const ThemeToggle: FC = () => {
   const [mounted, setMounted] = useState(false);
@@ -30,7 +30,7 @@ const ThemeToggle: FC = () => {
       onClick={switchTheme}
     >
       <span
-        className={classNames(
+        className={cn(
           "absolute right-[-1px] top-[-1px] flex h-4 w-5 items-center justify-center rounded-full border border-white outline-1 transition duration-200 group-focus-visible/theme:outline group-focus-visible/theme:outline-1 group-focus-visible/theme:outline-white",
           {
             "-translate-x-3": theme === "dark",

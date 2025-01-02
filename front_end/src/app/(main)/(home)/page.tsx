@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
-import OnboardingCheck from "@/components/onboarding/OnboardingCheck";
+import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
@@ -84,13 +84,10 @@ export default async function Home() {
             {t("homeDescription")}
           </span>
           <div className="mb-4 mt-8 inline-flex w-full flex-col items-center justify-center gap-4 md:mt-12">
-            <HomeSearch />
+            <div className="w-full md:max-w-xl">
+              <HomeSearch />
+            </div>
             <div className="line-clamp-3 max-w-2xl text-center md:line-clamp-2">
-              <TopicLink
-                text={t("2024UsElectionHub")}
-                emoji="🇺🇸"
-                href="/experiments/elections"
-              />
               {hotTopics.map((topic) => (
                 <TopicLink
                   key={topic.id}

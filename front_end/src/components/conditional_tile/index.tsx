@@ -1,20 +1,22 @@
 "use client";
 
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import Button from "@/app/(main)/about/components/Button";
 import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import PredictionChip from "@/components/prediction_chip";
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import cn from "@/utils/cn";
 import {
   getConditionalQuestionTitle,
   getConditionTitle,
+  isUnsuccessfullyResolved,
 } from "@/utils/questions";
 
 import ConditionalCard from "./conditional_card";
@@ -25,23 +27,23 @@ import DisabledArrow from "./icons/DisabledArrow";
 type Props = {
   postTitle: string;
   conditional: PostConditional<QuestionWithForecasts>;
-  curationStatus: PostStatus;
   withNavigation?: boolean;
   chartTheme?: VictoryThemeDefinition;
   nrForecasters?: number;
   withCPRevealBtn?: boolean;
+  forecasters?: number;
 };
 
 const ConditionalTile: FC<Props> = ({
   postTitle,
   conditional,
-  curationStatus,
   withNavigation,
   chartTheme,
   withCPRevealBtn,
+  forecasters,
 }) => {
   const t = useTranslations();
-  const { hideCP, setCurrentHideCP } = useHideCP();
+  const { hideCP } = useHideCP();
   const { condition, condition_child, question_yes, question_no } = conditional;
   const isEmbedded = !!chartTheme;
 
@@ -60,13 +62,9 @@ const ConditionalTile: FC<Props> = ({
     ? new Date(condition.actual_close_time).getTime() < Date.now()
     : false;
   const yesHappened = condition.resolution === "yes";
-  const yesDisabled =
-    question_yes.resolution === "annulled" ||
-    question_yes.resolution === "ambiguous";
+  const yesDisabled = isUnsuccessfullyResolved(question_yes.resolution);
   const noHappened = condition.resolution === "no";
-  const noDisabled =
-    question_no.resolution === "annulled" ||
-    question_no.resolution === "ambiguous";
+  const noDisabled = isUnsuccessfullyResolved(question_no.resolution);
 
   useEffect(() => {
     if (
@@ -86,7 +84,7 @@ const ConditionalTile: FC<Props> = ({
     <>
       <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
         <div
-          className={classNames(
+          className={cn(
             "ConditionalSummary-condition col-span-2 flex flex-col justify-center",
             {
               "row-span-1 md:col-span-1 md:row-auto": !isEmbedded,
@@ -112,10 +110,11 @@ const ConditionalTile: FC<Props> = ({
                 hideCP={hideCP}
               />
             )}
+            <ForecastersCounter forecasters={forecasters} />
           </ConditionalCard>
         </div>
         <div
-          className={classNames(
+          className={cn(
             "ConditionalSummary-arrows relative flex flex-col justify-start gap-0 md:row-auto md:justify-center md:gap-12",
             { "row-span-2 ml-3 md:ml-0": !isEmbedded }
           )}
@@ -134,17 +133,16 @@ const ConditionalTile: FC<Props> = ({
           />
 
           <div
-            className={classNames(
+            className={cn(
               "absolute left-0 top-0 h-3/4 w-px bg-blue-700 dark:bg-blue-700-dark md:hidden",
               { "xs:hidden": isEmbedded }
             )}
           />
         </div>
         <div
-          className={classNames(
-            "ConditionalSummary-conditionals flex flex-col gap-3",
-            { "row-span-2 md:row-auto": !isEmbedded }
-          )}
+          className={cn("ConditionalSummary-conditionals flex flex-col gap-3", {
+            "row-span-2 md:row-auto": !isEmbedded,
+          })}
         >
           <ConditionalCard
             title={getConditionalQuestionTitle(question_yes)}
@@ -170,14 +168,7 @@ const ConditionalTile: FC<Props> = ({
           </ConditionalCard>
         </div>
       </div>
-      {withCPRevealBtn && hideCP && (
-        <div className="text-center">
-          <div className="text-l m-4">{t("CPIsHidden")}</div>
-          <Button onClick={() => setCurrentHideCP(false)}>
-            {t("RevealTemporarily")}
-          </Button>
-        </div>
-      )}
+      {withCPRevealBtn && hideCP && <RevealCPButton />}
     </>
   );
 };
@@ -191,17 +182,17 @@ const ConditionalArrow: FC<{
 }> = ({ label, disabled, didHappen, className }) => {
   return (
     <div
-      className={classNames(
+      className={cn(
         "ConditionalSummary-conditional-arrow relative flex items-center justify-center",
         className
       )}
     >
-      <div className={classNames("absolute w-full", { "md:px-1": !disabled })}>
+      <div className={cn("absolute w-full", { "md:px-1": !disabled })}>
         {disabled ? <DisabledArrow /> : <Arrow didHappen={didHappen} />}
       </div>
 
       <span
-        className={classNames(
+        className={cn(
           "ConditionalSummary-conditional-label z-[2] bg-gray-0 px-1 text-xs font-semibold uppercase dark:bg-gray-0-dark",
           { "text-blue-500 dark:text-blue-600-dark": disabled },
           { "text-blue-900 dark:text-blue-900-dark": didHappen && !disabled },

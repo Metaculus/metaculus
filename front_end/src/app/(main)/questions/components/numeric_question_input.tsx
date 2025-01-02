@@ -2,9 +2,11 @@ import { format } from "date-fns";
 import { isNil } from "lodash";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { UseFormReturn } from "react-hook-form";
 
 import Checkbox from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/form_field";
+import DatetimeUtc from "@/components/ui/datetime_utc";
+import { FormError, Input } from "@/components/ui/form_field";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
 
@@ -16,13 +18,19 @@ const ContinuousPredictionChart = dynamic(
 );
 
 const NumericQuestionInput: React.FC<{
-  onChange: (
-    min: number,
-    max: number,
-    open_upper_bound: boolean,
-    open_lower_bound: boolean,
-    zero_point: number | null
-  ) => void;
+  onChange: ({
+    min,
+    max,
+    open_upper_bound,
+    open_lower_bound,
+    zero_point,
+  }: {
+    min: number;
+    max: number;
+    open_upper_bound: boolean;
+    open_lower_bound: boolean;
+    zero_point: number | null;
+  }) => void;
   questionType: QuestionType.Numeric | QuestionType.Date;
   defaultMin: number | undefined;
   defaultMax: number | undefined;
@@ -30,7 +38,9 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound: boolean | undefined | null;
   defaultZeroPoint: number | undefined | null;
   hasForecasts: boolean;
-  canSeeLogarithmic: boolean | undefined;
+  chartWidth?: number;
+  control?: UseFormReturn;
+  index?: number;
 }> = ({
   onChange,
   questionType,
@@ -40,7 +50,9 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound,
   defaultZeroPoint,
   hasForecasts,
-  canSeeLogarithmic,
+  chartWidth = 800,
+  control,
+  index,
 }) => {
   const [errors, setError] = useState<string[]>([]);
   const [max, setMax] = useState(defaultMax);
@@ -98,8 +110,8 @@ const NumericQuestionInput: React.FC<{
     },
     type: questionType,
     scaling: {
-      range_max: max!,
-      range_min: min!,
+      range_max: max as number,
+      range_min: min as number,
       zero_point: zeroPoint,
     },
     open_lower_bound: openLowerBound,
@@ -111,10 +123,10 @@ const NumericQuestionInput: React.FC<{
 
   const runChecks = () => {
     const current_errors = [];
-    if (max === undefined) {
+    if (isNil(max)) {
       current_errors.push("Max is required");
     }
-    if (min === undefined) {
+    if (isNil(min)) {
       current_errors.push("Min is required");
     }
 
@@ -129,7 +141,10 @@ const NumericQuestionInput: React.FC<{
             );
       }
     }
-    if (min !== undefined && max !== undefined) {
+    if (!isNil(min) && !isNil(max)) {
+      if (isNaN(min) || isNaN(max)) {
+        current_errors.push("Provide correct min and max values");
+      }
       if (min >= max) {
         current_errors.push("Minimum value should be less than maximum value");
       }
@@ -144,13 +159,13 @@ const NumericQuestionInput: React.FC<{
   const isMounted = useRef(false);
   useEffect(() => {
     if (!isMounted.current) {
-      onChange(
-        min as number,
-        max as number,
-        openUpperBound,
-        openLowerBound,
-        zeroPoint
-      );
+      onChange({
+        min: min as number,
+        max: max as number,
+        open_lower_bound: openLowerBound,
+        open_upper_bound: openUpperBound,
+        zero_point: zeroPoint,
+      });
 
       isMounted.current = true;
       return;
@@ -159,20 +174,20 @@ const NumericQuestionInput: React.FC<{
     if (!ok) {
       return;
     }
-    onChange(
-      min as number,
-      max as number,
-      openUpperBound,
-      openLowerBound,
-      zeroPoint
-    );
+    onChange({
+      min: min as number,
+      max: max as number,
+      open_lower_bound: openLowerBound,
+      open_upper_bound: openUpperBound,
+      zero_point: zeroPoint,
+    });
     setQuestion((prevQuestion) => ({
       ...prevQuestion,
       open_upper_bound: openUpperBound,
       open_lower_bound: openLowerBound,
       scaling: {
-        range_max: max!,
-        range_min: min!,
+        range_max: max as number,
+        range_min: min as number,
         zero_point: zeroPoint,
       },
     }));
@@ -225,36 +240,57 @@ const NumericQuestionInput: React.FC<{
             <div className="flex w-full flex-col gap-4 md:flex-row">
               <div className="flex w-full flex-col gap-2">
                 <span className="mr-2">Min</span>
-                <Input
+                <DatetimeUtc
                   readOnly={hasForecasts}
                   disabled={hasForecasts}
-                  type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
-                    min !== undefined && !Number.isNaN(min)
-                      ? format(new Date(min * 1000), "yyyy-MM-dd'T'HH:mm")
+                    !isNil(min) && !Number.isNaN(min)
+                      ? new Date(min * 1000).toISOString()
                       : undefined
                   }
-                  onChange={(e) => {
-                    setMin(new Date(e.target.value).getTime() / 1000);
+                  onChange={(dateString) => {
+                    control?.clearErrors(`min-value-${index}`);
+                    setMin(new Date(dateString).getTime() / 1000);
                   }}
+                  onError={(error: { message: string }) => {
+                    control &&
+                      control.setError(`min-value-${index}`, {
+                        type: "manual",
+                        message: error.message,
+                      });
+                  }}
+                />
+                <FormError
+                  errors={control?.formState.errors[`min-value-${index}`]}
+                  name={`min-value`}
                 />
               </div>
               <div className="flex w-full flex-col gap-2">
                 <span className="mr-2">Max</span>
-                <Input
+                <DatetimeUtc
                   readOnly={hasForecasts}
                   disabled={hasForecasts}
-                  type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
-                    max !== undefined && !Number.isNaN(max)
-                      ? format(new Date(max * 1000), "yyyy-MM-dd'T'HH:mm")
+                    !isNil(max) && !Number.isNaN(max)
+                      ? new Date(max * 1000).toISOString()
                       : undefined
                   }
-                  onChange={(e) => {
-                    setMax(new Date(e.target.value).getTime() / 1000);
+                  onChange={(dateString) => {
+                    control?.clearErrors(`max-value-${index}`);
+                    setMax(new Date(dateString).getTime() / 1000);
                   }}
+                  onError={(error: { message: string }) => {
+                    control?.setError(`max-value-${index}`, {
+                      type: "manual",
+                      message: error.message,
+                    });
+                  }}
+                />
+                <FormError
+                  errors={control?.formState.errors[`max-value-${index}`]}
+                  name={`max-value`}
                 />
               </div>
             </div>
@@ -288,61 +324,55 @@ const NumericQuestionInput: React.FC<{
             </div>
           </>
         }
-        {canSeeLogarithmic && (
-          <div>
-            <span className="mr-2">Logarithmic scaling?</span>
-            <Input
-              disabled={hasForecasts}
-              type="checkbox"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                if (e.target.checked) {
-                  if (questionType == QuestionType.Numeric) {
-                    setZeroPoint(0);
-                  } else {
-                    setZeroPoint(
-                      (Date.now() - 1000 * 60 * 60 * 24 * 365) / 1000
-                    );
-                  }
+        <div>
+          <span className="mr-2">Logarithmic scaling?</span>
+          <Input
+            disabled={hasForecasts}
+            type="checkbox"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              if (e.target.checked) {
+                if (questionType == QuestionType.Numeric) {
+                  setZeroPoint(0);
                 } else {
-                  setZeroPoint(null);
+                  setZeroPoint((Date.now() - 1000 * 60 * 60 * 24 * 365) / 1000);
                 }
-              }}
-              checked={zeroPoint !== null && zeroPoint !== undefined}
-            />
-            {zeroPoint !== null &&
-              zeroPoint !== undefined &&
-              (questionType == QuestionType.Numeric ? (
-                <div className="ml-2">
-                  <span className="mr-2">Zero Point</span>
-                  <Input
-                    readOnly={hasForecasts}
-                    disabled={hasForecasts}
-                    type="float"
-                    onChange={(e) => {
-                      setZeroPoint(Number(e.target.value));
-                    }}
-                    defaultValue={zeroPoint}
-                  />
-                </div>
-              ) : (
-                <div className="ml-2">
-                  <span className="mr-2">Zero Point</span>
-                  <Input
-                    readOnly={hasForecasts}
-                    disabled={hasForecasts}
-                    type="datetime-local"
-                    onChange={(e) => {
-                      setZeroPoint(new Date(e.target.value).getTime() / 1000);
-                    }}
-                    defaultValue={format(
-                      new Date(!Number.isNaN(zeroPoint) ? zeroPoint * 1000 : 0),
-                      "yyyy-MM-dd'T'HH:mm"
-                    )}
-                  />
-                </div>
-              ))}
-          </div>
-        )}
+              } else {
+                setZeroPoint(null);
+              }
+            }}
+            checked={zeroPoint !== null && zeroPoint !== undefined}
+          />
+          {!isNil(zeroPoint) &&
+            (questionType == QuestionType.Numeric ? (
+              <div className="ml-2">
+                <span className="mr-2">Zero Point</span>
+                <Input
+                  readOnly={hasForecasts}
+                  disabled={hasForecasts}
+                  type="float"
+                  onChange={(e) => {
+                    setZeroPoint(Number(e.target.value));
+                  }}
+                  defaultValue={zeroPoint}
+                />
+              </div>
+            ) : (
+              <div className="ml-2">
+                <span className="mr-2">Zero Point</span>
+                <DatetimeUtc
+                  readOnly={hasForecasts}
+                  disabled={hasForecasts}
+                  className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                  defaultValue={new Date(
+                    !Number.isNaN(zeroPoint) ? zeroPoint * 1000 : 0
+                  ).toISOString()}
+                  onChange={(dateString) => {
+                    setZeroPoint(new Date(dateString).getTime() / 1000);
+                  }}
+                />
+              </div>
+            ))}
+        </div>
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <>
             Example input chart:
@@ -412,7 +442,7 @@ const NumericQuestionInput: React.FC<{
               question={question}
               readOnly={false}
               height={100}
-              width={800}
+              width={chartWidth}
               showCP={false}
             />
           </>

@@ -12,6 +12,8 @@ type Props = {
   question: QuestionWithNumericForecasts;
   userBounds?: Bounds;
   userQuartiles?: Quartiles;
+  userPreviousBounds?: Bounds;
+  userPreviousQuartiles?: Quartiles;
   communityBounds?: Bounds;
   communityQuartiles?: Quartiles;
   withUserQuartiles?: boolean;
@@ -24,6 +26,8 @@ const NumericForecastTable: FC<Props> = ({
   question,
   userBounds,
   userQuartiles,
+  userPreviousBounds,
+  userPreviousQuartiles,
   withUserQuartiles = true,
   communityBounds,
   communityQuartiles,
@@ -44,6 +48,13 @@ const NumericForecastTable: FC<Props> = ({
             </div>
           </>
         )}
+        {withUserQuartiles && userPreviousQuartiles && (
+          <>
+            <div className="w-full text-orange-800 dark:text-orange-800-dark">
+              {t("myPredictionPrevious")}
+            </div>
+          </>
+        )}
         {withCommunityQuartiles && (
           <>
             <a className="w-full text-olive-700 dark:text-olive-700-dark">
@@ -58,7 +69,7 @@ const NumericForecastTable: FC<Props> = ({
             {question.open_lower_bound && (
               <div className="w-full">
                 {"<"}
-                {displayValue(question.scaling.range_min!, question.type)}
+                {displayValue(question.scaling.range_min, question.type)}
               </div>
             )}
             <div className="w-full">{t("firstQuartile")}</div>
@@ -67,7 +78,7 @@ const NumericForecastTable: FC<Props> = ({
             {question.open_upper_bound && (
               <div className="w-full">
                 {">"}
-                {displayValue(question.scaling.range_max!, question.type)}
+                {displayValue(question.scaling.range_max, question.type)}
               </div>
             )}
           </div>
@@ -82,31 +93,34 @@ const NumericForecastTable: FC<Props> = ({
                   </div>
                 )}
                 <div>
-                  {getDisplayValue(
-                    userQuartiles?.lower25,
-                    question.type,
-                    question.scaling,
-                    4
-                  )}
+                  {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
+                  {getDisplayValue({
+                    value: userQuartiles?.lower25,
+                    questionType: question.type,
+                    scaling: question.scaling,
+                    precision: 4,
+                  })}
                 </div>
                 <div>
-                  {getDisplayValue(
-                    userQuartiles?.median,
-                    question.type,
-                    question.scaling,
-                    4
-                  )}
+                  {checkQuartilesOutOfBorders(userQuartiles?.median)}
+                  {getDisplayValue({
+                    value: userQuartiles?.median,
+                    questionType: question.type,
+                    scaling: question.scaling,
+                    precision: 4,
+                  })}
                 </div>
                 <div>
-                  {getDisplayValue(
-                    userQuartiles?.upper75,
-                    question.type,
-                    question.scaling,
-                    4
-                  )}
+                  {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
+                  {getDisplayValue({
+                    value: userQuartiles?.upper75,
+                    questionType: question.type,
+                    scaling: question.scaling,
+                    precision: 4,
+                  })}
                 </div>
-                {question.open_upper_bound && (
-                  <div>{(userBounds!.aboveUpper * 100).toFixed(1)}%</div>
+                {question.open_upper_bound && userBounds && (
+                  <div>{(userBounds.aboveUpper * 100).toFixed(1)}%</div>
                 )}
               </>
             ) : (
@@ -115,9 +129,52 @@ const NumericForecastTable: FC<Props> = ({
                 {[...Array(3)].map((_, i) => {
                   return <div key={i}>...</div>;
                 })}
-                {question.open_lower_bound && <div>...</div>}
+                {question.open_upper_bound && <div>...</div>}
               </>
             )}
+          </div>
+        )}
+        {withUserQuartiles && userPreviousQuartiles && (
+          <div className="w-full text-center">
+            <>
+              {question.open_lower_bound && (
+                <div>
+                  {userPreviousBounds &&
+                    (userPreviousBounds.belowLower * 100).toFixed(1)}
+                  %
+                </div>
+              )}
+              <div>
+                {checkQuartilesOutOfBorders(userPreviousQuartiles?.lower25)}
+                {getDisplayValue({
+                  value: userPreviousQuartiles?.lower25,
+                  questionType: question.type,
+                  scaling: question.scaling,
+                  precision: 4,
+                })}
+              </div>
+              <div>
+                {checkQuartilesOutOfBorders(userPreviousQuartiles?.median)}
+                {getDisplayValue({
+                  value: userPreviousQuartiles?.median,
+                  questionType: question.type,
+                  scaling: question.scaling,
+                  precision: 4,
+                })}
+              </div>
+              <div>
+                {checkQuartilesOutOfBorders(userPreviousQuartiles?.upper75)}
+                {getDisplayValue({
+                  value: userPreviousQuartiles?.upper75,
+                  questionType: question.type,
+                  scaling: question.scaling,
+                  precision: 4,
+                })}
+              </div>
+              {question.open_upper_bound && userPreviousBounds && (
+                <div>{(userPreviousBounds.aboveUpper * 100).toFixed(1)}%</div>
+              )}
+            </>
           </div>
         )}
 
@@ -125,40 +182,43 @@ const NumericForecastTable: FC<Props> = ({
           <div className="w-full text-center">
             {question.open_lower_bound && (
               <div>
-                {communityBounds &&
-                  (communityBounds.belowLower * 100).toFixed(1)}
-                %
+                {communityBounds
+                  ? (communityBounds.belowLower * 100).toFixed(1) + "%"
+                  : "..."}
               </div>
             )}
             <div>
-              {getDisplayValue(
-                communityQuartiles?.lower25,
-                question.type,
-                question.scaling,
-                4
-              )}
+              {checkQuartilesOutOfBorders(communityQuartiles?.lower25)}
+              {getDisplayValue({
+                value: communityQuartiles?.lower25,
+                questionType: question.type,
+                scaling: question.scaling,
+                precision: 4,
+              })}
             </div>
             <div>
-              {getDisplayValue(
-                communityQuartiles?.median,
-                question.type,
-                question.scaling,
-                4
-              )}
+              {checkQuartilesOutOfBorders(communityQuartiles?.median)}
+              {getDisplayValue({
+                value: communityQuartiles?.median,
+                questionType: question.type,
+                scaling: question.scaling,
+                precision: 4,
+              })}
             </div>
             <div>
-              {getDisplayValue(
-                communityQuartiles?.upper75,
-                question.type,
-                question.scaling,
-                4
-              )}
+              {checkQuartilesOutOfBorders(communityQuartiles?.upper75)}
+              {getDisplayValue({
+                value: communityQuartiles?.upper75,
+                questionType: question.type,
+                scaling: question.scaling,
+                precision: 4,
+              })}
             </div>
             {question.open_upper_bound && (
               <div>
-                {communityBounds &&
-                  (communityBounds!.aboveUpper * 100).toFixed(1)}
-                %
+                {communityBounds
+                  ? (communityBounds.aboveUpper * 100).toFixed(1) + "%"
+                  : "..."}
               </div>
             )}
           </div>
@@ -167,5 +227,9 @@ const NumericForecastTable: FC<Props> = ({
     </>
   );
 };
+
+function checkQuartilesOutOfBorders(quartile: number | undefined) {
+  return quartile === 0 ? "<" : quartile === 1 ? ">" : null;
+}
 
 export default NumericForecastTable;

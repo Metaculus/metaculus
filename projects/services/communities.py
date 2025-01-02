@@ -30,8 +30,11 @@ def get_communities_feed(
         qs = qs.annotate_is_subscribed(user)
 
     # If hidden from the main feed
-    if unlisted is not None:
-        qs = qs.filter(unlisted=unlisted)
+    if not ids and unlisted is not None:
+        if unlisted:
+            qs = qs.filter(visibility=Project.Visibility.UNLISTED)
+        else:
+            qs = qs.exclude(visibility=Project.Visibility.UNLISTED)
 
     if is_subscribed is not None and user:
         qs = qs.filter(is_subscribed=is_subscribed)
@@ -51,7 +54,7 @@ def update_community(
     # Updating non-side effect fields
     community, _ = model_update(
         instance=community,
-        fields=["slug", "name", "description", "default_permission", "unlisted"],
+        fields=["slug", "name", "description", "default_permission", "visibility"],
         data=kwargs,
     )
 

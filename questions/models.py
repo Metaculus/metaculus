@@ -1,16 +1,16 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from django_better_admin_arrayfield.models.fields import ArrayField
 from django.db import models
-from django.db.models import Count, Q, QuerySet
+from django.db.models import Count, QuerySet
 from django.utils import timezone
+from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
 from questions.types import AggregationMethod
 from users.models import User
-from utils.models import TimeStampedModel
+from utils.models import TimeStampedModel, TranslatedModel
 from utils.the_math.measures import percent_point_function
 
 if TYPE_CHECKING:
@@ -28,12 +28,7 @@ class QuestionQuerySet(QuerySet):
 
     def filter_public(self):
         return self.filter(
-            Q(post__default_project__default_permission__isnull=False)
-            | Q(group__post__default_project__default_permission__isnull=False)
-            | Q(conditional_no__post__default_project__default_permission__isnull=False)
-            | Q(
-                conditional_yes__post__default_project__default_permission__isnull=False
-            )
+            related_posts__post__default_project__default_permission__isnull=False
         )
 
     def prefetch_related_post(self):
@@ -45,13 +40,12 @@ class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
         return super().get_queryset()
 
 
-class Question(TimeStampedModel):
+class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     # typing
     user_forecasts: QuerySet["Forecast"]
     aggregate_forecasts: QuerySet["AggregateForecast"]
     scores: QuerySet["Score"]
     archived_scores: QuerySet["ArchivedScore"]
-    objects: QuestionQuerySet["Question"]
     id: int
     group_id: int | None
 
@@ -62,7 +56,7 @@ class Question(TimeStampedModel):
     user_archived_scores: list["ArchivedScore"]
 
     # utility
-    objects: models.Manager["Question"] = QuestionManager()
+    objects = QuestionManager()
 
     # Common fields
     class QuestionType(models.TextChoices):
@@ -110,12 +104,13 @@ class Question(TimeStampedModel):
 
     # list of multiple choice option labels
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
+    group_variable = models.CharField(blank=True, null=False)
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
     # Group
-    label = models.TextField(blank=True, null=True)
+    label = models.TextField(blank=True, null=False)
     group: "GroupOfQuestions" = models.ForeignKey(
         "GroupOfQuestions",
         null=True,
@@ -153,25 +148,31 @@ class Question(TimeStampedModel):
         ):
             return QuestionStatus.RESOLVED
 
-        if self.actual_close_time and self.actual_close_time < now:
+        if self.scheduled_close_time <= now or (
+            self.actual_close_time and self.actual_close_time <= now
+        ):
             return QuestionStatus.CLOSED
 
         return QuestionStatus.OPEN
 
-    def get_global_leaderboard_dates(self) -> tuple[datetime, datetime] | None:
+    def get_global_leaderboard_dates(
+        self, gl_dates: list[tuple[datetime, datetime]] | None = None
+    ) -> tuple[datetime, datetime] | None:
         # returns the global leaderboard dates that this question counts for
-        from scoring.models import global_leaderboard_dates
 
         forecast_horizon_start = self.open_time
         forecast_horizon_end = self.scheduled_close_time
         if forecast_horizon_start is None or forecast_horizon_end is None:
-            return (None, None)
-        global_leaderboard_dates = global_leaderboard_dates()
+            return None
+        if gl_dates is None:
+            from scoring.models import global_leaderboard_dates
+
+            gl_dates = global_leaderboard_dates()
 
         # iterate over the global leaderboard dates in reverse order
         # to find the shortest interval that this question counts for
         shortest_window = (None, None)
-        for gl_start, gl_end in global_leaderboard_dates[::-1]:
+        for gl_start, gl_end in gl_dates[::-1]:
             if forecast_horizon_start < gl_start or gl_end < forecast_horizon_start:
                 continue
             if forecast_horizon_end > gl_end + timedelta(days=3):
@@ -211,10 +212,7 @@ class Conditional(TimeStampedModel):
         return f"Conditional {self.condition} -> {self.condition_child}"
 
 
-class GroupOfQuestions(TimeStampedModel):
-    # typing
-    questions: QuerySet[Question]
-
+class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
     class GroupOfQuestionsGraphType(models.TextChoices):
         FAN_GRAPH = "fan_graph"
         MULTIPLE_CHOICE_GRAPH = "multiple_choice_graph"
@@ -234,10 +232,19 @@ class GroupOfQuestions(TimeStampedModel):
         return f"Group of Questions {self.post}"
 
 
+class ForecastNoSpamManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(author__is_spam=False)
+
+
 class Forecast(models.Model):
     # typing
     id: int
     author_id: int
+
+    # custom manager for filtering out spam by default
+    objects = ForecastNoSpamManager()
+    all_objects = models.Manager()
 
     # times
     start_time = models.DateTimeField(
@@ -281,6 +288,19 @@ class Forecast(models.Model):
         editable=False,
         blank=False,
         related_name="forecasts",
+    )
+
+    class SourceChoices(models.TextChoices):
+        API = "api"
+        UI = "ui"
+
+    # logging the source of the forecast for data purposes
+    source = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        choices=SourceChoices.choices,
+        default="",
     )
 
     slider_values = models.JSONField(null=True)

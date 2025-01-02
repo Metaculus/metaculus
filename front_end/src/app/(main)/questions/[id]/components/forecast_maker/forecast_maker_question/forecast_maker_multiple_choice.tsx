@@ -1,26 +1,26 @@
 "use client";
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { round } from "lodash";
+import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   AggregateForecastHistory,
-  PredictionInputMessage,
-  Question,
   QuestionWithMultipleChoiceForecasts,
-  UserForecastHistory,
+  UserForecast,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
@@ -32,12 +32,13 @@ import {
   BINARY_MIN_VALUE,
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
+import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 
 type ChoiceOption = {
   name: string;
-  communityForecast?: number | null;
+  communityForecast: number | null;
   forecast: number | null;
   color: ThemeColor;
 };
@@ -48,7 +49,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const ForecastMakerMultipleChoice: FC<Props> = ({
@@ -62,14 +63,20 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
-  const { setCurrentModal } = useModal();
+
+  const activeUserForecast =
+    (question.my_forecasts?.latest?.end_time ||
+      new Date().getTime() / 1000 + 1000) <=
+    new Date().getTime() / 1000
+      ? undefined
+      : question.my_forecasts?.latest;
 
   const [isDirty, setIsDirty] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
       question.aggregations.recency_weighted,
-      question.my_forecasts ?? { history: [] }
+      activeUserForecast
     )
   );
 
@@ -93,12 +100,24 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      prev.map((prevChoice, i) => ({
-        ...prevChoice,
-        forecast: question.my_forecasts?.latest?.forecast_values[i] ?? null,
-      }))
+      question.options.map((_, index) => {
+        // okay to do no-non-null-assertion, as choicesForecasts is mapped based on question.options
+        // so there won't be a case where arrays are not of the same length
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const choiceOption = prev[index]!;
+        const userForecast =
+          question.my_forecasts?.latest?.forecast_values[index] ?? null;
+
+        return {
+          ...choiceOption,
+          forecast: !isNil(userForecast)
+            ? Math.round(userForecast * 1000) / 10
+            : null,
+        };
+      })
     );
-  }, [question.my_forecasts?.latest?.forecast_values]);
+  }, [question.options, question.my_forecasts?.latest?.forecast_values]);
+
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
       setIsDirty(true);
@@ -131,8 +150,12 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     let adjustIndex = 0;
     let maxValue = 0;
     const newForecasts = choicesForecasts.map((choice, index) => {
+      if (isNil(choice.forecast) || isNil(forecastsSum)) {
+        return null;
+      }
+
       const value = round(
-        Math.max(round((100 * choice.forecast!) / forecastsSum!, 1), 0.1),
+        Math.max(round((100 * choice.forecast) / forecastsSum, 1), 0.1),
         1
       );
       if (value > maxValue) {
@@ -142,15 +165,18 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       return value;
     });
 
-    newForecasts[adjustIndex] = Math.max(
-      round(
-        newForecasts[adjustIndex] +
-          100 -
-          newForecasts.reduce((acc, value) => acc + value, 0),
-        1
-      ),
-      0.1
-    );
+    const adjustedItemForecast = newForecasts[adjustIndex];
+    if (!isNil(adjustedItemForecast)) {
+      newForecasts[adjustIndex] = Math.max(
+        round(
+          adjustedItemForecast +
+            100 -
+            newForecasts.reduce<number>((acc, value) => acc + (value ?? 0), 0),
+          1
+        ),
+        0.1
+      );
+    }
 
     setChoicesForecasts((prev) =>
       prev.map((choice, index) => ({
@@ -163,19 +189,17 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
 
-    if (!user) {
-      setCurrentModal({ type: "signup" });
-      return;
-    }
-
     if (!isForecastValid) return;
 
     const forecastValue: Record<string, number> = {};
     choicesForecasts.forEach((el) => {
-      forecastValue[el.name] = round(
-        el.forecast! / 100,
-        BINARY_FORECAST_PRECISION
-      );
+      const forecast = el.forecast;
+      if (!isNil(forecast)) {
+        forecastValue[el.name] = round(
+          forecast / 100,
+          BINARY_FORECAST_PRECISION
+        );
+      }
     });
     sendGAPredictEvent(post, question, hideCP);
     const response = await createForecasts(post.id, [
@@ -190,18 +214,38 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     ]);
     setIsDirty(false);
     if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors[0]);
+      setSubmitError(response.errors);
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
-  const submitIsAllowed = !isPending && isDirty && isForecastValid;
+
+  const handlePredictWithdraw = async () => {
+    setSubmitError(undefined);
+
+    if (!activeUserForecast) return;
+
+    const response = await withdrawForecasts(post.id, [
+      {
+        question: question.id,
+      },
+    ]);
+    setIsDirty(false);
+
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
   return (
     <>
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
             <th className="bg-blue-100 p-2 text-left text-xs font-bold dark:bg-blue-100-dark">
-              {t("Candidates")}
+              {question.group_variable}
             </th>
             <th className="bg-blue-100 p-2 pr-4 text-right text-xs dark:bg-blue-100-dark">
               <FontAwesomeIcon
@@ -248,7 +292,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       </table>
       {predictionMessage && (
         <div className="my-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       <div className="mt-5 flex flex-wrap items-center justify-center gap-4 border-b border-b-blue-400 pb-5 dark:border-b-blue-400-dark">
@@ -283,19 +327,35 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             >
               {t("discardChangesButton")}
             </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              disabled={!submitIsAllowed}
-              onClick={submit}
-            >
-              {user ? t("saveChange") : t("signUpToPredict")}
-            </Button>
+            {activeUserForecast &&
+              question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )}
+            <PredictButton
+              onSubmit={submit}
+              isDirty={isDirty}
+              hasUserForecast={forecastHasValues}
+              isPending={isPending}
+              isDisabled={!isForecastValid}
+            />
           </div>
         )}
-        <FormErrorMessage errors={submitError} />
       </div>
-      <div className="h-[32px] w-full">{isPending && <LoadingIndicator />}</div>
+      <FormError
+        errors={submitError}
+        className="ml-auto mt-2 flex w-full justify-center"
+        detached
+      />
+      <div className="h-[32px] w-full">
+        {(isPending || withdrawalIsPending) && <LoadingIndicator />}
+      </div>
       <div className="flex flex-col items-center justify-center">
         <QuestionUnresolveButton question={question} permission={permission} />
 
@@ -311,44 +371,38 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 };
 
 function generateChoiceOptions(
-  question: Question,
+  question: QuestionWithMultipleChoiceForecasts,
   aggregate: AggregateForecastHistory,
-  my_forecasts: UserForecastHistory
+  activeUserForecast: UserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
-  const choiceOrdering: number[] = question.options!.map((_, i) => i);
-  choiceOrdering.sort((a, b) => {
-    const aCenter = latest?.forecast_values[a] ?? 0;
-    const bCenter = latest?.forecast_values[b] ?? 0;
-    return bCenter - aCenter;
-  });
 
-  const choiceItems = choiceOrdering.map((order, index) => {
+  const choiceItems = question.options.map((option, index) => {
+    const communityForecastValue = latest?.forecast_values[index];
+    const userForecastValue = activeUserForecast?.forecast_values[index];
+
     return {
-      name: question.options![order],
+      name: option,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      communityForecast: latest?.forecast_values[order] ?? null,
-      forecast: my_forecasts.latest
-        ? Math.round(my_forecasts.latest.forecast_values[order] * 1000) / 10
+      communityForecast:
+        latest && !latest.end_time && !isNil(communityForecastValue)
+          ? Math.round(communityForecastValue * 1000) / 1000
+          : null,
+      forecast: !isNil(userForecastValue)
+        ? Math.round(userForecastValue * 1000) / 10
         : null,
     };
   });
-  const resolutionIndex = choiceOrdering.findIndex(
-    (order) => question.options![order] === question.resolution
+  const resolutionIndex = question.options.findIndex(
+    (_, index) => question.options[index] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);
-    choiceItems.unshift(resolutionItem);
+    if (resolutionItem) {
+      choiceItems.unshift(resolutionItem);
+    }
   }
   return choiceItems;
-}
-
-function getDefaultForecast(
-  option: string,
-  defaultForecasts: Record<string, number> | null
-) {
-  const defaultForecast = defaultForecasts?.[option];
-  return defaultForecast ? round(defaultForecast * 100, 1) : null;
 }
 
 function sumForecasts(choiceOptions: ChoiceOption[]) {

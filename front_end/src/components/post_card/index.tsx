@@ -36,12 +36,12 @@ const PostCard: FC<Props> = ({ post }) => {
               authorUsername={post.author_username}
               curationStatus={post.status}
               hideCP={hideCP}
+              forecasters={post.nr_forecasters}
             />
           )}
           {!!post.group_of_questions && (
             <GroupOfQuestionsTile
               questions={post.group_of_questions.questions}
-              curationStatus={post.status}
               post={post}
               hideCP={hideCP}
             />
@@ -50,7 +50,7 @@ const PostCard: FC<Props> = ({ post }) => {
             <ConditionalTile
               postTitle={post.title}
               conditional={post.conditional}
-              curationStatus={post.status}
+              forecasters={post.nr_forecasters}
             />
           )}
           {!!post.notebook && <NotebookTile notebook={post.notebook} />}

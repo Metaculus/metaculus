@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django_dynamic_fixture import G
+from django.utils import timezone
 
 from posts.models import Post, PostUserSnapshot
 from projects.models import Project
@@ -17,9 +20,13 @@ def factory_post(
     default_project: Project = None,
     curation_status: Post.CurationStatus = Post.CurationStatus.APPROVED,
     **kwargs
-):
+) -> Post:
     projects = projects or []
     default_project = default_project or get_site_main_project()
+    if curation_status == Post.CurationStatus.APPROVED:
+        kwargs["published_at"] = kwargs.get(
+            "published_at", timezone.now() - timedelta(days=1)
+        )
 
     post = G(
         Post,

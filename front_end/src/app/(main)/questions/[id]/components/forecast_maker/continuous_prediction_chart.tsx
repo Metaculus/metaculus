@@ -15,6 +15,7 @@ import { cdfToPmf } from "@/utils/math";
 
 type Props = {
   question: QuestionWithNumericForecasts;
+  overlayPreviousForecast?: boolean;
   dataset: {
     cdf: number[];
     pmf: number[];
@@ -28,6 +29,7 @@ type Props = {
 
 const ContinuousPredictionChart: FC<Props> = ({
   question,
+  overlayPreviousForecast,
   dataset,
   graphType,
   readOnly = false,
@@ -44,21 +46,31 @@ const ContinuousPredictionChart: FC<Props> = ({
   const cursorDisplayData = useMemo(() => {
     if (!hoverState) return null;
 
-    const xLabel = getDisplayValue(
-      hoverState.x,
-      question.type,
-      question.scaling,
-      5
-    );
+    const xLabel = getDisplayValue({
+      value: hoverState.x,
+      questionType: question.type,
+      scaling: question.scaling,
+      precision: 5,
+    });
     return {
       xLabel,
       yUserLabel: readOnly
         ? null
+        : !hoverState.yData.user
+          ? null
+          : graphType === "pmf"
+            ? (hoverState.yData.user * 200).toFixed(3)
+            : getForecastPctDisplayValue(hoverState.yData.user),
+      yUserPreviousLabel: readOnly
+        ? null
+        : !hoverState.yData.user_previous
+          ? null
+          : graphType === "pmf"
+            ? (hoverState.yData.user_previous * 200).toFixed(3)
+            : getForecastPctDisplayValue(hoverState.yData.user_previous),
+      yCommunityLabel: !hoverState.yData.community
+        ? null
         : graphType === "pmf"
-          ? (hoverState.yData.user * 200).toFixed(3)
-          : getForecastPctDisplayValue(hoverState.yData.user),
-      yCommunityLabel:
-        graphType === "pmf"
           ? (hoverState.yData.community * 200).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
@@ -73,13 +85,20 @@ const ContinuousPredictionChart: FC<Props> = ({
 
   const data: ContinuousAreaGraphInput = useMemo(() => {
     const charts: ContinuousAreaGraphInput = [];
-    if (showCP && question.aggregations.recency_weighted.latest) {
+    const latest = question.aggregations.recency_weighted.latest;
+    if (showCP && latest && !latest.end_time) {
       charts.push({
-        pmf: cdfToPmf(
-          question.aggregations.recency_weighted.latest.forecast_values
-        ),
-        cdf: question.aggregations.recency_weighted.latest.forecast_values,
+        pmf: cdfToPmf(latest.forecast_values),
+        cdf: latest.forecast_values,
         type: "community",
+      });
+    }
+
+    if (overlayPreviousForecast && question.my_forecasts?.latest) {
+      charts.push({
+        pmf: cdfToPmf(question.my_forecasts.latest.forecast_values),
+        cdf: question.my_forecasts.latest.forecast_values,
+        type: "user_previous",
       });
     }
 
@@ -99,6 +118,7 @@ const ContinuousPredictionChart: FC<Props> = ({
     readOnly,
     showCP,
     question.my_forecasts?.latest,
+    overlayPreviousForecast,
   ]);
 
   return (
@@ -133,7 +153,17 @@ const ContinuousPredictionChart: FC<Props> = ({
                 {")"}
               </span>
             )}
-            {showCP && (
+            {cursorDisplayData.yUserPreviousLabel !== null && (
+              <span>
+                <span className="font-bold text-gray-900 dark:text-gray-900-dark">
+                  {cursorDisplayData.yUserPreviousLabel}
+                </span>
+                {" ("}
+                {t("youPrevious")}
+                {")"}
+              </span>
+            )}
+            {showCP && cursorDisplayData.yCommunityLabel && (
               <span>
                 <span className="font-bold text-gray-900 dark:text-gray-900-dark">
                   {cursorDisplayData.yCommunityLabel}

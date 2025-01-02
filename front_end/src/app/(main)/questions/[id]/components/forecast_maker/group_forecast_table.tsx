@@ -1,5 +1,4 @@
 import { Radio, RadioGroup } from "@headlessui/react";
-import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
 import {
   DetailedHTMLProps,
@@ -20,16 +19,17 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 import { formatResolution } from "@/utils/questions";
 
 export type ConditionalTableOption = {
   id: number;
   name: string;
   question: QuestionWithNumericForecasts;
-  userForecast: MultiSliderValue[];
+  userForecast: MultiSliderValue[] | null;
   userWeights: number[];
   userQuartiles: Quartiles | null;
-  communityQuartiles: Quartiles;
+  communityQuartiles: Quartiles | null;
   isDirty: boolean;
   resolution: Resolution | null;
   menu?: ReactNode;
@@ -37,6 +37,7 @@ export type ConditionalTableOption = {
 
 type Props = {
   value: number | null;
+  groupVariable: string;
   options: ConditionalTableOption[];
   onChange: (id: number) => void;
   questions: QuestionWithNumericForecasts[];
@@ -48,6 +49,7 @@ const GroupForecastTable: FC<Props> = ({
   value,
   onChange,
   questions,
+  groupVariable,
   showCP = true,
 }) => {
   const t = useTranslations();
@@ -78,7 +80,7 @@ const GroupForecastTable: FC<Props> = ({
       {!!resolvedOptions.length && (
         <thead>
           <tr className="h-4">
-            <Th className="border-b border-r">TBD group label</Th>
+            <Th className="border-b border-r">{groupVariable}</Th>
             <Th className="border-b" colSpan={3}>
               {t("resolution")}
             </Th>
@@ -91,7 +93,7 @@ const GroupForecastTable: FC<Props> = ({
             as="tr"
             key={option.id}
             value={option.id}
-            className={classNames("h-8 cursor-pointer", {
+            className={cn("h-8 cursor-pointer", {
               "bg-gray-100 dark:bg-gray-100-dark": option.id !== value,
               "bg-gray-0 dark:bg-gray-0-dark": option.id === value,
             })}
@@ -133,7 +135,7 @@ const GroupForecastTable: FC<Props> = ({
       {!!pendingOptions.length && (
         <tbody>
           <tr className="h-4 cursor-pointer bg-gray-100 dark:bg-gray-1000-dark">
-            <Th className="border-b border-r" />
+            <Th className="border-b border-r">{groupVariable}</Th>
             <Th className="border-b border-r">
               {t("questionGroupTableFirstQuartileLabel")}
             </Th>
@@ -153,7 +155,7 @@ const GroupForecastTable: FC<Props> = ({
             as="tr"
             key={option.id}
             value={option.id}
-            className={classNames("h-8 cursor-pointer", {
+            className={cn("h-8 cursor-pointer", {
               "bg-gray-100 dark:bg-gray-100-dark": option.id !== value,
               "bg-gray-0 dark:bg-gray-0-dark": option.id === value,
             })}
@@ -161,7 +163,7 @@ const GroupForecastTable: FC<Props> = ({
             {({ checked, disabled }) => (
               <>
                 <Td
-                  className={classNames("border-r px-5", {
+                  className={cn("border-r px-5", {
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
@@ -174,111 +176,115 @@ const GroupForecastTable: FC<Props> = ({
                   </RadioButton>
                 </Td>
                 <Td
-                  className={classNames("border-r", {
+                  className={cn("border-r", {
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
                   <PredictionCell
-                    communityValue={getDisplayValue(
-                      showCP ? option.communityQuartiles.lower25 : undefined,
-                      (
+                    communityValue={getDisplayValue({
+                      value: showCP
+                        ? option.communityQuartiles?.lower25
+                        : undefined,
+                      questionType: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
                       ).type,
-                      (
+                      scaling: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
-                      ).scaling
-                    )}
-                    userValue={getDisplayValue(
-                      option.userQuartiles?.lower25,
-                      (
+                      ).scaling,
+                    })}
+                    userValue={getDisplayValue({
+                      value: option.userQuartiles?.lower25,
+                      questionType: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
                       ).type,
-                      (
+                      scaling: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
-                      ).scaling
-                    )}
+                      ).scaling,
+                    })}
                     isDirty={option.isDirty}
                   />
                 </Td>
                 <Td
-                  className={classNames("border-r", {
+                  className={cn("border-r", {
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
                   <PredictionCell
-                    communityValue={getDisplayValue(
-                      showCP ? option.communityQuartiles.median : undefined,
-                      (
+                    communityValue={getDisplayValue({
+                      value: showCP
+                        ? option.communityQuartiles?.median
+                        : undefined,
+                      questionType: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
                       ).type,
-                      (
+                      scaling: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
-                      ).scaling
-                    )}
-                    userValue={getDisplayValue(
-                      option.userQuartiles?.median,
-                      (
+                      ).scaling,
+                    })}
+                    userValue={getDisplayValue({
+                      value: option.userQuartiles?.median,
+                      questionType: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
                       ).type,
-                      (
+                      scaling: (
                         questions.find(
                           (question) => question.id === option.id
                         ) as Question
-                      ).scaling
-                    )}
+                      ).scaling,
+                    })}
                     isDirty={option.isDirty}
                   />
                 </Td>
                 <Td
-                  className={classNames({
+                  className={cn({
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
                   <div className="flex">
                     <div className="w-full">
                       <PredictionCell
-                        communityValue={getDisplayValue(
-                          showCP
-                            ? option.communityQuartiles.upper75
+                        communityValue={getDisplayValue({
+                          value: showCP
+                            ? option.communityQuartiles?.upper75
                             : undefined,
-                          (
+                          questionType: (
                             questions.find(
                               (question) => question.id === option.id
                             ) as Question
                           ).type,
-                          (
+                          scaling: (
                             questions.find(
                               (question) => question.id === option.id
                             ) as Question
-                          ).scaling
-                        )}
-                        userValue={getDisplayValue(
-                          option.userQuartiles?.upper75,
-                          (
+                          ).scaling,
+                        })}
+                        userValue={getDisplayValue({
+                          value: option.userQuartiles?.upper75,
+                          questionType: (
                             questions.find(
                               (question) => question.id === option.id
                             ) as Question
                           ).type,
-                          (
+                          scaling: (
                             questions.find(
                               (question) => question.id === option.id
                             ) as Question
-                          ).scaling
-                        )}
+                          ).scaling,
+                        })}
                         isDirty={option.isDirty}
                       />
                     </div>
@@ -304,7 +310,7 @@ const PredictionCell: FC<{
       {communityValue}
     </div>
     <div
-      className={classNames(
+      className={cn(
         "flex justify-center text-orange-800 dark:text-orange-800-dark",
         {
           "bg-orange-100 font-semibold dark:bg-orange-100-dark": isDirty,
@@ -325,7 +331,7 @@ const Th: FC<
   >
 > = ({ className, children, ...props }) => (
   <th
-    className={classNames(
+    className={cn(
       "border-gray-400 bg-gray-200 text-xs font-semibold dark:border-gray-400-dark dark:bg-gray-200-dark",
       className
     )}
@@ -344,7 +350,7 @@ const Td: FC<
   >
 > = ({ className, children, ...props }) => (
   <td
-    className={classNames(
+    className={cn(
       "border-gray-400 p-0 text-left text-xs dark:border-gray-400-dark",
       className
     )}

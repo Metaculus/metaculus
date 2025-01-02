@@ -7,7 +7,7 @@ export function setServerCookie(name: string, value: string) {
   cookies().set(name, value, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // One week
+    maxAge: 60 * 60 * 24 * 182, // 6mo
     path: "/",
   });
 }

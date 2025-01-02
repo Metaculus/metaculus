@@ -5,23 +5,28 @@ import { FC, useMemo } from "react";
 
 import {
   getDropdownSortOptions,
+  getFilterSectionPostStatus,
+  getFilterSectionPostType,
+  getFilterSectionUsername,
   getMainOrderOptions,
-  getPostsFilters,
 } from "@/app/(main)/questions/helpers/filters";
+import {
+  FilterOptionType,
+  FilterSection,
+} from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import {
+  POST_FOLLOWING_FILTER,
   POST_FORECASTER_ID_FILTER,
+  POST_NOT_FORECASTER_ID_FILTER,
   POST_STATUS_FILTER,
+  POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
-import { Category, Tag } from "@/types/projects";
+import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
-
-type Props = {
-  categories: Category[];
-  tags: Tag[];
-};
+import { CurrentUser } from "@/types/users";
 
 const OPEN_STATUS_FILTERS = [
   QuestionOrder.PublishTimeDesc,
@@ -43,14 +48,14 @@ const FORECASTER_ID_FILTERS = [
   QuestionOrder.DivergenceDesc,
 ];
 
-const TournamentFilters: FC<Props> = ({ categories, tags }) => {
+const TournamentFilters: FC = () => {
   const { user } = useAuth();
   const { params } = useSearchParams();
   const t = useTranslations();
 
   const filters = useMemo(() => {
-    return getPostsFilters({ tags, user, t, params, categories });
-  }, [categories, params, t, tags, user]);
+    return getTournamentPostsFilters({ user, t, params });
+  }, [params, t, user]);
 
   const mainSortOptions = useMemo(() => {
     return getMainOrderOptions(t);
@@ -78,10 +83,6 @@ const TournamentFilters: FC<Props> = ({ categories, tags }) => {
       setFilterParam(POST_FORECASTER_ID_FILTER, user.id.toString(), false);
     }
 
-    if (order === QuestionOrder.ResolveTimeAsc) {
-      setFilterParam(POST_STATUS_FILTER, "open", false);
-    }
-
     if (postStatusFilters.length) {
       setFilterParam(POST_STATUS_FILTER, postStatusFilters, false);
     }
@@ -97,5 +98,88 @@ const TournamentFilters: FC<Props> = ({ categories, tags }) => {
     />
   );
 };
+
+function getTournamentPostsFilters({
+  user,
+  t,
+  params,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  params: URLSearchParams;
+  user: CurrentUser | null;
+}): FilterSection[] {
+  const filters: FilterSection[] = [
+    getFilterSectionPostType({ t, params }),
+    getFilterSectionPostStatus({
+      t,
+      params,
+      statuses: [
+        PostStatus.DRAFT,
+        PostStatus.PENDING,
+        PostStatus.OPEN,
+        PostStatus.UPCOMING,
+        PostStatus.CLOSED,
+        PostStatus.PENDING_RESOLUTION,
+        PostStatus.RESOLVED,
+        PostStatus.DELETED,
+      ],
+    }),
+    getFilterSectionUsername({ t, params }),
+  ];
+
+  if (user) {
+    filters.push({
+      id: "userFilters",
+      title: t("myParticipation"),
+      type: FilterOptionType.ToggleChip,
+      options: [
+        {
+          id: POST_FORECASTER_ID_FILTER,
+          label: t("searchOptionPredicted"),
+          value: user.id.toString(),
+          active:
+            !!params.get(POST_FORECASTER_ID_FILTER) &&
+            !params.get(POST_WITHDRAWN_FILTER),
+        },
+        {
+          id: POST_WITHDRAWN_FILTER,
+          label: t("searchOptionActivePrediction"),
+          value: "false",
+          extraValues: {
+            [POST_FORECASTER_ID_FILTER]: user.id.toString(),
+          },
+          active:
+            !!params.get(POST_FORECASTER_ID_FILTER) &&
+            params.get(POST_WITHDRAWN_FILTER) === "false",
+        },
+        {
+          id: POST_WITHDRAWN_FILTER,
+          label: t("searchOptionWithdrawnPrediction"),
+          value: "true",
+          extraValues: {
+            [POST_FORECASTER_ID_FILTER]: user.id.toString(),
+          },
+          active:
+            !!params.get(POST_FORECASTER_ID_FILTER) &&
+            params.get(POST_WITHDRAWN_FILTER) === "true",
+        },
+        {
+          id: POST_NOT_FORECASTER_ID_FILTER,
+          label: t("searchOptionNotPredicted"),
+          value: user.id.toString(),
+          active: !!params.get(POST_NOT_FORECASTER_ID_FILTER),
+        },
+        {
+          id: POST_FOLLOWING_FILTER,
+          label: t("followed"),
+          value: "true",
+          active: !!params.get(POST_FOLLOWING_FILTER),
+        },
+      ],
+    });
+  }
+
+  return filters;
+}
 
 export default TournamentFilters;

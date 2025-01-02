@@ -11,14 +11,13 @@ def remove_markdown(text: str) -> str:
 
 
 def generate_email_comment_preview_text(
-    text: str, username: str = None
+    text: str, username: str = None, max_chars: int = 80
 ) -> tuple[str, bool]:
     """
     Generate a preview of email comment text with mention highlighting.
     """
 
     placeholder = "..."
-    max_chars = 80
     text = remove_markdown(text)
 
     # Replace all matches with @username format

@@ -27,7 +27,7 @@ const MILESTONE_STEP_OPTIONS = [
 ];
 
 const SubscriptionSectionMilestone: FC<
-  SubscriptionSectionProps<PostSubscriptionMilestone>
+  SubscriptionSectionProps<PostSubscriptionMilestone, "milestone_step">
 > = ({ subscription, onChange, post }) => {
   const t = useTranslations();
 
@@ -39,7 +39,7 @@ const SubscriptionSectionMilestone: FC<
         onChange={(value) => onChange("milestone_step", value)}
         as="ul"
       >
-        {MILESTONE_STEP_OPTIONS.map((option, optionIdx) => (
+        {MILESTONE_STEP_OPTIONS.map((option) => (
           <Radio as="li" key={option.id} value={option.id}>
             {({ checked, disabled }) => (
               <RadioButton checked={checked} disabled={disabled} size="small">

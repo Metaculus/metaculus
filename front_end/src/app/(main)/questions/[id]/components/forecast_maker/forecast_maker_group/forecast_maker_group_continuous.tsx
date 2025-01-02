@@ -1,18 +1,24 @@
 "use client";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { differenceInMilliseconds } from "date-fns";
+import { isNil } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import {
   Post,
@@ -20,17 +26,15 @@ import {
   ProjectPermissions,
   QuestionStatus,
 } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
+import { getCdfBounds } from "@/utils/charts";
+import cn from "@/utils/cn";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import {
-  extractQuestionGroupName,
   formatResolution,
   getSubquestionPredictionInputMessage,
 } from "@/utils/questions";
@@ -43,21 +47,23 @@ import GroupForecastTable, {
   ConditionalTableOption,
 } from "../group_forecast_table";
 import NumericForecastTable from "../numeric_table";
+import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   post: PostWithForecasts;
   questions: QuestionWithNumericForecasts[];
+  groupVariable: string;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const ForecastMakerGroupContinuous: FC<Props> = ({
   post,
   questions,
   canPredict,
-  canResolve,
+  groupVariable,
   predictionMessage,
 }) => {
   const t = useTranslations();
@@ -65,7 +71,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const { user } = useAuth();
   const { hideCP } = useHideCP();
   const params = useSearchParams();
-  const { setCurrentModal } = useModal();
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
 
   const { id: postId, user_permission: permission } = post;
@@ -74,17 +79,25 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     () =>
       questions.reduce<
         Record<number, { forecast?: MultiSliderValue[]; weights?: number[] }>
-      >(
-        (acc, question) => ({
+      >((acc, question) => {
+        const latest = question.my_forecasts?.latest;
+        return {
           ...acc,
           [question.id]: extractPrevNumericForecastValue(
-            question.my_forecasts?.latest?.slider_values
+            latest && !latest.end_time ? latest.slider_values : undefined
           ),
-        }),
-        {}
-      ),
+        };
+      }, {}),
     [questions]
   );
+  const hasUserForecast = useMemo(() => {
+    const forecastsByQuestions = Object.values(prevForecastValuesMap);
+
+    return (
+      !!forecastsByQuestions.length &&
+      forecastsByQuestions.some((v) => !isNil(v.forecast))
+    );
+  }, [prevForecastValuesMap]);
 
   const [groupOptions, setGroupOptions] = useState<ConditionalTableOption[]>(
     generateGroupOptions(questions, prevForecastValuesMap, undefined, post)
@@ -107,15 +120,16 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     [questions, activeTableOption]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const questionsToSubmit = useMemo(
     () =>
       groupOptions.filter(
-        (option) => option.isDirty && option.userForecast !== null
+        (option) =>
+          option.userForecast !== null &&
+          option.question.status === QuestionStatus.OPEN
       ),
     [groupOptions]
   );
-  const submitIsAllowed = !isSubmitting && !!questionsToSubmit.length;
   const isPickerDirty = useMemo(
     () => groupOptions.some((option) => option.isDirty),
     [groupOptions]
@@ -159,7 +173,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       prev.map((prevChoice) => {
         if (prevChoice.id === optionId) {
           const newUserForecast = [
-            ...prevChoice.userForecast,
+            ...getNormalizedUserForecast(prevChoice.userForecast),
             { left: 0.4, center: 0.5, right: 0.6 },
           ];
           const newWeights = [...prevChoice.userWeights, 1];
@@ -209,7 +223,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   }, [prevForecastValuesMap]);
 
   const handlePredictSubmit = useCallback(async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
       return;
@@ -223,16 +237,16 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           questionId: question.id,
           forecastData: {
             continuousCdf: getNumericForecastDataset(
-              userForecast,
+              getNormalizedUserForecast(userForecast),
               userWeights,
-              question.open_lower_bound!,
-              question.open_upper_bound!
+              question.open_lower_bound,
+              question.open_upper_bound
             ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
           },
           sliderValues: {
-            forecast: userForecast,
+            forecast: getNormalizedUserForecast(userForecast),
             weights: userWeights,
           },
         };
@@ -243,25 +257,29 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     );
     setIsSubmitting(false);
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   }, [postId, questionsToSubmit]);
+
+  const previousForecast = activeGroupOption?.question.my_forecasts?.latest;
+  const [overlayPreviousForecast, setOverlayPreviousForecast] =
+    useState<boolean>(
+      !!previousForecast?.forecast_values && !previousForecast.slider_values
+    );
 
   const userCdf: number[] | undefined =
     activeGroupOption &&
     getNumericForecastDataset(
-      activeGroupOption?.userForecast,
+      getNormalizedUserForecast(activeGroupOption.userForecast),
       activeGroupOption?.userWeights,
-      activeGroupOption?.question.open_lower_bound!,
-      activeGroupOption?.question.open_upper_bound!
+      activeGroupOption?.question.open_lower_bound,
+      activeGroupOption?.question.open_upper_bound
     ).cdf;
+  const userPreviousCdf: number[] | undefined =
+    overlayPreviousForecast && previousForecast
+      ? previousForecast.forecast_values
+      : undefined;
   const communityCdf: number[] | undefined =
     activeGroupOption?.question.aggregations.recency_weighted.latest
       ?.forecast_values;
@@ -271,36 +289,40 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       <GroupForecastTable
         value={activeTableOption}
         options={groupOptions}
+        groupVariable={groupVariable}
         onChange={setActiveTableOption}
         questions={questions}
         showCP={!user || !hideCP}
       />
       {groupOptions.map((option) => {
+        const normalizedUserForecast = getNormalizedUserForecast(
+          option.userForecast
+        );
+
         const dataset = getNumericForecastDataset(
-          option.userForecast,
+          normalizedUserForecast,
           option.userWeights,
-          option.question.open_lower_bound!,
-          option.question.open_upper_bound!
+          option.question.open_lower_bound,
+          option.question.open_upper_bound
         );
 
         return (
           <div
             key={option.id}
-            className={classNames(
-              "mt-3",
-              option.id !== activeTableOption && "hidden"
-            )}
+            className={cn("mt-3", option.id !== activeTableOption && "hidden")}
           >
             <ContinuousSlider
               question={option.question}
-              forecast={option.userForecast}
+              forecast={normalizedUserForecast}
+              overlayPreviousForecast={overlayPreviousForecast}
+              setOverlayPreviousForecast={setOverlayPreviousForecast}
               weights={option.userWeights}
               dataset={dataset}
               onChange={(forecast, weight) =>
                 handleChange(option.id, forecast, weight)
               }
               disabled={
-                !canPredict || option.question.status != QuestionStatus.OPEN
+                !canPredict || option.question.status !== QuestionStatus.OPEN
               }
             />
           </div>
@@ -308,50 +330,49 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       })}
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       {!!activeGroupOption &&
         activeGroupOption.question.status == QuestionStatus.OPEN && (
           <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-            {canPredict &&
-              (user ? (
-                <>
-                  <Button
-                    variant="secondary"
-                    type="reset"
-                    onClick={() => handleAddComponent(activeGroupOption.id)}
-                  >
-                    {t("addComponentButton")}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    type="reset"
-                    onClick={handleResetForecasts}
-                    disabled={!isPickerDirty}
-                  >
-                    {t("discardChangesButton")}
-                  </Button>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    onClick={handlePredictSubmit}
-                    disabled={!submitIsAllowed}
-                  >
-                    {t("saveChange")}
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="primary"
-                  type="button"
-                  onClick={() => setCurrentModal({ type: "signup" })}
-                >
-                  {t("signUpToPredict")}
-                </Button>
-              ))}
+            {canPredict && (
+              <>
+                {!!user && (
+                  <>
+                    <Button
+                      variant="secondary"
+                      type="reset"
+                      onClick={() => handleAddComponent(activeGroupOption.id)}
+                    >
+                      {t("addComponentButton")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      type="reset"
+                      onClick={handleResetForecasts}
+                      disabled={!isPickerDirty}
+                    >
+                      {t("discardChangesButton")}
+                    </Button>
+                  </>
+                )}
+                <PredictButton
+                  onSubmit={handlePredictSubmit}
+                  isDirty={isPickerDirty}
+                  hasUserForecast={hasUserForecast}
+                  isPending={isSubmitting}
+                  isDisabled={!questionsToSubmit.length}
+                />
+              </>
+            )}
           </div>
         )}
+      <FormError
+        errors={submitError}
+        className="mt-2 flex items-center justify-center"
+        detached
+      />
       {activeGroupOptionPredictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
           {t(activeGroupOptionPredictionMessage)}
@@ -361,25 +382,24 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         <>
           <NumericForecastTable
             question={activeGroupOption.question}
-            userBounds={
-              userCdf && {
-                belowLower: userCdf[0],
-                aboveUpper: 1 - userCdf[userCdf.length - 1],
-              }
-            }
+            userBounds={getCdfBounds(userCdf)}
             userQuartiles={activeGroupOption.userQuartiles ?? undefined}
-            communityBounds={
-              communityCdf && {
-                belowLower: communityCdf[0],
-                aboveUpper: 1 - communityCdf[communityCdf.length - 1],
-              }
+            userPreviousBounds={getCdfBounds(userPreviousCdf)}
+            userPreviousQuartiles={
+              userPreviousCdf
+                ? computeQuartilesFromCDF(userPreviousCdf)
+                : undefined
             }
-            communityQuartiles={activeGroupOption.communityQuartiles}
+            communityBounds={getCdfBounds(communityCdf)}
+            communityQuartiles={
+              activeGroupOption.communityQuartiles ?? undefined
+            }
             withUserQuartiles={activeGroupOption.resolution === null}
             withCommunityQuartiles={!user || !hideCP}
             isDirty={activeGroupOption.isDirty}
             hasUserForecast={
-              !!prevForecastValuesMap[activeTableOption!].forecast
+              !isNil(activeTableOption) &&
+              !!prevForecastValuesMap[activeTableOption]?.forecast
             }
           />
 
@@ -402,9 +422,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           )}
         </>
       )}
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
-      ))}
       {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
@@ -435,7 +452,7 @@ function generateGroupOptions(
 
       return {
         id: q.id,
-        name: extractQuestionGroupName(q.title),
+        name: q.label,
         question: q,
         userQuartiles: getUserQuartiles(
           prevForecast,
@@ -445,11 +462,11 @@ function generateGroupOptions(
         ),
         userForecast: getSliderValue(prevForecast),
         userWeights: getWeightsValue(prevWeights),
-        communityQuartiles: computeQuartilesFromCDF(
-          q.aggregations.recency_weighted.latest
-            ? q.aggregations.recency_weighted.latest.forecast_values
-            : []
-        ),
+        communityQuartiles: q.aggregations.recency_weighted.latest
+          ? computeQuartilesFromCDF(
+              q.aggregations.recency_weighted.latest.forecast_values
+            )
+          : null,
         resolution: q.resolution,
         isDirty: false,
         menu: (
@@ -493,6 +510,10 @@ function getUserQuartiles(
 }
 
 function getSliderValue(forecast?: MultiSliderValue[]) {
+  return forecast ?? null;
+}
+
+function getNormalizedUserForecast(forecast: MultiSliderValue[] | null) {
   return (
     forecast ?? [
       {

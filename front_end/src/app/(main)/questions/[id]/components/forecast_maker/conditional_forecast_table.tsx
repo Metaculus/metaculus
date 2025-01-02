@@ -3,14 +3,13 @@
 import { faAnglesRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Radio, RadioGroup } from "@headlessui/react";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import RadioButton from "@/components/ui/radio_button";
 import { Question, QuestionWithForecasts } from "@/types/question";
+import cn from "@/utils/cn";
 import {
   getConditionalQuestionTitle,
   getConditionTitle,
@@ -75,7 +74,7 @@ const ConditionalForecastTable: FC<Props> = ({
             as="tr"
             key={option.id}
             value={option.id}
-            className={classNames(" text-xs uppercase leading-none ", {
+            className={cn(" text-xs uppercase leading-none ", {
               "bg-gray-100 dark:bg-gray-100-dark": option.id !== value,
               "bg-gray-0 dark:bg-gray-0-dark": option.id === value,
               "bg-orange-100 dark:bg-orange-100-dark": option.isDirty,

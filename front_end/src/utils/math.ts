@@ -65,13 +65,16 @@ function logisticCDF(
 
 export function cdfToPmf(cdf: number[]) {
   const pdf = [];
+  /* eslint-disable @typescript-eslint/no-non-null-assertion */
   for (let i = 0; i < cdf.length; i++) {
     if (i === 0) {
-      pdf.push(cdf[i]);
+      pdf.push(cdf[i]!);
     } else {
-      pdf.push(cdf[i] - cdf[i - 1]);
+      pdf.push(cdf[i]! - cdf[i - 1]!);
     }
   }
+  pdf.push(1 - cdf[cdf.length - 1]!);
+  /* eslint-enable @typescript-eslint/no-non-null-assertion */
   return pdf;
 }
 
@@ -94,8 +97,8 @@ export function cdfFromSliders(
     ),
   ];
   // clip cdf from closed_bounds
-  const scale_lower_to = lowerOpen ? 0 : cdf[0];
-  const scale_upper_to = upperOpen ? 1 : cdf[cdf.length - 1];
+  const scale_lower_to = lowerOpen ? 0 : cdf[0] ?? 0;
+  const scale_upper_to = upperOpen ? 1 : cdf[cdf.length - 1] ?? 1;
   const rescaled_inbound_mass = scale_upper_to - scale_lower_to;
   cdf = cdf.map((x) => (x - scale_lower_to) / rescaled_inbound_mass);
 
@@ -125,13 +128,15 @@ export function computeQuartilesFromCDF(
     const target = percentile / 100;
 
     for (let i = 0; i < cdf.length; i++) {
-      if (cdf[i] >= target) {
+      /* eslint-disable @typescript-eslint/no-non-null-assertion */
+      if (cdf[i]! >= target) {
         if (i === 0) return 0;
 
-        const diff = cdf[i] - cdf[i - 1];
-        const adjustedPercentile = (target - cdf[i - 1]) / diff;
+        const diff = cdf[i]! - cdf[i - 1]!;
+        const adjustedPercentile = (target - cdf[i - 1]!) / diff;
         return (i - 1 + adjustedPercentile) / (cdf.length - 1);
       }
+      /* eslint-enable @typescript-eslint/no-non-null-assertion */
     }
     return 1;
   }

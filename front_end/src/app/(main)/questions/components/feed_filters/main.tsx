@@ -4,20 +4,26 @@ import { FC, useMemo } from "react";
 
 import {
   getFilterSectionParticipation,
+  getFilterSectionPostStatus,
   getFilterSectionPostType,
   getFilterSectionUsername,
-  POST_STATUS_LABEL_MAP,
 } from "@/app/(main)/questions/helpers/filters";
-import { FilterOptionType } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
-import { POST_STATUS_FILTER } from "@/constants/posts_feed";
+import {
+  POST_FOLLOWING_FILTER,
+  POST_STATUS_FILTER,
+} from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
-const MainFeedFilters: FC = () => {
+type Props = {
+  following?: boolean;
+};
+
+const MainFeedFilters: FC<Props> = ({ following }) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
@@ -25,21 +31,17 @@ const MainFeedFilters: FC = () => {
   const filters = useMemo(() => {
     const filters = [
       getFilterSectionPostType({ t, params }),
-      {
-        id: POST_STATUS_FILTER,
-        title: t("questionStatus"),
-        type: FilterOptionType.MultiChip,
-        options: [
+      getFilterSectionPostStatus({
+        statuses: [
           PostStatus.OPEN,
           PostStatus.CLOSED,
+          PostStatus.PENDING_RESOLUTION,
           PostStatus.RESOLVED,
           PostStatus.UPCOMING,
-        ].map((status) => ({
-          label: POST_STATUS_LABEL_MAP[status],
-          value: status,
-          active: params.getAll(POST_STATUS_FILTER).includes(status),
-        })),
-      },
+        ],
+        t,
+        params,
+      }),
       getFilterSectionUsername({ t, params }),
     ];
     if (user) {
@@ -88,6 +90,10 @@ const MainFeedFilters: FC = () => {
       withNavigation?: boolean
     ) => void
   ) => {
+    if (following) {
+      setFilterParam(POST_FOLLOWING_FILTER, "true", false);
+    }
+
     if (
       [
         QuestionOrder.ActivityDesc,
@@ -107,6 +113,7 @@ const MainFeedFilters: FC = () => {
       sortOptions={sortOptions}
       onOrderChange={onOrderChange}
       defaultOrder={QuestionOrder.HotDesc}
+      showRandomButton
     />
   );
 };

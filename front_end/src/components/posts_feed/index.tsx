@@ -12,9 +12,15 @@ type Props = {
   filters: PostsParams;
   type?: PostsFeedType;
   topics?: Topic[];
+  isCommunity?: boolean;
 };
 
-const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
+const AwaitedPostsFeed: FC<Props> = async ({
+  filters,
+  type,
+  topics,
+  isCommunity,
+}) => {
   if (
     topics &&
     filters.topic &&
@@ -29,7 +35,9 @@ const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
 
   const { results: questions } = await PostsApi.getPostsWithCP({
     ...filters,
-    limit: POSTS_PER_PAGE,
+    limit:
+      (!isNaN(Number(filters.page)) ? Number(filters.page) : 1) *
+      POSTS_PER_PAGE,
   });
 
   return (
@@ -37,6 +45,7 @@ const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
       filters={filters}
       initialQuestions={questions}
       type={type}
+      isCommunity={isCommunity}
     />
   );
 };

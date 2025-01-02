@@ -1,5 +1,6 @@
 import {
   AuthResponse,
+  SignUpResponse,
   SocialAuthResponse,
   SocialProvider,
   SocialProviderType,
@@ -56,20 +57,35 @@ class AuthApi {
     password: string,
     is_bot: boolean,
     turnstileHeaders: Record<string, any>,
-    add_to_project?: number
+    add_to_project?: number,
+    campaign_key?: string,
+    campaign_data?: object,
+    redirect_url?: string
   ) {
     return post<
-      null,
+      SignUpResponse,
       {
         email: string;
         username: string;
         password: string;
         is_bot: boolean;
         add_to_project?: number;
+        campaign_key?: string;
+        campaign_data?: object;
+        redirect_url?: string;
       }
     >(
       "/auth/signup/",
-      { email, username, password, is_bot, add_to_project },
+      {
+        email,
+        username,
+        password,
+        is_bot,
+        add_to_project,
+        campaign_key,
+        campaign_data,
+        redirect_url,
+      },
       { headers: turnstileHeaders }
     );
   }

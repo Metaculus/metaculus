@@ -6,9 +6,12 @@ from rest_framework.exceptions import ValidationError
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
-from posts.services.search import perform_post_search, qs_filter_similar_posts
+from posts.services.search import (
+    perform_post_search,
+    qs_filter_similar_posts,
+    posts_full_text_search,
+)
 from projects.models import Project
-from projects.services.common import get_site_main_project
 from users.models import User
 from utils.cache import cache_get_or_set
 from utils.dtypes import evenly_distribute_items
@@ -36,10 +39,12 @@ def get_posts_feed(
     notebook_type: Notebook.NotebookType = None,
     usernames: list[str] = None,
     forecaster_id: int = None,
+    withdrawn: bool = None,
     not_forecaster_id: int = None,
     similar_to_post_id: int = None,
     for_main_feed: bool = None,
     show_on_homepage: bool = None,
+    following: bool = None,
     **kwargs,
 ) -> Post.objects:
     """
@@ -83,8 +88,7 @@ def get_posts_feed(
         qs = qs.filter_projects(tournaments)
 
     if for_main_feed:
-        site_main_project = get_site_main_project()
-        qs = qs.filter_projects(site_main_project)
+        qs = qs.filter_for_main_feed()
 
     if show_on_homepage:
         qs = qs.filter(show_on_homepage=True)
@@ -97,7 +101,6 @@ def get_posts_feed(
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()
-    print(forecast_type)
 
     for f_type in forecast_type:
         match f_type:
@@ -120,32 +123,51 @@ def get_posts_feed(
             q |= Q(curation_status=status)
         if status == "upcoming":
             q |= Q(
-                Q(curation_status=Post.CurationStatus.APPROVED)
-                & (Q(published_at__gte=timezone.now()) | Q(published_at__isnull=True))
+                Q(notebook__isnull=True)
+                & Q(curation_status=Post.CurationStatus.APPROVED)
+                & Q(open_time__gte=timezone.now())
             )
         if status == "closed":
-            q |= Q(actual_close_time__isnull=False, resolved=False) | Q(
-                scheduled_close_time__lte=timezone.now(), resolved=False
+            q |= Q(notebook__isnull=True) & (
+                Q(curation_status=Post.CurationStatus.APPROVED)
+                & (
+                    Q(actual_close_time__isnull=False, resolved=False)
+                    | Q(scheduled_close_time__lte=timezone.now(), resolved=False)
+                )
             )
+        if status == "pending_resolution":
+            q |= (
+                Q(notebook__isnull=True)
+                & Q(curation_status=Post.CurationStatus.APPROVED)
+                & Q(resolved=False, scheduled_resolve_time__lte=timezone.now())
+            )
+            if order_by in [None, "-" + PostFilterSerializer.Order.HOTNESS]:
+                order_by = "-" + PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME
         if status == "resolved":
-            q |= Q(resolved=True, curation_status=Post.CurationStatus.APPROVED)
+            q |= Q(notebook__isnull=True) & Q(
+                resolved=True, curation_status=Post.CurationStatus.APPROVED
+            )
         if status == "open":
             q |= Q(
                 Q(published_at__lte=timezone.now())
                 & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Q(
-                    (
-                        Q(actual_close_time__isnull=True)
-                        | Q(actual_close_time__gte=timezone.now())
+                & (
+                    # Notebooks don't support statuses filter
+                    # So we add fallback condition list this
+                    Q(notebook_id__isnull=False)
+                    | (
+                        Q(open_time__lte=timezone.now())
+                        & Q(
+                            (
+                                Q(actual_close_time__isnull=True)
+                                | Q(actual_close_time__gte=timezone.now())
+                            )
+                            & Q(scheduled_close_time__gte=timezone.now())
+                        )
+                        & Q(resolved=False)
                     )
-                    & Q(scheduled_close_time__gte=timezone.now())
-                )
-                & Q(resolved=False),
+                ),
             )
-
-            # Notebooks don't support statuses filter
-            # So we add fallback condition list this
-            q |= Q(notebook_id__isnull=False)
 
     qs = qs.filter(q)
 
@@ -153,10 +175,18 @@ def get_posts_feed(
         qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
             user_last_forecasts_date__isnull=False
         )
+        if withdrawn is not None:
+            qs = qs.annotate_has_active_forecast(forecaster_id).filter(
+                has_active_forecast=not withdrawn
+            )
     if not_forecaster_id:
         qs = qs.annotate_user_last_forecasts_date(not_forecaster_id).filter(
             user_last_forecasts_date__isnull=True
         )
+
+    # Followed posts
+    if user and user.is_authenticated and following:
+        qs = qs.annotate_user_is_following(user=user).filter(user_is_following=True)
 
     # Filter by access
     if access == PostFilterSerializer.Access.PRIVATE:
@@ -184,7 +214,14 @@ def get_posts_feed(
             # Force ordering by search rank
             order_by = "-rank"
         else:
-            qs = qs.filter(rank__gte=0.3)
+            q = Q(rank__gte=0.3)
+
+            # Full-text search is currently not fully optimized.
+            # To avoid overloading the database, it is applied only to filtered and narrowed queries.
+            if tournaments:
+                q = q | Q(pk__in=posts_full_text_search(qs, search))
+
+            qs = qs.filter(q)
 
     # Other filters
     qs = qs.filter(**kwargs)
@@ -194,9 +231,8 @@ def get_posts_feed(
     # Ordering
     order_desc, order_type = parse_order_by(order_by)
 
-    if (
-        order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
-        and not forecaster_id
+    if order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE and not (
+        forecaster_id
     ):
         order_type = "created_at"
 
@@ -219,8 +255,11 @@ def get_posts_feed(
 
         qs = qs.annotate_divergence(forecaster_id)
     if order_type == PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME:
-        qs = qs.filter(scheduled_resolve_time__gte=timezone.now())
-
+        qs = qs.filter(
+            scheduled_resolve_time__isnull=False,
+            resolved=False,
+            curation_status=Post.CurationStatus.APPROVED,
+        )
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
     return qs.distinct("id", order_type).only("pk")

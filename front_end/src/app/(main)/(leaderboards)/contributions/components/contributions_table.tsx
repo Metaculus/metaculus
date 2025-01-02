@@ -1,7 +1,6 @@
 "use client";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
@@ -14,20 +13,29 @@ import {
 
 import MarkdownEditor from "@/components/markdown_editor";
 import { QuestionType } from "@/types/question";
-import { CategoryKey, Contribution, LeaderboardEntry } from "@/types/scoring";
+import {
+  CategoryKey,
+  Contribution,
+  LeaderboardEntry,
+  LeaderboardType,
+} from "@/types/scoring";
+import cn from "@/utils/cn";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { isUnsuccessfullyResolved } from "@/utils/questions";
 
-type SortingColumn = "score" | "title" | "type";
+type SortingColumn = "score" | "coverage" | "title" | "type";
 type SortingDirection = "asc" | "desc";
 
 type Props = {
   category: CategoryKey;
+  leaderboardType: LeaderboardType;
   leaderboardEntry: LeaderboardEntry;
   contributions: Contribution[];
 };
 
 const ContributionsTable: FC<Props> = ({
   category,
+  leaderboardType,
   leaderboardEntry,
   contributions,
 }) => {
@@ -41,7 +49,11 @@ const ContributionsTable: FC<Props> = ({
       setSortingDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortingColumn(column);
-      setSortingDirection("asc");
+      if (["score", "coverage"].includes(column)) {
+        setSortingDirection("desc");
+      } else {
+        setSortingDirection("asc");
+      }
     }
   };
 
@@ -50,17 +62,33 @@ const ContributionsTable: FC<Props> = ({
       [...contributions].sort((a, b) => {
         switch (sortingColumn) {
           case "score":
+            const aScore = a.score ?? 0;
+            const bScore = b.score ?? 0;
+
             return sortingDirection === "asc"
-              ? (a.score ?? 0) - (b.score ?? 0)
-              : (b.score ?? 0) - (a.score ?? 0);
+              ? aScore - bScore
+              : bScore - aScore;
           case "title":
+            const aTitle = a.question_title ?? "";
+            const bTitle = b.question_title ?? "";
+
             return sortingDirection === "asc"
-              ? a.question_title!.localeCompare(b.question_title!)
-              : b.question_title!.localeCompare(a.question_title!);
+              ? aTitle.localeCompare(bTitle)
+              : bTitle.localeCompare(aTitle);
           case "type":
+            const aType = a.question_type ?? "";
+            const bType = b.question_type ?? "";
+
             return sortingDirection === "asc"
-              ? a.question_type!.localeCompare(b.question_type!)
-              : b.question_type!.localeCompare(a.question_type!);
+              ? aType.localeCompare(bType)
+              : bType.localeCompare(aType);
+          case "coverage":
+            const aCoverage = a.coverage ?? 0;
+            const bCoverage = b.coverage ?? 0;
+
+            return sortingDirection === "asc"
+              ? aCoverage - bCoverage
+              : bCoverage - aCoverage;
           default:
             return 0;
         }
@@ -85,7 +113,7 @@ const ContributionsTable: FC<Props> = ({
       : "-";
   };
 
-  const getQuestionTypeLabel = (type: QuestionType) => {
+  const getQuestionTypeLabel = (type: QuestionType | undefined) => {
     switch (type) {
       case QuestionType.Binary:
         return t("binary");
@@ -104,7 +132,7 @@ const ContributionsTable: FC<Props> = ({
       <thead>
         <tr className="bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark">
           <InfoHeaderTd
-            className={classNames(
+            className={cn(
               "text-center font-mono",
               { "w-28": category === "questionWriting" },
               { "w-24": category === "comments" },
@@ -113,6 +141,9 @@ const ContributionsTable: FC<Props> = ({
           >
             {abbreviatedNumber(totalScore, 4, false)}
           </InfoHeaderTd>
+          {leaderboardType === "peer_global" && (
+            <InfoHeaderTd className="w-24 font-medium leading-4 max-sm:hidden" />
+          )}
           <InfoHeaderTd className="w-full font-medium">
             {category === "baseline" && t("totalScore")}
             {category === "peer" && t("weightedAverageScore")}
@@ -134,6 +165,17 @@ const ContributionsTable: FC<Props> = ({
               <SortArrow isAsc={sortingDirection === "asc"} />
             )}
           </HeaderTd>
+          {leaderboardType === "peer_global" && (
+            <HeaderTd
+              className="w-20"
+              onClick={() => handleSortChange("coverage")}
+            >
+              {t("coverage")}
+              {sortingColumn === "coverage" && (
+                <SortArrow isAsc={sortingDirection === "asc"} />
+              )}
+            </HeaderTd>
+          )}
           <HeaderTd
             className="w-full"
             onClick={() => handleSortChange("title")}
@@ -163,7 +205,7 @@ const ContributionsTable: FC<Props> = ({
             className="border-b border-gray-300 bg-gray-0 text-gray-800 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-800-dark"
           >
             <td
-              className={classNames(
+              className={cn(
                 "flex items-center justify-center px-0 py-1.5 font-mono text-sm font-medium leading-4",
                 {
                   "dark:text-conditionals-green-700-dark text-conditional-green-700":
@@ -177,29 +219,34 @@ const ContributionsTable: FC<Props> = ({
             >
               {getScoreLabel(contribution)}
             </td>
+            {leaderboardType === "peer_global" && (
+              <td className="w-20 py-1.5 text-sm font-medium leading-4">
+                {!!contribution.coverage
+                  ? (contribution.coverage * 100).toFixed(1) + "%"
+                  : "0%"}
+              </td>
+            )}
             <td className="truncate px-4 py-1.5 text-sm font-medium leading-4">
               {["peer", "baseline"].includes(category) && (
                 <Link
                   className="no-underline"
-                  href={`/questions/${contribution.question_id!}`}
+                  href={`/questions/${contribution?.question_id}`}
                 >
-                  {contribution.question_title!}
+                  {contribution?.question_title}
                 </Link>
               )}
               {category === "questionWriting" && (
                 <Link
                   className="no-underline"
-                  /* TODO: change to actual comment url once BE support it */
-                  href={`/questions/${contribution.post_id!}`}
+                  href={`/questions/${contribution.post_id}`}
                 >
-                  {contribution.post_title!}
+                  {contribution.post_title}
                 </Link>
               )}
               {category === "comments" && (
                 <Link
                   className="block max-h-[15px] truncate no-underline"
-                  /* TODO: change to actual comment url once BE support it */
-                  href={`/questions/${contribution.post_id!}/#comment-${contribution.comment_id}`}
+                  href={`/questions/${contribution.post_id}/#comment-${contribution.comment_id}`}
                 >
                   <MarkdownEditor
                     mode="read"
@@ -213,7 +260,7 @@ const ContributionsTable: FC<Props> = ({
             </td>
             {isQuestionCategory && (
               <td className="flex items-center gap-2 self-stretch px-4 py-1.5 text-sm font-medium leading-4 text-blue-700 dark:text-blue-700-dark max-sm:hidden">
-                {getQuestionTypeLabel(contribution.question_type!)}
+                {getQuestionTypeLabel(contribution.question_type)}
               </td>
             )}
           </tr>
@@ -229,10 +276,7 @@ const InfoHeaderTd: FC<
     HTMLTableCellElement
   >
 > = ({ className, children, ...props }) => (
-  <td
-    className={classNames("px-4 py-1.5 text-sm leading-4", className)}
-    {...props}
-  >
+  <td className={cn("px-4 py-1.5 text-sm leading-4", className)} {...props}>
     {children}
   </td>
 );
@@ -244,10 +288,7 @@ const HeaderTd: FC<
   >
 > = ({ className, children, ...props }) => (
   <td
-    className={classNames(
-      "cursor-pointer py-4 text-sm font-bold leading-4",
-      className
-    )}
+    className={cn("cursor-pointer py-4 text-sm font-bold leading-4", className)}
     {...props}
   >
     {children}
@@ -257,7 +298,7 @@ const HeaderTd: FC<
 const SortArrow: FC<{ isAsc: boolean }> = ({ isAsc }) => (
   <FontAwesomeIcon
     icon={faCaretDown}
-    className={classNames("ml-2", {
+    className={cn("ml-2", {
       "rotate-180": isAsc,
     })}
   />
@@ -265,11 +306,10 @@ const SortArrow: FC<{ isAsc: boolean }> = ({ isAsc }) => (
 
 const getIsResolved = (contribution: Contribution) =>
   !!contribution.question_resolution &&
-  (contribution.question_resolution !== "ambiguous" ??
-    contribution.question_resolution !== "annulled");
+  !isUnsuccessfullyResolved(contribution.question_resolution);
 
 const getCommentSummary = (markdown: string) => {
-  if ([">", "*"].includes(markdown[0])) {
+  if ([">", "*"].includes(markdown[0] ?? "")) {
     markdown = markdown.slice(1);
   }
   markdown = markdown.replace(/\<.*?\>/g, "");

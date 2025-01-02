@@ -64,7 +64,15 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
     }
 
     return [];
-  }, [locale, scheduled_close_time, actual_close_time, status, t]);
+  }, [
+    status,
+    t,
+    scheduled_resolve_time,
+    open_time,
+    locale,
+    scheduled_close_time,
+    actual_close_time,
+  ]);
 
   if (!post.scheduled_close_time && !post.actual_close_time) {
     return null;

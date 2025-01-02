@@ -2,8 +2,9 @@
 
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { FC, useState } from "react";
+
+import cn from "@/utils/cn";
 
 import { cancelBulletin } from "../actions";
 
@@ -12,7 +13,7 @@ const Bulletin: FC<{ text: string; id: number }> = ({ text, id }) => {
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "mt-3 flex w-full max-w-5xl flex-col gap-3 px-3 sm:w-2/3 sm:px-0 md:mt-8",
         {
           hidden: hidden,

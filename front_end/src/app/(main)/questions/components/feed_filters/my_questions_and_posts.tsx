@@ -4,13 +4,13 @@ import { FC, useMemo } from "react";
 
 import {
   getFilterSectionParticipation,
+  getFilterSectionPostStatus,
   getFilterSectionPostType,
-  POST_STATUS_LABEL_MAP,
 } from "@/app/(main)/questions/helpers/filters";
 import { FilterOptionType } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
-import { POST_ACCESS_FILTER, POST_STATUS_FILTER } from "@/constants/posts_feed";
+import { POST_ACCESS_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
@@ -24,24 +24,21 @@ const MyQuestionsAndPostsFilters: FC = () => {
   const filters = useMemo(() => {
     const filters = [
       getFilterSectionPostType({ t, params }),
-      {
-        id: POST_STATUS_FILTER,
-        title: t("questionStatus"),
-        type: FilterOptionType.MultiChip,
-        options: [
+      getFilterSectionPostStatus({
+        statuses: [
           PostStatus.DRAFT,
           PostStatus.PENDING,
           PostStatus.UPCOMING,
           PostStatus.APPROVED,
+          PostStatus.OPEN,
           PostStatus.CLOSED,
+          PostStatus.PENDING_RESOLUTION,
           PostStatus.RESOLVED,
           PostStatus.DELETED,
-        ].map((status) => ({
-          label: POST_STATUS_LABEL_MAP[status],
-          value: status,
-          active: params.getAll(POST_STATUS_FILTER).includes(status),
-        })),
-      },
+        ],
+        t,
+        params,
+      }),
       {
         id: POST_ACCESS_FILTER,
         title: t("special"),

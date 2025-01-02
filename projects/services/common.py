@@ -1,3 +1,6 @@
+from collections import defaultdict
+from typing import Iterable
+
 from django.db import IntegrityError
 from django.db.models import Q
 
@@ -11,6 +14,7 @@ from posts.models import Post
 from projects.models import Project, ProjectUserPermission, ProjectSubscription
 from projects.permissions import ObjectPermission
 from users.models import User
+from utils.dtypes import generate_map_from_list
 
 
 def get_projects_qs(
@@ -28,24 +32,6 @@ def get_projects_qs(
         qs = qs.filter(show_on_homepage=True)
 
     return qs
-
-
-def update_with_add_posts_to_main_feed(project: Project, add_posts_to_main_feed: bool):
-    site_main = get_site_main_project()
-
-    if project == site_main:
-        raise ValueError("Site main can not be updated")
-
-    post_projects = Post.objects.filter(default_project=project).all()
-    project.add_posts_to_main_feed = add_posts_to_main_feed
-
-    for post in post_projects:
-        if project.add_posts_to_main_feed:
-            post.projects.add(site_main)
-        else:
-            post.projects.remove(site_main)
-
-    project.save()
 
 
 def get_site_main_project():
@@ -141,7 +127,7 @@ def notify_project_subscriptions_post_open(post: Post):
 
     # Ensure post is available for users
     for subscription in subscriptions:
-        NotificationPostStatusChange.send(
+        NotificationPostStatusChange.schedule(
             subscription.user,
             NotificationPostStatusChange.ParamsType(
                 post=NotificationPostParams.from_post(post),
@@ -150,3 +136,51 @@ def notify_project_subscriptions_post_open(post: Post):
             ),
             mailing_tag=MailingTags.TOURNAMENT_NEW_QUESTIONS,
         )
+
+
+def get_projects_staff_users(
+    project_ids: Iterable[int],
+) -> dict[int, dict[int, ObjectPermission]]:
+    """
+    Generates map of users which are admins/mods for the given projects
+    """
+
+    m2m_objects = ProjectUserPermission.objects.filter(
+        project_id__in=project_ids,
+        permission__in=[ObjectPermission.ADMIN, ObjectPermission.CURATOR],
+    )
+    project_staff_map = generate_map_from_list(m2m_objects, lambda x: x.project_id)
+
+    return {
+        project_id: {
+            obj.user_id: obj.permission for obj in project_staff_map.get(project_id, [])
+        }
+        for project_id in project_ids
+    }
+
+
+def get_projects_for_posts(
+    posts: Iterable[Post], user: User = None
+) -> dict[int, list[Project]]:
+    """
+    Retrieves a mapping of posts to their available projects for a given user.
+    """
+
+    post_projects = Post.projects.through.objects.filter(post__in=posts)
+
+    # Fetching projects available for the given user
+    available_projects_map = {
+        obj.id: obj
+        for obj in Project.objects.filter(
+            id__in=[x.project_id for x in post_projects]
+        ).filter_permission(user=user)
+    }
+
+    post_projects_map = defaultdict(list)
+
+    # Generating Post->Projects map
+    for m2m_obj in post_projects:
+        if project := available_projects_map.get(m2m_obj.project_id):
+            post_projects_map[m2m_obj.post_id].append(project)
+
+    return post_projects_map

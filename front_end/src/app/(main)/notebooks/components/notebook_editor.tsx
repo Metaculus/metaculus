@@ -1,11 +1,11 @@
 "use client";
 
 import { Field, Input, Label } from "@headlessui/react";
-import classNames from "classnames";
-import { useTranslations } from "next-intl";
-import React, { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import React, { useEffect, useState } from "react";
 
 import { updateNotebook } from "@/app/(main)/questions/actions";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 import MarkdownEditor from "@/components/markdown_editor";
 import PostDefaultProject from "@/components/post_default_project";
 import Button from "@/components/ui/button";
@@ -40,6 +40,16 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
 
     setIsEditing((prev) => !prev);
   };
+
+  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
+  const locale = useLocale();
+
+  useEffect(() => {
+    if (postData.is_current_content_translated) {
+      setBannerIsVisible(true);
+    }
+  }, [postData, locale]);
+
   const defaultProject = postData.projects.default_project;
   return (
     <div>
@@ -53,7 +63,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
       </div>
 
       {isEditing && (
-        <div className={classNames("flex flex-col")}>
+        <div className="flex flex-col">
           <Field className="my-2 flex items-center gap-1">
             <Label>{t("Title")}</Label>
             <Input
@@ -75,7 +85,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
 
       {!isEditing && (
         <div id={contentId}>
-          <MarkdownEditor mode="read" markdown={markdown} />
+          <MarkdownEditor mode="read" markdown={markdown} withTwitterPreview />
         </div>
       )}
     </div>

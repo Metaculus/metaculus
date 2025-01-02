@@ -11,6 +11,16 @@ export type FilterOption = {
   label: string;
   active: boolean;
   value: string;
+  // currently only supported by FilterOptionType.ToggleChip type
+  // TODO: revisit popup component to have more scalable solution for allowing multiple filters per option
+  extraValues?: Record<string, string>;
+};
+
+export type ToggleFilterOption = FilterOption & {
+  // TODO: consider deprecating FilterOptionType.MultiChip and refactoring related filters to FilterOptionType.ToggleChip, where all options are persisted
+  // make specific option of FilterOptionType.ToggleChip section to work similar to FilterOptionType.MultiChip
+  // when option is not cleared after selecting another one from the same section
+  isPersisted?: boolean;
 };
 
 type BaseFilterSection = {
@@ -30,6 +40,7 @@ type ComboboxFilterSection = Omit<BaseFilterSection, "options"> & {
 
 type ToggleChipFilterSection = BaseFilterSection & {
   type: FilterOptionType.ToggleChip;
+  options: ToggleFilterOption[];
 };
 
 type MultiChipFilterSection = BaseFilterSection & {

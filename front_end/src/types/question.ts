@@ -7,6 +7,8 @@ export enum QuestionType {
   MultipleChoice = "multiple_choice",
 }
 
+export type QuestionLinearGraphType = "binary" | "continuous";
+
 export enum QuestionOrder {
   ActivityDesc = "-activity",
   WeeklyMovementDesc = "-weekly_movement",
@@ -139,7 +141,7 @@ export type BaseForecast = {
   my_forecasts: {
     timestamps: number[];
     medians: number[];
-    slider_values: any | null;
+    slider_values: unknown | null;
   } | null;
 };
 
@@ -175,7 +177,10 @@ export type Question = {
   scheduled_close_time: string;
   actual_close_time?: string;
   type: QuestionType;
+  // Multiple-choice only
   options?: string[];
+  group_variable?: string;
+  // Other
   scaling: Scaling;
   possibilities: {
     format?: string;
@@ -193,7 +198,7 @@ export type Question = {
   question_weight: number;
   fine_print: string | null;
   resolution_criteria: string | null;
-  label: string | null;
+  label: string;
   nr_forecasters: number;
   author_username: string;
   post_id: number;
@@ -204,6 +209,7 @@ export type Question = {
   open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
+  withdraw_permitted?: boolean; // Feature Flag: prediction-withdrawal
 };
 
 export type QuestionWithNumericForecasts = Question & {
@@ -215,6 +221,7 @@ export type QuestionWithNumericForecasts = Question & {
 export type QuestionWithMultipleChoiceForecasts = Question & {
   type: QuestionType.MultipleChoice;
   forecasts: MultipleChoiceForecast;
+  options: string[];
 };
 
 export type QuestionWithForecasts =
@@ -266,4 +273,22 @@ export type AggregationQuestion = {
   scheduled_resolve_time: string;
   title: string;
   type: QuestionType;
+};
+
+export enum CurveQuestionLabels {
+  question = "your forecast",
+  crowdMedian = "your forecast of crowd median",
+}
+
+export type CurveChoiceOption = {
+  id: number;
+  forecast: number | null;
+  status: QuestionStatus | undefined;
+  label: string;
+  isDirty: boolean;
+};
+
+export type ForecastAvailability = {
+  isEmpty: boolean;
+  cpRevealsOn: string | null;
 };

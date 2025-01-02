@@ -16,7 +16,7 @@ export type ChangeUsernameState = {
 } | null;
 
 export default async function changeUsernameAction(
-  prevState: ChangeUsernameState,
+  _prevState: ChangeUsernameState,
   formData: FormData
 ): Promise<ChangeUsernameState> {
   const validatedFields = changeUsernameSchema.safeParse(
@@ -45,13 +45,25 @@ export default async function changeUsernameAction(
   }
 }
 
+export async function softDeleteUserAction(userId: number) {
+  try {
+    return await ProfileApi.markUserAsSpam(userId);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export type UpdateProfileState = {
   errors?: any;
   user?: CurrentUser;
 } | null;
 
 export async function updateProfileFormAction(
-  prevState: UpdateProfileState,
+  _prevState: UpdateProfileState,
   formData: FormData
 ): Promise<UpdateProfileState> {
   const validatedFields = updateProfileSchema.safeParse(
@@ -87,12 +99,16 @@ export async function updateProfileAction(
       | "unsubscribed_mailing_tags"
       | "unsubscribed_preferences_tags"
       | "hide_community_prediction"
+      | "is_onboarding_complete"
     >
-  >
+  >,
+  revalidate = true
 ) {
   const response = await ProfileApi.updateProfile(profile);
 
-  revalidatePath("/");
+  if (revalidate) {
+    revalidatePath("/");
+  }
 
   return response;
 }

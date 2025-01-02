@@ -1,7 +1,7 @@
-import { FC, Suspense } from "react";
+import React, { FC, Suspense } from "react";
 
-import PostSubscribeButton from "@/app/(main)/questions/[id]/components/subscribe_button";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
+import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import NewsMatch from "./news_match";
@@ -9,6 +9,14 @@ import SidebarQuestionInfo from "./sidebar_question_info";
 import SidebarQuestionTags from "./sidebar_question_tags";
 import SimilarQuestions from "./similar_questions";
 import QuestionEmbedButton from "../question_embed_button";
+
+function SidebarContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="self-stretch rounded bg-gray-0 px-3 py-4 @container dark:bg-gray-0-dark xs:px-5">
+      {children}
+    </div>
+  );
+}
 
 type Props = {
   postData: PostWithForecasts;
@@ -25,23 +33,22 @@ const Sidebar: FC<Props> = ({
 }) => {
   if (layout === "mobile") {
     return (
-      <section className="lg:hidden">
-        <hr className="my-4 border-blue-400 dark:border-blue-400-dark" />
-        <div className="flex flex-col items-start gap-4 self-stretch @container">
+      <section className="flex flex-col gap-4 lg:hidden">
+        <SidebarContainer>
           <SidebarQuestionInfo postData={postData} />
+        </SidebarContainer>
+        <SidebarContainer>
           <SidebarQuestionTags
             postId={postData.id}
             tagData={postData.projects}
             allowModifications={allowModifications}
           />
-        </div>
+        </SidebarContainer>
 
         {postData.curation_status === PostStatus.APPROVED && (
           <>
             <Suspense fallback={null}>
-              <div className="flex w-full flex-col items-start gap-4 self-stretch">
-                <NewsMatch questionId={postData.id} />
-              </div>
+              <NewsMatch questionId={postData.id} />
             </Suspense>
 
             <Suspense fallback={null}>
@@ -54,34 +61,36 @@ const Sidebar: FC<Props> = ({
   }
 
   return (
-    <section className="hidden h-fit w-80 shrink-0 border border-transparent bg-gray-0 p-4 text-gray-700 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-700-dark lg:block">
-      <div className="mb-4 flex w-full items-center justify-between gap-2 border-b border-gray-300 pb-4 dark:border-gray-300-dark">
-        <div className="flex gap-1">
-          {postData.curation_status == PostStatus.APPROVED && (
-            <PostSubscribeButton post={postData} />
-          )}
-          <QuestionEmbedButton />
-        </div>
+    <section className="hidden h-fit w-80 shrink-0 flex-col gap-3 text-gray-700 dark:text-gray-700-dark lg:flex">
+      <SidebarContainer>
+        <div className="mb-5 flex w-full items-center justify-between gap-2">
+          <div className="flex gap-1">
+            {postData.curation_status == PostStatus.APPROVED && (
+              <PostSubscribeButton post={postData} />
+            )}
+            <QuestionEmbedButton />
+          </div>
 
-        <div className="flex gap-2">
-          <SharePostMenu
-            questionTitle={questionTitle}
-            questionId={postData.id}
-          />
-          <PostDropdownMenu post={postData} />
+          <div className="flex gap-2">
+            <SharePostMenu
+              questionTitle={questionTitle}
+              questionId={postData.id}
+            />
+            <PostDropdownMenu post={postData} />
+          </div>
         </div>
-      </div>
-
-      <div className="flex flex-col items-start gap-4 self-stretch @container">
         <div className="w-full">
           <SidebarQuestionInfo postData={postData} />
         </div>
+      </SidebarContainer>
+
+      <SidebarContainer>
         <SidebarQuestionTags
           postId={postData.id}
           tagData={postData.projects}
           allowModifications={allowModifications}
         />
-      </div>
+      </SidebarContainer>
 
       {postData.curation_status === PostStatus.APPROVED && (
         <>

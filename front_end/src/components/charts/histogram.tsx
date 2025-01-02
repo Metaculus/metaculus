@@ -1,6 +1,5 @@
 "use client";
 
-import classNames from "classnames";
 import { range } from "lodash";
 import { useTranslations } from "next-intl";
 import React from "react";
@@ -13,12 +12,14 @@ import {
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
+import cn from "@/utils/cn";
 
 type HistogramProps = {
   histogramData: { x: number; y: number }[];
   median: number | undefined;
   mean: number | undefined;
   color: "blue" | "gray";
+  width?: number;
 };
 
 const Histogram: React.FC<HistogramProps> = ({
@@ -26,6 +27,7 @@ const Histogram: React.FC<HistogramProps> = ({
   median,
   mean,
   color,
+  width,
 }) => {
   const t = useTranslations();
   const { theme } = useAppTheme();
@@ -40,7 +42,7 @@ const Histogram: React.FC<HistogramProps> = ({
           <span className="text-sm font-bold capitalize">
             {t("median")}{" "}
             <span
-              className={classNames(
+              className={cn(
                 color === "blue"
                   ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
                   : `placeholder:text-[light${color}]`
@@ -52,7 +54,7 @@ const Histogram: React.FC<HistogramProps> = ({
           <span className="ml-8 text-sm font-bold capitalize">
             {t("mean")}{" "}
             <span
-              className={classNames(
+              className={cn(
                 color === "blue"
                   ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
                   : `text-[light${color}]`
@@ -69,14 +71,15 @@ const Histogram: React.FC<HistogramProps> = ({
         }}
         containerComponent={<VictoryContainer responsive={true} />}
         padding={{ top: 0, bottom: 15, left: 10, right: 10 }}
-        height={48}
+        height={75}
+        width={!!width ? width : undefined}
       >
         <VictoryAxis
           tickValues={range(0, 101)}
           tickFormat={(x: number) => (x % 10 === 0 ? `${x}%` : "")}
           style={{
             tickLabels: {
-              fontSize: 5,
+              fontSize: 8,
             },
             axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
             grid: { stroke: "none" },

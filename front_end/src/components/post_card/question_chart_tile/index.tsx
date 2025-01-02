@@ -3,13 +3,16 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import MultipleChoiceTile from "@/components/multiple_choice_tile";
+import { ContinuousMultipleChoiceTile } from "@/components/multiple_choice_tile";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
-import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
+import {
+  generateUserForecastsForMultipleQuestion,
+  getQuestionForecastAvailability,
+} from "@/utils/questions";
 
 import QuestionNumericTile from "./question_numeric_tile";
 
@@ -18,6 +21,7 @@ type Props = {
   authorUsername: string;
   curationStatus: PostStatus | QuestionStatus;
   hideCP?: boolean;
+  forecasters?: number;
 };
 
 const QuestionChartTile: FC<Props> = ({
@@ -25,9 +29,11 @@ const QuestionChartTile: FC<Props> = ({
   authorUsername,
   curationStatus,
   hideCP,
+  forecasters,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const forecastAvailability = getQuestionForecastAvailability(question);
 
   if (curationStatus === PostStatus.PENDING) {
     return (
@@ -40,10 +46,9 @@ const QuestionChartTile: FC<Props> = ({
     );
   }
 
-  if (question.aggregations.recency_weighted.history.length === 0) {
-    if (curationStatus === PostStatus.OPEN) {
-      return <div>{t("forecastDataIsEmpty")}</div>;
-    }
+  // hide the card if the question is not opened yet
+  // otherwise, we should the chart with "No forecasts yet" message on the chart itself
+  if (forecastAvailability.isEmpty && curationStatus !== PostStatus.OPEN) {
     return null;
   }
 
@@ -61,6 +66,8 @@ const QuestionChartTile: FC<Props> = ({
           curationStatus={curationStatus}
           defaultChartZoom={defaultChartZoom}
           hideCP={hideCP}
+          forecastAvailability={forecastAvailability}
+          forecasters={forecasters}
         />
       );
     case QuestionType.MultipleChoice: {
@@ -73,18 +80,27 @@ const QuestionChartTile: FC<Props> = ({
       const actualCloseTime = question.actual_close_time
         ? new Date(question.actual_close_time).getTime()
         : null;
-      return (
-        <MultipleChoiceTile
-          timestamps={question.aggregations.recency_weighted.history.map(
+      const openTime = question.open_time
+        ? new Date(question.open_time).getTime()
+        : undefined;
+
+      const timestamps: number[] = !forecastAvailability.cpRevealsOn
+        ? question.aggregations.recency_weighted.history.map(
             (forecast) => forecast.start_time
-          )}
+          )
+        : userForecasts?.flatMap((option) => option.timestamps ?? []) ?? [];
+
+      return (
+        <ContinuousMultipleChoiceTile
+          timestamps={timestamps}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
           defaultChartZoom={defaultChartZoom}
           question={question}
-          userForecasts={userForecasts}
           hideCP={hideCP}
           actualCloseTime={actualCloseTime}
+          openTime={openTime}
+          forecastAvailability={forecastAvailability}
         />
       );
     }

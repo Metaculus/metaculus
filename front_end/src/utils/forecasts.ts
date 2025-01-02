@@ -4,9 +4,10 @@ import * as math from "mathjs";
 
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import {
-  MultipleChoiceForecast,
-  NumericForecast,
+  CurveChoiceOption,
+  CurveQuestionLabels,
   QuestionType,
+  QuestionWithForecasts,
 } from "@/types/question";
 import { cdfFromSliders, cdfToPmf } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -45,30 +46,12 @@ export function formatPrediction(
 }
 
 export function extractPrevBinaryForecastValue(
-  prevForecast: any
+  prevForecast: unknown
 ): number | null {
   return typeof prevForecast === "number" ? round(prevForecast * 100, 1) : null;
 }
 
-export function extractPrevMultipleChoicesForecastValue(
-  prevForecast: any
-): Record<string, number> | null {
-  if (typeof prevForecast !== "object" || isNil(prevForecast)) {
-    return null;
-  }
-
-  const result: Record<string, number> = {};
-  for (const key in prevForecast) {
-    if (typeof prevForecast[key] !== "number") {
-      continue;
-    }
-    result[key] = prevForecast[key];
-  }
-
-  return Object.keys(result).length === 0 ? null : result;
-}
-
-export function extractPrevNumericForecastValue(prevForecast: any): {
+export function extractPrevNumericForecastValue(prevForecast: unknown): {
   forecast?: MultiSliderValue[];
   weights?: number[];
 } {
@@ -78,11 +61,11 @@ export function extractPrevNumericForecastValue(prevForecast: any): {
 
   const result: { forecast?: MultiSliderValue[]; weights?: number[] } = {};
   if ("forecast" in prevForecast) {
-    result.forecast = prevForecast.forecast;
+    result.forecast = prevForecast.forecast as MultiSliderValue[];
   }
 
   if ("weights" in prevForecast) {
-    result.weights = prevForecast.weights;
+    result.weights = prevForecast.weights as number[];
   }
 
   return result;
@@ -107,8 +90,9 @@ export function getNumericForecastDataset(
           lowerOpen,
           upperOpen
         ),
-        normalizedWeights[index]
-      ) as number[]
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        normalizedWeights[index]!
+      ) as unknown as number[]
   );
   let cdf = componentCdfs.reduce((acc, componentCdf) =>
     math.add(acc, componentCdf)
@@ -124,10 +108,35 @@ export function getNumericForecastDataset(
         : upperOpen
           ? (F: number, x: number) => 0.989 * F + 0.01 * x
           : (F: number, x: number) => 0.99 * F + 0.01 * x;
-  cdf = cdf.map((F, index) => cdfOffset(F, index / (cdf.length - 1)));
+  cdf = cdf.map(
+    (F, index) =>
+      Math.round(cdfOffset(F, index / (cdf.length - 1)) * 1e10) / 1e10
+  );
 
   return {
     cdf: cdf,
     pmf: cdfToPmf(cdf),
   };
+}
+
+export function generateCurveChoiceOptions(
+  questions: QuestionWithForecasts[]
+): CurveChoiceOption[] {
+  return questions
+    .map((q) => ({
+      id: q.id,
+      forecast: q.my_forecasts?.latest?.forecast_values[1] ?? null,
+      status: q.status,
+      label: q.label,
+      isDirty: false,
+    }))
+    .sort((a, b) => {
+      if (a.label.toLowerCase() === CurveQuestionLabels.question) return -1;
+      if (b.label.toLowerCase() === CurveQuestionLabels.question) return 1;
+
+      if (a.label.toLowerCase() === CurveQuestionLabels.crowdMedian) return -1;
+      if (b.label.toLowerCase() === CurveQuestionLabels.crowdMedian) return 1;
+
+      return 0;
+    });
 }

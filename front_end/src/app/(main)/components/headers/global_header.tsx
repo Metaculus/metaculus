@@ -3,13 +3,13 @@
 import { usePathname } from "next/navigation";
 import { FC } from "react";
 
+import { getWithDefaultHeader } from "@/utils/navigation";
+
 import Header from "./header";
 
 const GlobalHeader: FC = () => {
   const pathname = usePathname();
-  const withDefaultHeader =
-    !pathname.match(/^\/questions\/(\d+)(\/.*)?$/) &&
-    !pathname.startsWith("/community");
+  const withDefaultHeader = getWithDefaultHeader(pathname);
 
   if (withDefaultHeader) {
     return <Header />;

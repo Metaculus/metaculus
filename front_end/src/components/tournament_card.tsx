@@ -17,6 +17,7 @@ type Props = {
   questionsCount: number;
   closeDate: string;
   showCloseDate: boolean;
+  isPrivate?: boolean;
   prizePool?: string | null;
   withCount?: boolean;
 };
@@ -28,6 +29,7 @@ const TournamentCard: FC<Props> = ({
   prizePool,
   questionsCount,
   closeDate,
+  isPrivate,
   showCloseDate,
   withCount = true,
 }) => {
@@ -72,9 +74,15 @@ const TournamentCard: FC<Props> = ({
             alt=""
             fill
             className="size-full object-cover object-center"
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 768px) 200vw, 100vw"
             quality={100}
           />
+        )}
+
+        {isPrivate && (
+          <strong className="absolute bottom-2 right-2 rounded-sm bg-blue-300 px-1 text-sm uppercase text-gray-900 dark:bg-blue-300-dark dark:text-gray-900-dark">
+            {t("private")}
+          </strong>
         )}
       </div>
       <div className="flex flex-1 flex-col whitespace-break-spaces p-6">
@@ -104,7 +112,7 @@ const TournamentCard: FC<Props> = ({
           </div>
         )}
       </div>
-      {withCount && (
+      {withCount && questionsCount > 0 && (
         <div className="flex flex-col whitespace-break-spaces border-t border-blue-200 px-6 py-3 dark:border-blue-200-dark">
           <strong>{t("questionCount", { count: questionsCount })}</strong>
         </div>

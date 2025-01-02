@@ -4,9 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useEffect, useState } from "react";
-import { useFormState } from "react-dom";
-import { Controller, useForm } from "react-hook-form";
+import { useFormState, useFormStatus } from "react-dom";
+import { useForm } from "react-hook-form";
 
+import { LogOut } from "@/app/(main)/accounts/actions";
 import {
   updateProfileFormAction,
   UpdateProfileState,
@@ -18,7 +19,11 @@ import {
 import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
-import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import {
+  FormError,
+  Input,
+  MarkdownEditorField,
+} from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { UserProfile } from "@/types/users";
 
@@ -38,7 +43,7 @@ const UserInfo: FC<UserInfoProps> = ({
   const t = useTranslations();
   const { setUser } = useAuth();
   const [editMode, setEditMode] = useState(false);
-  const { register, setValue, control } = useForm<UpdateProfileSchema>({
+  const { register, control } = useForm<UpdateProfileSchema>({
     resolver: zodResolver(updateProfileSchema),
   });
   const [state, formAction] = useFormState<UpdateProfileState, FormData>(
@@ -47,15 +52,23 @@ const UserInfo: FC<UserInfoProps> = ({
   );
   useEffect(() => {
     if (!state?.user) {
+      if (state?.errors?.error_code === "SPAM_DETECTED") {
+        setEditMode(false);
+        alert(
+          "Your account has been deactivated for detected spam. Please note that we set our links so that Google doesn't pick them up for SEO. Adding spam to the site does nothing to help your rankings. Please contact support@metaculus.com if you believe the spam detection was a mistake."
+        );
+        LogOut();
+      }
       return;
     }
 
     setUser(state.user);
     setEditMode(false);
-  }, [setUser, state?.user]);
+  }, [setUser, state?.user, state?.errors]);
 
   const keyStatStyles =
     "flex w-1/3 flex-col min-h-[90px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
+
   return (
     <form action={formAction}>
       {
@@ -64,11 +77,7 @@ const UserInfo: FC<UserInfoProps> = ({
         >
           {isCurrentUser && (
             <div className="flex flex-col">
-              {editMode && (
-                <Button variant="primary" type="submit">
-                  {t("submit")}
-                </Button>
-              )}
+              {editMode && <SubmitButton />}
               {!editMode && (
                 <Button variant="link" onClick={() => setEditMode(true)}>
                   {t("edit")}
@@ -83,32 +92,19 @@ const UserInfo: FC<UserInfoProps> = ({
               </div>
               <div className="flex w-full content-center justify-between">
                 {editMode ? (
-                  <>
-                    <Textarea
-                      className="hidden"
-                      defaultValue={profile.bio}
-                      {...register("bio")}
-                    />
-                    <Controller
-                      control={control}
-                      name="bio"
-                      defaultValue={profile.bio}
-                      render={({ field: { value } }) => (
-                        <MarkdownEditor
-                          mode="write"
-                          markdown={value as string}
-                          onChange={(markdown: string) => {
-                            setValue("bio", markdown);
-                          }}
-                          className="w-full"
-                        />
-                      )}
-                    />
-                    <FormError errors={state?.errors} name={"bio"} />
-                  </>
+                  <MarkdownEditorField
+                    control={control}
+                    name="bio"
+                    defaultValue={profile.bio}
+                    errors={state?.errors}
+                  />
                 ) : (
                   <div className="flex items-center whitespace-pre-line text-base font-light">
-                    <MarkdownEditor mode="read" markdown={profile.bio} />
+                    <MarkdownEditor
+                      mode="read"
+                      markdown={profile.bio}
+                      withUgcLinks
+                    />
                   </div>
                 )}
               </div>
@@ -247,6 +243,17 @@ const UserInfo: FC<UserInfoProps> = ({
         </div>
       </div>
     </form>
+  );
+};
+
+const SubmitButton = () => {
+  const { pending } = useFormStatus();
+  const t = useTranslations();
+
+  return (
+    <Button variant="primary" type="submit" disabled={pending}>
+      {pending ? t("pending") : t("submit")}
+    </Button>
   );
 };
 

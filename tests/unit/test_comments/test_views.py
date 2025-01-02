@@ -144,20 +144,17 @@ def test_get_comments_feed_permissions(user1, user2):
     c2 = factory_comment(author=user2, on_post=post, is_private=True, text="Comment 2")
     c3 = factory_comment(author=user2, on_post=post, text="Comment 3")
 
-    c_deleted = factory_comment(author=user2, on_post=post, is_soft_deleted=True)
+    factory_comment(author=user2, on_post=post, is_soft_deleted=True)
 
     assert {c.pk for c in get_comments_feed(Comment.objects.all())} == {
-        c_deleted.pk,
         c3.pk,
     }
     assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user1)} == {
-        c_deleted.pk,
         c3.pk,
     }
     assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user2)} == {
         c1.pk,
         c3.pk,
-        c_deleted.pk,
     }
     assert {
         c.pk
@@ -177,3 +174,46 @@ def test_upvote_own_comment(user1, user2, user2_client, user1_client):
 
     response = user2_client.post(url, data={"vote": 1})
     assert response.status_code == 200
+
+
+class TestCommentCreation:
+    url = reverse("comment-create")
+
+    @pytest.fixture()
+    def post(self, user1):
+        return factory_post(author=user1)
+
+    def test_private(self, post, user1_client, user1, user2):
+        response = user1_client.post(
+            self.url,
+            {"on_post": post.pk, "text": "Test comment for @user2", "is_private": True},
+        )
+
+        assert response.status_code == 201
+
+        assert response.data["on_post"] == post.pk
+        assert response.data["is_private"]
+        assert response.data["text"] == "Test comment for @user2"
+        assert response.data["author"]["id"] == user1.pk
+
+    def test_with_mention(self, post, user1_client, user1, user2):
+        response = user1_client.post(
+            self.url, {"on_post": post.pk, "text": "Test comment for @user2"}
+        )
+
+        assert response.status_code == 201
+
+        assert not response.data["is_private"]
+        assert response.data["on_post"] == post.pk
+        assert response.data["text"] == "Test comment for @user2"
+        assert response.data["author"]["id"] == user1.pk
+        assert response.data["mentioned_users"][0]["id"] == user2.pk
+
+    def test_without_mention(self, post, user1_client, user1, user2):
+        # Create w/o mention
+        response = user1_client.post(
+            self.url, {"on_post": post.pk, "text": "Test comment"}
+        )
+
+        assert response.data["text"] == "Test comment"
+        assert not response.data["mentioned_users"]

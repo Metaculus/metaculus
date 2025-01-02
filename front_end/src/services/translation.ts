@@ -6,7 +6,7 @@ class TranslationApi {
 
     const translate = new TranslateV2.Translate({ key: apiKey });
 
-    const [translation] = await translate.translate(text, targetLanguage);
+    await translate.translate(text, targetLanguage);
   }
 }
 

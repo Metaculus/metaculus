@@ -1,13 +1,9 @@
 import { parseISO } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionType,
-  QuestionWithForecasts,
-} from "@/types/question";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { formatResolution } from "@/utils/questions";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
@@ -22,7 +18,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const QuestionForecastMaker: FC<Props> = ({
@@ -34,6 +30,13 @@ const QuestionForecastMaker: FC<Props> = ({
   predictionMessage,
 }) => {
   const t = useTranslations();
+
+  const activeUserForecast =
+    (question.my_forecasts?.latest?.end_time ||
+      new Date().getTime() / 1000 + 1000) <=
+    new Date().getTime() / 1000
+      ? undefined
+      : question.my_forecasts?.latest;
 
   return (
     <ForecastMakerContainer
@@ -52,7 +55,6 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             permission={permission}
-            prevForecast={question.my_forecasts?.latest?.slider_values}
             canPredict={
               canPredict &&
               question.open_time !== undefined &&
@@ -70,7 +72,7 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             permission={permission}
-            prevForecast={question.my_forecasts?.latest?.forecast_values[1]}
+            prevForecast={activeUserForecast?.forecast_values[1]}
             canPredict={
               canPredict &&
               question.open_time !== undefined &&

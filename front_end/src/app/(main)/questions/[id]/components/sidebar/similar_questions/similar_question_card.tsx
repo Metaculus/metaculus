@@ -11,6 +11,7 @@ import {
 } from "@/utils/questions";
 
 import SimilarPredictionChip from "./similar_question_prediction_chip";
+import { useHideCP } from "../../cp_provider";
 
 type Props = {
   post: PostWithForecasts;
@@ -18,7 +19,7 @@ type Props = {
 
 const SimilarQuestionCard: FC<Props> = ({ post }) => {
   const resolutionData = extractPostResolution(post);
-
+  const { hideCP } = useHideCP();
   return (
     <Link href={getPostLink(post)} className="w-full no-underline">
       <div className="gap-2 rounded border border-blue-500 px-4 py-3 dark:border-blue-600">
@@ -27,23 +28,25 @@ const SimilarQuestionCard: FC<Props> = ({ post }) => {
             {post.title}
           </h4>
 
-          <div className="flex flex-row gap-2">
-            {!!post.question && (
-              <SimilarPredictionChip
-                question={post.question as QuestionWithNumericForecasts}
-              />
-            )}
-            {!!post.group_of_questions && (
-              <SimilarPredictionChip
-                isGroup
-                question={getPredictionQuestion(
-                  post.group_of_questions
-                    .questions as QuestionWithNumericForecasts[],
-                  post.curation_status
-                )}
-              />
-            )}
-          </div>
+          {!hideCP && (
+            <div className="flex flex-row gap-2">
+              {!!post.question && (
+                <SimilarPredictionChip
+                  question={post.question as QuestionWithNumericForecasts}
+                />
+              )}
+              {!!post.group_of_questions && (
+                <SimilarPredictionChip
+                  isGroup
+                  question={getPredictionQuestion(
+                    post.group_of_questions
+                      .questions as QuestionWithNumericForecasts[],
+                    post.curation_status
+                  )}
+                />
+              )}
+            </div>
+          )}
           <div>
             <PostStatus post={post} resolution={resolutionData} />
           </div>

@@ -1,22 +1,21 @@
 "use client";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
-import {
-  PredictionInputMessage,
-  Quartiles,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
+import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
+import { getCdfBounds, getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -30,16 +29,15 @@ import ConditionalForecastTable, {
 } from "../conditional_forecast_table";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
+import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   postId: number;
   postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
-  prevYesForecast?: any;
-  prevNoForecast?: any;
   canPredict: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
   projects: Post["projects"];
 };
 
@@ -47,8 +45,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   postId,
   postTitle,
   conditional,
-  prevYesForecast,
-  prevNoForecast,
   canPredict,
   predictionMessage,
   projects,
@@ -56,14 +52,23 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
-  const { setCurrentModal } = useModal();
 
   const { condition, condition_child, question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
 
-  const prevYesForecastValue = extractPrevNumericForecastValue(prevYesForecast);
-  const prevNoForecastValue = extractPrevNumericForecastValue(prevNoForecast);
+  const latestYes = question_yes.my_forecasts?.latest;
+  const latestNo = question_no.my_forecasts?.latest;
+  const prevYesForecastValue =
+    latestYes && !latestYes.end_time
+      ? extractPrevNumericForecastValue(latestYes.slider_values)
+      : null;
+  const prevNoForecastValue =
+    latestNo && !latestNo.end_time
+      ? extractPrevNumericForecastValue(latestNo.slider_values)
+      : null;
+  const hasUserForecast =
+    !!prevYesForecastValue?.forecast || !!prevNoForecastValue?.forecast;
 
   const [questionOptions, setQuestionOptions] = useState<
     Array<
@@ -116,19 +121,15 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const isPickerDirty = useMemo(
     () => questionOptions.some((option) => option.isDirty),
     [questionOptions]
   );
   const questionsToSubmit = useMemo(
-    () =>
-      questionOptions.filter(
-        (option) => option.isDirty && option.value !== null
-      ),
+    () => questionOptions.filter((option) => option.value !== null),
     [questionOptions]
   );
-  const submitIsAllowed = !isSubmitting && !!questionsToSubmit.length;
 
   const copyForecastButton = useMemo(() => {
     if (!activeTableOption) return null;
@@ -142,11 +143,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     }
 
     return {
-      label: `Copy from IF ${inactiveOption.name.toUpperCase()}`,
+      label: t("copyFromBranch", { branch: inactiveOption.name.toUpperCase() }),
       fromQuestionId: inactiveOption.id,
       toQuestionId: activeTableOption,
     };
-  }, [activeTableOption, questionOptions]);
+  }, [activeTableOption, questionOptions, t]);
 
   const copyForecast = useCallback(
     (fromQuestionId: number, toQuestionId: number) => {
@@ -268,7 +269,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   ]);
 
   const handlePredictSubmit = async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
       return;
@@ -282,8 +283,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           continuousCdf: getNumericForecastDataset(
             sliderForecast,
             weights,
-            question.open_lower_bound!,
-            question.open_upper_bound!
+            question.open_lower_bound,
+            question.open_upper_bound
           ).cdf,
           probabilityYesPerCategory: null,
           probabilityYes: null,
@@ -297,7 +298,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     questionsToSubmit.forEach((q) => {
       sendGAConditionalPredictEvent(
         projects,
-        q.id === questionYesId ? !!prevYesForecast : !!prevNoForecast,
+        q.id === questionYesId ? !!prevYesForecastValue : !!prevNoForecastValue,
         hideCP
       );
     });
@@ -306,29 +307,54 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     );
     setIsSubmitting(false);
 
-    const errors: ErrorResponse[] = [];
-
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   };
+
+  const handlePredictWithdraw = async () => {
+    setSubmitError(undefined);
+
+    if (!prevYesForecastValue && !prevNoForecastValue) return;
+
+    const response = await withdrawForecasts(postId, [
+      ...(prevYesForecastValue ? [{ question: questionYesId }] : []),
+      ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
+    ]);
+    setQuestionOptions((prev) =>
+      prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
+    );
+
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
+  const previousForecast = activeOptionData?.question.my_forecasts?.latest;
+  const [overlayPreviousForecast, setOverlayPreviousForecast] =
+    useState<boolean>(!!previousForecast && !previousForecast?.slider_values);
 
   const userCdf: number[] | undefined =
     activeOptionData &&
     getNumericForecastDataset(
       activeOptionData.sliderForecast,
       activeOptionData.weights,
-      activeOptionData.question.open_lower_bound!,
-      activeOptionData.question.open_upper_bound!
+      activeOptionData.question.open_lower_bound,
+      activeOptionData.question.open_upper_bound
     ).cdf;
+  const userPreviousCdf: number[] | undefined =
+    overlayPreviousForecast && previousForecast
+      ? previousForecast.forecast_values
+      : undefined;
+  const aggregateLatest =
+    activeOptionData?.question.aggregations.recency_weighted.latest;
   const communityCdf: number[] | undefined =
-    activeOptionData?.question.aggregations.recency_weighted.latest
-      ?.forecast_values;
+    aggregateLatest && !aggregateLatest.end_time
+      ? aggregateLatest.forecast_values
+      : undefined;
 
   return (
     <>
@@ -342,11 +368,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         onChange={setActiveTableOption}
         formatForecastValue={(value) => {
           if (activeOptionData && value) {
-            return getDisplayValue(
+            return getDisplayValue({
               value,
-              activeOptionData.question.type,
-              activeOptionData.question.scaling
-            );
+              questionType: activeOptionData.question.type,
+              scaling: activeOptionData.question.scaling,
+            });
           } else {
             return "-";
           }
@@ -355,20 +381,19 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       {questionOptions.map((option) => (
         <div
           key={option.id}
-          className={classNames(
-            "mt-3",
-            option.id !== activeTableOption && "hidden"
-          )}
+          className={cn("mt-3", option.id !== activeTableOption && "hidden")}
         >
           <ContinuousSlider
             question={option.question}
             forecast={option.sliderForecast}
             weights={option.weights}
+            overlayPreviousForecast={overlayPreviousForecast}
+            setOverlayPreviousForecast={setOverlayPreviousForecast}
             dataset={getNumericForecastDataset(
               option.sliderForecast,
               option.weights,
-              option.question.open_lower_bound!,
-              option.question.open_upper_bound!
+              option.question.open_lower_bound,
+              option.question.open_upper_bound
             )}
             onChange={(forecast, weight) =>
               handleChange(option.id, forecast, weight)
@@ -379,12 +404,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       ))}
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       {canPredict && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-          {user ? (
+          {!!user && (
             <>
               <Button
                 variant="secondary"
@@ -419,44 +444,45 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               >
                 {t("discardChangesButton")}
               </Button>
-              <Button
-                variant="primary"
-                type="submit"
-                onClick={handlePredictSubmit}
-                disabled={!submitIsAllowed}
-              >
-                {t("saveChange")}
-              </Button>
+              {(!!prevYesForecastValue || !!prevNoForecastValue) &&
+                question_yes.withdraw_permitted &&
+                question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={withdrawalIsPending}
+                    onClick={withdraw}
+                  >
+                    {t("withdraw")}
+                  </Button>
+                )}
             </>
-          ) : (
-            <Button
-              variant="primary"
-              type="button"
-              onClick={() => setCurrentModal({ type: "signup" })}
-            >
-              {t("signUpToPredict")}
-            </Button>
           )}
+          <PredictButton
+            onSubmit={handlePredictSubmit}
+            isDirty={isPickerDirty}
+            hasUserForecast={hasUserForecast}
+            isPending={isSubmitting}
+            isDisabled={!questionsToSubmit.length}
+          />
         </div>
       )}
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
-      ))}
+      <FormError
+        errors={submitError}
+        className="flex items-center justify-center"
+        detached
+      />
       {!!activeOptionData && (
         <NumericForecastTable
           question={activeOptionData.question}
-          userBounds={
-            userCdf && {
-              belowLower: userCdf![0],
-              aboveUpper: 1 - userCdf![userCdf!.length - 1],
-            }
-          }
+          userBounds={getCdfBounds(userCdf)}
           userQuartiles={userCdf && computeQuartilesFromCDF(userCdf)}
-          communityBounds={
-            communityCdf && {
-              belowLower: communityCdf![0],
-              aboveUpper: 1 - communityCdf![communityCdf!.length - 1],
-            }
+          communityBounds={getCdfBounds(communityCdf)}
+          userPreviousBounds={getCdfBounds(userPreviousCdf)}
+          userPreviousQuartiles={
+            userPreviousCdf
+              ? computeQuartilesFromCDF(userPreviousCdf)
+              : undefined
           }
           communityQuartiles={
             communityCdf && computeQuartilesFromCDF(communityCdf)
@@ -465,8 +491,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           isDirty={activeOptionData.isDirty}
           hasUserForecast={
             activeTableOption === questionYesId
-              ? !!prevYesForecast
-              : !!prevNoForecast
+              ? !!prevYesForecastValue
+              : !!prevNoForecastValue
           }
         />
       )}

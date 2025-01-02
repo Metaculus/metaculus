@@ -1,0 +1,15 @@
+<!-- templates/admin/assign_to_project.html -->
+
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  <h1>{{ title }}</h1>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    {% for obj in posts %}
+      <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}">
+    {% endfor %}
+    <input type="hidden" name="action" value="{{ action }}">
+    <button type="submit" name="apply" class="default">Apply</button>
+    </form>
+{% endblock %}

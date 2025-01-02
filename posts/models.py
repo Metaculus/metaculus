@@ -32,13 +32,10 @@ from questions.models import (
 )
 from scoring.models import Score, ArchivedScore
 from users.models import User
-from utils.models import TimeStampedModel
+from utils.models import TimeStampedModel, TranslatedModel
 
 
 class PostQuerySet(models.QuerySet):
-    def prefetch_projects(self):
-        return self.prefetch_related("projects").select_related("default_project")
-
     def prefetch_user_forecasts(self, user_id: int):
         question_relations = [
             "question",
@@ -53,9 +50,14 @@ class PostQuerySet(models.QuerySet):
             prefetches += [
                 Prefetch(
                     f"{rel}__user_forecasts",
-                    queryset=Forecast.objects.filter(author_id=user_id).order_by(
-                        "start_time"
-                    ),
+                    # only retrieve forecasts that were made before question close
+                    queryset=Forecast.objects.filter(author_id=user_id)
+                    .annotate(actual_close_time=F("question__actual_close_time"))
+                    .filter(
+                        Q(actual_close_time__isnull=True)
+                        | Q(start_time__lte=F("actual_close_time"))
+                    )
+                    .order_by("start_time"),
                     to_attr="request_user_forecasts",
                 ),
                 Prefetch(
@@ -81,7 +83,7 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_yes",
             "conditional__question_no",
             # Group Of Questions
-            "group_of_questions__questions",
+            "group_of_questions__questions__group",
         )
 
     def prefetch_condition_post(self):
@@ -147,6 +149,33 @@ class PostQuerySet(models.QuerySet):
         return self.annotate(
             user_last_forecasts_date=Coalesce(
                 Subquery(last_forecast_date_subquery), Value(None)
+            )
+        )
+
+    def annotate_has_active_forecast(self, author_id: int):
+        """
+        Annotates if user has active forecast for post
+        """
+        return self.annotate(
+            has_active_forecast=Exists(
+                Forecast.objects.filter(
+                    post_id=OuterRef("pk"), author_id=author_id, end_time__isnull=True
+                )
+            )
+        )
+
+    def annotate_user_is_following(self, user: User):
+        """
+        Annotate with a boolean flag representing whether the user
+        is following the respective posts.
+        """
+        subscription_exists_subquery = PostSubscription.objects.filter(
+            post=OuterRef("pk"), user=user, is_global=False
+        )
+
+        return self.annotate(
+            user_is_following=Coalesce(
+                Exists(subscription_exists_subquery), Value(False)
             )
         )
 
@@ -224,7 +253,13 @@ class PostQuerySet(models.QuerySet):
                         ObjectPermission.CURATOR,
                     ]
                 )
-                & Q(curation_status=Post.CurationStatus.PENDING)
+                & Q(
+                    # Admins should have access to draft and pending content
+                    curation_status__in=[
+                        Post.CurationStatus.DRAFT,
+                        Post.CurationStatus.PENDING,
+                    ]
+                )
             )
             | (
                 Q(_user_permission__isnull=False)
@@ -233,7 +268,10 @@ class PostQuerySet(models.QuerySet):
                         Q(default_project_id=site_main_project.pk)
                         & Q(curation_status=Post.CurationStatus.PENDING)
                     )
-                    | Q(curation_status=Post.CurationStatus.APPROVED)
+                    | Q(
+                        curation_status=Post.CurationStatus.APPROVED,
+                        published_at__lte=timezone.now(),
+                    )
                 )
             )
         )
@@ -302,6 +340,7 @@ class PostQuerySet(models.QuerySet):
 
         return self.filter(
             published_at__lte=timezone.now(),
+            open_time__lte=timezone.now(),
             curation_status=Post.CurationStatus.APPROVED,
         ).filter(
             Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=timezone.now())
@@ -316,6 +355,21 @@ class PostQuerySet(models.QuerySet):
             | Exists(
                 Post.projects.through.objects.filter(
                     post_id=OuterRef("pk"), project__in=p
+                )
+            )
+        )
+
+    def filter_for_main_feed(self):
+        """
+        Returns posts with projects that are visible in main feed
+        """
+
+        return self.filter(
+            Q(default_project__visibility=Project.Visibility.NORMAL)
+            | Exists(
+                Post.projects.through.objects.filter(
+                    post_id=OuterRef("pk"),
+                    project__visibility=Project.Visibility.NORMAL,
                 )
             )
         )
@@ -337,7 +391,7 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
         return super().get_queryset().defer("embedding_vector")
 
 
-class Notebook(TimeStampedModel):
+class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
     class NotebookType(models.TextChoices):
         DISCUSSION = "discussion"
         NEWS = "news"
@@ -352,7 +406,7 @@ class Notebook(TimeStampedModel):
         return f"{self.type} Notebook for {self.post} by {self.post.author}"
 
 
-class Post(TimeStampedModel):
+class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     # typing
     id: int
     votes: QuerySet["Vote"]
@@ -367,7 +421,7 @@ class Post(TimeStampedModel):
     user_last_forecasts_date = None
     divergence: int = None
 
-    objects: QuerySet["Post"] = PostManager()
+    objects: PostManager = PostManager()
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -396,7 +450,9 @@ class Post(TimeStampedModel):
 
     title = models.CharField(max_length=2000, blank=True)
     url_title = models.CharField(max_length=2000, default="", blank=True)
-    author = models.ForeignKey(User, models.CASCADE, related_name="posts")
+    author = models.ForeignKey(
+        User, models.CASCADE, related_name="posts"
+    )  # are we sure we want this?
     coauthors = models.ManyToManyField(
         User, related_name="coauthored_posts", blank=True
     )
@@ -409,10 +465,19 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    scheduled_close_time = models.DateTimeField(null=True, blank=True, db_index=True)
-    scheduled_resolve_time = models.DateTimeField(null=True, blank=True, db_index=True)
-    actual_close_time = models.DateTimeField(null=True, blank=True)
-    resolved = models.BooleanField(default=False)
+
+    # Fields populated from Child Question objects
+    open_time = models.DateTimeField(
+        null=True, blank=True, db_index=True, editable=False
+    )
+    scheduled_close_time = models.DateTimeField(
+        null=True, blank=True, db_index=True, editable=False
+    )
+    scheduled_resolve_time = models.DateTimeField(
+        null=True, blank=True, db_index=True, editable=False
+    )
+    actual_close_time = models.DateTimeField(null=True, blank=True, editable=False)
+    resolved = models.BooleanField(default=False, editable=False)
 
     embedding_vector = VectorField(
         help_text="Vector embeddings of the Post content",
@@ -470,7 +535,16 @@ class Post(TimeStampedModel):
             else:
                 self.actual_close_time = max(close_times)
         elif self.conditional:
-            self.actual_close_time = self.conditional.condition_child.actual_close_time
+            self.actual_close_time = min(
+                filter(
+                    bool,
+                    [
+                        self.conditional.condition.actual_close_time,
+                        self.conditional.condition_child.actual_close_time,
+                    ],
+                ),
+                default=None,
+            )
         else:
             self.actual_close_time = None
 
@@ -494,6 +568,35 @@ class Post(TimeStampedModel):
         else:
             self.resolved = False
 
+    def set_open_time(self):
+        open_time = None
+
+        if self.question_id:
+            open_time = self.question.open_time
+        elif self.conditional_id:
+            open_time = max(
+                filter(
+                    bool,
+                    [
+                        self.conditional.condition.open_time,
+                        self.conditional.condition_child.open_time,
+                    ],
+                ),
+                default=None,
+            )
+
+        elif self.group_of_questions_id:
+            open_time = min(
+                [
+                    x.open_time
+                    for x in self.group_of_questions.questions.all()
+                    if x.open_time
+                ],
+                default=None,
+            )
+
+        self.open_time = open_time
+
     def updated_related_conditionals(self):
         if self.question:
             related_conditionals = [
@@ -502,33 +605,16 @@ class Post(TimeStampedModel):
             ]
             for conditional in related_conditionals:
                 conditional.post.update_pseudo_materialized_fields()
-                print("Updated conditional in post: ", conditional.post)
 
     def update_pseudo_materialized_fields(self):
         self.set_scheduled_close_time()
         self.set_actual_close_time()
         self.set_scheduled_resolve_time()
+        self.set_open_time()
         self.set_resolved()
         self.save()
         # Note: No risk of infinite loops since conditionals can't father other conditionals
         self.updated_related_conditionals()
-
-    def get_open_time(self):
-        if self.question:
-            return self.question.open_time
-
-        if self.conditional:
-            return max(
-                self.conditional.condition.open_time,
-                self.conditional.condition_child.open_time,
-            )
-
-        if self.group_of_questions:
-            questions = self.group_of_questions.questions.all()
-            open_times = [x.open_time for x in questions if x.open_time]
-
-            if open_times:
-                return min(open_times)
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
@@ -546,9 +632,8 @@ class Post(TimeStampedModel):
         Notebook, models.CASCADE, related_name="post", null=True, blank=True
     )
 
-    # TODO: make required in the future
     default_project = models.ForeignKey(
-        Project, related_name="default_posts", on_delete=models.PROTECT, null=True
+        Project, related_name="default_posts", on_delete=models.PROTECT, null=False
     )
     projects = models.ManyToManyField(Project, related_name="posts", blank=True)
     users = models.ManyToManyField(User, through="PostUserSnapshot")
@@ -572,7 +657,9 @@ class Post(TimeStampedModel):
 
     # Indicates whether we triggered "handle_post_open" event
     # And guarantees idempotency of "on post open" evens
-    published_at_triggered = models.BooleanField(default=False)
+    open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
 
     def update_forecasts_count(self):
         """
@@ -616,7 +703,7 @@ class Post(TimeStampedModel):
         if self.question_id:
             return [self.question]
         if self.group_of_questions_id:
-            return self.group_of_questions.questions.all().prefetch_related("group")
+            return self.group_of_questions.questions.all()
         elif self.conditional_id:
             return [self.conditional.question_yes, self.conditional.question_no]
         else:
@@ -645,6 +732,9 @@ class Post(TimeStampedModel):
         exclude.add("embedding_vector")
 
         return super().clean_fields(exclude=exclude)
+
+    def is_private(self):
+        return self.default_project.default_permission is None
 
 
 class PostSubscription(TimeStampedModel):

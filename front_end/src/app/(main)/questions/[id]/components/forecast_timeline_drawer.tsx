@@ -1,13 +1,20 @@
-import { FC } from "react";
+"use client";
 
+import React, { FC } from "react";
+
+import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import { sortGroupPredictionOptions } from "@/utils/questions";
+import {
+  getGroupForecastAvailability,
+  getQuestionLinearChartType,
+  sortGroupPredictionOptions,
+} from "@/utils/questions";
 
-import ContinuousGroupTimeline from "./continuous_group_timeline";
-import BinaryGroupChart from "./detailed_group_card/binary_group_chart";
+import { useHideCP } from "./cp_provider";
+import RevealCPButton from "./reveal_cp_button";
 
 type Props = {
   post: PostWithForecasts;
@@ -15,6 +22,7 @@ type Props = {
 };
 
 const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
+  const { hideCP } = useHideCP();
   const questions = post.group_of_questions
     ?.questions as QuestionWithNumericForecasts[];
   const groupType = questions?.at(0)?.type;
@@ -27,45 +35,45 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
     return null;
   }
 
+  const forecastAvailability = getGroupForecastAvailability(questions);
   const sortedQuestions = sortGroupPredictionOptions(
     questions as QuestionWithNumericForecasts[]
   );
-  const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
+  const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
+    withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+  });
   const isClosed = post.actual_close_time
     ? new Date(post.actual_close_time).getTime() < Date.now()
     : false;
 
-  switch (groupType) {
-    case QuestionType.Binary: {
-      return (
-        <BinaryGroupChart
-          actualCloseTime={
-            post.actual_close_time
-              ? new Date(post.actual_close_time).getTime()
-              : null
-          }
-          questions={sortedQuestions}
-          timestamps={timestamps}
-          preselectedQuestionId={preselectedQuestionId}
-          isClosed={isClosed}
-        />
-      );
-    }
-    case QuestionType.Numeric:
-    case QuestionType.Date:
-      return (
-        <ContinuousGroupTimeline
-          actualCloseTime={
-            post.actual_close_time
-              ? new Date(post.actual_close_time).getTime()
-              : null
-          }
-          questions={sortedQuestions}
-          timestamps={timestamps}
-          isClosed={isClosed}
-        />
-      );
+  const type = getQuestionLinearChartType(groupType);
+
+  if (!type) {
+    return null;
   }
+
+  return (
+    <>
+      <MultipleChoiceGroupChart
+        questions={sortedQuestions}
+        timestamps={timestamps}
+        type={type}
+        actualCloseTime={
+          post.actual_close_time
+            ? new Date(post.actual_close_time).getTime()
+            : null
+        }
+        openTime={
+          post.open_time ? new Date(post.open_time).getTime() : undefined
+        }
+        isClosed={isClosed}
+        preselectedQuestionId={preselectedQuestionId}
+        hideCP={hideCP}
+        forecastAvailability={forecastAvailability}
+      />
+      {hideCP && <RevealCPButton className="mb-3" />}
+    </>
+  );
 };
 
 export default ForecastTimelineDrawer;

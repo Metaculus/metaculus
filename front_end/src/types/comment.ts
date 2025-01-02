@@ -1,3 +1,4 @@
+import { ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
@@ -11,10 +12,12 @@ export type AuthorType = {
 export type BECommentType = {
   id: number;
   author: AuthorType;
+  author_staff_permission: ProjectPermissions | null;
   on_post: number;
   root_id: number | null;
   parent_id: number | null;
   created_at: string;
+  edited_at: string;
   is_soft_deleted: boolean;
   text: string;
   included_forecast?: ForecastType;
@@ -26,26 +29,16 @@ export type BECommentType = {
     count: number;
   };
   mentioned_users: AuthorType[];
+  on_post_data?: {
+    id: number;
+    title: string;
+  };
+  is_current_content_translated?: boolean;
+  key_factors?: KeyFactor[];
 };
 
-export type CommentType = {
-  id: number;
-  author: AuthorType;
-  on_post: number;
-  parent_id: number | null;
-  created_at: string;
-  is_soft_deleted: boolean;
-  text: string;
-  included_forecast?: ForecastType;
-  is_private: boolean;
-  vote_score?: number;
-  user_vote: VoteDirection;
+export type CommentType = BECommentType & {
   children: CommentType[];
-  changed_my_mind: {
-    for_this_user: boolean;
-    count: number;
-  };
-  mentioned_users: AuthorType[];
 };
 
 export type ForecastType = {
@@ -54,6 +47,14 @@ export type ForecastType = {
   probability_yes_per_category: number[];
   options: string[];
   continuous_cdf: number[];
-  quartiles: number[];
+  quartiles: [number, number, number];
   question_type: QuestionType;
+};
+
+export type KeyFactor = {
+  id: number;
+  text: string;
+  comment_id: string;
+  user_vote: VoteDirection | null;
+  votes_score: number;
 };

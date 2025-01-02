@@ -3,8 +3,9 @@
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
+import { debounce } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 
 import { getFilterChipColor } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
@@ -16,13 +17,13 @@ import SearchInput from "@/components/search_input";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
-import {
-  POST_ORDER_BY_FILTER,
-  POST_TEXT_SEARCH_FILTER,
-} from "@/constants/posts_feed";
-import useSearchInputState from "@/hooks/use_search_input_state";
+import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
+
+import RandomButton from "./random_button";
+import VisibilityObserver from "./visibility_observer";
 
 type ActiveFilter = {
   id: string;
@@ -56,6 +57,7 @@ type Props = {
     ) => void
   ) => void;
   inputConfig?: { mode: "client" | "server"; debounceTime?: number };
+  showRandomButton?: boolean;
 };
 
 const PostsFilters: FC<Props> = ({
@@ -65,7 +67,7 @@ const PostsFilters: FC<Props> = ({
   sortOptions: dropdownSortOptions,
   onPopOverFilterChange,
   onOrderChange,
-  inputConfig,
+  showRandomButton,
 }) => {
   const t = useTranslations();
   const {
@@ -78,12 +80,32 @@ const PostsFilters: FC<Props> = ({
   } = useSearchParams();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
-  const [search, setSearch] = useSearchInputState(
-    POST_TEXT_SEARCH_FILTER,
-    inputConfig
+  const { globalSearch, setGlobalSearch, setIsVisible, setModifySearchParams } =
+    useGlobalSearchContext();
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedGAEvent = useCallback(
+    debounce(() => {
+      sendGAEvent({
+        event: "feedSearch",
+        event_category: "fromPostsFilter",
+      });
+    }, 2000),
+    []
   );
+
+  useEffect(() => {
+    setModifySearchParams(true);
+
+    return () => {
+      setModifySearchParams(false);
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const eraseSearch = () => {
-    setSearch("");
+    setGlobalSearch("");
   };
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
@@ -102,6 +124,12 @@ const PostsFilters: FC<Props> = ({
 
     return [filters, activeFilters];
   }, [filters]);
+
+  // reset page param after applying new filters
+  useEffect(() => {
+    deleteParam(POST_PAGE_FILTER, false);
+  }, [filters, deleteParam]);
+
   const handleOrderChange = (order: QuestionOrder) => {
     const withNavigation = false;
 
@@ -121,7 +149,8 @@ const PostsFilters: FC<Props> = ({
   const handlePopOverFilterChange = (
     filterId: string,
     optionValue: string | string[] | null,
-    replaceInfo?: FilterReplaceInfo
+    replaceInfo?: FilterReplaceInfo,
+    extraValues?: Record<string, string>
   ) => {
     onPopOverFilterChange?.(
       { filterId, optionValue, replaceInfo },
@@ -136,7 +165,15 @@ const PostsFilters: FC<Props> = ({
         return;
       }
 
-      replaceParams(replaceIds, [{ name: optionId, value: optionValue }]);
+      replaceParams(replaceIds, [
+        { name: optionId, value: optionValue },
+        ...(extraValues
+          ? Object.entries(extraValues).map(([key, value]) => ({
+              name: key,
+              value,
+            }))
+          : []),
+      ]);
       return;
     }
 
@@ -176,12 +213,25 @@ const PostsFilters: FC<Props> = ({
   return (
     <div>
       <div className="block">
-        <SearchInput
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onErase={eraseSearch}
-          placeholder={t("questionSearchPlaceholder")}
-        />
+        <VisibilityObserver
+          onVisibilityChange={(v) => {
+            setIsVisible(v);
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <SearchInput
+              value={globalSearch}
+              onChange={(e) => {
+                debouncedGAEvent();
+                deleteParam(POST_PAGE_FILTER, true);
+                setGlobalSearch(e.target.value);
+              }}
+              onErase={eraseSearch}
+              placeholder={t("questionSearchPlaceholder")}
+            />
+            {showRandomButton && <RandomButton />}
+          </div>
+        </VisibilityObserver>
         <div className="mx-0 my-3 flex flex-wrap items-center justify-between gap-2">
           <ButtonGroup
             value={order}

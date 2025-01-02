@@ -1,8 +1,9 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuItem, MenuItems, MenuButton } from "@headlessui/react";
-import clsx from "clsx";
 import { Fragment } from "react";
+
+import cn from "@/utils/cn";
 
 import Button from "./button";
 
@@ -20,6 +21,7 @@ interface DropdownMenuProps extends React.PropsWithChildren {
   items: MenuItemProps[];
   textAlign?: "left" | "right";
   itemClassName?: string;
+  className?: string;
 }
 
 const defaultButton = (
@@ -38,13 +40,17 @@ export default function DropdownMenu({
   children = defaultButton,
   textAlign = "right",
   itemClassName,
+  className,
 }: DropdownMenuProps) {
   return (
     <Menu as="div" className="relative text-gray-900 dark:text-gray-900-dark">
       <MenuButton as={Fragment}>{children}</MenuButton>
       <MenuItems
         as="div"
-        className="absolute right-0 z-50 mt-1 flex origin-top-right flex-col overflow-y-auto rounded border border-gray-500 bg-gray-0 text-sm drop-shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark"
+        className={cn(
+          "absolute right-0 z-50 mt-1 flex origin-top-right flex-col overflow-y-auto rounded border border-gray-500 bg-gray-0 text-sm drop-shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark",
+          className
+        )}
       >
         {items
           .filter((x) => x.hidden !== true)
@@ -56,7 +62,7 @@ export default function DropdownMenu({
                     target={item.openNewTab ? "_blank" : undefined}
                     rel="noreferrer"
                     href={item.link}
-                    className={clsx(
+                    className={cn(
                       "w-full whitespace-nowrap p-2 no-underline hover:bg-gray-200 hover:dark:bg-gray-200-dark",
                       { "text-right": textAlign === "right" },
                       { "text-left": textAlign === "left" },
@@ -70,7 +76,7 @@ export default function DropdownMenu({
                   item.element
                 ) : (
                   <button
-                    className={clsx(
+                    className={cn(
                       "w-full self-stretch whitespace-nowrap p-2 hover:bg-gray-200 hover:dark:bg-gray-200-dark",
                       { "text-right": textAlign === "right" },
                       { "text-left": textAlign === "left" },

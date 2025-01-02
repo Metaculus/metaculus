@@ -2,7 +2,6 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
-import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, memo, useEffect, useMemo, useState } from "react";
@@ -15,6 +14,7 @@ import {
 import { useBreakpoint } from "@/hooks/tailwind";
 import useHash from "@/hooks/use_hash";
 import useSectionHeadings from "@/hooks/use_section_headings";
+import cn from "@/utils/cn";
 
 type Props = {
   commentsCount: number;
@@ -128,7 +128,7 @@ const NotebookContentSections: FC<Props> = ({
             </span>
 
             <FontAwesomeIcon
-              className={classNames("p-4", { "rotate-180": open })}
+              className={cn("p-4", { "rotate-180": open })}
               icon={faChevronDown}
             />
           </PopoverButton>
@@ -136,14 +136,14 @@ const NotebookContentSections: FC<Props> = ({
           <PopoverPanel
             static
             as="div"
-            className={classNames("flex flex-col", {
+            className={cn("flex flex-col", {
               "max-md:hidden": !open,
             })}
           >
             <div className="hidden items-center justify-between gap-2.5 text-left md:flex">
               <Link
                 href="#"
-                className={classNames(
+                className={cn(
                   "block flex-1 py-2 no-underline max-md:ml-4 md:py-1",
                   {
                     "font-bold": !activeHeading,
@@ -161,7 +161,7 @@ const NotebookContentSections: FC<Props> = ({
                 <Link
                   href={`#${id}`}
                   key={id}
-                  className={classNames("block py-1 no-underline", {
+                  className={cn("block py-1 no-underline", {
                     "pl-4": tagName === "H2",
                     "pl-8": tagName === "H3",
                     "font-bold": activeHeading?.id === id,
@@ -175,7 +175,7 @@ const NotebookContentSections: FC<Props> = ({
               ))}
               {!!headings.length && (
                 <hr
-                  className={classNames(
+                  className={cn(
                     "my-1 border-gray-300 dark:border-gray-300-dark",
                     { "max-md:hidden": !open }
                   )}
@@ -184,7 +184,7 @@ const NotebookContentSections: FC<Props> = ({
 
               <Link
                 href={`#${NOTEBOOK_COMMENTS_TITLE}`}
-                className={classNames("block py-1 no-underline", {
+                className={cn("block py-1 no-underline", {
                   "font-bold": activeHeading?.id === NOTEBOOK_COMMENTS_TITLE,
                   "font-medium":
                     activeHeading?.id !== NOTEBOOK_COMMENTS_TITLE &&

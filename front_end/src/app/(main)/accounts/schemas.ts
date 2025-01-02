@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { SubscriptionEmailType } from "@/types/notifications";
-
 export const signInSchema = z.object({
   login: z.string().min(1, { message: "Email/Username is required" }),
   password: z
@@ -14,15 +12,13 @@ export const signUpSchema = z.intersection(
   z.object({
     username: z.string().min(1, { message: "Username is required" }),
     email: z.string().min(1, { message: "Email is required" }),
-    isBot: z
-      .string()
-      .toLowerCase()
-      .transform((x) => x === "true")
-      .pipe(z.boolean()),
+    isBot: z.boolean(),
     turnstileToken: z.string({
-      required_error: "Trunstile token is required",
+      required_error: "Turnstile token is required",
     }),
-    addToProject: z.string().optional(),
+    addToProject: z.number().optional(),
+    campaignKey: z.string().optional(),
+    campaignData: z.record(z.any()).optional(),
   }),
   z
     .object({

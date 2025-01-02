@@ -10,6 +10,7 @@ def get_comments_feed(
     sort=None,
     is_private=None,
     focus_comment_id: int = None,
+    include_deleted=False,
 ):
     user = user if user and user.is_authenticated else None
 
@@ -26,6 +27,11 @@ def get_comments_feed(
         qs = qs.filter(is_private=is_private, author=user)
     else:
         qs = qs.filter(is_private=False)
+
+    if not include_deleted:
+        qs = qs.filter(
+            Q(is_soft_deleted=False) | Q(child_comments__is_soft_deleted=False)
+        ).distinct()
 
     qs = qs.annotate_vote_score()
 

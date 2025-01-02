@@ -1,7 +1,9 @@
-import datetime
+from datetime import datetime
 
 import pytest  # noqa
 from freezegun import freeze_time
+from django.utils import timezone
+
 
 from posts.models import Post
 from projects.permissions import ObjectPermission
@@ -11,7 +13,7 @@ from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post, factory_post_snapshot
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import factory_forecast
-from tests.unit.test_questions.fixtures import *  # noqa
+from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_users.factories import factory_user
 
 
@@ -198,8 +200,8 @@ class TestPostPermissions:
 
         # Post exists for creator
         assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
-        # Draft post should not be visible to anyone except creators
-        assert not Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
+        # Draft post should not be visible to anyone except creators and admins/curators
+        assert Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
         # Post is not visible for Forecaster
         assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
         # Post is not visible for a random user
@@ -229,6 +231,7 @@ class TestPostPermissions:
 
         # Approve post
         p1.curation_status = Post.CurationStatus.APPROVED
+        p1.published_at = timezone.now()
         p1.save()
 
         # Post is visible for creator
@@ -298,16 +301,16 @@ def test_annotate_unread_comment_count(user1, user2, user_admin):
         user=user1,
         post=post,
         comments_count=2,
-        viewed_at=datetime.datetime(2024, 6, 1),
+        viewed_at=datetime(2024, 6, 1),
         divergence=0.95,
     )
     factory_post_snapshot(
-        user=user2, post=post, comments_count=1, viewed_at=datetime.datetime(2024, 6, 2)
+        user=user2, post=post, comments_count=1, viewed_at=datetime(2024, 6, 2)
     )
 
-    factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 1))
-    factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 2))
-    factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 3))
+    factory_comment(on_post=post, created_at=datetime(2024, 6, 1))
+    factory_comment(on_post=post, created_at=datetime(2024, 6, 2))
+    factory_comment(on_post=post, created_at=datetime(2024, 6, 3))
 
     assert (
         Post.objects.filter(pk=post.id).annotate_unread_comment_count(user1.id).first()
@@ -326,12 +329,12 @@ def test_annotate_weekly_movement(user1, conditional_1):
         factory_forecast(
             question=conditional_1.question_yes,
             author=user1,
-            start_time=datetime.datetime(2024, 7, 8),
+            start_time=datetime(2024, 7, 8),
         )
         factory_forecast(
             question=conditional_1.question_no,
             author=user1,
-            start_time=datetime.datetime(2024, 7, 7),
+            start_time=datetime(2024, 7, 7),
         )
 
     # Previous month
@@ -339,7 +342,7 @@ def test_annotate_weekly_movement(user1, conditional_1):
         factory_forecast(
             question=conditional_1.question_no,
             author=user1,
-            start_time=datetime.datetime(2024, 6, idx + 1),
+            start_time=datetime(2024, 6, idx + 1),
         )
 
     assert (

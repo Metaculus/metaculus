@@ -1,10 +1,10 @@
-import classNames from "classnames";
-
 import Button, { ButtonVariant } from "@/components/ui/button";
+import cn from "@/utils/cn";
 
 export type GroupButton<T> = {
   value: T;
   label: string;
+  href?: string;
 };
 
 type Props<T> = {
@@ -14,6 +14,8 @@ type Props<T> = {
   onClick?: (value: string) => void;
   variant?: ButtonVariant;
   activeVariant?: ButtonVariant;
+  className?: string;
+  activeClassName?: string;
 };
 
 const ButtonGroup = <T extends string>({
@@ -23,6 +25,8 @@ const ButtonGroup = <T extends string>({
   onClick,
   variant,
   activeVariant = "primary",
+  className,
+  activeClassName,
 }: Props<T>) => {
   return (
     <div className="flex">
@@ -32,16 +36,18 @@ const ButtonGroup = <T extends string>({
           variant={button.value === value ? activeVariant : variant}
           onClick={() => {
             onChange(button.value);
-            onClick && onClick(button.label);
+            onClick?.(button.label);
           }}
-          className={classNames(
+          href={button.href}
+          className={cn(
             "relative hover:z-10 focus:z-20",
             buttons.length > 1 &&
               (index === 0
                 ? "rounded-r-none"
                 : index !== buttons.length - 1
                   ? "ml-[-1px] rounded-none"
-                  : "ml-[-1px] rounded-l-none")
+                  : "ml-[-1px] rounded-l-none"),
+            value === button.value ? activeClassName : className
           )}
         >
           {button.label}

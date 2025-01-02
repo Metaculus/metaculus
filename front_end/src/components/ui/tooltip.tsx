@@ -5,6 +5,7 @@ import {
   limitShift,
   offset,
   Placement,
+  safePolygon,
   shift,
   useDismiss,
   useFloating,
@@ -13,12 +14,14 @@ import {
   useInteractions,
   useRole,
 } from "@floating-ui/react";
-import classNames from "classnames";
 import { FC, PropsWithChildren, ReactNode, useState } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   tooltipContent: ReactNode;
   className?: string;
+  tooltipClassName?: string;
   showDelayMs?: number;
   placement?: Placement;
 };
@@ -28,6 +31,7 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
   showDelayMs,
   placement,
   className,
+  tooltipClassName,
   children,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,7 +46,10 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
       shift({ limiter: limitShift(), padding: 20 }),
     ],
   });
-  const hover = useHover(context, { delay: { open: showDelayMs } });
+  const hover = useHover(context, {
+    delay: { open: showDelayMs },
+    handleClose: safePolygon(),
+  });
   const focus = useFocus(context);
   const dismiss = useDismiss(context);
   const role = useRole(context, { role: "tooltip" });
@@ -56,7 +63,7 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
   return (
     <>
       <div
-        className={classNames("inline-block", className)}
+        className={cn("inline-block", className)}
         tabIndex={0}
         ref={refs.setReference}
         {...getReferenceProps()}
@@ -66,7 +73,10 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
 
       {isOpen && (
         <div
-          className="pointer-events-none z-10 w-max max-w-[300px] rounded border bg-blue-900-dark p-2 text-sm open:block dark:border-gray-100 dark:bg-blue-900 dark:text-gray-100 sm:max-w-sm md:max-w-md"
+          className={cn(
+            "z-10 w-max max-w-[300px] rounded border bg-blue-900-dark p-2 text-sm open:block dark:border-gray-100 dark:bg-blue-900 dark:text-gray-100 sm:max-w-sm md:max-w-md",
+            tooltipClassName
+          )}
           ref={refs.setFloating}
           style={floatingStyles}
           {...getFloatingProps()}

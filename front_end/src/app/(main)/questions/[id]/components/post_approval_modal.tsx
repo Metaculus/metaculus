@@ -18,7 +18,7 @@ import { approvePost } from "../../actions";
 const PostApprovalModal: FC<{
   post: Post;
   isOpen: boolean;
-  setIsOpen: any;
+  setIsOpen: (value: boolean) => void;
 }> = ({ post, isOpen, setIsOpen }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
@@ -28,19 +28,6 @@ const PostApprovalModal: FC<{
     () => formatInTimeZone(new Date(), "UTC", "yyyy-MM-dd'T'HH:mm:ss'Z'"),
     []
   );
-
-  const questions = useMemo(() => {
-    if (post.question) return [post.question];
-    if (post.group_of_questions) return post.group_of_questions.questions;
-    if (post.conditional) return [{ id: post.id, title: post.title }];
-    return [];
-  }, [
-    post.group_of_questions,
-    post.question,
-    post.conditional,
-    post.id,
-    post.title,
-  ]);
 
   const [approvalData, setApprovalData] = useState<ApprovePostParams>(() => ({
     open_time: formatInTimeZone(
@@ -89,32 +76,34 @@ const PostApprovalModal: FC<{
               ? t("postGroupOfQuestionsApprovalSubtitle")
               : t("postQuestionApprovalSubtitle")}
         </p>
-        <div className="mb-4 flex flex-col gap-2">
-          <span>{t("openTime")}</span>
-          <DatetimeUtc
-            placeholder="date when forecasts will open"
-            min={currentDateTime}
-            onChange={(dt) =>
-              setApprovalData({
-                ...approvalData,
-                open_time: dt,
-              })
-            }
-            defaultValue={approvalData.open_time}
-          />
-          <span>{t("cpRevealTime")}</span>
-          <DatetimeUtc
-            placeholder="time when the cp will be revealed"
-            min={currentDateTime}
-            onChange={(dt) =>
-              setApprovalData({
-                ...approvalData,
-                cp_reveal_time: dt,
-              })
-            }
-            defaultValue={approvalData.cp_reveal_time}
-          />
-        </div>
+        {!post.notebook && (
+          <div className="mb-4 flex flex-col gap-2">
+            <span>{t("openTime")}</span>
+            <DatetimeUtc
+              placeholder="date when forecasts will open"
+              min={currentDateTime}
+              onChange={(dt) =>
+                setApprovalData({
+                  ...approvalData,
+                  open_time: dt,
+                })
+              }
+              defaultValue={approvalData.open_time}
+            />
+            <span>{t("cpRevealTime")}</span>
+            <DatetimeUtc
+              placeholder="time when the cp will be revealed"
+              min={currentDateTime}
+              onChange={(dt) =>
+                setApprovalData({
+                  ...approvalData,
+                  cp_reveal_time: dt,
+                })
+              }
+              defaultValue={approvalData.cp_reveal_time}
+            />
+          </div>
+        )}
         <div className="flex w-full justify-end gap-2">
           <Button
             onClick={() => setIsOpen(false)}

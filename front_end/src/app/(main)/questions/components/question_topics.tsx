@@ -7,20 +7,22 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 import Button from "@/components/ui/button";
 import {
   FeedType,
+  POST_FOLLOWING_FILTER,
   POST_FORECASTER_ID_FILTER,
   POST_TOPIC_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
+import cn from "@/utils/cn";
 
 import TopicItem from "./topic_item";
 
@@ -39,7 +41,7 @@ type Props = {
 const QuestionTopics: FC<Props> = ({ topics }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const { params, setParam, deleteParam } = useSearchParams();
+  const { params, setParam, deleteParams } = useSearchParams();
 
   const { switchFeed, currentFeed, clearInReview } = useFeed();
   const selectedTopic = params.get(POST_TOPIC_FILTER);
@@ -56,27 +58,39 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     hotTopics.length + hotCategories.length > EXPAND_THRESHOLD;
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
+  const { bannerIsVisible: isTranslationBannerVisible } =
+    useContentTranslatedBannerProvider();
+
   const selectTopic = (topic: Topic) => {
     clearInReview();
     setParam(POST_TOPIC_FILTER, topic.slug);
-    deleteParam(POST_FORECASTER_ID_FILTER);
+    deleteParams([POST_FORECASTER_ID_FILTER, POST_FOLLOWING_FILTER]);
     setIsMobileExpanded(false);
   };
 
+  const topPositionClasses = isTranslationBannerVisible
+    ? "top-24 lg:top-20"
+    : "top-12 lg:top-20";
+
   return (
-    <div className="sticky top-12 z-40 mt-0 self-start sm:top-16 sm:mt-4 lg:top-20">
+    <div
+      className={cn(
+        "sticky z-40 mt-0 self-start sm:top-16 sm:mt-4",
+        topPositionClasses
+      )}
+    >
       <div className="relative w-full border-y border-blue-400 bg-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-blue-700 dark:bg-blue-800/75 sm:max-h-[calc(100vh-76px)] sm:overflow-y-auto sm:border-none sm:bg-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-blue-800/0">
         {isMobileExpandable && (
           <>
             <div
-              className={classNames(
+              className={cn(
                 "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-800 sm:hidden",
                 isMobileExpanded && "hidden"
               )}
             />
 
             <div
-              className={classNames(
+              className={cn(
                 "absolute right-2 z-20 sm:hidden",
                 isMobileExpanded ? "bottom-3.5" : "top-3.5"
               )}
@@ -88,7 +102,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 presentationType="icon"
               >
                 <FontAwesomeIcon
-                  className={classNames({ "-rotate-180": !isMobileExpanded })}
+                  className={cn({ "-rotate-180": !isMobileExpanded })}
                   icon={faArrowUp}
                 />
               </Button>
@@ -97,7 +111,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
         )}
 
         <div
-          className={classNames(
+          className={cn(
             "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 md:w-64",
             isMobileExpanded ? "flex-wrap" : "pr-10"
           )}
@@ -132,11 +146,44 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 }}
                 isActive={currentFeed === FeedType.MY_QUESTIONS_AND_POSTS}
               />
+              <TopicItem
+                text={t("followingButton")}
+                emoji={"🔎 "}
+                onClick={() => {
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: t("followingButton"),
+                  });
+                  switchFeed(FeedType.FOLLOWING);
+                }}
+                isActive={currentFeed === FeedType.FOLLOWING}
+              />
             </>
           )}
           <TopicItem
+            emoji="👥"
+            text={t("communities")}
+            onClick={() => {
+              sendGAEvent("event", "sidebarClick", {
+                event_category: "Communities",
+              });
+              switchFeed(FeedType.COMMUNITIES);
+            }}
+            isActive={currentFeed === FeedType.COMMUNITIES}
+          />
+          <TopicItem
             isActive={false}
-            emoji="🤖🔭"
+            emoji="🔭"
+            text="Bridgewater 2025"
+            href="/bridgewater/register/"
+            onClick={() =>
+              sendGAEvent("event", "sidebarClick", {
+                event_category: "Bridgewater 2025",
+              })
+            }
+          />
+          <TopicItem
+            isActive={false}
+            emoji="🤖"
             text="AI Benchmarking"
             href="/aib"
             onClick={() =>
@@ -147,12 +194,12 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           />
           <TopicItem
             isActive={false}
-            emoji="🇺🇸"
-            text="2024 US Election Hub"
-            href="/experiments/elections"
+            emoji="💸🌍"
+            text="Forecast With GiveWell"
+            href="/tournament/forecast-with-givewell/"
             onClick={() =>
               sendGAEvent("event", "sidebarClick", {
-                event_category: "2024 US Election Hub",
+                event_category: "Forecast With GiveWell",
               })
             }
           />

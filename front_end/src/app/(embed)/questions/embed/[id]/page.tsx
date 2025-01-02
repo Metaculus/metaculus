@@ -55,7 +55,7 @@ export default async function GenerateQuestionPreview({
     >
       <ForecastCard
         post={post}
-        className="size-full flex-1 !bg-transparent hover:!shadow-none"
+        className="size-full flex-1 bg-transparent hover:shadow-none dark:bg-transparent"
         embedTheme={embedTheme}
         nonInteractive={!!nonInteractiveParam && nonInteractiveParam === "true"}
         defaultChartZoom={chartZoom}

@@ -13,7 +13,7 @@ import React from "react";
 
 import { LexicalAutoLinkPlugin } from "./AutoLinkPlugin";
 import { LexicalLinkVisitor } from "./LexicalLinkVisitor";
-import { MdastLinkVisitor } from "./MdastLinkVisitor";
+import { createMdastLinkVisitor } from "./MdastLinkVisitor";
 
 /**
  * Holds whether the auto-linking of URLs and email addresses is disabled.
@@ -36,12 +36,20 @@ export const linkPlugin = realmPlugin<{
    * @default false
    */
   disableAutoLink?: boolean;
+  /**
+   * Force adding rel="ugc" to all links to not reward the spam accounts that post ads on our platform.
+   * @default false
+   */
+  withUgcLinks?: boolean;
 }>({
   init(realm, params) {
     const disableAutoLink = Boolean(params?.disableAutoLink);
     const linkPluginProps = params?.validateUrl
       ? { validateUrl: params.validateUrl }
       : {};
+    const withUgcLinks = Boolean(params?.withUgcLinks);
+
+    const MdastLinkVisitor = createMdastLinkVisitor(withUgcLinks);
     realm.pubIn({
       [addActivePlugin$]: "link",
       [addImportVisitor$]: MdastLinkVisitor,

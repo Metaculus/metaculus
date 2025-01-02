@@ -2,15 +2,13 @@ import { parseISO } from "date-fns";
 import { isNil } from "lodash";
 import { FC } from "react";
 
+import PredictionStatusMessage from "@/app/(main)/questions/[id]/components/forecast_maker/prediction_status_message";
 import {
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
-import {
-  canPredictQuestion,
-  getPredictionInputMessage,
-} from "@/utils/questions";
+import { canPredictQuestion } from "@/utils/questions";
 
 import ForecastMakerConditional from "./forecast_maker_conditional";
 import ForecastMakerGroup from "./forecast_maker_group";
@@ -37,7 +35,8 @@ const ForecastMaker: FC<Props> = ({ post }) => {
     parseISO(post.published_at) <= new Date() &&
     [PostStatus.APPROVED, PostStatus.OPEN, PostStatus.CLOSED].includes(status);
 
-  const predictionMessage = getPredictionInputMessage(post);
+  const predictionMessage = <PredictionStatusMessage post={post} />;
+
   if (groupOfQuestions) {
     return (
       <ForecastMakerGroup
@@ -45,6 +44,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         resolutionCriteria={groupOfQuestions.resolution_criteria}
         finePrint={groupOfQuestions.fine_print}
         questions={groupOfQuestions.questions}
+        groupVariable={groupOfQuestions.group_variable}
         canPredict={canPredict}
         canResolve={canResolve}
         predictionMessage={predictionMessage}

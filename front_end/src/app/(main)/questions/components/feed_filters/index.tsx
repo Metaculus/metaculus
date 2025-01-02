@@ -19,6 +19,8 @@ const FeedFilters: FC = () => {
       return <MyQuestionsAndPostsFilters />;
     case FeedType.IN_REVIEW:
       return <InReviewFeed />;
+    case FeedType.FOLLOWING:
+      return <MainFeedFilters following />;
     default:
       return <MainFeedFilters />;
   }

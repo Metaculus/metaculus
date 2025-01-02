@@ -11,9 +11,13 @@ def build_frontend_url(path: str = None):
     return f"{base_url}/{path}"
 
 
-def build_frontend_account_activation_url(user_id: int, token: str):
+def build_frontend_account_activation_url(
+    user_id: int, token: str, redirect_url: str | None
+):
+    redirect_params = {"redirect_url": redirect_url} if redirect_url else {}
+
     return build_frontend_url(
-        f"/accounts/activate?{urlencode({'user_id': user_id, 'token': token})}"
+        f"/accounts/activate?{urlencode({'user_id': user_id, 'token': token, **redirect_params})}"
     )
 
 
@@ -28,8 +32,7 @@ def build_question_graph_image_url(question_id: int):
 
 
 def build_question_graph_image_cdn_url(question_id: int):
-    cdn_domain_name = settings.CDN_DOMAIN_NAME.strip().rstrip("/")
-    return f"{cdn_domain_name}/api/posts/preview-image/{question_id}/"
+    return build_frontend_url(f"/api/posts/preview-image/{question_id}/")
 
 
 def build_question_embed_url(question_id: int):

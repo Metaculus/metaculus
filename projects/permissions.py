@@ -133,7 +133,6 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
     @classmethod
     def can_resolve(cls, permission: Self, raise_exception=False):
         can = permission in (
-            cls.CREATOR,
             cls.CURATOR,
             cls.ADMIN,
         )
@@ -148,7 +147,6 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
     @classmethod
     def can_close(cls, permission: Self, raise_exception=False):
         can = permission in (
-            cls.CREATOR,
             cls.CURATOR,
             cls.ADMIN,
         )
@@ -160,9 +158,7 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
 
     @classmethod
     def can_edit_community_project(cls, permission: Self, raise_exception=False):
-        can = permission in (
-            cls.ADMIN,
-        )
+        can = permission in (cls.ADMIN,)
 
         if raise_exception and not can:
             raise PermissionDenied(

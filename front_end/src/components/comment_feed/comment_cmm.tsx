@@ -17,14 +17,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useState, forwardRef, FC } from "react";
 
 import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_text_input";
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
 
 export const BINARY_MIN_VALUE = 0.001;
@@ -76,7 +76,15 @@ const CmmMakeForecast: FC<{
     });
   };
 
-  const onUpdateVal = (step: number) => {
+  const onUpdateVal = (step: number | undefined) => {
+    if (isNil(step)) {
+      logError(
+        new Error("Step is undefined"),
+        "Error updating comment forecast"
+      );
+      return;
+    }
+
     let newPred = clampPrediction(forecast + step);
     newPred = Math.floor(10 * newPred) / 10;
     setValue(predictionToInputVal(newPred));
@@ -90,7 +98,7 @@ const CmmMakeForecast: FC<{
           size="xs"
           className="py-1"
           onClick={() => {
-            onUpdateVal(-stepBig);
+            onUpdateVal(!isNil(stepBig) ? -stepBig : undefined);
           }}
         >
           <FontAwesomeIcon icon={faChevronLeft} size="sm" />
@@ -101,7 +109,7 @@ const CmmMakeForecast: FC<{
           size="xs"
           className="py-1"
           onClick={() => {
-            onUpdateVal(-stepSmall);
+            onUpdateVal(!isNil(stepSmall) ? -stepSmall : undefined);
           }}
         >
           <FontAwesomeIcon icon={faChevronLeft} size="sm" />
@@ -243,7 +251,7 @@ const CmmOverlay = ({
   cmmContext,
 }: CmmOverlayProps) => {
   const t = useTranslations();
-  const { floatingStyles, context } = useFloating({
+  const { floatingStyles } = useFloating({
     placement: "bottom-start",
     middleware: [
       offset(10), // Adjust offset as needed
@@ -293,14 +301,10 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
   ({ comment_id, disabled, cmmContext }, ref) => {
     const t = useTranslations();
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<
-      (Error & { digest?: string }) | undefined
-    >();
 
     const onChangedMyMind = async () => {
       try {
         setIsLoading(true);
-        setError(undefined);
         await toggleCMMComment({
           id: comment_id,
           enabled: !cmmContext.cmmEnabled,
@@ -309,8 +313,6 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
         sendGAEvent("event", "commentChangedMind");
       } catch (e) {
         logError(e);
-        const error = e as Error & { digest?: string };
-        setError(error);
         cmmContext.onCMMToggled(cmmContext.cmmEnabled);
       } finally {
         setIsLoading(false);
@@ -330,7 +332,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
       >
         <FontAwesomeIcon
           icon={faCaretUp}
-          className={classNames(
+          className={cn(
             "size-4 rounded-full",
             {
               "bg-gradient-to-b p-1 text-blue-700 group-hover:from-blue-400 group-hover:to-blue-100 dark:text-blue-700-dark dark:group-hover:from-blue-400-dark dark:group-hover:to-blue-100-dark":
@@ -357,7 +359,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
       // >
       //   <FontAwesomeIcon
       //     icon={faCaretUp}
-      //     className={classNames(
+      //     className={cn(
       //       "size-4 rounded-full",
       //       {
       //         "bg-gradient-to-b p-1 text-blue-700 group-hover:from-blue-400 group-hover:to-blue-100 dark:text-blue-700-dark dark:group-hover:from-blue-400-dark dark:group-hover:to-blue-100-dark":

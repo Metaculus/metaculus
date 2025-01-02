@@ -10,7 +10,6 @@ import { useState, FC } from "react";
 import { SignupForm } from "@/components/auth/signup";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth_context";
 
 import { Dates, Prize } from "./cards-q3";
 import HeroQ3 from "./hero-q3";
@@ -19,9 +18,6 @@ import BotLeaderboard from "./leaderboard-q3";
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
   token,
 }) => {
-  const { user } = useAuth();
-  const isUserAuthenticated = !!user;
-  const isUserBot = isUserAuthenticated && user.is_bot;
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenmodalOpen, setTokenModalOpen] = useState(false);
   const t = useTranslations();
@@ -83,7 +79,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
               */}
               <SignupForm forceIsBot={false} addToProject={3349} />
             </div>
-            <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 text-gray-700 opacity-75 dark:text-gray-700-dark dark:text-gray-700-dark">
+            <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
               {t.rich("registrationTerms", {
                 terms: (chunks) => (
                   <Link target="_blank" href={"/terms-of-use/"}>

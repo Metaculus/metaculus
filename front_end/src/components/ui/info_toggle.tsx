@@ -4,8 +4,9 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
-import classNames from "classnames";
 import { FC, Fragment, PropsWithChildren } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   title: string;
@@ -16,20 +17,17 @@ const InfoToggle: FC<PropsWithChildren<Props>> = ({ title, children }) => {
     <Disclosure as={Fragment}>
       {({ open }) => (
         <div
-          className={classNames(
-            "relative my-4 border border-gray-300 dark:border-gray-300-dark",
-            open
-              ? ""
-              : "border-b-transparent border-l-transparent border-r-transparent"
+          className={cn(
+            "relative border-t border-gray-300 py-4 dark:border-gray-300-dark"
           )}
         >
-          <DisclosureButton className="absolute -top-[8.5px] left-0 flex h-4 w-full pl-5">
-            <legend className="bg-gray-0 px-1 text-sm leading-4 text-gray-600 dark:bg-gray-0-dark dark:text-gray-600-dark">
+          <DisclosureButton className="flex w-full pl-5">
+            <legend className="px-1 text-sm leading-4 text-gray-600 dark:text-gray-600-dark">
               <svg
                 viewBox="-6 -6 12 12"
                 width="1em"
                 height="1em"
-                className={classNames(
+                className={cn(
                   "disclosure-cross mr-1 inline-block align-[-3px] transition-transform duration-200",
                   {
                     "rotate-90": open,
@@ -42,7 +40,7 @@ const InfoToggle: FC<PropsWithChildren<Props>> = ({ title, children }) => {
                   x2="4"
                   y1="0"
                   y2="0"
-                  className={classNames(
+                  className={cn(
                     "fill-none stroke-current stroke-1 transition-opacity duration-200",
                     { "opacity-0": open }
                   )}

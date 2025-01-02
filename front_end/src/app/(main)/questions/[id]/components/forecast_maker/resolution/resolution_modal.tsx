@@ -10,10 +10,12 @@ import { resolveQuestion } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import ButtonGroup from "@/components/ui/button_group";
+import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { ErrorResponse } from "@/types/fetch";
 import { Question, QuestionType } from "@/types/question";
+import { AMBIGUOUS_RESOLUTION, ANNULED_RESOLUTION } from "@/utils/questions";
 
 type Props = {
   question: Question;
@@ -36,11 +38,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currentDateTime = useMemo(
-    () =>
-      format(
-        new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60000),
-        "yyyy-MM-dd'T'HH:mm:ss'Z'"
-      ),
+    () => format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     []
   );
   const { open_lower_bound, open_upper_bound } = question;
@@ -57,8 +55,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   const unambiguousType = watch("unambiguousType");
   const resolutionTypeOptions = useMemo(() => {
     const baseQuestionOptions = [
-      { value: "ambiguous", label: "Ambiguous" },
-      { value: "annulled", label: "Annulled" },
+      { value: AMBIGUOUS_RESOLUTION, label: "Ambiguous" },
+      { value: ANNULED_RESOLUTION, label: "Annulled" },
     ];
 
     if (["date", "numeric"].includes(question.type)) {
@@ -71,8 +69,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
     if (question.type === "binary") {
       return [
         ...baseQuestionOptions,
-        { value: "yes", label: "yes" },
-        { value: "no", label: "no" },
+        { value: "yes", label: "Yes" },
+        { value: "no", label: "No" },
       ];
     }
 
@@ -120,7 +118,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
       } else {
-        onClose && onClose(true);
+        onClose?.(true);
       }
     },
     [onClose, question.id]
@@ -154,7 +152,9 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               buttons={unambiguousOptions}
               onChange={(value) => {
                 setValue("unambiguousType", value);
-                value !== "knownValue" && setValue("resolutionValue", value);
+                value !== "knownValue"
+                  ? setValue("resolutionValue", value)
+                  : setValue("resolutionValue", undefined);
               }}
               variant="tertiary"
             />
@@ -167,29 +167,37 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 step="any"
                 placeholder="numeric resolution"
                 className="max-w-xs bg-transparent"
-                min={open_lower_bound ? undefined : question.scaling.range_min!}
-                max={open_upper_bound ? undefined : question.scaling.range_max!}
+                min={
+                  open_lower_bound
+                    ? undefined
+                    : question?.scaling.range_min ?? undefined
+                }
+                max={
+                  open_upper_bound
+                    ? undefined
+                    : question?.scaling.range_max ?? undefined
+                }
                 {...register("resolutionValue")}
               />
             )}
           {question.type === QuestionType.Date &&
             resolutionType === "unambiguous" &&
             unambiguousType === "knownValue" && (
-              <Input
-                type="datetime-local"
+              <DatetimeUtc
                 placeholder="date resolution"
                 className="bg-transparent pl-1"
-                {...register("resolutionValue")}
+                defaultValue={watch("resolutionValue")}
+                onChange={(val) => setValue("resolutionValue", val)}
               />
             )}
           <label className="flex flex-col gap-2">
             Date when resolution was known:
-            <Input
-              type="datetime-local"
+            <DatetimeUtc
               placeholder="date when resolution was known"
               className="bg-transparent pl-1"
-              {...register("actualResolveTime")}
               max={currentDateTime}
+              defaultValue={watch("actualResolveTime")}
+              onChange={(val) => setValue("actualResolveTime", val)}
             />
           </label>
           <div className="flex justify-center">

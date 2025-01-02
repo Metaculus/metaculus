@@ -1,12 +1,12 @@
 "use client";
 
-import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
+import cn from "@/utils/cn";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions";
 
@@ -30,10 +30,12 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   borderColor = "blue",
   children,
 }) => {
-  const { id, title } = post;
+  const { title } = post;
   const resolutionData = extractPostResolution(post);
   const defaultProject = post.projects.default_project;
-
+  const globalLeaderboard = post.projects.tag?.find(
+    (project) => project.is_global_leaderboard
+  );
   let newCommentsCount = post.comment_count ? post.comment_count : 0;
   if (post.unread_comment_count !== undefined) {
     newCommentsCount = post.unread_comment_count;
@@ -41,7 +43,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "rounded bg-gray-0 dark:bg-gray-0-dark",
         { regular: "border", highlighted: "border border-l-4" }[borderVariant],
         {
@@ -52,25 +54,28 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
     >
       <Link href={getPostLink(post)} className="block p-4 no-underline">
         {!hideTitle && (
-          <h4 className="relative mb-3 mt-0 line-clamp-2 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
+          <h4 className="relative mb-3 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
             {title}
           </h4>
         )}
         {children}
       </Link>
-      <div className="flex items-center justify-between rounded-ee border-t border-blue-400 bg-blue-100 px-2 py-0.5 font-medium dark:border-blue-400-dark dark:bg-blue-100-dark max-lg:flex-1">
+      <div className="flex items-center justify-between rounded-ee rounded-es border-t border-blue-400 bg-blue-100 px-2 py-0.5 font-medium dark:border-blue-400-dark dark:bg-blue-100-dark max-lg:flex-1">
         <div className="flex items-center gap-3">
           <PostVoter className="md:min-w-20" post={post} />
           <CommentStatus
             newCommentsCount={newCommentsCount}
-            url={`/questions/${id}`}
+            url={getPostLink(post)}
             commentColor={borderColor}
           />
 
           <PostStatus post={post} resolution={resolutionData} />
         </div>
         <div className="hidden lg:inline-flex">
-          <PostDefaultProject defaultProject={defaultProject} />
+          <PostDefaultProject
+            defaultProject={defaultProject}
+            globalLeaderboard={globalLeaderboard}
+          />
         </div>
       </div>
     </div>

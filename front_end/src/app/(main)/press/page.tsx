@@ -1,11 +1,3 @@
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-} from "@headlessui/react";
-
 import DisclosureSection from "./components/DisclosureSection";
 import ReferenceSection from "./components/ReferenceSection";
 import PageWrapper from "../components/pagewrapper";
@@ -120,36 +112,11 @@ export default function PressPage() {
         <div>
           <h2>Metaculus Track Record</h2>
           <p>
-            Metaculus users&apos; individual forecasts are weighted by their
-            track records, which are rigorously evaluated. Our{" "}
-            <a href="/questions/track-record">own record</a> is public and
-            robust:
+            Metaculus users&apos; individual forecasts are shown on their
+            profile track records, and are rigorously evaluated. Our{" "}
+            <a href="/questions/track-record">own track record</a> is public and
+            robust.
           </p>
-          <a
-            href="/questions/track-record/"
-            className="mx-auto block max-w-3xl bg-gray-0 pb-4 pt-6 no-underline dark:bg-gray-0-dark"
-          >
-            <div className="flex justify-center gap-4 text-gray-700 dark:text-gray-700-dark">
-              <span>
-                Total questions:
-                <strong className="ml-2 text-purple-800 dark:text-purple-200">
-                  1842
-                </strong>
-              </span>
-              <span>
-                Underconfidence:
-                <strong className="ml-2 text-purple-800 dark:text-purple-200">
-                  2%
-                </strong>
-              </span>
-            </div>
-            {/* <MetaculusCalibration
-            className="max-h-56 xs:max-h-72 sm:max-h-80 md:max-h-max"
-            width="100%"
-          /> */}
-          </a>
-        </div>
-        <div>
           <h2>Download Assets</h2>
           <p>
             <a

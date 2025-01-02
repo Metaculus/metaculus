@@ -8,7 +8,6 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
-from metaculus_web.settings import MAIL_FREQUENCY_MIN
 from misc.jobs import sync_itn_articles
 from notifications.jobs import job_send_notification_groups
 from posts.jobs import (
@@ -18,7 +17,7 @@ from posts.jobs import (
     job_subscription_notify_milestone,
     job_check_post_open_event,
 )
-from posts.services.common import compute_hotness
+from posts.services.common import compute_feed_hotness
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -92,7 +91,7 @@ class Command(BaseCommand):
             replace_existing=True,
         )
         scheduler.add_job(
-            close_old_connections(compute_hotness),
+            close_old_connections(compute_feed_hotness),
             trigger=CronTrigger.from_crontab("*/10 * * * *"),  # Every 10 minutes
             id="posts_compute_hotness",
             max_instances=1,
@@ -123,12 +122,9 @@ class Command(BaseCommand):
         #
         # Notification jobs
         #
-        # TODO: uncomment this after proper testing
         scheduler.add_job(
             close_old_connections(job_send_notification_groups.send),
-            trigger=CronTrigger.from_crontab(
-                f"0-59/{MAIL_FREQUENCY_MIN} * * * *"
-            ),  # Every Hour at :00
+            trigger=CronTrigger.from_crontab("0 0 * * *"),  # Every day at 00:00 UTC
             id="notifications_job_send_notification_groups",
             max_instances=1,
             replace_existing=True,

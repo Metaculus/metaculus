@@ -1,3 +1,4 @@
+import { KeyFactor } from "@/types/comment";
 import {
   Question,
   QuestionType,
@@ -5,7 +6,7 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-import { Tournament } from "./projects";
+import { Community, Tournament } from "./projects";
 
 export type Resolution =
   | "yes"
@@ -32,12 +33,6 @@ export enum NotebookType {
   Notebook = "notebook",
 }
 
-export enum ArticleType {
-  Programs = "programs",
-  Research = "research",
-  Platform = "platform",
-}
-
 export type ForecastType = PostForecastType | QuestionType | NotebookType;
 
 export type Category = {
@@ -51,6 +46,7 @@ export type Tag = {
   id: number;
   name: string;
   slug: string;
+  is_global_leaderboard: boolean;
 };
 
 export type Topic = {
@@ -81,6 +77,7 @@ export enum PostStatus {
   OPEN = "open",
   UPCOMING = "upcoming",
   CLOSED = "closed",
+  PENDING_RESOLUTION = "pending_resolution",
   RESOLVED = "resolved",
   DELETED = "deleted",
 }
@@ -122,6 +119,7 @@ export type Post<QT = Question> = {
     tournament?: Tournament[];
     question_series?: Tournament[];
     tag?: Tag[];
+    community?: Community[];
   };
   title: string;
   url_title: string;
@@ -152,6 +150,8 @@ export type Post<QT = Question> = {
   subscriptions?: Array<PostSubscription & { created_at: string }>;
   unread_comment_count?: number;
   last_viewed_at?: string;
+  is_current_content_translated?: boolean;
+  key_factors?: KeyFactor[];
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {
@@ -159,6 +159,8 @@ export type PostWithNotebook = Omit<Post, "notebook"> & {
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;
+
+export type PostWithForecastsAndWeight = PostWithForecasts & { weight: number };
 
 export enum PostSubscriptionType {
   CP_CHANGE = "cp_change",

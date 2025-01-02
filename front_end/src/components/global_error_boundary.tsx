@@ -21,7 +21,9 @@ export const GlobalErrorContainer: FC<GlobalErrorProps> = ({
 }) => {
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center">
-      <h2>{extractError(error) || "Error"}</h2>
+      <h2 className="whitespace-break-spaces">
+        {extractError(error) || "Error"}
+      </h2>
       {reset && (
         <Button variant="primary" onClick={reset}>
           Try again
@@ -38,10 +40,14 @@ const GlobalErrorBoundary: FC<GlobalErrorBoundaryProps> = ({
   console.log("\n\n--- ERROR ---\n\n");
   console.log("Error message:", error);
   console.log("Stack: ", error.stack);
+
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);
-  return <GlobalErrorContainer error={error.digest!} reset={reset} />;
+
+  // error.digest ensures we use display actual message on production build
+  // for more info see definition of ApiError class
+  return <GlobalErrorContainer error={error.digest ?? error} reset={reset} />;
 };
 
 export default GlobalErrorBoundary;

@@ -6,7 +6,6 @@ import {
   PropsWithChildren,
   useContext,
   useState,
-  useEffect, // Add this import
 } from "react";
 
 export type ModalType =
@@ -21,7 +20,7 @@ export type ModalType =
 
 export type CurrentModal = {
   type: ModalType;
-  data?: any;
+  data?: Record<string, any>;
 };
 
 export type CurrentModalContextType = {

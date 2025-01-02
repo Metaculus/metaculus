@@ -9,7 +9,7 @@ import {
 } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
-import { PostStatus, PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts, QuestionStatus } from "@/types/post";
 
 export type HideCPContextType = {
   hideCP: boolean;
@@ -29,9 +29,20 @@ const HideCPProvider: FC<PropsWithChildren<CPProviderProps>> = ({
   children,
 }) => {
   const { user } = useAuth();
-  const hideCP =
+  let hideCP =
     user?.hide_community_prediction &&
     ![PostStatus.CLOSED, PostStatus.RESOLVED].includes(post.status);
+
+  if (post.conditional) {
+    const { condition } = post.conditional;
+    const parentSuccessfullyResolved =
+      condition.resolution === "yes" || condition.resolution === "no";
+    const parentIsClosed = condition.status === QuestionStatus.CLOSED;
+    const conditionClosedOrResolved =
+      parentSuccessfullyResolved || parentIsClosed;
+    hideCP = conditionClosedOrResolved ? false : hideCP;
+  }
+
   const [currentHideCP, setCurrentHideCP] = useState<boolean>(!!hideCP);
 
   return (

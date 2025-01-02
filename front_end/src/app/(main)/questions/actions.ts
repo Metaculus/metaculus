@@ -10,13 +10,18 @@ import CommentsApi, {
   EditCommentParams,
   getCommentsParams,
   ToggleCMMCommentParams,
-  VoteCommentParams,
+  VoteParams,
 } from "@/services/comments";
 import PostsApi, { ApprovePostParams, PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
-import QuestionsApi, { ForecastPayload } from "@/services/questions";
+import QuestionsApi, {
+  ForecastPayload,
+  WithdrawalPayload,
+} from "@/services/questions";
 import { FetchError } from "@/types/fetch";
-import { PostSubscription } from "@/types/post";
+import { PostSubscription, PostWithNotebook } from "@/types/post";
+import { Tournament, TournamentType } from "@/types/projects";
+import { DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
 
 export async function fetchMorePosts(
@@ -48,6 +53,10 @@ export async function fetchPosts(
   return { questions: response.results, count: response.count };
 }
 
+export async function fetchRandomPostId() {
+  return await PostsApi.getRandomPostId();
+}
+
 export async function fetchEmbedPosts(search: string) {
   const response = await PostsApi.getPostsWithCP({
     search: search || undefined,
@@ -65,14 +74,14 @@ export async function markPostAsRead(postId: number) {
   return await PostsApi.sendPostReadEvent(postId);
 }
 
-export async function createQuestionPost(body: any) {
+export async function createQuestionPost<T>(body: T) {
   const post = await PostsApi.createQuestionPost(body);
   return {
     post: post,
   };
 }
 
-export async function updatePost(postId: number, body: any) {
+export async function updatePost<T>(postId: number, body: T) {
   const post = await PostsApi.updatePost(postId, body);
   revalidatePath("/questions/create/group/");
   return {
@@ -95,7 +104,7 @@ export async function approvePost(postId: number, params: ApprovePostParams) {
 
 export async function removePostFromProject(postId: number, projectId: number) {
   try {
-    const resp = await PostsApi.removePostFromProject(postId, projectId);
+    await PostsApi.removePostFromProject(postId, projectId);
     return null;
   } catch (err) {
     const error = err as FetchError;
@@ -108,15 +117,39 @@ export async function removePostFromProject(postId: number, projectId: number) {
 
 export async function createForecasts(
   postId: number,
-  forecasts: ForecastPayload[]
+  forecasts: ForecastPayload[],
+  revalidate = true
 ) {
   try {
-    const response = await QuestionsApi.createForecasts(forecasts);
-    revalidatePath(`/questions/${postId}`);
+    await QuestionsApi.createForecasts(forecasts);
+    if (revalidate) {
+      revalidatePath(`/questions/${postId}`);
+    }
   } catch (err) {
     const error = err as FetchError;
 
-    return error.data;
+    return {
+      errors: error.data,
+    };
+  }
+}
+
+export async function withdrawForecasts(
+  postId: number,
+  withdrawals: WithdrawalPayload[],
+  revalidate = true
+) {
+  try {
+    await QuestionsApi.withdrawForecasts(withdrawals);
+    if (revalidate) {
+      revalidatePath(`/questions/${postId}`);
+    }
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
   }
 }
 
@@ -130,8 +163,14 @@ export async function getQuestion(questionId: number) {
   return response;
 }
 
-export async function draftPost(postId: number) {
+export async function draftPost(postId: number, defaultProject: Tournament) {
   await PostsApi.makeDraft(postId);
+
+  if (defaultProject.type === TournamentType.Community) {
+    return redirect(
+      `/c/${defaultProject.slug}/settings/?mode=questions&status=pending`
+    );
+  }
 
   return redirect("/questions/?status=pending");
 }
@@ -145,7 +184,10 @@ export async function updateNotebook(
   markdown: string,
   title: string
 ) {
-  const response = await PostsApi.updatePost(postId, {
+  const response = await PostsApi.updatePost<
+    PostWithNotebook,
+    DeepPartial<PostWithNotebook>
+  >(postId, {
     title: title,
     notebook: {
       markdown,
@@ -256,8 +298,12 @@ export async function createComment(commentData: CreateCommentParams) {
   }
 }
 
-export async function voteComment(voteData: VoteCommentParams) {
+export async function voteComment(voteData: VoteParams) {
   return await CommentsApi.voteComment(voteData);
+}
+
+export async function voteKeyFactor(voteData: VoteParams) {
+  return await CommentsApi.voteKeyFactor(voteData);
 }
 
 export async function toggleCMMComment(cmmParam: ToggleCMMCommentParams) {
@@ -303,4 +349,12 @@ export async function changePostSubscriptions(
     revalidatePath("/accounts/settings");
   }
   return response;
+}
+
+export async function getPostZipData(postId: number) {
+  const blob = await PostsApi.getPostZipData(postId);
+  const arrayBuffer = await blob.arrayBuffer();
+  const base64String = Buffer.from(arrayBuffer).toString("base64");
+
+  return `data:application/octet-stream;base64,${base64String}`;
 }

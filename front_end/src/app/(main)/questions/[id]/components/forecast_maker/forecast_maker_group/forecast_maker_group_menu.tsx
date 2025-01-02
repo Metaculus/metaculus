@@ -1,18 +1,28 @@
 "use client";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useState } from "react";
 
-import { unresolveQuestion as unresolveQuestionAction } from "@/app/(main)/questions/actions";
+import {
+  unresolveQuestion as unresolveQuestionAction,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import LocalDaytime from "@/components/ui/local_daytime";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
-import { Post, ProjectPermissions } from "@/types/post";
-import { Question } from "@/types/question";
+import { Post, ProjectPermissions, QuestionStatus } from "@/types/post";
+import { Question, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/errors";
-import { canChangeQuestionResolution } from "@/utils/questions";
+import {
+  canChangeQuestionResolution,
+  canWithdrawForecast,
+} from "@/utils/questions";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
+import IncludeBotsInfo from "../../sidebar/question_info/include_bots_info";
+import QuestionWeightInfo from "../../sidebar/question_info/question_weight_info";
 import QuestionResolutionModal from "../resolution/resolution_modal";
 
 type Props = {
@@ -46,7 +56,52 @@ const ForecastMakerGroupControls: FC<Props> = ({
   return (
     <>
       <DropdownMenu
+        className="w-[274px] !overflow-visible border-gray-500 p-6 dark:border-gray-500-dark"
+        itemClassName="!p-0 !py-2"
         items={[
+          ...[
+            {
+              id: "questionInfoHeader",
+              element: (
+                <p className="mb-4 mt-0 text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+                  {t("subquestionDetails")}
+                </p>
+              ),
+            },
+            {
+              id: "questionInfo",
+              element: <GroupQuestionInfo question={question} />,
+            },
+            {
+              id: "lineBreak",
+              element: (
+                <hr className="my-4 border-gray-300 dark:border-gray-300-dark" />
+              ),
+            },
+            {
+              id: "actionsHeader",
+              element: (
+                <p className="m-0 mb-1 text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+                  {t("actions")}
+                </p>
+              ),
+            },
+          ],
+          ...(canWithdrawForecast(
+            question as QuestionWithForecasts,
+            permission
+          ) &&
+          question.withdraw_permitted && // Feature Flag: prediction-withdrawal
+          !isNil(post)
+            ? [
+                {
+                  id: "withdraw",
+                  name: t("withdrawForecast"),
+                  onClick: () =>
+                    withdrawForecasts(post.id, [{ question: question.id }]),
+                },
+              ]
+            : []),
           ...(canChangeQuestionResolution(question, permission)
             ? [
                 {
@@ -78,16 +133,8 @@ const ForecastMakerGroupControls: FC<Props> = ({
               ).then();
             },
           },
-          {
-            id: "downloadCSV",
-            name: t("downloadCSV"),
-            onClick: () => {
-              window.open(
-                `/api/posts/${post!.id}/download-csv/?sub-question=${question.id}`
-              );
-            },
-          },
         ]}
+        textAlign="left"
       >
         {isPending ? (
           <LoadingSpinner size="lg" className="h-[32px] w-[32px]" />
@@ -105,4 +152,44 @@ const ForecastMakerGroupControls: FC<Props> = ({
   );
 };
 
+const GroupQuestionInfo = ({ question }: { question: Question }) => {
+  const t = useTranslations();
+
+  const isUpcoming = new Date(question.open_time || "").getTime() > Date.now();
+  return (
+    <div className="flex flex-col items-start gap-4 self-stretch @container">
+      <div className="flex flex-col justify-between gap-4 self-stretch @lg:grid @lg:grid-cols-4 @lg:gap-1 @lg:gap-y-5">
+        {question.open_time && (
+          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+              {t(isUpcoming ? "opens" : "opened")}:
+            </span>
+            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+              <LocalDaytime date={question.open_time} />
+            </span>
+          </div>
+        )}
+
+        <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+          <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+            {question.status === QuestionStatus.CLOSED
+              ? t("closed")
+              : t("closes")}
+            :
+          </span>
+          <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+            {question.scheduled_close_time && (
+              <LocalDaytime date={question.scheduled_close_time} />
+            )}
+          </span>
+        </div>
+
+        <QuestionWeightInfo questionWeight={question.question_weight} />
+        <IncludeBotsInfo
+          includeBotsInAggregate={question.include_bots_in_aggregates}
+        />
+      </div>
+    </div>
+  );
+};
 export default ForecastMakerGroupControls;

@@ -4,7 +4,6 @@ import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forEach } from "lodash";
-import { vacuumImpedanceDependencies } from "mathjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -16,24 +15,28 @@ import GroupFormBulkModal, {
   BulkBulkQuestionAttrs,
 } from "@/app/(main)/questions/components/group_form_bulk_modal";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
+import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import Button from "@/components/ui/button";
 import DatetimeUtc from "@/components/ui/datetime_utc";
-import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
+import {
+  FormError,
+  FormErrorMessage,
+  Input,
+  MarkdownEditorField,
+  Textarea,
+} from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
+import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
-  Category,
-  Post,
-  PostStatus,
-  PostWithForecasts,
-  ProjectPermissions,
-} from "@/types/post";
-import { Tournament, TournamentPreview } from "@/types/projects";
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
-import { extractQuestionGroupName } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -66,14 +69,21 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
       message: t("errorMinLength", { field: "String", minLength: 10 }),
     }),
     resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
-    fine_print: z.string(),
+    fine_print: z.string().optional(),
     default_project: z.nullable(z.union([z.number(), z.string()])),
   });
 };
 
+type SupportedType =
+  | QuestionType.Binary
+  | QuestionType.Numeric
+  | QuestionType.MultipleChoice
+  | string;
+
 type Props = {
-  subtype: "binary" | "numeric" | "date";
+  subtype: SupportedType;
   tournament_id?: number;
+  community_id?: number;
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
   allCategories: Category[];
@@ -88,10 +98,12 @@ const GroupForm: React.FC<Props> = ({
   tournaments,
   siteMain,
   tournament_id = null,
+  community_id = null,
   post = null,
 }) => {
   const router = useRouter();
   const t = useTranslations();
+
   const [isLoading, setIsLoading] = useState<boolean>();
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [error, setError] = useState<
@@ -101,19 +113,28 @@ const GroupForm: React.FC<Props> = ({
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
-      ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
+      ? ([...tournaments, siteMain].filter(
+          (x) => x.id === tournament_id
+        )[0] as Tournament)
       : siteMain;
 
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
     setError(undefined);
 
-    if (control.getValues("default_project") === "") {
-      control.setValue("default_project", null);
+    if (form.getValues("default_project") === "") {
+      form.setValue("default_project", null);
     }
     const labels = subQuestions.map((q) => q.label);
     if (new Set(labels).size !== labels.length) {
       setError("Duplicate sub question labels");
+      setIsLoading(false);
+      return;
+    }
+
+    if (subQuestions.length === 0) {
+      setError(t("postCreateErrorMinSubquestions"));
+      setIsLoading(false);
       return;
     }
 
@@ -123,12 +144,17 @@ const GroupForm: React.FC<Props> = ({
         id: x.id,
         type: subtype,
         title: `${data["title"]} (${x.label})`,
+        label: x.label,
         scheduled_close_time: x.scheduled_close_time,
         scheduled_resolve_time: x.scheduled_resolve_time,
         open_time: x.open_time,
         cp_reveal_time: x.cp_reveal_time,
       };
-
+      if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
+        setError("Please enter a closing and resolving date");
+        break_out = true;
+        return;
+      }
       if (subtype === QuestionType.Binary) {
         return subquestionData;
       } else if (subtype === QuestionType.Numeric) {
@@ -147,7 +173,9 @@ const GroupForm: React.FC<Props> = ({
         };
       } else if (subtype === QuestionType.Date) {
         if (x.scaling.range_max === null || x.scaling.range_min === null) {
-          setError("Please enter a max or min value for numeric questions");
+          setError(
+            "Please enter a range_max and range_min value for date questions"
+          );
           break_out = true;
           return;
         }
@@ -159,23 +187,23 @@ const GroupForm: React.FC<Props> = ({
         };
       } else {
         setError("Invalid sub-question type");
-        break_out = true;
         return;
       }
     });
 
     if (break_out) {
+      setIsLoading(false);
       return;
     }
     const questionToDelete: number[] = [];
     if (post?.group_of_questions?.questions) {
-      forEach(post?.group_of_questions.questions, (sq, index) => {
+      forEach(post?.group_of_questions.questions, (sq) => {
         if (!subQuestions.map((x) => x.id).includes(sq.id)) {
           questionToDelete.push(sq.id);
         }
       });
     }
-    let post_data: PostCreationData = {
+    const post_data: PostCreationData = {
       title: data["title"],
       url_title: data["url_title"],
       default_project: data["default_project"],
@@ -208,31 +236,38 @@ const GroupForm: React.FC<Props> = ({
     }
   };
 
-  const [subQuestions, setSubQuestions] = useState<any[]>(
+  const [subQuestions, setSubQuestions] = useState<any[]>(() =>
     post?.group_of_questions?.questions
-      ? post?.group_of_questions?.questions.map((x) => {
-          return {
-            id: x.id,
-            scheduled_close_time: x.scheduled_close_time,
-            scheduled_resolve_time: x.scheduled_resolve_time,
-            open_time: x.open_time,
-            cp_reveal_time: x.cp_reveal_time,
-            label: extractQuestionGroupName(x.title),
-            scaling: x.scaling,
-          };
-        })
+      ? post?.group_of_questions?.questions
+          .sort(
+            (a, b) =>
+              new Date(a.created_at).getTime() -
+              new Date(b.created_at).getTime()
+          )
+          .map((x) => {
+            return {
+              id: x.id,
+              scheduled_close_time: x.scheduled_close_time,
+              scheduled_resolve_time: x.scheduled_resolve_time,
+              open_time: x.open_time,
+              cp_reveal_time: x.cp_reveal_time,
+              label: x.label,
+              scaling: x.scaling,
+              open_lower_bound: x.open_lower_bound,
+              open_upper_bound: x.open_upper_bound,
+            };
+          })
       : []
   );
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
-  const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>(
-    subQuestions.map((x) => true)
+  const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<boolean[]>(
+    subQuestions.map(() => true)
   );
   const groupQuestionSchema = createGroupQuestionSchema(t);
-  const control = useForm({
+  const form = useForm({
     mode: "all",
-    // @ts-ignore
     resolver: zodResolver(groupQuestionSchema),
   });
 
@@ -281,11 +316,14 @@ const GroupForm: React.FC<Props> = ({
       </div>
       <form
         onSubmit={async (e) => {
-          if (!control.getValues("default_project")) {
-            control.setValue("default_project", defaultProject.id);
+          if (!form.getValues("default_project")) {
+            form.setValue(
+              "default_project",
+              community_id ? community_id : defaultProject.id
+            );
           }
           // e.preventDefault(); // Good for debugging
-          await control.handleSubmit(
+          await form.handleSubmit(
             async (data) => {
               await submitQuestion(data);
             },
@@ -296,21 +334,25 @@ const GroupForm: React.FC<Props> = ({
         }}
         className="mt-4 flex w-full flex-col gap-4 rounded"
       >
-        <ProjectPickerInput
-          tournaments={tournaments}
-          siteMain={siteMain}
-          currentProject={defaultProject}
-          onChange={(project) => {
-            control.setValue("default_project", project.id);
-          }}
-        />
+        <PostDjangoAdminLink post={post} />
+
+        {!community_id && defaultProject.type !== TournamentType.Community && (
+          <ProjectPickerInput
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              form.setValue("default_project", project.id);
+            }}
+          />
+        )}
         <InputContainer
           labelText={t("longTitle")}
           explanation={t("longTitleExplanation")}
         >
           <Textarea
-            {...control.register("title")}
-            errors={control.formState.errors.title}
+            {...form.register("title")}
+            errors={form.formState.errors.title}
             defaultValue={post?.title}
             className="min-h-36 rounded border border-gray-500 p-5 text-xl font-normal dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
@@ -320,8 +362,8 @@ const GroupForm: React.FC<Props> = ({
           explanation={t("shortTitleExplanation")}
         >
           <Input
-            {...control.register("url_title")}
-            errors={control.formState.errors.url_title}
+            {...form.register("url_title")}
+            errors={form.formState.errors.url_title}
             defaultValue={post?.url_title}
             className={
               "rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
@@ -330,16 +372,17 @@ const GroupForm: React.FC<Props> = ({
         </InputContainer>
         <InputContainer
           labelText={t("backgroundInformation")}
+          isNativeFormControl={false}
           explanation={t.rich("backgroundInfoExplanation", {
             link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
             markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
           })}
         >
-          <Textarea
-            {...control.register("description")}
-            errors={control.formState.errors.description}
-            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
+          <MarkdownEditorField
+            control={form.control}
+            name={"description"}
             defaultValue={post?.group_of_questions?.description}
+            errors={form.formState.errors.description}
           />
         </InputContainer>
         <InputContainer
@@ -347,42 +390,36 @@ const GroupForm: React.FC<Props> = ({
           explanation={t("groupVariableDescription")}
         >
           <Input
-            {...control.register("group_variable")}
-            errors={control.formState.errors.group_variable}
+            {...form.register("group_variable")}
+            errors={form.formState.errors.group_variable}
             defaultValue={post?.group_of_questions?.group_variable}
             className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
         <InputContainer
           labelText={t("resolutionCriteria")}
+          isNativeFormControl={false}
           explanation={t.rich("resolutionCriteriaExplanation", {
             markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
           })}
         >
-          <Textarea
-            {...control.register("resolution_criteria")}
-            errors={control.formState.errors.resolution_criteria}
-            className="h-32 w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-            defaultValue={
-              post?.group_of_questions?.resolution_criteria
-                ? post?.group_of_questions?.resolution_criteria
-                : undefined
-            }
+          <MarkdownEditorField
+            control={form.control}
+            name={"resolution_criteria"}
+            defaultValue={post?.group_of_questions?.resolution_criteria}
+            errors={form.formState.errors.resolution_criteria}
           />
         </InputContainer>
         <InputContainer
           labelText={t("finePrint")}
           explanation={t("finePrintDescription")}
+          isNativeFormControl={false}
         >
-          <Textarea
-            {...control.register("fine_print")}
-            errors={control.formState.errors.fine_print}
-            className="h-32 w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-            defaultValue={
-              post?.group_of_questions?.fine_print
-                ? post?.group_of_questions?.fine_print
-                : undefined
-            }
+          <MarkdownEditorField
+            control={form.control}
+            name={"fine_print"}
+            defaultValue={post?.group_of_questions?.fine_print}
+            errors={form.formState.errors.fine_print}
           />
         </InputContainer>
         <InputContainer
@@ -438,7 +475,7 @@ const GroupForm: React.FC<Props> = ({
                 </InputContainer>
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4">
-                    <div className="flex flex-row gap-4">
+                    <div className="flex flex-col gap-4 md:flex-row">
                       <InputContainer
                         labelText={t("closingDate")}
                         className="w-full"
@@ -450,6 +487,9 @@ const GroupForm: React.FC<Props> = ({
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           defaultValue={subQuestion.scheduled_close_time}
                           onChange={(value) => {
+                            form.clearErrors(
+                              `subQuestion-${index}-scheduled_close_time`
+                            );
                             setSubQuestions(
                               subQuestions.map((subQuestion, iter_index) => {
                                 if (index === iter_index) {
@@ -459,6 +499,23 @@ const GroupForm: React.FC<Props> = ({
                               })
                             );
                           }}
+                          onError={(error: { message: string }) => {
+                            form.setError(
+                              `subQuestion-${index}-scheduled_close_time`,
+                              {
+                                type: "manual",
+                                message: error.message,
+                              }
+                            );
+                          }}
+                        />
+                        <FormError
+                          errors={
+                            form.formState.errors[
+                              `subQuestion-${index}-scheduled_close_time`
+                            ]
+                          }
+                          name={`subQuestion-${index}-scheduled_close_time`}
                         />
                       </InputContainer>
                       <InputContainer
@@ -472,6 +529,9 @@ const GroupForm: React.FC<Props> = ({
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           defaultValue={subQuestion.scheduled_resolve_time}
                           onChange={(value) => {
+                            form.clearErrors(
+                              `subQuestion-${index}-scheduled_resolve_time`
+                            );
                             setSubQuestions(
                               subQuestions.map((subQuestion, iter_index) => {
                                 if (index === iter_index) {
@@ -481,6 +541,23 @@ const GroupForm: React.FC<Props> = ({
                               })
                             );
                           }}
+                          onError={(error: { message: string }) => {
+                            form.setError(
+                              `subQuestion-${index}-scheduled_resolve_time`,
+                              {
+                                type: "manual",
+                                message: error.message,
+                              }
+                            );
+                          }}
+                        />
+                        <FormError
+                          errors={
+                            form.formState.errors[
+                              `subQuestion-${index}-scheduled_resolve_time`
+                            ]
+                          }
+                          name={`subQuestion-${index}-scheduled_resolve_time`}
                         />
                       </InputContainer>
                     </div>
@@ -493,12 +570,11 @@ const GroupForm: React.FC<Props> = ({
                           <DatetimeUtc
                             className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                             defaultValue={subQuestion.open_time}
-                            onChange={(e) => {
+                            onChange={(value) => {
                               setSubQuestions(
                                 subQuestions.map((subQuestion, iter_index) => {
                                   if (index === iter_index) {
-                                    subQuestion.open_time =
-                                      vacuumImpedanceDependencies;
+                                    subQuestion.open_time = value;
                                   }
                                   return subQuestion;
                                 })
@@ -530,29 +606,23 @@ const GroupForm: React.FC<Props> = ({
                     {(subtype === QuestionType.Date ||
                       subtype === QuestionType.Numeric) && (
                       <NumericQuestionInput
-                        // @ts-ignore
                         questionType={subtype}
                         defaultMin={subQuestion.scaling.range_min}
                         defaultMax={subQuestion.scaling.range_max}
-                        // @ts-ignore
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
-                        // @ts-ignore
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
-                        defaultZeroPoint={subQuestion.zero_point}
+                        defaultZeroPoint={subQuestion.scaling.zero_point}
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
                         }
-                        canSeeLogarithmic={
-                          post?.user_permission === ProjectPermissions.ADMIN ||
-                          !post
-                        }
-                        onChange={(
-                          range_min,
-                          range_max,
-                          openLowerBound,
-                          openUpperBound,
-                          zeroPoint
-                        ) => {
+                        chartWidth={720}
+                        onChange={({
+                          min: range_min,
+                          max: range_max,
+                          open_lower_bound: openLowerBound,
+                          open_upper_bound: openUpperBound,
+                          zero_point: zeroPoint,
+                        }) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
                               if (index === iter_index) {
@@ -568,6 +638,8 @@ const GroupForm: React.FC<Props> = ({
                             })
                           );
                         }}
+                        control={form}
+                        index={index}
                       />
                     )}
                   </div>
@@ -620,56 +692,68 @@ const GroupForm: React.FC<Props> = ({
           <div className="flex justify-between">
             <Button
               onClick={() => {
-                if (subtype === "numeric") {
+                if (subQuestions.length > 0) {
+                  // Clone subquestion attributes from the previous one
                   setSubQuestions([
                     ...subQuestions,
                     {
-                      type: "numeric",
+                      ...subQuestions[subQuestions.length - 1],
+                      id: undefined,
                       label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                      scaling: {
-                        range_min: null,
-                        range_max: null,
-                        zero_point: null,
-                      },
-                      open_lower_bound: null,
-                      open_upper_bound: null,
-                    },
-                  ]);
-                } else if (subtype === "date") {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "date",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                      scaling: {
-                        range_min: null,
-                        range_max: null,
-                        zero_point: null,
-                      },
-                      open_lower_bound: null,
-                      open_upper_bound: null,
                     },
                   ]);
                 } else {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "binary",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                    },
-                  ]);
+                  if (subtype === "numeric") {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: "numeric",
+                        label: "",
+                        scheduled_close_time:
+                          form.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          form.getValues().scheduled_resolve_time,
+                        scaling: {
+                          range_min: null,
+                          range_max: null,
+                          zero_point: null,
+                        },
+                        open_lower_bound: null,
+                        open_upper_bound: null,
+                      },
+                    ]);
+                  } else if (subtype === "date") {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: "date",
+                        label: "",
+                        scheduled_close_time:
+                          form.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          form.getValues().scheduled_resolve_time,
+                        scaling: {
+                          range_min: null,
+                          range_max: null,
+                          zero_point: null,
+                        },
+                        open_lower_bound: null,
+                        open_upper_bound: null,
+                      },
+                    ]);
+                  } else {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: "binary",
+                        label: "",
+                        scheduled_close_time:
+                          form.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          form.getValues().scheduled_resolve_time,
+                      },
+                    ]);
+                  }
                 }
                 setCollapsedSubQuestions([...collapsedSubQuestions, true]);
               }}

@@ -207,7 +207,6 @@ def notify_post_cp_change(post: Post):
     for subscription in subscriptions:
         last_sent = subscription.last_sent_at
         max_sorting_diff = None
-        display_diff = None
         question_data: list[CPChangeData] = []
         for question, forecast_summary in forecast_history.items():
             entry: AggregateForecast | None = None
@@ -227,13 +226,13 @@ def notify_post_cp_change(post: Post):
                 current_forecast_values,
                 question=question,
             )
+            display_diff = prediction_difference_for_display(
+                old_forecast_values,
+                current_forecast_values,
+                question=question,
+            )
             if max_sorting_diff is None or difference > max_sorting_diff:
                 max_sorting_diff = difference
-                display_diff = prediction_difference_for_display(
-                    old_forecast_values,
-                    current_forecast_values,
-                    question=question,
-                )
 
             user_pred = question_author_forecasts_map.get(question.pk, {}).get(
                 subscription.user_id
@@ -248,7 +247,7 @@ def notify_post_cp_change(post: Post):
             )
 
         if max_sorting_diff and max_sorting_diff >= subscription.cp_change_threshold:
-            NotificationPostCPChange.send(
+            NotificationPostCPChange.schedule(
                 subscription.user,
                 NotificationPostCPChange.ParamsType(
                     post=NotificationPostParams.from_post(post),
@@ -309,7 +308,7 @@ def notify_new_comments(post: Post):
     for subscription in subscriptions:
         user = subscription.user
 
-        NotificationNewComments.send(
+        NotificationNewComments.schedule(
             user,
             NotificationNewComments.ParamsType(
                 post=NotificationPostParams.from_post(post),
@@ -327,11 +326,11 @@ def get_post_lifespan_pct(post: Post) -> float | None:
     Returns current post milestone
     """
 
-    if not post.published_at or not post.scheduled_resolve_time:
+    if not post.open_time or not post.scheduled_resolve_time:
         return
 
-    duration = post.scheduled_close_time - post.published_at
-    passed = timezone.now() - post.published_at
+    duration = post.scheduled_close_time - post.open_time
+    passed = timezone.now() - post.open_time
 
     return passed / duration
 
@@ -363,7 +362,7 @@ def notify_milestone(post: Post):
     ).select_related("user")
 
     for subscription in subscriptions:
-        NotificationPostMilestone.send(
+        NotificationPostMilestone.schedule(
             subscription.user,
             NotificationPostMilestone.ParamsType(
                 post=NotificationPostParams.from_post(post),
@@ -389,7 +388,7 @@ def notify_post_status_change(post: Post, event: Post.PostStatusChange):
     ).select_related("user")
 
     for subscription in subscriptions:
-        NotificationPostStatusChange.send(
+        NotificationPostStatusChange.schedule(
             subscription.user,
             NotificationPostStatusChange.ParamsType(
                 post=NotificationPostParams.from_post(post), event=event
@@ -423,7 +422,7 @@ def notify_date():
     )
 
     for subscription in subscriptions:
-        NotificationPostSpecificTime.send(
+        NotificationPostSpecificTime.schedule(
             subscription.user,
             NotificationPostSpecificTime.ParamsType(
                 post=NotificationPostParams.from_post(subscription.post)

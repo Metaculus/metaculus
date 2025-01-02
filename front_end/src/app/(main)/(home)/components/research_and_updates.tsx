@@ -10,7 +10,7 @@ import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { PostWithNotebook } from "@/types/post";
 import { getPostLink } from "@/utils/navigation";
-import { getNotebookSummary } from "@/utils/questions";
+import { getMarkdownSummary } from "@/utils/questions";
 
 type Props = {
   posts: PostWithNotebook[];
@@ -69,14 +69,14 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
               </span>
               <h3 className="mb-2 mt-3 text-2xl">{title}</h3>
               <p className="m-0 text-base text-blue-700 dark:text-blue-700-dark">
-                {getNotebookSummary(notebook.markdown, 200, 80)}
+                {getMarkdownSummary(notebook.markdown, 200, 80)}
               </p>
             </div>
           </Link>
         ))}
       </div>
       <a
-        href="https://metaculus.medium.com/"
+        href="https://metaculus.com/news/?news_type=research"
         className="mt-8 inline-flex items-center self-end text-right text-base font-bold text-blue-800 no-underline dark:text-blue-800-dark"
         target="_blank"
         rel="noreferrer"

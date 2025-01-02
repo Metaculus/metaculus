@@ -8,6 +8,12 @@ import { TournamentPreview, TournamentType } from "@/types/projects";
 import TournamentFilters from "./components/tournament_filters";
 import TournamentsList from "./components/tournaments_list";
 
+export const metadata = {
+  title: "Tournaments | Metaculus",
+  description:
+    "Help the global community tackle complex challenges in Metaculus Tournaments. Prove your forecasting abilities, support impactful policy decisions, and compete for cash prizes.",
+};
+
 export default async function Tournaments() {
   const t = await getTranslations();
 
@@ -73,10 +79,6 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
   );
 
   for (const tournament of sortedTournaments) {
-    if (!tournament.posts_count) {
-      continue;
-    }
-
     if (tournament.is_ongoing) {
       if (tournament.type === TournamentType.QuestionSeries) {
         questionSeries.push(tournament);

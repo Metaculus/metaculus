@@ -40,7 +40,9 @@ def score_question(
     spot_forecast_time = spot_forecast_time or (
         question.cp_reveal_time.timestamp() if question.cp_reveal_time else None
     )
-    score_types = score_types or [c[0] for c in Score.ScoreTypes.choices]
+    score_types = score_types or [
+        c[0] for c in Score.ScoreTypes.choices if c[0] != Score.ScoreTypes.MANUAL
+    ]
 
     previous_scores = Score.objects.filter(
         question=question, score_type__in=score_types
@@ -83,8 +85,10 @@ def generate_scoring_leaderboard_entries(
     if leaderboard.finalize_time:
         qs_filters["question__scheduled_close_time__lte"] = leaderboard.finalize_time
 
-    archived_scores = ArchivedScore.objects.filter(**qs_filters)
-    calculated_scores = Score.objects.filter(**qs_filters)
+    archived_scores = ArchivedScore.objects.filter(**qs_filters).prefetch_related(
+        "question"
+    )
+    calculated_scores = Score.objects.filter(**qs_filters).prefetch_related("question")
 
     archived_scores_subquery = ArchivedScore.objects.filter(
         question_id=OuterRef("question_id"),
@@ -106,12 +110,10 @@ def generate_scoring_leaderboard_entries(
 
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
     now = timezone.now()
-    maximum_coverage = len(
-        [
-            q
-            for q in questions
-            if q.resolution and q.resolution not in ["annulled", "ambiguous"]
-        ]
+    maximum_coverage = sum(
+        q.question_weight
+        for q in questions
+        if q.resolution and q.resolution not in ["annulled", "ambiguous"]
     )
     for score in scores:
         identifier = score.user_id or score.aggregation_method
@@ -125,7 +127,7 @@ def generate_scoring_leaderboard_entries(
                 calculated_on=now,
             )
         entries[identifier].score += score.score * score.question.question_weight
-        entries[identifier].coverage += score.coverage
+        entries[identifier].coverage += score.coverage * score.question.question_weight
         entries[identifier].contribution_count += 1
     if leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
         for entry in entries.values():
@@ -301,7 +303,13 @@ def assign_ranks(
         exclusion_records = exclusion_records.filter(
             Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time)
         )
-    if leaderboard.finalize_time:
+    if leaderboard.end_time:
+        # only exclude by end_time if it's set
+        exclusion_records = exclusion_records.filter(
+            start_time__lte=leaderboard.end_time
+        )
+    elif leaderboard.finalize_time:
+        # if end_time is not set, use finalize_time
         exclusion_records = exclusion_records.filter(
             start_time__lte=leaderboard.finalize_time
         )
@@ -388,14 +396,16 @@ def assign_prizes(
 
 
 def update_project_leaderboard(
-    project: Project,
+    project: Project | None = None,
     leaderboard: Leaderboard | None = None,
 ) -> list[LeaderboardEntry]:
+    if project is None and leaderboard is None:
+        raise ValueError("Either project or leaderboard must be provided")
+
     leaderboard = leaderboard or project.primary_leaderboard
+    project = project or leaderboard.project
     if not leaderboard:
         raise ValueError("Leaderboard not found")
-    leaderboard.project = project
-    leaderboard.save()
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.MANUAL:
         return list(leaderboard.entries.all().order_by("rank"))
@@ -560,7 +570,7 @@ def get_contributions(
             contributions.append(contribution)
         h_index = decimal_h_index([c.score for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        min_score = contributions[int(h_index)].score
+        min_score = contributions[int(h_index)].score if contributions else 0
         return [c for c in contributions if c.score >= min_score]
 
     questions = leaderboard.get_questions()
@@ -628,7 +638,6 @@ def get_contributions(
     for score in calculated_scores:
         if (score.question_id, score.aggregation_method) not in archived_pairs:
             scores.append(score)
-
     if "global" in leaderboard.score_type:
         # There are so many questions in global leaderboards that we don't
         # need to make unpopulated contributions for questions that have not
@@ -639,14 +648,21 @@ def get_contributions(
     )
     # User has scores on some questions
     contributions = [
-        Contribution(score=s.score, coverage=s.coverage, question=s.question)
+        Contribution(
+            score=s.score,
+            coverage=s.coverage,
+            question=s.question,
+            post=s.question.get_post(),
+        )
         for s in scores
     ]
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
     if "global" not in leaderboard.score_type:
         contributions += [
-            Contribution(score=None, coverage=None, question=question)
+            Contribution(
+                score=None, coverage=None, question=question, post=question.get_post()
+            )
             for question in questions
             if question not in scored_question
         ]

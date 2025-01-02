@@ -1,9 +1,9 @@
 "use client";
-import classNames from "classnames";
 import { FC, Fragment, ReactNode, useEffect, useState } from "react";
 
 import useAppTheme from "@/hooks/use_app_theme";
 import { BaseExperimentBar } from "@/types/experiments";
+import cn from "@/utils/cn";
 
 type Props<T> = {
   bars: T[];
@@ -47,7 +47,7 @@ const ExperimentBarGraph = <T extends BaseExperimentBar>({
   let accumulatedOffsetX = 0;
   return (
     <div
-      className={classNames("relative flex w-full flex-col", {
+      className={cn("relative flex w-full flex-col", {
         "pointer-events-none": !interactive,
       })}
     >
@@ -115,10 +115,7 @@ const Bar: FC<BarProps> = ({
 
   return (
     <div
-      className={classNames(
-        "absolute h-full",
-        index && "border-l border-white"
-      )}
+      className={cn("absolute h-full", index && "border-l border-white")}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       style={{

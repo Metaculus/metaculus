@@ -5,6 +5,7 @@ import {
   VictoryArea,
   VictoryAxis,
   VictoryChart,
+  VictoryContainer,
   VictoryLabel,
   VictoryLine,
   VictoryScatter,
@@ -14,17 +15,19 @@ import {
 
 import ChartFanTooltip from "@/components/charts/primitives/chart_fan_tooltip";
 import FanPoint from "@/components/charts/primitives/fan_point";
+import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { Area, FanOption, Line } from "@/types/charts";
 import {
-  Scaling,
+  ForecastAvailability,
   Quartiles,
-  QuestionWithNumericForecasts,
-  QuestionType,
   Question,
+  QuestionType,
+  QuestionWithNumericForecasts,
+  Scaling,
 } from "@/types/question";
 import {
   generateScale,
@@ -44,6 +47,7 @@ type Props = {
   extraTheme?: VictoryThemeDefinition;
   pointSize?: number;
   hideCP?: boolean;
+  forecastAvailability?: ForecastAvailability;
 };
 
 const FanChart: FC<Props> = ({
@@ -54,10 +58,12 @@ const FanChart: FC<Props> = ({
   extraTheme,
   pointSize,
   hideCP,
+  forecastAvailability,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
+  const filteredOptions = [...options].filter((o) => o.resolved || o.quartiles);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -72,9 +78,15 @@ const FanChart: FC<Props> = ({
     [options]
   );
 
-  const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
+  const labels = adjustLabelsForDisplay(
+    filteredOptions,
+    chartWidth,
+    actualTheme
+  );
   const yScale = generateScale({
-    displayType: options[0].question.type,
+    // we expect fan graph to be rendered only for group questions, that expect some options
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    displayType: options[0]!.question.type,
     axisLength: height,
     direction: "vertical",
     scaling: scaling,
@@ -86,10 +98,13 @@ const FanChart: FC<Props> = ({
 
   const tooltipItems = useMemo(
     () =>
-      options.reduce<
+      filteredOptions.reduce<
         Record<
           string,
-          { quartiles: Quartiles; question: QuestionWithNumericForecasts }
+          {
+            quartiles: Quartiles | undefined;
+            question: QuestionWithNumericForecasts;
+          }
         >
       >(
         (acc, el) => ({
@@ -98,12 +113,12 @@ const FanChart: FC<Props> = ({
         }),
         {}
       ),
-    [options]
+    [filteredOptions]
   );
 
   const shouldDisplayChart = !!chartWidth;
   return (
-    <div ref={chartContainerRef} className="w-full" style={{ height }}>
+    <div ref={chartContainerRef} className="relative w-full" style={{ height }}>
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
@@ -140,7 +155,15 @@ const FanChart: FC<Props> = ({
                   }
                 }}
               />
-            ) : undefined
+            ) : (
+              <VictoryContainer
+                style={{
+                  pointerEvents: "auto",
+                  userSelect: "auto",
+                  touchAction: "auto",
+                }}
+              />
+            )
           }
           events={[
             {
@@ -178,8 +201,8 @@ const FanChart: FC<Props> = ({
               />
             }
           />
-          <VictoryAxis tickFormat={(_, index) => labels[index]} />
-          {!hideCP && (
+          <VictoryAxis tickFormat={(_, index) => labels[index] ?? ""} />
+          {!hideCP && !forecastAvailability?.cpRevealsOn && (
             <VictoryScatter
               data={points.map((point) => ({
                 ...point,
@@ -218,6 +241,11 @@ const FanChart: FC<Props> = ({
           />
         </VictoryChart>
       )}
+      <ForecastAvailabilityChartOverflow
+        forecastAvailability={forecastAvailability}
+        className="text-xs lg:text-sm"
+        textClassName="!max-w-[300px]"
+      />
     </div>
   );
 };
@@ -230,17 +258,26 @@ function buildChartData(options: FanOption[]) {
     [];
   const zeroPoints: number[] = [];
   options.forEach((option) => {
-    if (option.question.scaling.zero_point !== null) {
+    if (option.question.scaling.zero_point !== null && !!option.quartiles) {
       zeroPoints.push(option.question.scaling.zero_point);
     }
   });
+
+  const rangeMaxValues: number[] = [];
+  const rangeMinValues: number[] = [];
+  for (const option of options) {
+    if (!isNil(option.question.scaling.range_max)) {
+      rangeMaxValues.push(option.question.scaling.range_max);
+    }
+
+    if (!isNil(option.question.scaling.range_min)) {
+      rangeMinValues.push(option.question.scaling.range_min);
+    }
+  }
+
   const scaling: Scaling = {
-    range_max: Math.max(
-      ...options.map((option) => option.question.scaling.range_max!)
-    ),
-    range_min: Math.min(
-      ...options.map((option) => option.question.scaling.range_min!)
-    ),
+    range_max: rangeMaxValues.length > 0 ? Math.max(...rangeMaxValues) : null,
+    range_min: rangeMinValues.length > 0 ? Math.min(...rangeMinValues) : null,
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
   if (scaling.range_max === scaling.range_min && scaling.range_max === 0) {
@@ -252,28 +289,32 @@ function buildChartData(options: FanOption[]) {
   // so just ignore the log scaling in this case
   if (
     scaling.zero_point !== null &&
-    scaling.range_min! <= scaling.zero_point &&
-    scaling.zero_point <= scaling.range_max!
+    !isNil(scaling.range_min) &&
+    !isNil(scaling.range_max) &&
+    scaling.range_min <= scaling.zero_point &&
+    scaling.zero_point <= scaling.range_max
   ) {
     scaling.zero_point = null;
   }
 
-  if (options[0].question.type === QuestionType.Binary) {
+  if (options[0]?.question.type === QuestionType.Binary) {
     for (const option of options) {
-      line.push({
-        x: option.name,
-        y: option.quartiles.median,
-      });
-      area.push({
-        x: option.name,
-        y0: option.quartiles.lower25,
-        y: option.quartiles.upper75,
-      });
-      points.push({
-        x: option.name,
-        y: option.quartiles.median,
-        resolved: false,
-      });
+      if (!!option.quartiles) {
+        line.push({
+          x: option.name,
+          y: option.quartiles.median,
+        });
+        area.push({
+          x: option.name,
+          y0: option.quartiles.lower25,
+          y: option.quartiles.upper75,
+        });
+        points.push({
+          x: option.name,
+          y: option.quartiles.median,
+          resolved: false,
+        });
+      }
       if (option.resolved) {
         resolutionPoints.push({
           x: option.name,
@@ -284,41 +325,46 @@ function buildChartData(options: FanOption[]) {
     }
   } else {
     for (const option of options) {
-      // scale up the values to nominal values
-      // then unscale by the derived scaling
-      const median = unscaleNominalLocation(
-        scaleInternalLocation(option.quartiles.median, option.question.scaling),
-        scaling
-      );
-      const lower25 = unscaleNominalLocation(
-        scaleInternalLocation(
-          option.quartiles.lower25,
-          option.question.scaling
-        ),
-        scaling
-      );
-      const upper75 = unscaleNominalLocation(
-        scaleInternalLocation(
-          option.quartiles.upper75,
-          option.question.scaling
-        ),
-        scaling
-      );
+      if (!!option.quartiles) {
+        // scale up the values to nominal values
+        // then unscale by the derived scaling
+        const median = unscaleNominalLocation(
+          scaleInternalLocation(
+            option.quartiles.median,
+            option.question.scaling
+          ),
+          scaling
+        );
+        const lower25 = unscaleNominalLocation(
+          scaleInternalLocation(
+            option.quartiles.lower25,
+            option.question.scaling
+          ),
+          scaling
+        );
+        const upper75 = unscaleNominalLocation(
+          scaleInternalLocation(
+            option.quartiles.upper75,
+            option.question.scaling
+          ),
+          scaling
+        );
 
-      line.push({
-        x: option.name,
-        y: median,
-      });
-      area.push({
-        x: option.name,
-        y0: lower25,
-        y: upper75,
-      });
-      points.push({
-        x: option.name,
-        y: median,
-        resolved: false,
-      });
+        line.push({
+          x: option.name,
+          y: median,
+        });
+        area.push({
+          x: option.name,
+          y0: lower25,
+          y: upper75,
+        });
+        points.push({
+          x: option.name,
+          y: median,
+          resolved: false,
+        });
+      }
       if (option.resolved) {
         resolutionPoints.push({
           x: option.name,
@@ -408,6 +454,10 @@ function adjustLabelsForDisplay(
 
 function getResolutionPosition(question: Question, scaling: Scaling) {
   const resolution = question.resolution;
+  if (isNil(resolution)) {
+    // fallback, usually we don't expect this, as function will be called only for resolved questions
+    return 0;
+  }
 
   if (
     ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
@@ -420,7 +470,7 @@ function getResolutionPosition(question: Question, scaling: Scaling) {
   } else {
     return question.type === QuestionType.Numeric
       ? unscaleNominalLocation(Number(resolution), scaling)
-      : unscaleNominalLocation(new Date(resolution!).getTime() / 1000, scaling);
+      : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
   }
 }
 

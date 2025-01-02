@@ -1,15 +1,20 @@
 "use client";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { saveAs } from "file-saver";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo } from "react";
+import React, { FC, useCallback } from "react";
 import toast from "react-hot-toast";
 
-import { changePostActivityBoost } from "@/app/(main)/questions/actions";
+import {
+  changePostActivityBoost,
+  getPostZipData,
+} from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-import DropdownMenu from "@/components/ui/dropdown_menu";
+import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { Post } from "@/types/post";
+import { base64ToBlob } from "@/utils/files";
 
 type Props = {
   post: Post;
@@ -45,53 +50,63 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
     return `/questions/create/question?mode=create&post_id=${post.id}`;
   };
 
-  const items = useMemo(
-    () => [
-      ...(user?.is_superuser
-        ? [
-            {
-              id: "boost",
-              name: t("boost"),
-              onClick: () => {
-                changePostActivity(20);
-              },
-            },
-            {
-              id: "bury",
-              name: t("bury"),
-              onClick: () => {
-                changePostActivity(-20);
-              },
-            },
-            {
-              id: "duplicate",
-              name: t("duplicate"),
-              link: createDuplicateLink(post),
-            },
-          ]
-        : []),
-      {
-        id: "downloadCSV",
-        name: t("downloadCSV"),
-        onClick: () => {
-          window.open(`/api/posts/${post!.id}/download-csv/`);
-        },
-      },
-    ],
-    [changePostActivity, t, user?.is_superuser]
-  );
+  const handleDownloadQuestionData = async () => {
+    try {
+      const base64 = await getPostZipData(post.id);
+      const blob = base64ToBlob(base64);
+      const filename = `${post.url_title.replaceAll(" ", "_")}.zip`;
+      saveAs(blob, filename);
+    } catch (error) {
+      toast.error(t("downloadQuestionDataError") + error);
+    }
+  };
 
-  if (items.length) {
-    return (
-      <DropdownMenu items={items}>
-        <Button
-          variant="secondary"
-          className="!rounded border-0"
-          presentationType="icon"
-        >
-          <FontAwesomeIcon icon={faEllipsis} className="text-lg" />
-        </Button>
-      </DropdownMenu>
+  const menuItems: MenuItemProps[] = [
+    {
+      id: "downloadQuestionData",
+      name: t("downloadQuestionData"),
+      onClick: handleDownloadQuestionData,
+    },
+  ];
+  if (user?.is_superuser) {
+    menuItems.unshift(
+      ...[
+        {
+          id: "boost",
+          name: t("boost"),
+          onClick: () => {
+            changePostActivity(50);
+          },
+        },
+        {
+          id: "bury",
+          name: t("bury"),
+          onClick: () => {
+            changePostActivity(-50);
+          },
+        },
+        {
+          id: "duplicate",
+          name: t("duplicate"),
+          link: createDuplicateLink(post),
+        },
+      ]
     );
   }
+
+  if (!menuItems.length) {
+    return null;
+  }
+
+  return (
+    <DropdownMenu items={menuItems}>
+      <Button
+        variant="secondary"
+        className="rounded border-0"
+        presentationType="icon"
+      >
+        <FontAwesomeIcon icon={faEllipsis} className="text-lg" />
+      </Button>
+    </DropdownMenu>
+  );
 };

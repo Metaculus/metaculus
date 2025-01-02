@@ -2,7 +2,7 @@
 
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -12,26 +12,29 @@ import { Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { CommentType } from "@/types/comment";
+import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
 
 interface CommentEditorProps {
   text?: string;
-  isPrivate?: boolean;
   postId?: number;
   parentId?: number;
   shouldIncludeForecast?: boolean;
   onSubmit?: (newComment: CommentType) => void;
   isReplying?: boolean;
+  replyUsername?: string;
+  isPrivateFeed?: boolean;
 }
 
 const CommentEditor: FC<CommentEditorProps> = ({
   text,
-  isPrivate,
   postId,
   parentId,
   onSubmit,
   shouldIncludeForecast,
   isReplying = false,
+  replyUsername,
+  isPrivateFeed = false,
 }) => {
   const t = useTranslations();
   /* TODO: Investigate the synchronization between the internal state of MDXEditor and the external state. */
@@ -41,13 +44,21 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [rerenderKey, updateRerenderKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(true);
-  const [isPrivateComment, setIsPrivateComment] = useState(isPrivate ?? false);
+  const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
+  const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>();
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
+
+  useEffect(() => {
+    if (!isReplying) {
+      setIsPrivateComment(isPrivateFeed);
+    }
+  }, [isPrivateFeed, isReplying]);
 
   const handleSubmit = async () => {
     setErrorMessage("");
@@ -76,15 +87,22 @@ const CommentEditor: FC<CommentEditorProps> = ({
         setErrorMessage(newComment.errors?.message);
         return;
       }
-
       setIsEditing(true);
-      setIsPrivateComment(isPrivate ?? false);
       setHasIncludedForecast(false);
       setMarkdown("");
+      setIsMarkdownDirty(false);
       updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
-      onSubmit && onSubmit(parseComment(newComment));
+
+      onSubmit?.(parseComment(newComment));
     } finally {
       setIsLoading(false);
+    }
+  };
+  const handleMarkdownChange = (newMarkdown: string) => {
+    setIsMarkdownDirty(!!newMarkdown);
+    setMarkdown(newMarkdown);
+    if (!hasInteracted) {
+      setHasInteracted(true);
     }
   };
 
@@ -122,48 +140,54 @@ const CommentEditor: FC<CommentEditorProps> = ({
       {/*comment.included_forecast && (
         <IncludedForecast author="test" forecastValue={test} />
       )*/}
-      {isEditing && (
-        <div className="border border-gray-500 dark:border-gray-500-dark">
-          <MarkdownEditor
-            key={rerenderKey}
-            mode="write"
-            markdown={markdown}
-            onChange={setMarkdown}
-          />
+      <div
+        className={cn("border border-gray-500 dark:border-gray-500-dark", {
+          hidden: !isEditing,
+        })}
+      >
+        <MarkdownEditor
+          key={rerenderKey}
+          mode="write"
+          markdown={markdown}
+          onChange={handleMarkdownChange}
+          shouldConfirmLeave={isMarkdownDirty}
+          withUgcLinks
+          withUserMentions
+          initialMention={replyUsername}
+        />
+      </div>
+      {!isEditing && (
+        <MarkdownEditor mode="read" markdown={markdown} withUgcLinks />
+      )}
+      {(isReplying || hasInteracted) && (
+        <div className="my-4 flex items-center justify-end gap-3">
+          {!isReplying && isPrivateFeed && (
+            <span className="text-sm text-gray-600 dark:text-gray-600-dark">
+              {t("youArePostingAPrivateComment")}
+            </span>
+          )}
+          <Button
+            disabled={markdown.length === 0}
+            className="p-2"
+            onClick={() => {
+              setIsEditing((prev) => !prev);
+              if (errorMessage) {
+                setErrorMessage("");
+              }
+            }}
+          >
+            {isEditing ? t("preview") : t("edit")}
+          </Button>
+
+          <Button
+            className="p-2"
+            disabled={markdown.length === 0 || isLoading}
+            onClick={handleSubmit}
+          >
+            {t("submit")}
+          </Button>
         </div>
       )}
-      {!isEditing && <MarkdownEditor mode="read" markdown={markdown} />}
-
-      <div className="my-4 flex items-center justify-end gap-3">
-        {!isReplying && (
-          <Checkbox
-            checked={isPrivateComment}
-            onChange={(checked) => {
-              setIsPrivateComment(checked);
-            }}
-            label={t("privateComment")}
-            className="text-sm"
-          />
-        )}
-        <Button
-          disabled={markdown.length === 0}
-          className="p-2"
-          onClick={() => {
-            setIsEditing((prev) => !prev);
-            !!errorMessage && setErrorMessage("");
-          }}
-        >
-          {isEditing ? t("preview") : t("edit")}
-        </Button>
-
-        <Button
-          className="p-2"
-          disabled={markdown.length === 0 || isLoading}
-          onClick={handleSubmit}
-        >
-          {t("submit")}
-        </Button>
-      </div>
       {!!errorMessage && (
         <div className="text-end text-red-500 dark:text-red-500-dark">
           {errorMessage}

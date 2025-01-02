@@ -21,18 +21,23 @@ quick rundown of the setup process.
 (Note: all commands written for a unix bash shell)
 
 ## .env file
-Create a `.env` file in the root directory of the project by copying the `.env.example` file.
-This will hold all of the environment variables that are used by the project. For example, adding `DEBUG=true` will give you access to the django debug toolbar in bowser.
+Create a `.env` file in the front_end directory of the project by copying the `.env.example` file.
+This will hold all of the environment variables that are used by the project. For example, adding `DEBUG=true` will give you access to the django debug toolbar in browser.
 
 ## Database
 Install Postgres - your database manager:
 >`sudo apt install postgresql`
+
+If on Mac, you can instead do
+>`brew install postgresql`
 
 Create a database:
 You'll need to create a database for the data. The default name will be `metaculus` which is how it is referenced throughout this codebase, but if you name yours differently you may have to change some commands and a few instances within files. (TODO: list locations in codebase to change)
 ```bash
 sudo -u postgres psql # start up postgres
 ```
+If on Mac, you can instead do `brew services start postgresql` to start up postgres.
+
 Then in the postgres shell:
 ```sql
 CREATE DATABASE metaculus;
@@ -41,7 +46,7 @@ You may have to give metaculus a superuser as an owner, which you can do with:
 ```sql
 CREATE USER postgres WITH SUPERUSER;
 ALTER USER postgres WITH PASSWORD 'postgres';
-ALTER DATABASE metaculus WITH OWNER postgres;
+ALTER DATABASE metaculus OWNER TO postgres;
 ```
 Note: to leave psql, type `\q`
 
@@ -88,8 +93,10 @@ sudo apt install redis-server
 You can start redis with `sudo service redis-server start`
 That should be it for redis.
 
+If on Mac, you can instead do `brew install redis` to install redis, and `brew services start redis` to start redis.
+
 ## Pyenv, Poetry, and Python & Dependencies
-You'll need to install python version 3.12.3 (or higher), and we use poety for dependency management.
+You'll need to install python version 3.12.3 (or higher), and we use poetry for dependency management.
 We recommend using pyenv to manage python versions.
 Install pyenv:
 ```bash
@@ -104,7 +111,7 @@ Install poetry:
 ```bash
 curl -sSL https://install.python-poetry.org | python3 -
 ```
-If all is intalled properly, you should be able to run `poetry --version` and get 3.12.3.
+If all is installed properly, you should be able to run `poetry --version`.
 It is also useful to know that you can run `poetry env use 3.12.3` to switch to a specific python version. And to use `poetry shell` to enter a poetry shell so you won't have to prefix all of the python commands with `poetry run`.
 
 With that, you should be good to start installing the python dependencies.
@@ -118,10 +125,10 @@ Install nvm with:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 ```
-Then, install node 18.16.0:
+Then, install node 18.17.0:
 ```bash
-nvm install 18.16.0
-nvm use 18.16.0
+nvm install 18.17.0
+nvm use 18.17.0
 ```
 To install the frontend dependencies, run:
 ```bash
@@ -131,7 +138,7 @@ npm install
 Note: you have to switch to the front_end directory to run the npm commands as they are all nested there.
 
 ## Running the server
-The first time you're booting up the server, make sure postgres is running (`sudo service postgresql start`), then you'll need to run the migrations and collect static files.
+The first time you're booting up the server, make sure postgres is running (`sudo service postgresql start`), then you'll need to run the migrations and collect static files. Start by navigating to the root directory.
 Running migrations:
 ```bash
 poetry run python manage.py migrate
@@ -146,7 +153,7 @@ poetry run python manage.py runserver
 ```
 
 ## Running the frontend
-Running the front end is pretty easy. Note that you'll have to navidate to the `font_end` directory first.
+Running the front end is pretty easy. Note that you'll have to navigate to the `font_end` directory first.
 ```bash
 cd front_end
 npm run dev
@@ -163,31 +170,50 @@ This will handle asynchronous tasks such as scoring questions, evaluating metric
 # Misc
 Here are some other useful things to know about
 
+## MJML Email Templates
+
+We use **MJML** to generate HTML emails. To edit email templates, you'll work with MJML files. Follow these steps to
+ensure the HTML updates automatically after changes:
+
+1. **Install MJML Dependencies**\
+   Use the following command to globally install MJML and related dependencies:
+   ```bash
+   npm install -g mjml mjml-column
+	```
+2. **Compose MJML Templates**\
+   Run the following command to process and update the MJML templates:
+
+   ```bash
+   poetry run python manage.py mjml_compose
+   ```
+
+## Setup a test database
+If you want to populate your database with some example data, you can load our testing database dump (available as a [release](https://github.com/Metaculus/metaculus/releases/latest) artifact).
+```
+wget https://github.com/Metaculus/metaculus/releases/tag/v0.0.1-alpha/test_metaculus.sql.zip
+unzip test_metaculus.sql.zip
+pg_restore -d metaculus test_metaculus.sql
+```
+If on Mac, you can replace the wget command with 
+```
+curl -O https://github.com/Metaculus/metaculus/releases/tag/v0.0.1-alpha/test_metaculus.sql.zip
+```
+
+Then run migrations to make sure the database is up to date:
+```bash
+poetry run python manage.py migrate
+```
+
 ## Testing
 To run the backend tests, you can run:
 ```bash
 poetry run pytest
 ```
+If you get an error that the playwright executable doesn't exist, run `poetry run python -m playwright install`.
+
+
 (TODO: add front end testing)
-When contributing to the project, adding tests is highly encouraged and will increase the likelihood of your PR being merged. We 
-
-## Mjml
-We use mjml to generate html emails. To edit emails, you'll edit a mjml template and in order to have the html automatically updated, you'll need to run the following command:
-```bash
-poetry run python manage.py mjml_compose
-```
-
-## Setup a test database
-If you want to populate your database with some example data, you can load our testing database dump (available as a [release](https://github.com/Metaculus/metaculus/releases/latest) artefact)
-```
-wget https://github.com/Metaculus/metaculus/releases/latest/download/test_metaculus.sql.zip
-unzip test_metaculus.sql.zip
-pg_restore -d metaculus test_metaculus.sql
-```
-and then run migrations to make sure the database is up to date:
-```bash
-poetry run python manage.py migrate
-```
+When contributing to the project, adding tests is highly encouraged and will increase the likelihood of your PR being merged.
 
 ## Linting
 We use Husky to run linter and typescript checks before committing (see `front_end/.husky`).
@@ -203,10 +229,10 @@ By default, we use the Mailgun provider.
 `.env` Configuration:
 - `MAILGUN_API_KEY`
 - `EMAIL_HOST_USER`
+- `EMAIL_NOTIFICATIONS_USER`
 
 
 # Bug Bounty
-
 Our bug bounty system classifies vulnerabilities as one of the following:
 - hard to exploit 
 	- i.e. it would take hundreds of hours of expensive compute and luck
@@ -221,7 +247,7 @@ Our bug bounty system classifies vulnerabilities as one of the following:
 	- e.g. you can see private first and last name data from all users that have created tournaments 
 
 - broad in scope 
-	- i.e. it would affect most users and leak significant amounts information—or give a lot of control to the attacker. 
+	- i.e. it would affect most users and leak significant amounts of information—or give a lot of control to the attacker. 
 	- e.g. you can inspect the HTML of user profile pages and see the user's password in plain text
 
 Bounty payouts: 

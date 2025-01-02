@@ -1,12 +1,12 @@
 "use client";
 import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
+import cn from "@/utils/cn";
 
 type Props = {
   maxCollapsedHeight?: number;
@@ -20,7 +20,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   expandLabel: _expandLabel,
   collapseLabel: _collapseLabel,
   maxCollapsedHeight = 128,
-  gradientClassName = "from-gray-0 dark:from-gray-0-dark",
+  gradientClassName = "from-blue-200 dark:from-blue-200-dark",
   className,
   children,
 }) => {
@@ -40,7 +40,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   }, [maxCollapsedHeight]);
 
   return (
-    <div className={classNames(gradientClassName, className)}>
+    <div className={cn(gradientClassName, className)}>
       <div className="relative">
         <div
           ref={ref}
@@ -49,13 +49,13 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
         >
           {children}
           <div
-            className={classNames(
+            className={cn(
               "absolute bottom-0 block h-1/2 w-full bg-gradient-to-t to-transparent",
               { hidden: isExpanded }
             )}
           />
           <div
-            className={classNames(
+            className={cn(
               "flex w-full justify-center",
               isExpanded ? "mt-3" : "absolute bottom-0",
               { hidden: !isExpandable }

@@ -16,10 +16,8 @@
                     There are new comments on these {{ count }} questions:
                     {% endblocktrans %}
                 </mj-text>
-                <mj-text>
-                    {% for notification in notifications %}
-                </mj-text>
 
+                <!-- {% for notification in notifications %} -->
                 <mj-text>
                     <a href="{% post_url notification.post.post_id notification.post.post_title %}">
                         {{ notification.post.post_title }}
@@ -41,10 +39,7 @@
                         {% endif %}
                     </ul>
                 </mj-text>
-
-                <mj-text>
-                    {% endfor %}
-                </mj-text>
+                <!-- {% endfor %} -->
 
             </mj-column>
         </mj-section>

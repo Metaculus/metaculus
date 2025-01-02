@@ -3,9 +3,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { CONTRIBUTIONS_USER_FILTER } from "@/app/(main)/(leaderboards)/contributions/search_params";
 import { useBreakpoint } from "@/hooks/tailwind";
-import { CategoryKey, LeaderboardDetails, MedalsPath } from "@/types/scoring";
+import { CategoryKey, LeaderboardDetails } from "@/types/scoring";
 
 import LeaderboardRow, { UserLeaderboardRow } from "./table_row";
 import { RANKING_CATEGORIES } from "../../../ranking_categories";
@@ -90,18 +89,30 @@ const LeaderboardTable: FC<Props> = ({
                 navigationUrl = categoryUrl;
               } else {
                 navigationUrl = entry.user
-                  ? `/contributions/?${SCORING_CATEGORY_FILTER}=${category}&${CONTRIBUTIONS_USER_FILTER}=${entry.user.id}&${SCORING_YEAR_FILTER}=${year}&duration=${duration}`
+                  ? `/contributions/${category}/${entry.user.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`
                   : `/questions/track-record`;
               }
-
-              return (
-                <LeaderboardRow
-                  key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method!}`}
-                  rowEntry={entry}
-                  scoreType={leaderboardDetails.score_type}
-                  href={navigationUrl}
-                />
-              );
+              if (entry.user && entry.user.id === userEntry?.user?.id) {
+                return (
+                  <UserLeaderboardRow
+                    key={`user-leaderboard-row-${entry.user.id}`}
+                    userEntry={userEntry}
+                    year={year}
+                    duration={duration}
+                    category={category}
+                    scoreType={leaderboardDetails.score_type}
+                  />
+                );
+              } else {
+                return (
+                  <LeaderboardRow
+                    key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method}`}
+                    rowEntry={entry}
+                    scoreType={leaderboardDetails.score_type}
+                    href={navigationUrl}
+                  />
+                );
+              }
             })
           ) : (
             <tr className="border-b border-gray-300  dark:border-gray-300-dark">

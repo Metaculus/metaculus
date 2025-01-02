@@ -18,12 +18,14 @@ from questions.serializers import (
     validate_question_resolution,
     OldForecastWriteSerializer,
     ForecastWriteSerializer,
+    ForecastWithdrawSerializer,
     serialize_question,
 )
 from questions.services import (
     resolve_question,
     unresolve_question,
     create_forecast_bulk,
+    withdraw_forecast_bulk,
 )
 
 
@@ -33,9 +35,12 @@ def question_detail_api_view(request, pk: int):
 
     # Check permissions
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
-    ObjectPermission.can_resolve(permission, raise_exception=True)
+    ObjectPermission.can_view(permission, raise_exception=True)
 
     with_cp = request.GET.get("with_cp", False)
+
+    # minimize the aggregation data by default
+    minimize = str(request.GET.get("minimize", "true")).lower() == "true"
 
     return Response(
         serialize_question(
@@ -43,6 +48,7 @@ def question_detail_api_view(request, pk: int):
             with_cp=with_cp,
             post=question.get_post(),
             current_user=request.user,
+            minimize=minimize,
         )
     )
 
@@ -82,14 +88,11 @@ def unresolve_api_view(request, pk: int):
 def bulk_create_forecasts_api_view(request):
     now = timezone.now()
     serializer = ForecastWriteSerializer(data=request.data, many=True)
-    serializer.is_valid()
+    serializer.is_valid(raise_exception=True)
 
     validated_data = serializer.validated_data
 
-    if serializer.errors:
-        raise ValidationError({"errors": serializer.errors})
-
-    if not serializer.validated_data:
+    if not validated_data:
         raise ValidationError("At least one forecast is required")
 
     # Prefetching questions for bulk optimization
@@ -105,7 +108,7 @@ def bulk_create_forecasts_api_view(request):
         if not question:
             raise ValidationError(f"Wrong question id {forecast["question"]}")
 
-        forecast["question"] = question
+        forecast["question"] = question  # used in create_foreacst_bulk
 
         # Check permissions
         permission = get_post_permission_for_user(
@@ -128,6 +131,53 @@ def bulk_create_forecasts_api_view(request):
             )
 
     create_forecast_bulk(user=request.user, forecasts=validated_data)
+
+    return Response({}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@transaction.non_atomic_requests
+def bulk_withdraw_forecasts_api_view(request):
+    now = timezone.now()
+    serializer = ForecastWithdrawSerializer(data=request.data, many=True)
+    serializer.is_valid(raise_exception=True)
+
+    validated_data = serializer.validated_data
+
+    if not validated_data:
+        raise ValidationError("At least one forecast must be withdawn")
+
+    # Prefetching questions for bulk optimization
+    questions = (
+        Question.objects.filter(pk__in=[f["question"] for f in validated_data])
+        .prefetch_related_post()
+        .prefetch_related("user_forecasts")
+    )
+    questions_map: dict[int, Question] = {q.pk: q for q in questions}
+
+    # Replacing prefetched optimized questions
+    for withdrawal in validated_data:
+        question = questions_map.get(withdrawal["question"])
+        withdrawal["question"] = question  # used in withdraw_foreacst_bulk
+        withdraw_at = withdrawal.get("withdraw_at", now)
+        withdrawal["withdraw_at"] = withdraw_at  # used in withdraw_foreacst_bulk
+
+        if now > withdraw_at:
+            return Response(
+                {"error": f"Withdrawal time {withdraw_at} cannot be in the past"},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            )
+
+        if not question:
+            raise ValidationError(f"Wrong question id {withdrawal["question"]}")
+
+        # Check permissions
+        permission = get_post_permission_for_user(
+            question.get_post(), user=request.user
+        )
+        ObjectPermission.can_forecast(permission, raise_exception=True)
+
+    withdraw_forecast_bulk(user=request.user, withdrawals=validated_data)
 
     return Response({}, status=status.HTTP_201_CREATED)
 

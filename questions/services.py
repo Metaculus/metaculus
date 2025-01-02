@@ -1,9 +1,10 @@
 import logging
 from collections.abc import Iterable
 from datetime import datetime
+from typing import cast
 
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -11,7 +12,6 @@ from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription, Notebook
 from posts.services.subscriptions import create_subscription_cp_change
 from posts.tasks import run_on_post_forecast
-from projects.permissions import ObjectPermission
 from projects.models import Project
 from questions.constants import ResolutionType
 from questions.models import (
@@ -76,7 +76,9 @@ def build_question_forecasts(
     )[aggregation_method]
 
     # overwrite old history with new history, minimizing the amount deleted and created
-    previous_history = question.aggregate_forecasts.filter(method=aggregation_method)
+    previous_history = question.aggregate_forecasts.filter(
+        method=aggregation_method
+    ).order_by("start_time")
     to_overwrite, to_delete = (
         previous_history[: len(aggregation_history)],
         previous_history[len(aggregation_history) :],
@@ -201,29 +203,39 @@ def update_group_of_questions(
     return group
 
 
-def clone_question(question: Question, title: str = None):
+def clone_question(question: Question, title: str = None, **kwargs) -> Question:
     """
     Avoid auto-cloning to prevent unexpected side effects
     """
 
     return create_question(
         title=title,
-        description=question.description,
-        type=question.type,
-        possibilities=question.possibilities,
-        resolution=question.resolution,
-        range_max=question.range_max,
-        range_min=question.range_min,
-        zero_point=question.zero_point,
-        open_upper_bound=question.open_upper_bound,
-        open_lower_bound=question.open_lower_bound,
-        options=question.options,
-        resolution_set_time=question.resolution_set_time,
-        actual_resolve_time=question.actual_resolve_time,
-        scheduled_close_time=question.scheduled_close_time,
-        scheduled_resolve_time=question.scheduled_resolve_time,
-        open_time=question.open_time,
-        actual_close_time=question.actual_close_time,
+        description=kwargs.pop("description", question.description),
+        type=kwargs.pop("type", question.type),
+        possibilities=kwargs.pop("possibilities", question.possibilities),
+        resolution=kwargs.pop("resolution", question.resolution),
+        range_max=kwargs.pop("range_max", question.range_max),
+        range_min=kwargs.pop("range_min", question.range_min),
+        zero_point=kwargs.pop("zero_point", question.zero_point),
+        open_upper_bound=kwargs.pop("open_upper_bound", question.open_upper_bound),
+        open_lower_bound=kwargs.pop("open_lower_bound", question.open_lower_bound),
+        options=kwargs.pop("options", question.options),
+        group_variable=kwargs.pop("group_variable", question.group_variable),
+        resolution_set_time=kwargs.pop(
+            "resolution_set_time", question.resolution_set_time
+        ),
+        actual_resolve_time=kwargs.pop(
+            "actual_resolve_time", question.actual_resolve_time
+        ),
+        scheduled_close_time=kwargs.pop(
+            "scheduled_close_time", question.scheduled_close_time
+        ),
+        scheduled_resolve_time=kwargs.pop(
+            "scheduled_resolve_time", question.scheduled_resolve_time
+        ),
+        open_time=kwargs.pop("open_time", question.open_time),
+        actual_close_time=kwargs.pop("actual_close_time", question.actual_close_time),
+        **kwargs,
     )
 
 
@@ -236,16 +248,26 @@ def create_conditional(
     condition = Question.objects.get(pk=condition_id)
     condition_child = Question.objects.get(pk=condition_child_id)
 
+    question_yes = clone_question(
+        condition_child,
+        title=f"{condition.title} (Yes) → {condition_child.title}",
+        scheduled_close_time=min(
+            condition.scheduled_close_time, condition_child.scheduled_close_time
+        ),
+    )
+    question_no = clone_question(
+        condition_child,
+        title=f"{condition.title} (No) → {condition_child.title}",
+        scheduled_close_time=min(
+            condition.scheduled_close_time, condition_child.scheduled_close_time
+        ),
+    )
+
     obj = Conditional(
         condition_id=condition_id,
         condition_child_id=condition_child_id,
-        # Autogen questions
-        question_yes=clone_question(
-            condition_child, title=f"{condition.title} (Yes) → {condition_child.title}"
-        ),
-        question_no=clone_question(
-            condition_child, title=f"{condition.title} (No) → {condition_child.title}"
-        ),
+        question_yes=question_yes,
+        question_no=question_no,
     )
 
     obj.full_clean()
@@ -365,20 +387,34 @@ def resolve_question(
                         conditional.question_no,
                         actual_close_time=question.actual_close_time,
                     )
-            # if the child is already resolved,
-            # we resolve the active branch
-            if child.resolution is not None:
+            # if the child is already successfully resolved,
+            # we resolve the active branch and annull the other
+            if child.resolution not in [
+                None,
+                ResolutionType.ANNULLED,
+                ResolutionType.AMBIGUOUS,
+            ]:
                 if question.resolution == "yes":
                     resolve_question(
                         conditional.question_yes,
                         child.resolution,
                         conditional.question_yes.actual_close_time,
                     )
+                    resolve_question(
+                        conditional.question_no,
+                        ResolutionType.ANNULLED,
+                        conditional.question_no.actual_close_time,
+                    )
                 if question.resolution == "no":
                     resolve_question(
                         conditional.question_no,
                         child.resolution,
                         conditional.question_no.actual_close_time,
+                    )
+                    resolve_question(
+                        conditional.question_yes,
+                        ResolutionType.ANNULLED,
+                        conditional.question_yes.actual_close_time,
                     )
         else:  # question == child
             # handle annulment / ambiguity
@@ -425,6 +461,9 @@ def resolve_question(
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
+    update_global_leaderboard_tags(post)
     post.save()
 
     # Calculate scores + notify forecasters
@@ -446,7 +485,11 @@ def unresolve_question(question: Question):
     question.resolution = None
     question.resolution_set_time = None
     question.actual_resolve_time = None
-    question.actual_close_time = None
+    question.actual_close_time = (
+        None
+        if timezone.now() < question.scheduled_close_time
+        else question.scheduled_close_time
+    )
     question.save()
 
     # Check if the question is part of any/all conditionals
@@ -497,6 +540,9 @@ def unresolve_question(question: Question):
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
+    update_global_leaderboard_tags(post)
     post.save()
 
     # TODO: set up unresolution notifications
@@ -512,6 +558,7 @@ def unresolve_question(question: Question):
     spot_forecast_time = question.cp_reveal_time
     if spot_forecast_time:
         score_types.append(Score.ScoreTypes.SPOT_PEER)
+        score_types.append(Score.ScoreTypes.SPOT_BASELINE)
     score_question(
         question,
         None,  # None is the equivalent of unsetting scores
@@ -522,19 +569,46 @@ def unresolve_question(question: Question):
     )
 
     # Update leaderboards
+    update_leaderboards_for_question(question)
+
+
+def close_question(question: Question, actual_close_time: datetime | None = None):
+    now = timezone.now()
+    question.actual_close_time = min(
+        question.actual_close_time or now,
+        actual_close_time or now,
+        question.scheduled_close_time,
+        question.actual_resolve_time or now,
+    )
+    question.save()
+
     post = question.get_post()
-    projects: QuerySet[Project] = [post.default_project] + list(post.projects.all())
+    # This method automatically sets post closure
+    # Based on child questions
+    post.update_pseudo_materialized_fields()
+    from posts.services.common import update_global_leaderboard_tags
+
+    update_global_leaderboard_tags(post)
+    post.save()
+
+
+def update_leaderboards_for_question(question: Question):
+    post = question.get_post()
+    projects = [post.default_project] + list(post.projects.all())
+    update_global_leaderboards = False
     for project in projects:
+        if project.visibility == Project.Visibility.NORMAL:
+            update_global_leaderboards = True
+
         if project.type == Project.ProjectTypes.SITE_MAIN:
+            # global leaderboards handled separately
             continue
+
         leaderboards = project.leaderboards.all()
         for leaderboard in leaderboards:
             update_project_leaderboard(project, leaderboard)
 
-    main_site_project = post.projects.filter(
-        type=Project.ProjectTypes.SITE_MAIN
-    ).first()
-    if main_site_project:
+    if update_global_leaderboards:
         global_leaderboard_window = question.get_global_leaderboard_dates()
         if global_leaderboard_window is not None:
             global_leaderboards = Leaderboard.objects.filter(
@@ -548,25 +622,7 @@ def unresolve_question(question: Question):
                 ]
             )
             for leaderboard in global_leaderboards:
-                update_project_leaderboard(main_site_project, leaderboard)
-
-
-def close_question(question: Question, actual_close_time: datetime | None = None):
-    if question.actual_close_time:
-        raise ValidationError("Question is already closed")
-
-    question.actual_close_time = min(
-        actual_close_time or timezone.now(),
-        question.scheduled_close_time,
-        question.actual_resolve_time or timezone.now(),
-    )
-    question.save()
-
-    post = question.get_post()
-    # This method automatically sets post closure
-    # Based on child questions
-    post.update_pseudo_materialized_fields()
-    post.save()
+                update_project_leaderboard(leaderboard=leaderboard)
 
 
 @transaction.atomic()
@@ -583,14 +639,18 @@ def create_forecast(
     now = timezone.now()
     post = question.get_post()
 
-    prev_forecasts = (
-        Forecast.objects.filter(question=question, author=user)
+    forecast_to_end = (
+        Forecast.objects.filter(
+            Q(end_time__isnull=True) | Q(end_time__gt=now),
+            question=question,
+            author=user,
+        )
         .order_by("start_time")
         .last()
     )
-    if prev_forecasts:
-        prev_forecasts.end_time = now
-        prev_forecasts.save()
+    if forecast_to_end:
+        forecast_to_end.end_time = now
+        forecast_to_end.save()
 
     forecast = Forecast.objects.create(
         question=question,
@@ -603,11 +663,18 @@ def create_forecast(
         distribution_components=None,
         slider_values=slider_values if question.type in ["date", "numeric"] else None,
         post=post,
+        **kwargs,
     )
     forecast.save()
 
+    return forecast
+
+
+def after_forecast_actions(question: Question, user: User):
+    post = question.get_post()
+
     # Update cache
-    PostUserSnapshot.update_last_forecast_date(question.get_post(), user)
+    PostUserSnapshot.update_last_forecast_date(post, user)
     post.update_forecasts_count()
 
     # Auto-subscribe user to CP changes
@@ -628,12 +695,16 @@ def create_forecast(
 
     run_build_question_forecasts.send(question.id)
 
-    return forecast
+    # There may be situations where async jobs from `create_forecast` complete after
+    # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
+    # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
+    #
+    # As a temporary solution, we introduce a 10-second delay before execution
+    # to ensure all forecasts are processed.
+    run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
 def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
-    from posts.services.common import get_post_permission_for_user
-
     posts = set()
 
     for forecast in forecasts:
@@ -641,24 +712,59 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
         post = question.get_post()
         posts.add(post)
 
-        # Check permissions
-        permission = get_post_permission_for_user(post, user=user)
-        ObjectPermission.can_forecast(permission, raise_exception=True)
-
-        if not question.open_time or question.open_time > timezone.now():
-            raise ValidationError("You cannot forecast on this question yet!")
-
         create_forecast(question=question, user=user, **forecast)
+        after_forecast_actions(question, user)
 
-    # Running forecast post triggers
-    for post in posts:
-        # There may be situations where async jobs from `create_forecast` complete after
-        # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
-        # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
-        #
-        # As a temporary solution, we introduce a 10-second delay before execution
-        # to ensure all forecasts are processed.
-        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
+
+def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
+    posts = set()
+
+    for withdrawal in withdrawals:
+        question = cast(Question, withdrawal["question"])
+        post = question.get_post()
+        posts.add(post)
+
+        # Feature Flag: prediction-withdrawal
+        if post.default_project.prize_pool and (
+            not post.default_project.close_date
+            or (post.default_project.close_date > timezone.now())
+        ):
+            raise ValidationError(
+                "You cannot withdraw your prediction "
+                "on questions in tournaments with prize pools!"
+            )
+
+        withdraw_at = withdrawal["withdraw_at"]
+
+        # withdraw standing prediction at withdraw_at time, and delete any
+        # forecasts set after that time (this is to future proof from
+        # preregistering forecasts)
+        user_forecasts = question.user_forecasts.filter(
+            Q(end_time__isnull=True) | Q(end_time__gt=withdraw_at),
+            author=user,
+        ).order_by("start_time")
+
+        if not user_forecasts.exists():
+            raise ValidationError(
+                f"User {user.id} has no forecast at {withdraw_at} to "
+                f"withdraw for question {question.id}"
+            )
+
+        forecast_to_terminate = user_forecasts.first()
+        forecast_to_terminate.end_time = withdraw_at
+        forecast_to_terminate.save()
+        forecasts_to_delete = user_forecasts.exclude(pk=forecast_to_terminate.pk)
+        forecasts_to_delete.delete()
+
+        after_forecast_actions(question, user)
+
+        # remove global subscriptions
+        PostSubscription.objects.filter(
+            user=user,
+            post=post,
+            type=PostSubscription.SubscriptionType.CP_CHANGE,
+            is_global=True,
+        ).delete()
 
 
 def get_recency_weighted_for_questions(

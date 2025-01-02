@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from users.models import User
+from users.models import User, UserCampaignRegistration
+from projects.models import Project
 
 forbidden_usernames = [
     "anonymous",
@@ -39,6 +40,8 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "bio",
             "website",
             "formerly_known_as",
+            "is_active",
+            "is_spam",
             "is_bot",
             "twitter",
             "linkedin",
@@ -59,6 +62,8 @@ class UserPublicSerializer(serializers.ModelSerializer):
 
 
 class UserPrivateSerializer(UserPublicSerializer):
+    registered_campaign_keys = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = UserPublicSerializer.Meta.fields + (
@@ -67,6 +72,15 @@ class UserPrivateSerializer(UserPublicSerializer):
             "is_staff",
             "unsubscribed_mailing_tags",
             "hide_community_prediction",
+            "is_onboarding_complete",
+            "registered_campaign_keys",
+        )
+
+    def get_registered_campaign_keys(self, user: User):
+        return list(
+            UserCampaignRegistration.objects.filter(user=user)
+            .exclude(key__isnull=True)
+            .values_list("key", flat=True)
         )
 
 
@@ -93,6 +107,7 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "profile_picture",
             "unsubscribed_mailing_tags",
             "hide_community_prediction",
+            "is_onboarding_complete",
         )
 
 
@@ -128,3 +143,20 @@ class PasswordChangeSerializer(serializers.Serializer):
 class EmailChangeSerializer(serializers.Serializer):
     password = serializers.CharField()
     email = serializers.EmailField()
+
+
+class UserCampaignRegistrationSerializer(serializers.ModelSerializer):
+    add_to_project = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = UserCampaignRegistration
+        fields = ("details", "key", "add_to_project")
+
+    def validate_add_to_project(self, value):
+        try:
+            return Project.objects.get(pk=value)
+
+        except Project.DoesNotExist:
+            raise serializers.ValidationError(
+                "Project to add the user to doesn't exist"
+            )

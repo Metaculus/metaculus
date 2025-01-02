@@ -1,6 +1,7 @@
 from datetime import timedelta
-
 import numpy as np
+import logging
+
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
@@ -8,7 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from scipy.stats import binom
@@ -27,13 +28,21 @@ from users.serializers import (
     UserFilterSerializer,
     PasswordChangeSerializer,
     EmailChangeSerializer,
+    UserCampaignRegistrationSerializer,
 )
-from users.services import (
+from users.services.common import (
     get_users,
     user_unsubscribe_tags,
     send_email_change_confirmation_email,
     change_email_from_token,
+    register_user_to_campaign,
 )
+from users.services.spam_detection import (
+    check_profile_update_for_spam,
+    send_deactivation_email,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def get_score_scatter_plot_data(
@@ -152,19 +161,27 @@ def get_calibration_curve_data(
         user is not None and aggregation_method is not None
     ):
         raise ValueError("Either user or aggregation_method must be provided only")
-    public_questions = Question.objects.filter_public()
+
+    five_years_ago = timezone.now() - timedelta(days=365 * 5)
+    public_questions_in_past = Question.objects.filter_public().filter(
+        actual_resolve_time__gte=five_years_ago,
+    )
+
     if user is not None:
         forecasts = Forecast.objects.filter(
-            question__in=public_questions,
+            question__in=public_questions_in_past,
             question__type="binary",
             question__resolution__in=["no", "yes"],
+            question__scheduled_resolve_time__lt=timezone.now(),
             author=user,
         ).prefetch_related("question")
     else:
         forecasts = AggregateForecast.objects.filter(
-            question__in=public_questions,
+            question__in=public_questions_in_past,
             question__type="binary",
             question__resolution__in=["no", "yes"],
+            question__scheduled_resolve_time__lt=timezone.now(),  # Removes questions that have resolved before close time, which have a bias toward 'yes' resolutions
+            question__include_bots_in_aggregates=False,
             method=aggregation_method,
         ).prefetch_related("question")
 
@@ -201,11 +218,11 @@ def get_calibration_curve_data(
         resolutions.append(int(question.resolution == "yes"))
 
     calibration_curve = []
-    v = 0.125 / 3
+    small_bin_size = 0.125 / 3
     for p_min, p_max in [
-        (0 * v, 1 * v),
-        (1 * v, 2 * v),
-        (2 * v, 3 * v),
+        (0 * small_bin_size, 1 * small_bin_size),
+        (1 * small_bin_size, 2 * small_bin_size),
+        (2 * small_bin_size, 3 * small_bin_size),
         (0.125, 0.175),
         (0.175, 0.225),
         (0.225, 0.275),
@@ -221,30 +238,34 @@ def get_calibration_curve_data(
         (0.725, 0.775),
         (0.775, 0.825),
         (0.825, 0.875),
-        (0.875 + 0 * v, 0.875 + 1 * v),
-        (0.875 + 1 * v, 0.875 + 2 * v),
-        (0.875 + 2 * v, 1.00),
+        (0.875 + 0 * small_bin_size, 0.875 + 1 * small_bin_size),
+        (0.875 + 1 * small_bin_size, 0.875 + 2 * small_bin_size),
+        (0.875 + 2 * small_bin_size, 1.00),
     ]:
-        res = []
-        ws = []
+        resolutions_for_bucket = []
+        weights_for_bucket = []
         bin_center = (p_min + p_max) / 2
         for value, weight, resolution in zip(values, weights, resolutions):
             if p_min <= value < p_max:
-                res.append(resolution)
-                ws.append(weight)
-        count = max(len(res), 1)
-        middle_quartile = np.average(res, weights=ws) if sum(ws) > 0 else None
-        lower_quartile = binom.ppf(0.05, count, p_min) / count
+                resolutions_for_bucket.append(resolution)
+                weights_for_bucket.append(weight)
+        count = max(len(resolutions_for_bucket), 1)
+        average_resolution = (
+            np.average(resolutions_for_bucket, weights=weights_for_bucket)
+            if sum(weights_for_bucket) > 0
+            else None
+        )
+        lower_confidence_interval = binom.ppf(0.05, count, p_min) / count
         perfect_calibration = binom.ppf(0.50, count, bin_center) / count
-        upper_quartile = binom.ppf(0.95, count, p_max) / count
+        upper_confidence_interval = binom.ppf(0.95, count, p_max) / count
 
         calibration_curve.append(
             {
                 "bin_lower": p_min,
                 "bin_upper": p_max,
-                "lower_quartile": lower_quartile,
-                "middle_quartile": middle_quartile,
-                "upper_quartile": upper_quartile,
+                "lower_confidence_interval": lower_confidence_interval,
+                "average_resolution": average_resolution,
+                "upper_confidence_interval": upper_confidence_interval,
                 "perfect_calibration": perfect_calibration,
             }
         )
@@ -378,6 +399,14 @@ def serialize_profile(
     return data
 
 
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def mark_as_spam_user_api_view(request, pk):
+    user_to_mark_as_spam: User = get_object_or_404(User, pk=pk)
+    user_to_mark_as_spam.mark_as_spam()
+    return Response(status=status.HTTP_200_OK)
+
+
 @api_view(["GET"])
 def current_user_api_view(request):
     """
@@ -392,7 +421,10 @@ def current_user_api_view(request):
 @permission_classes([AllowAny])
 def user_profile_api_view(request, pk: int):
     qs = User.objects.all()
+    if not request.user.is_staff:
+        qs = qs.filter(is_active=True, is_spam=False)
     user = get_object_or_404(qs, pk=pk)
+
     return Response(serialize_profile(user))
 
 
@@ -432,18 +464,32 @@ def change_username_api_view(request: Request):
 
 
 @api_view(["PATCH"])
-def update_profile_api_view(request: Request):
-    user = request.user
-    serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
+def update_profile_api_view(request: Request) -> Response:
+    user: User = request.user
+    serializer: UserUpdateProfileSerializer = UserUpdateProfileSerializer(
+        user, data=request.data, partial=True
+    )
     serializer.is_valid(raise_exception=True)
 
-    unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
+    is_spam, _ = check_profile_update_for_spam(user, serializer)
+
+    if is_spam:
+        user.mark_as_spam()
+        send_deactivation_email(user.email)
+        return Response(
+            data={
+                "message": "This bio seems to be spam. Please contact "
+                "support@metaculus.com if you believe this was a mistake.",
+                "error_code": "SPAM_DETECTED",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    unsubscribe_tags: list[str] | None = serializer.validated_data.get(
+        "unsubscribed_mailing_tags"
+    )
     if unsubscribe_tags is not None:
         user_unsubscribe_tags(user, unsubscribe_tags)
-
     serializer.save()
-    user.save()
-
     return Response(UserPrivateSerializer(user).data)
 
 
@@ -492,3 +538,20 @@ def email_change_confirm_api_view(request):
     change_email_from_token(request.user, token)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def register_campaign(request):
+    user = request.user
+    serializer = UserCampaignRegistrationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    project = serializer.validated_data.get("add_to_project", None)
+    campaign_data = serializer.validated_data["details"]
+    campaign_key = serializer.validated_data["key"]
+
+    register_user_to_campaign(
+        user, campaign_key=campaign_key, campaign_data=campaign_data, project=project
+    )
+
+    return Response(status=status.HTTP_200_OK)

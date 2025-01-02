@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import Link from "next/link";
 import { FC } from "react";
 
@@ -8,12 +7,11 @@ import {
   LeaderboardEntry,
   LeaderboardType,
 } from "@/types/scoring";
+import cn from "@/utils/cn";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import MedalIcon from "../../../components/medal_icon";
-import { CONTRIBUTIONS_USER_FILTER } from "../../../contributions/search_params";
 import {
-  SCORING_CATEGORY_FILTER,
   SCORING_DURATION_FILTER,
   SCORING_YEAR_FILTER,
 } from "../../../search_params";
@@ -44,7 +42,7 @@ const LeaderboardRow: FC<Props> = ({
 
   return (
     <tr
-      className={classNames(
+      className={cn(
         "border-b border-gray-300 hover:bg-blue-200 dark:border-gray-300-dark dark:hover:bg-blue-200-dark",
         {
           "bg-blue-300 last-of-type:border-t hover:bg-blue-400 dark:bg-blue-300-dark hover:dark:bg-blue-400-dark":
@@ -66,7 +64,7 @@ const LeaderboardRow: FC<Props> = ({
         </Link>
       </td>
       <td
-        className={classNames(
+        className={cn(
           "max-w-full p-0 text-base",
           isUserRow ? "font-bold" : "font-medium"
         )}
@@ -101,7 +99,7 @@ const LeaderboardRow: FC<Props> = ({
         </td>
       )}
       <td
-        className={classNames(
+        className={cn(
           "w-20 p-0 font-mono text-base leading-4",
           !isUserRow && "text-gray-600 dark:text-gray-600-dark"
         )}
@@ -137,7 +135,7 @@ export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
 
   const userHref = userEntry.medal
     ? "/medals"
-    : `/contributions/?${SCORING_CATEGORY_FILTER}=${category}&${CONTRIBUTIONS_USER_FILTER}=${userEntry.user!.id}&${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
+    : `/contributions/${category}/${userEntry.user?.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 
   return (
     <LeaderboardRow

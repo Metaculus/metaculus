@@ -7,7 +7,6 @@ import TournamentCard from "@/components/tournament_card";
 import Button from "@/components/ui/button";
 import useSearchParams from "@/hooks/use_search_params";
 import {
-  Tournament,
   TournamentPreview,
   TournamentsSortBy,
   TournamentType,
@@ -78,6 +77,7 @@ const TournamentsList: FC<Props> = ({
               prizePool={item.prize_pool}
               closeDate={item.close_date}
               showCloseDate={item.type !== TournamentType.QuestionSeries}
+              isPrivate={item.default_permission === null}
             />
           ))}
         </div>

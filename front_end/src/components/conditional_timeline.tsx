@@ -1,10 +1,18 @@
-import { FC } from "react";
+"use client";
 
-import ContinuousGroupTimeline from "@/app/(main)/questions/[id]/components/continuous_group_timeline";
-import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
+import { useTranslations } from "next-intl";
+import React, { FC } from "react";
+
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
+import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { PostConditional } from "@/types/post";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
+import {
+  getGroupForecastAvailability,
+  getQuestionLinearChartType,
+} from "@/utils/questions";
 
 type Props = {
   conditional: PostConditional<QuestionWithNumericForecasts>;
@@ -12,37 +20,56 @@ type Props = {
 };
 
 const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
-  const groupType = conditional.question_no.type;
-  const questions = [conditional.question_yes, conditional.question_no];
-  const timestamps = getGroupQuestionsTimestamps(questions);
+  const t = useTranslations();
 
-  switch (groupType) {
-    case QuestionType.Binary: {
-      return (
-        <BinaryGroupChart
-          questions={questions}
-          timestamps={timestamps}
-          isClosed={isClosed}
-        />
-      );
-    }
-    case QuestionType.Numeric:
-    case QuestionType.Date:
-      return (
-        <ContinuousGroupTimeline
-          actualCloseTime={
-            conditional.condition_child.actual_close_time
-              ? new Date(
-                  conditional.condition_child.actual_close_time
-                ).getTime()
-              : null
-          }
-          questions={questions}
-          timestamps={timestamps}
-          isClosed={isClosed}
-        />
-      );
+  const { hideCP } = useHideCP();
+
+  const groupType = conditional.question_no.type;
+  const type = getQuestionLinearChartType(groupType);
+  if (!type) {
+    return null;
   }
+
+  const questions = generateQuestions(t, conditional);
+  const forecastAvailability = getGroupForecastAvailability(questions);
+  const timestamps = getGroupQuestionsTimestamps(questions, {
+    withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+  });
+
+  return (
+    <>
+      <MultipleChoiceGroupChart
+        questions={questions}
+        timestamps={timestamps}
+        type={type}
+        actualCloseTime={
+          conditional.condition_child.actual_close_time
+            ? new Date(conditional.condition_child.actual_close_time).getTime()
+            : null
+        }
+        openTime={
+          conditional.condition_child.open_time
+            ? new Date(conditional.condition_child.open_time).getTime()
+            : undefined
+        }
+        hideCP={hideCP}
+        forecastAvailability={forecastAvailability}
+        isClosed={isClosed}
+      />
+      {hideCP && <RevealCPButton className="mb-3" />}
+    </>
+  );
 };
+
+function generateQuestions(
+  t: ReturnType<typeof useTranslations>,
+  conditional: PostConditional<QuestionWithNumericForecasts>
+): QuestionWithNumericForecasts[] {
+  const questions: QuestionWithNumericForecasts[] = [];
+  questions.push({ ...conditional.question_yes, label: t("ifYES") });
+  questions.push({ ...conditional.question_no, label: t("ifNO") });
+
+  return questions;
+}
 
 export default ConditionalTimeline;

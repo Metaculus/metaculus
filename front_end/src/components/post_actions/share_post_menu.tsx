@@ -13,13 +13,19 @@ import {
   useShareOnTwitterLink,
 } from "@/hooks/share";
 import { useBreakpoint } from "@/hooks/tailwind";
+import cn from "@/utils/cn";
 
 type Props = {
   questionTitle: string;
   questionId?: number;
+  btnClassName?: string;
 };
 
-export const SharePostMenu: FC<Props> = ({ questionTitle, questionId }) => {
+export const SharePostMenu: FC<Props> = ({
+  questionTitle,
+  questionId,
+  btnClassName,
+}) => {
   const isLargeScreen = useBreakpoint("md");
   const t = useTranslations();
   const { updateIsOpen } = useEmbedModalContext();
@@ -58,7 +64,7 @@ export const SharePostMenu: FC<Props> = ({ questionTitle, questionId }) => {
               {
                 id: "image",
                 name: t("image"),
-                link: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${questionId}`,
+                link: `/api/posts/preview-image/${questionId}`,
                 openNewTab: true,
               },
             ]
@@ -72,7 +78,7 @@ export const SharePostMenu: FC<Props> = ({ questionTitle, questionId }) => {
     >
       <Button
         variant="secondary"
-        className="!rounded border-0"
+        className={cn("rounded border-0", btnClassName)}
         presentationType="icon"
       >
         <FontAwesomeIcon icon={faShareNodes} className="text-lg" />

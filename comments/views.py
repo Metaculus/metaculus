@@ -1,5 +1,6 @@
 import difflib
 
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
@@ -11,7 +12,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from comments.constants import CommentReportType
-from comments.models import ChangedMyMindEntry, Comment, CommentVote, CommentDiff
+from comments.models import (
+    ChangedMyMindEntry,
+    Comment,
+    CommentVote,
+    CommentDiff,
+    KeyFactor,
+    KeyFactorVote,
+)
 from comments.serializers import (
     CommentWriteSerializer,
     OldAPICommentWriteSerializer,
@@ -19,11 +27,17 @@ from comments.serializers import (
     serialize_comment_many,
     CommentFilterSerializer,
 )
-from comments.services.common import create_comment
+from comments.services.common import create_comment, trigger_update_comment_translations
 from comments.services.feed import get_comments_feed
+from comments.services.key_factors import key_factor_vote
 from notifications.services import NotificationCommentReport, NotificationPostParams
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
+from users.models import User
+from users.services.spam_detection import (
+    check_new_comment_for_spam,
+    send_deactivation_email,
+)
 
 
 class RootCommentsPagination(LimitOffsetPagination):
@@ -88,7 +102,9 @@ def comments_list_api_view(request: Request):
     )
     paginated_comments = paginator.paginate_queryset(comments, request)
 
-    data = serialize_comment_many(paginated_comments, request.user)
+    data = serialize_comment_many(
+        paginated_comments, request.user, with_key_factors=True
+    )
 
     return paginator.get_paginated_response(data)
 
@@ -106,8 +122,9 @@ def comment_delete_api_view(request: Request, pk: int):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@transaction.non_atomic_requests
 def comment_create_api_view(request: Request):
-    user = request.user
+    user: User = request.user
     serializer = CommentWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
@@ -131,11 +148,30 @@ def comment_create_api_view(request: Request):
         else None
     )
 
+    # Check for spam
+    is_spam, _ = check_new_comment_for_spam(
+        user=user, comment_text=serializer.validated_data["text"]
+    )
+
+    if is_spam:
+        user.mark_as_spam()
+        send_deactivation_email(user.email)
+        return Response(
+            data={
+                "message": "This comment seems to be spam. Please contact "
+                "support@metaculus.com if you believe this was a mistake.",
+                "error_code": "SPAM_DETECTED",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     new_comment = create_comment(
         **serializer.validated_data, included_forecast=forecast, user=user
     )
 
-    return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
+    return Response(
+        serialize_comment_many([new_comment])[0], status=status.HTTP_201_CREATED
+    )
 
 
 @api_view(["POST"])
@@ -161,7 +197,8 @@ def comment_edit_api_view(request: Request, pk: int):
 
     comment.edit_history.append(comment_diff.id)
     comment.text = text
-    comment.save()
+    comment.save(update_fields=["text", "edit_history"])
+    trigger_update_comment_translations(comment, force=False)
 
     return Response({}, status=status.HTTP_200_OK)
 
@@ -226,7 +263,7 @@ def comment_report_api_view(request, pk=int):
         staff = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
 
         for user in staff:
-            NotificationCommentReport.send(
+            NotificationCommentReport.schedule(
                 user,
                 NotificationCommentReport.ParamsType(
                     post=NotificationPostParams.from_post(post),
@@ -282,4 +319,17 @@ def comment_create_oldapi_view(request: Request):
         user=user,
         text=text,
     )
+
     return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def key_factor_vote_view(request: Request, pk: int):
+    key_factor = get_object_or_404(KeyFactor, pk=pk)
+    vote = serializers.ChoiceField(
+        required=False, allow_null=True, choices=KeyFactorVote.VoteScore.choices
+    ).run_validation(request.data.get("vote"))
+
+    score = key_factor_vote(key_factor, user=request.user, vote=vote)
+
+    return Response({"score": score})

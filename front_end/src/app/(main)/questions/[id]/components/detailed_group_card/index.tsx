@@ -4,30 +4,31 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 
-import Button from "@/app/(main)/about/components/Button";
-import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
-import { useAuth } from "@/contexts/auth_context";
+import FanGraphGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/fan_graph_group_chart";
+import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import {
-  QuestionType,
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import { sortGroupPredictionOptions } from "@/utils/questions";
+import {
+  getGroupForecastAvailability,
+  getQuestionLinearChartType,
+  sortGroupPredictionOptions,
+} from "@/utils/questions";
 
-import BinaryGroupChart from "./binary_group_chart";
-import ContinuousGroupTimeline from "../continuous_group_timeline";
 import { useHideCP } from "../cp_provider";
 
 type Props = {
   questions: QuestionWithForecasts[];
   graphType: string;
-  nrForecasters: number;
   preselectedQuestionId?: number;
   isClosed?: boolean;
   actualCloseTime: string | null;
+  openTime: string | null;
   postStatus: PostStatus;
 };
 
@@ -36,13 +37,13 @@ const DetailedGroupCard: FC<Props> = ({
   preselectedQuestionId,
   isClosed,
   graphType,
-  nrForecasters,
   actualCloseTime,
+  openTime,
   postStatus,
 }) => {
   const t = useTranslations();
   const groupType = questions.at(0)?.type;
-  const { hideCP, setCurrentHideCP } = useHideCP();
+  const { hideCP } = useHideCP();
 
   useEffect(() => {
     if (questions.some((q) => !!q.my_forecasts?.history.length)) {
@@ -59,35 +60,13 @@ const DetailedGroupCard: FC<Props> = ({
       </div>
     );
   }
-
-  let isForecastEmpty = true;
-  let oneQuestionClosed = false;
-  questions.forEach((question) => {
-    if (question.aggregations.recency_weighted.history.length > 0) {
-      isForecastEmpty = false;
-    }
-    if (
-      question.actual_close_time &&
-      new Date(question.actual_close_time).getTime() < Date.now()
-    ) {
-      oneQuestionClosed = true;
-    }
-  });
-  if (isForecastEmpty) {
-    if (postStatus !== PostStatus.OPEN) {
-      return null;
-    }
-    return (
-      <>
-        {nrForecasters > 0 ? (
-          <div className="text-l m-4 w-full text-center">{t("CPIsHidden")}</div>
-        ) : (
-          <div className="text-l m-4 w-full text-center">
-            {t("forecastDataIsEmpty")}
-          </div>
-        )}
-      </>
-    );
+  const forecastAvailability = getGroupForecastAvailability(questions);
+  if (
+    forecastAvailability.isEmpty &&
+    forecastAvailability.cpRevealsOn &&
+    postStatus !== PostStatus.OPEN
+  ) {
+    return null;
   }
 
   switch (graphType) {
@@ -95,66 +74,45 @@ const DetailedGroupCard: FC<Props> = ({
       const sortedQuestions = sortGroupPredictionOptions(
         questions as QuestionWithNumericForecasts[]
       );
-      const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
-      switch (groupType) {
-        case QuestionType.Binary: {
-          return (
-            <>
-              <BinaryGroupChart
-                actualCloseTime={
-                  actualCloseTime ? new Date(actualCloseTime).getTime() : null
-                }
-                questions={sortedQuestions}
-                timestamps={timestamps}
-                preselectedQuestionId={preselectedQuestionId}
-                isClosed={isClosed}
-                hideCP={hideCP}
-              />
-              {hideCP && (
-                <div className="text-center">
-                  <div className="text-l m-4">{t("CPIsHidden")}</div>
-                  <Button onClick={() => setCurrentHideCP(false)}>
-                    {t("RevealTemporarily")}
-                  </Button>
-                </div>
-              )}
-            </>
-          );
-        }
-        case QuestionType.Numeric:
-        case QuestionType.Date:
-          return (
-            <>
-              <ContinuousGroupTimeline
-                actualCloseTime={
-                  actualCloseTime ? new Date(actualCloseTime).getTime() : null
-                }
-                questions={sortedQuestions}
-                timestamps={timestamps}
-                isClosed={isClosed}
-                preselectedQuestionId={preselectedQuestionId}
-                hideCP={hideCP}
-              />
-              {hideCP && (
-                <div className="text-center">
-                  <div className="text-l m-4">{t("CPIsHidden")}</div>
-                  <Button onClick={() => setCurrentHideCP(false)}>
-                    {t("RevealTemporarily")}
-                  </Button>
-                </div>
-              )}
-            </>
-          );
-        default:
-          return null;
+      const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
+        withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+      });
+      const type = getQuestionLinearChartType(groupType);
+
+      if (!type) {
+        return null;
       }
+
+      return (
+        <>
+          <MultipleChoiceGroupChart
+            questions={sortedQuestions}
+            timestamps={timestamps}
+            type={type}
+            actualCloseTime={
+              actualCloseTime ? new Date(actualCloseTime).getTime() : null
+            }
+            openTime={openTime ? new Date(openTime).getTime() : undefined}
+            isClosed={isClosed}
+            preselectedQuestionId={preselectedQuestionId}
+            hideCP={hideCP}
+            forecastAvailability={forecastAvailability}
+          />
+          {hideCP && <RevealCPButton />}
+        </>
+      );
     }
     case GroupOfQuestionsGraphType.FanGraph:
       return (
-        <NumericGroupChart
-          questions={questions as QuestionWithNumericForecasts[]}
-          withLabel
-        />
+        <>
+          <FanGraphGroupChart
+            questions={questions as QuestionWithNumericForecasts[]}
+            withLabel
+            hideCP={hideCP}
+            forecastAvailability={forecastAvailability}
+          />
+          {hideCP && <RevealCPButton />}
+        </>
       );
     default:
       return null;

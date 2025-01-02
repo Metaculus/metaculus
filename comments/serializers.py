@@ -1,14 +1,19 @@
+from typing import Iterable
+
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Comment
+from comments.models import Comment, KeyFactor
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
+from posts.services.common import get_posts_staff_users
+from projects.permissions import ObjectPermission
 from questions.serializers import ForecastSerializer
 from users.models import User
 from users.serializers import BaseUserSerializer
+from utils.dtypes import flatten, generate_map_from_list
 
 
 class CommentFilterSerializer(serializers.Serializer):
@@ -18,6 +23,7 @@ class CommentFilterSerializer(serializers.Serializer):
     sort = serializers.CharField(required=False, allow_null=True)
     focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
     is_private = serializers.BooleanField(required=False, allow_null=True)
+    include_deleted = serializers.BooleanField(required=False, allow_null=True)
 
     def validate_post(self, value: int):
         try:
@@ -30,6 +36,8 @@ class CommentSerializer(serializers.ModelSerializer):
     author = BaseUserSerializer()
     changed_my_mind = serializers.SerializerMethodField(read_only=True)
     text = serializers.SerializerMethodField()
+    on_post_data = serializers.SerializerMethodField()
+    included_forecast = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Comment
@@ -39,9 +47,11 @@ class CommentSerializer(serializers.ModelSerializer):
             "parent_id",
             "root_id",
             "created_at",
+            "edited_at",
             "is_soft_deleted",
             "text",
             "on_post",
+            "on_post_data",
             "included_forecast",
             "is_private",
             "vote_score",
@@ -65,6 +75,20 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_text(self, value: Comment):
         return _("deleted") if value.is_soft_deleted else value.text
+
+    def get_on_post_data(self, value: Comment):
+        """
+        Minimalistic serialization version of post object
+        Could be replaced with `serialize_post_many` call
+        in `serialize_comment_many` function in the future
+        """
+
+        return {"id": value.on_post_id, "title": getattr(value.on_post, "title", "")}
+
+    def get_included_forecast(self, value: Comment):
+        if value.is_soft_deleted or not value.included_forecast:
+            return None
+        return ForecastSerializer(value.included_forecast).data
 
 
 class OldAPICommentWriteSerializer(serializers.Serializer):
@@ -101,6 +125,8 @@ def serialize_comment(
     comment: Comment,
     current_user: User | None = None,
     mentions: list[User] | None = None,
+    author_staff_permission: ObjectPermission = None,
+    key_factors: list[KeyFactor] = None,
 ) -> dict:
     mentions = mentions or []
     serialized_data = CommentSerializer(
@@ -110,15 +136,17 @@ def serialize_comment(
     # Permissions
     # serialized_data["user_permission"] = post.user_permission
 
-    forecast = comment.included_forecast
-    if forecast is not None:
-        serialized_data["included_forecast"] = ForecastSerializer(forecast).data
-
     serialized_data["mentioned_users"] = BaseUserSerializer(mentions, many=True).data
 
     # Annotate user's vote
     serialized_data["vote_score"] = comment.vote_score
     serialized_data["user_vote"] = comment.user_vote
+    serialized_data["author_staff_permission"] = author_staff_permission
+
+    serialized_data["is_current_content_translated"] = (
+        comment.is_current_content_translated()
+    )
+    serialized_data["key_factors"] = key_factors or []
 
     return serialized_data
 
@@ -126,12 +154,15 @@ def serialize_comment(
 def serialize_comment_many(
     comments: QuerySet[Comment] | list[Comment],
     current_user: User | None = None,
+    with_key_factors: bool = False,
 ) -> list[dict]:
     # Get original ordering of the comments
     ids = [p.pk for p in comments]
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
 
-    qs = qs.select_related("included_forecast", "author")
+    qs = qs.select_related(
+        "included_forecast__question", "author", "on_post"
+    ).prefetch_related("key_factors")
     qs = qs.annotate_vote_score()
 
     if current_user and not current_user.is_anonymous:
@@ -143,9 +174,59 @@ def serialize_comment_many(
     objects = list(qs.all())
     objects.sort(key=lambda obj: ids.index(obj.id))
 
+    # Extracting staff users
+    post_staff_users_map = get_posts_staff_users(
+        {c.on_post for c in objects if c.on_post}
+    )
     mentions_map = comments_extract_user_mentions_mapping(objects)
 
+    # Extracting key factors
+    comment_key_factors_map = {}
+    if with_key_factors:
+        comment_key_factors_map = generate_map_from_list(
+            serialize_key_factors_many(
+                flatten([c.key_factors.all() for c in objects]),
+                current_user=current_user,
+            ),
+            key=lambda x: x["comment_id"],
+        )
+
     return [
-        serialize_comment(comment, current_user, mentions=mentions_map.get(comment.id))
+        serialize_comment(
+            comment,
+            current_user,
+            mentions=mentions_map.get(comment.id),
+            author_staff_permission=(
+                post_staff_users_map.get(comment.on_post, {}).get(comment.author_id)
+            ),
+            key_factors=comment_key_factors_map.get(comment.id),
+        )
         for comment in objects
     ]
+
+
+def serialize_key_factor(key_factor: KeyFactor) -> dict:
+    return {
+        "id": key_factor.id,
+        "text": key_factor.text,
+        "comment_id": key_factor.comment_id,
+        "user_vote": key_factor.user_vote,
+        "votes_score": key_factor.votes_score,
+    }
+
+
+def serialize_key_factors_many(
+    key_factors: Iterable[KeyFactor], current_user: User = None
+):
+    # Get original ordering of the comments
+    ids = [p.pk for p in key_factors]
+    qs = KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors]).filter_active()
+
+    if current_user and not current_user.is_anonymous:
+        qs = qs.annotate_user_vote(current_user)
+
+    # Restore the original ordering
+    objects = list(qs.all())
+    objects.sort(key=lambda obj: ids.index(obj.id))
+
+    return [serialize_key_factor(comment) for comment in objects]

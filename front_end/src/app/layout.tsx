@@ -14,10 +14,12 @@ import GlobalModals from "@/components/global_modals";
 import AppThemeProvided from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
+import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
+import NavigationProvider from "@/contexts/navigation_context";
 import ProfileApi from "@/services/profile";
 
-import { CSPostHogProvider } from "./providers";
+import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
 
 const PostHogPageView = dynamic(
   () => import("@/components/posthog_page_view"),
@@ -113,6 +115,10 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
     ),
+    robots:
+      process.env.NEXT_PUBLIC_DISALLOW_ALL_BOTS === "true"
+        ? { index: false, follow: true }
+        : null,
   };
 }
 
@@ -140,13 +146,19 @@ export default async function RootLayout({
             <NextIntlClientProvider messages={messages}>
               <AuthProvider user={user}>
                 <ModalProvider>
-                  <NextTopLoader
-                    showSpinner={false}
-                    color={METAC_COLORS.blue["500"].DEFAULT}
-                  />
-                  {children}
-                  <GlobalModals />
-                  <Toaster />
+                  <NavigationProvider>
+                    <GlobalSearchProvider>
+                      <TranslationsBannerProvider>
+                        <NextTopLoader
+                          showSpinner={false}
+                          color={METAC_COLORS.blue["500"].DEFAULT}
+                        />
+                        {children}
+                        <GlobalModals />
+                        <Toaster />
+                      </TranslationsBannerProvider>
+                    </GlobalSearchProvider>
+                  </NavigationProvider>
                 </ModalProvider>
               </AuthProvider>
             </NextIntlClientProvider>

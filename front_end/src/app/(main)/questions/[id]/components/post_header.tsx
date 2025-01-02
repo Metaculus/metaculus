@@ -1,19 +1,22 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
-import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions/";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
+import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions/";
+import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Button from "@/components/ui/button";
 import {
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
+import { TournamentType } from "@/types/projects";
 
 import PostApprovalModal from "./post_approval_modal";
-import PostSubscribeButton from "./subscribe_button";
 import { draftPost, submitPostForReview } from "../../actions";
 
 export default function PostHeader({
@@ -25,6 +28,8 @@ export default function PostHeader({
 }) {
   const t = useTranslations();
   const router = useRouter();
+  const isCommunity =
+    post.projects.default_project.type === TournamentType.Community;
 
   let typeLabel = t("notebook");
   if (post.group_of_questions) {
@@ -65,34 +70,31 @@ export default function PostHeader({
   }
 
   const [approvalModalOpen, setIsApprovalModalOpen] = useState(false);
+  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
+  const locale = useLocale();
+
+  useEffect(() => {
+    if (post.is_current_content_translated) {
+      setTimeout(() => {
+        setBannerIsVisible(true);
+      }, 0);
+    }
+  }, [post, locale]);
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row gap-3 pt-3 lg:hidden lg:pt-0">
+      <div className="flex flex-row gap-3">
         <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
           {typeLabel}
         </span>
         {allowModifications && (
           <>
-            <Button
+            <Link
+              className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 no-underline dark:bg-blue-400-dark dark:text-blue-700-dark"
               href={`/questions/create/${edit_type}?post_id=${post.id}`}
-              className="h-7"
             >
               {t("edit")}
-            </Button>
-            {post.curation_status === PostStatus.APPROVED &&
-            [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
-              post.user_permission
-            ) &&
-            post.forecasts_count! < 1 ? (
-              <Button
-                onClick={async () => {
-                  setIsApprovalModalOpen(true);
-                }}
-              >
-                {t("editOpenAndCpRevealTimes")}
-              </Button>
-            ) : null}
+            </Link>
           </>
         )}
         {!post.notebook && (
@@ -109,23 +111,46 @@ export default function PostHeader({
         post.curation_status
       ) && (
         <div className="mt-4 border border-gray-300 bg-gray-200 p-3 dark:border-gray-300-dark dark:bg-gray-200-dark">
-          {post.curation_status === PostStatus.PENDING && (
-            <>
-              <h4 className="mb-2 mt-0">{t("inReview")}</h4>
-              <p className="mb-3 mt-0 leading-5">
-                {t.rich("inReviewStatusBox1", {
-                  link1: (chunks) => <a href="/question-writing/">{chunks}</a>,
-                  link2: (chunks) => (
-                    <a href="/question-writing/#what-types">{chunks}</a>
-                  ),
-                })}
-              </p>
-              <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox2")}</p>
-              {post.conditional && (
-                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox4")}</p>
-              )}
-            </>
-          )}
+          {post.curation_status === PostStatus.PENDING &&
+            (isCommunity ? (
+              <>
+                <h4 className="mb-2 mt-0">{t("inReview")}</h4>
+                <p className="mb-3 mt-0 leading-6">
+                  {t("inCommunityReviewStatus1")}
+                </p>
+                <ul className="mb-3 ml-6 mt-0 list-disc leading-6">
+                  {t.rich("inCommunityReviewStatus2", {
+                    li: (chunks) => <li>{chunks}</li>,
+                  })}
+                </ul>
+                <Link
+                  href={"/question-writing"}
+                  className="mb-3 flex text-base font-normal leading-6 text-blue-700 dark:text-blue-700-dark"
+                >
+                  {t("learnMoreAboutQuestionWriting")}
+                </Link>
+              </>
+            ) : (
+              <>
+                <h4 className="mb-2 mt-0">{t("inReview")}</h4>
+                <p className="mb-3 mt-0 leading-5">
+                  {t.rich("inReviewStatusBox1", {
+                    link1: (chunks) => (
+                      <Link href="/question-writing/">{chunks}</Link>
+                    ),
+                    link2: (chunks) => (
+                      <Link href="/question-writing/#what-types">{chunks}</Link>
+                    ),
+                  })}
+                </p>
+                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox2")}</p>
+                {post.conditional && (
+                  <p className="mb-3 mt-0 leading-5">
+                    {t("inReviewStatusBox4")}
+                  </p>
+                )}
+              </>
+            ))}
           {canSubmitForReview && (
             <>
               <h4 className="mb-2 mt-0">{t("draftStatusBox1")}</h4>
@@ -153,7 +178,7 @@ export default function PostHeader({
             {canSendBackToDrafts && (
               <Button
                 onClick={async () => {
-                  await draftPost(post.id);
+                  await draftPost(post.id, post.projects.default_project);
                 }}
               >
                 {t("sendBackToDrafts")}

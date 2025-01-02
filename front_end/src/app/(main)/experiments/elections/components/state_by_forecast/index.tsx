@@ -1,6 +1,5 @@
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
@@ -13,7 +12,7 @@ import { StateByForecastItem } from "@/types/experiments";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
-import { extractQuestionGroupName } from "@/utils/questions";
+import cn from "@/utils/cn";
 
 import MiddleVotesArrow from "./middle_votes_arrow";
 import StateByForecastCharts from "./state_by_forecast_charts";
@@ -64,7 +63,7 @@ const StateByForecast: FC<Props> = async ({
       <div className="relative mt-20 inline-flex w-full flex-col">
         <div className="flex w-full flex-col">
           <MiddleVotesArrow
-            className={classNames("absolute left-2/4 -translate-x-2/4")}
+            className={cn("absolute left-2/4 -translate-x-2/4")}
           />
           <div className="flex w-full justify-between">
             {democratPrediction && (
@@ -144,7 +143,7 @@ const getStateByItems = (
   >(
     (acc, q) => ({
       ...acc,
-      [extractQuestionGroupName(q.title).toLowerCase()]: q,
+      [q.label.toLowerCase()]: q,
     }),
     {}
   );
@@ -173,7 +172,7 @@ const getStateByItems = (
     }
 
     const aggregation = questionData.aggregations.recency_weighted;
-    const prediction = aggregation.latest?.centers![0];
+    const prediction = aggregation?.latest?.centers?.[0];
     if (!prediction) {
       return area;
     }
@@ -215,24 +214,24 @@ function getDemocratRepublicanPrediction({
   }
 
   const rawDemocratPrediction =
-    demQuestion.aggregations.recency_weighted.latest?.centers![0];
+    demQuestion?.aggregations?.recency_weighted?.latest?.centers?.[0];
   const rawRepublicanPrediction =
-    repQuestion.aggregations.recency_weighted.latest?.centers![0];
+    repQuestion?.aggregations?.recency_weighted?.latest?.centers?.[0];
 
   return {
     democratPrediction: rawDemocratPrediction
-      ? getDisplayValue(
-          rawDemocratPrediction,
-          demQuestion.type,
-          demQuestion.scaling
-        )
+      ? getDisplayValue({
+          value: rawDemocratPrediction,
+          questionType: demQuestion.type,
+          scaling: demQuestion.scaling,
+        })
       : null,
     republicanPrediction: rawRepublicanPrediction
-      ? getDisplayValue(
-          rawRepublicanPrediction,
-          repQuestion.type,
-          repQuestion.scaling
-        )
+      ? getDisplayValue({
+          value: rawRepublicanPrediction,
+          questionType: repQuestion.type,
+          scaling: repQuestion.scaling,
+        })
       : null,
   };
 }

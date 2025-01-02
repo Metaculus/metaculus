@@ -38,11 +38,13 @@ const SidebarQuestionTags: FC<Props> = ({
     tag: _tag,
     tournament: _tournament,
     question_series: _question_series,
+    community: _community,
   } = tagData;
   const tag = _tag ?? [];
   const category = _category ?? [];
   const tournament = _tournament ?? [];
   const question_series = _question_series ?? [];
+  const community = _community ?? [];
 
   const [showAllTags, setShowAllTags] = useState(
     (tag.length ?? 0) < INITIAL_NUM_OF_TAGS
@@ -52,8 +54,8 @@ const SidebarQuestionTags: FC<Props> = ({
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 self-stretch border-t border-gray-300 @lg:border-0 dark:border-gray-300-dark">
-      <div className="mt-4 flex flex-wrap content-start items-start gap-2.5 self-stretch @lg:m-0">
+    <div className="flex flex-col items-center justify-center gap-4 self-stretch">
+      <div className="flex flex-wrap content-start items-start gap-2.5 self-stretch @lg:m-0">
         {tournament.map((element) => (
           <Chip
             color="orange"
@@ -84,6 +86,21 @@ const SidebarQuestionTags: FC<Props> = ({
           </Chip>
         ))}
 
+        {community.map((element) => (
+          <Chip
+            color="orange"
+            key={element.id}
+            href={`/c/${element.slug}`}
+            onClick={() =>
+              sendGAEvent("event", "questionTagClicked", {
+                event_category: element.name,
+              })
+            }
+          >
+            {element.name}
+          </Chip>
+        ))}
+
         {category.map((element) => (
           <Chip
             color="olive"
@@ -103,8 +120,8 @@ const SidebarQuestionTags: FC<Props> = ({
           <Chip
             key={element.id}
             href={`/questions/?${POST_TAGS_FILTER}=${element.slug}&for_main_feed=false`}
-            color="blue"
-            xMark={allowModifications}
+            color={element.is_global_leaderboard ? "gray" : "blue"}
+            xMark={element.is_global_leaderboard ? false : allowModifications}
             onXMarkClick={async () => {
               await removePostFromProject(postId, element.id);
               router.refresh();

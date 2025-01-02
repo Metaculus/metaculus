@@ -1,9 +1,11 @@
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useState } from "react";
+import { SemanticName } from "rc-slider/lib/interface";
+import { CSSProperties, FC, useCallback, useEffect, useState } from "react";
 
 import Slider from "@/components/sliders/slider";
+import cn from "@/utils/cn";
 
 const DEFAULT_SLIDER_VALUE = 50;
 export const BINARY_FORECAST_PRECISION = 3;
@@ -19,20 +21,25 @@ type Props = {
   communityForecast?: number | null;
   disabled?: boolean;
   helperDisplay?: boolean;
+  className?: string;
+  styles?: Partial<Record<SemanticName, CSSProperties>>;
+  withArrowStep?: boolean;
 };
 
 const BinarySlider: FC<Props> = ({
   onChange,
   forecast,
-  isDirty,
   communityForecast,
   onBecomeDirty,
   disabled = false,
   helperDisplay = false,
+  className,
+  styles,
+  withArrowStep = true,
 }) => {
   const inputDisplayValue = forecast ? forecast.toString() + "%" : "—";
-  const [inputValue, setInputValue] = useState(inputDisplayValue);
-  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [, setInputValue] = useState(inputDisplayValue);
+  const [isInputFocused] = useState(false);
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
   );
@@ -52,20 +59,6 @@ const BinarySlider: FC<Props> = ({
     },
     [onBecomeDirty, onChange]
   );
-  const handleInputChange = useCallback(
-    (value: string) => {
-      setInputValue(value);
-      onBecomeDirty?.();
-    },
-    [onBecomeDirty]
-  );
-  const handleInputForecastChange = useCallback(
-    (value: number) => {
-      onBecomeDirty?.();
-      onChange(value);
-    },
-    [onBecomeDirty, onChange]
-  );
 
   const isNearCommunityForecast =
     communityForecast !== null &&
@@ -74,14 +67,14 @@ const BinarySlider: FC<Props> = ({
 
   return (
     <>
-      <div className="group relative mx-6 mt-8 h-16">
+      <div className={cn("group relative mx-6 mt-8 h-16", className)}>
         <Slider
           inputMin={BINARY_MIN_VALUE}
           inputMax={BINARY_MAX_VALUE}
           defaultValue={forecast ?? DEFAULT_SLIDER_VALUE}
           onChange={handleSliderForecastChange}
           step={1}
-          arrowStep={0.1}
+          arrowStep={withArrowStep ? 0.1 : undefined}
           shouldSyncWithDefault
           marks={
             communityForecast
@@ -97,7 +90,7 @@ const BinarySlider: FC<Props> = ({
               : undefined
           }
           disabled={disabled}
-          styles={disabled ? { handle: { cursor: "default" } } : {}}
+          styles={disabled ? { handle: { cursor: "default" } } : styles}
           showValue
         />
         {forecast !== null && helperDisplay && (

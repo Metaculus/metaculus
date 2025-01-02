@@ -1,19 +1,22 @@
 "use client";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useMemo, useState } from "react";
+import React, { FC, ReactNode, useMemo, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
+import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
+import { getCdfBounds } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -24,37 +27,44 @@ import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
+import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
-  prevForecast?: any;
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage?: PredictionInputMessage;
+  predictionMessage?: ReactNode;
 };
 
 const ForecastMakerContinuous: FC<Props> = ({
   post,
   question,
   permission,
-  prevForecast,
   canPredict,
   canResolve,
   predictionMessage,
 }) => {
   const { user } = useAuth();
-  const { setCurrentModal } = useModal();
   const { hideCP } = useHideCP();
   const [isDirty, setIsDirty] = useState(false);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const previousForecast = question.my_forecasts?.latest;
+  const activeForecast =
+    !!previousForecast && isNil(previousForecast.end_time)
+      ? previousForecast
+      : undefined;
+  const activeForecastSliderValues = activeForecast
+    ? extractPrevNumericForecastValue(activeForecast.slider_values)
+    : {};
   const withCommunityQuartiles = !user || !hideCP;
-  const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
+  const hasUserForecast = !!activeForecastSliderValues.forecast;
   const t = useTranslations();
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
-    prevForecastValue?.forecast ?? [
+    activeForecastSliderValues?.forecast ?? [
       {
         left: 0.4,
         center: 0.5,
@@ -63,23 +73,32 @@ const ForecastMakerContinuous: FC<Props> = ({
     ]
   );
   const [weights, setWeights] = useState<number[]>(
-    prevForecastValue?.weights ?? [1]
+    activeForecastSliderValues?.weights ?? [1]
   );
+  const [overlayPreviousForecast, setOverlayPreviousForecast] =
+    useState<boolean>(
+      !!previousForecast?.forecast_values && !previousForecast.slider_values
+    );
 
   const dataset = useMemo(
     () =>
       getNumericForecastDataset(
         forecast,
         weights,
-        question.open_lower_bound!,
-        question.open_upper_bound!
+        question.open_lower_bound,
+        question.open_upper_bound
       ),
     [forecast, question.open_lower_bound, question.open_upper_bound, weights]
   );
 
   const userCdf: number[] = dataset.cdf;
+  const userPreviousCdf: number[] | undefined =
+    overlayPreviousForecast && previousForecast
+      ? previousForecast.forecast_values
+      : undefined;
+  const latest = question.aggregations.recency_weighted.latest;
   const communityCdf: number[] | undefined =
-    question.aggregations.recency_weighted.latest?.forecast_values;
+    latest && !latest.end_time ? latest?.forecast_values : undefined;
 
   const handleAddComponent = () => {
     setForecast([
@@ -94,6 +113,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   };
 
   const handlePredictSubmit = async () => {
+    setSubmitError(undefined);
     sendGAPredictEvent(post, question, hideCP);
 
     const response = await createForecasts(post.id, [
@@ -110,14 +130,32 @@ const ForecastMakerContinuous: FC<Props> = ({
         },
       },
     ]);
-    if (response && "errors" in response && !!response.errors) {
-      throw response.errors;
-    }
-
     setIsDirty(false);
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+    }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
-  const submitIsAllowed = !isPending && isDirty;
+
+  const handlePredictWithdraw = async () => {
+    setSubmitError(undefined);
+
+    if (!previousForecast) return;
+
+    const response = await withdrawForecasts(post.id, [
+      {
+        question: question.id,
+      },
+    ]);
+    setIsDirty(false);
+
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
   return (
     <>
       <ContinuousSlider
@@ -129,6 +167,8 @@ const ForecastMakerContinuous: FC<Props> = ({
           setWeights(weight);
           setIsDirty(true);
         }}
+        overlayPreviousForecast={overlayPreviousForecast}
+        setOverlayPreviousForecast={setOverlayPreviousForecast}
         question={question}
         disabled={!canPredict}
       />
@@ -136,63 +176,64 @@ const ForecastMakerContinuous: FC<Props> = ({
       {canPredict && (
         <>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
-            {user ? (
-              <>
-                <Button
-                  variant="secondary"
-                  type="reset"
-                  onClick={handleAddComponent}
-                >
-                  {t("addComponentButton")}
-                </Button>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  onClick={submit}
-                  disabled={!submitIsAllowed}
-                >
-                  {t("saveChange")}
-                </Button>
-              </>
-            ) : (
+            {!!user && (
               <Button
-                variant="primary"
-                type="button"
-                onClick={() => setCurrentModal({ type: "signup" })}
+                variant="secondary"
+                type="reset"
+                onClick={handleAddComponent}
               >
-                {t("signUpToPredict")}
+                {t("addComponentButton")}
               </Button>
             )}
+
+            {!!activeForecast &&
+              question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )}
+            <PredictButton
+              onSubmit={submit}
+              isDirty={isDirty}
+              hasUserForecast={hasUserForecast}
+              isPending={isPending}
+            />
           </div>
-          <div className="h-[32px]">{isPending && <LoadingIndicator />}</div>
+          <FormError
+            errors={submitError}
+            className="mt-2 flex items-center justify-center"
+            detached
+          />
+          <div className="h-[32px]">
+            {(isPending || withdrawalIsPending) && <LoadingIndicator />}
+          </div>
         </>
       )}
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       <NumericForecastTable
         question={question}
-        userBounds={{
-          belowLower: userCdf[0],
-          aboveUpper: 1 - userCdf[userCdf.length - 1],
-        }}
+        userBounds={getCdfBounds(userCdf)}
         userQuartiles={userCdf ? computeQuartilesFromCDF(userCdf) : undefined}
-        communityBounds={
-          communityCdf
-            ? {
-                belowLower: communityCdf[0],
-                aboveUpper: 1 - communityCdf[communityCdf.length - 1],
-              }
-            : undefined
+        userPreviousBounds={getCdfBounds(userPreviousCdf)}
+        userPreviousQuartiles={
+          userPreviousCdf ? computeQuartilesFromCDF(userPreviousCdf) : undefined
         }
+        communityBounds={getCdfBounds(communityCdf)}
         communityQuartiles={
           communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
         }
         withCommunityQuartiles={withCommunityQuartiles}
         isDirty={isDirty}
-        hasUserForecast={!!prevForecastValue.forecast}
+        hasUserForecast={hasUserForecast}
       />
 
       <div className="flex flex-col items-center justify-center">

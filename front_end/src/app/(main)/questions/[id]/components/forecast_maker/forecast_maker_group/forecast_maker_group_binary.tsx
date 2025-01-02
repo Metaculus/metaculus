@@ -16,11 +16,10 @@ import React, {
 import { createForecasts } from "@/app/(main)/questions/actions";
 import GroupQuestionResolution from "@/components/group_question_resolution";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import {
@@ -30,13 +29,9 @@ import {
   QuestionStatus,
   Resolution,
 } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
-import { extractQuestionGroupName } from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
@@ -47,6 +42,7 @@ import {
   BINARY_MIN_VALUE,
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
+import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 
 type QuestionOption = {
@@ -64,16 +60,17 @@ type QuestionOption = {
 type Props = {
   post: PostWithForecasts;
   questions: QuestionWithNumericForecasts[];
+  groupVariable: string;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage: PredictionInputMessage;
+  predictionMessage: ReactNode;
 };
 
 const ForecastMakerGroupBinary: FC<Props> = ({
   post,
   questions,
+  groupVariable,
   canPredict,
-  canResolve,
   predictionMessage,
 }) => {
   const t = useTranslations();
@@ -81,22 +78,25 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const { hideCP } = useHideCP();
   const params = useSearchParams();
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
-  const { setCurrentModal } = useModal();
 
   const { id: postId, user_permission: permission } = post;
 
   const prevForecastValuesMap = useMemo(
     () =>
-      questions.reduce<Record<number, number | null>>(
-        (acc, question) => ({
+      questions.reduce<Record<number, number | null>>((acc, question) => {
+        const latest = question.my_forecasts?.latest;
+        return {
           ...acc,
           [question.id]: extractPrevBinaryForecastValue(
-            question.my_forecasts?.latest?.forecast_values[1]
+            latest && !latest.end_time ? latest.forecast_values[1] : null
           ),
-        }),
-        {}
-      ),
+        };
+      }, {}),
     [questions]
+  );
+  const hasUserForecast = useMemo(
+    () => Object.values(prevForecastValuesMap).some((v) => v !== null),
+    [prevForecastValuesMap]
   );
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
     generateChoiceOptions(questions, prevForecastValuesMap, undefined, post)
@@ -127,11 +127,12 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     );
   }, [permission, prevForecastValuesMap, questions]);
 
-  const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const questionsToSubmit = useMemo(
     () =>
       questionOptions.filter(
-        (option) => option.isDirty && option.forecast !== null
+        (option) =>
+          option.forecast !== null && option.status === QuestionStatus.OPEN
       ),
     [questionOptions]
   );
@@ -162,7 +163,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     );
   }, []);
   const handlePredictSubmit = useCallback(async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
       return;
@@ -172,6 +173,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       postId,
       questionsToSubmit.map((q) => {
         const forecastValue = round(
+          // okay to use non-null assertion here because we handle nullable state in questionsToSubmit calculation
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           q.forecast! / 100,
           BINARY_FORECAST_PRECISION
         );
@@ -190,25 +193,18 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
     );
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   }, [postId, questionsToSubmit]);
   const [submit, isPending] = useServerAction(handlePredictSubmit);
-  const submitIsAllowed = !isPending && !!questionsToSubmit.length;
   return (
     <>
       <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
             <th className="bg-blue-100 p-2 text-left text-xs font-bold dark:bg-blue-100-dark">
-              {t("Candidates")}
+              {groupVariable}
             </th>
             <th className="bg-blue-100 p-2 pr-4 text-right text-xs dark:bg-blue-100-dark">
               <FontAwesomeIcon
@@ -249,7 +245,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
               disabled={
-                !canPredict || questionOption.status != QuestionStatus.OPEN
+                !canPredict || questionOption.status !== QuestionStatus.OPEN
               }
               optionResolution={{
                 resolution: questionOption.resolution,
@@ -261,7 +257,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       </table>
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
       {!!highlightedQuestion?.resolution && (
@@ -275,43 +271,35 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       {canPredict && (
         <>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
-            {user ? (
-              <>
-                <Button
-                  variant="secondary"
-                  type="reset"
-                  onClick={resetForecasts}
-                  disabled={!isPickerDirty}
-                >
-                  {t("discardChangesButton")}
-                </Button>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  onClick={submit}
-                  disabled={!submitIsAllowed}
-                >
-                  {t("saveChange")}
-                </Button>
-              </>
-            ) : (
+            {!!user && (
               <Button
-                variant="primary"
-                type="button"
-                onClick={() => setCurrentModal({ type: "signup" })}
+                variant="secondary"
+                type="reset"
+                onClick={resetForecasts}
+                disabled={!isPickerDirty}
               >
-                {t("signUpToPredict")}
+                {t("discardChangesButton")}
               </Button>
             )}
+
+            <PredictButton
+              onSubmit={submit}
+              isDirty={isPickerDirty}
+              hasUserForecast={hasUserForecast}
+              isPending={isPending}
+              isDisabled={!questionsToSubmit.length}
+            />
           </div>
+          <FormError
+            errors={submitError}
+            className="mt-2 flex items-center justify-center"
+            detached
+          />
           <div className="h-[32px] w-full">
             {isPending && <LoadingIndicator />}
           </div>
         </>
       )}
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
-      ))}
       {highlightedQuestion && <ScoreDisplay question={highlightedQuestion} />}
     </>
   );
@@ -324,11 +312,12 @@ function generateChoiceOptions(
   post?: Post
 ): QuestionOption[] {
   return questions.map((question, index) => {
+    const latest = question.aggregations.recency_weighted.latest;
     return {
       id: question.id,
-      name: extractQuestionGroupName(question.title),
+      name: question.label,
       communityForecast:
-        question.aggregations.recency_weighted.latest?.centers![0] ?? null,
+        latest && !latest.end_time ? latest.centers?.[0] ?? null : null,
       forecast: prevForecastValuesMap[question.id] ?? null,
       resolution: question.resolution,
       isDirty: false,

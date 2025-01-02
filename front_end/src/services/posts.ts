@@ -12,13 +12,15 @@ import {
   PostWithForecasts,
   PostWithNotebook,
 } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
 import { Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
-import { QuestionWithForecasts } from "@/types/question";
 
 export type PostsParams = PaginationParams & {
+  following?: boolean;
+  page?: number;
   topic?: string;
   answered_by_me?: boolean;
   search?: string;
@@ -28,6 +30,7 @@ export type PostsParams = PaginationParams & {
   usernames?: string | string[];
   tags?: string | string[];
   forecaster_id?: string;
+  withdrawn?: string;
   not_forecaster_id?: string;
   author?: string;
   upvoted_by?: string;
@@ -35,6 +38,7 @@ export type PostsParams = PaginationParams & {
   commented_by?: string;
   order_by?: string;
   tournaments?: string | string[];
+  community?: string;
   for_main_feed?: string;
   ids?: number[];
   news_type?: string;
@@ -75,7 +79,7 @@ class PostsApi {
   }
 
   static async removePostFromProject(postId: number, projectId: number) {
-    await post<any>(`/posts/${postId}/remove_from_project/`, {
+    await post(`/posts/${postId}/remove_from_project/`, {
       project_id: projectId,
     });
   }
@@ -132,12 +136,18 @@ class PostsApi {
     });
   }
 
-  static async createQuestionPost(body: any): Promise<PostWithForecasts> {
-    return await post<PostWithForecasts>(`/posts/create/`, body);
+  static async createQuestionPost<
+    T extends PostWithForecasts | PostWithNotebook,
+    B,
+  >(body: B): Promise<T> {
+    return await post(`/posts/create/`, body);
   }
 
-  static async updatePost(id: number, body: any): Promise<PostWithForecasts> {
-    return await put<any, PostWithForecasts>(`/posts/${id}/update/`, body);
+  static async updatePost<T extends PostWithForecasts | PostWithNotebook, B>(
+    id: number,
+    body: B
+  ): Promise<T> {
+    return await put(`/posts/${id}/update/`, body);
   }
 
   static async submitForReview(id: number) {
@@ -160,7 +170,10 @@ class PostsApi {
   }
 
   static async uploadImage(formData: FormData): Promise<{ url: string }> {
-    return await post<{ url: string }>("/posts/upload-image/", formData);
+    return await post<{ url: string }, FormData>(
+      "/posts/upload-image/",
+      formData
+    );
   }
 
   static async sendPostReadEvent(postId: number) {
@@ -202,6 +215,14 @@ class PostsApi {
     revalidateTag("related-articles");
 
     return response;
+  }
+
+  static async getRandomPostId(): Promise<{ id: number; post_slug: string }> {
+    return await get<{ id: number; post_slug: string }>("/posts/random/");
+  }
+
+  static async getPostZipData(postId: number): Promise<Blob> {
+    return await get<Blob>(`/posts/${postId}/download-data/`);
   }
 }
 

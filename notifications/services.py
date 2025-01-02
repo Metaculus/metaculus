@@ -3,6 +3,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone as dt_timezone, timedelta
 
 from dateutil.parser import parse as date_parse
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from comments.constants import CommentReportType
@@ -51,10 +52,16 @@ class NotificationQuestionParams:
     id: int
     title: str
     type: str
+    label: str = ""
 
     @classmethod
     def from_question(cls, question: Question):
-        return cls(id=question.id, title=question.title, type=question.type)
+        return cls(
+            id=question.id,
+            title=question.title,
+            type=question.type,
+            label=question.label,
+        )
 
 
 @dataclass
@@ -161,7 +168,8 @@ class CPChangeData:
         return self.format_value(self.cp_median)
 
     def format_question_title(self):
-        return get_question_group_title(self.question.title)
+        # TODO: deprecate get_question_group_title after the first release of this change
+        return self.question.label or get_question_group_title(self.question.title)
 
 
 class NotificationTypeBase:
@@ -173,14 +181,24 @@ class NotificationTypeBase:
         pass
 
     @classmethod
-    def send(cls, recipient: User, params: ParamsType, mailing_tag: MailingTags = None):
+    def schedule(
+        cls,
+        recipient: User,
+        params: ParamsType,
+        mailing_tag: MailingTags = None,
+        **kwargs,
+    ):
+        """
+        Schedules a notification to be sent using a cron job.
+        """
+
         # Skip notification sending if it was ignored
         if mailing_tag and mailing_tag in recipient.unsubscribed_mailing_tags:
             return
 
             # Create notification object
         notification = Notification.objects.create(
-            type=cls.type, recipient=recipient, params=asdict(params)
+            type=cls.type, recipient=recipient, params=asdict(params), **kwargs
         )
 
         return notification
@@ -223,6 +241,7 @@ class NotificationTypeBase:
             cls.email_template,
             context=context,
             use_async=False,
+            from_email=settings.EMAIL_NOTIFICATIONS_USER,
         )
 
 
@@ -270,6 +289,7 @@ class NotificationTypeSimilarPostsMixin:
 class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTypeBase):
     type = "post_new_comments"
     email_template = "emails/post_new_comments.html"
+    comments_to_display = 8
 
     @dataclass
     class ParamsType:
@@ -301,20 +321,15 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
             .only("id", "text", "author__username", "on_post__title")
         )
 
-        post_has_mention = False
         data = []
 
         for comment in comments:
-            preview_text, has_mention = generate_email_comment_preview_text(
+            preview_text, _ = generate_email_comment_preview_text(
                 comment.text, recipient_username
             )
 
-            if has_mention:
-                post_has_mention = True
-
             data.append(
                 {
-                    "has_mention": has_mention,
                     "author_username": comment.author.username,
                     "preview_text": preview_text,
                     "url": build_post_comment_url(
@@ -323,10 +338,7 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
                 }
             )
 
-        # Comments with mention go first
-        data = sorted(data, key=lambda x: x["has_mention"], reverse=True)
-
-        return data, post_has_mention
+        return data
 
     @classmethod
     def _merge_notifications_params(
@@ -354,33 +366,26 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
 
     @classmethod
     def get_email_context_group(cls, notifications: list[Notification]):
-        comments_to_display = 8
         recipient = notifications[0].recipient
         serialized_notifications = []
 
         for post_id, params in cls._merge_notifications_params(notifications).items():
-            preview_comments, has_mention = cls._generate_previews(
+            preview_comments = cls._generate_previews(
                 recipient.username, params["new_comment_ids"]
             )
 
             # Limit total comments
             comments_count = len(preview_comments)
-            read_more_count = comments_count - comments_to_display
+            read_more_count = comments_count - cls.comments_to_display
 
             serialized_notifications.append(
                 {
                     **params,
-                    "comments": preview_comments[:comments_to_display],
-                    "has_mention": has_mention,
+                    "comments": preview_comments[:cls.comments_to_display],
                     "comments_count": comments_count,
                     "read_more_count": read_more_count if read_more_count > 0 else 0,
                 }
             )
-
-        # Comments with mention go first
-        serialized_notifications = sorted(
-            serialized_notifications, key=lambda x: x["has_mention"], reverse=True
-        )
 
         return {
             "recipient": recipient,
@@ -636,4 +641,38 @@ def get_notification_handler_by_type(
 ) -> type[NotificationTypeBase]:
     return next(
         cls for cls in NOTIFICATION_TYPE_REGISTRY if cls.type == notification_type
+    )
+
+
+def send_comment_mention_notification(recipient, comment: Comment, mention: str):
+    """
+    Send instant notification of mention in a comment
+    """
+
+    mention_label = "you" if mention == recipient.username.lower() else mention
+    preview_text = generate_email_comment_preview_text(
+        comment.text, mention, max_chars=1024
+    )[0]
+
+    return send_email_with_template(
+        recipient.email,
+        _(
+            f"{comment.author.username} mentioned {mention_label} on “{comment.on_post.title}”"
+        ),
+        "emails/comment_mention.html",
+        context={
+            "recipient": recipient,
+            "params": {
+                "post": NotificationPostParams.from_post(comment.on_post),
+                "author_id": comment.author_id,
+                "author_username": comment.author.username,
+                "mention_label": mention_label,
+                "preview_text": preview_text,
+                "comment_url": build_post_comment_url(
+                    comment.on_post_id, comment.on_post.title, comment.id
+                ),
+            },
+        },
+        use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )

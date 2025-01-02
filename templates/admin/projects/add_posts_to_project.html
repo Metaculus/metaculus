@@ -1,0 +1,20 @@
+{% extends "admin/change_form.html" %}
+{% load admin_urls %}
+
+{% block extrahead %}
+  {{ block.super }}
+  {% load static %}
+  <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+  {{ form.media }}
+{% endblock %}
+
+{% block content %}
+  <form method="post" class="admin-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Add Posts" class="button default">
+  </form>
+  <p>
+    <a href="{% url 'admin:projects_project_change' project.id %}">Back to Project</a>
+  </p>
+{% endblock %}

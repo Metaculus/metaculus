@@ -11,9 +11,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 import os
+import re
 from pathlib import Path
 
 import dj_database_url
+import django.conf.locale
 import sentry_sdk
 from sentry_sdk.integrations.dramatiq import DramatiqIntegration
 
@@ -41,12 +43,15 @@ DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 INSTALLED_APPS = [
     # Django
+    "misc",
+    "modeltranslation",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",
     # third-party:
     "django_extensions",
     "rest_framework",
@@ -61,7 +66,6 @@ INSTALLED_APPS = [
     # TODO: disable in prod
     # first-party:
     "migrator",
-    "misc",
     "authentication",
     "users",
     "posts",
@@ -72,12 +76,15 @@ INSTALLED_APPS = [
     "notifications",
     "fab_management",
     "fab_credits",
+    "django_select2",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "utils.middlewares.LocaleOverrideMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -184,6 +191,11 @@ AUTHENTICATION_BACKENDS = (
     "social_core.backends.facebook.FacebookOAuth2",
     "social_core.backends.google.GoogleOAuth2",
 )
+# Should we verify email or always set `User.is_active = True`
+AUTH_SIGNUP_VERIFY_EMAIL = (
+    os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
+)
+
 if DEBUG:
     # Allow to authenticate without correst password in development
     AUTHENTICATION_BACKENDS += ("authentication.backends.PermissiveAuthLoginBackend",)
@@ -228,6 +240,10 @@ EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg2.metaculus.com>"
 )
+EMAIL_NOTIFICATIONS_USER = os.environ.get(
+    "EMAIL_NOTIFICATIONS_USER",
+    "Metaculus Notifications <notifications@mg2.metaculus.com>",
+)
 EMAIL_SENDER_NO_REPLY = os.environ.get(
     "EMAIL_SENDER_NO_REPLY", "Metaculus NoReply <no-reply@mg2.metaculus.com>"
 )
@@ -266,12 +282,6 @@ FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000")
 )
 
 SEND_ALL_MAIL_TO = os.environ.get("SEND_ALL_MAIL_TO", None)
-MAIL_FREQUENCY_MIN = int(os.environ.get("MAIL_FREQUENCY_MIN", 20))
-
-if MAIL_FREQUENCY_MIN < 1 or MAIL_FREQUENCY_MIN > 59:
-    raise Exception(
-        "MAIL_FREQUENCY_MIN must be between 1 and 59 (used in cron tab as 0-59/MAIL_FREQUENCY_MIN * * * *)"
-    )
 
 # Redis endpoint
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
@@ -282,7 +292,6 @@ SCREENSHOT_SERVICE_API_KEY = os.environ.get("SCREENSHOT_SERVICE_API_KEY", "")
 SCREENSHOT_SERVICE_API_URL = os.environ.get(
     "SCREENSHOT_SERVICE_API_URL", "https://screenshot.metaculus.com/api/screenshot"
 )
-CDN_DOMAIN_NAME = os.environ.get("CDN_DOMAIN_NAME", "")
 
 # django-dramatiq
 # https://github.com/Bogdanp/django_dramatiq
@@ -403,6 +412,10 @@ LOGGING = {
     },
     "loggers": {
         "": {
+            "level": "DEBUG" if DEBUG else "INFO",
+            "handlers": ["console"],
+        },
+        "MARKDOWN": {
             "level": "INFO",
             "handlers": ["console"],
         },
@@ -433,16 +446,65 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
-    return 1.0
+    # Custom traces configuration
+
+    # Capture all for non-prod envs
+    if ENV != ENV_PROD:
+        return 1.0
+
+    if re.match(r"^/api/posts/\d+/similar-posts/?$", url) or url == "/api/medals/":
+        return 0.1
+
+    return 0.25
 
 
 if os.environ.get("SENTRY_DNS", None):
     sentry_sdk.init(
         dsn=os.environ.get("SENTRY_DNS"),
         traces_sampler=traces_sampler,
-        profiles_sample_rate=1.0,
+        profiles_sample_rate=0.5,
         environment=ENV,
         integrations=[
             DramatiqIntegration(),
         ],
     )
+
+
+def gettext(s):
+    return s
+
+
+EXTRA_LANG_INFO = {
+    "original": {
+        "bidi": False,
+        "code": "original",
+        "name": "Original",
+        "name_local": "Original",
+    },
+}
+LANG_INFO = dict(django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO)
+django.conf.locale.LANG_INFO = LANG_INFO
+
+LANGUAGES = (
+    ("original", gettext("Original content")),
+    ("en", gettext("English")),
+    ("cs", gettext("Czech")),
+    ("es", gettext("Spanish")),
+    ("zh", gettext("Simplified Chinese")),
+    ("pt", gettext("Portuguese")),
+)
+
+ORIGINAL_LANGUAGE_CODE = "original"
+MODELTRANSLATION_DEFAULT_LANGUAGE = ORIGINAL_LANGUAGE_CODE
+MODELTRANSLATION_FALLBACK_LANGUAGES = ("original", "en", "es")
+USE_I18N = True
+
+LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)
+
+GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
+    "GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY", None
+)
+
+CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(
+    "CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR", None
+)

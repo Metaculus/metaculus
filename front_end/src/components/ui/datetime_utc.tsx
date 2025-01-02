@@ -1,60 +1,89 @@
+"use client";
 import { format, formatISO, parseISO } from "date-fns";
-import React, {
-  ChangeEvent,
-  InputHTMLAttributes,
-  useEffect,
-  useState,
-} from "react";
+import { isNil } from "lodash";
+import { useTranslations } from "next-intl";
+import React, { ChangeEvent, forwardRef, useEffect, useState } from "react";
 
-import { Input } from "@/components/ui/form_field";
+import { Input, InputProps } from "@/components/ui/form_field";
+import { logError } from "@/utils/errors";
 
-interface DatetimeUtcProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange"> {
+interface DatetimeUtcProps extends Omit<InputProps, "onChange"> {
   defaultValue?: string;
   onChange?: (value: string) => void;
+  onError?: (error: any) => void;
+  withFormValidation?: boolean;
 }
 
 /**
  * Datetime input component which renders datetime in user's local timezone
  * but stores and accepts values in UTC format
  */
-const DatetimeUtc: React.FC<DatetimeUtcProps> = ({
-  defaultValue,
-  onChange,
-  ...props
-}) => {
-  const [localValue, setLocalValue] = useState<string>("");
+const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
+  ({ defaultValue, onChange, onError, withFormValidation, ...props }, ref) => {
+    const t = useTranslations();
 
-  useEffect(() => {
-    if (defaultValue) {
-      // Convert stored UTC value to local time for rendering
-      const localDate = parseISO(defaultValue);
-      const localDateString = format(localDate, "yyyy-MM-dd'T'HH:mm");
+    const [localValue, setLocalValue] = useState<string>("");
+
+    useEffect(() => {
+      if (!isNil(defaultValue)) {
+        // Convert stored UTC value to local time for rendering
+        const localDate = parseISO(defaultValue);
+        if (isNaN(localDate.getTime())) return;
+
+        const localDateString = format(localDate, "yyyy-MM-dd'T'HH:mm");
+        setLocalValue(localDateString);
+      }
+    }, [defaultValue]);
+
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+      const localDateString = event.target.value;
       setLocalValue(localDateString);
-    }
-  }, [defaultValue]);
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const localDateString = event.target.value;
-    setLocalValue(localDateString);
+      try {
+        // Convert local time to UTC for storage
+        if (onChange) {
+          const localDate = new Date(localDateString);
+          const utcDateString = formatISO(localDate, {
+            representation: "complete",
+          });
 
-    // Convert local time to UTC for storage
-    const localDate = new Date(localDateString);
-    const utcDateString = formatISO(localDate, { representation: "complete" });
+          onChange(utcDateString);
+        }
+      } catch (e) {
+        if (withFormValidation) {
+          onChange?.("");
+          return;
+        }
 
-    if (onChange) {
-      onChange(utcDateString);
-    }
-  };
+        logError(e);
+        onError && onError(e);
+      }
+    };
 
-  return (
-    <Input
-      type="datetime-local"
-      defaultValue={localValue}
-      onChange={handleChange}
-      {...props}
-    />
-  );
+    return (
+      <div className="flex flex-col gap-1">
+        <Input
+          ref={ref}
+          type="datetime-local"
+          defaultValue={
+            localValue ? format(localValue, "yyyy-MM-dd'T'HH:mm") : ""
+          }
+          onChange={handleChange}
+          onBlur={handleChange}
+          {...props}
+        />
+        <span className="text-center text-xs font-normal normal-case italic">
+          {t("dateInputDetails", { timezone: getTimezoneOffsetLabel() })}
+        </span>
+      </div>
+    );
+  }
+);
+DatetimeUtc.displayName = "DatetimeUtc";
+
+const getTimezoneOffsetLabel = (): string => {
+  const timezoneOffset = new Date().getTimezoneOffset() / -60;
+  return `UTC${timezoneOffset >= 0 ? "+" : ""}${timezoneOffset}`;
 };
 
 export default DatetimeUtc;

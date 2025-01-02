@@ -1,7 +1,10 @@
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import { isNil } from "lodash";
+
+import CommunityHeader from "@/app/(main)/components/headers/community_header";
+import Header from "@/app/(main)/components/headers/header";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 
 import { getPost } from "../../actions";
 import GroupForm from "../../components/group_form";
@@ -20,26 +23,42 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
+  const communityId = searchParams["community_id"]
+    ? Number(searchParams["community_id"])
+    : undefined;
+  const communitiesResponse = communityId
+    ? await ProjectsApi.getCommunities({ ids: [communityId] })
+    : undefined;
+  const community = communitiesResponse
+    ? communitiesResponse.results[0]
+    : undefined;
+
+  const groupType = post
+    ? post.group_of_questions?.questions[0]?.type
+    : (searchParams["subtype"] as string);
+
   return (
-    <GroupForm
-      // @ts-ignore
-      subtype={
-        post
-          ? post.group_of_questions?.questions[0]?.type
-          : searchParams["subtype"]
-      }
-      post={post}
-      mode={mode}
-      allCategories={allCategories}
-      tournament_id={
-        searchParams["tournament_id"]
-          ? Number(searchParams["tournament_id"])
-          : undefined
-      }
-      tournaments={allTournaments}
-      siteMain={siteMain}
-    />
+    <>
+      {community ? <CommunityHeader community={community} /> : <Header />}
+
+      {!isNil(groupType) && (
+        <GroupForm
+          subtype={groupType}
+          post={post}
+          mode={mode}
+          allCategories={allCategories}
+          tournament_id={
+            searchParams["tournament_id"]
+              ? Number(searchParams["tournament_id"])
+              : undefined
+          }
+          community_id={community?.id}
+          tournaments={allTournaments}
+          siteMain={siteMain}
+        />
+      )}
+    </>
   );
 };
 
-export default WithServerComponentErrorBoundary(GroupQuestionCreator);
+export default GroupQuestionCreator;

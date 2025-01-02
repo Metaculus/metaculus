@@ -3,34 +3,34 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
-import { FC } from "react";
-import { useForm } from "react-hook-form";
+import { FC, useState } from "react";
+import { FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
+import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import Button from "@/components/ui/button";
 import {
+  DateInput,
   FormError,
   FormErrorMessage,
   Input,
+  MarkdownEditorField,
   Textarea,
 } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
-import { useAuth } from "@/contexts/auth_context";
+import { ErrorResponse } from "@/types/fetch";
+import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
-  Category,
-  Post,
-  PostWithForecasts,
-  ProjectPermissions,
-} from "@/types/post";
-import { Tournament, TournamentPreview } from "@/types/projects";
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
@@ -51,8 +51,9 @@ type PostCreationData = {
   default_project: number;
 };
 
-export const createQuestionSchemas = (
-  t: ReturnType<typeof useTranslations>
+const createQuestionSchemas = (
+  t: ReturnType<typeof useTranslations>,
+  post: PostWithForecasts | null
 ) => {
   const baseQuestionSchema = z.object({
     type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
@@ -76,9 +77,51 @@ export const createQuestionSchemas = (
       message: t("errorMinLength", { field: "String", minLength: 4 }),
     }),
     resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
-    fine_print: z.string(),
-    scheduled_close_time: z.date(),
-    scheduled_resolve_time: z.date(),
+    fine_print: z.string().optional(),
+    open_time: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional()
+      .refine(
+        (value) => {
+          if (!post) {
+            return true;
+          }
+
+          if (post.status !== PostStatus.APPROVED) {
+            return true;
+          }
+
+          return !!value;
+        },
+        {
+          message: t("errorRequired"),
+        }
+      ),
+    cp_reveal_time: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional()
+      .refine(
+        (value) => {
+          if (!post) {
+            return true;
+          }
+
+          if (post.status !== PostStatus.APPROVED) {
+            return true;
+          }
+
+          return !!value;
+        },
+        {
+          message: t("errorRequired"),
+        }
+      ),
+    scheduled_close_time: z.string().datetime({ offset: true }),
+    scheduled_resolve_time: z.string().datetime({ offset: true }),
     default_project: z.nullable(z.union([z.number(), z.string()])),
   });
 
@@ -112,6 +155,9 @@ export const createQuestionSchemas = (
 
   const multipleChoiceQuestionSchema = baseQuestionSchema.merge(
     z.object({
+      group_variable: z.string().max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+      }),
       options: z.array(
         z
           .string()
@@ -136,6 +182,7 @@ export const createQuestionSchemas = (
 type Props = {
   questionType: string;
   tournament_id?: number;
+  community_id?: number;
   allCategories: Category[];
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
@@ -150,12 +197,12 @@ const QuestionForm: FC<Props> = ({
   tournaments,
   siteMain,
   tournament_id = null,
+  community_id = null,
   post = null,
 }) => {
-  const { user } = useAuth();
   const router = useRouter();
   const t = useTranslations();
-  const { isLive, isDone, hasForecasts } = getQuestionStatus(post);
+  const { isDone, hasForecasts } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -164,7 +211,9 @@ const QuestionForm: FC<Props> = ({
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
-      ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
+      ? ([...tournaments, siteMain].filter(
+          (x) => x.id === tournament_id
+        )[0] as Tournament)
       : siteMain;
 
   if (isDone) {
@@ -199,7 +248,7 @@ const QuestionForm: FC<Props> = ({
       description: "",
     };
 
-  const submitQuestion = async (data: any) => {
+  const submitQuestion = async (data: FieldValues) => {
     setIsLoading(true);
     setError(undefined);
 
@@ -209,7 +258,7 @@ const QuestionForm: FC<Props> = ({
         ? optionsList.map((option) => option.trim())
         : [];
 
-    let post_data: PostCreationData = {
+    const post_data: PostCreationData = {
       title: data["title"],
       url_title: data["url_title"],
       default_project: data["default_project"],
@@ -245,7 +294,7 @@ const QuestionForm: FC<Props> = ({
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
 
-  const schemas = createQuestionSchemas(t);
+  const schemas = createQuestionSchemas(t, post);
   const getFormSchema = (type: string) => {
     switch (type) {
       case "binary":
@@ -261,14 +310,17 @@ const QuestionForm: FC<Props> = ({
     }
   };
 
-  const control = useForm({
+  // TODO: refactor validation schema setup to properly populate useForm generic
+  const form = useForm({
     mode: "all",
     resolver: zodResolver(getFormSchema(questionType)),
   });
-
   if (questionType) {
-    control.setValue("type", questionType);
+    form.setValue("type", questionType);
   }
+
+  const isEditingActivePost =
+    mode == "edit" && post?.curation_status == PostStatus.APPROVED;
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -282,12 +334,15 @@ const QuestionForm: FC<Props> = ({
       </div>
       <form
         onSubmit={async (e) => {
-          if (!control.getValues("default_project")) {
-            control.setValue("default_project", defaultProject.id);
+          if (!form.getValues("default_project")) {
+            form.setValue(
+              "default_project",
+              community_id ? community_id : defaultProject.id
+            );
           }
 
           // e.preventDefault(); // Good for debugging
-          await control.handleSubmit(
+          await form.handleSubmit(
             async (data) => {
               await submitQuestion(data);
             },
@@ -297,36 +352,35 @@ const QuestionForm: FC<Props> = ({
           )(e);
         }}
         onChange={async () => {
-          const data = control.getValues();
+          const data = form.getValues();
           data["type"] = questionType;
         }}
         className="mt-4 flex w-full flex-col gap-6"
       >
-        {post && user?.is_superuser && (
-          <a href={`/admin/posts/post/${post.id}/change`}>
-            {t("viewInDjangoAdmin")}
-          </a>
+        <PostDjangoAdminLink post={post} />
+
+        {!community_id && defaultProject.type !== TournamentType.Community && (
+          <ProjectPickerInput
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              form.setValue("default_project", project.id);
+            }}
+          />
         )}
-        <ProjectPickerInput
-          tournaments={tournaments}
-          siteMain={siteMain}
-          currentProject={defaultProject}
-          onChange={(project) => {
-            control.setValue("default_project", project.id);
-          }}
-        />
         <FormError
-          errors={control.formState.errors}
+          errors={form.formState.errors}
           className="text-red-500 dark:text-red-500-dark"
-          {...control.register("type")}
+          {...form.register("type")}
         />
         <InputContainer
           labelText={t("longTitle")}
           explanation={t("longTitleExplanation")}
         >
           <Textarea
-            {...control.register("title")}
-            errors={control.formState.errors.title}
+            {...form.register("title")}
+            errors={form.formState.errors.title}
             defaultValue={post?.title}
             className="min-h-32 w-full rounded border border-gray-500 p-5 text-xl font-normal dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
@@ -336,8 +390,8 @@ const QuestionForm: FC<Props> = ({
           explanation={t("shortTitleExplanation")}
         >
           <Input
-            {...control.register("url_title")}
-            errors={control.formState.errors.url_title}
+            {...form.register("url_title")}
+            errors={form.formState.errors.url_title}
             defaultValue={post?.url_title}
             className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
@@ -348,98 +402,88 @@ const QuestionForm: FC<Props> = ({
             link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
             markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
           })}
+          isNativeFormControl={false}
         >
-          <Textarea
-            {...control.register("description")}
-            errors={control.formState.errors.description}
-            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
+          <MarkdownEditorField
+            control={form.control}
+            name={"description"}
             defaultValue={post?.question?.description}
+            errors={form.formState.errors.description}
           />
         </InputContainer>
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer labelText={t("closingDate")} className="w-full gap-2">
-            <Input
-              readOnly={hasForecasts && mode !== "create"}
-              type="datetime-local"
+            <DateInput
+              control={form.control}
+              name="scheduled_close_time"
+              defaultValue={post?.question?.scheduled_close_time}
+              errors={form.formState.errors.scheduled_close_time}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              {...control.register("scheduled_close_time", {
-                setValueAs: (value: string) => {
-                  if (value === "" || value == null) {
-                    return null;
-                  }
-
-                  return new Date(value);
-                },
-              })}
-              errors={control.formState.errors.scheduled_close_time}
-              defaultValue={
-                post?.question?.scheduled_close_time
-                  ? format(
-                      new Date(post.question.scheduled_close_time),
-                      "yyyy-MM-dd'T'HH:mm"
-                    )
-                  : undefined
-              }
             />
           </InputContainer>
           <InputContainer
             labelText={t("resolvingDate")}
             className="w-full gap-2"
           >
-            <Input
-              readOnly={hasForecasts && mode !== "create"}
-              type="datetime-local"
+            <DateInput
+              control={form.control}
+              name="scheduled_resolve_time"
+              defaultValue={post?.question?.scheduled_resolve_time}
+              errors={form.formState.errors.scheduled_resolve_time}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              {...control.register("scheduled_resolve_time", {
-                setValueAs: (value: string) => {
-                  if (value === "" || value == null) {
-                    return null;
-                  }
-
-                  return new Date(value);
-                },
-              })}
-              errors={control.formState.errors.scheduled_resolve_time}
-              defaultValue={
-                post?.question?.scheduled_resolve_time
-                  ? format(
-                      new Date(post.question.scheduled_resolve_time),
-                      "yyyy-MM-dd'T'HH:mm"
-                    )
-                  : undefined
-              }
             />
           </InputContainer>
         </div>
+        {isEditingActivePost && (
+          <div className="flex w-full flex-col gap-4 md:flex-row">
+            <InputContainer labelText={t("openTime")} className="w-full gap-2">
+              <DateInput
+                control={form.control}
+                name="open_time"
+                defaultValue={post?.question?.open_time}
+                errors={form.formState.errors.open_time}
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              />
+            </InputContainer>
+            <InputContainer
+              labelText={t("cpRevealTime")}
+              className="w-full gap-2"
+            >
+              <DateInput
+                control={form.control}
+                name="cp_reveal_time"
+                defaultValue={post?.question?.cp_reveal_time}
+                errors={form.formState.errors.cp_reveal_time}
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              />
+            </InputContainer>
+          </div>
+        )}
         {(questionType === QuestionType.Date ||
           questionType === QuestionType.Numeric) && (
           <NumericQuestionInput
             questionType={questionType}
-            defaultMin={post?.question?.scaling.range_min!}
-            defaultMax={post?.question?.scaling.range_max!}
-            // @ts-ignore
+            defaultMin={post?.question?.scaling.range_min ?? undefined}
+            defaultMax={post?.question?.scaling.range_max ?? undefined}
             defaultOpenLowerBound={post?.question?.open_lower_bound}
-            // @ts-ignore
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
             hasForecasts={hasForecasts && mode !== "create"}
-            canSeeLogarithmic={
-              post?.user_permission === ProjectPermissions.ADMIN || !post
-            }
-            onChange={(
-              rangeMin,
-              rangeMax,
-              openUpperBound,
-              openLowerBound,
-              zeroPoint
-            ) => {
-              control.setValue("scaling", {
+            control={form}
+            onChange={({
+              min: rangeMin,
+              max: rangeMax,
+              open_upper_bound: openUpperBound,
+              open_lower_bound: openLowerBound,
+              zero_point: zeroPoint,
+            }) => {
+              form.setValue("scaling", {
                 range_min: rangeMin,
                 range_max: rangeMax,
                 zero_point: zeroPoint,
               });
-              control.setValue("open_lower_bound", openLowerBound);
-              control.setValue("open_upper_bound", openUpperBound);
+              form.setValue("open_lower_bound", openLowerBound);
+              form.setValue("open_upper_bound", openUpperBound);
             }}
           />
         )}
@@ -454,94 +498,104 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
         {questionType === "multiple_choice" && (
-          <div className="flex-col">
-            <InputContainer labelText={t("choices")} />
-            {optionsList && (
-              <div className="flex flex-col">
-                {optionsList.map((option, opt_index) => (
-                  <div key={opt_index} className="flex">
-                    <div className="w-full">
-                      <Input
-                        {...control.register(`options.${opt_index}`)}
-                        readOnly={hasForecasts && mode !== "create"}
-                        className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                        value={option}
-                        placeholder={`Option ${opt_index + 1}`}
-                        onChange={(e) => {
-                          setOptionsList(
-                            optionsList.map((opt, index) => {
-                              if (index === opt_index) {
-                                return e.target.value;
-                              }
-                              return opt;
-                            })
-                          );
-                        }}
-                        errors={
-                          // @ts-ignore
-                          control.formState.errors.options?.[opt_index]
-                        }
-                      />
-                    </div>
-                    {opt_index >= MIN_OPTIONS_AMOUNT && !hasForecasts && (
-                      <Button
-                        className="my-2 h-[42px] w-max self-start capitalize"
-                        variant="text"
-                        onClick={() => {
-                          setOptionsList((prev) => {
-                            const newOptionsArray = [...prev].filter(
-                              (_, index) => index !== opt_index
-                            );
-                            control.setValue("options", newOptionsArray);
-                            return newOptionsArray;
-                          });
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faXmark} />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            <Button
-              className="w-max capitalize"
-              onClick={() => setOptionsList([...optionsList, ""])}
+          <>
+            <InputContainer
+              labelText={t("groupVariable")}
+              explanation={t("groupVariableDescription")}
             >
-              + {t("addOption")}
-            </Button>
-          </div>
+              <Input
+                {...form.register("group_variable")}
+                errors={form.formState.errors.group_variable}
+                defaultValue={post?.question?.group_variable}
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              />
+            </InputContainer>
+            <div className="flex-col">
+              <InputContainer labelText={t("choices")} />
+              {optionsList && (
+                <div className="flex flex-col">
+                  {optionsList.map((option, opt_index) => (
+                    <div key={opt_index} className="flex">
+                      <div className="w-full">
+                        <Input
+                          {...form.register(`options.${opt_index}`)}
+                          readOnly={hasForecasts && mode !== "create"}
+                          className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          value={option}
+                          placeholder={`Option ${opt_index + 1}`}
+                          onChange={(e) => {
+                            setOptionsList(
+                              optionsList.map((opt, index) => {
+                                if (index === opt_index) {
+                                  return e.target.value;
+                                }
+                                return opt;
+                              })
+                            );
+                          }}
+                          errors={
+                            (
+                              form.formState.errors.options as
+                                | ErrorResponse[]
+                                | undefined
+                            )?.[opt_index]
+                          }
+                        />
+                      </div>
+                      {opt_index >= MIN_OPTIONS_AMOUNT && !hasForecasts && (
+                        <Button
+                          className="my-2 h-[42px] w-max self-start capitalize"
+                          variant="text"
+                          onClick={() => {
+                            setOptionsList((prev) => {
+                              const newOptionsArray = [...prev].filter(
+                                (_, index) => index !== opt_index
+                              );
+                              form.setValue("options", newOptionsArray);
+                              return newOptionsArray;
+                            });
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faXmark} />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button
+                className="w-max capitalize"
+                onClick={() => setOptionsList([...optionsList, ""])}
+              >
+                + {t("addOption")}
+              </Button>
+            </div>
+          </>
         )}
         <InputContainer
           labelText={t("resolutionCriteria")}
           explanation={t.rich("resolutionCriteriaExplanation", {
             markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
           })}
+          isNativeFormControl={false}
         >
-          <Textarea
-            {...control.register("resolution_criteria")}
-            errors={control.formState.errors.resolution_criteria}
-            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
-            defaultValue={
-              post?.question?.resolution_criteria
-                ? post?.question?.resolution_criteria
-                : undefined
-            }
+          <MarkdownEditorField
+            control={form.control}
+            name={"resolution_criteria"}
+            defaultValue={post?.question?.resolution_criteria}
+            errors={form.formState.errors.resolution_criteria}
           />
         </InputContainer>
         <InputContainer
           labelText={t("finePrint")}
           explanation={t("finePrintDescription")}
+          isNativeFormControl={false}
         >
-          <Textarea
-            {...control.register("fine_print")}
-            errors={control.formState.errors.fine_print}
-            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
-            defaultValue={
-              post?.question?.fine_print
-                ? post?.question?.fine_print
-                : undefined
-            }
+          <MarkdownEditorField
+            control={form.control}
+            name={"fine_print"}
+            defaultValue={post?.question?.fine_print}
+            errors={form.formState.errors.fine_print}
           />
         </InputContainer>
 

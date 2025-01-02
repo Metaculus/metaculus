@@ -1,12 +1,14 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { signInSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
+import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
+import ProfileApi from "@/services/profile";
 import { deleteServerSession, setServerSession } from "@/services/session";
-import { AuthResponse } from "@/types/auth";
+import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
 
@@ -51,45 +53,39 @@ export default async function loginAction(
   };
 }
 
-export type SignUpActionState = {
-  errors?: any;
-} | null;
+export type SignUpActionState =
+  | ({
+      errors?: any;
+    } & Partial<SignUpResponse>)
+  | null;
 
 export async function signUpAction(
-  prevState: SignUpActionState,
-  formData: FormData
+  validatedSignupData: SignUpSchema & { redirectUrl?: string }
 ): Promise<SignUpActionState> {
   const headersList = headers();
 
-  const validatedFields = signUpSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  let addToProject;
-  if (validatedFields.data.addToProject) {
-    addToProject = parseInt(validatedFields.data.addToProject);
-  }
-
   try {
     const response = await AuthApi.signUp(
-      validatedFields.data.email,
-      validatedFields.data.username,
-      validatedFields.data.password,
-      validatedFields.data.isBot,
+      validatedSignupData.email,
+      validatedSignupData.username,
+      validatedSignupData.password,
+      validatedSignupData.isBot,
       {
-        "cf-turnstile-response": validatedFields.data.turnstileToken,
+        "cf-turnstile-response": validatedSignupData.turnstileToken,
         "CF-Connecting-IP": headersList.get("CF-Connecting-IP"),
       },
-      addToProject
+      validatedSignupData.addToProject,
+      validatedSignupData.campaignKey,
+      validatedSignupData.campaignData,
+      validatedSignupData.redirectUrl
     );
 
-    return {};
+    if (response.is_active && response.token) {
+      setServerSession(response.token);
+      revalidatePath("/");
+    }
+
+    return response;
   } catch (err) {
     const error = err as FetchError;
 
@@ -102,4 +98,21 @@ export async function signUpAction(
 export async function LogOut() {
   deleteServerSession();
   return redirect("/");
+}
+
+export async function registerUserCampaignAction(
+  key: string,
+  details: object,
+  addToProject?: number
+): Promise<{ errors?: any }> {
+  try {
+    await ProfileApi.registerUserCampaign(key, details, addToProject);
+    return { errors: null };
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
 }

@@ -1,26 +1,26 @@
 "use client";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, ReactNode, useEffect, useState } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import {
-  PredictionInputMessage,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
+import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 
@@ -31,7 +31,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
-  predictionMessage?: PredictionInputMessage;
+  predictionMessage?: ReactNode;
 };
 
 const ForecastMakerBinary: FC<Props> = ({
@@ -45,29 +45,24 @@ const ForecastMakerBinary: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const { setCurrentModal } = useModal();
   const { hideCP } = useHideCP();
+  const latest = question.aggregations.recency_weighted.latest;
   const communityForecast =
-    question.aggregations.recency_weighted.latest?.centers![0];
+    latest && !latest.end_time ? latest?.centers?.[0] : undefined;
 
   const prevForecastValue = extractPrevBinaryForecastValue(prevForecast);
+  const hasUserForecast = !!prevForecastValue;
   const [forecast, setForecast] = useState<number | null>(prevForecastValue);
 
   const [isForecastDirty, setIsForecastDirty] = useState(false);
-
-  const [submitError, setSubmitError] = useState<ErrorResponse>();
 
   useEffect(() => {
     setForecast(prevForecastValue);
   }, [prevForecastValue]);
 
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
-
-    if (!user) {
-      setCurrentModal({ type: "signup" });
-      return;
-    }
 
     if (forecast === null) return;
 
@@ -87,10 +82,31 @@ const ForecastMakerBinary: FC<Props> = ({
     setIsForecastDirty(false);
 
     if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors[0]);
+      setSubmitError(response.errors);
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
+
+  const handlePredictWithdraw = async () => {
+    setSubmitError(undefined);
+
+    if (!prevForecastValue) return;
+
+    const response = await withdrawForecasts(post.id, [
+      {
+        question: question.id,
+      },
+    ]);
+    setIsForecastDirty(false);
+
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+    }
+  };
+  const [withdraw, withdrawalIsPending] = useServerAction(
+    handlePredictWithdraw
+  );
+
   return (
     <>
       <BinarySlider
@@ -105,23 +121,44 @@ const ForecastMakerBinary: FC<Props> = ({
       />
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {t(predictionMessage)}
+          {predictionMessage}
         </div>
       )}
-      <div className="flex flex-col items-center justify-center">
-        {canPredict && (
-          <>
-            <Button
-              variant="primary"
-              disabled={!!user && (!isForecastDirty || isPending)}
-              onClick={submit}
-            >
-              {user ? t("predict") : t("signUpToPredict")}
-            </Button>
-            <div className="h-[32px] w-full">
-              {isPending && <LoadingIndicator />}
-            </div>
-          </>
+      <div className="flex flex-col items-center justify-center gap-6">
+        <div className="flex gap-3">
+          {canPredict && (
+            <>
+              {!!prevForecastValue &&
+                question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={withdrawalIsPending}
+                    onClick={withdraw}
+                  >
+                    {t("withdraw")}
+                  </Button>
+                )}
+              <PredictButton
+                hasUserForecast={hasUserForecast}
+                isDirty={isForecastDirty}
+                isPending={isPending}
+                onSubmit={submit}
+                predictLabel={t("predict")}
+              />
+            </>
+          )}
+        </div>
+
+        <FormError
+          errors={submitError}
+          className="mt-2 flex items-center justify-center"
+          detached
+        />
+        {(isPending || withdrawalIsPending) && (
+          <div className="h-[32px] w-full">
+            <LoadingIndicator />
+          </div>
         )}
 
         <QuestionUnresolveButton question={question} permission={permission} />
@@ -133,7 +170,6 @@ const ForecastMakerBinary: FC<Props> = ({
           />
         )}
       </div>
-      <FormErrorMessage errors={submitError} />
     </>
   );
 };

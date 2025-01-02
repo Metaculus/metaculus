@@ -122,9 +122,13 @@ const MultiSlider: FC<Props> = ({
         return (
           <SliderThumb
             {...origin.props}
-            value={controlledValue[props.index]} // Pass the correct value
+            value={
+              // Pass the correct value
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              controlledValue[props.index]!
+            }
             active={props.index === 1}
-            onMouseDown={() => {
+            onClickIn={() => {
               handlePressIn(props.index);
             }}
             onTouchStartCapture={() => {

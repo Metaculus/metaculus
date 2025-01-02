@@ -14,6 +14,7 @@ const nextConfig = {
   env: {
     API_BASE_URL,
     APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+    NEXT_PUBLIC_POSTHOG_BASE_URL: "https://us.i.posthog.com",
   },
   experimental: {
     instrumentationHook: true,
@@ -61,30 +62,6 @@ const nextConfig = {
       },
     ];
   },
-  rewrites: () => [
-    // Django Admin rewrites
-    {
-      source: "/admin/:path*",
-      destination: `${API_BASE_URL}/admin/:path*/`,
-    },
-    {
-      source: "/api2/:path*/",
-      destination: `${API_BASE_URL}/api2/:path*/`,
-    },
-    {
-      source: "/proxy/:path*/",
-      destination: `${API_BASE_URL}/proxy/:path*/`,
-    },
-    {
-      source: "/api/:path*/",
-      destination: `${API_BASE_URL}/api/:path*/`,
-    },
-    // Assets
-    {
-      source: "/static/:path*",
-      destination: `${API_BASE_URL}/static/:path*`,
-    },
-  ],
   eslint: {
     ignoreDuringBuilds: true,
   },

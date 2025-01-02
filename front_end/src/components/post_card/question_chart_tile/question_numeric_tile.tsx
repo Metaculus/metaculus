@@ -1,12 +1,18 @@
-import { FC } from "react";
+import React, { FC } from "react";
 
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import NumericChart from "@/components/charts/numeric_chart";
+import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionChip from "@/components/prediction_chip";
 import { ContinuousAreaType, TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
-import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
-import { getNumericChartTypeFromQuestion } from "@/utils/charts";
+import {
+  QuestionWithNumericForecasts,
+  QuestionType,
+  ForecastAvailability,
+} from "@/types/question";
+import { getContinuousChartTypeFromQuestion } from "@/utils/charts";
 import { cdfToPmf } from "@/utils/math";
 
 const HEIGHT = 100;
@@ -16,6 +22,8 @@ type Props = {
   curationStatus: PostStatus | QuestionStatus;
   defaultChartZoom?: TimelineChartZoomOption;
   hideCP?: boolean;
+  forecasters?: number;
+  forecastAvailability: ForecastAvailability;
 };
 
 const QuestionNumericTile: FC<Props> = ({
@@ -23,12 +31,14 @@ const QuestionNumericTile: FC<Props> = ({
   curationStatus,
   defaultChartZoom,
   hideCP,
+  forecasters,
+  forecastAvailability,
 }) => {
   const latest = question.aggregations.recency_weighted.latest;
-  const prediction = latest?.centers![0];
+  const prediction = latest?.centers?.[0];
 
   const continuousAreaChartData = [];
-  if (latest) {
+  if (latest && !latest.end_time) {
     continuousAreaChartData.push({
       pmf: cdfToPmf(latest.forecast_values),
       cdf: latest.forecast_values,
@@ -37,7 +47,7 @@ const QuestionNumericTile: FC<Props> = ({
   }
 
   const userForecast = question.my_forecasts?.latest;
-  if (!!userForecast) {
+  if (!!userForecast && !userForecast.end_time) {
     continuousAreaChartData.push({
       pmf: cdfToPmf(userForecast.forecast_values),
       cdf: userForecast.forecast_values,
@@ -55,15 +65,17 @@ const QuestionNumericTile: FC<Props> = ({
           showUserForecast
           hideCP={hideCP}
         />
+
+        <ForecastersCounter forecasters={forecasters} className="p-1" />
       </div>
-      <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
+      <div className="relative my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
           <NumericChart
             aggregation={question.aggregations.recency_weighted}
             myForecasts={question.my_forecasts}
             height={HEIGHT}
             questionType={
-              getNumericChartTypeFromQuestion(question.type) ??
+              getContinuousChartTypeFromQuestion(question.type) ??
               QuestionType.Numeric
             }
             actualCloseTime={
@@ -76,6 +88,16 @@ const QuestionNumericTile: FC<Props> = ({
             resolution={question.resolution}
             resolveTime={question.actual_resolve_time}
             hideCP={hideCP}
+            withUserForecastTimestamps={!forecastAvailability.cpRevealsOn}
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
+            openTime={
+              question.open_time
+                ? new Date(question.open_time).getTime()
+                : undefined
+            }
           />
         ) : (
           <ContinuousAreaChart
@@ -87,6 +109,11 @@ const QuestionNumericTile: FC<Props> = ({
             hideCP={hideCP}
           />
         )}
+
+        <ForecastAvailabilityChartOverflow
+          forecastAvailability={forecastAvailability}
+          className="pl-3 text-xs md:text-sm"
+        />
       </div>
     </div>
   );

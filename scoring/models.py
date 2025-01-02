@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 
 from django.db import models
 from django.db.models.query import QuerySet, Q
@@ -8,6 +8,9 @@ from questions.models import Question
 from questions.types import AggregationMethod
 from users.models import User
 from utils.models import TimeStampedModel
+
+GLOBAL_LEADERBOARD_STRING = "Leaderboard"
+GLOBAL_LEADERBOARD_SLUG = "leaderboard"
 
 
 class UserWeight(TimeStampedModel):
@@ -58,7 +61,7 @@ class ArchivedScore(TimeStampedModel):
 
     # typing
     question_id: int
-    objects: models.Manager["Score"]
+    objects: models.Manager["ArchivedScore"]
     user_id: int | None
 
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
@@ -147,68 +150,100 @@ class Leaderboard(TimeStampedModel):
             return f"Leaderboard {self.name}"
         return f"{self.score_type} Leaderboard for {self.project.name}"
 
-    def get_questions(self) -> list[Question]:
-        if self.project:
-            questions = Question.objects.filter(
-                Q(post__projects=self.project)
-                | Q(group__post__projects=self.project)
-                | Q(post__default_project=self.project)
-                | Q(group__post__default_project=self.project)
-                | Q(conditional_yes__post__projects=self.project)
-                | Q(conditional_no__post__projects=self.project)
-                | Q(conditional_yes__post__default_project=self.project)
-                | Q(conditional_no__post__default_project=self.project)
-            ).distinct("pk")
-        else:
-            questions = Question.objects.all()
+    def get_questions(self) -> QuerySet[Question]:
+        from posts.models import Post
 
-        if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
-            # post must be published
-            return list(
-                questions.filter(
-                    Q(post__published_at__lt=self.end_time)
-                    | Q(group__post__published_at__lt=self.end_time)
-                ).distinct("pk")
+        questions = Question.objects.filter(
+            related_posts__post__curation_status=Post.CurationStatus.APPROVED
+        )
+
+        if self.project and self.project.type == Project.ProjectTypes.SITE_MAIN:
+            # global leaderboard
+            if self.start_time is None or self.end_time is None:
+                raise ValueError("Global leaderboards must have start and end times")
+
+            questions = questions.filter_public().filter(
+                related_posts__post__in=Post.objects.filter_for_main_feed()
             )
-        elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
-            # post must be published, and can't be resolved before the start_time
-            # of the leaderboard
-            from posts.models import Post
 
-            invalid_statuses = [
-                Post.CurationStatus.DELETED,
-                Post.CurationStatus.DRAFT,
-                Post.CurationStatus.REJECTED,
-            ]
-            return list(
-                questions.filter(
-                    Q(post__published_at__lt=self.end_time)
-                    | Q(group__post__published_at__lt=self.end_time)
-                    | Q(conditional_yes__post__published_at__lt=self.end_time)
-                    | Q(conditional_no__post__published_at__lt=self.end_time),
+            if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
+                # post must be published
+                return questions.filter(
+                    related_posts__post__published_at__lt=self.end_time
+                )
+            elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
+                # post must be published, and can't be resolved before the start_time
+                # of the leaderboard
+                return questions.filter(
                     Q(scheduled_close_time__gte=self.start_time)
                     & (
                         Q(actual_close_time__isnull=True)
                         | Q(actual_close_time__gte=self.start_time)
                     ),
+                    related_posts__post__published_at__lt=self.end_time,
                 )
-                .exclude(
-                    Q(post__curation_status__in=invalid_statuses)
-                    | Q(group__post__curation_status__in=invalid_statuses)
-                    | Q(conditional_yes__post__curation_status__in=invalid_statuses)
-                    | Q(conditional_no__post__curation_status__in=invalid_statuses),
-                )
-                .distinct("pk")
+
+            close_grace_period = timedelta(days=3)
+            resolve_grace_period = timedelta(days=100)
+
+            questions = questions.filter(
+                Q(actual_resolve_time__isnull=True)
+                | Q(actual_resolve_time__lte=self.end_time + resolve_grace_period),
+                open_time__gte=self.start_time,
+                open_time__lt=self.end_time,
+                scheduled_close_time__lte=self.end_time + close_grace_period,
             )
 
-        if self.start_time and self.end_time:
-            # global leaderboard
-            window = (self.start_time, self.end_time)
-            questions = [
-                q for q in questions if q.get_global_leaderboard_dates() == window
-            ]
+            gl_dates = global_leaderboard_dates()
+            checked_intervals: list[tuple[datetime, datetime]] = []
+            for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
+                if (
+                    (self.start_time, self.end_time) == (start, end)
+                    or start < self.start_time
+                    or self.end_time < end
+                ):
+                    continue
+                to_add = True
+                for checked_start, checked_end in checked_intervals:
+                    if checked_start < start and end < checked_end:
+                        to_add = False
+                        break
+                if to_add:
+                    checked_intervals.append((start, end))
+                    questions = questions.filter(
+                        Q(open_time__lt=start)
+                        | Q(scheduled_close_time__gt=end + close_grace_period)
+                        | Q(actual_resolve_time__gt=end + resolve_grace_period)
+                    )
 
-        return list(questions)
+            return questions
+
+        if self.project:
+            return questions.filter(
+                Q(related_posts__post__projects=self.project)
+                | Q(related_posts__post__default_project=self.project)
+            )
+
+        return questions
+
+
+def name_and_slug_for_global_leaderboard_dates(
+    gl_dates: tuple[datetime, datetime]
+) -> tuple[str, str]:
+    """
+    Generates a tag name for a global leaderboard tag given the start and end dates
+    """
+    start_year = gl_dates[0].year
+    end_year = gl_dates[1].year
+    if end_year - start_year == 1:
+        return (
+            f"{start_year} {GLOBAL_LEADERBOARD_STRING}",
+            f"{start_year}_{GLOBAL_LEADERBOARD_SLUG}",
+        )
+    return (
+        f"{start_year}-{end_year-1} {GLOBAL_LEADERBOARD_STRING}",
+        f"{start_year}_{end_year-1}_{GLOBAL_LEADERBOARD_SLUG}",
+    )
 
 
 class LeaderboardEntry(TimeStampedModel):
@@ -274,285 +309,12 @@ class MedalExclusionRecord(models.Model):
         )
 
 
-def populate_medal_exclusion_records():
-    """Populate medal exclusion records."""
-
-    exclusions = [
-        {
-            "start_time": datetime(2016, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 5,  # max.wainwright (Max Wainwright)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2016, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 8,  # Anthony (Anthony Aguirre)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2016, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 10,  # Greg (Greg Laughlin)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "user_id": 100345,  # EvanHarper (Even Harper)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2018, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 103275,  # Christian (Christian Williams)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2020, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 104161,  # casens (Rudy Ordoyne)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2018, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2021, 1, 1, tzinfo=timezone.utc),
-            "user_id": 104761,  # Tamay (Tama Besiroglu)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2020, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 105951,  # Sylvain (Sylvain Chevalier)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            "user_id": 106424,  # rakyi (Martin Račák)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2019, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 109158,  # Gaia (Gaia Dempsey)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 109639,  # nikos (Nikos Bosse)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2020, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 111848,  # juancambeiro (Juan Cambeiro)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2021, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 112036,  # TomL (Tom Liptay)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "user_id": 112062,  # dschwarz (Dan Schwarz)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "user_id": 112146,  # GustavoLacerda (Gusto Lacerda)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2020, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "user_id": 113121,  # AlyssaStevens (Alyssa Stevens)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2016, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 114881,  # Metaculus-Partners
-            "exclusion_type": "project_owner",  # TODO: add project
-        },
-        {
-            "start_time": datetime(2016, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 115254,  # MetaculusOutlooks
-            "exclusion_type": "project_owner",  # TODO: add project
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 117502,  # RyanBeck (Ryan Beck)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            "user_id": 118883,  # scoblic (Peter Scoblic)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 119005,  # will_aldred (Will Aldred)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2021, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 119055,  # sriivv (?Srinivasan Venkatramanan?)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2021, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "user_id": 119426,  # havlickova.blanka (Blanka Havlickova)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2021, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "user_id": 119604,  # Lawrence (Lawrence Phillips)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2021, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 120279,  # Tom_Metaculus (Tom Liptay)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 126463,  # prospero (Atakan Seckin)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "user_id": 129011,  # AlexL (Alex Lawson)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 130973,  # NMorrison (Nate Morrison)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2024, 6, 13, tzinfo=timezone.utc),
-            "user_id": 131279,  # raxsade (Ragnar Sade)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2024, 6, 7, tzinfo=timezone.utc),
-            "user_id": 132519,  # Anastasia (Anastasia Miliano)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 133407,  # jleibowich (Jacob Leibowich)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            "user_id": 134734,  # rezendi (Jon Rezendi)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2022, 12, 19, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 135613,  # LukeAdmin (Luke Sabor)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2024, 6, 13, tzinfo=timezone.utc),
-            "user_id": 136589,  # KirillYakunin (Kiril Yakunin)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "end_time": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            "user_id": 137624,  # jwildman (Jack Wildman)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 137979,  # elis (Elis Popescu)
-            "exclusion_type": "staff",
-        },
-        {
-            "start_time": datetime(2023, 1, 1, tzinfo=timezone.utc),
-            "end_time": None,
-            "user_id": 144359,  # w.aldred (Will Aldred)
-            "exclusion_type": "staff",
-        },
-    ]
-    for exclusion in exclusions:
-        MedalExclusionRecord.objects.get_or_create(**exclusion)
-
-
 def global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
     # Returns the start and end dates for each global leaderboard
-    # This will have to be updated every year
-    utc = timezone.utc
-    return [
-        # one year intervals
-        (datetime(2016, 1, 1, tzinfo=utc), datetime(2017, 1, 1, tzinfo=utc)),
-        (datetime(2017, 1, 1, tzinfo=utc), datetime(2018, 1, 1, tzinfo=utc)),
-        (datetime(2018, 1, 1, tzinfo=utc), datetime(2019, 1, 1, tzinfo=utc)),
-        (datetime(2019, 1, 1, tzinfo=utc), datetime(2020, 1, 1, tzinfo=utc)),
-        (datetime(2020, 1, 1, tzinfo=utc), datetime(2021, 1, 1, tzinfo=utc)),
-        (datetime(2021, 1, 1, tzinfo=utc), datetime(2022, 1, 1, tzinfo=utc)),
-        (datetime(2022, 1, 1, tzinfo=utc), datetime(2023, 1, 1, tzinfo=utc)),
-        (datetime(2023, 1, 1, tzinfo=utc), datetime(2024, 1, 1, tzinfo=utc)),
-        (datetime(2024, 1, 1, tzinfo=utc), datetime(2025, 1, 1, tzinfo=utc)),
-        (datetime(2025, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
-        # two year intervals
-        (datetime(2016, 1, 1, tzinfo=utc), datetime(2018, 1, 1, tzinfo=utc)),
-        (datetime(2018, 1, 1, tzinfo=utc), datetime(2020, 1, 1, tzinfo=utc)),
-        (datetime(2020, 1, 1, tzinfo=utc), datetime(2022, 1, 1, tzinfo=utc)),
-        (datetime(2022, 1, 1, tzinfo=utc), datetime(2024, 1, 1, tzinfo=utc)),
-        (datetime(2024, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
-        # five year intervals
-        (datetime(2016, 1, 1, tzinfo=utc), datetime(2021, 1, 1, tzinfo=utc)),
-        (datetime(2021, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
-        # ten year intervals
-        (datetime(2016, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
-    ]
-
-
-def global_leaderboard_dates_and_score_types() -> (
-    list[tuple[datetime, datetime, Leaderboard.ScoreTypes]]
-):
-    leaderboard_dates = global_leaderboard_dates()
-    global_leaderboards = []
-    for start, end in leaderboard_dates:
-        if end > datetime(2024, 6, 1, tzinfo=timezone.utc):
-            global_leaderboards.append((start, end, Leaderboard.ScoreTypes.PEER_GLOBAL))
-        else:
-            global_leaderboards.append(
-                (start, end, Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY)
-            )
-        global_leaderboards.append((start, end, Leaderboard.ScoreTypes.BASELINE_GLOBAL))
-        if end.year - start.year == 1:
-            global_leaderboards.append(
-                (start, end, Leaderboard.ScoreTypes.COMMENT_INSIGHT)
-            )
-            global_leaderboards.append(
-                (start, end, Leaderboard.ScoreTypes.QUESTION_WRITING)
-            )
-    return global_leaderboards
+    # reads directly from the set of global leaderboards
+    leaderboards = Leaderboard.objects.filter(
+        start_time__isnull=False, end_time__isnull=False
+    )
+    intervals = [(lb.start_time, lb.end_time) for lb in leaderboards]
+    intervals.sort(key=lambda x: (x[1] - x[0], x[0]))
+    return intervals

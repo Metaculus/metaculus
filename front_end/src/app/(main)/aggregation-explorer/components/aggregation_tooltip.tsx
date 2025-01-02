@@ -2,11 +2,10 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
+import ChoiceCheckbox from "@/components/choice_checkbox";
 import Button from "@/components/ui/button";
 import { ChoiceItem } from "@/types/choices";
 import { AggregationMethod, aggregationMethodLabel } from "@/types/question";
-
-import ChoiceCheckbox from "../../questions/[id]/components/choices_legend/choice_checkbox";
 
 type Props = {
   choiceItem: ChoiceItem;

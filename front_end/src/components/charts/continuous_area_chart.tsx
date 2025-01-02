@@ -1,5 +1,5 @@
 "use client";
-import { merge } from "lodash";
+import { isNil, merge } from "lodash";
 import React, { FC, useMemo } from "react";
 import {
   Tuple,
@@ -10,6 +10,7 @@ import {
   VictoryScatter,
   VictoryLine,
   VictoryThemeDefinition,
+  VictoryContainer,
 } from "victory";
 
 import { getResolutionData } from "@/components/charts/numeric_chart";
@@ -25,7 +26,11 @@ import {
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
-import { interpolateYValue, generateScale } from "@/utils/charts";
+import {
+  getClosestYValue,
+  interpolateYValue,
+  generateScale,
+} from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
@@ -34,6 +39,7 @@ type ContinuousAreaColor = "orange" | "green";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   community: "green",
   user: "orange",
+  user_previous: "orange",
 };
 
 export type ContinuousAreaGraphInput = Array<{
@@ -97,7 +103,7 @@ const ContinuousAreaChart: FC<Props> = ({
       ],
       []
     );
-  }, [data, graphType]);
+  }, [data, graphType, hideCP]);
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;
@@ -125,7 +131,7 @@ const ContinuousAreaChart: FC<Props> = ({
         domain: xDomain,
         scaling: scaling,
       }),
-    [chartWidth]
+    [chartWidth, questionType, scaling, xDomain]
   );
 
   const resolutionPoint = resolution
@@ -153,7 +159,7 @@ const ContinuousAreaChart: FC<Props> = ({
             line: chart.graphLine,
             color: getThemeColor(
               chart.color === "orange"
-                ? METAC_COLORS.orange["800"]
+                ? METAC_COLORS.orange[chart.type === "user" ? "800" : "500"]
                 : METAC_COLORS.olive["700"]
             ),
             type: chart.type,
@@ -170,6 +176,12 @@ const ContinuousAreaChart: FC<Props> = ({
 
         const hoverState = charts.reduce<ContinuousAreaHoverState>(
           (acc, el) => {
+            if (el.graphType === "pmf") {
+              // if graph is a pmf, we need to find the closest y value
+              acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
+              return acc;
+            }
+            // if graph is a cdf, we need to interpolate the y value
             acc.yData[el.type] = interpolateYValue(props?.x, el.graphLine);
             return acc;
           },
@@ -178,6 +190,7 @@ const ContinuousAreaChart: FC<Props> = ({
             yData: {
               community: 0,
               user: 0,
+              user_previous: 0,
             },
           }
         );
@@ -200,7 +213,19 @@ const ContinuousAreaChart: FC<Props> = ({
             right: HORIZONTAL_PADDING,
           }}
           domain={{ x: xDomain, y: yDomain }}
-          containerComponent={onCursorChange ? CursorContainer : undefined}
+          containerComponent={
+            onCursorChange ? (
+              CursorContainer
+            ) : (
+              <VictoryContainer
+                style={{
+                  pointerEvents: "auto",
+                  userSelect: "auto",
+                  touchAction: "auto",
+                }}
+              />
+            )
+          }
         >
           {charts.map((chart, index) => (
             <VictoryArea
@@ -210,9 +235,15 @@ const ContinuousAreaChart: FC<Props> = ({
                 data: {
                   fill:
                     chart.color === "orange"
-                      ? getThemeColor(METAC_COLORS.orange["700"])
-                      : undefined,
-                  opacity: 0.3,
+                      ? getThemeColor(
+                          METAC_COLORS.orange[
+                            chart.type === "user" ? "700" : "400"
+                          ]
+                        )
+                      : chart.color === "green"
+                        ? getThemeColor(METAC_COLORS.olive["500"])
+                        : undefined,
+                  opacity: chart.type === "user_previous" ? 0.1 : 0.3,
                 },
               }}
             />
@@ -225,14 +256,20 @@ const ContinuousAreaChart: FC<Props> = ({
                 data: {
                   stroke:
                     chart.color === "orange"
-                      ? getThemeColor(METAC_COLORS.orange["800"])
-                      : undefined,
+                      ? getThemeColor(
+                          METAC_COLORS.orange[
+                            chart.type === "user" ? "800" : "500"
+                          ]
+                        )
+                      : chart.color === "green"
+                        ? getThemeColor(METAC_COLORS.olive["500"])
+                        : undefined,
                   strokeDasharray: chart.color === "orange" ? "2,2" : undefined,
                 },
               }}
             />
           ))}
-          {resolutionPoint && (
+          {resolutionPoint && !isNil(resolutionPoint[0]) && (
             <VictoryScatter
               data={[
                 {
@@ -287,6 +324,7 @@ type NumericPredictionGraph = {
   verticalLines: Line;
   color: ContinuousAreaColor;
   type: ContinuousAreaType;
+  graphType: ContinuousAreaGraphType;
 };
 
 function generateNumericAreaGraph(data: {
@@ -304,8 +342,14 @@ function generateNumericAreaGraph(data: {
     });
   } else {
     pmf.forEach((value, index) => {
-      if (index === 0 || index === pmf.length - 1) {
-        // first and last bins are probabilty mass out of bounds
+      if (index === 0) {
+        // add a point at the beginning to extend pmf to the edge
+        graph.push({ x: -1e-10, y: pmf[1] ?? null });
+        return;
+      }
+      if (index === pmf.length - 1) {
+        // add a point at the end to extend pmf to the edge
+        graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] ?? null });
         return;
       }
       graph.push({ x: (index - 0.5) / (pmf.length - 2), y: value });
@@ -334,6 +378,7 @@ function generateNumericAreaGraph(data: {
     verticalLines,
     color: CHART_COLOR_MAP[type],
     type,
+    graphType,
   };
 }
 

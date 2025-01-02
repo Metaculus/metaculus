@@ -17,7 +17,7 @@ from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
 from users.models import User
-from utils.models import TimeStampedModel
+from utils.models import TimeStampedModel, TranslatedModel
 
 
 class CommentQuerySet(models.QuerySet):
@@ -77,10 +77,10 @@ class CommentQuerySet(models.QuerySet):
         )
 
 
-class Comment(TimeStampedModel):
+class Comment(TimeStampedModel, TranslatedModel):
     comment_votes: QuerySet["CommentVote"]
 
-    author = models.ForeignKey(User, models.CASCADE)
+    author = models.ForeignKey(User, models.CASCADE)  # are we sure we want this?
     parent = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
@@ -97,7 +97,7 @@ class Comment(TimeStampedModel):
         related_name="thread_comments",
     )
     # auto_now_add=True must be disabled when the migration is run
-    is_soft_deleted = models.BooleanField(null=True)
+    is_soft_deleted = models.BooleanField(default=False, db_index=True)
     text = models.TextField()
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"
@@ -130,7 +130,7 @@ class Comment(TimeStampedModel):
 
 class CommentDiff(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE)
-    author = models.ForeignKey(User, models.CASCADE)
+    author = models.ForeignKey(User, models.CASCADE)  # are we sure we want this?
     text_diff = models.TextField()
 
 
@@ -165,3 +165,68 @@ class ChangedMyMindEntry(TimeStampedModel):
 
     class Meta:
         unique_together = ("user", "comment")
+
+
+class KeyFactorQuerySet(models.QuerySet):
+    def for_post(self, post: Post):
+        return self.filter(comment__on_post=post)
+
+    def filter_active(self):
+        return self.filter(is_active=True)
+
+    def annotate_user_vote(self, user: User):
+        """
+        Annotates queryset with the user's vote option
+        """
+
+        return self.annotate(
+            user_vote=Subquery(
+                KeyFactorVote.objects.filter(
+                    user=user, key_factor=OuterRef("pk")
+                ).values("score")[:1]
+            ),
+        )
+
+
+class KeyFactor(TimeStampedModel, TranslatedModel):
+    comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
+    text = models.TextField(blank=True)
+    votes_score = models.IntegerField(default=0, db_index=True, editable=False)
+    is_active = models.BooleanField(default=True, db_index=True)
+
+    def get_votes_score(self) -> int:
+        return self.votes.aggregate(Sum("score")).get("score__sum") or 0
+
+    def update_vote_score(self):
+        self.votes_score = self.get_votes_score()
+        self.save(update_fields=["votes_score"])
+
+        return self.votes_score
+
+    objects = models.Manager.from_queryset(KeyFactorQuerySet)()
+
+    # Annotated placeholders
+    user_vote: int = None
+
+    def __str__(self):
+        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}: {self.text}"
+
+
+class KeyFactorVote(TimeStampedModel):
+    class VoteScore(models.IntegerChoices):
+        UP = 1
+        DOWN = -1
+
+    user = models.ForeignKey(User, models.CASCADE, related_name="key_factor_votes")
+    key_factor = models.ForeignKey(KeyFactor, models.CASCADE, related_name="votes")
+    score = models.SmallIntegerField(choices=VoteScore.choices, db_index=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="votes_unique_user_key_factor", fields=["user_id", "key_factor_id"]
+            )
+        ]
+        indexes = [
+            models.Index(fields=["key_factor", "score"]),
+        ]

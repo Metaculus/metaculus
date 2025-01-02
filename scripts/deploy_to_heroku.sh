@@ -1,7 +1,7 @@
 #! /bin/bash
 set -e
 
-required_vars=("NEXT_PUBLIC_TURNSTILE_SITE_KEY" "HEROKU_APP" "NEXT_PUBLIC_APP_URL" "SENTRY_AUTH_TOKEN")
+required_vars=("NEXT_PUBLIC_TURNSTILE_SITE_KEY" "HEROKU_APP" "NEXT_PUBLIC_APP_URL" "SENTRY_AUTH_TOKEN" "NEXT_PUBLIC_POSTHOG_KEY")
 
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
@@ -11,7 +11,7 @@ for var in "${required_vars[@]}"; do
 done
 
 wait_and_fail_if_release_failed() {
-    max_iters=20
+    max_iters=40
     for ((i = 1; i <= max_iters; i++)); do
         json=$(heroku releases --json)
         # Extract the status and current fields from the first element of the array
@@ -33,6 +33,8 @@ wait_and_fail_if_release_failed() {
 # at build time :/
 FRONTEND_ENV_FILE=$(mktemp)
 env | grep NEXT_PUBLIC > $FRONTEND_ENV_FILE
+# This needs to be propagated too, so source maps are uploaded to Sentry
+env | grep SENTRY_AUTH_TOKEN >> $FRONTEND_ENV_FILE
 
 docker buildx build \
     --secret id=frontend_env,src=$FRONTEND_ENV_FILE \

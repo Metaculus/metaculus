@@ -3,8 +3,9 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dialog, DialogPanel, Transition } from "@headlessui/react";
-import classNames from "classnames";
 import { FC, Fragment, PropsWithChildren, useEffect } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   isOpen: boolean;
@@ -40,12 +41,12 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-50"
-        onClose={isImmersive ? () => {} : onClose}
+        className="relative z-100"
+        onClose={onClose}
         onWheel={(e) => isImmersive && e.stopPropagation()}
       >
         <div
-          className={classNames(
+          className={cn(
             "fixed inset-0",
             isImmersive
               ? "bg-blue-900/60 backdrop-blur-md dark:bg-gray-1000/60"
@@ -57,7 +58,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
         >
           <DialogPanel
             ref={modalContentRef}
-            className={classNames(
+            className={cn(
               "my-auto max-h-screen w-full max-w-fit transform overflow-y-auto rounded bg-gray-0 p-5 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark md:p-7",
               isImmersive ? "h-svh md:h-fit" : "",
               className

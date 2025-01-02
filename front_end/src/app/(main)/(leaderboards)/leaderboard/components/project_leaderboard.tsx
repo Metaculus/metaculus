@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
@@ -11,7 +10,6 @@ import ProjectLeaderboardTable from "./project_leaderboard_table";
 
 type Props = {
   projectId: number;
-  prizePool: string | null;
   leaderboardType?: LeaderboardType;
   userId?: number;
   isQuestionSeries?: boolean;
@@ -19,7 +17,6 @@ type Props = {
 
 const ProjectLeaderboard: FC<Props> = async ({
   projectId,
-  prizePool,
   leaderboardType,
   isQuestionSeries,
   userId,
@@ -33,8 +30,6 @@ const ProjectLeaderboard: FC<Props> = async ({
     return null;
   }
 
-  const prizePoolValue = !isNaN(Number(prizePool)) ? Number(prizePool) : 0;
-
   const t = await getTranslations();
 
   const leaderboardTitle = isQuestionSeries
@@ -44,13 +39,10 @@ const ProjectLeaderboard: FC<Props> = async ({
   return (
     <SectionToggle
       title={leaderboardTitle}
-      className={classNames({
-        "bg-gold-200 dark:bg-gold-200-dark": !isQuestionSeries,
-      })}
+      variant={isQuestionSeries ? "primary" : "gold"}
     >
       <ProjectLeaderboardTable
         leaderboardDetails={leaderboardDetails}
-        prizePool={prizePoolValue}
         userId={userId}
       />
     </SectionToggle>

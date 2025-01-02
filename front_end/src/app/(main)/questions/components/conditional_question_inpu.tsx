@@ -10,15 +10,11 @@ import { Input } from "@/components/ui/form_field";
 type Props = {
   isLive: boolean;
   mode: "create" | "edit";
-  control: UseFormReturn<
-    {
-      condition_id: string | undefined;
-      condition_child_id: string | undefined;
-      default_project: number | null;
-    },
-    any,
-    undefined
-  >;
+  control: UseFormReturn<{
+    condition_id: string | undefined;
+    condition_child_id: string | undefined;
+    default_project: number | null;
+  }>;
   setConditionQuestion: () => void;
   fieldName: "condition_id" | "condition_child_id";
 };
