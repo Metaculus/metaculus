@@ -268,7 +268,8 @@ def download_data(request, project_id: int):
     obj = get_object_or_404(qs, pk=project_id)
     # Check permissions
     if not (
-        user.is_staff
+        user.is_authenticated
+        and user.is_staff
         or WhitelistUser.objects.filter(
             Q(project=obj) | (Q(post__isnull=True) & Q(project__isnull=True)),
             user=user,
