@@ -1,7 +1,6 @@
 from datetime import timedelta
 import numpy as np
 import logging
-from typing import cast
 
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
@@ -467,19 +466,20 @@ def change_username_api_view(request: Request):
 @api_view(["PATCH"])
 def update_profile_api_view(request: Request) -> Response:
     user: User = request.user
-    serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
+    serializer: UserUpdateProfileSerializer = UserUpdateProfileSerializer(
+        user, data=request.data, partial=True
+    )
     serializer.is_valid(raise_exception=True)
 
-    is_spam, _ = check_profile_update_for_spam(
-        user, cast(UserUpdateProfileSerializer, serializer)
-    )
+    is_spam, _ = check_profile_update_for_spam(user, serializer)
 
     if is_spam:
         user.mark_as_spam()
         send_deactivation_email(user.email)
         return Response(
             data={
-                "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
+                "message": "This bio seems to be spam. Please contact "
+                "support@metaculus.com if you believe this was a mistake.",
                 "error_code": "SPAM_DETECTED",
             },
             status=status.HTTP_403_FORBIDDEN,

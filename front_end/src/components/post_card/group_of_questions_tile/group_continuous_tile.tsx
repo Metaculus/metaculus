@@ -19,7 +19,6 @@ import {
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
 import {
-  generateUserForecasts,
   getGroupForecastAvailability,
   sortGroupPredictionOptions,
 } from "@/utils/questions";
@@ -104,14 +103,6 @@ const GroupContinuousTile: FC<Props> = ({ questions, post, hideCP }) => {
               : TimelineChartZoomOption.TwoMonths
           }
           scaling={scaling}
-          userForecasts={
-            user
-              ? generateUserForecasts(
-                  sortedQuestions as QuestionWithNumericForecasts[],
-                  scaling
-                )
-              : undefined
-          }
           questionType={questionType}
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}

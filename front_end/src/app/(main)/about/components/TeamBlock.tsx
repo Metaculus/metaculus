@@ -86,6 +86,15 @@ const people: Person[] = [
       "At Metaculus, Nikita focuses on delivering seamless, user-centered experiences. His contributions include enhancing core platform functionality, automating deployments, increasing test coverage for key logic, and integrating third-party services.",
   },
   {
+    userId: 183708,
+    name: "Hlib Kononenko",
+    position: "Senior Software Engineer",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/Hlib-Kononenko.webp",
+    introduction:
+      "With over a decade of experience, Hlib has a diverse background spanning from IoT to healthcare and AI medical research. Passionate about solving real-world problems, he specializes in infrastructure, backend, and frontend development. Throughout his career, Hlib has focused on building innovative solutions that bridge the gap between technology and practical applications.",
+  },
+  {
     userId: 117502,
     name: "Ryan Beck",
     position: "Forecasting Program Coordinator",
