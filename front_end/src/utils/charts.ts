@@ -36,7 +36,11 @@ import {
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
-import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
+import {
+  formatMultipleChoiceResolution,
+  formatResolution,
+  isUnsuccessfullyResolved,
+} from "@/utils/questions";
 
 import {
   getForecastDateDisplayValue,
@@ -734,11 +738,9 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       highlighted: false,
       active: true,
       resolution: question.resolution,
-      displayedResolution: question.resolution
-        ? choice === question.resolution
-          ? "Yes"
-          : "No"
-        : undefined,
+      displayedResolution: !!question.resolution
+        ? formatMultipleChoiceResolution(question.resolution, choice)
+        : null,
       aggregationTimestamps: sortedAggregationTimestamps,
       aggregationValues: aggregationValues,
       aggregationMinValues: aggregationMinValues,
