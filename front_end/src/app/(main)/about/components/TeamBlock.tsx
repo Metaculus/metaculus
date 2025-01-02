@@ -95,6 +95,21 @@ const people: Person[] = [
       "With over a decade of experience, Hlib has a diverse background spanning from IoT to healthcare and AI medical research. Passionate about solving real-world problems, he specializes in infrastructure, backend, and frontend development. Throughout his career, Hlib has focused on building innovative solutions that bridge the gap between technology and practical applications.",
   },
   {
+    userId: 228596,
+    name: "Ben Wilson",
+    position: "AI Research Automation Engineer",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/Ben-Wilson.webp",
+    introduction:
+      "Ben is an AI Research Automation Engineer proficient in Python, web scraping, prompt engineering, Next.js, and a wide range of other technologies. In 2024, he briefly entered the top 100 on Metaculus, and his bot placed 12th in Metaculus's Q3 AI Forecasting Benchmark Tournament. Ben also founded a non-profit with the goal of creating 'Logipedia: The Wikipedia for Debatable Topics.' He has a passion for philosophy and enjoys improvising on the piano.",
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/wilsonbenjamin1000/",
+        platform: "LinkedIn",
+      },
+    ],
+  },
+  {
     userId: 117502,
     name: "Ryan Beck",
     position: "Forecasting Program Coordinator",
@@ -136,13 +151,6 @@ const people: Person[] = [
     imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/leonard.png",
     introduction:
       "Leonard’s work spans Metaculus’ various teams and initiatives, advancing our strategic direction, growth, and operational efficiency. Prior to Metaculus, he worked in real estate development and asset management, overseeing complex real estate development projects. His forecasting background includes experience as a Good Judgment Superforecaster and consistent top performance on various forecasting platforms and competitions. Leonard is passionate about elevating the crowd forecasting ecosystem to unlock its full potential in guiding policy and decision-making to mitigate global risks.",
-  },
-  {
-    name: "Connor McCormick",
-    position: "Collective Intelligence Specialist",
-    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/connor.webp",
-    introduction:
-      "Connor is a collective intelligence strategist, focused on creating environments where the wisdom of the crowd can thrive. At Metaculus, he is making tools to help forecasters share insights and estimate base rates so that cohesive models can be collaboratively developed, tested, and scored. Before joining Metaculus, Connor founded a machine learning and computer vision hardware company. When he’s not forecasting or refining collective intelligence systems, you’ll find him exploring the mountains of Colorado.",
   },
   {
     name: "Molly Hickman",
