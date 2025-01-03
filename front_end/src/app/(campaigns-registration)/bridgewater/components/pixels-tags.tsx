@@ -2,8 +2,10 @@
 
 import Script from "next/script";
 import { FC, useEffect } from "react";
-import { fbPixelTrackPage, fbPixelInit, lnkdnInitAndTrack } from "./pixel-apis";
+
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
+
+import { fbPixelTrackPage, fbPixelInit, lnkdnInitAndTrack } from "./pixel-apis";
 
 export const FacebookPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
   const consent =
@@ -20,7 +22,7 @@ export const FacebookPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
 
   return (
     pixelID && (
-      <Script>
+      <Script id="facebook-pixel-tag">
         {`
      function initializeFacebookPixel(f, b, e, v, n, t, s) {
       if (f.fbq) return;
@@ -69,14 +71,14 @@ export const LinkedInInsightTag: FC<{ partnerID?: string }> = ({
     <>
       {partnerID && (
         <>
-          <Script>
+          <Script id="linkedin-insight-tag-1">
             {`
               _linkedin_partner_id = "${partnerID}";
               window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
               window._linkedin_data_partner_ids.push(_linkedin_partner_id);
             `}
           </Script>
-          <Script>
+          <Script id="linkedin-insight-tag-2">
             {`
              window.lnkdInitAndTrackFn = function (l) {
                 if (!l) {

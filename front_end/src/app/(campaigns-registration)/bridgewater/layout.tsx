@@ -1,5 +1,5 @@
-import CookiesBanner from "../../(main)/components/cookies_banner";
 import { FacebookPixelTag, LinkedInInsightTag } from "./components/pixels-tags";
+import CookiesBanner from "../../(main)/components/cookies_banner";
 
 export default async function RootLayout({
   children,

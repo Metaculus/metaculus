@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import { FC, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import Button from "@/components/ui/button";
 
