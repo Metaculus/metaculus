@@ -943,5 +943,8 @@
   "onboardingStep5SavePredictionsParagraph": "Gostaria de salvar as previsões que você fez?",
   "onboardingYouPredicted": "Você previu",
   "next": "Próximo",
-  "postCreateErrorMinSubquestions": "Um grupo de perguntas deve ter pelo menos uma subpergunta"
+  "postCreateErrorMinSubquestions": "Um grupo de perguntas deve ter pelo menos uma subpergunta",
+  "insertEquation": "Inserir equação",
+  "equation": "Equação",
+  "visualization": "Visualização"
 }

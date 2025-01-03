@@ -40,18 +40,6 @@ import React, {
 import { mergeRefs } from "react-merge-refs";
 
 import { uploadImage } from "@/app/(main)/questions/actions";
-import {
-  EmbedMathJaxAction,
-  mathJaxDescriptor,
-} from "@/components/markdown_editor/embedded_math_jax";
-import {
-  embeddedQuestionDescriptor,
-  EmbedQuestionAction,
-} from "@/components/markdown_editor/embedded_question";
-import { tweetDescriptor } from "@/components/markdown_editor/embedded_twitter";
-import { processMarkdown } from "@/components/markdown_editor/helpers";
-import { linkPlugin } from "@/components/markdown_editor/plugins/link";
-import { mentionsPlugin } from "@/components/markdown_editor/plugins/mentions";
 import { useAuth } from "@/contexts/auth_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
@@ -59,10 +47,20 @@ import { useDebouncedCallback } from "@/hooks/use_debounce";
 import cn from "@/utils/cn";
 import { logErrorWithScope } from "@/utils/errors";
 
+import {
+  embeddedQuestionDescriptor,
+  EmbedQuestionAction,
+} from "./embedded_question";
+import { tweetDescriptor } from "./embedded_twitter";
+import { processMarkdown } from "./helpers";
+import { equationPlugin } from "./plugins/equation";
+import AddEquationAction from "./plugins/equation/components/add_equation_action";
+import { linkPlugin } from "./plugins/link";
+import { mentionsPlugin } from "./plugins/mentions";
+
 type EditorMode = "write" | "read";
 
 const jsxComponentDescriptors: JsxComponentDescriptor[] = [
-  mathJaxDescriptor,
   embeddedQuestionDescriptor,
   tweetDescriptor,
 ];
@@ -180,6 +178,7 @@ const InitializedMarkdownEditor: FC<
       disableImageResize: true,
       imageUploadHandler,
     }),
+    equationPlugin(),
   ];
 
   const editorDiffSourcePlugin = useMemo(() => {
@@ -205,7 +204,7 @@ const InitializedMarkdownEditor: FC<
           <InsertImage />
           <InsertThematicBreak />
           <InsertTable />
-          <EmbedMathJaxAction />
+          <AddEquationAction />
           <Separator />
           <EmbedQuestionAction />
         </DiffSourceToggleWrapper>

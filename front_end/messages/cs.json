@@ -814,5 +814,8 @@
   "onboardingStep5SavePredictionsParagraph": "Chcete uložit provedené předpovědi?",
   "onboardingYouPredicted": "Předpověděli jste",
   "next": "Další",
-  "postCreateErrorMinSubquestions": "Skupina otázek musí obsahovat alespoň jednu podotázku"
+  "postCreateErrorMinSubquestions": "Skupina otázek musí obsahovat alespoň jednu podotázku",
+  "insertEquation": "Vložit rovnici",
+  "equation": "Rovnice",
+  "visualization": "Vizualizace"
 }
