@@ -57,7 +57,7 @@ export type CurrentUser = User & {
   unsubscribed_preferences_tags: ProfilePreferencesType[];
   hide_community_prediction: boolean;
   is_onboarding_complete: boolean;
-  registered_campaign_keys: string[];
+  registered_campaigns: { key: string; details: object }[];
 };
 
 export enum ProfilePageMode {
