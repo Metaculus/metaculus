@@ -1,12 +1,14 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import { faFile, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import { faCoffee } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FC } from "react";
 
 import ProfileApi from "@/services/profile";
+import cn from "@/utils/cn";
 
-import { SucessfullyRegistered } from "./components/cards";
 import Header from "./components/header";
-import { ChoicesButtons, HeroSection } from "./components/hero-section";
-import { CAMPAIGN_KEY, CAMPAIGN_URL_BASE_PATH } from "./constants";
+import { Hero, Dates, Prize } from "./components/hero-section";
+import { RegisterAndStatus } from "./components/registration-status";
 
 export const metadata = {
   title: "Bridgewater x Metaculus",
@@ -14,66 +16,108 @@ export const metadata = {
     "Register to forecast, explore opportunities with Bridgewater Associates, and compete for $25,000 in prizes!",
 };
 
-export default async function Page() {
-  const user = await ProfileApi.getMyProfile();
+const buttonLinks = [
+  {
+    icon: faCoffee,
+    text: "Warmup Questions",
+    url: "/tournament/bridgewater-warmup/",
+  },
+  {
+    icon: faQuestionCircle,
+    text: "Learn how it works",
+    url: "how-it-works",
+  },
+  {
+    icon: faFile,
+    text: "Contest Rules",
+    url: "contest-rules",
+  },
+];
 
-  if (user && user.registered_campaign_keys.includes(CAMPAIGN_KEY)) {
-    return (
-      <>
-        <>
-          <Header />
-          <main className="flex flex-grow justify-center">
-            <HeroSection className="m-5 w-full max-w-[896px] pb-10">
-              <div className="flex w-full flex-col items-center px-5">
-                <SucessfullyRegistered />
-              </div>
-            </HeroSection>
-          </main>
-        </>
-      </>
-    );
-  } else if (user) {
-    redirect(`${CAMPAIGN_URL_BASE_PATH}/register`);
-  }
+const DescriptionParagraphs: FC<{ className?: string }> = ({ className }) => {
+  return (
+    <div
+      className={cn(
+        "rounded bg-gray-0 p-5 text-sm dark:bg-gray-0-dark md:p-8 md:text-lg md:font-medium lg:text-xl",
+        className
+      )}
+    >
+      <p>
+        For the second year, Metaculus is teaming up with Bridgewater—
+        <span className="italic">a premier asset management firm</span>— for a
+        unique forecasting competition. No experience necessary. Just register
+        today, and starting February 3rd, make your predictions on a wide range
+        of topics!
+      </p>
+      <p className="font-bold">
+        The most accurate forecasters will be eligible for $25,000 in prizes and
+        potential opportunities with Bridgewater.
+      </p>
+      <p>
+        Register for the contest today and be notified as soon as questions
+        open. The earlier you forecast, the better your odds to beat the
+        competition and win cash prizes!
+      </p>
+    </div>
+  );
+};
+
+const UtilLinks: FC<{ className?: string }> = ({ className }) => {
+  return (
+    <div
+      className={cn("flex flex-col gap-3 sm:flex-row xl:flex-col", className)}
+    >
+      {" "}
+      {buttonLinks.map((button) => (
+        <a
+          target="_blank"
+          key={button.text}
+          href={button.url}
+          className="flex grow flex-col items-center justify-between gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40  xl:items-start min-[1920px]:gap-6"
+        >
+          <FontAwesomeIcon
+            icon={button.icon}
+            className="text-xl text-blue-700 dark:text-blue-700-dark"
+          />
+          <span className="block text-center text-base no-underline ">
+            {button.text}
+          </span>
+        </a>
+      ))}
+    </div>
+  );
+};
+
+export default async function Page() {
+  const currentUser = await ProfileApi.getMyProfile();
 
   return (
     <>
       <Header />
-      <main className="mt-4 flex flex-col items-center justify-center p-3 sm:p-5 ">
-        <HeroSection className="m-5 w-full max-w-[896px]">
-          <div className="w-full px-5">
-            <ChoicesButtons />
+      <main className="mt-12 flex min-h-screen flex-col items-center justify-start p-3 sm:p-5">
+        <div className="flex size-full flex-col items-center gap-2">
+          <div className="flex w-full flex-col gap-3 lg:flex-row">
+            <div className="w-full self-stretch">
+              <Hero />
+            </div>
+            <div className="flex w-full flex-row gap-3 lg:flex-col xl:flex-row">
+              <Dates />
+              <Prize />
+            </div>
           </div>
-        </HeroSection>
 
-        <div className="mx-8 text-blue-800 dark:text-blue-800-dark sm:mx-12 md:max-w-[670px]">
-          <p>
-            For the second year, Metaculus is teaming up with Bridgewater - a
-            premier asset management firm - for a unique forecasting
-            competition. No experience necessary. Just register today, and
-            starting February 3rd, make your predictions on a wide range of
-            topics!
-          </p>
-          <p>
-            The most accurate forecasters will be eligible for $25,000 in prizes
-            and potential opportunities with{" "}
-            <Link href={"https://www.bridgewater.com/"}>Bridgewater.</Link>
-          </p>
-          <p>
-            Register for the contest and be notified as soon as questions open.
-            The earlier you forecast, the better your odds to beat the
-            competition and win cash prizes!
-          </p>
-          <p>
-            <i>
-              Curious to see the questions, winners, and schools represented in
-              the previous Bridgewater x Metaculus contest? Find them{" "}
-              <Link href={"https://www.metaculus.com/tournament/bridgewater/"}>
-                here.
-              </Link>
-              .
-            </i>
-          </p>
+          <div className="min-h-[147px] w-full shrink-0 rounded bg-[url('https://metaculus-media.s3.amazonaws.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp')] bg-cover bg-center lg:min-h-[178px] xl:min-h-[264px]"></div>
+
+          <div className="flex grow flex-wrap gap-3 xl:flex-nowrap">
+            <DescriptionParagraphs className="grow basis-full sm:basis-[45%] xl:basis-[20%]" />
+
+            <RegisterAndStatus
+              className="grow basis-full sm:basis-[45%] xl:basis-[20%]"
+              currentUser={currentUser}
+            />
+
+            <UtilLinks className=" grow  basis-full xl:basis-[20%]" />
+          </div>
         </div>
       </main>
     </>

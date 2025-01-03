@@ -16,7 +16,7 @@ export default function HowItWorks() {
   return (
     <>
       <Header />
-      <div className="mx-auto mt-4 flex w-full justify-center pb-0 pt-10">
+      <div className="mx-auto mt-12 flex w-full justify-center pb-0 pt-10">
         {" "}
         <Button
           variant="secondary"
@@ -51,14 +51,14 @@ export default function HowItWorks() {
 
         <div className="relative w-full">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/bw-timeline-light_2.webp"
+            src="https://metaculus-web-media.s3.amazonaws.com/bw-timeline-light_4.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
             className="w-full dark:hidden"
           />
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/bw-timeline-dark_2.webp"
+            src="https://metaculus-web-media.s3.amazonaws.com/bw-timeline-dark_3.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
@@ -77,14 +77,14 @@ export default function HowItWorks() {
           >
             warmup questions
           </Link>{" "}
-          before the contest begins April 16th. Warmup questions won&apos;t
+          before the contest begins February 3rd. Warmup questions won&apos;t
           affect your contest ranking.
         </p>
 
         <div className="mb-8 rounded-md bg-green-100 px-4 pb-4 pt-2 dark:bg-green-900">
           <h4 className="font-bold text-gray-800 dark:text-white">
-            The Forecasting Contest officially begins at 11:00 AM ET on April
-            16, 2024.
+            The Forecasting Contest officially begins at 11:00 AM ET on February
+            3, 2025.
           </h4>
         </div>
 
@@ -108,11 +108,16 @@ export default function HowItWorks() {
         <p className="mb-6">
           Each of the two competitions and leaderboards features a $12,500 prize
           pool, for a total of $25,000. The top 125 forecasters within each
-          competition and leaderboard will win prizes, with a minimum payout of
-          $50 per prize. Competing undergraduate forecasters are eligible to be
-          ranked and receive prizes for their performance on both leaderboards.
-          Prizes will be awarded after contest completion and following identity
-          verification.
+          competition and leaderboard are eligible to win prizes. Competing
+          undergraduate forecasters are eligible to be ranked and receive prizes
+          for their performance on both leaderboards. Prizes will be awarded
+          after contest completion and following identity verification.
+        </p>
+        <p>
+          Unlike last competition, this year there is no $50 minimum prize
+          awarded, which means the top performers are likely to receive a larger
+          share of the prize pool and there may be less than 125 prizes paid out
+          in each category.
         </p>
 
         <h3 className="mb-3 text-xl font-semibold text-gray-600 dark:text-gray-300">
@@ -121,12 +126,11 @@ export default function HowItWorks() {
 
         <p className="mb-6">
           The Undergraduate competition and leaderboard are open only to
-          undergraduate students currently enrolled in colleges and universities
-          within the United States. If you enroll in the Undergraduate
-          Competition, you will automatically also be included in the Open
-          Competition. This is your opportunity to stand out to the Bridgewater
-          recruiting team and compete for a share of the $12,500 Undergraduate
-          Prize Pool!
+          undergraduate students currently enrolled in colleges and
+          universities. If you enroll in the Undergraduate Competition, you will
+          automatically also be included in the Open Competition. This is your
+          opportunity to stand out to the Bridgewater recruiting team and
+          compete for a share of the $12,500 Undergraduate Prize Pool!
         </p>
 
         <h3 className="mb-3 text-xl font-semibold text-gray-600 dark:text-gray-300">
@@ -135,11 +139,11 @@ export default function HowItWorks() {
 
         <p className="mb-6">
           Alongside the Undergraduate Competition and Leaderboard, there is an
-          Open Competition and Leaderboard in which all current residents of the
-          United States can compete, with an associated $12,500 Open Prize Pool.
-          Experienced and new forecasters alike will have the chance to
-          demonstrate their skills and become eligible for a potential meeting
-          with the Bridgewater recruitment team.
+          Open Competition and Leaderboard in which anyone can compete, with an
+          associated $12,500 Open Prize Pool. Experienced and new forecasters
+          alike will have the chance to demonstrate their skills and become
+          eligible for a potential meeting with the Bridgewater recruitment
+          team.
         </p>
         <hr className="my-8 border-t-2 border-gray-300 dark:border-gray-700" />
 
@@ -187,7 +191,7 @@ export default function HowItWorks() {
           </li>
           <li>
             <Link
-              href="https://www.metaculus.com/questions/21883/introducing-simpler-fairer-tournament-scores/"
+              href="https://www.metaculus.com/help/scores-faq/#tournament-scores/"
               className="text-blue-600 hover:underline"
             >
               How prize is distributed in Metaculus tournaments
@@ -273,7 +277,7 @@ export default function HowItWorks() {
           between 0.1% and 99.9%. On the question page, simply drag the
           prediction slider until it matches your probability and click
           &quot;Predict&quot;. You can also use the arrows to refine your
-          probability or select the field and type the probability.
+          probability.
         </p>
 
         <div className="mb-8">
@@ -341,8 +345,8 @@ export default function HowItWorks() {
 
         <p className="mb-6">
           If you want to distribute your prediction in more than one section of
-          the range, you can add up to four independent bell curves to build
-          your distribution and assign a weight to each of them.
+          the range, you can add independent bell curves to build your
+          distribution and assign a weight to each of them.
         </p>
 
         <div className="mb-8">
@@ -361,6 +365,53 @@ export default function HowItWorks() {
           value, the worse your score. To get the best score, make your
           distribution reflect how likely each possible value actually is.
         </p>
+
+        {/* Weighting */}
+
+        <h2 className="mb-4 text-2xl font-bold text-gray-700 dark:text-gray-200">
+          A Note On Weighting
+        </h2>
+
+        <p className="mb-4">
+          This year the tournament will use question weighting for question
+          groups. We’re using weighting to reduce the effect of correlation on
+          scores and leaderboard placement. There is likely to be correlation in
+          some sets of similar questions, resulting in scores on those questions
+          containing less signal than if the questions were uncorrelated. We
+          want to assess forecasting skill, including on some sets of correlated
+          questions, and weighting allows us to do that while reducing the
+          impact of correlation on tournament placement.
+        </p>
+
+        <p className="mb-4">
+          Question groups are questions that have multiple questions within
+          them. They’re different from multiple choice questions because the
+          subquestions aren’t mutually exclusive. For this tournament, when we
+          use a question group we’re going to weight each subquestion within it
+          so that the total weight of the question group sums to 1.0.
+        </p>
+        <p className="mb-4">
+          For example, if we’re asking what the USD exchange rate will be for a
+          number of currencies on a certain date, you’ll provide forecasts for
+          each listed option. If there are three options, we’ll set the weight
+          for each of them to 33%, so that the total weight sums to ~100%. That
+          means the entire group will be weighted equivalently to one
+          forecasting question. Above we’ve referred to there being 50 questions
+          in the tournament, and we’re using that as shorthand to mean a total
+          weight of 50. Some of those 50 will be question groups, where the
+          group will be worth one question but be broken up into lower-weighted
+          subquestions. You can see the question weight used for each
+          subquestion under the three-dot menu by each subquestion, as shown in
+          the image below.
+        </p>
+
+        <Image
+          src="https://metaculus-media.s3.amazonaws.com/bw-how-it-works-question-weighting.png"
+          alt="Question Weighting Image"
+          width={765}
+          height={263}
+          className="w-full rounded-lg"
+        />
       </PageWrapper>
     </>
   );

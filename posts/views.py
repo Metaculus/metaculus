@@ -597,7 +597,7 @@ def download_data(request, post_id: int):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # Context for the serializer
-    can_view_private_data = (
+    can_view_private_data = user.is_authenticated and (
         user.is_staff
         or WhitelistUser.objects.filter(
             Q(post=post)

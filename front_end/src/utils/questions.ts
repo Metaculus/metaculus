@@ -189,6 +189,23 @@ export function formatResolution(
   return resolution;
 }
 
+export function formatMultipleChoiceResolution(
+  resolution: number | string | null | undefined,
+  choice: string
+) {
+  if (resolution === null || resolution === undefined) {
+    return "-";
+  }
+
+  resolution = String(resolution);
+
+  if (isUnsuccessfullyResolved(resolution)) {
+    return capitalize(resolution);
+  }
+
+  return choice.toLowerCase() === resolution.toLowerCase() ? "Yes" : "No";
+}
+
 export function canPredictQuestion(post: PostWithForecasts) {
   return (
     post.user_permission !== ProjectPermissions.VIEWER &&
