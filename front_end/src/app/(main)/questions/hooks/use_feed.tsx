@@ -13,7 +13,6 @@ import {
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
-import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
 const useFeed = () => {
