@@ -29,7 +29,7 @@ export default function ContestRules() {
           Official Competition Rules for the Bridgewater Open Forecasting
           Tournament (the `&quot;Tournament`&quot;)
         </h1>
-        <p className="opacity-70">Last modified: December 30, 2024</p>
+        <p className="opacity-70">Last modified: January 3, 2025</p>
 
         <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
 
@@ -80,7 +80,7 @@ export default function ContestRules() {
             physical prizes to individuals located in countries subject to U.S.
             sanctions or export restrictions, including but not limited to
             Russia, Cuba, North Korea, and others as determined by current
-            regulations. Void where prohibited. Void where prohibited.
+            regulations. Void where prohibited.
           </li>
           <li>
             <b>Timing.</b> The Tournament webpage will be made available on
