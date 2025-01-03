@@ -39,6 +39,7 @@ const MainFeedFilters: FC<Props> = ({ following }) => {
           PostStatus.RESOLVED,
           PostStatus.UPCOMING,
           PostStatus.PENDING,
+          PostStatus.DRAFT,
         ],
         t,
         params,
