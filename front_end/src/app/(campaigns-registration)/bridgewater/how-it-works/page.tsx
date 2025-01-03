@@ -108,7 +108,7 @@ export default function HowItWorks() {
         <p className="mb-6">
           Each of the two competitions and leaderboards features a $12,500 prize
           pool, for a total of $25,000. The top 125 forecasters within each
-          competition and leaderboard are eligible to will win prizes. Competing
+          competition and leaderboard are eligible to win prizes. Competing
           undergraduate forecasters are eligible to be ranked and receive prizes
           for their performance on both leaderboards. Prizes will be awarded
           after contest completion and following identity verification.
@@ -365,6 +365,53 @@ export default function HowItWorks() {
           value, the worse your score. To get the best score, make your
           distribution reflect how likely each possible value actually is.
         </p>
+
+        {/* Weighting */}
+
+        <h2 className="mb-4 text-2xl font-bold text-gray-700 dark:text-gray-200">
+          A Note On Weighting
+        </h2>
+
+        <p className="mb-4">
+          This year the tournament will use question weighting for question
+          groups. We’re using weighting to reduce the effect of correlation on
+          scores and leaderboard placement. There is likely to be correlation in
+          some sets of similar questions, resulting in scores on those questions
+          containing less signal than if the questions were uncorrelated. We
+          want to assess forecasting skill, including on some sets of correlated
+          questions, and weighting allows us to do that while reducing the
+          impact of correlation on tournament placement.
+        </p>
+
+        <p className="mb-4">
+          Question groups are questions that have multiple questions within
+          them. They’re different from multiple choice questions because the
+          subquestions aren’t mutually exclusive. For this tournament, when we
+          use a question group we’re going to weight each subquestion within it
+          so that the total weight of the question group sums to 1.0.
+        </p>
+        <p className="mb-4">
+          For example, if we’re asking what the USD exchange rate will be for a
+          number of currencies on a certain date, you’ll provide forecasts for
+          each listed option. If there are three options, we’ll set the weight
+          for each of them to 33%, so that the total weight sums to ~100%. That
+          means the entire group will be weighted equivalently to one
+          forecasting question. Above we’ve referred to there being 50 questions
+          in the tournament, and we’re using that as shorthand to mean a total
+          weight of 50. Some of those 50 will be question groups, where the
+          group will be worth one question but be broken up into lower-weighted
+          subquestions. You can see the question weight used for each
+          subquestion under the three-dot menu by each subquestion, as shown in
+          the image below.
+        </p>
+
+        <Image
+          src="https://metaculus-media.s3.amazonaws.com/bw-how-it-works-question-weighting.png"
+          alt="Question Weighting Image"
+          width={765}
+          height={263}
+          className="w-full rounded-lg"
+        />
       </PageWrapper>
     </>
   );
