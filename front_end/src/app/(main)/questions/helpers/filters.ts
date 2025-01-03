@@ -302,6 +302,13 @@ export function getFilterSectionParticipation({
         active: !!params.get(POST_FOLLOWING_FILTER),
         isPersisted: true,
       },
+      {
+        id: POST_UPVOTED_BY_FILTER,
+        label: t("upvoted"),
+        value: user.id.toString(),
+        active: !!params.get(POST_UPVOTED_BY_FILTER),
+        isPersisted: true,
+      },
     ],
   };
 }
