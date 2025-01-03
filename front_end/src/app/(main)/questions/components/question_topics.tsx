@@ -192,17 +192,6 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               })
             }
           />
-          <TopicItem
-            isActive={false}
-            emoji="💸🌍"
-            text="Forecast With GiveWell"
-            href="/tournament/forecast-with-givewell/"
-            onClick={() =>
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "Forecast With GiveWell",
-              })
-            }
-          />
           {!!hotTopics.length && (
             <>
               <Title title={t("topics")} />
