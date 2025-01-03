@@ -70,7 +70,8 @@ const UtilLinks: FC<{ className?: string }> = ({ className }) => {
     >
       {" "}
       {buttonLinks.map((button) => (
-        <Link
+        <a
+          target="_blank"
           key={button.text}
           href={button.url}
           className="flex grow flex-col items-center justify-between gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40  xl:items-start min-[1920px]:gap-6"
@@ -82,7 +83,7 @@ const UtilLinks: FC<{ className?: string }> = ({ className }) => {
           <span className="block text-center text-base no-underline ">
             {button.text}
           </span>
-        </Link>
+        </a>
       ))}
     </div>
   );
