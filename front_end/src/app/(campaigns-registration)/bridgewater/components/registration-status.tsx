@@ -3,7 +3,6 @@
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { FC, PropsWithChildren, useState } from "react";
 

@@ -1,7 +1,6 @@
 import { faFile, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faCoffee } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Link from "next/link";
 import { FC } from "react";
 
 import ProfileApi from "@/services/profile";
