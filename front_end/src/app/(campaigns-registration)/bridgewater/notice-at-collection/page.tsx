@@ -13,7 +13,7 @@ export default function NoticeAtCollection() {
   return (
     <>
       <Header />
-      <div className="mt-6 mx-auto flex w-full justify-center pb-0 pt-10">
+      <div className="mt-12 mx-auto flex w-full justify-center pb-0 pt-10">
         {" "}
         <Button
           variant="secondary"
