@@ -168,8 +168,8 @@ const GroupForm: React.FC<Props> = ({
         return {
           ...subquestionData,
           scaling: x.scaling,
-          open_lower_bound: x.openLowerBound,
-          open_upper_bound: x.openUpperBound,
+          open_lower_bound: x.open_lower_bound,
+          open_upper_bound: x.open_upper_bound,
         };
       } else if (subtype === QuestionType.Date) {
         if (x.scaling.range_max === null || x.scaling.range_min === null) {
@@ -182,8 +182,8 @@ const GroupForm: React.FC<Props> = ({
         return {
           ...subquestionData,
           scaling: x.scaling,
-          open_lower_bound: x.openLowerBound,
-          open_upper_bound: x.openUpperBound,
+          open_lower_bound: x.open_lower_bound,
+          open_upper_bound: x.open_upper_bound,
         };
       } else {
         setError("Invalid sub-question type");
@@ -619,23 +619,25 @@ const GroupForm: React.FC<Props> = ({
                         onChange={({
                           min: range_min,
                           max: range_max,
-                          open_lower_bound: openLowerBound,
-                          open_upper_bound: openUpperBound,
-                          zero_point: zeroPoint,
+                          open_lower_bound,
+                          open_upper_bound,
+                          zero_point,
                         }) => {
                           setSubQuestions(
-                            subQuestions.map((subQuestion, iter_index) => {
-                              if (index === iter_index) {
-                                subQuestion.scaling = {
-                                  range_min: range_min,
-                                  range_max: range_max,
-                                  zero_point: zeroPoint,
-                                };
-                                subQuestion["openLowerBound"] = openLowerBound;
-                                subQuestion["openUpperBound"] = openUpperBound;
-                              }
-                              return subQuestion;
-                            })
+                            subQuestions.map((subQuestion, iter_index) =>
+                              index === iter_index
+                                ? {
+                                    ...subQuestion,
+                                    open_lower_bound,
+                                    open_upper_bound,
+                                    scaling: {
+                                      range_min,
+                                      range_max,
+                                      zero_point,
+                                    },
+                                  }
+                                : subQuestion
+                            )
                           );
                         }}
                         control={form}
