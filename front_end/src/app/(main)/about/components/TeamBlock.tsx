@@ -119,6 +119,15 @@ const people: Person[] = [
       "Ryan is Metaculus’ Forecasting Program Coordinator. He received a Master’s degree in Civil Engineering from Iowa State University, and was previously a bridge engineer for six years. He is an avid forecaster and a pro-forecaster at INFER. Ryan is also the author of a science fiction novel, <cite>SEER</cite>.",
   },
   {
+    userId: 115975,
+    name: "John Bash",
+    position: "Forecasting Analyst",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/john-bash.webp",
+    introduction:
+      "John specializes in question writing, resolution, and moderation. He qualified as a superforecaster at Good Judgment Project and has predicted for Swift Centre, the Rand Forecasting Initiative, and Metaculus. Previously, he ran an e-publishing business and earned an MBA from the University of Georgia.",
+  },
+  {
     userId: 105951,
     name: "Sylvain Chevalier",
     position: "Director of Product",
@@ -310,14 +319,13 @@ const groups: Groups = {
     "Sylvain Chevalier",
     "Nikos Bosse",
     "Elis Popescu",
+    "Hlib Kononenko",
+    "Ben Wilson",
+    "Nikita Oleinykof",
     "Luke Sabor",
+    "John Bash",
   ],
-  board: [
-    "Anthony Aguirre",
-    "Greg Laughlin",
-    "Carroll “Max” Wainwright",
-    "David Levine",
-  ],
+  board: ["Anthony Aguirre", "Carroll “Max” Wainwright", "David Levine"],
   advisors: [
     "Juan Cambeiro",
     "Tamay Besiroglu",
