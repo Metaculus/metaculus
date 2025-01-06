@@ -3,6 +3,7 @@ import React from "react";
 
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import { OnboardingStep } from "@/types/onboarding";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import Step from "./step";
 import { extractCommunityForecast } from "../utils";
@@ -59,7 +60,9 @@ const Step2: React.FC<OnboardingStep> = ({
       <p>{t("onboardingStep3WhatDoYouThink")}</p>
       <div className="rounded-md bg-blue-200 py-4 dark:bg-blue-800">
         <BinarySlider
-          forecast={step3Prediction ?? communityForecast * 100}
+          forecast={
+            step3Prediction ?? extractPrevBinaryForecastValue(communityForecast)
+          }
           onChange={onPredictionChange}
           isDirty={true}
           communityForecast={communityForecast}
