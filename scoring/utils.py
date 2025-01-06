@@ -572,7 +572,7 @@ def get_contribution_question_writing(
         )
         contributions.append(contribution)
 
-    h_index = decimal_h_index([c.score / 10 for c in contributions])
+    # h_index = decimal_h_index([c.score / 10 for c in contributions])
     contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
 
     return contributions

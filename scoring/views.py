@@ -144,7 +144,7 @@ def user_medals(
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-@cache_page(60 * 30)
+#@cache_page(60 * 30)
 def medal_contributions(
     request: Request,
 ):
