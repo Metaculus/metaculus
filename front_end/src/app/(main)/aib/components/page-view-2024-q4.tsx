@@ -25,7 +25,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
 
   return (
     <div className="mx-auto  h-auto w-full flex-auto items-stretch bg-gradient-to-tl from-blue-300/30 via-blue-100/30 to-blue-400/30 px-4 py-4 text-blue-700 dark:bg-blue-800 dark:from-blue-600/50 dark:via-blue-800/30 dark:to-blue-500/30 dark:text-blue-700-dark">
-            <Link href="/aib/2024/q3" className="mb-3 flex w-full no-underline">
+      <Link href="/aib/2024/q3" className="mb-3 flex w-full no-underline">
         <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-2 text-balance rounded-md bg-purple-200 p-3 text-center text-base text-purple-800 transition-colors hover:bg-purple-300 dark:bg-purple-200-dark dark:text-purple-800-dark dark:hover:bg-purple-300-dark md:flex-row md:gap-4 md:p-6 md:text-xl">
           <FontAwesomeIcon
             icon={faTrophy}
@@ -37,7 +37,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
       <div className="flex size-full flex-col items-center gap-3">
         <div className="flex w-full flex-col gap-3 md:flex-row">
           <div className="flex w-full flex-col gap-3 md:w-1/3">
-          <HeroQ4 />
+            <HeroQ4 />
           </div>
           <div className="flex h-auto w-full flex-row gap-3 md:w-1/3 md:flex-col">
             <Prize />
