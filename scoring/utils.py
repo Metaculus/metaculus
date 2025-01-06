@@ -573,16 +573,20 @@ def get_contributions(
         min_score = contributions[int(h_index)].score if contributions else 0
         return [c for c in contributions if c.score >= min_score]
 
-    questions = (
-        leaderboard.get_questions()
-        .prefetch_related("related_posts__post")
-        # Fetch only authored posts
-        .filter(related_posts__post__author_id=user.id)
-    )
+    questions = leaderboard.get_questions()
+
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
         forecaster_ids_for_post: dict[Post, set[int]] = {}
 
-        for question in questions.iterator(chunk_size=500):
+        # Fetch only authored posts
+        # And split by chunks for optimization
+        qs = (
+            questions.prefetch_related("related_posts__post")
+            .filter(related_posts__post__author_id=user.id)
+            .iterator(chunk_size=500)
+        )
+
+        for question in qs:
             post: Post = question.get_post()
 
             forecasts_during_period = question.user_forecasts.all()
