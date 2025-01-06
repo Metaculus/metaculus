@@ -1,7 +1,7 @@
+import csv
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
-import csv
 from io import StringIO
 
 import numpy as np
@@ -573,14 +573,18 @@ def get_contributions(
         min_score = contributions[int(h_index)].score if contributions else 0
         return [c for c in contributions if c.score >= min_score]
 
-    questions = leaderboard.get_questions()
+    questions = (
+        leaderboard.get_questions()
+        .prefetch_related("related_posts__post")
+        # Fetch only authored posts
+        .filter(related_posts__post__author_id=user.id)
+    )
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
         forecaster_ids_for_post: dict[Post, set[int]] = {}
 
-        for question in questions:
+        for question in questions.iterator(chunk_size=500):
             post: Post = question.get_post()
-            if post.author != user:
-                continue
+
             forecasts_during_period = question.user_forecasts.all()
             if leaderboard.start_time:
                 forecasts_during_period = forecasts_during_period.filter(
@@ -596,6 +600,7 @@ def get_contributions(
             if post not in forecaster_ids_for_post:
                 forecaster_ids_for_post[post] = set()
             forecaster_ids_for_post[post].update(forecasters)
+
         contributions: list[Contribution] = []
         for post, forecaster_ids in forecaster_ids_for_post.items():
             contribution = Contribution(
