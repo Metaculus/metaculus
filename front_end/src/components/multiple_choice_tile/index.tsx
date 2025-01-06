@@ -82,7 +82,7 @@ export const ContinuousMultipleChoiceTile: FC<
         )}
       </div>
       {!isResolvedView && (
-        <div className="relative">
+        <div className="relative w-full">
           <MultipleChoiceChart
             timestamps={timestamps}
             actualCloseTime={actualCloseTime}
@@ -137,7 +137,7 @@ export const FanGraphMultipleChoiceTile: FC<
           optionLabelClassName="text-olive-800 dark:text-olive-800-dark"
         />
       </div>
-      <div>
+      <div className="w-full">
         <FanGraphGroupChart
           questions={questions}
           height={chartHeight}
