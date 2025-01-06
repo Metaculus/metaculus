@@ -57,13 +57,13 @@ export const ChoicesButtons: FC<{
 export const Hero = () => {
   return (
     <div className="h-full w-full rounded bg-white p-4 dark:bg-blue-100-dark md:p-6 lg:gap-2 lg:p-8 min-[1920px]:gap-3 min-[1920px]:p-12">
-      <h1 className="m-0 text-balance text-center text-base font-bold leading-snug text-blue-600 dark:text-blue-600-dark xs:text-xl sm:text-2xl md:leading-snug lg:text-left lg:text-4xl lg:leading-snug xl:text-4xl min-[1920px]:leading-normal">
+      <h1 className="m-0 mt-2 text-balance text-center text-base font-bold leading-snug text-blue-600 dark:text-blue-600-dark xs:text-2xl sm:text-3xl md:text-4xl lg:text-left lg:text-4xl lg:leading-normal xl:leading-normal min-[1920px]:text-5xl  min-[1920px]:leading-normal">
         <span className="text-nowrap text-blue-800 dark:text-blue-800-dark">
           Bridgewater <span className="font-thin opacity-50">x</span> Metaculus
         </span>{" "}
         <br />
         Forecasting Contest <br />
-        <p className="text-xs font-light text-blue-800 dark:text-blue-800-dark sm:text-sm lg:text-base">
+        <p className="text-sm font-light leading-normal text-blue-800 dark:text-blue-800-dark sm:text-sm md:text-lg lg:text-xl min-[1920px]:text-2xl min-[1920px]:leading-normal ">
           <span className="font-semibold">
             Now open to participants worldwide:
           </span>{" "}
@@ -76,8 +76,10 @@ export const Hero = () => {
 };
 
 export const Dates: FC = () => {
-  const dayClassName = "text-lg sm:text-4xl xl:text-7xl font-medium";
-  const monthClassName = "text-xs xs:text-base xl:text-2xl opacity-60 ";
+  const dayClassName =
+    "text-2xl sm:text-4xl md:text-5xl xl:text-7xl min-[1920px]:text-9xl font-medium md:font-light";
+  const monthClassName =
+    "text-xs xs:text-base xl:text-3xl min-[1920px]:text-4xl opacity-60 ";
   const dateCardClassName =
     "z-10 flex size-full select-none flex-col items-center justify-center gap-1 rounded bg-blue-500/50 py-2 xs:py-4 xl:py-16 text-blue-800 transition-all hover:cursor-default hover:bg-blue-500 active:bg-blue-900 active:text-white dark:bg-blue-500-dark/50 dark:text-blue-100 dark:text-blue-800-dark dark:hover:bg-blue-500-dark dark:active:bg-blue-100 dark:active:text-blue-900 md:gap-2  lg:gap-3";
   return (
@@ -85,7 +87,7 @@ export const Dates: FC = () => {
       <div
         className={cn(
           dateCardClassName,
-          "rounded-r-[16px] md:rounded-r-[24px] xl:rounded-r-[44px]"
+          "gap-1 rounded-r-[16px] md:gap-2 md:rounded-r-[24px] xl:rounded-r-[44px] min-[1920px]:gap-6"
         )}
       >
         <div className={monthClassName}>FEB</div>
@@ -94,7 +96,7 @@ export const Dates: FC = () => {
       <div
         className={cn(
           dateCardClassName,
-          "rounded-l-[16px] md:rounded-l-[24px] xl:rounded-l-[44px]"
+          "gap-1 rounded-l-[16px] md:gap-2 md:rounded-l-[24px] xl:rounded-l-[44px] min-[1920px]:gap-6"
         )}
       >
         <div className={monthClassName}>MAR</div>
@@ -104,7 +106,7 @@ export const Dates: FC = () => {
         <FontAwesomeIcon
           icon={faArrowsLeftRight}
           size="xl"
-          className="mx-auto self-center text-blue-600 dark:text-blue-600-dark/75"
+          className="mx-auto scale-75 self-center text-blue-600 dark:text-blue-600-dark/75 md:scale-100"
         />
       </span>
     </div>
@@ -114,11 +116,13 @@ export const Dates: FC = () => {
 export const Prize: FC = () => {
   return (
     <div className="flex size-full flex-row items-center justify-center ">
-      <div className="dark relative z-20 flex size-full select-none flex-col items-center justify-center gap-1 rounded border-olive-700 bg-olive-500 py-2 font-medium text-olive-900 dark:text-olive-900-dark xs:py-4 md:gap-2 lg:gap-3 xl:py-16">
-        <div className="text-xs opacity-60 xs:text-base xl:text-2xl ">
+      <div className="dark relative z-20 flex size-full select-none flex-col items-center justify-center gap-1 rounded border-olive-700 bg-olive-500 py-2 font-medium text-olive-900 dark:text-olive-900-dark xs:py-4 md:gap-2 lg:gap-3 xl:py-16 min-[1920px]:gap-6">
+        <div className="text-xs opacity-60 xs:text-base xl:text-3xl min-[1920px]:text-4xl">
           PRIZE POOL
         </div>
-        <div className="text-lg sm:text-4xl xl:text-7xl">$25k</div>
+        <div className="text-2xl font-medium sm:text-4xl md:text-5xl md:font-light xl:text-7xl min-[1920px]:text-9xl">
+          $25k
+        </div>
       </div>
     </div>
   );
