@@ -530,7 +530,9 @@ class Contribution:
     comment: Comment | None = None
 
 
-def get_contribution_question_writing(user: User, leaderboard: Leaderboard, questions: Question.objects):
+def get_contribution_question_writing(
+    user: User, leaderboard: Leaderboard, questions: Question.objects
+):
     forecaster_ids_for_post = defaultdict(set)
 
     questions = (
@@ -546,9 +548,7 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard, ques
         forecasts = forecasts.filter(start_time__gte=leaderboard.start_time)
 
     if leaderboard.end_time:
-        forecasts = forecasts.filter(
-            start_time__lte=leaderboard.end_time
-        )
+        forecasts = forecasts.filter(start_time__lte=leaderboard.end_time)
 
     # Fetch only 2 target fields
     forecasts = forecasts.only("question_id", "author_id")
@@ -586,32 +586,37 @@ def get_contributions(
         public_posts = Post.objects.filter(
             Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
         )
-        comments = (
-            Comment.objects.filter(
-                on_post__in=public_posts,
-                author=user,
-                created_at__lte=leaderboard.end_time,
-                comment_votes__isnull=False,
-            )
-            .annotate(
-                vote_score=SubqueryAggregate(
-                    "comment_votes__direction",
-                    filter=Q(
-                        created_at__gte=leaderboard.start_time,
-                        created_at__lte=leaderboard.end_time,
-                    ),
-                    aggregate=Sum,
-                )
-            )
-            .select_related("on_post")
-            .distinct("pk")
+        comments = Comment.objects.filter(
+            on_post__in=public_posts,
+            author=user,
+            created_at__lte=leaderboard.end_time,
+            comment_votes__isnull=False,
         )
 
+        # Using Comment.prefetch_related("on_post") is not efficient in this scenario,
+        # as we may retrieve 10k+ rows, each requiring a JOIN on a large Post record,
+        # significantly slowing down serialization and data fetching.
+        # Instead, we perform a custom mapping fetch to optimize this process.
+        posts_map = {
+            p.id: p for p in Post.objects.filter(comments__in=comments).distinct("pk")
+        }
+
+        comments = comments.annotate(
+            vote_score=SubqueryAggregate(
+                "comment_votes__direction",
+                filter=Q(
+                    created_at__gte=leaderboard.start_time,
+                    created_at__lte=leaderboard.end_time,
+                ),
+                aggregate=Sum,
+            )
+        ).distinct("pk")
+
         contributions: list[Contribution] = []
-        for comment in comments:
+        for comment in comments.iterator(chunk_size=500):
             contribution = Contribution(
                 score=comment.vote_score or 0,
-                post=comment.on_post,
+                post=posts_map[comment.on_post_id],
                 comment=comment,
             )
 
