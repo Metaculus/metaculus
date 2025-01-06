@@ -6,7 +6,7 @@ import { FC } from "react";
 import ProfileApi from "@/services/profile";
 import cn from "@/utils/cn";
 
-import Header from "./components/header";
+import GlobalHeader from "../../(main)/components/headers/global_header";
 import { Hero, Dates, Prize } from "./components/hero-section";
 import { RegisterAndStatus } from "./components/registration-status";
 
@@ -93,7 +93,7 @@ export default async function Page() {
 
   return (
     <>
-      <Header />
+      <GlobalHeader />
       <main className="mt-12 flex min-h-screen flex-col items-center justify-start p-3 sm:p-5">
         <div className="flex size-full flex-col items-center gap-2">
           <div className="flex w-full flex-col gap-3 lg:flex-row">
