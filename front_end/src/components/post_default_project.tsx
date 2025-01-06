@@ -1,45 +1,22 @@
-import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { FC } from "react";
 
-import Chip from "@/components/ui/chip";
-import { POST_TAGS_FILTER } from "@/constants/posts_feed";
-import { Tag } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
 import { getProjectLink } from "@/utils/navigation";
 
 type Props = {
   defaultProject: Tournament;
-  globalLeaderboard?: Tag;
 };
 
-const PostDefaultProject: FC<Props> = ({
-  defaultProject,
-  globalLeaderboard,
-}) => {
+const PostDefaultProject: FC<Props> = ({ defaultProject }) => {
   const withDefaultProjectBadge =
-    [TournamentType.Tournament, TournamentType.QuestionSeries].includes(
-      defaultProject.type
-    ) && !!defaultProject.default_permission;
+    [
+      TournamentType.Tournament,
+      TournamentType.QuestionSeries,
+      TournamentType.Community,
+    ].includes(defaultProject.type) && !!defaultProject.default_permission;
 
   if (!withDefaultProjectBadge) {
-    if (!!globalLeaderboard) {
-      return (
-        <Chip
-          key={globalLeaderboard.id}
-          href={`/questions/?${POST_TAGS_FILTER}=${globalLeaderboard.slug}&for_main_feed=false`}
-          color="gray"
-          onClick={() =>
-            sendGAEvent("event", "questionTagClicked", {
-              event_category: globalLeaderboard.name,
-            })
-          }
-        >
-          {globalLeaderboard.name}
-        </Chip>
-      );
-    }
-
     return null;
   }
 
