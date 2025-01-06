@@ -1,5 +1,7 @@
-import type { FC, Ref, RefObject } from "react";
+import { FC, Ref, RefObject } from "react";
 import { ChangeEvent, forwardRef } from "react";
+
+import ResizableTextArea from "@/components/ui/resizable_text_area";
 
 type BaseEquationEditorProps = {
   equation: string;
@@ -21,15 +23,15 @@ function EquationEditor(
       <DollarSign isInline={inline} type="start" />
       {inline ? (
         <input
-          className="m-0 resize-none border-none bg-inherit p-0 text-purple-700 outline-0 dark:text-purple-700-dark"
+          className="m-0 border-none bg-inherit p-0 text-purple-700 outline-0 dark:text-purple-700-dark"
           value={equation}
           onChange={onChange}
           autoFocus={true}
           ref={forwardedRef as RefObject<HTMLInputElement>}
         />
       ) : (
-        <textarea
-          className="m-0 w-full resize-none border-none bg-inherit p-0 text-purple-700 outline-0 dark:text-purple-700-dark"
+        <ResizableTextArea
+          className="m-0 w-full border-none bg-inherit p-0 text-purple-700 outline-0 dark:text-purple-700-dark"
           value={equation}
           onChange={onChange}
           ref={forwardedRef as RefObject<HTMLTextAreaElement>}

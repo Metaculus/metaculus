@@ -945,6 +945,7 @@
   "next": "Próximo",
   "postCreateErrorMinSubquestions": "Um grupo de perguntas deve ter pelo menos uma subpergunta",
   "insertEquation": "Inserir equação",
-  "equation": "Equação",
-  "visualization": "Visualização"
+  "choseEquationType": "Escolha o tipo de equação que deseja adicionar. Para editá-la, basta clicar nela no editor.",
+  "inline": "Em linha",
+  "block": "Bloco"
 }

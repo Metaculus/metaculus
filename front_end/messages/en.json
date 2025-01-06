@@ -1028,6 +1028,7 @@
   "dateInputDetails": "Date and time is in your local timezone [{timezone}]",
   "postCreateErrorMinSubquestions": "A question group must have at least one subquestion",
   "insertEquation": "Insert Equation",
-  "equation": "Equation",
-  "visualization": "Visualization"
+  "choseEquationType": "Choose the type of equation you want to add. To edit it, simply click on it within the editor.",
+  "inline": "Inline",
+  "block": "Block"
 }

@@ -12,7 +12,6 @@ import type {
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode, DOMExportOutput } from "lexical";
 import { InlineMath, Math } from "mdast-util-math";
-import * as React from "react";
 
 import EquationComponent from "./components/equation_component";
 

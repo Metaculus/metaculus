@@ -5,12 +5,12 @@ import {
   $getSelection,
   $isNodeSelection,
   COMMAND_PRIORITY_HIGH,
+  KEY_ENTER_COMMAND,
   KEY_ESCAPE_COMMAND,
   LexicalEditor,
   NodeKey,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import * as React from "react";
 import {
   FC,
   startTransition,
@@ -79,24 +79,39 @@ const EquationComponent: FC<EquationComponentProps> = ({
       return;
     }
     if (showEquationEditor) {
-      const hideEditor = () => {
-        const activeElement = document.activeElement;
-        const inputElem = inputRef.current;
-        if (inputElem !== activeElement) {
-          onHide();
-        }
-        return false;
-      };
-
       return mergeRegister(
+        // hide editor when clicking outside
         parentEditor.registerCommand(
           SELECTION_CHANGE_COMMAND,
-          hideEditor,
+          () => {
+            const activeElement = document.activeElement;
+            const inputElem = inputRef.current;
+            if (inputElem !== activeElement) {
+              onHide();
+            }
+
+            return false;
+          },
           COMMAND_PRIORITY_HIGH
         ),
+        // hide editor when pressing esc key
         parentEditor.registerCommand(
           KEY_ESCAPE_COMMAND,
-          hideEditor,
+          () => {
+            const activeElement = document.activeElement;
+            const inputElem = inputRef.current;
+            if (inputElem === activeElement) {
+              onHide(true);
+              return true;
+            }
+            return false;
+          },
+          COMMAND_PRIORITY_HIGH
+        ),
+        // ignore parent editor line break and instead apply it for equation editor
+        parentEditor.registerCommand(
+          KEY_ENTER_COMMAND,
+          () => true,
           COMMAND_PRIORITY_HIGH
         )
       );
