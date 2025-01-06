@@ -47,10 +47,10 @@ WORKDIR /app
 ADD poetry.lock poetry.lock
 ADD pyproject.toml pyproject.toml
 # Needed so the env created by poetry is saved after the build phase. Don't know of another way
-RUN poetry config virtualenvs.create false
-RUN python -m venv venv
-RUN . venv/bin/activate
-RUN poetry install --without dev
+RUN poetry config virtualenvs.create false \
+    && python -m venv venv \
+    && . venv/bin/activate \
+    && poetry install --without dev
 
 
 FROM base AS frontend_deps
