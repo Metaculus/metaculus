@@ -546,7 +546,7 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard, ques
         forecasts = forecasts.filter(start_time__gte=leaderboard.start_time)
 
     if leaderboard.end_time:
-        forecasts.filter(
+        forecasts = forecasts.filter(
             start_time__lte=leaderboard.end_time
         )
 
