@@ -635,12 +635,12 @@ def get_contributions(
         question__in=questions,
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-    )
+    ).prefetch_related("question__related_posts__post")
     archived_scores = ArchivedScore.objects.filter(
         question__in=questions,
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-    )
+    ).prefetch_related("question__related_posts__post")
 
     if leaderboard.finalize_time:
         calculated_scores = calculated_scores.filter(
