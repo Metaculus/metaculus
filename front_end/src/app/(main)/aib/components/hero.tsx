@@ -12,7 +12,7 @@ function Hero() {
         <span className="font-light text-blue-600 dark:text-blue-600-dark">
           {t("FABHeroSubtitle")}{" "}
           <span className="font-light text-blue-700 dark:text-blue-700-dark">
-            Q4
+            Q1 <span className="opacity-50 font-thin">(2025)</span>
           </span>
         </span>
       </h1>

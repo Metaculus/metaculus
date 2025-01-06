@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 
-function HeroQ3() {
+function HeroQ4() {
   const t = useTranslations();
 
   return (
@@ -12,7 +12,7 @@ function HeroQ3() {
         <span className="font-light text-blue-600 dark:text-blue-600-dark">
           {t("FABHeroSubtitle")}{" "}
           <span className="font-light text-blue-700 dark:text-blue-700-dark">
-            Q3 <span className="opacity-50 font-thin">(2024)</span>
+            Q4 <span className="opacity-50 font-thin">(2024)</span>
           </span>
         </span>
       </h1>
@@ -23,4 +23,4 @@ function HeroQ3() {
   );
 }
 
-export default HeroQ3;
+export default HeroQ4;
