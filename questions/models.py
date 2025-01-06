@@ -122,6 +122,13 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     def __str__(self):
         return f"{self.type} {self.title}"
 
+    def save(self, **kwargs):
+        # Ensure resolution is always null or non-empty string
+        if self.resolution is not None and self.resolution.strip() == "":
+            self.resolution = None
+
+        return super().save(**kwargs)
+
     def get_post(self) -> "Post | None":
         posts = [x.post for x in self.related_posts.all()]
 

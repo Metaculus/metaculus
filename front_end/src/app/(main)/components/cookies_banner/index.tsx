@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import { FC, useEffect, useState } from "react";
@@ -18,12 +19,12 @@ const CookiesBanner: FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [consentGiven, setConsentGiven] = useState<ConsentGiven | null>(null);
+  const router = useRouter();
   const [analyticsCheckboxValue, setAnalyticsCheckboxValue] =
     useState<boolean>(true);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
-
   useEffect(() => {
     setConsentGiven(getAnalyticsCookieConsentGiven());
   }, []);
@@ -50,6 +51,7 @@ const CookiesBanner: FC = () => {
         : "no";
     localStorage.setItem(STORAGE_KEY, consentValue);
     setConsentGiven(consentValue);
+    router.refresh();
   };
 
   if (consentGiven !== "undecided") {

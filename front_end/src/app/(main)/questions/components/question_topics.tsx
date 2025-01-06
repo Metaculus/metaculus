@@ -174,7 +174,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             isActive={false}
             emoji="🔭"
             text="Bridgewater 2025"
-            href="/bridgewater/register/"
+            href="/bridgewater/"
             onClick={() =>
               sendGAEvent("event", "sidebarClick", {
                 event_category: "Bridgewater 2025",
@@ -189,17 +189,6 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             onClick={() =>
               sendGAEvent("event", "sidebarClick", {
                 event_category: "AI Benchmarking",
-              })
-            }
-          />
-          <TopicItem
-            isActive={false}
-            emoji="💸🌍"
-            text="Forecast With GiveWell"
-            href="/tournament/forecast-with-givewell/"
-            onClick={() =>
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "Forecast With GiveWell",
               })
             }
           />
