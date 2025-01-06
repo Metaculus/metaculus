@@ -12,6 +12,7 @@ import { CurrentUser } from "@/types/users";
 import cn from "@/utils/cn";
 
 import { BWRegisterButton, ChoicesButtons } from "./hero-section";
+import { fbPixelTrackEvent } from "./pixel-apis";
 import {
   RegistrationAndSignupForm,
   RegistrationForm,
@@ -231,6 +232,7 @@ export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
           <RegistrationAndSignupForm
             onSuccess={(email) => {
               setSignupCompleteEmail(email);
+              fbPixelTrackEvent("userRegistered");
               setSignupDialogVisible(false);
             }}
             campaignKey={CAMPAIGN_KEY}
@@ -248,6 +250,7 @@ export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
           <RegistrationForm
             onSuccess={() => {
               router.refresh();
+              fbPixelTrackEvent("userRegistered");
               setRegisterDialogVisible(false);
             }}
             campaignKey={CAMPAIGN_KEY}
