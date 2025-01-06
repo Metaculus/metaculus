@@ -90,13 +90,20 @@ const Step5: React.FC<OnboardingStep> = ({
     forceNavigate(nextQuestionUrl);
   };
 
-  const [forecastedPosts, setForecastedPosts] = useState<ForecastedPost[]>(() =>
-    [step2Prediction, step3Prediction].map((forecast, idx) => ({
-      post: posts[idx] ?? null,
-      forecast,
-      isLoading: false,
-      isSubmitted: false,
-    }))
+  const [forecastedPosts, setForecastedPosts] = useState<ForecastedPost[]>(
+    () => {
+      const postsOrder = topic?.questions ?? [];
+      const sortedPosts = [...posts].sort(
+        (a, b) => postsOrder.indexOf(a.id) - postsOrder.indexOf(b.id)
+      );
+
+      return [step2Prediction, step3Prediction].map((forecast, idx) => ({
+        post: sortedPosts[idx] ?? null,
+        forecast,
+        isLoading: false,
+        isSubmitted: false,
+      }));
+    }
   );
 
   const updateForecastedPostState = (
