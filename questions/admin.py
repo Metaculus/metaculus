@@ -12,6 +12,7 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
+from questions.services import build_question_forecasts
 from utils.csv_utils import export_data_for_questions
 from utils.models import CustomTranslationAdmin
 
@@ -29,7 +30,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     ]
     readonly_fields = ["post_link"]
     search_fields = ["title_original", "description_original"]
-    actions = ["export_selected_questions_data"]
+    actions = ["export_selected_questions_data", "rebuild_aggregation_history"]
     list_filter = [
         "type",
         "related_posts__post__curation_status",
@@ -93,6 +94,10 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         response["Content-Disposition"] = 'attachment; filename="metaculus_data.zip"'
 
         return response
+
+    def rebuild_aggregation_history(self, request, queryset: QuerySet[Question]):
+        for question in queryset:
+            build_question_forecasts(question)
 
 
 @admin.register(Conditional)

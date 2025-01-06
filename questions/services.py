@@ -75,26 +75,26 @@ def build_question_forecasts(
         include_stats=True,
     )[aggregation_method]
 
-    # overwrite old history with new history, minimizing the amount deleted and created
-    previous_history = question.aggregate_forecasts.filter(
-        method=aggregation_method
-    ).order_by("start_time")
-    to_overwrite, to_delete = (
-        previous_history[: len(aggregation_history)],
-        previous_history[len(aggregation_history) :],
-    )
-    overwriters, to_create = (
-        aggregation_history[: len(to_overwrite)],
-        aggregation_history[len(to_overwrite) :],
-    )
-    for new, old in zip(overwriters, to_overwrite):
-        new.id = old.id
-    fields = [
-        field.name
-        for field in AggregateForecast._meta.get_fields()
-        if not field.primary_key
-    ]
     with transaction.atomic():
+        # overwrite old history with new history, minimizing the amount deleted and created
+        previous_history = question.aggregate_forecasts.filter(
+            method=aggregation_method
+        ).order_by("start_time")
+        to_overwrite, to_delete = (
+            previous_history[: len(aggregation_history)],
+            previous_history[len(aggregation_history) :],
+        )
+        overwriters, to_create = (
+            aggregation_history[: len(to_overwrite)],
+            aggregation_history[len(to_overwrite) :],
+        )
+        for new, old in zip(overwriters, to_overwrite):
+            new.id = old.id
+        fields = [
+            field.name
+            for field in AggregateForecast._meta.get_fields()
+            if not field.primary_key
+        ]
         AggregateForecast.objects.bulk_update(overwriters, fields, batch_size=50)
         AggregateForecast.objects.filter(id__in=[old.id for old in to_delete]).delete()
         AggregateForecast.objects.bulk_create(to_create, batch_size=50)
