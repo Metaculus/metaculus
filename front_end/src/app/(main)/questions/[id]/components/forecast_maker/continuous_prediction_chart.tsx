@@ -8,7 +8,7 @@ import {
   ContinuousAreaGraphType,
   ContinuousAreaHoverState,
 } from "@/types/charts";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { DefaultCdfSize, QuestionWithNumericForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
@@ -59,19 +59,28 @@ const ContinuousPredictionChart: FC<Props> = ({
         : !hoverState.yData.user
           ? null
           : graphType === "pmf"
-            ? (hoverState.yData.user * 200).toFixed(3)
+            ? (
+                hoverState.yData.user *
+                (question.cdf_size || DefaultCdfSize - 1)
+              ).toFixed(3)
             : getForecastPctDisplayValue(hoverState.yData.user),
       yUserPreviousLabel: readOnly
         ? null
         : !hoverState.yData.user_previous
           ? null
           : graphType === "pmf"
-            ? (hoverState.yData.user_previous * 200).toFixed(3)
+            ? (
+                hoverState.yData.user_previous *
+                (question.cdf_size || DefaultCdfSize - 1)
+              ).toFixed(3)
             : getForecastPctDisplayValue(hoverState.yData.user_previous),
       yCommunityLabel: !hoverState.yData.community
         ? null
         : graphType === "pmf"
-          ? (hoverState.yData.community * 200).toFixed(3)
+          ? (
+              hoverState.yData.community *
+              (question.cdf_size || DefaultCdfSize - 1)
+            ).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
   }, [graphType, hoverState, question, readOnly]);

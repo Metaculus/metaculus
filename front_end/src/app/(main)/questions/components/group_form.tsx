@@ -612,6 +612,7 @@ const GroupForm: React.FC<Props> = ({
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
                         defaultZeroPoint={subQuestion.scaling.zero_point}
+                        defaultCdfSize={subQuestion.cdf_size}
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
                         }

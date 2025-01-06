@@ -26,7 +26,7 @@ import {
   ProjectPermissions,
   QuestionStatus,
 } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { DefaultCdfSize, QuestionWithNumericForecasts } from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
@@ -240,7 +240,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               getNormalizedUserForecast(userForecast),
               userWeights,
               question.open_lower_bound,
-              question.open_upper_bound
+              question.open_upper_bound,
+              question.cdf_size || DefaultCdfSize
             ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
@@ -274,7 +275,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       getNormalizedUserForecast(activeGroupOption.userForecast),
       activeGroupOption?.userWeights,
       activeGroupOption?.question.open_lower_bound,
-      activeGroupOption?.question.open_upper_bound
+      activeGroupOption?.question.open_upper_bound,
+      activeGroupOption?.question.cdf_size || DefaultCdfSize
     ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
@@ -303,7 +305,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           normalizedUserForecast,
           option.userWeights,
           option.question.open_lower_bound,
-          option.question.open_upper_bound
+          option.question.open_upper_bound,
+          option.question.cdf_size || DefaultCdfSize
         );
 
         return (
@@ -504,7 +507,9 @@ function getUserQuartiles(
     forecast,
     weight,
     openLower,
-    openUpper
+    openUpper,
+    DefaultCdfSize // cdf size doesn't effect this since we're just
+    // computing quartiles at the next step
   );
   return computeQuartilesFromCDF(dataset.cdf);
 }
