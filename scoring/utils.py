@@ -530,6 +530,54 @@ class Contribution:
     comment: Comment | None = None
 
 
+def get_contribution_question_writing(user: User, leaderboard: Leaderboard, questions: Question.objects):
+    forecaster_ids_for_post = defaultdict(set)
+
+    questions = (
+        questions.prefetch_related("related_posts__post")
+        # Fetch only authored posts
+        .filter(related_posts__post__author_id=user.id)
+    )
+
+    # Fetch forecasts during leaderboard period
+    forecasts = Forecast.objects.filter(question__in=questions)
+
+    if leaderboard.start_time:
+        forecasts = forecasts.filter(start_time__gte=leaderboard.start_time)
+
+    if leaderboard.end_time:
+        forecasts.filter(
+            start_time__lte=leaderboard.end_time
+        )
+
+    # Fetch only 2 target fields
+    forecasts = forecasts.only("question_id", "author_id")
+
+    # Generate Question<>Forecasters map
+    question_forecasters_map = defaultdict(set)
+
+    for forecast in forecasts.iterator(chunk_size=500):
+        question_forecasters_map[forecast.question_id].add(forecast.author_id)
+
+    # Loop over chunked questions
+    for question in questions.iterator(chunk_size=500):
+        post = question.get_post()
+        forecaster_ids_for_post[post] |= question_forecasters_map[question.id]
+
+    contributions: list[Contribution] = []
+    for post, forecaster_ids in forecaster_ids_for_post.items():
+        contribution = Contribution(
+            score=len(forecaster_ids),
+            post=post,
+        )
+        contributions.append(contribution)
+
+    h_index = decimal_h_index([c.score / 10 for c in contributions])
+    contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
+
+    return contributions
+
+
 def get_contributions(
     user: User,
     leaderboard: Leaderboard,
@@ -576,46 +624,7 @@ def get_contributions(
     questions = leaderboard.get_questions()
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
-        forecaster_ids_for_post: dict[Post, set[int]] = {}
-
-        # Fetch only authored posts
-        # And split by chunks for optimization
-        qs = (
-            questions.prefetch_related("related_posts__post")
-            .filter(related_posts__post__author_id=user.id)
-            .iterator(chunk_size=500)
-        )
-
-        for question in qs:
-            post: Post = question.get_post()
-
-            forecasts_during_period = question.user_forecasts.all()
-            if leaderboard.start_time:
-                forecasts_during_period = forecasts_during_period.filter(
-                    start_time__gte=leaderboard.start_time
-                )
-            if leaderboard.end_time:
-                forecasts_during_period = forecasts_during_period.filter(
-                    start_time__lte=leaderboard.end_time
-                )
-            forecasters = set(
-                [forecast.author_id for forecast in forecasts_during_period]
-            )
-            if post not in forecaster_ids_for_post:
-                forecaster_ids_for_post[post] = set()
-            forecaster_ids_for_post[post].update(forecasters)
-
-        contributions: list[Contribution] = []
-        for post, forecaster_ids in forecaster_ids_for_post.items():
-            contribution = Contribution(
-                score=len(forecaster_ids),
-                post=post,
-            )
-            contributions.append(contribution)
-        h_index = decimal_h_index([c.score / 10 for c in contributions])
-        contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        # return contributions[: int(h_index) + 1]
-        return contributions
+        return get_contribution_question_writing(user, leaderboard, questions)
 
     calculated_scores = Score.objects.filter(
         question__in=questions,
