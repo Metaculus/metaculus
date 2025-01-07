@@ -15,7 +15,8 @@ export const BWRegisterButton: FC<
   return (
     <Button
       variant="secondary"
-      className="cursor-pointer text-nowrap px-2 py-0.5 text-xs xs:px-3 xs:py-2"
+      className="mt-0 scale-100 cursor-pointer text-nowrap xl:mt-5 xl:scale-125 min-[1920px]:scale-150"
+      size="md"
       {...props}
     >
       {children}
@@ -30,7 +31,7 @@ export const ChoicesButtons: FC<{
   const { setCurrentModal } = useModal();
 
   const customButtonClassNames =
-    "w-full cursor-pointer text-xs px-2 py-0.5 text-nowrap xs:px-3 xs:py-2";
+    "w-full cursor-pointer text-xs px-2 py-1 text-nowrap xs:px-3 xs:py-2 md:text-base md:px-4 md:py-2.5 xl:text-lg xl:px-5 xl:px-3.5";
   return (
     <>
       <div className={cn("text-gray-900 dark:text-gray-900-dark", className)}>
@@ -57,7 +58,7 @@ export const ChoicesButtons: FC<{
 export const Hero = () => {
   return (
     <div className="h-full w-full rounded bg-white p-4 dark:bg-blue-100-dark md:p-6 lg:gap-2 lg:p-8 min-[1920px]:gap-3 min-[1920px]:p-12">
-      <h1 className="m-0 mt-2 text-balance text-center text-base font-bold leading-snug text-blue-600 dark:text-blue-600-dark xs:text-2xl sm:text-3xl md:text-4xl lg:text-left lg:text-4xl lg:leading-normal xl:leading-normal min-[1920px]:text-5xl  min-[1920px]:leading-normal">
+      <h1 className="m-0 mt-4 text-balance text-center text-xl font-bold leading-snug text-blue-600 dark:text-blue-600-dark xs:text-2xl sm:text-3xl md:text-4xl lg:text-left lg:text-4xl lg:leading-normal xl:leading-normal min-[1920px]:text-5xl  min-[1920px]:leading-normal">
         <span className="text-nowrap text-blue-800 dark:text-blue-800-dark">
           Bridgewater <span className="font-thin opacity-50">x</span> Metaculus
         </span>{" "}
