@@ -2,7 +2,6 @@
 import {
   faArrowUp,
   faEllipsis,
-  faFileClipboard,
   faHome,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -243,20 +242,6 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               });
             }}
           />
-          <hr className="mb-0 mt-0"></hr>
-          {user && (
-            <TopicItem
-              text={t("inReview")}
-              emoji={<FontAwesomeIcon icon={faFileClipboard} />}
-              onClick={() => {
-                sendGAEvent("event", "sidebarClick", {
-                  event_category: t("inReview"),
-                });
-                switchFeed(FeedType.IN_REVIEW);
-              }}
-              isActive={currentFeed === FeedType.IN_REVIEW}
-            />
-          )}
         </div>
       </div>
     </div>
