@@ -10,7 +10,7 @@ import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_but
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import PredictionChip from "@/components/prediction_chip";
-import { PostConditional, PostStatus } from "@/types/post";
+import { ConditionalPost, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/cn";
 import {
@@ -25,26 +25,24 @@ import Arrow from "./icons/Arrow";
 import DisabledArrow from "./icons/DisabledArrow";
 
 type Props = {
-  postTitle: string;
-  conditional: PostConditional<QuestionWithForecasts>;
+  post: ConditionalPost<QuestionWithForecasts>;
   withNavigation?: boolean;
   chartTheme?: VictoryThemeDefinition;
-  nrForecasters?: number;
   withCPRevealBtn?: boolean;
-  forecasters?: number;
 };
 
 const ConditionalTile: FC<Props> = ({
-  postTitle,
-  conditional,
+  post,
   withNavigation,
   chartTheme,
   withCPRevealBtn,
-  forecasters,
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
+
+  const { conditional, title, nr_forecasters } = post;
   const { condition, condition_child, question_yes, question_no } = conditional;
+
   const isEmbedded = !!chartTheme;
 
   const conditionHref =
@@ -94,7 +92,7 @@ const ConditionalTile: FC<Props> = ({
         >
           <ConditionalCard
             label={t("condition")}
-            title={getConditionTitle(postTitle, condition)}
+            title={getConditionTitle(title, condition)}
             resolved={parentSuccessfullyResolved}
             href={withNavigation ? conditionHref : undefined}
           >
@@ -110,7 +108,7 @@ const ConditionalTile: FC<Props> = ({
                 hideCP={hideCP}
               />
             )}
-            <ForecastersCounter forecasters={forecasters} />
+            <ForecastersCounter forecasters={nr_forecasters} />
           </ConditionalCard>
         </div>
         <div

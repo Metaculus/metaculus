@@ -8,7 +8,7 @@ import FanGraphGroupChart from "@/app/(main)/questions/[id]/components/detailed_
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
-import { PostStatus } from "@/types/post";
+import { GroupOfQuestionsPost, PostStatus } from "@/types/post";
 import {
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
@@ -23,25 +23,22 @@ import {
 import { useHideCP } from "../cp_provider";
 
 type Props = {
-  questions: QuestionWithForecasts[];
-  graphType: string;
+  post: GroupOfQuestionsPost<QuestionWithForecasts>;
   preselectedQuestionId?: number;
-  isClosed?: boolean;
-  actualCloseTime: string | null;
-  openTime: string | null;
-  postStatus: PostStatus;
 };
 
-const DetailedGroupCard: FC<Props> = ({
-  questions,
-  preselectedQuestionId,
-  isClosed,
-  graphType,
-  actualCloseTime,
-  openTime,
-  postStatus,
-}) => {
+const DetailedGroupCard: FC<Props> = ({ post, preselectedQuestionId }) => {
   const t = useTranslations();
+
+  const {
+    open_time,
+    actual_close_time,
+    scheduled_close_time,
+    group_of_questions: { questions, graph_type },
+    status,
+  } = post;
+  const refCloseTime = actual_close_time ?? scheduled_close_time;
+
   const groupType = questions.at(0)?.type;
   const { hideCP } = useHideCP();
 
@@ -64,12 +61,12 @@ const DetailedGroupCard: FC<Props> = ({
   if (
     forecastAvailability.isEmpty &&
     forecastAvailability.cpRevealsOn &&
-    postStatus !== PostStatus.OPEN
+    status !== PostStatus.OPEN
   ) {
     return null;
   }
 
-  switch (graphType) {
+  switch (graph_type) {
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
       const sortedQuestions = sortGroupPredictionOptions(
         questions as QuestionWithNumericForecasts[]
@@ -90,10 +87,10 @@ const DetailedGroupCard: FC<Props> = ({
             timestamps={timestamps}
             type={type}
             actualCloseTime={
-              actualCloseTime ? new Date(actualCloseTime).getTime() : null
+              refCloseTime ? new Date(refCloseTime).getTime() : null
             }
-            openTime={openTime ? new Date(openTime).getTime() : undefined}
-            isClosed={isClosed}
+            openTime={open_time ? new Date(open_time).getTime() : undefined}
+            isClosed={status === PostStatus.CLOSED}
             preselectedQuestionId={preselectedQuestionId}
             hideCP={hideCP}
             forecastAvailability={forecastAvailability}

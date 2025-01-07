@@ -154,7 +154,16 @@ export type Post<QT = Question> = {
   key_factors?: KeyFactor[];
 };
 
-export type PostWithNotebook = Omit<Post, "notebook"> & {
+export type QuestionPost<QT = Question> = Post<QT> & {
+  question: QT;
+};
+export type ConditionalPost<QT = Question> = Post<QT> & {
+  conditional: PostConditional<QT>;
+};
+export type GroupOfQuestionsPost<QT = Question> = Post<QT> & {
+  group_of_questions: PostGroupOfQuestions<QT>;
+};
+export type NotebookPost = Omit<Post, "notebook"> & {
   notebook: Notebook;
 };
 

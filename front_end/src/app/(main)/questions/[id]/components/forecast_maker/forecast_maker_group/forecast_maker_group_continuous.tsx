@@ -31,6 +31,8 @@ import { getCdfBounds } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
   extractPrevNumericForecastValue,
+  getNormalizedContinuousForecast,
+  getNormalizedContinuousWeight,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
@@ -173,7 +175,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       prev.map((prevChoice) => {
         if (prevChoice.id === optionId) {
           const newUserForecast = [
-            ...getNormalizedUserForecast(prevChoice.userForecast),
+            ...getNormalizedContinuousForecast(prevChoice.userForecast),
             { left: 0.4, center: 0.5, right: 0.6 },
           ];
           const newWeights = [...prevChoice.userWeights, 1];
@@ -212,7 +214,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               prevOption.question.open_upper_bound
             ),
             userForecast: getSliderValue(prevForecast),
-            userWeights: getWeightsValue(prevWeights),
+            userWeights: getNormalizedContinuousWeight(prevWeights),
             isDirty: false,
           };
         }
@@ -237,7 +239,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           questionId: question.id,
           forecastData: {
             continuousCdf: getNumericForecastDataset(
-              getNormalizedUserForecast(userForecast),
+              getNormalizedContinuousForecast(userForecast),
               userWeights,
               question.open_lower_bound,
               question.open_upper_bound
@@ -246,7 +248,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             probabilityYes: null,
           },
           sliderValues: {
-            forecast: getNormalizedUserForecast(userForecast),
+            forecast: getNormalizedContinuousForecast(userForecast),
             weights: userWeights,
           },
         };
@@ -271,7 +273,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const userCdf: number[] | undefined =
     activeGroupOption &&
     getNumericForecastDataset(
-      getNormalizedUserForecast(activeGroupOption.userForecast),
+      getNormalizedContinuousForecast(activeGroupOption.userForecast),
       activeGroupOption?.userWeights,
       activeGroupOption?.question.open_lower_bound,
       activeGroupOption?.question.open_upper_bound
@@ -295,7 +297,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         showCP={!user || !hideCP}
       />
       {groupOptions.map((option) => {
-        const normalizedUserForecast = getNormalizedUserForecast(
+        const normalizedUserForecast = getNormalizedContinuousForecast(
           option.userForecast
         );
 
@@ -461,7 +463,7 @@ function generateGroupOptions(
           q.open_upper_bound
         ),
         userForecast: getSliderValue(prevForecast),
-        userWeights: getWeightsValue(prevWeights),
+        userWeights: getNormalizedContinuousWeight(prevWeights),
         communityQuartiles: q.aggregations.recency_weighted.latest
           ? computeQuartilesFromCDF(
               q.aggregations.recency_weighted.latest.forecast_values
@@ -511,22 +513,6 @@ function getUserQuartiles(
 
 function getSliderValue(forecast?: MultiSliderValue[]) {
   return forecast ?? null;
-}
-
-function getNormalizedUserForecast(forecast: MultiSliderValue[] | null) {
-  return (
-    forecast ?? [
-      {
-        left: 0.4,
-        center: 0.5,
-        right: 0.6,
-      },
-    ]
-  );
-}
-
-function getWeightsValue(weights?: number[]) {
-  return weights ?? [1];
 }
 
 export default ForecastMakerGroupContinuous;

@@ -9,10 +9,10 @@ import { useContentTranslatedBannerProvider } from "@/app/providers";
 import MarkdownEditor from "@/components/markdown_editor";
 import PostDefaultProject from "@/components/post_default_project";
 import Button from "@/components/ui/button";
-import { PostStatus, PostWithNotebook, ProjectPermissions } from "@/types/post";
+import { PostStatus, NotebookPost, ProjectPermissions } from "@/types/post";
 
 interface NotebookEditorProps {
-  postData: PostWithNotebook;
+  postData: NotebookPost;
   contentId?: string;
 }
 
