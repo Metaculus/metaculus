@@ -1,7 +1,7 @@
+import csv
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
-import csv
 from io import StringIO
 
 import numpy as np
@@ -530,6 +530,54 @@ class Contribution:
     comment: Comment | None = None
 
 
+def get_contribution_question_writing(
+    user: User, leaderboard: Leaderboard, questions: Question.objects
+):
+    forecaster_ids_for_post = defaultdict(set)
+
+    questions = (
+        questions.prefetch_related("related_posts__post")
+        # Fetch only authored posts
+        .filter(related_posts__post__author_id=user.id).only("related_posts__post")
+    )
+
+    # Fetch forecasts during leaderboard period
+    forecasts = Forecast.objects.filter(question__in=list(questions))
+
+    if leaderboard.start_time:
+        forecasts = forecasts.filter(start_time__gte=leaderboard.start_time)
+
+    if leaderboard.end_time:
+        forecasts = forecasts.filter(start_time__lte=leaderboard.end_time)
+
+    # Fetch only 2 target fields
+    forecasts = forecasts.only("question_id", "author_id")
+
+    # Generate Question<>Forecasters map
+    question_forecasters_map = defaultdict(set)
+
+    for forecast in forecasts:
+        question_forecasters_map[forecast.question_id].add(forecast.author_id)
+
+    # Loop over chunked questions
+    for question in questions:
+        post = question.get_post()
+        forecaster_ids_for_post[post] |= question_forecasters_map[question.id]
+
+    contributions: list[Contribution] = []
+    for post, forecaster_ids in forecaster_ids_for_post.items():
+        contribution = Contribution(
+            score=len(forecaster_ids),
+            post=post,
+        )
+        contributions.append(contribution)
+
+    # h_index = decimal_h_index([c.score / 10 for c in contributions])
+    contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
+
+    return contributions
+
+
 def get_contributions(
     user: User,
     leaderboard: Leaderboard,
@@ -538,32 +586,37 @@ def get_contributions(
         public_posts = Post.objects.filter(
             Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
         )
-        comments = (
-            Comment.objects.filter(
-                on_post__in=public_posts,
-                author=user,
-                created_at__lte=leaderboard.end_time,
-                comment_votes__isnull=False,
-            )
-            .annotate(
-                vote_score=SubqueryAggregate(
-                    "comment_votes__direction",
-                    filter=Q(
-                        created_at__gte=leaderboard.start_time,
-                        created_at__lte=leaderboard.end_time,
-                    ),
-                    aggregate=Sum,
-                )
-            )
-            .select_related("on_post")
-            .distinct("pk")
+        comments = Comment.objects.filter(
+            on_post__in=public_posts,
+            author=user,
+            created_at__lte=leaderboard.end_time,
+            comment_votes__isnull=False,
         )
+
+        # Using Comment.prefetch_related("on_post") is not efficient in this scenario,
+        # as we may retrieve 10k+ rows, each requiring a JOIN on a large Post record,
+        # significantly slowing down serialization and data fetching.
+        # Instead, we perform a custom mapping fetch to optimize this process.
+        posts_map = {
+            p.id: p for p in Post.objects.filter(comments__in=comments).distinct("pk")
+        }
+
+        comments = comments.annotate(
+            vote_score=SubqueryAggregate(
+                "comment_votes__direction",
+                filter=Q(
+                    created_at__gte=leaderboard.start_time,
+                    created_at__lte=leaderboard.end_time,
+                ),
+                aggregate=Sum,
+            )
+        ).distinct("pk")
 
         contributions: list[Contribution] = []
         for comment in comments:
             contribution = Contribution(
                 score=comment.vote_score or 0,
-                post=comment.on_post,
+                post=posts_map[comment.on_post_id],
                 comment=comment,
             )
 
@@ -574,50 +627,20 @@ def get_contributions(
         return [c for c in contributions if c.score >= min_score]
 
     questions = leaderboard.get_questions()
-    if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
-        forecaster_ids_for_post: dict[Post, set[int]] = {}
 
-        for question in questions:
-            post: Post = question.get_post()
-            if post.author != user:
-                continue
-            forecasts_during_period = question.user_forecasts.all()
-            if leaderboard.start_time:
-                forecasts_during_period = forecasts_during_period.filter(
-                    start_time__gte=leaderboard.start_time
-                )
-            if leaderboard.end_time:
-                forecasts_during_period = forecasts_during_period.filter(
-                    start_time__lte=leaderboard.end_time
-                )
-            forecasters = set(
-                [forecast.author_id for forecast in forecasts_during_period]
-            )
-            if post not in forecaster_ids_for_post:
-                forecaster_ids_for_post[post] = set()
-            forecaster_ids_for_post[post].update(forecasters)
-        contributions: list[Contribution] = []
-        for post, forecaster_ids in forecaster_ids_for_post.items():
-            contribution = Contribution(
-                score=len(forecaster_ids),
-                post=post,
-            )
-            contributions.append(contribution)
-        h_index = decimal_h_index([c.score / 10 for c in contributions])
-        contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        # return contributions[: int(h_index) + 1]
-        return contributions
+    if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
+        return get_contribution_question_writing(user, leaderboard, questions)
 
     calculated_scores = Score.objects.filter(
         question__in=questions,
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-    )
+    ).prefetch_related("question__related_posts__post")
     archived_scores = ArchivedScore.objects.filter(
         question__in=questions,
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-    )
+    ).prefetch_related("question__related_posts__post")
 
     if leaderboard.finalize_time:
         calculated_scores = calculated_scores.filter(

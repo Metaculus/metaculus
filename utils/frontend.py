@@ -31,6 +31,10 @@ def build_question_graph_image_url(question_id: int):
     return build_frontend_url(f"/api/posts/preview-image/{question_id}/")
 
 
+def build_user_profile_url(user_id: int):
+    return build_frontend_url(f"/accounts/profile/{user_id}/")
+
+
 def build_question_graph_image_cdn_url(question_id: int):
     return build_frontend_url(f"/api/posts/preview-image/{question_id}/")
 

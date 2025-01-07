@@ -58,6 +58,7 @@ const LeaderboardRow: FC<Props> = ({
         <Link
           href={href}
           className="flex items-center justify-between gap-1.5 py-2.5 pl-2.5 text-gray-500 no-underline"
+          prefetch={false}
         >
           {!!medal && <MedalIcon type={medal} className="size-5" />}
           <span className="flex-1 text-center">{rank}</span>
@@ -72,6 +73,7 @@ const LeaderboardRow: FC<Props> = ({
         <Link
           href={href}
           className="flex items-center truncate px-4 py-2.5 no-underline"
+          prefetch={false}
         >
           {user
             ? user.username
@@ -84,6 +86,7 @@ const LeaderboardRow: FC<Props> = ({
         <Link
           href={href}
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
+          prefetch={false}
         >
           {abbreviatedNumber(contribution_count, 3, false)}
         </Link>
@@ -93,6 +96,7 @@ const LeaderboardRow: FC<Props> = ({
           <Link
             href={href}
             className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
+            prefetch={false}
           >
             {abbreviatedNumber(coverage, 3, false)}
           </Link>
@@ -107,6 +111,7 @@ const LeaderboardRow: FC<Props> = ({
         <Link
           href={href}
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
+          prefetch={false}
         >
           {abbreviatedNumber(score, 3, false)}
         </Link>

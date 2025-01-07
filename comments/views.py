@@ -30,7 +30,11 @@ from comments.serializers import (
 from comments.services.common import create_comment, trigger_update_comment_translations
 from comments.services.feed import get_comments_feed
 from comments.services.key_factors import key_factor_vote
-from notifications.services import NotificationCommentReport, NotificationPostParams
+from notifications.services import (
+    NotificationCommentReport,
+    NotificationPostParams,
+    NotificationUserParams,
+)
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from users.models import User
@@ -267,6 +271,7 @@ def comment_report_api_view(request, pk=int):
                 user,
                 NotificationCommentReport.ParamsType(
                     post=NotificationPostParams.from_post(post),
+                    reporter=NotificationUserParams.from_user(request.user),
                     comment_id=comment.id,
                     reason=reason,
                 ),

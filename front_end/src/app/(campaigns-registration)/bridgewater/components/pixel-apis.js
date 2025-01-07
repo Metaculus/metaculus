@@ -29,3 +29,9 @@ export const lnkdnInitAndTrack = () => {
     window.lnkdInitAndTrackFn(window.lintrk);
   }
 };
+
+export const lnkdTrack = () => {
+  if (window.lintrk) {
+    window.lintrk("track", { conversion_id: 18548052 });
+  }
+};
