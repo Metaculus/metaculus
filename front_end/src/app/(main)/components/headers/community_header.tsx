@@ -27,7 +27,7 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
   const [localShowName, setLocalShowName] = useState(alwaysShowName);
 
   return (
-    <header className="fixed left-0 top-0 z-50 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
+    <header className="fixed left-0 top-0 z-100 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
       <div className="flex items-center">
         <Link
           href="/questions"
