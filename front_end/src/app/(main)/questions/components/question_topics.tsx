@@ -12,12 +12,7 @@ import { FC, useMemo, useState } from "react";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import { useContentTranslatedBannerProvider } from "@/app/providers";
 import Button from "@/components/ui/button";
-import {
-  FeedType,
-  POST_FOLLOWING_FILTER,
-  POST_FORECASTER_ID_FILTER,
-  POST_TOPIC_FILTER,
-} from "@/constants/posts_feed";
+import { FeedType, POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
@@ -40,9 +35,9 @@ type Props = {
 const QuestionTopics: FC<Props> = ({ topics }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const { params, setParam, deleteParams } = useSearchParams();
+  const { params, setParam, clearParams } = useSearchParams();
 
-  const { switchFeed, currentFeed, clearInReview } = useFeed();
+  const { switchFeed, currentFeed } = useFeed();
   const selectedTopic = params.get(POST_TOPIC_FILTER);
 
   const { hotTopics, hotCategories } = useMemo(
@@ -61,9 +56,8 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     useContentTranslatedBannerProvider();
 
   const selectTopic = (topic: Topic) => {
-    clearInReview();
+    clearParams();
     setParam(POST_TOPIC_FILTER, topic.slug);
-    deleteParams([POST_FORECASTER_ID_FILTER, POST_FOLLOWING_FILTER]);
     setIsMobileExpanded(false);
   };
 
