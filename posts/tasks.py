@@ -4,7 +4,10 @@ import dramatiq
 
 from posts.models import Post
 from posts.services.search import update_post_search_embedding_vector
-from posts.services.subscriptions import notify_post_cp_change
+from posts.services.subscriptions import (
+    notify_post_cp_change,
+    notify_post_status_change,
+)
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
 
 logger = logging.getLogger(__name__)
@@ -37,9 +40,11 @@ def run_on_post_forecast(post_id):
 
 @dramatiq.actor
 def run_notify_post_status_change(post_id: int, event: Post.PostStatusChange):
-    from posts.services.subscriptions import notify_post_status_change
+    post = Post.objects.get(pk=post_id)
 
-    notify_post_status_change(Post.objects.get(pk=post_id), event)
+    # Send only for approved posts
+    if post.curation_status == Post.CurationStatus.APPROVED:
+        notify_post_status_change(post, event)
 
 
 @dramatiq.actor
