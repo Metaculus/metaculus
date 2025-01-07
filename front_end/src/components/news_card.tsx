@@ -7,13 +7,13 @@ import { FC } from "react";
 import MarkdownEditor from "@/components/markdown_editor";
 import CircleDivider from "@/components/ui/circle_divider";
 import useContainerSize from "@/hooks/use_container_size";
-import { PostWithNotebook } from "@/types/post";
+import { NotebookPost } from "@/types/post";
 import { formatDate } from "@/utils/date_formatters";
 import { getPostLink } from "@/utils/navigation";
 import { estimateReadingTime, getMarkdownSummary } from "@/utils/questions";
 
 type Props = {
-  post: PostWithNotebook;
+  post: NotebookPost;
 };
 
 const NewsCard: FC<Props> = ({ post }) => {

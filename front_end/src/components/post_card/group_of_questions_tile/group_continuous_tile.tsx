@@ -7,11 +7,12 @@ import {
   FanGraphMultipleChoiceTile,
 } from "@/components/multiple_choice_tile";
 import { useAuth } from "@/contexts/auth_context";
+import { ForecastPayload } from "@/services/questions";
 import {
   GroupOfQuestionsGraphType,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { PostWithForecasts } from "@/types/post";
+import { GroupOfQuestionsPost } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   generateChoiceItemsFromGroupQuestions,
@@ -19,6 +20,7 @@ import {
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
 import {
+  canPredictQuestion,
   getGroupForecastAvailability,
   sortGroupPredictionOptions,
 } from "@/utils/questions";
@@ -27,14 +29,19 @@ const CHART_HEIGHT = 100;
 const VISIBLE_CHOICES_COUNT = 3;
 
 type Props = {
-  questions: QuestionWithNumericForecasts[];
-  post: PostWithForecasts;
+  post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   hideCP?: boolean;
+  onReaffirm?: (userForecast: ForecastPayload[]) => void;
 };
 
-const GroupContinuousTile: FC<Props> = ({ questions, post, hideCP }) => {
+const GroupContinuousTile: FC<Props> = ({ post, hideCP, onReaffirm }) => {
   const { user } = useAuth();
   const locale = useLocale();
+
+  const {
+    group_of_questions: { questions, graph_type },
+  } = post;
+  const canPredict = canPredictQuestion(post);
 
   const questionType = questions[0]?.type;
   const isBinaryGroup = questionType === QuestionType.Binary;
@@ -44,9 +51,7 @@ const GroupContinuousTile: FC<Props> = ({ questions, post, hideCP }) => {
   );
   const forecastAvailability = getGroupForecastAvailability(questions);
 
-  const groupGraphType = post.group_of_questions?.graph_type;
-
-  switch (groupGraphType) {
+  switch (graph_type) {
     case GroupOfQuestionsGraphType.FanGraph: {
       const sortedFanGraphQuestions = [...questions].sort((a, b) =>
         differenceInMilliseconds(
@@ -67,11 +72,13 @@ const GroupContinuousTile: FC<Props> = ({ questions, post, hideCP }) => {
         <FanGraphMultipleChoiceTile
           choices={choices}
           visibleChoicesCount={VISIBLE_CHOICES_COUNT}
-          questions={questions}
-          questionType={questionType}
+          groupQuestions={questions}
+          groupType={questionType}
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
           chartHeight={CHART_HEIGHT}
+          onReaffirm={onReaffirm}
+          canPredict={canPredict}
         />
       );
     }
@@ -103,9 +110,12 @@ const GroupContinuousTile: FC<Props> = ({ questions, post, hideCP }) => {
               : TimelineChartZoomOption.TwoMonths
           }
           scaling={scaling}
-          questionType={questionType}
+          groupQuestions={questions}
+          groupType={questionType}
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
+          onReaffirm={onReaffirm}
+          canPredict={canPredict}
         />
       );
     }

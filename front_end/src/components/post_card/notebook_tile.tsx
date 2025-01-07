@@ -4,15 +4,17 @@ import { FC } from "react";
 
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
-import { Notebook } from "@/types/post";
+import { NotebookPost } from "@/types/post";
 import { getMarkdownSummary } from "@/utils/questions";
 
 type Props = {
-  notebook: Notebook;
+  post: NotebookPost;
 };
 
-const NotebookTile: FC<Props> = ({ notebook }) => {
+const NotebookTile: FC<Props> = ({ post }) => {
   const { ref, width } = useContainerSize<HTMLDivElement>();
+
+  const { notebook } = post;
 
   return (
     <div ref={ref} className="flex gap-4">

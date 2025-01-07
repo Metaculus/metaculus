@@ -2,7 +2,8 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { PostWithForecasts } from "@/types/post";
+import { ForecastPayload } from "@/services/questions";
+import { GroupOfQuestionsPost } from "@/types/post";
 import {
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
@@ -11,13 +12,16 @@ import {
 import GroupContinuousTile from "./group_continuous_tile";
 
 type Props = {
-  questions: QuestionWithForecasts[];
-  post: PostWithForecasts;
+  post: GroupOfQuestionsPost<QuestionWithForecasts>;
   hideCP?: boolean;
+  onReaffirm?: (userForecast: ForecastPayload[]) => void;
 };
 
-const GroupOfQuestionsTile: FC<Props> = ({ questions, post, hideCP }) => {
+const GroupOfQuestionsTile: FC<Props> = ({ post, hideCP, onReaffirm }) => {
   const t = useTranslations();
+  const {
+    group_of_questions: { questions },
+  } = post;
   const groupType = questions.at(0)?.type;
 
   if (!groupType) {
@@ -26,9 +30,9 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, post, hideCP }) => {
 
   return (
     <GroupContinuousTile
-      questions={questions as QuestionWithNumericForecasts[]}
-      post={post}
+      post={post as GroupOfQuestionsPost<QuestionWithNumericForecasts>}
       hideCP={hideCP}
+      onReaffirm={onReaffirm}
     />
   );
 };

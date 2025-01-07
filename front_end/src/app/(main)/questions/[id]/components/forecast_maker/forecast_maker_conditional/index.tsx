@@ -33,13 +33,6 @@ const ForecastMakerConditional: FC<Props> = ({
   if (question_yes.type !== question_no.type) {
     return null;
   }
-  const parentSuccessfullyResolved =
-    condition.resolution === "yes" || condition.resolution === "no";
-  const parentIsClosed = condition.actual_close_time
-    ? new Date(condition.actual_close_time).getTime() < Date.now()
-    : false;
-  const conditionClosedOrResolved =
-    parentSuccessfullyResolved || parentIsClosed;
 
   return (
     <ForecastMakerContainer
@@ -65,12 +58,7 @@ const ForecastMakerConditional: FC<Props> = ({
           conditional={
             conditional as PostConditional<QuestionWithNumericForecasts>
           }
-          canPredict={
-            canPredict &&
-            !conditionClosedOrResolved &&
-            conditional.condition_child.open_time !== undefined &&
-            new Date(conditional.condition_child.open_time) <= new Date()
-          }
+          canPredict={canPredict}
           predictionMessage={predictionMessage}
           projects={projects}
         />
@@ -83,12 +71,7 @@ const ForecastMakerConditional: FC<Props> = ({
           conditional={
             conditional as PostConditional<QuestionWithNumericForecasts>
           }
-          canPredict={
-            canPredict &&
-            !conditionClosedOrResolved &&
-            conditional.condition_child.open_time !== undefined &&
-            new Date(conditional.condition_child.open_time) <= new Date()
-          }
+          canPredict={canPredict}
           predictionMessage={predictionMessage}
           projects={projects}
         />

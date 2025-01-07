@@ -14,7 +14,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostsParams } from "@/services/posts";
-import { PostWithForecasts, PostWithNotebook } from "@/types/post";
+import { PostWithForecasts, NotebookPost } from "@/types/post";
 import { logError } from "@/utils/errors";
 
 import { SCROLL_CACHE_KEY } from "./constants";
@@ -127,7 +127,7 @@ const PaginatedPostsFeed: FC<Props> = ({
 
   const renderPost = (post: PostWithForecasts) => {
     if (type === "news" && post.notebook) {
-      return <NewsCard post={post as PostWithNotebook} />;
+      return <NewsCard post={post as NotebookPost} />;
     }
 
     return <PostCard post={post} />;

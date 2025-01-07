@@ -6,8 +6,11 @@ import React, { FC } from "react";
 import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
-import { PostConditional } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { ConditionalPost, PostConditional, PostStatus } from "@/types/post";
+import {
+  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
 import {
   getGroupForecastAvailability,
@@ -15,14 +18,15 @@ import {
 } from "@/utils/questions";
 
 type Props = {
-  conditional: PostConditional<QuestionWithNumericForecasts>;
-  isClosed?: boolean;
+  post: ConditionalPost<QuestionWithForecasts>;
 };
 
-const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
+const ConditionalTimeline: FC<Props> = ({ post }) => {
   const t = useTranslations();
 
   const { hideCP } = useHideCP();
+
+  const { conditional, status } = post;
 
   const groupType = conditional.question_no.type;
   const type = getQuestionLinearChartType(groupType);
@@ -30,7 +34,10 @@ const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
     return null;
   }
 
-  const questions = generateQuestions(t, conditional);
+  const questions = generateQuestions(
+    t,
+    conditional as PostConditional<QuestionWithNumericForecasts>
+  );
   const forecastAvailability = getGroupForecastAvailability(questions);
   const timestamps = getGroupQuestionsTimestamps(questions, {
     withUserTimestamps: !!forecastAvailability.cpRevealsOn,
@@ -54,7 +61,7 @@ const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
         }
         hideCP={hideCP}
         forecastAvailability={forecastAvailability}
-        isClosed={isClosed}
+        isClosed={status === PostStatus.CLOSED}
       />
       {hideCP && <RevealCPButton className="mb-3" />}
     </>

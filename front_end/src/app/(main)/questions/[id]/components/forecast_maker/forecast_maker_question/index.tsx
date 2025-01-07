@@ -1,4 +1,3 @@
-import { parseISO } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
@@ -55,11 +54,7 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             permission={permission}
-            canPredict={
-              canPredict &&
-              question.open_time !== undefined &&
-              parseISO(question.open_time) < new Date()
-            }
+            canPredict={canPredict}
             canResolve={canResolve}
             predictionMessage={predictionMessage}
           />
@@ -73,11 +68,7 @@ const QuestionForecastMaker: FC<Props> = ({
             question={question}
             permission={permission}
             prevForecast={activeUserForecast?.forecast_values[1]}
-            canPredict={
-              canPredict &&
-              question.open_time !== undefined &&
-              parseISO(question.open_time) < new Date()
-            }
+            canPredict={canPredict}
             canResolve={canResolve}
             predictionMessage={predictionMessage}
           />
@@ -90,11 +81,7 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             permission={permission}
-            canPredict={
-              canPredict &&
-              question.open_time !== undefined &&
-              parseISO(question.open_time) < new Date()
-            }
+            canPredict={canPredict}
             canResolve={canResolve}
             predictionMessage={predictionMessage}
           />

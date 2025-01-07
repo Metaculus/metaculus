@@ -2,7 +2,7 @@
 import { sendGAEvent } from "@next/third-parties/google";
 import React, { FC, useEffect } from "react";
 
-import { PostStatus } from "@/types/post";
+import { PostStatus, QuestionPost } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions";
 
@@ -13,16 +13,11 @@ import { useHideCP } from "../cp_provider";
 import RevealCPButton from "../reveal_cp_button";
 
 type Props = {
-  postStatus: PostStatus;
-  question: QuestionWithForecasts;
-  nrForecasters: number;
+  post: QuestionPost<QuestionWithForecasts>;
 };
 
-const DetailedQuestionCard: FC<Props> = ({
-  postStatus,
-  question,
-  nrForecasters,
-}) => {
+const DetailedQuestionCard: FC<Props> = ({ post }) => {
+  const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
 
   const { hideCP } = useHideCP();
@@ -35,7 +30,7 @@ const DetailedQuestionCard: FC<Props> = ({
     }
   }, [question.my_forecasts?.history.length, question.type]);
 
-  if (forecastAvailability.isEmpty && postStatus !== PostStatus.OPEN) {
+  if (forecastAvailability.isEmpty && status !== PostStatus.OPEN) {
     return null;
   }
 
@@ -49,7 +44,7 @@ const DetailedQuestionCard: FC<Props> = ({
             question={question}
             hideCP={hideCP}
             forecastAvailability={forecastAvailability}
-            nrForecasters={nrForecasters}
+            nrForecasters={nr_forecasters}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
