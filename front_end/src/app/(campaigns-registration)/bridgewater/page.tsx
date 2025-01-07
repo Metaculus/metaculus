@@ -6,9 +6,9 @@ import { FC } from "react";
 import ProfileApi from "@/services/profile";
 import cn from "@/utils/cn";
 
-import GlobalHeader from "../../(main)/components/headers/global_header";
 import { Hero, Dates, Prize } from "./components/hero-section";
 import { RegisterAndStatus } from "./components/registration-status";
+import GlobalHeader from "../../(main)/components/headers/global_header";
 
 export const metadata = {
   title: "Bridgewater x Metaculus",
