@@ -66,6 +66,13 @@ const useSearchParams = () => {
     [navigateToSearchParams, params]
   );
 
+  const clearParams = useCallback(
+    (withNavigation = true) => {
+      deleteParams(Array.from(params.keys()), withNavigation);
+    },
+    [navigateToSearchParams, params]
+  );
+
   const replaceParams = useCallback(
     (
       oldParams: string[],
@@ -94,6 +101,7 @@ const useSearchParams = () => {
     setParam,
     deleteParam,
     deleteParams,
+    clearParams,
     replaceParams,
     navigateToSearchParams,
     shallowNavigateToSearchParams,
