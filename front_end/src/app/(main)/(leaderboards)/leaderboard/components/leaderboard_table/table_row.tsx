@@ -72,6 +72,7 @@ const LeaderboardRow: FC<Props> = ({
         <Link
           href={href}
           className="flex items-center truncate px-4 py-2.5 no-underline"
+          prefetch={false}
         >
           {user
             ? user.username
