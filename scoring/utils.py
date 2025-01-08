@@ -3,6 +3,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from io import StringIO
+import logging
 
 import numpy as np
 from django.db import transaction
@@ -28,6 +29,8 @@ from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
+
+logger = logging.getLogger(__name__)
 
 
 def score_question(
@@ -84,6 +87,7 @@ def generate_scoring_leaderboard_entries(
 
     if leaderboard.finalize_time:
         qs_filters["question__scheduled_close_time__lte"] = leaderboard.finalize_time
+        qs_filters["question__resolution_set_time__lte"] = leaderboard.finalize_time
 
     archived_scores = ArchivedScore.objects.filter(**qs_filters).prefetch_related(
         "question"
@@ -398,6 +402,7 @@ def assign_prizes(
 def update_project_leaderboard(
     project: Project | None = None,
     leaderboard: Leaderboard | None = None,
+    force_update: bool = False,
 ) -> list[LeaderboardEntry]:
     if project is None and leaderboard is None:
         raise ValueError("Either project or leaderboard must be provided")
@@ -408,6 +413,12 @@ def update_project_leaderboard(
         raise ValueError("Leaderboard not found")
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.MANUAL:
+        return list(leaderboard.entries.all().order_by("rank"))
+
+    if not force_update and leaderboard.finalized:
+        logger.warning(
+            "Leaderboard %s is already finalized, not updating", leaderboard.name
+        )
         return list(leaderboard.entries.all().order_by("rank"))
 
     # new entries
@@ -440,6 +451,8 @@ def update_project_leaderboard(
         # add prize if applicable
         if project.prize_pool:
             new_entries = assign_prizes(new_entries, project.prize_pool)
+        # set finalize
+        Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
 
     # save entries
     previous_entries_map = {
@@ -644,10 +657,12 @@ def get_contributions(
 
     if leaderboard.finalize_time:
         calculated_scores = calculated_scores.filter(
-            question__scheduled_close_time__lte=leaderboard.finalize_time
+            question__scheduled_close_time__lte=leaderboard.finalize_time,
+            question__resolution_set_time__lte=leaderboard.finalize_time,
         ).prefetch_related("question")
         archived_scores = archived_scores.filter(
-            question__scheduled_close_time__lte=leaderboard.finalize_time
+            question__scheduled_close_time__lte=leaderboard.finalize_time,
+            question__resolution_set_time__lte=leaderboard.finalize_time,
         ).prefetch_related("question")
     scores = list(archived_scores)
 
