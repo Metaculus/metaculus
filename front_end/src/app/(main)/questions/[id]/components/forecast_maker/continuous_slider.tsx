@@ -1,6 +1,7 @@
 "use client";
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
@@ -10,7 +11,7 @@ import MultiSlider, {
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
 import Checkbox from "@/components/ui/checkbox";
-import InlineSelect from "@/components/ui/inline_select";
+import Switch from "@/components/ui/switch";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousAreaGraphType } from "@/types/charts";
 import { QuestionWithNumericForecasts } from "@/types/question";
@@ -49,25 +50,40 @@ const ContinuousSlider: FC<Props> = ({
   const previousForecast = question.my_forecasts?.latest;
 
   return (
-    <div>
-      <div className="mb-2 flex items-center">
-        <InlineSelect<ContinuousAreaGraphType>
-          options={[
-            { label: t("pdfLabel"), value: "pmf" },
-            { label: t("cdfLabel"), value: "cdf" },
-          ]}
-          defaultValue={graphType}
-          className="appearance-none border-none !p-0 text-sm"
-          onChange={(e) =>
-            setGraphType(e.target.value as ContinuousAreaGraphType)
-          }
-        />
+    <div className="mr-0 mt-[-36px] flex flex-col sm:mr-2 md:mt-[-28px]">
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex w-fit flex-row items-center gap-2 self-end">
+          <p
+            className={classNames(
+              "m-0 text-sm",
+              graphType === "cdf" ? "opacity-60" : "opacity-90"
+            )}
+            title="probability density function"
+          >
+            {t("pdf")}
+          </p>
+          <Switch
+            checked={graphType === "cdf"}
+            onChange={(checked) => setGraphType(checked ? "cdf" : "pmf")}
+          />
+          <p
+            className={classNames(
+              "m-0 text-sm",
+              graphType === "cdf" ? "opacity-90" : "opacity-60"
+            )}
+            title="cumulative density function"
+          >
+            {t("cdf")}
+          </p>
+        </div>
         {previousForecast && (
-          <div className="ml-auto flex items-center">
+          <div className="ml-auto mr-auto mt-1 flex items-center md:mr-0">
             <Checkbox
               checked={overlayPreviousForecast}
               onChange={(checked) => setOverlayPreviousForecast(checked)}
-              className={"text-sm"}
+              className={
+                "flex flex-row gap-2 text-sm text-gray-700 dark:text-gray-700-dark md:flex-row-reverse "
+              }
               label={
                 !!previousForecast.end_time
                   ? t("overlayMostRecentForecast")
@@ -77,7 +93,6 @@ const ContinuousSlider: FC<Props> = ({
           </div>
         )}
       </div>
-
       <ContinuousPredictionChart
         dataset={dataset}
         graphType={graphType}

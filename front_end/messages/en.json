@@ -83,6 +83,8 @@
   "predictionLabel": "Prediction",
   "pdfLabel": "Probability Density",
   "cdfLabel": "Cumulative Probability",
+  "pdf": "PDF",
+  "cdf": "CDF",
   "recencyWeighted": "Recency weighted",
   "unweighted": "Unweighted",
   "metaculus": "Metaculus",

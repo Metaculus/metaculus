@@ -65,6 +65,8 @@
   "predictionLabel": "預測",
   "pdfLabel": "概率密度",
   "cdfLabel": "累積概率",
+  "pdf": "PDF",
+  "cdf": "CDF",
   "recencyWeighted": "最近加權",
   "unweighted": "未加權",
   "metaculus": "Metaculus",
