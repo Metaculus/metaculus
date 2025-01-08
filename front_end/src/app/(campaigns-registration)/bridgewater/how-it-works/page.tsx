@@ -3,8 +3,8 @@ import Link from "next/link";
 
 import Button from "@/components/ui/button";
 
+import GlobalHeader from "../../../(main)/components/headers/global_header";
 import PageWrapper from "../../../(main)/components/pagewrapper";
-import Header from "../components/header";
 
 export const metadata = {
   title: "How It Works - Bridgewater Open Forecasting Tournament",
@@ -15,7 +15,7 @@ export const metadata = {
 export default function HowItWorks() {
   return (
     <>
-      <Header />
+      <GlobalHeader />
       <div className="mx-auto mt-12 flex w-full justify-center pb-0 pt-10">
         {" "}
         <Button
@@ -282,7 +282,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/binary.gif"
+            src="https://metaculus-web-media.s3.amazonaws.com/binary_zEP7bCz.gif"
             alt="Binary prediction interface demonstration"
             width={800}
             height={400}
@@ -299,7 +299,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/multiple-choice.gif"
+            src="https://metaculus-web-media.s3.amazonaws.com/multiple-choice_J1uNZk9.gif"
             alt="Multiple choice prediction interface demonstration"
             width={800}
             height={400}
@@ -406,7 +406,7 @@ export default function HowItWorks() {
         </p>
 
         <Image
-          src="https://metaculus-media.s3.amazonaws.com/bw-how-it-works-question-weighting.png"
+          src="https://metaculus-web-media.s3.amazonaws.com/weight.jpg"
           alt="Question Weighting Image"
           width={765}
           height={263}
