@@ -1,7 +1,7 @@
 import Button from "@/components/ui/button";
 
+import GlobalHeader from "../../../(main)/components/headers/global_header";
 import PageWrapper from "../../../(main)/components/pagewrapper";
-import Header from "../components/header";
 
 export const metadata = {
   title: "Official Rules - Bridgewater Open Forecasting Tournament",
@@ -12,7 +12,7 @@ export const metadata = {
 export default function ContestRules() {
   return (
     <>
-      <Header />
+      <GlobalHeader />
       <div className="mx-auto mt-12 flex w-full justify-center pb-0 pt-10">
         {" "}
         <Button
