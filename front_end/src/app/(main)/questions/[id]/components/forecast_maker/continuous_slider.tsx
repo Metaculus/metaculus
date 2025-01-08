@@ -1,5 +1,6 @@
 "use client";
 import { faClose } from "@fortawesome/free-solid-svg-icons";
+import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { isNil } from "lodash";
@@ -12,6 +13,7 @@ import MultiSlider, {
 import Slider from "@/components/sliders/slider";
 import Checkbox from "@/components/ui/checkbox";
 import Switch from "@/components/ui/switch";
+import Tooltip from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousAreaGraphType } from "@/types/charts";
 import { QuestionWithNumericForecasts } from "@/types/question";
@@ -75,9 +77,22 @@ const ContinuousSlider: FC<Props> = ({
           >
             {t("cdf")}
           </p>
+          <Tooltip
+            showDelayMs={200}
+            placement={"bottom"}
+            tooltipContent="PDF (Probability Density Function) shows how likely different outcomes are around specific values, while CDF (Cumulative Distribution Function) shows the cumulative probability of outcomes up to a certain value."
+            className=""
+            tooltipClassName="text-center !max-w-[331px] !border-blue-400 dark:!border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark !text-base !p-4"
+          >
+            <FontAwesomeIcon
+              icon={faCircleQuestion}
+              height={16}
+              className="text-gray-500 hover:text-blue-800 dark:text-gray-500-dark dark:hover:text-blue-800-dark"
+            />
+          </Tooltip>
         </div>
         {previousForecast && (
-          <div className="ml-auto mr-auto mt-1 flex items-center md:mr-0">
+          <div className="ml-auto mr-auto mt-1 flex items-center md:mr-[-4px]">
             <Checkbox
               checked={overlayPreviousForecast}
               onChange={(checked) => setOverlayPreviousForecast(checked)}
