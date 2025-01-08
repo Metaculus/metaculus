@@ -97,6 +97,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
       return t("noForecastsYet");
     }
 
+    if (hideCP) {
+      return "...";
+    }
+
     return getDisplayValue({
       value: cursorData?.center,
       questionType: question.type,
@@ -108,7 +112,14 @@ const DetailedContinuousChartCard: FC<Props> = ({
           ]
         : [],
     });
-  }, [t, cursorData, forecastAvailability, question.scaling, question.type]);
+  }, [
+    t,
+    cursorData,
+    forecastAvailability,
+    question.scaling,
+    question.type,
+    hideCP,
+  ]);
 
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);

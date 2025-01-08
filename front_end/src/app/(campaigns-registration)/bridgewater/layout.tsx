@@ -1,5 +1,6 @@
 import { FacebookPixelTag, LinkedInInsightTag } from "./components/pixels-tags";
 import CookiesBanner from "../../(main)/components/cookies_banner";
+import Footer from "../../(main)/components/footer";
 
 export default async function RootLayout({
   children,
@@ -12,6 +13,7 @@ export default async function RootLayout({
       <FacebookPixelTag pixelID="2365278530483021" />
       <LinkedInInsightTag partnerID="6757148" />
       <CookiesBanner />
+      <Footer />
     </div>
   );
 }
