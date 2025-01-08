@@ -14,12 +14,16 @@ type Props<T> = {
     color: string;
   }>;
   chartHeight: number;
+  paddingBottom?: number;
+  paddingTop?: number;
   yDomain: Tuple<number>;
 };
 const LineCursorPoints = <T extends string>({
   chartData,
   yDomain,
   chartHeight,
+  paddingBottom = 0,
+  paddingTop = 0,
   x,
   datum,
 }: ComponentProps<typeof VictoryLabel> & Props<T>) => {
@@ -31,7 +35,14 @@ const LineCursorPoints = <T extends string>({
     <>
       {chartData.map(({ line, color }, index) => {
         const yValue = interpolateYValue(datum.x, line);
-        const scaledY = chartHeight - (yValue / yDomain[1]) * chartHeight;
+
+        // adjust the scaledY using the visible graph area
+        // the graph is visually stretched from top due to padding, so we need to add the top padding after scaling
+        const scaledY =
+          (yValue / yDomain[1]) * (chartHeight - paddingBottom - paddingTop);
+
+        // adjust the final position by adding paddingBottom to place it in the correct position
+        const finalScaledY = chartHeight - scaledY - paddingBottom;
 
         return (
           <Point
@@ -39,7 +50,7 @@ const LineCursorPoints = <T extends string>({
             // TODO: figure out why victory adds extra 5 pixels to cursor position
             // and remove the magic number
             x={x - 5}
-            y={scaledY}
+            y={finalScaledY}
             size={SIZE}
             style={{
               fill: "transparent",
