@@ -67,6 +67,8 @@
   "predictionLabel": "Predikce",
   "pdfLabel": "Hustota pravděpodobnosti",
   "cdfLabel": "Kumulativní pravděpodobnost",
+  "pdf": "PDF",
+  "cdf": "CDF",
   "recencyWeighted": "Váženo o nedávnost",
   "unweighted": "Neváženo",
   "metaculus": "Metaculus",
