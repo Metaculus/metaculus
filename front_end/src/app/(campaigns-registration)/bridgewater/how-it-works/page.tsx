@@ -282,7 +282,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/binary.gif"
+            src="https://metaculus-web-media.s3.amazonaws.com/binary_zEP7bCz.gif"
             alt="Binary prediction interface demonstration"
             width={800}
             height={400}
@@ -299,7 +299,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/multiple-choice.gif"
+            src="https://metaculus-web-media.s3.amazonaws.com/multiple-choice_J1uNZk9.gif"
             alt="Multiple choice prediction interface demonstration"
             width={800}
             height={400}
@@ -406,7 +406,7 @@ export default function HowItWorks() {
         </p>
 
         <Image
-          src="https://metaculus-media.s3.amazonaws.com/bw-how-it-works-question-weighting.png"
+          src="https://metaculus-web-media.s3.amazonaws.com/weight.jpg"
           alt="Question Weighting Image"
           width={765}
           height={263}
