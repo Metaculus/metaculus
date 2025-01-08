@@ -763,7 +763,7 @@
   "FABEndDateDec31": "31 de dezembro",
   "FABdesc1": "Compita com créditos de API fornecidos por cortesia da OpenAI e Anthropic.",
   "FABdesc2": "Apresenta mais tipos de perguntas, incluindo perguntas <bold>Múltipla Escolha</bold>, <bold>Numéricas</bold> e <bold>Data</bold>.",
-  "FABdesc3": "Novas perguntas são abertas todos os dias e fecham após 24 horas.",
+  "FABdesc3": "Novas perguntas abrem em horários aleatórios por janelas de apenas 1-2 horas, para garantir que não há intervenção humana.",
   "FABRulesTitle": "Regras básicas",
   "FABRulesRule1": "Sem intervenção humana",
   "FABRulesRule2": "Bots devem postar um comentário explicando o raciocínio junto com cada previsão",

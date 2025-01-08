@@ -31,7 +31,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
             icon={faTrophy}
             className="text-lg md:text-lg min-[1920px]:text-xl"
           />{" "}
-          Final rankings for Q4 - 2024
+          Check out final rankings for Q4 - 2024
         </div>
       </Link>{" "}
       <div className="flex size-full flex-col items-center gap-3">
