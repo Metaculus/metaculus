@@ -1,7 +1,7 @@
 "use client";
 
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { faTrophy } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,7 +28,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
       <Link href="/aib/2024/q3" className="mb-3 flex w-full no-underline">
         <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-2 text-balance rounded-md bg-purple-200 p-3 text-center text-base text-purple-800 transition-colors hover:bg-purple-300 dark:bg-purple-200-dark dark:text-purple-800-dark dark:hover:bg-purple-300-dark md:flex-row md:gap-4 md:p-6 md:text-xl">
           <FontAwesomeIcon
-            icon={faTrophy}
+            icon={faArrowLeft}
             className="text-lg md:text-lg min-[1920px]:text-xl"
           />{" "}
           Check out final rankings for Q3 - 2024
