@@ -34,6 +34,7 @@ import {
   getNormalizedContinuousForecast,
   getNormalizedContinuousWeight,
   getNumericForecastDataset,
+  getUserContinuousQuartiles,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import {
@@ -151,7 +152,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           if (option.id === optionId) {
             return {
               ...option,
-              userQuartiles: getUserQuartiles(
+              userQuartiles: getUserContinuousQuartiles(
                 forecast,
                 weights,
                 option.question.open_lower_bound,
@@ -179,7 +180,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             { left: 0.4, center: 0.5, right: 0.6 },
           ];
           const newWeights = [...prevChoice.userWeights, 1];
-          const newUserQuartiles = getUserQuartiles(
+          const newUserQuartiles = getUserContinuousQuartiles(
             newUserForecast,
             newWeights
           );
@@ -207,7 +208,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
           return {
             ...prevOption,
-            userQuartiles: getUserQuartiles(
+            userQuartiles: getUserContinuousQuartiles(
               prevForecast,
               prevWeights,
               prevOption.question.open_lower_bound,
@@ -456,7 +457,7 @@ function generateGroupOptions(
         id: q.id,
         name: q.label,
         question: q,
-        userQuartiles: getUserQuartiles(
+        userQuartiles: getUserContinuousQuartiles(
           prevForecast,
           prevWeights,
           q.open_lower_bound,
@@ -485,30 +486,6 @@ function generateGroupOptions(
         ),
       };
     });
-}
-
-function getUserQuartiles(
-  forecast?: MultiSliderValue[],
-  weight?: number[],
-  openLower?: boolean,
-  openUpper?: boolean
-) {
-  if (
-    !forecast ||
-    !weight ||
-    typeof openLower === "undefined" ||
-    typeof openUpper === "undefined"
-  ) {
-    return null;
-  }
-
-  const dataset = getNumericForecastDataset(
-    forecast,
-    weight,
-    openLower,
-    openUpper
-  );
-  return computeQuartilesFromCDF(dataset.cdf);
 }
 
 function getSliderValue(forecast?: MultiSliderValue[]) {

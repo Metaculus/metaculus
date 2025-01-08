@@ -43,9 +43,12 @@ import {
 } from "@/utils/questions";
 
 import {
+  extractPrevBinaryForecastValue,
+  extractPrevNumericForecastValue,
   getForecastDateDisplayValue,
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
+  getUserContinuousQuartiles,
 } from "./forecasts";
 
 export function getContinuousChartTypeFromQuestion(
@@ -1027,17 +1030,30 @@ export function getFanOptionsFromContinuousGroup(
   questions: QuestionWithNumericForecasts[]
 ): FanOption[] {
   return questions
-    .map((q) => ({
-      name: q.label,
-      cdf: q.aggregations.recency_weighted.latest?.forecast_values ?? [],
-      resolvedAt: new Date(q.scheduled_resolve_time),
-      resolved: q.resolution !== null,
-      question: q,
-    }))
+    .map((q) => {
+      const latest = q.my_forecasts?.latest;
+
+      return {
+        name: q.label,
+        cdf: q.aggregations.recency_weighted.latest?.forecast_values ?? [],
+        userForecast: extractPrevNumericForecastValue(
+          latest && !latest.end_time ? latest.slider_values : undefined
+        ),
+        resolvedAt: new Date(q.scheduled_resolve_time),
+        resolved: q.resolution !== null,
+        question: q,
+      };
+    })
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
-    .map(({ name, cdf, resolved, question }) => ({
+    .map(({ name, cdf, resolved, question, userForecast }) => ({
       name,
       quartiles: cdf.length > 0 ? computeQuartilesFromCDF(cdf) : undefined,
+      userQuartiles: getUserContinuousQuartiles(
+        userForecast.forecast,
+        userForecast.weights,
+        question.open_lower_bound,
+        question.open_upper_bound
+      ),
       resolved,
       question,
     }));
@@ -1045,11 +1061,17 @@ export function getFanOptionsFromContinuousGroup(
 
 export function getFanOptionsFromBinaryGroup(
   questions: QuestionWithNumericForecasts[]
-) {
+): FanOption[] {
   return questions
     .map((q) => {
       const aggregation = q.aggregations.recency_weighted.latest;
       const resolved = q.resolution !== null;
+
+      const latest = q.my_forecasts?.latest;
+      const userForecast = extractPrevBinaryForecastValue(
+        latest && !latest.end_time ? latest.forecast_values[1] : null
+      );
+
       return {
         name: q.label,
         quartiles: !!aggregation
@@ -1059,6 +1081,13 @@ export function getFanOptionsFromBinaryGroup(
               upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
             }
           : undefined,
+        userQuartiles: userForecast
+          ? {
+              lower25: userForecast / 100,
+              median: userForecast / 100,
+              upper75: userForecast / 100,
+            }
+          : null,
         resolved,
         question: q,
         resolvedAt: new Date(q.scheduled_resolve_time),

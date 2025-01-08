@@ -9,15 +9,28 @@ import useAppTheme from "@/hooks/use_app_theme";
 
 type Props = ComponentProps<typeof Point> & {
   activePoint: string | null;
+  pointColor?: string;
+  resolvedPointColor?: string;
+  bgColor?: string;
   pointSize?: number;
 };
 
-const FanPoint: FC<Props> = ({ x, y, datum, activePoint, pointSize = 10 }) => {
+const FanPoint: FC<Props> = ({
+  x,
+  y,
+  datum,
+  activePoint,
+  pointColor,
+  resolvedPointColor,
+  bgColor,
+  pointSize = 10,
+}) => {
   const { getThemeColor } = useAppTheme();
 
-  const resolvedColor = getThemeColor(METAC_COLORS.purple["800"]);
-  const color = getThemeColor(METAC_COLORS.olive["800"]);
-  const backgroundColor = getThemeColor(METAC_COLORS.gray["0"]);
+  const resolvedColor =
+    resolvedPointColor ?? getThemeColor(METAC_COLORS.purple["800"]);
+  const color = pointColor ?? getThemeColor(METAC_COLORS.olive["800"]);
+  const backgroundColor = bgColor ?? getThemeColor(METAC_COLORS.gray["0"]);
 
   const resolved = datum?.resolved;
   const active = datum?.x === activePoint;

@@ -9,7 +9,11 @@ import {
   QuestionType,
   QuestionWithForecasts,
 } from "@/types/question";
-import { cdfFromSliders, cdfToPmf } from "@/utils/math";
+import {
+  cdfFromSliders,
+  cdfToPmf,
+  computeQuartilesFromCDF,
+} from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 export function getForecastPctDisplayValue(
@@ -155,3 +159,27 @@ export const getNormalizedContinuousForecast = (
 export const getNormalizedContinuousWeight = (
   weights: number[] | null | undefined
 ): number[] => weights ?? [1];
+
+export function getUserContinuousQuartiles(
+  forecast?: MultiSliderValue[],
+  weight?: number[],
+  openLower?: boolean,
+  openUpper?: boolean
+) {
+  if (
+    !forecast ||
+    !weight ||
+    typeof openLower === "undefined" ||
+    typeof openUpper === "undefined"
+  ) {
+    return null;
+  }
+
+  const dataset = getNumericForecastDataset(
+    forecast,
+    weight,
+    openLower,
+    openUpper
+  );
+  return computeQuartilesFromCDF(dataset.cdf);
+}
