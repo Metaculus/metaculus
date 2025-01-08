@@ -27,7 +27,7 @@ class Score(TimeStampedModel):
 
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     aggregation_method = models.CharField(
-        max_length=200, null=True, choices=AggregationMethod.choices
+        max_length=200, null=True, choices=AggregationMethod.choices, db_index=True
     )
     question = models.ForeignKey(
         Question, on_delete=models.CASCADE, related_name="scores"
@@ -54,6 +54,16 @@ class Score(TimeStampedModel):
             f"{self.user.username if self.user else self.aggregation_method} "
             f"on {self.question.id}"
         )
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["question"],
+                name="score_question_idx",
+                condition=Q(aggregation_method__isnull=False),
+            ),
+            models.Index(fields=["user", "question"]),
+        ]
 
 
 class ArchivedScore(TimeStampedModel):
@@ -86,6 +96,15 @@ class ArchivedScore(TimeStampedModel):
             f"on {self.question.id}"
         )
 
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["question"],
+                name="archivedscore_aggmethod_idx",
+                condition=Q(aggregation_method__isnull=False),
+            ),
+            models.Index(fields=["user", "question"]),
+        ]
 
 class Leaderboard(TimeStampedModel):
     # typing

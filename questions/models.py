@@ -360,8 +360,6 @@ class AggregateForecast(models.Model):
     question = models.ForeignKey(
         Question, models.CASCADE, related_name="aggregate_forecasts"
     )
-    AggregationMethod = AggregationMethod
-
     method = models.CharField(max_length=200, choices=AggregationMethod.choices)
     start_time = models.DateTimeField(db_index=True)
     end_time = models.DateTimeField(null=True, db_index=True)
