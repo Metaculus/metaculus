@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest  # noqa
 from freezegun import freeze_time
 from django.utils import timezone
