@@ -230,7 +230,7 @@ const ContributionsTable: FC<Props> = ({
               {["peer", "baseline"].includes(category) && (
                 <Link
                   className="no-underline"
-                  href={`/questions/${contribution?.question_id}`}
+                  href={`/questions/${contribution?.post_id}`}
                 >
                   {contribution?.question_title}
                 </Link>
