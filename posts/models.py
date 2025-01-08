@@ -237,9 +237,16 @@ class PostQuerySet(models.QuerySet):
                 "default_project__projectuserpermission",
                 condition=Q(default_project__projectuserpermission__user_id=user_id),
             ),
-            _user_permission=Coalesce(
-                F("user_permission_override__permission"),
-                F("default_project__default_permission"),
+            _user_permission=models.Case(
+                models.When(
+                    Q(default_project__created_by_id__isnull=False, default_project__created_by_id=user_id),
+                    then=models.Value(ObjectPermission.ADMIN),
+                ),
+                default=Coalesce(
+                    F("user_permission_override__permission"),
+                    F("default_project__default_permission"),
+                ),
+                output_field=models.CharField(),
             ),
         )
 
