@@ -259,7 +259,7 @@ export const RegistrationAndSignupForm: FC<
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(submit)}
-        className="flex flex-col gap-4 bg-gray-0 p-8 dark:bg-gray-0-dark"
+        className="flex flex-col gap-4 bg-gray-0 p-1.5 dark:bg-gray-0-dark md:p-4"
       >
         <div className="flex flex-col gap-8 sm:flex-row">
           <div className="flex flex-1 flex-col gap-4">
@@ -430,7 +430,7 @@ export const RegistrationForm: FC<
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(submit)}
-        className="flex flex-col gap-4 bg-gray-0 px-[68px] py-8 dark:bg-gray-0-dark"
+        className="flex flex-col gap-4 bg-gray-0 p-4 dark:bg-gray-0-dark"
       >
         <div className="flex flex-col gap-4">
           <ExtraDataRegistrationFragment errors={errors} />
