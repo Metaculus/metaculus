@@ -1,3 +1,5 @@
+import logging
+
 from django.db import models
 from django.db.models import (
     Count,
@@ -16,6 +18,8 @@ from sql_util.aggregates import SubqueryAggregate
 from projects.permissions import ObjectPermission
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
+
+logger = logging.getLogger(__name__)
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -288,10 +292,34 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def save(self, *args, **kwargs):
         creating = not self.pk
+        # Check if the primary leaderboard is associated with this project
         if self.primary_leaderboard and self.primary_leaderboard.project != self:
             raise ValueError(
                 "Primary leaderboard must be associated with this project."
             )
+        # If updating this project's end_date (and this isn't site_main),
+        # update the finalize_time of all leaderboards
+        if not creating:
+            previous = Project.objects.get(pk=self.pk)
+            if (
+                self.close_date
+                and self.close_date != previous.close_date
+                and self.type
+                in (
+                    self.ProjectTypes.TOURNAMENT,
+                    self.ProjectTypes.QUESTION_SERIES,
+                )
+            ):
+                from scoring.models import Leaderboard
+
+                # warn since this might not be an expected side effect
+                logger.warning(
+                    f"Updating finalize_time for leaderboards of project {self.pk}"
+                )
+                Leaderboard.objects.filter(project=self).update(
+                    finalize_time=self.close_date
+                )
+
         super().save(*args, **kwargs)
         if (
             creating
@@ -300,6 +328,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
             in (
                 self.ProjectTypes.TOURNAMENT,
                 self.ProjectTypes.QUESTION_SERIES,
+                self.ProjectTypes.COMMUNITY,
             )
         ):
             # create default leaderboard when creating a new tournament/question series
@@ -308,6 +337,8 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
             leaderboard = Leaderboard.objects.create(
                 project=self,
                 score_type=Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+                start_time=self.start_date,
+                finalize_time=self.close_date,
             )
             Project.objects.filter(pk=self.pk).update(primary_leaderboard=leaderboard)
 

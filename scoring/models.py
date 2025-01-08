@@ -141,9 +141,37 @@ class Leaderboard(TimeStampedModel):
                     )
 
     score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    finalize_time = models.DateTimeField(null=True, blank=True)
+    start_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""This field is optional. It is used for:
+        <br></br>- Filtering MedalExclusionRecords: If set, MedalExclusionRecords that have no end_time or an end_time greater than this (and a start_time before this Leaderboard's end_time or finalize_time) will be triggered.
+        <br></br>- Global Leaderboards: Required for global leaderboards, filters for questions that have an open time after this. Automatically set, do not change.
+        <br></br>- Non-Global Leaderboards: has no effect on question filtering. Only used in filtering MedalExclusionRecords.
+        """,
+    )
+    end_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""This field is optional. It is used for:
+        <br></br>- Filtering MedalExclusionRecords: If set, MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered. If not set, this Leaderboard's finalize_time will be used instead.
+        <br></br>- Global Leaderboards: Required for global leaderboards, filters for questions that have a scheduled_close_time before this (plus a grace period). Automatically set, do not change.
+        <br></br>- Non-Global Leaderboards: has no effect on question filtering. Only used in filtering MedalExclusionRecords. Since finalize_time does the same thing in this case, it is recommended not to use this field.
+        """,
+    )
+    finalize_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""This field is optional, though should generally be set (exception could include a non-concluding Leaderboard like for a Tag or Topic Leaderboard). It is used for:
+        <br></br>- Filtering MedalExclusionRecords: If set and end_time is not set, MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered.
+        <br></br>- For all Leaderboards: If set, used to filter out questions that have a resolution_set_time after this (as they were resolved after this Leaderboard was finalized).
+        <br></br>- Non-Global Leaderboards: This field is automatically set to the Project's close_date. If the Project's close_date is updated, this field will be updated as well. If you want this leaderboard to have a manually set finalize_time, updating this field manually will be required after each update to the Project's close_date.
+        """,
+    )
+    finalized = models.BooleanField(
+        default=False,
+        help_text="If true, this Leaderboard's entries cannot be updated except by a manual action in the admin panel. Automatically set to true the first time this leaderboard is updated after the finalize_time.",
+    )
 
     def __str__(self):
         if self.name:
@@ -157,72 +185,70 @@ class Leaderboard(TimeStampedModel):
             related_posts__post__curation_status=Post.CurationStatus.APPROVED
         )
 
-        if self.project and self.project.type == Project.ProjectTypes.SITE_MAIN:
-            # global leaderboard
-            if self.start_time is None or self.end_time is None:
-                raise ValueError("Global leaderboards must have start and end times")
-
-            questions = questions.filter_public().filter(
-                related_posts__post__in=Post.objects.filter_for_main_feed()
-            )
-
-            if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
-                # post must be published
-                return questions.filter(
-                    related_posts__post__published_at__lt=self.end_time
+        if not (self.project and self.project.type == Project.ProjectTypes.SITE_MAIN):
+            # normal Project leaderboard
+            if self.project:
+                questions = questions.filter(
+                    Q(related_posts__post__projects=self.project)
+                    | Q(related_posts__post__default_project=self.project),
                 )
-            elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
-                # post must be published, and can't be resolved before the start_time
-                # of the leaderboard
-                return questions.filter(
-                    Q(scheduled_close_time__gte=self.start_time)
-                    & (
-                        Q(actual_close_time__isnull=True)
-                        | Q(actual_close_time__gte=self.start_time)
-                    ),
-                    related_posts__post__published_at__lt=self.end_time,
-                )
-
-            close_grace_period = timedelta(days=3)
-            resolve_grace_period = timedelta(days=100)
-
-            questions = questions.filter(
-                Q(actual_resolve_time__isnull=True)
-                | Q(actual_resolve_time__lte=self.end_time + resolve_grace_period),
-                open_time__gte=self.start_time,
-                open_time__lt=self.end_time,
-                scheduled_close_time__lte=self.end_time + close_grace_period,
-            )
-
-            gl_dates = global_leaderboard_dates()
-            checked_intervals: list[tuple[datetime, datetime]] = []
-            for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
-                if (
-                    (self.start_time, self.end_time) == (start, end)
-                    or start < self.start_time
-                    or self.end_time < end
-                ):
-                    continue
-                to_add = True
-                for checked_start, checked_end in checked_intervals:
-                    if checked_start < start and end < checked_end:
-                        to_add = False
-                        break
-                if to_add:
-                    checked_intervals.append((start, end))
-                    questions = questions.filter(
-                        Q(open_time__lt=start)
-                        | Q(scheduled_close_time__gt=end + close_grace_period)
-                        | Q(actual_resolve_time__gt=end + resolve_grace_period)
-                    )
-
             return questions
 
-        if self.project:
+        # global leaderboard
+        if self.start_time is None or self.end_time is None:
+            raise ValueError("Global leaderboards must have start and end times")
+
+        questions = questions.filter_public().filter(
+            related_posts__post__in=Post.objects.filter_for_main_feed()
+        )
+
+        if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
+            # post must be published
+            return questions.filter(related_posts__post__published_at__lt=self.end_time)
+        elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
+            # post must be published, and can't be resolved before the start_time
+            # of the leaderboard
             return questions.filter(
-                Q(related_posts__post__projects=self.project)
-                | Q(related_posts__post__default_project=self.project)
+                Q(scheduled_close_time__gte=self.start_time)
+                & (
+                    Q(actual_close_time__isnull=True)
+                    | Q(actual_close_time__gte=self.start_time)
+                ),
+                related_posts__post__published_at__lt=self.end_time,
             )
+
+        close_grace_period = timedelta(days=3)
+        resolve_grace_period = timedelta(days=100)
+
+        questions = questions.filter(
+            Q(actual_resolve_time__isnull=True)
+            | Q(actual_resolve_time__lte=self.end_time + resolve_grace_period),
+            open_time__gte=self.start_time,
+            open_time__lt=self.end_time,
+            scheduled_close_time__lte=self.end_time + close_grace_period,
+        )
+
+        gl_dates = global_leaderboard_dates()
+        checked_intervals: list[tuple[datetime, datetime]] = []
+        for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
+            if (
+                (self.start_time, self.end_time) == (start, end)
+                or start < self.start_time
+                or self.end_time < end
+            ):
+                continue
+            to_add = True
+            for checked_start, checked_end in checked_intervals:
+                if checked_start < start and end < checked_end:
+                    to_add = False
+                    break
+            if to_add:
+                checked_intervals.append((start, end))
+                questions = questions.filter(
+                    Q(open_time__lt=start)
+                    | Q(scheduled_close_time__gt=end + close_grace_period)
+                    | Q(actual_resolve_time__gt=end + resolve_grace_period)
+                )
 
         return questions
 
