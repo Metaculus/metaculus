@@ -21,11 +21,17 @@
                     <ul>
                         {% for comment in params %}
                         <li>
-                            <span>@{{ comment.author_username }}:</span>
+                            <a href="{% build_user_profile_url comment.author.id %}">@{{ comment.author.username }}:</a>
                             “{{ comment.preview_text }}”.
                             <a href="{{ comment.url }}">(link)</a>
                             <br/>
                             <span><b>Reason:</b> {{ comment.reason }}</span>
+                            <br/>
+                            {% if comment.reporter %}
+                            <span><b>Reported by: </b>
+                                <a href="{% build_user_profile_url comment.reporter.id %}">@{{ comment.reporter.username }}</a>
+                            </span>
+                            {% endif %}
                         </li>
                         {% endfor %}
                     </ul>

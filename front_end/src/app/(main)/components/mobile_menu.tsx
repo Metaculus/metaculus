@@ -237,6 +237,9 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                 {t("trackRecord")}
               </MenuLink>
               <MenuLink href={`/project/journal/`}>{t("theJournal")}</MenuLink>
+              <MenuLink href="/aggregation-explorer">
+                {t("aggregationExplorer")}
+              </MenuLink>
               <MenuLink href={`/questions/create/`}>+ {t("create")}</MenuLink>
               <SectionTitle>{t("account")}</SectionTitle>
               {user ? (

@@ -12,6 +12,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
+from questions.models import AggregationMethod
 from scoring.models import Leaderboard, LeaderboardEntry
 from scoring.serializers import (
     LeaderboardSerializer,
@@ -21,7 +22,6 @@ from scoring.serializers import (
 from scoring.utils import get_contributions
 from users.models import User
 from users.views import serialize_profile
-from questions.models import AggregationMethod
 
 
 @api_view(["GET"])
@@ -34,7 +34,9 @@ def global_leaderboard(
     end_time = request.GET.get("endTime", None)
     leaderboard_type = request.GET.get("leaderboardType", None)
     # filtering
-    leaderboards = Leaderboard.objects.filter(project__visibility=Project.Visibility.NORMAL)
+    leaderboards = Leaderboard.objects.filter(
+        project__visibility=Project.Visibility.NORMAL
+    )
     if start_time:
         leaderboards = leaderboards.filter(start_time=start_time)
     if end_time:
@@ -185,8 +187,7 @@ def medal_contributions(
         leaderboard = leaderboards.first()
 
     contributions = get_contributions(user, leaderboard)
-    entries = leaderboard.entries.select_related("user").all()
-    leaderboard_entry = next((e for e in entries if e.user == user), None)
+    leaderboard_entry = leaderboard.entries.filter(user=user).first()
 
     return_data = {
         "leaderboard_entry": LeaderboardEntrySerializer(leaderboard_entry).data,

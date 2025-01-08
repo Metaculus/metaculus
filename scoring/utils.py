@@ -538,11 +538,11 @@ def get_contribution_question_writing(
     questions = (
         questions.prefetch_related("related_posts__post")
         # Fetch only authored posts
-        .filter(related_posts__post__author_id=user.id)
+        .filter(related_posts__post__author_id=user.id).only("related_posts__post")
     )
 
     # Fetch forecasts during leaderboard period
-    forecasts = Forecast.objects.filter(question__in=questions)
+    forecasts = Forecast.objects.filter(question__in=list(questions))
 
     if leaderboard.start_time:
         forecasts = forecasts.filter(start_time__gte=leaderboard.start_time)
@@ -556,11 +556,11 @@ def get_contribution_question_writing(
     # Generate Question<>Forecasters map
     question_forecasters_map = defaultdict(set)
 
-    for forecast in forecasts.iterator(chunk_size=500):
+    for forecast in forecasts:
         question_forecasters_map[forecast.question_id].add(forecast.author_id)
 
     # Loop over chunked questions
-    for question in questions.iterator(chunk_size=500):
+    for question in questions:
         post = question.get_post()
         forecaster_ids_for_post[post] |= question_forecasters_map[question.id]
 
@@ -613,7 +613,7 @@ def get_contributions(
         ).distinct("pk")
 
         contributions: list[Contribution] = []
-        for comment in comments.iterator(chunk_size=500):
+        for comment in comments:
             contribution = Contribution(
                 score=comment.vote_score or 0,
                 post=posts_map[comment.on_post_id],

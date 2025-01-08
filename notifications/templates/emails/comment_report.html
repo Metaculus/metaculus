@@ -156,9 +156,12 @@
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                         <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
                           <ul> {% for comment in params %} <li>
-                              <span>@{{ comment.author_username }}:</span> “{{ comment.preview_text }}”. <a href="{{ comment.url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">(link)</a>
+                              <a href="{% build_user_profile_url comment.author.id %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">@{{ comment.author.username }}:</a> “{{ comment.preview_text }}”. <a href="{{ comment.url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">(link)</a>
                               <br>
                               <span><b>Reason:</b> {{ comment.reason }}</span>
+                              <br> {% if comment.reporter %} <span><b>Reported by: </b>
+                                <a href="{% build_user_profile_url comment.reporter.id %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">@{{ comment.reporter.username }}</a>
+                              </span> {% endif %}
                             </li> {% endfor %} </ul>
                         </div>
                       </td>

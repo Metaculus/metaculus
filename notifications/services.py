@@ -25,6 +25,19 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class NotificationUserParams:
+    id: int
+    username: str
+
+    @classmethod
+    def from_user(cls, user: User):
+        return cls(
+            id=user.id,
+            username=user.username,
+        )
+
+
+@dataclass
 class NotificationPostParams:
     post_id: int
     post_title: str
@@ -509,6 +522,7 @@ class NotificationCommentReport(NotificationTypeBase):
         post: NotificationPostParams
         comment_id: int
         reason: CommentReportType
+        reporter: NotificationUserParams = None
 
     @classmethod
     def generate_subject_group(cls, recipient: User):
@@ -520,7 +534,7 @@ class NotificationCommentReport(NotificationTypeBase):
             c.id: c
             for c in Comment.objects.filter(
                 pk__in=[n.params["comment_id"] for n in notifications]
-            )
+            ).select_related("author")
         }
 
         params = []
@@ -538,7 +552,7 @@ class NotificationCommentReport(NotificationTypeBase):
             params.append(
                 {
                     **notification.params,
-                    "author_username": comment.author.username,
+                    "author": comment.author,
                     "preview_text": preview_text,
                     "url": build_post_comment_url(
                         comment.on_post_id, comment.on_post.title, comment.id
