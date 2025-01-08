@@ -106,6 +106,7 @@ class ArchivedScore(TimeStampedModel):
             models.Index(fields=["user", "question"]),
         ]
 
+
 class Leaderboard(TimeStampedModel):
     # typing
     id: int
@@ -260,8 +261,8 @@ def name_and_slug_for_global_leaderboard_dates(
             f"{start_year}_{GLOBAL_LEADERBOARD_SLUG}",
         )
     return (
-        f"{start_year}-{end_year-1} {GLOBAL_LEADERBOARD_STRING}",
-        f"{start_year}_{end_year-1}_{GLOBAL_LEADERBOARD_SLUG}",
+        f"{start_year}-{end_year - 1} {GLOBAL_LEADERBOARD_STRING}",
+        f"{start_year}_{end_year - 1}_{GLOBAL_LEADERBOARD_SLUG}",
     )
 
 
