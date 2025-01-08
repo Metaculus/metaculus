@@ -51,8 +51,18 @@ const ContinuousSlider: FC<Props> = ({
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
   const previousForecast = question.my_forecasts?.latest;
 
+  const isGroupQuestion = question.label !== "";
+  const isConditionalQuestion =
+    question.title.includes("(No)") || question.title.includes("(Yes)");
+  const shouldHaveMargins = !isGroupQuestion && !isConditionalQuestion;
+
   return (
-    <div className="mr-0 mt-[-36px] flex flex-col sm:mr-2 md:mt-[-28px]">
+    <div
+      className={classNames(
+        "mr-0 flex flex-col sm:mr-2",
+        shouldHaveMargins ? "mt-[-36px] md:mt-[-28px]" : ""
+      )}
+    >
       <div className="flex flex-col items-center gap-2">
         <div className="flex w-fit flex-row items-center gap-2 self-end">
           <p
