@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_fab_tournament() -> Project | None:
-    project = Project.objects.filter(pk=32506).last()
+    project = Project.objects.filter(pk=32627).last()
     return project
 
 
