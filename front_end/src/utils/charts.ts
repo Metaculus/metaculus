@@ -48,7 +48,7 @@ import {
   getForecastDateDisplayValue,
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
-  getUserContinuousQuartiles,
+  getNumericForecastDataset,
 } from "./forecasts";
 
 export function getContinuousChartTypeFromQuestion(
@@ -1032,28 +1032,37 @@ export function getFanOptionsFromContinuousGroup(
   return questions
     .map((q) => {
       const latest = q.my_forecasts?.latest;
+      const userForecast = extractPrevNumericForecastValue(
+        latest && !latest.end_time ? latest.slider_values : undefined
+      );
 
       return {
         name: q.label,
-        cdf: q.aggregations.recency_weighted.latest?.forecast_values ?? [],
-        userForecast: extractPrevNumericForecastValue(
-          latest && !latest.end_time ? latest.slider_values : undefined
-        ),
+        communityCdf:
+          q.aggregations.recency_weighted.latest?.forecast_values ?? [],
+        userCdf:
+          userForecast.forecast && userForecast.weights
+            ? getNumericForecastDataset(
+                userForecast.forecast,
+                userForecast.weights,
+                q.open_lower_bound,
+                q.open_upper_bound
+              ).cdf
+            : null,
         resolvedAt: new Date(q.scheduled_resolve_time),
         resolved: q.resolution !== null,
         question: q,
       };
     })
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
-    .map(({ name, cdf, resolved, question, userForecast }) => ({
+    .map(({ name, communityCdf, resolved, question, userCdf }) => ({
       name,
-      quartiles: cdf.length > 0 ? computeQuartilesFromCDF(cdf) : undefined,
-      userQuartiles: getUserContinuousQuartiles(
-        userForecast.forecast,
-        userForecast.weights,
-        question.open_lower_bound,
-        question.open_upper_bound
-      ),
+      communityQuartiles: communityCdf.length
+        ? computeQuartilesFromCDF(communityCdf) ?? null
+        : null,
+      communityBounds: getCdfBounds(communityCdf) ?? null,
+      userQuartiles: userCdf?.length ? computeQuartilesFromCDF(userCdf) : null,
+      userBounds: userCdf ? getCdfBounds(userCdf) ?? null : null,
       resolved,
       question,
     }));
@@ -1074,13 +1083,14 @@ export function getFanOptionsFromBinaryGroup(
 
       return {
         name: q.label,
-        quartiles: !!aggregation
+        communityQuartiles: !!aggregation
           ? {
               median: aggregation.centers?.[0] ?? 0,
               lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
               upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
             }
-          : undefined,
+          : null,
+        communityBounds: null,
         userQuartiles: userForecast
           ? {
               lower25: userForecast / 100,
@@ -1088,6 +1098,7 @@ export function getFanOptionsFromBinaryGroup(
               upper75: userForecast / 100,
             }
           : null,
+        userBounds: null,
         resolved,
         question: q,
         resolvedAt: new Date(q.scheduled_resolve_time),

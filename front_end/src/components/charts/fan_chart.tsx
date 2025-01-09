@@ -26,7 +26,6 @@ import {
   Quartiles,
   Question,
   QuestionType,
-  QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
 import {
@@ -63,7 +62,6 @@ const FanChart: FC<Props> = ({
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
-  const filteredOptions = [...options].filter((o) => o.resolved || o.quartiles);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -84,11 +82,7 @@ const FanChart: FC<Props> = ({
     scaling,
   } = useMemo(() => buildChartData(options), [options]);
 
-  const labels = adjustLabelsForDisplay(
-    filteredOptions,
-    chartWidth,
-    actualTheme
-  );
+  const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
   const yScale = generateScale({
     // we expect fan graph to be rendered only for group questions, that expect some options
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -102,29 +96,14 @@ const FanChart: FC<Props> = ({
     return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
-  const tooltipItems = useMemo(
-    () =>
-      filteredOptions.reduce<
-        Record<
-          string,
-          {
-            quartiles: Quartiles | undefined;
-            question: QuestionWithNumericForecasts;
-          }
-        >
-      >(
-        (acc, el) => ({
-          ...acc,
-          [el.name]: { quartiles: el.quartiles, question: el.question },
-        }),
-        {}
-      ),
-    [filteredOptions]
-  );
-
   const shouldDisplayChart = !!chartWidth;
   return (
-    <div ref={chartContainerRef} className="relative w-full" style={{ height }}>
+    <div
+      id="fan-graph-container"
+      ref={chartContainerRef}
+      className="relative w-full"
+      style={{ height }}
+    >
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
@@ -145,13 +124,19 @@ const FanChart: FC<Props> = ({
           containerComponent={
             withTooltip ? (
               <VictoryVoronoiContainer
-                voronoiBlacklist={["fanArea", "fanLine"]}
+                voronoiBlacklist={[
+                  "communityFanArea",
+                  "userFanArea",
+                  "communityFanLine",
+                  "userFanLine",
+                ]}
                 labels={({ datum }) => datum.x}
                 labelComponent={
                   <ChartFanTooltip
                     chartHeight={height}
-                    items={tooltipItems}
-                    width={TOOLTIP_WIDTH}
+                    options={options}
+                    hideCp={hideCP}
+                    forecastAvailability={forecastAvailability}
                   />
                 }
                 onActivated={(points) => {
@@ -184,7 +169,7 @@ const FanChart: FC<Props> = ({
         >
           {!hideCP && (
             <VictoryArea
-              name="fanArea"
+              name="communityFanArea"
               data={communityArea}
               style={{
                 data: {
@@ -194,7 +179,7 @@ const FanChart: FC<Props> = ({
             />
           )}
           <VictoryArea
-            name="fanArea"
+            name="userFanArea"
             data={userArea}
             style={{
               data: {
@@ -203,9 +188,11 @@ const FanChart: FC<Props> = ({
               },
             }}
           />
-          {!hideCP && <VictoryLine name="fanLine" data={communityLine} />}
+          {!hideCP && (
+            <VictoryLine name="communityFanLine" data={communityLine} />
+          )}
           <VictoryLine
-            name="fanLine"
+            name="userFanLine"
             data={userLine}
             style={{
               data: {
@@ -279,11 +266,13 @@ const FanChart: FC<Props> = ({
           />
         </VictoryChart>
       )}
-      <ForecastAvailabilityChartOverflow
-        forecastAvailability={forecastAvailability}
-        className="text-xs lg:text-sm"
-        textClassName="!max-w-[300px]"
-      />
+      {!withTooltip && (
+        <ForecastAvailabilityChartOverflow
+          forecastAvailability={forecastAvailability}
+          className="text-xs lg:text-sm"
+          textClassName="!max-w-[300px]"
+        />
+      )}
     </div>
   );
 };
@@ -300,7 +289,10 @@ function buildChartData(options: FanOption[]) {
   const resolutionPoints: Array<FanGraphPoint> = [];
   const zeroPoints: number[] = [];
   options.forEach((option) => {
-    if (option.question.scaling.zero_point !== null && !!option.quartiles) {
+    if (
+      option.question.scaling.zero_point !== null &&
+      !!option.communityQuartiles
+    ) {
       zeroPoints.push(option.question.scaling.zero_point);
     }
   });
@@ -341,7 +333,7 @@ function buildChartData(options: FanOption[]) {
 
   const isBinaryGroup = options[0]?.question.type === QuestionType.Binary;
   for (const option of options) {
-    if (option.quartiles) {
+    if (option.communityQuartiles) {
       const {
         linePoint: communityLinePoint,
         areaPoint: communityAreaPoint,
@@ -349,7 +341,7 @@ function buildChartData(options: FanOption[]) {
       } = getOptionGraphData(
         {
           name: option.name,
-          quartiles: option.quartiles,
+          quartiles: option.communityQuartiles,
           optionScaling: option.question.scaling,
           scaling,
         },

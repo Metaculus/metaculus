@@ -37,7 +37,7 @@ export type UserChoiceItem = {
 };
 
 export type ChoiceTooltipItem = {
-  color: ThemeColor;
+  color?: ThemeColor;
   choiceLabel: string;
   valueElement: ReactNode;
 };
