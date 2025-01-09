@@ -76,7 +76,7 @@ def signup_api_view(request):
     if campaign_key is not None:
         register_user_to_campaign(user, campaign_key, campaign_data, project)
 
-    if project is not None and project.id == 32506:
+    if project is not None and project.id == 32627:
         # This is a hack to automatically give new bot users 100k tokens for the Q4 AIB  so they
         # can get started quickly before they even reach out to us to ask for more credits.
         # TODO: Remove or update this when the Q4 AIB is over.
