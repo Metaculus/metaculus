@@ -39,7 +39,10 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
         vote: newDirection,
         user: user.id,
       });
-      sendGAEvent("event", "commentVoted");
+
+      if (newDirection === 1) sendGAEvent("event", "KeyFactorUpvote");
+      if (newDirection === -1) sendGAEvent("event", "KeyFactorDownvote");
+
       if (response && "score" in response) {
         setUserVote(newDirection);
         setVotesScore(response.score as number);
