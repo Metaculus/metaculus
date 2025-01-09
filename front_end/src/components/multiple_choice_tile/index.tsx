@@ -8,6 +8,7 @@ import FanGraphGroupChart from "@/app/(main)/questions/[id]/components/detailed_
 import { BINARY_FORECAST_PRECISION } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
+import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import { ForecastPayload } from "@/services/questions";
@@ -37,7 +38,6 @@ type BaseProps = {
   hideCP?: boolean;
   forecastAvailability?: ForecastAvailability;
   chartHeight?: number;
-  onReaffirm?: (userForecast: ForecastPayload[]) => void;
   canPredict?: boolean;
 };
 
@@ -85,9 +85,10 @@ export const ContinuousMultipleChoiceTile: FC<
   scaling,
   hideCP,
   forecastAvailability,
-  onReaffirm,
   canPredict,
 }) => {
+  const { onReaffirm } = useCardReaffirmContext();
+
   // when resolution chip is shown we want to hide the chart and display the chip
   // (e.g. multiple-choice question on questions feed)
   // otherwise, resolution status will be populated near the every choice
@@ -164,9 +165,10 @@ export const FanGraphMultipleChoiceTile: FC<
   forecastAvailability,
   chartHeight,
   groupType,
-  onReaffirm,
   canPredict,
 }) => {
+  const { onReaffirm } = useCardReaffirmContext();
+
   const { canReaffirm, forecast } = useMemo(
     () => generateReaffirmData({ groupQuestions, groupType }),
     [groupQuestions, groupType]

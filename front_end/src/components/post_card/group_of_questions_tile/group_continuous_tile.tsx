@@ -7,7 +7,6 @@ import {
   FanGraphMultipleChoiceTile,
 } from "@/components/multiple_choice_tile";
 import { useAuth } from "@/contexts/auth_context";
-import { ForecastPayload } from "@/services/questions";
 import {
   GroupOfQuestionsGraphType,
   TimelineChartZoomOption,
@@ -31,10 +30,9 @@ const VISIBLE_CHOICES_COUNT = 3;
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   hideCP?: boolean;
-  onReaffirm?: (userForecast: ForecastPayload[]) => void;
 };
 
-const GroupContinuousTile: FC<Props> = ({ post, hideCP, onReaffirm }) => {
+const GroupContinuousTile: FC<Props> = ({ post, hideCP }) => {
   const { user } = useAuth();
   const locale = useLocale();
 
@@ -77,7 +75,6 @@ const GroupContinuousTile: FC<Props> = ({ post, hideCP, onReaffirm }) => {
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
           chartHeight={CHART_HEIGHT}
-          onReaffirm={onReaffirm}
           canPredict={canPredict}
         />
       );
@@ -114,7 +111,6 @@ const GroupContinuousTile: FC<Props> = ({ post, hideCP, onReaffirm }) => {
           groupType={questionType}
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
-          onReaffirm={onReaffirm}
           canPredict={canPredict}
         />
       );

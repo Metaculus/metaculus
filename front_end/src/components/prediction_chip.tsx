@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { CSSProperties, FC, PropsWithChildren } from "react";
 
 import CPWeeklyMovement from "@/components/cp_weekly_movement";
+import ReaffirmButton from "@/components/post_card/reaffirm_button";
 import { PostStatus } from "@/types/post";
 import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
@@ -68,19 +69,12 @@ const PredictionChip: FC<Props> = ({
           <FontAwesomeIcon icon={faUser} className="mr-1" />
           {displayValue}{" "}
           {!!onReaffirm && canPredict && (
-            <button
-              className="lowercase underline hover:text-orange-600 dark:hover:text-orange-600-dark"
-              onClick={(e) => {
-                // prevent navigation, e.g. when rendered inside Next.js Link
-                e.stopPropagation();
-                e.nativeEvent.preventDefault();
-                e.nativeEvent.stopImmediatePropagation();
-
+            <ReaffirmButton
+              onClick={() => {
                 onReaffirm(latest);
               }}
-            >
-              ({t("reaffirm")})
-            </button>
+              combined
+            />
           )}
         </p>
       );

@@ -3,9 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
+import ReaffirmButton from "@/components/post_card/reaffirm_button";
 import { ChoiceItem } from "@/types/choices";
 import { QuestionType } from "@/types/question";
-import cn from "@/utils/cn";
 
 import ChoiceOption from "./choice_option";
 
@@ -73,40 +73,21 @@ const MultipleChoiceTileLegend: FC<Props> = ({
             {t("otherWithCount", { count: otherItemsCount })}
           </div>
           {canPredict && !!onReaffirm && (
-            <ReaffirmButton onReaffirm={onReaffirm} combined />
+            <ReaffirmButton
+              onClick={onReaffirm}
+              combined
+              className="resize-label flex py-0.5 text-left text-sm font-medium leading-4"
+            />
           )}
         </div>
       )}
       {!otherItemsCount && canPredict && !!onReaffirm && (
-        <ReaffirmButton onReaffirm={onReaffirm} />
+        <ReaffirmButton
+          onClick={onReaffirm}
+          className="resize-label flex py-0.5 text-left text-sm font-medium leading-4"
+        />
       )}
     </div>
-  );
-};
-
-const ReaffirmButton: FC<{ onReaffirm: () => void; combined?: boolean }> = ({
-  onReaffirm,
-  combined = false,
-}) => {
-  const t = useTranslations();
-
-  return (
-    <button
-      className={cn(
-        "resize-label flex py-0.5 text-left text-sm font-medium leading-4 text-orange-700 underline hover:text-orange-600 dark:text-orange-700 dark:hover:text-orange-600-dark",
-        { lowercase: combined }
-      )}
-      onClick={(e) => {
-        // prevent navigation, e.g. when rendered inside Next.js Link
-        e.stopPropagation();
-        e.nativeEvent.preventDefault();
-        e.nativeEvent.stopImmediatePropagation();
-
-        onReaffirm();
-      }}
-    >
-      {combined ? `(${t("reaffirm")})` : t("reaffirm")}
-    </button>
   );
 };
 

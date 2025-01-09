@@ -5,7 +5,6 @@ import { FC } from "react";
 
 import { ContinuousMultipleChoiceTile } from "@/components/multiple_choice_tile";
 import { useAuth } from "@/contexts/auth_context";
-import { ForecastPayload } from "@/services/questions";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
@@ -26,7 +25,6 @@ type Props = {
   hideCP?: boolean;
   forecasters?: number;
   canPredict?: boolean;
-  onReaffirm?: (userForecast: ForecastPayload[]) => void;
 };
 
 const QuestionChartTile: FC<Props> = ({
@@ -36,7 +34,6 @@ const QuestionChartTile: FC<Props> = ({
   hideCP,
   forecasters,
   canPredict,
-  onReaffirm,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -76,7 +73,6 @@ const QuestionChartTile: FC<Props> = ({
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
           forecasters={forecasters}
-          onReaffirm={onReaffirm}
           canPredict={canPredict}
         />
       );
@@ -111,7 +107,6 @@ const QuestionChartTile: FC<Props> = ({
           actualCloseTime={actualCloseTime}
           openTime={openTime}
           forecastAvailability={forecastAvailability}
-          onReaffirm={onReaffirm}
           canPredict={canPredict}
         />
       );

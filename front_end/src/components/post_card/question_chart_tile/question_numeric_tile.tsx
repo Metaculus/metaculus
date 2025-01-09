@@ -6,8 +6,8 @@ import ForecastersCounter from "@/app/(main)/questions/components/forecaster_cou
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
+import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
-import { ForecastPayload } from "@/services/questions";
 import { ContinuousAreaType, TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {
@@ -34,7 +34,6 @@ type Props = {
   hideCP?: boolean;
   forecasters?: number;
   forecastAvailability: ForecastAvailability;
-  onReaffirm?: (userForecast: ForecastPayload[]) => void;
   canPredict?: boolean;
 };
 
@@ -45,9 +44,10 @@ const QuestionNumericTile: FC<Props> = ({
   hideCP,
   forecasters,
   forecastAvailability,
-  onReaffirm,
   canPredict,
 }) => {
+  const { onReaffirm } = useCardReaffirmContext();
+
   const latest = question.aggregations.recency_weighted.latest;
   const prediction = latest?.centers?.[0];
 
