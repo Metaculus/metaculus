@@ -809,5 +809,9 @@
   "onboardingStep5SavePredictionsParagraph": "您想保存所做的预测吗？",
   "onboardingYouPredicted": "您预测了",
   "next": "下一步",
-  "postCreateErrorMinSubquestions": "一个问题组必须至少包含一个子问题"
+  "postCreateErrorMinSubquestions": "一个问题组必须至少包含一个子问题",
+  "insertEquation": "插入公式",
+  "choseEquationType": "选择您想要添加的公式类型。要编辑它，只需在编辑器中单击它。",
+  "inline": "内联",
+  "block": "块"
 }

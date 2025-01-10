@@ -25,10 +25,10 @@ const HeadingText: FC<{ heading: string; subheading: string }> = ({
 }) => {
   return (
     <div>
-      <h2 className="my-0 text-base text-gray-0 dark:text-gray-0-dark xs:text-lg sm:text-lg md:text-2xl  xl:text-3xl">
+      <h2 className="my-0 text-xl text-gray-0 dark:text-gray-0-dark md:text-2xl lg:text-3xl xl:text-4xl">
         {heading}
       </h2>
-      <p className="mb-0 mt-5 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:text-lg ">
+      <p className="mb-0 mt-5 text-sm text-gray-0 opacity-70 dark:text-gray-0-dark xs:text-base sm:text-sm md:text-lg lg:text-xl ">
         {subheading}
       </p>
     </div>
@@ -61,8 +61,11 @@ const LoggedInNotRegisteredFragment: FC<{
       subheading={"Complete your registration to join the contest"}
     />
 
-    <p className="my-0 text-xs font-normal text-gray-0 dark:text-gray-0-dark">
-      logged in as <span className="font-bold">{currentUser.username}</span>
+    <p className="my-0 text-xs font-normal text-blue-400 dark:text-blue-400-dark dark:text-gray-0-dark">
+      logged in as{" "}
+      <span className="font-bold text-gray-100 dark:text-gray-100-dark">
+        {currentUser.username}
+      </span>
     </p>
 
     <BWRegisterButton onClick={onRegisterClicked}>
@@ -120,7 +123,7 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
         </EligibilityBox>
       </div>
 
-      <p className="mb-0 mt-5 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:text-lg ">
+      <p className="mb-0 mt-0 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:mt-1 md:text-lg ">
         Ready to get started? Try the{" "}
         <span
           className="cursor-pointer underline"
@@ -191,7 +194,7 @@ export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
     <>
       <div
         className={cn(
-          "flex flex-col items-center justify-center gap-5 rounded bg-blue-700 p-5 text-center font-medium dark:bg-blue-700-dark xs:p-8",
+          "flex flex-col items-center justify-center gap-5 rounded bg-blue-700 px-6 py-7 pb-8 text-center font-medium dark:bg-blue-700-dark md:px-8 md:py-10 md:pb-12",
           className
         )}
       >

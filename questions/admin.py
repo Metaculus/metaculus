@@ -30,7 +30,11 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     ]
     readonly_fields = ["post_link"]
     search_fields = ["title_original", "description_original"]
-    actions = ["export_selected_questions_data", "rebuild_aggregation_history"]
+    actions = [
+        "export_selected_questions_data",
+        "rebuild_aggregation_history",
+        "trigger_scoring",
+    ]
     list_filter = [
         "type",
         "related_posts__post__curation_status",
@@ -98,6 +102,23 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     def rebuild_aggregation_history(self, request, queryset: QuerySet[Question]):
         for question in queryset:
             build_question_forecasts(question)
+
+    def trigger_scoring(self, request, queryset: QuerySet[Question]):
+        from scoring.utils import score_question
+
+        for question in queryset:
+            if question.resolution in ["", None, "ambiguous", "annulled"]:
+                continue
+            spot_forecast_time = (
+                question.cp_reveal_time.timestamp() if question.cp_reveal_time else None
+            )
+            score_question(
+                question=question,
+                resolution=question.resolution,
+                spot_forecast_time=spot_forecast_time,
+            )
+
+    trigger_scoring.short_description = "Trigger Scoring (does nothing if not resolved)"
 
 
 @admin.register(Conditional)

@@ -831,5 +831,9 @@
   "onboardingStep5SavePredictionsParagraph": "¿Te gustaría guardar las predicciones que has realizado?",
   "onboardingYouPredicted": "Has predicho",
   "next": "Siguiente",
-  "postCreateErrorMinSubquestions": "Un grupo de preguntas debe tener al menos una subpregunta"
+  "postCreateErrorMinSubquestions": "Un grupo de preguntas debe tener al menos una subpregunta",
+  "insertEquation": "Insertar ecuación",
+  "choseEquationType": "Elija el tipo de ecuación que desea agregar. Para editarla, simplemente haga clic en ella dentro del editor.",
+  "inline": "En línea",
+  "block": "Bloque"
 }

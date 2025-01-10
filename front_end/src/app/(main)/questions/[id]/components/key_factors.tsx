@@ -1,5 +1,6 @@
 "use client";
 
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
@@ -23,6 +24,12 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ keyFactors }) => {
     // Expands the key factor list when you follow the #key-factors link.
     if (hash === "key-factors") setDisplayLimit(keyFactors.length);
   }, [hash, keyFactors.length]);
+
+  useEffect(() => {
+    if (keyFactors.length > 0) {
+      sendGAEvent("event", "KeyFactorPageview");
+    }
+  }, [keyFactors]);
 
   return (
     <SectionToggle title={t("keyFactors")} defaultOpen id="key-factors">
@@ -64,6 +71,7 @@ const KeyFactorItem: FC<KeyFactorBlockProps> = ({
             e.preventDefault();
             scrollTo(target.getBoundingClientRect().top);
           }
+          sendGAEvent("event", "KeyFactorClick", { event_label: "fromList" });
         }}
         className="absolute left-0 z-0 h-full w-full"
       ></a>
