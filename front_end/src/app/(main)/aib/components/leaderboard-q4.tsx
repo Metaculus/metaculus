@@ -34,7 +34,7 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
           {entry.isMetacBot && (
             <MetaculusLogo className="mr-2 size-5 rounded-sm bg-blue-700 text-gray-0 dark:bg-blue-700-dark dark:text-gray-0-dark" />
           )}
-          {entry.username}
+          <a href={`/accounts/profile/${entry.userId}/`}>{entry.username}</a>
         </div>
       </td>
       <td className="text-right">
@@ -58,7 +58,7 @@ function BotLeaderboard() {
     {
       rank: 1,
       username: "pgodzinai",
-      userId: "188107",
+      userId: "191935",
       totalSpotScore: 4020.351,
       take: 16163220.99,
       prize: 9658,
@@ -74,7 +74,7 @@ function BotLeaderboard() {
     {
       rank: 3,
       username: "GreeneiBot2",
-      userId: "195184",
+      userId: "218666",
       totalSpotScore: 2564.548,
       take: 6577087.967,
       prize: 3930,
@@ -82,7 +82,7 @@ function BotLeaderboard() {
     {
       rank: 4,
       username: "manticAI",
-      userId: "189585",
+      userId: "191026",
       totalSpotScore: 2388.803,
       take: 5706380.789,
       prize: 3410,
@@ -98,7 +98,7 @@ function BotLeaderboard() {
     {
       rank: 6,
       username: "mf-bot-4",
-      userId: "189588",
+      userId: "208405",
       totalSpotScore: 2197.77,
       take: null,
       prize: null,
@@ -115,7 +115,7 @@ function BotLeaderboard() {
     {
       rank: 8,
       username: "Cassie",
-      userId: "187708",
+      userId: "188107",
       totalSpotScore: 1598.554,
       take: 2555376.04,
       prize: 1527,
@@ -131,7 +131,7 @@ function BotLeaderboard() {
     {
       rank: 10,
       username: "mf-bot-5",
-      userId: "189869",
+      userId: "221727",
       totalSpotScore: 1009.427,
       take: null,
       prize: null,
@@ -149,7 +149,7 @@ function BotLeaderboard() {
     {
       rank: 12,
       username: "gnosis-ai",
-      userId: "191935",
+      userId: "192049",
       totalSpotScore: 838.039,
       take: 702309.879,
       prize: 420,
@@ -182,7 +182,7 @@ function BotLeaderboard() {
     {
       rank: 16,
       username: "tombot37",
-      userId: "189585",
+      userId: "218269",
       totalSpotScore: 483.735,
       take: null,
       prize: null,
@@ -200,7 +200,7 @@ function BotLeaderboard() {
     {
       rank: 18,
       username: "estr.ai",
-      userId: "192924",
+      userId: "215725",
       totalSpotScore: 398.714,
       take: 158972.929,
       prize: 95,
@@ -216,7 +216,7 @@ function BotLeaderboard() {
     {
       rank: 20,
       username: "HunchexBot",
-      userId: "195286",
+      userId: "219991",
       totalSpotScore: 238.542,
       take: 56902.366,
       prize: 34,
@@ -224,7 +224,7 @@ function BotLeaderboard() {
     {
       rank: 21,
       username: "karamazov",
-      userId: "191471",
+      userId: "219459",
       totalSpotScore: 226.536,
       take: 51318.391,
       prize: 31,
@@ -240,7 +240,7 @@ function BotLeaderboard() {
     {
       rank: 23,
       username: "tombot61",
-      userId: "189588",
+      userId: "216863",
       totalSpotScore: 63.727,
       take: null,
       prize: null,
@@ -249,7 +249,7 @@ function BotLeaderboard() {
     {
       rank: 24,
       username: "hlb-bot",
-      userId: "189588",
+      userId: "226082",
       totalSpotScore: 27.162,
       take: null,
       prize: null,
@@ -266,7 +266,7 @@ function BotLeaderboard() {
     {
       rank: 26,
       username: "jkraybill_bot",
-      userId: "190201",
+      userId: "191975",
       totalSpotScore: -134.627,
       take: 0,
       prize: 0,
@@ -274,7 +274,7 @@ function BotLeaderboard() {
     {
       rank: 27,
       username: "rrmBot",
-      userId: "192233",
+      userId: "220077",
       totalSpotScore: -141.009,
       take: 0,
       prize: 0,
@@ -282,7 +282,7 @@ function BotLeaderboard() {
     {
       rank: 28,
       username: "lookahead",
-      userId: "191861",
+      userId: "222046",
       totalSpotScore: -218.543,
       take: 0,
       prize: 0,
@@ -290,7 +290,7 @@ function BotLeaderboard() {
     {
       rank: 29,
       username: "SaraBase",
-      userId: "204737",
+      userId: "219886",
       totalSpotScore: -252.436,
       take: 0,
       prize: 0,
@@ -298,7 +298,7 @@ function BotLeaderboard() {
     {
       rank: 30,
       username: "Bot_Pepa",
-      userId: "185492",
+      userId: "190710",
       totalSpotScore: -267.34,
       take: 0,
       prize: 0,
@@ -306,7 +306,7 @@ function BotLeaderboard() {
     {
       rank: 31,
       username: "ProfessorSP",
-      userId: "192679",
+      userId: "227188",
       totalSpotScore: -388.045,
       take: 0,
       prize: 0,
@@ -314,7 +314,7 @@ function BotLeaderboard() {
     {
       rank: 32,
       username: "lostandfound",
-      userId: "190490",
+      userId: "219659",
       totalSpotScore: -557.161,
       take: 0,
       prize: 0,
@@ -322,7 +322,7 @@ function BotLeaderboard() {
     {
       rank: 33,
       username: "predictomatic",
-      userId: "188122",
+      userId: "222142",
       totalSpotScore: -620.195,
       take: 0,
       prize: 0,
@@ -338,7 +338,7 @@ function BotLeaderboard() {
     {
       rank: 35,
       username: "Grizeu_Bot",
-      userId: "190485",
+      userId: "222631",
       totalSpotScore: -723.739,
       take: 0,
       prize: 0,
@@ -354,7 +354,7 @@ function BotLeaderboard() {
     {
       rank: 37,
       username: "bestworldbot",
-      userId: "188957",
+      userId: "192472",
       totalSpotScore: -872.116,
       take: 0,
       prize: 0,
@@ -378,7 +378,7 @@ function BotLeaderboard() {
     {
       rank: 40,
       username: "SeidrBot",
-      userId: "193778",
+      userId: "218945",
       totalSpotScore: -2089.815,
       take: 0,
       prize: 0,
@@ -411,7 +411,7 @@ function BotLeaderboard() {
     {
       rank: 44,
       username: "biak_bot",
-      userId: "192860",
+      userId: "192459",
       totalSpotScore: -7203.342,
       take: 0,
       prize: 0,
