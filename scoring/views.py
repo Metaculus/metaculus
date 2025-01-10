@@ -1,5 +1,5 @@
 import numpy as np
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -132,15 +132,39 @@ def user_medals(
     user_id = request.GET.get("userId", None)
     if not user_id:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
     entries_with_medals = LeaderboardEntry.objects.filter(
         user_id=user_id, medal__isnull=False
-    ).select_related("leaderboard", "user")
+    ).select_related("leaderboard__project", "user")
+
+    # Fetch counts of non-excluded entries for each leaderboard and create a mapping
+    leaderboard_entries_mapping = {
+        x["leaderboard_id"]: x["total_entries"]
+        for x in (
+            LeaderboardEntry.objects.filter(
+                leaderboard_id__in=[
+                    entry.leaderboard_id for entry in entries_with_medals
+                ],
+                excluded=False,
+            )
+            .values("leaderboard_id")
+            .annotate(total_entries=Count("id"))
+        )
+    }
+
     entries = []
     for entry in entries_with_medals:
         entry_data = LeaderboardEntrySerializer(entry).data
         leaderboard = LeaderboardSerializer(entry.leaderboard).data
-        total_entries = entry.leaderboard.entries.filter(excluded=False).count()
-        entries.append({**entry_data, **leaderboard, "total_entries": total_entries})
+        entries.append(
+            {
+                **entry_data,
+                **leaderboard,
+                "total_entries": leaderboard_entries_mapping.get(
+                    entry.leaderboard_id, 0
+                ),
+            }
+        )
     return Response(entries)
 
 
