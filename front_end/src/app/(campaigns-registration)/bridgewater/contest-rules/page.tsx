@@ -29,7 +29,7 @@ export default function ContestRules() {
           Official Competition Rules for the Bridgewater Open Forecasting
           Tournament (the `&quot;Tournament`&quot;)
         </h1>
-        <p className="opacity-70">Last modified: January 3, 2025</p>
+        <p className="opacity-70">Last modified: January 10, 2025</p>
 
         <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
 
@@ -416,6 +416,80 @@ export default function ContestRules() {
               access or submit via the Services is at your own risk.
             </p>
 
+            <li className="font-bold">How are prizes awarded?</li>
+            <p className="ml-6">
+              At the conclusion of the tournament, Metaculus will publish an
+              announcement of the rankings and winners, reflecting the final
+              leaderboard ranking. Metaculus may remove a Participant User at
+              any time, including in the final announcement of the rankings and
+              winners, if Metaculus believes that the Participant User is not
+              eligible to receive a prize, is in violation of these Terms, or
+              has cheated in the tournament.
+            </p>
+            <p className="ml-6">
+              Prize winners will be notified by email, with instructions
+              describing steps that must be taken by winners in order to receive
+              the prize. The email may contain reasonable time period(s) by
+              which certain steps must be completed in order to receive the
+              prize. If the Participant User fails to respond to this email, or,
+              during subsequent communications, fails to provide the necessary
+              information within the sooner of (i) the time period(s) described
+              in the email or (ii) 40 days after Metaculus sent the winner
+              notification email, such Participant User will be deemed to have
+              forfeited the prize and waived any and all claims against
+              Metaculus or Bridgewater with respect to such prize winnings.
+            </p>
+            <p className="ml-6">
+              In order to receive the prize, prize winners must sign and return
+              any and all acceptance documents as may be required by Metaculus
+              and Bridgewater, and provide any and all information Metaculus
+              deems necessary to deliver the prize, including without
+              limitation: (a) eligibility certifications or proof of identity;
+              (b) U.S. tax forms (such as IRS Form W-9 if U.S. resident, IRS
+              Form W-8BEN if foreign resident, or future equivalents); (c)
+              payment delivery information, such as bank account information,
+              provided to Metaculus or via a third-party service as instructed
+              by Metaculus.
+            </p>
+            <p className="ml-6">
+              Metaculus and Bridgewater shall have no liability for any
+              failures, delays, or errors in email delivery, including but not
+              limited to instances where notifications sent to prize winners are
+              not received, are delayed, or are sent to incorrect email
+              addresses. Additionally, Metaculus and Bridgewater are not liable
+              for the failure of delivery of prizes sent electronically or
+              physically, including but not limited to issues arising from
+              incorrect or outdated recipient information provided by the
+              Participant User, errors or delays by third-party delivery or
+              courier services, or any other unforeseen circumstances. It is the
+              sole responsibility of the Participant User to provide accurate
+              and up-to-date contact and delivery information. Metaculus assumes
+              no liability for any consequences arising from incorrect
+              information or issues related to third-party service providers.
+            </p>
+            <p className="ml-6">
+              Metaculus reserves the right to update or otherwise correct the
+              leaderboard, winners announcement, and communications about prizes
+              and winners if Metaculus believes there are any errors in the
+              same, or if Metaculus believes that Participant Users must be
+              removed or disqualified for ineligibility or violations of these
+              Terms.
+            </p>
+            <p className="ml-6">
+              Metaculus awards tournament prizes based on the information
+              available and the determinations Metaculus has made at the time
+              tournament winners are announced. While Metaculus retains sole
+              discretion to re-resolve questions where it believes an error
+              occurred in prior resolutions, it is the general policy of
+              Metaculus that such re-resolutions will not result in the issuance
+              of additional prizes, compensation, or modifications to previously
+              announced prizes or official tournament placements.
+              Notwithstanding this general policy, Metaculus reserves the right,
+              at its sole discretion, to offer additional prizes or compensation
+              for questions that re-resolve after tournament winners have been
+              announced; however, Metaculus is under no obligation to do so.
+            </p>
+
             <li className="font-bold">
               Do I have to grant any licenses to Metaculus or to other users?
             </li>
@@ -601,7 +675,7 @@ export default function ContestRules() {
               ANY AMOUNT, IN THE AGGREGATE, IN EXCESS OF THE GREATER OF (I) $100
               OR (II) THE AMOUNTS PAID BY YOU TO METACULUS IN CONNECTION WITH
               THE SERVICES IN THE TWELVE (12) MONTH PERIOD PRECEDING THIS
-              APPLICABLE CLAIM, OR © ANY MATTER BEYOND OUR REASONABLE CONTROL.
+              APPLICABLE CLAIM, OR (C) ANY MATTER BEYOND OUR REASONABLE CONTROL.
               SOME STATES DO NOT ALLOW THE EXCLUSION OR LIMITATION OF CERTAIN
               DAMAGES, SO THE ABOVE LIMITATION AND EXCLUSIONS MAY NOT APPLY TO
               YOU.
@@ -617,7 +691,7 @@ export default function ContestRules() {
               relating to (a) your submissions to the Services including any
               Content, User Submissions or Competitions, (b) your use of the
               Services (including any actions taken by a third party using your
-              account), and © your violation of these Terms.
+              account), and (C) your violation of these Terms.
             </p>
             <p className="ml-6">
               Assignment. You may not assign, delegate or transfer these Terms
