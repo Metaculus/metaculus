@@ -46,7 +46,7 @@ class Score(TimeStampedModel):
         SPOT_BASELINE = "spot_baseline"
         MANUAL = "manual"
 
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
+    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices, db_index=True)
 
     def __str__(self):
         return (
