@@ -80,7 +80,12 @@ export default function ContestRules() {
             physical prizes to individuals located in countries subject to U.S.
             sanctions or export restrictions, including but not limited to
             Russia, Cuba, North Korea, and others as determined by current
-            regulations. Void where prohibited.
+            regulations. Automated systems, bots, artificial intelligence, or
+            user accounts which are officially registered as bot accounts, are
+            ineligible for tournament prizes. However, human participants are
+            allowed to use AI tools or systems to assist in their forecasting,
+            as long as the final submissions reflect their own decisions and
+            understanding. Void where prohibited.
           </li>
           <li>
             <b>Timing.</b> The Tournament webpage will be made available on
