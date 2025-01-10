@@ -14,7 +14,7 @@ import Button from "@/components/ui/button";
 
 import { Dates, Prize } from "./cards-q4";
 import HeroQ4 from "./hero-q4";
-import BotLeaderboard from "./leaderboard-q3";
+import BotLeaderboard from "./leaderboard-q4";
 
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
   token,
