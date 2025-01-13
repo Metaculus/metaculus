@@ -46,7 +46,7 @@ class Score(TimeStampedModel):
         SPOT_BASELINE = "spot_baseline"
         MANUAL = "manual"
 
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
+    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices, db_index=True)
 
     def __str__(self):
         return (
@@ -282,7 +282,7 @@ class LeaderboardEntry(TimeStampedModel):
     score = models.FloatField()
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
-    excluded = models.BooleanField(default=False)
+    excluded = models.BooleanField(default=False, db_index=True)
 
     class Medals(models.TextChoices):
         GOLD = "gold"

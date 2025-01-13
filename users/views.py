@@ -1,8 +1,9 @@
-from datetime import timedelta
-import numpy as np
 import logging
+from datetime import timedelta
 
+import numpy as np
 from django.contrib.auth.password_validation import validate_password
+from django.db.models import Sum
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
@@ -180,7 +181,8 @@ def get_calibration_curve_data(
             question__in=public_questions_in_past,
             question__type="binary",
             question__resolution__in=["no", "yes"],
-            question__scheduled_resolve_time__lt=timezone.now(),  # Removes questions that have resolved before close time, which have a bias toward 'yes' resolutions
+            # Removes questions that have resolved before close time, which have a bias toward 'yes' resolutions
+            question__scheduled_resolve_time__lt=timezone.now(),
             question__include_bots_in_aggregates=False,
             method=aggregation_method,
         ).prefetch_related("question")
@@ -327,10 +329,16 @@ def get_authoring_stats_data(
     posts_authored = Post.objects.filter_public().filter(
         author=user, notebook__isnull=True
     )
-    posts_authored_count = posts_authored.count()
-    forecasts_on_authored_questions_count = Forecast.objects.filter(
-        post__in=posts_authored
-    ).count()
+
+    # Each post has a cached `Post.forecasts_count` value.
+    # Summing up this field is significantly faster than counting rows in the Forecasts table
+    forecasts_on_authored_questions_count = (
+        posts_authored.aggregate(total_forecasts=Sum("forecasts_count"))[
+            "total_forecasts"
+        ]
+        or 0
+    )
+
     notebooks_authored_count = (
         Post.objects.filter_public().filter(author=user, notebook__isnull=False).count()
     )
@@ -339,7 +347,7 @@ def get_authoring_stats_data(
     ).count()
 
     return {
-        "posts_authored_count": posts_authored_count,
+        "posts_authored_count": posts_authored.count(),
         "forecasts_on_authored_questions_count": forecasts_on_authored_questions_count,
         "notebooks_authored_count": notebooks_authored_count,
         "comments_count": comment_count,
