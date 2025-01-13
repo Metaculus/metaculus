@@ -10,6 +10,7 @@ from scoring.models import (
     Score,
     MedalExclusionRecord,
     ArchivedScore,
+    LeaderboardsRanksEntry,
 )
 from scoring.utils import update_project_leaderboard
 
@@ -164,3 +165,10 @@ class MedalExclusionRecordAdmin(admin.ModelAdmin):
         AutocompleteFilterFactory("User", "user"),
         AutocompleteFilterFactory("Project", "project"),
     ]
+
+
+@admin.register(LeaderboardsRanksEntry)
+class LeaderboardsRanksEntryAdmin(admin.ModelAdmin):
+    list_display = ["user", "rank", "rank_type"]
+    search_fields = ["user__username"]
+    autocomplete_fields = ["user"]
