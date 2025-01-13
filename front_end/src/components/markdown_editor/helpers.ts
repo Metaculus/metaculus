@@ -103,14 +103,11 @@ export const escapeRawDollarSigns = (markdown: string): string => {
   });
 
   // replace valid inline math with placeholders
-  processedMarkdown = processedMarkdown.replace(
-    inlineMathRegex,
-    (match, contentInside) => {
-      const placeholder = `{{MATH_INLINE_${placeholderIndex++}}}`;
-      placeholders.set(placeholder, match); // Save the valid inline math as is
-      return placeholder;
-    }
-  );
+  processedMarkdown = processedMarkdown.replace(inlineMathRegex, (match) => {
+    const placeholder = `{{MATH_INLINE_${placeholderIndex++}}}`;
+    placeholders.set(placeholder, match); // Save the valid inline math as is
+    return placeholder;
+  });
 
   // escape remaining dollar signs that are not part of valid math
   processedMarkdown = processedMarkdown.replace(/(?<!\\)\$/g, "\\$");
