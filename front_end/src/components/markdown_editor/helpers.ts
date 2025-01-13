@@ -84,6 +84,43 @@ const transformMathJaxToLatex = (markdown: string): string => {
   return markdown;
 };
 
+// escape dollar signs that are not used for math
+export const escapeRawDollarSigns = (markdown: string): string => {
+  // match block math: $$...$$
+  const blockMathRegex = /\$\$[^$]*\$\$/g;
+
+  // match valid inline math: $...$ that doesn't end with space or parentheses, allowing end of string
+  const inlineMathRegex = /\$([^\$]+?)\$(?=\s|[^\w\s$]|$)/g;
+
+  const placeholders = new Map<string, string>();
+  let placeholderIndex = 0;
+
+  // replace block math with placeholders
+  let processedMarkdown = markdown.replace(blockMathRegex, (blockMath) => {
+    const placeholder = `{{MATH_BLOCK_${placeholderIndex++}}}`;
+    placeholders.set(placeholder, blockMath);
+    return placeholder;
+  });
+
+  // replace valid inline math with placeholders
+  processedMarkdown = processedMarkdown.replace(
+    inlineMathRegex,
+    (match, contentInside) => {
+      const placeholder = `{{MATH_INLINE_${placeholderIndex++}}}`;
+      placeholders.set(placeholder, match); // Save the valid inline math as is
+      return placeholder;
+    }
+  );
+
+  // escape remaining dollar signs that are not part of valid math
+  processedMarkdown = processedMarkdown.replace(/(?<!\\)\$/g, "\\$");
+
+  // restore all placeholders (block math and inline math)
+  return processedMarkdown.replace(
+    /{{MATH_(BLOCK|INLINE)_\d+}}/g,
+    (placeholder) => placeholders.get(placeholder) || placeholder
+  );
+};
 export function processMarkdown(
   markdown: string,
   config?: { revert?: boolean; withTwitterPreview?: boolean }
@@ -93,6 +130,7 @@ export function processMarkdown(
   markdown = formatBlockquoteNewlines(markdown);
   if (!revert) {
     markdown = transformMathJaxToLatex(markdown);
+    markdown = escapeRawDollarSigns(markdown);
   }
   markdown = escapePlainTextSymbols(markdown);
   if (withTwitterPreview) {
