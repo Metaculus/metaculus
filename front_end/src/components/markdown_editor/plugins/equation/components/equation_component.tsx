@@ -55,6 +55,7 @@ const EquationComponent: FC<EquationComponentProps> = ({
   const onHide = useCallback(
     (restoreSelection?: boolean) => {
       setShowEquationEditor(false);
+      setEquationValue((prev) => prev.trim());
       parentEditor.update(() => {
         const node = $getNodeByKey(nodeKey);
         if ($isEquationNode(node)) {
@@ -69,8 +70,12 @@ const EquationComponent: FC<EquationComponentProps> = ({
   );
 
   useEffect(() => {
-    if (!showEquationEditor && equationValue !== equation) {
-      setEquationValue(equation);
+    const normalizedEquationValue = equationValue.trim();
+    const normalizedEquation = equation.trim();
+    const didChange = normalizedEquationValue !== normalizedEquation;
+
+    if (!showEquationEditor && didChange) {
+      setEquationValue(normalizedEquation);
     }
   }, [showEquationEditor, equation, equationValue]);
 
