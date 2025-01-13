@@ -27,7 +27,7 @@ import {
 } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
-import { PostStatus, PostWithNotebook } from "@/types/post";
+import { PostStatus, NotebookPost } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
@@ -186,7 +186,7 @@ export default async function IndividualNotebook({ params }: Props) {
           </div>
           <div className="w-full">
             <NotebookEditor
-              postData={postData as PostWithNotebook}
+              postData={postData as NotebookPost}
               contentId={NOTEBOOK_CONTENT_SECTION}
             />
             {!!postData.projects.category?.length && (

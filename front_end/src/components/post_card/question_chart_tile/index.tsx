@@ -16,23 +16,28 @@ import {
 
 import QuestionNumericTile from "./question_numeric_tile";
 
+// TODO: refactor this component to expect QuestionPost
+// requires refactoring conditional form
 type Props = {
   question: QuestionWithForecasts;
   authorUsername: string;
   curationStatus: PostStatus | QuestionStatus;
   hideCP?: boolean;
   forecasters?: number;
+  canPredict?: boolean;
 };
 
 const QuestionChartTile: FC<Props> = ({
   question,
-  authorUsername,
   curationStatus,
+  authorUsername,
   hideCP,
   forecasters,
+  canPredict,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+
   const forecastAvailability = getQuestionForecastAvailability(question);
 
   if (curationStatus === PostStatus.PENDING) {
@@ -68,6 +73,7 @@ const QuestionChartTile: FC<Props> = ({
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
           forecasters={forecasters}
+          canPredict={canPredict}
         />
       );
     case QuestionType.MultipleChoice: {
@@ -101,6 +107,7 @@ const QuestionChartTile: FC<Props> = ({
           actualCloseTime={actualCloseTime}
           openTime={openTime}
           forecastAvailability={forecastAvailability}
+          canPredict={canPredict}
         />
       );
     }
