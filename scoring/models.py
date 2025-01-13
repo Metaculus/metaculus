@@ -46,7 +46,9 @@ class Score(TimeStampedModel):
         SPOT_BASELINE = "spot_baseline"
         MANUAL = "manual"
 
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices, db_index=True)
+    score_type = models.CharField(
+        max_length=200, choices=ScoreTypes.choices, db_index=True
+    )
 
     def __str__(self):
         return (
@@ -303,6 +305,33 @@ class LeaderboardEntry(TimeStampedModel):
             "LeaderboardEntry for "
             f"{self.user.username if self.user else self.aggregation_method}"
         )
+
+
+class LeaderboardsRanksEntry(TimeStampedModel):
+    class RankTypes(models.TextChoices):
+        TOURNAMENTS = "tournaments"
+        PEER_ACCURACY = "peer_accuracy"
+        BASELINE_ACCURACY = "baseline_accuracy"
+        COMMENT_INSIGHT = "comment_insight"
+        QUESTION_WRITING = "question_writing"
+
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    points = models.FloatField(null=False)
+
+    rank_type = models.CharField(max_length=200, choices=RankTypes.choices, null=False)
+    rank = models.IntegerField(null=False)
+    rank_total = models.IntegerField(null=False)
+    rank_timestamp = models.DateTimeField(null=False)
+
+    best_rank = models.IntegerField(null=True)
+    best_rank_total = models.IntegerField(null=True)
+    best_rank_timestamp = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return f"{self.user}"
+
+    class Meta:
+        unique_together = ["user", "rank_type"]
 
 
 class MedalExclusionRecord(models.Model):
