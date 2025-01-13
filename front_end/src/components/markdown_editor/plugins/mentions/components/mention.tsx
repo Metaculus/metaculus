@@ -12,7 +12,7 @@ const CustomMentionComponent = forwardRef<
   return (
     <span className="inline-block">
       <span {...other} ref={ref} className="block">
-        {trigger + value}
+        {trigger}({value})
       </span>
     </span>
   );

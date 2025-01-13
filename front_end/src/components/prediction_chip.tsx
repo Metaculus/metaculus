@@ -5,8 +5,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { CSSProperties, FC, PropsWithChildren } from "react";
 
 import CPWeeklyMovement from "@/components/cp_weekly_movement";
+import ReaffirmButton from "@/components/post_card/reaffirm_button";
 import { PostStatus } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
@@ -22,6 +23,8 @@ type Props = {
   chipClassName?: string;
   unresovledChipStyle?: CSSProperties;
   showUserForecast?: boolean;
+  onReaffirm?: (userForecast: UserForecast) => void;
+  canPredict?: boolean;
   hideCP?: boolean;
   compact?: boolean;
 };
@@ -35,6 +38,8 @@ const PredictionChip: FC<Props> = ({
   unresovledChipStyle,
   size,
   showUserForecast,
+  onReaffirm,
+  canPredict = false,
   hideCP,
   compact,
 }) => {
@@ -62,7 +67,15 @@ const PredictionChip: FC<Props> = ({
       return (
         <p className="m-2 text-orange-800 dark:text-orange-800-dark">
           <FontAwesomeIcon icon={faUser} className="mr-1" />
-          {displayValue}
+          {displayValue}{" "}
+          {!!onReaffirm && canPredict && (
+            <ReaffirmButton
+              onClick={() => {
+                onReaffirm(latest);
+              }}
+              combined
+            />
+          )}
         </p>
       );
     }

@@ -9,6 +9,7 @@ import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/form_field";
+import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { CommentType } from "@/types/comment";
@@ -69,9 +70,8 @@ const CommentEditor: FC<CommentEditorProps> = ({
     });
 
     try {
-      const userTagPattern = /@(?!\[)(?:\(([^)]+)\)|([^\s(]+)(?!\]))/g;
       const parsedMarkdown = markdown.replace(userTagPattern, (match) =>
-        match.replace(/[()\\]/g, "")
+        match.replace(/[\\]/g, "")
       );
 
       const newComment = await createComment({
@@ -87,6 +87,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         setErrorMessage(newComment.errors?.message);
         return;
       }
+
       setIsEditing(true);
       setHasIncludedForecast(false);
       setMarkdown("");

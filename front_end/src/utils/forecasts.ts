@@ -140,3 +140,18 @@ export function generateCurveChoiceOptions(
       return 0;
     });
 }
+
+export const getNormalizedContinuousForecast = (
+  forecast: MultiSliderValue[] | null | undefined
+): MultiSliderValue[] =>
+  forecast ?? [
+    {
+      left: 0.4,
+      center: 0.5,
+      right: 0.6,
+    },
+  ];
+
+export const getNormalizedContinuousWeight = (
+  weights: number[] | null | undefined
+): number[] => weights ?? [1];

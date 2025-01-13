@@ -86,7 +86,7 @@ def get_score_scatter_plot_data(
                 "score": score.score,
                 "score_timestamp": score.edited_at.timestamp(),
                 "question_title": score.question.title,
-                "question_id": score.question.id,
+                "post_id": score.question.get_post().id,
                 "question_resolution": score.question.resolution,
             }
         )
@@ -383,7 +383,7 @@ def serialize_profile(
         score_qs = score_qs.filter(user=user)
     else:
         score_qs = score_qs.filter(aggregation_method=aggregation_method)
-    scores = list(score_qs.select_related("question"))
+    scores = list(score_qs.select_related("question").prefetch_related("question__related_posts__post"))
     data = {}
     data.update(
         get_score_scatter_plot_data(
