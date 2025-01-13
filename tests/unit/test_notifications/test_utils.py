@@ -59,7 +59,7 @@ from notifications.utils import generate_email_comment_preview_text
             ),
             "username",
             (
-                "There are many variations of passages @username2 of Lorem Ipsum available, but t..."
+                "There are many variations of passages @username2 of Lorem Ipsum available, but..."
             ),
             False,
         ],
