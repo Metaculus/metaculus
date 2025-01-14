@@ -78,9 +78,9 @@ def signup_api_view(request):
     )
 
     if campaign_key is not None:
-        register_user_to_campaign(user, campaign_key, campaign_data)
+        register_user_to_campaign(user, campaign_key, campaign_data, project)
 
-    if project is not None:
+    if campaign_key is None and project is not None:
         ProjectUserPermission.objects.create(
             user=user, project=project, permission=ObjectPermission.FORECASTER
         )
