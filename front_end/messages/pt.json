@@ -77,6 +77,8 @@
   "predictionLabel": "Previsão",
   "pdfLabel": "Densidade de Probabilidade",
   "cdfLabel": "Probabilidade Cumulativa",
+  "pdf": "PDF",
+  "cdf": "CDF",
   "recencyWeighted": "Ponderado por Recência",
   "unweighted": "Não Ponderado",
   "metaculus": "Metaculus",
