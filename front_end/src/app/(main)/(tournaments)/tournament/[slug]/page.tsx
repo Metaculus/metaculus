@@ -31,7 +31,7 @@ const LazyProjectMembers = dynamic(() => import("../components/members"), {
 type Props = { params: { slug: string }; searchParams: SearchParams };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const tournament = await ProjectsApi.getSlugTournament(params.slug);
+  const tournament = await ProjectsApi.getTournament(params.slug);
 
   if (!tournament) {
     return {};
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function TournamentSlug({ params }: Props) {
-  const tournament = await ProjectsApi.getSlugTournament(params.slug);
+  const tournament = await ProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
 
   const currentUser = await ProfileApi.getMyProfile();
