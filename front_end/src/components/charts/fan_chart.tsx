@@ -213,7 +213,10 @@ const FanChart: FC<Props> = ({
               />
             }
           />
-          <VictoryAxis tickFormat={(_, index) => labels[index] ?? ""} />
+          <VictoryAxis
+            tickValues={options.map((option) => option.name)}
+            tickFormat={(_, index) => labels[index] ?? ""}
+          />
           {!hideCP && !forecastAvailability?.cpRevealsOn && (
             <VictoryScatter
               data={communityPoints.map((point) => ({
