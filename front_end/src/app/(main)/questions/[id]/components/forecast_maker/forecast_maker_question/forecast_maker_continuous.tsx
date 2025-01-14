@@ -154,20 +154,22 @@ const ForecastMakerContinuous: FC<Props> = ({
   );
   return (
     <>
-      <ContinuousSlider
-        forecast={forecast}
-        weights={weights}
-        dataset={dataset}
-        onChange={(forecast, weight) => {
-          setForecast(forecast);
-          setWeights(weight);
-          setIsDirty(true);
-        }}
-        overlayPreviousForecast={overlayPreviousForecast}
-        setOverlayPreviousForecast={setOverlayPreviousForecast}
-        question={question}
-        disabled={!canPredict}
-      />
+      <div className="mt-[-36px] md:mt-[-28px]">
+        <ContinuousSlider
+          forecast={forecast}
+          weights={weights}
+          dataset={dataset}
+          onChange={(forecast, weight) => {
+            setForecast(forecast);
+            setWeights(weight);
+            setIsDirty(true);
+          }}
+          overlayPreviousForecast={overlayPreviousForecast}
+          setOverlayPreviousForecast={setOverlayPreviousForecast}
+          question={question}
+          disabled={!canPredict}
+        />
+      </div>
 
       {canPredict && (
         <>
