@@ -538,7 +538,12 @@ def get_contribution_question_writing(
     questions = (
         questions.prefetch_related("related_posts__post")
         # Fetch only authored posts
-        .filter(related_posts__post__author_id=user.id).only("related_posts__post")
+        .filter(
+            Q(related_posts__post__author_id=user.id)
+            | Q(related_posts__post__coauthors=user)
+        )
+        .distinct("id")
+        .only("related_posts__post")
     )
 
     # Fetch forecasts during leaderboard period
