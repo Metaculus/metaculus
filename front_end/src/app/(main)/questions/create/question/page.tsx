@@ -18,12 +18,30 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
     throw new Error("Type is required !");
   }
 
+  const tournament_id = searchParams["tournament_id"]
+    ? Number(searchParams["tournament_id"])
+    : undefined;
+
   const allCategories = await ProjectsApi.getCategories();
   const question_type: string = post
     ? (post.question?.type as string)
     : (searchParams["type"] as string);
   const mode = extractMode(searchParams, post);
   const allTournaments = await ProjectsApi.getTournaments();
+
+  // If the tournament is unlisted, it won't be retrieved via the getTournaments call.
+  // In that case, we need to fetch it separately and append it to the tournaments list.
+  if (
+    tournament_id &&
+    !allTournaments.some((obj) => obj.id === tournament_id)
+  ) {
+    const tournament = await ProjectsApi.getTournament(tournament_id);
+
+    if (tournament) {
+      allTournaments.push(tournament);
+    }
+  }
+
   const siteMain = await ProjectsApi.getSiteMain();
 
   const communityId = searchParams["community_id"]
@@ -44,11 +62,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
         post={post}
         questionType={question_type}
         mode={mode}
-        tournament_id={
-          searchParams["tournament_id"]
-            ? Number(searchParams["tournament_id"])
-            : undefined
-        }
+        tournament_id={tournament_id}
         community_id={community?.id}
         allCategories={allCategories}
         tournaments={allTournaments}
