@@ -1,4 +1,8 @@
-import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  Bounds,
+  Quartiles,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 
 export type TickFormat = (
   value: number,
@@ -30,7 +34,10 @@ export type NumericChartType = "date" | "numeric" | "binary";
 
 export type FanOption = {
   name: string;
-  quartiles: Quartiles | undefined;
+  communityQuartiles: Quartiles | null;
+  communityBounds: Bounds | null;
+  userQuartiles: Quartiles | null;
+  userBounds: Bounds | null;
   resolved: boolean;
   question: QuestionWithNumericForecasts;
 };

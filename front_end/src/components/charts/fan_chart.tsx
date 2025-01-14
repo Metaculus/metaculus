@@ -26,7 +26,6 @@ import {
   Quartiles,
   Question,
   QuestionType,
-  QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
 import {
@@ -63,7 +62,6 @@ const FanChart: FC<Props> = ({
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
-  const filteredOptions = [...options].filter((o) => o.resolved || o.quartiles);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -73,16 +71,18 @@ const FanChart: FC<Props> = ({
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
-  const { line, area, points, resolutionPoints, scaling } = useMemo(
-    () => buildChartData(options),
-    [options]
-  );
+  const {
+    communityLine,
+    userLine,
+    communityArea,
+    userArea,
+    communityPoints,
+    userPoints,
+    resolutionPoints,
+    scaling,
+  } = useMemo(() => buildChartData(options), [options]);
 
-  const labels = adjustLabelsForDisplay(
-    filteredOptions,
-    chartWidth,
-    actualTheme
-  );
+  const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
   const yScale = generateScale({
     // we expect fan graph to be rendered only for group questions, that expect some options
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -96,29 +96,14 @@ const FanChart: FC<Props> = ({
     return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
-  const tooltipItems = useMemo(
-    () =>
-      filteredOptions.reduce<
-        Record<
-          string,
-          {
-            quartiles: Quartiles | undefined;
-            question: QuestionWithNumericForecasts;
-          }
-        >
-      >(
-        (acc, el) => ({
-          ...acc,
-          [el.name]: { quartiles: el.quartiles, question: el.question },
-        }),
-        {}
-      ),
-    [filteredOptions]
-  );
-
   const shouldDisplayChart = !!chartWidth;
   return (
-    <div ref={chartContainerRef} className="relative w-full" style={{ height }}>
+    <div
+      id="fan-graph-container"
+      ref={chartContainerRef}
+      className="relative w-full"
+      style={{ height }}
+    >
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
@@ -139,13 +124,19 @@ const FanChart: FC<Props> = ({
           containerComponent={
             withTooltip ? (
               <VictoryVoronoiContainer
-                voronoiBlacklist={["fanArea", "fanLine"]}
+                voronoiBlacklist={[
+                  "communityFanArea",
+                  "userFanArea",
+                  "communityFanLine",
+                  "userFanLine",
+                ]}
                 labels={({ datum }) => datum.x}
                 labelComponent={
                   <ChartFanTooltip
                     chartHeight={height}
-                    items={tooltipItems}
-                    width={TOOLTIP_WIDTH}
+                    options={options}
+                    hideCp={hideCP}
+                    forecastAvailability={forecastAvailability}
                   />
                 }
                 onActivated={(points) => {
@@ -178,8 +169,8 @@ const FanChart: FC<Props> = ({
         >
           {!hideCP && (
             <VictoryArea
-              name="fanArea"
-              data={area}
+              name="communityFanArea"
+              data={communityArea}
               style={{
                 data: {
                   opacity: 0.3,
@@ -187,7 +178,28 @@ const FanChart: FC<Props> = ({
               }}
             />
           )}
-          {!hideCP && <VictoryLine name="fanLine" data={line} />}
+          <VictoryArea
+            name="userFanArea"
+            data={userArea}
+            style={{
+              data: {
+                fill: getThemeColor(METAC_COLORS.orange["500"]),
+                opacity: 0.3,
+              },
+            }}
+          />
+          {!hideCP && (
+            <VictoryLine name="communityFanLine" data={communityLine} />
+          )}
+          <VictoryLine
+            name="userFanLine"
+            data={userLine}
+            style={{
+              data: {
+                stroke: getThemeColor(METAC_COLORS.orange["700"]),
+              },
+            }}
+          />
           <VictoryAxis
             dependentAxis
             label={yLabel}
@@ -204,7 +216,7 @@ const FanChart: FC<Props> = ({
           <VictoryAxis tickFormat={(_, index) => labels[index] ?? ""} />
           {!hideCP && !forecastAvailability?.cpRevealsOn && (
             <VictoryScatter
-              data={points.map((point) => ({
+              data={communityPoints.map((point) => ({
                 ...point,
                 symbol: "square",
               }))}
@@ -222,6 +234,19 @@ const FanChart: FC<Props> = ({
               }
             />
           )}
+          <VictoryScatter
+            data={userPoints.map((point) => ({
+              ...point,
+              symbol: "square",
+            }))}
+            dataComponent={
+              <FanPoint
+                activePoint={activePoint}
+                pointSize={pointSize}
+                pointColor={getThemeColor(METAC_COLORS.orange["700"])}
+              />
+            }
+          />
           <VictoryScatter
             data={resolutionPoints.map((point) => ({
               ...point,
@@ -241,24 +266,33 @@ const FanChart: FC<Props> = ({
           />
         </VictoryChart>
       )}
-      <ForecastAvailabilityChartOverflow
-        forecastAvailability={forecastAvailability}
-        className="text-xs lg:text-sm"
-        textClassName="!max-w-[300px]"
-      />
+      {!withTooltip && (
+        <ForecastAvailabilityChartOverflow
+          forecastAvailability={forecastAvailability}
+          className="text-xs lg:text-sm"
+          textClassName="!max-w-[300px]"
+        />
+      )}
     </div>
   );
 };
 
+type FanGraphPoint = { x: string; y: number; resolved: boolean };
+
 function buildChartData(options: FanOption[]) {
-  const line: Line<string> = [];
-  const area: Area<string> = [];
-  const points: Array<{ x: string; y: number; resolved: boolean }> = [];
-  const resolutionPoints: Array<{ x: string; y: number; resolved: boolean }> =
-    [];
+  const communityLine: Line<string> = [];
+  const userLine: Line<string> = [];
+  const communityArea: Area<string> = [];
+  const userArea: Area<string> = [];
+  const communityPoints: Array<FanGraphPoint> = [];
+  const userPoints: Array<FanGraphPoint> = [];
+  const resolutionPoints: Array<FanGraphPoint> = [];
   const zeroPoints: number[] = [];
   options.forEach((option) => {
-    if (option.question.scaling.zero_point !== null && !!option.quartiles) {
+    if (
+      option.question.scaling.zero_point !== null &&
+      !!option.communityQuartiles
+    ) {
       zeroPoints.push(option.question.scaling.zero_point);
     }
   });
@@ -297,90 +331,130 @@ function buildChartData(options: FanOption[]) {
     scaling.zero_point = null;
   }
 
-  if (options[0]?.question.type === QuestionType.Binary) {
-    for (const option of options) {
-      if (!!option.quartiles) {
-        line.push({
-          x: option.name,
-          y: option.quartiles.median,
-        });
-        area.push({
-          x: option.name,
-          y0: option.quartiles.lower25,
-          y: option.quartiles.upper75,
-        });
-        points.push({
-          x: option.name,
-          y: option.quartiles.median,
-          resolved: false,
-        });
-      }
-      if (option.resolved) {
-        resolutionPoints.push({
-          x: option.name,
-          y: getResolutionPosition(option.question, scaling),
-          resolved: true,
-        });
-      }
+  const isBinaryGroup = options[0]?.question.type === QuestionType.Binary;
+  for (const option of options) {
+    if (option.communityQuartiles) {
+      const {
+        linePoint: communityLinePoint,
+        areaPoint: communityAreaPoint,
+        point: communityPoint,
+      } = getOptionGraphData(
+        {
+          name: option.name,
+          quartiles: option.communityQuartiles,
+          optionScaling: option.question.scaling,
+          scaling,
+        },
+        isBinaryGroup
+      );
+      communityLine.push(communityLinePoint);
+      communityArea.push(communityAreaPoint);
+      communityPoints.push(communityPoint);
     }
-  } else {
-    for (const option of options) {
-      if (!!option.quartiles) {
-        // scale up the values to nominal values
-        // then unscale by the derived scaling
-        const median = unscaleNominalLocation(
-          scaleInternalLocation(
-            option.quartiles.median,
-            option.question.scaling
-          ),
-          scaling
-        );
-        const lower25 = unscaleNominalLocation(
-          scaleInternalLocation(
-            option.quartiles.lower25,
-            option.question.scaling
-          ),
-          scaling
-        );
-        const upper75 = unscaleNominalLocation(
-          scaleInternalLocation(
-            option.quartiles.upper75,
-            option.question.scaling
-          ),
-          scaling
-        );
-
-        line.push({
-          x: option.name,
-          y: median,
-        });
-        area.push({
-          x: option.name,
-          y0: lower25,
-          y: upper75,
-        });
-        points.push({
-          x: option.name,
-          y: median,
-          resolved: false,
-        });
+    if (option.resolved) {
+      resolutionPoints.push({
+        x: option.name,
+        y: getResolutionPosition(option.question, scaling),
+        resolved: true,
+      });
+    }
+    if (option.userQuartiles) {
+      const {
+        linePoint: userLinePoint,
+        areaPoint: userAreaPoint,
+        point: userPoint,
+      } = getOptionGraphData(
+        {
+          name: option.name,
+          quartiles: option.userQuartiles,
+          optionScaling: option.question.scaling,
+          scaling,
+        },
+        isBinaryGroup
+      );
+      userLine.push(userLinePoint);
+      if (!isBinaryGroup) {
+        userArea.push(userAreaPoint);
       }
-      if (option.resolved) {
-        resolutionPoints.push({
-          x: option.name,
-          y: getResolutionPosition(option.question, scaling),
-          resolved: true,
-        });
-      }
+      userPoints.push(userPoint);
     }
   }
 
   return {
-    line,
-    area,
-    points,
+    communityLine,
+    userLine,
+    communityArea,
+    userArea,
+    communityPoints,
+    userPoints,
     resolutionPoints,
     scaling,
+  };
+}
+
+function getOptionGraphData(
+  {
+    name,
+    quartiles,
+    scaling,
+    optionScaling,
+  }: {
+    name: string;
+    quartiles: Quartiles;
+    optionScaling: Scaling;
+    scaling: Scaling;
+  },
+  withoutScaling = true
+) {
+  if (withoutScaling) {
+    return {
+      linePoint: {
+        x: name,
+        y: quartiles.median,
+      },
+      areaPoint: {
+        x: name,
+        y0: quartiles.lower25,
+        y: quartiles.upper75,
+      },
+      point: {
+        x: name,
+        y: quartiles.median,
+        resolved: false,
+      },
+    };
+  }
+
+  // scale up the values to nominal values
+  // then unscale by the derived scaling
+  const median = unscaleNominalLocation(
+    scaleInternalLocation(quartiles.median, optionScaling),
+    scaling
+  );
+  const lower25 = unscaleNominalLocation(
+    scaleInternalLocation(quartiles.lower25, optionScaling),
+    scaling
+  );
+  const upper75 = unscaleNominalLocation(
+    scaleInternalLocation(quartiles.upper75, optionScaling),
+    scaling
+  );
+
+  return {
+    linePoint: {
+      x: name,
+      y: median,
+    },
+    areaPoint: {
+      x: name,
+      y0: lower25,
+      y: upper75,
+    },
+    point: {
+      x: name,
+      y: median,
+      resolved: false,
+    },
   };
 }
 

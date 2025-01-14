@@ -6,6 +6,7 @@ import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import GroupPredictionsTooltip from "@/components/charts/primitives/group_predictions_tooltip";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
@@ -14,7 +15,6 @@ import { QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/cn";
 
 import ChoicesLegend from "./choices_legend";
-import ChoicesTooltip from "./choices_tooltip";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
@@ -215,10 +215,10 @@ const MultiChoicesChartView: FC<Props> = ({
             style={floatingStyles}
             {...getFloatingProps()}
           >
-            <ChoicesTooltip
-              date={tooltipDate}
-              choices={tooltipChoices}
-              userChoices={tooltipUserChoices}
+            <GroupPredictionsTooltip
+              title={tooltipDate}
+              communityPredictions={tooltipChoices}
+              userPredictions={tooltipUserChoices}
             />
           </div>
         </FloatingPortal>
