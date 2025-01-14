@@ -2,7 +2,6 @@
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import cn from "@/utils/cn";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
@@ -17,6 +16,7 @@ import Tooltip from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousAreaGraphType } from "@/types/charts";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import cn from "@/utils/cn";
 
 import ContinuousPredictionChart from "./continuous_prediction_chart";
 import { useHideCP } from "../cp_provider";
