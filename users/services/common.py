@@ -15,8 +15,6 @@ from posts.services.subscriptions import (
 from users.models import User, UserCampaignRegistration
 from utils.email import send_email_with_template
 from utils.frontend import build_frontend_email_change_url
-from projects.models import Project, ProjectUserPermission
-from projects.permissions import ObjectPermission
 from users.serializers import UserPrivateSerializer
 
 
@@ -138,21 +136,12 @@ def send_email_change_confirmation_email(user: User, new_email: str):
     )
 
 
-def register_user_to_campaign(
-    user: User, campaign_key: str, campaign_data: dict, project: Project
-):
+def register_user_to_campaign(user: User, campaign_key: str, campaign_data: dict):
 
     try:
         UserCampaignRegistration.objects.create(
             user=user, key=campaign_key, details=campaign_data
         )
-        if project is not None:
-            if project.default_permission is None:
-                raise ValidationError("Cannot add user to a private project")
-
-            ProjectUserPermission.objects.create(
-                user=user, project=project, permission=ObjectPermission.FORECASTER
-            )
 
         if settings.CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR is not None:
             [key, url] = settings.CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR.split(

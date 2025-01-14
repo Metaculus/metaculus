@@ -23,7 +23,8 @@ from authentication.services import (
     check_password_reset,
 )
 from users.models import User
-from fab_credits.models import UserUsage
+from projects.models import ProjectUserPermission
+from projects.permissions import ObjectPermission
 from users.services.common import register_user_to_campaign
 from users.serializers import UserPrivateSerializer
 from utils.cloudflare import validate_turnstile_from_request
@@ -65,6 +66,9 @@ def signup_api_view(request):
     campaign_data = serializer.validated_data.get("campaign_data", None)
     redirect_url = serializer.validated_data.get("redirect_url", None)
 
+    if project is not None and project.default_permission is None:
+        raise ValidationError("Cannot add user to a private project")
+
     user = User.objects.create_user(
         username=username,
         email=email,
@@ -74,17 +78,11 @@ def signup_api_view(request):
     )
 
     if campaign_key is not None:
-        register_user_to_campaign(user, campaign_key, campaign_data, project)
+        register_user_to_campaign(user, campaign_key, campaign_data)
 
-    if project is not None and project.id == 32627:
-        # This is a hack to automatically give new bot users 100k tokens for the Q4 AIB  so they
-        # can get started quickly before they even reach out to us to ask for more credits.
-        # TODO: Remove or update this when the Q4 AIB is over.
-        UserUsage.objects.create(
-            user=user,
-            platform=UserUsage.UsagePlatform.OpenAI,
-            model_name="gpt-4o",
-            total_allowed_tokens=100000,
+    if project is not None:
+        ProjectUserPermission.objects.create(
+            user=user, project=project, permission=ObjectPermission.FORECASTER
         )
 
     is_active = user.is_active
