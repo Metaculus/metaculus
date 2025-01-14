@@ -512,7 +512,10 @@ export function getSubquestionPredictionInputMessage(
   }
 }
 
-export function parseQuestionId(questionUrlOrId: string): {
+export function parseQuestionId(
+  questionUrlOrId: string,
+  includeNotebooks: boolean = false
+): {
   postId: number | null;
   questionId: number | null;
 } {
@@ -536,7 +539,9 @@ export function parseQuestionId(questionUrlOrId: string): {
   if (!isNaN(id)) {
     result.postId = id;
   } else {
-    const urlPattern = /\/questions\/(\d+)\/?/;
+    const urlPattern = includeNotebooks
+      ? /\/(?:questions|notebooks)\/(\d+)\/?/
+      : /\/questions\/(\d+)\/?/;
     const match = questionUrlOrId.match(urlPattern);
     if (match && match[1]) {
       result.postId = Number(match[1]);
