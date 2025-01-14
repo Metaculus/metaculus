@@ -184,17 +184,16 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
 
-            {!!activeForecast &&
-              question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
-                >
-                  {t("withdraw")}
-                </Button>
-              )}
+            {!!activeForecast && (
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={withdrawalIsPending}
+                onClick={withdraw}
+              >
+                {t("withdraw")}
+              </Button>
+            )}
             <PredictButton
               onSubmit={submit}
               isDirty={isDirty}
