@@ -514,3 +514,12 @@ def get_posts_staff_users(
         post: project_staff_map[default_project_id]
         for post, default_project_id in post_default_projects_id_map.items()
     }
+
+
+def make_repost(post: Post, project: Project):
+    """
+    Report post into the given project
+    """
+
+    if post.default_project != project:
+        post.projects.add(project)

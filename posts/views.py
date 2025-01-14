@@ -46,11 +46,14 @@ from posts.services.common import (
     post_make_draft,
     compute_hotness,
     trigger_update_post_translations,
+    make_repost,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
+from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services.common import get_project_permission_for_user
 from questions.models import AggregateForecast, Question
 from questions.serializers import (
     QuestionApproveSerializer,
@@ -706,3 +709,32 @@ def random_post_id(request):
         .first()
     )
     return Response({"id": post.id, "post_slug": get_post_slug(post)})
+
+
+@api_view(["POST"])
+def repost_api_view(request, pk):
+    """
+    Boots/Bury post
+    """
+
+    user = request.user
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    project_id = serializers.IntegerField().run_validation(
+        request.data.get("project_id")
+    )
+
+    # Allow reposting only into projects where the user has Admin or Curator permissions
+    project = get_object_or_404(Project, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(project, user=request.user)
+    ObjectPermission.can_repost_into_project(permission, raise_exception=True)
+
+    make_repost(post, project)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
