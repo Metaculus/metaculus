@@ -90,7 +90,7 @@ const LeaderboardTable: FC<Props> = ({
               } else {
                 navigationUrl = entry.user
                   ? `/contributions/${category}/${entry.user.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`
-                  : `/questions/trackdasfd-record`;
+                  : `/questions/track-record`;
               }
               if (entry.user && entry.user.id === userEntry?.user?.id) {
                 return (
