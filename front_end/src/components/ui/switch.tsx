@@ -1,12 +1,12 @@
 import { Switch as HeadlessSwitch, SwitchProps } from "@headlessui/react";
-import classNames from "classnames";
+import cn from "@/utils/cn";
 import React, { FC } from "react";
 
 const Switch: FC<SwitchProps> = ({ className, ...props }) => {
   return (
     <HeadlessSwitch
       {...props}
-      className={classNames(
+      className={cn(
         "group inline-flex h-6 w-11 items-center rounded-full bg-gray-400 transition data-[checked]:bg-blue-700 dark:bg-gray-400-dark dark:data-[checked]:bg-blue-700-dark",
         className
       )}
