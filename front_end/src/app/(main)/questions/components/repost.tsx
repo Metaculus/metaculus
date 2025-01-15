@@ -100,16 +100,19 @@ const RepostForm: FC<Props> = ({ community }) => {
       <BacktoCreate
         backText={t("create")}
         backHref="/questions/create"
-        currentPage={t("existingQuestion")}
+        currentPage={t("addExistingQuestion")}
       />
       <div className="text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
         {t("existingQuestionExample")}
       </div>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mt-4 flex w-full flex-col gap-6"
+        className="mt-8 flex w-full flex-col gap-6"
       >
-        <InputContainer labelText={t("metaculusQuestion")}>
+        <InputContainer
+          labelText={t("questionId")}
+          explanation={t("enterQuestionIdUrl")}
+        >
           <div className="relative m-auto w-full flex-col">
             <Input
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
@@ -131,10 +134,11 @@ const RepostForm: FC<Props> = ({ community }) => {
           </div>
           <Button
             type="submit"
+            variant="primary"
             className="w-max capitalize"
             disabled={isPostLoading || isLoading || !post}
           >
-            {t("submit")}
+            {t("addQuestion")}
           </Button>
         </div>
       </form>

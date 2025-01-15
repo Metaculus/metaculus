@@ -4,6 +4,7 @@ import React from "react";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
+import QuestionRepost from "@/app/(main)/questions/components/question_repost";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
@@ -83,7 +84,15 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
               ),
             })}
           </p>
+          {community &&
+            community.user_permission &&
+            [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
+              community.user_permission
+            ) && (
+              <QuestionRepost url={createHref("/questions/create/repost")} />
+            )}
         </div>
+
         <h2 className="mt-0 text-lg font-light capitalize">
           {t("singleQuestion")}
         </h2>
@@ -135,23 +144,6 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
             questionExample={`"${t("conditionalPairExample")}"`}
           />
         </div>
-
-        {community &&
-          community.user_permission &&
-          [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
-            community.user_permission
-          ) && (
-            <>
-              <h2 className="text-lg font-light capitalize">
-                {t("existingQuestion")}
-              </h2>
-              <QuestionTypePicker
-                url={createHref("/questions/create/repost")}
-                questionType={t("metaculusQuestion")}
-                questionExample={t("existingQuestionExample")}
-              />
-            </>
-          )}
 
         <h2 className="text-lg font-light capitalize">{t("posts")}</h2>
         <QuestionTypePicker
