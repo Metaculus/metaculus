@@ -60,11 +60,11 @@ type FormData = z.infer<ReturnType<typeof createNotebookSchema>>;
 
 type Props = {
   mode: "create" | "edit";
-  post: PostWithForecasts | null;
+  post?: PostWithForecasts;
   allCategories: Category[];
-  tournament_id: number | null;
-  community_id?: number | null;
-  news_category_id: number | null;
+  tournament_id?: number;
+  community_id?: number;
+  news_category_id?: number;
   tournaments: TournamentPreview[];
   siteMain: Tournament;
 };
