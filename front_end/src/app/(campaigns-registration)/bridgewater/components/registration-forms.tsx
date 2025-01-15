@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
+import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -207,6 +208,10 @@ export const RegistrationAndSignupForm: FC<
   const currentLocation = usePathname();
 
   const onSubmit = async (data: SignUpSchema) => {
+    sendGAEvent(
+      "event",
+      watch("undergrad") ? "bw_register_under" : "bw_register_non_under"
+    );
     const response = await signUpAction({
       ...data,
       campaignKey,
@@ -382,6 +387,11 @@ export const RegistrationForm: FC<
   const { watch, formState, handleSubmit, setError, setValue } = methods;
 
   const onSubmit = async () => {
+    sendGAEvent(
+      "event",
+      watch("undergrad") ? "bw_register_under" : "bw_register_non_under"
+    );
+
     const response = await registerUserCampaignAction(
       campaignKey,
       {

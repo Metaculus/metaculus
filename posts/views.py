@@ -1,11 +1,8 @@
-import logging
 from collections import defaultdict
 
-import requests
-from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
@@ -58,7 +55,6 @@ from questions.serializers import (
 from users.models import User
 from utils.csv_utils import export_data_for_questions
 from utils.files import UserUploadedImage, generate_filename
-from utils.frontend import build_question_embed_url
 from utils.paginator import CountlessLimitOffsetPagination
 from utils.the_math.aggregations import get_aggregation_history
 
@@ -538,52 +534,6 @@ def post_related_articles_api_view(request: Request, pk):
     articles = get_post_similar_articles(post)
 
     return Response(PostRelatedArticleSerializer(articles, many=True).data)
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def post_preview_image(request: Request, pk):
-    post = get_object_or_404(Post, pk=pk)
-
-    # Check permissions
-    permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_view(permission, raise_exception=True)
-
-    headers = {"api_key": settings.SCREENSHOT_SERVICE_API_KEY}
-    width = 1200
-    height = 630
-    theme = "dark"
-
-    image_url = f"{build_question_embed_url(pk)}/?ENFORCED_THEME_PARAM={theme}&HIDE_ZOOM_PICKER=true&non-interactive=true"
-
-    try:
-        response = requests.post(
-            f"{settings.SCREENSHOT_SERVICE_API_URL}/",
-            json={
-                "url": image_url,
-                "selector": "#id-used-by-screenshot-donot-change",
-                "selector_to_wait": "#id-logo-used-by-screenshot-donot-change",
-                "width": width,
-                "height": height,
-            },
-            headers=headers,
-        )
-        if response.ok:
-            image_data = response.content
-            return HttpResponse(image_data, content_type="image/png")
-        else:
-            logging.error(
-                "Screenshot service failed status_code=%s response=%s",
-                response.status_code,
-                response.content.decode("utf-8"),
-            )
-
-    except Exception:
-        logging.exception("Image generation failed question_id=%s", pk)
-
-    return HttpResponseNotFound(
-        "HTTP 404 - Chart for this question cannot be generated."
-    )
 
 
 @api_view(["GET"])

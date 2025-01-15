@@ -19,7 +19,7 @@ import QuestionsApi, {
   WithdrawalPayload,
 } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
-import { PostSubscription, PostWithNotebook } from "@/types/post";
+import { PostSubscription, NotebookPost } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
 import { DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
@@ -185,8 +185,8 @@ export async function updateNotebook(
   title: string
 ) {
   const response = await PostsApi.updatePost<
-    PostWithNotebook,
-    DeepPartial<PostWithNotebook>
+    NotebookPost,
+    DeepPartial<NotebookPost>
   >(postId, {
     title: title,
     notebook: {

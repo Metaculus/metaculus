@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
+import ReaffirmButton from "@/components/post_card/reaffirm_button";
 import { ChoiceItem } from "@/types/choices";
 import { QuestionType } from "@/types/question";
 
@@ -15,6 +16,8 @@ type Props = {
   hideCP?: boolean;
   hideChoiceIcon?: boolean;
   optionLabelClassName?: string;
+  onReaffirm?: () => void;
+  canPredict?: boolean;
 };
 
 const MultipleChoiceTileLegend: FC<Props> = ({
@@ -24,6 +27,8 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   questionType,
   hideChoiceIcon,
   optionLabelClassName,
+  onReaffirm,
+  canPredict = false,
 }) => {
   const t = useTranslations();
 
@@ -67,7 +72,20 @@ const MultipleChoiceTileLegend: FC<Props> = ({
           <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
             {t("otherWithCount", { count: otherItemsCount })}
           </div>
+          {canPredict && !!onReaffirm && (
+            <ReaffirmButton
+              onClick={onReaffirm}
+              combined
+              className="resize-label flex py-0.5 text-left text-sm font-medium leading-4"
+            />
+          )}
         </div>
+      )}
+      {!otherItemsCount && canPredict && !!onReaffirm && (
+        <ReaffirmButton
+          onClick={onReaffirm}
+          className="resize-label flex py-0.5 text-left text-sm font-medium leading-4"
+        />
       )}
     </div>
   );

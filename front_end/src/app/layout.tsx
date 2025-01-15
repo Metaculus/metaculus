@@ -10,6 +10,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
 
+import ChunkRetryScript from "@/components/chunk_retry_script";
 import GlobalModals from "@/components/global_modals";
 import AppThemeProvided from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
@@ -170,6 +171,7 @@ export default async function RootLayout({
           />
         )}
       </CSPostHogProvider>
+      <ChunkRetryScript />
     </html>
   );
 }

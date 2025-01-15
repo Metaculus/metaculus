@@ -27,6 +27,7 @@ import { Moderator } from "@/components/icons/moderator";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
+import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType } from "@/types/comment";
@@ -477,10 +478,14 @@ const Comment: FC<CommentProps> = ({
                   // usually, don't expect this, as action is available only for logged-in users
                   return;
                 }
+                const parsedMarkdown = commentMarkdown.replace(
+                  userTagPattern,
+                  (match) => match.replace(/[\\]/g, "")
+                );
 
                 const response = await editComment({
                   id: comment.id,
-                  text: commentMarkdown,
+                  text: parsedMarkdown,
                   author: user.id,
                 });
                 if (response && "errors" in response) {
@@ -499,7 +504,7 @@ const Comment: FC<CommentProps> = ({
                       newCommentDataResponse.errors
                     );
                   } else {
-                    setCommentMarkdown(commentMarkdown);
+                    setCommentMarkdown(parsedMarkdown);
                   }
                   setIsEditing(false);
                 }

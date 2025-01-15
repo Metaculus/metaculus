@@ -81,7 +81,9 @@ class ProjectsApi {
     );
   }
 
-  static async getSlugTournament(slug: string): Promise<Tournament | null> {
+  static async getTournament(
+    slug: string | number
+  ): Promise<Tournament | null> {
     return await get<Tournament>(`/projects/tournaments/${slug}/`);
   }
 

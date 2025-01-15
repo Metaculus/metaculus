@@ -10,6 +10,10 @@ def remove_markdown(text: str) -> str:
     return strip_tags(markdown(text))
 
 
+def beautify_mentions(text: str) -> str:
+    return re.sub(r"@\((.*?)\)", r"@\1", text)
+
+
 def generate_email_comment_preview_text(
     text: str, username: str = None, max_chars: int = 80
 ) -> tuple[str, bool]:
@@ -20,23 +24,27 @@ def generate_email_comment_preview_text(
     placeholder = "..."
     text = remove_markdown(text)
 
-    # Replace all matches with @username format
-    text = re.sub(USERNAME_PATTERN, r"@\1", text)
-
     # Find all matches and check for the username mention
     matches = list(re.finditer(USERNAME_PATTERN, text))
     mention_match = None
 
     if username:
-        mention = f"@{username}"
         mention_match = next(
-            (match for match in matches if match.group(1) == username), None
+            (
+                match
+                for match in matches
+                if match.group(1).strip("()").lower() == username.lower()
+            ),
+            None,
         )
 
     if not mention_match:
         # No mention found, truncate text if necessary
         preview_text = text[:max_chars] + placeholder if len(text) > max_chars else text
-        return preview_text, False
+        # Replace @(...) with @...
+        return beautify_mentions(preview_text), False
+
+    mention = f"@{mention_match.group(1)}"
 
     # Mention found, create preview around the mention
     idx = mention_match.start()
@@ -51,5 +59,7 @@ def generate_email_comment_preview_text(
 
     # Highlight the mention in the preview
     preview = re.sub(re.escape(mention), f"<b>{mention}</b>", preview)
+    # Replace @(...) with @...
+    preview = beautify_mentions(preview)
 
     return preview, True

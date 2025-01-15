@@ -19,6 +19,8 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
+  getNormalizedContinuousForecast,
+  getNormalizedContinuousWeight,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
@@ -64,16 +66,10 @@ const ForecastMakerContinuous: FC<Props> = ({
   const hasUserForecast = !!activeForecastSliderValues.forecast;
   const t = useTranslations();
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
-    activeForecastSliderValues?.forecast ?? [
-      {
-        left: 0.4,
-        center: 0.5,
-        right: 0.6,
-      },
-    ]
+    getNormalizedContinuousForecast(activeForecastSliderValues.forecast)
   );
   const [weights, setWeights] = useState<number[]>(
-    activeForecastSliderValues?.weights ?? [1]
+    getNormalizedContinuousWeight(activeForecastSliderValues.weights)
   );
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(
@@ -158,20 +154,22 @@ const ForecastMakerContinuous: FC<Props> = ({
   );
   return (
     <>
-      <ContinuousSlider
-        forecast={forecast}
-        weights={weights}
-        dataset={dataset}
-        onChange={(forecast, weight) => {
-          setForecast(forecast);
-          setWeights(weight);
-          setIsDirty(true);
-        }}
-        overlayPreviousForecast={overlayPreviousForecast}
-        setOverlayPreviousForecast={setOverlayPreviousForecast}
-        question={question}
-        disabled={!canPredict}
-      />
+      <div className="mt-[-36px] md:mt-[-28px]">
+        <ContinuousSlider
+          forecast={forecast}
+          weights={weights}
+          dataset={dataset}
+          onChange={(forecast, weight) => {
+            setForecast(forecast);
+            setWeights(weight);
+            setIsDirty(true);
+          }}
+          overlayPreviousForecast={overlayPreviousForecast}
+          setOverlayPreviousForecast={setOverlayPreviousForecast}
+          question={question}
+          disabled={!canPredict}
+        />
+      </div>
 
       {canPredict && (
         <>

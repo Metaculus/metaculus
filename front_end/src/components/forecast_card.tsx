@@ -29,6 +29,7 @@ import {
   getGroupForecastAvailability,
   getQuestionForecastAvailability,
   getQuestionLinearChartType,
+  isConditionalPost,
   sortGroupPredictionOptions,
 } from "@/utils/questions";
 
@@ -141,14 +142,8 @@ const ForecastCard: FC<Props> = ({
       }
     }
 
-    if (post.conditional) {
-      return (
-        <ConditionalTile
-          postTitle={post.title}
-          conditional={post.conditional}
-          chartTheme={embedTheme?.chart}
-        />
-      );
+    if (isConditionalPost(post)) {
+      return <ConditionalTile post={post} chartTheme={embedTheme?.chart} />;
     }
 
     if (post.question) {

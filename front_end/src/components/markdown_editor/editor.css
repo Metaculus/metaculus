@@ -41,3 +41,8 @@
 [data-editor-block-type="image"] > :last-child {
   @apply hidden;
 }
+
+.editor-equation {
+  cursor: default;
+  user-select: none;
+}

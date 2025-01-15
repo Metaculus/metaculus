@@ -11,7 +11,10 @@ export type TrackRecordScatterPlotItem = {
   score_timestamp: number;
   question_title: string;
   question_resolution: Resolution;
-  question_id: number;
+  // It's not a mistake that we're mixing question_ and post_ things here:
+  // the question is the thing that is forecast and scored, but a post
+  // is the resource you can link to (as a post may contain zero to many questions)
+  post_id: number;
 };
 
 export type TrackRecordCalibrationCurveItem = {

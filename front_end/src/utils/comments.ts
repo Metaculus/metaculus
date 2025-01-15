@@ -1,3 +1,4 @@
+import { userTagPattern } from "@/constants/comments";
 import { AuthorType, BECommentType, CommentType } from "@/types/comment";
 
 export function parseComment(
@@ -31,9 +32,6 @@ export function parseUserMentions(
   markdown: string,
   mentionedUsers?: AuthorType[]
 ): string {
-  const userTagPattern =
-    /@(\(([^)]+)\)|([\w+\-_'~#%@]+(?:\.[\w+\-_'~#%@]+)*))/gu;
-
   function isInsideSquareBrackets(index: number) {
     let insideBrackets = false;
     for (let i = 0; i < index; i++) {
@@ -49,9 +47,8 @@ export function parseUserMentions(
       if (isInsideSquareBrackets(offset)) {
         return match;
       }
-
       // remove only the leading "@" and clean parentheses around the username
-      let cleanedUsername = (group2 || group3).replace(/^@/, "");
+      let cleanedUsername = match.replace(/^@/, "");
       cleanedUsername = cleanedUsername.replace(/^\(([^)]+)\)$/, "$1");
 
       switch (cleanedUsername.toLowerCase()) {

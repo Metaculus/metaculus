@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import MathJaxContent from "@/components/math_jax_content";
+import KatexRenderer from "@/components/katex_renderer";
 
 import PageWrapper from "../components/pagewrapper";
 
@@ -2814,15 +2814,14 @@ export default function FAQ() {
           <ul className="ml-5 list-disc space-y-2">
             <li>Keep only the most recent prediction from each forecaster.</li>
             <li>
-              <MathJaxContent
-                content={` Assign them a number \\(n\\), from oldest to newest (oldest is
-              \\(1\\)).`}
-              />
+              Assign them a number <KatexRenderer equation="n" inline />, from
+              oldest to newest (oldest is <KatexRenderer equation="1" inline />
+              ).
             </li>
             <li>
-              <MathJaxContent
-                content={` Weight each by \\(w(n) \\propto e^{\\sqrt{n}}\\) before being aggregated.`}
-              />
+              Weight each by{" "}
+              <KatexRenderer equation="w(n) \propto e^{\sqrt{n}}" inline />{" "}
+              before being aggregated.
             </li>
             <ul className="ml-5 list-disc">
               <li>
@@ -2841,7 +2840,7 @@ export default function FAQ() {
                 </a>{" "}
                 of the individual forecaster probabilities, renormalized to sum
                 to 1 and respect the bounds of{" "}
-                <MathJaxContent content={`[0.001, 0.999]`} />.
+                <KatexRenderer equation="[0.001, 0.999]" inline />.
               </li>
               <li>
                 For{" "}
@@ -2855,10 +2854,10 @@ export default function FAQ() {
             </ul>
             <li>
               The particular form of the weights means that approximately{" "}
-              <MathJaxContent content={`\\(\\sqrt{N}\\)`} /> forecasters need to
+              <KatexRenderer equation="\sqrt{N}" inline /> forecasters need to
               predict or update their prediction in order to substantially
               change the Community Prediction on a question that already has{" "}
-              <MathJaxContent content={`\\(N\\)`} /> forecasters.
+              <KatexRenderer equation="N" inline /> forecasters.
             </li>
           </ul>
           <p>

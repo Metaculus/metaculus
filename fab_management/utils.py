@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_fab_tournament() -> Project | None:
-    project = Project.objects.filter(pk=32506).last()
+    project = Project.objects.filter(pk=32627).last()
     return project
 
 
@@ -248,14 +248,14 @@ def submit_questions(
                 parent_url = get_raw_val(row, "parent_url")
                 parent_post = get_parent_post(parent_url) if parent_url else None
 
-                type = get_type(row_values)
-                question_fields = common_fields
+                question_type = get_type(row_values)
+                question_fields = list(common_fields)
                 author = get_author(row_values)
 
-                if type == "numeric":
+                if question_type == "numeric":
                     question_fields += numeric_q_fields
 
-                if type == "multiple_choice":
+                if question_type == "multiple_choice":
                     question_fields += multiple_choice_q_fields
 
                 for field_name, field_get_value_fn in question_fields:
@@ -267,7 +267,7 @@ def submit_questions(
                                 f"Error on row {row_idx}, col '{field_name}': question has no parent, but '.p' was used for field"
                             )
                             continue
-                        val = getattr(parent_post.question, field_name)
+                        val = getattr(parent_post.question or parent_post.group_of_questions, field_name)
                     elif callable(field_get_value_fn):
                         val = field_get_value_fn(row_values)
 

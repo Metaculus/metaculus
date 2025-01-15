@@ -1,5 +1,6 @@
 "use client";
 
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -28,6 +29,9 @@ const CommentKeyFactor: FC<Props> = ({ keyFactor: { text } }) => {
           if (target) {
             scrollTo(target.getBoundingClientRect().top);
           }
+          sendGAEvent("event", "KeyFactorClick", {
+            event_label: "fromComment",
+          });
         }}
       >
         {text}

@@ -77,9 +77,11 @@ def build_question_forecasts(
 
     with transaction.atomic():
         # overwrite old history with new history, minimizing the amount deleted and created
-        previous_history = question.aggregate_forecasts.filter(
-            method=aggregation_method
-        ).order_by("start_time")
+        previous_history = list(
+            question.aggregate_forecasts.filter(method=aggregation_method).order_by(
+                "start_time"
+            )
+        )
         to_overwrite, to_delete = (
             previous_history[: len(aggregation_history)],
             previous_history[len(aggregation_history) :],

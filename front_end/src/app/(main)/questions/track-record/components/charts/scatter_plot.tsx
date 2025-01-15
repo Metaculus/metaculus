@@ -224,7 +224,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({
         {hoverData ? (
           <>
             <Link
-              href={`/questions/${hoverData.question_id}`}
+              href={`/questions/${hoverData.post_id}`}
               className="block text-center underline"
             >
               {hoverData.question_title}

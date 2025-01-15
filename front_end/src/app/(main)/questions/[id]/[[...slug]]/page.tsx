@@ -13,11 +13,15 @@ import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import questions from "@/services/questions";
 import { SearchParams } from "@/types/navigation";
-import { PostConditional, PostStatus, ProjectPermissions } from "@/types/post";
+import { PostStatus, ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import { QuestionWithNumericForecasts } from "@/types/question";
 import { getPostLink } from "@/utils/navigation";
-import { getQuestionTitle } from "@/utils/questions";
+import {
+  getQuestionTitle,
+  isConditionalPost,
+  isGroupOfQuestionsPost,
+  isQuestionPost,
+} from "@/utils/questions";
 
 import BackgroundInfo from "../components/background_info";
 import HideCPProvider from "../components/cp_provider";
@@ -148,7 +152,6 @@ export default async function IndividualQuestion({
       postData.curation_status !== PostStatus.APPROVED);
 
   const questionTitle = getQuestionTitle(postData);
-  const isClosed = postData.status === PostStatus.CLOSED;
   return (
     <EmbedModalContextProvider>
       <HideCPProvider post={postData}>
@@ -173,48 +176,29 @@ export default async function IndividualQuestion({
                   </div>
                 )}
 
-                {!!postData.conditional && (
+                {isConditionalPost(postData) && (
                   <ConditionalTile
-                    postTitle={postData.title}
-                    conditional={postData.conditional}
-                    nrForecasters={postData.nr_forecasters}
+                    post={postData}
                     withNavigation
                     withCPRevealBtn
-                    forecasters={postData.nr_forecasters}
                   />
                 )}
                 <QuestionHeaderInfo post={postData} />
 
-                {!!postData.question && (
-                  <DetailedQuestionCard
-                    postStatus={postData.status}
-                    question={postData.question}
-                    nrForecasters={postData.nr_forecasters}
-                  />
+                {isQuestionPost(postData) && (
+                  <DetailedQuestionCard post={postData} />
                 )}
-                {!!postData.group_of_questions && (
+                {isGroupOfQuestionsPost(postData) && (
                   <DetailedGroupCard
-                    actualCloseTime={
-                      postData.actual_close_time ??
-                      postData.scheduled_close_time
-                    }
-                    openTime={postData.open_time}
-                    questions={postData.group_of_questions.questions}
+                    post={postData}
                     preselectedQuestionId={preselectedGroupQuestionId}
-                    isClosed={isClosed}
-                    graphType={postData.group_of_questions.graph_type}
-                    postStatus={postData.status}
                   />
                 )}
 
                 <ForecastMaker post={postData} />
-                {!!postData.conditional && (
-                  <ConditionalTimeline
-                    conditional={
-                      postData.conditional as PostConditional<QuestionWithNumericForecasts>
-                    }
-                    isClosed={isClosed}
-                  />
+
+                {isConditionalPost(postData) && (
+                  <ConditionalTimeline post={postData} />
                 )}
 
                 {!!postData.group_of_questions && (
