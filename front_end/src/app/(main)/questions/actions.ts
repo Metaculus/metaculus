@@ -158,6 +158,10 @@ export async function getPost(postId: number) {
   return response;
 }
 
+export async function makeRepost(postId: number, projectId: number) {
+  await PostsApi.repost(postId, projectId);
+}
+
 export async function getQuestion(questionId: number) {
   const response = await PostsApi.getQuestion(questionId);
   return response;

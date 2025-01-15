@@ -224,6 +224,10 @@ class PostsApi {
   static async getPostZipData(postId: number): Promise<Blob> {
     return await get<Blob>(`/posts/${postId}/download-data/`);
   }
+
+  static async repost(postId: number, projectId: number) {
+    return post(`/posts/${postId}/repost/`, { project_id: projectId });
+  }
 }
 
 export default PostsApi;

@@ -21,7 +21,7 @@ const QuestionTypePicker: React.FC<QuestionTypePickerProps> = ({
         {questionType}
       </div>
       <div className="text-sm font-light text-gray-700 dark:text-gray-700-dark md:text-lg">
-        {`"${questionExample}"`}
+        {questionExample}
       </div>
     </Link>
   );

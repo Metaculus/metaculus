@@ -182,6 +182,20 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         return can
 
     @classmethod
+    def can_repost_into_project(cls, permission: Self, raise_exception=False):
+        can = permission in (
+            cls.CURATOR,
+            cls.ADMIN,
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied(
+                "You do not have permission to repost into this project"
+            )
+
+        return can
+
+    @classmethod
     def can_edit_project_member_permission(
         cls, permission: Self, raise_exception=False
     ):
