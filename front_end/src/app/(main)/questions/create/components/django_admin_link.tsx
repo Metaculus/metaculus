@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
 
 type Props = {
-  post: PostWithForecasts | null;
+  post?: PostWithForecasts | null;
 };
 
 const PostDjangoAdminLink: FC<Props> = ({ post }) => {
