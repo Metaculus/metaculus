@@ -53,11 +53,11 @@ const createConditionalQuestionSchema = (
 };
 
 const ConditionalForm: React.FC<{
-  post: PostWithForecasts | null;
+  post: PostWithForecasts | undefined;
   mode: "create" | "edit";
   conditionParentInit: QuestionWithForecasts | null;
   conditionChildInit: QuestionWithForecasts | null;
-  tournament_id: number | null;
+  tournament_id?: number;
   community_id?: number;
   tournaments: TournamentPreview[];
   siteMain: Tournament;

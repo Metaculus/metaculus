@@ -53,11 +53,6 @@ urlpatterns = [
         name="remove-post-from-project",
     ),
     path(
-        "posts/preview-image/<int:pk>/",
-        views.post_preview_image,
-        name="post-preview-image",
-    ),
-    path(
         "posts/<int:post_id>/download-data/",
         views.download_data,
         name="posts-download-data",
