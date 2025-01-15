@@ -177,21 +177,21 @@ const ScoreDisplay: FC<Props> = ({ question }) => {
               </div>
             )}
           </div>
+          {(!!user_scores || !!cp_scores) && (
+            <div className="mb-4 flex flex-col gap-3 text-base font-normal leading-5 opacity-90">
+              <div>
+                Learn more about scores{" "}
+                <Link
+                  href="/help/scores-faq/"
+                  className="text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
+                >
+                  here
+                </Link>
+                .
+              </div>
+            </div>
+          )}
         </SectionToggle>
-      )}
-      {(!!user_scores || !!cp_scores) && (
-        <div className="mb-4 flex flex-col gap-3 text-base font-normal leading-5 opacity-90">
-          <div>
-            Learn more about scores{" "}
-            <Link
-              href="/help/scores-faq/"
-              className="text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
-            >
-              here
-            </Link>
-            .
-          </div>
-        </div>
       )}
     </>
   );
