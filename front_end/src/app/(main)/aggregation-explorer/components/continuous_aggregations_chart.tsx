@@ -9,25 +9,27 @@ import {
   ContinuousAreaGraphType,
   ContinuousAreaHoverState,
 } from "@/types/charts";
-import { AggregationQuestion, Aggregations } from "@/types/question";
+import {
+  AggregateForecastHistory,
+  AggregationQuestionWithBots,
+} from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
 
 type Props = {
-  questionData: AggregationQuestion;
-  activeTab: keyof Aggregations;
+  questionData: AggregationQuestionWithBots;
+  activeAggregation: AggregateForecastHistory;
   selectedTimestamp: number | null;
 };
 
 const ContinuousAggregationChart: FC<Props> = ({
   questionData,
-  activeTab,
+  activeAggregation,
   selectedTimestamp,
 }) => {
   const t = useTranslations();
-  const { scaling, type: qType, aggregations } = questionData;
-  const activeAggregation = aggregations[activeTab];
+  const { scaling, type: qType } = questionData;
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
   const [hoverState, setHoverState] = useState<ContinuousAreaHoverState | null>(
     null

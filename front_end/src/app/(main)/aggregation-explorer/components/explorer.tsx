@@ -7,76 +7,81 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Input } from "@headlessui/react";
+import { saveAs } from "file-saver";
+import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, FormEvent, useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 import Button from "@/components/ui/button";
-import Checkbox from "@/components/ui/checkbox";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { AggregationExplorerParams } from "@/services/aggregation_explorer";
+import Select from "@/components/ui/select";
 import { SearchParams } from "@/types/navigation";
+import { Post } from "@/types/post";
 import {
   AggregationQuestion,
   AggregationMethod,
-  aggregationMethodsArray,
+  aggregationMethodLabel,
+  AggregationMethodWithBots,
 } from "@/types/question";
 import { logError } from "@/utils/errors";
+import { base64ToBlob } from "@/utils/files";
 import { parseQuestionId } from "@/utils/questions";
 
-import AggregationsTab from "./aggregation_tab";
-import AggregationsDrawer from "./aggregations_drawer";
-import AggregationMethodsPicker from "./aggregations_picker";
-import { fetchAggregations } from "../actions";
+import { AggregationWrapper } from "./aggregation_wrapper";
+import { getPostZipData } from "../../questions/actions";
+import { fetchPost, fetchQuestion } from "../actions";
 
 type Props = { searchParams: SearchParams };
+export type AggregationMethodInfo = {
+  method: AggregationMethod;
+  label: (typeof aggregationMethodLabel)[keyof typeof aggregationMethodLabel];
+  includeBots: boolean;
+};
 
 const Explorer: FC<Props> = ({ searchParams }) => {
-  const { include_bots, post_id, question_id, aggregation_methods } =
-    searchParams;
+  // TODO: think about how to handle multiple aggregation methods
+  const { post_id, question_id } = searchParams;
   const router = useRouter();
   const t = useTranslations();
   const [data, setData] = useState<AggregationQuestion | null>(null);
-  const [activeTab, setActiveTab] = useState<AggregationMethod | null>(null);
-  const initialInputText = question_id
-    ? `/questions/${post_id}/?sub-question=${question_id}`
-    : post_id
-      ? `/questions/${post_id}/`
-      : "";
+  const [subQuestionIds, setSubQuestionIds] = useState<number[]>([]);
+  const [activeTab, setActiveTab] = useState<AggregationMethodWithBots | null>(
+    null
+  );
+  const initialInputText = post_id?.toString() ?? "";
   const [inputText, setInputText] = useState<string>(initialInputText);
-  const [includeBots, setIncludeBots] = useState<boolean>(
-    include_bots === "true"
-  );
-  const [aggregationMethods, setAggregationMethods] = useState<
-    AggregationMethod[]
-  >(
-    typeof aggregation_methods === "string"
-      ? ([...aggregation_methods?.split(",")] as [AggregationMethod])
-      : []
-  );
+  const [selectedSubQuestionId, setSelectedSubQuestionId] = useState<
+    number | null
+  >(question_id ? Number(question_id) : null);
+
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(
-    async ({
-      postId,
-      questionId,
-      includeBots,
-      aggregationMethods,
-    }: AggregationExplorerParams) => {
-      setLoading(true);
+  const fetchPostData = useCallback(
+    async (postId: number, questionId?: number) => {
+      setData(null);
       setError(null);
+      setLoading(true);
       try {
-        const response = await fetchAggregations({
-          postId,
-          questionId,
-          includeBots,
-          aggregationMethods,
-        });
-        setData(response);
+        const data = await fetchPost(postId);
+
+        // TODO: (fix for MC questions - was not supported previously)
+        if (!!data.group_of_questions || !!data.conditional) {
+          setSubQuestionIds(parseSubQuestionIds(data));
+          if (questionId) {
+            const questionData = await fetchQuestion(questionId);
+            // TODO: fix types
+            setData(questionData as unknown as AggregationQuestion);
+          }
+        } else {
+          // TODO: fix types
+          setData(data as unknown as AggregationQuestion);
+        }
       } catch (err) {
         logError(err);
-        setError("Failed to fetch data. Please try again.");
+        setError("Failed to fetch data. Please provide a valid post id");
       } finally {
         setLoading(false);
       }
@@ -84,33 +89,31 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     []
   );
 
+  // reset subquestions select on input change
   useEffect(() => {
-    if (include_bots) {
-      setIncludeBots(include_bots === "true");
+    if (subQuestionIds.length > 0) {
+      setSubQuestionIds([]);
+      setSelectedSubQuestionId(null);
     }
 
-    if (!!post_id && !!include_bots) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputText]);
+
+  useEffect(() => {
+    if (!!post_id) {
+      setError(null);
       const parsedInput = parseQuestionId(inputText as string);
       if (parsedInput.postId === null) {
         setError("Invalid question url or id");
         return;
       }
-
-      fetchData({
-        postId: parsedInput.postId,
-        questionId: parsedInput.questionId,
-        includeBots: include_bots === "true",
-        aggregationMethods: aggregation_methods as string,
-      });
+      fetchPostData(
+        Number(parsedInput.postId),
+        !!question_id ? Number(question_id) : undefined
+      );
     }
-  }, [
-    inputText,
-    post_id,
-    aggregation_methods,
-    fetchData,
-    include_bots,
-    question_id,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post_id, question_id]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -121,18 +124,24 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     }
     const params = new URLSearchParams({
       post_id: parsedInput.postId.toString(),
-      question_id: parsedInput.questionId?.toString() || "",
-      include_bots: includeBots.toString(),
+      question_id: selectedSubQuestionId?.toString() || "",
     });
 
-    if (
-      !!aggregationMethods.length &&
-      aggregationMethods.length < aggregationMethodsArray.length
-    ) {
-      params.append("aggregation_methods", aggregationMethods.join(","));
-    }
-
     router.push(`/aggregation-explorer?${params.toString()}`);
+  };
+
+  const handleDownloadQuestionData = async () => {
+    try {
+      if (!data) {
+        return;
+      }
+      const base64 = await getPostZipData(data.id);
+      const blob = base64ToBlob(base64);
+      const filename = `${data.url_title.replaceAll(" ", "_")}.zip`;
+      saveAs(blob, filename);
+    } catch (error) {
+      toast.error(t("downloadQuestionDataError") + error);
+    }
   };
 
   const renderContent = () => {
@@ -150,29 +159,35 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             {activeTab && (
               <Button
                 presentationType="icon"
-                className="absolute left-0 top-0 h-10"
+                className="absolute left-0 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full"
                 onClick={() => setActiveTab(null)}
               >
                 <FontAwesomeIcon icon={faArrowLeft} />
               </Button>
             )}
-            <h1 className="ml-10 text-xl leading-tight sm:text-2xl">
-              {data.title}
-            </h1>
-          </div>
-          {activeTab ? (
-            <div>
-              <p className="w-fit bg-gray-400 p-2 dark:bg-gray-400-dark">
-                {activeTab}
+            <div className="ml-12">
+              <h1 className="text-xl leading-tight sm:text-2xl">
+                {data.title}
+              </h1>
+              <p
+                onClick={handleDownloadQuestionData}
+                className="cursor-pointer text-sm text-gray-500 underline dark:text-gray-500-dark"
+              >
+                {t("downloadQuestionData")}
               </p>
-              <AggregationsTab activeTab={activeTab} questionData={data} />
             </div>
-          ) : (
-            <AggregationsDrawer
-              questionData={data}
-              onTabChange={setActiveTab}
-            />
+          </div>
+          {activeTab && (
+            <p className="w-fit bg-gray-400 p-2 dark:bg-gray-400-dark">
+              {aggregationMethodLabel[activeTab]}
+            </p>
           )}
+          <AggregationWrapper
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            postId={data.id}
+            questionId={selectedSubQuestionId}
+          />
         </>
       );
     }
@@ -185,9 +200,8 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       <form onSubmit={handleSubmit} className="flex flex-col">
         <p className="text-center text-xl"> Enter questions ID or URL </p>
         <p className="mt-2 text-center text-sm">
-          {" "}
-          If selecting a subquestion, please enter the full url e.g.
-          /questions/123/?sub-question=456.{" "}
+          If selecting a subquestion, firstly enter post id or url and then
+          select subquestion ID
         </p>
         <div className="m-auto w-full max-w-[500px]">
           <div className="relative m-auto flex w-full rounded-full text-sm text-gray-900 dark:text-gray-900-dark">
@@ -195,7 +209,12 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               name="search"
               type="search"
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              onChange={(e) => {
+                debounce(() => setInputText(e.target.value), 300);
+                setInputText(e.target.value);
+                setSubQuestionIds([]);
+                setSelectedSubQuestionId(null);
+              }}
               className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-3 pr-10 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
             />
             <span className="absolute inset-y-0 right-0 inline-flex h-full justify-center">
@@ -212,16 +231,29 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               )}
             </span>
           </div>
-          <Checkbox
-            checked={includeBots}
-            onChange={(checked) => setIncludeBots(checked)}
-            label="Include bots"
-            className="m-4 mr-0"
-          />
-          <AggregationMethodsPicker
-            methods={aggregationMethods}
-            onChange={setAggregationMethods}
-          />
+          {subQuestionIds.length > 0 && (
+            <div>
+              <p>Select a subquestion</p>
+              <Select
+                className="w-full rounded p-3 text-sm leading-5"
+                defaultValue={selectedSubQuestionId?.toString() || ""}
+                options={[
+                  {
+                    value: "",
+                    label: "Select subquestion ID",
+                    disabled: true,
+                  },
+                  ...subQuestionIds.map((id) => ({
+                    value: id.toString(),
+                    label: id.toString(),
+                  })),
+                ]}
+                onChange={(event) =>
+                  setSelectedSubQuestionId(Number(event.target.value))
+                }
+              />
+            </div>
+          )}
           <Button
             variant="primary"
             type="submit"
@@ -239,4 +271,13 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   );
 };
 
+function parseSubQuestionIds(data: Post) {
+  if (data.group_of_questions) {
+    return data.group_of_questions.questions.map((group) => group.id);
+  } else if (data.conditional) {
+    return [data.conditional.question_yes.id, data.conditional.question_no.id];
+  }
+  // TODO: adjust logic for multiple choice questions
+  return [];
+}
 export default Explorer;
