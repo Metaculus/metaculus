@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="finalized",
             field=models.BooleanField(
                 default=False,
-                help_text="If true, this Leaderboard's entries cannot be updated except by a manual action in the admin panel. Automatically set to true the first time this leaderboard is updated after the finalize_time.",
+                help_text="If true, this Leaderboard's entries cannot be updated except by a manual action in the admin panel. Automatically set to True the first time this leaderboard is updated after the finalize_time.",
             ),
         ),
         migrations.AlterField(

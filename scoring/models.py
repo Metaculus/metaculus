@@ -46,7 +46,9 @@ class Score(TimeStampedModel):
         SPOT_BASELINE = "spot_baseline"
         MANUAL = "manual"
 
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices, db_index=True)
+    score_type = models.CharField(
+        max_length=200, choices=ScoreTypes.choices, db_index=True
+    )
 
     def __str__(self):
         return (
@@ -190,7 +192,7 @@ class Leaderboard(TimeStampedModel):
     )
     finalized = models.BooleanField(
         default=False,
-        help_text="If true, this Leaderboard's entries cannot be updated except by a manual action in the admin panel. Automatically set to true the first time this leaderboard is updated after the finalize_time.",
+        help_text="If true, this Leaderboard's entries cannot be updated except by a manual action in the admin panel. Automatically set to True the first time this leaderboard is updated after the finalize_time.",
     )
 
     def __str__(self):
