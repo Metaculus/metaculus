@@ -1,6 +1,6 @@
 "use client";
 
-import { faCircleQuestion, faFile } from "@fortawesome/free-regular-svg-icons";
+import { faFile } from "@fortawesome/free-regular-svg-icons";
 import { faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
@@ -134,18 +134,6 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 />
                 <span className="block self-center text-center text-base no-underline md:text-xl lg:self-start lg:text-left min-[1920px]:text-3xl">
                   {t("FABTournamentPage")}
-                </span>
-              </Link>
-              <Link
-                href="/notebooks/28752/q4-ai-forecasting-benchmark-launch/"
-                className="flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:h-full lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
-              >
-                <FontAwesomeIcon
-                  icon={faCircleQuestion}
-                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-5xl"
-                />
-                <span className="block self-center text-center text-base no-underline md:text-xl lg:self-start lg:text-left min-[1920px]:text-3xl">
-                  {t("FABHowItWorks")}
                 </span>
               </Link>
             </div>
