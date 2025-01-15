@@ -2639,13 +2639,6 @@ export default function FAQ() {
             width={300}
             height={300}
           />
-          {/* Feature Flag: prediction-withdrawal */}
-          <p>
-            Note: as of December 2024, withdrawing is only enabled on questions
-            that are not linked to a prize pool. After the effects of this
-            change become better understood, this policy may be revised
-            accordingly.
-          </p>
         </div>
         <div>
           <h3

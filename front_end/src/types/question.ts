@@ -209,7 +209,6 @@ export type Question = {
   open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
-  withdraw_permitted?: boolean; // Feature Flag: prediction-withdrawal
 };
 
 export type QuestionWithNumericForecasts = Question & {
