@@ -95,9 +95,9 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
                 <ProfileChip variant={profile.is_active ? "success" : "danger"}>
                   {profile.is_active ? "Active" : "Inactive"}
                 </ProfileChip>
-                <ProfileChip variant={profile.is_spam ? "danger" : "success"}>
-                  {profile.is_spam ? "Spam" : "Not Spam"}
-                </ProfileChip>
+                {profile.is_spam && (
+                  <ProfileChip variant="danger">Spam</ProfileChip>
+                )}
               </div>
             </div>
           )}
