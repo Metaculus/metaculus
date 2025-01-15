@@ -696,15 +696,6 @@ def serialize_question(
                         "weighted_coverage"
                     ] = score.coverage
 
-    # Feature Flag: prediction-withdrawal
-    serialized_data["withdraw_permitted"] = not (
-        post.default_project.prize_pool
-        and (
-            not post.default_project.close_date
-            or (post.default_project.close_date > timezone.now())
-        )
-    )
-
     return serialized_data
 
 
