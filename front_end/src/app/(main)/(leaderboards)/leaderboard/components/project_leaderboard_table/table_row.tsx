@@ -39,7 +39,9 @@ const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
       <Td className="sticky left-0 text-left" highlight={highlight}>
         <Link
           href={
-            user ? `/accounts/profile/${user.id}/` : `questions/track-record/`
+            user
+              ? `/accounts/profile/${user.id}/`
+              : `/faq/#community-prediction`
           }
         >
           {user
