@@ -77,7 +77,11 @@ class LeaderboardAdmin(admin.ModelAdmin):
         AutocompleteFilterFactory("Project", "project"),
     ]
     inlines = [LeaderboardEntryInline]
-    actions = ["make_primary_leaderboard", "update_leaderboards"]
+    actions = [
+        "make_primary_leaderboard",
+        "update_leaderboards",
+        "force_update_leaderboards",
+    ]
 
     def make_primary_leaderboard(self, request, queryset):
         for leaderboard in queryset:
@@ -101,6 +105,16 @@ class LeaderboardAdmin(admin.ModelAdmin):
             update_project_leaderboard(leaderboard.project, leaderboard)
 
     update_leaderboards.short_description = "Update selected Leaderboards"
+
+    def force_update_leaderboards(self, request, queryset):
+        leaderboard: Leaderboard
+        for leaderboard in queryset:
+            update_project_leaderboard(leaderboard.project, leaderboard, force=True)
+
+    force_update_leaderboards.short_description = (
+        "Force update selected Leaderboards. "
+        "Will update even if leaderboard is finalized"
+    )
 
 
 @admin.register(LeaderboardEntry)
