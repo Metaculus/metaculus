@@ -68,7 +68,7 @@ export default async function QuestionCreator({
     tournaments,
     siteMain,
   };
-  let component = <></>;
+  let component = undefined;
 
   if (content_type === "question") {
     const question_type: string = post
