@@ -473,7 +473,7 @@
   "recentPredictions": "Recent predictions",
   "myDivergence": "My Divergence",
   "profile": "Profile",
-  "changeUsernameButton": "change",
+  "changeUsernameButton": "change username",
   "markUserAsSpamButton": "Mark User as Spam",
   "markUserAsSpam?": "Are you sure you want to mark this user as spam?",
   "memberSince": "Member Since",
@@ -1055,5 +1055,6 @@
   "reviewCommunityGuidelines": "Before posting a comment, please take a moment to review our <link>Community Guidelines</link>. We value thoughtful, respectful, and constructive contributions that help foster meaningful discussions.",
   "keepCivilStayOnTopic": "Keep it civil, stay on topic, and avoid low-effort comments. Reasoning copied directly from AI tools is not allowed. We will delete comments that violate our Community Guidelines.",
   "understand": "I understand",
-  "closeThisMessage": "Close this message"
+  "closeThisMessage": "Close this message",
+  "editProfile": "Edit Profile"
 }
