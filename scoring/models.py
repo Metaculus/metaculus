@@ -126,12 +126,12 @@ class Leaderboard(TimeStampedModel):
     )
 
     class ScoreTypes(models.TextChoices):
-        RELATIVE_LEGACY_TOURNAMENT = "relative_legacy_tournament"
-        PEER_GLOBAL = "peer_global"
-        PEER_GLOBAL_LEGACY = "peer_global_legacy"
         PEER_TOURNAMENT = "peer_tournament"
         SPOT_PEER_TOURNAMENT = "spot_peer_tournament"
+        RELATIVE_LEGACY_TOURNAMENT = "relative_legacy_tournament"
         BASELINE_GLOBAL = "baseline_global"
+        PEER_GLOBAL = "peer_global"
+        PEER_GLOBAL_LEGACY = "peer_global_legacy"
         COMMENT_INSIGHT = "comment_insight"
         QUESTION_WRITING = "question_writing"
         MANUAL = "manual"
@@ -162,37 +162,62 @@ class Leaderboard(TimeStampedModel):
                         "Question Writing leaderboards do not have base scores"
                     )
 
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
+    score_type = models.CharField(
+        max_length=200,
+        choices=ScoreTypes.choices,
+        help_text="""
+    <table>
+        <tr><td>peer_tournament</td><td> Sum of peer scores. Most likely what you want.</td></tr>
+        <tr><td>spot_peer_tournament</td><td> Sum of spot peer scores.</td></tr>
+        <tr><td>relative_legacy</td><td> Old site scoring.</td></tr>
+        <tr><td>baseline_global</td><td> Sum of baseline scores.</td></tr>
+        <tr><td>peer_global</td><td> Coverage-weighted average of peer scores.</td></tr>
+        <tr><td>peer_global_legacy</td><td> Average of peer scores.</td></tr>
+        <tr><td>comment_insight</td><td> H-index of upvotes for comments on questions.</td></tr>
+        <tr><td>question_writing</td><td> H-index of number of forecasters / 10 on questions.</td></tr>
+        <tr><td>manual</td><td> Does not automatically update. Manually set all entries.</td></tr>
+    </table>
+    """,
+    )
     start_time = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="""This field is optional. It is used for:
-        <br></br>- Filtering MedalExclusionRecords: If set, MedalExclusionRecords that have no end_time or an end_time greater than this (and a start_time before this Leaderboard's end_time or finalize_time) will be triggered.
-        <br></br>- Global Leaderboards: Required for global leaderboards, filters for questions that have an open time after this. Automatically set, do not change.
-        <br></br>- Non-Global Leaderboards: has no effect on question filtering. Only used in filtering MedalExclusionRecords.
+        help_text="""Optional (required for global leaderboards). If not set, the Project's open_date will be used instead.
+        </br>- Global Leaderboards: filters for questions that have an open time after this. Automatically set, do not change.
+        </br>- Non-Global Leaderboards: has no effect on question filtering.
+        </br>- Filtering MedalExclusionRecords: MedalExclusionRecords that have no end_time or an end_time greater than this (and a start_time before this Leaderboard's end_time or finalize_time) will be triggered.
         """,
     )
     end_time = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="""This field is optional. It is used for:
-        <br></br>- Filtering MedalExclusionRecords: If set, MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered. If not set, this Leaderboard's finalize_time will be used instead.
-        <br></br>- Global Leaderboards: Required for global leaderboards, filters for questions that have a scheduled_close_time before this (plus a grace period). Automatically set, do not change.
-        <br></br>- Non-Global Leaderboards: has no effect on question filtering. Only used in filtering MedalExclusionRecords. Since finalize_time does the same thing in this case, it is recommended not to use this field.
+        help_text="""Optional (required for global leaderboards).
+        </br>- Global Leaderboards: filters for questions that have a scheduled_close_time before this (plus a grace period). Automatically set, do not change.
+        </br>- Non-Global Leaderboards: has no effect on question filtering.
+        </br>- Filtering MedalExclusionRecords: MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered. If not set, this Leaderboard's finalize_time will be used instead - it is recommended not to use this field unless required.
         """,
     )
     finalize_time = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="""This field is optional, though should generally be set (exception could include a non-concluding Leaderboard like for a Tag or Topic Leaderboard). It is used for:
-        <br></br>- Filtering MedalExclusionRecords: If set and end_time is not set, MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered.
-        <br></br>- For all Leaderboards: If set, used to filter out questions that have a resolution_set_time after this (as they were resolved after this Leaderboard was finalized).
-        <br></br>- Non-Global Leaderboards: This field is automatically set to the Project's close_date. If the Project's close_date is updated, this field will be updated as well. If you want this leaderboard to have a manually set finalize_time, updating this field manually will be required after each update to the Project's close_date.
+        help_text="""Optional. If not set, the Project's close_date will be used instead.
+        </br>- For all Leaderboards: used to filter out questions that have a resolution_set_time after this (as they were resolved after this Leaderboard was finalized).
+        </br>- Filtering MedalExclusionRecords: If set and end_time is not set, MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered.
         """,
     )
     finalized = models.BooleanField(
         default=False,
         help_text="If true, this Leaderboard's entries cannot be updated except by a manual action in the admin panel. Automatically set to True the first time this leaderboard is updated after the finalize_time.",
+    )
+    prize_pool = models.DecimalField(
+        default=None,
+        decimal_places=2,
+        max_digits=15,
+        null=True,
+        blank=True,
+        help_text="""Optional. If not set, the Project's prize_pool will be used instead.
+        </br>- If the Project has a prize pool, but this leaderboard has none, set this to 0.
+        """,
     )
 
     def __str__(self):

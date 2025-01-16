@@ -85,9 +85,12 @@ def generate_scoring_leaderboard_entries(
         "score_type": score_type,
     }
 
-    if leaderboard.finalize_time:
-        qs_filters["question__scheduled_close_time__lte"] = leaderboard.finalize_time
-        qs_filters["question__resolution_set_time__lte"] = leaderboard.finalize_time
+    finalize_time = leaderboard.finalize_time or (
+        leaderboard.project.close_date if leaderboard.project else None
+    )
+    if finalize_time:
+        qs_filters["question__scheduled_close_time__lte"] = finalize_time
+        qs_filters["question__resolution_set_time__lte"] = finalize_time
 
     archived_scores = ArchivedScore.objects.filter(**qs_filters).prefetch_related(
         "question"
@@ -100,9 +103,10 @@ def generate_scoring_leaderboard_entries(
         aggregation_method=OuterRef("aggregation_method"),
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    if leaderboard.finalize_time:
+    if finalize_time:
         archived_scores_subquery = archived_scores_subquery.filter(
-            question__scheduled_close_time__lte=leaderboard.finalize_time
+            question__scheduled_close_time__lte=finalize_time,
+            question__resolution_set_time__lte=finalize_time,
         )
 
     calculated_scores = calculated_scores.annotate(
@@ -303,20 +307,25 @@ def assign_ranks(
 
     # set up exclusions
     exclusion_records = MedalExclusionRecord.objects.all()
-    if leaderboard.start_time:
+    start_time = leaderboard.start_time or (
+        leaderboard.project.start_date if leaderboard.project else None
+    )
+    end_time = leaderboard.end_time or (
+        leaderboard.project.close_date if leaderboard.project else None
+    )
+    finalize_time = leaderboard.finalize_time or (
+        leaderboard.project.close_date if leaderboard.project else None
+    )
+    if start_time:
         exclusion_records = exclusion_records.filter(
-            Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time)
+            Q(end_time__isnull=True) | Q(end_time__gte=start_time)
         )
-    if leaderboard.end_time:
+    if end_time:
         # only exclude by end_time if it's set
-        exclusion_records = exclusion_records.filter(
-            start_time__lte=leaderboard.end_time
-        )
-    elif leaderboard.finalize_time:
+        exclusion_records = exclusion_records.filter(start_time__lte=end_time)
+    elif finalize_time:
         # if end_time is not set, use finalize_time
-        exclusion_records = exclusion_records.filter(
-            start_time__lte=leaderboard.finalize_time
-        )
+        exclusion_records = exclusion_records.filter(start_time__lte=finalize_time)
     excluded_ids: set[int | None] = set(
         exclusion_records.values_list("user_id", flat=True)
     )
@@ -403,6 +412,7 @@ def update_project_leaderboard(
     project: Project | None = None,
     leaderboard: Leaderboard | None = None,
     force_update: bool = False,
+    force_finalize: bool = False,
 ) -> list[LeaderboardEntry]:
     if project is None and leaderboard is None:
         raise ValueError("Either project or leaderboard must be provided")
@@ -413,12 +423,11 @@ def update_project_leaderboard(
         raise ValueError("Leaderboard not found")
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.MANUAL:
+        logger.info("%s is manual, not updating", leaderboard.name)
         return list(leaderboard.entries.all().order_by("rank"))
 
     if not force_update and leaderboard.finalized:
-        logger.warning(
-            "Leaderboard %s is already finalized, not updating", leaderboard.name
-        )
+        logger.warning("%s is already finalized, not updating", leaderboard.name)
         return list(leaderboard.entries.all().order_by("rank"))
 
     # new entries
@@ -435,22 +444,30 @@ def update_project_leaderboard(
     new_entries = assign_prize_percentages(new_entries)
 
     # check if we're ready to finalize with medals and prizes
+    finalize_time = leaderboard.finalize_time or (
+        project.close_date if project else None
+    )
     if (
-        (
-            leaderboard.project.type
+        project
+        and (
+            project.type
             in [
                 Project.ProjectTypes.SITE_MAIN,
                 Project.ProjectTypes.TOURNAMENT,
             ]
         )
-        and leaderboard.finalize_time
-        and (timezone.now() >= leaderboard.finalize_time)
+        and (force_finalize or (finalize_time and (timezone.now() >= finalize_time)))
     ):
         # assign medals
         new_entries = assign_medals(new_entries)
         # add prize if applicable
-        if project.prize_pool:
-            new_entries = assign_prizes(new_entries, project.prize_pool)
+        prize_pool = (
+            leaderboard.prize_pool
+            if leaderboard.prize_pool is not None
+            else project.prize_pool
+        )
+        if prize_pool:
+            new_entries = assign_prizes(new_entries, prize_pool)
         # set finalize
         Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
 
