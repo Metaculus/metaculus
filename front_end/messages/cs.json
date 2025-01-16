@@ -824,5 +824,11 @@
   "insertEquation": "Vložit rovnici",
   "choseEquationType": "Vyberte typ rovnice, kterou chcete přidat. Pro její úpravu na ni jednoduše klikněte v editoru.",
   "inline": "Řádková",
-  "block": "Bloková"
+  "block": "Bloková",
+  "existingQuestion": "Existující otázka",
+  "questionId": "ID otázky",
+  "addQuestion": "Přidat otázku",
+  "addExistingQuestion": "Přidat existující otázku",
+  "existingQuestionExample": "Přidejte existující otázku z Metaculus do vaší komunity",
+  "enterQuestionIdUrl": "Prosím zadejte URL/ID existující otázky na Metaculus."
 }

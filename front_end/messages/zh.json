@@ -815,5 +815,11 @@
   "insertEquation": "插入公式",
   "choseEquationType": "选择您想要添加的公式类型。要编辑它，只需在编辑器中单击它。",
   "inline": "内联",
-  "block": "块"
+  "block": "块",
+  "existingQuestion": "现有问题",
+  "questionId": "问题ID",
+  "addQuestion": "添加问题",
+  "addExistingQuestion": "添加现有问题",
+  "existingQuestionExample": "将现有的Metaculus问题添加到您的社区",
+  "enterQuestionIdUrl": "请输入现有Metaculus问题的URL/ID。"
 }

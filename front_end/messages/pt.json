@@ -953,5 +953,11 @@
   "insertEquation": "Inserir equação",
   "choseEquationType": "Escolha o tipo de equação que deseja adicionar. Para editá-la, basta clicar nela no editor.",
   "inline": "Em linha",
-  "block": "Bloco"
+  "block": "Bloco",
+  "existingQuestion": "Questão Existente",
+  "questionId": "ID da Questão",
+  "addQuestion": "Adicionar Questão",
+  "addExistingQuestion": "Adicionar Questão Existente",
+  "existingQuestionExample": "Adicione uma questão existente do Metaculus à sua Comunidade",
+  "enterQuestionIdUrl": "Por favor, insira o URL/ID de uma questão existente do Metaculus."
 }
