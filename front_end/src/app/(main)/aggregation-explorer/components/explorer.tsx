@@ -250,7 +250,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             variant="primary"
             type="submit"
             aria-label="Search"
-            className="m-auto mt-4 w-full !rounded border-gray-500 bg-blue-200 dark:!bg-blue-700 dark:text-white"
+            className="m-auto mt-4 w-full !rounded border-gray-500 bg-blue-200 text-black dark:!bg-blue-700 dark:text-white"
           >
             {t("search")}
             <FontAwesomeIcon icon={faMagnifyingGlass} />
