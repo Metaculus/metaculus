@@ -4,8 +4,10 @@ import React from "react";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
+import QuestionRepost from "@/app/(main)/questions/components/question_repost";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
+import { ProjectPermissions } from "@/types/post";
 
 import QuestionTypePicker from "../components/question_type_picker";
 
@@ -82,7 +84,15 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
               ),
             })}
           </p>
+          {community &&
+            community.user_permission &&
+            [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
+              community.user_permission
+            ) && (
+              <QuestionRepost url={createHref("/questions/create/repost")} />
+            )}
         </div>
+
         <h2 className="mt-0 text-lg font-light capitalize">
           {t("singleQuestion")}
         </h2>
@@ -90,24 +100,24 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
           <QuestionTypePicker
             url={createHref("/questions/create/question", { type: "binary" })}
             questionType={t("binaryQuestion")}
-            questionExample={t("binaryQuestionExample")}
+            questionExample={`"${t("binaryQuestionExample")}"`}
           />
           <QuestionTypePicker
             url={createHref("/questions/create/question", { type: "numeric" })}
             questionType={t("numericRange")}
-            questionExample={t("numericRangeExample")}
+            questionExample={`"${t("numericRangeExample")}"`}
           />
           <QuestionTypePicker
             url={createHref("/questions/create/question", { type: "date" })}
             questionType={t("dateRange")}
-            questionExample={t("dateRangeExample")}
+            questionExample={`"${t("dateRangeExample")}"`}
           />
           <QuestionTypePicker
             url={createHref("/questions/create/question", {
               type: "multiple_choice",
             })}
             questionType={t("multipleChoice")}
-            questionExample={t("multipleChoiceExample")}
+            questionExample={`"${t("multipleChoiceExample")}"`}
           />
         </div>
 
@@ -116,22 +126,22 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
           <QuestionTypePicker
             url={createHref("/questions/create/group", { subtype: "binary" })}
             questionType={t("binaryGroup")}
-            questionExample={t("binaryGroupExample")}
+            questionExample={`"${t("binaryGroupExample")}"`}
           />
           <QuestionTypePicker
             url={createHref("/questions/create/group", { subtype: "numeric" })}
             questionType={t("numericGroup")}
-            questionExample={t("numericGroupExample")}
+            questionExample={`"${t("numericGroupExample")}"`}
           />
           <QuestionTypePicker
             url={createHref("/questions/create/group", { subtype: "date" })}
             questionType={t("dateGroup")}
-            questionExample={t("dateGroupExample")}
+            questionExample={`"${t("dateGroupExample")}"`}
           />
           <QuestionTypePicker
             url={createHref("/questions/create/conditional")}
             questionType={t("conditionalPair")}
-            questionExample={t("conditionalPairExample")}
+            questionExample={`"${t("conditionalPairExample")}"`}
           />
         </div>
 
@@ -139,7 +149,7 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
         <QuestionTypePicker
           url={createHref("/questions/create/notebook")}
           questionType={t("notebook")}
-          questionExample={t("notebookExample")}
+          questionExample={`"${t("notebookExample")}"`}
         />
       </div>
     </>
