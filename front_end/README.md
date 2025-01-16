@@ -18,6 +18,7 @@ npm run dev
 
 
 ### Automatically generate missing translation messages
+1. Add `OPENAI_API_KEY` to `front_end/.env` folder
 ```bash
 npm run translations:generate
 ```
