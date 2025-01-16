@@ -3,7 +3,7 @@ import React, { FC } from "react";
 import Checkbox from "@/components/ui/checkbox";
 
 type Props = {
-  choice: string;
+  label: string;
   color: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -12,7 +12,7 @@ type Props = {
 };
 
 const ChoiceCheckbox: FC<Props> = ({
-  choice,
+  label,
   checked,
   onChange,
   onHighlight,
@@ -30,7 +30,7 @@ const ChoiceCheckbox: FC<Props> = ({
       onMouseLeave={handleHighlightEnd}
       onTouchStart={handleHighlightStart}
       onTouchMove={handleHighlightEnd}
-      label={choice}
+      label={label}
       color={color}
       className={className}
     />

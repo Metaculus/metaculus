@@ -18,13 +18,8 @@ import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import Select from "@/components/ui/select";
 import { SearchParams } from "@/types/navigation";
-import { Post } from "@/types/post";
-import {
-  AggregationQuestion,
-  AggregationMethod,
-  aggregationMethodLabel,
-  AggregationMethodWithBots,
-} from "@/types/question";
+import { Post, PostWithForecasts } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/errors";
 import { base64ToBlob } from "@/utils/files";
 import { parseQuestionId } from "@/utils/questions";
@@ -32,20 +27,17 @@ import { parseQuestionId } from "@/utils/questions";
 import { AggregationWrapper } from "./aggregation_wrapper";
 import { getPostZipData } from "../../questions/actions";
 import { fetchPost, fetchQuestion } from "../actions";
-
+import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
+import { AggregationMethodWithBots } from "../types";
 type Props = { searchParams: SearchParams };
-export type AggregationMethodInfo = {
-  method: AggregationMethod;
-  label: (typeof aggregationMethodLabel)[keyof typeof aggregationMethodLabel];
-  includeBots: boolean;
-};
 
 const Explorer: FC<Props> = ({ searchParams }) => {
-  // TODO: think about how to handle multiple aggregation methods
   const { post_id, question_id } = searchParams;
   const router = useRouter();
   const t = useTranslations();
-  const [data, setData] = useState<AggregationQuestion | null>(null);
+  const [data, setData] = useState<
+    QuestionWithForecasts | PostWithForecasts | null
+  >(null);
   const [subQuestionIds, setSubQuestionIds] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<AggregationMethodWithBots | null>(
     null
@@ -55,7 +47,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   const [selectedSubQuestionId, setSelectedSubQuestionId] = useState<
     number | null
   >(question_id ? Number(question_id) : null);
-
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,19 +56,16 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       setError(null);
       setLoading(true);
       try {
-        const data = await fetchPost(postId);
-
-        // TODO: (fix for MC questions - was not supported previously)
-        if (!!data.group_of_questions || !!data.conditional) {
-          setSubQuestionIds(parseSubQuestionIds(data));
+        const postData = await fetchPost(postId);
+        // TODO: (fix for MC questions if required)
+        if (!!postData.group_of_questions || !!postData.conditional) {
+          setSubQuestionIds(parseSubQuestionIds(postData));
           if (questionId) {
             const questionData = await fetchQuestion(questionId);
-            // TODO: fix types
-            setData(questionData as unknown as AggregationQuestion);
+            setData(questionData);
           }
         } else {
-          // TODO: fix types
-          setData(data as unknown as AggregationQuestion);
+          setData(postData);
         }
       } catch (err) {
         logError(err);
@@ -89,14 +77,9 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     []
   );
 
-  // reset subquestions select on input change
   useEffect(() => {
-    if (subQuestionIds.length > 0) {
-      setSubQuestionIds([]);
-      setSelectedSubQuestionId(null);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setSubQuestionIds([]);
+    setSelectedSubQuestionId(null);
   }, [inputText]);
 
   useEffect(() => {
@@ -130,14 +113,16 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     router.push(`/aggregation-explorer?${params.toString()}`);
   };
 
+  // API support load data only for post_id - it returns NOT_FOUND for specific question_id
   const handleDownloadQuestionData = async () => {
     try {
       if (!data) {
         return;
       }
-      const base64 = await getPostZipData(data.id);
+      const postId = "post_id" in data ? data.post_id : data.id;
+      const base64 = await getPostZipData(postId);
       const blob = base64ToBlob(base64);
-      const filename = `${data.url_title.replaceAll(" ", "_")}.zip`;
+      const filename = `${data.title.replaceAll(" ", "_")}.zip`;
       saveAs(blob, filename);
     } catch (error) {
       toast.error(t("downloadQuestionDataError") + error);
@@ -169,17 +154,22 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               <h1 className="text-xl leading-tight sm:text-2xl">
                 {data.title}
               </h1>
-              <p
+              <Button
+                variant="text"
                 onClick={handleDownloadQuestionData}
-                className="cursor-pointer text-sm text-gray-500 underline dark:text-gray-500-dark"
+                className="cursor-pointer p-0 text-sm text-gray-500 underline dark:text-gray-500-dark"
               >
                 {t("downloadQuestionData")}
-              </p>
+              </Button>
             </div>
           </div>
           {activeTab && (
             <p className="w-fit bg-gray-400 p-2 dark:bg-gray-400-dark">
-              {aggregationMethodLabel[activeTab]}
+              {
+                AGGREGATION_EXPLORER_OPTIONS.find(
+                  (option) => option.id === activeTab
+                )?.label
+              }
             </p>
           )}
           <AggregationWrapper
@@ -277,7 +267,7 @@ function parseSubQuestionIds(data: Post) {
   } else if (data.conditional) {
     return [data.conditional.question_yes.id, data.conditional.question_no.id];
   }
-  // TODO: adjust logic for multiple choice questions
+  // TODO: adjust logic for MC questions if required
   return [];
 }
 export default Explorer;

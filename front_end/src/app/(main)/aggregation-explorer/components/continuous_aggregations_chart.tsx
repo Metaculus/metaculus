@@ -9,13 +9,12 @@ import {
   ContinuousAreaGraphType,
   ContinuousAreaHoverState,
 } from "@/types/charts";
-import {
-  AggregateForecastHistory,
-  AggregationQuestionWithBots,
-} from "@/types/question";
+import { AggregateForecastHistory } from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
+
+import { AggregationQuestionWithBots } from "../types";
 
 type Props = {
   questionData: AggregationQuestionWithBots;

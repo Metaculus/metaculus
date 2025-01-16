@@ -1,13 +1,16 @@
 import { FC, useCallback, useState } from "react";
 
-import { AggregationMethod, AggregationMethodWithBots } from "@/types/question";
-import { AggregationQuestionWithBots } from "@/types/question";
 import { logError } from "@/utils/errors";
 
 import AggregationsTab from "./aggregation_tab";
 import AggregationsDrawer from "./aggregations_drawer";
-import { AggregationMethodInfo } from "./explorer";
 import { fetchAggregations } from "../actions";
+import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
+import {
+  AggregationMethodWithBots,
+  AggregationQuestionWithBots,
+} from "../types";
+
 type Props = {
   activeTab: AggregationMethodWithBots | null;
   onTabChange: (activeTab: AggregationMethodWithBots) => void;
@@ -21,32 +24,21 @@ export const AggregationWrapper: FC<Props> = ({
   postId,
   questionId,
 }) => {
-  const [aggregationMethods, setAggregationMethods] = useState<
-    AggregationMethodInfo[]
+  const [selectedAggregationMethods, setSelectedAggregationMethods] = useState<
+    AggregationMethodWithBots[]
   >([]);
   const [aggregationData, setAggregationData] =
     useState<AggregationQuestionWithBots | null>(null);
 
   const onFetchAggregations = useCallback(
-    async ({
-      postId,
-      questionId,
-      includeBots,
-      aggregationMethod,
-    }: {
-      postId: string | number | null;
-      questionId?: string | number | null;
-      includeBots?: boolean;
-      aggregationMethod: AggregationMethod;
-    }) => {
-      // check if aggregation data was already fetched
-      // this will always refetch if BE data is empty for the aggregation method
-      const isAlreadyFetched = includeBots
-        ? (aggregationData?.bot_aggregations?.[aggregationMethod]?.history
-            ?.length ?? 0) > 0
-        : (aggregationData?.aggregations?.[aggregationMethod]?.history
-            ?.length ?? 0) > 0;
-      if (!!isAlreadyFetched) {
+    async (aggregationOptionId: AggregationMethodWithBots) => {
+      const aggregationOption =
+        AGGREGATION_EXPLORER_OPTIONS.find(
+          (option) => option.id === aggregationOptionId
+        ) ?? AGGREGATION_EXPLORER_OPTIONS[0];
+      const { value: aggregationMethod, includeBots } = aggregationOption;
+
+      if (selectedAggregationMethods.includes(aggregationOptionId)) {
         return;
       }
       try {
@@ -101,29 +93,25 @@ export const AggregationWrapper: FC<Props> = ({
             );
           }
         }
+        setSelectedAggregationMethods((prev) => [...prev, aggregationOptionId]);
       } catch (err) {
         logError(err);
       }
     },
-    [aggregationData]
+    [aggregationData, postId, questionId, selectedAggregationMethods]
   );
+
   return activeTab ? (
     <AggregationsTab
       activeTab={activeTab}
-      questionData={aggregationData}
+      aggregationData={aggregationData}
       onFetchData={onFetchAggregations}
-      postId={postId}
-      questionId={questionId}
     />
   ) : (
     <AggregationsDrawer
-      aggregationMethods={aggregationMethods}
       onTabChange={onTabChange}
-      setAggregationMethods={setAggregationMethods}
       onFetchData={onFetchAggregations}
       aggregationData={aggregationData}
-      postId={postId}
-      questionId={questionId}
     />
   );
 };
