@@ -537,3 +537,41 @@ def test_approve_post(user1, user1_client, question_binary):
         },
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_repost(user1, user1_client, user2, user2_client, question_binary):
+    default_project = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        override_permissions={user1.pk: ObjectPermission.ADMIN},
+    )
+
+    post = factory_post(
+        author=user1,
+        curation_status=Post.CurationStatus.PENDING,
+        default_project=default_project,
+        question=question_binary,
+    )
+
+    target_tournament = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        override_permissions={user1.pk: ObjectPermission.CURATOR},
+    )
+
+    url = reverse("post-repost", kwargs={"pk": post.pk})
+
+    # Case 1: user2 does not have permissions to repost
+    response = user2_client.post(url, {"project_id": target_tournament.pk})
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    # Case 2: post already has this project
+    response = user1_client.post(url, {"project_id": default_project.pk})
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    post.refresh_from_db()
+    assert default_project not in post.projects.all()
+    assert post.default_project == default_project
+
+    # Case 3: user successfully reposts
+    response = user1_client.post(url, {"project_id": target_tournament.pk})
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    post.refresh_from_db()
+    assert target_tournament in post.projects.all()
