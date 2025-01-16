@@ -54,56 +54,35 @@ export const AggregationWrapper: FC<Props> = ({
           aggregationMethods: aggregationMethod,
         });
 
-        if (!aggregationData) {
-          setAggregationData(() =>
-            includeBots
+        const fetchedAggregationData = response.aggregations[aggregationMethod];
+        if (fetchedAggregationData) {
+          setAggregationData((prev) =>
+            prev
               ? {
-                  ...response,
-                  // avoid bot aggragation data be saved in the main aggregation data
-                  aggregations: {
-                    recency_weighted: {
-                      history: [],
-                      latest: undefined,
-                    },
-                  },
-                  bot_aggregations: {
-                    ...response.aggregations,
-                  },
+                  ...prev,
+                  ...(includeBots
+                    ? {
+                        bot_aggregations: {
+                          ...prev.bot_aggregations,
+                          [aggregationMethod]: fetchedAggregationData,
+                        },
+                      }
+                    : {
+                        aggregations: {
+                          ...prev.aggregations,
+                          [aggregationMethod]: fetchedAggregationData,
+                        },
+                      }),
                 }
               : response
           );
-        } else {
-          const fetchedAggregationData =
-            response.aggregations[aggregationMethod];
-          if (fetchedAggregationData) {
-            setAggregationData((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    ...(includeBots
-                      ? {
-                          bot_aggregations: {
-                            ...prev.bot_aggregations,
-                            [aggregationMethod]: fetchedAggregationData,
-                          },
-                        }
-                      : {
-                          aggregations: {
-                            ...prev.aggregations,
-                            [aggregationMethod]: fetchedAggregationData,
-                          },
-                        }),
-                  }
-                : response
-            );
-          }
         }
         setSelectedAggregationMethods((prev) => [...prev, aggregationOptionId]);
       } catch (err) {
         logError(err);
       }
     },
-    [aggregationData, postId, questionId, selectedAggregationMethods]
+    [postId, questionId, selectedAggregationMethods]
   );
 
   return activeTab ? (
