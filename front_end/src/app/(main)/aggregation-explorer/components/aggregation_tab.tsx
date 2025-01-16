@@ -6,74 +6,58 @@ import { FC, useCallback, useState, memo, useMemo, useEffect } from "react";
 import NumericChart from "@/components/charts/numeric_chart";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedValue } from "@/hooks/use_debounce";
-import {
-  AggregationMethod,
-  AggregationMethodWithBots,
-  AggregationQuestionWithBots,
-  QuestionType,
-} from "@/types/question";
+import { QuestionType } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
 import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
 import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
+import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
+import {
+  AggregationMethodWithBots,
+  AggregationQuestionWithBots,
+} from "../types";
 
 type Props = {
-  questionData: AggregationQuestionWithBots | null;
-  activeTab: AggregationMethodWithBots;
-  onFetchData: ({
-    postId,
-    questionId,
-    includeBots,
-    aggregationMethod,
-  }: {
-    postId: string;
-    questionId?: string | null;
-    includeBots?: boolean;
-    aggregationMethod: AggregationMethod;
-  }) => Promise<void>;
-  postId: number;
-  questionId?: number | null;
+  aggregationData: AggregationQuestionWithBots | null;
+  activeTab: string;
+  onFetchData: (
+    aggregationOptionId: AggregationMethodWithBots
+  ) => Promise<void>;
 };
 
 const AggregationsTab: FC<Props> = ({
-  questionData,
+  aggregationData,
   activeTab,
   onFetchData,
-  postId,
-  questionId,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations();
 
   const { aggregations, bot_aggregations, actual_close_time, resolution } =
-    questionData ?? {};
-  const isBotAggregation = activeTab.includes("bot");
-  const aggregationMethod = isBotAggregation
-    ? (activeTab.replace("_bot", "") as AggregationMethod)
-    : (activeTab as unknown as AggregationMethod);
+    aggregationData ?? {};
+
+  const tabData =
+    AGGREGATION_EXPLORER_OPTIONS.find((option) => option.id === activeTab) ??
+    AGGREGATION_EXPLORER_OPTIONS[0];
+
   const activeAggregation = useMemo(
     () =>
-      isBotAggregation
-        ? bot_aggregations?.[aggregationMethod]
-        : aggregations?.[aggregationMethod],
-    [aggregations, bot_aggregations, isBotAggregation, aggregationMethod]
+      tabData?.includeBots
+        ? bot_aggregations?.[tabData.value]
+        : aggregations?.[tabData.value],
+    [aggregations, bot_aggregations, tabData]
   );
 
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      await onFetchData({
-        postId: postId.toString(),
-        questionId: questionId?.toString(),
-        includeBots: isBotAggregation,
-        aggregationMethod: aggregationMethod as AggregationMethod,
-      });
+      await onFetchData(tabData.id);
     } finally {
       setIsLoading(false);
     }
-  }, [isBotAggregation, aggregationMethod, onFetchData, postId, questionId]);
+  }, [tabData, onFetchData]);
 
   useEffect(() => {
     if (!activeAggregation?.history?.length) {
@@ -155,38 +139,39 @@ const AggregationsTab: FC<Props> = ({
     }
   };
 
+  if (!aggregationData) {
+    return null;
+  }
   return (
-    questionData && (
-      <DetailsQuestionCardErrorBoundary>
-        <NumericChart
-          aggregation={activeAggregation}
-          questionType={questionData.type}
-          actualCloseTime={actualCloseTime}
-          scaling={questionData.scaling}
-          resolution={resolution}
-          onCursorChange={handleCursorChange}
-        />
-        {!!cursorData && (
-          <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
-            <CursorDetailItem
-              title={t("totalForecastersLabel")}
-              content={cursorData.forecasterCount?.toString()}
-            />
-            <CursorDetailItem
-              title={t("communityPredictionLabel")}
-              content={getDisplayValue({
-                value: cursorData.center,
-                questionType: questionData.type,
-                scaling: questionData.scaling,
-              })}
-              variant="prediction"
-            />
-          </div>
-        )}
+    <DetailsQuestionCardErrorBoundary>
+      <NumericChart
+        aggregation={activeAggregation}
+        questionType={aggregationData.type}
+        actualCloseTime={actualCloseTime}
+        scaling={aggregationData.scaling}
+        resolution={resolution}
+        onCursorChange={handleCursorChange}
+      />
+      {!!cursorData && (
+        <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
+          <CursorDetailItem
+            title={t("totalForecastersLabel")}
+            content={cursorData.forecasterCount?.toString()}
+          />
+          <CursorDetailItem
+            title={t("communityPredictionLabel")}
+            content={getDisplayValue({
+              value: cursorData.center,
+              questionType: aggregationData.type,
+              scaling: aggregationData.scaling,
+            })}
+            variant="prediction"
+          />
+        </div>
+      )}
 
-        {renderAggregation(questionData)}
-      </DetailsQuestionCardErrorBoundary>
-    )
+      {renderAggregation(aggregationData)}
+    </DetailsQuestionCardErrorBoundary>
   );
 };
 

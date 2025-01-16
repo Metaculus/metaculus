@@ -1,11 +1,9 @@
 import { FC, memo } from "react";
 
 import Histogram from "@/components/charts/histogram";
-import {
-  AggregateForecastHistory,
-  AggregationQuestionWithBots,
-  QuestionType,
-} from "@/types/question";
+import { AggregateForecastHistory, QuestionType } from "@/types/question";
+
+import { AggregationQuestionWithBots } from "../types";
 
 type Props = {
   questionData: AggregationQuestionWithBots;
