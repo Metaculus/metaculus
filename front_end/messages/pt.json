@@ -882,7 +882,7 @@
   "nuclearSecurityDescription": "Quantificando os riscos globais para nos manter seguros e garantir um futuro próspero",
   "climateChange": "mudança climática",
   "climateChangeDescription": "Prevendo mudanças de longo prazo na temperatura e nos padrões climáticos causadas por atividades humanas",
-  "cookiesTitle": "Usamos cookies \uD83C\uDF6A para entender como você usa o Metaculus e melhorar sua experiência.",
+  "cookiesTitle": "Usamos cookies 🍪 para entender como você usa o Metaculus e melhorar sua experiência.",
   "cookiesSubtitle": "Saiba mais sobre como usamos cookies em nossa <link>Política de Privacidade</link>",
   "customize": "Personalizar",
   "acceptAndClose": "Aceitar e fechar",
@@ -1037,5 +1037,11 @@
   "clearCommentsAndCommunicationTitle": "Comentários e Comunicação Claros",
   "clearCommentsAndCommunicationInfo": "Nossos profissionais trabalham em projetos para parceiros externos que valorizam um raciocínio claro para melhor interpretar as previsões. Selecionamos profissionais que têm um histórico de fazer comentários claros e perspicazes, e que estão dispostos a discordar de seus pares, mas de maneira educada e respeitosa.",
   "expressionOfInterestFormMessage": "Às vezes recrutamos membros proeminentes da comunidade que são ótimos em fornecer feedback construtivo sobre perguntas enviadas para se tornarem moderadores pagos. Preencha nosso <link>formulário de manifestação de interesse</link> se quiser ser considerado.",
-  "dateInputDetails": "A data e hora estão no seu fuso horário local [{timezone}]"
+  "dateInputDetails": "A data e hora estão no seu fuso horário local [{timezone}]",
+  "existingQuestion": "Pergunta Existente",
+  "questionId": "ID da Pergunta",
+  "addQuestion": "Adicionar Pergunta",
+  "addExistingQuestion": "Adicionar Pergunta Existente",
+  "existingQuestionExample": "Adicione uma pergunta existente do Metaculus à sua Comunidade",
+  "enterQuestionIdUrl": "Por favor, insira o URL/ID de uma pergunta existente do Metaculus."
 }

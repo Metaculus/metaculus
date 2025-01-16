@@ -1039,5 +1039,11 @@
   "clearCommentsAndCommunicationTitle": "Comentarios Claros y Comunicación",
   "clearCommentsAndCommunicationInfo": "Nuestros Profesionales trabajan en proyectos para socios externos que valoran el razonamiento claro para interpretar mejor las previsiones. Seleccionamos Profesionales que tienen un historial de hacer comentarios claros y perspicaces, y que están dispuestos a discrepar con sus pares, pero de una manera educada y respetuosa.",
   "expressionOfInterestFormMessage": "A veces reclutamos miembros ejemplares de la comunidad que son excelentes al proporcionar comentarios constructivos sobre las preguntas enviadas para convertirse en moderadores remunerados. Completa nuestro <link>formulario de expresión de interés</link> si deseas ser considerado.",
-  "dateInputDetails": "La fecha y hora están en tu zona horaria local [{timezone}]"
+  "dateInputDetails": "La fecha y hora están en tu zona horaria local [{timezone}]",
+  "existingQuestion": "Pregunta Existente",
+  "questionId": "ID de Pregunta",
+  "addQuestion": "Agregar Pregunta",
+  "addExistingQuestion": "Agregar Pregunta Existente",
+  "existingQuestionExample": "Agrega una pregunta existente de Metaculus a tu Comunidad",
+  "enterQuestionIdUrl": "Por favor ingresa la URL/ID de una pregunta existente de Metaculus."
 }

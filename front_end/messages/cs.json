@@ -1039,5 +1039,11 @@
   "clearCommentsAndCommunicationTitle": "Jasné komentáře a komunikace",
   "clearCommentsAndCommunicationInfo": "Naši profesionálové pracují na projektech pro externí partnery, kteří si váží jasného myšlení pro lepší interpretaci předpovědí. Volíme profesionály, kteří mají historii vysílání jasných a důvtipných komentářů a kteří jsou připraveni nesouhlasit se svými kolegy, ale zdvořile a s úctou.",
   "expressionOfInterestFormMessage": "Někdy nabíráme přední členy komunity, kteří jsou skvělí v poskytování konstruktivní zpětné vazby k zaslaným otázkám, aby se stali placenými moderátory. Vyplňte náš <link>formulář vyjádření zájmu</link>, pokud byste chtěli být zváženi.",
-  "dateInputDetails": "Datum a čas je ve vašem místním časovém pásmu [{timezone}]"
+  "dateInputDetails": "Datum a čas je ve vašem místním časovém pásmu [{timezone}]",
+  "existingQuestion": "Existující otázka",
+  "questionId": "ID otázky",
+  "addQuestion": "Přidat otázku",
+  "addExistingQuestion": "Přidat existující otázku",
+  "existingQuestionExample": "Přidejte existující otázku Metaculus do své Komunity",
+  "enterQuestionIdUrl": "Prosím zadejte URL/ID existující otázky Metaculus."
 }
