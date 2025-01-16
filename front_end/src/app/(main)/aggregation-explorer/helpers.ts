@@ -69,8 +69,42 @@ function parseAggregationData({
   for (const key in aggregations) {
     const aggregationKey = key as keyof Aggregations;
     const aggregation = aggregations[aggregationKey];
+    const tooltip = tooltips.find(
+      (tooltip) =>
+        tooltip.aggregationMethod === aggregationKey &&
+        tooltip.includeBots === !!isBot
+    );
 
-    if (!aggregation?.history || !aggregation.history.length) {
+    if (!aggregation?.history) {
+      continue;
+    } else if (!aggregation.history.length) {
+      choiceItems.push({
+        id: question.id,
+        choice: tooltip?.choice ?? "",
+        color: tooltip?.color ?? METAC_COLORS.gray["400"],
+        highlighted: false,
+        active: true,
+        resolution: question.resolution,
+        displayedResolution: !!question.resolution
+          ? formatResolution(question.resolution, question.type, locale ?? "en")
+          : null,
+        closeTime: Math.min(
+          new Date(question.scheduled_close_time).getTime(),
+          new Date(
+            question.actual_resolve_time ?? question.scheduled_resolve_time
+          ).getTime()
+        ),
+        rangeMin: question.scaling.range_min ?? 0,
+        rangeMax: question.scaling.range_min ?? 1,
+        scaling: question.scaling,
+        aggregationTimestamps: [],
+        aggregationValues: [],
+        aggregationMinValues: [],
+        aggregationMaxValues: [],
+        aggregationForecasterCounts: [],
+        userTimestamps: [],
+        userValues: [],
+      });
       continue;
     }
 
@@ -110,11 +144,7 @@ function parseAggregationData({
         aggregationForecast?.forecaster_count || 0
       );
     });
-    const tooltip = tooltips.find(
-      (tooltip) =>
-        tooltip.aggregationMethod === aggregationKey &&
-        tooltip.includeBots === !!isBot
-    );
+
     choiceItems.push({
       id: question.id,
       choice: tooltip?.choice ?? "",

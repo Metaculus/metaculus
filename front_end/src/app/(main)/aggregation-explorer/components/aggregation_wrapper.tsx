@@ -55,10 +55,10 @@ export const AggregationWrapper: FC<Props> = ({
         });
 
         const fetchedAggregationData = response.aggregations[aggregationMethod];
-        if (fetchedAggregationData) {
+        if (fetchedAggregationData !== undefined) {
           setAggregationData((prev) =>
             prev
-              ? {
+              ? ({
                   ...prev,
                   ...(includeBots
                     ? {
@@ -73,8 +73,22 @@ export const AggregationWrapper: FC<Props> = ({
                           [aggregationMethod]: fetchedAggregationData,
                         },
                       }),
-                }
-              : response
+                } as AggregationQuestionWithBots)
+              : ({
+                  ...response,
+                  ...(includeBots
+                    ? {
+                        bot_aggregations: {
+                          [aggregationMethod]: fetchedAggregationData,
+                        },
+                        aggregations: {},
+                      }
+                    : {
+                        aggregations: {
+                          [aggregationMethod]: fetchedAggregationData,
+                        },
+                      }),
+                } as AggregationQuestionWithBots)
           );
         }
         setSelectedAggregationMethods((prev) => [...prev, aggregationOptionId]);

@@ -59,11 +59,23 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       try {
         const postData = await fetchPost(postId);
         // TODO: adjust for MC questions after backend is updated
-        if (!!postData.group_of_questions || !!postData.conditional) {
+        if (
+          !!postData.group_of_questions ||
+          !!postData.conditional ||
+          postData.question?.type === QuestionType.MultipleChoice
+        ) {
           setSubQuestionOptions(parseSubQuestions(postData));
-          if (questionId) {
+          if (
+            questionId &&
+            postData.question?.type !== QuestionType.MultipleChoice
+          ) {
             const questionData = await fetchQuestion(questionId);
             setData(questionData);
+          } else if (
+            questionId !== undefined &&
+            postData.question?.type === QuestionType.MultipleChoice
+          ) {
+            setData(postData);
           }
         } else {
           setData(postData);
@@ -95,6 +107,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         setError("Invalid question url or id");
         return;
       }
+      // TODO: adjust for MC questions after backend is updated
       fetchPostData(
         Number(parsedInput.postId),
         !!question_id ? Number(question_id) : undefined
