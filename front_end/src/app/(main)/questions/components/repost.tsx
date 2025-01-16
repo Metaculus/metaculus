@@ -14,6 +14,7 @@ import Button from "@/components/ui/button";
 import { FormErrorMessage, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { PostWithForecasts } from "@/types/post";
 import { Community } from "@/types/projects";
 import { logError } from "@/utils/errors";
@@ -50,7 +51,7 @@ const RepostForm: FC<Props> = ({ community }) => {
     });
 
   const retrievePost = useCallback(
-    debounce(async (postRef: string) => {
+    async (postRef: string) => {
       setPost(undefined);
       clearErrors("post_reference");
       setValue("post_reference", postRef);
@@ -74,9 +75,11 @@ const RepostForm: FC<Props> = ({ community }) => {
       } finally {
         setIsPostLoading(false);
       }
-    }, 200),
-    []
+    },
+    [clearErrors, setError, setValue]
   );
+
+  const debouncedRetrievePost = useDebouncedCallback(retrievePost, 250);
 
   const onSubmit = useCallback(async () => {
     if (post) {
@@ -117,7 +120,7 @@ const RepostForm: FC<Props> = ({ community }) => {
             <Input
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               {...register("post_reference")}
-              onChange={(e) => retrievePost(e.target.value)}
+              onChange={(e) => debouncedRetrievePost(e.target.value)}
               errors={formState.errors.post_reference}
             />
             {isPostLoading && (
