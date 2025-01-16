@@ -15,7 +15,7 @@ type Props = {
   activeTab: AggregationMethodWithBots | null;
   onTabChange: (activeTab: AggregationMethodWithBots) => void;
   postId: number;
-  questionId?: number | null;
+  questionId?: number | string | null;
 };
 
 export const AggregationWrapper: FC<Props> = ({
@@ -30,7 +30,7 @@ export const AggregationWrapper: FC<Props> = ({
   const [aggregationData, setAggregationData] =
     useState<AggregationQuestionWithBots | null>(null);
 
-  const onFetchAggregations = useCallback(
+  const handleFetchAggregations = useCallback(
     async (aggregationOptionId: AggregationMethodWithBots) => {
       const aggregationOption =
         AGGREGATION_EXPLORER_OPTIONS.find(
@@ -42,9 +42,14 @@ export const AggregationWrapper: FC<Props> = ({
         return;
       }
       try {
+        // TODO: adjust for MC questions after backend is updated
+        const adjustedQuestionId =
+          questionId && !isNaN(Number(questionId))
+            ? Number(questionId)
+            : undefined;
         const response = await fetchAggregations({
           postId,
-          questionId,
+          questionId: adjustedQuestionId,
           includeBots,
           aggregationMethods: aggregationMethod,
         });
@@ -105,12 +110,12 @@ export const AggregationWrapper: FC<Props> = ({
     <AggregationsTab
       activeTab={activeTab}
       aggregationData={aggregationData}
-      onFetchData={onFetchAggregations}
+      onFetchData={handleFetchAggregations}
     />
   ) : (
     <AggregationsDrawer
       onTabChange={onTabChange}
-      onFetchData={onFetchAggregations}
+      onFetchData={handleFetchAggregations}
       aggregationData={aggregationData}
     />
   );

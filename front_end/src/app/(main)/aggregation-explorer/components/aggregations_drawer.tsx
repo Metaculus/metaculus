@@ -175,9 +175,8 @@ function getQuestionTooltipLabel(
   scaling?: Scaling
 ) {
   const hasValue =
-    !isNil(cursorTimestamp) &&
-    cursorTimestamp >= Math.min(...timestamps) &&
-    cursorTimestamp <= Math.max(...timestamps);
+    !isNil(cursorTimestamp) && cursorTimestamp >= Math.min(...timestamps);
+
   if (!hasValue) {
     return "?";
   }

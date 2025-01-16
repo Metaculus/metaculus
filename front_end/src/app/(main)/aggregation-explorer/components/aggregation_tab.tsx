@@ -1,10 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useState, memo, useMemo, useEffect } from "react";
+import { FC, useCallback, useState, memo, useMemo } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
-import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import { QuestionType } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
@@ -27,12 +26,7 @@ type Props = {
   ) => Promise<void>;
 };
 
-const AggregationsTab: FC<Props> = ({
-  aggregationData,
-  activeTab,
-  onFetchData,
-}) => {
-  const [isLoading, setIsLoading] = useState(false);
+const AggregationsTab: FC<Props> = ({ aggregationData, activeTab }) => {
   const t = useTranslations();
 
   const { aggregations, bot_aggregations, actual_close_time, resolution } =
@@ -49,21 +43,6 @@ const AggregationsTab: FC<Props> = ({
         : aggregations?.[tabData.value],
     [aggregations, bot_aggregations, tabData]
   );
-
-  const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      await onFetchData(tabData.id);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [tabData, onFetchData]);
-
-  useEffect(() => {
-    if (!activeAggregation?.history?.length) {
-      fetchData();
-    }
-  }, [activeAggregation, fetchData]);
 
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
@@ -109,9 +88,7 @@ const AggregationsTab: FC<Props> = ({
     [activeAggregation]
   );
 
-  if (isLoading) {
-    return <LoadingIndicator className="my-20 h-10" />;
-  } else if (!activeAggregation) {
+  if (!activeAggregation) {
     return null;
   }
 

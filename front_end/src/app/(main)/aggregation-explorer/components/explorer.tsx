@@ -18,7 +18,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import Select from "@/components/ui/select";
 import { SearchParams } from "@/types/navigation";
 import { Post, PostWithForecasts } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/errors";
 import { base64ToBlob } from "@/utils/files";
 import { parseQuestionId } from "@/utils/questions";
@@ -37,15 +37,17 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   const [data, setData] = useState<
     QuestionWithForecasts | PostWithForecasts | null
   >(null);
-  const [subQuestionIds, setSubQuestionIds] = useState<number[]>([]);
+  const [subQuestionOptions, setSubQuestionOptions] = useState<
+    string[] | number[]
+  >([]);
   const [activeTab, setActiveTab] = useState<AggregationMethodWithBots | null>(
     null
   );
   const initialInputText = post_id?.toString() ?? "";
   const [inputText, setInputText] = useState<string>(initialInputText);
   const [selectedSubQuestionId, setSelectedSubQuestionId] = useState<
-    number | null
-  >(question_id ? Number(question_id) : null);
+    string | null
+  >(question_id ? question_id.toString().replaceAll("_", " ") : null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,9 +58,9 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       setLoading(true);
       try {
         const postData = await fetchPost(postId);
-        // TODO: (fix for MC questions if required)
+        // TODO: adjust for MC questions after backend is updated
         if (!!postData.group_of_questions || !!postData.conditional) {
-          setSubQuestionIds(parseSubQuestionIds(postData));
+          setSubQuestionOptions(parseSubQuestions(postData));
           if (questionId) {
             const questionData = await fetchQuestion(questionId);
             setData(questionData);
@@ -77,8 +79,8 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   );
 
   useEffect(() => {
-    if (subQuestionIds.length > 0) {
-      setSubQuestionIds([]);
+    if (subQuestionOptions.length > 0) {
+      setSubQuestionOptions([]);
       setSelectedSubQuestionId(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,7 +112,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     }
     const params = new URLSearchParams({
       post_id: parsedInput.postId.toString(),
-      question_id: selectedSubQuestionId?.toString() || "",
+      question_id: selectedSubQuestionId?.toString().replaceAll(" ", "_") || "",
     });
 
     router.push(`/aggregation-explorer?${params.toString()}`);
@@ -204,7 +206,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               value={inputText}
               onChange={(e) => {
                 setInputText(e.target.value);
-                setSubQuestionIds([]);
+                setSubQuestionOptions([]);
                 setSelectedSubQuestionId(null);
               }}
               className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-3 pr-10 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
@@ -223,7 +225,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               )}
             </span>
           </div>
-          {subQuestionIds.length > 0 && (
+          {subQuestionOptions.length > 0 && (
             <div>
               <p>Select a subquestion</p>
               <Select
@@ -235,13 +237,13 @@ const Explorer: FC<Props> = ({ searchParams }) => {
                     label: "Select subquestion ID",
                     disabled: true,
                   },
-                  ...subQuestionIds.map((id) => ({
-                    value: id.toString(),
-                    label: id.toString(),
+                  ...subQuestionOptions.map((option) => ({
+                    value: option,
+                    label: option.toString(),
                   })),
                 ]}
                 onChange={(event) =>
-                  setSelectedSubQuestionId(Number(event.target.value))
+                  setSelectedSubQuestionId(event.target.value)
                 }
               />
             </div>
@@ -250,7 +252,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             variant="primary"
             type="submit"
             aria-label="Search"
-            className="m-auto mt-4 w-full !rounded border-gray-500 bg-blue-200 text-black dark:!bg-blue-700 dark:text-white"
+            className="m-auto mt-4 w-full !rounded border-gray-500 bg-blue-200 text-black hover:text-white dark:!bg-blue-700 dark:text-white"
           >
             {t("search")}
             <FontAwesomeIcon icon={faMagnifyingGlass} />
@@ -263,13 +265,14 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   );
 };
 
-function parseSubQuestionIds(data: Post) {
+function parseSubQuestions(data: Post) {
   if (data.group_of_questions) {
     return data.group_of_questions.questions.map((group) => group.id);
   } else if (data.conditional) {
     return [data.conditional.question_yes.id, data.conditional.question_no.id];
+  } else if (data.question?.type === QuestionType.MultipleChoice) {
+    return data.question.options ?? [];
   }
-  // TODO: adjust logic for MC questions if required
   return [];
 }
 export default Explorer;
