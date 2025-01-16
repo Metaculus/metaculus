@@ -16,4 +16,10 @@ Run the development server:
 npm run dev
 ```
 
+
+### Automatically generate missing translation messages
+```bash
+npm run translations:generate
+```
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
