@@ -1,9 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -16,7 +15,6 @@ import {
   UpdateProfileSchema,
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
-import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import {
@@ -25,21 +23,76 @@ import {
   MarkdownEditorField,
 } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
-import { UserProfile } from "@/types/users";
+import useContainerSize from "@/hooks/use_container_size";
+import useSearchParams from "@/hooks/use_search_params";
+import { ProfilePageMode, UserProfile } from "@/types/users";
+import cn from "@/utils/cn";
 
-import SocialMediaSection from "./social_media_section";
+import ChangeUsername from "./change_username";
+import SocialMediaFragment, {
+  getSocialMediaArray,
+  hasUserSocialMediaLink,
+} from "./social_media_section";
+import ProfilePageTabs from "../[id]/components/profile_page_tab";
 
 export type UserInfoProps = {
   profile: UserProfile;
   isCurrentUser: boolean;
-  MedalsComponent: ReactNode;
 };
 
-const UserInfo: FC<UserInfoProps> = ({
-  profile,
-  isCurrentUser,
-  MedalsComponent,
-}) => {
+interface ReadMoreProps {
+  text: string;
+}
+
+const ExpandableLongText: FC<ReadMoreProps> = ({ text }) => {
+  const [textState, setTextState] = useState<"expanded" | "collapsed" | "none">(
+    "collapsed"
+  );
+  const [initialMeasured, setInitialMeasured] = useState(false);
+  const t = useTranslations();
+
+  const { ref: textRef, height: textHeight } =
+    useContainerSize<HTMLDivElement>();
+
+  const measureHeightFn = () => {
+    if (textHeight > 0 && textRef.current && !initialMeasured) {
+      setInitialMeasured(true);
+      if (textRef.current.scrollHeight == textRef.current.clientHeight) {
+        setTextState("none");
+      }
+    }
+  };
+
+  useEffect(() => {
+    measureHeightFn();
+  }, [textHeight]);
+
+  return (
+    <div>
+      <div
+        ref={textRef}
+        className={cn(
+          "mb-0 line-clamp-2 overflow-hidden lg:max-w-80 xl:max-w-[476px]",
+          textState == "expanded" && "line-clamp-none"
+        )}
+      >
+        <MarkdownEditor mode="read" markdown={text} withUgcLinks />
+      </div>
+      {textState != "none" && initialMeasured && (
+        <Button
+          variant="link"
+          onClick={() =>
+            setTextState(textState == "expanded" ? "collapsed" : "expanded")
+          }
+        >
+          {textState == "expanded" ? t("showLess") : t("showMore")}
+        </Button>
+      )}
+    </div>
+  );
+};
+
+const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
   const t = useTranslations();
   const { setUser } = useAuth();
   const [editMode, setEditMode] = useState(false);
@@ -50,6 +103,19 @@ const UserInfo: FC<UserInfoProps> = ({
     updateProfileFormAction,
     null
   );
+  const { pending } = useFormStatus();
+
+  const { params } = useSearchParams();
+
+  const socialMedia = getSocialMediaArray(profile);
+  const inputClassNames =
+    "rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic dark:border-gray-700-dark";
+  const inputLabelClassNames =
+    "text-sm text-blue-900/45  dark:text-blue-100/45";
+
+  const mode = (params.get("mode") ||
+    ProfilePageMode.Overview) as ProfilePageMode;
+
   useEffect(() => {
     if (!state?.user) {
       if (state?.errors?.error_code === "SPAM_DETECTED") {
@@ -66,194 +132,195 @@ const UserInfo: FC<UserInfoProps> = ({
     setEditMode(false);
   }, [setUser, state?.user, state?.errors]);
 
-  const keyStatStyles =
-    "flex w-1/3 flex-col min-h-[90px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
+  let stats: {
+    heading: string;
+    val: string | number | undefined | React.ReactElement;
+  }[] = [
+    { heading: t("predictions"), val: profile.forecasts_count },
+    { heading: t("comments"), val: profile.comments_count },
+    {
+      heading: t("memberSince"),
+      val: profile.date_joined
+        ? new Date(profile.date_joined).toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })
+        : undefined,
+    },
+    { heading: t("location"), val: profile.location },
+    { heading: t("occupation"), val: profile.occupation },
+  ];
 
-  return (
-    <form action={formAction}>
+  if (hasUserSocialMediaLink(profile)) {
+    stats = stats.concat([
       {
-        <div
-          className={`mb-4 flex flex-col gap-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6`}
-        >
-          {isCurrentUser && (
-            <div className="flex flex-col">
-              {editMode && <SubmitButton />}
-              {!editMode && (
-                <Button variant="link" onClick={() => setEditMode(true)}>
-                  {t("edit")}
-                </Button>
-              )}
-            </div>
-          )}
-          {(profile.bio || editMode) && (
-            <div className="flex flex-col gap-1">
-              <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
-                {t("bio")}
-              </div>
-              <div className="flex w-full content-center justify-between">
-                {editMode ? (
-                  <MarkdownEditorField
-                    control={control}
-                    name="bio"
-                    defaultValue={profile.bio}
-                    errors={state?.errors}
-                  />
-                ) : (
-                  <div className="flex items-center whitespace-pre-line text-base font-light">
-                    <MarkdownEditor
-                      mode="read"
-                      markdown={profile.bio}
-                      withUgcLinks
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          {
-            <div className="flex flex-row justify-between">
-              {(profile.location || editMode) && (
-                <div className="flex w-full flex-col gap-1">
-                  <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
-                    {t("location")}
-                  </div>
-                  {editMode ? (
-                    <Input
-                      type="text"
-                      {...register("location")}
-                      defaultValue={profile.location}
-                    />
-                  ) : (
-                    <div className="text-base font-light">
-                      {profile.location}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {(profile.occupation || editMode) && (
-                <div className="flex w-full flex-col gap-1">
-                  <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
-                    {t("occupation")}
-                  </div>
-                  {editMode ? (
-                    <Input
-                      type="text"
-                      {...register("occupation")}
-                      defaultValue={profile.occupation}
-                    />
-                  ) : (
-                    <div className="text-base font-light">
-                      {profile.occupation}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {(profile.website ||
-                profile.twitter ||
-                profile.linkedin ||
-                profile.facebook ||
-                profile.github ||
-                profile.good_judgement_open ||
-                profile.kalshi ||
-                profile.manifold ||
-                profile.infer ||
-                profile.hypermind ||
-                editMode) && (
-                <div className="flex w-full flex-col gap-1">
-                  <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
-                    {t("links")}
-                  </div>
-                  <SocialMediaSection
-                    user={profile}
-                    editMode={editMode}
-                    register={register}
-                    state={state}
-                  />
-                </div>
-              )}
-            </div>
-          }
-        </div>
-      }
-      <FormError errors={state?.errors} name={"non_field_errors"} />
-      <div className={`flex flex-col flex-col-reverse gap-4 md:flex-row`}>
-        <div className="w-full md:w-1/3">{MedalsComponent}</div>
-        <div className="mt-0 flex w-full flex-col gap-4 md:w-2/3">
-          <div className="flex flex-col rounded bg-white p-4 dark:bg-blue-900 md:p-6 ">
-            <div className="flex w-full flex-row items-center justify-between">
-              <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-                Key Stats
-              </h3>
-              <a
-                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                href={`?mode=track_record`}
-              >
-                View All
-              </a>
-            </div>
-            <h3 className="mb-5 mt-0 pt-0 text-gray-700 dark:text-gray-300"></h3>
-            <div className="flex flex-row gap-2 md:gap-4">
-              <div className={keyStatStyles}>
-                <span className="text-xl font-normal text-gray-800 dark:text-gray-200 md:text-2xl">
-                  {profile.forecasts_count}
-                </span>
-                <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
-                  {t("predictions")}
-                </span>
-              </div>
-              <div className={keyStatStyles}>
-                <span className="text-xl font-normal text-gray-800 dark:text-gray-200 md:text-2xl">
-                  {profile.comments_count}
-                </span>
-                <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
-                  {t("comments")}
-                </span>
-              </div>
-              <div className={keyStatStyles}>
-                <span className="text-xl font-normal text-gray-800 dark:text-gray-200 md:text-2xl">
-                  {format(new Date(profile.date_joined), "yyyy-MM-dd")}
-                </span>
-                <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
-                  {t("memberSince")}
-                </span>
-              </div>
-            </div>
+        heading: t("links"),
+        val: (
+          <div className="flex gap-1">
+            <SocialMediaFragment user={profile} />
           </div>
-          <div className="flex flex-col rounded bg-white p-4 dark:bg-blue-900 md:p-6">
-            <div className="flex w-full flex-row items-center justify-between">
-              <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-                Calibration Curve
-              </h3>
-              <a
-                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                href={`?mode=track_record`}
-              >
-                View All
-              </a>
+        ),
+      },
+    ]);
+  }
+
+  if (!editMode) {
+    return (
+      <>
+        <div className="flex flex-col gap-6 rounded bg-white p-4 dark:bg-blue-900 xs:p-5 sm:p-6 md:p-8 lg:gap-4">
+          {/* Username and stats */}
+          <div className="flex flex-col gap-4 rounded lg:flex-row lg:gap-8">
+            {/* Username and edit profiel side */}
+            <div className="flex flex-col items-start gap-10">
+              <div className="flex flex-col">
+                <h1 className="mt-0 inline text-3xl md:text-4xl">
+                  {profile.username}
+                  {profile.is_bot && " 🤖"}
+                </h1>
+                {isCurrentUser && (
+                  <span className="inline">
+                    <ChangeUsername />
+                  </span>
+                )}
+
+                {profile.bio != "" && <ExpandableLongText text={profile.bio} />}
+              </div>
             </div>
-            {profile.calibration_curve && (
-              <CalibrationChart
-                calibrationData={profile.calibration_curve}
-                username={profile.username}
-              />
+
+            <div className="grid grow grid-cols-2 gap-3 sm:grid-cols-3 lg:ml-auto lg:self-baseline">
+              {stats.map((stat) => (
+                <div
+                  className="flex flex-col items-start gap-1 lg:items-center"
+                  key={stat.heading}
+                >
+                  <span className="text-xs  font-normal uppercase text-blue-900 opacity-45 dark:text-blue-900-dark">
+                    {stat.val ? stat.heading : ""}
+                  </span>
+                  <span className="text-base text-gray-800 dark:text-gray-800-dark">
+                    {stat.val}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Edit on SM screens */}
+            {isCurrentUser && (
+              <Button
+                variant="secondary"
+                onClick={() => setEditMode(true)}
+                className="self-baseline md:hidden"
+              >
+                {t("editProfile")}
+              </Button>
             )}
           </div>
-        </div>
-      </div>
-    </form>
-  );
-};
 
-const SubmitButton = () => {
-  const { pending } = useFormStatus();
-  const t = useTranslations();
+          <div className="relative hidden flex-row justify-center text-xs font-medium md:flex md:text-sm">
+            {/* Edit on desktop MD */}
+            {isCurrentUser && (
+              <Button
+                variant="secondary"
+                onClick={() => setEditMode(true)}
+                className="absolute left-0 top-1/2 hidden -translate-y-1/2 md:inline-flex"
+              >
+                {t("editProfile")}
+              </Button>
+            )}
+
+            <ProfilePageTabs id={profile.id} mode={mode} />
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-full overflow-x-scroll py-2 text-xs font-medium md:hidden">
+          <ProfilePageTabs id={profile.id} mode={mode} />
+        </div>
+      </>
+    );
+  }
 
   return (
-    <Button variant="primary" type="submit" disabled={pending}>
-      {pending ? t("pending") : t("submit")}
-    </Button>
+    <form
+      action={formAction}
+      className=" rounded  bg-blue-300 p-4 dark:bg-blue-300-dark md:p-6"
+    >
+      <div className="mb-6 flex flex-col gap-2  md:mb-8">
+        <h1 className="mt-0 inline text-3xl md:text-4xl">
+          {profile.username}
+          {profile.is_bot && " 🤖"}
+        </h1>
+        {isCurrentUser && (
+          <span className="inline">
+            <ChangeUsername />
+          </span>
+        )}
+      </div>
+
+      <div className={`mb-8 flex flex-col gap-4 xl:flex-row`}>
+        {/* Bio, location and opcupation */}
+        <div className="flex min-w-0 shrink-[2] flex-col gap-3">
+          <div className="flex w-full flex-col gap-1.5">
+            <div className={inputLabelClassNames}>{t("bio")}</div>
+            <div className="flex h-48 w-full content-center justify-between bg-gray-0 dark:bg-gray-0-dark">
+              <MarkdownEditorField
+                control={control}
+                name="bio"
+                defaultValue={profile.bio}
+                errors={state?.errors}
+              />
+            </div>
+          </div>
+
+          <div className="flex w-full flex-col gap-1.5">
+            <div className={inputLabelClassNames}>{t("location")}</div>
+            <Input
+              type="text"
+              {...register("location")}
+              defaultValue={profile.location}
+              className={inputClassNames}
+            />
+          </div>
+
+          <div className="flex w-full flex-col gap-1.5">
+            <div className={inputLabelClassNames}>{t("occupation")}</div>
+            <Input
+              type="text"
+              {...register("occupation")}
+              defaultValue={profile.occupation}
+              className={inputClassNames}
+            />
+          </div>
+        </div>
+
+        {/* Social media links */}
+        <div className="grid basis-[492px] grid-cols-2 gap-3 ">
+          {socialMedia.map(([, link, label]) => {
+            return (
+              <div className="flex flex-col gap-1.5" key={label}>
+                <span className={inputLabelClassNames}>{label}</span>
+                <Input
+                  className={inputClassNames}
+                  placeholder="http://www.example.com"
+                  defaultValue={link ? link : ""}
+                  {...register(label as keyof UpdateProfileSchema)}
+                />
+                <FormError errors={state?.errors} name={label} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <FormError errors={state?.errors} name={"non_field_errors"} />
+
+      <div className="flex gap-4">
+        <Button variant="secondary" onClick={() => setEditMode(false)}>
+          {t("cancel")}
+        </Button>
+        <Button variant="primary" type="submit" disabled={pending}>
+          {t("saveChange")}
+        </Button>
+      </div>
+    </form>
   );
 };
 

@@ -473,7 +473,7 @@
   "recentPredictions": "Recent predictions",
   "myDivergence": "My Divergence",
   "profile": "Profile",
-  "changeUsernameButton": "change",
+  "changeUsernameButton": "change username",
   "markUserAsSpamButton": "Mark User as Spam",
   "markUserAsSpam?": "Are you sure you want to mark this user as spam?",
   "memberSince": "Member Since",
@@ -1050,5 +1050,6 @@
   "block": "Block",
   "accountInactiveModalTitle": "You've got mail!",
   "accountInactiveModalBody": "Please confirm your email associated with your <bold>{login}</bold> account to be able to log in.",
-  "accountInactiveModalResendButton": "Resend activation email"
+  "accountInactiveModalResendButton": "Resend activation email",
+  "editProfile": "Edit Profile"
 }
