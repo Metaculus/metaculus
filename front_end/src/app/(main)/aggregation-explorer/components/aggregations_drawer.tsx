@@ -133,7 +133,7 @@ const AggregationsDrawer: FC<Props> = ({
           scaling={type === QuestionType.Binary ? undefined : scaling}
         />
       )}
-      <div className="my-5 grid grid-cols-3 justify-items-center gap-x-5 gap-y-3">
+      <div className="my-5 grid grid-cols-1 justify-items-center gap-x-5 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
         {tooltips.map((tooltip, index) => {
           const choiceItem = choiceItems.find(
             (item) => item.choice === tooltip.choice
