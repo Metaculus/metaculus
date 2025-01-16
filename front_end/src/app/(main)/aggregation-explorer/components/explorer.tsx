@@ -85,6 +85,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   useEffect(() => {
     if (!!post_id) {
       setError(null);
+      setActiveTab(null);
       const parsedInput = parseQuestionId(inputText as string);
       if (parsedInput.postId === null) {
         setError("Invalid question url or id");
