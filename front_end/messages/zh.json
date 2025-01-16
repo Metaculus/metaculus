@@ -1041,5 +1041,11 @@
   "clearCommentsAndCommunicationTitle": "清晰评论和沟通",
   "clearCommentsAndCommunicationInfo": "我们的专业人员参与外部合作伙伴项目，他们重视清晰的推理以更好地解释预测。我们选择有清晰见解评论历史且愿意温和而尊重地与同行持不同意见的人。",
   "expressionOfInterestFormMessage": "我们有时会招募社区的优秀成员，他们擅长对提交问题提供建设性反馈，成为付费管理员。如果您想被考虑，请填写我们的<链接>兴趣表达表格</链接>。",
-  "dateInputDetails": "日期和时间为您的本地时区[{timezone}]"
+  "dateInputDetails": "日期和时间为您的本地时区[{timezone}]",
+  "existingQuestion": "现有问题",
+  "questionId": "问题ID",
+  "addQuestion": "添加问题",
+  "addExistingQuestion": "添加现有问题",
+  "existingQuestionExample": "将现有的Metaculus问题添加到您的社区",
+  "enterQuestionIdUrl": "请输入现有Metaculus问题的URL/ID。"
 }

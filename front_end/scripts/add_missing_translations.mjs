@@ -68,7 +68,7 @@ async function main() {
     }
     fs.writeFileSync(
       filePath,
-      JSON.stringify(existingTranslations, null, 2),
+      JSON.stringify(existingTranslations, null, 2) + "\n",
       "utf8"
     );
     console.log(
