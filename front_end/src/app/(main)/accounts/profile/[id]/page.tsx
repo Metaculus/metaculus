@@ -6,19 +6,19 @@ import { remark } from "remark";
 import strip from "strip-markdown";
 
 import MedalsPage from "@/app/(main)/(leaderboards)/medals/components/medals_page";
-import MedalsWidget from "@/app/(main)/(leaderboards)/medals/components/medals_widget";
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
+import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import CommentFeed from "@/components/comment_feed";
+import AwaitedPostsFeed from "@/components/posts_feed";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { defaultDescription } from "@/constants/metadata";
+import { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
-import { ProfilePageMode } from "@/types/users";
+import { ProfilePageMode, UserProfile } from "@/types/users";
 import cn from "@/utils/cn";
 
-import ProfilePageTabs from "./components/profile_page_tab";
-import ChangeUsername from "../components/change_username";
 import SoftDeleteButton from "../components/soft_delete_button";
 import TrackRecord from "../components/track_record";
 
@@ -45,7 +45,8 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
   const currentUser = await ProfileApi.getMyProfile();
   const isCurrentUser = currentUser?.id === +id;
 
-  let profile = await ProfileApi.getProfileById(id);
+  let profile: UserProfile = await ProfileApi.getProfileById(id);
+  const userQuestionsFilters: PostsParams = { usernames: profile.username };
 
   if (!profile) {
     return notFound();
@@ -65,60 +66,42 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
 
   return (
     <main className="mx-auto my-4 flex min-h-min w-full max-w-5xl flex-col gap-4 px-3 lg:px-0">
-      <div className="flex flex-col gap-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6">
-        <div className="flex flex-col">
-          <h1 className="mt-0 inline text-3xl md:text-4xl">
-            {profile.username}
-            {profile.is_bot && " 🤖"}
-          </h1>
-          {isCurrentUser && (
-            <span className="inline">
-              <ChangeUsername />
-            </span>
-          )}
-          {(currentUser?.is_staff || currentUser?.is_superuser) && (
-            <div className="mt-2 flex flex-col gap-3 text-sm md:flex-row">
-              <div className="flex flex-wrap items-center gap-3">
-                {currentUser.is_superuser && (
-                  <Button
-                    href={`/admin/users/user/${profile.id}/change/`}
-                    target="_blank"
-                  >
-                    {t("viewInDjangoAdmin")}
-                  </Button>
-                )}
-                {!profile.is_spam && currentUser.is_staff && (
-                  <SoftDeleteButton id={id} />
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <ProfileChip variant={profile.is_active ? "success" : "danger"}>
-                  {profile.is_active ? "Active" : "Inactive"}
-                </ProfileChip>
-                {profile.is_spam && (
-                  <ProfileChip variant="danger">Spam</ProfileChip>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="flex flex-row text-xs font-medium md:text-sm">
-          <ProfilePageTabs id={id} mode={mode} />
-        </div>
-      </div>
-      {mode === ProfilePageMode.Overview && (
-        <div className="flex flex-col gap-4 rounded">
-          <UserInfo
-            profile={profile}
-            isCurrentUser={isCurrentUser}
-            MedalsComponent={
-              <Suspense
-                fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}
+      {(currentUser?.is_staff || currentUser?.is_superuser) && (
+        <div className="mt-2 flex flex-col gap-3 text-sm md:flex-row">
+          <div className="flex flex-wrap items-center gap-3">
+            {currentUser.is_superuser && (
+              <Button
+                href={`/admin/users/user/${profile.id}/change/`}
+                target="_blank"
               >
-                <MedalsWidget profileId={profile.id} />
-              </Suspense>
-            }
-          />
+                {t("viewInDjangoAdmin")}
+              </Button>
+            )}
+            {!profile.is_spam && currentUser.is_staff && (
+              <SoftDeleteButton id={id} />
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <ProfileChip variant={profile.is_active ? "success" : "danger"}>
+              {profile.is_active ? "Active" : "Inactive"}
+            </ProfileChip>
+            <ProfileChip variant={profile.is_spam ? "danger" : "success"}>
+              {profile.is_spam ? "Spam" : "Not Spam"}
+            </ProfileChip>
+          </div>
+        </div>
+      )}
+
+      <UserInfo profile={profile} isCurrentUser={isCurrentUser} />
+
+      {mode === ProfilePageMode.Overview && (
+        <div className="flex flex-col gap-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6">
+          {profile.calibration_curve && (
+            <CalibrationChart
+              calibrationData={profile.calibration_curve}
+              username={profile.username}
+            />
+          )}
         </div>
       )}
       {mode === ProfilePageMode.TrackRecord && (
@@ -132,6 +115,19 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
       {mode === ProfilePageMode.Comments && (
         <div className="flex flex-col rounded bg-white px-4 py-1 dark:bg-blue-900 md:px-6 md:py-2">
           <CommentFeed profileId={profile.id} rootCommentStructure={false} />
+        </div>
+      )}
+      {mode === ProfilePageMode.Questions && (
+        <div className="flex flex-col rounded bg-white px-4 py-1 dark:bg-blue-900 md:px-6 md:py-2">
+          Questions:
+          <Suspense
+            key={JSON.stringify(searchParams)}
+            fallback={
+              <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+            }
+          >
+            <AwaitedPostsFeed filters={userQuestionsFilters} />
+          </Suspense>
         </div>
       )}
     </main>

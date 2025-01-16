@@ -34,6 +34,11 @@ const ProfilePageTabs: FC<Props> = ({ mode, id }) => {
       value: ProfilePageMode.Comments,
       href: `/accounts/profile/${id}?mode=${ProfilePageMode.Comments}`,
     },
+    {
+      label: t("questions"),
+      value: ProfilePageMode.Questions,
+      href: `/accounts/profile/${id}?mode=${ProfilePageMode.Questions}`,
+    },
   ];
 
   return (
@@ -43,7 +48,7 @@ const ProfilePageTabs: FC<Props> = ({ mode, id }) => {
       onChange={() => {}}
       variant="tertiary"
       className={cn(
-        "bg-blue-100 font-light capitalize leading-5 text-blue-900 hover:bg-blue-200 dark:border-blue-950 dark:bg-blue-950 dark:text-white hover:dark:bg-blue-800"
+        "text-nowrap bg-blue-100 font-light capitalize leading-5 text-blue-900 hover:bg-blue-200 dark:border-blue-950 dark:bg-blue-950 dark:text-white hover:dark:bg-blue-800"
       )}
       activeClassName={cn(
         "bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200"
