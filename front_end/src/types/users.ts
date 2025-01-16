@@ -65,4 +65,5 @@ export enum ProfilePageMode {
   TrackRecord = "track_record",
   Medals = "medals",
   Comments = "comments",
+  Questions = "questions",
 }
