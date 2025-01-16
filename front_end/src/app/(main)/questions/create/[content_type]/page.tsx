@@ -1,4 +1,5 @@
 import { isNil } from "lodash";
+import { notFound } from "next/navigation";
 import invariant from "ts-invariant";
 
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
@@ -123,7 +124,9 @@ export default async function QuestionCreator({
     );
   }
 
-  invariant(component, "Wrong Question type");
+  if (!component) {
+    return notFound();
+  }
 
   return (
     <>
