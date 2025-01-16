@@ -191,7 +191,7 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
 
   return (
     <>
-      <div className="relative rounded border border-gray-500 dark:border-gray-500-dark">
+      <div className="relative overflow-y-scroll rounded border border-gray-500 dark:border-gray-500-dark">
         {/* This input is used to support following logic fron native forms
            - populate FormData with input value when submitting via form action
            - auto-scroll and focus input when validation error occurs

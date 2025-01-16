@@ -29,7 +29,7 @@ const ChangeUsername: FC = () => {
 
   return (
     <>
-      <Button onClick={() => setModalIsOpen(true)}>
+      <Button onClick={() => setModalIsOpen(true)} variant="link">
         {t("changeUsernameButton")}
       </Button>
       <ChangeUsernameModal

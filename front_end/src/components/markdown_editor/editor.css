@@ -8,7 +8,7 @@
 }
 
 .mdxeditor-toolbar {
-  @apply sticky top-12;
+  @apply sticky flex-wrap;
 }
 
 .markdown-editor.dark-theme {
