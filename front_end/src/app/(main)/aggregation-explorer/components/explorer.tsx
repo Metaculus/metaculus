@@ -8,7 +8,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Input } from "@headlessui/react";
 import { saveAs } from "file-saver";
-import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, FormEvent, useCallback, useEffect, useState } from "react";
@@ -78,8 +77,11 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   );
 
   useEffect(() => {
-    setSubQuestionIds([]);
-    setSelectedSubQuestionId(null);
+    if (subQuestionIds.length > 0) {
+      setSubQuestionIds([]);
+      setSelectedSubQuestionId(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputText]);
 
   useEffect(() => {
@@ -201,7 +203,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               type="search"
               value={inputText}
               onChange={(e) => {
-                debounce(() => setInputText(e.target.value), 300);
                 setInputText(e.target.value);
                 setSubQuestionIds([]);
                 setSelectedSubQuestionId(null);
