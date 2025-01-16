@@ -1,13 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useState, memo, useMemo } from "react";
+import { FC, useCallback, useState, memo, useMemo, useEffect } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import {
-  AggregationQuestion,
-  Aggregations,
+  AggregationMethod,
+  AggregationMethodWithBots,
+  AggregationQuestionWithBots,
   QuestionType,
 } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
@@ -18,25 +20,66 @@ import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/de
 import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
 
 type Props = {
-  questionData: AggregationQuestion;
-  activeTab: keyof Aggregations;
+  questionData: AggregationQuestionWithBots | null;
+  activeTab: AggregationMethodWithBots;
+  onFetchData: ({
+    postId,
+    questionId,
+    includeBots,
+    aggregationMethod,
+  }: {
+    postId: string;
+    questionId?: string | null;
+    includeBots?: boolean;
+    aggregationMethod: AggregationMethod;
+  }) => Promise<void>;
+  postId: number;
+  questionId?: number | null;
 };
 
-const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
+const AggregationsTab: FC<Props> = ({
+  questionData,
+  activeTab,
+  onFetchData,
+  postId,
+  questionId,
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations();
 
-  const {
-    aggregations,
-    actual_close_time,
-    scaling,
-    type: qType,
-    resolution,
-  } = questionData;
-
+  const { aggregations, bot_aggregations, actual_close_time, resolution } =
+    questionData ?? {};
+  const isBotAggregation = activeTab.includes("bot");
+  const aggregationMethod = isBotAggregation
+    ? (activeTab.replace("_bot", "") as AggregationMethod)
+    : (activeTab as unknown as AggregationMethod);
   const activeAggregation = useMemo(
-    () => aggregations[activeTab],
-    [activeTab, aggregations]
+    () =>
+      isBotAggregation
+        ? bot_aggregations?.[aggregationMethod]
+        : aggregations?.[aggregationMethod],
+    [aggregations, bot_aggregations, isBotAggregation, aggregationMethod]
   );
+
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      await onFetchData({
+        postId: postId.toString(),
+        questionId: questionId?.toString(),
+        includeBots: isBotAggregation,
+        aggregationMethod: aggregationMethod as AggregationMethod,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isBotAggregation, aggregationMethod, onFetchData, postId, questionId]);
+
+  useEffect(() => {
+    if (!activeAggregation?.history?.length) {
+      fetchData();
+    }
+  }, [activeAggregation, fetchData]);
 
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
@@ -82,17 +125,19 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
     [activeAggregation]
   );
 
-  if (!activeAggregation) {
+  if (isLoading) {
+    return <LoadingIndicator className="my-20 h-10" />;
+  } else if (!activeAggregation) {
     return null;
   }
 
-  const renderAggregation = () => {
-    switch (qType) {
+  const renderAggregation = (questionData: AggregationQuestionWithBots) => {
+    switch (questionData.type) {
       case QuestionType.Binary:
         return (
           <HistogramDrawer
+            activeAggregation={activeAggregation}
             questionData={questionData}
-            activeTab={activeTab}
             selectedTimestamp={aggregationTimestamp}
           />
         );
@@ -100,9 +145,9 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
       case QuestionType.Date:
         return (
           <ContinuousAggregationChart
+            activeAggregation={activeAggregation}
             selectedTimestamp={aggregationTimestamp}
             questionData={questionData}
-            activeTab={activeTab}
           />
         );
       default:
@@ -111,35 +156,37 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
   };
 
   return (
-    <DetailsQuestionCardErrorBoundary>
-      <NumericChart
-        aggregation={activeAggregation}
-        questionType={qType}
-        actualCloseTime={actualCloseTime}
-        scaling={scaling}
-        resolution={resolution}
-        onCursorChange={handleCursorChange}
-      />
-      {!!cursorData && (
-        <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
-          <CursorDetailItem
-            title={t("totalForecastersLabel")}
-            content={cursorData.forecasterCount?.toString()}
-          />
-          <CursorDetailItem
-            title={t("communityPredictionLabel")}
-            content={getDisplayValue({
-              value: cursorData.center,
-              questionType: qType,
-              scaling,
-            })}
-            variant="prediction"
-          />
-        </div>
-      )}
+    questionData && (
+      <DetailsQuestionCardErrorBoundary>
+        <NumericChart
+          aggregation={activeAggregation}
+          questionType={questionData.type}
+          actualCloseTime={actualCloseTime}
+          scaling={questionData.scaling}
+          resolution={resolution}
+          onCursorChange={handleCursorChange}
+        />
+        {!!cursorData && (
+          <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
+            <CursorDetailItem
+              title={t("totalForecastersLabel")}
+              content={cursorData.forecasterCount?.toString()}
+            />
+            <CursorDetailItem
+              title={t("communityPredictionLabel")}
+              content={getDisplayValue({
+                value: cursorData.center,
+                questionType: questionData.type,
+                scaling: questionData.scaling,
+              })}
+              variant="prediction"
+            />
+          </div>
+        )}
 
-      {renderAggregation()}
-    </DetailsQuestionCardErrorBoundary>
+        {renderAggregation(questionData)}
+      </DetailsQuestionCardErrorBoundary>
+    )
   );
 };
 

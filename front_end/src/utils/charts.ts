@@ -30,13 +30,15 @@ import {
   UserForecastHistory,
   Scaling,
   AggregateForecast,
-  AggregationQuestion,
   Aggregations,
   QuestionWithForecasts,
   AggregateForecastHistory,
   Bounds,
   UserForecast,
+  AggregationQuestionWithBots,
+  AggregationMethodWithBots,
 } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 import {
@@ -832,7 +834,11 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
 }
 
 export function generateChoiceItemsFromAggregations(
-  question: AggregationQuestion,
+  question: AggregationQuestionWithBots,
+  tooltips: {
+    choice: AggregationMethodWithBots;
+    color: ThemeColor;
+  }[],
   config?: {
     locale?: string;
   }
@@ -841,7 +847,45 @@ export function generateChoiceItemsFromAggregations(
 
   const choiceItems: ChoiceItem[] = [];
   const aggregations = question.aggregations;
-  let index = 0;
+  const botAggregations = question.bot_aggregations;
+  parseAggregationData({
+    aggregations,
+    choiceItems,
+    question,
+    locale,
+    tooltips,
+  });
+  botAggregations &&
+    parseAggregationData({
+      aggregations: botAggregations,
+      choiceItems,
+      question,
+      locale,
+      isBot: true,
+      tooltips,
+    });
+  return choiceItems;
+}
+
+function parseAggregationData({
+  aggregations,
+  choiceItems,
+  question,
+  locale,
+  isBot,
+  tooltips,
+}: {
+  aggregations: Aggregations;
+  choiceItems: ChoiceItem[];
+  question: AggregationQuestionWithBots;
+  locale?: string;
+  isBot?: boolean;
+  tooltips: {
+    choice: AggregationMethodWithBots;
+    color: ThemeColor;
+  }[];
+}) {
+  let index = !isBot ? 0 : 1;
   for (const key in aggregations) {
     const aggregationKey = key as keyof Aggregations;
     const aggregation = aggregations[aggregationKey];
@@ -886,10 +930,12 @@ export function generateChoiceItemsFromAggregations(
         aggregationForecast?.forecaster_count || 0
       );
     });
+    const choice = isBot ? `${aggregationKey}_bot` : aggregationKey;
+    const tooltip = tooltips.find((tooltip) => tooltip.choice === choice);
     choiceItems.push({
       id: question.id,
-      choice: aggregationKey,
-      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      choice: choice,
+      color: tooltip?.color ?? METAC_COLORS.gray["400"],
       highlighted: false,
       active: true,
       resolution: question.resolution,
@@ -917,11 +963,9 @@ export function generateChoiceItemsFromAggregations(
       userMaxValues:
         question.type === QuestionType.Binary ? undefined : userMaxValues, // used in continuous group questions
     });
-    index++;
+    index = index + 2;
   }
-  return choiceItems;
 }
-
 export function generateChoiceItemsFromGroupQuestions(
   questions: QuestionWithNumericForecasts[],
   config?: {

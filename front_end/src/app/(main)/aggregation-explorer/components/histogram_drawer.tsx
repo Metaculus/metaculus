@@ -2,25 +2,23 @@ import { FC, memo } from "react";
 
 import Histogram from "@/components/charts/histogram";
 import {
-  AggregationQuestion,
-  Aggregations,
+  AggregateForecastHistory,
+  AggregationQuestionWithBots,
   QuestionType,
 } from "@/types/question";
 
 type Props = {
-  questionData: AggregationQuestion;
-  activeTab: keyof Aggregations;
+  questionData: AggregationQuestionWithBots;
+  activeAggregation: AggregateForecastHistory;
   selectedTimestamp: number | null;
 };
 
 const HistogramDrawer: FC<Props> = ({
   questionData,
-  activeTab,
+  activeAggregation,
   selectedTimestamp,
 }) => {
   if (questionData.type === QuestionType.Binary) {
-    const activeAggregation = questionData.aggregations[activeTab];
-
     if (!activeAggregation || !selectedTimestamp) return null;
 
     const timestampIndex = activeAggregation.history.findIndex(

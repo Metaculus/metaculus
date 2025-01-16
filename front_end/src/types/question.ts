@@ -44,17 +44,41 @@ export enum AggregationMethod {
   metaculus_prediction = "metaculus_prediction",
 }
 
+export enum AggregationMethodWithBots {
+  recency_weighted = "recency_weighted",
+  recency_weighted_bot = "recency_weighted_bot",
+  unweighted = "unweighted",
+  unweighted_bot = "unweighted_bot",
+  single_aggregation = "single_aggregation",
+  single_aggregation_bot = "single_aggregation_bot",
+  metaculus_prediction = "metaculus_prediction",
+  metaculus_prediction_bot = "metaculus_prediction_bot",
+}
 export const aggregationMethodsArray = [
   AggregationMethod.recency_weighted,
   AggregationMethod.unweighted,
   AggregationMethod.single_aggregation,
   AggregationMethod.metaculus_prediction,
 ];
+export const aggregationMethodsArrayWithBots = [
+  AggregationMethodWithBots.recency_weighted,
+  AggregationMethodWithBots.recency_weighted_bot,
+  AggregationMethodWithBots.unweighted,
+  AggregationMethodWithBots.unweighted_bot,
+  AggregationMethodWithBots.single_aggregation,
+  AggregationMethodWithBots.single_aggregation_bot,
+  AggregationMethodWithBots.metaculus_prediction,
+  AggregationMethodWithBots.metaculus_prediction_bot,
+];
 export const aggregationMethodLabel = {
-  recency_weighted: "Recency Weighted",
-  unweighted: "Unweighted",
+  recency_weighted: "Recency-weighted median",
+  recency_weighted_bot: "Recency-weighted median with bots",
+  unweighted: "Unweighted median",
+  unweighted_bot: "Unweighted median with bots",
   single_aggregation: "Single Aggregation",
+  single_aggregation_bot: "Single Aggregation with bots",
   metaculus_prediction: "Metaculus Prediction",
+  metaculus_prediction_bot: "Metaculus Prediction with bots",
 };
 
 export type Bounds = {
@@ -296,7 +320,11 @@ export type AggregationQuestion = {
   scheduled_close_time: string;
   scheduled_resolve_time: string;
   title: string;
+  url_title: string;
   type: QuestionType;
+};
+export type AggregationQuestionWithBots = AggregationQuestion & {
+  bot_aggregations?: Aggregations;
 };
 
 export enum CurveQuestionLabels {
