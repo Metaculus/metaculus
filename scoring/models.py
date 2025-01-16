@@ -46,7 +46,9 @@ class Score(TimeStampedModel):
         SPOT_BASELINE = "spot_baseline"
         MANUAL = "manual"
 
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices, db_index=True)
+    score_type = models.CharField(
+        max_length=200, choices=ScoreTypes.choices, db_index=True
+    )
 
     def __str__(self):
         return (
@@ -239,12 +241,12 @@ class Leaderboard(TimeStampedModel):
             return questions
 
         if self.project:
-            return questions.filter(
+            questions = questions.filter(
                 Q(related_posts__post__projects=self.project)
                 | Q(related_posts__post__default_project=self.project)
             )
 
-        return questions
+        return questions.distinct("id")
 
 
 def name_and_slug_for_global_leaderboard_dates(
