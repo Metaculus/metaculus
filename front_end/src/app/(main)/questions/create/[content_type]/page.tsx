@@ -1,4 +1,5 @@
 import { isNil } from "lodash";
+import { notFound } from "next/navigation";
 import invariant from "ts-invariant";
 
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
@@ -130,7 +131,9 @@ export default async function QuestionCreator({
     component = <RepostForm community={community} />;
   }
 
-  invariant(component, "Wrong Question type");
+  if (!component) {
+    return notFound();
+  }
 
   return (
     <>
