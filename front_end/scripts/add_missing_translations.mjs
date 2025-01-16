@@ -26,6 +26,10 @@ Strings:
 ${JSON.stringify(toBeTranslated, undefined, 2)}
 `;
 
+  console.log(
+    `Generating ${missingKeys.length} missing translations for ${language}`
+  );
+
   const response = await client.chat.completions.create({
     model: "gpt-4o",
     messages: [{ role: "system", content: systemPrompt.trim() }],
