@@ -6,8 +6,22 @@ from io import StringIO
 
 import numpy as np
 from django.db import transaction
-from django.db.models import QuerySet, Q, Sum, IntegerField, OuterRef, Exists
-from django.db.models.functions import Coalesce
+from django.db.models import (
+    QuerySet,
+    Q,
+    Sum,
+    IntegerField,
+    FloatField,
+    OuterRef,
+    Exists,
+    When,
+    Value,
+    ExpressionWrapper,
+    F,
+    Case,
+    Count,
+)
+from django.db.models.functions import Coalesce, Exp, ExtractYear
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
@@ -22,6 +36,7 @@ from scoring.models import (
     LeaderboardEntry,
     Leaderboard,
     MedalExclusionRecord,
+    LeaderboardsRanksEntry,
 )
 from scoring.score_math import evaluate_question
 from users.models import User
@@ -384,6 +399,167 @@ def assign_medals(
         else:
             break
     return entries
+
+
+def calculate_medals_points_at_time(timestamp):
+    """
+    Calculate the medal points for all users who have received a medal
+    (either on global leaderboards or tournament leaderboards)
+    The points are calculated based on this idea:
+
+    medal points are 10 for gold, 4 for silver, and 1 for bronze
+    tournament_rank = sum(
+        [medal.points * exp(-2 * (now.year - medal.date.year)) for medal in tournament_medals]
+    )
+    … and similarly for other medal categories
+
+    """
+
+    # Look only at leaderboard entries which are closed before the timestamp
+    relevant_entries_qs = LeaderboardEntry.objects.filter(
+        Q(leaderboard__end_time__lte=timestamp)
+        | Q(leaderboard__project__close_date__lte=timestamp)
+    )
+
+    # Get the age, in yeaers, for each leaderboard, and use it to
+    # exp-decay the points associated with each medal (older medals weigh less)
+    leaderboard_age_expr = Case(
+        When(
+            leaderboard__project__type="tournament",
+            then=(timestamp.year - ExtractYear(F("leaderboard__project__close_date"))),
+        ),
+        When(
+            leaderboard__end_time__isnull=False,
+            then=(timestamp.year - ExtractYear(F("leaderboard__end_time"))),
+        ),
+        default=Value(0),
+        output_field=IntegerField(),
+    )
+
+    base_points_expr = Case(
+        When(medal=LeaderboardEntry.Medals.GOLD, then=Value(10)),
+        When(medal=LeaderboardEntry.Medals.SILVER, then=Value(4)),
+        When(medal=LeaderboardEntry.Medals.BRONZE, then=Value(1)),
+        default=Value(0),
+        output_field=IntegerField(),
+    )
+
+    # Decay the points
+    decayed_points_by_age_vexpr = ExpressionWrapper(
+        F("base_points") * Exp(-2.0 * F("leaderboard_age")),
+        output_field=FloatField(),
+    )
+
+    points_type_expr = Case(
+        When(
+            leaderboard__score_type__in=[
+                "relative_legacy_tournament",
+                "peer_tournament",
+                "spot_peer_tournament",
+            ],
+            then=Value(LeaderboardsRanksEntry.RankTypes.TOURNAMENTS),
+        ),
+        When(
+            leaderboard__score_type__in=[
+                "peer_global",
+                "peer_global_legacy",
+            ],
+            then=Value(LeaderboardsRanksEntry.RankTypes.PEER_ACCURACY),
+        ),
+        When(
+            leaderboard__score_type__in=[
+                "baseline_global",
+                "peer_global_legacy",
+            ],
+            then=Value(LeaderboardsRanksEntry.RankTypes.BASELINE_ACCURACY),
+        ),
+        When(
+            leaderboard__score_type__in=[
+                "comment_insight",
+            ],
+            then=Value(LeaderboardsRanksEntry.RankTypes.COMMENT_INSIGHT),
+        ),
+        When(
+            leaderboard__score_type__in=[
+                "question_writing",
+            ],
+            then=Value(LeaderboardsRanksEntry.RankTypes.QUESTION_WRITING),
+        ),
+    )
+
+    points_qs = relevant_entries_qs.filter(
+        excluded=False, medal__isnull=False
+    ).annotate(
+        leaderboard_age=leaderboard_age_expr,
+        base_points=base_points_expr,
+        points=decayed_points_by_age_vexpr,
+        points_type=points_type_expr,
+    )
+
+    totals = (
+        relevant_entries_qs.filter(excluded=False)
+        .annotate(
+            points_type=points_type_expr,
+        )
+        .values("points_type")
+        .annotate(total_participants=Count("user"))
+    )
+
+    points = (
+        points_qs.values("user", "points_type")
+        .annotate(
+            total_points=Sum("points"),
+        )
+        .order_by("points_type", "-total_points")
+    )
+
+    return points, totals.values_list("points_type", "total_participants")
+
+
+def update_medal_points_and_ranks(timestamp=None):
+    timestamp = timestamp or timezone.now()
+    point_values, totals = calculate_medals_points_at_time(timestamp)
+
+    for points_type_dict in LeaderboardsRanksEntry.RankTypes.choices:
+        points_type = points_type_dict[0]
+        qs = point_values.filter(points_type=points_type)
+        total_participants = totals.get(points_type=points_type)[1]
+        objects = []
+        for idx, pv in enumerate(qs):
+            obj = LeaderboardsRanksEntry(
+                user_id=pv["user"],
+                rank_type=points_type,
+                points=pv["total_points"],
+                rank_timestamp=timestamp,
+                rank=idx + 1,
+                rank_total=total_participants,
+            )
+
+            objects.append(obj)
+
+        LeaderboardsRanksEntry.objects.bulk_create(
+            objs=objects,
+            ignore_conflicts=False,
+            update_conflicts=True,
+            update_fields=[
+                "user",
+                "rank_type",
+                "rank",
+                "rank_total",
+                "points",
+                "rank_timestamp",
+            ],
+            unique_fields=["user", "rank_type"],
+        )
+
+        # Update the best rank related fields
+        LeaderboardsRanksEntry.objects.filter(
+            Q(best_rank__isnull=True) | Q(best_rank__gt=F("rank"))
+        ).update(
+            best_rank=F("rank"),
+            best_rank_total=F("rank_total"),
+            best_rank_timestamp=F("rank_timestamp"),
+        )
 
 
 def assign_prizes(
