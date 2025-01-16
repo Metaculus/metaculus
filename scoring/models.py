@@ -214,7 +214,7 @@ class Leaderboard(TimeStampedModel):
                     Q(related_posts__post__projects=self.project)
                     | Q(related_posts__post__default_project=self.project),
                 )
-            return questions
+            return questions.distinct("id")
 
         # global leaderboard
         if self.start_time is None or self.end_time is None:
