@@ -42,7 +42,7 @@ const AggregationTooltip: FC<Props> = ({
   onTabChange,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { label, color, aggregationMethod, includeBots, choice } = tooltips;
+  const { label, color, choice } = tooltips;
   const foundChoiceItem = choiceItems.find((item) => item.choice === choice);
 
   return (
@@ -63,10 +63,7 @@ const AggregationTooltip: FC<Props> = ({
                 setIsLoading(false);
               }
             }
-            onChoiceChange(
-              includeBots ? `${aggregationMethod}_bot` : aggregationMethod,
-              checked
-            );
+            onChoiceChange(choice, checked);
           }}
           onHighlight={(highlighted) => {
             onChoiceHighlight(choice, highlighted);
@@ -77,8 +74,16 @@ const AggregationTooltip: FC<Props> = ({
       </div>
       <Button
         className="ml-auto h-10"
-        onClick={() => {
-          onTabChange(choice);
+        onClick={async () => {
+          try {
+            setIsLoading(true);
+            await onFetchData(choice);
+          } catch (error) {
+            logError(error);
+          } finally {
+            setIsLoading(false);
+            onTabChange(choice);
+          }
         }}
       >
         <FontAwesomeIcon icon={faArrowRight} />
