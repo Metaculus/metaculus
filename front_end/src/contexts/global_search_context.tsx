@@ -13,6 +13,8 @@ import {
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import useSearchInputState from "@/hooks/use_search_input_state";
 
+import { useNavigation } from "./navigation_context";
+
 interface GlobalSearchContextProps {
   isVisible: boolean;
   setIsVisible: (a: boolean) => void;
@@ -39,7 +41,12 @@ export const GlobalSearchProvider: FC<PropsWithChildren> = ({ children }) => {
       modifySearchParams,
     }
   );
-
+  const { previousPath, currentPath } = useNavigation();
+  useEffect(() => {
+    if (previousPath !== currentPath && previousPath !== null) {
+      setIsVisible(false);
+    }
+  }, [previousPath, currentPath]);
   const [delayedIsVisible, setDelayedIsVisible] = useState(false);
 
   useEffect(() => {
