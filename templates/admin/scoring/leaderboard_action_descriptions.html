@@ -1,0 +1,15 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools %}
+<div style="margin: 20px 0; padding: 10px;">
+    <h4>Available Actions:</h4>
+    <ul>
+        <li><strong>Make Primary Leaderboard:</strong> Sets selected leaderboards as their project's primary leaderboard</li>
+        <li><strong>Update Leaderboards:</strong> Recalculates the leaderboard - does nothing to finalized leaderboards</li>
+        <li><strong>Force Update Leaderboards:</strong> Forces update on selected leaderboards even if finalized</li>
+        <li><strong>Force Update, Finalize, and Assign Medals/Prizes:</strong> Forces update, finalizes, and assigns medals/prizes (if eleigble) for selected leaderboards.</li>
+    </ul>
+    {{ block.super }}
+    </div>
+{% endblock %}

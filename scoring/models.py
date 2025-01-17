@@ -126,12 +126,12 @@ class Leaderboard(TimeStampedModel):
     )
 
     class ScoreTypes(models.TextChoices):
-        RELATIVE_LEGACY_TOURNAMENT = "relative_legacy_tournament"
-        PEER_GLOBAL = "peer_global"
-        PEER_GLOBAL_LEGACY = "peer_global_legacy"
         PEER_TOURNAMENT = "peer_tournament"
         SPOT_PEER_TOURNAMENT = "spot_peer_tournament"
+        RELATIVE_LEGACY_TOURNAMENT = "relative_legacy_tournament"
         BASELINE_GLOBAL = "baseline_global"
+        PEER_GLOBAL = "peer_global"
+        PEER_GLOBAL_LEGACY = "peer_global_legacy"
         COMMENT_INSIGHT = "comment_insight"
         QUESTION_WRITING = "question_writing"
         MANUAL = "manual"
@@ -162,10 +162,63 @@ class Leaderboard(TimeStampedModel):
                         "Question Writing leaderboards do not have base scores"
                     )
 
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    finalize_time = models.DateTimeField(null=True, blank=True)
+    score_type = models.CharField(
+        max_length=200,
+        choices=ScoreTypes.choices,
+        help_text="""
+    <table>
+        <tr><td>peer_tournament</td><td> Sum of peer scores. Most likely what you want.</td></tr>
+        <tr><td>spot_peer_tournament</td><td> Sum of spot peer scores.</td></tr>
+        <tr><td>relative_legacy</td><td> Old site scoring.</td></tr>
+        <tr><td>baseline_global</td><td> Sum of baseline scores.</td></tr>
+        <tr><td>peer_global</td><td> Coverage-weighted average of peer scores.</td></tr>
+        <tr><td>peer_global_legacy</td><td> Average of peer scores.</td></tr>
+        <tr><td>comment_insight</td><td> H-index of upvotes for comments on questions.</td></tr>
+        <tr><td>question_writing</td><td> H-index of number of forecasters / 10 on questions.</td></tr>
+        <tr><td>manual</td><td> Does not automatically update. Manually set all entries.</td></tr>
+    </table>
+    """,
+    )
+    start_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Optional (required for global leaderboards). If not set, the Project's open_date will be used instead.
+        </br>- Global Leaderboards: filters for questions that have an open time after this. Automatically set, do not change.
+        </br>- Non-Global Leaderboards: has no effect on question filtering.
+        </br>- Filtering MedalExclusionRecords: MedalExclusionRecords that have no end_time or an end_time greater than this (and a start_time before this Leaderboard's end_time or finalize_time) will be triggered.
+        """,
+    )
+    end_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Optional (required for global leaderboards).
+        </br>- Global Leaderboards: filters for questions that have a scheduled_close_time before this (plus a grace period). Automatically set, do not change.
+        </br>- Non-Global Leaderboards: has no effect on question filtering.
+        </br>- Filtering MedalExclusionRecords: MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered. If not set, this Leaderboard's finalize_time will be used instead - it is recommended not to use this field unless required.
+        """,
+    )
+    finalize_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Optional. If not set, the Project's close_date will be used instead.
+        </br>- For all Leaderboards: used to filter out questions that have a resolution_set_time after this (as they were resolved after this Leaderboard was finalized).
+        </br>- Filtering MedalExclusionRecords: If set and end_time is not set, MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered.
+        """,
+    )
+    finalized = models.BooleanField(
+        default=False,
+        help_text="If true, this Leaderboard's entries cannot be updated except by a manual action in the admin panel. Automatically set to True the first time this leaderboard is updated after the finalize_time.",
+    )
+    prize_pool = models.DecimalField(
+        default=None,
+        decimal_places=2,
+        max_digits=15,
+        null=True,
+        blank=True,
+        help_text="""Optional. If not set, the Project's prize_pool will be used instead.
+        </br>- If the Project has a prize pool, but this leaderboard has none, set this to 0.
+        """,
+    )
 
     def __str__(self):
         if self.name:
@@ -179,74 +232,72 @@ class Leaderboard(TimeStampedModel):
             related_posts__post__curation_status=Post.CurationStatus.APPROVED
         )
 
-        if self.project and self.project.type == Project.ProjectTypes.SITE_MAIN:
-            # global leaderboard
-            if self.start_time is None or self.end_time is None:
-                raise ValueError("Global leaderboards must have start and end times")
-
-            questions = questions.filter_public().filter(
-                related_posts__post__in=Post.objects.filter_for_main_feed()
-            )
-
-            if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
-                # post must be published
-                return questions.filter(
-                    related_posts__post__published_at__lt=self.end_time
+        if not (self.project and self.project.type == Project.ProjectTypes.SITE_MAIN):
+            # normal Project leaderboard
+            if self.project:
+                questions = questions.filter(
+                    Q(related_posts__post__projects=self.project)
+                    | Q(related_posts__post__default_project=self.project),
                 )
-            elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
-                # post must be published, and can't be resolved before the start_time
-                # of the leaderboard
-                return questions.filter(
-                    Q(scheduled_close_time__gte=self.start_time)
-                    & (
-                        Q(actual_close_time__isnull=True)
-                        | Q(actual_close_time__gte=self.start_time)
-                    ),
-                    related_posts__post__published_at__lt=self.end_time,
+            return questions.distinct("id")
+
+        # global leaderboard
+        if self.start_time is None or self.end_time is None:
+            raise ValueError("Global leaderboards must have start and end times")
+
+        questions = questions.filter_public().filter(
+            related_posts__post__in=Post.objects.filter_for_main_feed()
+        )
+
+        if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
+            # post must be published
+            return questions.filter(related_posts__post__published_at__lt=self.end_time)
+        elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
+            # post must be published, and can't be resolved before the start_time
+            # of the leaderboard
+            return questions.filter(
+                Q(scheduled_close_time__gte=self.start_time)
+                & (
+                    Q(actual_close_time__isnull=True)
+                    | Q(actual_close_time__gte=self.start_time)
+                ),
+                related_posts__post__published_at__lt=self.end_time,
+            )
+
+        close_grace_period = timedelta(days=3)
+        resolve_grace_period = timedelta(days=100)
+
+        questions = questions.filter(
+            Q(actual_resolve_time__isnull=True)
+            | Q(actual_resolve_time__lte=self.end_time + resolve_grace_period),
+            open_time__gte=self.start_time,
+            open_time__lt=self.end_time,
+            scheduled_close_time__lte=self.end_time + close_grace_period,
+        )
+
+        gl_dates = global_leaderboard_dates()
+        checked_intervals: list[tuple[datetime, datetime]] = []
+        for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
+            if (
+                (self.start_time, self.end_time) == (start, end)
+                or start < self.start_time
+                or self.end_time < end
+            ):
+                continue
+            to_add = True
+            for checked_start, checked_end in checked_intervals:
+                if checked_start < start and end < checked_end:
+                    to_add = False
+                    break
+            if to_add:
+                checked_intervals.append((start, end))
+                questions = questions.filter(
+                    Q(open_time__lt=start)
+                    | Q(scheduled_close_time__gt=end + close_grace_period)
+                    | Q(actual_resolve_time__gt=end + resolve_grace_period)
                 )
 
-            close_grace_period = timedelta(days=3)
-            resolve_grace_period = timedelta(days=100)
-
-            questions = questions.filter(
-                Q(actual_resolve_time__isnull=True)
-                | Q(actual_resolve_time__lte=self.end_time + resolve_grace_period),
-                open_time__gte=self.start_time,
-                open_time__lt=self.end_time,
-                scheduled_close_time__lte=self.end_time + close_grace_period,
-            )
-
-            gl_dates = global_leaderboard_dates()
-            checked_intervals: list[tuple[datetime, datetime]] = []
-            for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
-                if (
-                    (self.start_time, self.end_time) == (start, end)
-                    or start < self.start_time
-                    or self.end_time < end
-                ):
-                    continue
-                to_add = True
-                for checked_start, checked_end in checked_intervals:
-                    if checked_start < start and end < checked_end:
-                        to_add = False
-                        break
-                if to_add:
-                    checked_intervals.append((start, end))
-                    questions = questions.filter(
-                        Q(open_time__lt=start)
-                        | Q(scheduled_close_time__gt=end + close_grace_period)
-                        | Q(actual_resolve_time__gt=end + resolve_grace_period)
-                    )
-
-            return questions
-
-        if self.project:
-            questions = questions.filter(
-                Q(related_posts__post__projects=self.project)
-                | Q(related_posts__post__default_project=self.project)
-            )
-
-        return questions.distinct("id")
+        return questions
 
 
 def name_and_slug_for_global_leaderboard_dates(
