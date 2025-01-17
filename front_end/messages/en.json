@@ -1042,5 +1042,8 @@
   "insertEquation": "Insert Equation",
   "choseEquationType": "Choose the type of equation you want to add. To edit it, simply click on it within the editor.",
   "inline": "Inline",
-  "block": "Block"
+  "block": "Block",
+  "accountInactiveModalTitle": "You've got mail!",
+  "accountInactiveModalBody": "Please confirm your email associated with your <bold>{login}</bold> account to be able to log in.",
+  "accountInactiveModalResendButton": "Resend activation email"
 }
