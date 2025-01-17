@@ -1,5 +1,3 @@
-import logging
-
 from django.db import models
 from django.db.models import (
     Count,
@@ -18,8 +16,6 @@ from sql_util.aggregates import SubqueryAggregate
 from projects.permissions import ObjectPermission
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
-
-logger = logging.getLogger(__name__)
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -315,8 +311,6 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
             leaderboard = Leaderboard.objects.create(
                 project=self,
                 score_type=Leaderboard.ScoreTypes.PEER_TOURNAMENT,
-                start_time=self.start_date,
-                finalize_time=self.close_date,
             )
             Project.objects.filter(pk=self.pk).update(primary_leaderboard=leaderboard)
 
