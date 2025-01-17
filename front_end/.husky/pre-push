@@ -1,0 +1,5 @@
+cd front_end
+npx lint-staged
+npm run lint:js
+npm run lint:types
+
