@@ -15,6 +15,7 @@ import React, {
 import SearchInput from "@/components/search_input";
 import {
   POST_NEWS_TYPE_FILTER,
+  POST_PAGE_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
 import useSearchInputState from "@/hooks/use_search_input_state";
@@ -73,6 +74,7 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
     } else {
       deleteParam(POST_NEWS_TYPE_FILTER);
     }
+    deleteParam(POST_PAGE_FILTER);
   };
 
   return (
