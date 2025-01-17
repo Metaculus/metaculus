@@ -116,3 +116,18 @@ export async function registerUserCampaignAction(
     };
   }
 }
+
+export async function resendActivationEmailAction(
+  login: string,
+  redirectUrl: string
+): Promise<{ errors?: any }> {
+  try {
+    await AuthApi.resendActivationEmail(login, redirectUrl);
+    return { errors: null };
+  } catch (err) {
+    const error = err as FetchError;
+    return {
+      errors: error.data,
+    };
+  }
+}

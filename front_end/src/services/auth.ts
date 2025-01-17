@@ -44,6 +44,16 @@ class AuthApi {
     );
   }
 
+  static async resendActivationEmail(login: string, redirect_url: string) {
+    return post<AuthResponse, { login: string; redirect_url: string }>(
+      "/auth/signup/resend/",
+      {
+        login,
+        redirect_url,
+      }
+    );
+  }
+
   static async signIn(login: string, password: string) {
     return post<AuthResponse, { login: string; password: string }>(
       "/auth/login/token/",

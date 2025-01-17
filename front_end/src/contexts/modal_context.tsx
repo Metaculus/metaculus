@@ -16,7 +16,8 @@ export type ModalType =
   | "resetPasswordConfirm"
   | "contactUs"
   | "onboarding"
-  | "confirm";
+  | "confirm"
+  | "accountInactive";
 
 export type CurrentModal = {
   type: ModalType;
