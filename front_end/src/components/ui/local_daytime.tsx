@@ -6,10 +6,9 @@ import { formatDate } from "@/utils/date_formatters";
 type Props = {
   date?: string;
   formatFn?: (date: Date, locale: string) => string;
-  className?: string;
 };
 
-const LocalDaytime: FC<Props> = ({ date, formatFn, className }) => {
+const LocalDaytime: FC<Props> = ({ date, formatFn }) => {
   const locale = useLocale();
   const localValue = date
     ? formatFn
@@ -17,7 +16,7 @@ const LocalDaytime: FC<Props> = ({ date, formatFn, className }) => {
       : formatDate(locale, new Date(date))
     : "";
 
-  return <span className={className}>{localValue}</span>;
+  return <span>{localValue}</span>;
 };
 
 export default LocalDaytime;
