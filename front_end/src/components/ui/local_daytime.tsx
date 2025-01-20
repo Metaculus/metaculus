@@ -1,5 +1,5 @@
 import { useLocale } from "next-intl";
-import { useEffect, useState, FC } from "react";
+import { FC } from "react";
 
 import { formatDate } from "@/utils/date_formatters";
 
@@ -11,17 +11,11 @@ type Props = {
 
 const LocalDaytime: FC<Props> = ({ date, formatFn, className }) => {
   const locale = useLocale();
-  const [localValue, setLocalValue] = useState<string>("");
-
-  useEffect(() => {
-    if (date) {
-      const localDate = new Date(date);
-      const localDateString = formatFn
-        ? formatFn(localDate, locale)
-        : formatDate(locale, localDate);
-      setLocalValue(localDateString);
-    }
-  }, [date, formatFn, locale]);
+  const localValue = date
+    ? formatFn
+      ? formatFn(new Date(date), locale)
+      : formatDate(locale, new Date(date))
+    : "";
 
   return <span className={className}>{localValue}</span>;
 };
