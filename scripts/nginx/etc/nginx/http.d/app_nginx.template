@@ -28,7 +28,7 @@ server {
     }
 
     location /tournament/future-perfect/  {
-        return 301 /c/future-perfect/;
+        return 301 https://$host/c/future-perfect/;
     }
 
     location / {
