@@ -27,6 +27,10 @@ server {
         rewrite ^/api/posts/preview-image/(.*)$ /questions/$1/image-preview/;
     }
 
+    location /tournament/future-perfect/  {
+        return 301 /c/future-perfect/;
+    }
+
     location / {
         include proxy_params;
 
