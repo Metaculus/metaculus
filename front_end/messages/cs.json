@@ -1045,5 +1045,9 @@
   "addQuestion": "Přidat otázku",
   "addExistingQuestion": "Přidat existující otázku",
   "existingQuestionExample": "Přidejte existující otázku Metaculus do své Komunity",
-  "enterQuestionIdUrl": "Prosím zadejte URL/ID existující otázky Metaculus."
+  "enterQuestionIdUrl": "Prosím zadejte URL/ID existující otázky Metaculus.",
+  "graduationYear": "Očekávaný rok ukončení studia",
+  "accountInactiveModalTitle": "Máte poštu!",
+  "accountInactiveModalBody": "Prosím, potvrďte svůj e-mail spojený s vaším účtem <bold>{login}</bold>, abyste se mohli přihlásit.",
+  "accountInactiveModalResendButton": "Znovu odeslat aktivační e-mail"
 }
