@@ -39,8 +39,7 @@ def validate_turnstile(token: str, ip: str):
 
 
 def validate_turnstile_from_request(request: Request):
-    request_ip = get_request_ip(request)
-
-    logger.info(f"Validating turnstile token from IP: {request_ip}")
-
-    return validate_turnstile(request_ip, get_request_ip(request))
+    return validate_turnstile(
+        request.headers.get("cf-turnstile-response"),
+        get_request_ip(request),
+    )
