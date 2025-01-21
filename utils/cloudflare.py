@@ -5,6 +5,8 @@ from django.conf import settings
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 
+from utils.requests import get_request_ip
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,14 +39,7 @@ def validate_turnstile(token: str, ip: str):
 
 
 def validate_turnstile_from_request(request: Request):
-    ip_address = (
-        # Header coming from Cloudflare
-        request.headers.get("CF-Connecting-IP")
-        # Or coming from Nginx
-        or request.headers.get("X-Real-IP")
-    )
-
     return validate_turnstile(
         request.headers.get("cf-turnstile-response"),
-        ip_address,
+        get_request_ip(request),
     )
