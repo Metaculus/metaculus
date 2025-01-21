@@ -75,7 +75,7 @@ export async function signUpAction(
       validatedSignupData.isBot,
       {
         "cf-turnstile-response": validatedSignupData.turnstileToken,
-        "CF-Connecting-IP": ipAddress,
+        ...(ipAddress ? { "CF-Connecting-IP": ipAddress } : {}),
       },
       validatedSignupData.addToProject,
       validatedSignupData.campaignKey,
