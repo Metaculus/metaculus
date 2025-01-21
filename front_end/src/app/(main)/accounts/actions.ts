@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
@@ -62,11 +61,6 @@ export type SignUpActionState =
 export async function signUpAction(
   validatedSignupData: SignUpSchema & { redirectUrl?: string }
 ): Promise<SignUpActionState> {
-  const headersList = headers();
-
-  const ipAddress =
-    headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");
-
   try {
     const response = await AuthApi.signUp(
       validatedSignupData.email,
@@ -75,7 +69,6 @@ export async function signUpAction(
       validatedSignupData.isBot,
       {
         "cf-turnstile-response": validatedSignupData.turnstileToken,
-        "CF-Connecting-IP": ipAddress,
       },
       validatedSignupData.addToProject,
       validatedSignupData.campaignKey,
