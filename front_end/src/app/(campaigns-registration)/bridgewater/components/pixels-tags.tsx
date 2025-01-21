@@ -5,7 +5,12 @@ import { FC, useEffect } from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
 
-import { fbPixelTrackPage, fbPixelInit, lnkdnInitAndTrack } from "./pixel-apis";
+import {
+  fbPixelTrackPage,
+  fbPixelInit,
+  lnkdnInitAndTrack,
+  redditPixelInitAndTrack,
+} from "./pixel-apis";
 
 export const FacebookPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
   const consent =
@@ -94,6 +99,46 @@ export const LinkedInInsightTag: FC<{ partnerID?: string }> = ({
                 b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
                 s.parentNode.insertBefore(b, s);
               };
+            `}
+          </Script>
+        </>
+      )}
+    </>
+  );
+};
+
+export const RedditPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
+  const consent =
+    typeof window !== "undefined"
+      ? getAnalyticsCookieConsentGiven()
+      : "undecided";
+
+  useEffect(() => {
+    if (consent !== "yes" || !pixelID) return;
+
+    redditPixelInitAndTrack(pixelID);
+  }, [consent, pixelID]);
+
+  return (
+    <>
+      {pixelID && (
+        <>
+          <Script id="reddit-pixel-tag">
+            {`
+               !(function (w, d) {
+                  if (!w.rdt) {
+                    var p = (w.rdt = function () {
+                      p.sendEvent
+                        ? p.sendEvent.apply(p, arguments)
+                        : p.callQueue.push(arguments);
+                    });
+                    p.callQueue = [];
+                    var t = d.createElement("script");
+                    (t.src = "https://www.redditstatic.com/ads/pixel.js"), (t.async = !0);
+                    var s = d.getElementsByTagName("script")[0];
+                    s.parentNode.insertBefore(t, s);
+                  }
+                })(window, document);
             `}
           </Script>
         </>
