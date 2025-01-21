@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import React from "react";
 
 import KatexRenderer from "@/components/katex_renderer";
@@ -7,12 +8,15 @@ import KatexRenderer from "@/components/katex_renderer";
 import StyledDisclosure from "../../../components/styled_disclosure";
 
 const BaselineMath = () => {
+  const t = useTranslations();
   return (
     <StyledDisclosure question="Baseline score math">
       <p>
-        The Baseline scores are rescaled{" "}
-        <a href="/help/scores-faq/#log-score">log scores</a>, with the general
-        form:
+        {t("scores-faq-baseline-math__content_1")}
+        <a href="/help/scores-faq/#log-score">
+          {t("scores-faq-baseline-math__content_2")}
+        </a>
+        {t("scores-faq-baseline-math__content_3")}
       </p>
       <KatexRenderer
         equation="\text{Baseline score} = 100 \times
@@ -24,60 +28,63 @@ const BaselineMath = () => {
         inline={false}
       />
       <p>
-        For binary and multiple choice questions, the{" "}
-        <KatexRenderer equation="scale" inline /> is chosen so that a perfect
-        prediction (<KatexRenderer equation="P(outcome) = 100 \%" inline />)
-        gives a score of +100. The formula for a binary question is:
+        {t("scores-faq-baseline-math__content_4")}
+        <KatexRenderer equation="scale" inline />
+        {t("scores-faq-baseline-math__content_5")}
+        <KatexRenderer equation="P(outcome) = 100 \%" inline />
+        {t("scores-faq-baseline-math__content_6")}
       </p>
       <KatexRenderer
         equation="\text{binary Baseline score} = 100 \times \frac{ \ln(P(outcome)) - \ln(50 \%) }{ \ln(2)}"
         inline={false}
       />
       <p>
-        Note that you can rearrange this formula into:{" "}
+        {t("scores-faq-baseline-math__content_7")}
         <KatexRenderer equation="100 \times(\log_2(P(outcome)) + 1)" inline />.
       </p>
-      <p>The formula for a multiple choice question with N options is:</p>
+      <p>{t("scores-faq-baseline-math__content_8")}</p>
       <KatexRenderer
         equation="\text{multiple choice Baseline score} = 100 \times \frac{ \ln(P(outcome)) - \ln(\frac{ 1}{ N}) }{ \ln(N)}"
         inline={false}
       />
       <p>
-        For continuous questions, the <KatexRenderer equation="scale" inline />{" "}
-        was chosen empirically so that continuous scores have roughly the same
-        average as binary scores. The formula for a continuous question is:
+        {t("scores-faq-baseline-math__content_9")}
+        <KatexRenderer equation="scale" inline />
+        {t("scores-faq-baseline-math__content_10")}
       </p>
       <KatexRenderer
         equation="\text{continuous Baseline score} = 100 \times \frac{ \ln(\operatorname{pdf}(outcome)) - \ln(baseline) }{ 2 }"
         inline={false}
       />
       <p>
-        Where <KatexRenderer equation="\ln" inline /> is the natural logarithm,{" "}
-        <KatexRenderer equation="P(outcome)" inline /> is the probability
-        predicted for the outcome that actually happened, and{" "}
-        <KatexRenderer equation="\operatorname{pdf}(outcome)" inline /> is the
-        value of the predicted probability density function at the outcome.
+        {t("scores-faq-baseline-math__content_11")}
+        <KatexRenderer equation="\ln" inline />
+        {t("scores-faq-baseline-math__content_12")}
+        <KatexRenderer equation="P(outcome)" inline />
+        {t("scores-faq-baseline-math__content_13")}
+        <KatexRenderer equation="\operatorname{pdf}(outcome)" inline />
+        {t("scores-faq-baseline-math__content_14")}
       </p>
       <p>
-        The continuous <KatexRenderer equation="baseline" inline /> depends on
-        whether the question has open or closed bounds:
+        {t("scores-faq-baseline-math__content_15")}
+        <KatexRenderer equation="baseline" inline />
+        {t("scores-faq-baseline-math__content_16")}
       </p>
       <ul className="list-disc pl-5">
         <li>
-          If both bounds are closed, the{" "}
-          <KatexRenderer equation="baseline" inline /> is 1, corresponding to a
-          uniform distribution in range.
+          {t("scores-faq-baseline-math__content_17")}
+          <KatexRenderer equation="baseline" inline />
+          {t("scores-faq-baseline-math__content_18")}
         </li>
         <li>
-          If one bound is open, the <KatexRenderer equation="baseline" inline />{" "}
-          is 0.95, corresponding to a uniform distribution in range + 5%
-          probability out of the open bound.
+          {t("scores-faq-baseline-math__content_19")}
+          <KatexRenderer equation="baseline" inline />
+          {t("scores-faq-baseline-math__content_20")}
         </li>
         <li>
-          If both bounds are open, the{" "}
-          <KatexRenderer equation="baseline" inline /> is 0.9, corresponding to
-          a uniform distribution in range + 5% probability out of each open
-          bound.
+          {t("scores-faq-baseline-math__content_21")}
+          <KatexRenderer equation="baseline" inline />
+          {t("scores-faq-baseline-math__content_22")}
         </li>
       </ul>
     </StyledDisclosure>

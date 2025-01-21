@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import React from "react";
 
 import KatexRenderer from "@/components/katex_renderer";
@@ -7,30 +8,33 @@ import KatexRenderer from "@/components/katex_renderer";
 import StyledDisclosure from "../../../components/styled_disclosure";
 
 const PointsMath = () => {
+  const t = useTranslations();
   return (
     <StyledDisclosure question="Metaculus points math">
       <p>
-        Your score <KatexRenderer equation="S(T,o)" inline /> at any given time{" "}
-        <KatexRenderer equation="T" inline /> is the sum of an
-        &quot;absolute&quot; component and a &quot;relative&quot; component:
+        {t("scores-faq-points-math__content_1")}
+        <KatexRenderer equation="S(T,o)" inline />
+        {t("scores-faq-points-math__content_2")}
+        <KatexRenderer equation="T" inline />
+        {t("scores-faq-points-math__content_3")}
       </p>
       <KatexRenderer
         equation="S(T,o) = a(N) \times L(p,o) + b(N) \times B(p,o)"
         inline={false}
       />
-      <p>where:</p>
+      <p>{t("scores-faq-points-math__content_4")}</p>
       <ul className="ml-5 list-disc">
         <li>
-          <KatexRenderer equation="o" inline /> is the outcome of the question:
-          1 if the question resolves positive, 0 if it resolves negative.
+          <KatexRenderer equation="o" inline />
+          {t("scores-faq-points-math__content_5")}
         </li>
         <li>
-          <KatexRenderer equation="N" inline /> is the number of forecasters on
-          the question.
+          <KatexRenderer equation="N" inline />
+          {t("scores-faq-points-math__content_6")}
         </li>
         <li>
-          <KatexRenderer equation="L(p,o)" inline /> is the log score relative
-          to a 50% prior, defined as:
+          <KatexRenderer equation="L(p,o)" inline />
+          {t("scores-faq-points-math__content_7")}
         </li>
       </ul>
       <KatexRenderer
@@ -43,22 +47,20 @@ const PointsMath = () => {
       />
       <ul className="ml-5 list-disc">
         <li>
-          <KatexRenderer equation="B(p,o)" inline /> is the betting score and
-          represents a bet placed against every other forecaster. It is
-          described under &quot;constant pool scoring&quot; on the Metaculus
-          scoring demo (but with a modification that for computational
-          efficiency, the full distribution of other forecaster predictions is
-          replaced by a fitted{" "}
+          <KatexRenderer equation="B(p,o)" inline />
+          {t("scores-faq-points-math__content_8")}
           <a href="https://en.wikipedia.org/wiki/Beta_distribution">
-            beta distribution
+            {t("scores-faq-points-math__content_9")}
           </a>
           ).
         </li>
         <li>
-          <KatexRenderer equation="a(N)" inline /> and{" "}
-          <KatexRenderer equation="b(N)" inline /> depend on{" "}
-          <KatexRenderer equation="N" inline /> only and define how the points
-          scale with the number of forecasters.
+          <KatexRenderer equation="a(N)" inline />
+          {t("scores-faq-points-math__content_10")}
+          <KatexRenderer equation="b(N)" inline />
+          {t("scores-faq-points-math__content_11")}
+          <KatexRenderer equation="N" inline />
+          {t("scores-faq-points-math__content_12")}
         </li>
       </ul>
       <KatexRenderer
@@ -69,15 +71,20 @@ const PointsMath = () => {
         inline={false}
       />
       <p>
-        Note that <KatexRenderer equation="B" inline />,{" "}
-        <KatexRenderer equation="N" inline />, and{" "}
-        <KatexRenderer equation="p" inline /> can all depend on{" "}
-        <KatexRenderer equation="T" inline /> and contribute to the
-        time-dependence of <KatexRenderer equation="S(T, o)" inline />.
+        {t("scores-faq-points-math__content_13")}
+        <KatexRenderer equation="B" inline />,{" "}
+        <KatexRenderer equation="N" inline />
+        {t("scores-faq-points-math__content_14")}
+        <KatexRenderer equation="p" inline />
+        {t("scores-faq-points-math__content_15")}
+        <KatexRenderer equation="T" inline />
+        {t("scores-faq-points-math__content_16")}
+        <KatexRenderer equation="S(T, o)" inline />.
       </p>
       <p>
-        Your final score is given by the integral of{" "}
-        <KatexRenderer equation="S(T, o)" inline /> over{" "}
+        {t("scores-faq-points-math__content_17")}
+        <KatexRenderer equation="S(T, o)" inline />
+        {t("scores-faq-points-math__content_18")}
         <KatexRenderer equation="T" inline />:
       </p>
       <KatexRenderer
@@ -85,18 +92,15 @@ const PointsMath = () => {
         inline={false}
       />
       <p>
-        where <KatexRenderer equation="t_o" inline /> and{" "}
-        <KatexRenderer equation="t_c" inline /> are the opening and closing
-        times. (Note that <KatexRenderer equation="S(T) = 0" inline /> between
-        the opening time and your first prediction, and is also zero after
-        question resolution but before question close, in the case when a
-        question resolves early.)
+        {t("scores-faq-points-math__content_19")}
+        <KatexRenderer equation="t_o" inline />
+        {t("scores-faq-points-math__content_20")}
+        <KatexRenderer equation="t_c" inline />
+        {t("scores-faq-points-math__content_21")}
+        <KatexRenderer equation="S(T) = 0" inline />
+        {t("scores-faq-points-math__content_22")}
       </p>
-      <p>
-        Before May 2022, there was also a 50% point bonus given at the time the
-        question closes, but it was discontinued and the points multiplied by
-        1.5 henceforth.
-      </p>
+      <p>{t("scores-faq-points-math__content_23")}</p>
     </StyledDisclosure>
   );
 };

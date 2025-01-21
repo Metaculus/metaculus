@@ -1,5 +1,5 @@
 "use client";
-
+import { useTranslations } from "next-intl";
 import React from "react";
 
 import KatexRenderer from "@/components/katex_renderer";
@@ -7,41 +7,45 @@ import KatexRenderer from "@/components/katex_renderer";
 import StyledDisclosure from "../../../components/styled_disclosure";
 
 const PeerMath = () => {
+  const t = useTranslations();
   return (
     <StyledDisclosure question="Peer score math">
       <p>
-        The Peer scores are built on{" "}
-        <a href="/help/scores-faq/#log-score">log scores</a>, with the general
-        form:
+        {t("scores-faq-peer-math__content_1")}
+        <a href="/help/scores-faq/#log-score">
+          {t("scores-faq-peer-math__content_2")}
+        </a>
+        {t("scores-faq-peer-math__content_3")}
       </p>
       <KatexRenderer
         equation="\text{Peer score} = 100 \times \frac{1}{N} \sum_{i = 1}^N \operatorname{log\ score}(p) - \operatorname{log\ score}(p_i)"
         inline={false}
       />
       <p>
-        Where <KatexRenderer equation="p" inline /> is the scored prediction,{" "}
-        <KatexRenderer equation="N" inline /> is the number of other
-        predictions, and <KatexRenderer equation="p_i" inline /> is the i-th
-        other prediction.
+        {t("scores-faq-peer-math__content_4")}
+        <KatexRenderer equation="p" inline />
+        {t("scores-faq-peer-math__content_5")}
+        <KatexRenderer equation="N" inline />
+        {t("scores-faq-peer-math__content_6")}
+        <KatexRenderer equation="p_i" inline />
+        {t("scores-faq-peer-math__content_7")}
       </p>
-      <p>Note that this can be rearranged into:</p>
+      <p>{t("scores-faq-peer-math__content_8")}</p>
       <KatexRenderer
         equation="\text{Peer score} = 100 \times (\ln(p) - \ln(\operatorname{GM}(p_i)))"
         inline={false}
       />
       <p>
-        Where{" "}
+        {t("scores-faq-peer-math__content_9")}
         <a href="https://en.wikipedia.org/wiki/Geometric_mean">
           <KatexRenderer equation="\operatorname{GM}(p_i)" inline />
-        </a>{" "}
-        is the geometric mean of all other predictions.
+        </a>
+        {t("scores-faq-peer-math__content_10")}
       </p>
       <p>
-        As before, for binary questions <KatexRenderer equation="p" inline /> is
-        the probability given to the correct outcome (Yes or No), for multiple
-        choice questions it is the probability given to the option outcome that
-        resolved Yes, and for continuous questions it is the value of the
-        predicted pdf at the outcome.
+        {t("scores-faq-peer-math__content_11")}
+        <KatexRenderer equation="p" inline />
+        {t("scores-faq-peer-math__content_12")}
       </p>
     </StyledDisclosure>
   );

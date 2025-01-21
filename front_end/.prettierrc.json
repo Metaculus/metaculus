@@ -5,7 +5,7 @@
   "endOfLine": "lf",
   "jsxSingleQuote": false,
   "semi": true,
-  "singleAttributePerLine": false,
+  "singleAttributePerLine": false, 
   "singleQuote": false,
   "tabWidth": 2,
   "trailingComma": "es5",
