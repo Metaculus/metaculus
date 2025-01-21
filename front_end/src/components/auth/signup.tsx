@@ -162,6 +162,32 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   );
 };
 
+type AccountInactiveModalProps = SignInModalType & {
+  login: string;
+};
+
+export const AccountInactive: FC<AccountInactiveModalProps> = ({
+  isOpen,
+  onClose,
+  login,
+}: AccountInactiveModalProps) => {
+  const t = useTranslations();
+
+  return (
+    <BaseModal isOpen={isOpen} onClose={onClose} className="max-w-xs">
+      <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
+        {t("accountInactiveModalTitle")}
+      </h2>
+      <p>
+        {t.rich("accountInactiveModalBody", {
+          login,
+          bold: (chunks) => <b>{chunks}</b>,
+        })}
+      </p>
+    </BaseModal>
+  );
+};
+
 const SignUpModal: FC<SignInModalType> = ({
   isOpen,
   onClose,

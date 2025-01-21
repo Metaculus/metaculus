@@ -190,7 +190,7 @@ const ForecastChoiceOption = <T = string,>({
             disabled={disabled}
           />
         </td>
-        <td className="w-full border-t border-gray-300 p-2 dark:border-gray-300-dark sm:table-cell">
+        <td className="hidden w-full border-t border-gray-300 p-2 dark:border-gray-300-dark sm:table-cell">
           <div className="flex">
             <div className="w-full">{SliderElement}</div>
             <div>{menu}</div>

@@ -37,7 +37,14 @@ def validate_turnstile(token: str, ip: str):
 
 
 def validate_turnstile_from_request(request: Request):
+    ip_address = (
+        # Header coming from Cloudflare
+        request.headers.get("CF-Connecting-IP")
+        # Or coming from Nginx
+        or request.headers.get("X-Real-IP")
+    )
+
     return validate_turnstile(
         request.headers.get("cf-turnstile-response"),
-        request.headers.get("CF-Connecting-IP"),
+        ip_address,
     )
