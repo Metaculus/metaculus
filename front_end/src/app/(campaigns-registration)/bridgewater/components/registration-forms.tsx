@@ -38,8 +38,24 @@ export const tournamentRegistrationSchema = z
     undergrad: z.boolean(),
     institution: z.string().optional(),
     major: z.string().optional(),
+    graduationYear: z.number().optional(),
     accepted_terms: z.boolean(),
   })
+  .refine(
+    (data) => {
+      const currentYear = new Date().getFullYear();
+      return (
+        !data.undergrad ||
+        (data.graduationYear &&
+          data.graduationYear >= currentYear &&
+          data.graduationYear <= currentYear + 5)
+      );
+    },
+    {
+      message: "A valid expected graduation year is required",
+      path: ["graduationYear"],
+    }
+  )
   .refine((data) => !data.undergrad || data.institution, {
     message: "Institution is required",
     path: ["institution"],
@@ -177,6 +193,17 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
               {...register("major")}
             />
           </InputContainer>
+
+          <InputContainer labelText={t("graduationYear")}>
+            <Input
+              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              type="number"
+              errors={errors}
+              {...register("graduationYear", {
+                setValueAs: (v) => (v === "" ? undefined : parseInt(v, 10)),
+              })}
+            />
+          </InputContainer>
         </>
       )}
     </>
@@ -222,6 +249,9 @@ export const RegistrationAndSignupForm: FC<
         undergrad: watch("undergrad"),
         institution: watch("undergrad") ? watch("institution") : undefined,
         major: watch("undergrad") ? watch("major") : undefined,
+        graduation_year: watch("undergrad")
+          ? watch("graduationYear")
+          : undefined,
         accepted_terms: watch("accepted_terms"),
       },
       redirectUrl: currentLocation,
@@ -401,6 +431,9 @@ export const RegistrationForm: FC<
         undergrad: watch("undergrad"),
         institution: watch("undergrad") ? watch("institution") : undefined,
         major: watch("undergrad") ? watch("major") : undefined,
+        graduation_year: watch("undergrad")
+          ? watch("graduationYear")
+          : undefined,
         accepted_terms: watch("accepted_terms"),
       },
       addToProject

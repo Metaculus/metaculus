@@ -358,6 +358,33 @@ class LeaderboardEntry(TimeStampedModel):
         )
 
 
+class LeaderboardsRanksEntry(TimeStampedModel):
+    class RankTypes(models.TextChoices):
+        TOURNAMENTS_GLOBAL = "tournaments_global"
+        PEER_GLOBAL = "peer_global"
+        BASELINE_GLOBAL = "baseline_global"
+        COMMENTS_GLOBAL = "comments_global"
+        QUESTIONS_GLOBAL = "questions_global"
+
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    points = models.FloatField(null=False)
+
+    rank_type = models.CharField(max_length=200, choices=RankTypes.choices, null=False)
+    rank = models.IntegerField(null=False)
+    rank_total = models.IntegerField(null=False)
+    rank_timestamp = models.DateTimeField(null=False)
+
+    best_rank = models.IntegerField(null=True)
+    best_rank_total = models.IntegerField(null=True)
+    best_rank_timestamp = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return f"{self.user}"
+
+    class Meta:
+        unique_together = ["user", "rank_type"]
+
+
 class MedalExclusionRecord(models.Model):
     id: int
     objects: models.Manager["MedalExclusionRecord"]

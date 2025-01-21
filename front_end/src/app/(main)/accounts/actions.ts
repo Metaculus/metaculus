@@ -64,6 +64,9 @@ export async function signUpAction(
 ): Promise<SignUpActionState> {
   const headersList = headers();
 
+  const ipAddress =
+    headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");
+
   try {
     const response = await AuthApi.signUp(
       validatedSignupData.email,
@@ -72,7 +75,7 @@ export async function signUpAction(
       validatedSignupData.isBot,
       {
         "cf-turnstile-response": validatedSignupData.turnstileToken,
-        "CF-Connecting-IP": headersList.get("CF-Connecting-IP"),
+        ...(ipAddress ? { "CF-Connecting-IP": ipAddress } : {}),
       },
       validatedSignupData.addToProject,
       validatedSignupData.campaignKey,

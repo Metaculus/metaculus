@@ -1045,5 +1045,9 @@
   "addQuestion": "Agregar Pregunta",
   "addExistingQuestion": "Agregar Pregunta Existente",
   "existingQuestionExample": "Agrega una pregunta existente de Metaculus a tu Comunidad",
-  "enterQuestionIdUrl": "Por favor ingresa la URL/ID de una pregunta existente de Metaculus."
+  "enterQuestionIdUrl": "Por favor ingresa la URL/ID de una pregunta existente de Metaculus.",
+  "graduationYear": "Año de Graduación Esperado",
+  "accountInactiveModalTitle": "¡Tienes correo!",
+  "accountInactiveModalBody": "Por favor confirma tu correo electrónico asociado con tu cuenta de <bold>{login}</bold> para poder iniciar sesión.",
+  "accountInactiveModalResendButton": "Reenviar correo de activación"
 }
