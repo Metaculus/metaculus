@@ -1012,6 +1012,7 @@
   "undergraduateStudentQuestion": "Are you currently an undergraduate student?",
   "institution": "Institution",
   "major": "Major",
+  "graduationYear": "Expected Graduation Year",
   "finishRegistration": "Finish Registration",
   "keyFactor": "Key Factor",
   "keyFactors": "Key Factors",
