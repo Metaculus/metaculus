@@ -1047,5 +1047,9 @@
   "addQuestion": "添加问题",
   "addExistingQuestion": "添加现有问题",
   "existingQuestionExample": "将现有的Metaculus问题添加到您的社区",
-  "enterQuestionIdUrl": "请输入现有Metaculus问题的URL/ID。"
+  "enterQuestionIdUrl": "请输入现有Metaculus问题的URL/ID。",
+  "graduationYear": "预计毕业年份",
+  "accountInactiveModalTitle": "您有一封邮件！",
+  "accountInactiveModalBody": "请确认与您的 <bold>{login}</bold> 账户关联的电子邮件，以便能够登录。",
+  "accountInactiveModalResendButton": "重新发送激活邮件"
 }
