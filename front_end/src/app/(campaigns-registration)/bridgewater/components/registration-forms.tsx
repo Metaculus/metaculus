@@ -1,12 +1,13 @@
 "use client";
 
+import { Radio, RadioGroup } from "@headlessui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
 import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { FC, useMemo, useRef, useState } from "react";
+import React, { FC, useRef, useState } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -16,10 +17,10 @@ import {
 } from "@/app/(main)/accounts/actions";
 import { signUpSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import Button from "@/components/ui/button";
-import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
+import RadioButton from "@/components/ui/radio_button";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 
@@ -37,8 +38,24 @@ export const tournamentRegistrationSchema = z
     undergrad: z.boolean(),
     institution: z.string().optional(),
     major: z.string().optional(),
+    graduationYear: z.number().optional(),
     accepted_terms: z.boolean(),
   })
+  .refine(
+    (data) => {
+      const currentYear = new Date().getFullYear();
+      return (
+        !data.undergrad ||
+        (data.graduationYear &&
+          data.graduationYear >= currentYear &&
+          data.graduationYear <= currentYear + 5)
+      );
+    },
+    {
+      message: "A valid expected graduation year is required",
+      path: ["graduationYear"],
+    }
+  )
   .refine((data) => !data.undergrad || data.institution, {
     message: "Institution is required",
     path: ["institution"],
@@ -107,20 +124,6 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
   const { register, setValue, watch } = useFormContext();
   const t = useTranslations();
 
-  const undergradGroupButtonOptions: GroupButton<string>[] = useMemo(
-    () => [
-      {
-        value: "yes",
-        label: t("yes").toUpperCase(),
-      },
-      {
-        value: "no",
-        label: t("no").toUpperCase(),
-      },
-    ],
-    [t]
-  );
-
   return (
     <>
       <InputContainer labelText={t("fullName")}>
@@ -148,11 +151,25 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
           {t("undergraduateStudentQuestion")}
         </p>
 
-        <ButtonGroup
-          value={watch("undergrad") ? "yes" : "no"}
-          buttons={undergradGroupButtonOptions}
+        <RadioGroup
+          value={watch("undergrad")}
           onChange={(value) => setValue("undergrad", value === "yes")}
-        />
+          aria-label="Server size"
+          as="ul"
+          className="flex gap-4"
+        >
+          <Radio value={"no"} as="li" key={"no"}>
+            <RadioButton checked={!watch("undergrad")} size="small">
+              No
+            </RadioButton>
+          </Radio>
+
+          <Radio value={"yes"} as="li" key={"yes"}>
+            <RadioButton checked={watch("undergrad")} size="small">
+              Yes
+            </RadioButton>
+          </Radio>
+        </RadioGroup>
       </div>
 
       {watch("undergrad") && (
@@ -174,6 +191,17 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
               type="text"
               errors={errors}
               {...register("major")}
+            />
+          </InputContainer>
+
+          <InputContainer labelText={t("graduationYear")}>
+            <Input
+              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              type="number"
+              errors={errors}
+              {...register("graduationYear", {
+                setValueAs: (v) => (v === "" ? undefined : parseInt(v, 10)),
+              })}
             />
           </InputContainer>
         </>
@@ -221,6 +249,9 @@ export const RegistrationAndSignupForm: FC<
         undergrad: watch("undergrad"),
         institution: watch("undergrad") ? watch("institution") : undefined,
         major: watch("undergrad") ? watch("major") : undefined,
+        graduation_year: watch("undergrad")
+          ? watch("graduationYear")
+          : undefined,
         accepted_terms: watch("accepted_terms"),
       },
       redirectUrl: currentLocation,
@@ -400,6 +431,9 @@ export const RegistrationForm: FC<
         undergrad: watch("undergrad"),
         institution: watch("undergrad") ? watch("institution") : undefined,
         major: watch("undergrad") ? watch("major") : undefined,
+        graduation_year: watch("undergrad")
+          ? watch("graduationYear")
+          : undefined,
         accepted_terms: watch("accepted_terms"),
       },
       addToProject

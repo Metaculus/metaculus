@@ -748,6 +748,11 @@
   "updates": "Updates",
   "posts": "posts",
   "notebook": "notebook",
+  "existingQuestion": "Existing Question",
+  "questionId": "Question ID",
+  "addQuestion": "Add Question",
+  "addExistingQuestion": "Add Existing Question",
+  "existingQuestionExample": "Add an existing Metaculus question to your Community",
   "notebookExample": "text-based content that is not a question",
   "conditionalPair": "conditional pair",
   "conditionalPairExample": "If it rains today, will it rain tomorrow?",
@@ -854,6 +859,7 @@
   "parentInputDescription": "Please enter the URL/ID of a binary question. If selecting a subquestion, please enter the full url e.g. /questions/123/?sub-question=456",
   "childId": "Child ID",
   "childInputDescription": "Please enter the URL/ID of a binary, numeric, or date question. Multiple Choice coming soon. If selecting a subquestion, please enter the full url e.g. /questions/123/?sub-question=456",
+  "enterQuestionIdUrl": "Please enter the URL/ID of an existing Metaculus question.",
   "isDoneError": "Cannot edit closed, resolved or rejected questions",
   "editNotebook": "edit notebook",
   "createNotebook": "create notebook",
@@ -1006,6 +1012,7 @@
   "undergraduateStudentQuestion": "Are you currently an undergraduate student?",
   "institution": "Institution",
   "major": "Major",
+  "graduationYear": "Expected Graduation Year",
   "finishRegistration": "Finish Registration",
   "keyFactor": "Key Factor",
   "keyFactors": "Key Factors",
@@ -1036,5 +1043,8 @@
   "insertEquation": "Insert Equation",
   "choseEquationType": "Choose the type of equation you want to add. To edit it, simply click on it within the editor.",
   "inline": "Inline",
-  "block": "Block"
+  "block": "Block",
+  "accountInactiveModalTitle": "You've got mail!",
+  "accountInactiveModalBody": "Please confirm your email associated with your <bold>{login}</bold> account to be able to log in.",
+  "accountInactiveModalResendButton": "Resend activation email"
 }

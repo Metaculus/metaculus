@@ -288,10 +288,12 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def save(self, *args, **kwargs):
         creating = not self.pk
+        # Check if the primary leaderboard is associated with this project
         if self.primary_leaderboard and self.primary_leaderboard.project != self:
             raise ValueError(
                 "Primary leaderboard must be associated with this project."
             )
+
         super().save(*args, **kwargs)
         if (
             creating
@@ -300,6 +302,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
             in (
                 self.ProjectTypes.TOURNAMENT,
                 self.ProjectTypes.QUESTION_SERIES,
+                self.ProjectTypes.COMMUNITY,
             )
         ):
             # create default leaderboard when creating a new tournament/question series

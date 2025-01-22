@@ -35,3 +35,10 @@ export const lnkdTrack = () => {
     window.lintrk("track", { conversion_id: 18548052 });
   }
 };
+
+export const redditPixelInitAndTrack = (pixelId, eventName = "PageVisit") => {
+  if (window.rdt) {
+    window.rdt("init", pixelId);
+    window.rdt("track", eventName);
+  }
+};

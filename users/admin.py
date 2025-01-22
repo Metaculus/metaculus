@@ -237,4 +237,5 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(UserCampaignRegistration)
 class UserCampaignRegistrationAdmin(admin.ModelAdmin):
     list_display = ["user", "key", "details"]
-    readonly_fields = ["user", "key", "details"]
+    readonly_fields = ["user", "key"]
+    search_fields = ["user__username", "user__email"]

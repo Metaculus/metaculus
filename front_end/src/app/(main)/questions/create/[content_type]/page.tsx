@@ -1,10 +1,12 @@
 import { isNil } from "lodash";
+import { notFound } from "next/navigation";
 import invariant from "ts-invariant";
 
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import GroupForm from "@/app/(main)/questions/components/group_form";
 import QuestionForm from "@/app/(main)/questions/components/question_form";
+import RepostForm from "@/app/(main)/questions/components/repost";
 import { extractMode } from "@/app/(main)/questions/create/helpers";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
@@ -123,7 +125,15 @@ export default async function QuestionCreator({
     );
   }
 
-  invariant(component, "Wrong Question type");
+  if (content_type === "repost") {
+    invariant(community, "Community is required!");
+
+    component = <RepostForm community={community} />;
+  }
+
+  if (!component) {
+    return notFound();
+  }
 
   return (
     <>

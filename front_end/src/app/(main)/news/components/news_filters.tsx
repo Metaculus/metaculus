@@ -13,9 +13,12 @@ import React, {
 } from "react";
 
 import SearchInput from "@/components/search_input";
-import VisibilityObserver from "@/components/visibility_observer";
-import { POST_NEWS_TYPE_FILTER } from "@/constants/posts_feed";
-import { useGlobalSearchContext } from "@/contexts/global_search_context";
+import {
+  POST_NEWS_TYPE_FILTER,
+  POST_PAGE_FILTER,
+  POST_TEXT_SEARCH_FILTER,
+} from "@/constants/posts_feed";
+import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { NewsCategory } from "@/types/projects";
 import cn from "@/utils/cn";
@@ -27,11 +30,13 @@ type Props = {
 const NewsFilters: React.FC<Props> = ({ categories }) => {
   const { params, setParam, deleteParam } = useSearchParams();
 
-  const { globalSearch, setGlobalSearch, setIsVisible } =
-    useGlobalSearchContext();
-
+  const [search, setSearch] = useSearchInputState(POST_TEXT_SEARCH_FILTER, {
+    mode: "server",
+    debounceTime: 300,
+    modifySearchParams: true,
+  });
   const eraseSearch = () => {
-    setGlobalSearch("");
+    setSearch("");
   };
   const categoryOptions = useMemo(
     () =>
@@ -69,26 +74,21 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
     } else {
       deleteParam(POST_NEWS_TYPE_FILTER);
     }
+    deleteParam(POST_PAGE_FILTER);
   };
 
   return (
     <div>
-      <VisibilityObserver
-        onVisibilityChange={(v) => {
-          setIsVisible(v);
+      <SearchInput
+        value={search}
+        onChange={(e) => {
+          debouncedGAEvent();
+          setSearch(e.target.value);
         }}
-      >
-        <SearchInput
-          value={globalSearch}
-          onChange={(e) => {
-            debouncedGAEvent();
-            setGlobalSearch(e.target.value);
-          }}
-          onErase={eraseSearch}
-          placeholder={t("articlesSearchPlaceholder")}
-          className="mx-auto mb-6 max-w-2xl"
-        />
-      </VisibilityObserver>
+        onErase={eraseSearch}
+        placeholder={t("articlesSearchPlaceholder")}
+        className="mx-auto mb-6 max-w-2xl"
+      />
 
       <TabGroup selectedIndex={selectedIndex} manual onChange={handleTabChange}>
         <TabList className="mb-6 flex flex-wrap justify-center gap-x-3 gap-y-1 font-serif text-base text-blue-700 dark:text-blue-700-dark">

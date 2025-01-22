@@ -24,6 +24,7 @@ from authentication.services import (
 )
 from users.models import User
 from projects.models import ProjectUserPermission
+from django.db.models import Q
 from projects.permissions import ObjectPermission
 from users.services.common import register_user_to_campaign
 from users.serializers import UserPrivateSerializer
@@ -37,6 +38,19 @@ logger = logging.getLogger(__name__)
 def login_api_view(request):
     serializer = LoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    login = serializer.validated_data["login"]
+    password = serializer.validated_data["password"]
+
+    # The authenticate method below will return None for inactive users
+    # We want to show inactive users an error message so they can activate
+    # their account, and also to re-send their activation email
+    user = User.objects.filter(
+        Q(username__iexact=login) | Q(email__iexact=login)
+    ).first()
+
+    if user is not None and user.check_password(password) and not user.is_active:
+        send_activation_email(user, None)
+        raise ValidationError({"user_state": "inactive"})
 
     user = authenticate(**serializer.validated_data)
     if not user:
@@ -109,14 +123,17 @@ def signup_api_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def resend_activation_link_api_view(request):
-    email = serializers.EmailField().run_validation(request.data.get("email"))
+    login = request.data.get("login")
+    redirect_url = request.data.get("redirect_url")
 
     try:
-        user = User.objects.get(email__iexact=email, is_active=False)
+        user = User.objects.get(
+            Q(username__iexact=login) | Q(email__iexact=login), is_active=False
+        )
     except User.DoesNotExist:
         raise ValidationError({"email": ["User does not exist or already activated"]})
 
-    send_activation_email(user)
+    send_activation_email(user, redirect_url)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

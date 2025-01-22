@@ -2,7 +2,6 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
 
 from projects.models import Project
-
 from scoring.models import (
     UserWeight,
     Leaderboard,
@@ -10,6 +9,7 @@ from scoring.models import (
     Score,
     MedalExclusionRecord,
     ArchivedScore,
+    LeaderboardsRanksEntry,
 )
 from scoring.utils import update_project_leaderboard
 
@@ -70,14 +70,27 @@ class LeaderboardEntryInline(admin.TabularInline):
 
 @admin.register(Leaderboard)
 class LeaderboardAdmin(admin.ModelAdmin):
-    search_fields = ["name", "project", "score_type"]
-    list_display = ["__str__", "id", "project", "score_type"]
+    change_list_template = "admin/scoring/leaderboard_action_descriptions.html"
+    search_fields = [
+        "name",
+        "score_type",
+        "project__slug",
+        "project__name_original",
+    ]
+    list_display = ["__str__", "id", "project", "score_type", "finalized"]
     autocomplete_fields = ["project"]
     list_filter = [
         AutocompleteFilterFactory("Project", "project"),
+        "score_type",
+        "finalized",
     ]
     inlines = [LeaderboardEntryInline]
-    actions = ["make_primary_leaderboard", "update_leaderboards"]
+    actions = [
+        "make_primary_leaderboard",
+        "update_leaderboards",
+        "force_update_leaderboards",
+        "force_finalize_and_asign_medals_leaderboards",
+    ]
 
     def make_primary_leaderboard(self, request, queryset):
         for leaderboard in queryset:
@@ -91,21 +104,53 @@ class LeaderboardAdmin(admin.ModelAdmin):
                 messages.SUCCESS,
             )
 
-    make_primary_leaderboard.short_description = (
-        "Make selected leaderboards their project's primary_leaderboard"
-    )
+    make_primary_leaderboard.short_description = "Make Primary Leaderboard"
 
     def update_leaderboards(self, request, queryset):
         leaderboard: Leaderboard
         for leaderboard in queryset:
-            update_project_leaderboard(leaderboard.project, leaderboard)
+            update_project_leaderboard(
+                leaderboard.project,
+                leaderboard,
+            )
 
-    update_leaderboards.short_description = "Update selected Leaderboards"
+    update_leaderboards.short_description = "Update Leaderboards"
+
+    def force_update_leaderboards(self, request, queryset):
+        leaderboard: Leaderboard
+        for leaderboard in queryset:
+            update_project_leaderboard(
+                leaderboard.project,
+                leaderboard,
+                force_update=True,
+            )
+
+    force_update_leaderboards.short_description = "Force Update Leaderboards"
+
+    def force_finalize_and_asign_medals_leaderboards(self, request, queryset):
+        leaderboard: Leaderboard
+        for leaderboard in queryset:
+            update_project_leaderboard(
+                leaderboard.project,
+                leaderboard,
+                force_update=True,
+                force_finalize=True,
+            )
+
+    force_finalize_and_asign_medals_leaderboards.short_description = (
+        "Force Update, Finalize, and Assign Medals/Prizes"
+    )
 
 
 @admin.register(LeaderboardEntry)
 class LeaderboardEntryAdmin(admin.ModelAdmin):
-    search_fields = ["user", "leaderboard", "leaderboard.project"]
+    search_fields = [
+        "user__username",
+        "leaderboard__name",
+        "leaderboard__score_type",
+        "leaderboard__project__slug",
+        "leaderboard__project__name_original",
+    ]
     list_display = ["__str__", "leaderboard", "user", "rank", "take", "excluded"]
     autocomplete_fields = ["leaderboard", "user"]
     list_filter = [
@@ -124,9 +169,16 @@ class MedalExclusionRecordAdmin(admin.ModelAdmin):
         "exclusion_type",
         "project",
     ]
-    search_fields = ["user"]
+    search_fields = ["user__username", "user__email"]
     autocomplete_fields = ["user", "project"]
     list_filter = [
         AutocompleteFilterFactory("User", "user"),
         AutocompleteFilterFactory("Project", "project"),
     ]
+
+
+@admin.register(LeaderboardsRanksEntry)
+class LeaderboardsRanksEntryAdmin(admin.ModelAdmin):
+    list_display = ["user", "rank", "rank_type"]
+    search_fields = ["user__username"]
+    autocomplete_fields = ["user"]

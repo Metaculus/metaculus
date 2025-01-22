@@ -43,20 +43,21 @@ const DescriptionParagraphs: FC<{ className?: string }> = ({ className }) => {
       )}
     >
       <p className="mt-0 font-normal leading-normal md:font-light">
-        For the second year, Metaculus is teaming up with Bridgewater—
-        <span className="italic">a premier asset management firm</span>— for a
-        unique forecasting competition. No experience necessary. Just register
-        today, and starting February 3rd, make your predictions on a wide range
-        of topics!
+        Metaculus and Bridgewater Associates are partnering again on a unique
+        forecasting competition. Starting February 3rd, forecasters of all
+        experience levels can share their predictions across a variety of
+        questions.
       </p>
       <p className="font-semibold leading-normal">
         The most accurate forecasters will be eligible for $25,000 in prizes and
-        potential opportunities with Bridgewater.
+        potential opportunities with Bridgewater. Last competition, multiple
+        offers were made to the top forecasters.
       </p>
       <p className="mb-0 font-normal leading-normal md:font-light">
-        Register for the contest today and be notified as soon as questions
-        open. The earlier you forecast, the better your odds to beat the
-        competition and win cash prizes!
+        The competition features two tracks: an undergraduate track for current
+        students and an open track for all participants. Register today and be
+        notified as soon as questions open. The earlier you forecast, the better
+        your odds to beat the competition and win cash prizes!
       </p>
     </div>
   );
