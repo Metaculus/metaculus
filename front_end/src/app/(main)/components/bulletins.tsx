@@ -1,24 +1,42 @@
-import { FC } from "react";
-
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import MiscApi from "@/services/misc";
+"use client";
+import { usePathname } from "next/navigation";
+import { FC, useCallback, useEffect, useState } from "react";
 
 import Bulletin from "./bulletin";
+import { getBulletins } from "../actions";
 
-const Bulletins: FC = async () => {
-  const bulletins = await MiscApi.getBulletins();
+const Bulletins: FC = () => {
+  const [bulletins, setBulletins] = useState<
+    {
+      text: string;
+      id: number;
+    }[]
+  >([]);
+
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+
+  const fetchBulletins = useCallback(async () => {
+    const res = await getBulletins();
+    setBulletins(res);
+  }, []);
+
+  useEffect(() => {
+    void fetchBulletins();
+  }, [fetchBulletins]);
 
   return (
     <div className="mt-12 flex w-full flex-col items-center justify-center bg-transparent">
-      {bulletins.map((bulletin) => (
-        <Bulletin
-          key={bulletin.id}
-          text={bulletin.text}
-          id={bulletin.id}
-        ></Bulletin>
-      ))}
+      {!isHomePage &&
+        bulletins.map((bulletin) => (
+          <Bulletin
+            key={bulletin.id}
+            text={bulletin.text}
+            id={bulletin.id}
+          ></Bulletin>
+        ))}
     </div>
   );
 };
 
-export default WithServerComponentErrorBoundary(Bulletins);
+export default Bulletins;
