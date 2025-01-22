@@ -3,7 +3,7 @@ from datetime import timedelta
 
 import numpy as np
 from django.contrib.auth.password_validation import validate_password
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
@@ -326,8 +326,10 @@ def get_forecasting_stats_data(
 def get_authoring_stats_data(
     user: User,
 ) -> dict:
-    posts_authored = Post.objects.filter_public().filter(
-        author=user, notebook__isnull=True
+    posts_authored = (
+        Post.objects.filter_public()
+        .filter(Q(author=user) | Q(coauthors=user), notebook__isnull=True)
+        .distinct("id")
     )
 
     # Each post has a cached `Post.forecasts_count` value.
@@ -383,7 +385,11 @@ def serialize_profile(
         score_qs = score_qs.filter(user=user)
     else:
         score_qs = score_qs.filter(aggregation_method=aggregation_method)
-    scores = list(score_qs.select_related("question").prefetch_related("question__related_posts__post"))
+    scores = list(
+        score_qs.select_related("question").prefetch_related(
+            "question__related_posts__post"
+        )
+    )
     data = {}
     data.update(
         get_score_scatter_plot_data(

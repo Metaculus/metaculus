@@ -575,3 +575,22 @@ def test_repost(user1, user1_client, user2, user2_client, question_binary):
     assert response.status_code == status.HTTP_204_NO_CONTENT
     post.refresh_from_db()
     assert target_tournament in post.projects.all()
+
+
+def test_post_vote(user1, user1_client, user2_client, post_binary_public):
+    url = reverse("post-vote", kwargs={"pk": post_binary_public.pk})
+
+    def make_vote(client, direction):
+        response = client.post(
+            url, {"direction": direction}, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        return response.json()["score"]
+
+    assert make_vote(user1_client, 1) == 1
+    assert make_vote(user1_client, 1) == 1
+    assert make_vote(user1_client, None) == 0
+    assert make_vote(user1_client, -1) == -1
+    assert make_vote(user2_client, -1) == -2
+    assert make_vote(user2_client, 1) == 0
