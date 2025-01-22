@@ -128,7 +128,7 @@ const ContributionsTable: FC<Props> = ({
   };
 
   return (
-    <table className="table w-full table-fixed rounded border border-gray-300 dark:border-gray-300-dark">
+    <table className="table w-[640px] table-fixed rounded sm:w-full sm:border sm:border-gray-300 sm:dark:border-gray-300-dark">
       <thead>
         <tr className="bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark">
           <InfoHeaderTd
@@ -142,7 +142,7 @@ const ContributionsTable: FC<Props> = ({
             {abbreviatedNumber(totalScore, 4, false)}
           </InfoHeaderTd>
           {leaderboardType === "peer_global" && (
-            <InfoHeaderTd className="w-24 font-medium leading-4 max-sm:hidden" />
+            <InfoHeaderTd className="w-24 font-medium leading-4 " />
           )}
           <InfoHeaderTd className="w-full font-medium">
             {category === "baseline" && t("totalScore")}
@@ -150,7 +150,7 @@ const ContributionsTable: FC<Props> = ({
             {isNonQuestionCategory && t("hIndex")}
           </InfoHeaderTd>
           {isQuestionCategory && (
-            <InfoHeaderTd className="w-40 font-medium leading-4 max-sm:hidden" />
+            <InfoHeaderTd className="w-40 font-medium leading-4 " />
           )}
         </tr>
         <tr className="border-y border-blue-400 bg-blue-100 text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark">
@@ -187,7 +187,7 @@ const ContributionsTable: FC<Props> = ({
           </HeaderTd>
           {isQuestionCategory && (
             <HeaderTd
-              className="w-40 max-sm:hidden"
+              className="w-40 "
               onClick={() => handleSortChange("type")}
             >
               {t("questionType")}
@@ -259,7 +259,7 @@ const ContributionsTable: FC<Props> = ({
               )}
             </td>
             {isQuestionCategory && (
-              <td className="flex items-center gap-2 self-stretch px-4 py-1.5 text-sm font-medium leading-4 text-blue-700 dark:text-blue-700-dark max-sm:hidden">
+              <td className="flex items-center gap-2 self-stretch px-4 py-1.5 text-sm font-medium leading-4 text-blue-700 dark:text-blue-700-dark ">
                 {getQuestionTypeLabel(contribution.question_type)}
               </td>
             )}
