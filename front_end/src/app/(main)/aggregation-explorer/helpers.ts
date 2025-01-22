@@ -20,15 +20,17 @@ export function generateAggregationTooltips(): AggregationTooltip[] {
   });
 }
 
-export function generateChoiceItemsFromAggregations(
-  question: AggregationQuestionWithBots,
-  tooltips: AggregationTooltip[],
-  config?: {
-    locale?: string;
-  }
-): ChoiceItem[] {
-  const { locale } = config ?? {};
-
+export function generateChoiceItemsFromAggregations({
+  question,
+  selectedSubQuestionOption,
+  tooltips,
+  locale,
+}: {
+  question: AggregationQuestionWithBots;
+  selectedSubQuestionOption: number | string | null;
+  tooltips: AggregationTooltip[];
+  locale?: string;
+}): ChoiceItem[] {
   const choiceItems: ChoiceItem[] = [];
   const aggregations = question.aggregations;
   const botAggregations = question.bot_aggregations;
@@ -38,6 +40,7 @@ export function generateChoiceItemsFromAggregations(
     question,
     locale,
     tooltips,
+    selectedSubQuestionOption,
   });
   botAggregations &&
     parseAggregationData({
@@ -47,6 +50,7 @@ export function generateChoiceItemsFromAggregations(
       locale,
       isBot: true,
       tooltips,
+      selectedSubQuestionOption,
     });
   return choiceItems;
 }
@@ -58,6 +62,7 @@ function parseAggregationData({
   locale,
   isBot,
   tooltips,
+  selectedSubQuestionOption,
 }: {
   aggregations: Aggregations;
   choiceItems: ChoiceItem[];
@@ -65,6 +70,7 @@ function parseAggregationData({
   locale?: string;
   isBot?: boolean;
   tooltips: AggregationTooltip[];
+  selectedSubQuestionOption: number | string | null;
 }) {
   for (const key in aggregations) {
     const aggregationKey = key as keyof Aggregations;
@@ -126,6 +132,15 @@ function parseAggregationData({
     const aggregationMinValues: (number | null)[] = [];
     const aggregationMaxValues: (number | null)[] = [];
     const aggregationForecasterCounts: number[] = [];
+
+    let optionIndex = 0;
+    if (question.options && typeof selectedSubQuestionOption === "string") {
+      const indexCandidate = question.options.findIndex(
+        (o) => o === selectedSubQuestionOption
+      );
+      optionIndex = indexCandidate === -1 ? 0 : indexCandidate;
+    }
+
     sortedAggregationTimestamps.forEach((timestamp) => {
       const aggregationForecast = aggregationHistory.find((forecast) => {
         return (
@@ -133,12 +148,15 @@ function parseAggregationData({
           (forecast.end_time === null || forecast.end_time > timestamp)
         );
       });
-      aggregationValues.push(aggregationForecast?.centers?.[0] || null);
+
+      aggregationValues.push(
+        aggregationForecast?.centers?.[optionIndex] || null
+      );
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds?.[0] || null
+        aggregationForecast?.interval_lower_bounds?.[optionIndex] || null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds?.[0] || null
+        aggregationForecast?.interval_upper_bounds?.[optionIndex] || null
       );
       aggregationForecasterCounts.push(
         aggregationForecast?.forecaster_count || 0

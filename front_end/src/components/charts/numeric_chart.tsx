@@ -56,6 +56,7 @@ import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
   aggregation: AggregateForecastHistory;
+  aggregationIndex?: number;
   myForecasts?: UserForecastHistory;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
@@ -77,6 +78,7 @@ type Props = {
 
 const NumericChart: FC<Props> = ({
   aggregation,
+  aggregationIndex = 0,
   myForecasts,
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker = false,
@@ -118,6 +120,7 @@ const NumericChart: FC<Props> = ({
         scaling,
         height,
         aggregation,
+        aggregationIndex,
         myForecasts,
         width: chartWidth,
         zoom,
@@ -131,6 +134,7 @@ const NumericChart: FC<Props> = ({
       scaling,
       height,
       aggregation,
+      aggregationIndex,
       myForecasts,
       chartWidth,
       zoom,
@@ -362,6 +366,7 @@ function buildChartData({
   scaling,
   height,
   aggregation,
+  aggregationIndex,
   myForecasts,
   width,
   zoom,
@@ -374,6 +379,7 @@ function buildChartData({
   scaling: Scaling;
   height: number;
   aggregation: AggregateForecastHistory;
+  aggregationIndex: number;
   myForecasts?: UserForecastHistory;
   width: number;
   zoom: TimelineChartZoomOption;
@@ -388,21 +394,23 @@ function buildChartData({
     if (!line.length) {
       line.push({
         x: forecast.start_time,
-        y: forecast.centers?.[0] ?? 0,
+        y: forecast.centers?.[aggregationIndex] ?? 0,
       });
       area.push({
         x: forecast.start_time,
-        y0: forecast.interval_lower_bounds?.[0] ?? 0,
-        y: forecast.interval_upper_bounds?.[0] ?? 0,
+        y0: forecast.interval_lower_bounds?.[aggregationIndex] ?? 0,
+        y: forecast.interval_upper_bounds?.[aggregationIndex] ?? 0,
       });
     } else if (
       line.length &&
       line[line.length - 1]?.x === forecast.start_time
     ) {
       /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      line[line.length - 1]!.y = forecast.centers?.[0] ?? 0;
-      area[area.length - 1]!.y0 = forecast.interval_lower_bounds?.[0] ?? 0;
-      area[area.length - 1]!.y = forecast.interval_upper_bounds?.[0] ?? 0;
+      line[line.length - 1]!.y = forecast.centers?.[aggregationIndex] ?? 0;
+      area[area.length - 1]!.y0 =
+        forecast.interval_lower_bounds?.[aggregationIndex] ?? 0;
+      area[area.length - 1]!.y =
+        forecast.interval_upper_bounds?.[aggregationIndex] ?? 0;
       /* eslint-enable @typescript-eslint/no-non-null-assertion */
     } else {
       // pushing null data terminates previous point (if any)
@@ -417,24 +425,24 @@ function buildChartData({
       });
       line.push({
         x: forecast.start_time,
-        y: forecast.centers?.[0] ?? 0,
+        y: forecast.centers?.[aggregationIndex] ?? 0,
       });
       area.push({
         x: forecast.start_time,
-        y0: forecast.interval_lower_bounds?.[0] ?? 0,
-        y: forecast.interval_upper_bounds?.[0] ?? 0,
+        y0: forecast.interval_lower_bounds?.[aggregationIndex] ?? 0,
+        y: forecast.interval_upper_bounds?.[aggregationIndex] ?? 0,
       });
     }
 
     if (!!forecast.end_time) {
       line.push({
         x: forecast.end_time,
-        y: forecast.centers?.[0] ?? 0,
+        y: forecast.centers?.[aggregationIndex] ?? 0,
       });
       area.push({
         x: forecast.end_time,
-        y0: forecast.interval_lower_bounds?.[0] ?? 0,
-        y: forecast.interval_upper_bounds?.[0] ?? 0,
+        y0: forecast.interval_lower_bounds?.[aggregationIndex] ?? 0,
+        y: forecast.interval_upper_bounds?.[aggregationIndex] ?? 0,
       });
     }
   });
@@ -445,12 +453,12 @@ function buildChartData({
   if (aggregation.latest?.end_time === null) {
     line.push({
       x: latestTimestamp,
-      y: aggregation.latest.centers?.[0] ?? 0,
+      y: aggregation.latest.centers?.[aggregationIndex] ?? 0,
     });
     area.push({
       x: latestTimestamp,
-      y0: aggregation.latest.interval_lower_bounds?.[0] ?? 0,
-      y: aggregation.latest.interval_upper_bounds?.[0] ?? 0,
+      y0: aggregation.latest.interval_lower_bounds?.[aggregationIndex] ?? 0,
+      y: aggregation.latest.interval_upper_bounds?.[aggregationIndex] ?? 0,
     });
   } else if (
     aggregation.latest?.end_time &&
@@ -458,12 +466,12 @@ function buildChartData({
   ) {
     line[line.length - 1] = {
       x: latestTimestamp,
-      y: aggregation.latest.centers?.[0] ?? 0,
+      y: aggregation.latest.centers?.[aggregationIndex] ?? 0,
     };
     area[area.length - 1] = {
       x: latestTimestamp,
-      y0: aggregation.latest.interval_lower_bounds?.[0] ?? 0,
-      y: aggregation.latest.interval_upper_bounds?.[0] ?? 0,
+      y0: aggregation.latest.interval_lower_bounds?.[aggregationIndex] ?? 0,
+      y: aggregation.latest.interval_upper_bounds?.[aggregationIndex] ?? 0,
     };
   }
 
@@ -475,15 +483,15 @@ function buildChartData({
         y:
           questionType === "binary"
             ? forecast.forecast_values[1] ?? null
-            : forecast.centers?.[0] ?? 0,
+            : forecast.centers?.[aggregationIndex] ?? 0,
         y1:
           questionType === "binary"
             ? undefined
-            : forecast.interval_lower_bounds?.[0],
+            : forecast.interval_lower_bounds?.[aggregationIndex],
         y2:
           questionType === "binary"
             ? undefined
-            : forecast.interval_upper_bounds?.[0],
+            : forecast.interval_upper_bounds?.[aggregationIndex],
         symbol: "circle",
       };
 
