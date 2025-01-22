@@ -89,15 +89,8 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
               </Button>
             </p>
 
-            <div className="relative ml-4 h-[36px] w-[36px] rounded-full border-none bg-cover bg-center">
-              <Image
-                src={communityPlaceholder}
-                className="absolute h-full w-full rounded-full"
-                alt=""
-                placeholder={"blur"}
-                quality={100}
-              />
-              {!!community.header_logo && (
+            {!!community.header_logo && (
+              <div className="relative ml-4 h-[36px] w-[36px] rounded-full border-none bg-cover bg-center">
                 <Image
                   quality={100}
                   className="size-full rounded-full object-cover object-center"
@@ -106,8 +99,8 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
                   src={community.header_logo}
                   alt=""
                 />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>
