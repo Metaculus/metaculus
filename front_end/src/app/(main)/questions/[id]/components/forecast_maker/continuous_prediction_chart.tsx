@@ -54,13 +54,11 @@ const ContinuousPredictionChart: FC<Props> = ({
     });
     return {
       xLabel,
-      yUserLabel: readOnly
+      yUserLabel: !hoverState.yData.user
         ? null
-        : !hoverState.yData.user
-          ? null
-          : graphType === "pmf"
-            ? (hoverState.yData.user * 200).toFixed(3)
-            : getForecastPctDisplayValue(hoverState.yData.user),
+        : graphType === "pmf"
+          ? (hoverState.yData.user * 200).toFixed(3)
+          : getForecastPctDisplayValue(hoverState.yData.user),
       yUserPreviousLabel: readOnly
         ? null
         : !hoverState.yData.user_previous
