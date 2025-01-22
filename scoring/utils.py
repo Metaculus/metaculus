@@ -799,11 +799,9 @@ def get_contributions(
     leaderboard: Leaderboard,
 ) -> list[Contribution]:
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
-        public_posts = Post.objects.filter(
-            Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
-        )
+        main_feed_posts = Post.objects.filter_for_main_feed()
         comments = Comment.objects.filter(
-            on_post__in=public_posts,
+            on_post__in=main_feed_posts,
             author=user,
             created_at__lte=leaderboard.end_time,
             comment_votes__isnull=False,

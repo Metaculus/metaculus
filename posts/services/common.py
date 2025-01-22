@@ -71,8 +71,8 @@ def update_global_leaderboard_tags(post: Post):
     projects: QuerySet[Project] = post.projects.all()
 
     # Skip if post is not eligible for global leaderboards
-    if not post.default_project.type == Project.ProjectTypes.SITE_MAIN and not next(
-        (p for p in projects if p.type == Project.ProjectTypes.SITE_MAIN), None
+    if not post.default_project.visibility == Project.Visibility.NORMAL and not next(
+        (p for p in projects if p.visibility == Project.Visibility.NORMAL), None
     ):
         return
 
@@ -193,14 +193,24 @@ def trigger_update_post_translations(
     if post.conditional_id is not None:
         post.conditional.condition.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition, "post"):
-            post.conditional.condition.post.update_and_maybe_translate(should_translate_if_dirty)
+            post.conditional.condition.post.update_and_maybe_translate(
+                should_translate_if_dirty
+            )
 
-        post.conditional.condition_child.update_and_maybe_translate(should_translate_if_dirty)
+        post.conditional.condition_child.update_and_maybe_translate(
+            should_translate_if_dirty
+        )
         if hasattr(post.conditional.condition_child, "post"):
-            post.conditional.condition_child.post.update_and_maybe_translate(should_translate_if_dirty)
+            post.conditional.condition_child.post.update_and_maybe_translate(
+                should_translate_if_dirty
+            )
 
-        post.conditional.question_yes.update_and_maybe_translate(should_translate_if_dirty)
-        post.conditional.question_no.update_and_maybe_translate(should_translate_if_dirty)
+        post.conditional.question_yes.update_and_maybe_translate(
+            should_translate_if_dirty
+        )
+        post.conditional.question_no.update_and_maybe_translate(
+            should_translate_if_dirty
+        )
 
     batch_size = 10
     comments_qs = get_comments_feed(qs=Comment.objects.filter(), post=post)
