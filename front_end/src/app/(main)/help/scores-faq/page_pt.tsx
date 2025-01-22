@@ -120,16 +120,16 @@ export default function ScoresFAQ() {
           e um resultado, dá uma pontuação na forma de um número.
         </p>
         <p>
-          Uma regra de pontuação ingênua pode ser: "você marca é igual à
-          probabilidade que você deu ao resultado correto". Assim, por exemplo,
-          se você prever 80% e a questão resolver Sim, sua pontuação seria 0,8
-          (e 0,2 se a questão for resolvida Não). A primeira vista, isso parece
-          uma boa regra de pontuação: os meteorologistas que deram as previsões
-          mais perto da verdade obtêm pontuações mais altas.
+          Uma regra de pontuação ingênua pode ser: &quot;você marca é igual à
+          probabilidade que você deu ao resultado correto&quot;. Assim, por
+          exemplo, se você prever 80% e a questão resolver Sim, sua pontuação
+          seria 0,8 (e 0,2 se a questão for resolvida Não). A primeira vista,
+          isso parece uma boa regra de pontuação: os meteorologistas que deram
+          as previsões mais perto da verdade obtêm pontuações mais altas.
         </p>
         <p>
-          Infelizmente, esta regra de pontuação não é "adeto", como veremos na
-          próxima seção.
+          Infelizmente, esta regra de pontuação não é &quot;adeto&quot;, como
+          veremos na próxima seção.
         </p>
         {/* <hr> */}
         <h2 className="scroll-mt-nav" id="proper-scoring">
@@ -142,13 +142,13 @@ export default function ScoresFAQ() {
         </p>
         <p>
           Como sabemos que a regra de pontuação ingênua da seção anterior não é
-          adequada? Um exemplo deve ser esclarecedor: considere a pergunta "Vou
-          rolar um 6 sobre este belo morrer?". Uma vez que o dado é justo, sua
-          crença é "1/6" ou cerca de 17%. Agora considere três possibilidades:
-          você poderia prever sua verdadeira crença (17%), prever algo mais
-          extremo, como 5%, ou prever algo menos extremo, como 30%. Aqui está
-          uma tabela das pontuações que você espera para cada possível rolo de
-          matriz:
+          adequada? Um exemplo deve ser esclarecedor: considere a pergunta
+          &quot;Vou rolar um 6 sobre este belo morrer?&quot;. Uma vez que o dado
+          é justo, sua crença é &quot;1/6&quot; ou cerca de 17%. Agora considere
+          três possibilidades: você poderia prever sua verdadeira crença (17%),
+          prever algo mais extremo, como 5%, ou prever algo menos extremo, como
+          30%. Aqui está uma tabela das pontuações que você espera para cada
+          possível rolo de matriz:
         </p>
         <div className="overflow-x-auto">
           <table className="mx-auto w-auto border-collapse">
@@ -162,32 +162,32 @@ export default function ScoresFAQ() {
             </thead>
             <tbody>
               <tr className="text-xs font-normal md:text-sm">
-                <td className="p-3">1 em ('</td>
-                <td className="p-3">0.95 (')</td>
+                <td className="p-3">1 em (&quot;</td>
+                <td className="p-3">0.95 (&quot;)</td>
                 <td className="p-3">0.83</td>
                 <td className="p-3">0.7</td>
               </tr>
               <tr className="text-xs font-normal md:text-sm">
                 <td className="p-3">2</td>
-                <td className="p-3">0.95 (')</td>
+                <td className="p-3">0.95 (&quot;)</td>
                 <td className="p-3">0.83</td>
                 <td className="p-3">0.7</td>
               </tr>
               <tr className="text-xs font-normal md:text-sm">
                 <td className="p-3">3</td>
-                <td className="p-3">0.95 (')</td>
+                <td className="p-3">0.95 (&quot;)</td>
                 <td className="p-3">0.83</td>
                 <td className="p-3">0.7</td>
               </tr>
               <tr className="text-xs font-normal md:text-sm">
                 <td className="p-3">4</td>
-                <td className="p-3">0.95 (')</td>
+                <td className="p-3">0.95 (&quot;)</td>
                 <td className="p-3">0.83</td>
                 <td className="p-3">0.7</td>
               </tr>
               <tr className="text-xs font-normal md:text-sm">
                 <td className="p-3">5</td>
-                <td className="p-3">0.95 (')</td>
+                <td className="p-3">0.95 (&quot;)</td>
                 <td className="p-3">0.83</td>
                 <td className="p-3">0.7</td>
               </tr>
@@ -200,7 +200,7 @@ export default function ScoresFAQ() {
               <tr className="text-xs font-normal md:text-sm">
                 <td className="p-3">Média</td>
                 <td className="p-3">0.8</td>
-                <td className="p-3">0.72 (')</td>
+                <td className="p-3">0.72 (&quot;)</td>
                 <td className="p-3">0.63</td>
               </tr>
             </tbody>
@@ -233,7 +233,7 @@ export default function ScoresFAQ() {
             </thead>
             <tbody>
               <tr className="text-xs font-normal md:text-sm">
-                <td className="p-3">1 em ('</td>
+                <td className="p-3">1 em (&quot;</td>
                 <td className="p-3">- 0.05</td>
                 <td className="p-3">-0.19</td>
                 <td className="p-3">-0.37</td>
@@ -286,8 +286,8 @@ export default function ScoresFAQ() {
           Qual é a pontuação de log?
         </h2>
         <p>
-          A regra de pontuação logarítmica, ou "pontuação de log" para abreviar,
-          é definida como:
+          A regra de pontuação logarítmica, ou &quot;pontuação de log&quot; para
+          abreviar, é definida como:
         </p>
         <span role="math" tabIndex={-1} className="!whitespace-normal">
           <span className="katex-display">
@@ -486,7 +486,7 @@ export default function ScoresFAQ() {
               <span className="katex-html" aria-hidden="true">
                 <span className="base">
                   <span className="strut"></span>
-                  <span className="mop">In (')</span>
+                  <span className="mop">In (&quot;)</span>
                 </span>
               </span>
             </span>
@@ -550,30 +550,30 @@ export default function ScoresFAQ() {
           O que é uma pontuação spot?
         </h2>
         <p>
-          Uma pontuação "spot" é uma versão específica do tipo de pontuação dada
-          (por exemplo, "pontuação do ponto) onde a avaliação não leva em conta
-          a duração da previsão. Para uma pontuação spot, apenas a previsão em
-          um determinado momento é considerada. Salvo indicação em contrário, as
-          pontuações são avaliadas ao mesmo tempo em que a previsão comunitária
-          é revelada. A cobertura é de 100% se houver uma previsão ativa no
-          momento e 0% se não houver. A matemática é a mesma que o tipo de
-          pontuação dada.
+          Uma pontuação &quot;spot&quot; é uma versão específica do tipo de
+          pontuação dada (por exemplo, &quot;pontuação do ponto) onde a
+          avaliação não leva em conta a duração da previsão. Para uma pontuação
+          spot, apenas a previsão em um determinado momento é considerada. Salvo
+          indicação em contrário, as pontuações são avaliadas ao mesmo tempo em
+          que a previsão comunitária é revelada. A cobertura é de 100% se houver
+          uma previsão ativa no momento e 0% se não houver. A matemática é a
+          mesma que o tipo de pontuação dada.
         </p>
         {/* <hr> */}
         <h2 className="scroll-mt-nav" id="baseline-score">
           Qual é o score Baseline?
         </h2>
         <p>
-          A pontuação Baseline compara uma previsão a uma linha de base "chance"
-          fixa. Se for positivo, a previsão foi melhor do que a chance. Se é
-          negativo, foi pior do que o acaso.
+          A pontuação Baseline compara uma previsão a uma linha de base
+          &quot;chance&quot; fixa. Se for positivo, a previsão foi melhor do que
+          a chance. Se é negativo, foi pior do que o acaso.
         </p>
         <p>
-          Essa linha de base de "chance" dá a mesma probabilidade a todos os
-          resultados. Para questões binárias, esta é uma previsão de 50%. Para
-          uma pergunta de escolha múltipla de opção N é uma previsão de 1/N para
-          cada opção. Para questões contínuas, esta é uma distribuição uniforme
-          (plana).
+          Essa linha de base de &quot;chance&quot; dá a mesma probabilidade a
+          todos os resultados. Para questões binárias, esta é uma previsão de
+          50%. Para uma pergunta de escolha múltipla de opção N é uma previsão
+          de 1/N para cada opção. Para questões contínuas, esta é uma
+          distribuição uniforme (plana).
         </p>
         <p>
           A pontuação de linha de base é derivada do
@@ -926,7 +926,7 @@ export default function ScoresFAQ() {
                       <span className="katex-html" aria-hidden="true">
                         <span className="base">
                           <span className="strut"></span>
-                          <span className="mord">1 em ('</span>
+                          <span className="mord">1 em (&quot;</span>
                         </span>
                       </span>
                     </span>
@@ -1358,9 +1358,9 @@ export default function ScoresFAQ() {
           0,01 e 35o, levando aos escores acima.
         </p>
         <p>
-          Os "pontuações empíricos" são baseados em todos os escores observados
-          em todas as questões do Metaculus resolvidas, a partir de novembro de
-          2023.
+          Os &quot;pontuações empíricos&quot; são baseados em todos os escores
+          observados em todas as questões do Metaculus resolvidas, a partir de
+          novembro de 2023.
         </p>
         <p>
           Observe que o acima descreve a pontuação de pares em um único ponto no
@@ -1755,7 +1755,8 @@ export default function ScoresFAQ() {
           Isso tem uma consequência contra-intuitiva: quando uma pergunta
           resolve antes de sua data de fechamento pretendida, os tempos entre a
           resolução e a data de fechamento precisam contar na média de tempo,
-          com pontuações de 0. Chamamos isso de "truncamento de pontuação".
+          com pontuações de 0. Chamamos isso de &quot;truncamento de
+          pontuação&quot;.
         </p>
         <p>
           Um exemplo é melhor: imagine a pergunta “Será que uma nova terra
