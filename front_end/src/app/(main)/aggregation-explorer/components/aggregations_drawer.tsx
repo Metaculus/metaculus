@@ -31,12 +31,14 @@ type Props = {
     aggregationOptionId: AggregationMethodWithBots
   ) => Promise<void>;
   aggregationData: AggregationQuestionWithBots | null;
+  selectedSubQuestionOption: number | string | null;
 };
 
 const AggregationsDrawer: FC<Props> = ({
   onTabChange,
   onFetchData,
   aggregationData,
+  selectedSubQuestionOption,
 }) => {
   const { actual_close_time, scaling, type } = aggregationData ?? {};
   const actualCloseTime = useMemo(
@@ -46,7 +48,11 @@ const AggregationsDrawer: FC<Props> = ({
   const tooltips = useMemo(() => generateAggregationTooltips(), []);
   const [choiceItems, setChoiceItems] = useState(
     aggregationData
-      ? generateChoiceItemsFromAggregations(aggregationData, tooltips)
+      ? generateChoiceItemsFromAggregations({
+          question: aggregationData,
+          tooltips,
+          selectedSubQuestionOption,
+        })
       : []
   );
 
@@ -92,10 +98,11 @@ const AggregationsDrawer: FC<Props> = ({
   );
   useEffect(() => {
     if (aggregationData) {
-      const newChoiceItems = generateChoiceItemsFromAggregations(
-        aggregationData,
-        tooltips
-      );
+      const newChoiceItems = generateChoiceItemsFromAggregations({
+        question: aggregationData,
+        tooltips,
+        selectedSubQuestionOption,
+      });
 
       // Update or create new items while preserving existing state
       setChoiceItems((prevItems) => {
@@ -116,7 +123,7 @@ const AggregationsDrawer: FC<Props> = ({
         });
       });
     }
-  }, [aggregationData, tooltips]);
+  }, [aggregationData, selectedSubQuestionOption, tooltips]);
 
   return (
     <>

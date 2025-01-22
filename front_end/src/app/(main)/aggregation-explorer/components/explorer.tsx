@@ -1,9 +1,9 @@
 "use client";
 
 import {
+  faArrowLeft,
   faMagnifyingGlass,
   faXmark,
-  faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Input } from "@headlessui/react";
@@ -28,104 +28,119 @@ import { getPostZipData } from "../../questions/actions";
 import { fetchPost, fetchQuestion } from "../actions";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import { AggregationMethodWithBots } from "../types";
+
 type Props = { searchParams: SearchParams };
 
 const Explorer: FC<Props> = ({ searchParams }) => {
-  const { post_id, question_id } = searchParams;
+  const { post_id, question_id, option } = searchParams;
   const router = useRouter();
   const t = useTranslations();
   const [data, setData] = useState<
     QuestionWithForecasts | PostWithForecasts | null
   >(null);
+
+  // number for group or conditional
+  // string for MC
   const [subQuestionOptions, setSubQuestionOptions] = useState<
     string[] | number[]
   >([]);
+  const [selectedSubQuestionOption, setSelectedSubQuestionOption] = useState<
+    string | number | null
+  >(question_id?.toString() ?? option?.toString().replaceAll("_", " ") ?? null);
+
   const [activeTab, setActiveTab] = useState<AggregationMethodWithBots | null>(
     null
   );
-  const initialInputText = post_id?.toString() ?? "";
-  const [inputText, setInputText] = useState<string>(initialInputText);
-  const [selectedSubQuestionId, setSelectedSubQuestionId] = useState<
-    string | null
-  >(question_id ? question_id.toString().replaceAll("_", " ") : null);
+  const [postInputText, setPostInputText] = useState<string>(
+    post_id?.toString() ?? ""
+  );
+
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPostData = useCallback(
-    async (postId: number, questionId?: number) => {
-      setData(null);
-      setError(null);
-      setLoading(true);
-      try {
-        const postData = await fetchPost(postId);
-        // TODO: adjust for MC questions after backend is updated
-        if (
-          !!postData.group_of_questions ||
-          !!postData.conditional ||
-          postData.question?.type === QuestionType.MultipleChoice
-        ) {
-          setSubQuestionOptions(parseSubQuestions(postData));
-          if (
-            questionId &&
-            postData.question?.type !== QuestionType.MultipleChoice
-          ) {
-            const questionData = await fetchQuestion(questionId);
-            setData(questionData);
-          } else if (
-            questionId !== undefined &&
-            postData.question?.type === QuestionType.MultipleChoice
-          ) {
-            setData(postData);
-          }
-        } else {
-          setData(postData);
-        }
-      } catch (err) {
-        logError(err);
-        setError("Failed to fetch data. Please provide a valid post id");
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
+  // clear subquestion options when post id input changes
   useEffect(() => {
     if (subQuestionOptions.length > 0) {
       setSubQuestionOptions([]);
-      setSelectedSubQuestionId(null);
+      setSelectedSubQuestionOption(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputText]);
+  }, [postInputText]);
 
   useEffect(() => {
     if (!!post_id) {
       setError(null);
       setActiveTab(null);
-      const parsedInput = parseQuestionId(inputText as string);
+      const parsedInput = parseQuestionId(postInputText);
       if (parsedInput.postId === null) {
         setError("Invalid question url or id");
         return;
       }
-      // TODO: adjust for MC questions after backend is updated
+
+      const fetchPostData = async (
+        postId: number,
+        questionId?: number,
+        option?: string
+      ) => {
+        setData(null);
+        setError(null);
+        setLoading(true);
+
+        // fetch post data, subquestion options and question data if needed
+        try {
+          const postData = await fetchPost(postId);
+          if (
+            !!postData.group_of_questions ||
+            !!postData.conditional ||
+            postData.question?.type === QuestionType.MultipleChoice
+          ) {
+            setSubQuestionOptions(parseSubQuestions(postData));
+            if (
+              questionId &&
+              postData.question?.type !== QuestionType.MultipleChoice
+            ) {
+              const questionData = await fetchQuestion(questionId);
+              setData(questionData);
+            } else if (
+              option &&
+              postData.question?.type === QuestionType.MultipleChoice
+            ) {
+              setData(postData);
+            }
+          } else {
+            setData(postData);
+          }
+        } catch (err) {
+          logError(err);
+          setError("Failed to fetch data. Please provide a valid post id");
+        } finally {
+          setLoading(false);
+        }
+      };
       fetchPostData(
-        Number(parsedInput.postId),
-        !!question_id ? Number(question_id) : undefined
+        parsedInput.postId,
+        !!question_id ? Number(question_id) : undefined,
+        !!option ? option.toString() : undefined
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post_id, question_id]);
+  }, [post_id, question_id, option]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const parsedInput = parseQuestionId(inputText as string);
+    const parsedInput = parseQuestionId(postInputText);
     if (parsedInput.postId === null) {
       setError("Invalid question url or id");
       return;
     }
     const params = new URLSearchParams({
       post_id: parsedInput.postId.toString(),
-      question_id: selectedSubQuestionId?.toString().replaceAll(" ", "_") || "",
+      ...(typeof selectedSubQuestionOption === "number"
+        ? { question_id: selectedSubQuestionOption?.toString() }
+        : {}),
+      ...(typeof selectedSubQuestionOption === "string"
+        ? { option: selectedSubQuestionOption.replaceAll(" ", "_") }
+        : {}),
     });
 
     router.push(`/aggregation-explorer?${params.toString()}`);
@@ -194,7 +209,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             postId={data.id}
-            questionId={selectedSubQuestionId}
+            selectedSubQuestionOption={selectedSubQuestionOption}
           />
         </>
       );
@@ -202,6 +217,24 @@ const Explorer: FC<Props> = ({ searchParams }) => {
 
     return null;
   };
+
+  const handleSubQuestionSelectChange = useCallback(
+    (value: string) => {
+      if (value === "") {
+        setSelectedSubQuestionOption(null);
+        return;
+      }
+
+      const questionIdValue = Number(value);
+      if (!isNaN(questionIdValue) && data && !("question" in data)) {
+        setSelectedSubQuestionOption(questionIdValue);
+        return;
+      }
+
+      setSelectedSubQuestionOption(value);
+    },
+    [data]
+  );
 
   return (
     <>
@@ -216,19 +249,19 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             <Input
               name="search"
               type="search"
-              value={inputText}
+              value={postInputText}
               onChange={(e) => {
-                setInputText(e.target.value);
+                setPostInputText(e.target.value);
                 setSubQuestionOptions([]);
-                setSelectedSubQuestionId(null);
+                setSelectedSubQuestionOption(null);
               }}
               className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-3 pr-10 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
             />
             <span className="absolute inset-y-0 right-0 inline-flex h-full justify-center">
-              {!!inputText && (
+              {!!postInputText && (
                 <Button
                   variant="text"
-                  onClick={() => setInputText("")}
+                  onClick={() => setPostInputText("")}
                   type="button"
                   className="-mr-1.5"
                   aria-label="Clear"
@@ -238,29 +271,11 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               )}
             </span>
           </div>
-          {subQuestionOptions.length > 0 && (
-            <div>
-              <p>Select a subquestion</p>
-              <Select
-                className="w-full rounded p-3 text-sm leading-5"
-                defaultValue={selectedSubQuestionId?.toString() || ""}
-                options={[
-                  {
-                    value: "",
-                    label: "Select subquestion ID",
-                    disabled: true,
-                  },
-                  ...subQuestionOptions.map((option) => ({
-                    value: option,
-                    label: option.toString(),
-                  })),
-                ]}
-                onChange={(event) =>
-                  setSelectedSubQuestionId(event.target.value)
-                }
-              />
-            </div>
-          )}
+          <SubQuestionSelect
+            options={subQuestionOptions}
+            value={selectedSubQuestionOption}
+            onChange={handleSubQuestionSelectChange}
+          />
           <Button
             variant="primary"
             type="submit"
@@ -278,6 +293,42 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   );
 };
 
+const SubQuestionSelect: FC<{
+  options: string[] | number[];
+  value: string | number | null;
+  onChange: (value: string) => void;
+}> = ({ options, value, onChange }) => {
+  if (!options.length) {
+    return null;
+  }
+
+  const isMultipleChoicePost = options.some((o) => typeof o === "string");
+
+  return (
+    <div>
+      <p>{isMultipleChoicePost ? "Select a choice" : "Select a subquestion"}</p>
+      <Select
+        className="w-full rounded p-3 text-sm leading-5"
+        defaultValue={value?.toString() || ""}
+        options={[
+          {
+            value: "",
+            label: isMultipleChoicePost
+              ? "Select a choice"
+              : "Select subquestion ID",
+            disabled: true,
+          },
+          ...options.map((option) => ({
+            value: option,
+            label: option.toString(),
+          })),
+        ]}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+};
+
 function parseSubQuestions(data: Post) {
   if (data.group_of_questions) {
     return data.group_of_questions.questions.map((group) => group.id);
@@ -288,4 +339,5 @@ function parseSubQuestions(data: Post) {
   }
   return [];
 }
+
 export default Explorer;

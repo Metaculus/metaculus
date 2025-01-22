@@ -13,20 +13,19 @@ import HistogramDrawer from "./histogram_drawer";
 import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
 import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
-import {
-  AggregationMethodWithBots,
-  AggregationQuestionWithBots,
-} from "../types";
+import { AggregationQuestionWithBots } from "../types";
 
 type Props = {
   aggregationData: AggregationQuestionWithBots | null;
   activeTab: string;
-  onFetchData: (
-    aggregationOptionId: AggregationMethodWithBots
-  ) => Promise<void>;
+  selectedSubQuestionOption: number | string | null;
 };
 
-const AggregationsTab: FC<Props> = ({ aggregationData, activeTab }) => {
+const AggregationsTab: FC<Props> = ({
+  aggregationData,
+  activeTab,
+  selectedSubQuestionOption,
+}) => {
   const t = useTranslations();
 
   const { aggregations, bot_aggregations, actual_close_time, resolution } =
@@ -43,6 +42,19 @@ const AggregationsTab: FC<Props> = ({ aggregationData, activeTab }) => {
         : aggregations?.[tabData.value],
     [aggregations, bot_aggregations, tabData]
   );
+
+  let aggregationIndex: number | undefined;
+  if (
+    typeof selectedSubQuestionOption === "string" &&
+    aggregationData?.options
+  ) {
+    const indexCandidate = aggregationData.options.findIndex(
+      (o) => o === selectedSubQuestionOption
+    );
+    if (indexCandidate !== -1) {
+      aggregationIndex = indexCandidate;
+    }
+  }
 
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
@@ -123,6 +135,7 @@ const AggregationsTab: FC<Props> = ({ aggregationData, activeTab }) => {
     <DetailsQuestionCardErrorBoundary>
       <NumericChart
         aggregation={activeAggregation}
+        aggregationIndex={aggregationIndex}
         questionType={aggregationData.type}
         actualCloseTime={actualCloseTime}
         scaling={aggregationData.scaling}

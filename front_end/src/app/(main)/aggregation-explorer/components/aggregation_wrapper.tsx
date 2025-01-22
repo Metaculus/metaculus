@@ -15,14 +15,14 @@ type Props = {
   activeTab: AggregationMethodWithBots | null;
   onTabChange: (activeTab: AggregationMethodWithBots) => void;
   postId: number;
-  questionId?: number | string | null;
+  selectedSubQuestionOption: number | string | null;
 };
 
 export const AggregationWrapper: FC<Props> = ({
   activeTab,
   onTabChange,
   postId,
-  questionId,
+  selectedSubQuestionOption,
 }) => {
   const [selectedAggregationMethods, setSelectedAggregationMethods] = useState<
     AggregationMethodWithBots[]
@@ -41,12 +41,13 @@ export const AggregationWrapper: FC<Props> = ({
       if (selectedAggregationMethods.includes(aggregationOptionId)) {
         return;
       }
+
       try {
-        // TODO: adjust for MC questions after backend is updated
         const adjustedQuestionId =
-          questionId && !isNaN(Number(questionId))
-            ? Number(questionId)
+          selectedSubQuestionOption && !isNaN(Number(selectedSubQuestionOption))
+            ? Number(selectedSubQuestionOption)
             : undefined;
+
         const response = await fetchAggregations({
           postId,
           questionId: adjustedQuestionId,
@@ -96,20 +97,21 @@ export const AggregationWrapper: FC<Props> = ({
         logError(err);
       }
     },
-    [postId, questionId, selectedAggregationMethods]
+    [postId, selectedSubQuestionOption, selectedAggregationMethods]
   );
 
   return activeTab ? (
     <AggregationsTab
       activeTab={activeTab}
       aggregationData={aggregationData}
-      onFetchData={handleFetchAggregations}
+      selectedSubQuestionOption={selectedSubQuestionOption}
     />
   ) : (
     <AggregationsDrawer
       onTabChange={onTabChange}
       onFetchData={handleFetchAggregations}
       aggregationData={aggregationData}
+      selectedSubQuestionOption={selectedSubQuestionOption}
     />
   );
 };
