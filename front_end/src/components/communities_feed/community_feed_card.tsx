@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import communityPlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
 import { Community } from "@/types/projects";
@@ -89,15 +88,8 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
               </Button>
             </p>
 
-            <div className="relative ml-4 h-[36px] w-[36px] rounded-full border-none bg-cover bg-center">
-              <Image
-                src={communityPlaceholder}
-                className="absolute h-full w-full rounded-full"
-                alt=""
-                placeholder={"blur"}
-                quality={100}
-              />
-              {!!community.header_logo && (
+            {!!community.header_logo && (
+              <div className="relative ml-4 h-[36px] w-[36px] rounded-full border-none bg-cover bg-center">
                 <Image
                   quality={100}
                   className="size-full rounded-full object-cover object-center"
@@ -106,8 +98,8 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
                   src={community.header_logo}
                   alt=""
                 />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>
