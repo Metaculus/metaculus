@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useRef, useState } from "react";
 
-import communityPlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { useNavigation } from "@/contexts/navigation_context";

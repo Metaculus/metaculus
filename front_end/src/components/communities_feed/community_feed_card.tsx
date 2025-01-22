@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import communityPlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
 import { Community } from "@/types/projects";
