@@ -2,7 +2,6 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
 
 from projects.models import Project
-
 from scoring.models import (
     UserWeight,
     Leaderboard,
@@ -72,7 +71,12 @@ class LeaderboardEntryInline(admin.TabularInline):
 @admin.register(Leaderboard)
 class LeaderboardAdmin(admin.ModelAdmin):
     change_list_template = "admin/scoring/leaderboard_action_descriptions.html"
-    search_fields = ["name", "project", "score_type"]
+    search_fields = [
+        "name",
+        "score_type",
+        "project__slug",
+        "project__name_original",
+    ]
     list_display = ["__str__", "id", "project", "score_type", "finalized"]
     autocomplete_fields = ["project"]
     list_filter = [
@@ -140,7 +144,13 @@ class LeaderboardAdmin(admin.ModelAdmin):
 
 @admin.register(LeaderboardEntry)
 class LeaderboardEntryAdmin(admin.ModelAdmin):
-    search_fields = ["user", "leaderboard", "leaderboard.project"]
+    search_fields = [
+        "user__username",
+        "leaderboard__name",
+        "leaderboard__score_type",
+        "leaderboard__project__slug",
+        "leaderboard__project__name_original",
+    ]
     list_display = ["__str__", "leaderboard", "user", "rank", "take", "excluded"]
     autocomplete_fields = ["leaderboard", "user"]
     list_filter = [
@@ -159,7 +169,7 @@ class MedalExclusionRecordAdmin(admin.ModelAdmin):
         "exclusion_type",
         "project",
     ]
-    search_fields = ["user"]
+    search_fields = ["user__username", "user__email"]
     autocomplete_fields = ["user", "project"]
     list_filter = [
         AutocompleteFilterFactory("User", "user"),
