@@ -2,6 +2,7 @@ import logging
 from collections.abc import Iterable
 from datetime import timedelta, date
 
+from django.db import transaction
 from django.db.models import Q, Count, Sum, Value, Case, When, F, QuerySet
 from django.db.models.functions import Coalesce
 from django.db.utils import IntegrityError
@@ -11,7 +12,7 @@ from sql_util.aggregates import SubqueryAggregate
 
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
-from posts.models import Notebook, Post, PostUserSnapshot
+from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import (
@@ -193,14 +194,24 @@ def trigger_update_post_translations(
     if post.conditional_id is not None:
         post.conditional.condition.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition, "post"):
-            post.conditional.condition.post.update_and_maybe_translate(should_translate_if_dirty)
+            post.conditional.condition.post.update_and_maybe_translate(
+                should_translate_if_dirty
+            )
 
-        post.conditional.condition_child.update_and_maybe_translate(should_translate_if_dirty)
+        post.conditional.condition_child.update_and_maybe_translate(
+            should_translate_if_dirty
+        )
         if hasattr(post.conditional.condition_child, "post"):
-            post.conditional.condition_child.post.update_and_maybe_translate(should_translate_if_dirty)
+            post.conditional.condition_child.post.update_and_maybe_translate(
+                should_translate_if_dirty
+            )
 
-        post.conditional.question_yes.update_and_maybe_translate(should_translate_if_dirty)
-        post.conditional.question_no.update_and_maybe_translate(should_translate_if_dirty)
+        post.conditional.question_yes.update_and_maybe_translate(
+            should_translate_if_dirty
+        )
+        post.conditional.question_no.update_and_maybe_translate(
+            should_translate_if_dirty
+        )
 
     batch_size = 10
     comments_qs = get_comments_feed(qs=Comment.objects.filter(), post=post)
@@ -523,3 +534,18 @@ def make_repost(post: Post, project: Project):
 
     if post.default_project != project:
         post.projects.add(project)
+
+
+def vote_post(post: Post, user: User, direction: int):
+    try:
+        with transaction.atomic():
+            Vote.objects.filter(user=user, post=post).delete()
+
+            if direction:
+                Vote.objects.create(user=user, post=post, direction=direction)
+
+    except IntegrityError:
+        # Don't do anything in case of race conditions
+        pass
+
+    return post.update_vote_score()
