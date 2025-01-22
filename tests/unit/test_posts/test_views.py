@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
@@ -10,12 +8,9 @@ from posts.models import Post, PostUserSnapshot, PostSubscription
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
-from questions.models import Question
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
-from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.factories import create_question
 from tests.unit.test_questions.conftest import *  # noqa
 
 
@@ -575,3 +570,22 @@ def test_repost(user1, user1_client, user2, user2_client, question_binary):
     assert response.status_code == status.HTTP_204_NO_CONTENT
     post.refresh_from_db()
     assert target_tournament in post.projects.all()
+
+
+def test_post_vote(user1, user1_client, user2_client, post_binary_public):
+    url = reverse("post-vote", kwargs={"pk": post_binary_public.pk})
+
+    def make_vote(client, direction):
+        response = client.post(
+            url, {"direction": direction}, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        return response.json()["score"]
+
+    assert make_vote(user1_client, 1) == 1
+    assert make_vote(user1_client, 1) == 1
+    assert make_vote(user1_client, None) == 0
+    assert make_vote(user1_client, -1) == -1
+    assert make_vote(user2_client, -1) == -2
+    assert make_vote(user2_client, 1) == 0
