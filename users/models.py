@@ -22,6 +22,12 @@ class User(TimeStampedModel, AbstractUser):
 
     # Profile data
     bio = models.TextField(default="", blank=True)
+    verification_level = models.IntegerField(
+        default=0,
+        help_text="0: Unverified, 1: Email Verified, "
+        "2: Automated Verification, 3: Manual Verification, "
+        "4: Verified by direct contact, 5: Is/was moderator, staff, or admin",
+    )
     is_bot = models.BooleanField(default=False)
     is_spam = models.BooleanField(default=False, db_index=True)
 
@@ -91,6 +97,8 @@ class User(TimeStampedModel, AbstractUser):
         self.username = val
 
     def mark_as_spam(self):
+        if self.verification_level >= 4:
+            return
         self.is_spam = True
         self.soft_delete()
 
