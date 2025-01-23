@@ -413,7 +413,9 @@ def global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
     # Returns the start and end dates for each global leaderboard
     # reads directly from the set of global leaderboards
     leaderboards = Leaderboard.objects.filter(
-        start_time__isnull=False, end_time__isnull=False
+        project__type=Project.ProjectTypes.SITE_MAIN,
+        start_time__isnull=False,
+        end_time__isnull=False,
     )
     intervals = [(lb.start_time, lb.end_time) for lb in leaderboards]
     intervals.sort(key=lambda x: (x[1] - x[0], x[0]))
