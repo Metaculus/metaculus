@@ -8,7 +8,7 @@ export function getMedalDisplayTitle(medal: Medal): string {
   }
 
   const { name } = medal;
-  const match = name.match(/^(\d{4}): (\d+) year .+$/);
+  const match = (name || "").match(/^(\d{4}): (\d+) year .+$/);
   if (!match) {
     return "";
   }
