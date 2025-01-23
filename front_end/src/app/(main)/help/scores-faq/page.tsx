@@ -1,3 +1,5 @@
+import { getLocale } from "next-intl/server";
+
 import KatexRenderer from "@/components/katex_renderer";
 
 import BaselineMath from "./components/baseline_math";
@@ -5,6 +7,7 @@ import FurtherMath from "./components/further_math";
 import PeerMath from "./components/peer_math";
 import PointsMath from "./components/points_math";
 import TruncationExample from "./components/truncation_example";
+import content_pt from "./page_pt";
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -13,7 +16,12 @@ export const metadata = {
     "Learn how Metaculus scores work, including Peer scores, Relative scores, and legacy scoring methods. Understand tournament rankings, coverage, and prize calculations.",
 };
 
-export default function ScoresFAQ() {
+export default async function ScoresFAQ() {
+  const locale = await getLocale();
+  if (locale === "pt") {
+    return content_pt();
+  }
+
   return (
     <PageWrapper>
       <h1>Scores FAQ</h1>

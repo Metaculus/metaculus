@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getLocale } from "next-intl/server";
 
 import KatexRenderer from "@/components/katex_renderer";
 
+import content_pt from "./page_pt";
 import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
@@ -11,7 +13,12 @@ export const metadata = {
     "Frequently asked questions about Metaculus, including basics, question types, resolution processes, predictions, scoring, and more.",
 };
 
-export default function FAQ() {
+export default async function FAQ() {
+  const locale = await getLocale();
+  if (locale === "pt") {
+    return content_pt();
+  }
+
   return (
     <PageWrapper>
       <h1 className="text-3xl font-bold">Metaculus FAQ</h1>

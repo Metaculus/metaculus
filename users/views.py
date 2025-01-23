@@ -326,10 +326,8 @@ def get_forecasting_stats_data(
 def get_authoring_stats_data(
     user: User,
 ) -> dict:
-    posts_authored = (
-        Post.objects.filter_public()
-        .filter(Q(author=user) | Q(coauthors=user), notebook__isnull=True)
-        .distinct("id")
+    posts_authored = Post.objects.filter_public().filter(
+        Q(author=user) | Q(coauthors=user), notebook__isnull=True
     )
 
     # Each post has a cached `Post.forecasts_count` value.
