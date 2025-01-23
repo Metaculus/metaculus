@@ -218,9 +218,15 @@ export const PostStatusBox: FC<{
   );
 };
 
-const getEditType = (post: PostWithForecasts) =>
-  [
-    ProjectPermissions.CURATOR,
-    ProjectPermissions.ADMIN,
-    ProjectPermissions.CREATOR,
-  ].includes(post.user_permission);
+const getEditType = (post: PostWithForecasts) => {
+  let edit_type = "question";
+  if (post.group_of_questions) {
+    edit_type = "group";
+  } else if (post.conditional) {
+    edit_type = "conditional";
+  } else if (post.notebook) {
+    edit_type = "notebook";
+  }
+
+  return edit_type;
+};
