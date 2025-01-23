@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { useContentTranslatedBannerProvider } from "@/app/providers";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions/";
@@ -15,6 +15,7 @@ import {
   ProjectPermissions,
 } from "@/types/post";
 import { TournamentType } from "@/types/projects";
+import cn from "@/utils/cn";
 
 import PostApprovalModal from "./post_approval_modal";
 import { draftPost, submitPostForReview } from "../../actions";
@@ -27,9 +28,6 @@ export default function PostHeader({
   questionTitle: string;
 }) {
   const t = useTranslations();
-  const router = useRouter();
-  const isCommunity =
-    post.projects.default_project.type === TournamentType.Community;
 
   let typeLabel = t("notebook");
   if (post.group_of_questions) {
@@ -46,30 +44,8 @@ export default function PostHeader({
     (post.user_permission === ProjectPermissions.CREATOR &&
       post.curation_status !== PostStatus.APPROVED);
 
-  const canEdit = [
-    ProjectPermissions.CURATOR,
-    ProjectPermissions.ADMIN,
-    ProjectPermissions.CREATOR,
-  ].includes(post.user_permission);
-  const canSendBackToDrafts =
-    post.curation_status === PostStatus.PENDING && canEdit;
-  const canSubmitForReview =
-    post.curation_status === PostStatus.DRAFT && canEdit;
-  const canApprove = [
-    ProjectPermissions.CURATOR,
-    ProjectPermissions.ADMIN,
-  ].includes(post.user_permission);
+  const edit_type = getEditType(post);
 
-  let edit_type = "question";
-  if (post.group_of_questions) {
-    edit_type = "group";
-  } else if (post.conditional) {
-    edit_type = "conditional";
-  } else if (post.notebook) {
-    edit_type = "notebook";
-  }
-
-  const [approvalModalOpen, setIsApprovalModalOpen] = useState(false);
   const { setBannerIsVisible } = useContentTranslatedBannerProvider();
   const locale = useLocale();
 
@@ -107,101 +83,144 @@ export default function PostHeader({
           </div>
         )}
       </div>
-      {[PostStatus.PENDING, PostStatus.DRAFT].includes(
-        post.curation_status
-      ) && (
-        <div className="mt-4 border border-gray-300 bg-gray-200 p-3 dark:border-gray-300-dark dark:bg-gray-200-dark">
-          {post.curation_status === PostStatus.PENDING &&
-            (isCommunity ? (
-              <>
-                <h4 className="mb-2 mt-0">{t("inReview")}</h4>
-                <p className="mb-3 mt-0 leading-6">
-                  {t("inCommunityReviewStatus1")}
-                </p>
-                <ul className="mb-3 ml-6 mt-0 list-disc leading-6">
-                  {t.rich("inCommunityReviewStatus2", {
-                    li: (chunks) => <li>{chunks}</li>,
-                  })}
-                </ul>
-                <Link
-                  href={"/question-writing"}
-                  className="mb-3 flex text-base font-normal leading-6 text-blue-700 dark:text-blue-700-dark"
-                >
-                  {t("learnMoreAboutQuestionWriting")}
-                </Link>
-              </>
-            ) : (
-              <>
-                <h4 className="mb-2 mt-0">{t("inReview")}</h4>
-                <p className="mb-3 mt-0 leading-5">
-                  {t.rich("inReviewStatusBox1", {
-                    link1: (chunks) => (
-                      <Link href="/question-writing/">{chunks}</Link>
-                    ),
-                    link2: (chunks) => (
-                      <Link href="/question-writing/#what-types">{chunks}</Link>
-                    ),
-                  })}
-                </p>
-                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox2")}</p>
-                {post.conditional && (
-                  <p className="mb-3 mt-0 leading-5">
-                    {t("inReviewStatusBox4")}
-                  </p>
-                )}
-              </>
-            ))}
-          {canSubmitForReview && (
+      <PostStatusBox post={post} className="mt-4" />
+    </div>
+  );
+}
+
+export const PostStatusBox: FC<{
+  post: PostWithForecasts;
+  className?: string;
+}> = ({ post, className }) => {
+  const t = useTranslations();
+  const router = useRouter();
+
+  const [approvalModalOpen, setIsApprovalModalOpen] = useState(false);
+
+  if (![PostStatus.PENDING, PostStatus.DRAFT].includes(post.curation_status)) {
+    return null;
+  }
+
+  const isCommunity =
+    post.projects.default_project.type === TournamentType.Community;
+
+  const edit_type = getEditType(post);
+
+  const canEdit = [
+    ProjectPermissions.CURATOR,
+    ProjectPermissions.ADMIN,
+    ProjectPermissions.CREATOR,
+  ].includes(post.user_permission);
+  const canSendBackToDrafts =
+    post.curation_status === PostStatus.PENDING && canEdit;
+  const canSubmitForReview =
+    post.curation_status === PostStatus.DRAFT && canEdit;
+  const canApprove = [
+    ProjectPermissions.CURATOR,
+    ProjectPermissions.ADMIN,
+  ].includes(post.user_permission);
+
+  return (
+    <>
+      <div
+        className={cn(
+          "border border-gray-300 bg-gray-200 p-3 dark:border-gray-300-dark dark:bg-gray-200-dark",
+          className
+        )}
+      >
+        {post.curation_status === PostStatus.PENDING &&
+          (isCommunity ? (
             <>
-              <h4 className="mb-2 mt-0">{t("draftStatusBox1")}</h4>
-              <p className="mb-3 mt-0 leading-5">{t("draftStatusBox2")}</p>
+              <h4 className="mb-2 mt-0">{t("inReview")}</h4>
+              <p className="mb-3 mt-0 leading-6">
+                {t("inCommunityReviewStatus1")}
+              </p>
+              <ul className="mb-3 ml-6 mt-0 list-disc leading-6">
+                {t.rich("inCommunityReviewStatus2", {
+                  li: (chunks) => <li>{chunks}</li>,
+                })}
+              </ul>
+              <Link
+                href={"/question-writing"}
+                className="mb-3 flex text-base font-normal leading-6 text-blue-700 dark:text-blue-700-dark"
+              >
+                {t("learnMoreAboutQuestionWriting")}
+              </Link>
             </>
+          ) : (
+            <>
+              <h4 className="mb-2 mt-0">{t("inReview")}</h4>
+              <p className="mb-3 mt-0 leading-5">
+                {t.rich("inReviewStatusBox1", {
+                  link1: (chunks) => (
+                    <Link href="/question-writing/">{chunks}</Link>
+                  ),
+                  link2: (chunks) => (
+                    <Link href="/question-writing/#what-types">{chunks}</Link>
+                  ),
+                })}
+              </p>
+              <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox2")}</p>
+              {post.conditional && (
+                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox4")}</p>
+              )}
+            </>
+          ))}
+        {canSubmitForReview && (
+          <>
+            <h4 className="mb-2 mt-0">{t("draftStatusBox1")}</h4>
+            <p className="mb-3 mt-0 leading-5">{t("draftStatusBox2")}</p>
+          </>
+        )}
+        <div className="flex gap-2">
+          {canEdit && (
+            <Button href={`/questions/create/${edit_type}?post_id=${post.id}`}>
+              {t("edit")}
+            </Button>
           )}
-          <div className="flex gap-2">
-            {canEdit && (
-              <Button
-                href={`/questions/create/${edit_type}?post_id=${post.id}`}
-              >
-                {t("edit")}
-              </Button>
-            )}
-            {post.status === PostStatus.DRAFT && (
-              <Button
-                onClick={async () => {
-                  await submitPostForReview(post.id);
-                  router.refresh();
-                }}
-              >
-                {t("submitForReview")}
-              </Button>
-            )}
-            {canSendBackToDrafts && (
-              <Button
-                onClick={async () => {
-                  await draftPost(post.id, post.projects.default_project);
-                }}
-              >
-                {t("sendBackToDrafts")}
-              </Button>
-            )}
-            {canApprove && (
-              <Button
-                onClick={async () => {
-                  setIsApprovalModalOpen(true);
-                }}
-                className="capitalize"
-              >
-                {t("approve")}
-              </Button>
-            )}
-          </div>
+          {post.status === PostStatus.DRAFT && (
+            <Button
+              onClick={async () => {
+                await submitPostForReview(post.id);
+                router.refresh();
+              }}
+            >
+              {t("submitForReview")}
+            </Button>
+          )}
+          {canSendBackToDrafts && (
+            <Button
+              onClick={async () => {
+                await draftPost(post.id, post.projects.default_project);
+              }}
+            >
+              {t("sendBackToDrafts")}
+            </Button>
+          )}
+          {canApprove && (
+            <Button
+              onClick={async () => {
+                setIsApprovalModalOpen(true);
+              }}
+              className="capitalize"
+            >
+              {t("approve")}
+            </Button>
+          )}
         </div>
-      )}
+      </div>
       <PostApprovalModal
         isOpen={approvalModalOpen}
         post={post}
         setIsOpen={setIsApprovalModalOpen}
       />
-    </div>
+    </>
   );
-}
+};
+
+const getEditType = (post: PostWithForecasts) =>
+  [
+    ProjectPermissions.CURATOR,
+    ProjectPermissions.ADMIN,
+    ProjectPermissions.CREATOR,
+  ].includes(post.user_permission);
