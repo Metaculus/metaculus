@@ -72,8 +72,8 @@ def update_global_leaderboard_tags(post: Post):
     projects: QuerySet[Project] = post.projects.all()
 
     # Skip if post is not eligible for global leaderboards
-    if not post.default_project.type == Project.ProjectTypes.SITE_MAIN and not next(
-        (p for p in projects if p.type == Project.ProjectTypes.SITE_MAIN), None
+    if not post.default_project.visibility == Project.Visibility.NORMAL and not next(
+        (p for p in projects if p.visibility == Project.Visibility.NORMAL), None
     ):
         return
 
