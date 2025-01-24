@@ -20,7 +20,6 @@ import { getContinuousChartTypeFromQuestion } from "@/utils/charts";
 import {
   extractPrevBinaryForecastValue,
   extractPrevNumericForecastValue,
-  getNormalizedContinuousWeight,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
@@ -106,19 +105,15 @@ const QuestionNumericTile: FC<Props> = ({
             ? userForecast
             : undefined;
           const activeForecastSliderValues = activeForecast
-            ? extractPrevNumericForecastValue(activeForecast.slider_values)
-            : {};
-          const forecast = activeForecastSliderValues?.forecast;
-          const weights = getNormalizedContinuousWeight(
-            activeForecastSliderValues?.weights
-          );
+            ? extractPrevNumericForecastValue(activeForecast.distribution_input)
+            : undefined;
+          const forecast = activeForecastSliderValues?.components;
           if (!forecast) {
             return;
           }
 
           const dataset = getNumericForecastDataset(
             forecast,
-            weights ?? [1],
             question.open_lower_bound,
             question.open_upper_bound
           );
@@ -132,9 +127,9 @@ const QuestionNumericTile: FC<Props> = ({
                 probabilityYes: null,
                 probabilityYesPerCategory: null,
               },
-              sliderValues: {
-                forecast: forecast,
-                weights: weights,
+              distributionInput: {
+                type: "slider",
+                components: forecast,
               },
             },
           ]);

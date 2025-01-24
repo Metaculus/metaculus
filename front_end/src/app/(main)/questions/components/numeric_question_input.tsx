@@ -98,7 +98,7 @@ const NumericQuestionInput: React.FC<{
       my_forecasts: {
         timestamps: [],
         medians: [],
-        slider_values: null,
+        distribution_input: null,
       },
       medians: [],
       q3s: [],

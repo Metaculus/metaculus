@@ -15,7 +15,6 @@ import React, {
 } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
-import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -26,13 +25,15 @@ import {
   ProjectPermissions,
   QuestionStatus,
 } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import {
+  DistributionSliderComponent,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
   extractPrevNumericForecastValue,
   getNormalizedContinuousForecast,
-  getNormalizedContinuousWeight,
   getNumericForecastDataset,
   getUserContinuousQuartiles,
 } from "@/utils/forecasts";
@@ -80,17 +81,21 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   const prevForecastValuesMap = useMemo(
     () =>
-      questions.reduce<
-        Record<number, { forecast?: MultiSliderValue[]; weights?: number[] }>
-      >((acc, question) => {
-        const latest = question.my_forecasts?.latest;
-        return {
-          ...acc,
-          [question.id]: extractPrevNumericForecastValue(
-            latest && !latest.end_time ? latest.slider_values : undefined
-          ),
-        };
-      }, {}),
+      questions.reduce<Record<number, DistributionSliderComponent[]>>(
+        (acc, question) => {
+          const latest = question.my_forecasts?.latest;
+          return {
+            ...acc,
+            [question.id]:
+              extractPrevNumericForecastValue(
+                latest && !latest.end_time
+                  ? latest.distribution_input
+                  : undefined
+              )?.components || [],
+          };
+        },
+        {}
+      ),
     [questions]
   );
   const hasUserForecast = useMemo(() => {
@@ -98,7 +103,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
     return (
       !!forecastsByQuestions.length &&
-      forecastsByQuestions.some((v) => !isNil(v.forecast))
+      forecastsByQuestions.some((v) => !isNil(v))
     );
   }, [prevForecastValuesMap]);
 
@@ -146,20 +151,18 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const handleChange = useCallback(
-    (optionId: number, forecast: MultiSliderValue[], weights: number[]) => {
+    (optionId: number, components: DistributionSliderComponent[]) => {
       setGroupOptions((prev) =>
         prev.map((option) => {
           if (option.id === optionId) {
             return {
               ...option,
               userQuartiles: getUserContinuousQuartiles(
-                forecast,
-                weights,
+                components,
                 option.question.open_lower_bound,
                 option.question.open_upper_bound
               ),
-              userForecast: forecast,
-              userWeights: weights,
+              userForecast: components,
               isDirty: true,
             };
           }
@@ -177,19 +180,14 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         if (prevChoice.id === optionId) {
           const newUserForecast = [
             ...getNormalizedContinuousForecast(prevChoice.userForecast),
-            { left: 0.4, center: 0.5, right: 0.6 },
+            { left: 0.4, center: 0.5, right: 0.6, weight: 1 },
           ];
-          const newWeights = [...prevChoice.userWeights, 1];
-          const newUserQuartiles = getUserContinuousQuartiles(
-            newUserForecast,
-            newWeights
-          );
+          const newUserQuartiles = getUserContinuousQuartiles(newUserForecast);
 
           return {
             ...prevChoice,
             userQuartiles: newUserQuartiles,
             userForecast: newUserForecast,
-            userWeights: newWeights,
             isDirty: true,
           };
         }
@@ -203,19 +201,16 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setGroupOptions((prev) =>
       prev.map((prevOption) => {
         if (!prevOption.resolution) {
-          const prevForecast = prevForecastValuesMap[prevOption.id]?.forecast;
-          const prevWeights = prevForecastValuesMap[prevOption.id]?.weights;
+          const prevForecast = prevForecastValuesMap[prevOption.id];
 
           return {
             ...prevOption,
             userQuartiles: getUserContinuousQuartiles(
               prevForecast,
-              prevWeights,
               prevOption.question.open_lower_bound,
               prevOption.question.open_upper_bound
             ),
             userForecast: getSliderValue(prevForecast),
-            userWeights: getNormalizedContinuousWeight(prevWeights),
             isDirty: false,
           };
         }
@@ -235,22 +230,21 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setIsSubmitting(true);
     const response = await createForecasts(
       postId,
-      questionsToSubmit.map(({ question, userForecast, userWeights }) => {
+      questionsToSubmit.map(({ question, userForecast }) => {
         return {
           questionId: question.id,
           forecastData: {
             continuousCdf: getNumericForecastDataset(
               getNormalizedContinuousForecast(userForecast),
-              userWeights,
               question.open_lower_bound,
               question.open_upper_bound
             ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
           },
-          sliderValues: {
-            forecast: getNormalizedContinuousForecast(userForecast),
-            weights: userWeights,
+          distributionInput: {
+            type: "slider",
+            components: getNormalizedContinuousForecast(userForecast),
           },
         };
       })
@@ -268,14 +262,14 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const previousForecast = activeGroupOption?.question.my_forecasts?.latest;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(
-      !!previousForecast?.forecast_values && !previousForecast.slider_values
+      !!previousForecast?.forecast_values &&
+        !previousForecast.distribution_input
     );
 
   const userCdf: number[] | undefined =
     activeGroupOption &&
     getNumericForecastDataset(
       getNormalizedContinuousForecast(activeGroupOption.userForecast),
-      activeGroupOption?.userWeights,
       activeGroupOption?.question.open_lower_bound,
       activeGroupOption?.question.open_upper_bound
     ).cdf;
@@ -304,7 +298,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
         const dataset = getNumericForecastDataset(
           normalizedUserForecast,
-          option.userWeights,
           option.question.open_lower_bound,
           option.question.open_upper_bound
         );
@@ -316,14 +309,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           >
             <ContinuousSlider
               question={option.question}
-              forecast={normalizedUserForecast}
+              components={normalizedUserForecast}
               overlayPreviousForecast={overlayPreviousForecast}
               setOverlayPreviousForecast={setOverlayPreviousForecast}
-              weights={option.userWeights}
               dataset={dataset}
-              onChange={(forecast, weight) =>
-                handleChange(option.id, forecast, weight)
-              }
+              onChange={(forecast) => handleChange(option.id, forecast)}
               disabled={
                 !canPredict || option.question.status !== QuestionStatus.OPEN
               }
@@ -402,7 +392,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             isDirty={activeGroupOption.isDirty}
             hasUserForecast={
               !isNil(activeTableOption) &&
-              !!prevForecastValuesMap[activeTableOption]?.forecast
+              !!prevForecastValuesMap[activeTableOption]
             }
           />
 
@@ -432,13 +422,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
 function generateGroupOptions(
   questions: QuestionWithNumericForecasts[],
-  prevForecastValuesMap: Record<
-    number,
-    {
-      forecast?: MultiSliderValue[];
-      weights?: number[];
-    }
-  >,
+  prevForecastValuesMap: Record<number, DistributionSliderComponent[]>,
   permission?: ProjectPermissions,
   post?: Post
 ): ConditionalTableOption[] {
@@ -450,8 +434,7 @@ function generateGroupOptions(
       )
     )
     .map((q) => {
-      const prevForecast = prevForecastValuesMap[q.id]?.forecast;
-      const prevWeights = prevForecastValuesMap[q.id]?.weights;
+      const prevForecast = prevForecastValuesMap[q.id];
 
       return {
         id: q.id,
@@ -459,12 +442,10 @@ function generateGroupOptions(
         question: q,
         userQuartiles: getUserContinuousQuartiles(
           prevForecast,
-          prevWeights,
           q.open_lower_bound,
           q.open_upper_bound
         ),
         userForecast: getSliderValue(prevForecast),
-        userWeights: getNormalizedContinuousWeight(prevWeights),
         communityQuartiles: q.aggregations.recency_weighted.latest
           ? computeQuartilesFromCDF(
               q.aggregations.recency_weighted.latest.forecast_values
@@ -488,8 +469,8 @@ function generateGroupOptions(
     });
 }
 
-function getSliderValue(forecast?: MultiSliderValue[]) {
-  return forecast ?? null;
+function getSliderValue(components?: DistributionSliderComponent[]) {
+  return components ?? null;
 }
 
 export default ForecastMakerGroupContinuous;

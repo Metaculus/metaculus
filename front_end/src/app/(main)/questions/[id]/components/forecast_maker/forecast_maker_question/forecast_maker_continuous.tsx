@@ -7,7 +7,6 @@ import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
-import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -15,12 +14,14 @@ import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import {
+  DistributionSliderComponent,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
   getNormalizedContinuousForecast,
-  getNormalizedContinuousWeight,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
@@ -60,31 +61,32 @@ const ForecastMakerContinuous: FC<Props> = ({
       ? previousForecast
       : undefined;
   const activeForecastSliderValues = activeForecast
-    ? extractPrevNumericForecastValue(activeForecast.slider_values)
-    : {};
+    ? extractPrevNumericForecastValue(activeForecast.distribution_input)
+    : undefined;
   const withCommunityQuartiles = !user || !hideCP;
-  const hasUserForecast = !!activeForecastSliderValues.forecast;
+  const hasUserForecast = !!activeForecastSliderValues;
   const t = useTranslations();
-  const [forecast, setForecast] = useState<MultiSliderValue[]>(
-    getNormalizedContinuousForecast(activeForecastSliderValues.forecast)
-  );
-  const [weights, setWeights] = useState<number[]>(
-    getNormalizedContinuousWeight(activeForecastSliderValues.weights)
-  );
+  const [distributionComponents, setDistributionComponents] = useState<
+    DistributionSliderComponent[]
+  >(getNormalizedContinuousForecast(activeForecastSliderValues?.components));
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(
-      !!previousForecast?.forecast_values && !previousForecast.slider_values
+      !!previousForecast?.forecast_values &&
+        !previousForecast.distribution_input
     );
 
   const dataset = useMemo(
     () =>
       getNumericForecastDataset(
-        forecast,
-        weights,
+        distributionComponents,
         question.open_lower_bound,
         question.open_upper_bound
       ),
-    [forecast, question.open_lower_bound, question.open_upper_bound, weights]
+    [
+      distributionComponents,
+      question.open_lower_bound,
+      question.open_upper_bound,
+    ]
   );
 
   const userCdf: number[] = dataset.cdf;
@@ -97,15 +99,15 @@ const ForecastMakerContinuous: FC<Props> = ({
     latest && !latest.end_time ? latest?.forecast_values : undefined;
 
   const handleAddComponent = () => {
-    setForecast([
-      ...forecast,
+    setDistributionComponents([
+      ...distributionComponents,
       {
         left: 0.4,
         right: 0.6,
         center: 0.5,
+        weight: 1,
       },
     ]);
-    setWeights([...weights, 1]);
   };
 
   const handlePredictSubmit = async () => {
@@ -120,9 +122,9 @@ const ForecastMakerContinuous: FC<Props> = ({
           probabilityYes: null,
           probabilityYesPerCategory: null,
         },
-        sliderValues: {
-          forecast: forecast,
-          weights: weights,
+        distributionInput: {
+          type: "slider",
+          components: distributionComponents,
         },
       },
     ]);
@@ -156,12 +158,10 @@ const ForecastMakerContinuous: FC<Props> = ({
     <>
       <div className="mt-[-36px] md:mt-[-28px]">
         <ContinuousSlider
-          forecast={forecast}
-          weights={weights}
+          components={distributionComponents}
           dataset={dataset}
-          onChange={(forecast, weight) => {
-            setForecast(forecast);
-            setWeights(weight);
+          onChange={(components) => {
+            setDistributionComponents(components);
             setIsDirty(true);
           }}
           overlayPreviousForecast={overlayPreviousForecast}

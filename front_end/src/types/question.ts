@@ -93,19 +93,25 @@ export type ScoreData = {
   weighted_coverage?: number | null;
 };
 
-export type SliderLocations = {
+export type DistributionInput<T> = {
+  type: string;
+  components: T[];
+};
+
+export type DistributionSliderComponent = {
+  weight: number;
   left: number;
   center: number;
   right: number;
 };
 
-export type SliderValues = {
-  weights: number[];
-  forecast: SliderLocations[];
-};
+export type DistributionSlider =
+  DistributionInput<DistributionSliderComponent> & {
+    type: "slider";
+  };
 
 export type UserForecast = Forecast & {
-  slider_values: SliderValues | null;
+  distribution_input: DistributionSlider;
 };
 
 export type UserForecastHistory = {
@@ -141,7 +147,7 @@ export type BaseForecast = {
   my_forecasts: {
     timestamps: number[];
     medians: number[];
-    slider_values: unknown | null;
+    distribution_input: unknown | null;
   } | null;
 };
 

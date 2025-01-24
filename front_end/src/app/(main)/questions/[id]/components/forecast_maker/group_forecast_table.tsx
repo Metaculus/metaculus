@@ -10,10 +10,10 @@ import {
 } from "react";
 
 import ResolutionIcon from "@/components/icons/resolution";
-import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import RadioButton from "@/components/ui/radio_button";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
+  DistributionSliderComponent,
   Quartiles,
   Question,
   QuestionWithNumericForecasts,
@@ -26,8 +26,7 @@ export type ConditionalTableOption = {
   id: number;
   name: string;
   question: QuestionWithNumericForecasts;
-  userForecast: MultiSliderValue[] | null;
-  userWeights: number[];
+  userForecast: DistributionSliderComponent[] | null;
   userQuartiles: Quartiles | null;
   communityQuartiles: Quartiles | null;
   isDirty: boolean;
