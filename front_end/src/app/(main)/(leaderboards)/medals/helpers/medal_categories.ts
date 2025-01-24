@@ -56,7 +56,7 @@ export function getMedalCategories(
 
     const sortedMedals = medals;
     if (categoryKey !== "tournament") {
-      sortedMedals.sort((a, b) => b.duration - a.duration);
+      sortedMedals.sort((a, b) => (b.duration || 0) - (a.duration || 0));
     }
     sortedMedals.sort(
       (a, b) => MEDALS_ORDER.indexOf(a.type) - MEDALS_ORDER.indexOf(b.type)
@@ -112,11 +112,16 @@ const getMedalFromEntry = (medalEntry: MedalEntry): Medal | null => {
     rank: medalEntry.rank,
     type: medalEntry.medal,
     // year: new Date(medalEntry.start_time).getFullYear(),
-    year: Number(medalEntry.start_time.split("-")[0]),
-    duration: differenceInYears(
-      new Date(medalEntry.end_time),
-      new Date(medalEntry.start_time)
-    ),
+    year: !!medalEntry.start_time
+      ? Number(medalEntry.start_time.split("-")[0])
+      : undefined,
+    duration:
+      !!medalEntry.start_time && !!medalEntry.end_time
+        ? differenceInYears(
+            new Date(medalEntry.end_time),
+            new Date(medalEntry.start_time)
+          )
+        : undefined,
     name: medalEntry.name,
     projectType: medalEntry.project_type,
     projectName: medalEntry.project_name,
