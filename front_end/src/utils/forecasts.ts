@@ -151,10 +151,6 @@ export const getNormalizedContinuousForecast = (
     },
   ];
 
-export const getNormalizedContinuousWeight = (
-  weights: number[] | null | undefined
-): number[] => weights ?? [1];
-
 export function getUserContinuousQuartiles(
   components?: DistributionSliderComponent[],
   openLower?: boolean,
@@ -162,6 +158,7 @@ export function getUserContinuousQuartiles(
 ) {
   if (
     !components ||
+    !components.length ||
     typeof openLower === "undefined" ||
     typeof openUpper === "undefined"
   ) {

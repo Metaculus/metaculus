@@ -81,21 +81,17 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   const prevForecastValuesMap = useMemo(
     () =>
-      questions.reduce<Record<number, DistributionSliderComponent[]>>(
-        (acc, question) => {
-          const latest = question.my_forecasts?.latest;
-          return {
-            ...acc,
-            [question.id]:
-              extractPrevNumericForecastValue(
-                latest && !latest.end_time
-                  ? latest.distribution_input
-                  : undefined
-              )?.components || [],
-          };
-        },
-        {}
-      ),
+      questions.reduce<
+        Record<number, DistributionSliderComponent[] | undefined>
+      >((acc, question) => {
+        const latest = question.my_forecasts?.latest;
+        return {
+          ...acc,
+          [question.id]: extractPrevNumericForecastValue(
+            latest && !latest.end_time ? latest.distribution_input : undefined
+          )?.components,
+        };
+      }, {}),
     [questions]
   );
   const hasUserForecast = useMemo(() => {
@@ -422,7 +418,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
 function generateGroupOptions(
   questions: QuestionWithNumericForecasts[],
-  prevForecastValuesMap: Record<number, DistributionSliderComponent[]>,
+  prevForecastValuesMap: Record<
+    number,
+    DistributionSliderComponent[] | undefined
+  >,
   permission?: ProjectPermissions,
   post?: Post
 ): ConditionalTableOption[] {
