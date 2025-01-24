@@ -33,12 +33,29 @@ from utils.typing import (
 )
 
 
-def get_histogram(values: ForecastValues, weights: Weights | None) -> np.ndarray:
-    histogram = np.zeros(100)
+def get_histogram(
+    values: ForecastValues,
+    weights: Weights | None,
+    question_type: Question.QuestionType = Question.QuestionType.BINARY,
+) -> np.ndarray:
+    values = np.array(values)
+    if len(values) == 0:
+        return np.zeros(100)
     if weights is None:
         weights = np.ones(len(values))
-    for value, weight in zip(values, weights):
-        histogram[int(value * 100)] += weight
+
+    transposed_values = values.T
+
+    if question_type == Question.QuestionType.BINARY:
+        histogram = np.zeros(100)
+        for p, w in zip(transposed_values[1], weights):
+            histogram[int(p * 100)] += w
+        return histogram
+
+    histogram = np.zeros((len(values[0]), 100))
+    for forecast_values, w in zip(values, weights):
+        for i, p in enumerate(forecast_values):
+            histogram[i, int(p * 100)] += w
     return histogram
 
 
@@ -113,7 +130,7 @@ def calculate_aggregation_entry(
                 forecast_set.forecasts_values, axis=0, weights=weights
             ).tolist()
         )
-    elif question_type == "binary":
+    elif question_type == Question.QuestionType.BINARY:
         aggregation = AggregateForecast(
             forecast_values=compute_discrete_forecast_values(
                 forecast_set.forecasts_values, weights, 50.0
@@ -136,7 +153,10 @@ def calculate_aggregation_entry(
         forecasts_values = np.array(forecast_set.forecasts_values)
         aggregation.start_time = forecast_set.timestep
         aggregation.forecaster_count = len(forecast_set.forecasts_values)
-        if question_type in ["binary", "multiple_choice"]:
+        if question_type in [
+            Question.QuestionType.BINARY,
+            Question.QuestionType.MULTIPLE_CHOICE,
+        ]:
             if method == AggregationMethod.SINGLE_AGGREGATION:
                 centers = aggregation.forecast_values
                 lowers_sd, uppers_sd = compute_weighted_semi_standard_deviations(
@@ -148,7 +168,7 @@ def calculate_aggregation_entry(
                 lowers, centers, uppers = compute_discrete_forecast_values(
                     forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
                 )
-                if question_type == "multiple_choice":
+                if question_type == Question.QuestionType.MULTIPLE_CHOICE:
                     centers_array = np.array(centers)
                     normalized_centers = np.array(aggregation.forecast_values)
                     normalized_lowers = (
@@ -170,13 +190,21 @@ def calculate_aggregation_entry(
         aggregation.interval_lower_bounds = lowers
         aggregation.centers = centers
         aggregation.interval_upper_bounds = uppers
-        if question_type in ["binary", "multiple_choice"]:
+        if question_type in [
+            Question.QuestionType.BINARY,
+            Question.QuestionType.MULTIPLE_CHOICE,
+        ]:
             aggregation.means = np.average(
                 forecast_set.forecasts_values, weights=weights, axis=0
             ).tolist()
-    if histogram and question_type == "binary":
+    if histogram and question_type in [
+        Question.QuestionType.BINARY,
+        Question.QuestionType.MULTIPLE_CHOICE,
+    ]:
         aggregation.histogram = get_histogram(
-            [f[1] for f in forecast_set.forecasts_values], weights
+            forecast_set.forecasts_values,
+            weights,
+            question_type=question_type,
         ).tolist()
     return aggregation
 
@@ -513,9 +541,12 @@ def get_aggregation_history(
         for i, forecast_set in enumerate(forecast_history):
             weights = get_weights(forecast_set)
             include_histogram = (
-                question.type == "binary" and histogram
+                question.type
+                in [Question.QuestionType.BINARY, Question.QuestionType.MULTIPLE_CHOICE]
+                and histogram
                 if histogram is not None
-                else question.type == "binary" and i == (len(forecast_history) - 1)
+                else question.type == Question.QuestionType.BINARY
+                and i == (len(forecast_history) - 1)
             )
 
             if forecast_set.forecasts_values:

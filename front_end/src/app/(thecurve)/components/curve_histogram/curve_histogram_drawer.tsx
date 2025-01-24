@@ -65,12 +65,12 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
   ) {
     const histogramQuestion = post.group_of_questions.questions[0];
     const histogramData =
-      histogramQuestion.aggregations.recency_weighted.latest?.histogram?.map(
-        (value, index) => ({
+      histogramQuestion.aggregations.recency_weighted.latest?.histogram
+        ?.at(0)
+        ?.map((value, index) => ({
           x: index,
           y: value,
-        })
-      );
+        }));
     const median =
       histogramQuestion.aggregations.recency_weighted.latest?.centers?.[0];
     const choiceOptions = generateCurveChoiceOptions(

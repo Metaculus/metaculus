@@ -9,25 +9,33 @@ type Props = {
   questionData: AggregationQuestionWithBots;
   activeAggregation: AggregateForecastHistory;
   selectedTimestamp: number | null;
+  aggregationIndex?: number;
 };
 
 const HistogramDrawer: FC<Props> = ({
   questionData,
   activeAggregation,
   selectedTimestamp,
+  aggregationIndex,
 }) => {
-  if (questionData.type === QuestionType.Binary) {
+  if (
+    [QuestionType.Binary, QuestionType.MultipleChoice].includes(
+      questionData.type
+    )
+  ) {
     if (!activeAggregation || !selectedTimestamp) return null;
 
     const timestampIndex = activeAggregation.history.findIndex(
       (item) => item.start_time === selectedTimestamp
     );
-    const histogramData = activeAggregation.history[
-      timestampIndex
-    ]?.histogram?.map((value, index) => ({
+    const histogram = activeAggregation.history[timestampIndex]?.histogram?.at(
+      aggregationIndex || 0
+    );
+    const histogramData = histogram?.map((value, index) => ({
       x: index,
       y: value,
     }));
+    console.log({ aggregationIndex, histogram, histogramData });
     const median = activeAggregation.history?.[timestampIndex]?.centers?.[0];
     const mean = activeAggregation.history?.[timestampIndex]?.means?.[0];
 
