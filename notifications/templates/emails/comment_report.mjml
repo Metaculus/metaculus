@@ -8,38 +8,30 @@
             <mj-column>
 
                 <mj-text>
-                    Hello {{recipient.username}},
+                    Reported comment:
                 </mj-text>
 
                 <mj-text>
-                    {% blocktrans with count=params|length %}
-                    The following {{count}} comments were reported:
-                    {% endblocktrans %}
-                </mj-text>
-
-                <mj-text>
-                    <ul>
-                        {% for comment in params %}
-                        <li>
-                            <a href="{% build_user_profile_url comment.author.id %}">@{{ comment.author.username }}:</a>
-                            “{{ comment.preview_text }}”.
-                            <a href="{{ comment.url }}">(link)</a>
-                            <br/>
-                            <span><b>Reason:</b> {{ comment.reason }}</span>
-                            <br/>
-                            {% if comment.reporter %}
-                            <span><b>Reported by: </b>
-                                <a href="{% build_user_profile_url comment.reporter.id %}">@{{ comment.reporter.username }}</a>
-                            </span>
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    <div>
+                        <b>Author:</b>
+                        <a href="{% build_user_profile_url params.comment.author.id %}">@{{ params.comment.author.username }}</a>
+                    </div>
+                    <div>
+                        <b>Comment:</b>
+                        <span>“{{ params.preview_text }}”</span>
+                        <a href="{{ params.comment_url }}">(link)</a>
+                    </div>
+                    <div>
+                        <b>Reason:</b>
+                        <span>{{ params.reason }}</span>
+                    </div>
+                    <div>
+                        <b>Reported by:</b>
+                        <a href="{% build_user_profile_url params.reporter.id %}">@{{ params.reporter.username }}</a>
+                    </div>
                 </mj-text>
 
             </mj-column>
         </mj-section>
-        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
-        <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
     </mj-body>
 </mjml>
