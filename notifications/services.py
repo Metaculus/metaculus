@@ -515,7 +515,7 @@ class NotificationPostSpecificTime(
 
 class NotificationCommentReport(NotificationTypeBase):
     type = "comment_report"
-    email_template = "emails/comment_report.html"
+    email_template = "emails/old_comment_report.html"
 
     @dataclass
     class ParamsType:
