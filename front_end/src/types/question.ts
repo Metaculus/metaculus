@@ -137,7 +137,7 @@ export type AggregateForecast = Forecast & {
   method: AggregationMethod;
   forecaster_count: number;
   means: number[] | null;
-  histogram: number[] | null;
+  histogram: number[][] | null;
   forecast_values: number[] | null;
 };
 

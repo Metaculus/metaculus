@@ -114,6 +114,15 @@ const AggregationsTab: FC<Props> = ({
             selectedTimestamp={aggregationTimestamp}
           />
         );
+      case QuestionType.MultipleChoice:
+        return (
+          <HistogramDrawer
+            activeAggregation={activeAggregation}
+            questionData={questionData}
+            selectedTimestamp={aggregationTimestamp}
+            aggregationIndex={aggregationIndex}
+          />
+        );
       case QuestionType.Numeric:
       case QuestionType.Date:
         return (
