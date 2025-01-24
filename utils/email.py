@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_email_with_template(
-    to: str,
+    to: list[str] | str,
     subject: str,
     template_name: str,
     context: dict = None,
@@ -26,11 +26,13 @@ def send_email_with_template(
     if SEND_ALL_MAIL_TO:
         to = SEND_ALL_MAIL_TO
 
+    to = [to] if isinstance(to, str) else list(to)
+
     kwargs = dict(
         subject=str(subject),
         message=plain_message,
         from_email=from_email or settings.EMAIL_HOST_USER,
-        recipient_list=[to],
+        recipient_list=to,
         html_message=convert_to_html_content,
     )
 
