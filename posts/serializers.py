@@ -614,7 +614,7 @@ class DownloadDataSerializer(serializers.Serializer):
     include_bots = serializers.BooleanField(required=False, allow_null=True)
     minimize = serializers.BooleanField(required=False, default=True)
 
-    def validate_aggregation_methods(self, value):
+    def validate_aggregation_methods(self, value: str | None):
         if value is None:
             return
         user: User = self.context["user"]
@@ -627,7 +627,7 @@ class DownloadDataSerializer(serializers.Serializer):
             if user.is_staff:
                 aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
             return aggregation_methods
-        methods = value.split(",")
+        methods: list[str] = [v.strip() for v in value.split(",")]
         invalid_methods = [
             method for method in methods if method not in AggregationMethod.values
         ]
