@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
@@ -7,6 +8,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from posts.models import Post
+from questions.compat import convert_slider_values_to_distribution_input
 from questions.constants import ResolutionType
 from questions.models import Forecast
 from questions.models import (
@@ -20,6 +22,9 @@ from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
 from utils.the_math.measures import percent_point_function
+
+
+logger = logging.getLogger(__name__)
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -274,7 +279,7 @@ class MyForecastSerializer(serializers.ModelSerializer):
             "interval_lower_bounds",
             "centers",
             "interval_upper_bounds",
-            "slider_values",
+            "distribution_input",
         )
 
     def get_start_time(self, forecast: Forecast):
@@ -394,6 +399,8 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
     percentiles = serializers.JSONField(allow_null=True, required=False)
 
     slider_values = serializers.JSONField(allow_null=True, required=False)
+    distribution_input = serializers.JSONField(allow_null=True, required=False)
+
     source = serializers.ChoiceField(
         allow_null=True,
         required=False,
@@ -410,6 +417,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "probability_yes_per_category",
             "percentiles",
             "slider_values",
+            "distribution_input",
             "source",
         )
 
@@ -512,6 +520,8 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")
         continuous_cdf = data.get("continuous_cdf")
+        slider_values = data.get("slider_values")
+        distribution_input = data.get("distribution_input")
 
         if question.type == Question.QuestionType.BINARY:
             if probability_yes_per_category or continuous_cdf:
@@ -535,6 +545,12 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 )
             data["continuous_cdf"] = self.continuous_validation(
                 continuous_cdf, question
+            )
+
+        # Backward compatibility
+        if slider_values and not distribution_input:
+            data["distribution_input"] = convert_slider_values_to_distribution_input(
+                slider_values
             )
 
         return data

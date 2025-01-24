@@ -311,6 +311,16 @@ class Forecast(models.Model):
     )
 
     slider_values = models.JSONField(null=True)
+    slider_values.system_check_deprecated_details = {
+        "msg": (
+            "The `Forecast.slider_values` field has been deprecated "
+            "and will be removed in future versions. "
+        ),
+        "hint": "Please use `Forecast.distribution_input` instead",
+        "id": "Forecast.slider_values",
+    }
+
+    distribution_input = models.JSONField(null=True)
 
     class Meta:
         indexes = [
