@@ -275,14 +275,6 @@ class Forecast(models.Model):
     # multiple choice prediction
     probability_yes_per_category = ArrayField(models.FloatField(), null=True)
 
-    # continuous prediction - migrated from old version
-    distribution_components = ArrayField(
-        models.JSONField(null=True),
-        size=5,
-        null=True,
-        help_text="The components for a continuous prediction. Used to generate prediction_values.",
-    )
-
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(
         Question, models.CASCADE, related_name="user_forecasts"
@@ -309,16 +301,6 @@ class Forecast(models.Model):
         choices=SourceChoices.choices,
         default="",
     )
-
-    slider_values = models.JSONField(null=True)
-    slider_values.system_check_deprecated_details = {
-        "msg": (
-            "The `Forecast.slider_values` field has been deprecated "
-            "and will be removed in future versions. "
-        ),
-        "hint": "Please use `Forecast.distribution_input` instead",
-        "id": "Forecast.slider_values",
-    }
 
     distribution_input = models.JSONField(null=True)
 

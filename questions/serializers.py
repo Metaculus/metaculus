@@ -8,7 +8,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from posts.models import Post
-from questions.compat import convert_slider_values_to_distribution_input
 from questions.constants import ResolutionType
 from questions.models import Forecast
 from questions.models import (
@@ -398,7 +397,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
     )
     percentiles = serializers.JSONField(allow_null=True, required=False)
 
-    slider_values = serializers.JSONField(allow_null=True, required=False)
     distribution_input = serializers.JSONField(allow_null=True, required=False)
 
     source = serializers.ChoiceField(
@@ -416,7 +414,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "probability_yes",
             "probability_yes_per_category",
             "percentiles",
-            "slider_values",
             "distribution_input",
             "source",
         )
@@ -520,7 +517,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")
         continuous_cdf = data.get("continuous_cdf")
-        slider_values = data.get("slider_values")
         distribution_input = data.get("distribution_input")
 
         if question.type == Question.QuestionType.BINARY:
@@ -545,12 +541,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 )
             data["continuous_cdf"] = self.continuous_validation(
                 continuous_cdf, question
-            )
-
-        # Backward compatibility
-        if slider_values and not distribution_input:
-            data["distribution_input"] = convert_slider_values_to_distribution_input(
-                slider_values
             )
 
         return data
