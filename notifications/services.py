@@ -13,6 +13,7 @@ from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
 from posts.models import Post
 from projects.models import Project
+from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.utils import get_question_group_title
 from users.models import User
@@ -515,7 +516,7 @@ class NotificationPostSpecificTime(
 
 class NotificationCommentReport(NotificationTypeBase):
     type = "comment_report"
-    email_template = "emails/comment_report.html"
+    email_template = "emails/old_comment_report.html"
 
     @dataclass
     class ParamsType:
@@ -688,5 +689,36 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
             },
         },
         use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )
+
+
+def send_comment_report_notification_to_staff(
+    comment: Comment, reason: str, reporter: User
+):
+    recipients = comment.on_post.default_project.get_users_for_permission(
+        ObjectPermission.CURATOR
+    )
+
+    return send_email_with_template(
+        [x.email for x in recipients],
+        _(
+            f"Comment report: {comment.author.username} - "
+            f"{generate_email_comment_preview_text(comment.text, max_chars=40)[0]}"
+        ),
+        "emails/comment_report.html",
+        context={
+            "params": {
+                "comment": comment,
+                "preview_text": generate_email_comment_preview_text(
+                    comment.text, max_chars=300
+                )[0],
+                "comment_url": build_post_comment_url(
+                    comment.on_post_id, comment.on_post.title, comment.id
+                ),
+                "reporter": reporter,
+                "reason": reason,
+            },
+        },
         from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )

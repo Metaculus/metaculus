@@ -1082,20 +1082,21 @@ export default async function ScoresFAQ() {
       </div>
       <p>
         For a tournament with a sufficiently large number of independent
-        questions, this scoring method is effectively{" "}
+        questions, this scoring method is essentially{" "}
         <a href="https://www.metaculus.com/help/scores-faq/#proper-scoring">
           proper
-        </a>{" "}
-        for the top quartile of forecasters. While there are small imperfections
-        for forecasters near a 0 Peer score for which they might win a tiny bit
-        of money by extremizing their forecasts, we believe this is an edge case
-        that you can safely ignore. In short, you should predict your true
-        belief on any question.
+        </a>
+        . In short, you should predict your true belief on any question.
       </p>
       <p>
         Taking the square of your Peer scores incentivizes forecasting every
         question and forecasting early. Don’t forget to <b>Follow</b> a
         tournament to be notified of new questions.
+      </p>
+      <p>
+        Note: to limit administrative costs, we also limit prize apportionment
+        to amounts above a certain threshold (typically 10$, but it can vary per
+        tournament).
       </p>
 
       <hr />
