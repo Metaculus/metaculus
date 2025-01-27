@@ -141,17 +141,17 @@ const ConditionalChart: FC<Props> = ({
             ]
           : [];
       const prevForecast =
-        userLatest && !userLatest.end_time ? userLatest.slider_values : null;
-      const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
-      const dataset =
-        prevForecastValue?.forecast && prevForecastValue?.weights
-          ? getNumericForecastDataset(
-              prevForecastValue.forecast,
-              prevForecastValue.weights,
-              question.open_lower_bound,
-              question.open_upper_bound
-            )
+        userLatest && !userLatest.end_time
+          ? userLatest.distribution_input
           : null;
+      const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
+      const dataset = prevForecastValue?.components
+        ? getNumericForecastDataset(
+            prevForecastValue.components,
+            question.open_lower_bound,
+            question.open_upper_bound
+          )
+        : null;
 
       if (!!dataset) {
         continuousAreaChartData.push({

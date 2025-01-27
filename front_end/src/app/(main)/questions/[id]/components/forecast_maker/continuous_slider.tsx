@@ -1,34 +1,33 @@
 "use client";
-import { faClose } from "@fortawesome/free-solid-svg-icons";
-import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
+import { faCircleQuestion, faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import MultiSlider, {
-  MultiSliderValue,
-} from "@/components/sliders/multi_slider";
+import MultiSlider from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
 import Checkbox from "@/components/ui/checkbox";
 import Switch from "@/components/ui/switch";
 import Tooltip from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousAreaGraphType } from "@/types/charts";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import {
+  DistributionSliderComponent,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import cn from "@/utils/cn";
 
 import ContinuousPredictionChart from "./continuous_prediction_chart";
 import { useHideCP } from "../cp_provider";
 
 type Props = {
-  forecast: MultiSliderValue[];
-  weights: number[];
+  components: DistributionSliderComponent[];
   dataset: {
     cdf: number[];
     pmf: number[];
   };
-  onChange: (forecast: MultiSliderValue[], weights: number[]) => void;
+  onChange: (components: DistributionSliderComponent[]) => void;
   overlayPreviousForecast: boolean;
   setOverlayPreviousForecast: (value: boolean) => void;
   question: QuestionWithNumericForecasts;
@@ -36,8 +35,7 @@ type Props = {
 };
 
 const ContinuousSlider: FC<Props> = ({
-  forecast,
-  weights,
+  components,
   dataset,
   onChange,
   overlayPreviousForecast,
@@ -117,10 +115,7 @@ const ContinuousSlider: FC<Props> = ({
         showCP={!user || !hideCP || !!question.resolution}
       />
       {!disabled &&
-        forecast.map((x, index) => {
-          const forecastValue = forecast[index];
-          const weightValue = weights[index];
-
+        components.map((forecastValue, index) => {
           return (
             <div className="px-2.5" key={index}>
               {!isNil(forecastValue) && (
@@ -132,21 +127,22 @@ const ContinuousSlider: FC<Props> = ({
                   clampStep={0.035}
                   onChange={(value) => {
                     const newForecast = [
-                      ...forecast.slice(0, index),
+                      ...components.slice(0, index),
                       {
                         left: value.left,
                         center: value.center,
                         right: value.right,
+                        weight: forecastValue.weight,
                       },
-                      ...forecast.slice(index + 1, forecast.length),
+                      ...components.slice(index + 1, components.length),
                     ];
-                    onChange(newForecast, weights);
+                    onChange(newForecast);
                   }}
                   shouldSyncWithDefault
                 />
               )}
 
-              {!!forecast.length && !isNil(weightValue) && (
+              {!!components.length && !isNil(forecastValue.weight) && (
                 <div className="flex flex-row justify-between">
                   <span className="inline pr-2 pt-2">weight:</span>
                   <div className="inline w-3/4">
@@ -155,15 +151,18 @@ const ContinuousSlider: FC<Props> = ({
                       inputMin={0}
                       inputMax={1}
                       step={0.00001}
-                      defaultValue={weightValue}
+                      defaultValue={forecastValue.weight}
                       round={true}
                       onChange={(value) => {
-                        const newWeights = [
-                          ...weights.slice(0, index),
-                          value,
-                          ...weights.slice(index + 1, forecast.length),
+                        const newForecast = [
+                          ...components.slice(0, index),
+                          {
+                            ...forecastValue,
+                            weight: value,
+                          },
+                          ...components.slice(index + 1, components.length),
                         ];
-                        onChange(forecast, newWeights);
+                        onChange(newForecast);
                       }}
                       disabled={disabled}
                       shouldSyncWithDefault
@@ -174,14 +173,10 @@ const ContinuousSlider: FC<Props> = ({
                     icon={faClose}
                     onClick={() => {
                       const newForecast = [
-                        ...forecast.slice(0, index),
-                        ...forecast.slice(index + 1, forecast.length),
+                        ...components.slice(0, index),
+                        ...components.slice(index + 1, components.length),
                       ];
-                      const newWeights = [
-                        ...weights.slice(0, index),
-                        ...weights.slice(index + 1, forecast.length),
-                      ];
-                      onChange(newForecast, newWeights);
+                      onChange(newForecast);
                     }}
                   />
                 </div>

@@ -6,14 +6,17 @@ import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
-import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
-import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  DistributionSliderComponent,
+  Quartiles,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getCdfBounds, getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
@@ -61,21 +64,20 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const latestNo = question_no.my_forecasts?.latest;
   const prevYesForecastValue =
     latestYes && !latestYes.end_time
-      ? extractPrevNumericForecastValue(latestYes.slider_values)
-      : null;
+      ? extractPrevNumericForecastValue(latestYes.distribution_input)
+      : undefined;
   const prevNoForecastValue =
     latestNo && !latestNo.end_time
-      ? extractPrevNumericForecastValue(latestNo.slider_values)
-      : null;
+      ? extractPrevNumericForecastValue(latestNo.distribution_input)
+      : undefined;
   const hasUserForecast =
-    !!prevYesForecastValue?.forecast || !!prevNoForecastValue?.forecast;
+    !!prevYesForecastValue?.components || !!prevNoForecastValue?.components;
 
   const [questionOptions, setQuestionOptions] = useState<
     Array<
       ConditionalTableOption & {
         question: QuestionWithNumericForecasts;
-        sliderForecast: MultiSliderValue[];
-        weights: number[];
+        sliderForecast: DistributionSliderComponent[];
       }
     >
   >(() => [
@@ -83,13 +85,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       id: questionYesId,
       name: t("ifYes"),
       value: getTableValue(
-        prevYesForecastValue?.forecast,
-        prevYesForecastValue?.weights,
+        prevYesForecastValue?.components,
         question_yes.open_lower_bound,
         question_yes.open_upper_bound
       ),
-      sliderForecast: getSliderValue(prevYesForecastValue?.forecast),
-      weights: getWeightsValue(prevYesForecastValue?.weights),
+      sliderForecast: getSliderValue(prevYesForecastValue?.components),
       isDirty: false,
       question: question_yes,
     },
@@ -97,13 +97,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       id: questionNoId,
       name: t("ifNo"),
       value: getTableValue(
-        prevNoForecastValue?.forecast,
-        prevNoForecastValue?.weights,
+        prevNoForecastValue?.components,
         question_no.open_lower_bound,
         question_no.open_upper_bound
       ),
-      sliderForecast: getSliderValue(prevNoForecastValue?.forecast),
-      weights: getWeightsValue(prevNoForecastValue?.weights),
+      sliderForecast: getSliderValue(prevNoForecastValue?.components),
       isDirty: false,
       question: question_no,
     },
@@ -163,7 +161,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               value: fromChoiceOption?.value ?? prevChoice.value,
               sliderForecast:
                 fromChoiceOption?.sliderForecast ?? prevChoice.sliderForecast,
-              weights: fromChoiceOption?.weights ?? prevChoice.weights,
               isDirty: true,
             };
           }
@@ -176,21 +173,19 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   );
 
   const handleChange = useCallback(
-    (optionId: number, forecast: MultiSliderValue[], weights: number[]) => {
+    (optionId: number, components: DistributionSliderComponent[]) => {
       setQuestionOptions((prev) =>
         prev.map((option) => {
           if (option.id === optionId) {
             return {
               ...option,
               value: getTableValue(
-                forecast,
-                option.weights,
+                components,
                 option.question.open_lower_bound,
                 option.question.open_upper_bound
               ),
               isDirty: true,
-              sliderForecast: forecast,
-              weights,
+              sliderForecast: components,
             };
           }
 
@@ -209,9 +204,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ...prevChoice,
             sliderForecast: [
               ...prevChoice.sliderForecast,
-              { left: 0.4, center: 0.5, right: 0.6 },
+              { left: 0.4, center: 0.5, right: 0.6, weight: 1 },
             ],
-            weights: [...prevChoice.weights, 1],
             isDirty: true,
           };
         }
@@ -228,26 +222,22 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           return {
             ...prevChoice,
             value: getTableValue(
-              prevYesForecastValue?.forecast,
-              prevYesForecastValue?.weights,
+              prevYesForecastValue?.components,
               question_yes.open_lower_bound,
               question_yes.open_upper_bound
             ),
-            sliderForecast: getSliderValue(prevYesForecastValue?.forecast),
-            weights: getWeightsValue(prevYesForecastValue?.weights),
+            sliderForecast: getSliderValue(prevYesForecastValue?.components),
             isDirty: false,
           };
         } else if (prevChoice.id === questionNoId) {
           return {
             ...prevChoice,
             value: getTableValue(
-              prevNoForecastValue?.forecast,
-              prevNoForecastValue?.weights,
+              prevNoForecastValue?.components,
               question_no.open_lower_bound,
               question_no.open_upper_bound
             ),
-            sliderForecast: getSliderValue(prevNoForecastValue?.forecast),
-            weights: getWeightsValue(prevNoForecastValue?.weights),
+            sliderForecast: getSliderValue(prevNoForecastValue?.components),
             isDirty: false,
           };
         } else {
@@ -256,10 +246,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       })
     );
   }, [
-    prevNoForecastValue?.forecast,
-    prevNoForecastValue?.weights,
-    prevYesForecastValue?.forecast,
-    prevYesForecastValue?.weights,
+    prevNoForecastValue?.components,
+    prevYesForecastValue?.components,
     questionNoId,
     questionYesId,
     question_no.open_lower_bound,
@@ -277,21 +265,20 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     setIsSubmitting(true);
     const response = await createForecasts(
       postId,
-      questionsToSubmit.map(({ question, sliderForecast, weights }) => ({
+      questionsToSubmit.map(({ question, sliderForecast }) => ({
         questionId: question.id,
         forecastData: {
           continuousCdf: getNumericForecastDataset(
             sliderForecast,
-            weights,
             question.open_lower_bound,
             question.open_upper_bound
           ).cdf,
           probabilityYesPerCategory: null,
           probabilityYes: null,
         },
-        sliderValues: {
-          forecast: sliderForecast,
-          weights,
+        distributionInput: {
+          type: "slider",
+          components: sliderForecast,
         },
       }))
     );
@@ -335,13 +322,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
   const previousForecast = activeOptionData?.question.my_forecasts?.latest;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
-    useState<boolean>(!!previousForecast && !previousForecast?.slider_values);
+    useState<boolean>(
+      !!previousForecast && !previousForecast?.distribution_input
+    );
 
   const userCdf: number[] | undefined =
     activeOptionData &&
     getNumericForecastDataset(
       activeOptionData.sliderForecast,
-      activeOptionData.weights,
       activeOptionData.question.open_lower_bound,
       activeOptionData.question.open_upper_bound
     ).cdf;
@@ -385,19 +373,15 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         >
           <ContinuousSlider
             question={option.question}
-            forecast={option.sliderForecast}
-            weights={option.weights}
+            components={option.sliderForecast}
             overlayPreviousForecast={overlayPreviousForecast}
             setOverlayPreviousForecast={setOverlayPreviousForecast}
             dataset={getNumericForecastDataset(
               option.sliderForecast,
-              option.weights,
               option.question.open_lower_bound,
               option.question.open_upper_bound
             )}
-            onChange={(forecast, weight) =>
-              handleChange(option.id, forecast, weight)
-            }
+            onChange={(components) => handleChange(option.id, components)}
             disabled={!canPredict}
           />
         </div>
@@ -500,53 +484,42 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 };
 
 function getUserQuartiles(
-  forecast?: MultiSliderValue[],
-  weights?: number[],
+  components?: DistributionSliderComponent[],
   openLower?: boolean,
   openUpper?: boolean
 ): Quartiles | null {
   if (
-    !forecast ||
-    !weights ||
+    !components ||
     typeof openLower === "undefined" ||
     typeof openUpper === "undefined"
   ) {
     return null;
   }
 
-  const dataset = getNumericForecastDataset(
-    forecast,
-    weights,
-    openLower,
-    openUpper
-  );
+  const dataset = getNumericForecastDataset(components, openLower, openUpper);
   return computeQuartilesFromCDF(dataset.cdf);
 }
 
 function getTableValue(
-  forecast?: MultiSliderValue[],
-  weight?: number[],
+  components?: DistributionSliderComponent[],
   openLower?: boolean,
   openUpper?: boolean
 ) {
-  const quartiles = getUserQuartiles(forecast, weight, openLower, openUpper);
+  const quartiles = getUserQuartiles(components, openLower, openUpper);
   return quartiles?.median ?? null;
 }
 
-function getSliderValue(forecast?: MultiSliderValue[]) {
+function getSliderValue(components?: DistributionSliderComponent[]) {
   return (
-    forecast ?? [
+    components ?? [
       {
         left: 0.4,
         center: 0.5,
         right: 0.6,
+        weight: 1,
       },
     ]
   );
-}
-
-function getWeightsValue(weights?: number[]) {
-  return weights ?? [1];
 }
 
 export default ForecastMakerConditionalContinuous;

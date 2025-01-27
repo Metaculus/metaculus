@@ -442,13 +442,17 @@ components:
           items:
             type: number
             format: float
-        slider_values:
+        distribution_input:
           description: Optional. Slider values used for populating the sliders on the frontend at page load.
           type: object
           required:
-            - forecast
-            - weights
+            - type
+            - components
           properties:
+            type:
+              type: string
+              enum: [ slider, quantile ]
+              example: slider
             forecast:
               type: array
               items:
@@ -463,10 +467,9 @@ components:
                   right:
                     type: number
                     format: float
-            weights:
-              type: array
-              items:
-                type: integer
+                  weight:
+                    type: number
+                    format: float
 
     MultipleChoiceForecast:
       type: object
