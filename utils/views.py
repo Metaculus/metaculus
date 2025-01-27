@@ -37,26 +37,28 @@ def aggregation_explorer_api_view(request):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # get and validate aggregation_methods
-    aggregation_methods = request.GET.get("aggregation_methods", None)
+    aggregation_methods: str | None = request.GET.get("aggregation_methods", None)
     if aggregation_methods:
-        aggregation_methods: list[AggregationMethod] = aggregation_methods.split(",")
-        for method in aggregation_methods:
+        methods: list[AggregationMethod] = [
+            m.strip() for m in aggregation_methods.split(",")
+        ]
+        for method in methods:
             if method not in AggregationMethod.values:
                 raise PermissionDenied(f"Invalid aggregation method: {method}")
         if not request.user.is_staff:
-            aggregation_methods = [
+            methods = [
                 method
-                for method in aggregation_methods
+                for method in methods
                 if method != AggregationMethod.SINGLE_AGGREGATION
             ]
     else:
-        aggregation_methods = [
+        methods = [
             AggregationMethod.RECENCY_WEIGHTED,
             AggregationMethod.UNWEIGHTED,
             AggregationMethod.METACULUS_PREDICTION,
         ]
         if request.user.is_staff:
-            aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
+            methods.append(AggregationMethod.SINGLE_AGGREGATION)
 
     # get user_ids
     user_ids = request.GET.get("user_ids", None)
@@ -72,7 +74,7 @@ def aggregation_explorer_api_view(request):
 
     aggregations = get_aggregation_history(
         question,
-        aggregation_methods,
+        methods,
         user_ids=user_ids,
         minimize=minimize,
         include_stats=True,

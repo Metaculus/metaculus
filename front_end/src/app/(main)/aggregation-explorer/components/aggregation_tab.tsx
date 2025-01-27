@@ -5,38 +5,56 @@ import { FC, useCallback, useState, memo, useMemo } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
 import { useDebouncedValue } from "@/hooks/use_debounce";
-import {
-  AggregationQuestion,
-  Aggregations,
-  QuestionType,
-} from "@/types/question";
+import { QuestionType } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
 import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
 import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
+import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
+import { AggregationQuestionWithBots } from "../types";
 
 type Props = {
-  questionData: AggregationQuestion;
-  activeTab: keyof Aggregations;
+  aggregationData: AggregationQuestionWithBots | null;
+  activeTab: string;
+  selectedSubQuestionOption: number | string | null;
 };
 
-const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
+const AggregationsTab: FC<Props> = ({
+  aggregationData,
+  activeTab,
+  selectedSubQuestionOption,
+}) => {
   const t = useTranslations();
 
-  const {
-    aggregations,
-    actual_close_time,
-    scaling,
-    type: qType,
-    resolution,
-  } = questionData;
+  const { aggregations, bot_aggregations, actual_close_time, resolution } =
+    aggregationData ?? {};
+
+  const tabData =
+    AGGREGATION_EXPLORER_OPTIONS.find((option) => option.id === activeTab) ??
+    AGGREGATION_EXPLORER_OPTIONS[0];
 
   const activeAggregation = useMemo(
-    () => aggregations[activeTab],
-    [activeTab, aggregations]
+    () =>
+      tabData?.includeBots
+        ? bot_aggregations?.[tabData.value]
+        : aggregations?.[tabData.value],
+    [aggregations, bot_aggregations, tabData]
   );
+
+  let aggregationIndex: number | undefined;
+  if (
+    typeof selectedSubQuestionOption === "string" &&
+    aggregationData?.options
+  ) {
+    const indexCandidate = aggregationData.options.findIndex(
+      (o) => o === selectedSubQuestionOption
+    );
+    if (indexCandidate !== -1) {
+      aggregationIndex = indexCandidate;
+    }
+  }
 
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
@@ -86,23 +104,32 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
     return null;
   }
 
-  const renderAggregation = () => {
-    switch (qType) {
+  const renderAggregation = (questionData: AggregationQuestionWithBots) => {
+    switch (questionData.type) {
       case QuestionType.Binary:
         return (
           <HistogramDrawer
+            activeAggregation={activeAggregation}
             questionData={questionData}
-            activeTab={activeTab}
             selectedTimestamp={aggregationTimestamp}
+          />
+        );
+      case QuestionType.MultipleChoice:
+        return (
+          <HistogramDrawer
+            activeAggregation={activeAggregation}
+            questionData={questionData}
+            selectedTimestamp={aggregationTimestamp}
+            aggregationIndex={aggregationIndex}
           />
         );
       case QuestionType.Numeric:
       case QuestionType.Date:
         return (
           <ContinuousAggregationChart
+            activeAggregation={activeAggregation}
             selectedTimestamp={aggregationTimestamp}
             questionData={questionData}
-            activeTab={activeTab}
           />
         );
       default:
@@ -110,13 +137,17 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
     }
   };
 
+  if (!aggregationData) {
+    return null;
+  }
   return (
     <DetailsQuestionCardErrorBoundary>
       <NumericChart
         aggregation={activeAggregation}
-        questionType={qType}
+        aggregationIndex={aggregationIndex}
+        questionType={aggregationData.type}
         actualCloseTime={actualCloseTime}
-        scaling={scaling}
+        scaling={aggregationData.scaling}
         resolution={resolution}
         onCursorChange={handleCursorChange}
       />
@@ -130,15 +161,15 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
             title={t("communityPredictionLabel")}
             content={getDisplayValue({
               value: cursorData.center,
-              questionType: qType,
-              scaling,
+              questionType: aggregationData.type,
+              scaling: aggregationData.scaling,
             })}
             variant="prediction"
           />
         </div>
       )}
 
-      {renderAggregation()}
+      {renderAggregation(aggregationData)}
     </DetailsQuestionCardErrorBoundary>
   );
 };
