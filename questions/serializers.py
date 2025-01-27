@@ -517,7 +517,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")
         continuous_cdf = data.get("continuous_cdf")
-        distribution_input = data.get("distribution_input")
 
         if question.type == Question.QuestionType.BINARY:
             if probability_yes_per_category or continuous_cdf:
