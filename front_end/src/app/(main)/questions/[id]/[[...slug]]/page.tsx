@@ -97,7 +97,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: "article",
       images: {
-        url: `/api/posts/preview-image/${params.id}/`,
+        url: `/questions/${params.id}/image-preview/`,
         width: 1200,
         height: 630,
         alt: "community predictions",
@@ -107,7 +107,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       site: "@metaculus",
       card: "summary_large_image",
       images: {
-        url: `/api/posts/preview-image/${params.id}/`,
+        url: `/questions/${params.id}/image-preview/`,
         width: 1200,
         height: 630,
         alt: "community predictions",
