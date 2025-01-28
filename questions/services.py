@@ -662,7 +662,6 @@ def create_forecast(
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
-        distribution_components=None,
         distribution_input=distribution_input if question.type in ["date", "numeric"] else None,
         post=post,
         **kwargs,
