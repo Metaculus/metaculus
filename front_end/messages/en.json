@@ -1046,5 +1046,10 @@
   "block": "Block",
   "accountInactiveModalTitle": "You've got mail!",
   "accountInactiveModalBody": "Please confirm your email associated with your <bold>{login}</bold> account to be able to log in.",
-  "accountInactiveModalResendButton": "Resend activation email"
+  "accountInactiveModalResendButton": "Resend activation email",
+  "table": "Table",
+  "slider": "Slider",
+  "lowerBound": "Lower bound",
+  "quartiles": "Quartiles",
+  "upperBound": "Upper bound"
 }

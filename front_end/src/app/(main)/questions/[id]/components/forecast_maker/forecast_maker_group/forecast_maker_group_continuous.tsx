@@ -18,6 +18,7 @@ import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { ForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import {
   Post,
@@ -47,6 +48,7 @@ import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import { useHideCP } from "../../cp_provider";
 import ContinuousSlider from "../continuous_slider";
+import GroupForecastAccordion from "../group_forecast_accordion";
 import GroupForecastTable, {
   ConditionalTableOption,
 } from "../group_forecast_table";
@@ -76,6 +78,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const { hideCP } = useHideCP();
   const params = useSearchParams();
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
+
+  const [forecastInputMode, setForecastInputMode] =
+    useState<ForecastInputType>("slider");
 
   const { id: postId, user_permission: permission } = post;
 
@@ -279,15 +284,25 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   return (
     <>
-      <GroupForecastTable
+      <GroupForecastAccordion
+        options={groupOptions}
+        groupVariable={groupVariable}
+        canPredict={canPredict}
+        isPending={isSubmitting}
+        handleChange={handleChange}
+        handleAddComponent={handleAddComponent}
+        handleResetForecasts={handleResetForecasts}
+        handlePredictSubmit={handlePredictSubmit}
+      />
+      {/* <GroupForecastTable
         value={activeTableOption}
         options={groupOptions}
         groupVariable={groupVariable}
         onChange={setActiveTableOption}
         questions={questions}
         showCP={!user || !hideCP}
-      />
-      {groupOptions.map((option) => {
+      /> */}
+      {/* {groupOptions.map((option) => {
         const normalizedUserForecast = getNormalizedContinuousForecast(
           option.userForecast
         );
@@ -313,19 +328,22 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               disabled={
                 !canPredict || option.question.status !== QuestionStatus.OPEN
               }
+              // showInputModeSwitcher
+              forecastInputMode={forecastInputMode}
+              setForecastInputMode={setForecastInputMode}
             />
           </div>
         );
-      })}
+      })} */}
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
           {predictionMessage}
         </div>
       )}
-      {!!activeGroupOption &&
+      {/* {!!activeGroupOption &&
         activeGroupOption.question.status == QuestionStatus.OPEN && (
           <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-            {canPredict && (
+            {canPredict && forecastInputMode === "slider" && (
               <>
                 {!!user && (
                   <>
@@ -356,7 +374,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               </>
             )}
           </div>
-        )}
+        )} */}
       <FormError
         errors={submitError}
         className="mt-2 flex items-center justify-center"
@@ -369,30 +387,34 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       )}
       {!!activeGroupOption && (
         <>
-          <NumericForecastTable
-            question={activeGroupOption.question}
-            userBounds={getCdfBounds(userCdf)}
-            userQuartiles={activeGroupOption.userQuartiles ?? undefined}
-            userPreviousBounds={getCdfBounds(userPreviousCdf)}
-            userPreviousQuartiles={
-              userPreviousCdf
-                ? computeQuartilesFromCDF(userPreviousCdf)
-                : undefined
-            }
-            communityBounds={getCdfBounds(communityCdf)}
-            communityQuartiles={
-              activeGroupOption.communityQuartiles ?? undefined
-            }
-            withUserQuartiles={activeGroupOption.resolution === null}
-            withCommunityQuartiles={!user || !hideCP}
-            isDirty={activeGroupOption.isDirty}
-            hasUserForecast={
-              !isNil(activeTableOption) &&
-              !!prevForecastValuesMap[activeTableOption]
-            }
-          />
+          {/* {forecastInputMode === "slider" ? (
+            <NumericForecastTable
+              question={activeGroupOption.question}
+              userBounds={getCdfBounds(userCdf)}
+              userQuartiles={activeGroupOption.userQuartiles ?? undefined}
+              userPreviousBounds={getCdfBounds(userPreviousCdf)}
+              userPreviousQuartiles={
+                userPreviousCdf
+                  ? computeQuartilesFromCDF(userPreviousCdf)
+                  : undefined
+              }
+              communityBounds={getCdfBounds(communityCdf)}
+              communityQuartiles={
+                activeGroupOption.communityQuartiles ?? undefined
+              }
+              withUserQuartiles={activeGroupOption.resolution === null}
+              withCommunityQuartiles={!user || !hideCP}
+              isDirty={activeGroupOption.isDirty}
+              hasUserForecast={
+                !isNil(activeTableOption) &&
+                !!prevForecastValuesMap[activeTableOption]
+              }
+            />
+          ) : (
+            <div>There will be a table inputs</div>
+          )} */}
 
-          {!!activeGroupOption.resolution && (
+          {/* {!!activeGroupOption.resolution && (
             <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
               <p className="my-1 flex justify-center gap-1 text-base">
                 {t("resolutionDescriptionContinuous")}
@@ -408,7 +430,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                 </strong>
               </p>
             </div>
-          )}
+          )} */}
         </>
       )}
       {activeQuestion && <ScoreDisplay question={activeQuestion} />}
