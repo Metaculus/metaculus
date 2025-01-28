@@ -394,7 +394,7 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
             serialized_notifications.append(
                 {
                     **params,
-                    "comments": preview_comments[: cls.comments_to_display],
+                    "comments": preview_comments[:cls.comments_to_display],
                     "comments_count": comments_count,
                     "read_more_count": read_more_count if read_more_count > 0 else 0,
                 }
