@@ -12,6 +12,7 @@ import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import { ForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
@@ -74,6 +75,8 @@ const ForecastMakerContinuous: FC<Props> = ({
       !!previousForecast?.forecast_values &&
         !previousForecast.distribution_input
     );
+  const [forecastInputMode, setForecastInputMode] =
+    useState<ForecastInputType>("slider");
 
   const dataset = useMemo(
     () =>
@@ -156,22 +159,23 @@ const ForecastMakerContinuous: FC<Props> = ({
   );
   return (
     <>
-      <div className="mt-[-36px] md:mt-[-28px]">
-        <ContinuousSlider
-          components={distributionComponents}
-          dataset={dataset}
-          onChange={(components) => {
-            setDistributionComponents(components);
-            setIsDirty(true);
-          }}
-          overlayPreviousForecast={overlayPreviousForecast}
-          setOverlayPreviousForecast={setOverlayPreviousForecast}
-          question={question}
-          disabled={!canPredict}
-        />
-      </div>
+      <ContinuousSlider
+        components={distributionComponents}
+        dataset={dataset}
+        onChange={(components) => {
+          setDistributionComponents(components);
+          setIsDirty(true);
+        }}
+        overlayPreviousForecast={overlayPreviousForecast}
+        setOverlayPreviousForecast={setOverlayPreviousForecast}
+        question={question}
+        disabled={!canPredict}
+        showInputModeSwitcher={true}
+        forecastInputMode={forecastInputMode}
+        setForecastInputMode={setForecastInputMode}
+      />
 
-      {canPredict && (
+      {canPredict && forecastInputMode === "slider" && (
         <>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
             {!!user && (
@@ -216,32 +220,43 @@ const ForecastMakerContinuous: FC<Props> = ({
           {predictionMessage}
         </div>
       )}
-      <NumericForecastTable
-        question={question}
-        userBounds={getCdfBounds(userCdf)}
-        userQuartiles={userCdf ? computeQuartilesFromCDF(userCdf) : undefined}
-        userPreviousBounds={getCdfBounds(userPreviousCdf)}
-        userPreviousQuartiles={
-          userPreviousCdf ? computeQuartilesFromCDF(userPreviousCdf) : undefined
-        }
-        communityBounds={getCdfBounds(communityCdf)}
-        communityQuartiles={
-          communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
-        }
-        withCommunityQuartiles={withCommunityQuartiles}
-        isDirty={isDirty}
-        hasUserForecast={hasUserForecast}
-      />
+      {forecastInputMode === "slider" ? (
+        <NumericForecastTable
+          question={question}
+          userBounds={getCdfBounds(userCdf)}
+          userQuartiles={userCdf ? computeQuartilesFromCDF(userCdf) : undefined}
+          userPreviousBounds={getCdfBounds(userPreviousCdf)}
+          userPreviousQuartiles={
+            userPreviousCdf
+              ? computeQuartilesFromCDF(userPreviousCdf)
+              : undefined
+          }
+          communityBounds={getCdfBounds(communityCdf)}
+          communityQuartiles={
+            communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
+          }
+          withCommunityQuartiles={withCommunityQuartiles}
+          isDirty={isDirty}
+          hasUserForecast={hasUserForecast}
+        />
+      ) : (
+        <div>There will be a table inputs</div>
+      )}
 
-      <div className="flex flex-col items-center justify-center">
-        <QuestionUnresolveButton question={question} permission={permission} />
-        {canResolve && (
-          <QuestionResolutionButton
+      {forecastInputMode === "slider" && (
+        <div className="flex flex-col items-center justify-center">
+          <QuestionUnresolveButton
             question={question}
             permission={permission}
           />
-        )}
-      </div>
+          {canResolve && (
+            <QuestionResolutionButton
+              question={question}
+              permission={permission}
+            />
+          )}
+        </div>
+      )}
     </>
   );
 };

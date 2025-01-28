@@ -26,7 +26,9 @@ const ForecastMakerContainer: FC<PropsWithChildren<Props>> = ({
         className
       )}
     >
-      <h3 className="m-0 text-base font-normal">{t("makePrediction")}</h3>
+      <h3 className="m-0 text-base font-normal text-blue-900">
+        {t("makePrediction")}
+      </h3>
       <div className="mt-3">{children}</div>
       {resolutionCriteria.map((criteria, index) => (
         <ResolutionCriteria key={index} {...criteria} />

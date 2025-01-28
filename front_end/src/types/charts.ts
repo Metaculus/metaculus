@@ -62,3 +62,5 @@ export enum GroupOfQuestionsGraphType {
   FanGraph = "fan_graph",
   MultipleChoiceGraph = "multiple_choice_graph",
 }
+
+export type ForecastInputType = "slider" | "table";
