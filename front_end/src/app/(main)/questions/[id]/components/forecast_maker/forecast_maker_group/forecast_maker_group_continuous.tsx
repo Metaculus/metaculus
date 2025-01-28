@@ -53,6 +53,8 @@ import GroupForecastTable, {
 import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import { ForecastInputType } from "@/types/charts";
+import GroupForecastAccordion from "../group_forecast_accordion";
 
 type Props = {
   post: PostWithForecasts;
@@ -76,6 +78,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const { hideCP } = useHideCP();
   const params = useSearchParams();
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
+
+  const [forecastInputMode, setForecastInputMode] =
+    useState<ForecastInputType>("slider");
 
   const { id: postId, user_permission: permission } = post;
 
@@ -279,6 +284,13 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   return (
     <>
+      <GroupForecastAccordion
+        options={groupOptions}
+        groupVariable={groupVariable}
+        questions={questions}
+        canPredict={canPredict}
+        showCP={!user || !hideCP}
+      />
       <GroupForecastTable
         value={activeTableOption}
         options={groupOptions}
@@ -313,6 +325,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               disabled={
                 !canPredict || option.question.status !== QuestionStatus.OPEN
               }
+              showInputModeSwitcher
+              forecastInputMode={forecastInputMode}
+              setForecastInputMode={setForecastInputMode}
             />
           </div>
         );
@@ -325,7 +340,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       {!!activeGroupOption &&
         activeGroupOption.question.status == QuestionStatus.OPEN && (
           <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-            {canPredict && (
+            {canPredict && forecastInputMode === "slider" && (
               <>
                 {!!user && (
                   <>
@@ -369,28 +384,32 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       )}
       {!!activeGroupOption && (
         <>
-          <NumericForecastTable
-            question={activeGroupOption.question}
-            userBounds={getCdfBounds(userCdf)}
-            userQuartiles={activeGroupOption.userQuartiles ?? undefined}
-            userPreviousBounds={getCdfBounds(userPreviousCdf)}
-            userPreviousQuartiles={
-              userPreviousCdf
-                ? computeQuartilesFromCDF(userPreviousCdf)
-                : undefined
-            }
-            communityBounds={getCdfBounds(communityCdf)}
-            communityQuartiles={
-              activeGroupOption.communityQuartiles ?? undefined
-            }
-            withUserQuartiles={activeGroupOption.resolution === null}
-            withCommunityQuartiles={!user || !hideCP}
-            isDirty={activeGroupOption.isDirty}
-            hasUserForecast={
-              !isNil(activeTableOption) &&
-              !!prevForecastValuesMap[activeTableOption]
-            }
-          />
+          {forecastInputMode === "slider" ? (
+            <NumericForecastTable
+              question={activeGroupOption.question}
+              userBounds={getCdfBounds(userCdf)}
+              userQuartiles={activeGroupOption.userQuartiles ?? undefined}
+              userPreviousBounds={getCdfBounds(userPreviousCdf)}
+              userPreviousQuartiles={
+                userPreviousCdf
+                  ? computeQuartilesFromCDF(userPreviousCdf)
+                  : undefined
+              }
+              communityBounds={getCdfBounds(communityCdf)}
+              communityQuartiles={
+                activeGroupOption.communityQuartiles ?? undefined
+              }
+              withUserQuartiles={activeGroupOption.resolution === null}
+              withCommunityQuartiles={!user || !hideCP}
+              isDirty={activeGroupOption.isDirty}
+              hasUserForecast={
+                !isNil(activeTableOption) &&
+                !!prevForecastValuesMap[activeTableOption]
+              }
+            />
+          ) : (
+            <div>There will be a table inputs</div>
+          )}
 
           {!!activeGroupOption.resolution && (
             <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
