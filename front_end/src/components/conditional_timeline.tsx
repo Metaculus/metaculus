@@ -44,7 +44,7 @@ const ConditionalTimeline: FC<Props> = ({ post }) => {
   });
 
   return (
-    <>
+    <div className="my-4">
       <MultipleChoiceGroupChart
         questions={questions}
         timestamps={timestamps}
@@ -64,7 +64,7 @@ const ConditionalTimeline: FC<Props> = ({ post }) => {
         isClosed={status === PostStatus.CLOSED}
       />
       {hideCP && <RevealCPButton className="mb-3" />}
-    </>
+    </div>
   );
 };
 

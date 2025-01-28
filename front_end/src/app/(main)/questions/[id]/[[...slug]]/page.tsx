@@ -35,6 +35,7 @@ import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
+import ResolutionCriteria from "../components/resolution_criteria";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 
@@ -196,6 +197,7 @@ export default async function IndividualQuestion({
                 )}
 
                 <ForecastMaker post={postData} />
+                <ResolutionCriteria post={postData} />
 
                 {isConditionalPost(postData) && (
                   <ConditionalTimeline post={postData} />

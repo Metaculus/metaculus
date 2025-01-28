@@ -41,8 +41,6 @@ const ForecastMaker: FC<Props> = ({ post }) => {
     return (
       <ForecastMakerGroup
         post={post}
-        resolutionCriteria={groupOfQuestions.resolution_criteria}
-        finePrint={groupOfQuestions.fine_print}
         questions={groupOfQuestions.questions}
         groupVariable={groupOfQuestions.group_variable}
         canPredict={canPredict}

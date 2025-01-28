@@ -18,6 +18,7 @@ import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { ForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import {
   Post,
@@ -47,14 +48,13 @@ import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import { useHideCP } from "../../cp_provider";
 import ContinuousSlider from "../continuous_slider";
+import GroupForecastAccordion from "../group_forecast_accordion";
 import GroupForecastTable, {
   ConditionalTableOption,
 } from "../group_forecast_table";
 import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
-import { ForecastInputType } from "@/types/charts";
-import GroupForecastAccordion from "../group_forecast_accordion";
 
 type Props = {
   post: PostWithForecasts;
