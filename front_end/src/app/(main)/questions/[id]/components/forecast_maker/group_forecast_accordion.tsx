@@ -2,6 +2,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo } from "react";
 
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
+import { useAuth } from "@/contexts/auth_context";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
   DistributionSliderComponent,
@@ -11,6 +12,13 @@ import {
 } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import { formatResolution } from "@/utils/questions";
+
+import SliderWrapper from "./forecast_maker_group/continuous_slider_wrapper";
+import {
+  ActiveAccordionItem,
+  ResolvedAccordionItem,
+} from "./group_forecast_accordion_items";
+import { useHideCP } from "../cp_provider";
 
 export type ConditionalTableOption = {
   id: number;
@@ -23,31 +31,38 @@ export type ConditionalTableOption = {
   resolution: Resolution | null;
   menu?: ReactNode;
 };
-import {
-  PendingAccordionItem,
-  ResolvedAccordionItem,
-  SliderWrapper,
-} from "./group_forecast_accordion_items";
-
 type Props = {
   options: ConditionalTableOption[];
-  questions: QuestionWithNumericForecasts[];
   groupVariable: string;
   canPredict: boolean;
-  showCP?: boolean;
+  isPending: boolean;
+  handleChange: (
+    id: number,
+    forecast: MultiSliderValue[],
+    weight: number[]
+  ) => void;
+  handleAddComponent: (id: number) => void;
+  handleResetForecasts: () => void;
+  handlePredictSubmit: () => void;
 };
 
 const GroupForecastAccordion: FC<Props> = ({
   options,
-  questions,
   groupVariable,
   canPredict,
-  showCP = true,
+  isPending,
+  handleChange,
+  handleAddComponent,
+  handleResetForecasts,
+  handlePredictSubmit,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
+  const { hideCP } = useHideCP();
+  const { user } = useAuth();
+  const showCP = !user || !hideCP;
 
-  const { resolvedOptions, pendingOptions } = useMemo(
+  const { resolvedOptions, activeOptions } = useMemo(
     () => ({
       resolvedOptions: options.filter(
         (option) =>
@@ -56,7 +71,7 @@ const GroupForecastAccordion: FC<Props> = ({
             option.question.status
           )
       ),
-      pendingOptions: options.filter(
+      activeOptions: options.filter(
         (option) =>
           !option.question.status ||
           ![QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
@@ -71,10 +86,10 @@ const GroupForecastAccordion: FC<Props> = ({
     <div className="my-10 w-full">
       {!!resolvedOptions.length && (
         <div className="flex w-full gap-[2px] text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
-          <div className="w-[200px] shrink-0 grow-0 bg-[#758EA91F] py-1">
+          <div className="shrink grow bg-[#758EA91F] py-1">
             <span className="pl-4">{groupVariable}</span>
           </div>
-          <div className="shrink grow bg-[#758EA91F] py-1 text-center">
+          <div className="max-w-[422px] shrink grow-[3] bg-[#758EA91F] py-1 text-center">
             {t("resolution")}
           </div>
           <div className="w-[43px] shrink-0 grow-0 bg-[#758EA91F] py-1"></div>
@@ -83,7 +98,7 @@ const GroupForecastAccordion: FC<Props> = ({
       {resolvedOptions.map((option) => {
         return (
           <ResolvedAccordionItem
-            title={option.name}
+            option={option}
             resolution={formatResolution(
               option.resolution,
               option.question.type,
@@ -91,44 +106,45 @@ const GroupForecastAccordion: FC<Props> = ({
             )}
             key={option.id}
           >
-            <SliderWrapper option={option} canPredict={canPredict} />
+            <SliderWrapper
+              option={option}
+              canPredict={canPredict}
+              isPending={isPending}
+              handleChange={handleChange}
+              handleAddComponent={handleAddComponent}
+              handleResetForecasts={handleResetForecasts}
+              handlePredictSubmit={handlePredictSubmit}
+            />
           </ResolvedAccordionItem>
         );
       })}
-      {!!pendingOptions.length && (
+      {!!activeOptions.length && (
         <div className="flex w-full gap-[2px] text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
-          <div className="w-[200px] shrink-0 grow-0 bg-[#758EA91F] py-1">
+          <div className="shrink grow bg-[#758EA91F] py-1">
             <span className="pl-4">{groupVariable}</span>
           </div>
-          <div className="flex shrink grow gap-[2px] text-center">
-            <div className="w-[92px] bg-[#758EA91F] py-1">median</div>
-            <div className="shrink grow bg-[#758EA91F] py-1">PDF</div>
+          <div className="flex max-w-[422px] shrink grow-[3] gap-[2px] text-center">
+            <div className="w-[95px] bg-[#758EA91F] py-1">median</div>
+            <div className="w-[325px] shrink-0 grow-0 bg-[#758EA91F] py-1">
+              PDF
+            </div>
           </div>
           <div className="w-[43px] shrink-0 grow-0 bg-[#758EA91F] py-1"></div>
         </div>
       )}
-      {pendingOptions.map((option) => {
+      {activeOptions.map((option) => {
         return (
-          <PendingAccordionItem
-            title={option.name}
-            median={getDisplayValue({
-              value: showCP ? option.communityQuartiles?.median : undefined,
-              questionType: (
-                questions.find(
-                  (question) => question.id === option.id
-                ) as Question
-              ).type,
-              scaling: (
-                questions.find(
-                  (question) => question.id === option.id
-                ) as Question
-              ).scaling,
-            })}
-            forecast="forecast"
-            key={option.id}
-          >
-            Expanded content
-          </PendingAccordionItem>
+          <ActiveAccordionItem option={option} showCP={showCP} key={option.id}>
+            <SliderWrapper
+              option={option}
+              canPredict={canPredict}
+              isPending={isPending}
+              handleChange={handleChange}
+              handleAddComponent={handleAddComponent}
+              handleResetForecasts={handleResetForecasts}
+              handlePredictSubmit={handlePredictSubmit}
+            />
+          </ActiveAccordionItem>
         );
       })}
     </div>

@@ -1,5 +1,3 @@
-import ResolutionIcon from "@/components/icons/resolution";
-import cn from "@/utils/cn";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -7,41 +5,32 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
-import { FC, PropsWithChildren, useMemo, useState } from "react";
-import ContinuousSlider from "./continuous_slider";
-import { MultiSliderValue } from "@/components/sliders/multi_slider";
-import { ForecastInputType } from "@/types/charts";
-import { QuestionStatus } from "@/types/post";
-import {
-  extractPrevNumericForecastValue,
-  getNormalizedContinuousForecast,
-  getNormalizedContinuousWeight,
-  getNumericForecastDataset,
-} from "@/utils/forecasts";
-import { ConditionalTableOption } from "./group_forecast_table";
-import { isNil } from "lodash";
+import { FC, PropsWithChildren } from "react";
+
+import ContinuousAreaChart, {
+  ContinuousAreaGraphInput,
+} from "@/components/charts/continuous_area_chart";
+import ResolutionIcon from "@/components/icons/resolution";
+import { ContinuousAreaType } from "@/types/charts";
+import cn from "@/utils/cn";
+import { cdfToPmf } from "@/utils/math";
+import { ConditionalTableOption } from "./group_forecast_accordion";
+import { getDisplayValue } from "@/utils/charts";
+import { useTranslations } from "next-intl";
+import ScoreDisplay from "./resolution/score_display";
 
 type ResolvedItemProps = {
-  title: string;
+  option: ConditionalTableOption;
   resolution: string;
 };
 
-type PendingItemProps = {
-  title: string;
-  median: string;
-  forecast: string;
-};
-
-type SliderWrapperProps = {
-  option: ConditionalTableOption;
-  canPredict: boolean;
-};
-
 const ResolvedAccordionItem: FC<PropsWithChildren<ResolvedItemProps>> = ({
-  title,
+  option,
   resolution,
   children,
 }) => {
+  const t = useTranslations();
+  const { question, name: title } = option;
   return (
     <Disclosure defaultOpen={false} as="div">
       {({ open }) => (
@@ -52,12 +41,12 @@ const ResolvedAccordionItem: FC<PropsWithChildren<ResolvedItemProps>> = ({
               open && "bg-[#758EA914] dark:bg-[#D7E4F214]"
             )}
           >
-            <div className="flex h-full w-[200px] shrink-0 grow-0 items-center">
+            <div className="flex h-full shrink grow items-center">
               <span className="pl-4 text-base font-bold text-gray-900 dark:text-gray-900-dark">
                 {title}
               </span>
             </div>
-            <div className="flex h-full shrink grow items-center justify-center">
+            <div className="flex h-full max-w-[420px] shrink grow-[3] items-center justify-center">
               <ResolutionIcon />
               <span
                 className="text-sm font-bold text-purple-800 dark:text-purple-800-dark"
@@ -78,19 +67,71 @@ const ResolvedAccordionItem: FC<PropsWithChildren<ResolvedItemProps>> = ({
               </div>
             </div>
           </DisclosureButton>
-          <DisclosurePanel className="pt-0">{children}</DisclosurePanel>
+          <DisclosurePanel className="pt-0">
+            <>
+              {children}
+
+              <ScoreDisplay question={question} />
+
+              <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
+                <p className="my-1 flex justify-center gap-1 text-base">
+                  {t("resolutionDescriptionContinuous")}
+                  <strong
+                    className="text-purple-800 dark:text-purple-800-dark"
+                    suppressHydrationWarning
+                  >
+                    {resolution}
+                  </strong>
+                </p>
+              </div>
+            </>
+          </DisclosurePanel>
         </div>
       )}
     </Disclosure>
   );
 };
 
-const PendingAccordionItem: FC<PropsWithChildren<PendingItemProps>> = ({
-  title,
-  median,
-  forecast,
+type ActiveItemProps = {
+  option: ConditionalTableOption;
+  showCP: boolean;
+};
+
+const ActiveAccordionItem: FC<PropsWithChildren<ActiveItemProps>> = ({
+  option,
+  showCP,
   children,
 }) => {
+  const { question, name: title, isDirty } = option;
+  const latest = question.aggregations.recency_weighted.latest;
+  const continuousAreaChartData: ContinuousAreaGraphInput = [];
+
+  if (latest && !latest.end_time) {
+    continuousAreaChartData.push({
+      pmf: cdfToPmf(latest.forecast_values),
+      cdf: latest.forecast_values,
+      type: "community" as ContinuousAreaType,
+    });
+  }
+  const userForecast = question.my_forecasts?.latest;
+  if (!!userForecast && !userForecast.end_time) {
+    continuousAreaChartData.push({
+      pmf: cdfToPmf(userForecast.forecast_values),
+      cdf: userForecast.forecast_values,
+      type: "user" as ContinuousAreaType,
+    });
+  }
+  const median = getDisplayValue({
+    value: showCP ? option.communityQuartiles?.median : undefined,
+    questionType: option.question.type,
+    scaling: option.question.scaling,
+  });
+
+  const userMedian = getDisplayValue({
+    value: option.userQuartiles?.median,
+    questionType: option.question.type,
+    scaling: option.question.scaling,
+  });
   return (
     <Disclosure defaultOpen={false} as="div">
       {({ open }) => (
@@ -98,20 +139,36 @@ const PendingAccordionItem: FC<PropsWithChildren<PendingItemProps>> = ({
           <DisclosureButton
             className={cn(
               "flex h-[58px] w-full gap-[2px] bg-blue-100 text-left text-xs font-bold text-blue-700 dark:bg-blue-100-dark dark:text-blue-700-dark",
-              open && "bg-[#758EA914] dark:bg-[#D7E4F214]"
+              open && "bg-[#758EA914] dark:bg-[#D7E4F214]",
+              isDirty && "bg-orange-100 dark:bg-orange-100-dark"
             )}
           >
-            <div className="flex h-full w-[200px] shrink-0 grow-0 items-center">
+            <div className="flex h-full shrink grow items-center">
               <span className="pl-4 text-base font-bold text-gray-900 dark:text-gray-900-dark">
                 {title}
               </span>
             </div>
-            <div className="flex h-full shrink grow items-center justify-center gap-[2px]">
-              <div className="flex h-full w-[92px] items-center justify-center">
-                {median}
+            <div className="flex h-full shrink items-center justify-center gap-[2px]">
+              <div className="flex h-full w-[95px] flex-col items-center justify-center">
+                <p className="m-0 text-olive-800 dark:text-olive-800-dark">
+                  {median}
+                </p>
+                {!!option.userQuartiles?.median && (
+                  <p className="m-0 text-orange-700 dark:text-orange-700-dark">
+                    {userMedian}
+                  </p>
+                )}
               </div>
-              <div className="flex h-full shrink grow items-center justify-center">
-                {forecast}
+              <div className="flex h-full w-[325px] shrink-0 grow-0 items-center justify-center">
+                <ContinuousAreaChart
+                  data={continuousAreaChartData}
+                  graphType={"pmf"}
+                  height={55}
+                  hideLabels
+                  hideCP={false} //TODO: fix this
+                  scaling={question.scaling}
+                  resolution={question.resolution}
+                />
               </div>
             </div>
             <div className="flex h-full w-[43px] shrink-0 grow-0 items-center justify-center">
@@ -126,79 +183,16 @@ const PendingAccordionItem: FC<PropsWithChildren<PendingItemProps>> = ({
               </div>
             </div>
           </DisclosureButton>
-          <DisclosurePanel className="pt-0">{children}</DisclosurePanel>
+          <DisclosurePanel className="mb-2 pt-0">
+            <>
+              {children}
+              <ScoreDisplay question={question} />
+            </>
+          </DisclosurePanel>
         </div>
       )}
     </Disclosure>
   );
 };
 
-const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
-  option,
-  canPredict,
-}) => {
-  const [forecast, setForecast] = useState<MultiSliderValue[]>(
-    getNormalizedContinuousForecast(option.userForecast)
-  );
-  const previousForecast = option.question.my_forecasts?.latest;
-  const activeForecast =
-    !!previousForecast && isNil(previousForecast.end_time)
-      ? previousForecast
-      : undefined;
-  const [overlayPreviousForecast, setOverlayPreviousForecast] =
-    useState<boolean>(
-      !!previousForecast?.forecast_values && !previousForecast.slider_values
-    );
-  const activeForecastSliderValues = activeForecast
-    ? extractPrevNumericForecastValue(activeForecast.slider_values)
-    : {};
-  const [weights, setWeights] = useState<number[]>(
-    getNormalizedContinuousWeight(activeForecastSliderValues.weights)
-  );
-  const [isDirty, setIsDirty] = useState(false);
-  const [forecastInputMode, setForecastInputMode] =
-    useState<ForecastInputType>("slider");
-
-  const dataset = useMemo(
-    () =>
-      getNumericForecastDataset(
-        forecast,
-        weights,
-        option.question.open_lower_bound,
-        option.question.open_upper_bound
-      ),
-    [
-      forecast,
-      option.question.open_lower_bound,
-      option.question.open_upper_bound,
-      weights,
-    ]
-  );
-  return (
-    <div className="mt-[2px] bg-[#758EA914] dark:bg-[#D7E4F214]">
-      <div className="p-4">
-        <ContinuousSlider
-          forecast={forecast}
-          weights={option.userWeights}
-          question={option.question}
-          overlayPreviousForecast={overlayPreviousForecast}
-          setOverlayPreviousForecast={setOverlayPreviousForecast}
-          dataset={dataset}
-          onChange={(forecast, weight) => {
-            setForecast(forecast);
-            setWeights(weight);
-            setIsDirty(true);
-          }}
-          disabled={
-            !canPredict || option.question.status !== QuestionStatus.OPEN
-          }
-          showInputModeSwitcher
-          forecastInputMode={forecastInputMode}
-          setForecastInputMode={setForecastInputMode}
-        />
-      </div>
-    </div>
-  );
-};
-
-export { ResolvedAccordionItem, PendingAccordionItem, SliderWrapper };
+export { ResolvedAccordionItem, ActiveAccordionItem };

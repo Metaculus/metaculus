@@ -287,19 +287,22 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       <GroupForecastAccordion
         options={groupOptions}
         groupVariable={groupVariable}
-        questions={questions}
         canPredict={canPredict}
-        showCP={!user || !hideCP}
+        isPending={isSubmitting}
+        handleChange={handleChange}
+        handleAddComponent={handleAddComponent}
+        handleResetForecasts={handleResetForecasts}
+        handlePredictSubmit={handlePredictSubmit}
       />
-      <GroupForecastTable
+      {/* <GroupForecastTable
         value={activeTableOption}
         options={groupOptions}
         groupVariable={groupVariable}
         onChange={setActiveTableOption}
         questions={questions}
         showCP={!user || !hideCP}
-      />
-      {groupOptions.map((option) => {
+      /> */}
+      {/* {groupOptions.map((option) => {
         const normalizedUserForecast = getNormalizedContinuousForecast(
           option.userForecast
         );
@@ -325,19 +328,19 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               disabled={
                 !canPredict || option.question.status !== QuestionStatus.OPEN
               }
-              showInputModeSwitcher
+              // showInputModeSwitcher
               forecastInputMode={forecastInputMode}
               setForecastInputMode={setForecastInputMode}
             />
           </div>
         );
-      })}
+      })} */}
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
           {predictionMessage}
         </div>
       )}
-      {!!activeGroupOption &&
+      {/* {!!activeGroupOption &&
         activeGroupOption.question.status == QuestionStatus.OPEN && (
           <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
             {canPredict && forecastInputMode === "slider" && (
@@ -371,7 +374,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               </>
             )}
           </div>
-        )}
+        )} */}
       <FormError
         errors={submitError}
         className="mt-2 flex items-center justify-center"
@@ -384,7 +387,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       )}
       {!!activeGroupOption && (
         <>
-          {forecastInputMode === "slider" ? (
+          {/* {forecastInputMode === "slider" ? (
             <NumericForecastTable
               question={activeGroupOption.question}
               userBounds={getCdfBounds(userCdf)}
@@ -409,9 +412,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             />
           ) : (
             <div>There will be a table inputs</div>
-          )}
+          )} */}
 
-          {!!activeGroupOption.resolution && (
+          {/* {!!activeGroupOption.resolution && (
             <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
               <p className="my-1 flex justify-center gap-1 text-base">
                 {t("resolutionDescriptionContinuous")}
@@ -427,7 +430,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                 </strong>
               </p>
             </div>
-          )}
+          )} */}
         </>
       )}
       {activeQuestion && <ScoreDisplay question={activeQuestion} />}

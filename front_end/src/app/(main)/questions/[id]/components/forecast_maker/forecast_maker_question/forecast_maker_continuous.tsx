@@ -170,7 +170,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         setOverlayPreviousForecast={setOverlayPreviousForecast}
         question={question}
         disabled={!canPredict}
-        showInputModeSwitcher
+        // showInputModeSwitcher
         forecastInputMode={forecastInputMode}
         setForecastInputMode={setForecastInputMode}
       />
