@@ -6,6 +6,7 @@ import { remark } from "remark";
 import strip from "strip-markdown";
 
 import MedalsPage from "@/app/(main)/(leaderboards)/medals/components/medals_page";
+import { MedalsWidget } from "@/app/(main)/(leaderboards)/medals/components/medals_widget";
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
 import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import CommentFeed from "@/components/comment_feed";
@@ -95,14 +96,18 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
       <UserInfo profile={profile} isCurrentUser={isCurrentUser} />
 
       {mode === ProfilePageMode.Overview && (
-        <div className="flex flex-col gap-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6">
-          {profile.calibration_curve && (
-            <CalibrationChart
-              calibrationData={profile.calibration_curve}
-              username={profile.username}
-            />
-          )}
-        </div>
+        <>
+          <MedalsWidget profileId={id} />
+
+          <div className="flex flex-col gap-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6">
+            {profile.calibration_curve && (
+              <CalibrationChart
+                calibrationData={profile.calibration_curve}
+                username={profile.username}
+              />
+            )}
+          </div>
+        </>
       )}
       {mode === ProfilePageMode.TrackRecord && (
         <TrackRecord profile={profile} />
@@ -118,8 +123,11 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
         </div>
       )}
       {mode === ProfilePageMode.Questions && (
-        <div className="flex flex-col rounded bg-white px-4 py-1 dark:bg-blue-900 md:px-6 md:py-2">
-          Questions:
+        <div className="flex flex-col gap-6 rounded bg-white p-4 dark:bg-blue-900 md:p-6">
+          <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
+            {t("questionsBy") + " " + profile.username}
+          </h3>
+
           <Suspense
             key={JSON.stringify(searchParams)}
             fallback={
