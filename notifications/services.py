@@ -514,59 +514,6 @@ class NotificationPostSpecificTime(
         return _("Questions reminder")
 
 
-class NotificationCommentReport(NotificationTypeBase):
-    type = "comment_report"
-    email_template = "emails/old_comment_report.html"
-
-    @dataclass
-    class ParamsType:
-        post: NotificationPostParams
-        comment_id: int
-        reason: CommentReportType
-        reporter: NotificationUserParams = None
-
-    @classmethod
-    def generate_subject_group(cls, recipient: User):
-        return _("Comment reports")
-
-    @classmethod
-    def get_email_context_group(cls, notifications: list[Notification]):
-        comments_map = {
-            c.id: c
-            for c in Comment.objects.filter(
-                pk__in=[n.params["comment_id"] for n in notifications]
-            ).select_related("author")
-        }
-
-        params = []
-
-        for notification in notifications:
-            comment = comments_map.get(notification.params["comment_id"])
-
-            if not comment:
-                continue
-
-            preview_text, has_mention = generate_email_comment_preview_text(
-                comment.text
-            )
-
-            params.append(
-                {
-                    **notification.params,
-                    "author": comment.author,
-                    "preview_text": preview_text,
-                    "url": build_post_comment_url(
-                        comment.on_post_id, comment.on_post.title, comment.id
-                    ),
-                }
-            )
-
-        return {
-            "recipient": notifications[0].recipient,
-            "params": params,
-        }
-
-
 class NotificationPostCPChange(NotificationTypeSimilarPostsMixin, NotificationTypeBase):
     type = "post_cp_change"
     email_template = "emails/post_cp_change.html"
@@ -647,7 +594,6 @@ NOTIFICATION_TYPE_REGISTRY = [
     NotificationPredictedQuestionResolved,
     NotificationPostSpecificTime,
     NotificationPostCPChange,
-    NotificationCommentReport,
 ]
 
 
@@ -694,7 +640,7 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
 
 
 def send_comment_report_notification_to_staff(
-    comment: Comment, reason: str, reporter: User
+    comment: Comment, reason: CommentReportType, reporter: User
 ):
     recipients = comment.on_post.default_project.get_users_for_permission(
         ObjectPermission.CURATOR
