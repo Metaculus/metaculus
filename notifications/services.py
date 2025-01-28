@@ -6,6 +6,7 @@ from dateutil.parser import parse as date_parse
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from comments.constants import CommentReportType
 from comments.models import Comment
 from notifications.constants import MailingTags
 from notifications.models import Notification
@@ -639,7 +640,7 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
 
 
 def send_comment_report_notification_to_staff(
-    comment: Comment, reason: str, reporter: User
+    comment: Comment, reason: CommentReportType, reporter: User
 ):
     recipients = comment.on_post.default_project.get_users_for_permission(
         ObjectPermission.CURATOR
