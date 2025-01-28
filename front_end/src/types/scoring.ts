@@ -76,6 +76,19 @@ export type MedalEntry = LeaderboardEntry & {
   total_entries?: number;
 };
 
+export type MedalRanksEntry = {
+  rank: number;
+  rank_total: number;
+  best_rank: number;
+  best_rank_total: number;
+  type:
+    | "tournaments_global"
+    | "peer_global"
+    | "baseline_global"
+    | "comments_global"
+    | "questions_global";
+};
+
 type BaseLeaderboardDetails = {
   project_id: number;
   project_type: MedalProjectType;

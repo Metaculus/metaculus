@@ -588,7 +588,8 @@ def update_medal_points_and_ranks(at_time=None):
 
         # Update the best rank related fields
         LeaderboardsRanksEntry.objects.filter(
-            Q(best_rank__isnull=True) | Q(best_rank__gt=F("rank"))
+            Q(best_rank__isnull=True)
+            | Q(best_rank__gt=F("rank") * F("best_rank_total") / F("rank_total"))
         ).update(
             best_rank=F("rank"),
             best_rank_total=F("rank_total"),

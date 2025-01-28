@@ -22,10 +22,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        at_time = timezone.now()
+        now = timezone.now()
+        at_time = now
         if options["year"]:
             at_time = timezone.datetime(
                 options["year"], 12, 31, 23, 59, 59, tzinfo=datetime.timezone.utc
             )
+        if at_time > now:
+            at_time = now
         print(f"Updating ranks as of {at_time}")
         update_medal_points_and_ranks(at_time)

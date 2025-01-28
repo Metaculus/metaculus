@@ -1,101 +1,286 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import Tooltip from "@/components/ui/tooltip";
 import LeaderboardApi from "@/services/leaderboard";
+import { MedalCategory, MedalProjectType, MedalType } from "@/types/scoring";
 import cn from "@/utils/cn";
 
 import MedalIcon from "../../components/medal_icon";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
-import {
-  SCORING_CATEGORY_FILTER,
-  SCORING_DURATION_FILTER,
-  SCORING_YEAR_FILTER,
-} from "../../search_params";
 import { getMedalCategories } from "../helpers/medal_categories";
-import { getMedalDisplayTitle } from "../helpers/medal_title";
 
 type Props = {
   profileId: number;
 };
 
-const MedalsWidget: FC<Props> = async ({ profileId }) => {
-  const t = await getTranslations();
+type StatsEntry = {
+  header: string;
+  value?: string | number;
+  footer: string;
+};
 
-  const userMedals = await LeaderboardApi.getUserMedals(profileId);
-  const categories = getMedalCategories(userMedals, true);
+const PerformanceCard: FC<{
+  medalCategory: MedalCategory;
+  stats: StatsEntry[];
+  className?: string;
+}> = ({ medalCategory, stats, className }) => {
+  const t = useTranslations();
+
+  const medalsWithCount: { type: string; count: number }[] = [
+    "gold",
+    "silver",
+    "bronze",
+  ].map((type) => ({
+    type,
+    count: medalCategory.medals.filter((m) => m.type === type).length,
+  }));
+
+  const noMedals = medalCategory.medals.length < 1;
+
+  if (noMedals) {
+    return (
+      <div
+        className={cn(
+          "flex flex-row items-center justify-between gap-2 rounded bg-blue-100 p-3 dark:bg-blue-100-dark sm:flex-col md:justify-center md:p-5",
+          className
+        )}
+      >
+        <span className="text-nowrap text-sm text-gray-700 dark:text-gray-700-dark md:text-lg">
+          {t(RANKING_CATEGORIES[medalCategory.name].translationKey)}
+        </span>
+
+        <span className="text-gray-500 dark:text-gray-500-dark">
+          {t("noMedals")}
+        </span>
+      </div>
+    );
+  }
 
   return (
-    <section className="rounded bg-white p-4 dark:bg-blue-900 md:p-6">
-      <div className="mb-5 flex w-full flex-row items-center justify-between">
-        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-          {t("medals")}
-        </h3>
-        <a
-          className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-          href={`/accounts/profile/${profileId}?mode=medals`}
-        >
-          View All
-        </a>
-      </div>
-      <div className="flex w-full flex-col items-center gap-2 md:gap-3">
-        {categories?.map((category, index) => (
-          <div
-            key={index}
-            className={cn(
-              "flex w-full flex-col items-center justify-center rounded  bg-blue-100 dark:bg-blue-950/50",
-              { "sm:col-span-2": category.name === "tournament" }
-            )}
-          >
-            <Link
-              href={`/accounts/profile/${profileId}?mode=medals`}
-              className="flex w-full items-center justify-center gap-3 self-stretch px-5 py-1.5 text-base font-medium text-blue-800 no-underline dark:text-blue-800-dark md:py-3 md:text-lg"
-            >
-              <span>{t(RANKING_CATEGORIES[category.name].translationKey)}</span>
-            </Link>
-            <div className="flex flex-wrap content-center items-center justify-center gap-[8px] self-stretch rounded-b bg-blue-200 px-3 py-2 dark:bg-blue-100-dark md:gap-[13px] md:py-3">
-              {!!category.medals.length ? (
-                category.medals.map((medal, index) => {
-                  const tooltipContent = (
-                    <div className="flex flex-col items-center self-stretch">
-                      <span className="text-sm font-bold text-gray-800 dark:text-gray-800-dark">
-                        {getMedalDisplayTitle(medal)}
-                      </span>
-                      <span className="text-base text-gray-700 dark:text-gray-700-dark">
-                        {t("rank")}:{" "}
-                        <span className="font-bold">#{medal.rank}</span>{" "}
-                        {t("outOfRank", { total: medal.totalEntries })}
-                      </span>
-                    </div>
-                  );
-                  const href =
-                    category.name === "tournament"
-                      ? `/tournament/${medal.projectSlug}`
-                      : `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category.name}&${SCORING_YEAR_FILTER}=${medal.year}&${SCORING_DURATION_FILTER}=${medal.duration}`;
+    <Link href={`?mode=medals`} className={cn("no-underline", className)}>
+      <div
+        className={cn(
+          "flex flex-col items-center gap-5 rounded  bg-blue-200 p-4 dark:bg-blue-200-dark",
+          noMedals && "bg-blue-100 dark:bg-blue-100-dark"
+        )}
+      >
+        {/* Medals */}
+        <div className="flex flex-col items-center gap-3">
+          <span className="text-nowrap text-lg text-gray-700 dark:text-gray-700-dark">
+            {t(RANKING_CATEGORIES[medalCategory.name].translationKey)}
+          </span>
 
-                  return (
-                    <Tooltip
-                      showDelayMs={200}
-                      placement={"bottom"}
-                      tooltipContent={tooltipContent}
-                      key={index}
-                    >
-                      <Link href={href}>
-                        <MedalIcon type={medal.type} className="size-6" />
-                      </Link>
-                    </Tooltip>
-                  );
-                })
-              ) : (
-                <span className="text-base text-gray-500 dark:text-gray-500-dark">
-                  {t("noMedals")}
-                </span>
-              )}
-            </div>
+          <div className="flex justify-center gap-4">
+            {medalsWithCount.map(
+              ({ type, count }) =>
+                count > 0 && (
+                  <div className="flex gap-2" key={type}>
+                    <MedalIcon type={type as MedalType} className="size-6" />
+                    <span className="text-base font-bold leading-6">
+                      {count}
+                    </span>
+                  </div>
+                )
+            )}
           </div>
-        ))}
+        </div>
+
+        {/* Stats */}
+        <div className="flex flex-wrap justify-center gap-6">
+          {stats
+            .filter(({ value }) => !!value)
+            .map((stat) => (
+              <div
+                className="flex flex-col items-center gap-1"
+                key={stat.header}
+              >
+                <span className="text-xs uppercase text-gray-500 dark:text-gray-500-dark">
+                  {stat.header}
+                </span>
+                <div className="flex flex-row justify-center gap-1">
+                  <span className="text-sm font-medium leading-5 text-gray-700 dark:text-gray-700-dark">
+                    {stat.value}
+                  </span>
+                  <span className="text-sm text-gray-500 dark:text-gray-500-dark">
+                    {stat.footer}
+                  </span>
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+    </Link>
+  );
+};
+export const MedalsWidget: FC<Props> = async ({ profileId }) => {
+  const t = await getTranslations();
+  const [userMedals, userMedalRanks] = await Promise.all([
+    LeaderboardApi.getUserMedals(profileId),
+    LeaderboardApi.getUserMedalRanks(profileId),
+  ]);
+  const categories = getMedalCategories(userMedals, true);
+
+  const [
+    tournamentMedals,
+    baselineMedals,
+    peerMedals,
+    commentsMedals,
+    questionsMedals,
+  ] = ["tournament", "baseline", "peer", "comments", "questionWriting"].map(
+    (name) =>
+      categories.find((c) => c.name === name) ??
+      ({
+        name: "tournament",
+        medals: [],
+      } as MedalCategory)
+  );
+
+  const tournamentRanks = userMedalRanks.find(
+    (r) => r.type === "tournaments_global"
+  );
+  const baselineRanks = userMedalRanks.find(
+    (r) => r.type === "baseline_global"
+  );
+  const peerRanks = userMedalRanks.find((r) => r.type === "peer_global");
+  const commentsRanks = userMedalRanks.find(
+    (r) => r.type === "comments_global"
+  );
+  const questionsRanks = userMedalRanks.find(
+    (r) => r.type === "questions_global"
+  );
+
+  const total_prizes = userMedals
+    .filter((medal) => medal.project_type === MedalProjectType.Tournament)
+    .map((medal) => Math.round(medal.prize ?? 0))
+    .reduce((acc, prize) => acc + prize, 0);
+
+  const tournamentStats: StatsEntry[] = [
+    {
+      header: t("currentRank"),
+      value: tournamentRanks?.rank,
+      footer: `of ${tournamentRanks?.rank_total}`,
+    },
+    {
+      header: t("bestEver"),
+      value: tournamentRanks?.best_rank,
+      footer: `of ${tournamentRanks?.best_rank_total}`,
+    },
+    {
+      header: t("totalPrizes"),
+      value: `$${total_prizes}`,
+      footer: t("totalEarned"),
+    },
+  ];
+
+  const baselineStats: StatsEntry[] = [
+    {
+      header: t("currentRank"),
+      value: baselineRanks?.rank,
+      footer: `of ${baselineRanks?.rank_total}`,
+    },
+    {
+      header: t("bestEver"),
+      value: baselineRanks?.best_rank,
+      footer: `of ${baselineRanks?.best_rank_total}`,
+    },
+  ];
+
+  const peerStats: StatsEntry[] = [
+    {
+      header: t("currentRank"),
+      value: peerRanks?.rank,
+      footer: `of ${peerRanks?.rank_total}`,
+    },
+    {
+      header: t("bestEver"),
+      value: peerRanks?.best_rank,
+      footer: `of ${peerRanks?.best_rank_total}`,
+    },
+  ];
+
+  const commentsStats: StatsEntry[] = [
+    {
+      header: t("currentRank"),
+      value: commentsRanks?.rank,
+      footer: `of ${commentsRanks?.rank_total}`,
+    },
+    {
+      header: t("bestEver"),
+      value: commentsRanks?.best_rank,
+      footer: `of ${commentsRanks?.best_rank_total}`,
+    },
+  ];
+
+  const questionsStats: StatsEntry[] = [
+    {
+      header: t("currentRank"),
+      value: questionsRanks?.rank,
+      footer: `of ${questionsRanks?.rank_total}`,
+    },
+    {
+      header: t("bestEver"),
+      value: questionsRanks?.best_rank,
+      footer: `of ${questionsRanks?.best_rank_total}`,
+    },
+  ];
+
+  return (
+    <section className="flex flex-col gap-4 rounded md:gap-6 lg:flex-row">
+      {/* Forecasting Performance */}
+      <div className="flex flex-col items-stretch gap-5 bg-white p-4 dark:bg-blue-900 md:p-6 lg:grow-[2]">
+        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
+          {t("forecastingPerformance")}
+        </h3>
+        <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Tournaments */}
+          <div className="flex-1">
+            <PerformanceCard
+              /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+              medalCategory={tournamentMedals!}
+              stats={tournamentStats}
+            />
+          </div>
+
+          {/* Baseline and Peer */}
+          <div className="flex w-full flex-1 flex-col gap-3 sm:gap-4 md:flex-row">
+            <PerformanceCard
+              /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+              medalCategory={baselineMedals!}
+              stats={baselineStats}
+              className="flex-1 grow"
+            />
+            <PerformanceCard
+              /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+              medalCategory={peerMedals!}
+              stats={peerStats}
+              className="flex-1 grow"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Insight */}
+      <div className="flex flex-col items-stretch gap-5 bg-white p-4 dark:bg-blue-900 md:p-6 lg:grow-[1]">
+        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
+          {t("insight")}
+        </h3>
+        <div className="flex grow flex-col gap-3 sm:gap-4 md:max-lg:flex-row">
+          <PerformanceCard
+            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+            medalCategory={commentsMedals!}
+            stats={commentsStats}
+            className="flex-1 grow"
+          />
+          <PerformanceCard
+            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+            medalCategory={questionsMedals!}
+            stats={questionsStats}
+            className="flex-1 grow"
+          />
+        </div>
       </div>
     </section>
   );

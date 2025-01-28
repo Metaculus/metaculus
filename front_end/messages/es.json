@@ -1051,5 +1051,11 @@
   "graduationYear": "Año de Graduación Esperado",
   "accountInactiveModalTitle": "¡Tienes correo!",
   "accountInactiveModalBody": "Por favor confirma tu correo electrónico asociado con tu cuenta de <bold>{login}</bold> para poder iniciar sesión.",
-  "accountInactiveModalResendButton": "Reenviar correo de activación"
+  "accountInactiveModalResendButton": "Reenviar correo de activación",
+  "editProfile": "Editar perfil",
+  "forecastingPerformance": "Desempeño de Pronóstico",
+  "totalPrizes": "Premios Totales",
+  "totalEarned": "Total Ganado",
+  "currentRank": "Rango Actual",
+  "bestEver": "El Mejor de Todos los Tiempos"
 }

@@ -178,6 +178,7 @@ type MarkdownEditorFieldProps<T extends FieldValues = FieldValues> = {
   name: Path<T>;
   defaultValue?: PathValue<T, Path<T>>;
   errors?: ErrorResponse;
+  className?: string;
 };
 
 export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
@@ -185,13 +186,19 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
   name,
   errors,
   defaultValue,
+  className,
 }: MarkdownEditorFieldProps<T>) => {
   const { field } = useController({ control, name, defaultValue });
   const editorRef = useRef<MDXEditorMethods>(null);
 
   return (
     <>
-      <div className="relative overflow-y-scroll rounded border border-gray-500 dark:border-gray-500-dark">
+      <div
+        className={cn(
+          "relative overflow-y-scroll rounded border border-gray-500 dark:border-gray-500-dark",
+          className
+        )}
+      >
         {/* This input is used to support following logic fron native forms
            - populate FormData with input value when submitting via form action
            - auto-scroll and focus input when validation error occurs

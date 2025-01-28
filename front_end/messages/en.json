@@ -1051,5 +1051,11 @@
   "accountInactiveModalTitle": "You've got mail!",
   "accountInactiveModalBody": "Please confirm your email associated with your <bold>{login}</bold> account to be able to log in.",
   "accountInactiveModalResendButton": "Resend activation email",
-  "editProfile": "Edit Profile"
+  "editProfile": "Edit Profile",
+  "forecastingPerformance": "Forecasting Performance",
+  "totalPrizes": "Total Prizes",
+  "totalEarned": "Total Earned",
+  "currentRank": "Current Rank",
+  "bestEver": "Best Ever",
+  "questionsBy": "Questions by"
 }
