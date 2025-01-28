@@ -1049,5 +1049,10 @@
   "graduationYear": "Año de Graduación Esperado",
   "accountInactiveModalTitle": "¡Tienes correo!",
   "accountInactiveModalBody": "Por favor confirma tu correo electrónico asociado con tu cuenta de <bold>{login}</bold> para poder iniciar sesión.",
-  "accountInactiveModalResendButton": "Reenviar correo de activación"
+  "accountInactiveModalResendButton": "Reenviar correo de activación",
+  "table": "Mesa",
+  "slider": "Deslizador",
+  "lowerBound": "Límite inferior",
+  "quartiles": "Cuartiles",
+  "upperBound": "Límite superior"
 }

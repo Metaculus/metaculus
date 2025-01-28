@@ -1049,5 +1049,10 @@
   "graduationYear": "Očekávaný rok ukončení studia",
   "accountInactiveModalTitle": "Máte poštu!",
   "accountInactiveModalBody": "Prosím, potvrďte svůj e-mail spojený s vaším účtem <bold>{login}</bold>, abyste se mohli přihlásit.",
-  "accountInactiveModalResendButton": "Znovu odeslat aktivační e-mail"
+  "accountInactiveModalResendButton": "Znovu odeslat aktivační e-mail",
+  "table": "Stůl",
+  "slider": "Posuvník",
+  "lowerBound": "Dolní mez",
+  "quartiles": "Kvartily",
+  "upperBound": "Horní mez"
 }
