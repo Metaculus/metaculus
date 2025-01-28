@@ -4,15 +4,15 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
-import { ProfilePageMode } from "@/types/users";
-import cn from "@/utils/cn";
+import { ProfilePageMode, UserProfile } from "@/types/users";
 
 type Props = {
   mode: ProfilePageMode;
-  id: number;
+  profile: UserProfile;
 };
-const ProfilePageTabs: FC<Props> = ({ mode, id }) => {
+const ProfilePageTabs: FC<Props> = ({ mode, profile }) => {
   const t = useTranslations();
+  const id = profile.id;
   const managementModeButtons: GroupButton<ProfilePageMode>[] = [
     {
       label: t("overview"),
@@ -29,17 +29,23 @@ const ProfilePageTabs: FC<Props> = ({ mode, id }) => {
       value: ProfilePageMode.Medals,
       href: `/accounts/profile/${id}?mode=${ProfilePageMode.Medals}`,
     },
-    {
+  ];
+
+  if (!!profile.comments_count) {
+    managementModeButtons.push({
       label: t("comments"),
       value: ProfilePageMode.Comments,
       href: `/accounts/profile/${id}?mode=${ProfilePageMode.Comments}`,
-    },
-    {
+    });
+  }
+
+  if (!!profile.posts_authored_count) {
+    managementModeButtons.push({
       label: t("questions"),
       value: ProfilePageMode.Questions,
       href: `/accounts/profile/${id}?mode=${ProfilePageMode.Questions}`,
-    },
-  ];
+    });
+  }
 
   return (
     <ButtonGroup
@@ -47,12 +53,7 @@ const ProfilePageTabs: FC<Props> = ({ mode, id }) => {
       buttons={managementModeButtons}
       onChange={() => {}}
       variant="tertiary"
-      className={cn(
-        "text-nowrap bg-blue-100 font-light capitalize leading-5 text-blue-900 hover:bg-blue-200 dark:border-blue-950 dark:bg-blue-950 dark:text-white hover:dark:bg-blue-800"
-      )}
-      activeClassName={cn(
-        "bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200"
-      )}
+      className="text-nowrap"
     />
   );
 };

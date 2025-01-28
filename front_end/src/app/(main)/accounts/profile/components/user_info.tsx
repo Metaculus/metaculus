@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
@@ -106,6 +106,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
   const { pending } = useFormStatus();
 
   const { params } = useSearchParams();
+  const locale = useLocale();
 
   const socialMedia = getSocialMediaArray(profile);
   const inputClassNames =
@@ -141,8 +142,8 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
     {
       heading: t("memberSince"),
       val: profile.date_joined
-        ? new Date(profile.date_joined).toLocaleDateString("en-US", {
-            month: "short",
+        ? new Date(profile.date_joined).toLocaleDateString(locale, {
+            month: "long",
             year: "numeric",
           })
         : undefined,
@@ -187,14 +188,14 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
               </div>
             </div>
 
-            <div className="grid grow grid-cols-2 gap-3 sm:grid-cols-3 lg:ml-auto lg:self-baseline">
+            <div className="grid grid-cols-2 gap-x-12 gap-y-3 sm:grid-cols-3 lg:ml-auto lg:self-baseline">
               {stats.map((stat) => (
                 <div
                   className="flex flex-col items-start gap-1 lg:items-center"
                   key={stat.heading}
                 >
                   <span className="text-xs  font-normal uppercase text-blue-900 opacity-45 dark:text-blue-900-dark">
-                    {stat.val ? stat.heading : ""}
+                    {stat.val || stat.val === 0 ? stat.heading : ""}
                   </span>
                   <span className="text-base text-gray-800 dark:text-gray-800-dark">
                     {stat.val}
@@ -227,12 +228,12 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
               </Button>
             )}
 
-            <ProfilePageTabs id={profile.id} mode={mode} />
+            <ProfilePageTabs profile={profile} mode={mode} />
           </div>
         </div>
 
-        <div className="mx-auto max-w-full overflow-x-scroll py-2 text-xs font-medium md:hidden">
-          <ProfilePageTabs id={profile.id} mode={mode} />
+        <div className="mx-auto max-w-full overflow-x-auto py-2 text-xs font-medium md:hidden">
+          <ProfilePageTabs profile={profile} mode={mode} />
         </div>
       </>
     );
@@ -260,12 +261,13 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         <div className="flex min-w-0 shrink-[2] flex-col gap-3">
           <div className="flex w-full flex-col gap-1.5">
             <div className={inputLabelClassNames}>{t("bio")}</div>
-            <div className="flex h-48 w-full content-center justify-between bg-gray-0 dark:bg-gray-0-dark">
+            <div className="flex h-48 w-full items-stretch bg-gray-0 dark:bg-gray-0-dark">
               <MarkdownEditorField
                 control={control}
                 name="bio"
                 defaultValue={profile.bio}
                 errors={state?.errors}
+                className="w-full"
               />
             </div>
           </div>

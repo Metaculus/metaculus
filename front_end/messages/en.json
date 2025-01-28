@@ -1056,5 +1056,11 @@
   "keepCivilStayOnTopic": "Keep it civil, stay on topic, and avoid low-effort comments. Reasoning copied directly from AI tools is not allowed. We will delete comments that violate our Community Guidelines.",
   "understand": "I understand",
   "closeThisMessage": "Close this message",
-  "editProfile": "Edit Profile"
+  "editProfile": "Edit Profile",
+  "forecastingPerformance": "Forecasting Performance",
+  "totalPrizes": "Total Prizes",
+  "totalEarned": "Total Earned",
+  "currentRank": "Current Rank",
+  "bestEver": "Best Ever",
+  "questionsBy": "Questions by"
 }
