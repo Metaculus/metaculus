@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     allow: "/",
   };
 
-  if (process.env.NEXT_PUBLIC_DISALLOW_ALL_BOTS === "true") {
+  if (process.env.PUBLIC_DISALLOW_ALL_BOTS === "true") {
     allowRules = {
       disallow: "/",
     };

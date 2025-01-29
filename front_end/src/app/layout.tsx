@@ -117,7 +117,7 @@ export async function generateMetadata(): Promise<Metadata> {
       process.env.APP_URL ?? "http://localhost:3000"
     ),
     robots:
-      process.env.NEXT_PUBLIC_DISALLOW_ALL_BOTS === "true"
+      process.env.PUBLIC_DISALLOW_ALL_BOTS === "true"
         ? { index: false, follow: true }
         : null,
   };
