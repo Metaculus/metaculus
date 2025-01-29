@@ -165,9 +165,9 @@ export default async function RootLayout({
             </NextIntlClientProvider>
           </AppThemeProvided>
         </body>
-        {!!process.env.NEXT_PUBLIC_GOOGLE_MEASUREMENT_ID && (
+        {!!process.env.PUBLIC_GOOGLE_MEASUREMENT_ID && (
           <GoogleAnalytics
-            gaId={process.env.NEXT_PUBLIC_GOOGLE_MEASUREMENT_ID}
+            gaId={process.env.PUBLIC_GOOGLE_MEASUREMENT_ID}
           />
         )}
       </CSPostHogProvider>
