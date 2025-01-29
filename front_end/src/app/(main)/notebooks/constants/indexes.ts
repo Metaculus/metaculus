@@ -4,7 +4,7 @@ export const AGI_INDEX_SLUG = "agi-readiness-index";
 
 export const NOTEBOOK_INDEXES: NotebookIndex = {
   [AGI_INDEX_SLUG]: [
-    { questionId: 31688, weight: 12 },
+    { questionId: 31688, weight: -12 },
     { questionId: 31689, weight: 12 },
     { questionId: 31707, weight: 10 },
     { questionId: 31709, weight: 9 },
