@@ -219,6 +219,14 @@ class Leaderboard(TimeStampedModel):
         </br>- If the Project has a prize pool, but this leaderboard has none, set this to 0.
         """,
     )
+    user_list = models.ManyToManyField(
+        User,
+        blank=True,
+        help_text="""Optional. If not set, all users with scores will be included.
+        </br>- If set, only users in this list will be included.
+        </br>- Exclusion Records still apply independent of this list.
+        """,
+    )
 
     def __str__(self):
         if self.name:

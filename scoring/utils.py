@@ -108,6 +108,10 @@ def generate_scoring_leaderboard_entries(
         qs_filters["question__scheduled_close_time__lte"] = finalize_time
         qs_filters["question__resolution_set_time__lte"] = finalize_time
 
+    user_list = leaderboard.user_list.all()
+    if user_list:
+        qs_filters["user__in"] = user_list.values_list("id", flat=True)
+
     archived_scores = ArchivedScore.objects.filter(**qs_filters).prefetch_related(
         "question"
     )
