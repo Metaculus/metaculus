@@ -12,7 +12,6 @@ jobs:
       HEROKU_APP: play-metaculus-web
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       NEXT_PUBLIC_DISALLOW_ALL_BOTS: ${{ vars.NEXT_PUBLIC_DISALLOW_ALL_BOTS }}
-      NEXT_PUBLIC_CDN_DOMAIN_NAME: ${{ vars.NEXT_PUBLIC_CDN_DOMAIN_NAME }}
 
     steps:
       - name: Checkout code
