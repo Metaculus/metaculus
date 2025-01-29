@@ -1,8 +1,7 @@
 import { intlFormatDistance } from "date-fns";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import React, { FC } from "react";
-
-import LocalDaytime from "./ui/local_daytime";
+import "@github/relative-time-element";
 
 type Props = {
   cpRevealTime: string;
@@ -11,16 +10,14 @@ type Props = {
 
 const CPRevealTime: FC<Props> = ({ cpRevealTime, className }) => {
   const t = useTranslations();
+  const locale = useLocale();
 
   return (
     <span className={className}>
       {t("cpRevealed")}{" "}
-      <LocalDaytime
-        date={cpRevealTime}
-        formatFn={(date, locale) =>
-          intlFormatDistance(date, new Date(), { locale })
-        }
-      />
+      <relative-time datetime={cpRevealTime} lang={locale}>
+        {intlFormatDistance(cpRevealTime, new Date(), { locale })}
+      </relative-time>
     </span>
   );
 };

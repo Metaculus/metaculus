@@ -1,29 +1,29 @@
 import { useLocale } from "next-intl";
-import { useEffect, useState, FC } from "react";
+import { FC } from "react";
+import "@github/relative-time-element";
 
 import { formatDate } from "@/utils/date_formatters";
 
 type Props = {
   date?: string;
-  formatFn?: (date: Date, locale: string) => string;
-  className?: string;
 };
 
-const LocalDaytime: FC<Props> = ({ date, formatFn, className }) => {
+const LocalDaytime: FC<Props> = ({ date }) => {
   const locale = useLocale();
-  const [localValue, setLocalValue] = useState<string>("");
+  const localValue = date ? formatDate(locale, new Date(date)) : "";
 
-  useEffect(() => {
-    if (date) {
-      const localDate = new Date(date);
-      const localDateString = formatFn
-        ? formatFn(localDate, locale)
-        : formatDate(locale, localDate);
-      setLocalValue(localDateString);
-    }
-  }, [date, formatFn, locale]);
-
-  return <span className={className}>{localValue}</span>;
+  return (
+    <relative-time
+      datetime={date}
+      format="relative"
+      prefix=""
+      threshold="P1D"
+      year="numeric"
+      lang={locale}
+    >
+      {localValue}
+    </relative-time>
+  );
 };
 
 export default LocalDaytime;
