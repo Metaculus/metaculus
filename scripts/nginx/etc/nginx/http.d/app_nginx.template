@@ -24,7 +24,7 @@ server {
     }
 
     location /api/posts/preview-image/ {
-        rewrite ^/api/posts/preview-image/(.*)$ /questions/$1/image-preview/;
+        rewrite ^/api/posts/preview-image/(.*)$ /questions/$1/image-preview break;
     }
 
     location /tournament/future-perfect/  {

@@ -30,11 +30,7 @@ from comments.serializers import (
 from comments.services.common import create_comment, trigger_update_comment_translations
 from comments.services.feed import get_comments_feed
 from comments.services.key_factors import key_factor_vote
-from notifications.services import (
-    NotificationCommentReport,
-    NotificationPostParams,
-    NotificationUserParams,
-)
+from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from users.models import User
@@ -264,18 +260,7 @@ def comment_report_api_view(request, pk=int):
     )
 
     if post:
-        staff = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
-
-        for user in staff:
-            NotificationCommentReport.schedule(
-                user,
-                NotificationCommentReport.ParamsType(
-                    post=NotificationPostParams.from_post(post),
-                    reporter=NotificationUserParams.from_user(request.user),
-                    comment_id=comment.id,
-                    reason=reason,
-                ),
-            )
+        send_comment_report_notification_to_staff(comment, reason, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

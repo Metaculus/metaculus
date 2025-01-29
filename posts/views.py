@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from django.core.files.storage import default_storage
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -44,6 +45,7 @@ from posts.services.common import (
     compute_hotness,
     trigger_update_post_translations,
     make_repost,
+    vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
@@ -340,20 +342,14 @@ def post_delete_api_view(request, pk):
 
 
 @api_view(["POST"])
+@transaction.non_atomic_requests
 def post_vote_api_view(request: Request, pk: int):
     post = get_object_or_404(Post, pk=pk)
     direction = serializers.ChoiceField(
         required=False, allow_null=True, choices=Vote.VoteDirection.choices
     ).run_validation(request.data.get("direction"))
 
-    # Deleting existing vote
-    Vote.objects.filter(user=request.user, post=post).delete()
-
-    if direction:
-        Vote.objects.create(user=request.user, post=post, direction=direction)
-
-    # Update counters
-    vote_score = post.update_vote_score()
+    vote_score = vote_post(post, request.user, direction)
 
     return Response({"score": vote_score})
 

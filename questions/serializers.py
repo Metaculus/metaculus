@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
@@ -20,6 +21,9 @@ from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
 from utils.the_math.measures import percent_point_function
+
+
+logger = logging.getLogger(__name__)
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -274,7 +278,7 @@ class MyForecastSerializer(serializers.ModelSerializer):
             "interval_lower_bounds",
             "centers",
             "interval_upper_bounds",
-            "slider_values",
+            "distribution_input",
         )
 
     def get_start_time(self, forecast: Forecast):
@@ -393,7 +397,8 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
     )
     percentiles = serializers.JSONField(allow_null=True, required=False)
 
-    slider_values = serializers.JSONField(allow_null=True, required=False)
+    distribution_input = serializers.JSONField(allow_null=True, required=False)
+
     source = serializers.ChoiceField(
         allow_null=True,
         required=False,
@@ -409,7 +414,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "probability_yes",
             "probability_yes_per_category",
             "percentiles",
-            "slider_values",
+            "distribution_input",
             "source",
         )
 

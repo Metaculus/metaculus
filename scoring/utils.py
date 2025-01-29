@@ -754,7 +754,12 @@ def get_contribution_question_writing(
     questions = (
         questions.prefetch_related("related_posts__post")
         # Fetch only authored posts
-        .filter(related_posts__post__author_id=user.id).only("related_posts__post")
+        .filter(
+            Q(related_posts__post__author_id=user.id)
+            | Q(related_posts__post__coauthors=user)
+        )
+        .distinct("id")
+        .only("related_posts__post")
     )
 
     # Fetch forecasts during leaderboard period
@@ -788,7 +793,6 @@ def get_contribution_question_writing(
         )
         contributions.append(contribution)
 
-    # h_index = decimal_h_index([c.score / 10 for c in contributions])
     contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
 
     return contributions
@@ -799,11 +803,9 @@ def get_contributions(
     leaderboard: Leaderboard,
 ) -> list[Contribution]:
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
-        public_posts = Post.objects.filter(
-            Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
-        )
+        main_feed_posts = Post.objects.filter_for_main_feed()
         comments = Comment.objects.filter(
-            on_post__in=public_posts,
+            on_post__in=main_feed_posts,
             author=user,
             created_at__lte=leaderboard.end_time,
             comment_votes__isnull=False,

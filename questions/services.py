@@ -112,13 +112,13 @@ def build_question_forecasts_for_user(
     forecasts_data = {
         "medians": [],
         "timestamps": [],
-        "slider_values": None,
+        "distribution_input": None,
     }
     user_forecasts = sorted(user_forecasts, key=lambda x: x.start_time)
 
     # values_choice_1
     for forecast in user_forecasts:
-        forecasts_data["slider_values"] = forecast.slider_values
+        forecasts_data["distribution_input"] = forecast.distribution_input
         forecasts_data["timestamps"].append(forecast.start_time.timestamp())
         if question.type == "multiple_choice":
             forecasts_data["medians"].append(0)
@@ -635,7 +635,7 @@ def create_forecast(
     continuous_cdf: list[float] = None,
     probability_yes: float = None,
     probability_yes_per_category: list[float] = None,
-    slider_values=None,
+    distribution_input=None,
     **kwargs,
 ):
     now = timezone.now()
@@ -662,8 +662,7 @@ def create_forecast(
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
-        distribution_components=None,
-        slider_values=slider_values if question.type in ["date", "numeric"] else None,
+        distribution_input=distribution_input if question.type in ["date", "numeric"] else None,
         post=post,
         **kwargs,
     )

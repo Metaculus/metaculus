@@ -212,6 +212,19 @@ const people: Person[] = [
     ],
   },
   {
+    name: "Joshua Elliott",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/joshua-elliott-image.webp",
+    introduction:
+      'Joshua Elliott is the Chief Scientist of Renaissance Philanthropy, with over 15 years of experience across academia, government, and philanthropy. He has led initiatives on solar radiation management, CO₂ removal, and climate resilience at Quadrature Climate Foundation, launched the Brains non-profit science accelerator, and incubated innovative R&D programs like ARC and Project InnerSpace.\n\nPreviously, Joshua managed nearly $600M in federal R&D funding at DARPA, focusing on "AI for Science" and programs spanning computational science, synthetic biology, and epidemiology. Earlier, he spent a decade in academia working on climate economics, energy modeling, and climate impacts, co-founding key initiatives like the Center for Robust Decision-making in Climate and Energy Policy. He holds a PhD in theoretical high-energy physics from McGill University.',
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/joshuawrightelliott/",
+        platform: "LinkedIn",
+      },
+    ],
+  },
+  {
     userId: 10,
     name: "Greg Laughlin",
     position: "Founder & R&D Fellow",
@@ -334,7 +347,12 @@ const groups: Groups = {
     "Luke Sabor",
     "John Bash",
   ],
-  board: ["Anthony Aguirre", "Carroll “Max” Wainwright", "David Levine"],
+  board: [
+    "Anthony Aguirre",
+    "Carroll “Max” Wainwright",
+    "David Levine",
+    "Joshua Elliott",
+  ],
   advisors: [
     "Juan Cambeiro",
     "Tamay Besiroglu",

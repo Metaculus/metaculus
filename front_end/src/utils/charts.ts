@@ -1033,22 +1033,20 @@ export function getFanOptionsFromContinuousGroup(
     .map((q) => {
       const latest = q.my_forecasts?.latest;
       const userForecast = extractPrevNumericForecastValue(
-        latest && !latest.end_time ? latest.slider_values : undefined
+        latest && !latest.end_time ? latest.distribution_input : undefined
       );
 
       return {
         name: q.label,
         communityCdf:
           q.aggregations.recency_weighted.latest?.forecast_values ?? [],
-        userCdf:
-          userForecast.forecast && userForecast.weights
-            ? getNumericForecastDataset(
-                userForecast.forecast,
-                userForecast.weights,
-                q.open_lower_bound,
-                q.open_upper_bound
-              ).cdf
-            : null,
+        userCdf: userForecast?.components
+          ? getNumericForecastDataset(
+              userForecast.components,
+              q.open_lower_bound,
+              q.open_upper_bound
+            ).cdf
+          : null,
         resolvedAt: new Date(q.scheduled_resolve_time),
         resolved: q.resolution !== null,
         question: q,

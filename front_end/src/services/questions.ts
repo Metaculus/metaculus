@@ -1,10 +1,10 @@
-import { ForecastData, SliderValues } from "@/types/question";
+import { DistributionSlider, ForecastData } from "@/types/question";
 import { get, post } from "@/utils/fetch";
 
 export type ForecastPayload = {
   questionId: number;
   forecastData: ForecastData;
-  sliderValues?: SliderValues | null;
+  distributionInput?: DistributionSlider | null;
 };
 export type WithdrawalPayload = {
   question: number;
@@ -17,12 +17,12 @@ class QuestionsApi {
   ): Promise<Response> {
     return await post(
       `/questions/forecast/`,
-      forecasts.map(({ questionId, forecastData, sliderValues }) => ({
+      forecasts.map(({ questionId, forecastData, distributionInput }) => ({
         question: questionId,
         continuous_cdf: forecastData.continuousCdf,
         probability_yes: forecastData.probabilityYes,
         probability_yes_per_category: forecastData.probabilityYesPerCategory,
-        slider_values: sliderValues,
+        distribution_input: distributionInput,
         source: "ui",
       }))
     );

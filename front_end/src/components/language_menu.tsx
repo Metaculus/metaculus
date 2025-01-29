@@ -59,7 +59,7 @@ const LanguageMenu: FC<Props> = ({ className }) => {
       </MenuButton>
       <MenuItems
         anchor="bottom"
-        className="z-50 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
+        className="z-100 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
       >
         {languageMenuItems.map((item) => {
           return (

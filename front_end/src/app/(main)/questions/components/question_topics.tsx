@@ -185,6 +185,17 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               })
             }
           />
+          <TopicItem
+            isActive={false}
+            emoji="📖"
+            text="ACX 2025"
+            href="/tournament/ACX2025/"
+            onClick={() =>
+              sendGAEvent("event", "sidebarClick", {
+                event_category: "ACX 2025",
+              })
+            }
+          />
           {!!hotTopics.length && (
             <>
               <Title title={t("topics")} />

@@ -275,14 +275,6 @@ class Forecast(models.Model):
     # multiple choice prediction
     probability_yes_per_category = ArrayField(models.FloatField(), null=True)
 
-    # continuous prediction - migrated from old version
-    distribution_components = ArrayField(
-        models.JSONField(null=True),
-        size=5,
-        null=True,
-        help_text="The components for a continuous prediction. Used to generate prediction_values.",
-    )
-
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(
         Question, models.CASCADE, related_name="user_forecasts"
@@ -310,7 +302,7 @@ class Forecast(models.Model):
         default="",
     )
 
-    slider_values = models.JSONField(null=True)
+    distribution_input = models.JSONField(null=True)
 
     class Meta:
         indexes = [

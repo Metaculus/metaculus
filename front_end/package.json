@@ -14,6 +14,7 @@
     "translations:generate": "node ./scripts/add_missing_translations.mjs"
   },
   "dependencies": {
+    "@dqbd/tiktoken": "^1.0.18",
     "@floating-ui/react": "^0.26.16",
     "@formatjs/intl-localematcher": "^0.5.4",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",

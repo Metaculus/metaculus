@@ -10,12 +10,12 @@ import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
-import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import { ForecastPayload } from "@/services/questions";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {
+  DistributionSlider,
   ForecastAvailability,
   QuestionType,
   QuestionWithMultipleChoiceForecasts,
@@ -26,7 +26,6 @@ import {
   extractPrevBinaryForecastValue,
   extractPrevNumericForecastValue,
   getNormalizedContinuousForecast,
-  getNormalizedContinuousWeight,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 
@@ -301,19 +300,16 @@ function generateReaffirmData({
     if (groupType === QuestionType.Date || groupType === QuestionType.Numeric) {
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
-        let forecastValues: {
-          forecast?: MultiSliderValue[];
-          weights?: number[];
-        } | null = null;
+        let forecastValues: DistributionSlider | undefined = undefined;
         if (latest && !latest.end_time) {
           forecastValues = extractPrevNumericForecastValue(
-            latest.slider_values
+            latest.distribution_input
           );
         }
 
         return {
           id: q.id,
-          forecastValues,
+          forecastValues: forecastValues?.components,
           status: q.status,
           openLowerBound: q.open_lower_bound,
           openUpperBound: q.open_upper_bound,
@@ -323,7 +319,7 @@ function generateReaffirmData({
       const reaffirmForecasts = groupForecasts.filter(
         (q) =>
           !isNil(q.forecastValues) &&
-          !isNil(q.forecastValues.forecast) &&
+          !isNil(q.forecastValues) &&
           q.status === QuestionStatus.OPEN
       );
 
@@ -331,10 +327,7 @@ function generateReaffirmData({
         canReaffirm: !!reaffirmForecasts.length,
         forecast: reaffirmForecasts.map((q) => {
           const userForecast = getNormalizedContinuousForecast(
-            q.forecastValues?.forecast
-          );
-          const userWeights = getNormalizedContinuousWeight(
-            q.forecastValues?.weights
+            q.forecastValues
           );
 
           return {
@@ -342,16 +335,15 @@ function generateReaffirmData({
             forecastData: {
               continuousCdf: getNumericForecastDataset(
                 userForecast,
-                userWeights,
                 q.openLowerBound,
                 q.openUpperBound
               ).cdf,
               probabilityYesPerCategory: null,
               probabilityYes: null,
             },
-            sliderValues: {
-              forecast: userForecast,
-              weights: userWeights,
+            distributionInput: {
+              type: "slider",
+              components: userForecast,
             },
           };
         }),

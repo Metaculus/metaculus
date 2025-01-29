@@ -1,3 +1,5 @@
+import { getLocale } from "next-intl/server";
+
 import KatexRenderer from "@/components/katex_renderer";
 
 import BaselineMath from "./components/baseline_math";
@@ -5,6 +7,7 @@ import FurtherMath from "./components/further_math";
 import PeerMath from "./components/peer_math";
 import PointsMath from "./components/points_math";
 import TruncationExample from "./components/truncation_example";
+import content_pt from "./page_pt";
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -13,7 +16,12 @@ export const metadata = {
     "Learn how Metaculus scores work, including Peer scores, Relative scores, and legacy scoring methods. Understand tournament rankings, coverage, and prize calculations.",
 };
 
-export default function ScoresFAQ() {
+export default async function ScoresFAQ() {
+  const locale = await getLocale();
+  if (locale === "pt") {
+    return content_pt();
+  }
+
   return (
     <PageWrapper>
       <h1>Scores FAQ</h1>
@@ -1074,20 +1082,21 @@ export default function ScoresFAQ() {
       </div>
       <p>
         For a tournament with a sufficiently large number of independent
-        questions, this scoring method is effectively{" "}
+        questions, this scoring method is essentially{" "}
         <a href="https://www.metaculus.com/help/scores-faq/#proper-scoring">
           proper
-        </a>{" "}
-        for the top quartile of forecasters. While there are small imperfections
-        for forecasters near a 0 Peer score for which they might win a tiny bit
-        of money by extremizing their forecasts, we believe this is an edge case
-        that you can safely ignore. In short, you should predict your true
-        belief on any question.
+        </a>
+        . In short, you should predict your true belief on any question.
       </p>
       <p>
         Taking the square of your Peer scores incentivizes forecasting every
         question and forecasting early. Don’t forget to <b>Follow</b> a
         tournament to be notified of new questions.
+      </p>
+      <p>
+        Note: to limit administrative costs, we also limit prize apportionment
+        to amounts above a certain threshold (typically 10$, but it can vary per
+        tournament).
       </p>
 
       <hr />
