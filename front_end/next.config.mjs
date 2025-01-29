@@ -12,7 +12,7 @@ const nextConfig = {
   trailingSlash: true,
   env: {
     API_BASE_URL,
-    APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+    APP_URL: process.env.PUBLIC_APP_URL ?? "http://localhost:3000",
     PUBLIC_POSTHOG_BASE_URL: "https://us.i.posthog.com",
   },
   experimental: {

@@ -10,7 +10,6 @@ jobs:
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       HEROKU_APP: play-metaculus-web
-      NEXT_PUBLIC_APP_URL: "https://play.metaculus.com"
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       NEXT_PUBLIC_DISALLOW_ALL_BOTS: ${{ vars.NEXT_PUBLIC_DISALLOW_ALL_BOTS }}
       NEXT_PUBLIC_CDN_DOMAIN_NAME: ${{ vars.NEXT_PUBLIC_CDN_DOMAIN_NAME }}
