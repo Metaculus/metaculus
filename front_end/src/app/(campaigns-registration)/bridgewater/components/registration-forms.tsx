@@ -318,13 +318,13 @@ export const RegistrationAndSignupForm: FC<
           <FormError
             errors={errors}
             name={
-              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"
+              process.env.PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"
             }
           />
-          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          {process.env.PUBLIC_TURNSTILE_SITE_KEY && (
             <Turnstile
               ref={turnstileRef}
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              siteKey={process.env.PUBLIC_TURNSTILE_SITE_KEY}
               onSuccess={(token) => {
                 setIsTurnstileValidate(true);
                 setValue("turnstileToken", token);

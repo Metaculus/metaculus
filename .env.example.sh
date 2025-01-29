@@ -19,7 +19,7 @@ export AWS_S3_REGION_NAME=
 
 # Captcha
 export TURNSTILE_SECRET_KEY=
-export NEXT_PUBLIC_TURNSTILE_SITE_KEY=
+export PUBLIC_TURNSTILE_SITE_KEY=
 
 # OpenAI
 # Required for search, newsmatch, question similarity

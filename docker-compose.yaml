@@ -35,7 +35,7 @@ services:
       # frontend?
       NEXT_PUBLIC_APP_URL: http://localhost
       NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
-      #NEXT_PUBLIC_TURNSTILE_SITE_KEY=key
+      #PUBLIC_TURNSTILE_SITE_KEY=key
     ports:
       - "8000:8000"
       - "3000:3000"
