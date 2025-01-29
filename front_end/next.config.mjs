@@ -1,3 +1,4 @@
+import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin();
@@ -10,6 +11,7 @@ const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   trailingSlash: true,
+  productionBrowserSourceMaps: true,
   env: {
     API_BASE_URL,
     APP_URL: process.env.PUBLIC_APP_URL ?? "http://localhost:3000",
@@ -71,4 +73,10 @@ const nextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  org: "metaculus",
+  project: "metaculus-frontend",
+  silent: false,
+  widenClientFileUpload: true,
+  telemetry: false,
+});
