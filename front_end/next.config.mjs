@@ -13,7 +13,7 @@ const nextConfig = {
   env: {
     API_BASE_URL,
     APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-    NEXT_PUBLIC_POSTHOG_BASE_URL: "https://us.i.posthog.com",
+    PUBLIC_POSTHOG_BASE_URL: "https://us.i.posthog.com",
   },
   experimental: {
     instrumentationHook: true,
