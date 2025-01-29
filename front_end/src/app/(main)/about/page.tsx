@@ -1,7 +1,9 @@
+import { getLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 
 import { AboutHeader } from "./components/AboutHeader";
 import TeamBlock from "./components/TeamBlock";
+import content_pt from "./page_pt";
 import EngageBlock from "../(home)/components/engage_block";
 
 export const metadata = {
@@ -11,6 +13,11 @@ export const metadata = {
 };
 
 export default async function AboutPage() {
+  const locale = await getLocale();
+  if (locale === "pt") {
+    return content_pt();
+  }
+
   const t = await getTranslations();
   const numbers = [
     {
