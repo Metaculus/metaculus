@@ -201,7 +201,7 @@ const people: Person[] = [
     name: "Anthony Aguirre",
     position: "Founder & Chairman of the Board",
     imgSrc:
-      "https://metaculus-public.s3.us-west-2.amazonaws.com/joshua-elliott-image.webp",
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/anthony_aguirre.webp",
     introduction:
       "An astrophysicist and cosmologist, Anthony co-founded the Foundational Questions Institute and The Future of Life Institute. He is a Professor of Physics at UCSC and holds a PhD from Harvard. Fascinated by deep questions in physics and a belief that the long-term future of humanity hinges upon the next half-century, Anthony’s work with Metaculus is driven by his belief that it will help society navigate the coming crucial decades.",
     socials: [
@@ -214,7 +214,7 @@ const people: Person[] = [
   {
     name: "Joshua Elliott",
     imgSrc:
-      "https://metaculus-public.s3.us-west-2.amazonaws.com/joshua-elliott.png",
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/joshua-elliott-image.webp",
     introduction:
       'Joshua Elliott is the Chief Scientist of Renaissance Philanthropy, with over 15 years of experience across academia, government, and philanthropy. He has led initiatives on solar radiation management, CO₂ removal, and climate resilience at Quadrature Climate Foundation, launched the Brains non-profit science accelerator, and incubated innovative R&D programs like ARC and Project InnerSpace.\n\nPreviously, Joshua managed nearly $600M in federal R&D funding at DARPA, focusing on "AI for Science" and programs spanning computational science, synthetic biology, and epidemiology. Earlier, he spent a decade in academia working on climate economics, energy modeling, and climate impacts, co-founding key initiatives like the Center for Robust Decision-making in Climate and Energy Policy. He holds a PhD in theoretical high-energy physics from McGill University.',
     socials: [
