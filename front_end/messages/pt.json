@@ -1022,6 +1022,7 @@
   "indexWeight": "Peso",
   "indexCP": "CP",
   "weeklyMovementChange": "{value} nesta semana",
+  "noChange": "Sem alteração",
   "percentagePoints": "pontos percentuais",
   "proForecastersTitle": "Sobre os Pro Previsores da Metaculus",
   "proForecastersDescription": "Para certos projetos, a Metaculus emprega Pro Previsores que demonstraram excelente capacidade de previsão e têm um histórico de descrever claramente suas motivações. Os profissionais preveem em conjuntos de perguntas privadas e públicas para produzir previsões bem calibradas e motivações descritivas para nossos parceiros.<br></br><br></br>Se você estiver interessado em contratar Pro Previsores da Metaculus para um projeto, entre em contato conosco em <email>support@metaculus.com</email> com o assunto <strong>\"Inquérito de Projeto\"</strong>.",
