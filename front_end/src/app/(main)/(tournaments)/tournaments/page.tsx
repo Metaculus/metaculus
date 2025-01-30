@@ -79,7 +79,7 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
   );
 
   for (const tournament of sortedTournaments) {
-    if (!tournament.leaderboard_questions_count) {
+    if (!tournament.questions_count) {
       continue;
     }
 

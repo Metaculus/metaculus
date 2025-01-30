@@ -68,7 +68,7 @@ class ProjectsQuerySet(models.QuerySet):
             )
         )
 
-    def annotate_leaderboard_questions_count(self):
+    def annotate_questions_count(self):
         from posts.models import Post
 
         return self.annotate(
@@ -95,7 +95,7 @@ class ProjectsQuerySet(models.QuerySet):
                 distinct=True,
             ),
         ).annotate(
-            leaderboard_questions_count=Coalesce(F("posts_questions_count"), 0)
+            questions_count=Coalesce(F("posts_questions_count"), 0)
             + Coalesce(F("default_posts_questions_count"), 0)
         )
 

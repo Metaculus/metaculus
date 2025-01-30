@@ -58,7 +58,7 @@ export type TournamentPreview = Project & {
   close_date: string;
   is_ongoing: boolean;
   created_at: string;
-  leaderboard_questions_count: number;
+  questions_count: number;
   user_permission: ProjectPermissions;
   default_permission: ProjectPermissions | null;
   score_type: string;

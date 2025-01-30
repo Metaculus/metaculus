@@ -25,7 +25,7 @@ export default async function TheCurve() {
     statuses: PostStatus.APPROVED,
     tournaments: THECURVE_TOURNAMENT_SLUG,
     not_forecaster_id: String(user.id),
-    limit: tournament.leaderboard_questions_count,
+    limit: tournament.questions_count,
   };
 
   const response = await PostsApi.getPostsWithCP(tournamentFilter);

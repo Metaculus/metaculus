@@ -73,7 +73,7 @@ const TournamentsList: FC<Props> = ({
               }
               headerImageSrc={item.header_image}
               name={item.name}
-              questionsCount={item.leaderboard_questions_count}
+              questionsCount={item.questions_count}
               prizePool={item.prize_pool}
               closeDate={item.close_date}
               showCloseDate={item.type !== TournamentType.QuestionSeries}
