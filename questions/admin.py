@@ -12,6 +12,7 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
+from questions.services import build_question_forecasts
 from utils.csv_utils import export_data_for_questions
 from utils.models import CustomTranslationAdmin
 
@@ -29,7 +30,11 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     ]
     readonly_fields = ["post_link"]
     search_fields = ["title_original", "description_original"]
-    actions = ["export_selected_questions_data"]
+    actions = [
+        "export_selected_questions_data",
+        "rebuild_aggregation_history",
+        "trigger_scoring",
+    ]
     list_filter = [
         "type",
         "related_posts__post__curation_status",
@@ -61,7 +66,9 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         return format_html('<a href="{}">{}</a>', url, f"Post-{post.id}")
 
     def should_update_translations(self, obj):
-        is_private = obj.post.default_project.default_permission is None
+        is_private = (
+            obj.related_posts.first().post.default_project.default_permission is None
+        )
         return not is_private
 
     def get_fields(self, request, obj=None):
@@ -81,7 +88,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
 
-        data = export_data_for_questions(queryset)
+        data = export_data_for_questions(queryset, True, True, True)
         if data is None:
             self.message_user(request, "No questions selected.")
             return
@@ -91,6 +98,27 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         response["Content-Disposition"] = 'attachment; filename="metaculus_data.zip"'
 
         return response
+
+    def rebuild_aggregation_history(self, request, queryset: QuerySet[Question]):
+        for question in queryset:
+            build_question_forecasts(question)
+
+    def trigger_scoring(self, request, queryset: QuerySet[Question]):
+        from scoring.utils import score_question
+
+        for question in queryset:
+            if question.resolution in ["", None, "ambiguous", "annulled"]:
+                continue
+            spot_forecast_time = (
+                question.cp_reveal_time.timestamp() if question.cp_reveal_time else None
+            )
+            score_question(
+                question=question,
+                resolution=question.resolution,
+                spot_forecast_time=spot_forecast_time,
+            )
+
+    trigger_scoring.short_description = "Trigger Scoring (does nothing if not resolved)"
 
 
 @admin.register(Conditional)

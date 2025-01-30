@@ -9,7 +9,7 @@ import {
   FetchOptions,
 } from "@/types/fetch";
 
-import { extractError, logError } from "./errors";
+import { extractError } from "./errors";
 
 class ApiError extends Error {
   public digest: string;
@@ -53,7 +53,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 
     try {
       errorData = await response.json();
-    } catch (err) {
+    } catch {
       errorData = {
         detail: "Unexpected Server Error",
       } as ApiErrorResponse;
@@ -69,6 +69,14 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     error.data = data;
 
     throw error;
+  }
+
+  // Check the content type to determine how to process the response
+  const contentType = response.headers.get("content-type");
+
+  if (contentType && contentType.includes("application/zip")) {
+    // If the response is a ZIP, return it as a Blob
+    return response.blob() as unknown as T;
   }
 
   // Some endpoints might still have successful null response
@@ -140,23 +148,8 @@ const appFetch = async <T>(
     delete finalOptions.headers["Content-Type"];
   }
 
-  try {
-    const response = await fetch(finalUrl, finalOptions);
-    // consume response in order to fix SocketError: other side is closed
-    // https://stackoverflow.com/questions/76931498/typeerror-terminated-cause-socketerror-other-side-closed-in-fetch-nodejs
-    const clonedRes = response.clone();
-    return await handleResponse<T>(clonedRes);
-  } catch (error) {
-    const statusCode = (error as ErrorResponse)?.response?.status;
-    const digest = (error as ApiError)?.digest;
-
-    if (digest != "NEXT_NOT_FOUND" && (!statusCode || statusCode >= 500)) {
-      console.error("Fetch error:", error);
-    }
-
-    logError(error, `Fetch error: ${error}. finalUrl: ${finalUrl}`);
-    throw error;
-  }
+  const response = await fetch(finalUrl, finalOptions);
+  return await handleResponse<T>(response);
 };
 
 const get = async <T>(
@@ -167,7 +160,7 @@ const get = async <T>(
   return appFetch<T>(url, { ...options, method: "GET" }, config);
 };
 
-const post = async <T, B = Record<string, any>>(
+const post = async <T = Response, B = Record<string, unknown>>(
   url: string,
   body: B,
   options: FetchOptions = {}

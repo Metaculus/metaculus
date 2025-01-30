@@ -1,3 +1,4 @@
+import { userTagPattern } from "@/constants/comments";
 import { AuthorType, BECommentType, CommentType } from "@/types/comment";
 
 export function parseComment(
@@ -14,6 +15,7 @@ export function parseComment(
     on_post: comment.on_post,
     on_post_data: comment.on_post_data,
     created_at: comment.created_at,
+    edited_at: comment.edited_at,
     is_soft_deleted: comment.is_soft_deleted,
     included_forecast: comment.included_forecast,
     is_private: comment.is_private,
@@ -30,8 +32,6 @@ export function parseUserMentions(
   markdown: string,
   mentionedUsers?: AuthorType[]
 ): string {
-  const userTagPattern = /@(\(([^)]+)\)|(\w.+))/g;
-
   function isInsideSquareBrackets(index: number) {
     let insideBrackets = false;
     for (let i = 0; i < index; i++) {
@@ -47,8 +47,10 @@ export function parseUserMentions(
       if (isInsideSquareBrackets(offset)) {
         return match;
       }
+      // remove only the leading "@" and clean parentheses around the username
+      let cleanedUsername = match.replace(/^@/, "");
+      cleanedUsername = cleanedUsername.replace(/^\(([^)]+)\)$/, "$1");
 
-      const cleanedUsername = (group2 || group3).replace(/[@()]/g, "");
       switch (cleanedUsername.toLowerCase()) {
         case "moderators":
           return `[@${cleanedUsername}](/faq/#moderators-tag)`;

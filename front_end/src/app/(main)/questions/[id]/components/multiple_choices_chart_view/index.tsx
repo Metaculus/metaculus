@@ -1,20 +1,20 @@
 "use client";
-import classNames from "classnames";
+import { FloatingPortal } from "@floating-ui/react";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import CPRevealTime from "@/components/charts/cp_reveal_time";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import GroupPredictionsTooltip from "@/components/charts/primitives/group_predictions_tooltip";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
-import { ChoiceItem, ChoiceTooltipItem, UserChoiceItem } from "@/types/choices";
+import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
+import cn from "@/utils/cn";
 
 import ChoicesLegend from "./choices_legend";
-import ChoicesTooltip from "./choices_tooltip";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
@@ -27,9 +27,11 @@ type Props = {
   onChoiceItemsUpdate: (choiceItems: ChoiceItem[]) => void;
   timestamps: number[];
   onCursorChange?: (value: number, format: TickFormat) => void;
+  openTime?: number;
   actualCloseTime?: number | null;
   isClosed?: boolean;
   hideCP?: boolean;
+  isEmptyDomain?: boolean;
 
   title?: string;
   yLabel?: string;
@@ -41,8 +43,6 @@ type Props = {
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
-  isCPRevealed?: boolean;
-  cpRevealTime?: string;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -54,9 +54,11 @@ const MultiChoicesChartView: FC<Props> = ({
   forecastersCount,
   timestamps,
   onCursorChange,
+  openTime,
   actualCloseTime,
   isClosed,
   hideCP,
+  isEmptyDomain,
 
   title,
   yLabel,
@@ -68,8 +70,6 @@ const MultiChoicesChartView: FC<Props> = ({
   chartHeight,
   chartTheme,
   embedMode = false,
-  isCPRevealed = true,
-  cpRevealTime,
 }) => {
   const { user } = useAuth();
   const t = useTranslations();
@@ -144,7 +144,7 @@ const MultiChoicesChartView: FC<Props> = ({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "flex w-full flex-col",
         isChartReady ? "opacity-100" : "opacity-0"
       )}
@@ -190,8 +190,9 @@ const MultiChoicesChartView: FC<Props> = ({
                 ? TimelineChartZoomOption.All
                 : TimelineChartZoomOption.TwoMonths
           }
+          isEmptyDomain={isEmptyDomain}
+          openTime={openTime}
         />
-        {!isCPRevealed && <CPRevealTime cpRevealTime={cpRevealTime} />}
       </div>
 
       {withLegend && (
@@ -207,18 +208,20 @@ const MultiChoicesChartView: FC<Props> = ({
       )}
 
       {isTooltipActive && !!tooltipChoices.length && (
-        <div
-          className="pointer-events-none z-20 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark"
-          ref={refs.setFloating}
-          style={floatingStyles}
-          {...getFloatingProps()}
-        >
-          <ChoicesTooltip
-            date={tooltipDate}
-            choices={tooltipChoices}
-            userChoices={tooltipUserChoices}
-          />
-        </div>
+        <FloatingPortal>
+          <div
+            className="pointer-events-none z-20 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark"
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+          >
+            <GroupPredictionsTooltip
+              title={tooltipDate}
+              communityPredictions={tooltipChoices}
+              userPredictions={tooltipUserChoices}
+            />
+          </div>
+        </FloatingPortal>
       )}
     </div>
   );

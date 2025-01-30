@@ -5,27 +5,39 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from projects.serializers.communities import CommunitySerializer
 from projects.models import Project, ProjectUserPermission
+from projects.serializers.communities import CommunitySerializer
 from users.serializers import UserPublicSerializer
+from scoring.models import GLOBAL_LEADERBOARD_STRING
 
 
 class TagSerializer(serializers.ModelSerializer):
+    is_global_leaderboard = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
-        fields = ("id", "name", "slug")
+        fields = ("id", "name", "slug", "type", "is_global_leaderboard")
+
+    def get_is_global_leaderboard(self, obj: Project) -> bool:
+        return obj.name.endswith(GLOBAL_LEADERBOARD_STRING)
+
+
+class NewsCategorySerialize(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ("id", "name", "slug", "type", "default_permission")
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "description")
+        fields = ("id", "name", "slug", "description", "type")
 
 
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "emoji", "section")
+        fields = ("id", "name", "slug", "emoji", "section", "type")
 
 
 class MiniTournamentSerializer(serializers.ModelSerializer):
@@ -47,7 +59,7 @@ class MiniTournamentSerializer(serializers.ModelSerializer):
             "created_at",
             "edited_at",
             "default_permission",
-            "add_posts_to_main_feed",
+            "visibility",
             "is_current_content_translated",
         )
 
@@ -75,6 +87,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "created_at",
             "score_type",
             "default_permission",
+            "visibility",
             "is_current_content_translated",
         )
 
@@ -97,7 +110,7 @@ class TournamentSerializer(TournamentShortSerializer):
             "header_logo",
             "meta_description",
             "edited_at",
-            "add_posts_to_main_feed",
+            "visibility",
         )
 
 
@@ -115,6 +128,8 @@ def serialize_project(obj: Project):
             serializer = MiniTournamentSerializer
         case obj.ProjectTypes.SITE_MAIN:
             serializer = MiniTournamentSerializer
+        case obj.ProjectTypes.NEWS_CATEGORY:
+            serializer = NewsCategorySerialize
         case obj.ProjectTypes.COMMUNITY:
             serializer = CommunitySerializer
         case _:
@@ -129,15 +144,15 @@ def serialize_projects(
     projects = set(projects) | {default_project}
     data = defaultdict(list)
 
-    for obj in projects:
+    # sort by order to allow any prioritized tags to be shown first
+    # e.g. global leaderboard tags
+    for obj in sorted(projects, key=lambda x: x.order or float("inf")):
         serialized_data = serialize_project(obj)
 
-        if obj.default_permission:
-            data[obj.type].append(serialized_data)
+        data[obj.type].append(serialized_data)
 
         if obj == default_project:
             data["default_project"] = serialized_data
-
     return data
 
 
@@ -204,3 +219,19 @@ class ProjectUserSerializer(serializers.ModelSerializer):
             "user",
             "permission",
         )
+
+
+class DownloadDataSerializer(serializers.Serializer):
+    include_comments = serializers.BooleanField(required=False, default=False)
+    include_scores = serializers.BooleanField(required=False, default=False)
+
+    def validate(self, attrs):
+        allowed_fields = {"include_comments", "include_scores"}
+        input_fields = set(self.initial_data.keys())
+
+        # Check if there are any unexpected fields
+        unexpected_fields = input_fields - allowed_fields
+        if unexpected_fields:
+            raise ValidationError(f"Unexpected fields: {', '.join(unexpected_fields)}")
+
+        return attrs

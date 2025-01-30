@@ -1,3 +1,5 @@
+import { isNil } from "lodash";
+
 import { CategoryKey } from "@/types/scoring";
 
 export const LEADERBOARD_CATEGORIES = [
@@ -11,6 +13,7 @@ export const LEADERBOARD_CATEGORIES = [
 export const DEFAULT_LEADERBOARD_CATEGORY: CategoryKey = "all";
 
 const LEADERBOARD_YEARS = [
+  "2025,1",
   "2024,2",
   "2024,1",
   "2023,1",
@@ -29,7 +32,13 @@ const LEADERBOARD_YEARS = [
   "2016,2",
   "2016,1",
 ];
-export const LEADERBOARD_YEAR_OPTIONS = LEADERBOARD_YEARS.map((opt) => {
+export const LEADERBOARD_YEAR_OPTIONS = LEADERBOARD_YEARS.reduce<
+  Array<{ year: string; duration: string }>
+>((acc, opt) => {
   const [year, duration] = opt.split(",");
-  return { year, duration };
-});
+  if (!isNil(year) && !isNil(duration)) {
+    acc.push({ year, duration });
+  }
+
+  return acc;
+}, []);

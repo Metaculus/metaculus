@@ -1,16 +1,16 @@
 "use client";
-import { merge } from "lodash";
+import { isNil, merge } from "lodash";
 import React, { FC, useMemo } from "react";
 import {
   Tuple,
   VictoryArea,
   VictoryAxis,
   VictoryChart,
-  VictoryCursorContainer,
-  VictoryScatter,
-  VictoryLine,
-  VictoryThemeDefinition,
   VictoryContainer,
+  VictoryCursorContainer,
+  VictoryLine,
+  VictoryScatter,
+  VictoryThemeDefinition,
 } from "victory";
 
 import { getResolutionData } from "@/components/charts/numeric_chart";
@@ -20,16 +20,16 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import {
   ContinuousAreaGraphType,
-  Line,
   ContinuousAreaHoverState,
   ContinuousAreaType,
+  Line,
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import {
+  generateScale,
   getClosestYValue,
   interpolateYValue,
-  generateScale,
 } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -48,6 +48,7 @@ export type ContinuousAreaGraphInput = Array<{
   type: ContinuousAreaType;
 }>;
 
+const TOP_PADDING = 10;
 const BOTTOM_PADDING = 20;
 const HORIZONTAL_PADDING = 10;
 
@@ -86,6 +87,8 @@ const ContinuousAreaChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
+  const paddingTop = graphType === "cdf" ? TOP_PADDING : 0;
+
   const charts = useMemo(() => {
     const parsedData = hideCP
       ? [...data].filter((el) => el.type === "user")
@@ -104,25 +107,27 @@ const ContinuousAreaChart: FC<Props> = ({
       []
     );
   }, [data, graphType, hideCP]);
+
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;
   }>(() => {
+    if (graphType === "cdf") {
+      return {
+        xDomain: [0, 1],
+        yDomain: [0, 1],
+      };
+    }
+
     const maxValue = Math.max(
-      ...data
-        .map((x) =>
-          graphType === "cdf"
-            ? x.cdf.slice(1, x.pmf.length - 1)
-            : x.pmf.slice(1, x.pmf.length - 1)
-        )
-        .flat()
+      ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
     );
     return {
       xDomain: [0, 1],
       yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
     };
   }, [data, graphType]);
-  const { ticks, tickFormat } = useMemo(
+  const xScale = useMemo(
     () =>
       generateScale({
         displayType: questionType,
@@ -132,6 +137,16 @@ const ContinuousAreaChart: FC<Props> = ({
         scaling: scaling,
       }),
     [chartWidth, questionType, scaling, xDomain]
+  );
+  const yScale = useMemo(
+    () =>
+      generateScale({
+        displayType: QuestionType.Binary,
+        axisLength: height - BOTTOM_PADDING - paddingTop,
+        direction: "vertical",
+        domain: yDomain,
+      }),
+    [height, yDomain]
   );
 
   const resolutionPoint = resolution
@@ -165,7 +180,9 @@ const ContinuousAreaChart: FC<Props> = ({
             type: chart.type,
           }))}
           yDomain={yDomain}
-          chartHeight={height - BOTTOM_PADDING}
+          chartHeight={height}
+          paddingTop={paddingTop}
+          paddingBottom={BOTTOM_PADDING}
         />
       }
       onCursorChange={(props: { x: number } | null) => {
@@ -200,6 +217,19 @@ const ContinuousAreaChart: FC<Props> = ({
     />
   );
 
+  const leftPadding = useMemo(() => {
+    if (graphType === "cdf") {
+      const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
+      const longestLabelLength = Math.max(
+        ...labels.map((label) => label.length)
+      );
+      const longestLabelWidth = longestLabelLength * 9;
+
+      return HORIZONTAL_PADDING + longestLabelWidth;
+    }
+
+    return HORIZONTAL_PADDING;
+  }, [graphType, yScale]);
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
       {!!chartWidth && (
@@ -208,7 +238,8 @@ const ContinuousAreaChart: FC<Props> = ({
           height={height}
           theme={actualTheme}
           padding={{
-            left: HORIZONTAL_PADDING,
+            top: paddingTop,
+            left: leftPadding,
             bottom: BOTTOM_PADDING,
             right: HORIZONTAL_PADDING,
           }}
@@ -269,7 +300,7 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           ))}
-          {resolutionPoint && (
+          {resolutionPoint && !isNil(resolutionPoint[0]) && (
             <VictoryScatter
               data={[
                 {
@@ -288,11 +319,23 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           )}
+          {graphType === "cdf" && (
+            <VictoryAxis
+              dependentAxis
+              style={{
+                tickLabels: { padding: 2 },
+                ticks: { strokeWidth: 1 },
+              }}
+              tickValues={yScale.ticks}
+              tickFormat={yScale.tickFormat}
+            />
+          )}
           <VictoryAxis
-            tickValues={ticks}
-            tickFormat={tickFormat}
+            tickValues={xScale.ticks}
+            tickFormat={xScale.tickFormat}
             style={{ ticks: { strokeWidth: 1 } }}
           />
+
           {charts.map((chart, k) =>
             chart.verticalLines.map((line, index) => (
               <VictoryLine
@@ -344,12 +387,12 @@ function generateNumericAreaGraph(data: {
     pmf.forEach((value, index) => {
       if (index === 0) {
         // add a point at the beginning to extend pmf to the edge
-        graph.push({ x: -1e-10, y: pmf[1] });
+        graph.push({ x: -1e-10, y: pmf[1] ?? null });
         return;
       }
       if (index === pmf.length - 1) {
         // add a point at the end to extend pmf to the edge
-        graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] });
+        graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] ?? null });
         return;
       }
       graph.push({ x: (index - 0.5) / (pmf.length - 2), y: value });

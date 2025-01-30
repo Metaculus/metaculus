@@ -6,29 +6,31 @@ import {
   FC,
   createContext,
   useEffect,
+  Dispatch,
+  SetStateAction,
 } from "react";
 
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import useSearchInputState from "@/hooks/use_search_input_state";
 
+import { useNavigation } from "./navigation_context";
+
 interface GlobalSearchContextProps {
   isVisible: boolean;
   setIsVisible: (a: boolean) => void;
   globalSearch: string;
-  setGlobalSearch: (s: string) => void;
-  setModifySearchParams: (b: boolean) => void;
+  setGlobalSearch: Dispatch<SetStateAction<string>>;
+  setModifySearchParams: Dispatch<SetStateAction<boolean>>;
 }
 const GlobalSearchContext = createContext<GlobalSearchContextProps>({
   isVisible: false,
-  setIsVisible: (a) => {},
+  setIsVisible: () => {},
   globalSearch: "",
-  setGlobalSearch: (s) => {},
-  setModifySearchParams: (b: boolean) => {},
+  setGlobalSearch: () => {},
+  setModifySearchParams: () => {},
 });
 
-export const GlobalSearchProvider: FC<PropsWithChildren<{}>> = ({
-  children,
-}) => {
+export const GlobalSearchProvider: FC<PropsWithChildren> = ({ children }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [modifySearchParams, setModifySearchParams] = useState(false);
   const [globalSearch, setGlobalSearch] = useSearchInputState(
@@ -39,7 +41,12 @@ export const GlobalSearchProvider: FC<PropsWithChildren<{}>> = ({
       modifySearchParams,
     }
   );
-
+  const { previousPath, currentPath } = useNavigation();
+  useEffect(() => {
+    if (previousPath !== currentPath && previousPath !== null) {
+      setIsVisible(false);
+    }
+  }, [previousPath, currentPath]);
   const [delayedIsVisible, setDelayedIsVisible] = useState(false);
 
   useEffect(() => {

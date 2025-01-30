@@ -107,7 +107,7 @@ class Migration(migrations.Migration):
                 (
                     "edited_at",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False, null=True
+                        editable=False, null=True
                     ),
                 ),
                 ("bio", models.TextField(blank=True, default="")),

@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getLocale } from "next-intl/server";
 
-import MathJaxContent from "@/components/math_jax_content";
+import KatexRenderer from "@/components/katex_renderer";
 
+import content_pt from "./page_pt";
 import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
@@ -11,7 +13,12 @@ export const metadata = {
     "Frequently asked questions about Metaculus, including basics, question types, resolution processes, predictions, scoring, and more.",
 };
 
-export default function FAQ() {
+export default async function FAQ() {
+  const locale = await getLocale();
+  if (locale === "pt") {
+    return content_pt();
+  }
+
   return (
     <PageWrapper>
       <h1 className="text-3xl font-bold">Metaculus FAQ</h1>
@@ -2639,13 +2646,6 @@ export default function FAQ() {
             width={300}
             height={300}
           />
-          {/* Feature Flag: prediction-withdrawal */}
-          <p>
-            Note: as of December 2024, withdrawing is only enabled on questions
-            that are not linked to a prize pool. After the effects of this
-            change become better understood, this policy may be revised
-            accordingly.
-          </p>
         </div>
         <div>
           <h3
@@ -2814,15 +2814,14 @@ export default function FAQ() {
           <ul className="ml-5 list-disc space-y-2">
             <li>Keep only the most recent prediction from each forecaster.</li>
             <li>
-              <MathJaxContent
-                content={` Assign them a number \\(n\\), from oldest to newest (oldest is
-              \\(1\\)).`}
-              />
+              Assign them a number <KatexRenderer equation="n" inline />, from
+              oldest to newest (oldest is <KatexRenderer equation="1" inline />
+              ).
             </li>
             <li>
-              <MathJaxContent
-                content={` Weight each by \\(w(n) \\propto e^{\\sqrt{n}}\\) before being aggregated.`}
-              />
+              Weight each by{" "}
+              <KatexRenderer equation="w(n) \propto e^{\sqrt{n}}" inline />{" "}
+              before being aggregated.
             </li>
             <ul className="ml-5 list-disc">
               <li>
@@ -2841,7 +2840,7 @@ export default function FAQ() {
                 </a>{" "}
                 of the individual forecaster probabilities, renormalized to sum
                 to 1 and respect the bounds of{" "}
-                <MathJaxContent content={`[0.001, 0.999]`} />.
+                <KatexRenderer equation="[0.001, 0.999]" inline />.
               </li>
               <li>
                 For{" "}
@@ -2855,10 +2854,10 @@ export default function FAQ() {
             </ul>
             <li>
               The particular form of the weights means that approximately{" "}
-              <MathJaxContent content={`\\(\\sqrt{N}\\)`} /> forecasters need to
+              <KatexRenderer equation="\sqrt{N}" inline /> forecasters need to
               predict or update their prediction in order to substantially
               change the Community Prediction on a question that already has{" "}
-              <MathJaxContent content={`\\(N\\)`} /> forecasters.
+              <KatexRenderer equation="N" inline /> forecasters.
             </li>
           </ul>
           <p>

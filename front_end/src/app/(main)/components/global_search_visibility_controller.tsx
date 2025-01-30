@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import React, { useEffect } from "react";
 
 export default function GlobalSearchVisibilityController({
   children,
@@ -13,6 +13,8 @@ export default function GlobalSearchVisibilityController({
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
+
         document.body.setAttribute(
           "data-existing-search-visible",
           entry.isIntersecting.toString()

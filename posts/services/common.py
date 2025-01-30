@@ -2,15 +2,17 @@ import logging
 from collections.abc import Iterable
 from datetime import timedelta, date
 
-from django.db.models import Q, Count, Sum, Value, Case, When, F
+from django.db import transaction
+from django.db.models import Q, Count, Sum, Value, Case, When, F, QuerySet
 from django.db.models.functions import Coalesce
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
-from posts.models import Notebook, Post, PostUserSnapshot
+from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import (
@@ -29,6 +31,11 @@ from questions.services import (
     update_notebook,
 )
 from questions.types import AggregationMethod
+from scoring.models import (
+    global_leaderboard_dates,
+    name_and_slug_for_global_leaderboard_dates,
+    GLOBAL_LEADERBOARD_STRING,
+)
 from users.models import User
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregations_at_time
@@ -58,6 +65,58 @@ def add_categories(categories: list[int], post: Post):
     post.save()
 
 
+def update_global_leaderboard_tags(post: Post):
+    # set or update the tags for this post with respect to the global
+    # leaderboard(s) this is a part of
+
+    projects: QuerySet[Project] = post.projects.all()
+
+    # Skip if post is not eligible for global leaderboards
+    if not post.default_project.visibility == Project.Visibility.NORMAL and not next(
+        (p for p in projects if p.visibility == Project.Visibility.NORMAL), None
+    ):
+        return
+
+    # Get all global leaderboard dates and create/get corresponding tags
+    to_set_tags = []
+    gl_dates = global_leaderboard_dates()
+    for question in post.get_questions():
+        dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
+        if dates:
+            tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
+            try:
+                tag, _ = Project.objects.get_or_create(
+                    type=Project.ProjectTypes.TAG,
+                    slug=tag_slug,
+                    defaults={"name": tag_name, "order": 1},
+                )
+            except IntegrityError:
+                # Unsure why this is happening, so for debugging purposes
+                # log error and continue - don't block the triggering event
+                # (e.g. question resolution)
+                logger.exception(
+                    f"Error creating/getting global leaderboard tag for post {post.id}."
+                    f" Context: tag_name: {tag_name}, tag_slug: {tag_slug}, "
+                    f"question: {question.id}, dates: {dates}"
+                )
+                tag = Project.objects.get(type=Project.ProjectTypes.TAG, slug=tag_slug)
+            to_set_tags.append(tag)
+
+    # Update post's global leaderboard tags
+    current_gl_tags = [
+        p
+        for p in projects
+        if p.type == Project.ProjectTypes.TAG
+        and p.name.endswith(GLOBAL_LEADERBOARD_STRING)
+    ]
+    for tag in current_gl_tags:
+        if tag not in to_set_tags:
+            post.projects.remove(tag)
+    for tag in to_set_tags:
+        if tag not in current_gl_tags:
+            post.projects.add(tag)
+
+
 def create_post(
     *,
     title: str = None,
@@ -69,7 +128,6 @@ def create_post(
     notebook: dict = None,
     author: User = None,
     url_title: str = None,
-    news_type: Project = None,
 ) -> Post:
     site_main = get_site_main_project()
 
@@ -102,16 +160,14 @@ def create_post(
     obj.full_clean()
     obj.save()
 
-    # Populating projects
-    projects = categories + ([news_type] if news_type else [])
-    if obj.default_project in projects:
-        projects.remove(obj.default_project)
+    # Populating categories
+    if obj.default_project in categories:
+        categories.remove(obj.default_project)
 
-    # Make post visible in the main feed
-    if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
-        projects.append(site_main)
+    obj.projects.add(*categories)
 
-    obj.projects.add(*projects)
+    # Update global leaderboard tags
+    update_global_leaderboard_tags(obj)
 
     # Sync status fields
     obj.update_pseudo_materialized_fields()
@@ -126,27 +182,36 @@ def trigger_update_post_translations(
     post: Post, with_comments: bool = False, force: bool = False
 ):
     is_private = post.default_project.default_permission is None
-    if not force and is_private:
-        return
+    should_translate_if_dirty = not is_private or force
 
-    post.trigger_translation_if_dirty()
+    post.update_and_maybe_translate(should_translate_if_dirty)
     if post.question_id is not None:
-        post.question.trigger_translation_if_dirty()
+        post.question.update_and_maybe_translate(should_translate_if_dirty)
     if post.notebook_id is not None:
-        post.notebook.trigger_translation_if_dirty()
+        post.notebook.update_and_maybe_translate(should_translate_if_dirty)
     if post.group_of_questions_id is not None:
-        post.group_of_questions.trigger_translation_if_dirty()
+        post.group_of_questions.update_and_maybe_translate(should_translate_if_dirty)
     if post.conditional_id is not None:
-        post.conditional.condition.trigger_translation_if_dirty()
+        post.conditional.condition.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition, "post"):
-            post.conditional.condition.post.trigger_translation_if_dirty()
+            post.conditional.condition.post.update_and_maybe_translate(
+                should_translate_if_dirty
+            )
 
-        post.conditional.condition_child.trigger_translation_if_dirty()
+        post.conditional.condition_child.update_and_maybe_translate(
+            should_translate_if_dirty
+        )
         if hasattr(post.conditional.condition_child, "post"):
-            post.conditional.condition_child.post.trigger_translation_if_dirty()
+            post.conditional.condition_child.post.update_and_maybe_translate(
+                should_translate_if_dirty
+            )
 
-        post.conditional.question_yes.trigger_translation_if_dirty()
-        post.conditional.question_no.trigger_translation_if_dirty()
+        post.conditional.question_yes.update_and_maybe_translate(
+            should_translate_if_dirty
+        )
+        post.conditional.question_no.update_and_maybe_translate(
+            should_translate_if_dirty
+        )
 
     batch_size = 10
     comments_qs = get_comments_feed(qs=Comment.objects.filter(), post=post)
@@ -157,32 +222,6 @@ def trigger_update_post_translations(
         update_translations_for_model(comments_qs, batch_size)
 
 
-def update_post_projects(
-    post: Post, categories: list[Project] = None, news: list[Project] = None
-):
-    projects_map = {
-        Project.ProjectTypes.CATEGORY: categories,
-        Project.ProjectTypes.NEWS_CATEGORY: news,
-    }
-
-    existing_projects = set(post.projects.all())
-
-    for project_type, projects in projects_map.items():
-        if projects is None:
-            continue
-
-        # Clean existing project types
-        existing_projects = {p for p in existing_projects if p.type != project_type}
-
-        # Update with new ones
-        existing_projects |= set(projects)
-
-    if post.default_project in existing_projects:
-        existing_projects.remove(post.default_project)
-
-    post.projects.set(existing_projects)
-
-
 def update_post(
     post: Post,
     categories: list[Project] = None,
@@ -190,7 +229,6 @@ def update_post(
     conditional: dict = None,
     group_of_questions: dict = None,
     notebook: dict = None,
-    news_type: Project = None,
     **kwargs,
 ):
     # Content for embedding generation before update
@@ -203,7 +241,17 @@ def update_post(
         data=kwargs,
     )
 
-    update_post_projects(post, categories, news_type)
+    # Update post categories
+    if categories:
+        post.projects.set(
+            # Keep existing non-category secondary projects
+            {p for p in post.projects.all() if p.type != Project.ProjectTypes.CATEGORY}
+            # Append updated set of categories
+            | set(categories)
+        )
+
+    # Update global leaderboard tags
+    update_global_leaderboard_tags(post)
 
     if question:
         if not post.question:
@@ -290,6 +338,8 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
     questions = post.get_questions()
     now = timezone.now()
     for question in questions:
+        if question.cp_reveal_time and question.cp_reveal_time > now:
+            continue
         cp = get_aggregations_at_time(
             question, now, [AggregationMethod.RECENCY_WEIGHTED]
         ).get(AggregationMethod.RECENCY_WEIGHTED, None)
@@ -335,11 +385,24 @@ def compute_post_sorting_divergence_and_update_snapshots(post: Post):
     )
 
 
-def compute_hotness():
+def compute_feed_hotness():
+    """
+    Compute hotness for the entire feed
+    """
+
     qs = Post.objects.filter(
         curation_status=Post.CurationStatus.APPROVED,
         published_at__lte=timezone.now(),
     )
+
+    compute_hotness(qs)
+
+
+def compute_hotness(qs: QuerySet[Post]):
+    """
+    Compute hotness for the given queryset
+    """
+
     last_week_dt = timezone.now() - timedelta(days=7)
 
     qs = qs.annotate(
@@ -464,3 +527,27 @@ def get_posts_staff_users(
         post: project_staff_map[default_project_id]
         for post, default_project_id in post_default_projects_id_map.items()
     }
+
+
+def make_repost(post: Post, project: Project):
+    """
+    Report post into the given project
+    """
+
+    if post.default_project != project:
+        post.projects.add(project)
+
+
+def vote_post(post: Post, user: User, direction: int):
+    try:
+        with transaction.atomic():
+            Vote.objects.filter(user=user, post=post).delete()
+
+            if direction:
+                Vote.objects.create(user=user, post=post, direction=direction)
+
+    except IntegrityError:
+        # Don't do anything in case of race conditions
+        pass
+
+    return post.update_vote_score()

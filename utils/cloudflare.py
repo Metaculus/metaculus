@@ -5,11 +5,15 @@ from django.conf import settings
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 
+from utils.requests import get_request_ip
+
 logger = logging.getLogger(__name__)
 
 
 def validate_turnstile(token: str, ip: str):
     secret = settings.TURNSTILE_SECRET_KEY
+
+    logger.info(f"Validating turnstile token for ip={ip}")
 
     if not secret:
         logger.warning("Cloudflare turnstile secret is not provided")
@@ -37,7 +41,6 @@ def validate_turnstile(token: str, ip: str):
 
 
 def validate_turnstile_from_request(request: Request):
-    return validate_turnstile(
-        request.headers.get("cf-turnstile-response"),
-        request.headers.get("CF-Connecting-IP"),
-    )
+    ip_address = get_request_ip(request)
+
+    return validate_turnstile(request.headers.get("cf-turnstile-response"), ip_address)

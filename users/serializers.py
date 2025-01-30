@@ -40,6 +40,8 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "bio",
             "website",
             "formerly_known_as",
+            "is_active",
+            "is_spam",
             "is_bot",
             "twitter",
             "linkedin",
@@ -60,7 +62,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
 
 
 class UserPrivateSerializer(UserPublicSerializer):
-    registered_campaign_keys = serializers.SerializerMethodField()
+    registered_campaigns = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -71,15 +73,19 @@ class UserPrivateSerializer(UserPublicSerializer):
             "unsubscribed_mailing_tags",
             "hide_community_prediction",
             "is_onboarding_complete",
-            "registered_campaign_keys",
+            "registered_campaigns",
         )
 
-    def get_registered_campaign_keys(self, user: User):
-        return list(
-            UserCampaignRegistration.objects.filter(user=user)
+    def get_registered_campaigns(self, user: User):
+        return [
+            {
+                "key": campaign.key,
+                "details": campaign.details,
+            }
+            for campaign in UserCampaignRegistration.objects.filter(user=user)
             .exclude(key__isnull=True)
-            .values_list("key", flat=True)
-        )
+            .all()
+        ]
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):

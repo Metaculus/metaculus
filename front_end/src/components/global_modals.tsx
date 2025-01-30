@@ -5,8 +5,11 @@ import ResetPasswordModal, {
   ResetPasswordConfirmModal,
 } from "@/components/auth/password_reset";
 import SignInModal from "@/components/auth/signin";
-import SignUpModal, { SignUpModalSuccess } from "@/components/auth/signup";
-import OnboardingModal from "@/components/onboarding/OnboardingModal";
+import SignUpModal, {
+  AccountInactive,
+  SignUpModalSuccess,
+} from "@/components/auth/signup";
+import OnboardingModal from "@/components/onboarding/onboarding_modal";
 import { useModal } from "@/contexts/modal_context";
 
 import ConfirmModal from "./confirm_modal";
@@ -25,6 +28,11 @@ const GlobalModals: FC = () => {
         onClose={onClose}
         username={currentModal?.data?.username}
         email={currentModal?.data?.email}
+      />
+      <AccountInactive
+        isOpen={currentModal?.type === "accountInactive"}
+        onClose={onClose}
+        login={currentModal?.data?.login}
       />
       <ResetPasswordModal
         isOpen={currentModal?.type === "resetPassword"}

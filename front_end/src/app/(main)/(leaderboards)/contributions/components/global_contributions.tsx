@@ -28,12 +28,14 @@ const GlobalContributions: FC<Props> = async ({
     endTime,
   });
   return (
-    <ContributionsTable
-      category={category}
-      leaderboardType={leaderboardType}
-      leaderboardEntry={contributionsDetails.leaderboard_entry}
-      contributions={contributionsDetails.contributions}
-    />
+    <div className="w-full overflow-y-scroll border border-gray-300 dark:border-gray-300-dark sm:overflow-y-hidden sm:border-none">
+      <ContributionsTable
+        category={category}
+        leaderboardType={leaderboardType}
+        leaderboardEntry={contributionsDetails.leaderboard_entry}
+        contributions={contributionsDetails.contributions}
+      />
+    </div>
   );
 };
 

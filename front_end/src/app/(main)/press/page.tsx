@@ -1,5 +1,8 @@
+import { getLocale } from "next-intl/server";
+
 import DisclosureSection from "./components/DisclosureSection";
 import ReferenceSection from "./components/ReferenceSection";
+import content_pt from "./page_pt";
 import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
@@ -74,7 +77,12 @@ const articles = [
   },
 ];
 
-export default function PressPage() {
+export default async function PressPage() {
+  const locale = await getLocale();
+  if (locale === "pt") {
+    return content_pt();
+  }
+
   return (
     <PageWrapper>
       <div className="flex flex-col gap-8">

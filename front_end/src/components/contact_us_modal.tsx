@@ -87,7 +87,7 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
   return (
     <>
       <BaseModal
-        className="max-w-xl !overflow-y-auto"
+        className="max-w-xl overflow-y-auto"
         label={t("contactUs")}
         isOpen={isOpen}
         onClose={onClose}
@@ -151,7 +151,7 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
         </div>
       </BaseModal>
       <BaseModal
-        className="max-w-xl !overflow-y-auto"
+        className="max-w-xl overflow-y-auto"
         label={t("contactUs")}
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}

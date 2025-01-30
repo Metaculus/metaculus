@@ -6,9 +6,12 @@ from rest_framework.exceptions import ValidationError
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
-from posts.services.search import perform_post_search, qs_filter_similar_posts
+from posts.services.search import (
+    perform_post_search,
+    qs_filter_similar_posts,
+    posts_full_text_search,
+)
 from projects.models import Project
-from projects.services.common import get_site_main_project
 from users.models import User
 from utils.cache import cache_get_or_set
 from utils.dtypes import evenly_distribute_items
@@ -42,6 +45,7 @@ def get_posts_feed(
     for_main_feed: bool = None,
     show_on_homepage: bool = None,
     following: bool = None,
+    upvoted_by: int = None,
     **kwargs,
 ) -> Post.objects:
     """
@@ -85,8 +89,7 @@ def get_posts_feed(
         qs = qs.filter_projects(tournaments)
 
     if for_main_feed:
-        site_main_project = get_site_main_project()
-        qs = qs.filter_projects(site_main_project)
+        qs = qs.filter_for_main_feed()
 
     if show_on_homepage:
         qs = qs.filter(show_on_homepage=True)
@@ -182,6 +185,9 @@ def get_posts_feed(
             user_last_forecasts_date__isnull=True
         )
 
+    if upvoted_by:
+        qs = qs.filter(votes__user=upvoted_by)
+
     # Followed posts
     if user and user.is_authenticated and following:
         qs = qs.annotate_user_is_following(user=user).filter(user_is_following=True)
@@ -212,7 +218,14 @@ def get_posts_feed(
             # Force ordering by search rank
             order_by = "-rank"
         else:
-            qs = qs.filter(rank__gte=0.3)
+            q = Q(rank__gte=0.3)
+
+            # Full-text search is currently not fully optimized.
+            # To avoid overloading the database, it is applied only to filtered and narrowed queries.
+            if tournaments:
+                q = q | Q(pk__in=posts_full_text_search(qs, search))
+
+            qs = qs.filter(q)
 
     # Other filters
     qs = qs.filter(**kwargs)

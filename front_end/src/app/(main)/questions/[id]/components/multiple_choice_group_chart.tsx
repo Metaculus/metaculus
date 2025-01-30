@@ -1,9 +1,17 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
+import CPRevealTime from "@/components/cp_reveal_time";
 import { useAuth } from "@/contexts/auth_context";
 import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
@@ -13,6 +21,7 @@ import {
   QuestionLinearGraphType,
   Question,
   QuestionWithNumericForecasts,
+  ForecastAvailability,
 } from "@/types/question";
 import {
   findPreviousTimestamp,
@@ -27,10 +36,12 @@ type Props = {
   timestamps: number[];
   type: QuestionLinearGraphType;
   actualCloseTime?: number | null;
+  openTime?: number;
   isClosed?: boolean;
 
   preselectedQuestionId?: number;
   hideCP?: boolean;
+  forecastAvailability?: ForecastAvailability;
   maxVisibleCheckboxes?: number;
 
   defaultZoom?: TimelineChartZoomOption;
@@ -38,8 +49,6 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
   withLegend?: boolean;
-  isCPRevealed?: boolean;
-  cpRevealTime?: string;
 };
 
 const MultipleChoiceGroupChart: FC<Props> = ({
@@ -47,10 +56,12 @@ const MultipleChoiceGroupChart: FC<Props> = ({
   timestamps,
   type,
   actualCloseTime,
+  openTime,
   isClosed,
 
   preselectedQuestionId,
   hideCP,
+  forecastAvailability,
   maxVisibleCheckboxes = 6,
 
   defaultZoom,
@@ -58,14 +69,15 @@ const MultipleChoiceGroupChart: FC<Props> = ({
   chartTheme,
   embedMode,
   withLegend,
-  isCPRevealed = true,
-  cpRevealTime,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
 
-  const scaling =
-    type === "continuous" ? getContinuousGroupScaling(questions) : undefined;
+  const scaling = useMemo(
+    () =>
+      type === "continuous" ? getContinuousGroupScaling(questions) : undefined,
+    [questions, type]
+  );
 
   const userForecasts = useMemo(
     () => (user ? generateUserForecasts(questions, scaling) : undefined),
@@ -135,22 +147,40 @@ const MultipleChoiceGroupChart: FC<Props> = ({
           aggregationTimestamps: timestamps,
           closeTime,
         }) => {
+          let valueElement: ReactNode;
+          if (forecastAvailability?.cpRevealsOn) {
+            valueElement = (
+              <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />
+            );
+          } else if (forecastAvailability?.isEmpty) {
+            valueElement = t("noForecastsYet");
+          } else if (hideCP) {
+            valueElement = "...";
+          } else {
+            valueElement = getQuestionTooltipLabel({
+              timestamps,
+              values: aggregationValues,
+              cursorTimestamp,
+              closeTime,
+              question: questions.find((q) => q.id === id),
+            });
+          }
+
           return {
             choiceLabel: choice,
             color,
-            valueLabel: hideCP
-              ? "-"
-              : getQuestionTooltipLabel({
-                  timestamps,
-                  values: aggregationValues,
-                  cursorTimestamp,
-                  closeTime,
-                  question: questions.find((q) => q.id === id),
-                }),
+            valueElement,
           };
         }
       );
-  }, [choiceItems, cursorTimestamp, hideCP, questions]);
+  }, [
+    choiceItems,
+    forecastAvailability,
+    hideCP,
+    t,
+    cursorTimestamp,
+    questions,
+  ]);
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     if (!user) {
       return [];
@@ -165,7 +195,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
           return {
             choiceLabel: choice,
             color,
-            valueLabel: getQuestionTooltipLabel({
+            valueElement: getQuestionTooltipLabel({
               timestamps,
               values: userValues,
               cursorTimestamp,
@@ -218,11 +248,12 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       hideCP={hideCP}
       timestamps={timestamps}
       tooltipDate={tooltipDate}
-      onCursorChange={isCPRevealed ? handleCursorChange : undefined}
+      onCursorChange={handleCursorChange}
       onChoiceItemsUpdate={setChoiceItems}
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
-      questionType={questions[0].type}
+      openTime={openTime}
+      questionType={questions[0]?.type}
       scaling={scaling}
       title={t("forecastTimelineHeading")}
       yLabel={t("communityPredictionLabel")}
@@ -231,8 +262,9 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       chartHeight={chartHeight}
       withLegend={withLegend}
       defaultZoom={defaultZoom}
-      isCPRevealed={isCPRevealed}
-      cpRevealTime={cpRevealTime}
+      isEmptyDomain={
+        !!forecastAvailability?.isEmpty || !!forecastAvailability?.cpRevealsOn
+      }
     />
   );
 };
@@ -246,12 +278,13 @@ function getQuestionTooltipLabel({
 }: {
   timestamps: number[];
   values: (number | null)[];
-  cursorTimestamp: number;
+  cursorTimestamp: number | null;
   question?: Question;
   isUserPrediction?: boolean;
   closeTime?: number | undefined;
 }) {
   const hasValue =
+    !isNil(cursorTimestamp) &&
     cursorTimestamp >= Math.min(...timestamps) &&
     cursorTimestamp <= Math.max(...timestamps, closeTime ?? 0);
   if (!hasValue || !question) {

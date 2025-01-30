@@ -4,11 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import {
-  signInSchema,
-  SignUpSchema,
-  signUpSchema,
-} from "@/app/(main)/accounts/schemas";
+import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
 import ProfileApi from "@/services/profile";
 import { deleteServerSession, setServerSession } from "@/services/session";
@@ -68,6 +64,9 @@ export async function signUpAction(
 ): Promise<SignUpActionState> {
   const headersList = headers();
 
+  const ipAddress =
+    headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");
+
   try {
     const response = await AuthApi.signUp(
       validatedSignupData.email,
@@ -76,7 +75,7 @@ export async function signUpAction(
       validatedSignupData.isBot,
       {
         "cf-turnstile-response": validatedSignupData.turnstileToken,
-        "CF-Connecting-IP": headersList.get("CF-Connecting-IP"),
+        ...(ipAddress ? { "CF-Connecting-IP": ipAddress } : {}),
       },
       validatedSignupData.addToProject,
       validatedSignupData.campaignKey,
@@ -115,6 +114,21 @@ export async function registerUserCampaignAction(
   } catch (err) {
     const error = err as FetchError;
 
+    return {
+      errors: error.data,
+    };
+  }
+}
+
+export async function resendActivationEmailAction(
+  login: string,
+  redirectUrl: string
+): Promise<{ errors?: any }> {
+  try {
+    await AuthApi.resendActivationEmail(login, redirectUrl);
+    return { errors: null };
+  } catch (err) {
+    const error = err as FetchError;
     return {
       errors: error.data,
     };

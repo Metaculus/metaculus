@@ -10,7 +10,7 @@ import DiscoverySection from "./section";
 import AwaitedTags from "./tags";
 
 const TagsDiscovery: FC<{ filters: TagsParams }> = async ({ filters }) => {
-  let tags = await ProjectsApi.getTags(filters);
+  const tags = await ProjectsApi.getTags(filters);
   const t = await getTranslations();
 
   return (

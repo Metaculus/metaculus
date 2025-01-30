@@ -20,5 +20,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Build and deploy to Heroku
         run: |
+          curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
           heroku container:login # uses the HEROKU_API_KEY
           ./scripts/deploy_to_heroku.sh

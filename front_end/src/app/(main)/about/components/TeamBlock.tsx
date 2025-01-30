@@ -77,6 +77,48 @@ const people: Person[] = [
       "Christian oversees Metaculus’ communications and marketing efforts, working closely with the operations and program teams. Previously, he worked in the aerospace and defense industry as a marketing operations lead. He received his master’s in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before entering the science world, he wrote for <cite>The Onion AV Club</cite> and contributed material to <cite>Saturday Night Live</cite>.",
   },
   {
+    userId: 126626,
+    name: "Nikitas Angeletos Chrysaitis",
+    position: "Forecasting Analyst",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/nikitas-angeletos-chrysaitis.webp",
+    introduction:
+      "Nikitas is a Forecasting Analyst at Metaculus, responsible for platform oversight, question development for various initiatives, and Metaculus Pro forecasting. He holds a background in Mathematics and a PhD in Computational Psychiatry from the University of Edinburgh.",
+  },
+  {
+    userId: 183695,
+    name: "Nikita Oleinykof",
+    position: "Software Developer",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/Nikita-Oleinykof.webp",
+    introduction:
+      "At Metaculus, Nikita focuses on delivering seamless, user-centered experiences. His contributions include enhancing core platform functionality, automating deployments, increasing test coverage for key logic, and integrating third-party services.",
+  },
+  {
+    userId: 183708,
+    name: "Hlib Kononenko",
+    position: "Senior Software Engineer",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/Hlib-Kononenko.webp",
+    introduction:
+      "With over a decade of experience, Hlib has a diverse background spanning from IoT to healthcare and AI medical research. Passionate about solving real-world problems, he specializes in infrastructure, backend, and frontend development. Throughout his career, Hlib has focused on building innovative solutions that bridge the gap between technology and practical applications.",
+  },
+  {
+    userId: 228596,
+    name: "Ben Wilson",
+    position: "AI Research Automation Engineer",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/Ben-Wilson.webp",
+    introduction:
+      "Ben is an AI Research Automation Engineer proficient in Python, web scraping, prompt engineering, Next.js, and a wide range of other technologies. In 2024, he briefly entered the top 100 on Metaculus, and his bot placed 12th in Metaculus's Q3 AI Forecasting Benchmark Tournament. Ben also founded a non-profit with the goal of creating 'Logipedia: The Wikipedia for Debatable Topics.' He has a passion for philosophy and enjoys improvising on the piano.",
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/wilsonbenjamin1000/",
+        platform: "LinkedIn",
+      },
+    ],
+  },
+  {
     userId: 117502,
     name: "Ryan Beck",
     position: "Forecasting Program Coordinator",
@@ -84,6 +126,15 @@ const people: Person[] = [
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/ryan_beck.webp",
     introduction:
       "Ryan is Metaculus’ Forecasting Program Coordinator. He received a Master’s degree in Civil Engineering from Iowa State University, and was previously a bridge engineer for six years. He is an avid forecaster and a pro-forecaster at INFER. Ryan is also the author of a science fiction novel, <cite>SEER</cite>.",
+  },
+  {
+    userId: 115975,
+    name: "John Bash",
+    position: "Forecasting Analyst",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/john-bash.webp",
+    introduction:
+      "John specializes in question writing, resolution, and moderation. He qualified as a superforecaster at Good Judgment Project and has predicted for Swift Centre, the Rand Forecasting Initiative, and Metaculus. Previously, he ran an e-publishing business and earned an MBA from the University of Georgia.",
   },
   {
     userId: 105951,
@@ -118,13 +169,6 @@ const people: Person[] = [
     imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/leonard.png",
     introduction:
       "Leonard’s work spans Metaculus’ various teams and initiatives, advancing our strategic direction, growth, and operational efficiency. Prior to Metaculus, he worked in real estate development and asset management, overseeing complex real estate development projects. His forecasting background includes experience as a Good Judgment Superforecaster and consistent top performance on various forecasting platforms and competitions. Leonard is passionate about elevating the crowd forecasting ecosystem to unlock its full potential in guiding policy and decision-making to mitigate global risks.",
-  },
-  {
-    name: "Connor McCormick",
-    position: "Collective Intelligence Specialist",
-    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/connor.webp",
-    introduction:
-      "Connor is a collective intelligence strategist, focused on creating environments where the wisdom of the crowd can thrive. At Metaculus, he is making tools to help forecasters share insights and estimate base rates so that cohesive models can be collaboratively developed, tested, and scored. Before joining Metaculus, Connor founded a machine learning and computer vision hardware company. When he’s not forecasting or refining collective intelligence systems, you’ll find him exploring the mountains of Colorado.",
   },
   {
     name: "Molly Hickman",
@@ -163,6 +207,19 @@ const people: Person[] = [
     socials: [
       {
         link: "https://www.linkedin.com/in/anthony-aguirre-75751b9/",
+        platform: "LinkedIn",
+      },
+    ],
+  },
+  {
+    name: "Joshua Elliott",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/joshua-elliott-image.webp",
+    introduction:
+      'Joshua Elliott is the Chief Scientist of Renaissance Philanthropy, with over 15 years of experience across academia, government, and philanthropy. He has led initiatives on solar radiation management, CO₂ removal, and climate resilience at Quadrature Climate Foundation, launched the Brains non-profit science accelerator, and incubated innovative R&D programs like ARC and Project InnerSpace.\n\nPreviously, Joshua managed nearly $600M in federal R&D funding at DARPA, focusing on "AI for Science" and programs spanning computational science, synthetic biology, and epidemiology. Earlier, he spent a decade in academia working on climate economics, energy modeling, and climate impacts, co-founding key initiatives like the Center for Robust Decision-making in Climate and Energy Policy. He holds a PhD in theoretical high-energy physics from McGill University.',
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/joshuawrightelliott/",
         platform: "LinkedIn",
       },
     ],
@@ -284,13 +341,17 @@ const groups: Groups = {
     "Sylvain Chevalier",
     "Nikos Bosse",
     "Elis Popescu",
+    "Hlib Kononenko",
+    "Ben Wilson",
+    "Nikita Oleinykof",
     "Luke Sabor",
+    "John Bash",
   ],
   board: [
     "Anthony Aguirre",
-    "Greg Laughlin",
     "Carroll “Max” Wainwright",
     "David Levine",
+    "Joshua Elliott",
   ],
   advisors: [
     "Juan Cambeiro",

@@ -2,7 +2,6 @@
 
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { isNil } from "lodash";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -23,6 +22,7 @@ import { getCommentsParams } from "@/services/comments";
 import { BECommentType, CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 
@@ -67,11 +67,15 @@ function parseCommentsArray(
 
   beComments.forEach((comment) => {
     if (comment.parent_id === null) {
-      rootComments.push(commentMap.get(comment.id)!);
+      const commentData = commentMap.get(comment.id);
+      if (commentData) {
+        rootComments.push(commentData);
+      }
     } else {
       const parentComment = commentMap.get(comment.parent_id);
-      if (parentComment) {
-        parentComment.children.push(commentMap.get(comment.id)!);
+      const childComment = commentMap.get(comment.id);
+      if (parentComment && childComment) {
+        parentComment.children.push(childComment);
       }
     }
   });
@@ -163,13 +167,13 @@ const CommentFeed: FC<Props> = ({
     [comments, postData]
   );
 
-  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
 
   useEffect(() => {
     if (comments.filter((c) => c.is_current_content_translated).length > 0) {
-      setBannerisVisible(true);
+      setBannerIsVisible(true);
     }
-  }, [comments, setBannerisVisible]);
+  }, [comments, setBannerIsVisible]);
 
   const handleFilterChange = useCallback(
     (
@@ -261,7 +265,7 @@ const CommentFeed: FC<Props> = ({
 
   // Handling filters change
   useEffect(() => {
-    let finalFilters = {
+    const finalFilters = {
       ...feedFilters,
       offset,
     };
@@ -343,7 +347,7 @@ const CommentFeed: FC<Props> = ({
     >
       <section
         id={id}
-        className={classNames(
+        className={cn(
           "max-w-full rounded text-gray-900 dark:text-gray-900-dark",
           {
             "mt-6 w-full px-0 md:px-3": inNotebook,
@@ -412,7 +416,7 @@ const CommentFeed: FC<Props> = ({
         {comments.map((comment: CommentType) => (
           <div
             key={comment.id}
-            className={classNames(
+            className={cn(
               "my-1.5 rounded-md border px-1.5 py-1 md:px-2.5 md:py-1.5",
               {
                 "border-blue-400 dark:border-blue-400-dark": !(

@@ -14,7 +14,7 @@ export const LexicalBeautifulMentionVisitor: LexicalExportVisitor<
     const value = lexicalNode.getValue();
 
     actions.addAndStepInto("text", {
-      value: `@${value}`,
+      value: `@(${value})`,
     });
   },
 };

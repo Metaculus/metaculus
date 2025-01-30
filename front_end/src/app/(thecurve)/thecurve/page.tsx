@@ -12,9 +12,7 @@ import { THECURVE_TOURNAMENT_SLUG } from "../constants";
 export default async function TheCurve() {
   const user = await ProfileApi.getMyProfile();
 
-  const tournament = await ProjectsApi.getSlugTournament(
-    THECURVE_TOURNAMENT_SLUG
-  );
+  const tournament = await ProjectsApi.getTournament(THECURVE_TOURNAMENT_SLUG);
   if (!tournament) {
     return notFound();
   }

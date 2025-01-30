@@ -1,6 +1,5 @@
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
@@ -11,6 +10,7 @@ import PostsApi from "@/services/posts";
 import { Candle } from "@/types/experiments";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import cn from "@/utils/cn";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 type Props = {
@@ -53,7 +53,7 @@ const ExpectedElectoralVotesForecast: FC<Props> = async ({
           {t("538Votes")}
         </span>
         <span
-          className={classNames(
+          className={cn(
             "absolute left-2/4 top-[45px] z-10 mt-[-16px] h-[58px] w-[2px] -translate-x-2/4 bg-gray-400 mix-blend-luminosity dark:bg-gray-500"
           )}
         />
@@ -116,14 +116,22 @@ function getForecastData(
     return null;
   }
   const latest_democrat = democratQuestion.aggregations.recency_weighted.latest;
+  if (!latest_democrat) {
+    return null;
+  }
+
   const latest_republican =
     republicanQuestion.aggregations.recency_weighted.latest;
+  if (!latest_republican) {
+    return null;
+  }
+
   const democratQuartiles = computeQuartilesFromCDF(
-    latest_democrat!.forecast_values,
+    latest_democrat?.forecast_values,
     true
   );
   const republicanQuartiles = computeQuartilesFromCDF(
-    latest_republican!.forecast_values,
+    latest_republican.forecast_values,
     true
   );
 
@@ -137,8 +145,8 @@ function getForecastData(
       color: "#E0152B",
     },
   ];
-  const democratPrediction = latest_democrat!.centers![0];
-  const republicanPrediction = latest_republican!.centers![0];
+  const democratPrediction = latest_democrat?.centers?.[0];
+  const republicanPrediction = latest_republican?.centers?.[0];
 
   return {
     candles,

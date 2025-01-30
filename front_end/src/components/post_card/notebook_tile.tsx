@@ -2,18 +2,19 @@
 import Image from "next/image";
 import { FC } from "react";
 
-import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
-import { Notebook } from "@/types/post";
+import { NotebookPost } from "@/types/post";
 import { getMarkdownSummary } from "@/utils/questions";
 
 type Props = {
-  notebook: Notebook;
+  post: NotebookPost;
 };
 
-const NotebookTile: FC<Props> = ({ notebook }) => {
+const NotebookTile: FC<Props> = ({ post }) => {
   const { ref, width } = useContainerSize<HTMLDivElement>();
+
+  const { notebook } = post;
 
   return (
     <div ref={ref} className="flex gap-4">
@@ -25,7 +26,7 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
           withUgcLinks
         />
       )}
-      {notebook.image_url && notebook.image_url.startsWith("https:") ? (
+      {notebook.image_url && notebook.image_url.startsWith("https:") && (
         <Image
           src={notebook.image_url}
           alt=""
@@ -33,13 +34,6 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
           height={300}
           quality={100}
           className="h-24 min-w-44 max-w-44 rounded object-cover"
-        />
-      ) : (
-        <Image
-          src={imagePlaceholder}
-          alt=""
-          className="h-24 min-w-44 max-w-44 rounded object-cover"
-          quality={100}
         />
       )}
     </div>

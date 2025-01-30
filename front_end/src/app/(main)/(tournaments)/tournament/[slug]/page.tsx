@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -9,7 +8,6 @@ import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
-import TournamentControls from "@/app/(main)/(tournaments)/tournament/components/tournament_controls";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
@@ -19,9 +17,11 @@ import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
-import { TournamentType } from "@/types/projects";
+import { ProjectVisibility, TournamentType } from "@/types/projects";
+import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
 
+import TournamentDropdownMenu from "../components/dropdown_menu";
 import TournamentFeed from "../components/tournament_feed";
 
 const LazyProjectMembers = dynamic(() => import("../components/members"), {
@@ -31,7 +31,7 @@ const LazyProjectMembers = dynamic(() => import("../components/members"), {
 type Props = { params: { slug: string }; searchParams: SearchParams };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const tournament = await ProjectsApi.getSlugTournament(params.slug);
+  const tournament = await ProjectsApi.getTournament(params.slug);
 
   if (!tournament) {
     return {};
@@ -43,11 +43,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: tournament.name,
     description: !!parsedDescription ? parsedDescription : defaultDescription,
+    // Hide unlisted pages from search engines
+    ...(tournament.visibility === ProjectVisibility.Unlisted
+      ? {
+          robots: {
+            index: false,
+            follow: false,
+          },
+        }
+      : {}),
   };
 }
 
 export default async function TournamentSlug({ params }: Props) {
-  const tournament = await ProjectsApi.getSlugTournament(params.slug);
+  const tournament = await ProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
 
   const currentUser = await ProfileApi.getMyProfile();
@@ -64,8 +73,8 @@ export default async function TournamentSlug({ params }: Props) {
     <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto px-0">
       <div className="bg-gray-0 dark:bg-gray-0-dark">
         <div
-          className={classNames(
-            " flex flex-wrap items-center justify-between gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
+          className={cn(
+            "flex flex-wrap items-center justify-between gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
             tournament.type === TournamentType.QuestionSeries
               ? "bg-gray-500 dark:bg-gray-500-dark"
               : "bg-blue-600 dark:bg-blue-600-dark"
@@ -77,9 +86,7 @@ export default async function TournamentSlug({ params }: Props) {
           >
             {title}
           </Link>
-          {currentUser?.is_superuser && (
-            <TournamentControls tournament={tournament} />
-          )}
+          <TournamentDropdownMenu tournament={tournament} />
         </div>
         {!!tournament.header_image && (
           <div className="relative h-[130px] w-full">
@@ -94,8 +101,13 @@ export default async function TournamentSlug({ params }: Props) {
           </div>
         )}
         <div className="bg-gray-0 px-3 pb-4 dark:bg-gray-0-dark">
-          <div className="pb-2">
+          <div className="flex justify-between gap-1 pb-2">
             <h1>{tournament.name}</h1>
+            {tournament.default_permission === null && (
+              <strong className="mt-4 self-start rounded-sm bg-blue-300 px-1 text-sm uppercase text-gray-900 dark:bg-blue-300-dark dark:text-gray-900-dark">
+                {t("private")}
+              </strong>
+            )}
           </div>
           <div className="flex flex-row items-center justify-between">
             <div className="flex flex-wrap gap-9 py-4">
@@ -131,7 +143,6 @@ export default async function TournamentSlug({ params }: Props) {
             <ProjectLeaderboard
               projectId={tournament.id}
               userId={currentUser?.id}
-              prizePool={tournament.prize_pool}
               isQuestionSeries={isQuestionSeries}
             />
             {currentUser && (

@@ -2,29 +2,24 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import GroupNumericTile from "@/components/post_card/group_of_questions_tile/group_numeric_tile";
-import { PostWithForecasts, PostStatus } from "@/types/post";
+import { GroupOfQuestionsPost } from "@/types/post";
 import {
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 
+import GroupContinuousTile from "./group_continuous_tile";
+
 type Props = {
-  questions: QuestionWithForecasts[];
-  curationStatus: PostStatus;
-  post: PostWithForecasts;
+  post: GroupOfQuestionsPost<QuestionWithForecasts>;
   hideCP?: boolean;
-  forecasters?: number;
 };
 
-const GroupOfQuestionsTile: FC<Props> = ({
-  questions,
-  curationStatus,
-  post,
-  hideCP,
-  forecasters,
-}) => {
+const GroupOfQuestionsTile: FC<Props> = ({ post, hideCP }) => {
   const t = useTranslations();
+  const {
+    group_of_questions: { questions },
+  } = post;
   const groupType = questions.at(0)?.type;
 
   if (!groupType) {
@@ -32,12 +27,9 @@ const GroupOfQuestionsTile: FC<Props> = ({
   }
 
   return (
-    <GroupNumericTile
-      questions={questions as QuestionWithNumericForecasts[]}
-      curationStatus={curationStatus}
-      post={post}
+    <GroupContinuousTile
+      post={post as GroupOfQuestionsPost<QuestionWithNumericForecasts>}
       hideCP={hideCP}
-      forecasters={forecasters}
     />
   );
 };

@@ -28,11 +28,15 @@ def build_frontend_password_reset_url(user_id: int, token: str):
 
 
 def build_question_graph_image_url(question_id: int):
-    return build_frontend_url(f"/api/posts/preview-image/{question_id}/")
+    return build_frontend_url(f"/questions/{question_id}/image-preview/")
+
+
+def build_user_profile_url(user_id: int):
+    return build_frontend_url(f"/accounts/profile/{user_id}/")
 
 
 def build_question_graph_image_cdn_url(question_id: int):
-    return build_frontend_url(f"/api/posts/preview-image/{question_id}/")
+    return build_frontend_url(f"/questions/{question_id}/image-preview/")
 
 
 def build_question_embed_url(question_id: int):

@@ -6,15 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
 import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { FC, useEffect, useRef, useState, useTransition } from "react";
-import { useFormState } from "react-dom";
-import {
-  useForm,
-  useFormContext,
-  FormProvider,
-  SubmitHandler,
-} from "react-hook-form";
+import React, { FC, useRef, useState } from "react";
+import { useForm, useFormContext, FormProvider } from "react-hook-form";
 
 import { signUpAction, SignUpActionState } from "@/app/(main)/accounts/actions";
 import { SignUpSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
@@ -25,7 +20,6 @@ import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
-import { usePathname } from "next/navigation";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -48,20 +42,14 @@ export const SignupForm: FC<{
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       isBot: forceIsBot ?? false,
+      addToProject,
     },
   });
 
   const currentLocation = usePathname();
 
-  const {
-    register,
-    watch,
-    setValue,
-    formState,
-    handleSubmit,
-    setError,
-    clearErrors,
-  } = methods;
+  const { watch, setValue, formState, handleSubmit, setError, clearErrors } =
+    methods;
 
   const onSubmit = async (data: SignUpSchema) => {
     const response = await signUpAction({
@@ -110,14 +98,6 @@ export const SignupForm: FC<{
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
         <SignUpFragment errors={errors} forceIsBot={forceIsBot} />
-
-        {addToProject && (
-          <input
-            type="hidden"
-            {...register("addToProject")}
-            value={addToProject}
-          />
-        )}
         <div>
           <Button
             variant="primary"
@@ -141,7 +121,7 @@ export const SignupForm: FC<{
               setValue("turnstileToken", token);
               clearErrors("turnstileToken");
             }}
-            onError={(errorCode) => setIsTurnstileValidate(false)}
+            onError={() => setIsTurnstileValidate(false)}
             onExpire={() => setIsTurnstileValidate(false)}
           />
         )}
@@ -162,7 +142,6 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   email,
 }: SignUpModalSuccessProps) => {
   const t = useTranslations();
-  const { setCurrentModal } = useModal();
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} className="max-w-xs">
@@ -177,6 +156,32 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
       <p>
         {t.rich("registrationSuccess2", {
           email: () => <b>{email}</b>,
+        })}
+      </p>
+    </BaseModal>
+  );
+};
+
+type AccountInactiveModalProps = SignInModalType & {
+  login: string;
+};
+
+export const AccountInactive: FC<AccountInactiveModalProps> = ({
+  isOpen,
+  onClose,
+  login,
+}: AccountInactiveModalProps) => {
+  const t = useTranslations();
+
+  return (
+    <BaseModal isOpen={isOpen} onClose={onClose} className="max-w-xs">
+      <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
+        {t("accountInactiveModalTitle")}
+      </h2>
+      <p>
+        {t.rich("accountInactiveModalBody", {
+          login,
+          bold: (chunks) => <b>{chunks}</b>,
         })}
       </p>
     </BaseModal>

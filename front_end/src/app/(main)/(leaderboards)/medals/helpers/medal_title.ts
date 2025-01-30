@@ -1,3 +1,5 @@
+import { isNil } from "lodash";
+
 import { Medal, MedalProjectType } from "@/types/scoring";
 
 export function getMedalDisplayTitle(medal: Medal): string {
@@ -6,13 +8,19 @@ export function getMedalDisplayTitle(medal: Medal): string {
   }
 
   const { name } = medal;
-  const match = name.match(/^(\d{4}): (\d+) year .+$/);
+  const match = (name || "").match(/^(\d{4}): (\d+) year .+$/);
   if (!match) {
     return "";
   }
 
-  const startYear = parseInt(match[1], 10);
-  const duration = parseInt(match[2], 10);
+  const rawStartYear = match[1];
+  const rawDuration = match[2];
+  if (isNil(rawStartYear) || isNil(rawDuration)) {
+    return "";
+  }
+
+  const startYear = parseInt(rawStartYear, 10);
+  const duration = parseInt(rawDuration, 10);
 
   if (duration === 1) {
     return `${startYear}`;

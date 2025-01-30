@@ -192,3 +192,14 @@ a {
 .content blockquote {
   @apply my-4 border-s-4 border-gray-300 bg-gray-100 p-4 text-gray-800 dark:border-gray-300-dark dark:bg-gray-200-dark dark:text-gray-800-dark;
 }
+
+.hidden-scrollable-input {
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  width: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+}

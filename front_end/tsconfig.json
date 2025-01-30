@@ -12,6 +12,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "noUncheckedIndexedAccess": true,
     "plugins": [
       {
         "name": "next"
@@ -26,6 +27,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "types/**/*.d.ts"
-  ],  "exclude": ["node_modules"]
+    "types/**/*.d.ts",
+    "declarations/**/*.d.ts"
+  ],
+  "exclude": ["node_modules"]
 }

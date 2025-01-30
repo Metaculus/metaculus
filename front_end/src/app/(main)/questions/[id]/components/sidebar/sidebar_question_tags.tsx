@@ -38,11 +38,13 @@ const SidebarQuestionTags: FC<Props> = ({
     tag: _tag,
     tournament: _tournament,
     question_series: _question_series,
+    community: _community,
   } = tagData;
   const tag = _tag ?? [];
   const category = _category ?? [];
   const tournament = _tournament ?? [];
   const question_series = _question_series ?? [];
+  const community = _community ?? [];
 
   const [showAllTags, setShowAllTags] = useState(
     (tag.length ?? 0) < INITIAL_NUM_OF_TAGS
@@ -84,6 +86,21 @@ const SidebarQuestionTags: FC<Props> = ({
           </Chip>
         ))}
 
+        {community.map((element) => (
+          <Chip
+            color="orange"
+            key={element.id}
+            href={`/c/${element.slug}`}
+            onClick={() =>
+              sendGAEvent("event", "questionTagClicked", {
+                event_category: element.name,
+              })
+            }
+          >
+            {element.name}
+          </Chip>
+        ))}
+
         {category.map((element) => (
           <Chip
             color="olive"
@@ -103,8 +120,8 @@ const SidebarQuestionTags: FC<Props> = ({
           <Chip
             key={element.id}
             href={`/questions/?${POST_TAGS_FILTER}=${element.slug}&for_main_feed=false`}
-            color="blue"
-            xMark={allowModifications}
+            color={element.is_global_leaderboard ? "gray" : "blue"}
+            xMark={element.is_global_leaderboard ? false : allowModifications}
             onXMarkClick={async () => {
               await removePostFromProject(postId, element.id);
               router.refresh();

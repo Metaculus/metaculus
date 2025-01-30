@@ -1,16 +1,12 @@
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { MedalEntry } from "@/types/scoring";
+import cn from "@/utils/cn";
 
 import MedalCard from "./medal_card";
-import { CONTRIBUTIONS_USER_FILTER } from "../../contributions/search_params";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
-import {
-  SCORING_CATEGORY_FILTER,
-  SCORING_YEAR_FILTER,
-} from "../../search_params";
+import { SCORING_YEAR_FILTER } from "../../search_params";
 import { getMedalCategories } from "../helpers/medal_categories";
 
 type Props = {
@@ -27,7 +23,7 @@ const MedalCategories: FC<Props> = ({ medalEntries, userId }) => {
     <section className="mb-3 flex flex-col gap-12 pt-4 sm:mb-6">
       {categories.map((category) => (
         <div
-          className={classNames(
+          className={cn(
             "flex flex-col items-center justify-center gap-9 px-3",
             { hidden: category.medals.length === 0 }
           )}

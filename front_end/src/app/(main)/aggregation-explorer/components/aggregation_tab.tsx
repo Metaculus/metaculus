@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useState, memo, useMemo } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
-import useDebounce from "@/hooks/use_debounce";
+import { useDebouncedValue } from "@/hooks/use_debounce";
 import {
   AggregationQuestion,
   Aggregations,
@@ -43,12 +43,9 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
     [actual_close_time]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
-    activeAggregation
-      ? activeAggregation.history[activeAggregation.history.length - 1]
-          .start_time
-      : null
+    activeAggregation?.history?.at(-1)?.start_time ?? null
   );
-  const aggregationTimestamp = useDebounce(cursorTimestamp, 500);
+  const aggregationTimestamp = useDebouncedValue(cursorTimestamp, 500);
 
   const cursorData = useMemo(() => {
     if (!activeAggregation) {
@@ -61,8 +58,11 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
 
     const forecast =
       index === -1
-        ? activeAggregation.history[activeAggregation.history.length - 1]
+        ? activeAggregation.history.at(-1)
         : activeAggregation.history[index];
+    if (!forecast) {
+      return null;
+    }
 
     return {
       timestamp: forecast.start_time ?? cursorTimestamp,
@@ -75,10 +75,7 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
 
   const handleCursorChange = useCallback(
     (value: number | null) => {
-      const fallback = activeAggregation
-        ? activeAggregation.history[activeAggregation.history.length - 1]
-            .start_time
-        : null;
+      const fallback = activeAggregation?.history?.at(-1)?.start_time ?? null;
 
       setCursorTimestamp(value ?? fallback);
     },
@@ -127,11 +124,11 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
         <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
           <CursorDetailItem
             title={t("totalForecastersLabel")}
-            text={cursorData.forecasterCount?.toString()}
+            content={cursorData.forecasterCount?.toString()}
           />
           <CursorDetailItem
             title={t("communityPredictionLabel")}
-            text={getDisplayValue({
+            content={getDisplayValue({
               value: cursorData.center,
               questionType: qType,
               scaling,

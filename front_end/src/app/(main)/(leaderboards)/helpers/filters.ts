@@ -1,5 +1,3 @@
-import { format, startOfYear } from "date-fns";
-
 import { CategoryKey, LeaderboardType } from "@/types/scoring";
 
 export function getLeaderboardTimeInterval(

@@ -23,6 +23,9 @@ class ProjectsQuerySet(models.QuerySet):
     def filter_topic(self):
         return self.filter(type=Project.ProjectTypes.TOPIC)
 
+    def filter_news_category(self):
+        return self.filter(type=Project.ProjectTypes.NEWS_CATEGORY)
+
     def filter_category(self):
         return self.filter(type=Project.ProjectTypes.CATEGORY)
 
@@ -187,7 +190,10 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         HOT_TOPICS = "hot_topics"
         HOT_CATEGORIES = "hot_categories"
 
-    add_posts_to_main_feed = models.BooleanField(default=False)
+    class Visibility(models.TextChoices):
+        NORMAL = "normal"
+        NOT_IN_MAIN_FEED = "not_in_main_feed"
+        UNLISTED = "unlisted"
 
     type = models.CharField(
         max_length=32,
@@ -267,8 +273,28 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         db_index=True,
     )
     override_permissions = models.ManyToManyField(User, through="ProjectUserPermission")
-    # Not discoverable, but can still be accessed via the URL
-    unlisted = BooleanField(default=False, db_index=True)
+
+    visibility = models.CharField(
+        choices=Visibility.choices,
+        default=Visibility.NOT_IN_MAIN_FEED,
+        db_index=True,
+        help_text=(
+            "Sets the visibility of this project:<br>"
+            "<ul>"
+            "  <li><strong>Normal</strong>: Visible on the main feed, contributes to global leaderboards/medals, "
+            "      and lists the project in the tournaments/question series page.</li>"
+            "  <li><strong>Not In Main Feed</strong>: Not visible in the main feed but can be searched for, "
+            "      doesn’t contribute to global leaderboards/medals, and lists the project "
+            "      in the tournaments/question series page.</li>"
+            "  <li><strong>Unlisted</strong>: Not visible in the main feed, not searchable, and doesn’t contribute "
+            "      to global leaderboards/medals. This is the default visibility option for newly created "
+            "      Tournaments/Question Series. It ensures they don’t appear on the tournaments page until admins "
+            "      populate them with questions and are ready to make them public.</li>"
+            "</ul><br>"
+            "<strong>Note:</strong> If this project is <b>not</b> of type <code>site_main</code>, <code>tournament</code>, "
+            "or <code>question_series</code>, this field should be set to <strong>Not In Main Feed</strong> to remain neutral."
+        ),
+    )
 
     # Whether we should display tournament on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
@@ -276,7 +302,9 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     # Annotated fields
-    followers_count = models.PositiveIntegerField(default=0, db_index=True)
+    followers_count = models.PositiveIntegerField(
+        default=0, db_index=True, editable=False
+    )
 
     posts_count: int = 0
     is_subscribed: bool = False
@@ -292,6 +320,34 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def __str__(self):
         return f"{self.type.capitalize()}: {self.name}"
+
+    def save(self, *args, **kwargs):
+        creating = not self.pk
+        # Check if the primary leaderboard is associated with this project
+        if self.primary_leaderboard and self.primary_leaderboard.project != self:
+            raise ValueError(
+                "Primary leaderboard must be associated with this project."
+            )
+
+        super().save(*args, **kwargs)
+        if (
+            creating
+            and not self.primary_leaderboard
+            and self.type
+            in (
+                self.ProjectTypes.TOURNAMENT,
+                self.ProjectTypes.QUESTION_SERIES,
+                self.ProjectTypes.COMMUNITY,
+            )
+        ):
+            # create default leaderboard when creating a new tournament/question series
+            from scoring.models import Leaderboard
+
+            leaderboard = Leaderboard.objects.create(
+                project=self,
+                score_type=Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+            )
+            Project.objects.filter(pk=self.pk).update(primary_leaderboard=leaderboard)
 
     @property
     def is_ongoing(self):

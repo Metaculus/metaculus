@@ -1,20 +1,20 @@
 "use client";
-import { uniq } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useEffect, useMemo, useState } from "react";
+import React, { FC, useCallback, useMemo, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
-import { useAuth } from "@/contexts/auth_context";
-import usePrevious from "@/hooks/use_previous";
+import CPRevealTime from "@/components/cp_reveal_time";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
-import { QuestionWithMultipleChoiceForecasts } from "@/types/question";
+import {
+  ForecastAvailability,
+  QuestionWithMultipleChoiceForecasts,
+} from "@/types/question";
 import {
   findPreviousTimestamp,
   generateChoiceItemsFromMultipleChoiceForecast,
-  getQuestionTimestamps,
 } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
@@ -32,23 +32,26 @@ type Props = {
   defaultZoom?: TimelineChartZoomOption;
   chartTheme?: VictoryThemeDefinition;
   hideCP?: boolean;
-  isCPRevealed?: boolean;
+  forecastAvailability?: ForecastAvailability;
 };
 
-const MultipleChoiceChartCard: FC<Props> = ({
+const DetailedMultipleChoiceChartCard: FC<Props> = ({
   question,
   embedMode = false,
   chartHeight,
   defaultZoom,
   chartTheme,
   hideCP,
-  isCPRevealed,
+  forecastAvailability,
 }) => {
   const t = useTranslations();
 
   const actualCloseTime = question.actual_close_time
     ? new Date(question.actual_close_time).getTime()
     : null;
+  const openTime = question?.open_time
+    ? new Date(question.open_time).getTime()
+    : undefined;
   const isClosed = question.actual_close_time
     ? new Date(question.actual_close_time).getTime() < Date.now()
     : false;
@@ -57,27 +60,26 @@ const MultipleChoiceChartCard: FC<Props> = ({
     generateList(question)
   );
 
-  const aggregationTimestamps = useMemo(
-    () =>
-      choiceItems[0]?.aggregationTimestamps
-        ? choiceItems[0].aggregationTimestamps
-        : [],
-    [choiceItems]
-  );
+  const timestamps = useMemo(() => {
+    if (!forecastAvailability?.cpRevealsOn) {
+      return choiceItems[0]?.aggregationTimestamps ?? [];
+    }
+
+    return choiceItems[0]?.userTimestamps ?? [];
+  }, [choiceItems, forecastAvailability]);
   const userTimestamps = useMemo(
     () => choiceItems[0]?.userTimestamps ?? [],
     [choiceItems]
   );
 
-  const [cursorTimestamp, tooltipDate, handleCursorChange] = useTimestampCursor(
-    aggregationTimestamps
-  );
+  const [cursorTimestamp, tooltipDate, handleCursorChange] =
+    useTimestampCursor(timestamps);
 
   const aggregationCursorIndex = useMemo(() => {
-    return aggregationTimestamps.indexOf(
-      findPreviousTimestamp(aggregationTimestamps, cursorTimestamp)
+    return timestamps.indexOf(
+      findPreviousTimestamp(timestamps, cursorTimestamp)
     );
-  }, [aggregationTimestamps, cursorTimestamp]);
+  }, [timestamps, cursorTimestamp]);
   const userCursorIndex = useMemo(() => {
     return userTimestamps.indexOf(
       findPreviousTimestamp(userTimestamps, cursorTimestamp)
@@ -93,26 +95,47 @@ const MultipleChoiceChartCard: FC<Props> = ({
     return aggregationForecasterCounts[aggregationCursorIndex] ?? null;
   }, [aggregationCursorIndex, choiceItems]);
 
-  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(() => {
-    return choiceItems
-      .filter(({ active }) => active)
-      .map(({ choice, aggregationValues, color }) => ({
-        choiceLabel: choice,
-        color,
-        valueLabel: hideCP
-          ? "..."
-          : getForecastPctDisplayValue(
-              aggregationValues[aggregationCursorIndex]
-            ),
-      }));
-  }, [choiceItems, aggregationCursorIndex, hideCP]);
+  const getOptionTooltipValue = useCallback(
+    (aggregatedValue: number | null | undefined) => {
+      if (!!forecastAvailability?.cpRevealsOn) {
+        return <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />;
+      }
+
+      if (forecastAvailability?.isEmpty) {
+        return t("noForecastsYet");
+      }
+
+      if (hideCP) {
+        return "...";
+      }
+
+      return getForecastPctDisplayValue(aggregatedValue);
+    },
+    [forecastAvailability, hideCP, t]
+  );
+
+  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
+    () =>
+      choiceItems
+        .filter(({ active }) => active)
+        .map(({ choice, aggregationValues, color }) => {
+          const aggregatedValue = aggregationValues.at(aggregationCursorIndex);
+
+          return {
+            choiceLabel: choice,
+            color,
+            valueElement: getOptionTooltipValue(aggregatedValue),
+          };
+        }),
+    [choiceItems, aggregationCursorIndex, getOptionTooltipValue]
+  );
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     return choiceItems
       .filter(({ active }) => active)
       .map(({ choice, userValues, color }) => ({
         choiceLabel: choice,
         color,
-        valueLabel: getForecastPctDisplayValue(userValues[userCursorIndex]),
+        valueElement: getForecastPctDisplayValue(userValues[userCursorIndex]),
       }));
   }, [choiceItems, userCursorIndex]);
 
@@ -122,10 +145,10 @@ const MultipleChoiceChartCard: FC<Props> = ({
       tooltipUserChoices={tooltipUserChoices}
       choiceItems={choiceItems}
       hideCP={hideCP}
-      timestamps={aggregationTimestamps}
+      timestamps={timestamps}
       forecastersCount={forecastersCount}
       tooltipDate={tooltipDate}
-      onCursorChange={isCPRevealed ? handleCursorChange : undefined}
+      onCursorChange={handleCursorChange}
       onChoiceItemsUpdate={setChoiceItems}
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
@@ -135,10 +158,12 @@ const MultipleChoiceChartCard: FC<Props> = ({
       embedMode={embedMode}
       chartHeight={chartHeight}
       defaultZoom={defaultZoom}
-      isCPRevealed={isCPRevealed}
-      cpRevealTime={question.cp_reveal_time}
+      isEmptyDomain={
+        !!forecastAvailability?.isEmpty || !!forecastAvailability?.cpRevealsOn
+      }
+      openTime={openTime}
     />
   );
 };
 
-export default MultipleChoiceChartCard;
+export default DetailedMultipleChoiceChartCard;

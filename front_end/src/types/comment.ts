@@ -17,6 +17,7 @@ export type BECommentType = {
   root_id: number | null;
   parent_id: number | null;
   created_at: string;
+  edited_at: string;
   is_soft_deleted: boolean;
   text: string;
   included_forecast?: ForecastType;
@@ -46,7 +47,7 @@ export type ForecastType = {
   probability_yes_per_category: number[];
   options: string[];
   continuous_cdf: number[];
-  quartiles: number[];
+  quartiles: [number, number, number];
   question_type: QuestionType;
 };
 

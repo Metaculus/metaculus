@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from django_better_admin_arrayfield.models.fields import ArrayField
 from django.db import models
-from django.db.models import Count, Q, QuerySet
+from django.db.models import Count, QuerySet
 from django.utils import timezone
+from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
@@ -28,12 +28,7 @@ class QuestionQuerySet(QuerySet):
 
     def filter_public(self):
         return self.filter(
-            Q(post__default_project__default_permission__isnull=False)
-            | Q(group__post__default_project__default_permission__isnull=False)
-            | Q(conditional_no__post__default_project__default_permission__isnull=False)
-            | Q(
-                conditional_yes__post__default_project__default_permission__isnull=False
-            )
+            related_posts__post__default_project__default_permission__isnull=False
         )
 
     def prefetch_related_post(self):
@@ -51,7 +46,6 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     aggregate_forecasts: QuerySet["AggregateForecast"]
     scores: QuerySet["Score"]
     archived_scores: QuerySet["ArchivedScore"]
-    objects: QuestionQuerySet["Question"]
     id: int
     group_id: int | None
 
@@ -62,7 +56,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     user_archived_scores: list["ArchivedScore"]
 
     # utility
-    objects: models.Manager["Question"] = QuestionManager()
+    objects = QuestionManager()
 
     # Common fields
     class QuestionType(models.TextChoices):
@@ -128,6 +122,13 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     def __str__(self):
         return f"{self.type} {self.title}"
 
+    def save(self, **kwargs):
+        # Ensure resolution is always null or non-empty string
+        if self.resolution is not None and self.resolution.strip() == "":
+            self.resolution = None
+
+        return super().save(**kwargs)
+
     def get_post(self) -> "Post | None":
         posts = [x.post for x in self.related_posts.all()]
 
@@ -154,8 +155,8 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         ):
             return QuestionStatus.RESOLVED
 
-        if self.scheduled_close_time < now or (
-            self.actual_close_time and self.actual_close_time < now
+        if self.scheduled_close_time <= now or (
+            self.actual_close_time and self.actual_close_time <= now
         ):
             return QuestionStatus.CLOSED
 
@@ -169,7 +170,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         forecast_horizon_start = self.open_time
         forecast_horizon_end = self.scheduled_close_time
         if forecast_horizon_start is None or forecast_horizon_end is None:
-            return (None, None)
+            return None
         if gl_dates is None:
             from scoring.models import global_leaderboard_dates
 
@@ -274,14 +275,6 @@ class Forecast(models.Model):
     # multiple choice prediction
     probability_yes_per_category = ArrayField(models.FloatField(), null=True)
 
-    # continuous prediction - migrated from old version
-    distribution_components = ArrayField(
-        models.JSONField(null=True),
-        size=5,
-        null=True,
-        help_text="The components for a continuous prediction. Used to generate prediction_values.",
-    )
-
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(
         Question, models.CASCADE, related_name="user_forecasts"
@@ -296,7 +289,20 @@ class Forecast(models.Model):
         related_name="forecasts",
     )
 
-    slider_values = models.JSONField(null=True)
+    class SourceChoices(models.TextChoices):
+        API = "api"
+        UI = "ui"
+
+    # logging the source of the forecast for data purposes
+    source = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        choices=SourceChoices.choices,
+        default="",
+    )
+
+    distribution_input = models.JSONField(null=True)
 
     class Meta:
         indexes = [
@@ -346,8 +352,6 @@ class AggregateForecast(models.Model):
     question = models.ForeignKey(
         Question, models.CASCADE, related_name="aggregate_forecasts"
     )
-    AggregationMethod = AggregationMethod
-
     method = models.CharField(max_length=200, choices=AggregationMethod.choices)
     start_time = models.DateTimeField(db_index=True)
     end_time = models.DateTimeField(null=True, db_index=True)

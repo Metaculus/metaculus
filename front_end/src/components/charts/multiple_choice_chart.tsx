@@ -32,14 +32,15 @@ import {
   TickFormat,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { ChoiceItem, UserChoiceItem } from "@/types/choices";
+import { ChoiceItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
   findPreviousTimestamp,
-  generateNumericDomain,
+  generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
+  generateYDomain,
   getTickLabelFontSize,
   scaleInternalLocation,
   unscaleNominalLocation,
@@ -61,11 +62,12 @@ type Props = {
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
   extraTheme?: VictoryThemeDefinition;
-  userForecasts?: UserChoiceItem[];
   questionType?: QuestionType;
   scaling?: Scaling;
   isClosed?: boolean;
   aggregation?: boolean;
+  isEmptyDomain?: boolean;
+  openTime?: number;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -80,10 +82,12 @@ const MultipleChoiceChart: FC<Props> = ({
   onCursorChange,
   onChartReady,
   extraTheme,
-  questionType,
+  questionType = QuestionType.Binary,
   scaling,
   isClosed,
   aggregation,
+  isEmptyDomain,
+  openTime,
 }) => {
   const t = useTranslations();
   const {
@@ -99,15 +103,19 @@ const MultipleChoiceChart: FC<Props> = ({
     : chartTheme;
   const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
-  const defaultCursor = isClosed
-    ? actualCloseTime
-      ? actualCloseTime / 1000
-      : timestamps[timestamps.length - 1]
-    : Date.now() / 1000;
+  const defaultCursor = useMemo(
+    () =>
+      isClosed
+        ? actualCloseTime
+          ? actualCloseTime / 1000
+          : timestamps[timestamps.length - 1]
+        : Date.now() / 1000,
+    [actualCloseTime, isClosed, timestamps]
+  );
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
-  const { xScale, yScale, graphs, xDomain } = useMemo(
+  const { xScale, yScale, graphs, xDomain, yDomain } = useMemo(
     () =>
       buildChartData({
         timestamps,
@@ -121,6 +129,8 @@ const MultipleChoiceChart: FC<Props> = ({
         aggregation,
         extraTheme,
         hideCP,
+        isAggregationsEmpty: isEmptyDomain,
+        openTime,
       }),
     [
       timestamps,
@@ -134,6 +144,8 @@ const MultipleChoiceChart: FC<Props> = ({
       aggregation,
       extraTheme,
       hideCP,
+      isEmptyDomain,
+      openTime,
     ]
   );
   const isHighlightActive = useMemo(
@@ -232,30 +244,39 @@ const MultipleChoiceChart: FC<Props> = ({
               />
             )
           }
-          domain={{ x: xDomain }}
+          domain={{
+            x: xDomain,
+            y: yDomain,
+          }}
         >
-          {graphs.map(({ line, color, active, highlighted }, index) => (
-            <VictoryLine
-              key={`multiple-choice-line-${index}`}
-              data={line}
-              style={{
-                data: {
-                  stroke: active ? getThemeColor(color) : "transparent",
-                  strokeOpacity: !isHighlightActive ? 1 : highlighted ? 1 : 0.2,
-                },
-              }}
-              interpolation="stepAfter"
-            />
-          ))}
-          {graphs.map(({ area, color, highlighted }, index) =>
-            !!area && highlighted ? (
+          {graphs.map(({ line, color, active, highlighted }, index) =>
+            active ? (
+              <VictoryLine
+                key={`multiple-choice-line-${index}`}
+                data={line}
+                style={{
+                  data: {
+                    stroke: getThemeColor(color),
+                    strokeOpacity: !isHighlightActive
+                      ? 1
+                      : highlighted
+                        ? 1
+                        : 0.2,
+                  },
+                }}
+                interpolation="stepAfter"
+              />
+            ) : null
+          )}
+          {graphs.map(({ area, color, highlighted, active }, index) =>
+            active ? (
               <VictoryArea
                 key={`multiple-choice-area-${index}`}
                 data={area}
                 style={{
                   data: {
                     fill: getThemeColor(color),
-                    opacity: 0.3,
+                    opacity: highlighted ? 0.3 : 0,
                   },
                 }}
                 interpolation="stepAfter"
@@ -352,6 +373,7 @@ export type ChoiceGraph = {
 type ChartData = BaseChartData & {
   graphs: ChoiceGraph[];
   xDomain: DomainTuple;
+  yDomain: DomainTuple;
 };
 
 function buildChartData({
@@ -366,6 +388,8 @@ function buildChartData({
   aggregation,
   extraTheme,
   hideCP,
+  isAggregationsEmpty,
+  openTime,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -373,26 +397,26 @@ function buildChartData({
   width: number;
   height: number;
   zoom: TimelineChartZoomOption;
-  questionType?: QuestionType;
+  questionType: QuestionType;
   scaling?: Scaling;
   aggregation?: boolean;
   extraTheme?: VictoryThemeDefinition;
   hideCP?: boolean;
+  isAggregationsEmpty?: boolean;
+  openTime?: number;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
     .filter((t) => t !== undefined);
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
-    : closeTimes.length === choiceItems.length
+    : !!closeTimes.length && closeTimes.length === choiceItems.length
       ? Math.min(
-          Math.max(...closeTimes.map((t) => t! / 1000)),
+          // @ts-expect-error we manually filter out undefined values, this is fixed on more recent typescript versions
+          Math.max(...closeTimes.map((t) => t / 1000)),
           Date.now() / 1000
         )
       : Date.now() / 1000;
-  const xDomain = aggregation
-    ? generateNumericDomain([...timestamps], zoom)
-    : generateNumericDomain([...timestamps, latestTimestamp], zoom);
 
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
@@ -413,9 +437,9 @@ function buildChartData({
       scaling: choiceScaling,
     }) => {
       const rescale = (val: number) => {
-        if (scaling) {
+        if (scaling && choiceScaling) {
           return unscaleNominalLocation(
-            scaleInternalLocation(val, choiceScaling!),
+            scaleInternalLocation(val, choiceScaling),
             scaling
           );
         }
@@ -438,7 +462,7 @@ function buildChartData({
         if (
           !scatter.length ||
           userValue ||
-          scatter[scatter.length - 1].y === null
+          isNil(scatter[scatter.length - 1]?.y)
         ) {
           // we are either starting or have a real value or previous value is null
           scatter.push({
@@ -450,13 +474,17 @@ function buildChartData({
           });
         } else {
           // we have a null vlalue while previous was real
-          scatter.push({
-            x: timestamp,
-            y: scatter[scatter.length - 1].y,
-            y1: scatter[scatter.length - 1].y1,
-            y2: scatter[scatter.length - 1].y2,
-            symbol: "x",
-          });
+          const lastScatterItem = scatter.at(-1);
+          if (!isNil(lastScatterItem)) {
+            scatter.push({
+              x: timestamp,
+              y: lastScatterItem.y,
+              y1: lastScatterItem.y1,
+              y2: lastScatterItem.y2,
+              symbol: "x",
+            });
+          }
+
           scatter.push({
             x: timestamp,
             y: null,
@@ -475,7 +503,7 @@ function buildChartData({
           if (
             !line.length ||
             aggregationValue ||
-            line[line.length - 1].y === null
+            isNil(line[line.length - 1]?.y)
           ) {
             // we are either starting or have a real value or previous value is null
             line.push({
@@ -489,15 +517,22 @@ function buildChartData({
             });
           } else {
             // we have a null vlalue while previous was real
-            line.push({
-              x: timestamp,
-              y: line[line.length - 1].y,
-            });
-            area.push({
-              x: timestamp,
-              y: area[area.length - 1].y,
-              y0: area[area.length - 1].y0,
-            });
+            const lastLineItem = line.at(-1);
+            if (!isNil(lastLineItem)) {
+              line.push({
+                x: timestamp,
+                y: lastLineItem.y,
+              });
+            }
+            const lastAreaItem = area.at(-1);
+            if (!isNil(lastAreaItem)) {
+              area.push({
+                x: timestamp,
+                y: lastAreaItem.y,
+                y0: lastAreaItem.y0,
+              });
+            }
+
             line.push({
               x: timestamp,
               y: null,
@@ -523,12 +558,12 @@ function buildChartData({
       if (item.line.length > 0) {
         item.line.push({
           x: closeTime ? closeTime / 1000 : latestTimestamp,
-          y: item.line.at(-1)!.y,
+          y: item.line.at(-1)?.y ?? null,
         });
-        item.area!.push({
+        item.area?.push({
           x: closeTime ? closeTime / 1000 : latestTimestamp,
-          y: item.area!.at(-1)!.y,
-          y0: item.area!.at(-1)!.y0,
+          y: item?.area?.at(-1)?.y ?? null,
+          y0: item?.area?.at(-1)?.y0 ?? null,
         });
       }
 
@@ -570,22 +605,38 @@ function buildChartData({
     }
   );
 
+  const domainTimestamps =
+    isAggregationsEmpty && !!openTime
+      ? [openTime / 1000, latestTimestamp]
+      : aggregation
+        ? timestamps
+        : [...timestamps, latestTimestamp];
+
+  const xDomain = generateNumericXDomain(domainTimestamps, zoom);
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
-  const yScale =
-    questionType === "numeric" || questionType === "date"
-      ? generateScale({
-          displayType: questionType,
-          axisLength: height,
-          direction: "vertical",
-          scaling: scaling,
-        })
-      : generateScale({
-          displayType: "percent",
-          axisLength: height,
-        });
 
-  return { xScale, yScale, graphs, xDomain };
+  // @ts-expect-error we manually check, that areas are not nullable, this should be fixed on later ts versions
+  const areas: Area = graphs
+    .filter((g) => !isNil(g.area) && g.active)
+    .flatMap((g) => g.area);
+  const { originalYDomain, zoomedYDomain } = generateYDomain({
+    zoom,
+    minTimestamp: xDomain[0],
+    isChartEmpty: !domainTimestamps.length,
+    minValues: areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
+    maxValues: areas.map((a) => ({ timestamp: a.x, y: a.y })),
+  });
+  const yScale = generateScale({
+    displayType: questionType,
+    axisLength: height,
+    direction: "vertical",
+    scaling: scaling,
+    domain: originalYDomain,
+    zoomedDomain: zoomedYDomain,
+  });
+
+  return { xScale, yScale, graphs, xDomain, yDomain: zoomedYDomain };
 }
 
 // Define a custom "X" symbol function

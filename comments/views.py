@@ -1,5 +1,6 @@
 import difflib
 
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
@@ -29,9 +30,14 @@ from comments.serializers import (
 from comments.services.common import create_comment, trigger_update_comment_translations
 from comments.services.feed import get_comments_feed
 from comments.services.key_factors import key_factor_vote
-from notifications.services import NotificationCommentReport, NotificationPostParams
+from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
+from users.models import User
+from users.services.spam_detection import (
+    check_new_comment_for_spam,
+    send_deactivation_email,
+)
 
 
 class RootCommentsPagination(LimitOffsetPagination):
@@ -116,8 +122,9 @@ def comment_delete_api_view(request: Request, pk: int):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@transaction.non_atomic_requests
 def comment_create_api_view(request: Request):
-    user = request.user
+    user: User = request.user
     serializer = CommentWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
@@ -141,11 +148,26 @@ def comment_create_api_view(request: Request):
         else None
     )
 
+    # Check for spam
+    is_spam, _ = check_new_comment_for_spam(
+        user=user, comment_text=serializer.validated_data["text"]
+    )
+
+    if is_spam:
+        user.mark_as_spam()
+        send_deactivation_email(user.email)
+        return Response(
+            data={
+                "message": "This comment seems to be spam. Please contact "
+                "support@metaculus.com if you believe this was a mistake.",
+                "error_code": "SPAM_DETECTED",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     new_comment = create_comment(
         **serializer.validated_data, included_forecast=forecast, user=user
     )
-
-    trigger_update_comment_translations(new_comment, force=False)
 
     return Response(
         serialize_comment_many([new_comment])[0], status=status.HTTP_201_CREATED
@@ -238,17 +260,7 @@ def comment_report_api_view(request, pk=int):
     )
 
     if post:
-        staff = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
-
-        for user in staff:
-            NotificationCommentReport.schedule(
-                user,
-                NotificationCommentReport.ParamsType(
-                    post=NotificationPostParams.from_post(post),
-                    comment_id=comment.id,
-                    reason=reason,
-                ),
-            )
+        send_comment_report_notification_to_staff(comment, reason, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -297,8 +309,6 @@ def comment_create_oldapi_view(request: Request):
         user=user,
         text=text,
     )
-
-    trigger_update_comment_translations(new_comment, force=False)
 
     return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
 

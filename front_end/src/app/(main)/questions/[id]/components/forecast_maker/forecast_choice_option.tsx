@@ -1,6 +1,5 @@
 "use client";
 
-import classNames from "classnames";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import {
@@ -18,6 +17,7 @@ import Slider from "@/components/sliders/slider";
 import useAppTheme from "@/hooks/use_app_theme";
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
+import cn from "@/utils/cn";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 import ForecastTextInput from "./forecast_text_input";
@@ -130,7 +130,7 @@ const ForecastChoiceOption = <T = string,>({
         step={1}
         arrowStep={0.1}
         shouldSyncWithDefault
-        arrowClassName={classNames(
+        arrowClassName={cn(
           "text-orange-700 hover:text-orange-800 active:text-orange-900 dark:text-orange-700-dark dark:hover:text-orange-800-dark dark:active:text-orange-900-dark",
           isRowDirty
             ? "bg-orange-200 dark:bg-orange-200-dark"
@@ -152,7 +152,7 @@ const ForecastChoiceOption = <T = string,>({
   return (
     <>
       <tr
-        className={classNames({
+        className={cn({
           "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
           "bg-blue-200 bg-fixed dark:bg-blue-200-dark":
             highlightedOptionId === id,
@@ -190,7 +190,7 @@ const ForecastChoiceOption = <T = string,>({
             disabled={disabled}
           />
         </td>
-        <td className="w-full border-t border-gray-300 p-2 dark:border-gray-300-dark sm:table-cell">
+        <td className="hidden w-full border-t border-gray-300 p-2 dark:border-gray-300-dark sm:table-cell">
           <div className="flex">
             <div className="w-full">{SliderElement}</div>
             <div>{menu}</div>
@@ -198,7 +198,7 @@ const ForecastChoiceOption = <T = string,>({
         </td>
       </tr>
       <tr
-        className={classNames("sm:hidden", {
+        className={cn("sm:hidden", {
           "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
         })}
         onClick={() => onOptionClick?.(id)}
@@ -221,7 +221,7 @@ const MarkArrow: FC<{
 
   return (
     <svg
-      className={classNames("absolute top-0.5 -translate-x-1/2")}
+      className={cn("absolute top-0.5 -translate-x-1/2")}
       width="12"
       height="8"
       viewBox="0 0 12 8"

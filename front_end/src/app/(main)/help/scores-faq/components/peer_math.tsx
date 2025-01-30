@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import MathJaxContent from "@/components/math_jax_content";
+import KatexRenderer from "@/components/katex_renderer";
 
 import StyledDisclosure from "../../../components/styled_disclosure";
 
@@ -14,38 +14,34 @@ const PeerMath = () => {
         <a href="/help/scores-faq/#log-score">log scores</a>, with the general
         form:
       </p>
-      <MathJaxContent
-        block
-        content={`\\[
-    \\text{Peer score} = 100 \\times \\frac{1}{N} \\sum_{i = 1}^N \\operatorname{log\\ score}(p) - \\operatorname{log\\ score}(p_i)
-  \\]`}
+      <KatexRenderer
+        equation="\text{Peer score} = 100 \times \frac{1}{N} \sum_{i = 1}^N \operatorname{log\ score}(p) - \operatorname{log\ score}(p_i)"
+        inline={false}
       />
       <p>
-        Where <MathJaxContent content={`\\(p\\)`} /> is the scored prediction,{" "}
-        <MathJaxContent content={`\\(N\\)`} /> is the number of other
-        predictions, and <MathJaxContent content={`\\(p_i\\)`} /> is the i-th
+        Where <KatexRenderer equation="p" inline /> is the scored prediction,{" "}
+        <KatexRenderer equation="N" inline /> is the number of other
+        predictions, and <KatexRenderer equation="p_i" inline /> is the i-th
         other prediction.
       </p>
       <p>Note that this can be rearranged into:</p>
-      <MathJaxContent
-        block
-        content={`\\[
-    \\text{Peer score} = 100 \\times (\\ln(p) - \\ln(\\operatorname{GM}(p_i)))
-  \\]`}
+      <KatexRenderer
+        equation="\text{Peer score} = 100 \times (\ln(p) - \ln(\operatorname{GM}(p_i)))"
+        inline={false}
       />
       <p>
         Where{" "}
         <a href="https://en.wikipedia.org/wiki/Geometric_mean">
-          <MathJaxContent content={`\\(\\operatorname{GM}(p_i)\\)`} />
+          <KatexRenderer equation="\operatorname{GM}(p_i)" inline />
         </a>{" "}
         is the geometric mean of all other predictions.
       </p>
       <p>
-        As before, for binary questions <MathJaxContent content={`\\(p\\)`} />{" "}
-        is the probability given to the correct outcome (Yes or No), for
-        multiple choice questions it is the probability given to the option
-        outcome that resolved Yes, and for continuous questions it is the value
-        of the predicted pdf at the outcome.
+        As before, for binary questions <KatexRenderer equation="p" inline /> is
+        the probability given to the correct outcome (Yes or No), for multiple
+        choice questions it is the probability given to the option outcome that
+        resolved Yes, and for continuous questions it is the value of the
+        predicted pdf at the outcome.
       </p>
     </StyledDisclosure>
   );

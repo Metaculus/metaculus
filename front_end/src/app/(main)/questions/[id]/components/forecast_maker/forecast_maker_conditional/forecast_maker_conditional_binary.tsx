@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
@@ -9,12 +8,13 @@ import {
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import cn from "@/utils/cn";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import { sendGAConditionalPredictEvent } from "./ga_events";
@@ -63,15 +63,17 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       : null;
   const hasUserForecast = !!prevYesForecastValue || !!prevNoForecastValue;
 
-  const latestAggregationYes = question_yes.my_forecasts?.latest;
-  const latestAggregationNo = question_no.my_forecasts?.latest;
+  const latestAggregationYes =
+    question_yes.aggregations?.recency_weighted.latest;
+  const latestAggregationNo = question_no.aggregations?.recency_weighted.latest;
+
   const prevYesAggregationValue =
     latestAggregationYes && !latestAggregationYes.end_time
-      ? extractPrevBinaryForecastValue(latestAggregationYes.forecast_values[1])
+      ? latestAggregationYes.centers?.[0]
       : null;
   const prevNoAggregationValue =
     latestAggregationNo && !latestAggregationNo.end_time
-      ? extractPrevBinaryForecastValue(latestAggregationNo.forecast_values[1])
+      ? latestAggregationNo.centers?.[0]
       : null;
 
   const [questionOptions, setQuestionOptions] = useState<
@@ -104,7 +106,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     [activeTableOption, question_yes, question_no]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const isPickerDirty = useMemo(
     () => questionOptions.some((option) => option.isDirty),
     [questionOptions]
@@ -210,7 +212,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   }, []);
 
   const handlePredictSubmit = async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
       return;
@@ -220,6 +222,8 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     const response = await createForecasts(
       postId,
       questionsToSubmit.map((q) => {
+        // Okay to disable no-non-null-assertion rule, as value is checked in questionsToSubmit definition
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const forecastValue = round(q.value! / 100, BINARY_FORECAST_PRECISION);
 
         return {
@@ -244,19 +248,13 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     );
     setIsSubmitting(false);
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   };
 
   const handlePredictWithdraw = async () => {
-    setSubmitErrors([]);
+    setSubmitError(undefined);
 
     if (!prevYesForecastValue && !prevNoForecastValue) return;
 
@@ -268,14 +266,8 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
     );
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (errors.length) {
-      setSubmitErrors(errors);
+      setSubmitError(response.errors);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -297,10 +289,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       {questionOptions.map((option) => (
         <div
           key={option.id}
-          className={classNames(
-            "mt-10",
-            option.id !== activeTableOption && "hidden"
-          )}
+          className={cn("mt-10", option.id !== activeTableOption && "hidden")}
         >
           <BinarySlider
             forecast={option.value}
@@ -348,18 +337,16 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                 >
                   {t("discardChangesButton")}
                 </Button>
-                {(!!prevYesForecastValue || !!prevNoForecastValue) &&
-                  question_yes.withdraw_permitted &&
-                  question_no.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
-                    <Button
-                      variant="secondary"
-                      type="submit"
-                      disabled={withdrawalIsPending}
-                      onClick={withdraw}
-                    >
-                      {t("withdraw")}
-                    </Button>
-                  )}
+                {(!!prevYesForecastValue || !!prevNoForecastValue) && (
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={withdrawalIsPending}
+                    onClick={withdraw}
+                  >
+                    {t("withdraw")}
+                  </Button>
+                )}
               </>
             )}
 
@@ -373,13 +360,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
           </>
         )}
       </div>
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage
-          className="flex justify-center"
-          key={`error-${index}`}
-          errors={errResponse}
-        />
-      ))}
+      <FormError
+        errors={submitError}
+        className="flex items-center justify-center"
+        detached
+      />
       {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );

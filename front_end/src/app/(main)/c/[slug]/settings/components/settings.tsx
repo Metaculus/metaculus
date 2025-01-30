@@ -5,21 +5,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
-import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import {
-  FormError,
   FormErrorMessage,
   Input,
-  Textarea,
+  MarkdownEditorField,
 } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { CommunityUpdateParams } from "@/services/projects";
 import { ProjectPermissions } from "@/types/post";
-import { Community, CommunitySettingsMode } from "@/types/projects";
+import {
+  Community,
+  CommunitySettingsMode,
+  ProjectVisibility,
+} from "@/types/projects";
 import { logError } from "@/utils/errors";
 
 import { updateCommunity } from "../actions";
@@ -32,28 +34,40 @@ type VisibilityType = "public" | "unlisted" | "draft";
 
 const propsToVisibilityType = (
   community: CommunityUpdateParams
-): VisibilityType | undefined => {
-  if (community.default_permission && !community.unlisted) return "public";
-  if (community.unlisted) return "unlisted";
+): VisibilityType => {
+  if (community.default_permission) {
+    if (community.visibility == ProjectVisibility.Unlisted) return "unlisted";
+
+    return "public";
+  }
 
   return "draft";
 };
 
 const visibilityTypeToProps = (
+  community: Community,
   type: VisibilityType
 ): Partial<CommunityUpdateParams> => {
   if (type === "public")
     return {
       default_permission: ProjectPermissions.FORECASTER,
-      unlisted: false,
+      visibility:
+        community.visibility === ProjectVisibility.Normal
+          ? // Keep original visibility if was configured as "normal"
+            ProjectVisibility.Normal
+          : // Otherwise, set "not in main feed"
+            ProjectVisibility.NotInMainFeed,
     };
   if (type === "unlisted")
     return {
       default_permission: ProjectPermissions.FORECASTER,
-      unlisted: true,
+      visibility: ProjectVisibility.Unlisted,
     };
 
-  return { default_permission: null, unlisted: false };
+  return {
+    default_permission: null,
+    visibility: ProjectVisibility.Unlisted,
+  };
 };
 
 const CommunitySettings: FC<Props> = ({ community }) => {
@@ -66,7 +80,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
         description: community.description,
         slug: community.slug,
         default_permission: community.default_permission,
-        unlisted: community.unlisted,
+        visibility: community.visibility,
       },
       resolver: zodResolver(communitySettingsSchema),
     });
@@ -126,9 +140,9 @@ const CommunitySettings: FC<Props> = ({ community }) => {
           </Label>
           <ButtonGroup
             buttons={visibilityOptions}
-            value={propsToVisibilityType(visibilityType)!}
+            value={propsToVisibilityType(visibilityType)}
             onChange={(val) => {
-              Object.entries(visibilityTypeToProps(val)).forEach(
+              Object.entries(visibilityTypeToProps(community, val)).forEach(
                 ([key, value]) => {
                   setValue(key as keyof CommunityUpdateParams, value, {
                     shouldDirty: true,
@@ -189,32 +203,17 @@ const CommunitySettings: FC<Props> = ({ community }) => {
           </div>
         </InputContainer>
         <div>
-          <InputContainer labelText={t("communityDescription")}>
-            <Textarea
-              {...register("description")}
+          <InputContainer
+            labelText={t("communityDescription")}
+            isNativeFormControl={false}
+          >
+            <MarkdownEditorField
+              control={control}
+              name={"description"}
               errors={formState.errors.description}
-              className="hidden"
+              defaultValue={community.description}
             />
           </InputContainer>
-          <Controller
-            control={control}
-            name="description"
-            render={({ field: { value } }) => (
-              <MarkdownEditor
-                mode="write"
-                markdown={value as string}
-                onChange={(markdown: string) => {
-                  setValue("description", markdown, { shouldDirty: true });
-                }}
-                className="mt-2 w-full"
-                withUgcLinks
-              />
-            )}
-          />
-          <FormError
-            errors={formState.errors.description}
-            name={"description"}
-          />
         </div>
       </div>
       {!isLoading && <FormErrorMessage errors={error} />}

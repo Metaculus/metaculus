@@ -28,7 +28,7 @@ export const EMBED_THEME: Record<string, EmbedTheme> = {
       area: { style: { data: { fill: "#89BFD1" } } },
     },
     card: {
-      backgroundColor: "#F0F0F0",
+      backgroundColor: "#19191C",
       fontFamily: "serif",
     },
     predictionChip: {

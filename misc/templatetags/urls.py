@@ -4,6 +4,7 @@ from django.template.defaultfilters import slugify
 from utils.frontend import (
     build_frontend_url as _build_frontend_url,
     build_question_graph_image_cdn_url as _build_question_graph_image_url,
+    build_user_profile_url as _build_user_profile_url,
 )
 
 register = template.Library()
@@ -31,3 +32,8 @@ def post_url(post_id: int, post_title: str):
 @register.simple_tag
 def tag_settings_url():
     return _build_frontend_url("/accounts/settings/")
+
+
+@register.simple_tag
+def build_user_profile_url(user_id: int):
+    return _build_user_profile_url(user_id)

@@ -2,6 +2,8 @@ from datetime import datetime
 
 import pytest  # noqa
 from freezegun import freeze_time
+from django.utils import timezone
+
 
 from posts.models import Post
 from projects.permissions import ObjectPermission
@@ -72,10 +74,13 @@ class TestPostPermissions:
         data = Post.objects.annotate_user_permission(user=user1).first()
         assert data.user_permission == ObjectPermission.CURATOR
 
-    def test_annotate_user_permission__creator(self, question_binary, user1):
+    def test_annotate_user_permission__creator(self, question_binary, user1, user2):
         factory_post(
             author=user1,
             question=question_binary,
+            default_project=factory_project(
+                default_permission=ObjectPermission.VIEWER, created_by=user2
+            ),
             projects=[
                 factory_project(default_permission=ObjectPermission.VIEWER),
                 factory_project(default_permission=ObjectPermission.CURATOR),
@@ -84,6 +89,9 @@ class TestPostPermissions:
 
         data = Post.objects.annotate_user_permission(user=user1).first()
         assert data.user_permission == ObjectPermission.CREATOR
+
+        data = Post.objects.annotate_user_permission(user=user2).first()
+        assert data.user_permission == ObjectPermission.ADMIN
 
     def test_filter_permission(self, user1, user2):
         user3 = factory_user()
@@ -198,8 +206,8 @@ class TestPostPermissions:
 
         # Post exists for creator
         assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
-        # Draft post should not be visible to anyone except creators
-        assert not Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
+        # Draft post should not be visible to anyone except creators and admins/curators
+        assert Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
         # Post is not visible for Forecaster
         assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
         # Post is not visible for a random user
@@ -229,6 +237,7 @@ class TestPostPermissions:
 
         # Approve post
         p1.curation_status = Post.CurationStatus.APPROVED
+        p1.published_at = timezone.now()
         p1.save()
 
         # Post is visible for creator

@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
@@ -13,6 +12,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useServerAction } from "@/hooks/use_server_action";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import cn from "@/utils/cn";
 import { generateCurveChoiceOptions } from "@/utils/forecasts";
 import { canPredictQuestion } from "@/utils/questions";
 
@@ -68,6 +68,8 @@ const CurveForecastMaker: FC<Props> = ({
       post.id,
       questionsToSubmit.map((q) => {
         const forecastValue = round(
+          // okay to use no-non-null-assertion as forecast is checked in questionsToSubmit
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           q.forecast! / 100,
           BINARY_FORECAST_PRECISION
         );
@@ -87,7 +89,7 @@ const CurveForecastMaker: FC<Props> = ({
       prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
     );
     if (!(response && "errors" in response)) {
-      onPredict && onPredict();
+      onPredict?.();
     }
   }, [post, questionsToSubmit, onPredict]);
   const [submit, isPending] = useServerAction(handlePredictSubmit);
@@ -101,7 +103,7 @@ const CurveForecastMaker: FC<Props> = ({
         {questionOptions.map((option, idx) => (
           <React.Fragment key={`forecast-option-${option.id}`}>
             <p
-              className={classNames(
+              className={cn(
                 "m-0 text-sm font-medium leading-5 text-gray-900 dark:text-gray-900-dark",
                 {
                   "mt-6": idx > 0,

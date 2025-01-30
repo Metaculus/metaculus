@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Iterable
 
 from django.db import models
 from django.db.models import QuerySet
@@ -16,6 +16,7 @@ from projects.serializers.common import (
     validate_tournaments,
     serialize_projects,
 )
+from projects.services.common import get_projects_for_posts
 from questions.models import Question, AggregateForecast
 from questions.serializers import (
     QuestionWriteSerializer,
@@ -28,6 +29,7 @@ from questions.serializers import (
     GroupOfQuestionsUpdateSerializer,
 )
 from questions.services import get_aggregated_forecasts_for_questions
+from questions.types import AggregationMethod
 from users.models import User
 from utils.dtypes import flatten
 from utils.serializers import SerializerKeyLookupMixin
@@ -49,7 +51,6 @@ class NotebookSerializer(serializers.ModelSerializer):
 
 
 class PostReadSerializer(serializers.ModelSerializer):
-    projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
@@ -66,7 +67,6 @@ class PostReadSerializer(serializers.ModelSerializer):
             "author_id",
             "author_username",
             "coauthors",
-            "projects",
             "created_at",
             "published_at",
             "edited_at",
@@ -80,9 +80,6 @@ class PostReadSerializer(serializers.ModelSerializer):
             "open_time",
             "nr_forecasters",
         )
-
-    def get_projects(self, obj: Post):
-        return serialize_projects(obj.projects.all(), obj.default_project)
 
     def get_author_username(self, obj: Post):
         return obj.author.username
@@ -132,7 +129,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
     notebook = NotebookWriteSerializer(required=False)
     categories = serializers.ListField(child=serializers.IntegerField(), required=False)
-    news_type = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = Post
@@ -145,7 +141,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "default_project",
             "notebook",
             "categories",
-            "news_type",
         )
 
     def get_user(self):
@@ -165,17 +160,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
 
     def validate_categories(self, values: list[int]) -> list[Project]:
         return validate_categories(lookup_field="id", lookup_values=values)
-
-    def validate_news_type(self, value) -> list[Project]:
-        if not value:
-            return value
-
-        obj = Project.objects.filter_news().filter(name__iexact=value).first()
-
-        if not obj:
-            raise ValidationError("Wrong news type")
-
-        return obj
 
 
 class PostUpdateSerializer(PostWriteSerializer):
@@ -230,6 +214,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     withdrawn = serializers.BooleanField(required=False, allow_null=True)
     not_forecaster_id = serializers.IntegerField(required=False, allow_null=True)
     similar_to_post_id = serializers.IntegerField(required=False, allow_null=True)
+    upvoted_by = serializers.IntegerField(required=False, allow_null=True)
 
     search = serializers.CharField(required=False, allow_null=True)
     for_main_feed = serializers.BooleanField(required=False, allow_null=True)
@@ -344,12 +329,18 @@ def serialize_post(
     with_subscriptions: bool = False,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     with_key_factors: bool = False,
+    projects: Iterable[Project] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
     serialized_data = PostReadSerializer(post).data
 
+    # Appending projects
+    projects = projects or []
+    serialized_data["projects"] = serialize_projects(projects, post.default_project)
+
+    # Appending questions
     if post.question:
         serialized_data["question"] = serialize_question(
             post.question,
@@ -454,10 +445,9 @@ def serialize_post_many(
 
     qs = (
         qs.annotate_user_permission(user=current_user)
-        .prefetch_projects()
         .prefetch_questions()
         .prefetch_condition_post()
-        .select_related("author", "notebook")
+        .select_related("default_project", "author", "notebook")
         .prefetch_related("coauthors")
     )
     if current_user:
@@ -484,6 +474,9 @@ def serialize_post_many(
             flatten([p.get_questions() for p in posts]), group_cutoff=group_cutoff
         )
 
+    # Fetch projects
+    projects_map = get_projects_for_posts(posts, user=current_user)
+
     return [
         serialize_post(
             post,
@@ -496,6 +489,7 @@ def serialize_post_many(
                 if q in post.get_questions()
             },
             with_key_factors=with_key_factors,
+            projects=projects_map.get(post.id),
         )
         for post in posts
     ]
@@ -602,3 +596,90 @@ class PostRelatedArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ITNArticle
         fields = ("id", "title", "url", "favicon_url", "created_at", "media_label")
+
+
+class DownloadDataSerializer(serializers.Serializer):
+    sub_question = serializers.IntegerField(required=False)
+    aggregation_methods = serializers.CharField(required=False)
+    user_ids = serializers.CharField(required=False, allow_null=True)
+    include_comments = serializers.BooleanField(required=False, default=False)
+    include_scores = serializers.BooleanField(required=False, default=False)
+    include_bots = serializers.BooleanField(required=False, allow_null=True)
+    minimize = serializers.BooleanField(required=False, default=True)
+
+    def validate_aggregation_methods(self, value):
+        if value is None:
+            return
+        user: User = self.context["user"]
+        if value == "all":
+            aggregation_methods = [
+                AggregationMethod.RECENCY_WEIGHTED,
+                AggregationMethod.UNWEIGHTED,
+                AggregationMethod.METACULUS_PREDICTION,
+            ]
+            if user.is_staff:
+                aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
+            return aggregation_methods
+        methods = value.split(",")
+        invalid_methods = [
+            method for method in methods if method not in AggregationMethod.values
+        ]
+        if invalid_methods:
+            raise serializers.ValidationError(
+                f"Invalid aggregation method(s): {', '.join(invalid_methods)}"
+            )
+        if not user.is_staff:
+            methods = [
+                method
+                for method in methods
+                if method != AggregationMethod.SINGLE_AGGREGATION
+            ]
+        return methods
+
+    def validate_user_ids(self, value):
+        if not value:
+            return value
+        user_ids = value.split(",")
+        if not all(user_id.isdigit() for user_id in user_ids):
+            raise serializers.ValidationError(
+                "Invalid user_ids. Must be a comma-separated list of integers."
+            )
+        if not self.context["can_view_private_data"]:
+            raise serializers.ValidationError(
+                "Current user cannot view user-specific data. "
+                "Please remove user_ids parameter."
+            )
+        uids = [int(user_id) for user_id in user_ids]
+        return uids
+
+    def validate(self, attrs):
+        # Check if there are any unexpected fields
+        allowed_fields = {
+            "sub_question",
+            "aggregation_methods",
+            "user_ids",
+            "include_comments",
+            "include_scores",
+            "include_bots",
+            "minimize",
+        }
+        input_fields = set(self.initial_data.keys())
+        unexpected_fields = input_fields - allowed_fields
+        if unexpected_fields:
+            raise ValidationError(f"Unexpected fields: {', '.join(unexpected_fields)}")
+
+        # Aggregation validation logic
+        aggregation_methods = attrs.get("aggregation_methods")
+        user_ids = attrs.get("user_ids")
+        include_bots = attrs.get("include_bots")
+        minimize = attrs.get("minimize", True)
+
+        if not aggregation_methods and (
+            user_ids is not None or include_bots is not None or not minimize
+        ):
+            raise serializers.ValidationError(
+                "If user_ids, include_bots, or minimize is set, "
+                "aggregation_methods must also be set."
+            )
+
+        return attrs

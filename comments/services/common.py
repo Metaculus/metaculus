@@ -1,10 +1,11 @@
+from django.db import transaction
+
 from comments.models import Comment
 from posts.models import Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
-
 from ..tasks import run_on_post_comment_create
 
 
@@ -52,22 +53,23 @@ def create_comment(
 ) -> Comment:
     on_post = parent.on_post if parent else on_post
 
-    obj = Comment(
-        author=user,
-        parent=parent,
-        is_soft_deleted=False,
-        text=text,
-        on_post=on_post,
-        included_forecast=included_forecast,
-        is_private=is_private,
-    )
+    with transaction.atomic():
+        obj = Comment(
+            author=user,
+            parent=parent,
+            is_soft_deleted=False,
+            text=text,
+            on_post=on_post,
+            included_forecast=included_forecast,
+            is_private=is_private,
+        )
 
-    # Save project and validate
-    obj.full_clean()
-    obj.save()
+        # Save project and validate
+        obj.full_clean()
+        obj.save()
 
-    # Update comments read cache counter
-    PostUserSnapshot.update_viewed_at(on_post, user)
+        # Update comments read cache counter
+        PostUserSnapshot.update_viewed_at(on_post, user)
 
     # Send related notifications and update counters
     # Only if comment is public
@@ -75,12 +77,15 @@ def create_comment(
         on_post.update_comment_count()
         run_on_post_comment_create.send(obj.id)
 
+    # Handle translations
+    trigger_update_comment_translations(obj, force=False)
+
     return obj
 
 
 def trigger_update_comment_translations(comment: Comment, force: bool = False):
     if force:
-        comment.trigger_translation_if_dirty()
+        comment.update_and_maybe_translate()
         return
 
     on_post = comment.on_post
@@ -92,4 +97,4 @@ def trigger_update_comment_translations(comment: Comment, force: bool = False):
 
     on_private_post = on_post.is_private() is None
     if not (author.is_bot and on_bots_tournament) and not on_private_post:
-        comment.trigger_translation_if_dirty()
+        comment.update_and_maybe_translate()

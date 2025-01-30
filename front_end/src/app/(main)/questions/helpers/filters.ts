@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 
 import { searchUsers } from "@/app/(main)/questions/actions";
@@ -39,6 +38,7 @@ import {
 } from "@/types/post";
 import { QuestionOrder, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
+import cn from "@/utils/cn";
 
 // TODO: translate
 const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
@@ -152,7 +152,11 @@ export function generateFiltersFromSearchParams(
     filters.order_by = defaultOrderBy;
 
     if (!filters.statuses && !filters.search) {
-      filters.statuses = [PostStatus.OPEN, PostStatus.RESOLVED];
+      filters.statuses = [
+        PostStatus.OPEN,
+        PostStatus.CLOSED,
+        PostStatus.RESOLVED,
+      ];
     }
   }
 
@@ -296,6 +300,14 @@ export function getFilterSectionParticipation({
         label: t("followed"),
         value: "true",
         active: !!params.get(POST_FOLLOWING_FILTER),
+        isPersisted: true,
+      },
+      {
+        id: POST_UPVOTED_BY_FILTER,
+        label: t("upvoted"),
+        value: user.id.toString(),
+        active: !!params.get(POST_UPVOTED_BY_FILTER),
+        isPersisted: true,
       },
     ],
   };
@@ -371,17 +383,17 @@ export function getDropdownSortOptions(
           {
             value: QuestionOrder.LastPredictionTimeAsc,
             label: t("oldestPredictions"),
-            className: classNames("block lg:hidden"),
+            className: cn("block lg:hidden"),
           },
           {
             value: QuestionOrder.LastPredictionTimeDesc,
             label: t("newestPredictions"),
-            className: classNames("block lg:hidden"),
+            className: cn("block lg:hidden"),
           },
           {
             value: QuestionOrder.DivergenceDesc,
             label: t("myDivergence"),
-            className: classNames("block lg:hidden"),
+            className: cn("block lg:hidden"),
           },
         ]
       : []),

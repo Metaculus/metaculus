@@ -7,7 +7,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useState, useEffect, useRef } from "react";
 
@@ -28,11 +27,13 @@ import { Moderator } from "@/components/icons/moderator";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
+import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import cn from "@/utils/cn";
 import { parseUserMentions } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 import { canPredictQuestion } from "@/utils/questions";
@@ -81,9 +82,9 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
   return (
     <>
-      <div className={classNames(treeDepth > 1 && "pr-1.5")}>
+      <div className={cn(treeDepth > 1 && "pr-1.5")}>
         <button
-          className={classNames(
+          className={cn(
             "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm px-1.5 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark md:px-2",
             {
               "border border-transparent bg-blue-400/50 dark:bg-blue-700/30":
@@ -98,7 +99,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
         >
           <FontAwesomeIcon
             icon={faChevronDown}
-            className={classNames("inline-block transition-transform", {
+            className={cn("inline-block transition-transform", {
               "-rotate-180": childrenExpanded,
             })}
           />
@@ -112,7 +113,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
         </button>
       </div>
       <div
-        className={classNames(
+        className={cn(
           "relative",
           treeDepth < 5 ? "pl-0 md:pl-3" : null,
           childrenExpanded ? "pt-0.5" : null
@@ -142,7 +143,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
             return (
               <div
                 key={child.id}
-                className={classNames(
+                className={cn(
                   "my-1 rounded-l-md border py-1 pl-1.5 md:py-1.5 md:pl-2.5",
                   opacityClass,
                   {
@@ -302,6 +303,13 @@ const Comment: FC<CommentProps> = ({
       onClick: () => copyToClipboard(comment.id.toString()),
     },
     {
+      hidden: !user?.is_superuser,
+      id: "viewDjangoAdmin",
+      name: t("viewInDjangoAdmin"),
+      link: `/admin/comments/comment/${comment.id}/change/`,
+      openNewTab: true,
+    },
+    {
       hidden: !user?.id,
       id: "report",
       name: t("report"),
@@ -458,6 +466,7 @@ const Comment: FC<CommentProps> = ({
               )}
               mode={"read"}
               withUgcLinks
+              withTwitterPreview
             />
           )}
         </div>
@@ -465,15 +474,23 @@ const Comment: FC<CommentProps> = ({
           <>
             <Button
               onClick={async () => {
+                if (!user) {
+                  // usually, don't expect this, as action is available only for logged-in users
+                  return;
+                }
+                const parsedMarkdown = commentMarkdown.replace(
+                  userTagPattern,
+                  (match) => match.replace(/[\\]/g, "")
+                );
+
                 const response = await editComment({
                   id: comment.id,
-                  text: commentMarkdown,
-                  author: user!.id,
+                  text: parsedMarkdown,
+                  author: user.id,
                 });
                 if (response && "errors" in response) {
                   console.error(t("errorDeletingComment"), response.errors);
                 } else {
-                  // TODO: remove once comment edit BE data include mentioned_users
                   const newCommentDataResponse = await getComments({
                     focus_comment_id: String(comment.id),
                     sort: "-created_at",
@@ -487,10 +504,7 @@ const Comment: FC<CommentProps> = ({
                       newCommentDataResponse.errors
                     );
                   } else {
-                    const newCommentData = newCommentDataResponse.results.find(
-                      (q) => q.id === comment.id
-                    );
-                    setCommentMarkdown(commentMarkdown);
+                    setCommentMarkdown(parsedMarkdown);
                   }
                   setIsEditing(false);
                 }
@@ -561,7 +575,7 @@ const Comment: FC<CommentProps> = ({
 
             <div
               ref={isMobileScreen ? cmmContext.setAnchorRef : null}
-              className={classNames(treeDepth > 0 && "pr-1.5 md:pr-2")}
+              className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}
             >
               <DropdownMenu items={menuItems} />
             </div>

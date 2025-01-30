@@ -2,7 +2,6 @@
 
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
 
@@ -11,13 +10,13 @@ import BaseModal from "@/components/base_modal";
 import PostSubscribeCustomizeModal from "@/components/post_subscribe/post_subscribe_customise_modal";
 import Button from "@/components/ui/button";
 import { Post, PostSubscriptionType } from "@/types/post";
-import { CurrentUser } from "@/types/users";
 import { Require } from "@/types/utils";
+import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
+import { logError } from "@/utils/errors";
 
 type PostWithSubscriptions = Require<Post, "subscriptions">;
 type Props = {
-  user: CurrentUser;
   posts: PostWithSubscriptions[];
   revalidateSubscriptions?: boolean;
 };
@@ -30,7 +29,7 @@ const getSubscriptionsLabel = (
   if (postWithSubscriptions.subscriptions.length === 1) {
     const sub = postWithSubscriptions.subscriptions[0];
 
-    switch (sub.type) {
+    switch (sub?.type) {
       case PostSubscriptionType.STATUS_CHANGE:
         return t("followModalStatusChanges");
       case PostSubscriptionType.CP_CHANGE:
@@ -54,7 +53,6 @@ const getSubscriptionsLabel = (
 };
 
 const QuestionNotifications: FC<Props> = ({
-  user,
   posts,
   revalidateSubscriptions,
 }) => {
@@ -67,9 +65,14 @@ const QuestionNotifications: FC<Props> = ({
   }>();
 
   const handleUnfollow = useCallback(async () => {
+    if (!activeModal) {
+      logError(new Error("Active modal is not set"), "Couldn't unfollow post");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await changePostSubscriptions(activeModal!.post.id, [], true);
+      await changePostSubscriptions(activeModal?.post.id, [], true);
     } finally {
       setIsLoading(false);
     }
@@ -101,12 +104,12 @@ const QuestionNotifications: FC<Props> = ({
             {posts.map((post, index) => (
               <tr
                 key={`sub-${post.id}`}
-                className={classNames({
+                className={cn({
                   "rounded-b": index === posts.length - 1,
                 })}
               >
                 <td
-                  className={classNames(
+                  className={cn(
                     "max-w-[500px] border border-blue-200 border-l-gray-300 p-2 dark:border-blue-200-dark dark:border-l-gray-300-dark",
                     {
                       "rounded-bl border-b-gray-300 dark:border-b-gray-300-dark":
@@ -123,7 +126,7 @@ const QuestionNotifications: FC<Props> = ({
                   </Button>
                 </td>
                 <td
-                  className={classNames(
+                  className={cn(
                     "border border-blue-200 p-2 dark:border-blue-200-dark",
                     {
                       "border-b-gray-300 dark:border-b-gray-300-dark":
@@ -134,7 +137,7 @@ const QuestionNotifications: FC<Props> = ({
                   {getSubscriptionsLabel(t, locale, post)}
                 </td>
                 <td
-                  className={classNames(
+                  className={cn(
                     "border border-blue-200 p-2 dark:border-blue-200-dark",
                     {
                       "border-b-gray-300 dark:border-b-gray-300-dark":
@@ -142,13 +145,10 @@ const QuestionNotifications: FC<Props> = ({
                     }
                   )}
                 >
-                  {formatDate(
-                    locale,
-                    new Date(post.subscriptions.at(-1)!.created_at)
-                  )}
+                  {getSubscriptionTimestampLabel(post, locale)}
                 </td>
                 <td
-                  className={classNames(
+                  className={cn(
                     "border border-blue-200 border-r-gray-300 p-2 dark:border-blue-200-dark dark:border-r-gray-300-dark",
                     {
                       "rounded-br border-b-gray-300 dark:border-b-gray-300-dark":
@@ -210,12 +210,7 @@ const QuestionNotifications: FC<Props> = ({
                   <div className="font-medium text-gray-500 dark:text-gray-500-dark">
                     {t("created")}
                   </div>
-                  <div>
-                    {formatDate(
-                      locale,
-                      new Date(post.subscriptions.at(-1)!.created_at)
-                    )}
-                  </div>
+                  <div>{getSubscriptionTimestampLabel(post, locale)}</div>
                 </div>
               </div>
             </div>
@@ -256,6 +251,18 @@ const QuestionNotifications: FC<Props> = ({
       )}
     </section>
   );
+};
+
+const getSubscriptionTimestampLabel = (
+  post: PostWithSubscriptions,
+  locale: string
+): string => {
+  const timestamp = post.subscriptions.at(-1)?.created_at;
+  if (!timestamp) {
+    return "";
+  }
+
+  return formatDate(locale, new Date(timestamp));
 };
 
 export default QuestionNotifications;

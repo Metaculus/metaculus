@@ -2,26 +2,24 @@
 
 import { faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/cn";
 
 import "./styles.css";
 
 type Props = {
   question: PostWithForecasts;
-  expandLabel?: string;
   collapseLabel?: string;
   onCollapse: () => void;
 };
 
 const CurveQuestionDetails: FC<Props> = ({
   question,
-  expandLabel: _expandLabel,
   collapseLabel: _collapseLabel,
   onCollapse,
 }) => {
@@ -55,7 +53,7 @@ const CurveQuestionDetails: FC<Props> = ({
       <div className="sticky bottom-0 left-0 flex h-12 w-full items-end bg-gradient-to-t from-blue-800/90 from-40% to-100% dark:from-blue-800">
         <Button
           variant="text"
-          className={classNames(
+          className={cn(
             "z-10 !justify-start !p-0 !pb-3 !font-normal !text-blue-500 dark:!text-blue-500"
           )}
           onClick={onCollapse}

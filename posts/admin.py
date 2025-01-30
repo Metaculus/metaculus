@@ -8,6 +8,7 @@ from django.urls import reverse
 from posts.models import Post, Notebook
 from posts.services.common import trigger_update_post_translations
 from questions.models import Question
+from questions.services import build_question_forecasts
 from utils.csv_utils import export_data_for_questions
 
 from utils.models import CustomTranslationAdmin
@@ -43,7 +44,11 @@ class PostAdmin(CustomTranslationAdmin):
     ]
     search_fields = ["id", "title_original"]
     readonly_fields = ["notebook"]
-    actions = ["export_selected_posts_data", "update_translations"]
+    actions = [
+        "export_selected_posts_data",
+        "update_translations",
+        "rebuild_aggregation_history",
+    ]
 
     def other_project_count(self, obj):
         return obj.projects.count()
@@ -64,7 +69,7 @@ class PostAdmin(CustomTranslationAdmin):
 
         questions = Question.objects.filter(related_posts__post__in=queryset).distinct()
 
-        data = export_data_for_questions(questions)
+        data = export_data_for_questions(questions, True, True, True)
         if data is None:
             self.message_user(request, "No questions selected.")
             return
@@ -78,6 +83,11 @@ class PostAdmin(CustomTranslationAdmin):
     def update_translations(self, request, posts_qs):
         for post in posts_qs:
             trigger_update_post_translations(post, with_comments=True, force=True)
+
+    def rebuild_aggregation_history(self, request, queryset: QuerySet[Post]):
+        for post in queryset:
+            for question in post.get_questions():
+                build_question_forecasts(question)
 
 
 @admin.register(Notebook)

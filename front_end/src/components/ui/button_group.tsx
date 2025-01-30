@@ -1,6 +1,5 @@
-import classNames from "classnames";
-
 import Button, { ButtonVariant } from "@/components/ui/button";
+import cn from "@/utils/cn";
 
 export type GroupButton<T> = {
   value: T;
@@ -37,10 +36,10 @@ const ButtonGroup = <T extends string>({
           variant={button.value === value ? activeVariant : variant}
           onClick={() => {
             onChange(button.value);
-            onClick && onClick(button.label);
+            onClick?.(button.label);
           }}
           href={button.href}
-          className={classNames(
+          className={cn(
             "relative hover:z-10 focus:z-20",
             buttons.length > 1 &&
               (index === 0

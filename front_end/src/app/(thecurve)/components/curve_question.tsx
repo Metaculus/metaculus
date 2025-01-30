@@ -2,29 +2,24 @@
 
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/cn";
 
 import CurveQuestionDetails from "./question_details/curve_question_details";
 
 type Props = {
   post: PostWithForecasts;
   expandLabel?: string;
-  collapseLabel?: string;
   className?: string;
 };
 
 const HEADER_HEIGHT = 48;
 const BOTTOM_SPACING = 100;
-const CurveQuestion: FC<Props> = ({
-  post,
-  expandLabel: _expandLabel,
-  collapseLabel: _collapseLabel,
-}) => {
+const CurveQuestion: FC<Props> = ({ post, expandLabel: _expandLabel }) => {
   const t = useTranslations();
   const expandLabel = _expandLabel ?? t("details");
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -49,7 +44,7 @@ const CurveQuestion: FC<Props> = ({
 
         <Button
           variant="text"
-          className={classNames(
+          className={cn(
             "sticky z-10 mt-2 !justify-start !p-0 !font-normal !text-blue-500 dark:!text-blue-500",
             { invisible: isExpanded }
           )}

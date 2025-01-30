@@ -30,7 +30,7 @@ const SignInModal: FC<SignInModalType> = ({
   const [isPending, startTransition] = useTransition();
   const { setUser } = useAuth();
   const { setCurrentModal } = useModal();
-  const { register } = useForm<SignInSchema>({
+  const { register, watch } = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
   });
   const [state, formAction] = useFormState<LoginActionState, FormData>(
@@ -46,6 +46,18 @@ const SignInModal: FC<SignInModalType> = ({
       sendGAEvent("event", "login");
       setUser(state.user);
       setCurrentModal(null);
+    }
+
+    if (
+      state.errors &&
+      state.errors.user_state &&
+      state.errors.user_state == "inactive"
+    ) {
+      setCurrentModal(null);
+      setCurrentModal({
+        type: "accountInactive",
+        data: { login: watch("login") },
+      });
     }
   }, [setCurrentModal, setUser, state]);
 

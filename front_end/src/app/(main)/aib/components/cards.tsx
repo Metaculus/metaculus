@@ -1,6 +1,7 @@
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
+
+import cn from "@/utils/cn";
 
 function Dates() {
   const t = useTranslations();
@@ -9,7 +10,7 @@ function Dates() {
     <Card
       className="rounded-md bg-blue-500/50 py-4 text-blue-800 hover:cursor-default dark:bg-blue-500-dark/50 dark:text-blue-800-dark "
       heading1={t("FABStartDate")}
-      heading2={t("FABStartDateOct8")}
+      heading2={t("FABStartDateJan20")}
     />
   );
 }
@@ -32,7 +33,7 @@ const Card: FC<{ className: string; heading1: string; heading2: string }> = ({
 }) => {
   return (
     <div
-      className={classNames(
+      className={cn(
         "flex size-full min-h-[90px] grow flex-row items-center justify-center lg:h-auto lg:min-h-[180px]",
         className
       )}

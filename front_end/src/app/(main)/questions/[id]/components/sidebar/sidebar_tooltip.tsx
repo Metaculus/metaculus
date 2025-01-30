@@ -1,6 +1,5 @@
 import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
 import Tooltip from "@/components/ui/tooltip";
@@ -9,7 +8,6 @@ type Props = {
   tooltipContent: ReactNode | string;
 };
 const SidebarTooltip: FC<Props> = ({ tooltipContent }) => {
-  const t = useTranslations();
   return (
     <Tooltip
       showDelayMs={200}

@@ -23,6 +23,7 @@ class CommentFilterSerializer(serializers.Serializer):
     sort = serializers.CharField(required=False, allow_null=True)
     focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
     is_private = serializers.BooleanField(required=False, allow_null=True)
+    include_deleted = serializers.BooleanField(required=False, allow_null=True)
 
     def validate_post(self, value: int):
         try:
@@ -46,6 +47,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "parent_id",
             "root_id",
             "created_at",
+            "edited_at",
             "is_soft_deleted",
             "text",
             "on_post",

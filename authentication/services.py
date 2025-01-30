@@ -26,7 +26,7 @@ def send_activation_email(user: User, redirect_url: str | None):
             "activation_link": activation_link,
             "redirect_url": redirect_url,
         },
-        from_email=settings.EMAIL_HOST_USER
+        from_email=settings.EMAIL_HOST_USER,
     )
 
 
@@ -42,7 +42,7 @@ def send_password_reset_email(user: User):
             "username": user.username,
             "reset_link": reset_link,
         },
-        from_email=settings.EMAIL_HOST_USER
+        from_email=settings.EMAIL_HOST_USER,
     )
 
 
@@ -51,10 +51,20 @@ def check_and_activate_user(user_id: int, token: str):
     Validates activation token and activates user
     """
 
-    user = User.objects.filter(pk=user_id, is_active=False).first()
+    user = User.objects.filter(pk=user_id).first()
 
-    if not user or not default_token_generator.check_token(user, token):
+    if not user:
+        raise ValidationError({"token": ["Invalid user"]})
+
+    # Skip if user is already active
+    if user.is_active:
+        return user
+
+    if not default_token_generator.check_token(user, token):
         raise ValidationError({"token": ["Activation Token is expired or invalid"]})
+
+    if user.is_spam:
+        raise ValidationError({"user": ["User is marked as spam"]})
 
     user.is_active = True
     user.save()

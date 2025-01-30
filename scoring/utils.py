@@ -1,13 +1,29 @@
+import csv
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
-import csv
 from io import StringIO
+import logging
 
 import numpy as np
 from django.db import transaction
-from django.db.models import QuerySet, Q, Sum, IntegerField, OuterRef, Exists
-from django.db.models.functions import Coalesce
+from django.db.models import (
+    QuerySet,
+    Q,
+    Sum,
+    IntegerField,
+    FloatField,
+    OuterRef,
+    Exists,
+    When,
+    Value,
+    ExpressionWrapper,
+    F,
+    Case,
+    Count,
+    Func,
+)
+from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
@@ -22,12 +38,15 @@ from scoring.models import (
     LeaderboardEntry,
     Leaderboard,
     MedalExclusionRecord,
+    LeaderboardsRanksEntry,
 )
 from scoring.score_math import evaluate_question
 from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
+
+logger = logging.getLogger(__name__)
 
 
 def score_question(
@@ -82,8 +101,12 @@ def generate_scoring_leaderboard_entries(
         "score_type": score_type,
     }
 
-    if leaderboard.finalize_time:
-        qs_filters["question__scheduled_close_time__lte"] = leaderboard.finalize_time
+    finalize_time = leaderboard.finalize_time or (
+        leaderboard.project.close_date if leaderboard.project else None
+    )
+    if finalize_time:
+        qs_filters["question__scheduled_close_time__lte"] = finalize_time
+        qs_filters["question__resolution_set_time__lte"] = finalize_time
 
     archived_scores = ArchivedScore.objects.filter(**qs_filters).prefetch_related(
         "question"
@@ -96,9 +119,10 @@ def generate_scoring_leaderboard_entries(
         aggregation_method=OuterRef("aggregation_method"),
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    if leaderboard.finalize_time:
+    if finalize_time:
         archived_scores_subquery = archived_scores_subquery.filter(
-            question__scheduled_close_time__lte=leaderboard.finalize_time
+            question__scheduled_close_time__lte=finalize_time,
+            question__resolution_set_time__lte=finalize_time,
         )
 
     calculated_scores = calculated_scores.annotate(
@@ -299,20 +323,25 @@ def assign_ranks(
 
     # set up exclusions
     exclusion_records = MedalExclusionRecord.objects.all()
-    if leaderboard.start_time:
+    start_time = leaderboard.start_time or (
+        leaderboard.project.start_date if leaderboard.project else None
+    )
+    end_time = leaderboard.end_time or (
+        leaderboard.project.close_date if leaderboard.project else None
+    )
+    finalize_time = leaderboard.finalize_time or (
+        leaderboard.project.close_date if leaderboard.project else None
+    )
+    if start_time:
         exclusion_records = exclusion_records.filter(
-            Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time)
+            Q(end_time__isnull=True) | Q(end_time__gte=start_time)
         )
-    if leaderboard.end_time:
+    if end_time:
         # only exclude by end_time if it's set
-        exclusion_records = exclusion_records.filter(
-            start_time__lte=leaderboard.end_time
-        )
-    elif leaderboard.finalize_time:
+        exclusion_records = exclusion_records.filter(start_time__lte=end_time)
+    elif finalize_time:
         # if end_time is not set, use finalize_time
-        exclusion_records = exclusion_records.filter(
-            start_time__lte=leaderboard.finalize_time
-        )
+        exclusion_records = exclusion_records.filter(start_time__lte=finalize_time)
     excluded_ids: set[int | None] = set(
         exclusion_records.values_list("user_id", flat=True)
     )
@@ -386,6 +415,176 @@ def assign_medals(
     return entries
 
 
+def calculate_medals_points_at_time(at_time):
+    """
+    Calculate the medal points for all users who have received a medal
+    (either on global leaderboards or tournament leaderboards)
+    The points are calculated based on this idea:
+
+    medal points are 10 for gold, 4 for silver, and 1 for bronze
+    tournament_rank = sum(
+        [medal.points * exp(-2 * (now.year - medal.date.year)) for medal in tournament_medals]
+    )
+    … and similarly for other medal categories
+
+    """
+
+    # Look only at leaderboard entries which are closed before the timestamp
+    relevant_entries_qs = LeaderboardEntry.objects.filter(
+        Q(leaderboard__end_time__lte=at_time)
+        | Q(leaderboard__project__close_date__lte=at_time)
+    )
+
+    # Get the age, in yeaers, for each leaderboard, and use it to
+    # exp-decay the points associated with each medal (older medals weigh less)
+    leaderboard_age_expr = Case(
+        When(
+            leaderboard__project__type="tournament",
+            then=(at_time.year - ExtractYear(F("leaderboard__project__close_date"))),
+        ),
+        When(
+            leaderboard__end_time__isnull=False,
+            then=(
+                at_time.year
+                - ExtractYear(
+                    Func(
+                        F("leaderboard__end_time"),
+                        function="",  # 6month round the year to the closest one
+                        template="(%(expressions)s - INTERVAL '6 MONTH')",
+                    )
+                )
+            ),
+        ),
+        default=Value(0),
+        output_field=IntegerField(),
+    )
+
+    base_points_expr = Case(
+        When(medal=LeaderboardEntry.Medals.GOLD, then=Value(10)),
+        When(medal=LeaderboardEntry.Medals.SILVER, then=Value(4)),
+        When(medal=LeaderboardEntry.Medals.BRONZE, then=Value(1)),
+        default=Value(0),
+        output_field=IntegerField(),
+    )
+
+    # Decay the points
+    decayed_points_by_age_vexpr = ExpressionWrapper(
+        F("base_points") * Power(Value(2), -F("leaderboard_age")),
+        output_field=FloatField(),
+    )
+
+    points_type_expr = Case(
+        When(
+            leaderboard__score_type__in=[
+                Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+                Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+                Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+            ],
+            then=Value(LeaderboardsRanksEntry.RankTypes.TOURNAMENTS_GLOBAL),
+        ),
+        When(
+            leaderboard__score_type__in=[
+                Leaderboard.ScoreTypes.PEER_GLOBAL,
+                Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY,
+            ],
+            then=Value(LeaderboardsRanksEntry.RankTypes.PEER_GLOBAL),
+        ),
+        When(
+            leaderboard__score_type__in=[
+                Leaderboard.ScoreTypes.BASELINE_GLOBAL,
+            ],
+            then=Value(LeaderboardsRanksEntry.RankTypes.BASELINE_GLOBAL),
+        ),
+        When(
+            leaderboard__score_type__in=[
+                Leaderboard.ScoreTypes.COMMENT_INSIGHT,
+            ],
+            then=Value(LeaderboardsRanksEntry.RankTypes.COMMENTS_GLOBAL),
+        ),
+        When(
+            leaderboard__score_type__in=[Leaderboard.ScoreTypes.QUESTION_WRITING],
+            then=Value(LeaderboardsRanksEntry.RankTypes.QUESTIONS_GLOBAL),
+        ),
+    )
+
+    points_qs = relevant_entries_qs.filter(medal__isnull=False).annotate(
+        leaderboard_age=leaderboard_age_expr,
+        base_points=base_points_expr,
+        points=decayed_points_by_age_vexpr,
+        points_type=points_type_expr,
+    )
+
+    totals = (
+        relevant_entries_qs.filter(excluded=False)
+        .annotate(
+            points_type=points_type_expr,
+        )
+        .values("points_type")
+        .annotate(total_participants=Count("user"))
+    )
+
+    points = (
+        points_qs.values("user", "points_type")
+        .annotate(
+            total_points=Sum("points"),
+        )
+        .order_by("points_type", "-total_points")
+    )
+
+    return points, totals.values_list("points_type", "total_participants")
+
+
+def update_medal_points_and_ranks(at_time=None):
+    at_time = at_time or timezone.now()
+    point_values, totals = calculate_medals_points_at_time(at_time)
+
+    for points_type_dict in LeaderboardsRanksEntry.RankTypes.choices:
+        points_type = points_type_dict[0]
+        qs = point_values.filter(points_type=points_type)
+        count = qs.count()
+        logging.info(f"Updating {count} entries for {points_type}")
+        if count < 1:
+            continue
+        total_participants = totals.get(points_type=points_type)[1]
+        objects = []
+        for idx, pv in enumerate(qs):
+            obj = LeaderboardsRanksEntry(
+                user_id=pv["user"],
+                rank_type=points_type,
+                points=pv["total_points"],
+                rank_timestamp=at_time,
+                rank=idx + 1,
+                rank_total=total_participants,
+            )
+
+            objects.append(obj)
+
+        LeaderboardsRanksEntry.objects.bulk_create(
+            objs=objects,
+            ignore_conflicts=False,
+            update_conflicts=True,
+            update_fields=[
+                "user",
+                "rank_type",
+                "rank",
+                "rank_total",
+                "points",
+                "rank_timestamp",
+            ],
+            unique_fields=["user", "rank_type"],
+            batch_size=1000,
+        )
+
+        # Update the best rank related fields
+        LeaderboardsRanksEntry.objects.filter(
+            Q(best_rank__isnull=True) | Q(best_rank__gt=F("rank"))
+        ).update(
+            best_rank=F("rank"),
+            best_rank_total=F("rank_total"),
+            best_rank_timestamp=F("rank_timestamp"),
+        )
+
+
 def assign_prizes(
     entries: list[LeaderboardEntry], prize_pool: Decimal
 ) -> list[LeaderboardEntry]:
@@ -396,16 +595,25 @@ def assign_prizes(
 
 
 def update_project_leaderboard(
-    project: Project,
+    project: Project | None = None,
     leaderboard: Leaderboard | None = None,
+    force_update: bool = False,
+    force_finalize: bool = False,
 ) -> list[LeaderboardEntry]:
+    if project is None and leaderboard is None:
+        raise ValueError("Either project or leaderboard must be provided")
+
     leaderboard = leaderboard or project.primary_leaderboard
+    project = project or leaderboard.project
     if not leaderboard:
         raise ValueError("Leaderboard not found")
-    leaderboard.project = project
-    leaderboard.save()
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.MANUAL:
+        logger.info("%s is manual, not updating", leaderboard.name)
+        return list(leaderboard.entries.all().order_by("rank"))
+
+    if not force_update and leaderboard.finalized:
+        logger.warning("%s is already finalized, not updating", leaderboard.name)
         return list(leaderboard.entries.all().order_by("rank"))
 
     # new entries
@@ -422,22 +630,32 @@ def update_project_leaderboard(
     new_entries = assign_prize_percentages(new_entries)
 
     # check if we're ready to finalize with medals and prizes
+    finalize_time = leaderboard.finalize_time or (
+        project.close_date if project else None
+    )
     if (
-        (
-            leaderboard.project.type
+        project
+        and (
+            project.type
             in [
                 Project.ProjectTypes.SITE_MAIN,
                 Project.ProjectTypes.TOURNAMENT,
             ]
         )
-        and leaderboard.finalize_time
-        and (timezone.now() >= leaderboard.finalize_time)
+        and (force_finalize or (finalize_time and (timezone.now() >= finalize_time)))
     ):
         # assign medals
         new_entries = assign_medals(new_entries)
         # add prize if applicable
-        if project.prize_pool:
-            new_entries = assign_prizes(new_entries, project.prize_pool)
+        prize_pool = (
+            leaderboard.prize_pool
+            if leaderboard.prize_pool is not None
+            else project.prize_pool
+        )
+        if prize_pool:
+            new_entries = assign_prizes(new_entries, prize_pool)
+        # set finalize
+        Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
 
     # save entries
     previous_entries_map = {
@@ -528,40 +746,95 @@ class Contribution:
     comment: Comment | None = None
 
 
+def get_contribution_question_writing(
+    user: User, leaderboard: Leaderboard, questions: Question.objects
+):
+    forecaster_ids_for_post = defaultdict(set)
+
+    questions = (
+        questions.prefetch_related("related_posts__post")
+        # Fetch only authored posts
+        .filter(
+            Q(related_posts__post__author_id=user.id)
+            | Q(related_posts__post__coauthors=user)
+        )
+        .distinct("id")
+        .only("related_posts__post")
+    )
+
+    # Fetch forecasts during leaderboard period
+    forecasts = Forecast.objects.filter(question__in=list(questions))
+
+    if leaderboard.start_time:
+        forecasts = forecasts.filter(start_time__gte=leaderboard.start_time)
+
+    if leaderboard.end_time:
+        forecasts = forecasts.filter(start_time__lte=leaderboard.end_time)
+
+    # Fetch only 2 target fields
+    forecasts = forecasts.only("question_id", "author_id")
+
+    # Generate Question<>Forecasters map
+    question_forecasters_map = defaultdict(set)
+
+    for forecast in forecasts:
+        question_forecasters_map[forecast.question_id].add(forecast.author_id)
+
+    # Loop over chunked questions
+    for question in questions:
+        post = question.get_post()
+        forecaster_ids_for_post[post] |= question_forecasters_map[question.id]
+
+    contributions: list[Contribution] = []
+    for post, forecaster_ids in forecaster_ids_for_post.items():
+        contribution = Contribution(
+            score=len(forecaster_ids),
+            post=post,
+        )
+        contributions.append(contribution)
+
+    contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
+
+    return contributions
+
+
 def get_contributions(
     user: User,
     leaderboard: Leaderboard,
 ) -> list[Contribution]:
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
-        public_posts = Post.objects.filter(
-            Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
+        main_feed_posts = Post.objects.filter_for_main_feed()
+        comments = Comment.objects.filter(
+            on_post__in=main_feed_posts,
+            author=user,
+            created_at__lte=leaderboard.end_time,
+            comment_votes__isnull=False,
         )
-        comments = (
-            Comment.objects.filter(
-                on_post__in=public_posts,
-                author=user,
-                created_at__lte=leaderboard.end_time,
-                comment_votes__isnull=False,
+
+        # Using Comment.prefetch_related("on_post") is not efficient in this scenario,
+        # as we may retrieve 10k+ rows, each requiring a JOIN on a large Post record,
+        # significantly slowing down serialization and data fetching.
+        # Instead, we perform a custom mapping fetch to optimize this process.
+        posts_map = {
+            p.id: p for p in Post.objects.filter(comments__in=comments).distinct("pk")
+        }
+
+        comments = comments.annotate(
+            vote_score=SubqueryAggregate(
+                "comment_votes__direction",
+                filter=Q(
+                    created_at__gte=leaderboard.start_time,
+                    created_at__lte=leaderboard.end_time,
+                ),
+                aggregate=Sum,
             )
-            .annotate(
-                vote_score=SubqueryAggregate(
-                    "comment_votes__direction",
-                    filter=Q(
-                        created_at__gte=leaderboard.start_time,
-                        created_at__lte=leaderboard.end_time,
-                    ),
-                    aggregate=Sum,
-                )
-            )
-            .select_related("on_post")
-            .distinct("pk")
-        )
+        ).distinct("pk")
 
         contributions: list[Contribution] = []
         for comment in comments:
             contribution = Contribution(
                 score=comment.vote_score or 0,
-                post=comment.on_post,
+                post=posts_map[comment.on_post_id],
                 comment=comment,
             )
 
@@ -572,57 +845,29 @@ def get_contributions(
         return [c for c in contributions if c.score >= min_score]
 
     questions = leaderboard.get_questions()
-    if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
-        forecaster_ids_for_post: dict[Post, set[int]] = {}
 
-        for question in questions:
-            post: Post = question.get_post()
-            if post.author != user:
-                continue
-            forecasts_during_period = question.user_forecasts.all()
-            if leaderboard.start_time:
-                forecasts_during_period = forecasts_during_period.filter(
-                    start_time__gte=leaderboard.start_time
-                )
-            if leaderboard.end_time:
-                forecasts_during_period = forecasts_during_period.filter(
-                    start_time__lte=leaderboard.end_time
-                )
-            forecasters = set(
-                [forecast.author_id for forecast in forecasts_during_period]
-            )
-            if post not in forecaster_ids_for_post:
-                forecaster_ids_for_post[post] = set()
-            forecaster_ids_for_post[post].update(forecasters)
-        contributions: list[Contribution] = []
-        for post, forecaster_ids in forecaster_ids_for_post.items():
-            contribution = Contribution(
-                score=len(forecaster_ids),
-                post=post,
-            )
-            contributions.append(contribution)
-        h_index = decimal_h_index([c.score / 10 for c in contributions])
-        contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        # return contributions[: int(h_index) + 1]
-        return contributions
+    if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
+        return get_contribution_question_writing(user, leaderboard, questions)
 
     calculated_scores = Score.objects.filter(
         question__in=questions,
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-    )
+    ).prefetch_related("question__related_posts__post")
     archived_scores = ArchivedScore.objects.filter(
         question__in=questions,
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-    )
+    ).prefetch_related("question__related_posts__post")
 
     if leaderboard.finalize_time:
         calculated_scores = calculated_scores.filter(
-            question__scheduled_close_time__lte=leaderboard.finalize_time
+            question__scheduled_close_time__lte=leaderboard.finalize_time,
+            question__resolution_set_time__lte=leaderboard.finalize_time,
         ).prefetch_related("question")
         archived_scores = archived_scores.filter(
-            question__scheduled_close_time__lte=leaderboard.finalize_time
+            question__scheduled_close_time__lte=leaderboard.finalize_time,
+            question__resolution_set_time__lte=leaderboard.finalize_time,
         ).prefetch_related("question")
     scores = list(archived_scores)
 
@@ -636,7 +881,6 @@ def get_contributions(
     for score in calculated_scores:
         if (score.question_id, score.aggregation_method) not in archived_pairs:
             scores.append(score)
-
     if "global" in leaderboard.score_type:
         # There are so many questions in global leaderboards that we don't
         # need to make unpopulated contributions for questions that have not

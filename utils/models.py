@@ -1,23 +1,21 @@
 from collections.abc import Iterable
 
+from django.conf import settings
+from django.contrib import admin
+from django.contrib import messages
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, activate, get_language
-from django.conf import settings
-from django.contrib import admin
 
-from utils.types import DjangoModelType
-from django.contrib import messages
-
+from utils.tasks import update_translations
 from utils.translation import (
     get_translation_fields_for_model,
     build_supported_localized_fieldname,
     is_translation_dirty,
 )
-
-from utils.tasks import update_translations
+from utils.types import DjangoModelType
 
 
 class CustomTranslationAdmin(admin.ModelAdmin):
@@ -34,7 +32,7 @@ class CustomTranslationAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
         if self.should_update_translations(obj):
-            obj.trigger_translation_if_dirty()
+            obj.update_and_maybe_translate()
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
@@ -124,7 +122,7 @@ class TranslatedModel(models.Model):
             and len(current_lang_translated_field_vals) > 0
         )
 
-    def update_fields_with_original_content(self, initial_update_fields):
+    def update_fields_with_original_content(self, initial_update_fields=None):
         # Depending on the initial_update_fields, it sets the fields corresponding
         # to the original content on this object to the value set taken from te field
         # without the language prefix, which is what the django-modeltranslations
@@ -137,44 +135,69 @@ class TranslatedModel(models.Model):
             # if update_fields not set (e.g. admin forms, or new objects),
             # make sure the all translation fields with original content
             # are updated
-            translation_fields_to_update = translation_fields
+            all_update_fields = translation_fields
         else:
             # existing object and only certain fields need to be updated,
             # then update their correspondent original content ones
             # (use sets intersection)
-            translation_fields_to_update = list(
+            all_update_fields = list(
                 set(initial_update_fields) & set(translation_fields)
             )
 
-        extra_update_fields = []
-        for field_name in translation_fields_to_update:
+        all_update_fields_localised = []
+        for field_name in all_update_fields:
             val = getattr(self, field_name)
             if val is not None:
                 default_field_name = build_supported_localized_fieldname(
                     field_name, default_language
                 )
+
                 setattr(self, default_field_name, val)
-                extra_update_fields.append(default_field_name)
-        return extra_update_fields
+                all_update_fields_localised.append(default_field_name)
+        return all_update_fields, all_update_fields_localised
 
-    def trigger_translation_if_dirty(self):
+    def reset_localised_fields(self, translation_fields_to_update):
+        default_language = settings.ORIGINAL_LANGUAGE_CODE
+        ret_fields = []
+        for field_name in translation_fields_to_update:
+            for remaining_localised_field in [
+                build_supported_localized_fieldname(field_name, lang[0])
+                for lang in settings.LANGUAGES
+                if lang[0] != default_language
+            ]:
+                setattr(self, remaining_localised_field, None)
+                ret_fields.append(remaining_localised_field)
+        return ret_fields
+
+    def update_and_maybe_translate(self, should_translate_if_dirty=True):
         model = self.__class__
-        if is_translation_dirty(self):
-            app_label, model_name = model._meta.app_label, model._meta.model_name
-            update_translations.send(app_label, model_name, self.pk)
+        # This function is callned whenver the object is saved (either on creation or on edit).
+        # The source of truth for the content is in the field name without the language suffix.
+        # The function does the following:
+        # 1. Copies the truth content from the field mentioned above to the field
+        #    with the _original suffix (corresponding to the Untranslated option)
+        # 2. Resets the value to None for all the other language specific fields, because:
+        #    - if the content is not supposed to be translated None is fine (it will default to the _original field)
+        #    - if the content is supposed to be translated, it will be translated and set by the translation task
+        # 3. If the content is dirty and the content is supposed to be translated (not private, not bot)
+        #    it triggers the translation service
 
-    def save(self, *args, **kwargs):
-        initial_update_fields = kwargs.get("update_fields", None)
-
-        extra_update_fields = self.update_fields_with_original_content(
-            initial_update_fields
+        # 1. Update the _original fields
+        all_update_fields, all_update_fields_localised = (
+            self.update_fields_with_original_content()
         )
 
-        if initial_update_fields:
-            # Extend the update_fields with the ones containing the original content
-            kwargs["update_fields"] = initial_update_fields + extra_update_fields
+        # 2. Reset the other language specific fields
+        reset_fields = self.reset_localised_fields(all_update_fields)
 
-        super().save(*args, **kwargs)
+        update_fields = list(set(all_update_fields_localised + reset_fields))
+
+        self.save(update_fields=update_fields)
+
+        # 3. If the content is dirty and the content is supposed to be translated
+        if should_translate_if_dirty and is_translation_dirty(self):
+            app_label, model_name = model._meta.app_label, model._meta.model_name
+            update_translations.send(app_label, model_name, self.pk)
 
 
 class TimeStampedModel(models.Model):
@@ -184,10 +207,21 @@ class TimeStampedModel(models.Model):
     """
 
     created_at = models.DateTimeField(default=timezone.now, editable=False)
-    edited_at = models.DateTimeField(default=timezone.now, editable=False, null=True)
+    edited_at = models.DateTimeField(editable=False, null=True)
 
     class Meta:
         abstract = True
+
+    def save(self, *args, update_fields: list[str] = None, **kwargs):
+        # Ensure created_at and edited_at are equal upon creation
+        self.edited_at = timezone.now() if self.edited_at else self.created_at
+
+        # Ensure we include edited_at field
+        # If `update_fields` specified
+        if update_fields is not None:
+            update_fields = list(update_fields) + ["edited_at"]
+
+        return super().save(*args, update_fields=update_fields, **kwargs)
 
 
 validate_alpha_slug = RegexValidator(

@@ -8,12 +8,12 @@ import { FC } from "react";
 
 import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import { PostWithNotebook } from "@/types/post";
+import { NotebookPost } from "@/types/post";
 import { getPostLink } from "@/utils/navigation";
 import { getMarkdownSummary } from "@/utils/questions";
 
 type Props = {
-  posts: PostWithNotebook[];
+  posts: NotebookPost[];
 };
 
 const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {

@@ -13,6 +13,7 @@ from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
 from posts.models import Post
 from projects.models import Project
+from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.utils import get_question_group_title
 from users.models import User
@@ -22,6 +23,19 @@ from utils.formatters import abbreviated_number
 from utils.frontend import build_post_comment_url
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class NotificationUserParams:
+    id: int
+    username: str
+
+    @classmethod
+    def from_user(cls, user: User):
+        return cls(
+            id=user.id,
+            username=user.username,
+        )
 
 
 @dataclass
@@ -500,58 +514,6 @@ class NotificationPostSpecificTime(
         return _("Questions reminder")
 
 
-class NotificationCommentReport(NotificationTypeBase):
-    type = "comment_report"
-    email_template = "emails/comment_report.html"
-
-    @dataclass
-    class ParamsType:
-        post: NotificationPostParams
-        comment_id: int
-        reason: CommentReportType
-
-    @classmethod
-    def generate_subject_group(cls, recipient: User):
-        return _("Comment reports")
-
-    @classmethod
-    def get_email_context_group(cls, notifications: list[Notification]):
-        comments_map = {
-            c.id: c
-            for c in Comment.objects.filter(
-                pk__in=[n.params["comment_id"] for n in notifications]
-            )
-        }
-
-        params = []
-
-        for notification in notifications:
-            comment = comments_map.get(notification.params["comment_id"])
-
-            if not comment:
-                continue
-
-            preview_text, has_mention = generate_email_comment_preview_text(
-                comment.text
-            )
-
-            params.append(
-                {
-                    **notification.params,
-                    "author_username": comment.author.username,
-                    "preview_text": preview_text,
-                    "url": build_post_comment_url(
-                        comment.on_post_id, comment.on_post.title, comment.id
-                    ),
-                }
-            )
-
-        return {
-            "recipient": notifications[0].recipient,
-            "params": params,
-        }
-
-
 class NotificationPostCPChange(NotificationTypeSimilarPostsMixin, NotificationTypeBase):
     type = "post_cp_change"
     email_template = "emails/post_cp_change.html"
@@ -632,7 +594,6 @@ NOTIFICATION_TYPE_REGISTRY = [
     NotificationPredictedQuestionResolved,
     NotificationPostSpecificTime,
     NotificationPostCPChange,
-    NotificationCommentReport,
 ]
 
 
@@ -674,5 +635,36 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
             },
         },
         use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )
+
+
+def send_comment_report_notification_to_staff(
+    comment: Comment, reason: CommentReportType, reporter: User
+):
+    recipients = comment.on_post.default_project.get_users_for_permission(
+        ObjectPermission.CURATOR
+    )
+
+    return send_email_with_template(
+        [x.email for x in recipients],
+        _(
+            f"Comment report: {comment.author.username} - "
+            f"{generate_email_comment_preview_text(comment.text, max_chars=40)[0]}"
+        ),
+        "emails/comment_report.html",
+        context={
+            "params": {
+                "comment": comment,
+                "preview_text": generate_email_comment_preview_text(
+                    comment.text, max_chars=300
+                )[0],
+                "comment_url": build_post_comment_url(
+                    comment.on_post_id, comment.on_post.title, comment.id
+                ),
+                "reporter": reporter,
+                "reason": reason,
+            },
+        },
         from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )

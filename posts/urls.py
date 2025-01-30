@@ -10,6 +10,7 @@ urlpatterns = [
     path("posts/upload-image/", views.upload_image_api_view, name="post-upload-image"),
     path("posts/<int:pk>/", views.post_detail, name="post-detail"),
     path("posts/<int:pk>/boost/", views.activity_boost_api_view, name="post-boost"),
+    path("posts/<int:pk>/repost/", views.repost_api_view, name="post-repost"),
     path("posts/<int:pk>/approve/", views.post_approve_api_view, name="post-approve"),
     path(
         "posts/<int:pk>/submit-for-review/",
@@ -42,7 +43,7 @@ urlpatterns = [
         name="all-post-subscriptions",
     ),
     path("posts/<int:pk>/read/", views.post_view_event_api_view, name="post-mark-read"),
-    path("posts/<int:pk>/vote/", views.post_vote_api_view, name="question-detail"),
+    path("posts/<int:pk>/vote/", views.post_vote_api_view, name="post-vote"),
     path("posts/create/", views.post_create_api_view, name="post-create"),
     path("posts/<int:pk>/update/", views.post_update_api_view, name="post-update"),
     path("posts/<int:pk>/delete/", views.post_delete_api_view, name="post-delete"),
@@ -52,11 +53,10 @@ urlpatterns = [
         name="remove-post-from-project",
     ),
     path(
-        "posts/preview-image/<int:pk>/",
-        views.post_preview_image,
-        name="post-preview-image",
+        "posts/<int:post_id>/download-data/",
+        views.download_data,
+        name="posts-download-data",
     ),
-    path("posts/<int:pk>/download-csv/", views.download_csv, name="download-csv"),
     path("posts/random/", views.random_post_id, name="random-post"),
 ]
 

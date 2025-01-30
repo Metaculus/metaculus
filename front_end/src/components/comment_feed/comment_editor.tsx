@@ -9,9 +9,11 @@ import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/form_field";
+import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { CommentType } from "@/types/comment";
+import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
 
 interface CommentEditorProps {
@@ -68,9 +70,8 @@ const CommentEditor: FC<CommentEditorProps> = ({
     });
 
     try {
-      const userTagPattern = /@(?!\[)(?:\(([^)]+)\)|([^\s(]+)(?!\]))/g;
       const parsedMarkdown = markdown.replace(userTagPattern, (match) =>
-        match.replace(/[()\\]/g, "")
+        match.replace(/[\\]/g, "")
       );
 
       const newComment = await createComment({
@@ -86,13 +87,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
         setErrorMessage(newComment.errors?.message);
         return;
       }
+
       setIsEditing(true);
       setHasIncludedForecast(false);
       setMarkdown("");
       setIsMarkdownDirty(false);
       updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
 
-      onSubmit && onSubmit(parseComment(newComment));
+      onSubmit?.(parseComment(newComment));
     } finally {
       setIsLoading(false);
     }
@@ -139,27 +141,24 @@ const CommentEditor: FC<CommentEditorProps> = ({
       {/*comment.included_forecast && (
         <IncludedForecast author="test" forecastValue={test} />
       )*/}
-      {isEditing && (
-        <div className="border border-gray-500 dark:border-gray-500-dark">
-          <MarkdownEditor
-            key={rerenderKey}
-            mode="write"
-            markdown={markdown}
-            onChange={handleMarkdownChange}
-            shouldConfirmLeave={isMarkdownDirty}
-            withUgcLinks
-            withUserMentions
-            initialMention={replyUsername}
-          />
-        </div>
-      )}
-      {!isEditing && (
+      <div
+        className={cn("border border-gray-500 dark:border-gray-500-dark", {
+          hidden: !isEditing,
+        })}
+      >
         <MarkdownEditor
-          mode="read"
+          key={rerenderKey}
+          mode="write"
           markdown={markdown}
+          onChange={handleMarkdownChange}
+          shouldConfirmLeave={isMarkdownDirty}
           withUgcLinks
           withUserMentions
+          initialMention={replyUsername}
         />
+      </div>
+      {!isEditing && (
+        <MarkdownEditor mode="read" markdown={markdown} withUgcLinks />
       )}
       {(isReplying || hasInteracted) && (
         <div className="my-4 flex items-center justify-end gap-3">
@@ -173,7 +172,9 @@ const CommentEditor: FC<CommentEditorProps> = ({
             className="p-2"
             onClick={() => {
               setIsEditing((prev) => !prev);
-              !!errorMessage && setErrorMessage("");
+              if (errorMessage) {
+                setErrorMessage("");
+              }
             }}
           >
             {isEditing ? t("preview") : t("edit")}

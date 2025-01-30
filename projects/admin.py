@@ -11,8 +11,8 @@ from django_select2.forms import ModelSelect2MultipleWidget
 
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
-from projects.services.common import update_with_add_posts_to_main_feed
 from questions.models import Question
+from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
 from utils.csv_utils import export_data_for_questions
 from utils.models import CustomTranslationAdmin
@@ -207,14 +207,34 @@ class PostProjectInline(admin.TabularInline):
         return False
 
 
+class ProjectAdminForm(forms.ModelForm):
+    visibility = forms.ChoiceField(
+        choices=Project.Visibility.choices,
+        required=True,
+        initial=Project.Visibility.UNLISTED,
+    )
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["primary_leaderboard"].queryset = Leaderboard.objects.filter(
+                project=self.instance
+            )
+
+
 @admin.register(Project)
 class ProjectAdmin(CustomTranslationAdmin):
+    form = ProjectAdminForm
     list_display = [
         "name",
         "type",
         "created_at",
         "default_permission",
-        "add_posts_to_main_feed",
+        "visibility",
         "order",
         "view_default_posts_link",
         "view_posts_link",
@@ -222,10 +242,11 @@ class ProjectAdmin(CustomTranslationAdmin):
     list_filter = [
         "type",
         "show_on_homepage",
+        "visibility",
         ProjectDefaultPermissionFilter,
     ]
     search_fields = ["type", "name_original", "slug"]
-    autocomplete_fields = ["created_by", "primary_leaderboard"]
+    autocomplete_fields = ["created_by"]
     ordering = ["-created_at"]
     inlines = [
         ProjectUserPermissionInline,
@@ -236,7 +257,6 @@ class ProjectAdmin(CustomTranslationAdmin):
         "update_leaderboards",
         "export_questions_data_for_projects",
         "update_translations",
-        "toggle_add_posts_to_main_feed",
     ]
 
     change_form_template = "admin/projects/project_change_form.html"
@@ -246,6 +266,18 @@ class ProjectAdmin(CustomTranslationAdmin):
         if "delete_selected" in actions:
             del actions["delete_selected"]
         return actions
+
+    def save_model(self, request, obj: Project, form, change):
+        # Force visibility states for such project types
+        if obj.type in (
+            Project.ProjectTypes.CATEGORY,
+            Project.ProjectTypes.TAG,
+            Project.ProjectTypes.TOPIC,
+            Project.ProjectTypes.PERSONAL_PROJECT,
+        ):
+            obj.visibility = Project.Visibility.NOT_IN_MAIN_FEED
+
+        return super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -276,7 +308,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             | Q(related_posts__post__projects__in=queryset)
         ).distinct()
 
-        data = export_data_for_questions(questions)
+        data = export_data_for_questions(questions, True, True, True)
         if data is None:
             self.message_user(request, "No questions selected.")
             return
@@ -290,14 +322,6 @@ class ProjectAdmin(CustomTranslationAdmin):
     export_questions_data_for_projects.short_description = (
         "Download Question Data for Selected Projects"
     )
-
-    def toggle_add_posts_to_main_feed(self, request, queryset: QuerySet[Project]):
-        for project in queryset:
-            update_with_add_posts_to_main_feed(
-                project, not project.add_posts_to_main_feed
-            )
-
-    toggle_add_posts_to_main_feed.short_description = "Toggle Add Posts to Main Feed"
 
     def view_default_posts_link(self, obj):
         count = Post.objects.filter(default_project=obj).distinct().count()

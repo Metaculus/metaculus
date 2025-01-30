@@ -1,9 +1,9 @@
-from datetime import timedelta
-import numpy as np
 import logging
-from typing import cast
+from datetime import timedelta
 
+import numpy as np
 from django.contrib.auth.password_validation import validate_password
+from django.db.models import Sum, Q
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
@@ -86,7 +86,7 @@ def get_score_scatter_plot_data(
                 "score": score.score,
                 "score_timestamp": score.edited_at.timestamp(),
                 "question_title": score.question.title,
-                "question_id": score.question.id,
+                "post_id": score.question.get_post().id,
                 "question_resolution": score.question.resolution,
             }
         )
@@ -181,7 +181,8 @@ def get_calibration_curve_data(
             question__in=public_questions_in_past,
             question__type="binary",
             question__resolution__in=["no", "yes"],
-            question__scheduled_resolve_time__lt=timezone.now(),  # Removes questions that have resolved before close time, which have a bias toward 'yes' resolutions
+            # Removes questions that have resolved before close time, which have a bias toward 'yes' resolutions
+            question__scheduled_resolve_time__lt=timezone.now(),
             question__include_bots_in_aggregates=False,
             method=aggregation_method,
         ).prefetch_related("question")
@@ -326,12 +327,18 @@ def get_authoring_stats_data(
     user: User,
 ) -> dict:
     posts_authored = Post.objects.filter_public().filter(
-        author=user, notebook__isnull=True
+        Q(author=user) | Q(coauthors=user), notebook__isnull=True
     )
-    posts_authored_count = posts_authored.count()
-    forecasts_on_authored_questions_count = Forecast.objects.filter(
-        post__in=posts_authored
-    ).count()
+
+    # Each post has a cached `Post.forecasts_count` value.
+    # Summing up this field is significantly faster than counting rows in the Forecasts table
+    forecasts_on_authored_questions_count = (
+        posts_authored.aggregate(total_forecasts=Sum("forecasts_count"))[
+            "total_forecasts"
+        ]
+        or 0
+    )
+
     notebooks_authored_count = (
         Post.objects.filter_public().filter(author=user, notebook__isnull=False).count()
     )
@@ -340,7 +347,7 @@ def get_authoring_stats_data(
     ).count()
 
     return {
-        "posts_authored_count": posts_authored_count,
+        "posts_authored_count": posts_authored.count(),
         "forecasts_on_authored_questions_count": forecasts_on_authored_questions_count,
         "notebooks_authored_count": notebooks_authored_count,
         "comments_count": comment_count,
@@ -376,7 +383,11 @@ def serialize_profile(
         score_qs = score_qs.filter(user=user)
     else:
         score_qs = score_qs.filter(aggregation_method=aggregation_method)
-    scores = list(score_qs.select_related("question"))
+    scores = list(
+        score_qs.select_related("question").prefetch_related(
+            "question__related_posts__post"
+        )
+    )
     data = {}
     data.update(
         get_score_scatter_plot_data(
@@ -422,7 +433,10 @@ def current_user_api_view(request):
 @permission_classes([AllowAny])
 def user_profile_api_view(request, pk: int):
     qs = User.objects.all()
+    if not request.user.is_staff:
+        qs = qs.filter(is_active=True, is_spam=False)
     user = get_object_or_404(qs, pk=pk)
+
     return Response(serialize_profile(user))
 
 
@@ -464,19 +478,20 @@ def change_username_api_view(request: Request):
 @api_view(["PATCH"])
 def update_profile_api_view(request: Request) -> Response:
     user: User = request.user
-    serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
+    serializer: UserUpdateProfileSerializer = UserUpdateProfileSerializer(
+        user, data=request.data, partial=True
+    )
     serializer.is_valid(raise_exception=True)
 
-    is_spam, _ = check_profile_update_for_spam(
-        user, cast(UserUpdateProfileSerializer, serializer)
-    )
+    is_spam, _ = check_profile_update_for_spam(user, serializer)
 
     if is_spam:
         user.mark_as_spam()
         send_deactivation_email(user.email)
         return Response(
             data={
-                "message": "This bio seems to be spam. Please contact support@metaculus.com if you believe this was a mistake.",
+                "message": "This bio seems to be spam. Please contact "
+                "support@metaculus.com if you believe this was a mistake.",
                 "error_code": "SPAM_DETECTED",
             },
             status=status.HTTP_403_FORBIDDEN,

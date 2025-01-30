@@ -1,14 +1,14 @@
 "use client";
-import classNames from "classnames";
 import Link from "next/link";
-import { FC, useEffect, useMemo, useRef, useState } from "react";
+import { FC, memo, useEffect, useMemo, useRef, useState } from "react";
 
 import { EmbedTheme } from "@/app/(embed)/questions/constants/embed_theme";
-import MultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
+import DetailedMultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
+import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionChip from "@/components/prediction_chip";
 import {
   GroupOfQuestionsGraphType,
@@ -17,20 +17,21 @@ import {
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
-  generateChoiceItemsFromMultipleChoiceForecast,
   getFanOptionsFromBinaryGroup,
   getFanOptionsFromContinuousGroup,
   getGroupQuestionsTimestamps,
-  getNumericChartTypeFromQuestion,
+  getContinuousChartTypeFromQuestion,
+  getCursorForecast,
 } from "@/utils/charts";
+import cn from "@/utils/cn";
 import { getPostLink } from "@/utils/navigation";
 import {
-  getGroupCPRevealTime,
+  getGroupForecastAvailability,
+  getQuestionForecastAvailability,
   getQuestionLinearChartType,
+  isConditionalPost,
   sortGroupPredictionOptions,
 } from "@/utils/questions";
-
-import CPRevealTime from "./charts/cp_reveal_time";
 
 type Props = {
   post: PostWithForecasts;
@@ -53,7 +54,7 @@ const ForecastCard: FC<Props> = ({
   navigateToNewTab,
   embedTitle,
 }) => {
-  const [cursorValue, setCursorValue] = useState<number | null>(null);
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartHeight, setChartHeight] = useState(0);
   const withLegend = useMemo(
@@ -85,8 +86,7 @@ const ForecastCard: FC<Props> = ({
       if (!graphType) {
         return null;
       }
-      const { closestCPRevealTime, isCPRevealed } =
-        getGroupCPRevealTime(questions);
+      const forecastAvailability = getGroupForecastAvailability(questions);
       switch (post.group_of_questions.graph_type) {
         case GroupOfQuestionsGraphType.FanGraph: {
           const predictionQuestion =
@@ -104,8 +104,7 @@ const ForecastCard: FC<Props> = ({
               height={chartHeight}
               withTooltip={!nonInteractive}
               extraTheme={embedTheme?.chart}
-              isCPRevealed={isCPRevealed}
-              cpRevealTime={closestCPRevealTime}
+              forecastAvailability={forecastAvailability}
             />
           );
         }
@@ -113,7 +112,9 @@ const ForecastCard: FC<Props> = ({
           const sortedQuestions = sortGroupPredictionOptions(
             questions as QuestionWithNumericForecasts[]
           );
-          const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
+          const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
+            withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+          });
 
           return (
             <MultipleChoiceGroupChart
@@ -125,12 +126,14 @@ const ForecastCard: FC<Props> = ({
                   ? new Date(post.actual_close_time).getTime()
                   : null
               }
+              openTime={
+                post.open_time ? new Date(post.open_time).getTime() : undefined
+              }
               chartHeight={chartHeight}
               chartTheme={embedTheme?.chart}
               defaultZoom={defaultChartZoom}
               embedMode
-              isCPRevealed={isCPRevealed}
-              cpRevealTime={closestCPRevealTime}
+              forecastAvailability={forecastAvailability}
             />
           );
         }
@@ -139,22 +142,13 @@ const ForecastCard: FC<Props> = ({
       }
     }
 
-    if (post.conditional) {
-      return (
-        <ConditionalTile
-          postTitle={post.title}
-          conditional={post.conditional}
-          curationStatus={post.status}
-          chartTheme={embedTheme?.chart}
-        />
-      );
+    if (isConditionalPost(post)) {
+      return <ConditionalTile post={post} chartTheme={embedTheme?.chart} />;
     }
 
     if (post.question) {
       const { question } = post;
-      const isCPRevealed = question.cp_reveal_time
-        ? new Date(question.cp_reveal_time) <= new Date()
-        : true;
+      const forecastAvailability = getQuestionForecastAvailability(question);
       switch (question.type) {
         case QuestionType.Binary:
         case QuestionType.Numeric:
@@ -168,7 +162,7 @@ const ForecastCard: FC<Props> = ({
                 resolveTime={question.actual_resolve_time}
                 height={chartHeight}
                 questionType={
-                  getNumericChartTypeFromQuestion(question.type) ??
+                  getContinuousChartTypeFromQuestion(question.type) ??
                   QuestionType.Numeric
                 }
                 actualCloseTime={
@@ -177,36 +171,36 @@ const ForecastCard: FC<Props> = ({
                     : null
                 }
                 scaling={question.scaling}
-                onCursorChange={
-                  nonInteractive || !isCPRevealed ? undefined : setCursorValue
-                }
+                onCursorChange={nonInteractive ? undefined : setCursorTimestamp}
                 extraTheme={embedTheme?.chart}
                 defaultZoom={defaultChartZoom}
                 withZoomPicker={withZoomPicker}
-                isCPRevealed={isCPRevealed}
+                withUserForecastTimestamps={!!forecastAvailability.cpRevealsOn}
+                isEmptyDomain={
+                  forecastAvailability.isEmpty ||
+                  !!forecastAvailability.cpRevealsOn
+                }
                 openTime={
                   question.open_time
                     ? new Date(question.open_time).getTime()
                     : undefined
                 }
               />
-              {!isCPRevealed && (
-                <CPRevealTime
-                  cpRevealTime={question.cp_reveal_time}
-                  className="!justify-end pr-10 text-xs md:text-sm"
-                />
-              )}
+              <ForecastAvailabilityChartOverflow
+                forecastAvailability={forecastAvailability}
+                className="justify-end pr-10 text-xs md:text-sm"
+              />
             </div>
           );
         case QuestionType.MultipleChoice:
           return (
-            <MultipleChoiceChartCard
+            <DetailedMultipleChoiceChartCard
               question={question}
               embedMode
               chartHeight={chartHeight}
               chartTheme={embedTheme?.chart}
               defaultZoom={defaultChartZoom}
-              isCPRevealed={isCPRevealed}
+              forecastAvailability={forecastAvailability}
             />
           );
         default:
@@ -224,23 +218,19 @@ const ForecastCard: FC<Props> = ({
         case QuestionType.Binary:
         case QuestionType.Numeric:
         case QuestionType.Date: {
-          const cursorIndex = cursorValue
-            ? question.aggregations.recency_weighted.history.findIndex(
-                (forecast) => forecast.start_time === cursorValue
-              )
-            : null;
-          const forecast =
-            cursorIndex !== null && cursorIndex !== -1
-              ? question.aggregations.recency_weighted.history[cursorIndex]
-              : question.aggregations.recency_weighted.latest ?? undefined;
+          const cursorForecast = getCursorForecast(
+            cursorTimestamp,
+            question.aggregations.recency_weighted
+          );
 
           return (
             <PredictionChip
               question={question}
               status={post.status}
-              prediction={forecast?.centers![forecast.centers!.length - 1]}
+              prediction={cursorForecast?.centers?.at(-1)}
               className="ForecastCard-prediction"
               unresovledChipStyle={embedTheme?.predictionChip}
+              compact
             />
           );
         }
@@ -254,7 +244,7 @@ const ForecastCard: FC<Props> = ({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "ForecastCard relative flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md",
         className
       )}
@@ -277,7 +267,7 @@ const ForecastCard: FC<Props> = ({
       </div>
       <div
         ref={chartContainerRef}
-        className={classNames(
+        className={cn(
           "ForecastCard-graph-container flex size-full min-h-[120px] min-w-0 flex-1",
           post.conditional ? "items-center" : "items-start"
         )}
@@ -288,4 +278,4 @@ const ForecastCard: FC<Props> = ({
   );
 };
 
-export default ForecastCard;
+export default memo(ForecastCard);

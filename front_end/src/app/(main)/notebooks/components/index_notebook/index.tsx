@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import React, { FC } from "react";
 
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
+import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_header";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu } from "@/components/post_actions";
 import WeeklyMovement from "@/components/weekly_movement";
@@ -10,7 +11,7 @@ import PostsApi from "@/services/posts";
 import {
   PostWithForecasts,
   PostWithForecastsAndWeight,
-  PostWithNotebook,
+  NotebookPost,
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { scaleInternalLocation } from "@/utils/charts";
@@ -43,50 +44,56 @@ const IndexNotebook: FC<Props> = async ({
   }));
 
   const { index: indexValue, indexWeekAgo } = calculateIndex(indexQuestions);
-  const indexWeeklyMovement = Math.round(indexValue - indexWeekAgo);
+  const indexWeeklyMovement = Number((indexValue - indexWeekAgo).toFixed(1));
 
   return (
-    <main className="mx-auto mb-24 mt-12 flex w-full max-w-3xl flex-1 flex-col bg-gray-0 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark">
-      <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-t bg-blue-700 p-2 py-2.5">
-        <p className="m-0 ml-3 text-xl font-light uppercase leading-7 text-gray-0">
-          {t("indexesTitle")}
-        </p>
-        <SharePostMenu
-          questionTitle={questionTitle}
-          btnClassName="!bg-transparent !text-gray-0 dark:!text-gray-0 mr-2"
-        />
-      </div>
-      <div className="px-4 py-5">
-        <h1 className="mb-4 mt-0 text-3xl leading-9 text-gray-800 dark:text-gray-800-dark">
-          {postData.title}
-        </h1>
-        {postData.notebook && (
-          <NotebookEditor postData={postData as PostWithNotebook} />
-        )}
+    <main className="mx-auto mb-24 mt-12 flex w-full max-w-3xl flex-1 flex-col  text-base text-gray-800  dark:text-gray-800-dark">
+      <PostStatusBox post={postData} className="mb-4" />
+      <div className="w-full bg-gray-0 dark:bg-gray-0-dark">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-t bg-blue-700 p-2 py-2.5">
+          <p className="m-0 ml-3 text-xl font-light uppercase leading-7 text-gray-0">
+            {t("indexesTitle")}
+          </p>
+          <SharePostMenu
+            questionTitle={questionTitle}
+            btnClassName="!bg-transparent !text-gray-0 dark:!text-gray-0 mr-2"
+          />
+        </div>
+        <div className="px-4 py-5">
+          <h1 className="mb-4 mt-0 text-3xl leading-9 text-gray-800 dark:text-gray-800-dark">
+            {postData.title}
+          </h1>
+          {postData.notebook && (
+            <NotebookEditor postData={postData as NotebookPost} />
+          )}
 
-        <IndexQuestionsTable
-          indexQuestions={indexQuestions}
-          HeadingSection={
-            <div className="flex flex-col items-center border-b border-gray-300 bg-blue-100 px-4 py-4 text-center leading-4 dark:border-gray-300-dark dark:bg-blue-100-dark">
-              <p className="m-0 mb-2 text-3xl capitalize leading-9">
-                {t.rich("indexScore", {
-                  value: Math.round(indexValue),
-                  bold: (chunks) => <b>{chunks}</b>,
-                })}
-              </p>
-              <WeeklyMovement
-                weeklyMovement={indexWeeklyMovement}
-                message={t("weeklyMovementChange", {
-                  value: Math.abs(indexWeeklyMovement),
-                })}
-                className="text-base"
-                iconClassName="text-base"
-              />
-            </div>
-          }
-        />
+          <IndexQuestionsTable
+            indexQuestions={indexQuestions}
+            HeadingSection={
+              <div className="flex flex-col items-center border-b border-gray-300 bg-blue-100 px-4 py-4 text-center leading-4 dark:border-gray-300-dark dark:bg-blue-100-dark">
+                <p className="m-0 mb-2 text-3xl capitalize leading-9">
+                  {t.rich("indexScore", {
+                    value: Number(indexValue.toFixed(1)),
+                    bold: (chunks) => <b>{chunks}</b>,
+                  })}
+                </p>
+                <WeeklyMovement
+                  weeklyMovement={indexWeeklyMovement}
+                  message={t("weeklyMovementChange", {
+                    value:
+                      indexWeeklyMovement === 0
+                        ? t("noChange")
+                        : Math.abs(indexWeeklyMovement),
+                  })}
+                  className="text-base"
+                  iconClassName="text-base"
+                />
+              </div>
+            }
+          />
 
-        <CommentFeed postData={postData} inNotebook />
+          <CommentFeed postData={postData} inNotebook />
+        </div>
       </div>
     </main>
   );

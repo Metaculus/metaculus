@@ -456,7 +456,11 @@ def get_aggregation_history(
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
     # get input forecasts
-    forecasts = question.user_forecasts.order_by("start_time").select_related("author")
+    forecasts = (
+        Forecast.objects.filter(question_id=question.id)
+        .order_by("start_time")
+        .select_related("author")
+    )
 
     if user_ids:
         forecasts = forecasts.filter(author_id__in=user_ids)

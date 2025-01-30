@@ -8,7 +8,7 @@ import {
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-import { FormErrorMessage } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
@@ -48,7 +48,7 @@ const ForecastMakerBinary: FC<Props> = ({
   const { hideCP } = useHideCP();
   const latest = question.aggregations.recency_weighted.latest;
   const communityForecast =
-    latest && !latest.end_time ? latest.centers![0] : undefined;
+    latest && !latest.end_time ? latest?.centers?.[0] : undefined;
 
   const prevForecastValue = extractPrevBinaryForecastValue(prevForecast);
   const hasUserForecast = !!prevForecastValue;
@@ -82,7 +82,7 @@ const ForecastMakerBinary: FC<Props> = ({
     setIsForecastDirty(false);
 
     if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors[0]);
+      setSubmitError(response.errors);
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
@@ -99,14 +99,8 @@ const ForecastMakerBinary: FC<Props> = ({
     ]);
     setIsForecastDirty(false);
 
-    const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
-      for (const response_errors of response.errors) {
-        errors.push(response_errors);
-      }
-    }
-    if (errors.length) {
-      setSubmitError(errors);
+      setSubmitError(response.errors);
     }
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -134,17 +128,16 @@ const ForecastMakerBinary: FC<Props> = ({
         <div className="flex gap-3">
           {canPredict && (
             <>
-              {!!prevForecastValue &&
-                question.withdraw_permitted && ( // Feature Flag: prediction-withdrawal
-                  <Button
-                    variant="secondary"
-                    type="submit"
-                    disabled={withdrawalIsPending}
-                    onClick={withdraw}
-                  >
-                    {t("withdraw")}
-                  </Button>
-                )}
+              {!!prevForecastValue && (
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )}
               <PredictButton
                 hasUserForecast={hasUserForecast}
                 isDirty={isForecastDirty}
@@ -156,9 +149,10 @@ const ForecastMakerBinary: FC<Props> = ({
           )}
         </div>
 
-        <FormErrorMessage
-          className="mt-2 flex justify-center"
+        <FormError
           errors={submitError}
+          className="mt-2 flex items-center justify-center"
+          detached
         />
         {(isPending || withdrawalIsPending) && (
           <div className="h-[32px] w-full">

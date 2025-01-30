@@ -2,19 +2,18 @@
 
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useRef, useState } from "react";
 
-import communityPlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { useNavigation } from "@/contexts/navigation_context";
 import { ProjectPermissions } from "@/types/post";
 import { Community } from "@/types/projects";
+import cn from "@/utils/cn";
 
 import { useShowActiveCommunityContext } from "./community_context";
 import CommunityFollow from "./community_follow";
@@ -37,6 +36,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
     const currentRef = communityNameRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
         setShowActiveCommunity(!entry.isIntersecting);
       },
       { threshold: 1.0 }
@@ -97,7 +97,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
       )}
 
       <div
-        className={classNames("flex items-center", {
+        className={cn("flex items-center", {
           "mt-4": !community.description,
         })}
       >
@@ -107,7 +107,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
             href={`/c/${community.slug}/settings`}
             className="!border-blue-500 !text-blue-700 dark:!border-blue-500-dark dark:!text-blue-700-dark"
           >
-            Manage Community
+            {t("manageCommunityButton")}
           </Button>
         ) : (
           <CommunityFollow
@@ -139,16 +139,8 @@ const CommunityInfo: FC<Props> = ({ community }) => {
                 {community.created_by.username}
               </Link>
             </p>
-
-            <div className="relative ml-4 h-[36px] w-[36px] rounded-full border-none bg-cover bg-center">
-              <Image
-                src={communityPlaceholder}
-                className="absolute h-full w-full rounded-full"
-                alt=""
-                placeholder={"blur"}
-                quality={100}
-              />
-              {!!community.header_logo && (
+            {!!community.header_logo && (
+              <div className="relative ml-4 h-[36px] w-[36px] rounded-full border-none bg-cover bg-center">
                 <Image
                   quality={100}
                   className="size-full rounded-full object-cover object-center"
@@ -157,8 +149,8 @@ const CommunityInfo: FC<Props> = ({ community }) => {
                   src={community.header_logo}
                   alt=""
                 />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>

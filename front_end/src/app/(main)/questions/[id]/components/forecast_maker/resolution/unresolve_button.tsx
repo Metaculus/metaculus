@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -10,6 +9,7 @@ import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
+import cn from "@/utils/cn";
 import { canChangeQuestionResolution } from "@/utils/questions";
 
 type Props = {
@@ -42,7 +42,7 @@ const QuestionUnresolveButton: FC<Props> = ({
           data: { onConfirm: () => unresolveQuestion(question.id) },
         })
       }
-      className={classNames("w-[95px]", className)}
+      className={cn("w-[95px]", className)}
     >
       {isPending ? <LoadingSpinner size="1x" /> : t("unresolve")}
     </Button>

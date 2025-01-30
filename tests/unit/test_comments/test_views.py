@@ -144,20 +144,17 @@ def test_get_comments_feed_permissions(user1, user2):
     c2 = factory_comment(author=user2, on_post=post, is_private=True, text="Comment 2")
     c3 = factory_comment(author=user2, on_post=post, text="Comment 3")
 
-    c_deleted = factory_comment(author=user2, on_post=post, is_soft_deleted=True)
+    factory_comment(author=user2, on_post=post, is_soft_deleted=True)
 
     assert {c.pk for c in get_comments_feed(Comment.objects.all())} == {
-        c_deleted.pk,
         c3.pk,
     }
     assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user1)} == {
-        c_deleted.pk,
         c3.pk,
     }
     assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user2)} == {
         c1.pk,
         c3.pk,
-        c_deleted.pk,
     }
     assert {
         c.pk

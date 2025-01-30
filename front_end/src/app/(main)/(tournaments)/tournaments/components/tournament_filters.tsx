@@ -19,7 +19,7 @@ const TournamentFilters: FC = () => {
 
   const [searchQuery, setSearchQuery] = useSearchInputState(
     TOURNAMENTS_SEARCH,
-    { mode: "client", debounceTime: 300 }
+    { mode: "client", debounceTime: 300, modifySearchParams: true }
   );
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {

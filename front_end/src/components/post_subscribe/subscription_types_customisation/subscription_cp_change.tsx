@@ -8,7 +8,7 @@ import { CPChangeThreshold, PostSubscriptionCPCHange } from "@/types/post";
 import { SubscriptionSectionProps } from "./types";
 
 const SubscriptionSectionCPChange: FC<
-  SubscriptionSectionProps<PostSubscriptionCPCHange>
+  SubscriptionSectionProps<PostSubscriptionCPCHange, "cp_change_threshold">
 > = ({ subscription, onChange }) => {
   const t = useTranslations();
 

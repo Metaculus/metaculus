@@ -1,7 +1,8 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { FC } from "react";
+
+import cn from "@/utils/cn";
 
 type Props = {
   className?: string;
@@ -10,7 +11,7 @@ type Props = {
 const LoadingIndicator: FC<Props> = ({ className }) => {
   return (
     <span
-      className={classNames(
+      className={cn(
         "flex items-center justify-center overflow-hidden",
         className
       )}

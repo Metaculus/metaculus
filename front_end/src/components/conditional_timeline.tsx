@@ -6,29 +6,42 @@ import React, { FC } from "react";
 import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
-import { PostConditional } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { ConditionalPost, PostConditional, PostStatus } from "@/types/post";
+import {
+  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import { getQuestionLinearChartType } from "@/utils/questions";
+import {
+  getGroupForecastAvailability,
+  getQuestionLinearChartType,
+} from "@/utils/questions";
 
 type Props = {
-  conditional: PostConditional<QuestionWithNumericForecasts>;
-  isClosed?: boolean;
+  post: ConditionalPost<QuestionWithForecasts>;
 };
 
-const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
+const ConditionalTimeline: FC<Props> = ({ post }) => {
   const t = useTranslations();
 
-  const groupType = conditional.question_no.type;
-  const questions = generateQuestions(t, conditional);
-  const timestamps = getGroupQuestionsTimestamps(questions);
   const { hideCP } = useHideCP();
 
-  const type = getQuestionLinearChartType(groupType);
+  const { conditional, status } = post;
 
+  const groupType = conditional.question_no.type;
+  const type = getQuestionLinearChartType(groupType);
   if (!type) {
     return null;
   }
+
+  const questions = generateQuestions(
+    t,
+    conditional as PostConditional<QuestionWithNumericForecasts>
+  );
+  const forecastAvailability = getGroupForecastAvailability(questions);
+  const timestamps = getGroupQuestionsTimestamps(questions, {
+    withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+  });
 
   return (
     <>
@@ -41,8 +54,14 @@ const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
             ? new Date(conditional.condition_child.actual_close_time).getTime()
             : null
         }
+        openTime={
+          conditional.condition_child.open_time
+            ? new Date(conditional.condition_child.open_time).getTime()
+            : undefined
+        }
         hideCP={hideCP}
-        isClosed={isClosed}
+        forecastAvailability={forecastAvailability}
+        isClosed={status === PostStatus.CLOSED}
       />
       {hideCP && <RevealCPButton className="mb-3" />}
     </>

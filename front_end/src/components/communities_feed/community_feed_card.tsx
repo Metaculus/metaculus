@@ -1,16 +1,15 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import communityPlaceholder from "@/app/assets/images/tournament.webp";
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
 import { Community } from "@/types/projects";
+import cn from "@/utils/cn";
 import { getMarkdownSummary } from "@/utils/questions";
 
 import Button from "../ui/button";
@@ -58,7 +57,7 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
 
       <hr className="text mb-4 mt-auto border-blue-400 dark:border-blue-400-dark" />
 
-      <div className={classNames("flex items-center")}>
+      <div className={cn("flex items-center")}>
         <p className="my-0 flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-500-dark">
           {t("followers")}
           <span className="font-bold text-blue-800 dark:text-blue-800-dark">
@@ -89,15 +88,8 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
               </Button>
             </p>
 
-            <div className="relative ml-4 h-[36px] w-[36px] rounded-full border-none bg-cover bg-center">
-              <Image
-                src={communityPlaceholder}
-                className="absolute h-full w-full rounded-full"
-                alt=""
-                placeholder={"blur"}
-                quality={100}
-              />
-              {!!community.header_logo && (
+            {!!community.header_logo && (
+              <div className="relative ml-4 h-[36px] w-[36px] rounded-full border-none bg-cover bg-center">
                 <Image
                   quality={100}
                   className="size-full rounded-full object-cover object-center"
@@ -106,8 +98,8 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
                   src={community.header_logo}
                   alt=""
                 />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>

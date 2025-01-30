@@ -8,7 +8,6 @@ import FeedbackFloat from "./(home)/components/feedback_float";
 import Bulletins from "./components/bulletins";
 import CookiesBanner from "./components/cookies_banner";
 import Footer from "./components/footer";
-import GlobalSearchVisibilityController from "./components/global_search_visibility_controller";
 import GlobalHeader from "./components/headers/global_header";
 
 config.autoAddCss = false;

@@ -22,10 +22,11 @@ from authentication.services import (
     send_password_reset_email,
     check_password_reset,
 )
-from fab_credits.models import UserUsage
+from users.models import User
 from projects.models import ProjectUserPermission
+from django.db.models import Q
 from projects.permissions import ObjectPermission
-from users.models import User, UserCampaignRegistration
+from users.services.common import register_user_to_campaign
 from users.serializers import UserPrivateSerializer
 from utils.cloudflare import validate_turnstile_from_request
 
@@ -37,6 +38,19 @@ logger = logging.getLogger(__name__)
 def login_api_view(request):
     serializer = LoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    login = serializer.validated_data["login"]
+    password = serializer.validated_data["password"]
+
+    # The authenticate method below will return None for inactive users
+    # We want to show inactive users an error message so they can activate
+    # their account, and also to re-send their activation email
+    user = User.objects.filter(
+        Q(username__iexact=login) | Q(email__iexact=login)
+    ).first()
+
+    if user is not None and user.check_password(password) and not user.is_active:
+        send_activation_email(user, None)
+        raise ValidationError({"user_state": "inactive"})
 
     user = authenticate(**serializer.validated_data)
     if not user:
@@ -66,6 +80,9 @@ def signup_api_view(request):
     campaign_data = serializer.validated_data.get("campaign_data", None)
     redirect_url = serializer.validated_data.get("redirect_url", None)
 
+    if project is not None and project.default_permission is None:
+        raise ValidationError("Cannot add user to a private project")
+
     user = User.objects.create_user(
         username=username,
         email=email,
@@ -75,28 +92,12 @@ def signup_api_view(request):
     )
 
     if campaign_key is not None:
-        UserCampaignRegistration.objects.create(
-            user=user, key=campaign_key, details=campaign_data
-        )
+        register_user_to_campaign(user, campaign_key, campaign_data, project)
 
-    if project is not None:
-        if project.default_permission is None:
-            raise ValidationError("Cannot add user to a private project")
-
+    if campaign_key is None and project is not None:
         ProjectUserPermission.objects.create(
             user=user, project=project, permission=ObjectPermission.FORECASTER
         )
-
-        # This is a hack to automatically give new bot users 100k tokens for the Q4 AIB  so they
-        # can get started quickly before they even reach out to us to ask for more credits.
-        # TODO: Remove or update this when the Q4 AIB is over.
-        if project.id == 32506:
-            UserUsage.objects.create(
-                user=user,
-                platform=UserUsage.UsagePlatform.OpenAI,
-                model_name="gpt-4o",
-                total_allowed_tokens=100000,
-            )
 
     is_active = user.is_active
     token = None
@@ -122,14 +123,17 @@ def signup_api_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def resend_activation_link_api_view(request):
-    email = serializers.EmailField().run_validation(request.data.get("email"))
+    login = request.data.get("login")
+    redirect_url = request.data.get("redirect_url")
 
     try:
-        user = User.objects.get(email__iexact=email, is_active=False)
+        user = User.objects.get(
+            Q(username__iexact=login) | Q(email__iexact=login), is_active=False
+        )
     except User.DoesNotExist:
         raise ValidationError({"email": ["User does not exist or already activated"]})
 
-    send_activation_email(user)
+    send_activation_email(user, redirect_url)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

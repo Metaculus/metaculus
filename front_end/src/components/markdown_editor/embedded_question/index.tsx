@@ -1,4 +1,6 @@
 "use client";
+import "./styles.scss";
+
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -9,18 +11,17 @@ import {
   useLexicalNodeRemove,
   usePublisher,
 } from "@mdxeditor/editor";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, memo, useEffect, useState } from "react";
 
 import { getPost } from "@/app/(main)/questions/actions";
+import ForecastCard from "@/components/forecast_card";
 import EmbedQuestionModal from "@/components/markdown_editor/embedded_question/embed_question_modal";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostWithForecasts } from "@/types/post";
 import { logError } from "@/utils/errors";
 
-import EmbeddedQuestionCard from "./embedded_question_card";
 import createEditorComponent from "../createJsxComponent";
 import useLexicalBackspaceNodeRemove from "../hooks/use_backspace_node_remove";
 
@@ -59,7 +60,7 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
   return (
     <div
       ref={ref}
-      className="mx-auto mt-2 w-[400px] ring-blue-500 focus:outline-none focus:ring-2 dark:ring-blue-500-dark"
+      className="mx-auto mt-2 w-full ring-blue-500 focus:outline-none focus:ring-2 dark:ring-blue-500-dark"
       {...getReferenceProps()}
     >
       {isLoading ? (
@@ -77,9 +78,12 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
             </Button>
           )}
 
-          <Link href={`/questions/${postData.id}`} className="no-underline">
-            <EmbeddedQuestionCard postData={postData} />
-          </Link>
+          <ForecastCard
+            post={postData}
+            withZoomPicker
+            navigateToNewTab
+            className="min-h-72"
+          />
         </div>
       ) : (
         <div className="mx-auto w-[400px] bg-blue-200 p-3 dark:bg-blue-200-dark">
@@ -119,12 +123,13 @@ export const EmbedQuestionAction: FC = () => {
   );
 };
 
+const MemorizedEmbeddedQuestion = memo(EmbeddedQuestion);
 export const embeddedQuestionDescriptor: JsxComponentDescriptor = {
   name: COMPONENT_NAME,
   props: [{ name: "id", type: "number", required: true }],
   kind: "flow",
   hasChildren: false,
-  Editor: createEditorComponent(EmbeddedQuestion),
+  Editor: createEditorComponent(MemorizedEmbeddedQuestion),
 };
 
-export default EmbeddedQuestion;
+export default MemorizedEmbeddedQuestion;

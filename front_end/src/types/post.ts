@@ -6,7 +6,7 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-import { Tournament } from "./projects";
+import { Community, Tournament } from "./projects";
 
 export type Resolution =
   | "yes"
@@ -33,12 +33,6 @@ export enum NotebookType {
   Notebook = "notebook",
 }
 
-export enum ArticleType {
-  Programs = "programs",
-  Research = "research",
-  Platform = "platform",
-}
-
 export type ForecastType = PostForecastType | QuestionType | NotebookType;
 
 export type Category = {
@@ -52,6 +46,7 @@ export type Tag = {
   id: number;
   name: string;
   slug: string;
+  is_global_leaderboard: boolean;
 };
 
 export type Topic = {
@@ -124,6 +119,7 @@ export type Post<QT = Question> = {
     tournament?: Tournament[];
     question_series?: Tournament[];
     tag?: Tag[];
+    community?: Community[];
   };
   title: string;
   url_title: string;
@@ -158,7 +154,16 @@ export type Post<QT = Question> = {
   key_factors?: KeyFactor[];
 };
 
-export type PostWithNotebook = Omit<Post, "notebook"> & {
+export type QuestionPost<QT = Question> = Post<QT> & {
+  question: QT;
+};
+export type ConditionalPost<QT = Question> = Post<QT> & {
+  conditional: PostConditional<QT>;
+};
+export type GroupOfQuestionsPost<QT = Question> = Post<QT> & {
+  group_of_questions: PostGroupOfQuestions<QT>;
+};
+export type NotebookPost = Omit<Post, "notebook"> & {
   notebook: Notebook;
 };
 

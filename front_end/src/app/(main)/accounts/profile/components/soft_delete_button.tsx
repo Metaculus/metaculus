@@ -2,9 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { FC, useState, useTransition } from "react";
-import Button from "@/components/ui/button";
-import BaseModal from "@/components/base_modal";
+
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
+import BaseModal from "@/components/base_modal";
+import Button from "@/components/ui/button";
 
 type SoftDeleteButtonProps = {
   id: number;

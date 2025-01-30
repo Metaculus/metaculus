@@ -11,14 +11,12 @@ import TableRow from "./table_row";
 
 type Props = {
   leaderboardDetails: LeaderboardDetails;
-  prizePool: number;
   userId?: number;
   paginationStep?: number;
 };
 
 const ProjectLeaderboardTable: FC<Props> = ({
   leaderboardDetails,
-  prizePool,
   userId,
   paginationStep = 5,
 }) => {
@@ -40,12 +38,6 @@ const ProjectLeaderboardTable: FC<Props> = ({
 
   const withCoverage =
     leaderboardDetails.score_type === "relative_legacy_tournament";
-  const withTake = leaderboardDetails.entries.some(
-    (entry) => !isNil(entry.take)
-  );
-  const withPrize = leaderboardDetails.entries.some(
-    (entry) => !isNil(entry.percent_prize)
-  );
 
   return (
     <div className="overflow-y-hidden rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">

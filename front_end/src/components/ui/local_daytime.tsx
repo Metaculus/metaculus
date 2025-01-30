@@ -1,26 +1,37 @@
 import { useLocale } from "next-intl";
-import { useEffect, useState, FC } from "react";
+import { FC } from "react";
+import "@github/relative-time-element";
 
 import { formatDate } from "@/utils/date_formatters";
 
 type Props = {
   date?: string;
-  className?: string;
 };
 
-const LocalDaytime: FC<Props> = ({ date, className }) => {
-  const locale = useLocale();
-  const [localValue, setLocalValue] = useState<string>("");
+const LocalDaytime: FC<Props> = ({ date }) => {
+  let locale = useLocale();
+  if (locale === "original") {
+    // For some reason, when the locale is "original" (Untranslated), the the server and client
+    //  endup with different values for  the localValue variable. This is a workaround to
+    // make sure the dates render correctly on both and default to English locale when
+    // in Untranslated mode
+    locale = "en";
+  }
+  const localValue = date ? formatDate(locale, new Date(date)) : "";
 
-  useEffect(() => {
-    if (date) {
-      const localDate = new Date(date);
-      const localDateString = formatDate(locale, localDate);
-      setLocalValue(localDateString);
-    }
-  }, [date, locale]);
-
-  return <span className={className}>{localValue}</span>;
+  return (
+    <relative-time
+      datetime={date}
+      format="relative"
+      prefix=""
+      threshold="P1D"
+      year="numeric"
+      lang={locale}
+      title=""
+    >
+      {localValue}
+    </relative-time>
+  );
 };
 
 export default LocalDaytime;

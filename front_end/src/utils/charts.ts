@@ -31,18 +31,27 @@ import {
   AggregationQuestion,
   Aggregations,
   QuestionWithForecasts,
+  AggregateForecastHistory,
+  Bounds,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
-import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
+import {
+  formatMultipleChoiceResolution,
+  formatResolution,
+  isUnsuccessfullyResolved,
+} from "@/utils/questions";
 
 import {
+  extractPrevBinaryForecastValue,
+  extractPrevNumericForecastValue,
   getForecastDateDisplayValue,
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
+  getNumericForecastDataset,
 } from "./forecasts";
 
-export function getNumericChartTypeFromQuestion(
+export function getContinuousChartTypeFromQuestion(
   type: QuestionType
 ): QuestionType | undefined {
   switch (type) {
@@ -57,7 +66,7 @@ export function getNumericChartTypeFromQuestion(
   }
 }
 
-export function generateNumericDomain(
+export function generateNumericXDomain(
   timestamps: number[],
   zoom: TimelineChartZoomOption
 ): Tuple<number> {
@@ -66,7 +75,7 @@ export function generateNumericDomain(
   if (latestTimestamp === undefined) {
     return [0, 0];
   }
-  const latestDate = fromUnixTime(latestTimestamp!);
+  const latestDate = fromUnixTime(latestTimestamp);
   let startDate: Date;
   switch (zoom) {
     case TimelineChartZoomOption.OneDay:
@@ -86,6 +95,58 @@ export function generateNumericDomain(
     Math.max(Math.min(...validTimestamps), getUnixTime(startDate)),
     latestTimestamp,
   ];
+}
+
+type GenerateYDomainParams = {
+  minValues: Array<{ timestamp: number; y: number | null | undefined }>;
+  maxValues: Array<{ timestamp: number; y: number | null | undefined }>;
+  minTimestamp: number;
+  zoom: TimelineChartZoomOption;
+  isChartEmpty: boolean;
+  zoomDomainPadding?: number;
+};
+export function generateYDomain({
+  zoom,
+  isChartEmpty,
+  minValues,
+  maxValues,
+  minTimestamp,
+  zoomDomainPadding = 0.05,
+}: GenerateYDomainParams): {
+  originalYDomain: Tuple<number>;
+  zoomedYDomain: Tuple<number>;
+} {
+  const originalYDomain: Tuple<number> = [0, 1];
+  const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
+
+  if (zoom === TimelineChartZoomOption.All || isChartEmpty) {
+    return fallback;
+  }
+
+  const min = minValues
+    .filter((d) => d.timestamp >= minTimestamp)
+    .map((d) => d.y)
+    .filter((value) => !isNil(value));
+  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
+  const minValue = min.length ? Math.min(...min) : null;
+  const max = maxValues
+    .filter((d) => d.timestamp >= minTimestamp)
+    .map((d) => d.y)
+    .filter((value) => !isNil(value));
+  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
+  const maxValue = max.length ? Math.max(...max) : null;
+
+  if (isNil(minValue) || isNil(maxValue)) {
+    return fallback;
+  }
+
+  return {
+    originalYDomain,
+    zoomedYDomain: [
+      Math.max(0, minValue - zoomDomainPadding),
+      Math.min(1, maxValue + zoomDomainPadding),
+    ],
+  };
 }
 
 export function generateTimestampXScale(
@@ -191,17 +252,21 @@ export function generateTimestampXScale(
  * scaling determined by zero_point
  */
 export function scaleInternalLocation(x: number, scaling: Scaling) {
-  let scaled_location = null;
   const { range_min, range_max, zero_point } = scaling;
+  if (isNil(range_max) || isNil(range_min)) {
+    return x;
+  }
+
+  let scaled_location: number;
   if (zero_point !== null) {
-    const derivRatio = (range_max! - zero_point) / (range_min! - zero_point);
+    const derivRatio = (range_max - zero_point) / (range_min - zero_point);
     scaled_location =
-      range_min! +
-      ((range_max! - range_min!) * (derivRatio ** x - 1)) / (derivRatio - 1);
+      range_min +
+      ((range_max - range_min) * (derivRatio ** x - 1)) / (derivRatio - 1);
   } else if (range_min === null || range_max === null) {
     scaled_location = x;
   } else {
-    scaled_location = range_min! + (range_max! - range_min!) * x;
+    scaled_location = range_min + (range_max - range_min) * x;
   }
   return scaled_location;
 }
@@ -212,16 +277,20 @@ export function scaleInternalLocation(x: number, scaling: Scaling) {
  * taking into account any logarithmic scaling determined by zero_point
  */
 export function unscaleNominalLocation(x: number, scaling: Scaling) {
-  let unscaled_location = null;
   const { range_min, range_max, zero_point } = scaling;
+  if (isNil(range_max) || isNil(range_min)) {
+    return x;
+  }
+
+  let unscaled_location: number;
   if (zero_point !== null) {
-    const derivRatio = (range_max! - zero_point) / (range_min! - zero_point);
+    const derivRatio = (range_max - zero_point) / (range_min - zero_point);
     unscaled_location =
       Math.log(
-        ((x - range_min!) * (derivRatio - 1)) / (range_max! - range_min!) + 1
+        ((x - range_min) * (derivRatio - 1)) / (range_max - range_min) + 1
       ) / Math.log(derivRatio);
   } else {
-    unscaled_location = (x - range_min!) / (range_max! - range_min!);
+    unscaled_location = (x - range_min) / (range_max - range_min);
   }
   return unscaled_location;
 }
@@ -297,14 +366,20 @@ export function getDisplayValue({
     truncation
   );
   if (range) {
-    const scaledLower = scaleInternalLocation(range[0], scaling);
+    const lowerX = range[0];
+    const upperX = range[1];
+    if (isNil(lowerX) || isNil(upperX)) {
+      return "...";
+    }
+
+    const scaledLower = scaleInternalLocation(lowerX, scaling);
     const lowerDisplay = displayValue(
       scaledLower,
       questionType,
       precision,
       truncation
     );
-    const scaledUpper = scaleInternalLocation(range[1], scaling);
+    const scaledUpper = scaleInternalLocation(upperX, scaling);
     const upperDisplay = displayValue(
       scaledUpper,
       questionType,
@@ -371,20 +446,24 @@ export function getUserPredictionDisplayValue(
     return "...";
   }
 
-  let center: number;
+  let center: number | undefined;
   let lower: number | undefined = undefined;
   let upper: number | undefined = undefined;
   if (questionType === QuestionType.Binary) {
     center = closestUserForecast.forecast_values[1];
   } else {
-    center = closestUserForecast.centers![0];
+    center = closestUserForecast.centers?.[0];
     lower = showRange
-      ? closestUserForecast.interval_lower_bounds![0]
+      ? closestUserForecast.interval_lower_bounds?.[0]
       : undefined;
     upper = showRange
-      ? closestUserForecast.interval_upper_bounds![0]
+      ? closestUserForecast.interval_upper_bounds?.[0]
       : undefined;
   }
+  if (isNil(center)) {
+    return "...";
+  }
+
   const scaledCenter = scaleInternalLocation(
     center,
     scaling ?? { range_min: 0, range_max: 1, zero_point: null }
@@ -432,10 +511,11 @@ export function getUserPredictionDisplayValue(
 }
 
 type GenerateScaleParams = {
-  displayType: QuestionType | "percent";
+  displayType: QuestionType;
   axisLength: number;
   direction?: "horizontal" | "vertical";
   domain?: Tuple<number>;
+  zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
   displayLabel?: string;
   withCursorFormat?: boolean;
@@ -447,8 +527,7 @@ type GenerateScaleParams = {
  * for any axis
  *
  * @param displayType the type of the data, either "date", "numeric",
- *  or "percent". "percent" is a special case that will set other values
- *  automatically
+ *  or "binary".
  * @param axisLength the length of the axis in pixels which
  *  can be used to determine the number of ticks
  * @param domain the domain of the data, defaults to [0, 1],
@@ -457,8 +536,6 @@ type GenerateScaleParams = {
  *  which in turn is the same as a linear scaling along the given domain
  * @param displayLabel this is the label that will be appended to the
  *  formatted tick values, defaults to an empty string
- * @param withCursorFormat whether or not to generate a special cursor
- *  format for the hover state
  * @param cursorDisplayLabel specifies the label to appear on the cursor
  *  state, which defaults to the displayLabel
  *
@@ -469,14 +546,12 @@ export function generateScale({
   axisLength,
   direction = "horizontal",
   domain = [0, 1],
+  zoomedDomain = [0, 1],
   scaling = null,
   displayLabel = "",
-  withCursorFormat = false,
-  cursorDisplayLabel = null,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
-  const domainSize = domainMax - domainMin;
   const domainScaling = {
     range_min: domainMin,
     range_max: domainMax,
@@ -485,13 +560,15 @@ export function generateScale({
 
   const rangeMin = scaling?.range_min ?? domainMin;
   const rangeMax = scaling?.range_max ?? domainMax;
-  const rangeSize = rangeMax - rangeMin;
   const zeroPoint = scaling?.zero_point ?? null;
   const rangeScaling = {
     range_min: rangeMin,
     range_max: rangeMax,
     zero_point: zeroPoint,
   };
+
+  const zoomedDomainMin = zoomedDomain[0];
+  const zoomedDomainMax = zoomedDomain[1];
 
   // determine the number of ticks to label
   // based on the axis length and direction
@@ -511,7 +588,7 @@ export function generateScale({
   } else {
     maxLabelCount = direction === "horizontal" ? 21 : 26;
   }
-  const tickCount = (maxLabelCount! - 1) * 5 + 1;
+  const tickCount = (maxLabelCount - 1) * 5 + 1;
 
   // console.log({
   //   displayType,
@@ -527,35 +604,19 @@ export function generateScale({
   //   rangeScaling,
   // });
 
-  if (displayType === "percent") {
-    // special case for "percent" situation
-    displayLabel = "%";
-    const tickInterval = domainMax / (tickCount - 1);
-    const labeledTickInterval = domainMax / (maxLabelCount - 1);
-    return {
-      ticks: range(domainMin, domainMax + tickInterval / 2, tickInterval),
-      tickFormat: (x) => {
-        if (Math.round(x * 100) % Math.round(labeledTickInterval * 100) === 0) {
-          return `${Math.round(x * 100)}` + displayLabel;
-        }
-        return "";
-      },
-      cursorFormat: withCursorFormat
-        ? (x) => `${Math.round(x * 10000) / 100}` + displayLabel
-        : undefined,
-    };
-  }
-
-  const tickInterval = 1 / (tickCount - 1);
-  const labeledTickInterval = 1 / (maxLabelCount - 1);
+  const tickInterval = zoomedDomainMax / (tickCount - 1);
+  const labeledTickInterval = zoomedDomainMax / (maxLabelCount - 1);
   const majorTicks: number[] = range(
-    0,
-    1 + tickInterval / 100,
+    zoomedDomainMin,
+    zoomedDomainMax + tickInterval / 100,
     labeledTickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
-  const allTicks: number[] = range(0, 1 + tickInterval / 100, tickInterval).map(
-    (x) => Math.round(x * 1000) / 1000
-  );
+  const allTicks: number[] = range(
+    zoomedDomainMin,
+    zoomedDomainMax + tickInterval / 100,
+    tickInterval
+  ).map((x) => Math.round(x * 1000) / 1000);
+
   return {
     ticks: allTicks,
     tickFormat: (x) => {
@@ -599,11 +660,8 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const { activeCount, preserveOrder } = config ?? {};
 
   const latest = question.aggregations.recency_weighted.latest;
-  if (!latest) {
-    return [];
-  }
 
-  const choiceOrdering: number[] = question.options!.map((_, i) => i);
+  const choiceOrdering: number[] = question.options?.map((_, i) => i) ?? [];
   if (!preserveOrder) {
     choiceOrdering.sort((a, b) => {
       const aCenter = latest?.forecast_values[a] ?? 0;
@@ -659,17 +717,17 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       });
       aggregationValues.push(
         !!aggregationForecast?.centers
-          ? aggregationForecast.centers[index]
+          ? aggregationForecast.centers[index] ?? null
           : null
       );
       aggregationMinValues.push(
         !!aggregationForecast?.interval_lower_bounds
-          ? aggregationForecast.interval_lower_bounds[index]
+          ? aggregationForecast.interval_lower_bounds[index] ?? null
           : null
       );
       aggregationMaxValues.push(
         !!aggregationForecast?.interval_upper_bounds
-          ? aggregationForecast.interval_upper_bounds[index]
+          ? aggregationForecast.interval_upper_bounds[index] ?? null
           : null
       );
       aggregationForecasterCounts.push(
@@ -683,11 +741,9 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       highlighted: false,
       active: true,
       resolution: question.resolution,
-      displayedResolution: question.resolution
-        ? choice === question.resolution
-          ? "Yes"
-          : "No"
-        : undefined,
+      displayedResolution: !!question.resolution
+        ? formatMultipleChoiceResolution(question.resolution, choice)
+        : null,
       aggregationTimestamps: sortedAggregationTimestamps,
       aggregationValues: aggregationValues,
       aggregationMinValues: aggregationMinValues,
@@ -701,19 +757,24 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const orderedChoiceItems = choiceOrdering.map((order) => choiceItems[order]);
   // move resolved choice to the front
   const resolutionIndex = choiceOrdering.findIndex(
-    (order) => question.options![order] === question.resolution
+    (order) => question.options?.[order] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = orderedChoiceItems.splice(resolutionIndex, 1);
-    orderedChoiceItems.unshift(resolutionItem);
+    if (resolutionItem) {
+      orderedChoiceItems.unshift(resolutionItem);
+    }
   }
   // set inactive items
   if (activeCount) {
     orderedChoiceItems.forEach((item, index) => {
-      item.active = index < activeCount;
+      if (!isNil(item)) {
+        item.active = index < activeCount;
+      }
     });
   }
-  return orderedChoiceItems;
+
+  return orderedChoiceItems.filter((el) => !isNil(el)) as ChoiceItem[];
 }
 
 export function generateChoiceItemsFromAggregations(
@@ -760,12 +821,12 @@ export function generateChoiceItemsFromAggregations(
           (forecast.end_time === null || forecast.end_time > timestamp)
         );
       });
-      aggregationValues.push(aggregationForecast?.centers![0] || null);
+      aggregationValues.push(aggregationForecast?.centers?.[0] || null);
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds![0] || null
+        aggregationForecast?.interval_lower_bounds?.[0] || null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds![0] || null
+        aggregationForecast?.interval_upper_bounds?.[0] || null
       );
       aggregationForecasterCounts.push(
         aggregationForecast?.forecaster_count || 0
@@ -828,8 +889,8 @@ export function generateChoiceItemsFromGroupQuestions(
   const choiceOrdering: number[] = latests.map((_, i) => i);
   if (!preserveOrder) {
     choiceOrdering.sort((a, b) => {
-      const aCenter = latests[a]?.centers![0] ?? 0;
-      const bCenter = latests[b]?.centers![0] ?? 0;
+      const aCenter = latests[a]?.centers?.[0] ?? 0;
+      const bCenter = latests[b]?.centers?.[0] ?? 0;
       return bCenter - aCenter;
     });
   }
@@ -837,7 +898,11 @@ export function generateChoiceItemsFromGroupQuestions(
     ? questions.find((q) => q.id === preselectedQuestionId)?.label
     : undefined;
 
-  const choiceItems: ChoiceItem[] = questions.map((question, index) => {
+  const choiceItems: ChoiceItem[] = choiceOrdering.map((order, index) => {
+    // that's okay to do no-non-null-assertion, as choiceOrdering is generated based on questions array
+    // so we don't expect that it will have a different length
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const question = questions[order]!;
     const label = question.label;
     const userHistory = question.my_forecasts?.history;
 
@@ -898,9 +963,9 @@ export function generateChoiceItemsFromGroupQuestions(
         userValues.push(userForecast?.forecast_values[1] || null);
       } else {
         // continuous
-        userValues.push(userForecast?.centers![0] || null);
-        userMinValues.push(userForecast?.interval_lower_bounds![0] || null);
-        userMaxValues.push(userForecast?.interval_upper_bounds![0] || null);
+        userValues.push(userForecast?.centers?.[0] || null);
+        userMinValues.push(userForecast?.interval_lower_bounds?.[0] || null);
+        userMaxValues.push(userForecast?.interval_upper_bounds?.[0] || null);
       }
     });
     sortedAggregationTimestamps.forEach((timestamp) => {
@@ -910,12 +975,12 @@ export function generateChoiceItemsFromGroupQuestions(
           (forecast.end_time === null || forecast.end_time > timestamp)
         );
       });
-      aggregationValues.push(aggregationForecast?.centers![0] || null);
+      aggregationValues.push(aggregationForecast?.centers?.[0] || null);
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds![0] || null
+        aggregationForecast?.interval_lower_bounds?.[0] || null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds![0] || null
+        aggregationForecast?.interval_upper_bounds?.[0] || null
       );
       aggregationForecasterCounts.push(
         aggregationForecast?.forecaster_count || 0
@@ -949,11 +1014,8 @@ export function generateChoiceItemsFromGroupQuestions(
         question.type === QuestionType.Binary ? undefined : userMaxValues, // used in continuous group questions
     };
   });
-  // reorder choice items
-  const orderedChoiceItems = choiceOrdering.map((order) => choiceItems[order]);
-  // set inactive items
   if (activeCount) {
-    orderedChoiceItems.forEach((item, index) => {
+    choiceItems.forEach((item, index) => {
       if (preselectedQuestionLabel) {
         item.active = preselectedQuestionLabel === item.choice;
       } else {
@@ -961,24 +1023,44 @@ export function generateChoiceItemsFromGroupQuestions(
       }
     });
   }
-  return orderedChoiceItems;
+  return choiceItems;
 }
 
 export function getFanOptionsFromContinuousGroup(
   questions: QuestionWithNumericForecasts[]
 ): FanOption[] {
   return questions
-    .map((q) => ({
-      name: q.label,
-      cdf: q.aggregations.recency_weighted.latest?.forecast_values ?? [],
-      resolvedAt: new Date(q.scheduled_resolve_time),
-      resolved: q.resolution !== null,
-      question: q,
-    }))
+    .map((q) => {
+      const latest = q.my_forecasts?.latest;
+      const userForecast = extractPrevNumericForecastValue(
+        latest && !latest.end_time ? latest.distribution_input : undefined
+      );
+
+      return {
+        name: q.label,
+        communityCdf:
+          q.aggregations.recency_weighted.latest?.forecast_values ?? [],
+        userCdf: userForecast?.components
+          ? getNumericForecastDataset(
+              userForecast.components,
+              q.open_lower_bound,
+              q.open_upper_bound
+            ).cdf
+          : null,
+        resolvedAt: new Date(q.scheduled_resolve_time),
+        resolved: q.resolution !== null,
+        question: q,
+      };
+    })
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
-    .map(({ name, cdf, resolved, question }) => ({
+    .map(({ name, communityCdf, resolved, question, userCdf }) => ({
       name,
-      quartiles: cdf.length > 0 ? computeQuartilesFromCDF(cdf) : undefined,
+      communityQuartiles: communityCdf.length
+        ? computeQuartilesFromCDF(communityCdf) ?? null
+        : null,
+      communityBounds: getCdfBounds(communityCdf) ?? null,
+      userQuartiles: userCdf?.length ? computeQuartilesFromCDF(userCdf) : null,
+      userBounds: userCdf ? getCdfBounds(userCdf) ?? null : null,
       resolved,
       question,
     }));
@@ -986,20 +1068,35 @@ export function getFanOptionsFromContinuousGroup(
 
 export function getFanOptionsFromBinaryGroup(
   questions: QuestionWithNumericForecasts[]
-) {
+): FanOption[] {
   return questions
     .map((q) => {
       const aggregation = q.aggregations.recency_weighted.latest;
       const resolved = q.resolution !== null;
+
+      const latest = q.my_forecasts?.latest;
+      const userForecast = extractPrevBinaryForecastValue(
+        latest && !latest.end_time ? latest.forecast_values[1] : null
+      );
+
       return {
         name: q.label,
-        quartiles: !!aggregation
+        communityQuartiles: !!aggregation
           ? {
               median: aggregation.centers?.[0] ?? 0,
               lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
               upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
             }
-          : undefined,
+          : null,
+        communityBounds: null,
+        userQuartiles: userForecast
+          ? {
+              lower25: userForecast / 100,
+              median: userForecast / 100,
+              upper75: userForecast / 100,
+            }
+          : null,
+        userBounds: null,
         resolved,
         question: q,
         resolvedAt: new Date(q.scheduled_resolve_time),
@@ -1020,8 +1117,28 @@ export function getQuestionTimestamps(
 }
 
 export function getGroupQuestionsTimestamps(
-  questions: QuestionWithNumericForecasts[]
+  questions: QuestionWithNumericForecasts[],
+  options?: {
+    withUserTimestamps?: boolean;
+  }
 ): number[] {
+  const { withUserTimestamps } = options ?? {};
+
+  if (withUserTimestamps) {
+    return uniq(
+      questions.reduce<number[]>(
+        (acc, question) => [
+          ...acc,
+          ...(question.my_forecasts?.history?.map((x) => x.start_time) ?? []),
+          ...(question.my_forecasts?.history?.map(
+            (x) => x.end_time ?? x.start_time
+          ) ?? []),
+        ],
+        []
+      )
+    ).sort((a, b) => a - b);
+  }
+
   return uniq(
     questions.reduce<number[]>(
       (acc, question) => [
@@ -1040,8 +1157,12 @@ export function getGroupQuestionsTimestamps(
 
 export function findPreviousTimestamp(
   timestamps: number[],
-  timestamp: number
+  timestamp: number | null | undefined
 ): number {
+  if (isNil(timestamp)) {
+    return 0;
+  }
+
   return timestamps.reduce(
     (prev, curr) => (curr <= timestamp && curr > prev ? curr : prev),
     0
@@ -1070,9 +1191,9 @@ export const getClosestYValue = (xValue: number, line: Line) => {
 export const interpolateYValue = (xValue: number, line: Line) => {
   const i = findLastIndex(line, (point) => point.x <= xValue);
   const p1 = line[i];
-  const p2 = line[i + 1];
+  const p2 = line[i + 1] ?? line[i];
 
-  if (!p1.y || !p2.y) return 0;
+  if (!p1?.y || !p2?.y) return 0;
 
   const t = (xValue - p1.x) / (p2.x - p1.x);
   return p1.y + t * (p2.y - p1.y);
@@ -1104,19 +1225,25 @@ export function getTickLabelFontSize(actualTheme: VictoryThemeDefinition) {
 export function getContinuousGroupScaling(
   questions: QuestionWithNumericForecasts[]
 ) {
+  const rangeMaxPoints: number[] = [];
+  const rangeMinPoints: number[] = [];
   const zeroPoints: number[] = [];
   questions.forEach((question) => {
+    if (question.scaling.range_max !== null) {
+      rangeMaxPoints.push(question.scaling.range_max);
+    }
+
+    if (question.scaling.range_min !== null) {
+      rangeMinPoints.push(question.scaling.range_min);
+    }
+
     if (question.scaling.zero_point !== null) {
       zeroPoints.push(question.scaling.zero_point);
     }
   });
   const scaling: Scaling = {
-    range_max: Math.max(
-      ...questions.map((question) => question.scaling.range_max!)
-    ),
-    range_min: Math.min(
-      ...questions.map((question) => question.scaling.range_min!)
-    ),
+    range_max: rangeMaxPoints.length > 0 ? Math.max(...rangeMaxPoints) : null,
+    range_min: rangeMinPoints.length > 0 ? Math.min(...rangeMinPoints) : null,
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
   // we can have mixes of log and linear scaled options
@@ -1124,8 +1251,10 @@ export function getContinuousGroupScaling(
   // so just igore the log scaling in this case
   if (
     scaling.zero_point !== null &&
-    scaling.range_min! <= scaling.zero_point &&
-    scaling.zero_point <= scaling.range_max!
+    !isNil(scaling.range_min) &&
+    !isNil(scaling.range_max) &&
+    scaling.range_min <= scaling.zero_point &&
+    scaling.zero_point <= scaling.range_max
   ) {
     scaling.zero_point = null;
   }
@@ -1195,4 +1324,41 @@ export function getResolutionPoint({
     default:
       return null;
   }
+}
+
+export function getCursorForecast(
+  cursorTimestamp: number | null | undefined,
+  aggregation: AggregateForecastHistory
+): AggregateForecast | null {
+  let forecastIndex: number = -1;
+  if (!isNil(cursorTimestamp)) {
+    forecastIndex = aggregation.history.findIndex(
+      (f) =>
+        cursorTimestamp !== null &&
+        f.start_time <= cursorTimestamp &&
+        (f.end_time === null || f.end_time > cursorTimestamp)
+    );
+  } else if (cursorTimestamp === null && isNil(aggregation.latest?.end_time)) {
+    forecastIndex = aggregation.history.length - 1;
+  }
+  return forecastIndex === -1
+    ? null
+    : aggregation.history[forecastIndex] ?? null;
+}
+
+export function getCdfBounds(cdf: number[] | undefined): Bounds | undefined {
+  if (!cdf) {
+    return;
+  }
+
+  const start = cdf.at(0);
+  const end = cdf.at(-1);
+  if (isNil(start) || isNil(end)) {
+    return;
+  }
+
+  return {
+    belowLower: start,
+    aboveUpper: 1 - end,
+  };
 }

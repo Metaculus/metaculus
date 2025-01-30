@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
 import AwaitedCommunitiesFeed from "@/components/communities_feed";
-import OnboardingCheck from "@/components/onboarding/OnboardingCheck";
+import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POST_COMMUNITIES_FILTER } from "@/constants/posts_feed";

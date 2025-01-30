@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db import models
 from django.db.models.query import QuerySet, Q
@@ -8,6 +8,9 @@ from questions.models import Question
 from questions.types import AggregationMethod
 from users.models import User
 from utils.models import TimeStampedModel
+
+GLOBAL_LEADERBOARD_STRING = "Leaderboard"
+GLOBAL_LEADERBOARD_SLUG = "leaderboard"
 
 
 class UserWeight(TimeStampedModel):
@@ -24,7 +27,7 @@ class Score(TimeStampedModel):
 
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     aggregation_method = models.CharField(
-        max_length=200, null=True, choices=AggregationMethod.choices
+        max_length=200, null=True, choices=AggregationMethod.choices, db_index=True
     )
     question = models.ForeignKey(
         Question, on_delete=models.CASCADE, related_name="scores"
@@ -43,7 +46,9 @@ class Score(TimeStampedModel):
         SPOT_BASELINE = "spot_baseline"
         MANUAL = "manual"
 
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
+    score_type = models.CharField(
+        max_length=200, choices=ScoreTypes.choices, db_index=True
+    )
 
     def __str__(self):
         return (
@@ -52,13 +57,23 @@ class Score(TimeStampedModel):
             f"on {self.question.id}"
         )
 
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["question"],
+                name="score_question_idx",
+                condition=Q(aggregation_method__isnull=False),
+            ),
+            models.Index(fields=["user", "question"]),
+        ]
+
 
 class ArchivedScore(TimeStampedModel):
     """This is a permanent copy of scores that can't be recalculated"""
 
     # typing
     question_id: int
-    objects: models.Manager["Score"]
+    objects: models.Manager["ArchivedScore"]
     user_id: int | None
 
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
@@ -83,6 +98,16 @@ class ArchivedScore(TimeStampedModel):
             f"on {self.question.id}"
         )
 
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["question"],
+                name="archivedscore_aggmethod_idx",
+                condition=Q(aggregation_method__isnull=False),
+            ),
+            models.Index(fields=["user", "question"]),
+        ]
+
 
 class Leaderboard(TimeStampedModel):
     # typing
@@ -101,12 +126,12 @@ class Leaderboard(TimeStampedModel):
     )
 
     class ScoreTypes(models.TextChoices):
-        RELATIVE_LEGACY_TOURNAMENT = "relative_legacy_tournament"
-        PEER_GLOBAL = "peer_global"
-        PEER_GLOBAL_LEGACY = "peer_global_legacy"
         PEER_TOURNAMENT = "peer_tournament"
         SPOT_PEER_TOURNAMENT = "spot_peer_tournament"
+        RELATIVE_LEGACY_TOURNAMENT = "relative_legacy_tournament"
         BASELINE_GLOBAL = "baseline_global"
+        PEER_GLOBAL = "peer_global"
+        PEER_GLOBAL_LEGACY = "peer_global_legacy"
         COMMENT_INSIGHT = "comment_insight"
         QUESTION_WRITING = "question_writing"
         MANUAL = "manual"
@@ -137,75 +162,161 @@ class Leaderboard(TimeStampedModel):
                         "Question Writing leaderboards do not have base scores"
                     )
 
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    finalize_time = models.DateTimeField(null=True, blank=True)
+    score_type = models.CharField(
+        max_length=200,
+        choices=ScoreTypes.choices,
+        help_text="""
+    <table>
+        <tr><td>peer_tournament</td><td> Sum of peer scores. Most likely what you want.</td></tr>
+        <tr><td>spot_peer_tournament</td><td> Sum of spot peer scores.</td></tr>
+        <tr><td>relative_legacy</td><td> Old site scoring.</td></tr>
+        <tr><td>baseline_global</td><td> Sum of baseline scores.</td></tr>
+        <tr><td>peer_global</td><td> Coverage-weighted average of peer scores.</td></tr>
+        <tr><td>peer_global_legacy</td><td> Average of peer scores.</td></tr>
+        <tr><td>comment_insight</td><td> H-index of upvotes for comments on questions.</td></tr>
+        <tr><td>question_writing</td><td> H-index of number of forecasters / 10 on questions.</td></tr>
+        <tr><td>manual</td><td> Does not automatically update. Manually set all entries.</td></tr>
+    </table>
+    """,
+    )
+    start_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Optional (required for global leaderboards). If not set, the Project's open_date will be used instead.
+        </br>- Global Leaderboards: filters for questions that have an open time after this. Automatically set, do not change.
+        </br>- Non-Global Leaderboards: has no effect on question filtering.
+        </br>- Filtering MedalExclusionRecords: MedalExclusionRecords that have no end_time or an end_time greater than this (and a start_time before this Leaderboard's end_time or finalize_time) will be triggered.
+        """,
+    )
+    end_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Optional (required for global leaderboards).
+        </br>- Global Leaderboards: filters for questions that have a scheduled_close_time before this (plus a grace period). Automatically set, do not change.
+        </br>- Non-Global Leaderboards: has no effect on question filtering.
+        </br>- Filtering MedalExclusionRecords: MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered. If not set, this Leaderboard's finalize_time will be used instead - it is recommended not to use this field unless required.
+        """,
+    )
+    finalize_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Optional. If not set, the Project's close_date will be used instead.
+        </br>- For all Leaderboards: used to filter out questions that have a resolution_set_time after this (as they were resolved after this Leaderboard was finalized).
+        </br>- Filtering MedalExclusionRecords: If set and end_time is not set, MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered.
+        """,
+    )
+    finalized = models.BooleanField(
+        default=False,
+        help_text="If true, this Leaderboard's entries cannot be updated except by a manual action in the admin panel. Automatically set to True the first time this leaderboard is updated after the finalize_time.",
+    )
+    prize_pool = models.DecimalField(
+        default=None,
+        decimal_places=2,
+        max_digits=15,
+        null=True,
+        blank=True,
+        help_text="""Optional. If not set, the Project's prize_pool will be used instead.
+        </br>- If the Project has a prize pool, but this leaderboard has none, set this to 0.
+        """,
+    )
 
     def __str__(self):
         if self.name:
             return f"Leaderboard {self.name}"
         return f"{self.score_type} Leaderboard for {self.project.name}"
 
-    def get_questions(self) -> list[Question]:
+    def get_questions(self) -> QuerySet[Question]:
         from posts.models import Post
 
-        invalid_statuses = [
-            Post.CurationStatus.DELETED,
-            Post.CurationStatus.DRAFT,
-            Post.CurationStatus.PENDING,
-            Post.CurationStatus.REJECTED,
-        ]
+        questions = Question.objects.filter(
+            related_posts__post__curation_status=Post.CurationStatus.APPROVED
+        )
 
-        if self.project:
-            questions = (
-                Question.objects.filter(
+        if not (self.project and self.project.type == Project.ProjectTypes.SITE_MAIN):
+            # normal Project leaderboard
+            if self.project:
+                questions = questions.filter(
                     Q(related_posts__post__projects=self.project)
-                    | Q(related_posts__post__default_project=self.project)
+                    | Q(related_posts__post__default_project=self.project),
                 )
-                .exclude(related_posts__post__curation_status__in=invalid_statuses)
-                .distinct("pk")
-            )
-        else:
-            questions = Question.objects.all().exclude(
-                related_posts__post__curation_status__in=invalid_statuses
-            )
+            return questions.distinct("id")
+
+        # global leaderboard
+        if self.start_time is None or self.end_time is None:
+            raise ValueError("Global leaderboards must have start and end times")
+
+        questions = questions.filter_public().filter(
+            related_posts__post__in=Post.objects.filter_for_main_feed()
+        )
 
         if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
             # post must be published
-            return list(
-                questions.filter(
-                    related_posts__post__published_at__lt=self.end_time
-                ).distinct("pk")
-            )
+            return questions.filter(related_posts__post__published_at__lt=self.end_time)
         elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
             # post must be published, and can't be resolved before the start_time
             # of the leaderboard
-
-            return list(
-                questions.filter(
-                    Q(scheduled_close_time__gte=self.start_time)
-                    & (
-                        Q(actual_close_time__isnull=True)
-                        | Q(actual_close_time__gte=self.start_time)
-                    ),
-                    related_posts__post__published_at__lt=self.end_time,
-                )
-                .exclude(related_posts__post__curation_status__in=invalid_statuses)
-                .distinct("pk")
+            return questions.filter(
+                Q(scheduled_close_time__gte=self.start_time)
+                & (
+                    Q(actual_close_time__isnull=True)
+                    | Q(actual_close_time__gte=self.start_time)
+                ),
+                related_posts__post__published_at__lt=self.end_time,
             )
 
-        if self.start_time and self.end_time:
-            # global leaderboard
-            gl_dates = global_leaderboard_dates()
-            window = (self.start_time, self.end_time)
-            questions = [
-                q
-                for q in questions
-                if q.get_global_leaderboard_dates(gl_dates=gl_dates) == window
-            ]
+        close_grace_period = timedelta(days=3)
+        resolve_grace_period = timedelta(days=100)
 
-        return list(questions)
+        questions = questions.filter(
+            Q(actual_resolve_time__isnull=True)
+            | Q(actual_resolve_time__lte=self.end_time + resolve_grace_period),
+            open_time__gte=self.start_time,
+            open_time__lt=self.end_time,
+            scheduled_close_time__lte=self.end_time + close_grace_period,
+        )
+
+        gl_dates = global_leaderboard_dates()
+        checked_intervals: list[tuple[datetime, datetime]] = []
+        for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
+            if (
+                (self.start_time, self.end_time) == (start, end)
+                or start < self.start_time
+                or self.end_time < end
+            ):
+                continue
+            to_add = True
+            for checked_start, checked_end in checked_intervals:
+                if checked_start < start and end < checked_end:
+                    to_add = False
+                    break
+            if to_add:
+                checked_intervals.append((start, end))
+                questions = questions.filter(
+                    Q(open_time__lt=start)
+                    | Q(scheduled_close_time__gt=end + close_grace_period)
+                    | Q(actual_resolve_time__gt=end + resolve_grace_period)
+                )
+
+        return questions
+
+
+def name_and_slug_for_global_leaderboard_dates(
+    gl_dates: tuple[datetime, datetime]
+) -> tuple[str, str]:
+    """
+    Generates a tag name for a global leaderboard tag given the start and end dates
+    """
+    start_year = gl_dates[0].year
+    end_year = gl_dates[1].year
+    if end_year - start_year == 1:
+        return (
+            f"{start_year} {GLOBAL_LEADERBOARD_STRING}",
+            f"{start_year}_{GLOBAL_LEADERBOARD_SLUG}",
+        )
+    return (
+        f"{start_year}-{end_year - 1} {GLOBAL_LEADERBOARD_STRING}",
+        f"{start_year}_{end_year - 1}_{GLOBAL_LEADERBOARD_SLUG}",
+    )
 
 
 class LeaderboardEntry(TimeStampedModel):
@@ -224,7 +335,7 @@ class LeaderboardEntry(TimeStampedModel):
     score = models.FloatField()
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
-    excluded = models.BooleanField(default=False)
+    excluded = models.BooleanField(default=False, db_index=True)
 
     class Medals(models.TextChoices):
         GOLD = "gold"
@@ -245,6 +356,33 @@ class LeaderboardEntry(TimeStampedModel):
             "LeaderboardEntry for "
             f"{self.user.username if self.user else self.aggregation_method}"
         )
+
+
+class LeaderboardsRanksEntry(TimeStampedModel):
+    class RankTypes(models.TextChoices):
+        TOURNAMENTS_GLOBAL = "tournaments_global"
+        PEER_GLOBAL = "peer_global"
+        BASELINE_GLOBAL = "baseline_global"
+        COMMENTS_GLOBAL = "comments_global"
+        QUESTIONS_GLOBAL = "questions_global"
+
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    points = models.FloatField(null=False)
+
+    rank_type = models.CharField(max_length=200, choices=RankTypes.choices, null=False)
+    rank = models.IntegerField(null=False)
+    rank_total = models.IntegerField(null=False)
+    rank_timestamp = models.DateTimeField(null=False)
+
+    best_rank = models.IntegerField(null=True)
+    best_rank_total = models.IntegerField(null=True)
+    best_rank_timestamp = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return f"{self.user}"
+
+    class Meta:
+        unique_together = ["user", "rank_type"]
 
 
 class MedalExclusionRecord(models.Model):
@@ -275,7 +413,9 @@ def global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
     # Returns the start and end dates for each global leaderboard
     # reads directly from the set of global leaderboards
     leaderboards = Leaderboard.objects.filter(
-        start_time__isnull=False, end_time__isnull=False
+        project__type=Project.ProjectTypes.SITE_MAIN,
+        start_time__isnull=False,
+        end_time__isnull=False,
     )
     intervals = [(lb.start_time, lb.end_time) for lb in leaderboards]
     intervals.sort(key=lambda x: (x[1] - x[0], x[0]))

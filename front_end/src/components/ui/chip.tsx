@@ -1,9 +1,10 @@
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "@headlessui/react";
-import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
+
+import cn from "@/utils/cn";
 
 export type ChipSize = "xs" | "sm" | "md";
 export type ChipVariant = "filled" | "outlined" | "subtle";
@@ -43,7 +44,7 @@ const Chip: FC<PropsWithChildren<Props>> = ({
 }) => {
   return (
     <div
-      className={classNames(
+      className={cn(
         "inline-flex cursor-pointer select-none items-stretch justify-center rounded",
         {
           border: variant === "outlined",
@@ -61,9 +62,10 @@ const Chip: FC<PropsWithChildren<Props>> = ({
     >
       <Button
         as={href ? Link : undefined}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         href={href!}
         onClick={onClick}
-        className={classNames(
+        className={cn(
           "inline-flex items-center justify-center rounded-l border-inherit font-medium no-underline",
           {
             "rounded-r": xMark === false,
@@ -133,7 +135,7 @@ const Chip: FC<PropsWithChildren<Props>> = ({
         {children}
         {label && (
           <div
-            className={classNames(
+            className={cn(
               "flex items-center justify-center rounded-sm px-1 pb-0.5 pt-1",
               {
                 "bg-orange-600 text-gray-0 dark:bg-orange-600-dark dark:text-gray-0-dark":

@@ -2,28 +2,21 @@
 import {
   faArrowUp,
   faEllipsis,
-  faFileClipboard,
   faHome,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
-import clsx from "clsx";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import { useContentTranslatedBannerProvider } from "@/app/providers";
 import Button from "@/components/ui/button";
-import {
-  FeedType,
-  POST_FOLLOWING_FILTER,
-  POST_FORECASTER_ID_FILTER,
-  POST_TOPIC_FILTER,
-} from "@/constants/posts_feed";
+import { FeedType, POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
+import cn from "@/utils/cn";
 
 import TopicItem from "./topic_item";
 
@@ -42,9 +35,9 @@ type Props = {
 const QuestionTopics: FC<Props> = ({ topics }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const { params, setParam, deleteParams } = useSearchParams();
+  const { params, setParam, clearParams } = useSearchParams();
 
-  const { switchFeed, currentFeed, clearInReview } = useFeed();
+  const { switchFeed, currentFeed } = useFeed();
   const selectedTopic = params.get(POST_TOPIC_FILTER);
 
   const { hotTopics, hotCategories } = useMemo(
@@ -59,13 +52,12 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     hotTopics.length + hotCategories.length > EXPAND_THRESHOLD;
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
-  const { bannerIsVissible: isTranslationBannerVisible } =
+  const { bannerIsVisible: isTranslationBannerVisible } =
     useContentTranslatedBannerProvider();
 
   const selectTopic = (topic: Topic) => {
-    clearInReview();
+    clearParams();
     setParam(POST_TOPIC_FILTER, topic.slug);
-    deleteParams([POST_FORECASTER_ID_FILTER, POST_FOLLOWING_FILTER]);
     setIsMobileExpanded(false);
   };
 
@@ -75,8 +67,8 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
 
   return (
     <div
-      className={clsx(
-        "sticky z-40 mt-0 self-start sm:top-16 sm:mt-4 ",
+      className={cn(
+        "sticky z-40 mt-0 self-start sm:top-16 sm:mt-4",
         topPositionClasses
       )}
     >
@@ -84,14 +76,14 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
         {isMobileExpandable && (
           <>
             <div
-              className={classNames(
+              className={cn(
                 "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-800 sm:hidden",
                 isMobileExpanded && "hidden"
               )}
             />
 
             <div
-              className={classNames(
+              className={cn(
                 "absolute right-2 z-20 sm:hidden",
                 isMobileExpanded ? "bottom-3.5" : "top-3.5"
               )}
@@ -103,7 +95,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 presentationType="icon"
               >
                 <FontAwesomeIcon
-                  className={classNames({ "-rotate-180": !isMobileExpanded })}
+                  className={cn({ "-rotate-180": !isMobileExpanded })}
                   icon={faArrowUp}
                 />
               </Button>
@@ -112,7 +104,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
         )}
 
         <div
-          className={classNames(
+          className={cn(
             "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 md:w-64",
             isMobileExpanded ? "flex-wrap" : "pr-10"
           )}
@@ -173,7 +165,18 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           />
           <TopicItem
             isActive={false}
-            emoji="🤖🔭"
+            emoji="🔭"
+            text="Bridgewater 2025"
+            href="/bridgewater/"
+            onClick={() =>
+              sendGAEvent("event", "sidebarClick", {
+                event_category: "Bridgewater 2025",
+              })
+            }
+          />
+          <TopicItem
+            isActive={false}
+            emoji="🤖"
             text="AI Benchmarking"
             href="/aib"
             onClick={() =>
@@ -184,12 +187,12 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           />
           <TopicItem
             isActive={false}
-            emoji="💸🌍"
-            text="Forecast With GiveWell"
-            href="/tournament/forecast-with-givewell/"
+            emoji="📖"
+            text="ACX 2025"
+            href="/tournament/ACX2025/"
             onClick={() =>
               sendGAEvent("event", "sidebarClick", {
-                event_category: "Forecast With GiveWell",
+                event_category: "ACX 2025",
               })
             }
           />
@@ -244,20 +247,6 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               });
             }}
           />
-          <hr className="mb-0 mt-0"></hr>
-          {user && (
-            <TopicItem
-              text={t("inReview")}
-              emoji={<FontAwesomeIcon icon={faFileClipboard} />}
-              onClick={() => {
-                sendGAEvent("event", "sidebarClick", {
-                  event_category: t("inReview"),
-                });
-                switchFeed(FeedType.IN_REVIEW);
-              }}
-              isActive={currentFeed === FeedType.IN_REVIEW}
-            />
-          )}
         </div>
       </div>
     </div>

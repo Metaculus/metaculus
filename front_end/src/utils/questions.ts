@@ -1,10 +1,5 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import {
-  differenceInMilliseconds,
-  fromUnixTime,
-  isValid,
-  subWeeks,
-} from "date-fns";
+import { differenceInMilliseconds, isValid, parseISO } from "date-fns";
 import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -13,14 +8,19 @@ import { ConditionalTableOption } from "@/app/(main)/questions/[id]/components/f
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
 import {
+  ConditionalPost,
+  GroupOfQuestionsPost,
+  NotebookPost,
   Post,
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
+  QuestionPost,
   QuestionStatus,
   Resolution,
 } from "@/types/post";
 import {
+  ForecastAvailability,
   Question,
   QuestionLinearGraphType,
   QuestionType,
@@ -33,10 +33,26 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
-import { Tournament } from "@/types/projects";
 
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
+
+export function isQuestionPost<QT>(post: Post<QT>): post is QuestionPost<QT> {
+  return !isNil(post.question);
+}
+export function isGroupOfQuestionsPost<QT>(
+  post: Post<QT>
+): post is GroupOfQuestionsPost<QT> {
+  return !isNil(post.group_of_questions);
+}
+export function isConditionalPost<QT>(
+  post: Post<QT>
+): post is ConditionalPost<QT> {
+  return !isNil(post.conditional);
+}
+export function isNotebookPost(post: Post): post is NotebookPost {
+  return !isNil(post.notebook);
+}
 
 export function extractPostResolution(post: Post): Resolution | null {
   if (post.question) {
@@ -44,7 +60,7 @@ export function extractPostResolution(post: Post): Resolution | null {
   }
 
   if (post.group_of_questions) {
-    return post.group_of_questions?.questions[0]?.resolution;
+    return post.group_of_questions?.questions[0]?.resolution ?? null;
   }
 
   if (post.conditional) {
@@ -194,11 +210,80 @@ export function formatResolution(
   return resolution;
 }
 
-export function canPredictQuestion(post: PostWithForecasts) {
-  return (
-    post.user_permission !== ProjectPermissions.VIEWER &&
-    post.status === PostStatus.OPEN
-  );
+export function formatMultipleChoiceResolution(
+  resolution: number | string | null | undefined,
+  choice: string
+) {
+  if (resolution === null || resolution === undefined) {
+    return "-";
+  }
+
+  resolution = String(resolution);
+
+  if (isUnsuccessfullyResolved(resolution)) {
+    return capitalize(resolution);
+  }
+
+  return choice.toLowerCase() === resolution.toLowerCase() ? "Yes" : "No";
+}
+
+type CanPredictParams = Pick<
+  Post,
+  | "user_permission"
+  | "status"
+  | "question"
+  | "group_of_questions"
+  | "conditional"
+>;
+export function canPredictQuestion({
+  user_permission,
+  status,
+  question,
+  group_of_questions,
+  conditional,
+}: CanPredictParams) {
+  // post level checks
+  if (
+    user_permission === ProjectPermissions.VIEWER ||
+    status !== PostStatus.OPEN
+  ) {
+    return false;
+  }
+
+  // question-specific checks
+  if (question) {
+    const { open_time } = question;
+
+    return !isNil(open_time) && parseISO(open_time) < new Date();
+  }
+
+  // group-specific checks
+  if (group_of_questions) {
+    return group_of_questions.questions.some(
+      (q) => q.status === QuestionStatus.OPEN
+    );
+  }
+
+  // conditional-specific checks
+  if (conditional) {
+    const { condition } = conditional;
+
+    const parentSuccessfullyResolved =
+      condition.resolution === "yes" || condition.resolution === "no";
+    const parentIsClosed = condition.actual_close_time
+      ? new Date(condition.actual_close_time).getTime() < Date.now()
+      : false;
+    const conditionClosedOrResolved =
+      parentSuccessfullyResolved || parentIsClosed;
+
+    return (
+      !conditionClosedOrResolved &&
+      conditional.condition_child.open_time !== undefined &&
+      new Date(conditional.condition_child.open_time) <= new Date()
+    );
+  }
+
+  return false;
 }
 
 export function canWithdrawForecast(
@@ -257,12 +342,13 @@ export function getPredictionQuestion(
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
 
   if (curationStatus === PostStatus.RESOLVED) {
-    return sortedQuestions[sortedQuestions.length - 1];
+    return sortedQuestions[sortedQuestions.length - 1] ?? null;
   }
 
   return (
     sortedQuestions.find((q) => q.resolution === null) ??
-    sortedQuestions[sortedQuestions.length - 1]
+    sortedQuestions[sortedQuestions.length - 1] ??
+    null
   );
 }
 
@@ -270,16 +356,16 @@ export const generateUserForecastsForMultipleQuestion = (
   question: QuestionWithMultipleChoiceForecasts
 ): UserChoiceItem[] | undefined => {
   const latest = question.aggregations.recency_weighted.latest;
-  const options = question.options!;
+  const options = question.options;
 
-  const choiceOrdering: number[] = options.map((_, i) => i);
+  const choiceOrdering: number[] = options?.map((_, i) => i) ?? [];
   choiceOrdering.sort((a, b) => {
     const aCenter = latest?.forecast_values[a] ?? 0;
     const bCenter = latest?.forecast_values[b] ?? 0;
     return bCenter - aCenter;
   });
 
-  return options.map((choice, index) => {
+  return options?.map((choice, index) => {
     const userForecasts = question.my_forecasts?.history;
     const values: (number | null)[] = [];
     const timestamps: number[] = [];
@@ -289,10 +375,10 @@ export const generateUserForecastsForMultipleQuestion = (
         timestamps[timestamps.length - 1] === forecast.start_time
       ) {
         // new forecast starts at the end of the previous, so overwrite values
-        values[values.length - 1] = forecast.forecast_values[index];
+        values[values.length - 1] = forecast.forecast_values[index] ?? null;
       } else {
         // just add the forecast
-        values.push(forecast.forecast_values[index]);
+        values.push(forecast.forecast_values[index] ?? null);
         timestamps.push(forecast.start_time);
       }
 
@@ -322,22 +408,31 @@ export const generateUserForecasts = (
 
     return {
       choice: question.label,
-      values: userForecasts?.history.map((forecast) =>
-        question.type === "binary"
-          ? forecast.forecast_values[1]
-          : scaling
-            ? unscaleNominalLocation(
-                scaleInternalLocation(forecast.centers![0], question.scaling),
-                scaling
-              )
-            : forecast.centers![0]
-      ),
+      values: userForecasts?.history.map((forecast) => {
+        if (question.type === QuestionType.Binary) {
+          return forecast.forecast_values[1] ?? 0;
+        }
+
+        if (!forecast.centers || isNil(forecast.centers[0])) {
+          return 0;
+        }
+
+        const value = forecast.centers[0];
+        if (scaling) {
+          return unscaleNominalLocation(
+            scaleInternalLocation(value, question.scaling),
+            scaling
+          );
+        }
+
+        return value;
+      }),
       timestamps: userForecasts?.history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       unscaledValues: userForecasts?.history.map((forecast) =>
-        question.type === "binary"
-          ? forecast.forecast_values[1]
-          : forecast.centers![0]
+        question.type === QuestionType.Binary
+          ? forecast.forecast_values[1] ?? 0
+          : forecast.centers?.[0] ?? 0
       ),
     };
   });
@@ -347,8 +442,8 @@ export function sortGroupPredictionOptions(
   questions: QuestionWithNumericForecasts[]
 ) {
   return [...questions].sort((a, b) => {
-    const aMean = a.aggregations.recency_weighted.latest?.centers![0] ?? 0;
-    const bMean = b.aggregations.recency_weighted.latest?.centers![0] ?? 0;
+    const aMean = a.aggregations.recency_weighted.latest?.centers?.[0] ?? 0;
+    const bMean = b.aggregations.recency_weighted.latest?.centers?.[0] ?? 0;
     return bMean - aMean;
   });
 }
@@ -417,7 +512,10 @@ export function getSubquestionPredictionInputMessage(
   }
 }
 
-export function parseQuestionId(questionUrlOrId: string): {
+export function parseQuestionId(
+  questionUrlOrId: string,
+  includeNotebooks: boolean = false
+): {
   postId: number | null;
   questionId: number | null;
 } {
@@ -441,7 +539,9 @@ export function parseQuestionId(questionUrlOrId: string): {
   if (!isNaN(id)) {
     result.postId = id;
   } else {
-    const urlPattern = /\/questions\/(\d+)\/?/;
+    const urlPattern = includeNotebooks
+      ? /\/(?:questions|notebooks)\/(\d+)\/?/
+      : /\/questions\/(\d+)\/?/;
     const match = questionUrlOrId.match(urlPattern);
     if (match && match[1]) {
       result.postId = Number(match[1]);
@@ -451,31 +551,51 @@ export function parseQuestionId(questionUrlOrId: string): {
   return result;
 }
 
-export function getGroupCPRevealTime(questions: QuestionWithForecasts[]) {
-  const cdRevealTimes: number[] = [];
-  for (const q of questions) {
+export function getGroupForecastAvailability(
+  groupQuestions: QuestionWithForecasts[]
+): ForecastAvailability {
+  const cpRevealTimes: Array<{ raw: string; formatted: number }> = [];
+  for (const q of groupQuestions) {
     if (q.cp_reveal_time) {
-      cdRevealTimes.push(new Date(q.cp_reveal_time).getTime());
+      cpRevealTimes.push({
+        raw: q.cp_reveal_time,
+        formatted: new Date(q.cp_reveal_time).getTime(),
+      });
     }
   }
 
-  let closestCPRevealTime: Date | null = null;
-  if (cdRevealTimes.length) {
-    const candidate = Math.min(...cdRevealTimes);
-    const candidateDate = new Date(candidate);
-    if (isValid(candidateDate)) {
-      closestCPRevealTime = candidateDate;
+  let closestCPRevealTime: string | null = null;
+  if (cpRevealTimes.length) {
+    const minDate = Math.min(...cpRevealTimes.map((t) => t.formatted));
+    const candidate = cpRevealTimes.find((t) => t.formatted === minDate);
+    if (candidate && isValid(new Date(candidate.raw))) {
+      closestCPRevealTime = candidate.raw;
     }
   }
-
-  const isCPRevealed = closestCPRevealTime
-    ? closestCPRevealTime <= new Date()
-    : true;
 
   return {
-    closestCPRevealTime: closestCPRevealTime
-      ? closestCPRevealTime.toString()
-      : undefined,
-    isCPRevealed,
+    isEmpty: groupQuestions.every(getIsQuestionForecastEmpty),
+    cpRevealsOn:
+      closestCPRevealTime && new Date(closestCPRevealTime) >= new Date()
+        ? closestCPRevealTime
+        : null,
   };
 }
+
+export function getQuestionForecastAvailability(
+  question: QuestionWithForecasts
+): ForecastAvailability {
+  return {
+    isEmpty:
+      !question.aggregations.recency_weighted.history.length &&
+      !question.my_forecasts?.history.length,
+    cpRevealsOn:
+      question.cp_reveal_time && new Date(question.cp_reveal_time) >= new Date()
+        ? question.cp_reveal_time
+        : null,
+  };
+}
+
+const getIsQuestionForecastEmpty = (question: QuestionWithForecasts): boolean =>
+  !question.aggregations.recency_weighted.history.length &&
+  !question.my_forecasts?.history.length;

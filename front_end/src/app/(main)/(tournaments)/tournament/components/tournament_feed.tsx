@@ -14,6 +14,7 @@ import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
+import { QuestionOrder } from "@/types/question";
 import { logError } from "@/utils/errors";
 
 type Props = {
@@ -24,7 +25,10 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
   const searchParams = useSearchParams();
   const questionFilters = generateFiltersFromSearchParams(
     Object.fromEntries(searchParams),
-    { withoutPageParam: true }
+    {
+      withoutPageParam: true,
+      defaultOrderBy: QuestionOrder.HotDesc,
+    }
   );
   const pageFilters: PostsParams = {
     statuses: PostStatus.APPROVED,
@@ -37,16 +41,16 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
-  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
 
   useEffect(() => {
     if (
       tournament?.is_current_content_translated ||
       questions.filter((q) => q.is_current_content_translated).length > 0
     ) {
-      setBannerisVisible(true);
+      setBannerIsVisible(true);
     }
-  }, [questions, setBannerisVisible, tournament]);
+  }, [questions, setBannerIsVisible, tournament]);
   const relevantParams = Object.fromEntries(searchParams);
   const { page, ...otherParams } = relevantParams;
   useEffect(() => {

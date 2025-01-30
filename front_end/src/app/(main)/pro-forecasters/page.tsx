@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -6,6 +7,7 @@ import RichText from "@/components/rich_text";
 
 import ProForecastersHero from "./components/hero_section";
 import ProForecastersInfoSection from "./components/info_section";
+import ProForecasterLink from "./components/link";
 import ProForecastersSection from "./components/pro_forecasters_section";
 
 export default function ProForecastersPage() {
@@ -19,7 +21,20 @@ export default function ProForecastersPage() {
       <Divider />
       <ProForecastersInfoSection
         title={t("whyUseProForecastersTitle")}
-        info={t("whyUseProForecastersInfo")}
+        info={
+          <RichText>
+            {(tags) =>
+              t.rich("whyUseProForecastersInfo", {
+                ...tags,
+                link: (chunks) => (
+                  <ProForecasterLink href="/questions/track-record/" internal>
+                    {chunks}
+                  </ProForecasterLink>
+                ),
+              })
+            }
+          </RichText>
+        }
         size="lg"
       />
       <ProForecastersInfoSection
@@ -29,18 +44,16 @@ export default function ProForecastersPage() {
       />
       <ProForecastersInfoSection
         title={t("excellentForecastAbilityTitle")}
+        titleIcon={TitleIcon}
         info={
           <RichText>
             {(tags) =>
               t.rich("excellentForecastAbilityInfo", {
                 ...tags,
                 link: (chunks) => (
-                  <Link
-                    href="/leaderboard"
-                    className="text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
-                  >
+                  <ProForecasterLink href="/leaderboard" internal>
                     {chunks}
-                  </Link>
+                  </ProForecasterLink>
                 ),
               })
             }
@@ -49,6 +62,7 @@ export default function ProForecastersPage() {
       />
       <ProForecastersInfoSection
         title={t("robustTrackRecordsTitle")}
+        titleIcon={TitleIcon}
         info={
           <RichText>
             {(tags) => t.rich("robustTrackRecordsInfo", tags)}
@@ -57,6 +71,7 @@ export default function ProForecastersPage() {
       />
       <ProForecastersInfoSection
         title={t("clearCommentsAndCommunicationTitle")}
+        titleIcon={TitleIcon}
         info={t("clearCommentsAndCommunicationInfo")}
       />
     </main>
@@ -65,4 +80,11 @@ export default function ProForecastersPage() {
 
 const Divider: FC = () => (
   <hr className="m-0 w-full border-blue-400 dark:border-blue-400-dark" />
+);
+
+const TitleIcon = (
+  <FontAwesomeIcon
+    icon={faCheck}
+    className="h-[28px] w-[25px] text-mc-option-3 dark:text-mc-option-3-dark"
+  />
 );

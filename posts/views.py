@@ -1,10 +1,9 @@
-import logging
 from collections import defaultdict
 
-import requests
-from django.conf import settings
 from django.core.files.storage import default_storage
-from django.http import HttpResponse, HttpResponseNotFound
+from django.db import transaction
+from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
@@ -17,6 +16,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from misc.models import WhitelistUser
 from misc.services.itn import get_post_similar_articles
 from posts.models import (
     Post,
@@ -25,6 +25,7 @@ from posts.models import (
     PostActivityBoost,
 )
 from posts.serializers import (
+    DownloadDataSerializer,
     PostFilterSerializer,
     OldQuestionFilterSerializer,
     PostWriteSerializer,
@@ -43,20 +44,22 @@ from posts.services.common import (
     post_make_draft,
     compute_hotness,
     trigger_update_post_translations,
+    make_repost,
+    vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
+from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services.common import get_project_permission_for_user
 from questions.models import AggregateForecast, Question
 from questions.serializers import (
     QuestionApproveSerializer,
 )
-from questions.types import AggregationMethod
 from users.models import User
-from utils.csv_utils import build_csv
+from utils.csv_utils import export_data_for_questions
 from utils.files import UserUploadedImage, generate_filename
-from utils.frontend import build_question_embed_url
 from utils.paginator import CountlessLimitOffsetPagination
 from utils.the_math.aggregations import get_aggregation_history
 
@@ -339,20 +342,14 @@ def post_delete_api_view(request, pk):
 
 
 @api_view(["POST"])
+@transaction.non_atomic_requests
 def post_vote_api_view(request: Request, pk: int):
     post = get_object_or_404(Post, pk=pk)
     direction = serializers.ChoiceField(
         required=False, allow_null=True, choices=Vote.VoteDirection.choices
     ).run_validation(request.data.get("direction"))
 
-    # Deleting existing vote
-    Vote.objects.filter(user=request.user, post=post).delete()
-
-    if direction:
-        Vote.objects.create(user=request.user, post=post, direction=direction)
-
-    # Update counters
-    vote_score = post.update_vote_score()
+    vote_score = vote_post(post, request.user, direction)
 
     return Response({"score": vote_score})
 
@@ -409,8 +406,8 @@ def activity_boost_api_view(request, pk):
 
     PostActivityBoost.objects.create(user=request.user, post=post, score=score)
 
-    # Recalculate hotness
-    compute_hotness()
+    # Recalculate hotness for the given post
+    compute_hotness(Post.objects.filter(pk=pk))
 
     return Response(
         {"score_total": PostActivityBoost.get_post_score(pk)},
@@ -540,142 +537,108 @@ def post_related_articles_api_view(request: Request, pk):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def post_preview_image(request: Request, pk):
-    post = get_object_or_404(Post, pk=pk)
-
-    # Check permissions
-    permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_view(permission, raise_exception=True)
-
-    headers = {"api_key": settings.SCREENSHOT_SERVICE_API_KEY}
-    width = 1200
-    height = 630
-    theme = "dark"
-
-    image_url = f"{build_question_embed_url(pk)}/?ENFORCED_THEME_PARAM={theme}&HIDE_ZOOM_PICKER=true&non-interactive=true"
-
-    try:
-        response = requests.post(
-            f"{settings.SCREENSHOT_SERVICE_API_URL}/",
-            json={
-                "url": image_url,
-                "selector": "#id-used-by-screenshot-donot-change",
-                "selector_to_wait": "#id-logo-used-by-screenshot-donot-change",
-                "width": width,
-                "height": height,
-            },
-            headers=headers,
-        )
-        if response.ok:
-            image_data = response.content
-            return HttpResponse(image_data, content_type="image/png")
-        else:
-            logging.error(
-                "Screenshot service failed status_code=%s response=%s",
-                response.status_code,
-                response.content.decode("utf-8"),
-            )
-
-    except Exception:
-        logging.exception("Image generation failed question_id=%s", pk)
-
-    return HttpResponseNotFound(
-        "HTTP 404 - Chart for this question cannot be generated."
-    )
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def download_csv(request, pk: int):
-    post = get_object_or_404(Post, pk=pk)
+def download_data(request, post_id: int):
+    post = get_object_or_404(Post, pk=post_id)
     user: User = request.user
 
     # Check permissions
     permission = get_post_permission_for_user(post, user=user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    # Get question
+    # Context for the serializer
+    can_view_private_data = user.is_authenticated and (
+        user.is_staff
+        or WhitelistUser.objects.filter(
+            Q(post=post)
+            | Q(project=post.default_project)
+            | (Q(post__isnull=True) & Q(project__isnull=True)),
+            user=user,
+        ).exists()
+    )
+    serializer_context = {
+        "user": user,
+        "can_view_private_data": can_view_private_data,
+    }
+
+    serializer = DownloadDataSerializer(
+        data=request.query_params, context=serializer_context
+    )
+    serializer.is_valid(raise_exception=True)
+    params = serializer.validated_data
+    sub_question = params.get("sub_question")
+    aggregation_methods = params.get("aggregation_methods")
+    user_ids = params.get("user_ids")
+    include_comments = params.get("include_comments", False)
+    include_scores = params.get("include_scores", False)
+    include_bots = params.get("include_bots")
+    minimize = params.get("minimize", True)
+
+    # Get questions based on sub_question parameter
     if post.group_of_questions:
-        question_id = request.GET.get("sub-question", None)
-        if question_id is None:
-            questions = list(post.group_of_questions.questions.all())
+        if sub_question is None:
+            questions = post.group_of_questions.questions.all()
         else:
-            questions = list(post.group_of_questions.questions.filter(pk=question_id))
+            questions = post.group_of_questions.questions.filter(pk=sub_question)
             if not questions:
-                raise NotFound(f"Sub-question with id {question_id} not found.")
+                raise NotFound(f"Sub-question with id {sub_question} not found.")
     elif post.conditional:
-        questions = [post.conditional.question_yes, post.conditional.question_no]
+        questions = Question.objects.filter(
+            id__in=[post.conditional.question_yes_id, post.conditional.question_no_id]
+        )
     elif post.question:
-        questions = [post.question]
+        questions = Question.objects.filter(id=post.question_id)
     else:
         raise NotFound("Post has no questions")
 
-    # get and validate aggregation_methods
-    aggregation_methods = request.GET.get("aggregation_methods", "recency_weighted")
-    if aggregation_methods == "all":
-        aggregation_methods = None
-    if aggregation_methods:
-        aggregation_methods: list[AggregationMethod] = aggregation_methods.split(",")
-        for method in aggregation_methods:
-            if method not in AggregationMethod.values:
-                raise PermissionDenied(f"Invalid aggregation method: {method}")
-        if not user.is_staff:
-            aggregation_methods = [
-                method
-                for method in aggregation_methods
-                if method != AggregationMethod.SINGLE_AGGREGATION
-            ]
-    else:
-        aggregation_methods = [
-            AggregationMethod.RECENCY_WEIGHTED,
-            AggregationMethod.UNWEIGHTED,
-            AggregationMethod.METACULUS_PREDICTION,
-        ]
-        if user.is_staff:
-            aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
-
-    # get user_ids
-    user_ids = request.GET.get("user_ids", None)
-    if user_ids:
-        user_ids = user_ids.split(",")
-    if user_ids and not user.is_staff:
-        # if user_ids provided, check user is staff
-        raise PermissionDenied("Current user can not view user-specific data")
-    include_bots = request.GET.get("include_bots", None)
-
-    # to minimize the aggregation history or not
-    minimize = str(request.GET.get("minimize", "true")).lower() == "true"
-
-    now = timezone.now()
-    aggregation_dict: dict[Question, dict[str, AggregateForecast]] = defaultdict(dict)
-    for question in questions:
-        if (
-            question.cp_reveal_time
-            and question.cp_reveal_time > now
-            and (not user or not user.is_superuser)
-        ):
-            continue
-
-        aggregation_dict[question] = get_aggregation_history(
-            question,
-            aggregation_methods,
-            user_ids=user_ids,
-            minimize=minimize,
-            include_stats=True,
-            include_bots=(
-                include_bots
-                if include_bots is not None
-                else question.include_bots_in_aggregates
-            ),
-            histogram=True,
+    if not aggregation_methods and (
+        (user_ids is not None) or (include_bots is not None) or (not minimize)
+    ):
+        raise ValueError(
+            "If user_ids, include_bots or minimize is set, "
+            "aggregation_methods must also be set"
         )
 
-    csv_data = build_csv(aggregation_dict)
+    now = timezone.now()
+    aggregation_dict: dict[Question, dict[str, list[AggregateForecast]]] = defaultdict(
+        dict
+    )
+    if aggregation_methods:
+        for question in questions:
+            if (
+                question.cp_reveal_time
+                and question.cp_reveal_time > now
+                and (not user or not user.is_superuser)
+            ):
+                continue
+
+            aggregation_dict[question] = get_aggregation_history(
+                question,
+                aggregation_methods,
+                user_ids=user_ids,
+                minimize=minimize,
+                include_stats=True,
+                include_bots=(
+                    include_bots
+                    if include_bots is not None
+                    else question.include_bots_in_aggregates
+                ),
+                histogram=True,
+            )
+
+    data = export_data_for_questions(
+        questions=questions,
+        include_user_forecasts=can_view_private_data,
+        include_comments=include_comments,
+        include_scores=include_scores,
+        user_ids=user_ids,
+        aggregation_dict=aggregation_dict or None,
+    )
+
     filename = "_".join(post.title.split(" "))
     response = HttpResponse(
-        csv_data,
-        content_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
+        data,
+        content_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={filename}.zip"},
     )
     return response
 
@@ -685,9 +648,39 @@ def download_csv(request, pk: int):
 def random_post_id(request):
     post = (
         Post.objects.filter_permission(user=request.user)
+        .filter_public()
         .filter_questions()
         .filter_active()
         .order_by("?")
         .first()
     )
     return Response({"id": post.id, "post_slug": get_post_slug(post)})
+
+
+@api_view(["POST"])
+def repost_api_view(request, pk):
+    """
+    Boots/Bury post
+    """
+
+    user = request.user
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    project_id = serializers.IntegerField().run_validation(
+        request.data.get("project_id")
+    )
+
+    # Allow reposting only into projects where the user has Admin or Curator permissions
+    project = get_object_or_404(Project, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(project, user=request.user)
+    ObjectPermission.can_repost_into_project(permission, raise_exception=True)
+
+    make_repost(post, project)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

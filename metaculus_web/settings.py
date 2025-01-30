@@ -11,13 +11,13 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 import os
+import re
 from pathlib import Path
 
 import dj_database_url
+import django.conf.locale
 import sentry_sdk
 from sentry_sdk.integrations.dramatiq import DramatiqIntegration
-
-import django.conf.locale
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",
     # third-party:
     "django_extensions",
     "rest_framework",
@@ -240,7 +241,8 @@ EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg2.metaculus.com>"
 )
 EMAIL_NOTIFICATIONS_USER = os.environ.get(
-    "EMAIL_NOTIFICATIONS_USER", "Metaculus Notifications <notifications@mg2.metaculus.com>"
+    "EMAIL_NOTIFICATIONS_USER",
+    "Metaculus Notifications <notifications@mg2.metaculus.com>",
 )
 EMAIL_SENDER_NO_REPLY = os.environ.get(
     "EMAIL_SENDER_NO_REPLY", "Metaculus NoReply <no-reply@mg2.metaculus.com>"
@@ -444,14 +446,23 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
-    return 1.0
+    # Custom traces configuration
+
+    # Capture all for non-prod envs
+    if ENV != ENV_PROD:
+        return 1.0
+
+    if re.match(r"^/api/posts/\d+/similar-posts/?$", url) or url == "/api/medals/":
+        return 0.1
+
+    return 0.25
 
 
 if os.environ.get("SENTRY_DNS", None):
     sentry_sdk.init(
         dsn=os.environ.get("SENTRY_DNS"),
         traces_sampler=traces_sampler,
-        profiles_sample_rate=1.0,
+        profiles_sample_rate=0.5,
         environment=ENV,
         integrations=[
             DramatiqIntegration(),
@@ -492,4 +503,8 @@ LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)
 
 GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
     "GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY", None
+)
+
+CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(
+    "CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR", None
 )

@@ -1,5 +1,5 @@
 import numpy as np
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -10,7 +10,9 @@ from rest_framework.response import Response
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
+from questions.models import AggregationMethod
 from scoring.models import Leaderboard, LeaderboardEntry
 from scoring.serializers import (
     LeaderboardSerializer,
@@ -20,7 +22,6 @@ from scoring.serializers import (
 from scoring.utils import get_contributions
 from users.models import User
 from users.views import serialize_profile
-from questions.models import AggregationMethod
 
 
 @api_view(["GET"])
@@ -34,7 +35,7 @@ def global_leaderboard(
     leaderboard_type = request.GET.get("leaderboardType", None)
     # filtering
     leaderboards = Leaderboard.objects.filter(
-        project__type=Project.ProjectTypes.SITE_MAIN
+        project__visibility=Project.Visibility.NORMAL
     )
     if start_time:
         leaderboards = leaderboards.filter(start_time=start_time)
@@ -131,29 +132,51 @@ def user_medals(
     user_id = request.GET.get("userId", None)
     if not user_id:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
     entries_with_medals = LeaderboardEntry.objects.filter(
         user_id=user_id, medal__isnull=False
-    ).select_related("leaderboard", "user")
+    ).select_related("leaderboard__project", "user")
+
+    # Fetch counts of non-excluded entries for each leaderboard and create a mapping
+    leaderboard_entries_mapping = {
+        x["leaderboard_id"]: x["total_entries"]
+        for x in (
+            LeaderboardEntry.objects.filter(
+                leaderboard_id__in=[
+                    entry.leaderboard_id for entry in entries_with_medals
+                ],
+                excluded=False,
+            )
+            .values("leaderboard_id")
+            .annotate(total_entries=Count("id"))
+        )
+    }
+
     entries = []
     for entry in entries_with_medals:
         entry_data = LeaderboardEntrySerializer(entry).data
         leaderboard = LeaderboardSerializer(entry.leaderboard).data
-        total_entries = entry.leaderboard.entries.filter(excluded=False).count()
-        entries.append({**entry_data, **leaderboard, "total_entries": total_entries})
+        entries.append(
+            {
+                **entry_data,
+                **leaderboard,
+                "total_entries": leaderboard_entries_mapping.get(
+                    entry.leaderboard_id, 0
+                ),
+            }
+        )
     return Response(entries)
 
 
+@cache_page(60 * 30)
 @api_view(["GET"])
 @permission_classes([AllowAny])
-@cache_page(60 * 30)
 def medal_contributions(
     request: Request,
 ):
     user_id = request.GET.get("userId", None)
     user = get_object_or_404(User, pk=user_id)
-    project_id = request.GET.get(
-        "projectId", Project.objects.get(type=Project.ProjectTypes.SITE_MAIN).id
-    )
+    project_id = request.GET.get("projectId", get_site_main_project().id)
 
     projects = get_projects_qs(user=request.user)
     project: Project = get_object_or_404(projects, pk=project_id)
@@ -188,8 +211,7 @@ def medal_contributions(
         leaderboard = leaderboards.first()
 
     contributions = get_contributions(user, leaderboard)
-    entries = leaderboard.entries.select_related("user").all()
-    leaderboard_entry = next((e for e in entries if e.user == user), None)
+    leaderboard_entry = leaderboard.entries.filter(user=user).first()
 
     return_data = {
         "leaderboard_entry": LeaderboardEntrySerializer(leaderboard_entry).data,
@@ -206,4 +228,6 @@ def medal_contributions(
 def metaculus_track_record(
     request: Request,
 ):
-    return Response(serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED))
+    return Response(
+        serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED)
+    )

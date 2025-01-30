@@ -1,7 +1,6 @@
 "use client";
 import { faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -14,6 +13,7 @@ import {
   useShareOnTwitterLink,
 } from "@/hooks/share";
 import { useBreakpoint } from "@/hooks/tailwind";
+import cn from "@/utils/cn";
 
 type Props = {
   questionTitle: string;
@@ -64,7 +64,7 @@ export const SharePostMenu: FC<Props> = ({
               {
                 id: "image",
                 name: t("image"),
-                link: `/api/posts/preview-image/${questionId}`,
+                link: `/questions/${questionId}/image-preview/`,
                 openNewTab: true,
               },
             ]
@@ -78,7 +78,7 @@ export const SharePostMenu: FC<Props> = ({
     >
       <Button
         variant="secondary"
-        className={classNames("!rounded border-0", btnClassName)}
+        className={cn("rounded border-0", btnClassName)}
         presentationType="icon"
       >
         <FontAwesomeIcon icon={faShareNodes} className="text-lg" />

@@ -2,14 +2,19 @@ import { format, fromUnixTime } from "date-fns";
 import { isNil, round } from "lodash";
 import * as math from "mathjs";
 
-import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import {
   CurveChoiceOption,
   CurveQuestionLabels,
+  DistributionSlider,
+  DistributionSliderComponent,
   QuestionType,
   QuestionWithForecasts,
 } from "@/types/question";
-import { cdfFromSliders, cdfToPmf } from "@/utils/math";
+import {
+  cdfFromSliders,
+  cdfToPmf,
+  computeQuartilesFromCDF,
+} from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 export function getForecastPctDisplayValue(
@@ -46,41 +51,34 @@ export function formatPrediction(
 }
 
 export function extractPrevBinaryForecastValue(
-  prevForecast: any
+  prevForecast: unknown
 ): number | null {
   return typeof prevForecast === "number" ? round(prevForecast * 100, 1) : null;
 }
 
-export function extractPrevNumericForecastValue(prevForecast: any): {
-  forecast?: MultiSliderValue[];
-  weights?: number[];
-} {
+export function extractPrevNumericForecastValue(
+  prevForecast: unknown
+): DistributionSlider | undefined {
   if (typeof prevForecast !== "object" || prevForecast === null) {
-    return {};
+    return undefined;
   }
 
-  const result: { forecast?: MultiSliderValue[]; weights?: number[] } = {};
-  if ("forecast" in prevForecast) {
-    result.forecast = prevForecast.forecast;
+  if ("type" in prevForecast && "components" in prevForecast) {
+    return prevForecast as DistributionSlider;
   }
-
-  if ("weights" in prevForecast) {
-    result.weights = prevForecast.weights;
-  }
-
-  return result;
 }
 
 export function getNumericForecastDataset(
-  forecast: MultiSliderValue[],
-  weights: number[],
+  components: DistributionSliderComponent[],
   lowerOpen: boolean,
   upperOpen: boolean
 ) {
+  const weights = components.map(({ weight }) => weight);
   const normalizedWeights = weights.map(
     (x) => x / weights.reduce((a, b) => a + b)
   );
-  const componentCdfs = forecast.map(
+
+  const componentCdfs = components.map(
     (component, index) =>
       math.multiply(
         cdfFromSliders(
@@ -90,8 +88,9 @@ export function getNumericForecastDataset(
           lowerOpen,
           upperOpen
         ),
-        normalizedWeights[index]
-      ) as number[]
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        normalizedWeights[index]!
+      ) as unknown as number[]
   );
   let cdf = componentCdfs.reduce((acc, componentCdf) =>
     math.add(acc, componentCdf)
@@ -138,4 +137,34 @@ export function generateCurveChoiceOptions(
 
       return 0;
     });
+}
+
+export const getNormalizedContinuousForecast = (
+  forecast: DistributionSliderComponent[] | null | undefined
+): DistributionSliderComponent[] =>
+  forecast ?? [
+    {
+      left: 0.4,
+      center: 0.5,
+      right: 0.6,
+      weight: 1,
+    },
+  ];
+
+export function getUserContinuousQuartiles(
+  components?: DistributionSliderComponent[],
+  openLower?: boolean,
+  openUpper?: boolean
+) {
+  if (
+    !components ||
+    !components.length ||
+    typeof openLower === "undefined" ||
+    typeof openUpper === "undefined"
+  ) {
+    return null;
+  }
+
+  const dataset = getNumericForecastDataset(components, openLower, openUpper);
+  return computeQuartilesFromCDF(dataset.cdf);
 }

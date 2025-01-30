@@ -23,7 +23,14 @@ const EngageBlock: FC = () => {
         <div className="text-lg text-blue-200 dark:text-blue-200-dark lg:max-w-2xl">
           <p className="my-8">
             {t.rich("learnHowYouCanPartner", {
-              link: (chunks) => <Link href={"/pro-forecasters"}>{chunks}</Link>,
+              link: (chunks) => (
+                <Link
+                  href={"/pro-forecasters"}
+                  className="!text-blue-200 dark:!text-blue-200-dark"
+                >
+                  {chunks}
+                </Link>
+              ),
             })}
           </p>
           <p className="my-0">{t("workingWithNonProfits")}</p>

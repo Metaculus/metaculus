@@ -61,7 +61,7 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
   if (
     post &&
     post.group_of_questions?.questions &&
-    post.group_of_questions.questions[0].type === QuestionType.Binary
+    post.group_of_questions.questions[0]?.type === QuestionType.Binary
   ) {
     const histogramQuestion = post.group_of_questions.questions[0];
     const histogramData =
@@ -72,7 +72,7 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
         })
       );
     const median =
-      histogramQuestion.aggregations.recency_weighted.latest?.centers![0];
+      histogramQuestion.aggregations.recency_weighted.latest?.centers?.[0];
     const choiceOptions = generateCurveChoiceOptions(
       post.group_of_questions.questions
     );
@@ -104,7 +104,7 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
             ref={nextBtnRef}
             className="!bg-blue-900 !px-5 !text-lg !text-gray-200"
             onClick={() => {
-              onNextQuestion && onNextQuestion();
+              onNextQuestion?.();
             }}
           >
             {t("nextQuestion")}

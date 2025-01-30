@@ -1,4 +1,5 @@
 import re
+
 import pytest
 
 from comments.utils import USERNAME_PATTERN, get_mention_for_user
@@ -6,7 +7,13 @@ from tests.unit.fixtures import *  # noqa
 
 
 @pytest.mark.parametrize(
-    "mention,actual_username", [["@username", "username"], ["@(username)", "username"]]
+    "mention,actual_username",
+    [
+        ["@username", "username"],
+        ["@(username)", "(username)"],
+        ["@username.", "username"],
+        ["@(user name)", "(user name)"],
+    ],
 )
 def test_username_pattern(mention, actual_username):
     assert re.findall(USERNAME_PATTERN, mention)[0] == actual_username

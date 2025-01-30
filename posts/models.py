@@ -36,9 +36,6 @@ from utils.models import TimeStampedModel, TranslatedModel
 
 
 class PostQuerySet(models.QuerySet):
-    def prefetch_projects(self):
-        return self.prefetch_related("projects").select_related("default_project")
-
     def prefetch_user_forecasts(self, user_id: int):
         question_relations = [
             "question",
@@ -173,7 +170,7 @@ class PostQuerySet(models.QuerySet):
         is following the respective posts.
         """
         subscription_exists_subquery = PostSubscription.objects.filter(
-            post=OuterRef("pk"), user=user
+            post=OuterRef("pk"), user=user, is_global=False
         )
 
         return self.annotate(
@@ -240,9 +237,16 @@ class PostQuerySet(models.QuerySet):
                 "default_project__projectuserpermission",
                 condition=Q(default_project__projectuserpermission__user_id=user_id),
             ),
-            _user_permission=Coalesce(
-                F("user_permission_override__permission"),
-                F("default_project__default_permission"),
+            _user_permission=models.Case(
+                models.When(
+                    Q(default_project__created_by_id__isnull=False, default_project__created_by_id=user_id),
+                    then=models.Value(ObjectPermission.ADMIN),
+                ),
+                default=Coalesce(
+                    F("user_permission_override__permission"),
+                    F("default_project__default_permission"),
+                ),
+                output_field=models.CharField(),
             ),
         )
 
@@ -256,7 +260,13 @@ class PostQuerySet(models.QuerySet):
                         ObjectPermission.CURATOR,
                     ]
                 )
-                & Q(curation_status=Post.CurationStatus.PENDING)
+                & Q(
+                    # Admins should have access to draft and pending content
+                    curation_status__in=[
+                        Post.CurationStatus.DRAFT,
+                        Post.CurationStatus.PENDING,
+                    ]
+                )
             )
             | (
                 Q(_user_permission__isnull=False)
@@ -265,7 +275,10 @@ class PostQuerySet(models.QuerySet):
                         Q(default_project_id=site_main_project.pk)
                         & Q(curation_status=Post.CurationStatus.PENDING)
                     )
-                    | Q(curation_status=Post.CurationStatus.APPROVED)
+                    | Q(
+                        curation_status=Post.CurationStatus.APPROVED,
+                        published_at__lte=timezone.now(),
+                    )
                 )
             )
         )
@@ -353,6 +366,21 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def filter_for_main_feed(self):
+        """
+        Returns posts with projects that are visible in main feed
+        """
+
+        return self.filter(
+            Q(default_project__visibility=Project.Visibility.NORMAL)
+            | Exists(
+                Post.projects.through.objects.filter(
+                    post_id=OuterRef("pk"),
+                    project__visibility=Project.Visibility.NORMAL,
+                )
+            )
+        )
+
     def filter_questions(self):
         """
         Filter by question post type
@@ -400,7 +428,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     user_last_forecasts_date = None
     divergence: int = None
 
-    objects = PostManager()
+    objects: PostManager = PostManager()
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -584,7 +612,6 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             ]
             for conditional in related_conditionals:
                 conditional.post.update_pseudo_materialized_fields()
-                print("Updated conditional in post: ", conditional.post)
 
     def update_pseudo_materialized_fields(self):
         self.set_scheduled_close_time()

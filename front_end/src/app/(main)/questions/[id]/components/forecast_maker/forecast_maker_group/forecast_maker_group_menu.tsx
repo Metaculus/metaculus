@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useState } from "react";
 
@@ -90,13 +90,13 @@ const ForecastMakerGroupControls: FC<Props> = ({
           ...(canWithdrawForecast(
             question as QuestionWithForecasts,
             permission
-          ) && question.withdraw_permitted // Feature Flag: prediction-withdrawal
+          ) && !isNil(post)
             ? [
                 {
                   id: "withdraw",
                   name: t("withdrawForecast"),
                   onClick: () =>
-                    withdrawForecasts(post!.id, [{ question: question.id }]),
+                    withdrawForecasts(post.id, [{ question: question.id }]),
                 },
               ]
             : []),
@@ -129,15 +129,6 @@ const ForecastMakerGroupControls: FC<Props> = ({
               copyToClipboard(
                 `${window.location.origin}${window.location.pathname}?${SLUG_POST_SUB_QUESTION_ID}=${question.id}`
               ).then();
-            },
-          },
-          {
-            id: "downloadCSV",
-            name: t("downloadCSV"),
-            onClick: () => {
-              window.open(
-                `/api/posts/${post!.id}/download-csv/?sub-question=${question.id}`
-              );
             },
           },
         ]}
@@ -188,6 +179,18 @@ const GroupQuestionInfo = ({ question }: { question: Question }) => {
             {question.scheduled_close_time && (
               <LocalDaytime date={question.scheduled_close_time} />
             )}
+          </span>
+        </div>
+
+        <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+          <span className="w-min text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+            {question.status === QuestionStatus.RESOLVED
+              ? t("resolves")
+              : t("scheduledResolution")}
+            :
+          </span>
+          <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+            <LocalDaytime date={question.scheduled_resolve_time} />
           </span>
         </div>
 

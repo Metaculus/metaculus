@@ -191,7 +191,8 @@ class TestPostCreate:
 
         post_id = response.data["id"]
         Post.objects.filter(pk=post_id).update(
-            curation_status=Post.CurationStatus.APPROVED
+            curation_status=Post.CurationStatus.APPROVED,
+            published_at=timezone.now(),
         )
 
         # Check is available for all users
@@ -285,14 +286,52 @@ def test_posts_list__filters(user1, user1_client):
     )
 
 
-def test_question_detail(anon_client, user1):
-    post = factory_post(author=user1)
+def test_post_detail(anon_client, user1, user1_client):
+    post = factory_post(
+        author=user1,
+        projects=[
+            factory_project(
+                name_original="Project: Forecaster",
+                type=Project.ProjectTypes.TOURNAMENT,
+                default_permission=ObjectPermission.FORECASTER,
+            ),
+            factory_project(
+                name_original="Project: Viewer",
+                type=Project.ProjectTypes.TOURNAMENT,
+                default_permission=ObjectPermission.VIEWER,
+            ),
+            factory_project(
+                name_original="Project: Private",
+                type=Project.ProjectTypes.TOURNAMENT,
+                default_permission=None,
+                override_permissions={
+                    user1.id: ObjectPermission.FORECASTER,
+                },
+            ),
+        ],
+    )
 
     url = f"/api/posts/{post.pk}/"
     response = anon_client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data
+
+    # Check projects visibility
+    assert {x["name"] for x in response.data["projects"]["tournament"]} == {
+        "Project: Viewer",
+        "Project: Forecaster",
+    }
+
+    # Test for authorized user
+    response = user1_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+
+    # Check projects visibility
+    assert {x["name"] for x in response.data["projects"]["tournament"]} == {
+        "Project: Viewer",
+        "Project: Forecaster",
+        "Project: Private",
+    }
 
 
 def test_delete_post(user1_client, user1, user2_client):
@@ -498,3 +537,60 @@ def test_approve_post(user1, user1_client, question_binary):
         },
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_repost(user1, user1_client, user2, user2_client, question_binary):
+    default_project = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        override_permissions={user1.pk: ObjectPermission.ADMIN},
+    )
+
+    post = factory_post(
+        author=user1,
+        curation_status=Post.CurationStatus.PENDING,
+        default_project=default_project,
+        question=question_binary,
+    )
+
+    target_tournament = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        override_permissions={user1.pk: ObjectPermission.CURATOR},
+    )
+
+    url = reverse("post-repost", kwargs={"pk": post.pk})
+
+    # Case 1: user2 does not have permissions to repost
+    response = user2_client.post(url, {"project_id": target_tournament.pk})
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    # Case 2: post already has this project
+    response = user1_client.post(url, {"project_id": default_project.pk})
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    post.refresh_from_db()
+    assert default_project not in post.projects.all()
+    assert post.default_project == default_project
+
+    # Case 3: user successfully reposts
+    response = user1_client.post(url, {"project_id": target_tournament.pk})
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    post.refresh_from_db()
+    assert target_tournament in post.projects.all()
+
+
+def test_post_vote(user1, user1_client, user2_client, post_binary_public):
+    url = reverse("post-vote", kwargs={"pk": post_binary_public.pk})
+
+    def make_vote(client, direction):
+        response = client.post(
+            url, {"direction": direction}, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        return response.json()["score"]
+
+    assert make_vote(user1_client, 1) == 1
+    assert make_vote(user1_client, 1) == 1
+    assert make_vote(user1_client, None) == 0
+    assert make_vote(user1_client, -1) == -1
+    assert make_vote(user2_client, -1) == -2
+    assert make_vote(user2_client, 1) == 0

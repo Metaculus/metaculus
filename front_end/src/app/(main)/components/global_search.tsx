@@ -1,7 +1,6 @@
 "use client";
 
 import { sendGAEvent } from "@next/third-parties/google";
-import classNames from "classnames";
 import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -15,6 +14,7 @@ import {
 } from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import { QuestionOrder } from "@/types/question";
+import cn from "@/utils/cn";
 import { encodeQueryParams } from "@/utils/navigation";
 
 interface GlobalSearchProps {
@@ -32,6 +32,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   const router = useRouter();
   const [isHidden, setIsHidden] = useState(true);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedGAEvent = useCallback(
     debounce(() => {
       sendGAEvent({
@@ -76,7 +77,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "items-center self-center xl:ml-4 xl:items-center",
         visibilityClass,
         className

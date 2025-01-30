@@ -93,19 +93,43 @@ export type ScoreData = {
   weighted_coverage?: number | null;
 };
 
-export type SliderLocations = {
+export type DistributionInput<T> = {
+  type: string;
+  components: T[];
+};
+
+export type DistributionSliderComponent = {
+  weight: number;
   left: number;
   center: number;
   right: number;
 };
 
-export type SliderValues = {
-  weights: number[];
-  forecast: SliderLocations[];
+export type DistributionQuantileComponent = {
+  // < lower bound
+  p0?: number;
+  // 25%
+  q1: number;
+  // median
+  q2: number;
+  // 75%
+  q3: number;
+  // > upper bound
+  p4?: number;
 };
 
+export type DistributionSlider =
+  DistributionInput<DistributionSliderComponent> & {
+    type: "slider";
+  };
+
+export type DistributionQuantile =
+  DistributionInput<DistributionQuantileComponent> & {
+    type: "quantile";
+  };
+
 export type UserForecast = Forecast & {
-  slider_values: SliderValues | null;
+  distribution_input: DistributionSlider | DistributionQuantile;
 };
 
 export type UserForecastHistory = {
@@ -141,7 +165,7 @@ export type BaseForecast = {
   my_forecasts: {
     timestamps: number[];
     medians: number[];
-    slider_values: any | null;
+    distribution_input: unknown | null;
   } | null;
 };
 
@@ -209,7 +233,6 @@ export type Question = {
   open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
-  withdraw_permitted?: boolean; // Feature Flag: prediction-withdrawal
 };
 
 export type QuestionWithNumericForecasts = Question & {
@@ -221,6 +244,7 @@ export type QuestionWithNumericForecasts = Question & {
 export type QuestionWithMultipleChoiceForecasts = Question & {
   type: QuestionType.MultipleChoice;
   forecasts: MultipleChoiceForecast;
+  options: string[];
 };
 
 export type QuestionWithForecasts =
@@ -285,4 +309,9 @@ export type CurveChoiceOption = {
   status: QuestionStatus | undefined;
   label: string;
   isDirty: boolean;
+};
+
+export type ForecastAvailability = {
+  isEmpty: boolean;
+  cpRevealsOn: string | null;
 };
