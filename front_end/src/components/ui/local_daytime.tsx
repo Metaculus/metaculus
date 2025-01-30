@@ -27,6 +27,7 @@ const LocalDaytime: FC<Props> = ({ date }) => {
       threshold="P1D"
       year="numeric"
       lang={locale}
+      title=""
     >
       {localValue}
     </relative-time>
