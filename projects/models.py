@@ -72,34 +72,31 @@ class ProjectsQuerySet(models.QuerySet):
         from posts.models import Post
 
         return self.annotate(
-            leaderboard_questions_count=Coalesce(
-                SubqueryAggregate(
-                    "posts__related_questions__question_id",
-                    filter=Q(post__curation_status=Post.CurationStatus.APPROVED)
-                    & ~Q(
-                        question__resolution__in=[
-                            ResolutionType.AMBIGUOUS,
-                            ResolutionType.ANNULLED,
-                        ]
-                    ),
-                    aggregate=Count,
+            posts_questions_count=Count(
+                "posts__related_questions__question_id",
+                filter=Q(posts__curation_status=Post.CurationStatus.APPROVED)
+                & ~Q(
+                    posts__related_questions__question__resolution__in=[
+                        ResolutionType.AMBIGUOUS,
+                        ResolutionType.ANNULLED,
+                    ]
                 ),
-                0,
-            )
-            + Coalesce(
-                SubqueryAggregate(
-                    "default_posts__related_questions__question_id",
-                    filter=Q(post__curation_status=Post.CurationStatus.APPROVED)
-                    & ~Q(
-                        question__resolution__in=[
-                            ResolutionType.AMBIGUOUS,
-                            ResolutionType.ANNULLED,
-                        ]
-                    ),
-                    aggregate=Count,
+                distinct=True,
+            ),
+            default_posts_questions_count=Count(
+                "default_posts__related_questions__question_id",
+                filter=Q(default_posts__curation_status=Post.CurationStatus.APPROVED)
+                & ~Q(
+                    default_posts__related_questions__question__resolution__in=[
+                        ResolutionType.AMBIGUOUS,
+                        ResolutionType.ANNULLED,
+                    ]
                 ),
-                0,
-            )
+                distinct=True,
+            ),
+        ).annotate(
+            leaderboard_questions_count=Coalesce(F("posts_questions_count"), 0)
+            + Coalesce(F("default_posts_questions_count"), 0)
         )
 
     def annotate_is_subscribed(self, user: User):
