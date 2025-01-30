@@ -74,7 +74,10 @@ class ProjectsQuerySet(models.QuerySet):
         return self.annotate(
             posts_questions_count=Count(
                 "posts__related_questions__question_id",
-                filter=Q(posts__curation_status=Post.CurationStatus.APPROVED)
+                filter=Q(
+                    posts__curation_status=Post.CurationStatus.APPROVED,
+                    posts__related_questions__question__question_weight__gt=0,
+                )
                 & ~Q(
                     posts__related_questions__question__resolution__in=[
                         ResolutionType.AMBIGUOUS,
@@ -85,7 +88,10 @@ class ProjectsQuerySet(models.QuerySet):
             ),
             default_posts_questions_count=Count(
                 "default_posts__related_questions__question_id",
-                filter=Q(default_posts__curation_status=Post.CurationStatus.APPROVED)
+                filter=Q(
+                    default_posts__curation_status=Post.CurationStatus.APPROVED,
+                    default_posts__related_questions__question__question_weight__gt=0,
+                )
                 & ~Q(
                     default_posts__related_questions__question__resolution__in=[
                         ResolutionType.AMBIGUOUS,
