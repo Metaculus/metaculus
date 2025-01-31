@@ -421,6 +421,7 @@
   "newest": "Mais Recente",
   "stale": "Obsoleto",
   "newComments": "Novos Comentários",
+  "commentTooShort": "Seu comentário está muito curto. Tente adicionar mais detalhes ou insights para agregar valor à conversa.<br></br>Consulte nossas <link>Diretrizes</link> para mais informações.",
   "divergence": "Divergência",
   "myPredictions": "Minhas Previsões",
   "special": "Especial",

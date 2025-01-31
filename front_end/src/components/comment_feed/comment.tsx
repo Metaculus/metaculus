@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useState, useEffect, useRef } from "react";
+import { FC, useState, useEffect, useRef, ReactNode } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import {
@@ -40,6 +40,7 @@ import { canPredictQuestion } from "@/utils/questions";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
+import { validateComment } from "./validate_comment";
 
 import { SortOption, sortComments } from ".";
 
@@ -190,6 +191,7 @@ const Comment: FC<CommentProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isReplying, setIsReplying] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -470,6 +472,11 @@ const Comment: FC<CommentProps> = ({
             />
           )}
         </div>
+        {!!errorMessage && isEditing && (
+          <div className="text-end text-red-500 dark:text-red-500-dark">
+            {errorMessage}
+          </div>
+        )}
         {isEditing && (
           <>
             <Button
@@ -478,11 +485,20 @@ const Comment: FC<CommentProps> = ({
                   // usually, don't expect this, as action is available only for logged-in users
                   return;
                 }
+                setErrorMessage("");
                 const parsedMarkdown = commentMarkdown.replace(
                   userTagPattern,
                   (match) => match.replace(/[\\]/g, "")
                 );
-
+                const validateMessage = validateComment(
+                  parsedMarkdown,
+                  user,
+                  t
+                );
+                if (validateMessage) {
+                  setErrorMessage(validateMessage);
+                  return;
+                }
                 const response = await editComment({
                   id: comment.id,
                   text: parsedMarkdown,

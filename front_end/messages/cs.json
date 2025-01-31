@@ -394,6 +394,7 @@
   "newest": "Nejnovější",
   "stale": "Zastaralé",
   "newComments": "Nové komentáře",
+  "commentTooShort": "Váš komentář je příliš krátký. Zkuste přidat více detailů nebo postřehů, aby přinesl hodnotu do konverzace. <br></br>Další informace najdete v našich <link>Pokynech</link>.",
   "divergence": "Odchylka",
   "myPredictions": "Moje předpovědi",
   "special": "Speciální",
