@@ -26,7 +26,7 @@ const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
     prize,
   } = rowEntry;
   const highlight = user?.id === userId;
-  const t = useTranslations("Leaderboard");
+  const t = useTranslations();
   return (
     <tr>
       <Td className="sticky left-0 text-left" highlight={highlight}>

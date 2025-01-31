@@ -41,7 +41,7 @@ const LeaderboardRow: FC<Props> = ({
     excluded,
   } = rowEntry;
 
-  const t = useTranslations("Leaderboard");
+  const t = useTranslations();
 
   return (
     <tr
