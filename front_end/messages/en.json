@@ -450,6 +450,7 @@
   "newest": "Newest",
   "stale": "Stale",
   "newComments": "New Comments",
+  "commentTooShort": "This comment is too short. Metaculus comments should be substantive and add value. Read our <link>Guidelines</link> to learn more",
   "divergence": "Divergence",
   "myPredictions": "My Predictions",
   "special": "Special",

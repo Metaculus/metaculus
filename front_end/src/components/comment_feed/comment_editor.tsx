@@ -1,8 +1,9 @@
 "use client";
 
 import { sendGAEvent } from "@next/third-parties/google";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -13,6 +14,7 @@ import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { CommentType } from "@/types/comment";
+import { CurrentUser } from "@/types/users";
 import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
 
@@ -49,7 +51,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
   const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>();
+  const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [hasInteracted, setHasInteracted] = useState(false);
 
   const { user } = useAuth();
@@ -64,7 +66,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const handleSubmit = async () => {
     setErrorMessage("");
     setIsLoading(true);
-
+    if (user) {
+      const validateMessage = CommentValidation(markdown, user, t);
+      if (validateMessage) {
+        setErrorMessage(validateMessage);
+        setIsLoading(false);
+        return;
+      }
+    }
     sendGAEvent("event", "postComment", {
       event_label: hasIncludedForecast ? "predictionIncluded" : null,
     });
@@ -197,5 +206,22 @@ const CommentEditor: FC<CommentEditorProps> = ({
     </>
   );
 };
+
+export function CommentValidation(
+  comment: string,
+  user: CurrentUser,
+  t: ReturnType<typeof useTranslations>
+) {
+  const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+  const isNewUser =
+    Date.now() - new Date(user.date_joined).getTime() < ONE_MONTH_MS;
+
+  if (isNewUser && comment.length < 30) {
+    return t.rich("commentTooShort", {
+      link: (chunks) => <Link href="/help/guidelines/">{chunks}</Link>,
+    });
+  }
+  return null;
+}
 
 export default CommentEditor;
