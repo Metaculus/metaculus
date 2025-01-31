@@ -108,6 +108,10 @@ def generate_scoring_leaderboard_entries(
         qs_filters["question__scheduled_close_time__lte"] = finalize_time
         qs_filters["question__resolution_set_time__lte"] = finalize_time
 
+    user_list = leaderboard.user_list.all()
+    if user_list:
+        qs_filters["user__in"] = user_list.values_list("id", flat=True)
+
     archived_scores = ArchivedScore.objects.filter(**qs_filters).prefetch_related(
         "question"
     )
@@ -210,6 +214,10 @@ def generate_comment_insight_leaderboard_entries(
         .select_related("author")
     )
 
+    user_list = leaderboard.user_list.all()
+    if user_list:
+        comments = comments.filter(author__in=user_list)
+
     scores_for_author: dict[User, list[int]] = defaultdict(list)
     for comment in comments:
         scores_for_author[comment.author].append(comment.vote_score)
@@ -259,10 +267,13 @@ def generate_question_writing_leaderboard_entries(
         post = question_post_map.get(question.id)
         forecaster_ids_for_post[post].update(forecasters)
 
+    user_list = list(leaderboard.user_list.all())
     exclusions = {e.user: e for e in MedalExclusionRecord.objects.all()}
     scores_for_author: dict[User, list[float]] = defaultdict(list)
     for post, forecaster_ids in forecaster_ids_for_post.items():
         all_authors = [post.author] + list(post.coauthors.all())
+        if user_list:
+            all_authors = [a for a in all_authors if a in user_list]
         for author in all_authors:
             if exclusion := exclusions.get(author):
                 if post.published_at > exclusion.start_time and (
