@@ -391,7 +391,7 @@
   "newest": "最新",
   "stale": "過時",
   "newComments": "新評論",
-  "commentTooShort": "此评论太短。Metaculus 的评论应具有实质性并提供价值。<br></br>阅读我们的<link>指南</link>以了解更多信息",
+  "commentTooShort": "您的评论太短。请尝试添加更多细节或见解，以使其为对话增添价值。<br></br>查看我们的<link>指南</link>了解更多信息。",
   "divergence": "分歧",
   "myPredictions": "我的預測",
   "special": "特別",
