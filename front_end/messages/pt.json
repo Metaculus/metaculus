@@ -421,6 +421,7 @@
   "newest": "Mais Recente",
   "stale": "Obsoleto",
   "newComments": "Novos Comentários",
+  "commentTooShort": "Este comentário é muito curto. Os comentários no Metaculus devem ser substanciais e agregar valor.<br></br>Leia nossas <link>Diretrizes</link> para saber mais",
   "divergence": "Divergência",
   "myPredictions": "Minhas Previsões",
   "special": "Especial",
