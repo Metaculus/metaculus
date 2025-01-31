@@ -18,6 +18,7 @@ from posts.jobs import (
     job_check_post_open_event,
 )
 from posts.services.common import compute_feed_hotness
+from scoring.jobs import update_global_comment_and_question_leaderboards
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -137,6 +138,19 @@ class Command(BaseCommand):
             close_old_connections(sync_itn_articles),
             trigger=CronTrigger.from_crontab("0 1 * * *"),  # Every day at 01:00 UTC
             id="misc_sync_itn_articles",
+            max_instances=1,
+            replace_existing=True,
+        )
+
+        #
+        #
+        # Scoring Jobs
+        #
+        #
+        scheduler.add_job(
+            close_old_connections(update_global_comment_and_question_leaderboards),
+            trigger=CronTrigger.from_crontab("0 2 * * *"),  # Every day at 02:00 UTC
+            id="global_comment_and_question_leaderboards",
             max_instances=1,
             replace_existing=True,
         )
