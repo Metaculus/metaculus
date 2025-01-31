@@ -7,7 +7,7 @@ export const NOTEBOOK_INDEXES: NotebookIndex = {
     { questionId: 31688, weight: -12 },
     { questionId: 31689, weight: 12 },
     { questionId: 31707, weight: 10 },
-    { questionId: 31709, weight: 9 },
+    { questionId: 34453, weight: 9 },
     // { postId: 27797, weight: 9 }, // currently missing on prod
     { questionId: 31710, weight: 11 },
     { questionId: 31711, weight: -8 },

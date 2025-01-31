@@ -135,32 +135,66 @@ class TranslatedModel(models.Model):
             # if update_fields not set (e.g. admin forms, or new objects),
             # make sure the all translation fields with original content
             # are updated
-            translation_fields_to_update = translation_fields
+            all_update_fields = translation_fields
         else:
             # existing object and only certain fields need to be updated,
             # then update their correspondent original content ones
             # (use sets intersection)
-            translation_fields_to_update = list(
+            all_update_fields = list(
                 set(initial_update_fields) & set(translation_fields)
             )
 
-        extra_update_fields = []
-        for field_name in translation_fields_to_update:
+        all_update_fields_localised = []
+        for field_name in all_update_fields:
             val = getattr(self, field_name)
             if val is not None:
                 default_field_name = build_supported_localized_fieldname(
                     field_name, default_language
                 )
+
                 setattr(self, default_field_name, val)
-                extra_update_fields.append(default_field_name)
-        return extra_update_fields
+                all_update_fields_localised.append(default_field_name)
+        return all_update_fields, all_update_fields_localised
+
+    def reset_localised_fields(self, translation_fields_to_update):
+        default_language = settings.ORIGINAL_LANGUAGE_CODE
+        ret_fields = []
+        for field_name in translation_fields_to_update:
+            for remaining_localised_field in [
+                build_supported_localized_fieldname(field_name, lang[0])
+                for lang in settings.LANGUAGES
+                if lang[0] != default_language
+            ]:
+                setattr(self, remaining_localised_field, None)
+                ret_fields.append(remaining_localised_field)
+        return ret_fields
 
     def update_and_maybe_translate(self, should_translate_if_dirty=True):
         model = self.__class__
+        # This function is callned whenver the object is saved (either on creation or on edit).
+        # The source of truth for the content is in the field name without the language suffix.
+        # The function does the following:
+        # 1. Copies the truth content from the field mentioned above to the field
+        #    with the _original suffix (corresponding to the Untranslated option)
+        # 2. Resets the value to None for all the other language specific fields, because:
+        #    - if the content is not supposed to be translated None is fine (it will default to the _original field)
+        #    - if the content is supposed to be translated, it will be translated and set by the translation task
+        # 3. If the content is dirty and the content is supposed to be translated (not private, not bot)
+        #    it triggers the translation service
 
-        update_fields = self.update_fields_with_original_content()
+        # 1. Update the _original fields
+        all_update_fields, all_update_fields_localised = (
+            self.update_fields_with_original_content()
+        )
+
+        # 2. Reset the other language specific fields
+        reset_fields = self.reset_localised_fields(all_update_fields)
+
+        update_fields = list(set(all_update_fields_localised + reset_fields))
+
         self.save(update_fields=update_fields)
 
+        # 3. If the content is dirty and the content is supposed to be translated
         if should_translate_if_dirty and is_translation_dirty(self):
             app_label, model_name = model._meta.app_label, model._meta.model_name
             update_translations.send(app_label, model_name, self.pk)

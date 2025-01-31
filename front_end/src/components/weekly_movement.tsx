@@ -18,7 +18,7 @@ const WeeklyMovement: FC<Props> = ({
   iconClassName,
 }) => {
   const isNegative = weeklyMovement < 0;
-
+  const noChange = weeklyMovement === 0;
   return (
     <div className={cn("flex gap-1", className)}>
       <span
@@ -26,18 +26,21 @@ const WeeklyMovement: FC<Props> = ({
           "font-medium leading-4",
           isNegative
             ? "text-salmon-600 dark:text-salmon-600-dark"
-            : "text-olive-700 dark:text-olive-700-dark"
+            : "text-olive-700 dark:text-olive-700-dark",
+          noChange && "text-gray-500 dark:text-gray-500-dark"
         )}
       >
-        <FontAwesomeIcon
-          className={cn(
-            isNegative
-              ? "text-salmon-600 dark:text-salmon-600-dark"
-              : "text-olive-700 dark:text-olive-700-dark",
-            iconClassName
-          )}
-          icon={isNegative ? faCaretDown : faCaretUp}
-        />{" "}
+        {!noChange && (
+          <FontAwesomeIcon
+            className={cn(
+              isNegative
+                ? "text-salmon-600 dark:text-salmon-600-dark"
+                : "text-olive-700 dark:text-olive-700-dark",
+              iconClassName
+            )}
+            icon={isNegative ? faCaretDown : faCaretUp}
+          />
+        )}
         {message}
       </span>
     </div>

@@ -2,7 +2,7 @@
 
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -15,6 +15,8 @@ import { useModal } from "@/contexts/modal_context";
 import { CommentType } from "@/types/comment";
 import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
+
+import { validateComment } from "./validate_comment";
 
 interface CommentEditorProps {
   text?: string;
@@ -49,7 +51,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
   const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>();
+  const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [hasInteracted, setHasInteracted] = useState(false);
 
   const { user } = useAuth();
@@ -64,7 +66,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const handleSubmit = async () => {
     setErrorMessage("");
     setIsLoading(true);
-
+    if (user) {
+      const validateMessage = validateComment(markdown, user, t);
+      if (validateMessage) {
+        setErrorMessage(validateMessage);
+        setIsLoading(false);
+        return;
+      }
+    }
     sendGAEvent("event", "postComment", {
       event_label: hasIncludedForecast ? "predictionIncluded" : null,
     });

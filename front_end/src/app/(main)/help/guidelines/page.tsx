@@ -1,3 +1,6 @@
+import { getLocale } from "next-intl/server";
+
+import content_pt from "./page_pt";
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -6,7 +9,12 @@ export const metadata = {
     "Learn about Metaculus community etiquette, moderation rules, sanctions, and the role of Community Moderators.",
 };
 
-export default function CommunityGuidelines() {
+export default async function CommunityGuidelines() {
+  const locale = await getLocale();
+  if (locale === "pt") {
+    return content_pt();
+  }
+
   return (
     <PageWrapper>
       <h1>Metaculus Community Guidelines</h1>
