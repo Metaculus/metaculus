@@ -89,6 +89,7 @@
   "unweighted": "Unweighted",
   "metaculus": "Metaculus",
   "community": "community",
+  "communityPrediction": "Community Prediction",
   "firstQuartile": "lower 25%",
   "secondQuartile": "median",
   "thirdQuartile": "upper 75%",
