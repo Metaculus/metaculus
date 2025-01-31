@@ -13,6 +13,7 @@ from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
 
+from questions.constants import ResolutionType
 from projects.permissions import ObjectPermission
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
@@ -65,6 +66,43 @@ class ProjectsQuerySet(models.QuerySet):
                 ),
                 0,
             )
+        )
+
+    def annotate_questions_count(self):
+        from posts.models import Post
+
+        return self.annotate(
+            posts_questions_count=Count(
+                "posts__related_questions__question_id",
+                filter=Q(
+                    posts__curation_status=Post.CurationStatus.APPROVED,
+                    posts__related_questions__question__question_weight__gt=0,
+                )
+                & ~Q(
+                    posts__related_questions__question__resolution__in=[
+                        ResolutionType.AMBIGUOUS,
+                        ResolutionType.ANNULLED,
+                    ]
+                ),
+                distinct=True,
+            ),
+            default_posts_questions_count=Count(
+                "default_posts__related_questions__question_id",
+                filter=Q(
+                    default_posts__curation_status=Post.CurationStatus.APPROVED,
+                    default_posts__related_questions__question__question_weight__gt=0,
+                )
+                & ~Q(
+                    default_posts__related_questions__question__resolution__in=[
+                        ResolutionType.AMBIGUOUS,
+                        ResolutionType.ANNULLED,
+                    ]
+                ),
+                distinct=True,
+            ),
+        ).annotate(
+            questions_count=Coalesce(F("posts_questions_count"), 0)
+            + Coalesce(F("default_posts_questions_count"), 0)
         )
 
     def annotate_is_subscribed(self, user: User):
