@@ -2,6 +2,7 @@ import { subMonths, isBefore } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+import RichText from "@/components/rich_text";
 import { CurrentUser } from "@/types/users";
 
 export function validateComment(
@@ -15,9 +16,16 @@ export function validateComment(
   );
 
   if (isNewUser && comment.length < 30) {
-    return t.rich("commentTooShort", {
-      link: (chunks) => <Link href="/help/guidelines/">{chunks}</Link>,
-    });
+    return (
+      <RichText>
+        {(tags) =>
+          t.rich("commentTooShort", {
+            ...tags,
+            link: (chunks) => <Link href="/help/guidelines/">{chunks}</Link>,
+          })
+        }
+      </RichText>
+    );
   }
   return null;
 }
