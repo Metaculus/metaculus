@@ -14,6 +14,12 @@ from .serializers import ContactSerializer
 from .services.itn import remove_article
 
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def health_check(request):
+    return Response(status=status.HTTP_200_OK)
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def contact_api_view(request: Request):
