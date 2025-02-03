@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import React, { FC, PropsWithChildren, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
-import { useModal } from "@/contexts/modal_context";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/cn";
 
@@ -104,8 +103,6 @@ const EligibilityBox: FC<PropsWithChildren<{ isEligible: boolean }>> = ({
 const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
   eligibleBoth,
 }) => {
-  const { setCurrentModal } = useModal();
-
   return (
     <>
       <HeadingText
