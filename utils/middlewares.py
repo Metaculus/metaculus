@@ -5,7 +5,6 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.utils.translation import activate
 from django.urls import reverse
-from django.shortcuts import redirect
 
 from users.models import User
 
