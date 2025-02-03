@@ -193,6 +193,7 @@ export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
   return (
     <>
       <div
+        id="registration"
         className={cn(
           "flex flex-col items-center justify-center gap-5 rounded bg-blue-700 px-6 py-7 pb-8 text-center font-medium dark:bg-blue-700-dark md:px-8 md:py-10 md:pb-12",
           className
