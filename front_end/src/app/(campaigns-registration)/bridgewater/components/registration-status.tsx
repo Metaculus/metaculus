@@ -124,18 +124,11 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
       </div>
 
       <p className="mb-0 mt-0 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:mt-1 md:text-lg ">
-        Ready to get started? Try the{" "}
-        <span
-          className="cursor-pointer underline"
-          onClick={() => setCurrentModal({ type: "onboarding" })}
-        >
-          Forecasting Tutorial
-        </span>{" "}
-        or explore some{" "}
-        <a target="_blank" href="/tournament/bridgewater-warmup/">
-          Warmup Questions
+        Ready to get started? Go to the{" "}
+        <a target="_blank" href="/tournament/">
+          Tournament page
         </a>{" "}
-        to sharpen your skills!
+        to start forecasting!
       </p>
 
       <div className="flex items-start gap-1.5 text-xs text-blue-400 dark:text-blue-400-dark">
