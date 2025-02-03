@@ -30,7 +30,7 @@
     "@marsidev/react-turnstile": "^0.7.2",
     "@mdxeditor/editor": "^3.4.2",
     "@next/third-parties": "^14.2.15",
-    "@sentry/nextjs": "^8.33.1",
+    "@sentry/nextjs": "^8.52.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tanstack/react-table": "^8.20.5",
     "@types/d3": "^7.4.3",
