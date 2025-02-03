@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import React, { FC, PropsWithChildren, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
-import { useModal } from "@/contexts/modal_context";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/cn";
 
@@ -104,8 +103,6 @@ const EligibilityBox: FC<PropsWithChildren<{ isEligible: boolean }>> = ({
 const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
   eligibleBoth,
 }) => {
-  const { setCurrentModal } = useModal();
-
   return (
     <>
       <HeadingText
@@ -124,18 +121,11 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
       </div>
 
       <p className="mb-0 mt-0 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:mt-1 md:text-lg ">
-        Ready to get started? Try the{" "}
-        <span
-          className="cursor-pointer underline"
-          onClick={() => setCurrentModal({ type: "onboarding" })}
-        >
-          Forecasting Tutorial
-        </span>{" "}
-        or explore some{" "}
-        <a target="_blank" href="/tournament/bridgewater-warmup/">
-          Warmup Questions
+        Ready to get started? Go to the{" "}
+        <a target="_blank" href="/tournament/">
+          Tournament page
         </a>{" "}
-        to sharpen your skills!
+        to start forecasting!
       </p>
 
       <div className="flex items-start gap-1.5 text-xs text-blue-400 dark:text-blue-400-dark">
@@ -193,6 +183,7 @@ export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
   return (
     <>
       <div
+        id="registration"
         className={cn(
           "flex flex-col items-center justify-center gap-5 rounded bg-blue-700 px-6 py-7 pb-8 text-center font-medium dark:bg-blue-700-dark md:px-8 md:py-10 md:pb-12",
           className
