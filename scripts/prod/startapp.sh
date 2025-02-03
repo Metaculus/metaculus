@@ -24,8 +24,6 @@ rm -f /etc/nginx/http.d/default.conf
 export UV_THREADPOOL_SIZE=6
 export NODE_OPTIONS="--max-old-space-size=2048"
 (gunicorn metaculus_web.wsgi:application --bind=unix:./gunicorn.sock --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(M)s' --access-logfile - --workers $GUNICORN_WORKERS --threads 4 --timeout 25 2>&1 | sed 's/^/[Backend]: /') &
-echo "STARTED GUNICORN!!!"
 (cd front_end && PORT=3000 pm2-runtime npm -- start 2>&1 | sed 's/^/[Frontend]: /') &
-echo "BEFORE NGINX!!!"
 # Starting nginx
 nginx

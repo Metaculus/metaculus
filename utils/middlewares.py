@@ -1,7 +1,9 @@
-from django.conf import settings
-from django.http import JsonResponse
-from django.utils.translation import activate
 import logging
+
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse
+from django.utils.deprecation import MiddlewareMixin
+from django.utils.translation import activate
 
 logger = logging.getLogger(__name__)
 
@@ -47,3 +49,10 @@ def middleware_alpha_access_check(get_response):
         return response
 
     return middleware
+
+
+class HealthCheckMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        # add any custom service checks here and return status
+        if request.META["PATH_INFO"] == "/api/healthcheck/":
+            return HttpResponse("ok")
