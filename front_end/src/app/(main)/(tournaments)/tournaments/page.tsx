@@ -79,6 +79,10 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
   );
 
   for (const tournament of sortedTournaments) {
+    if (!tournament.questions_count) {
+      continue;
+    }
+
     if (tournament.is_ongoing) {
       if (tournament.type === TournamentType.QuestionSeries) {
         questionSeries.push(tournament);

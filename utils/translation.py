@@ -389,7 +389,7 @@ def update_translations_for_model(
     total_objects = queryset.count()
 
     logging.info(
-        f"Found in total {total_objects} objects which need translations update from the {initial_count} passed."
+        f"Found in total {total_objects} {model} objects which need translations update from the {initial_count} passed."
     )
 
     processed_count = 0
@@ -399,6 +399,6 @@ def update_translations_for_model(
         )
         processed_count += model._default_manager.bulk_update(objects, bulk_fields)
 
-    logging.info(f"Updated translations for {total_objects} objects.")
+    logging.info(f"Updated translations for {total_objects} objects")
 
     return processed_count

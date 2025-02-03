@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { Href } from "@/types/navigation";
@@ -40,6 +41,8 @@ const LeaderboardRow: FC<Props> = ({
     excluded,
   } = rowEntry;
 
+  const t = useTranslations();
+
   return (
     <tr
       className={cn(
@@ -78,7 +81,7 @@ const LeaderboardRow: FC<Props> = ({
           {user
             ? user.username
             : aggregation_method == "recency_weighted"
-              ? "Recency Weighted CP"
+              ? t("communityPrediction")
               : aggregation_method}
         </Link>
       </td>

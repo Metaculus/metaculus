@@ -44,7 +44,7 @@ const IndexNotebook: FC<Props> = async ({
   }));
 
   const { index: indexValue, indexWeekAgo } = calculateIndex(indexQuestions);
-  const indexWeeklyMovement = Math.round(indexValue - indexWeekAgo);
+  const indexWeeklyMovement = Number((indexValue - indexWeekAgo).toFixed(1));
 
   return (
     <main className="mx-auto mb-24 mt-12 flex w-full max-w-3xl flex-1 flex-col  text-base text-gray-800  dark:text-gray-800-dark">
@@ -73,14 +73,17 @@ const IndexNotebook: FC<Props> = async ({
               <div className="flex flex-col items-center border-b border-gray-300 bg-blue-100 px-4 py-4 text-center leading-4 dark:border-gray-300-dark dark:bg-blue-100-dark">
                 <p className="m-0 mb-2 text-3xl capitalize leading-9">
                   {t.rich("indexScore", {
-                    value: Math.round(indexValue),
+                    value: Number(indexValue.toFixed(1)),
                     bold: (chunks) => <b>{chunks}</b>,
                   })}
                 </p>
                 <WeeklyMovement
                   weeklyMovement={indexWeeklyMovement}
                   message={t("weeklyMovementChange", {
-                    value: Math.abs(indexWeeklyMovement),
+                    value:
+                      indexWeeklyMovement === 0
+                        ? t("noChange")
+                        : Math.abs(indexWeeklyMovement),
                   })}
                   className="text-base"
                   iconClassName="text-base"

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import { LeaderboardEntry } from "@/types/scoring";
@@ -25,7 +26,7 @@ const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
     prize,
   } = rowEntry;
   const highlight = user?.id === userId;
-
+  const t = useTranslations();
   return (
     <tr>
       <Td className="sticky left-0 text-left" highlight={highlight}>
@@ -47,7 +48,7 @@ const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
           {user
             ? user.username
             : aggregation_method == "recency_weighted"
-              ? "Recency Weighted CP"
+              ? t("communityPrediction")
               : aggregation_method}
         </Link>
       </Td>

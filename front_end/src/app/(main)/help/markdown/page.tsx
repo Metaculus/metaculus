@@ -1,5 +1,8 @@
+import { getLocale } from "next-intl/server";
+
 import KatexRenderer from "@/components/katex_renderer";
 
+import content_pt from "./page_pt";
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -8,7 +11,11 @@ export const metadata = {
     "Learn how to use Markdown and MathJax on Metaculus. Discover syntax for links, headers, lists, tables, code, and equations to enhance your comments and questions.",
 };
 
-export default function MedalsFAQ() {
+export default async function Markdown() {
+  const locale = await getLocale();
+  if (locale === "pt") {
+    return content_pt();
+  }
   return (
     <PageWrapper>
       <h1>Markdown Syntax</h1>
