@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 
-import { getAlphaTokenSession, getServerSession } from "@/services/session";
+import {
+  getAlphaTokenSession,
+  getPrivateSiteSession,
+  getServerSession,
+} from "@/services/session";
 import {
   ApiErrorResponse,
   ErrorResponse,
@@ -115,6 +119,7 @@ const appFetch = async <T>(
 
   const authToken = passAuthHeader ? getServerSession() : null;
   const alphaToken = getAlphaTokenSession();
+  const privateSiteToken = getPrivateSiteSession();
   const locale = await getLocale();
 
   // Default values are configured in the next.config.mjs
@@ -138,6 +143,12 @@ const appFetch = async <T>(
           }
         : {}),
       "Accept-Language": locale,
+      // Propagate private site token
+      ...(privateSiteToken
+        ? {
+            "private-site-token": privateSiteToken,
+          }
+        : {}),
     },
   };
   if (

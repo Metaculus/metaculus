@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
 from utils.models import TimeStampedModel
+from rest_framework.authtoken.models import Token
 
 if TYPE_CHECKING:
     from comments.models import Comment

@@ -1,3 +1,5 @@
+import os
+
 import logging
 
 from django.conf import settings
@@ -15,6 +17,7 @@ from authentication.serializers import (
     SignupSerializer,
     ConfirmationTokenSerializer,
     LoginSerializer,
+    PasswordSerializer,
 )
 from authentication.services import (
     check_and_activate_user,
@@ -196,3 +199,24 @@ def password_reset_confirm_api_view(request):
         return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def private_site_submit_password_view(request):
+    serializer = PasswordSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    password_entered = serializer.validated_data["password"]
+    expected_password = os.getenv("PRIVATE_SITE_PASSWORD", "")
+
+    if password_entered == expected_password:
+        response = Response(
+            {
+                "detail": "Password accepted",
+                "token": os.getenv("PRIVATE_SITE_TOKEN", ""),
+            },
+            status=status.HTTP_200_OK,
+        )
+        return response
+    else:
+        return Response({"errors": ["Incorrect password"]}, status=status.HTTP_200_OK)

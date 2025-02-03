@@ -14,4 +14,9 @@ urlpatterns = [
     # Password Reset
     path("auth/password-reset/", common.password_reset_api_view),
     path("auth/password-reset/change/", common.password_reset_confirm_api_view),
+    path(
+        "auth/private-site-password-submit/",
+        common.private_site_submit_password_view,
+        name="private-site-password-submit",
+    ),
 ]

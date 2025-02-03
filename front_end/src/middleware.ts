@@ -4,12 +4,33 @@ import AuthApi from "@/services/auth";
 import {
   COOKIE_NAME_TOKEN,
   getAlphaTokenSession,
+  getPrivateSiteSession,
   getServerSession,
 } from "@/services/session";
 import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 
 export async function middleware(request: NextRequest) {
+  // if private site, check for token
+  if (process.env.PRIVATE_SITE_MODE?.toLowerCase() === "true") {
+    // don't block access to the login or not found pages
+    if (
+      request.nextUrl.pathname !== "/private-site-login/" &&
+      request.nextUrl.pathname !== "/_not-found"
+    ) {
+      if (!getServerSession() && !getPrivateSiteSession()) {
+        return NextResponse.redirect(
+          new URL("/private-site-login/", request.url)
+        );
+      }
+    }
+  } else {
+    // if not private site, block access to the login page
+    if (request.nextUrl.pathname === "/private-site-login/") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
   let deleteCookieToken = false;
 
   const serverSession = getServerSession();
