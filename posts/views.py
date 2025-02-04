@@ -1,7 +1,6 @@
 from collections import defaultdict
 
 from django.core.files.storage import default_storage
-from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404

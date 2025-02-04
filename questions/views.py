@@ -1,4 +1,3 @@
-from django.db import transaction
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
