@@ -52,7 +52,10 @@ def middleware_alpha_access_check(get_response):
 
 
 class HealthCheckMiddleware(MiddlewareMixin):
+    """
+    Health check middleware to avoid host header validation
+    """
+
     def process_request(self, request):
-        # add any custom service checks here and return status
         if request.META["PATH_INFO"] == "/api/healthcheck/":
             return HttpResponse("ok")
