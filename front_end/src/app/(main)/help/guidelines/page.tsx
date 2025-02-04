@@ -57,7 +57,7 @@ export default async function CommunityGuidelines() {
       </p>
       <p className="mb-4">
         To ensure that your contributions and comments have the maximum impact,
-        we encourage you to follow the etiquette guide below. We may remove content that does not follow our guidelines, to ensure that Metaculus remains a place where observers can find thoughtful discussions and valuable reasoning.
+        we encourage you to follow the etiquette guide below. We may remove content that does not follow our guidelines, to ensure that Metaculus remains a place where observers and users can find thoughtful discussions and valuable reasoning.
       </p>
 
       <h2 className="mb-4 mt-8 scroll-mt-nav text-2xl font-bold" id="etiquette">
@@ -67,10 +67,10 @@ export default async function CommunityGuidelines() {
         <li>
           Aim for high-quality, useful and informative content. It&apos;s
           greatly appreciated when participants contribute to the discussion at
-          hand. Disruptive comments, derailing, or spam aren&apos;t welcome.
+          hand with new information or detailed explanations of their reasoning. Low-effort comments, derailing, or spam aren&apos;t welcome.
         </li>
         <li>
-          Be respectful of all participants and moderators. Give others the benefit of the doubt if you have a misunderstanding. Moderators and Admins are trying their best to ensure that the platform runs smoothly, keep that in mind and engage respectfully.
+          Be respectful of all participants. Give others the benefit of the doubt if you have a misunderstanding. Moderators and Admins are trying their best to ensure that the platform runs smoothly, keep that in mind and engage respectfully.
         </li>
         <li>
           Keep things civil. Offensive or insulting remarks aren&apos;t welcome.
@@ -124,7 +124,7 @@ export default async function CommunityGuidelines() {
           claim their work as your own is not acceptable.
         </li>
         <li>
-          Avoid direct AI output. You can use AI tools to aid your forecasts, but avoid pasting raw AI output. Focus on the insights that explain your reasoning, whether yours or an AI’s, and share them in a way that's useful to others. If some of your reasoning comes from an AI, a best practice is to call out what part and mention what model you used.
+          Avoid pasting raw AI output. You can use AI tools to aid your forecasts, but focus on the insights that explain your reasoning, whether yours or an AI’s, and share them in a way that's useful to others. If some of your reasoning comes from an AI, a best practice is to call out what part and mention what model you used.
         </li>
       </ol>
 
