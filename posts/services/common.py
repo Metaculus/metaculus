@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from datetime import timedelta, date
 
 from django.db import transaction
-from django.db.models import Q, Count, Sum, Value, Case, When, F, QuerySet
+from django.db.models import Q, Count, Sum, Value, Case, When, QuerySet
 from django.db.models.functions import Coalesce
 from django.db.utils import IntegrityError
 from django.utils import timezone
@@ -403,64 +403,75 @@ def compute_hotness(qs: QuerySet[Post]):
     Compute hotness for the given queryset
     """
 
+    batch_size = 500
     last_week_dt = timezone.now() - timedelta(days=7)
 
-    qs = qs.annotate(
-        # nb predictions in last week
-        hotness_value=Coalesce(
-            SubqueryAggregate(
-                "forecasts",
-                filter=Q(start_time__gte=last_week_dt),
-                aggregate=Count,
-            ),
-            0,
-        )
-        + (
-            # Net votes in last week * 5
-            # Please note: we didn't have this before
-            Coalesce(
+    qs = (
+        qs.annotate(
+            # nb predictions in last week
+            hotness_value=Coalesce(
                 SubqueryAggregate(
-                    "votes__direction",
-                    filter=Q(created_at__gte=last_week_dt),
-                    aggregate=Sum,
-                ),
-                0,
-            )
-            * 5
-        )
-        + (
-            # nr comments for last week * 10
-            Coalesce(
-                SubqueryAggregate(
-                    "comments__id",
-                    filter=Q(created_at__gte=last_week_dt),
+                    "forecasts",
+                    filter=Q(start_time__gte=last_week_dt),
                     aggregate=Count,
                 ),
                 0,
             )
-            * 10
-        )
-        + (
-            Coalesce(
-                SubqueryAggregate(
-                    "activity_boosts__score",
-                    filter=Q(created_at__gte=last_week_dt),
-                    aggregate=Sum,
+            + (
+                # Net votes in last week * 5
+                # Please note: we didn't have this before
+                Coalesce(
+                    SubqueryAggregate(
+                        "votes__direction",
+                        filter=Q(created_at__gte=last_week_dt),
+                        aggregate=Sum,
+                    ),
+                    0,
+                )
+                * 5
+            )
+            + (
+                # nr comments for last week * 10
+                Coalesce(
+                    SubqueryAggregate(
+                        "comments__id",
+                        filter=Q(created_at__gte=last_week_dt),
+                        aggregate=Count,
+                    ),
+                    0,
+                )
+                * 10
+            )
+            + (
+                Coalesce(
+                    SubqueryAggregate(
+                        "activity_boosts__score",
+                        filter=Q(created_at__gte=last_week_dt),
+                        aggregate=Sum,
+                    ),
+                    0,
+                )
+            )
+            + Case(
+                # approved in last week
+                When(
+                    published_at__gte=last_week_dt,
+                    then=Value(50),
                 ),
-                0,
+                default=Value(0),
             )
         )
-        + Case(
-            # approved in last week
-            When(
-                published_at__gte=last_week_dt,
-                then=Value(50),
-            ),
-            default=Value(0),
-        )
+        .only("id")
+        .iterator(chunk_size=batch_size)
     )
 
-    qs.update(hotness=F("hotness_value"))
+    # Updating posts
+    to_update = []
+    for post in qs:
+        post.hotness = post.hotness_value
+        to_update.append(post)
+
+    Post.objects.bulk_update(to_update, fields=["hotness"], batch_size=batch_size)
 
 
 def approve_post(post: Post, open_time: date, cp_reveal_time: date):
