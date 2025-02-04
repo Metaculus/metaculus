@@ -342,7 +342,6 @@ def post_delete_api_view(request, pk):
 
 
 @api_view(["POST"])
-@transaction.non_atomic_requests
 def post_vote_api_view(request: Request, pk: int):
     post = get_object_or_404(Post, pk=pk)
     direction = serializers.ChoiceField(
