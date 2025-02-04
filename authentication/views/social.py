@@ -26,6 +26,10 @@ def social_providers_api_view(request):
 
         backend = cls(redirect_uri=f"{redirect_uri}/{cls.name}", strategy=None)
 
+        # Check whether backend is configured with secrets
+        if not all(backend.get_key_and_secret()):
+            continue
+
         response.append(
             {
                 "name": backend.name,
