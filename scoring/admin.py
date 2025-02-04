@@ -78,7 +78,7 @@ class LeaderboardAdmin(admin.ModelAdmin):
         "project__name_original",
     ]
     list_display = ["__str__", "id", "project", "score_type", "finalized"]
-    autocomplete_fields = ["project"]
+    autocomplete_fields = ["project", "user_list"]
     list_filter = [
         AutocompleteFilterFactory("Project", "project"),
         "score_type",

@@ -37,7 +37,7 @@ const TournamentsBlock: FC = async () => {
             }
             headerImageSrc={tournament.header_image}
             name={tournament.name}
-            questionsCount={tournament.posts_count}
+            questionsCount={tournament.questions_count}
             closeDate={tournament.close_date}
             showCloseDate={tournament.type !== TournamentType.QuestionSeries}
             prizePool={tournament.prize_pool}

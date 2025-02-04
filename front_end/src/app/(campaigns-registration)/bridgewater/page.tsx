@@ -1,5 +1,5 @@
 import { faFile, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faCoffee } from "@fortawesome/free-solid-svg-icons";
+import { faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
@@ -18,9 +18,9 @@ export const metadata = {
 
 const buttonLinks = [
   {
-    icon: faCoffee,
-    text: "Warmup Questions",
-    url: "/tournament/bridgewater-warmup/",
+    icon: faTrophy,
+    text: "Tournament Page",
+    url: "/tournament/bridgewater/",
   },
   {
     icon: faQuestionCircle,
@@ -109,6 +109,13 @@ export default async function Page() {
 
           <div className="min-h-[147px] w-full shrink-0 rounded bg-[url('https://metaculus-media.s3.amazonaws.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp')] bg-cover bg-center lg:min-h-[178px] xl:min-h-[244px] min-[1920px]:min-h-[344px]"></div>
 
+          <div className="flex flex w-full flex-col items-center items-center justify-center justify-center gap-2 text-balance rounded-md bg-purple-200 p-3 text-center text-base text-purple-800 dark:bg-purple-200-dark dark:text-purple-800-dark md:flex-row md:gap-4 md:p-6 md:text-xl">
+            <FontAwesomeIcon
+              icon={faTrophy}
+              className="text-lg md:text-lg min-[1920px]:text-xl"
+            />{" "}
+            Last day to register is March 24!
+          </div>
           <div className="flex w-full grow flex-wrap gap-3 xl:flex-nowrap">
             <DescriptionParagraphs className="w-full" />
 

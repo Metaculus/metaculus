@@ -31,6 +31,10 @@ server {
         return 301 https://$host/c/future-perfect/;
     }
 
+    location /tournament/brightlinewatch/  {
+        return 301 https://$host/c/brightlinewatch/;
+    }
+
     location / {
         include proxy_params;
 

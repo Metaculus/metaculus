@@ -17,6 +17,8 @@ from pathlib import Path
 import dj_database_url
 import django.conf.locale
 import sentry_sdk
+from django.core.exceptions import DisallowedHost
+from dramatiq.errors import RateLimitExceeded
 from sentry_sdk.integrations.dramatiq import DramatiqIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -467,6 +469,14 @@ if os.environ.get("SENTRY_DNS", None):
         environment=ENV,
         integrations=[
             DramatiqIntegration(),
+        ],
+        ignore_errors=[
+            # The RateLimitExceeded exception is a mechanism in Dramatiq
+            # to prevent concurrent execution of specific tasks.
+            # Is not an error we need to log.
+            RateLimitExceeded,
+            # Bot request to wrong host (direct heroku url)
+            DisallowedHost,
         ],
     )
 

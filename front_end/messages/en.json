@@ -413,6 +413,7 @@
   "outOfRank": "out of {total}",
   "comments": "Comments",
   "questions": "Questions",
+  "leaderboardQuestions": "Leaderboard Questions",
   "viewMore": "View more...",
   "randomQuestion": "Random Question",
   "notebooks": "Notebooks",

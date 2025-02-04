@@ -127,7 +127,7 @@ export default async function TournamentSlug({ params }: Props) {
               />
               <TournamentStat
                 title={t("questions")}
-                text={tournament.posts_count.toString()}
+                text={tournament.questions_count.toString()}
               />
             </div>
             <div>
