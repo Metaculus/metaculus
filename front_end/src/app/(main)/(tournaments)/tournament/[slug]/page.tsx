@@ -55,6 +55,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+const minimalUI = (process.env.MINIMAL_UI || "false").toLowerCase() === "true";
+
 export default async function TournamentSlug({ params }: Props) {
   const tournament = await ProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
@@ -157,19 +159,18 @@ export default async function TournamentSlug({ params }: Props) {
         <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
           <div className="mb-5 flex flex-row justify-between">
             <h2 className="m-0">{questionsTitle}</h2>
-            {currentUser && (
-              <Button href={`/questions/create?tournament_id=${tournament.id}`}>
-                + {t("question")}
-              </Button>
-            )}
+            <Button href={`/questions/create?tournament_id=${tournament.id}`}>
+              + {t("question")}
+            </Button>
           </div>
           <TournamentFilters />
           <TournamentFeed tournament={tournament} />
         </section>
       </div>
-      {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
-        tournament.user_permission
-      ) && <LazyProjectMembers project={tournament} />}
+      {!minimalUI &&
+        [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
+          tournament.user_permission
+        ) && <LazyProjectMembers project={tournament} />}
     </main>
   );
 }
