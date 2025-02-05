@@ -10,6 +10,8 @@ from django.contrib.auth.middleware import get_user
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
 
+from users.models import User
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,16 +41,16 @@ class AuthenticationRequiredMiddleware:
         if os.getenv("AUTHENTICATION_REQUIRED", "false").lower() == "true":
 
             # Always allow the user to log in or sign up
-            if request.path in [
-                "/api/auth/login/token/",
-                reverse("auth-signup"),  # signup blocking done on that endpoint
-            ]:
+            if request.path.startswith("/api/auth/"):
                 return self.get_response(request)
 
-            # Check if the user is an active logged-in user
-            user = get_user(request)
-            if not (user.is_authenticated and user.is_active):
-                return Response(status=status.HTTP_404_NOT_FOUND)
+            # Check if the user is already a real logged-in user
+            # Unsure why request.user is always Anonymous as this is the last middleware
+            token = request.headers.get("Authorization", "").split(" ")[-1]
+            if token:
+                user = User.objects.filter(auth_token=token).first()
+                if user:
+                    return self.get_response(request)
 
         return self.get_response(request)
 

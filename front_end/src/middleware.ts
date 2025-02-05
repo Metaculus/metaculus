@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 import AuthApi from "@/services/auth";
@@ -13,9 +12,12 @@ import { getAlphaAccessToken } from "@/utils/alpha_access";
 export async function middleware(request: NextRequest) {
   // if authentication is required, check for token
   if (process.env.AUTHENTICATION_REQUIRED?.toLowerCase() === "true") {
-    if (!getServerSession()) {
+    if (
+      !request.nextUrl.pathname.startsWith("/questions/0") && // "/not-found" doesn't load the headers/footers
+      !getServerSession()
+    ) {
       // return a not found page
-      return notFound();
+      return NextResponse.rewrite(new URL("/questions/0", request.url)); // same as above, urls must match
     }
   }
 
