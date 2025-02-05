@@ -1,12 +1,12 @@
-from rest_framework import serializers, status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.request import Request
-from rest_framework.response import Response
 from django.db.models import Q
 from django.http import HttpResponse
+from rest_framework import serializers, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from misc.models import WhitelistUser
 from projects.models import Project
@@ -27,6 +27,7 @@ from projects.services.common import (
     invite_user_to_project,
     subscribe_project,
     unsubscribe_project,
+    get_site_main_project,
 )
 from questions.models import Question
 from users.services.common import get_users_by_usernames
@@ -114,7 +115,7 @@ def tags_list_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def site_main_view(request: Request):
-    site_main = Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
+    site_main = get_site_main_project()
     return Response(TournamentSerializer(site_main).data)
 
 
