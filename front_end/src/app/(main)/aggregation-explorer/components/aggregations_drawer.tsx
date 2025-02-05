@@ -1,10 +1,14 @@
 "use client";
 
+import { saveAs } from "file-saver";
 import { uniq } from "lodash";
 import { isNil } from "lodash";
+import { useTranslations } from "next-intl";
 import { FC, useCallback, useState, memo, useMemo, useEffect } from "react";
+import toast from "react-hot-toast";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import Button from "@/components/ui/button";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
@@ -14,8 +18,11 @@ import {
   findPreviousTimestamp,
   scaleInternalLocation,
 } from "@/utils/charts";
+import { base64ToBlob } from "@/utils/files";
 
 import AggregationTooltip from "./aggregation_tooltip";
+import { getAggregationsPostZipData } from "../actions";
+import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import {
   generateAggregationTooltips,
   generateChoiceItemsFromAggregations,
@@ -32,6 +39,8 @@ type Props = {
   ) => Promise<void>;
   aggregationData: AggregationQuestionWithBots | null;
   selectedSubQuestionOption: number | string | null;
+  postId: number;
+  questionTitle: string;
 };
 
 const AggregationsDrawer: FC<Props> = ({
@@ -39,7 +48,10 @@ const AggregationsDrawer: FC<Props> = ({
   onFetchData,
   aggregationData,
   selectedSubQuestionOption,
+  postId,
+  questionTitle,
 }) => {
+  const t = useTranslations();
   const { actual_close_time, scaling, type } = aggregationData ?? {};
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
@@ -125,8 +137,46 @@ const AggregationsDrawer: FC<Props> = ({
     }
   }, [aggregationData, selectedSubQuestionOption, tooltips]);
 
+  // TODO: add support for include_bots
+  const handleDownloadQuestionData = async () => {
+    try {
+      const aggregationMethods = uniq(
+        choiceItems
+          .filter((item) => item.active)
+          .map(
+            (item) =>
+              AGGREGATION_EXPLORER_OPTIONS.find(
+                (option) => option.id === item.choice
+              )?.value
+          )
+      ).filter((method) => method !== undefined);
+
+      const base64 = await getAggregationsPostZipData(
+        postId,
+        typeof selectedSubQuestionOption === "number"
+          ? selectedSubQuestionOption
+          : undefined,
+        aggregationMethods
+      );
+
+      const blob = base64ToBlob(base64);
+      const filename = `${questionTitle.replaceAll(" ", "_")}.zip`;
+      saveAs(blob, filename);
+    } catch (error) {
+      toast.error(t("downloadQuestionDataError") + error);
+    }
+  };
+
   return (
     <>
+      <Button
+        variant="text"
+        onClick={handleDownloadQuestionData}
+        className="ml-12 cursor-pointer p-0 text-sm text-gray-500 underline dark:text-gray-500-dark"
+      >
+        {t("downloadQuestionData")}
+      </Button>
+
       {aggregationData && (
         <MultipleChoiceChart
           timestamps={timestamps}

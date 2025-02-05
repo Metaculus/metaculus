@@ -1,5 +1,7 @@
 import { FC, useCallback, useState } from "react";
 
+import { PostWithForecasts } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/errors";
 
 import AggregationsTab from "./aggregation_tab";
@@ -14,16 +16,17 @@ import {
 type Props = {
   activeTab: AggregationMethodWithBots | null;
   onTabChange: (activeTab: AggregationMethodWithBots) => void;
-  postId: number;
+  data: QuestionWithForecasts | PostWithForecasts;
   selectedSubQuestionOption: number | string | null;
 };
 
 export const AggregationWrapper: FC<Props> = ({
   activeTab,
   onTabChange,
-  postId,
   selectedSubQuestionOption,
+  data,
 }) => {
+  const postId = "post_id" in data ? data.post_id : data.id;
   const [selectedAggregationMethods, setSelectedAggregationMethods] = useState<
     AggregationMethodWithBots[]
   >([]);
@@ -107,11 +110,15 @@ export const AggregationWrapper: FC<Props> = ({
       selectedSubQuestionOption={selectedSubQuestionOption}
     />
   ) : (
-    <AggregationsDrawer
-      onTabChange={onTabChange}
-      onFetchData={handleFetchAggregations}
-      aggregationData={aggregationData}
-      selectedSubQuestionOption={selectedSubQuestionOption}
-    />
+    <>
+      <AggregationsDrawer
+        onTabChange={onTabChange}
+        onFetchData={handleFetchAggregations}
+        aggregationData={aggregationData}
+        selectedSubQuestionOption={selectedSubQuestionOption}
+        postId={postId}
+        questionTitle={data.title}
+      />
+    </>
   );
 };

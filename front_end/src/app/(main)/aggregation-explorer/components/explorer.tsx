@@ -7,24 +7,22 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Input } from "@headlessui/react";
-import { saveAs } from "file-saver";
+import { isNil } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, FormEvent, useCallback, useEffect, useState } from "react";
-import toast from "react-hot-toast";
 
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import Select from "@/components/ui/select";
+import useSearchParams from "@/hooks/use_search_params";
 import { SearchParams } from "@/types/navigation";
 import { Post, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/errors";
-import { base64ToBlob } from "@/utils/files";
 import { parseQuestionId } from "@/utils/questions";
 
 import { AggregationWrapper } from "./aggregation_wrapper";
-import { getPostZipData } from "../../questions/actions";
 import { fetchPost, fetchQuestion } from "../actions";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import { AggregationMethodWithBots } from "../types";
@@ -33,6 +31,8 @@ type Props = { searchParams: SearchParams };
 
 const Explorer: FC<Props> = ({ searchParams }) => {
   const { post_id, question_id, option } = searchParams;
+  const { setParam, deleteParam, shallowNavigateToSearchParams } =
+    useSearchParams();
   const router = useRouter();
   const t = useTranslations();
   const [data, setData] = useState<
@@ -46,7 +46,11 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   >([]);
   const [selectedSubQuestionOption, setSelectedSubQuestionOption] = useState<
     string | number | null
-  >(question_id?.toString() ?? option?.toString().replaceAll("_", " ") ?? null);
+  >(
+    !isNaN(Number(question_id?.toString()))
+      ? Number(question_id?.toString())
+      : option?.toString().replaceAll("_", " ") ?? null
+  );
 
   const [activeTab, setActiveTab] = useState<AggregationMethodWithBots | null>(
     null
@@ -101,15 +105,16 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             ) {
               const questionData = await fetchQuestion(questionId);
               setData(questionData);
+              return;
             } else if (
               option &&
               postData.question?.type === QuestionType.MultipleChoice
             ) {
               setData(postData);
+              return;
             }
-          } else {
-            setData(postData);
           }
+          setData(postData);
         } catch (err) {
           logError(err);
           setError("Failed to fetch data. Please provide a valid post id");
@@ -146,22 +151,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     router.push(`/aggregation-explorer?${params.toString()}`);
   };
 
-  // API support load data only for post_id - it returns NOT_FOUND for specific question_id
-  const handleDownloadQuestionData = async () => {
-    try {
-      if (!data) {
-        return;
-      }
-      const postId = "post_id" in data ? data.post_id : data.id;
-      const base64 = await getPostZipData(postId);
-      const blob = base64ToBlob(base64);
-      const filename = `${data.title.replaceAll(" ", "_")}.zip`;
-      saveAs(blob, filename);
-    } catch (error) {
-      toast.error(t("downloadQuestionDataError") + error);
-    }
-  };
-
   const renderContent = () => {
     if (loading) {
       return <LoadingIndicator />;
@@ -169,7 +158,16 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     if (error) {
       return <p className="text-center text-red-600">{error}</p>;
     }
-    if (data) {
+
+    if (
+      data &&
+      shouldRenderAggregation(
+        data,
+        question_id?.toString() ??
+          option?.toString().replaceAll("_", " ") ??
+          null
+      )
+    ) {
       return (
         <>
           <hr className="mb-6 border-gray-400 dark:border-gray-400-dark" />
@@ -186,14 +184,10 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             <div className="ml-12">
               <h1 className="text-xl leading-tight sm:text-2xl">
                 {data.title}
+                {isMultipleChoiceQuestion(data) && (
+                  <span> ({selectedSubQuestionOption})</span>
+                )}
               </h1>
-              <Button
-                variant="text"
-                onClick={handleDownloadQuestionData}
-                className="cursor-pointer p-0 text-sm text-gray-500 underline dark:text-gray-500-dark"
-              >
-                {t("downloadQuestionData")}
-              </Button>
             </div>
           </div>
           {activeTab && (
@@ -208,7 +202,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
           <AggregationWrapper
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            postId={data.id}
+            data={data}
             selectedSubQuestionOption={selectedSubQuestionOption}
           />
         </>
@@ -230,10 +224,22 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         setSelectedSubQuestionOption(questionIdValue);
         return;
       }
-
       setSelectedSubQuestionOption(value);
+      if (
+        shouldRenderAggregation(
+          data,
+          question_id?.toString() ??
+            option?.toString().replaceAll("_", " ") ??
+            null
+        )
+      ) {
+        deleteParam("question_id", false);
+        setParam("option", value.replaceAll(" ", "_"), false);
+        shallowNavigateToSearchParams();
+      }
     },
-    [data]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data, question_id, option]
   );
 
   return (
@@ -338,6 +344,38 @@ function parseSubQuestions(data: Post) {
     return data.question.options ?? [];
   }
   return [];
+}
+
+function isMultipleChoiceQuestion(
+  data: QuestionWithForecasts | PostWithForecasts | null
+) {
+  return (
+    data &&
+    "question" in data &&
+    data.question?.type === QuestionType.MultipleChoice
+  );
+}
+
+function shouldRenderAggregation(
+  data: QuestionWithForecasts | PostWithForecasts | null,
+  subQuestionOption: string | number | null
+) {
+  console.log(subQuestionOption);
+  console.log(typeof subQuestionOption);
+  if (!data) {
+    return false;
+  }
+
+  if (
+    (isMultipleChoiceQuestion(data) ||
+      "group_of_questions" in data ||
+      "conditional" in data) &&
+    isNil(subQuestionOption)
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 export default Explorer;
