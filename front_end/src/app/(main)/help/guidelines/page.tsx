@@ -51,13 +51,16 @@ export default async function CommunityGuidelines() {
         together with a group of Community Moderators.
       </p>
       <p className="mb-4">
-        Content that does not adhere to our Moderation Rules will be removed. Conduct that
-        violates our rules and consistent norm-violating conduct will be
-        appropriately sanctioned by the measures described below.
+        Content that does not adhere to our Moderation Rules will be removed.
+        Conduct that violates our rules and consistent norm-violating conduct
+        will be appropriately sanctioned by the measures described below.
       </p>
       <p className="mb-4">
         To ensure that your contributions and comments have the maximum impact,
-        we encourage you to follow the etiquette guide below. We may remove content that does not follow our guidelines, to ensure that Metaculus remains a place where observers and users can find thoughtful discussions and valuable reasoning.
+        we encourage you to follow the etiquette guide below. We may remove
+        content that does not follow our guidelines, to ensure that Metaculus
+        remains a place where observers and users can find thoughtful
+        discussions and valuable reasoning.
       </p>
 
       <h2 className="mb-4 mt-8 scroll-mt-nav text-2xl font-bold" id="etiquette">
@@ -67,10 +70,14 @@ export default async function CommunityGuidelines() {
         <li>
           Aim for high-quality, useful and informative content. It&apos;s
           greatly appreciated when participants contribute to the discussion at
-          hand with new information or detailed explanations of their reasoning. Low-effort comments, derailing, or spam aren&apos;t welcome.
+          hand with new information or detailed explanations of their reasoning.
+          Low-effort comments, derailing, or spam aren&apos;t welcome.
         </li>
         <li>
-          Be respectful of all participants. Give others the benefit of the doubt if you have a misunderstanding. Moderators and Admins are trying their best to ensure that the platform runs smoothly, keep that in mind and engage respectfully.
+          Be respectful of all participants. Give others the benefit of the
+          doubt if you have a misunderstanding. Moderators and Admins are trying
+          their best to ensure that the platform runs smoothly, keep that in
+          mind and engage respectfully.
         </li>
         <li>
           Keep things civil. Offensive or insulting remarks aren&apos;t welcome.
@@ -78,8 +85,8 @@ export default async function CommunityGuidelines() {
 
         <li>
           Don&apos;t fuel conflicts if they occur. Just disengage and report
-          issues using the &quot;Report&quot; feature on comments if you encounter
-          content that violates these guidelines.
+          issues using the &quot;Report&quot; feature on comments if you
+          encounter content that violates these guidelines.
         </li>
 
         <li>
@@ -101,8 +108,11 @@ export default async function CommunityGuidelines() {
 
         <li>
           Search first. If you have questions about how Metaculus works, check
-          to see if you can find the answer in the <a href="https://www.metaculus.com/faq/" target="_blank">FAQ</a>. There are lots of
-          technical details for those interested.
+          to see if you can find the answer in the{" "}
+          <a href="https://www.metaculus.com/faq/" target="_blank">
+            FAQ
+          </a>
+          . There are lots of technical details for those interested.
         </li>
 
         <li>
@@ -115,8 +125,8 @@ export default async function CommunityGuidelines() {
           Report potential conflicts of interest. At times, forecasters weigh in
           on question resolution discussions. If you do so, it’s considered good
           form to indicate when you have a potential conflict of interest. A
-          simple “My score will benefit if this question resolves as I suggest it
-          should” will suffice.
+          simple “My score will benefit if this question resolves as I suggest
+          it should” will suffice.
         </li>
         <li>
           Plagiarism is not tolerated. Quoting or citing other sources is very
@@ -124,7 +134,11 @@ export default async function CommunityGuidelines() {
           claim their work as your own is not acceptable.
         </li>
         <li>
-          Avoid pasting raw AI output. You can use AI tools to aid your forecasts, but focus on the insights that explain your reasoning, whether yours or an AI’s, and share them in a way that's useful to others. If some of your reasoning comes from an AI, a best practice is to call out what part and mention what model you used.
+          Avoid pasting raw AI output. You can use AI tools to aid your
+          forecasts, but focus on the insights that explain your reasoning,
+          whether yours or an AI’s, and share them in a way that's useful to
+          others. If some of your reasoning comes from an AI, a best practice is
+          to call out what part and mention what model you used.
         </li>
       </ol>
 
@@ -196,7 +210,20 @@ export default async function CommunityGuidelines() {
         About the Community Moderators
       </h2>
       <p className="mb-4">
-        Metaculus Community Moderators try their best to help the platform run smoothly. In the past Moderators have been elected volunteers, though recently Moderators tend to be recruited by Metaculus and work part-time. If you have experience writing good forecasting questions or providing feedback on forecasting questions, communicate respectfully with others, and would be interested in becoming a Moderator you can fill out our <a href="https://docs.google.com/forms/d/e/1FAIpQLSdebfiVQVoYj4WakqvwY-08k0x9Sfy8HMAUsKPE707YEChGlQ/viewform" target="_blank">expression of interest form</a>.
+        Metaculus Community Moderators try their best to help the platform run
+        smoothly. In the past Moderators have been elected volunteers, though
+        recently Moderators tend to be recruited by Metaculus and work
+        part-time. If you have experience writing good forecasting questions or
+        providing feedback on forecasting questions, communicate respectfully
+        with others, and would be interested in becoming a Moderator you can
+        fill out our{" "}
+        <a
+          href="https://docs.google.com/forms/d/e/1FAIpQLSdebfiVQVoYj4WakqvwY-08k0x9Sfy8HMAUsKPE707YEChGlQ/viewform"
+          target="_blank"
+        >
+          expression of interest form
+        </a>
+        .
       </p>
       <p className="mb-4">
         The main responsibilities of Community Moderators include:
@@ -216,12 +243,13 @@ export default async function CommunityGuidelines() {
           they arise.
         </li>
         <li>
-          Helping write and review forecasting questions for Metaculus initiatives and tournaments.
+          Helping write and review forecasting questions for Metaculus
+          initiatives and tournaments.
         </li>
       </ol>
       <p className="mt-4">
-        Additionally, Moderators can help draw extra attention to
-        bugs, feature requests, or other issues that affect the platform.
+        Additionally, Moderators can help draw extra attention to bugs, feature
+        requests, or other issues that affect the platform.
       </p>
     </PageWrapper>
   );
