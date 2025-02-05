@@ -1,4 +1,5 @@
 import logging
+import os
 
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -68,7 +69,12 @@ def signup_api_view(request):
     # Validating captcha
     validate_turnstile_from_request(request)
 
-    serializer = SignupSerializer(data=request.data)
+    if os.getenv("ALLOW_SIGNUP", "true").lower() == "false":
+        serializer = SignupSerializer(
+            data=request.data
+        )  # TODO: add context for specific signup authorization
+    else:
+        serializer = SignupSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     email = serializer.validated_data["email"]

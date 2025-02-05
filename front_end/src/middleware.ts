@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 import AuthApi from "@/services/auth";
@@ -10,6 +11,14 @@ import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 
 export async function middleware(request: NextRequest) {
+  // if authentication is required, check for token
+  if (process.env.AUTHENTICATION_REQUIRED?.toLowerCase() === "true") {
+    if (!getServerSession()) {
+      // return a not found page
+      return notFound();
+    }
+  }
+
   let deleteCookieToken = false;
 
   const serverSession = getServerSession();

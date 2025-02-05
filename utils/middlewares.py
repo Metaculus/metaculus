@@ -1,7 +1,12 @@
+import os
 import logging
 
+from rest_framework import status
+from rest_framework.response import Response
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
+from django.urls import reverse
+from django.contrib.auth.middleware import get_user
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
 
@@ -23,6 +28,29 @@ class LocaleOverrideMiddleware:
             activate(original_lang_code)
         response = self.get_response(request)
         return response
+
+
+class AuthenticationRequiredMiddleware:
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if os.getenv("AUTHENTICATION_REQUIRED", "false").lower() == "true":
+
+            # Always allow the user to log in or sign up
+            if request.path in [
+                "/api/auth/login/token/",
+                reverse("auth-signup"),  # signup blocking done on that endpoint
+            ]:
+                return self.get_response(request)
+
+            # Check if the user is an active logged-in user
+            user = get_user(request)
+            if not (user.is_authenticated and user.is_active):
+                return Response(status=status.HTTP_404_NOT_FOUND)
+
+        return self.get_response(request)
 
 
 def middleware_alpha_access_check(get_response):

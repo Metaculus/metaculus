@@ -95,6 +95,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "utils.middlewares.middleware_alpha_access_check",
+    "utils.middlewares.AuthenticationRequiredMiddleware",
 ]
 
 if DEBUG:
