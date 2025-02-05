@@ -26,25 +26,3 @@ class AuthLoginBackend(ModelBackend):
             user_logged_in.send(sender=user.__class__, request=request, user=user)
 
             return user
-
-
-class PermissiveAuthLoginBackend(ModelBackend):
-    """
-    Auth backend that allows to authenticate via email or username as login
-    Does not check password
-    """
-
-    @classmethod
-    def find_user(cls, login=None):
-        return User.objects.filter(
-            Q(username__iexact=login) | Q(email__iexact=login)
-        ).first()
-
-    def authenticate(self, request, login=None, password=None, **kwargs):
-        if not login:
-            return None
-
-        user = self.find_user(login=login)
-
-        if user and self.user_can_authenticate(user):
-            return user
