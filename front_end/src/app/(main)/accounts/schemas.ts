@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
 export const signInSchema = z.object({
   login: z.string().min(1, { message: "Email/Username is required" }),
   password: z
@@ -13,9 +15,9 @@ export const signUpSchema = z.intersection(
     username: z.string().min(1, { message: "Username is required" }),
     email: z.string().min(1, { message: "Email is required" }),
     isBot: z.boolean(),
-    turnstileToken: z.string({
-      required_error: "Turnstile token is required",
-    }),
+    turnstileToken: TURNSTILE_SITE_KEY
+      ? z.string({ required_error: "Turnstile token is required" })
+      : z.string().optional(),
     addToProject: z.number().optional(),
     campaignKey: z.string().optional(),
     campaignData: z.record(z.any()).optional(),
