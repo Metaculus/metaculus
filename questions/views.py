@@ -1,4 +1,3 @@
-from django.db import transaction
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
@@ -84,7 +83,6 @@ def unresolve_api_view(request, pk: int):
 
 
 @api_view(["POST"])
-@transaction.non_atomic_requests
 def bulk_create_forecasts_api_view(request):
     now = timezone.now()
     serializer = ForecastWriteSerializer(data=request.data, many=True)
@@ -136,7 +134,6 @@ def bulk_create_forecasts_api_view(request):
 
 
 @api_view(["POST"])
-@transaction.non_atomic_requests
 def bulk_withdraw_forecasts_api_view(request):
     now = timezone.now()
     serializer = ForecastWithdrawSerializer(data=request.data, many=True)

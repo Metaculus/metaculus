@@ -3,6 +3,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
 from rest_framework import status, serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
@@ -83,32 +84,34 @@ def signup_api_view(request):
     if project is not None and project.default_permission is None:
         raise ValidationError("Cannot add user to a private project")
 
-    user = User.objects.create_user(
-        username=username,
-        email=email,
-        password=password,
-        is_active=not settings.AUTH_SIGNUP_VERIFY_EMAIL,
-        is_bot=is_bot,
-    )
+    with transaction.atomic():
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            is_active=not settings.AUTH_SIGNUP_VERIFY_EMAIL,
+            is_bot=is_bot,
+        )
+
+        if campaign_key is None and project is not None:
+            ProjectUserPermission.objects.create(
+                user=user, project=project, permission=ObjectPermission.FORECASTER
+            )
+
+        is_active = user.is_active
+        token = None
+
+        if is_active:
+            # We need to treat this as login action, so we should call `authenticate` service as well
+            user = authenticate(login=email, password=password)
+            token_obj, _ = Token.objects.get_or_create(user=user)
+            token = token_obj.key
+
+    if not is_active:
+        send_activation_email(user, redirect_url)
 
     if campaign_key is not None:
         register_user_to_campaign(user, campaign_key, campaign_data, project)
-
-    if campaign_key is None and project is not None:
-        ProjectUserPermission.objects.create(
-            user=user, project=project, permission=ObjectPermission.FORECASTER
-        )
-
-    is_active = user.is_active
-    token = None
-
-    if is_active:
-        # We need to treat this as login action, so we should call `authenticate` service as well
-        user = authenticate(login=email, password=password)
-        token_obj, _ = Token.objects.get_or_create(user=user)
-        token = token_obj.key
-    else:
-        send_activation_email(user, redirect_url)
 
     return Response(
         {

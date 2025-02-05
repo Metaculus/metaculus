@@ -122,7 +122,6 @@ def comment_delete_api_view(request: Request, pk: int):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-@transaction.non_atomic_requests
 def comment_create_api_view(request: Request):
     user: User = request.user
     serializer = CommentWriteSerializer(data=request.data)
@@ -189,21 +188,23 @@ def comment_edit_api_view(request: Request, pk: int):
     diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))
     text_diff = "\n".join(diff)
 
-    comment_diff = CommentDiff.objects.create(
-        comment=comment,
-        author=comment.author,
-        text_diff=text_diff,
-    )
+    with transaction.atomic():
+        comment_diff = CommentDiff.objects.create(
+            comment=comment,
+            author=comment.author,
+            text_diff=text_diff,
+        )
 
-    comment.edit_history.append(comment_diff.id)
-    comment.text = text
-    comment.save(update_fields=["text", "edit_history"])
+        comment.edit_history.append(comment_diff.id)
+        comment.text = text
+        comment.save(update_fields=["text", "edit_history"])
     trigger_update_comment_translations(comment, force=False)
 
     return Response({}, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
+@transaction.atomic
 def comment_vote_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
@@ -229,6 +230,7 @@ def comment_vote_api_view(request: Request, pk: int):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@transaction.atomic
 def comment_toggle_cmm_view(request, pk=int):
     enabled = request.data.get("enabled", False)
     comment = get_object_or_404(Comment, pk=pk)
