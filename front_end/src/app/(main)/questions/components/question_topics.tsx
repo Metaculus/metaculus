@@ -65,6 +65,9 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     ? "top-24 lg:top-20"
     : "top-12 lg:top-20";
 
+  const minimalUI =
+    (process.env.MIMIMAL_UI || "false").toLowerCase() === "true";
+
   return (
     <div
       className={cn(
@@ -152,7 +155,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               />
             </>
           )}
-          {process.env.MIMIMAL_UI?.toLowerCase() === "false" && ( // TODO: these should be database driven
+          {!minimalUI && ( // TODO: these should be database driven
             <>
               <TopicItem
                 emoji="👥"
