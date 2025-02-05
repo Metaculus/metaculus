@@ -1,12 +1,8 @@
 import os
 import logging
 
-from rest_framework import status
-from rest_framework.response import Response
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
-from django.urls import reverse
-from django.contrib.auth.middleware import get_user
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
 
