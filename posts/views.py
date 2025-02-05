@@ -1,7 +1,6 @@
 from collections import defaultdict
 
 from django.core.files.storage import default_storage
-from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -342,7 +341,6 @@ def post_delete_api_view(request, pk):
 
 
 @api_view(["POST"])
-@transaction.non_atomic_requests
 def post_vote_api_view(request: Request, pk: int):
     post = get_object_or_404(Post, pk=pk)
     direction = serializers.ChoiceField(

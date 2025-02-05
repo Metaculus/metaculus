@@ -113,6 +113,7 @@ export const SignupForm: FC<{
             errors={errors}
             name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
           />
+          <FormError errors={errors} />
         </div>
         {TURNSTILE_SITE_KEY && (
           <Turnstile

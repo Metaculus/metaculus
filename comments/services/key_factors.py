@@ -1,7 +1,10 @@
+from django.db import transaction
+
 from comments.models import KeyFactor
 from users.models import User
 
 
+@transaction.atomic
 def key_factor_vote(
     key_factor: KeyFactor, user: User, vote: int = None
 ) -> dict[int, int]:

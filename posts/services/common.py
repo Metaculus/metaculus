@@ -134,43 +134,43 @@ def create_post(
     categories = list(categories or [])
     default_project = default_project or site_main
 
-    obj = Post(
-        title=title or "",
-        url_title=url_title or title or "",
-        author=author,
-        curation_status=Post.CurationStatus.DRAFT,
-    )
+    with transaction.atomic():
+        obj = Post(
+            title=title or "",
+            url_title=url_title or title or "",
+            author=author,
+            curation_status=Post.CurationStatus.DRAFT,
+        )
 
-    # Adding questions
-    if question:
-        obj.question = create_question(**question)
-    elif conditional:
-        obj.conditional = create_conditional(**conditional)
-        # Populate url_title from condition child
-        obj.url_title = obj.conditional.condition_child.get_post().get_url_title()
-    elif group_of_questions:
-        obj.group_of_questions = create_group_of_questions(**group_of_questions)
-    elif notebook:
-        obj.notebook = Notebook.objects.create(**notebook)
+        # Adding questions
+        if question:
+            obj.question = create_question(**question)
+        elif conditional:
+            obj.conditional = create_conditional(**conditional)
+            # Populate url_title from condition child
+            obj.url_title = obj.conditional.condition_child.get_post().get_url_title()
+        elif group_of_questions:
+            obj.group_of_questions = create_group_of_questions(**group_of_questions)
+        elif notebook:
+            obj.notebook = Notebook.objects.create(**notebook)
 
-    site_main = get_site_main_project()
-    obj.default_project = default_project
+        obj.default_project = default_project
 
-    # Save project and validate
-    obj.full_clean()
-    obj.save()
+        # Save project and validate
+        obj.full_clean()
+        obj.save()
 
-    # Populating categories
-    if obj.default_project in categories:
-        categories.remove(obj.default_project)
+        # Populating categories
+        if obj.default_project in categories:
+            categories.remove(obj.default_project)
 
-    obj.projects.add(*categories)
+        obj.projects.add(*categories)
 
-    # Update global leaderboard tags
-    update_global_leaderboard_tags(obj)
+        # Update global leaderboard tags
+        update_global_leaderboard_tags(obj)
 
-    # Sync status fields
-    obj.update_pseudo_materialized_fields()
+        # Sync status fields
+        obj.update_pseudo_materialized_fields()
 
     # Run async tasks
     run_post_indexing.send(obj.id)
@@ -222,6 +222,7 @@ def trigger_update_post_translations(
         update_translations_for_model(comments_qs, batch_size)
 
 
+@transaction.atomic
 def update_post(
     post: Post,
     categories: list[Project] = None,
@@ -474,6 +475,7 @@ def compute_hotness(qs: QuerySet[Post]):
     Post.objects.bulk_update(to_update, fields=["hotness"], batch_size=batch_size)
 
 
+@transaction.atomic
 def approve_post(post: Post, open_time: date, cp_reveal_time: date):
     if post.curation_status == Post.CurationStatus.APPROVED:
         raise ValidationError("Post is already approved")

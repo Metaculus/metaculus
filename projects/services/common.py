@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Iterable
 
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 
 from notifications.constants import MailingTags
@@ -35,7 +35,10 @@ def get_projects_qs(
 
 
 def get_site_main_project():
-    obj, _ = Project.objects.get_or_create(type=Project.ProjectTypes.SITE_MAIN)
+    obj, _ = Project.objects.get_or_create(
+        type=Project.ProjectTypes.SITE_MAIN,
+        defaults={"visibility": Project.Visibility.NORMAL},
+    )
 
     return obj
 
@@ -90,6 +93,7 @@ def invite_user_to_project(
         return
 
 
+@transaction.atomic
 def subscribe_project(project: Project, user: User) -> ProjectSubscription:
     obj = ProjectSubscription(
         project=project,
@@ -103,6 +107,7 @@ def subscribe_project(project: Project, user: User) -> ProjectSubscription:
     return obj
 
 
+@transaction.atomic
 def unsubscribe_project(project: Project, user: User) -> ProjectSubscription:
     ProjectSubscription.objects.filter(project=project, user=user).delete()
 

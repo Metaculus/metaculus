@@ -150,9 +150,6 @@ if ENV != "testing":
         "OPTIONS": {"options": "-c default_transaction_read_only=on"},
     }
 
-# TODO: probably we should switch to the explicit transactions
-DATABASES["default"]["ATOMIC_REQUESTS"] = True
-
 # REST Framework
 # https://www.django-rest-framework.org/
 
