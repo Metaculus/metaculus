@@ -13,6 +13,7 @@ import ButtonGroup from "@/components/ui/button_group";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import Select from "@/components/ui/select";
 import { ErrorResponse } from "@/types/fetch";
 import { Question, QuestionType } from "@/types/question";
 import { AMBIGUOUS_RESOLUTION, ANNULED_RESOLUTION } from "@/utils/questions";
@@ -137,15 +138,28 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
           className="flex flex-col items-center gap-4"
         >
           <label className="flex flex-col gap-2">What is the resolution?</label>
-          <ButtonGroup
-            value={resolutionType}
-            buttons={resolutionTypeOptions}
-            onChange={(value) => {
-              setValue("resolutionType", value);
-              setValue("resolutionValue", undefined);
-            }}
-            variant="tertiary"
-          />
+          {question.type === QuestionType.MultipleChoice ? (
+            // We want to render Select input for multiple choice questions
+            // To fit all choices on the screen
+            <Select
+              value={resolutionType}
+              options={resolutionTypeOptions}
+              onChange={(event) => {
+                setValue("resolutionType", event.target.value);
+                setValue("resolutionValue", undefined);
+              }}
+            />
+          ) : (
+            <ButtonGroup
+              value={resolutionType}
+              buttons={resolutionTypeOptions}
+              onChange={(value) => {
+                setValue("resolutionType", value);
+                setValue("resolutionValue", undefined);
+              }}
+              variant="tertiary"
+            />
+          )}
           {resolutionType === "unambiguous" && (
             <ButtonGroup
               value={unambiguousType ?? ""}

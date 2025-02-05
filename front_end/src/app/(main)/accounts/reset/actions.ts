@@ -28,6 +28,8 @@ export async function passwordResetRequestAction(
   }
 
   try {
+    await AuthApi.passwordResetRequest(validatedFields.data.login);
+
     return {};
   } catch (err) {
     const error = err as FetchError;

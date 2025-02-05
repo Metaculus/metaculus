@@ -199,10 +199,6 @@ AUTH_SIGNUP_VERIFY_EMAIL = (
     os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
 )
 
-if DEBUG:
-    # Allow to authenticate without correst password in development
-    AUTHENTICATION_BACKENDS += ("authentication.backends.PermissiveAuthLoginBackend",)
-
 SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_details",
     "social_core.pipeline.social_auth.social_uid",
