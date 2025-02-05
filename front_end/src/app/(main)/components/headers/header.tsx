@@ -40,20 +40,25 @@ const Header: FC = () => {
     },
   ];
 
+  const minimalUI =
+    (process.env.MIMIMAL_UI || "false").toLowerCase() === "true";
+
   return (
     <>
       <header className="fixed left-0 top-0 z-100 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
-        <Link
-          href="/"
-          className="inline-flex max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center text-center no-underline"
-        >
-          <h1 className="mx-3 my-0 font-league-gothic text-[28px] font-light tracking-widest !text-gray-0 antialiased">
-            <span className="hidden capitalize xs:inline">
-              {t("metaculus")}
-            </span>
-            <span className="inline xs:hidden">M</span>
-          </h1>
-        </Link>
+        {!minimalUI && (
+          <Link
+            href="/"
+            className="inline-flex max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center text-center no-underline"
+          >
+            <h1 className="mx-3 my-0 font-league-gothic text-[28px] font-light tracking-widest !text-gray-0 antialiased">
+              <span className="hidden capitalize xs:inline">
+                {t("metaculus")}
+              </span>
+              <span className="inline xs:hidden">M</span>
+            </h1>
+          </Link>
+        )}
 
         {/* Global Search */}
         <GlobalSearch />
@@ -74,24 +79,28 @@ const Header: FC = () => {
         </ul>
         {/*Desktop items*/}
         <ul className="relative hidden list-none items-center justify-end text-sm font-medium lg:flex">
-          <li className="h-full">
-            <NavLink
-              href={`/leaderboard`}
-              className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
-              activeClassName="bg-blue-300-dark"
-            >
-              {t("leaderboards")}
-            </NavLink>
-          </li>
-          <li className="h-full">
-            <NavLink
-              href={`/news/`}
-              className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
-              activeClassName="bg-blue-300-dark"
-            >
-              {t("news")}
-            </NavLink>
-          </li>
+          {!minimalUI && (
+            <>
+              <li className="h-full">
+                <NavLink
+                  href={`/leaderboard`}
+                  className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
+                  activeClassName="bg-blue-300-dark"
+                >
+                  {t("leaderboards")}
+                </NavLink>
+              </li>
+              <li className="h-full">
+                <NavLink
+                  href={`/news/`}
+                  className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
+                  activeClassName="bg-blue-300-dark"
+                >
+                  {t("news")}
+                </NavLink>
+              </li>
+            </>
+          )}
           <li className="h-full">
             <Menu>
               <MenuButton className="flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-200-dark">
@@ -102,16 +111,20 @@ const Header: FC = () => {
                 anchor="bottom"
                 className="z-50 text-gray-0 lg:border lg:border-blue-200-dark lg:bg-blue-900 lg:text-sm"
               >
-                <LinkMenuItem href="/about/" label={t("aboutMetaculus")} />
-                <LinkMenuItem href="/press/" label={t("forJournalists")} />
-                <LinkMenuItem href="/faq/" label={t("faq")} />
+                {!minimalUI && (
+                  <>
+                    <LinkMenuItem href="/about/" label={t("aboutMetaculus")} />
+                    <LinkMenuItem href="/press/" label={t("forJournalists")} />
+                    <LinkMenuItem href="/faq/" label={t("faq")} />
+                    <LinkMenuItem
+                      href="/project/journal/"
+                      label={t("theJournal")}
+                    />
+                  </>
+                )}
                 <LinkMenuItem
                   href="/questions/track-record/"
                   label={t("trackRecord")}
-                />
-                <LinkMenuItem
-                  href="/project/journal/"
-                  label={t("theJournal")}
                 />
                 <LinkMenuItem
                   href="/aggregation-explorer"
