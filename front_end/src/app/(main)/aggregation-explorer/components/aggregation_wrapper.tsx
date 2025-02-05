@@ -110,15 +110,13 @@ export const AggregationWrapper: FC<Props> = ({
       selectedSubQuestionOption={selectedSubQuestionOption}
     />
   ) : (
-    <>
-      <AggregationsDrawer
-        onTabChange={onTabChange}
-        onFetchData={handleFetchAggregations}
-        aggregationData={aggregationData}
-        selectedSubQuestionOption={selectedSubQuestionOption}
-        postId={postId}
-        questionTitle={data.title}
-      />
-    </>
+    <AggregationsDrawer
+      onTabChange={onTabChange}
+      onFetchData={handleFetchAggregations}
+      aggregationData={aggregationData}
+      selectedSubQuestionOption={selectedSubQuestionOption}
+      postId={postId}
+      questionTitle={data.title}
+    />
   );
 };

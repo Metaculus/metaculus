@@ -46,11 +46,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   >([]);
   const [selectedSubQuestionOption, setSelectedSubQuestionOption] = useState<
     string | number | null
-  >(
-    !isNaN(Number(question_id?.toString()))
-      ? Number(question_id?.toString())
-      : option?.toString().replaceAll("_", " ") ?? null
-  );
+  >(parseSubQuestionOption(question_id, option));
 
   const [activeTab, setActiveTab] = useState<AggregationMethodWithBots | null>(
     null
@@ -161,12 +157,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
 
     if (
       data &&
-      shouldRenderAggregation(
-        data,
-        question_id?.toString() ??
-          option?.toString().replaceAll("_", " ") ??
-          null
-      )
+      shouldRenderAggregation(data, parseSubQuestionOption(question_id, option))
     ) {
       return (
         <>
@@ -228,9 +219,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       if (
         shouldRenderAggregation(
           data,
-          question_id?.toString() ??
-            option?.toString().replaceAll("_", " ") ??
-            null
+          parseSubQuestionOption(question_id, option)
         )
       ) {
         deleteParam("question_id", false);
@@ -356,12 +345,19 @@ function isMultipleChoiceQuestion(
   );
 }
 
+function parseSubQuestionOption(
+  question_id: string | string[] | undefined,
+  option: string | string[] | undefined
+) {
+  return !isNaN(Number(question_id?.toString()))
+    ? Number(question_id?.toString())
+    : option?.toString().replaceAll("_", " ") ?? null;
+}
+
 function shouldRenderAggregation(
   data: QuestionWithForecasts | PostWithForecasts | null,
   subQuestionOption: string | number | null
 ) {
-  console.log(subQuestionOption);
-  console.log(typeof subQuestionOption);
   if (!data) {
     return false;
   }
