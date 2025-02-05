@@ -39,21 +39,6 @@ const people: Person[] = [
     ],
   },
   {
-    userId: 120279,
-    name: "Tom Liptay",
-    position: "Director of Forecasting",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/tom_liptay.webp",
-    introduction:
-      "Tom is an accomplished professional with a passion for forecasting. He became a GJP Superforecaster, joined the executive team at Good Judgment, Inc., and co-founded Maby, a forecasting startup. Tom's diverse background includes starting an investment fund, designing computer chips, and conducting nanocrystal research for his doctorate at MIT.",
-    socials: [
-      {
-        link: "https://www.linkedin.com/in/tom-liptay-2016343/",
-        platform: "LinkedIn",
-      },
-    ],
-  },
-  {
     userId: 126463,
     name: "Atakan Seçkin",
     position: "Head of Design",
@@ -197,6 +182,20 @@ const people: Person[] = [
   },
 
   {
+    userId: 100912,
+    name: "Peter Wildeford",
+    imgSrc:
+      "https://metaculus-public.s3.us-west-2.amazonaws.com/peter-wildeford.webp",
+    introduction:
+      "Peter Wildeford helps run the Institute for AI Policy and Strategy, a think tank that experts across the U.S. and allied nations to deliver concrete, technically sound policy research to ensure geopolitical stability and mitigate emerging risks while protecting the space for innovation to thrive. Prior to work at IAPS, Peter was a co-founder of a multi-issue think-and-do tank, as well as a data scientist in industry. Throughout his career, Peter has been an avid forecaster, ranking highly in forecasting tournaments, and specializing in geopolitical and electoral forecasting.",
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/peterhurford8/",
+        platform: "LinkedIn",
+      },
+    ],
+  },
+  {
     userId: 8,
     name: "Anthony Aguirre",
     position: "Founder & Chairman of the Board",
@@ -331,7 +330,6 @@ const people: Person[] = [
 const groups: Groups = {
   team: [
     "Deger Turan",
-    "Tom Liptay",
     "Atakan Seçkin",
     "Molly Hickman",
     "Leonard Barrett",
@@ -352,6 +350,7 @@ const groups: Groups = {
     "Carroll “Max” Wainwright",
     "David Levine",
     "Joshua Elliott",
+    "Peter Wildeford",
   ],
   advisors: [
     "Juan Cambeiro",
