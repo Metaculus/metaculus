@@ -1053,5 +1053,12 @@
   "graduationYear": "预计毕业年份",
   "accountInactiveModalTitle": "您有一封邮件！",
   "accountInactiveModalBody": "请确认与您的 <bold>{login}</bold> 账户关联的电子邮件，以便能够登录。",
-  "accountInactiveModalResendButton": "重新发送激活邮件"
+  "accountInactiveModalResendButton": "重新发送激活邮件",
+  "communityPrediction": "社区预测",
+  "leaderboardQuestions": "排行榜问题",
+  "welcomeToMetaculusCommunity": "欢迎来到 Metaculus 社区！",
+  "reviewCommunityGuidelines": "在发表评论之前，请花一点时间查看我们的 <link>社区指南</link>。我们重视深思熟虑、尊重和建设性的贡献，这有助于促进有意义的讨论。",
+  "keepCivilStayOnTopic": "保持礼貌，言之有据，避免低效的评论。不允许直接从 AI 工具复制的推理。我们将删除违反社区指南的评论。",
+  "understand": "我明白",
+  "closeThisMessage": "关闭此消息"
 }

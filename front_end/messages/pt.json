@@ -1049,5 +1049,12 @@
   "graduationYear": "Ano de Formatura Esperado",
   "accountInactiveModalTitle": "Você tem uma mensagem!",
   "accountInactiveModalBody": "Por favor, confirme seu e-mail associado à sua conta <bold>{login}</bold> para poder fazer login.",
-  "accountInactiveModalResendButton": "Reenviar e-mail de ativação"
+  "accountInactiveModalResendButton": "Reenviar e-mail de ativação",
+  "communityPrediction": "Previsão da Comunidade",
+  "leaderboardQuestions": "Perguntas do Ranking",
+  "welcomeToMetaculusCommunity": "Bem-vindo à comunidade Metaculus!",
+  "reviewCommunityGuidelines": "Antes de postar um comentário, por favor, reserve um momento para revisar nossas <link>Diretrizes da Comunidade</link>. Valorizamos contribuições reflexivas, respeitosas e construtivas que ajudam a promover discussões significativas.",
+  "keepCivilStayOnTopic": "Mantenha a civilidade, permaneça no tópico e evite comentários de baixo esforço. O raciocínio copiado diretamente de ferramentas de IA não é permitido. Eliminaremos comentários que violem nossas Diretrizes da Comunidade.",
+  "understand": "Eu entendo",
+  "closeThisMessage": "Fechar esta mensagem"
 }
