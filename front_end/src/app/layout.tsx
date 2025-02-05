@@ -113,9 +113,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Metaculus",
     description: "Metaculus",
-    metadataBase: new URL(
-      process.env.APP_URL ?? "http://localhost:3000"
-    ),
+    metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
     robots:
       process.env.PUBLIC_DISALLOW_ALL_BOTS === "true"
         ? { index: false, follow: true }
@@ -166,9 +164,7 @@ export default async function RootLayout({
           </AppThemeProvided>
         </body>
         {!!process.env.PUBLIC_GOOGLE_MEASUREMENT_ID && (
-          <GoogleAnalytics
-            gaId={process.env.PUBLIC_GOOGLE_MEASUREMENT_ID}
-          />
+          <GoogleAnalytics gaId={process.env.PUBLIC_GOOGLE_MEASUREMENT_ID} />
         )}
       </CSPostHogProvider>
       <ChunkRetryScript />

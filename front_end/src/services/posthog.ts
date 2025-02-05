@@ -1,10 +1,7 @@
 import { PostHog } from "posthog-node";
 
 export default function PostHogClient() {
-  if (
-    !process.env.PUBLIC_POSTHOG_KEY ||
-    !process.env.PUBLIC_POSTHOG_BASE_URL
-  ) {
+  if (!process.env.PUBLIC_POSTHOG_KEY || !process.env.PUBLIC_POSTHOG_BASE_URL) {
     return null;
   }
 

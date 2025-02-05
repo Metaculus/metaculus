@@ -317,9 +317,7 @@ export const RegistrationAndSignupForm: FC<
         <div className="mt-7 flex flex-col items-center gap-7">
           <FormError
             errors={errors}
-            name={
-              process.env.PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"
-            }
+            name={process.env.PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
           />
           {process.env.PUBLIC_TURNSTILE_SITE_KEY && (
             <Turnstile
