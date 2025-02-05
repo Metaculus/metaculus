@@ -10,10 +10,17 @@ import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  const landingPageUrl = process.env.LANDING_PAGE_URL || "/";
+  if (pathname === "/" && pathname !== landingPageUrl) {
+    return NextResponse.redirect(new URL(landingPageUrl, request.url));
+  }
+
   // if authentication is required, check for token
   if (process.env.AUTHENTICATION_REQUIRED?.toLowerCase() === "true") {
     if (
-      !request.nextUrl.pathname.startsWith("/questions/0") && // "/not-found" doesn't load the headers/footers
+      !pathname.startsWith("/questions/0") && // "/not-found" doesn't load the headers/footers
       !getServerSession()
     ) {
       // return a not found page
@@ -50,7 +57,7 @@ export async function middleware(request: NextRequest) {
     if (
       alphaAccessToken &&
       getAlphaTokenSession() !== alphaAccessToken &&
-      !request.nextUrl.pathname.startsWith(alphaAuthUrl)
+      !pathname.startsWith(alphaAuthUrl)
     ) {
       return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
     }
