@@ -66,7 +66,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     : "top-12 lg:top-20";
 
   const minimalUI =
-    (process.env.MIMIMAL_UI || "false").toLowerCase() === "true";
+    (process.env.MINIMAL_UI || "false").toLowerCase() === "true";
 
   return (
     <div
