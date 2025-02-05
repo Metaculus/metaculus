@@ -159,9 +159,11 @@ export default async function TournamentSlug({ params }: Props) {
         <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
           <div className="mb-5 flex flex-row justify-between">
             <h2 className="m-0">{questionsTitle}</h2>
-            <Button href={`/questions/create?tournament_id=${tournament.id}`}>
-              + {t("question")}
-            </Button>
+            {currentUser && (
+              <Button href={`/questions/create?tournament_id=${tournament.id}`}>
+                + {t("question")}
+              </Button>
+            )}
           </div>
           <TournamentFilters />
           <TournamentFeed tournament={tournament} />
