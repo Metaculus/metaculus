@@ -9,7 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useRef, useState } from "react";
-import { useForm, useFormContext, FormProvider } from "react-hook-form";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 
 import { signUpAction, SignUpActionState } from "@/app/(main)/accounts/actions";
 import { SignUpSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
@@ -34,7 +34,9 @@ export const SignupForm: FC<{
   addToProject?: number;
 }> = ({ forceIsBot, addToProject }) => {
   const t = useTranslations();
-  const [isTurnstileValidated, setIsTurnstileValidate] = useState(false);
+  const [isTurnstileValidated, setIsTurnstileValidate] =
+    // Treat as validated if project is not configured with Turnstile key
+    useState(!TURNSTILE_SITE_KEY);
   const { setCurrentModal } = useModal();
   const turnstileRef = useRef<TurnstileInstance | undefined>();
 
@@ -111,6 +113,7 @@ export const SignupForm: FC<{
             errors={errors}
             name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
           />
+          <FormError errors={errors} />
         </div>
         {TURNSTILE_SITE_KEY && (
           <Turnstile

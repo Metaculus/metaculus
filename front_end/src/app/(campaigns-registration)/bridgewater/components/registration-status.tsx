@@ -122,7 +122,7 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
 
       <p className="mb-0 mt-0 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:mt-1 md:text-lg ">
         Ready to get started? Go to the{" "}
-        <a target="_blank" href="/tournament/">
+        <a target="_blank" href="/tournament/bridgewater/">
           Tournament page
         </a>{" "}
         to start forecasting!

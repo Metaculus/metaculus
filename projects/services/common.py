@@ -35,7 +35,10 @@ def get_projects_qs(
 
 
 def get_site_main_project():
-    obj, _ = Project.objects.get_or_create(type=Project.ProjectTypes.SITE_MAIN)
+    obj, _ = Project.objects.get_or_create(
+        type=Project.ProjectTypes.SITE_MAIN,
+        defaults={"visibility": Project.Visibility.NORMAL},
+    )
 
     return obj
 
