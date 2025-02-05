@@ -19,6 +19,7 @@ const nextConfig = {
     // settings
     ALLOW_SIGNUP: process.env.ALLOW_SIGNUP ?? "true",
     MIMIMAL_UI: process.env.MIMIMAL_UI ?? "false",
+    NON_ADMIN_MODERATION: process.env.NON_ADMIN_MODERATION ?? "true",
   },
   experimental: {
     instrumentationHook: true,
