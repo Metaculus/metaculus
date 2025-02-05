@@ -22,13 +22,19 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const minimalUI =
+    (process.env.MIMIMAL_UI || "false").toLowerCase() === "true";
   return (
     <div className="flex min-h-screen flex-col">
       <GlobalHeader />
       <Bulletins />
       <div className="flex-grow">{children}</div>
-      <FeedbackFloat />
-      <Footer />
+      {!minimalUI && (
+        <>
+          <FeedbackFloat />
+          <Footer />
+        </>
+      )}
       <CookiesBanner />
     </div>
   );

@@ -32,6 +32,9 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
     );
   }
 
+  const minimalUI =
+    (process.env.MIMIMAL_UI || "false").toLowerCase() === "true";
+
   return (
     <Menu>
       <MenuButton
@@ -63,14 +66,16 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
             {t("settings")}
           </Link>
         </MenuItem>
-        <MenuItem>
-          <a
-            className="flex cursor-pointer items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
-            onClick={() => setCurrentModal({ type: "onboarding" })}
-          >
-            {t("tutorial")}
-          </a>
-        </MenuItem>
+        {!minimalUI && (
+          <MenuItem>
+            <a
+              className="flex cursor-pointer items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
+              onClick={() => setCurrentModal({ type: "onboarding" })}
+            >
+              {t("tutorial")}
+            </a>
+          </MenuItem>
+        )}
         {user.is_superuser && (
           <MenuItem>
             <Link
