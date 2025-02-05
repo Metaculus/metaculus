@@ -12,7 +12,7 @@ import Button from "@/components/ui/button";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
-import { QuestionType, Scaling } from "@/types/question";
+import { AggregationMethod, QuestionType, Scaling } from "@/types/question";
 import {
   displayValue,
   findPreviousTimestamp,
@@ -156,7 +156,7 @@ const AggregationsDrawer: FC<Props> = ({
         typeof selectedSubQuestionOption === "number"
           ? selectedSubQuestionOption
           : undefined,
-        aggregationMethods
+        aggregationMethods as AggregationMethod[]
       );
 
       const blob = base64ToBlob(base64);
