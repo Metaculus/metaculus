@@ -46,6 +46,8 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
     ? communitiesResponse.results[0]
     : undefined;
 
+  const minimalUI = (process.env.MINIMAL_UI ?? "false") === "true";
+
   return (
     <>
       {community ? <CommunityHeader community={community} /> : <Header />}
@@ -54,36 +56,40 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
           <h1 className="text-2xl font-medium capitalize md:text-3xl">
             {t("createNewContent")}
           </h1>
-          <p>
-            {t.rich("createQuestionDescription1", {
-              link1: (chunks) => (
-                <a href="/question-writing" className={linkClassName}>
-                  {chunks}
-                </a>
-              ),
-              link2: (chunks) => (
-                <a
-                  href="/questions/956/suggest-questions-to-launch/"
-                  className={linkClassName}
-                >
-                  {chunks}
-                </a>
-              ),
-            })}
-          </p>
-          <p>{t("createQuestionDescription2")}</p>
-          <p>
-            {t.rich("expressionOfInterestFormMessage", {
-              link: (chunks) => (
-                <a
-                  href={EXPRESSION_OF_INTEREST_FORM_URL}
-                  className={linkClassName}
-                >
-                  {chunks}
-                </a>
-              ),
-            })}
-          </p>
+          {!minimalUI && (
+            <>
+              <p>
+                {t.rich("createQuestionDescription1", {
+                  link1: (chunks) => (
+                    <a href="/question-writing" className={linkClassName}>
+                      {chunks}
+                    </a>
+                  ),
+                  link2: (chunks) => (
+                    <a
+                      href="/questions/956/suggest-questions-to-launch/"
+                      className={linkClassName}
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                })}
+              </p>
+              <p>{t("createQuestionDescription2")}</p>
+              <p>
+                {t.rich("expressionOfInterestFormMessage", {
+                  link: (chunks) => (
+                    <a
+                      href={EXPRESSION_OF_INTEREST_FORM_URL}
+                      className={linkClassName}
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                })}
+              </p>
+            </>
+          )}
           {community &&
             community.user_permission &&
             [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
