@@ -120,6 +120,8 @@ export const PostStatusBox: FC<{
     ProjectPermissions.ADMIN,
   ].includes(post.user_permission);
 
+  const minimalUI = (process.env.MINIMAL_UI || "false") === "true";
+
   return (
     <>
       <div
@@ -150,26 +152,42 @@ export const PostStatusBox: FC<{
           ) : (
             <>
               <h4 className="mb-2 mt-0">{t("inReview")}</h4>
-              <p className="mb-3 mt-0 leading-5">
-                {t.rich("inReviewStatusBox1", {
-                  link1: (chunks) => (
-                    <Link href="/question-writing/">{chunks}</Link>
-                  ),
-                  link2: (chunks) => (
-                    <Link href="/question-writing/#what-types">{chunks}</Link>
-                  ),
-                })}
-              </p>
-              <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox2")}</p>
-              {post.conditional && (
-                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox4")}</p>
+              {!minimalUI ? (
+                <>
+                  <p className="mb-3 mt-0 leading-5">
+                    {t.rich("inReviewStatusBox1", {
+                      link1: (chunks) => (
+                        <Link href="/question-writing/">{chunks}</Link>
+                      ),
+                      link2: (chunks) => (
+                        <Link href="/question-writing/#what-types">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </p>
+                  <p className="mb-3 mt-0 leading-5">
+                    {t("inReviewStatusBox2")}
+                  </p>
+                  {post.conditional && (
+                    <p className="mb-3 mt-0 leading-5">
+                      {t("inReviewStatusBox4")}
+                    </p>
+                  )}{" "}
+                </>
+              ) : (
+                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox5")}</p>
               )}
             </>
           ))}
         {canSubmitForReview && (
           <>
             <h4 className="mb-2 mt-0">{t("draftStatusBox1")}</h4>
-            <p className="mb-3 mt-0 leading-5">{t("draftStatusBox2")}</p>
+            {!minimalUI ? (
+              <p className="mb-3 mt-0 leading-5">{t("draftStatusBox2")}</p>
+            ) : (
+              <p className="mb-3 mt-0 leading-5">{t("draftStatusBox3")}</p>
+            )}
           </>
         )}
         <div className="flex gap-2">
