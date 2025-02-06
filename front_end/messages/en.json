@@ -1050,5 +1050,10 @@
   "block": "Block",
   "accountInactiveModalTitle": "You've got mail!",
   "accountInactiveModalBody": "Please confirm your email associated with your <bold>{login}</bold> account to be able to log in.",
-  "accountInactiveModalResendButton": "Resend activation email"
+  "accountInactiveModalResendButton": "Resend activation email",
+  "welcomeToMetaculusCommunity": "Welcome to the Metaculus community!",
+  "reviewCommunityGuidelines": "Before posting a comment, please take a moment to review our <link>Community Guidelines</link>. We value thoughtful, respectful, and constructive contributions that help foster meaningful discussions.",
+  "keepCivilStayOnTopic": "Keep it civil, stay on topic, and avoid low-effort comments. Reasoning copied directly from AI tools is not allowed. We will delete comments that violate our Community Guidelines.",
+  "understand": "I understand",
+  "closeThisMessage": "Close this message"
 }

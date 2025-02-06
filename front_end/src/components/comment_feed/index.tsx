@@ -26,6 +26,7 @@ import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 
+import CommentWelcomeMessage from "./comment_welcome_message";
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
 
@@ -112,6 +113,7 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
 }
 
 const COMMENTS_PER_PAGE = 10;
+const NEW_USER_COMMENT_LIMIT = 3;
 
 const CommentFeed: FC<Props> = ({
   postData,
@@ -122,7 +124,11 @@ const CommentFeed: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-
+  const [userCommentsAmount, setUserCommentsAmount] = useState<number | null>(
+    user ? NEW_USER_COMMENT_LIMIT : null
+  );
+  const showWelcomeMessage =
+    userCommentsAmount !== null && userCommentsAmount < NEW_USER_COMMENT_LIMIT;
   /**
    * Returns commentId to focus on if id is provided and comment is not already rendered
    */
@@ -212,7 +218,7 @@ const CommentFeed: FC<Props> = ({
         ...params,
       });
       if ("errors" in response) {
-        console.error("Error fetching comments:", response.errors);
+        logError(response.errors, "Error fetching comments:");
       } else {
         setTotalCount(response.total_count ?? response.count);
 
@@ -274,7 +280,24 @@ const CommentFeed: FC<Props> = ({
   }, [feedFilters]);
 
   useEffect(() => {
+    // Fetch info about user comments amount
+    const fetchUserComments = async (userId?: number) => {
+      if (!userId) return;
+
+      const response = await getComments({
+        limit: 1,
+        offset: 0,
+        author: userId,
+      });
+      if ("errors" in response) {
+        console.error("Error fetching comments:", response.errors);
+      } else {
+        setUserCommentsAmount(response.total_count ?? response.count);
+      }
+    };
+
     if (user?.id && postId) {
+      fetchUserComments(user.id);
       // Send BE request that user has read the post
       const handler = setTimeout(() => {
         markPostAsRead(postId).then();
@@ -358,7 +381,7 @@ const CommentFeed: FC<Props> = ({
           }
         )}
       >
-        <div className="mb-4 mt-2 flex flex-col items-start gap-2">
+        <div className="mb-4 mt-2 flex flex-col items-start gap-3">
           <div className="flex w-full flex-row justify-between gap-4 md:gap-3">
             <h2
               className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
@@ -366,29 +389,43 @@ const CommentFeed: FC<Props> = ({
             >
               {t("comments")}
             </h2>
-            {!profileId && user && (
-              <ButtonGroup
-                value={feedFilters.is_private ? "private" : "public"}
-                buttons={feedOptions}
-                onChange={(section) => {
-                  handleFilterChange("is_private", section === "private");
-                }}
-                variant="tertiary"
-              />
-            )}
+            {!profileId &&
+              user &&
+              (!showWelcomeMessage || userCommentsAmount > 0) && (
+                <ButtonGroup
+                  value={feedFilters.is_private ? "private" : "public"}
+                  buttons={feedOptions}
+                  onChange={(section) => {
+                    handleFilterChange("is_private", section === "private");
+                  }}
+                  variant="tertiary"
+                />
+              )}
           </div>
+          {postId && showWelcomeMessage && (
+            <CommentWelcomeMessage
+              commentCount={userCommentsAmount}
+              onClick={() => {
+                setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
+              }}
+            />
+          )}
         </div>
         {postId && (
-          <CommentEditor
-            shouldIncludeForecast={includeUserForecast}
-            postId={postId}
-            onSubmit={
-              //TODO: revisit after BE changes
-              (newComment) =>
-                setComments((prevComments) => [newComment, ...prevComments])
-            }
-            isPrivateFeed={feedFilters.is_private}
-          />
+          <>
+            {showWelcomeMessage && userCommentsAmount === 0 ? null : (
+              <CommentEditor
+                shouldIncludeForecast={includeUserForecast}
+                postId={postId}
+                onSubmit={
+                  //TODO: revisit after BE changes
+                  (newComment) =>
+                    setComments((prevComments) => [newComment, ...prevComments])
+                }
+                isPrivateFeed={feedFilters.is_private}
+              />
+            )}
+          </>
         )}
 
         <div className="mb-1 mt-3 flex flex-row items-center justify-start gap-1">

@@ -1051,5 +1051,12 @@
   "graduationYear": "Očekávaný rok ukončení studia",
   "accountInactiveModalTitle": "Máte poštu!",
   "accountInactiveModalBody": "Prosím, potvrďte svůj e-mail spojený s vaším účtem <bold>{login}</bold>, abyste se mohli přihlásit.",
-  "accountInactiveModalResendButton": "Znovu odeslat aktivační e-mail"
+  "accountInactiveModalResendButton": "Znovu odeslat aktivační e-mail",
+  "communityPrediction": "Předpověď komunity",
+  "leaderboardQuestions": "Otázky na tabuli vůdců",
+  "welcomeToMetaculusCommunity": "Vítejte v komunitě Metaculus!",
+  "reviewCommunityGuidelines": "Před odesláním komentáře si prosím udělejte chvilku na zhodnocení našich <link>Pokynů pro komunitu</link>. Oceňujeme promyšlené, respektující a konstruktivní příspěvky, které pomáhají podporovat významné diskuze.",
+  "keepCivilStayOnTopic": "Udržujte diskuzi slušnou, zůstaňte u tématu a vyhýbejte se nepodloženým komentářům. Odůvodnění přímo zkopírovaná z nástrojů AI nejsou povolena. Odstraníme komentáře, které porušují naše Pokyny pro komunitu.",
+  "understand": "Rozumím",
+  "closeThisMessage": "Zavřít tuto zprávu"
 }
