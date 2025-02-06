@@ -30,7 +30,7 @@ const CommentWelcomeMessage: FC<Props> = ({ commentCount, onClick }) => {
       </p>
       <p className="m-0 mt-3">{t("keepCivilStayOnTopic")}</p>
       <Button className="mt-4" onClick={onClick}>
-        {t(commentCount > 0 ? "understand" : "closeThisMessage")}
+        {t(commentCount > 0 ? "closeThisMessage" : "understand")}
       </Button>
     </div>
   );
