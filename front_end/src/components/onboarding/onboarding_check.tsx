@@ -10,8 +10,15 @@ const OnboardingCheck: React.FC = () => {
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
 
+  const allowTutorial = (process.env.ALLOW_TUTORIAL || "true") === "true";
+
   useEffect(() => {
-    if (checkOnboardingAllowed() && user?.id && !user?.is_onboarding_complete) {
+    if (
+      allowTutorial &&
+      checkOnboardingAllowed() &&
+      user?.id &&
+      !user?.is_onboarding_complete
+    ) {
       // Start the onboarding process
       setCurrentModal({ type: "onboarding" });
     }

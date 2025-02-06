@@ -19,6 +19,8 @@ const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();
   const onClose = () => setCurrentModal(null);
 
+  const allowTutorial = (process.env.ALLOW_TUTORIAL || "true") === "true";
+
   return (
     <>
       <SignInModal isOpen={currentModal?.type === "signin"} onClose={onClose} />
@@ -46,10 +48,12 @@ const GlobalModals: FC = () => {
         isOpen={currentModal?.type === "contactUs"}
         onClose={onClose}
       />{" "}
-      <OnboardingModal
-        isOpen={currentModal?.type === "onboarding"}
-        onClose={() => setCurrentModal(null)}
-      />
+      {allowTutorial && (
+        <OnboardingModal
+          isOpen={currentModal?.type === "onboarding"}
+          onClose={() => setCurrentModal(null)}
+        />
+      )}
       <ConfirmModal
         isOpen={currentModal?.type === "confirm"}
         onClose={onClose}
