@@ -22,7 +22,7 @@ const nextConfig = {
       process.env.NEXT_PUBLIC_MINIMAL_UI ?? "false"
     ).toLowerCase(),
     NEXT_PUBLIC_ALLOW_TUTORIAL: (
-      process.env.ALLONEXT_PUBLIC_ALLOW_TUTORIAL_TUTORIAL ?? "true"
+      process.env.NEXT_PUBLIC_ALLOW_TUTORIAL ?? "true"
     ).toLowerCase(),
   },
   experimental: {
