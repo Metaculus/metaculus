@@ -17,10 +17,12 @@ const nextConfig = {
     NEXT_PUBLIC_POSTHOG_BASE_URL: "https://us.i.posthog.com",
 
     // settings
-    NEXT_PUBLIC_ALLOW_SIGNUP: process.env.ALLOW_SIGNUP ?? "true",
-    NEXT_PUBLIC_MINIMAL_UI: (process.env.MINIMAL_UI ?? "false").toLowerCase(),
+    NEXT_PUBLIC_ALLOW_SIGNUP: process.env.NEXT_PUBLIC_ALLOW_SIGNUP ?? "true",
+    NEXT_PUBLIC_MINIMAL_UI: (
+      process.env.NEXT_PUBLIC_MINIMAL_UI ?? "false"
+    ).toLowerCase(),
     NEXT_PUBLIC_ALLOW_TUTORIAL: (
-      process.env.ALLOW_TUTORIAL ?? "true"
+      process.env.ALLONEXT_PUBLIC_ALLOW_TUTORIAL_TUTORIAL ?? "true"
     ).toLowerCase(),
   },
   experimental: {
