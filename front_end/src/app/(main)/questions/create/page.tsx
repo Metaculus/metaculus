@@ -46,7 +46,7 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
     ? communitiesResponse.results[0]
     : undefined;
 
-  const minimalUI = (process.env.MINIMAL_UI ?? "false") === "true";
+  const minimalUI = (process.env.NEXT_PUBLIC_MINIMAL_UI ?? "false") === "true";
 
   return (
     <>

@@ -41,7 +41,7 @@ const Header: FC = () => {
   ];
 
   const minimalUI =
-    (process.env.MINIMAL_UI || "false").toLowerCase() === "true";
+    (process.env.NEXT_PUBLIC_MINIMAL_UI || "false").toLowerCase() === "true";
 
   return (
     <>

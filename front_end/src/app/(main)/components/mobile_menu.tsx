@@ -103,7 +103,8 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
     setIsSearchOpen(false);
   };
 
-  const allowTutorial = (process.env.ALLOW_TUTORIAL || "true") === "true";
+  const allowTutorial =
+    (process.env.NEXT_PUBLIC_ALLOW_TUTORIAL || "true") === "true";
 
   if (!!community) {
     return (

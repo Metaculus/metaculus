@@ -19,7 +19,8 @@ const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();
   const onClose = () => setCurrentModal(null);
 
-  const allowTutorial = (process.env.ALLOW_TUTORIAL || "true") === "true";
+  const allowTutorial =
+    (process.env.NEXT_PUBLIC_ALLOW_TUTORIAL || "true") === "true";
 
   return (
     <>

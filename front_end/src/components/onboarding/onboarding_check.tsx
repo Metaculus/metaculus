@@ -10,7 +10,8 @@ const OnboardingCheck: React.FC = () => {
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
 
-  const allowTutorial = (process.env.ALLOW_TUTORIAL || "true") === "true";
+  const allowTutorial =
+    (process.env.NEXT_PUBLIC_ALLOW_TUTORIAL || "true") === "true";
 
   useEffect(() => {
     if (

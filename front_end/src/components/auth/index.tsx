@@ -33,7 +33,7 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
   }
 
   const allowTutorial =
-    (process.env.ALLOW_TUTORIAL || "true").toLowerCase() === "true";
+    (process.env.NEXT_PUBLIC_ALLOW_TUTORIAL || "true").toLowerCase() === "true";
 
   return (
     <Menu>
