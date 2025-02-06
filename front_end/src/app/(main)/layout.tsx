@@ -23,7 +23,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const minimalUI =
-    (process.env.MINIMAL_UI || "false").toLowerCase() === "true";
+    (process.env.NEXT_PUBLIC_MINIMAL_UI || "false").toLowerCase() === "true";
   return (
     <div className="flex min-h-screen flex-col">
       <GlobalHeader />

@@ -17,9 +17,11 @@ const nextConfig = {
     NEXT_PUBLIC_POSTHOG_BASE_URL: "https://us.i.posthog.com",
 
     // settings
-    ALLOW_SIGNUP: process.env.ALLOW_SIGNUP ?? "true",
-    MINIMAL_UI: (process.env.MINIMAL_UI ?? "false").toLowerCase(),
-    ALLOW_TUTORIAL: (process.env.ALLOW_TUTORIAL ?? "true").toLowerCase(),
+    NEXT_PUBLIC_ALLOW_SIGNUP: process.env.ALLOW_SIGNUP ?? "true",
+    NEXT_PUBLIC_MINIMAL_UI: (process.env.MINIMAL_UI ?? "false").toLowerCase(),
+    NEXT_PUBLIC_ALLOW_TUTORIAL: (
+      process.env.ALLOW_TUTORIAL ?? "true"
+    ).toLowerCase(),
   },
   experimental: {
     instrumentationHook: true,

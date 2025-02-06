@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const minimalUI = (process.env.MINIMAL_UI ?? "false") === "true";
+const minimalUI = (process.env.NEXT_PUBLIC_MINIMAL_UI ?? "false") === "true";
 
 export default async function TournamentSlug({ params }: Props) {
   const tournament = await ProjectsApi.getTournament(params.slug);
