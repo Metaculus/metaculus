@@ -19,6 +19,7 @@ const nextConfig = {
     // settings
     ALLOW_SIGNUP: process.env.ALLOW_SIGNUP ?? "true",
     MINIMAL_UI: (process.env.MINIMAL_UI ?? "false").toLowerCase(),
+    ALLOW_TUTORIAL: (process.env.ALLOW_TUTORIAL ?? "true").toLowerCase(),
   },
   experimental: {
     instrumentationHook: true,
