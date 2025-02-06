@@ -136,9 +136,9 @@ export default async function CommunityGuidelines() {
         <li>
           Avoid pasting raw AI output. You can use AI tools to aid your
           forecasts, but focus on the insights that explain your reasoning,
-          whether yours or an AI’s, and share them in a way that's useful to
-          others. If some of your reasoning comes from an AI, a best practice is
-          to call out what part and mention what model you used.
+          whether yours or an AI’s, and share them in a way that&apos;s useful
+          to others. If some of your reasoning comes from an AI, a best practice
+          is to call out what part and mention what model you used.
         </li>
       </ol>
 
