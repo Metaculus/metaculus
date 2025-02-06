@@ -13,7 +13,7 @@ from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
 from questions.models import AggregationMethod
-from scoring.models import Leaderboard, LeaderboardEntry
+from scoring.models import Leaderboard, LeaderboardEntry, LeaderboardsRanksEntry
 from scoring.serializers import (
     LeaderboardSerializer,
     LeaderboardEntrySerializer,
@@ -122,6 +122,30 @@ def project_leaderboard(
             leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
             break
     return Response(leaderboard_data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def user_medal_ranks(
+    request: Request,
+):
+    user_id = request.GET.get("userId", None)
+    if not user_id:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    ranks_qs = LeaderboardsRanksEntry.objects.filter(user=user_id)
+    ranks = []
+    for entry in ranks_qs:
+        data = {
+            "rank": entry.rank,
+            "rank_total": entry.rank_total,
+            "best_rank": entry.best_rank,
+            "best_rank_total": entry.best_rank_total,
+            "type": entry.rank_type,
+        }
+        ranks.append(data)
+
+    return Response(ranks)
 
 
 @api_view(["GET"])

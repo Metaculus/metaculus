@@ -317,14 +317,12 @@ export const RegistrationAndSignupForm: FC<
         <div className="mt-7 flex flex-col items-center gap-7">
           <FormError
             errors={errors}
-            name={
-              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"
-            }
+            name={process.env.PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
           />
-          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          {process.env.PUBLIC_TURNSTILE_SITE_KEY && (
             <Turnstile
               ref={turnstileRef}
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              siteKey={process.env.PUBLIC_TURNSTILE_SITE_KEY}
               onSuccess={(token) => {
                 setIsTurnstileValidate(true);
                 setValue("turnstileToken", token);

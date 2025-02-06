@@ -2,7 +2,7 @@ export SENTRY_DNS=""
 # General
 export SECRET_KEY="your developer secret key"
 export FRONTEND_BASE_URL="https://yourdomain.com"
-export NEXT_PUBLIC_APP_URL="https://yourdomain.com"
+export PUBLIC_APP_URL="https://yourdomain.com"
 export MAILGUN_API_KEY="your mailgun API key"
 
 # Social Auth
@@ -19,7 +19,7 @@ export AWS_S3_REGION_NAME=
 
 # Captcha
 export TURNSTILE_SECRET_KEY=
-export NEXT_PUBLIC_TURNSTILE_SITE_KEY=
+export PUBLIC_TURNSTILE_SITE_KEY=
 
 # OpenAI
 # Required for search, newsmatch, question similarity

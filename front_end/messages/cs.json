@@ -1051,5 +1051,11 @@
   "graduationYear": "Očekávaný rok ukončení studia",
   "accountInactiveModalTitle": "Máte poštu!",
   "accountInactiveModalBody": "Prosím, potvrďte svůj e-mail spojený s vaším účtem <bold>{login}</bold>, abyste se mohli přihlásit.",
-  "accountInactiveModalResendButton": "Znovu odeslat aktivační e-mail"
+  "accountInactiveModalResendButton": "Znovu odeslat aktivační e-mail",
+  "editProfile": "Upravit profil",
+  "forecastingPerformance": "Výkon předpovědí",
+  "totalPrizes": "Celkem cen",
+  "totalEarned": "Celkem vyděláno",
+  "currentRank": "Aktuální hodnocení",
+  "bestEver": "Nejlepší vůbec"
 }

@@ -27,7 +27,7 @@ type SignInModalType = {
   className?: string;
 };
 
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const TURNSTILE_SITE_KEY = process.env.PUBLIC_TURNSTILE_SITE_KEY;
 
 export const SignupForm: FC<{
   forceIsBot?: boolean;

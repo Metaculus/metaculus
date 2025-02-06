@@ -113,11 +113,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Metaculus",
     description: "Metaculus",
-    metadataBase: new URL(
-      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-    ),
+    metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
     robots:
-      process.env.NEXT_PUBLIC_DISALLOW_ALL_BOTS === "true"
+      process.env.PUBLIC_DISALLOW_ALL_BOTS === "true"
         ? { index: false, follow: true }
         : null,
   };
@@ -165,10 +163,8 @@ export default async function RootLayout({
             </NextIntlClientProvider>
           </AppThemeProvided>
         </body>
-        {!!process.env.NEXT_PUBLIC_GOOGLE_MEASUREMENT_ID && (
-          <GoogleAnalytics
-            gaId={process.env.NEXT_PUBLIC_GOOGLE_MEASUREMENT_ID}
-          />
+        {!!process.env.PUBLIC_GOOGLE_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={process.env.PUBLIC_GOOGLE_MEASUREMENT_ID} />
         )}
       </CSPostHogProvider>
       <ChunkRetryScript />

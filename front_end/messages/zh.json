@@ -1053,5 +1053,11 @@
   "graduationYear": "预计毕业年份",
   "accountInactiveModalTitle": "您有一封邮件！",
   "accountInactiveModalBody": "请确认与您的 <bold>{login}</bold> 账户关联的电子邮件，以便能够登录。",
-  "accountInactiveModalResendButton": "重新发送激活邮件"
+  "accountInactiveModalResendButton": "重新发送激活邮件",
+  "editProfile": "编辑个人资料",
+  "forecastingPerformance": "预测表现",
+  "totalPrizes": "总奖项",
+  "totalEarned": "总收入",
+  "currentRank": "当前排名",
+  "bestEver": "历史最佳"
 }

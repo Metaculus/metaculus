@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const TURNSTILE_SITE_KEY = process.env.PUBLIC_TURNSTILE_SITE_KEY;
 
 export const signInSchema = z.object({
   login: z.string().min(1, { message: "Email/Username is required" }),

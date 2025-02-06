@@ -19,6 +19,11 @@ urlpatterns = [
         name="user-medals",
     ),
     path(
+        "medal_ranks/",
+        views.user_medal_ranks,
+        name="user-medal-ranks",
+    ),
+    path(
         "medals/contributions/",
         views.medal_contributions,
         name="medal-contributions",

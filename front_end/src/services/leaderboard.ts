@@ -3,6 +3,7 @@ import {
   LeaderboardDetails,
   LeaderboardType,
   MedalEntry,
+  MedalRanksEntry,
 } from "@/types/scoring";
 import { get } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
@@ -65,6 +66,10 @@ class LeaderboardApi {
 
   static async getUserMedals(userId: number) {
     return await get<MedalEntry[]>(`/medals/?userId=${userId}`);
+  }
+
+  static async getUserMedalRanks(userId: number) {
+    return await get<MedalRanksEntry[]>(`/medal_ranks/?userId=${userId}`);
   }
 
   static async getContributions(
