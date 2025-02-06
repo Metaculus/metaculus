@@ -158,7 +158,8 @@ class TranslatedModel(models.Model):
 
     def reset_localised_fields(self, translation_fields_to_update):
         default_language = settings.ORIGINAL_LANGUAGE_CODE
-        ret_fields = []
+        ret_fields = ["content_last_md5"]
+        self.content_last_md5 = None
         for field_name in translation_fields_to_update:
             for remaining_localised_field in [
                 build_supported_localized_fieldname(field_name, lang[0])
