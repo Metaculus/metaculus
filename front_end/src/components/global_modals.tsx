@@ -15,20 +15,13 @@ import { useModal } from "@/contexts/modal_context";
 import ConfirmModal from "./confirm_modal";
 import ContactUsModal from "./contact_us_modal";
 
-import { getPublicSettings } from "@/utils/public-settings";
-
 const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();
   const onClose = () => setCurrentModal(null);
-  const { PUBLIC_ALLOW_SIGNUP } = getPublicSettings();
 
   return (
     <>
-      <SignInModal
-        isOpen={currentModal?.type === "signin"}
-        onClose={onClose}
-        allowSignup={PUBLIC_ALLOW_SIGNUP}
-      />
+      <SignInModal isOpen={currentModal?.type === "signin"} onClose={onClose} />
       <SignUpModal isOpen={currentModal?.type === "signup"} onClose={onClose} />
       <SignUpModalSuccess
         isOpen={currentModal?.type === "signupSuccess"}

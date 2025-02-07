@@ -13,11 +13,11 @@ export async function middleware(request: NextRequest) {
   // if authentication is required, check for token
   if (process.env.AUTHENTICATION_REQUIRED?.toLowerCase() === "true") {
     if (
-      !request.nextUrl.pathname.startsWith("/questions/0") && // "/not-found" doesn't load the headers/footers
+      !request.nextUrl.pathname.startsWith("/not-found/") &&
       !getServerSession()
     ) {
       // return a not found page
-      return NextResponse.rewrite(new URL("/questions/0", request.url)); // same as above, urls must match
+      return NextResponse.rewrite(new URL("/not-found/", request.url));
     }
   }
 
