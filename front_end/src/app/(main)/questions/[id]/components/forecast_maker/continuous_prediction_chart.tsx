@@ -132,47 +132,45 @@ const ContinuousPredictionChart: FC<Props> = ({
         resolution={question.resolution}
       />
       {cursorDisplayData && (
-        <>
-          <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
-            <span>
-              {graphType === "pmf" ? "P(x = " : "P(x < "}
-              <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                {cursorDisplayData.xLabel}
-              </span>
-              {" ):"}
+        <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
+          <span>
+            {graphType === "pmf" ? "P(x = " : "P(x < "}
+            <span className="font-bold text-gray-900 dark:text-gray-900-dark">
+              {cursorDisplayData.xLabel}
             </span>
-            {cursorDisplayData.yUserLabel !== null && (
-              <span>
-                <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                  {cursorDisplayData.yUserLabel}
-                </span>
-                {" ("}
-                {t("you")}
-                {")"}
+            {" ):"}
+          </span>
+          {cursorDisplayData.yUserLabel !== null && (
+            <span>
+              <span className="font-bold text-gray-900 dark:text-gray-900-dark">
+                {cursorDisplayData.yUserLabel}
               </span>
-            )}
-            {cursorDisplayData.yUserPreviousLabel !== null && (
-              <span>
-                <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                  {cursorDisplayData.yUserPreviousLabel}
-                </span>
-                {" ("}
-                {t("youPrevious")}
-                {")"}
+              {" ("}
+              {t("you")}
+              {")"}
+            </span>
+          )}
+          {cursorDisplayData.yUserPreviousLabel !== null && (
+            <span>
+              <span className="font-bold text-gray-900 dark:text-gray-900-dark">
+                {cursorDisplayData.yUserPreviousLabel}
               </span>
-            )}
-            {showCP && cursorDisplayData.yCommunityLabel && (
-              <span>
-                <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                  {cursorDisplayData.yCommunityLabel}
-                </span>
-                {" ("}
-                {t("community")}
-                {")"}
+              {" ("}
+              {t("youPrevious")}
+              {")"}
+            </span>
+          )}
+          {showCP && cursorDisplayData.yCommunityLabel && (
+            <span>
+              <span className="font-bold text-gray-900 dark:text-gray-900-dark">
+                {cursorDisplayData.yCommunityLabel}
               </span>
-            )}
-          </div>
-        </>
+              {" ("}
+              {t("community")}
+              {")"}
+            </span>
+          )}
+        </div>
       )}
     </>
   );

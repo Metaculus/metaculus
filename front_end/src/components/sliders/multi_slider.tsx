@@ -132,7 +132,8 @@ const MultiSlider: FC<Props> = ({
             onClickIn={() => {
               handlePressIn(props.index);
             }}
-            onTouchStartCapture={() => {
+            onTouchStartCapture={(e) => {
+              e.preventDefault();
               handlePressIn(props.index);
             }}
           />

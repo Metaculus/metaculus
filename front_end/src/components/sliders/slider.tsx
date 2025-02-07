@@ -73,6 +73,9 @@ const Slider: FC<Props> = ({
           onClickIn={() => {
             setControlledStep(step);
           }}
+          onTouchStartCapture={(e) => {
+            e.preventDefault();
+          }}
           active={!round}
           onArrowClickIn={
             arrowStep && !disabled
