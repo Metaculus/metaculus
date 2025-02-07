@@ -1,8 +1,8 @@
+import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import { ForecastInputType } from "@/types/charts";
 import cn from "@/utils/cn";
-import { useTranslations } from "next-intl";
 
 type Props = {
   mode: string;
