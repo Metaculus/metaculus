@@ -11,6 +11,7 @@ import { LogOut } from "@/app/(main)/accounts/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import cn from "@/utils/cn";
+import { getPublicSettings } from "@/utils/public-settings";
 
 type Props = {
   btnClassName?: string;
@@ -31,6 +32,8 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
       </button>
     );
   }
+
+  const { PUBLIC_ALLOW_TUTORIAL } = getPublicSettings();
 
   return (
     <Menu>
@@ -63,14 +66,16 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
             {t("settings")}
           </Link>
         </MenuItem>
-        <MenuItem>
-          <a
-            className="flex cursor-pointer items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
-            onClick={() => setCurrentModal({ type: "onboarding" })}
-          >
-            {t("tutorial")}
-          </a>
-        </MenuItem>
+        {PUBLIC_ALLOW_TUTORIAL && (
+          <MenuItem>
+            <a
+              className="flex cursor-pointer items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
+              onClick={() => setCurrentModal({ type: "onboarding" })}
+            >
+              {t("tutorial")}
+            </a>
+          </MenuItem>
+        )}
         {user.is_superuser && (
           <MenuItem>
             <Link

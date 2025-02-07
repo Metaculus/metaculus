@@ -10,6 +10,7 @@ export interface PublicSettings {
   PUBLIC_GOOGLE_MEASUREMENT_ID: string;
   PUBLIC_DISALLOW_ALL_BOTS: boolean;
   PUBLIC_LANDING_PAGE_URL: string;
+  PUBLIC_ALLOW_TUTORIAL: boolean;
 }
 
 export const defaultPublicSettingsValues: PublicSettings = {
@@ -24,6 +25,7 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_GOOGLE_MEASUREMENT_ID: "",
   PUBLIC_DISALLOW_ALL_BOTS: true,
   PUBLIC_LANDING_PAGE_URL: "/",
+  PUBLIC_ALLOW_TUTORIAL: true,
 };
 
 export function getPublicSettings() {
@@ -53,5 +55,9 @@ export function getPublicSettings() {
         : defVals.PUBLIC_DISALLOW_ALL_BOTS,
     PUBLIC_LANDING_PAGE_URL:
       process.env.PUBLIC_LANDING_PAGE_URL ?? defVals.PUBLIC_LANDING_PAGE_URL,
+    PUBLIC_ALLOW_TUTORIAL:
+      process.env.PUBLIC_ALLOW_TUTORIAL !== undefined
+        ? process.env.PUBLIC_ALLOW_TUTORIAL.toLowerCase() === "true"
+        : defVals.PUBLIC_ALLOW_TUTORIAL,
   };
 }

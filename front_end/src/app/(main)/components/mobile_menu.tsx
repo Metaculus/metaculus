@@ -28,6 +28,7 @@ import { Community } from "@/types/projects";
 import cn from "@/utils/cn";
 
 import GlobalSearch from "./global_search";
+import { getPublicSettings } from "@/utils/public-settings";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex h-full items-center justify-center px-4 pb-1 pt-2 text-sm font-medium uppercase text-gray-200 opacity-50">
@@ -103,6 +104,8 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
     setIsSearchOpen(false);
   };
 
+  const { PUBLIC_ALLOW_TUTORIAL } = getPublicSettings();
+
   if (!!community) {
     return (
       <Menu>
@@ -153,11 +156,13 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                 <MenuLink href={"/accounts/settings/"}>
                   {t("settings")}
                 </MenuLink>
-                <MenuLink
-                  onClick={() => setCurrentModal({ type: "onboarding" })}
-                >
-                  {t("tutorial")}
-                </MenuLink>
+                {PUBLIC_ALLOW_TUTORIAL && (
+                  <MenuLink
+                    onClick={() => setCurrentModal({ type: "onboarding" })}
+                  >
+                    {t("tutorial")}
+                  </MenuLink>
+                )}
                 {user.is_superuser && (
                   <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
                 )}
@@ -250,11 +255,13 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                   <MenuLink href={"/accounts/settings/"}>
                     {t("settings")}
                   </MenuLink>
-                  <MenuLink
-                    onClick={() => setCurrentModal({ type: "onboarding" })}
-                  >
-                    {t("tutorial")}
-                  </MenuLink>
+                  {PUBLIC_ALLOW_TUTORIAL && (
+                    <MenuLink
+                      onClick={() => setCurrentModal({ type: "onboarding" })}
+                    >
+                      {t("tutorial")}
+                    </MenuLink>
+                  )}
                   {user.is_superuser && (
                     <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
                   )}

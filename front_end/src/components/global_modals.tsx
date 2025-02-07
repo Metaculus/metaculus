@@ -14,10 +14,13 @@ import { useModal } from "@/contexts/modal_context";
 
 import ConfirmModal from "./confirm_modal";
 import ContactUsModal from "./contact_us_modal";
+import { getPublicSettings } from "@/utils/public-settings";
 
 const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();
   const onClose = () => setCurrentModal(null);
+
+  const { PUBLIC_ALLOW_TUTORIAL } = getPublicSettings();
 
   return (
     <>
@@ -46,10 +49,12 @@ const GlobalModals: FC = () => {
         isOpen={currentModal?.type === "contactUs"}
         onClose={onClose}
       />{" "}
-      <OnboardingModal
-        isOpen={currentModal?.type === "onboarding"}
-        onClose={() => setCurrentModal(null)}
-      />
+      {PUBLIC_ALLOW_TUTORIAL && (
+        <OnboardingModal
+          isOpen={currentModal?.type === "onboarding"}
+          onClose={() => setCurrentModal(null)}
+        />
+      )}
       <ConfirmModal
         isOpen={currentModal?.type === "confirm"}
         onClose={onClose}
