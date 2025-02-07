@@ -21,6 +21,7 @@ import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import RadioButton from "@/components/ui/radio_button";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 
@@ -235,6 +236,8 @@ export const RegistrationAndSignupForm: FC<
 
   const currentLocation = usePathname();
 
+  const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
+
   const onSubmit = async (data: SignUpSchema) => {
     const response = await signUpAction({
       ...data,
@@ -317,14 +320,12 @@ export const RegistrationAndSignupForm: FC<
         <div className="mt-7 flex flex-col items-center gap-7">
           <FormError
             errors={errors}
-            name={
-              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"
-            }
+            name={PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
           />
-          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          {PUBLIC_TURNSTILE_SITE_KEY && (
             <Turnstile
               ref={turnstileRef}
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              siteKey={PUBLIC_TURNSTILE_SITE_KEY}
               onSuccess={(token) => {
                 setIsTurnstileValidate(true);
                 setValue("turnstileToken", token);
