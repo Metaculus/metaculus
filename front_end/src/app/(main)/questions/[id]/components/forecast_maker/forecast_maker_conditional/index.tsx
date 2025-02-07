@@ -1,4 +1,3 @@
-import { useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
 import { PostConditional, PostWithForecasts } from "@/types/post";
@@ -25,32 +24,15 @@ const ForecastMakerConditional: FC<Props> = ({
   canPredict,
   predictionMessage,
 }) => {
-  const t = useTranslations();
-
   const { id: postId, title: postTitle, projects } = post;
-  const { condition, condition_child, question_yes, question_no } = conditional;
+  const { question_yes, question_no } = conditional;
 
   if (question_yes.type !== question_no.type) {
     return null;
   }
 
   return (
-    <ForecastMakerContainer
-      resolutionCriteria={[
-        {
-          title: t("parentResolutionCriteria"),
-          content: condition.resolution_criteria,
-          questionTitle: condition.title,
-          finePrint: condition.fine_print,
-        },
-        {
-          title: t("childResolutionCriteria"),
-          content: condition_child.resolution_criteria,
-          questionTitle: condition_child.title,
-          finePrint: condition_child.fine_print,
-        },
-      ]}
-    >
+    <ForecastMakerContainer>
       {question_yes.type === QuestionType.Binary && (
         <ForecastMakerConditionalBinary
           postId={postId}

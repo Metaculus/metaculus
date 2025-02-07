@@ -17,6 +17,7 @@ type Props = {
   title?: string;
   defaultOpen?: boolean;
   className?: string;
+  wrapperClassName?: string;
   variant?: SectionVariant;
   id?: string;
 };
@@ -27,10 +28,16 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
   title,
   defaultOpen,
   className,
+  wrapperClassName,
   children,
 }) => {
   return (
-    <Disclosure defaultOpen={defaultOpen} as="div" id={id}>
+    <Disclosure
+      defaultOpen={defaultOpen}
+      as="div"
+      id={id}
+      className={wrapperClassName}
+    >
       {({ open }) => (
         <div
           className={cn("rounded", {
