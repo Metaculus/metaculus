@@ -17,12 +17,16 @@ type Props = {
   groupVariable: string;
   canPredict: boolean;
   isPending: boolean;
-  submitError: ErrorResponse | undefined;
   subQuestionId?: number | null;
   handleChange: (id: number, components: DistributionSliderComponent[]) => void;
   handleAddComponent: (id: number) => void;
-  handleResetForecasts: () => void;
-  handlePredictSubmit: () => void;
+  handleResetForecasts: (id?: number) => void;
+  handlePredictSubmit: (id: number) => Promise<
+    | {
+        errors: ErrorResponse | undefined;
+      }
+    | undefined
+  >;
 };
 
 const GroupForecastAccordion: FC<Props> = ({
@@ -30,7 +34,6 @@ const GroupForecastAccordion: FC<Props> = ({
   groupVariable,
   canPredict,
   isPending,
-  submitError,
   subQuestionId,
   handleChange,
   handleAddComponent,
@@ -66,14 +69,14 @@ const GroupForecastAccordion: FC<Props> = ({
   return (
     <div className="my-10 w-full">
       {!!resolvedOptions.length && (
-        <div className="mb-[3px] flex w-full gap-[2px] text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
-          <div className="shrink grow bg-[#758EA91F] py-1 dark:bg-[#D7E4F21F]">
+        <div className="mb-1 flex w-full gap-[2px] text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
+          <div className="shrink grow bg-blue-600/15 py-1 dark:bg-blue-400/15">
             <span className="pl-4">{groupVariable}</span>
           </div>
-          <div className="max-w-[105px] shrink grow-[3] bg-[#758EA91F] py-1 text-center dark:bg-[#D7E4F21F] sm:max-w-[422px]">
+          <div className="max-w-[105px] shrink grow-[3] bg-blue-600/15 py-1 text-center dark:bg-blue-400/15 sm:max-w-[422px]">
             {t("resolution")}
           </div>
-          <div className="w-[43px] shrink-0 grow-0 bg-[#758EA91F] py-1 dark:bg-[#D7E4F21F]"></div>
+          <div className="w-[43px] shrink-0 grow-0 bg-blue-600/15 py-1 dark:bg-blue-400/15"></div>
         </div>
       )}
       {resolvedOptions.map((option) => {
@@ -102,19 +105,19 @@ const GroupForecastAccordion: FC<Props> = ({
         );
       })}
       {!!activeOptions.length && (
-        <div className="mb-[3px] mt-2 flex w-full gap-[2px] text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
-          <div className="shrink grow bg-[#758EA91F] py-1 dark:bg-[#D7E4F21F]">
+        <div className="mb-1 mt-2 flex w-full gap-[2px] text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
+          <div className="shrink grow bg-blue-600/15 py-1 dark:bg-blue-400/15">
             <span className="pl-4">{groupVariable}</span>
           </div>
           <div className="flex max-w-[105px] shrink grow-[3] gap-[2px] text-center sm:max-w-[422px]">
-            <div className="w-[105px] bg-[#758EA91F] py-1 dark:bg-[#D7E4F21F]">
+            <div className="w-[105px] bg-blue-600/15 py-1 dark:bg-blue-400/15">
               median
             </div>
-            <div className="hidden bg-[#758EA91F] dark:bg-[#D7E4F21F] sm:block sm:w-[325px] sm:shrink-0 sm:grow-0 sm:py-1">
+            <div className="hidden bg-blue-600/15 dark:bg-blue-400/15 sm:block sm:w-[325px] sm:shrink-0 sm:grow-0 sm:py-1">
               PDF
             </div>
           </div>
-          <div className="w-[43px] shrink-0 grow-0 bg-[#758EA91F] py-1 dark:bg-[#D7E4F21F]"></div>
+          <div className="w-[43px] shrink-0 grow-0 bg-blue-600/15 py-1 dark:bg-blue-400/15"></div>
         </div>
       )}
       {activeOptions.map((option) => {
@@ -129,7 +132,6 @@ const GroupForecastAccordion: FC<Props> = ({
               option={option}
               canPredict={canPredict}
               isPending={isPending}
-              submitError={submitError}
               handleChange={handleChange}
               handleAddComponent={handleAddComponent}
               handleResetForecasts={handleResetForecasts}

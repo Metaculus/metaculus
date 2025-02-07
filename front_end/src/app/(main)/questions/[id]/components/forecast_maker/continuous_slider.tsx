@@ -113,7 +113,7 @@ const ContinuousSlider: FC<Props> = ({
           )}
         </div>
         {previousForecast && (
-          <div className="ml-auto mr-auto mt-1 flex items-center md:mr-[-4px]">
+          <div className="ml-auto mr-auto mt-1 flex items-center md:-mr-1">
             <Checkbox
               checked={overlayPreviousForecast}
               onChange={(checked) => setOverlayPreviousForecast(checked)}
@@ -194,21 +194,19 @@ const ContinuousSlider: FC<Props> = ({
                           shouldSyncWithDefault
                         />
                       </div>
-                      <FontAwesomeIcon
-                        className="inline cursor-pointer pl-2 pt-2"
-                        icon={faClose}
-                        onClick={() => {
-                          // This fix app crash when deleting the only component, need confirmation on review
-                          if (components.length === 1) {
-                            return;
-                          }
-                          const newForecast = [
-                            ...components.slice(0, index),
-                            ...components.slice(index + 1, components.length),
-                          ];
-                          onChange(newForecast);
-                        }}
-                      />
+                      {components.length > 1 && (
+                        <FontAwesomeIcon
+                          className="inline cursor-pointer pl-2 pt-2"
+                          icon={faClose}
+                          onClick={() => {
+                            const newForecast = [
+                              ...components.slice(0, index),
+                              ...components.slice(index + 1, components.length),
+                            ];
+                            onChange(newForecast);
+                          }}
+                        />
+                      )}
                     </div>
                   )}
                 </div>

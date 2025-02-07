@@ -1,5 +1,5 @@
 import { useLocale, useTranslations } from "next-intl";
-import { FC, PropsWithChildren, useState, useMemo } from "react";
+import { FC, PropsWithChildren, useState, useMemo, useCallback } from "react";
 
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
@@ -29,18 +29,21 @@ type SliderWrapperProps = {
   option: ConditionalTableOption;
   canPredict: boolean;
   isPending: boolean;
-  submitError?: ErrorResponse | undefined;
   handleChange: (id: number, components: DistributionSliderComponent[]) => void;
   handleAddComponent: (id: number) => void;
-  handleResetForecasts: () => void;
-  handlePredictSubmit: () => void;
+  handleResetForecasts: (id?: number) => void;
+  handlePredictSubmit: (id: number) => Promise<
+    | {
+        errors: ErrorResponse | undefined;
+      }
+    | undefined
+  >;
 };
 
 const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
   option,
   canPredict,
   isPending,
-  submitError,
   handleChange,
   handleAddComponent,
   handleResetForecasts,
@@ -58,6 +61,14 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
     );
   const [forecastInputMode, setForecastInputMode] =
     useState<ForecastInputType>("slider");
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const onSubmit = useCallback(async () => {
+    setSubmitError(undefined);
+    const response = await handlePredictSubmit(option.id);
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+    }
+  }, [option.id, handlePredictSubmit]);
 
   const forecast = useMemo(
     () => getNormalizedContinuousForecast(option.userForecast),
@@ -96,7 +107,7 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
     option.question.aggregations.recency_weighted.latest?.forecast_values;
 
   return (
-    <div className="mt-[2px] bg-[#758EA914] dark:bg-[#D7E4F214]">
+    <div className="mt-0.5 bg-blue-600/10 dark:bg-blue-400/10">
       <div className="p-4">
         <ContinuousSlider
           components={forecast}
@@ -145,7 +156,7 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
                   <Button
                     variant="secondary"
                     type="reset"
-                    onClick={handleResetForecasts}
+                    onClick={() => handleResetForecasts(option.id)}
                     disabled={!option.isDirty}
                   >
                     {t("discardChangesButton")}
@@ -154,7 +165,7 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
               )}
 
               <PredictButton
-                onSubmit={handlePredictSubmit}
+                onSubmit={onSubmit}
                 isDirty={option.isDirty}
                 hasUserForecast={hasUserForecast}
                 isPending={isPending}

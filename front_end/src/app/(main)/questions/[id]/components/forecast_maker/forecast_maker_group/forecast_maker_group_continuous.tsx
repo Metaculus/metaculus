@@ -3,17 +3,12 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { differenceInMilliseconds } from "date-fns";
 import { useSearchParams } from "next/navigation";
-import React, {
-  FC,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useTranslations } from "next-intl";
+import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
+import { FormError } from "@/components/ui/form_field";
 import { ErrorResponse } from "@/types/fetch";
 import {
   Post,
@@ -37,6 +32,7 @@ import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import GroupForecastAccordion from "../continuous_group_accordion/group_forecast_accordion";
 import { ConditionalTableOption } from "../group_forecast_table";
+import PredictButton from "../predict_button";
 
 type Props = {
   post: PostWithForecasts;
@@ -54,6 +50,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   groupVariable,
   predictionMessage,
 }) => {
+  const t = useTranslations();
   const params = useSearchParams();
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const { id: postId, user_permission: permission } = post;
@@ -75,14 +72,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const [groupOptions, setGroupOptions] = useState<ConditionalTableOption[]>(
-    generateGroupOptions(questions, prevForecastValuesMap, undefined, post)
+    generateGroupOptions(questions, prevForecastValuesMap, permission, post)
   );
 
-  useEffect(() => {
-    setGroupOptions(
-      generateGroupOptions(questions, prevForecastValuesMap, permission, post)
-    );
-  }, [permission, prevForecastValuesMap, questions, post]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const questionsToSubmit = useMemo(
@@ -142,28 +134,75 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     );
   }, []);
 
-  const handleResetForecasts = useCallback(() => {
-    setGroupOptions((prev) =>
-      prev.map((prevOption) => {
-        if (!prevOption.resolution) {
-          const prevForecast = prevForecastValuesMap[prevOption.id];
+  const handleResetForecasts = useCallback(
+    (questionId?: number) => {
+      setGroupOptions((prev) =>
+        prev.map((prevOption) => {
+          if (
+            (questionId && prevOption.id === questionId) ||
+            (!questionId && !prevOption.resolution)
+          ) {
+            const prevForecast = prevForecastValuesMap[prevOption.id];
 
-          return {
-            ...prevOption,
-            userQuartiles: getUserContinuousQuartiles(
-              prevForecast,
-              prevOption.question.open_lower_bound,
-              prevOption.question.open_upper_bound
+            return {
+              ...prevOption,
+              userQuartiles: getUserContinuousQuartiles(
+                prevForecast,
+                prevOption.question.open_lower_bound,
+                prevOption.question.open_upper_bound
+              ),
+              userForecast: getSliderValue(prevForecast),
+              isDirty: false,
+            };
+          }
+
+          return prevOption;
+        })
+      );
+    },
+    [prevForecastValuesMap]
+  );
+
+  const handleSingleQuestionSubmit = useCallback(
+    async (questionId: number) => {
+      const optionToSubmit = questionsToSubmit.find(
+        (opt) => opt.id === questionId
+      );
+
+      if (!optionToSubmit) return;
+
+      setIsSubmitting(true);
+      const response = await createForecasts(postId, [
+        {
+          questionId: optionToSubmit.question.id,
+          forecastData: {
+            continuousCdf: getNumericForecastDataset(
+              getNormalizedContinuousForecast(optionToSubmit.userForecast),
+              optionToSubmit.question.open_lower_bound,
+              optionToSubmit.question.open_upper_bound
+            ).cdf,
+            probabilityYesPerCategory: null,
+            probabilityYes: null,
+          },
+          distributionInput: {
+            type: "slider",
+            components: getNormalizedContinuousForecast(
+              optionToSubmit.userForecast
             ),
-            userForecast: getSliderValue(prevForecast),
-            isDirty: false,
-          };
-        }
+          },
+        },
+      ]);
 
-        return prevOption;
-      })
-    );
-  }, [prevForecastValuesMap]);
+      setGroupOptions((prev) =>
+        prev.map((opt) =>
+          opt.id === questionId ? { ...opt, isDirty: false } : opt
+        )
+      );
+      setIsSubmitting(false);
+      return response;
+    },
+    [postId, questionsToSubmit]
+  );
 
   const handlePredictSubmit = useCallback(async () => {
     setSubmitError(undefined);
@@ -194,14 +233,16 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         };
       })
     );
+
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+      setIsSubmitting(false);
+      return;
+    }
     setGroupOptions((prev) =>
       prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
     );
     setIsSubmitting(false);
-
-    if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors);
-    }
   }, [postId, questionsToSubmit]);
 
   return (
@@ -216,12 +257,35 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         groupVariable={groupVariable}
         canPredict={canPredict}
         isPending={isSubmitting}
-        submitError={submitError}
         subQuestionId={subQuestionId}
         handleChange={handleChange}
         handleAddComponent={handleAddComponent}
         handleResetForecasts={handleResetForecasts}
-        handlePredictSubmit={handlePredictSubmit}
+        handlePredictSubmit={handleSingleQuestionSubmit}
+      />
+      {!!questionsToSubmit.some((opt) => opt.isDirty) && (
+        <div className="flex justify-center gap-3">
+          <Button
+            variant="secondary"
+            type="reset"
+            onClick={() => handleResetForecasts()}
+          >
+            {t("discardChangesButton")}
+          </Button>
+
+          <PredictButton
+            onSubmit={() => handlePredictSubmit()}
+            isDirty={true}
+            hasUserForecast={true}
+            isPending={isSubmitting}
+          />
+        </div>
+      )}
+
+      <FormError
+        errors={submitError}
+        className="mt-2 flex items-center justify-center"
+        detached
       />
     </>
   );

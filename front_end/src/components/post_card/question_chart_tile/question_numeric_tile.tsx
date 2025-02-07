@@ -8,7 +8,7 @@ import NumericChart from "@/components/charts/numeric_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
-import { ContinuousAreaType, TimelineChartZoomOption } from "@/types/charts";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {
   ForecastAvailability,
@@ -16,13 +16,15 @@ import {
   QuestionWithNumericForecasts,
   UserForecast,
 } from "@/types/question";
-import { getContinuousChartTypeFromQuestion } from "@/utils/charts";
+import {
+  getContinuousAreaChartData,
+  getContinuousChartTypeFromQuestion,
+} from "@/utils/charts";
 import {
   extractPrevBinaryForecastValue,
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
-import { cdfToPmf } from "@/utils/math";
 
 const HEIGHT = 100;
 
@@ -50,23 +52,10 @@ const QuestionNumericTile: FC<Props> = ({
   const latest = question.aggregations.recency_weighted.latest;
   const prediction = latest?.centers?.[0];
 
-  const continuousAreaChartData = [];
-  if (latest && !latest.end_time) {
-    continuousAreaChartData.push({
-      pmf: cdfToPmf(latest.forecast_values),
-      cdf: latest.forecast_values,
-      type: "community" as ContinuousAreaType,
-    });
-  }
-
-  const userForecast = question.my_forecasts?.latest;
-  if (!!userForecast && !userForecast.end_time) {
-    continuousAreaChartData.push({
-      pmf: cdfToPmf(userForecast.forecast_values),
-      cdf: userForecast.forecast_values,
-      type: "user" as ContinuousAreaType,
-    });
-  }
+  const continuousAreaChartData = getContinuousAreaChartData(
+    latest,
+    question.my_forecasts?.latest
+  );
 
   // generate data to submit based on user forecast and question type
   const handleReaffirmClick = useCallback(

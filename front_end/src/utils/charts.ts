@@ -11,8 +11,10 @@ import { range } from "lodash";
 import { findLastIndex, isNil, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
+import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
+  ContinuousAreaType,
   FanOption,
   Line,
   Scale,
@@ -33,8 +35,9 @@ import {
   QuestionWithForecasts,
   AggregateForecastHistory,
   Bounds,
+  UserForecast,
 } from "@/types/question";
-import { computeQuartilesFromCDF } from "@/utils/math";
+import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 import {
   formatMultipleChoiceResolution,
@@ -1361,4 +1364,39 @@ export function getCdfBounds(cdf: number[] | undefined): Bounds | undefined {
     belowLower: start,
     aboveUpper: 1 - end,
   };
+}
+
+export function getContinuousAreaChartData(
+  latest: AggregateForecast | undefined,
+  userForecast: UserForecast | undefined,
+  userCustomForecast?: {
+    cdf: number[];
+    pmf: number[];
+  }
+): ContinuousAreaGraphInput {
+  const chartData: ContinuousAreaGraphInput = [];
+
+  if (latest && !latest.end_time) {
+    chartData.push({
+      pmf: cdfToPmf(latest.forecast_values),
+      cdf: latest.forecast_values,
+      type: "community" as ContinuousAreaType,
+    });
+  }
+
+  if (userCustomForecast) {
+    chartData.push({
+      pmf: userCustomForecast.pmf,
+      cdf: userCustomForecast.cdf,
+      type: "user" as ContinuousAreaType,
+    });
+  } else if (!!userForecast && !userForecast.end_time) {
+    chartData.push({
+      pmf: cdfToPmf(userForecast.forecast_values),
+      cdf: userForecast.forecast_values,
+      type: "user" as ContinuousAreaType,
+    });
+  }
+
+  return chartData;
 }
