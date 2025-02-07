@@ -8,14 +8,10 @@ import {
 } from "@/services/session";
 import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
+import { getPublicSettings } from "./utils/public-settings";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  const landingPageUrl = process.env.LANDING_PAGE_URL || "/";
-  if (pathname === "/" && pathname !== landingPageUrl) {
-    return NextResponse.redirect(new URL(landingPageUrl, request.url));
-  }
 
   // if authentication is required, check for token
   if (process.env.AUTHENTICATION_REQUIRED?.toLowerCase() === "true") {
@@ -26,6 +22,11 @@ export async function middleware(request: NextRequest) {
       // return a not found page
       return NextResponse.rewrite(new URL("/not-found/", request.url));
     }
+  }
+
+  const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
+  if (pathname === "/" && pathname !== PUBLIC_LANDING_PAGE_URL) {
+    return NextResponse.redirect(new URL(PUBLIC_LANDING_PAGE_URL, request.url));
   }
 
   let deleteCookieToken = false;

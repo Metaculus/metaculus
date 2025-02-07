@@ -111,9 +111,6 @@ const leagueGothic = localFont({
   variable: "--font-league-gothic",
 });
 
-const allowSignup =
-  (process.env.PUBLIC_ALLOW_SIGNUP ?? "true").toLowerCase() === "true";
-
 export async function generateMetadata(): Promise<Metadata> {
   const { PUBLIC_APP_URL, PUBLIC_DISALLOW_ALL_BOTS } = getPublicSettings();
 

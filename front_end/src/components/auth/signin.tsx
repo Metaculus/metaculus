@@ -21,13 +21,11 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 type SignInModalType = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
-  allowSignup?: boolean;
 };
 
 const SignInModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
-  allowSignup,
 }: SignInModalType) => {
   const { PUBLIC_ALLOW_SIGNUP } = usePublicSettings();
   const t = useTranslations();

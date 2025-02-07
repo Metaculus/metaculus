@@ -9,6 +9,7 @@ export interface PublicSettings {
   PUBLIC_SENTRY_DSN: string;
   PUBLIC_GOOGLE_MEASUREMENT_ID: string;
   PUBLIC_DISALLOW_ALL_BOTS: boolean;
+  PUBLIC_LANDING_PAGE_URL: string;
 }
 
 export const defaultPublicSettingsValues: PublicSettings = {
@@ -22,6 +23,7 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_SENTRY_DSN: "",
   PUBLIC_GOOGLE_MEASUREMENT_ID: "",
   PUBLIC_DISALLOW_ALL_BOTS: true,
+  PUBLIC_LANDING_PAGE_URL: "/",
 };
 
 export function getPublicSettings() {
@@ -49,5 +51,7 @@ export function getPublicSettings() {
       process.env.PUBLIC_DISALLOW_ALL_BOTS !== undefined
         ? process.env.PUBLIC_DISALLOW_ALL_BOTS === "true"
         : defVals.PUBLIC_DISALLOW_ALL_BOTS,
+    PUBLIC_LANDING_PAGE_URL:
+      process.env.PUBLIC_LANDING_PAGE_URL ?? defVals.PUBLIC_LANDING_PAGE_URL,
   };
 }
