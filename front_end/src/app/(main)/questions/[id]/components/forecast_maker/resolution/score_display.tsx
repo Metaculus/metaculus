@@ -9,11 +9,14 @@ import { FC } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
 import { QuestionWithForecasts, ScoreData } from "@/types/question";
+import cn from "@/utils/cn";
+
 type Props = {
   question: QuestionWithForecasts;
+  className?: string;
 };
 
-const ScoreDisplay: FC<Props> = ({ question }) => {
+const ScoreDisplay: FC<Props> = ({ question, className }) => {
   const t = useTranslations();
   const cp_scores = question.aggregations.recency_weighted.score_data;
   const user_scores = question.my_forecasts?.score_data;
@@ -21,7 +24,12 @@ const ScoreDisplay: FC<Props> = ({ question }) => {
 
   return (
     <>
-      <div className="mb-4 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+      <div
+        className={cn(
+          "mb-4 grid grid-cols-2 gap-1.5 sm:grid-cols-4",
+          className
+        )}
+      >
         {user_scores?.baseline_score != null && (
           <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-gray-700 dark:border-gray-400-dark dark:text-gray-700-dark">
             <FontAwesomeIcon

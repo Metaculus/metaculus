@@ -3,7 +3,7 @@ import { faCircleQuestion, faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, ReactNode, useState } from "react";
 
 import MultiSlider from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
@@ -11,7 +11,7 @@ import Checkbox from "@/components/ui/checkbox";
 import Switch from "@/components/ui/switch";
 import Tooltip from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/auth_context";
-import { ContinuousAreaGraphType } from "@/types/charts";
+import { ContinuousAreaGraphType, ForecastInputType } from "@/types/charts";
 import {
   DistributionSliderComponent,
   QuestionWithNumericForecasts,
@@ -19,6 +19,7 @@ import {
 import cn from "@/utils/cn";
 
 import ContinuousPredictionChart from "./continuous_prediction_chart";
+import SliderInputModeSwitcher from "./continuous_slider_input_mode_switcher";
 import { useHideCP } from "../cp_provider";
 
 type Props = {
@@ -32,6 +33,10 @@ type Props = {
   setOverlayPreviousForecast: (value: boolean) => void;
   question: QuestionWithNumericForecasts;
   disabled?: boolean;
+  showInputModeSwitcher?: boolean;
+  forecastInputMode?: ForecastInputType;
+  setForecastInputMode?: (mode: ForecastInputType) => void;
+  menu?: ReactNode;
 };
 
 const ContinuousSlider: FC<Props> = ({
@@ -42,16 +47,29 @@ const ContinuousSlider: FC<Props> = ({
   setOverlayPreviousForecast,
   question,
   disabled = false,
+  showInputModeSwitcher = false,
+  forecastInputMode = "slider",
+  setForecastInputMode = () => {},
+  menu,
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
   const t = useTranslations();
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
+
   const previousForecast = question.my_forecasts?.latest;
 
   return (
     <div className="mr-0 flex flex-col sm:mr-2">
-      <div className="flex flex-col items-center gap-2">
+      {/* TODO: uncomment when we have a table input mode */}
+      {/* <div className="flex justify-between"> */}
+      {showInputModeSwitcher && (
+        <SliderInputModeSwitcher
+          mode={forecastInputMode}
+          setMode={setForecastInputMode}
+        />
+      )}
+      <div className="flex flex-col items-center gap-2 self-end">
         <div className="flex w-fit flex-row items-center gap-2 self-end">
           <p
             className={cn(
@@ -88,9 +106,14 @@ const ContinuousSlider: FC<Props> = ({
               className="text-gray-500 hover:text-blue-800 dark:text-gray-500-dark dark:hover:text-blue-800-dark"
             />
           </Tooltip>
+          {menu && (
+            <div className="-mr-2 size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
+              {menu}
+            </div>
+          )}
         </div>
         {previousForecast && (
-          <div className="ml-auto mr-auto mt-1 flex items-center md:mr-[-4px]">
+          <div className="ml-auto mr-auto mt-1 flex items-center md:-mr-1">
             <Checkbox
               checked={overlayPreviousForecast}
               onChange={(checked) => setOverlayPreviousForecast(checked)}
@@ -106,84 +129,93 @@ const ContinuousSlider: FC<Props> = ({
           </div>
         )}
       </div>
-      <ContinuousPredictionChart
-        dataset={dataset}
-        graphType={graphType}
-        overlayPreviousForecast={overlayPreviousForecast}
-        question={question}
-        readOnly={disabled}
-        showCP={!user || !hideCP || !!question.resolution}
-      />
-      {!disabled &&
-        components.map((forecastValue, index) => {
-          return (
-            <div className="px-2.5" key={index}>
-              {!isNil(forecastValue) && (
-                <MultiSlider
-                  disabled={disabled}
-                  key={`multi-slider-${index}`}
-                  value={forecastValue}
-                  step={0.00001}
-                  clampStep={0.035}
-                  onChange={(value) => {
-                    const newForecast = [
-                      ...components.slice(0, index),
-                      {
-                        left: value.left,
-                        center: value.center,
-                        right: value.right,
-                        weight: forecastValue.weight,
-                      },
-                      ...components.slice(index + 1, components.length),
-                    ];
-                    onChange(newForecast);
-                  }}
-                  shouldSyncWithDefault
-                />
-              )}
-
-              {!!components.length && !isNil(forecastValue.weight) && (
-                <div className="flex flex-row justify-between">
-                  <span className="inline pr-2 pt-2">weight:</span>
-                  <div className="inline w-3/4">
-                    <Slider
-                      key={`slider-${index}`}
-                      inputMin={0}
-                      inputMax={1}
+      {/* </div> */}
+      {forecastInputMode === "slider" ? (
+        <>
+          <ContinuousPredictionChart
+            dataset={dataset}
+            graphType={graphType}
+            overlayPreviousForecast={overlayPreviousForecast}
+            question={question}
+            readOnly={disabled}
+            showCP={!user || !hideCP || !!question.resolution}
+          />
+          {!disabled &&
+            components.map((forecastValue, index) => {
+              return (
+                <div className="px-2.5" key={index}>
+                  {!isNil(forecastValue) && (
+                    <MultiSlider
+                      disabled={disabled}
+                      key={`multi-slider-${index}`}
+                      value={forecastValue}
                       step={0.00001}
-                      defaultValue={forecastValue.weight}
-                      round={true}
+                      clampStep={0.035}
                       onChange={(value) => {
                         const newForecast = [
                           ...components.slice(0, index),
                           {
-                            ...forecastValue,
-                            weight: value,
+                            left: value.left,
+                            center: value.center,
+                            right: value.right,
+                            weight: forecastValue.weight,
                           },
                           ...components.slice(index + 1, components.length),
                         ];
                         onChange(newForecast);
                       }}
-                      disabled={disabled}
                       shouldSyncWithDefault
                     />
-                  </div>
-                  <FontAwesomeIcon
-                    className="inline cursor-pointer pl-2 pt-2"
-                    icon={faClose}
-                    onClick={() => {
-                      const newForecast = [
-                        ...components.slice(0, index),
-                        ...components.slice(index + 1, components.length),
-                      ];
-                      onChange(newForecast);
-                    }}
-                  />
+                  )}
+
+                  {!!components.length && !isNil(forecastValue.weight) && (
+                    <div className="flex flex-row justify-between">
+                      <span className="inline pr-2 pt-2">weight:</span>
+                      <div className="inline w-3/4">
+                        <Slider
+                          key={`slider-${index}`}
+                          inputMin={0}
+                          inputMax={1}
+                          step={0.00001}
+                          defaultValue={forecastValue.weight}
+                          round={true}
+                          onChange={(value) => {
+                            const newForecast = [
+                              ...components.slice(0, index),
+                              {
+                                ...forecastValue,
+                                weight: value,
+                              },
+                              ...components.slice(index + 1, components.length),
+                            ];
+                            onChange(newForecast);
+                          }}
+                          disabled={disabled}
+                          shouldSyncWithDefault
+                        />
+                      </div>
+                      {components.length > 1 && (
+                        <FontAwesomeIcon
+                          className="inline cursor-pointer pl-2 pt-2"
+                          icon={faClose}
+                          onClick={() => {
+                            const newForecast = [
+                              ...components.slice(0, index),
+                              ...components.slice(index + 1, components.length),
+                            ];
+                            onChange(newForecast);
+                          }}
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
+        </>
+      ) : (
+        <div>There will be a table input slider</div>
+      )}
     </div>
   );
 };

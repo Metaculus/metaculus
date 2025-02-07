@@ -1,4 +1,3 @@
-import { useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
 import { PostWithForecasts } from "@/types/post";
@@ -14,8 +13,6 @@ import ForecastMakerGroupContinuous from "./forecast_maker_group_continuous";
 import ForecastMakerContainer from "../container";
 
 type Props = {
-  resolutionCriteria: string | null;
-  finePrint: string;
   questions: QuestionWithForecasts[];
   post: PostWithForecasts;
   groupVariable: string;
@@ -26,16 +23,12 @@ type Props = {
 
 const ForecastMakerGroup: FC<Props> = ({
   post,
-  resolutionCriteria,
-  finePrint,
   questions,
   groupVariable,
   canResolve,
   canPredict,
   predictionMessage,
 }) => {
-  const t = useTranslations();
-
   const tileType = questions.at(0)?.type;
 
   if (!tileType) {
@@ -43,15 +36,7 @@ const ForecastMakerGroup: FC<Props> = ({
   }
 
   return (
-    <ForecastMakerContainer
-      resolutionCriteria={[
-        {
-          title: t("resolutionCriteria"),
-          content: resolutionCriteria,
-          finePrint,
-        },
-      ]}
-    >
+    <ForecastMakerContainer>
       {tileType === QuestionType.Binary && (
         <ForecastMakerGroupBinary
           post={post}

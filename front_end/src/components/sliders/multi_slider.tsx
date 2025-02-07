@@ -118,6 +118,7 @@ const MultiSlider: FC<Props> = ({
       pushable={true}
       allowCross={allowCross}
       draggableTrack={false}
+      style={{ touchAction: "pan-y" }}
       handleRender={(origin, props) => {
         return (
           <SliderThumb
@@ -131,7 +132,8 @@ const MultiSlider: FC<Props> = ({
             onClickIn={() => {
               handlePressIn(props.index);
             }}
-            onTouchStartCapture={() => {
+            onTouchStartCapture={(e) => {
+              e.preventDefault();
               handlePressIn(props.index);
             }}
           />

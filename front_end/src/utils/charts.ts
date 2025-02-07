@@ -11,8 +11,10 @@ import { range } from "lodash";
 import { findLastIndex, isNil, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
+import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
+  ContinuousAreaType,
   FanOption,
   Line,
   Scale,
@@ -33,8 +35,9 @@ import {
   QuestionWithForecasts,
   AggregateForecastHistory,
   Bounds,
+  UserForecast,
 } from "@/types/question";
-import { computeQuartilesFromCDF } from "@/utils/math";
+import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 import {
   formatMultipleChoiceResolution,
@@ -389,6 +392,57 @@ export function getDisplayValue({
     return `${centerDisplay} (${lowerDisplay} - ${upperDisplay})`;
   }
   return centerDisplay;
+}
+
+export function getTableDisplayValue({
+  value,
+  questionType,
+  scaling,
+  precision,
+  truncation,
+  range,
+}: {
+  value: number | null | undefined;
+  questionType: QuestionType;
+  scaling: Scaling;
+  precision?: number;
+  truncation?: number;
+  range?: number[];
+}) {
+  if (isNil(value)) {
+    return "...";
+  }
+
+  if (questionType !== QuestionType.Date) {
+    return getDisplayValue({
+      value,
+      questionType,
+      scaling,
+      precision,
+      truncation,
+      range,
+    });
+  }
+
+  let dateFormat: string = "dd MMM yyyy HH:mm";
+  if (!isNil(scaling.range_min) && !isNil(scaling.range_max)) {
+    const diffInSeconds = scaling.range_max - scaling.range_min;
+    const oneWeek = 7 * 24 * 60 * 60;
+    const oneYear = 365.25 * 24 * 60 * 60;
+
+    if (diffInSeconds < oneWeek) {
+      dateFormat = "dd MMM yyyy HH:mm";
+    } else if (diffInSeconds < 5 * oneYear) {
+      dateFormat = "dd MMM yyyy";
+    } else if (diffInSeconds < 50 * oneYear) {
+      dateFormat = "MMM yyyy";
+    } else {
+      dateFormat = "yyyy";
+    }
+  }
+
+  const scaledValue = scaleInternalLocation(value, scaling);
+  return format(fromUnixTime(scaledValue), dateFormat);
 }
 
 export function getChoiceOptionValue(
@@ -1361,4 +1415,39 @@ export function getCdfBounds(cdf: number[] | undefined): Bounds | undefined {
     belowLower: start,
     aboveUpper: 1 - end,
   };
+}
+
+export function getContinuousAreaChartData(
+  latest: AggregateForecast | undefined,
+  userForecast: UserForecast | undefined,
+  userCustomForecast?: {
+    cdf: number[];
+    pmf: number[];
+  }
+): ContinuousAreaGraphInput {
+  const chartData: ContinuousAreaGraphInput = [];
+
+  if (latest && !latest.end_time) {
+    chartData.push({
+      pmf: cdfToPmf(latest.forecast_values),
+      cdf: latest.forecast_values,
+      type: "community" as ContinuousAreaType,
+    });
+  }
+
+  if (userCustomForecast) {
+    chartData.push({
+      pmf: userCustomForecast.pmf,
+      cdf: userCustomForecast.cdf,
+      type: "user" as ContinuousAreaType,
+    });
+  } else if (!!userForecast && !userForecast.end_time) {
+    chartData.push({
+      pmf: cdfToPmf(userForecast.forecast_values),
+      cdf: userForecast.forecast_values,
+      type: "user" as ContinuousAreaType,
+    });
+  }
+
+  return chartData;
 }

@@ -62,6 +62,7 @@ const Slider: FC<Props> = ({
         setControlledValue(roundedValue);
         onChange(roundedValue);
       }}
+      style={{ touchAction: "pan-y" }}
       styles={styles}
       disabled={disabled}
       handleRender={(origin) => (
@@ -71,6 +72,9 @@ const Slider: FC<Props> = ({
           showValue={showValue}
           onClickIn={() => {
             setControlledStep(step);
+          }}
+          onTouchStartCapture={(e) => {
+            e.preventDefault();
           }}
           active={!round}
           onArrowClickIn={

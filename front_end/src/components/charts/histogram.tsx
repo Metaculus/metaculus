@@ -69,7 +69,14 @@ const Histogram: React.FC<HistogramProps> = ({
           x: [0, 100],
           y: [0, maxY],
         }}
-        containerComponent={<VictoryContainer responsive={true} />}
+        containerComponent={
+          <VictoryContainer
+            responsive={true}
+            style={{
+              touchAction: "pan-y",
+            }}
+          />
+        }
         padding={{ top: 0, bottom: 15, left: 10, right: 10 }}
         height={75}
         width={!!width ? width : undefined}

@@ -1062,5 +1062,10 @@
   "totalPrizes": "Total de Prêmios",
   "totalEarned": "Total Ganho",
   "currentRank": "Classificação Atual",
-  "bestEver": "Melhor de Sempre"
+  "bestEver": "Melhor de Sempre",
+  "table": "Mesa",
+  "slider": "Deslizador",
+  "lowerBound": "Limite inferior",
+  "quartiles": "Quartis",
+  "upperBound": "Limite superior"
 }

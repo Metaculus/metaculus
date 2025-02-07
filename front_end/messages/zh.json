@@ -1066,5 +1066,10 @@
   "totalPrizes": "总奖项",
   "totalEarned": "总收入",
   "currentRank": "当前排名",
-  "bestEver": "历史最佳"
+  "bestEver": "历史最佳",
+  "table": "桌子",
+  "slider": "滑块",
+  "lowerBound": "下界",
+  "quartiles": "四分位数",
+  "upperBound": "上界"
 }

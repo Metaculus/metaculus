@@ -28,8 +28,6 @@ const QuestionForecastMaker: FC<Props> = ({
   post,
   predictionMessage,
 }) => {
-  const t = useTranslations();
-
   const activeUserForecast =
     (question.my_forecasts?.latest?.end_time ||
       new Date().getTime() / 1000 + 1000) <=
@@ -38,15 +36,7 @@ const QuestionForecastMaker: FC<Props> = ({
       : question.my_forecasts?.latest;
 
   return (
-    <ForecastMakerContainer
-      resolutionCriteria={[
-        {
-          title: t("resolutionCriteria"),
-          content: question.resolution_criteria,
-          finePrint: question.fine_print,
-        },
-      ]}
-    >
+    <ForecastMakerContainer>
       {(question.type === QuestionType.Numeric ||
         question.type === QuestionType.Date) && (
         <>

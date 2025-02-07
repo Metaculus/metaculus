@@ -1064,5 +1064,10 @@
   "totalPrizes": "Celkem cen",
   "totalEarned": "Celkem vyděláno",
   "currentRank": "Aktuální hodnocení",
-  "bestEver": "Nejlepší vůbec"
+  "bestEver": "Nejlepší vůbec",
+  "table": "Stůl",
+  "slider": "Posuvník",
+  "lowerBound": "Dolní mez",
+  "quartiles": "Kvartily",
+  "upperBound": "Horní mez"
 }
