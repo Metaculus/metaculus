@@ -1,0 +1,51 @@
+import { FC, PropsWithChildren } from "react";
+
+import { ForecastInputType } from "@/types/charts";
+import cn from "@/utils/cn";
+
+type Props = {
+  mode: string;
+  setMode: (mode: ForecastInputType) => void;
+};
+
+const SliderInputModeSwitcher: FC<Props> = ({ mode, setMode }) => {
+  return (
+    <div className="flex h-fit gap-1">
+      <SwitcherBtn setMode={setMode} mode={mode} value="slider">
+        Slider
+      </SwitcherBtn>
+      <SwitcherBtn setMode={setMode} mode={mode} value="table">
+        Table
+      </SwitcherBtn>
+    </div>
+  );
+};
+
+type SwitcherBtnProps = {
+  value: ForecastInputType;
+  mode: string;
+  setMode: (mode: ForecastInputType) => void;
+};
+
+const SwitcherBtn: FC<PropsWithChildren<SwitcherBtnProps>> = ({
+  value,
+  mode,
+  setMode,
+  children,
+}) => {
+  const isActive = mode === value;
+  return (
+    <button
+      onClick={() => setMode(value)}
+      className={cn(
+        "px-2 py-1 text-blue-800 transition-all duration-200 hover:bg-gray-0 dark:text-blue-800-dark dark:hover:bg-gray-0-dark",
+        isActive &&
+          "rounded-[4px] bg-blue-700 text-gray-0 hover:bg-blue-800 dark:bg-blue-700-dark dark:text-gray-0-dark dark:hover:bg-blue-800-dark"
+      )}
+    >
+      {children}
+    </button>
+  );
+};
+
+export default SliderInputModeSwitcher;
