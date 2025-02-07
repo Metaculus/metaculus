@@ -1,11 +1,16 @@
 import type { MetadataRoute } from "next";
 
+import { getPublicSettings } from "@/utils/public-settings";
+export const dynamic = "force-dynamic";
+
 export default function robots(): MetadataRoute.Robots {
   let allowRules: MetadataRoute.Robots["rules"] = {
     allow: "/",
   };
 
-  if (process.env.NEXT_PUBLIC_DISALLOW_ALL_BOTS === "true") {
+  const { PUBLIC_DISALLOW_ALL_BOTS } = getPublicSettings();
+
+  if (PUBLIC_DISALLOW_ALL_BOTS) {
     allowRules = {
       disallow: "/",
     };
