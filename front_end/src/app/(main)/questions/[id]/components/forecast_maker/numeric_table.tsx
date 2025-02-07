@@ -1,13 +1,29 @@
 import { useTranslations } from "next-intl";
-import React, { DetailedHTMLProps, FC, TdHTMLAttributes } from "react";
+import React, {
+  DetailedHTMLProps,
+  FC,
+  TdHTMLAttributes,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
+import { FormErrorMessage } from "@/components/ui/form_field";
+import { ForecastInputType } from "@/types/charts";
 import {
   Bounds,
+  DistributionQuantileComponent,
+  DistributionQuantileComponentWithState,
+  DistributionQuantileValue,
   Quartiles,
+  QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { displayValue, getTableDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
+
+import { validateQuantileInput } from "./helpers";
+import NumericTableInput from "./numeric_table_input";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -21,6 +37,11 @@ type Props = {
   withCommunityQuartiles?: boolean;
   hasUserForecast?: boolean;
   isDirty?: boolean;
+  forecastInputMode?: ForecastInputType;
+  quantileComponents?: DistributionQuantileComponentWithState[];
+  onQuantileChange?: React.Dispatch<
+    React.SetStateAction<DistributionQuantileComponentWithState[]>
+  >;
 };
 
 const NumericForecastTable: FC<Props> = ({
@@ -35,8 +56,132 @@ const NumericForecastTable: FC<Props> = ({
   withCommunityQuartiles = true,
   hasUserForecast,
   isDirty,
+  forecastInputMode = "slider",
+  quantileComponents,
+  onQuantileChange,
 }) => {
   const t = useTranslations();
+  const quantilesToValidate = [
+    question.open_lower_bound ? "p0" : undefined,
+    "q1",
+    "q2",
+    "q3",
+    question.open_upper_bound ? "p4" : undefined,
+  ].filter(
+    (quantile) => quantile !== undefined
+  ) as (keyof DistributionQuantileComponent)[];
+  // initial state is a safety measure to avoid errors when we already have slider forecast
+  // and we switch to quantile forecast with transformed values
+  const [errors, setErrors] = useState<
+    {
+      quantile: keyof DistributionQuantileComponent;
+      message?: string;
+    }[]
+  >(
+    quantileComponents
+      ? quantilesToValidate
+          .map((quantileKey) => {
+            return {
+              quantile: quantileKey,
+              message: validateQuantileInput({
+                question,
+                components: quantileComponents,
+                newValue: quantileComponents[0]?.[quantileKey]?.value,
+                quantile: quantileKey,
+                t,
+              }),
+            };
+          })
+          .filter((error) => error.message !== undefined)
+      : []
+  );
+
+  useEffect(() => {
+    // clear errors on discard click
+    if (
+      Object.values(quantileComponents?.[0] ?? {}).every(
+        (value) => !value?.isDirty
+      )
+    ) {
+      setErrors([]);
+    }
+    // revalidate when we make a new forecast with slider and tranform it to quantile data
+    if (
+      forecastInputMode === ForecastInputType.Slider &&
+      quantileComponents &&
+      Object.values(quantileComponents?.[0] ?? {}).every(
+        (value) => value?.isDirty
+      )
+    ) {
+      setErrors(
+        quantilesToValidate
+          .map((quantileKey) => {
+            return {
+              quantile: quantileKey,
+              message: validateQuantileInput({
+                question,
+                components: quantileComponents,
+                newValue: quantileComponents[0]?.[quantileKey]?.value,
+                quantile: quantileKey,
+                t,
+              }),
+            };
+          })
+          .filter((error) => error.message !== undefined)
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quantileComponents]);
+
+  const handleQuantileChange = useCallback(
+    (
+      quantile: keyof DistributionQuantileComponent,
+      newValue: DistributionQuantileValue
+    ) => {
+      if (!quantileComponents || !onQuantileChange) return;
+      setErrors([]);
+      onQuantileChange((prev) => [
+        {
+          ...prev[0],
+          [quantile]: {
+            value: newValue.value,
+            isDirty: newValue.isDirty,
+          },
+        } as DistributionQuantileComponentWithState,
+      ]);
+      const localQuantileComponents = [
+        {
+          ...quantileComponents[0],
+          [quantile]: {
+            value: newValue?.value,
+            isDirty: newValue?.isDirty,
+          },
+        } as DistributionQuantileComponentWithState,
+      ];
+
+      const errors = quantilesToValidate
+        .map((quantileKey) => {
+          return {
+            quantile: quantileKey,
+            message: validateQuantileInput({
+              question,
+              components: localQuantileComponents,
+              newValue:
+                quantileKey === quantile
+                  ? newValue?.value
+                  : localQuantileComponents[0]?.[quantileKey]?.value,
+              quantile: quantileKey,
+              t,
+            }),
+          };
+        })
+        .filter((error) => error.message !== undefined);
+      if (errors) {
+        setErrors(errors);
+      }
+    },
+    [quantileComponents, onQuantileChange, question, quantilesToValidate, t]
+  );
 
   return (
     <>
@@ -129,7 +274,7 @@ const NumericForecastTable: FC<Props> = ({
               )}
             </tr>
           )}
-          {withUserQuartiles && (
+          {withUserQuartiles && forecastInputMode === "slider" && (
             <tr className="text-orange-800 dark:text-orange-800-dark">
               <Td>{t("myPrediction")}</Td>
               {isDirty || hasUserForecast ? (
@@ -181,6 +326,113 @@ const NumericForecastTable: FC<Props> = ({
               )}
             </tr>
           )}
+
+          {withUserQuartiles &&
+            forecastInputMode === ForecastInputType.Quantile && (
+              <>
+                <tr className="text-orange-800 dark:text-orange-800-dark">
+                  <Td>
+                    <p className="mx-auto my-0 h-8 w-20 whitespace-pre-line text-center leading-4">
+                      {t("myPrediction")}
+                    </p>
+                  </Td>
+                  <>
+                    {question.open_lower_bound && (
+                      <Td>
+                        <NumericTableInput
+                          type="number"
+                          quantileValue={quantileComponents?.[0]?.p0}
+                          error={
+                            errors.find((e) => e.quantile === "p0")?.message
+                          }
+                          onQuantileChange={(
+                            quantileValue: DistributionQuantileValue
+                          ) => {
+                            handleQuantileChange("p0", quantileValue);
+                          }}
+                        />
+                      </Td>
+                    )}
+                    <Td>
+                      <NumericTableInput
+                        type={
+                          question.type === QuestionType.Numeric
+                            ? "number"
+                            : "date"
+                        }
+                        quantileValue={quantileComponents?.[0]?.q1}
+                        error={errors.find((e) => e.quantile === "q1")?.message}
+                        onQuantileChange={(
+                          quantileValue: DistributionQuantileValue
+                        ) => {
+                          handleQuantileChange("q1", quantileValue);
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <NumericTableInput
+                        type={
+                          question.type === QuestionType.Numeric
+                            ? "number"
+                            : "date"
+                        }
+                        quantileValue={quantileComponents?.[0]?.q2}
+                        error={errors.find((e) => e.quantile === "q2")?.message}
+                        onQuantileChange={(
+                          quantileValue: DistributionQuantileValue
+                        ) => {
+                          handleQuantileChange("q2", quantileValue);
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <NumericTableInput
+                        type={
+                          question.type === QuestionType.Numeric
+                            ? "number"
+                            : "date"
+                        }
+                        quantileValue={quantileComponents?.[0]?.q3}
+                        error={errors.find((e) => e.quantile === "q3")?.message}
+                        onQuantileChange={(
+                          quantileValue: DistributionQuantileValue
+                        ) => {
+                          handleQuantileChange("q3", quantileValue);
+                        }}
+                      />
+                    </Td>
+                    {question.open_upper_bound && (
+                      <Td>
+                        <NumericTableInput
+                          type="number"
+                          quantileValue={quantileComponents?.[0]?.p4}
+                          error={
+                            errors.find((e) => e.quantile === "p4")?.message
+                          }
+                          onQuantileChange={(
+                            quantileValue: DistributionQuantileValue
+                          ) => {
+                            handleQuantileChange("p4", quantileValue);
+                          }}
+                        />
+                      </Td>
+                    )}
+                  </>
+                </tr>
+                <tr>
+                  <Td
+                    colSpan={
+                      4 +
+                      (question.open_lower_bound ? 1 : 0) +
+                      (question.open_upper_bound ? 1 : 0)
+                    }
+                  >
+                    <FormErrorMessage errors={errors.map((e) => e.message)} />
+                  </Td>
+                </tr>
+              </>
+            )}
+
           {withUserQuartiles && userPreviousQuartiles && (
             <tr className="text-orange-800 dark:text-orange-800-dark">
               <Td>{t("myPredictionPrevious")}</Td>
@@ -269,7 +521,21 @@ const NumericForecastTable: FC<Props> = ({
                       : "—"}
                   </Td>
                 )}
-                {withUserQuartiles && (
+                {withUserQuartiles &&
+                forecastInputMode === ForecastInputType.Quantile ? (
+                  <Td>
+                    <NumericTableInput
+                      type="number"
+                      quantileValue={quantileComponents?.[0]?.p0}
+                      error={errors.find((e) => e.quantile === "p0")?.message}
+                      onQuantileChange={(
+                        quantileValue: DistributionQuantileValue
+                      ) => {
+                        handleQuantileChange("p0", quantileValue);
+                      }}
+                    />
+                  </Td>
+                ) : (
                   <Td className="text-orange-800 dark:text-orange-800-dark">
                     {(isDirty || hasUserForecast) && userBounds
                       ? `${(userBounds.belowLower * 100).toFixed(1)}%`
@@ -309,8 +575,24 @@ const NumericForecastTable: FC<Props> = ({
                 })}
               </Td>
             )}
-            {withUserQuartiles && (
+            {withUserQuartiles &&
+            forecastInputMode === ForecastInputType.Quantile ? (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
+                <NumericTableInput
+                  type={
+                    question.type === QuestionType.Numeric ? "number" : "date"
+                  }
+                  quantileValue={quantileComponents?.[0]?.q1}
+                  error={errors.find((e) => e.quantile === "q1")?.message}
+                  onQuantileChange={(
+                    quantileValue: DistributionQuantileValue
+                  ) => {
+                    handleQuantileChange("q1", quantileValue);
+                  }}
+                />
+              </Td>
+            ) : (
+              <Td className="text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
                   <>
                     {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
@@ -353,8 +635,24 @@ const NumericForecastTable: FC<Props> = ({
                 })}
               </Td>
             )}
-            {withUserQuartiles && (
+            {withUserQuartiles &&
+            forecastInputMode === ForecastInputType.Quantile ? (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
+                <NumericTableInput
+                  type={
+                    question.type === QuestionType.Numeric ? "number" : "date"
+                  }
+                  quantileValue={quantileComponents?.[0]?.q2}
+                  error={errors.find((e) => e.quantile === "q2")?.message}
+                  onQuantileChange={(
+                    quantileValue: DistributionQuantileValue
+                  ) => {
+                    handleQuantileChange("q2", quantileValue);
+                  }}
+                />
+              </Td>
+            ) : (
+              <Td className="text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
                   <>
                     {checkQuartilesOutOfBorders(userQuartiles?.median)}
@@ -397,8 +695,24 @@ const NumericForecastTable: FC<Props> = ({
                 })}
               </Td>
             )}
-            {withUserQuartiles && (
+            {withUserQuartiles &&
+            forecastInputMode === ForecastInputType.Quantile ? (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
+                <NumericTableInput
+                  type={
+                    question.type === QuestionType.Numeric ? "number" : "date"
+                  }
+                  quantileValue={quantileComponents?.[0]?.q3}
+                  error={errors.find((e) => e.quantile === "q3")?.message}
+                  onQuantileChange={(
+                    quantileValue: DistributionQuantileValue
+                  ) => {
+                    handleQuantileChange("q3", quantileValue);
+                  }}
+                />
+              </Td>
+            ) : (
+              <Td className="text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
                   <>
                     {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
@@ -451,7 +765,21 @@ const NumericForecastTable: FC<Props> = ({
                       : "—"}
                   </Td>
                 )}
-                {withUserQuartiles && (
+                {withUserQuartiles &&
+                forecastInputMode === ForecastInputType.Quantile ? (
+                  <Td>
+                    <NumericTableInput
+                      type="number"
+                      quantileValue={quantileComponents?.[0]?.p4}
+                      error={errors.find((e) => e.quantile === "p4")?.message}
+                      onQuantileChange={(
+                        quantileValue: DistributionQuantileValue
+                      ) => {
+                        handleQuantileChange("p4", quantileValue);
+                      }}
+                    />
+                  </Td>
+                ) : (
                   <Td className="text-orange-800 dark:text-orange-800-dark">
                     {(isDirty || hasUserForecast) && userBounds
                       ? `${(userBounds.aboveUpper * 100).toFixed(1)}%`
@@ -466,6 +794,20 @@ const NumericForecastTable: FC<Props> = ({
                   </Td>
                 )}
               </tr>
+              {withUserQuartiles &&
+                forecastInputMode === ForecastInputType.Quantile && (
+                  <tr>
+                    <Td
+                      colSpan={
+                        4 +
+                        (question.open_lower_bound ? 1 : 0) +
+                        (question.open_upper_bound ? 1 : 0)
+                      }
+                    >
+                      <FormErrorMessage errors={errors.map((e) => e.message)} />
+                    </Td>
+                  </tr>
+                )}
             </>
           )}
         </tbody>

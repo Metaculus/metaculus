@@ -9,7 +9,12 @@ import PredictionChip from "@/components/prediction_chip";
 import ProgressBar from "@/components/ui/progress_bar";
 import { ContinuousAreaType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import {
+  DistributionSlider,
+  DistributionSliderComponent,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
@@ -144,10 +149,12 @@ const ConditionalChart: FC<Props> = ({
         userLatest && !userLatest.end_time
           ? userLatest.distribution_input
           : null;
-      const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
+      const prevForecastValue = extractPrevNumericForecastValue(
+        prevForecast as DistributionSlider
+      );
       const dataset = prevForecastValue?.components
         ? getNumericForecastDataset(
-            prevForecastValue.components,
+            prevForecastValue.components as DistributionSliderComponent[],
             question.open_lower_bound,
             question.open_upper_bound
           )

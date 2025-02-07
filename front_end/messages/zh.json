@@ -1118,5 +1118,20 @@
   "invalidQuestionStatus": "问题状态应为开放或即将开放",
   "chance": "机会",
   "closedForForecastingGroupDescription": "此问题已关闭预测。<br></br> 最新的社区预测是：",
-  "and": "和"
+  "and": "和",
+  "invalidQuantileInput": "无效的分位点输入",
+  "unexpectedError": "意外错误",
+  "quantileEmptyError": "分位点不能为空",
+  "q1LessThanError": "您的第25百分位数必须小于第50和第75百分位数",
+  "q2BetweenError": "您的第50百分位数必须介于第25和第75百分位数之间",
+  "q3GreaterThanError": "您的第75百分位数必须大于第25和第50百分位数",
+  "probabilityRangeError": "概率必须在0%到100%之间",
+  "quantileBelowBoundError": "分位点不能低于封闭的下界",
+  "quantileAboveBoundError": "分位点不能高于封闭的上界",
+  "q1BelowRangeError": "当您的第25百分位数低于范围时，低于下界的概率应≥ 25%",
+  "q1AboveRangeError": "当您的第25百分位数高于范围时，高于上界的概率应≥ 75%",
+  "q2BelowRangeError": "当您的中位数低于范围时，低于下界的概率应≥ 50%",
+  "q2AboveRangeError": "当您的中位数高于范围时，高于上界的概率应≥ 50%",
+  "q3BelowRangeError": "当您的第75百分位数低于范围时，低于下界的概率应≥ 75%",
+  "q3AboveRangeError": "当您的第75百分位数高于范围时，高于上界的概率应≥ 25%"
 }

@@ -1113,5 +1113,20 @@
   "invalidQuestionStatus": "Question status should be open or upcoming",
   "chance": "chance",
   "closedForForecastingGroupDescription": "This question is closed for forecasting.<br></br> Latest Community predictions were:",
-  "and": "and"
+  "and": "and",
+  "invalidQuantileInput": "Invalid quantile input",
+  "unexpectedError": "Unexpected error",
+  "quantileEmptyError": "Quantile can't be empty",
+  "q1LessThanError": "Your 25th percentile must be less than your 50th and 75th percentiles",
+  "q2BetweenError": "Your 50th percentile must be between your 25th and 75th percentiles",
+  "q3GreaterThanError": "Your 75th percentile must be greater than your 25th and 50th percentiles",
+  "probabilityRangeError": "Probability must be between 0 and 100%",
+  "quantileBelowBoundError": "Quantile can't be below closed lower bound",
+  "quantileAboveBoundError": "Quantile can't be above closed upper bound",
+  "q1BelowRangeError": "When your 25th percentile is below range, your probability below the lower bound should be ≥ 25%",
+  "q1AboveRangeError": "When your 25th percentile is above range, your probability above the upper bound should be ≥ 75%",
+  "q2BelowRangeError": "When your median is below range, your probability below the lower bound should be ≥ 50%",
+  "q2AboveRangeError": "When your median is above range, your probability above the upper bound should be ≥ 50%",
+  "q3BelowRangeError": "When your 75th percentile is below range, your probability below the lower bound should be ≥ 75%",
+  "q3AboveRangeError": "When your 75th percentile is above range, your probability above the upper bound should be ≥ 25%"
 }

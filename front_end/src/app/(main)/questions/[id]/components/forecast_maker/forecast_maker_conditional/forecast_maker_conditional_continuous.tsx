@@ -85,11 +85,13 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       id: questionYesId,
       name: t("ifYes"),
       value: getTableValue(
-        prevYesForecastValue?.components,
+        prevYesForecastValue?.components as DistributionSliderComponent[],
         question_yes.open_lower_bound,
         question_yes.open_upper_bound
       ),
-      sliderForecast: getSliderValue(prevYesForecastValue?.components),
+      sliderForecast: getSliderValue(
+        prevYesForecastValue?.components as DistributionSliderComponent[]
+      ),
       isDirty: false,
       question: question_yes,
     },
@@ -97,11 +99,13 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       id: questionNoId,
       name: t("ifNo"),
       value: getTableValue(
-        prevNoForecastValue?.components,
+        prevNoForecastValue?.components as DistributionSliderComponent[],
         question_no.open_lower_bound,
         question_no.open_upper_bound
       ),
-      sliderForecast: getSliderValue(prevNoForecastValue?.components),
+      sliderForecast: getSliderValue(
+        prevNoForecastValue?.components as DistributionSliderComponent[]
+      ),
       isDirty: false,
       question: question_no,
     },
@@ -222,22 +226,26 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           return {
             ...prevChoice,
             value: getTableValue(
-              prevYesForecastValue?.components,
+              prevYesForecastValue?.components as DistributionSliderComponent[],
               question_yes.open_lower_bound,
               question_yes.open_upper_bound
             ),
-            sliderForecast: getSliderValue(prevYesForecastValue?.components),
+            sliderForecast: getSliderValue(
+              prevYesForecastValue?.components as DistributionSliderComponent[]
+            ),
             isDirty: false,
           };
         } else if (prevChoice.id === questionNoId) {
           return {
             ...prevChoice,
             value: getTableValue(
-              prevNoForecastValue?.components,
+              prevNoForecastValue?.components as DistributionSliderComponent[],
               question_no.open_lower_bound,
               question_no.open_upper_bound
             ),
-            sliderForecast: getSliderValue(prevNoForecastValue?.components),
+            sliderForecast: getSliderValue(
+              prevNoForecastValue?.components as DistributionSliderComponent[]
+            ),
             isDirty: false,
           };
         } else {

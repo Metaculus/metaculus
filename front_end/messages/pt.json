@@ -1114,5 +1114,20 @@
   "invalidQuestionStatus": "O status da pergunta deve ser aberto ou futuro",
   "chance": "chance",
   "closedForForecastingGroupDescription": "Esta pergunta está encerrada para previsão.<br></br> As últimas previsões da Comunidade foram:",
-  "and": "e"
+  "and": "e",
+  "invalidQuantileInput": "Entrada de quantil inválida",
+  "unexpectedError": "Erro inesperado",
+  "quantileEmptyError": "O quantil não pode estar vazio",
+  "q1LessThanError": "Seu 25º percentil deve ser menor que seus 50º e 75º percentis",
+  "q2BetweenError": "Seu 50º percentil deve estar entre seus 25º e 75º percentis",
+  "q3GreaterThanError": "Seu 75º percentil deve ser maior que seus 25º e 50º percentis",
+  "probabilityRangeError": "A probabilidade deve estar entre 0 e 100%",
+  "quantileBelowBoundError": "O quantil não pode estar abaixo do limite inferior fechado",
+  "quantileAboveBoundError": "O quantil não pode estar acima do limite superior fechado",
+  "q1BelowRangeError": "Quando seu 25º percentil está abaixo da faixa, sua probabilidade abaixo do limite inferior deve ser ≥ 25%",
+  "q1AboveRangeError": "Quando seu 25º percentil está acima da faixa, sua probabilidade acima do limite superior deve ser ≥ 75%",
+  "q2BelowRangeError": "Quando sua mediana está abaixo da faixa, sua probabilidade abaixo do limite inferior deve ser ≥ 50%",
+  "q2AboveRangeError": "Quando sua mediana está acima da faixa, sua probabilidade acima do limite superior deve ser ≥ 50%",
+  "q3BelowRangeError": "Quando seu 75º percentil está abaixo da faixa, sua probabilidade abaixo do limite inferior deve ser ≥ 75%",
+  "q3AboveRangeError": "Quando seu 75º percentil está acima da faixa, sua probabilidade acima do limite superior deve ser ≥ 25%"
 }

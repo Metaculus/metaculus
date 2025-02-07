@@ -12,6 +12,8 @@ interface DatetimeUtcProps extends Omit<InputProps, "onChange"> {
   onChange?: (value: string) => void;
   onError?: (error: any) => void;
   withFormValidation?: boolean;
+  className?: string;
+  withTimezoneMessage?: boolean;
 }
 
 /**
@@ -19,7 +21,18 @@ interface DatetimeUtcProps extends Omit<InputProps, "onChange"> {
  * but stores and accepts values in UTC format
  */
 const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
-  ({ defaultValue, onChange, onError, withFormValidation, ...props }, ref) => {
+  (
+    {
+      defaultValue,
+      onChange,
+      onError,
+      withFormValidation,
+      className,
+      withTimezoneMessage = true,
+      ...props
+    },
+    ref
+  ) => {
     const t = useTranslations();
 
     const [localValue, setLocalValue] = useState<string>("");
@@ -60,22 +73,29 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
       }
     };
 
-    return (
+    const inputElement = (
+      <Input
+        ref={ref}
+        type="datetime-local"
+        defaultValue={
+          localValue ? format(localValue, "yyyy-MM-dd'T'HH:mm") : ""
+        }
+        className={className}
+        onChange={handleChange}
+        onBlur={handleChange}
+        {...props}
+      />
+    );
+
+    return withTimezoneMessage ? (
       <div className="flex flex-col gap-1">
-        <Input
-          ref={ref}
-          type="datetime-local"
-          defaultValue={
-            localValue ? format(localValue, "yyyy-MM-dd'T'HH:mm") : ""
-          }
-          onChange={handleChange}
-          onBlur={handleChange}
-          {...props}
-        />
+        {inputElement}
         <span className="text-center text-xs font-normal normal-case italic">
           {t("dateInputDetails", { timezone: getTimezoneOffsetLabel() })}
         </span>
       </div>
+    ) : (
+      inputElement
     );
   }
 );
