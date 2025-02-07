@@ -17,13 +17,14 @@ export const metadata: Metadata = {
   description: defaultDescription,
 };
 
+const minimalUI =
+  (process.env.NEXT_PUBLIC_MINIMAL_UI || "false").toLowerCase() === "true";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const minimalUI =
-    (process.env.MINIMAL_UI || "false").toLowerCase() === "true";
   return (
     <div className="flex min-h-screen flex-col">
       <GlobalHeader />

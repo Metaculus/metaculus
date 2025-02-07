@@ -9,6 +9,7 @@ import NavUserButton from "@/components/auth";
 import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 
 import ContentTranslatedBanner from "../content_translated_banner";
 import GlobalSearch from "../global_search";
@@ -28,6 +29,7 @@ const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
 
 const Header: FC = () => {
   const t = useTranslations();
+  const minimalUI = usePublicSettings().minimalUI;
 
   const LINKS = [
     {
@@ -39,9 +41,6 @@ const Header: FC = () => {
       href: "/tournaments",
     },
   ];
-
-  const minimalUI =
-    (process.env.MINIMAL_UI || "false").toLowerCase() === "true";
 
   return (
     <>

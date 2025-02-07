@@ -120,7 +120,7 @@ export const PostStatusBox: FC<{
     ProjectPermissions.ADMIN,
   ].includes(post.user_permission);
 
-  const minimalUI = (process.env.MINIMAL_UI || "false") === "true";
+  const minimalUI = (process.env.NEXT_PUBLIC_MINIMAL_UI || "false") === "true";
 
   return (
     <>

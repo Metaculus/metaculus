@@ -20,7 +20,11 @@ import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import ProfileApi from "@/services/profile";
+<<<<<<< HEAD
 import { getPublicSettings } from "@/utils/public-settings";
+=======
+import { useMinimalUI } from "@/utils/settings";
+>>>>>>> fb0303e8 (save work)
 
 import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
 
