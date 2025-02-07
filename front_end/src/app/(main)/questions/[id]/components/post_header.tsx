@@ -19,6 +19,7 @@ import cn from "@/utils/cn";
 
 import PostApprovalModal from "./post_approval_modal";
 import { draftPost, submitPostForReview } from "../../actions";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 
 export default function PostHeader({
   post,
@@ -120,7 +121,7 @@ export const PostStatusBox: FC<{
     ProjectPermissions.ADMIN,
   ].includes(post.user_permission);
 
-  const minimalUI = (process.env.NEXT_PUBLIC_MINIMAL_UI || "false") === "true";
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   return (
     <>
@@ -152,7 +153,7 @@ export const PostStatusBox: FC<{
           ) : (
             <>
               <h4 className="mb-2 mt-0">{t("inReview")}</h4>
-              {!minimalUI ? (
+              {!PUBLIC_MINIMAL_UI ? (
                 <>
                   <p className="mb-3 mt-0 leading-5">
                     {t.rich("inReviewStatusBox1", {
@@ -183,7 +184,7 @@ export const PostStatusBox: FC<{
         {canSubmitForReview && (
           <>
             <h4 className="mb-2 mt-0">{t("draftStatusBox1")}</h4>
-            {!minimalUI ? (
+            {!PUBLIC_MINIMAL_UI ? (
               <p className="mb-3 mt-0 leading-5">{t("draftStatusBox2")}</p>
             ) : (
               <p className="mb-3 mt-0 leading-5">{t("draftStatusBox3")}</p>

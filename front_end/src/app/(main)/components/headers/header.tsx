@@ -9,11 +9,11 @@ import NavUserButton from "@/components/auth";
 import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
-import { usePublicSettings } from "@/contexts/public_settings_context";
 
 import ContentTranslatedBanner from "../content_translated_banner";
 import GlobalSearch from "../global_search";
 import MobileMenu from "../mobile_menu";
+import { getPublicSettings } from "@/utils/public-settings";
 
 const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
   return (
@@ -29,7 +29,7 @@ const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
 
 const Header: FC = () => {
   const t = useTranslations();
-  const minimalUI = usePublicSettings().minimalUI;
+  const { PUBLIC_MINIMAL_UI } = getPublicSettings();
 
   const LINKS = [
     {
@@ -45,7 +45,7 @@ const Header: FC = () => {
   return (
     <>
       <header className="fixed left-0 top-0 z-100 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
-        {!minimalUI && (
+        {!PUBLIC_MINIMAL_UI && (
           <Link
             href="/"
             className="inline-flex max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center text-center no-underline"
@@ -78,7 +78,7 @@ const Header: FC = () => {
         </ul>
         {/*Desktop items*/}
         <ul className="relative hidden list-none items-center justify-end text-sm font-medium lg:flex">
-          {!minimalUI && (
+          {!PUBLIC_MINIMAL_UI && (
             <>
               <li className="h-full">
                 <NavLink
@@ -110,7 +110,7 @@ const Header: FC = () => {
                 anchor="bottom"
                 className="z-50 text-gray-0 lg:border lg:border-blue-200-dark lg:bg-blue-900 lg:text-sm"
               >
-                {!minimalUI && (
+                {!PUBLIC_MINIMAL_UI && (
                   <>
                     <LinkMenuItem href="/about/" label={t("aboutMetaculus")} />
                     <LinkMenuItem href="/press/" label={t("forJournalists")} />

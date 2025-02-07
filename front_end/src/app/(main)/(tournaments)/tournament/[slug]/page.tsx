@@ -23,6 +23,7 @@ import { formatDate } from "@/utils/date_formatters";
 
 import TournamentDropdownMenu from "../components/dropdown_menu";
 import TournamentFeed from "../components/tournament_feed";
+import { getPublicSettings } from "@/utils/public-settings";
 
 const LazyProjectMembers = dynamic(() => import("../components/members"), {
   ssr: false,
@@ -55,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const minimalUI = (process.env.NEXT_PUBLIC_MINIMAL_UI ?? "false") === "true";
+const { PUBLIC_MINIMAL_UI } = getPublicSettings();
 
 export default async function TournamentSlug({ params }: Props) {
   const tournament = await ProjectsApi.getTournament(params.slug);
@@ -169,7 +170,7 @@ export default async function TournamentSlug({ params }: Props) {
           <TournamentFeed tournament={tournament} />
         </section>
       </div>
-      {!minimalUI &&
+      {!PUBLIC_MINIMAL_UI &&
         [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
           tournament.user_permission
         ) && <LazyProjectMembers project={tournament} />}

@@ -32,7 +32,7 @@ export function getPublicSettings() {
   return {
     PUBLIC_MINIMAL_UI:
       process.env.PUBLIC_MINIMAL_UI !== undefined
-        ? process.env.PUBLIC_MINIMAL_UI === "true"
+        ? process.env.PUBLIC_MINIMAL_UI.toLowerCase() === "true"
         : defVals.PUBLIC_MINIMAL_UI,
     PUBLIC_ALLOW_SIGNUP:
       process.env.PUBLIC_ALLOW_SIGNUP !== undefined

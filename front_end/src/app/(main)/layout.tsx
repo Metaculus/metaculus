@@ -9,6 +9,7 @@ import Bulletins from "./components/bulletins";
 import CookiesBanner from "./components/cookies_banner";
 import Footer from "./components/footer";
 import GlobalHeader from "./components/headers/global_header";
+import { getPublicSettings } from "@/utils/public-settings";
 
 config.autoAddCss = false;
 
@@ -17,8 +18,7 @@ export const metadata: Metadata = {
   description: defaultDescription,
 };
 
-const minimalUI =
-  (process.env.NEXT_PUBLIC_MINIMAL_UI || "false").toLowerCase() === "true";
+const { PUBLIC_MINIMAL_UI } = getPublicSettings();
 
 export default async function RootLayout({
   children,
@@ -30,7 +30,7 @@ export default async function RootLayout({
       <GlobalHeader />
       <Bulletins />
       <div className="flex-grow">{children}</div>
-      {!minimalUI && (
+      {!PUBLIC_MINIMAL_UI && (
         <>
           <FeedbackFloat />
           <Footer />

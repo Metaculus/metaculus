@@ -10,6 +10,7 @@ import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 
 import QuestionTypePicker from "../components/question_type_picker";
+import { getPublicSettings } from "@/utils/public-settings";
 
 const linkClassName =
   "text-blue-800 hover:text-blue-900 dark:text-blue-800-dark dark:hover:text-blue-900-dark";
@@ -46,7 +47,7 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
     ? communitiesResponse.results[0]
     : undefined;
 
-  const minimalUI = (process.env.NEXT_PUBLIC_MINIMAL_UI ?? "false") === "true";
+  const { PUBLIC_MINIMAL_UI } = getPublicSettings();
 
   return (
     <>
@@ -56,7 +57,7 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
           <h1 className="text-2xl font-medium capitalize md:text-3xl">
             {t("createNewContent")}
           </h1>
-          {!minimalUI && (
+          {!PUBLIC_MINIMAL_UI && (
             <>
               <p>
                 {t.rich("createQuestionDescription1", {

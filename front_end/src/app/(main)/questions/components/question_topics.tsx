@@ -19,6 +19,7 @@ import { Topic } from "@/types/projects";
 import cn from "@/utils/cn";
 
 import TopicItem from "./topic_item";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 
 const EXPAND_THRESHOLD = 2;
 
@@ -65,8 +66,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     ? "top-24 lg:top-20"
     : "top-12 lg:top-20";
 
-  const minimalUI =
-    (process.env.NEXT_PUBLIC_MINIMAL_UI || "false").toLowerCase() === "true";
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   return (
     <div
@@ -155,7 +155,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               />
             </>
           )}
-          {!minimalUI && ( // TODO: these should be database driven
+          {!PUBLIC_MINIMAL_UI && ( // TODO: these should be database driven
             <>
               <TopicItem
                 emoji="👥"
