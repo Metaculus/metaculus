@@ -130,7 +130,10 @@ const FanChart: FC<Props> = ({
                   "communityFanLine",
                   "userFanLine",
                 ]}
-                labels={({ datum }) => datum.x}
+                style={{
+                  touchAction: "pan-y",
+                }}
+                labels={({ datum }: { datum: any }) => datum.x}
                 labelComponent={
                   <ChartFanTooltip
                     chartHeight={height}
@@ -139,7 +142,7 @@ const FanChart: FC<Props> = ({
                     forecastAvailability={forecastAvailability}
                   />
                 }
-                onActivated={(points) => {
+                onActivated={(points: any) => {
                   const x = points[0]?.x;
                   if (!isNil(x)) {
                     setActivePoint(x);

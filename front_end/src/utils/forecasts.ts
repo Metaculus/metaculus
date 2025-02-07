@@ -31,7 +31,7 @@ export function getForecastNumericDisplayValue(value: number | string) {
 }
 
 export function getForecastDateDisplayValue(value: number) {
-  return format(fromUnixTime(value), "MMM d, yyyy");
+  return format(fromUnixTime(value), "dd MMM yyyy");
 }
 
 export function formatPrediction(

@@ -102,7 +102,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                   </>
                 ) : (
                   <>
-                    <div className="flex h-full flex-col items-center justify-center sm:w-[105px]">
+                    <div className="flex h-full flex-col items-center justify-center gap-0.5 sm:w-[105px]">
                       <p className="m-0 text-sm leading-4 text-olive-800 dark:text-olive-800-dark">
                         {median}
                       </p>
@@ -133,14 +133,14 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={cn(
-                      "h-4 text-blue-700 duration-75 ease-linear dark:text-blue-700-dark",
-                      open && "rotate-180"
+                      "h-4 -rotate-90 text-blue-700 duration-75 ease-linear dark:text-blue-700-dark sm:rotate-0",
+                      open && "sm:rotate-180"
                     )}
                   />
                 </div>
               </div>
             </OpenAccordionButton>
-            <DisclosurePanel className="mb-2 pt-0">
+            <DisclosurePanel className="mb-2 hidden pt-0 sm:block">
               <>
                 {children}
                 <ScoreDisplay
@@ -185,7 +185,7 @@ const OpenAccordionButton: FC<PropsWithChildren<OpenAccordionButtonProps>> = ({
       <Button
         className={cn(
           "flex h-[58px] w-full gap-0.5 rounded-none bg-blue-100 p-0 text-left text-xs font-bold text-blue-700 dark:bg-blue-100-dark dark:text-blue-700-dark sm:hidden",
-          open && "bg-blue-600/10 dark:bg-blue-400/10",
+          open && "sm:bg-blue-600/10 dark:sm:bg-blue-400/10",
           !isResolved && isDirty && "bg-orange-100 dark:bg-orange-100-dark"
         )}
         onClick={() => setIsOpen(!isOpen)}

@@ -394,6 +394,57 @@ export function getDisplayValue({
   return centerDisplay;
 }
 
+export function getTableDisplayValue({
+  value,
+  questionType,
+  scaling,
+  precision,
+  truncation,
+  range,
+}: {
+  value: number | null | undefined;
+  questionType: QuestionType;
+  scaling: Scaling;
+  precision?: number;
+  truncation?: number;
+  range?: number[];
+}) {
+  if (isNil(value)) {
+    return "...";
+  }
+
+  if (questionType !== QuestionType.Date) {
+    return getDisplayValue({
+      value,
+      questionType,
+      scaling,
+      precision,
+      truncation,
+      range,
+    });
+  }
+
+  let dateFormat: string = "dd MMM yyyy HH:mm";
+  if (!isNil(scaling.range_min) && !isNil(scaling.range_max)) {
+    const diffInSeconds = scaling.range_max - scaling.range_min;
+    const oneWeek = 7 * 24 * 60 * 60;
+    const oneYear = 365.25 * 24 * 60 * 60;
+
+    if (diffInSeconds < oneWeek) {
+      dateFormat = "dd MMM yyyy HH:mm";
+    } else if (diffInSeconds < 5 * oneYear) {
+      dateFormat = "dd MMM yyyy";
+    } else if (diffInSeconds < 50 * oneYear) {
+      dateFormat = "MMM yyyy";
+    } else {
+      dateFormat = "yyyy";
+    }
+  }
+
+  const scaledValue = scaleInternalLocation(value, scaling);
+  return format(fromUnixTime(scaledValue), dateFormat);
+}
+
 export function getChoiceOptionValue(
   value: number | null,
   questionType?: QuestionType,

@@ -264,7 +264,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         handlePredictSubmit={handleSingleQuestionSubmit}
       />
       {!!questionsToSubmit.some((opt) => opt.isDirty) && (
-        <div className="flex justify-center gap-3">
+        <div className="mb-2 mt-4 flex justify-center gap-3">
           <Button
             variant="secondary"
             type="reset"

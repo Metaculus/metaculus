@@ -6,7 +6,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { getDisplayValue, displayValue } from "@/utils/charts";
+import { displayValue, getTableDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 
 type Props = {
@@ -83,27 +83,27 @@ const NumericForecastTable: FC<Props> = ({
                     : "—"}
                 </Td>
               )}
-              <Td>
+              <Td className="tabular-nums tracking-tight">
                 {checkQuartilesOutOfBorders(communityQuartiles?.lower25)}
-                {getDisplayValue({
+                {getTableDisplayValue({
                   value: communityQuartiles?.lower25,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
                 })}
               </Td>
-              <Td>
+              <Td className="tabular-nums tracking-tight">
                 {checkQuartilesOutOfBorders(communityQuartiles?.median)}
-                {getDisplayValue({
+                {getTableDisplayValue({
                   value: communityQuartiles?.median,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
                 })}
               </Td>
-              <Td>
+              <Td className="tabular-nums tracking-tight">
                 {checkQuartilesOutOfBorders(communityQuartiles?.upper75)}
-                {getDisplayValue({
+                {getTableDisplayValue({
                   value: communityQuartiles?.upper75,
                   questionType: question.type,
                   scaling: question.scaling,
@@ -129,27 +129,27 @@ const NumericForecastTable: FC<Props> = ({
                       {userBounds && (userBounds.belowLower * 100).toFixed(1)}%
                     </Td>
                   )}
-                  <Td>
+                  <Td className="tabular-nums tracking-tight">
                     {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
-                    {getDisplayValue({
+                    {getTableDisplayValue({
                       value: userQuartiles?.lower25,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
                     })}
                   </Td>
-                  <Td>
+                  <Td className="tabular-nums tracking-tight">
                     {checkQuartilesOutOfBorders(userQuartiles?.median)}
-                    {getDisplayValue({
+                    {getTableDisplayValue({
                       value: userQuartiles?.median,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
                     })}
                   </Td>
-                  <Td>
+                  <Td className="tabular-nums tracking-tight">
                     {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
-                    {getDisplayValue({
+                    {getTableDisplayValue({
                       value: userQuartiles?.upper75,
                       questionType: question.type,
                       scaling: question.scaling,
@@ -182,27 +182,27 @@ const NumericForecastTable: FC<Props> = ({
                     %
                   </Td>
                 )}
-                <Td>
+                <Td className="tabular-nums tracking-tight">
                   {checkQuartilesOutOfBorders(userPreviousQuartiles?.lower25)}
-                  {getDisplayValue({
+                  {getTableDisplayValue({
                     value: userPreviousQuartiles?.lower25,
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
                   })}
                 </Td>
-                <Td>
+                <Td className="tabular-nums tracking-tight">
                   {checkQuartilesOutOfBorders(userPreviousQuartiles?.median)}
-                  {getDisplayValue({
+                  {getTableDisplayValue({
                     value: userPreviousQuartiles?.median,
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
                   })}
                 </Td>
-                <Td>
+                <Td className="tabular-nums tracking-tight">
                   {checkQuartilesOutOfBorders(userPreviousQuartiles?.upper75)}
-                  {getDisplayValue({
+                  {getTableDisplayValue({
                     value: userPreviousQuartiles?.upper75,
                     questionType: question.type,
                     scaling: question.scaling,
@@ -217,7 +217,7 @@ const NumericForecastTable: FC<Props> = ({
           )}
         </tbody>
       </table>
-
+      {/* Mobile table */}
       <table className="mb-4 table w-full table-fixed border-separate border-spacing-1 text-xs font-medium sm:hidden">
         <thead>
           <tr className="align-top">
@@ -286,9 +286,9 @@ const NumericForecastTable: FC<Props> = ({
               {t("firstQuartile")}
             </Td>
             {withCommunityQuartiles && (
-              <Td className="text-olive-800 dark:text-olive-800-dark">
+              <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
                 {checkQuartilesOutOfBorders(communityQuartiles?.lower25)}
-                {getDisplayValue({
+                {getTableDisplayValue({
                   value: communityQuartiles?.lower25,
                   questionType: question.type,
                   scaling: question.scaling,
@@ -297,11 +297,11 @@ const NumericForecastTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles && (
-              <Td className="text-orange-800 dark:text-orange-800-dark">
+              <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
                   <>
                     {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
-                    {getDisplayValue({
+                    {getTableDisplayValue({
                       value: userQuartiles?.lower25,
                       questionType: question.type,
                       scaling: question.scaling,
@@ -314,9 +314,9 @@ const NumericForecastTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles && userPreviousQuartiles && (
-              <Td className="text-orange-800 dark:text-orange-800-dark">
+              <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {checkQuartilesOutOfBorders(userPreviousQuartiles?.lower25)}
-                {getDisplayValue({
+                {getTableDisplayValue({
                   value: userPreviousQuartiles?.lower25,
                   questionType: question.type,
                   scaling: question.scaling,
@@ -330,9 +330,9 @@ const NumericForecastTable: FC<Props> = ({
               {t("secondQuartile")}
             </Td>
             {withCommunityQuartiles && (
-              <Td className="text-olive-800 dark:text-olive-800-dark">
+              <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
                 {checkQuartilesOutOfBorders(communityQuartiles?.median)}
-                {getDisplayValue({
+                {getTableDisplayValue({
                   value: communityQuartiles?.median,
                   questionType: question.type,
                   scaling: question.scaling,
@@ -341,11 +341,11 @@ const NumericForecastTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles && (
-              <Td className="text-orange-800 dark:text-orange-800-dark">
+              <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
                   <>
                     {checkQuartilesOutOfBorders(userQuartiles?.median)}
-                    {getDisplayValue({
+                    {getTableDisplayValue({
                       value: userQuartiles?.median,
                       questionType: question.type,
                       scaling: question.scaling,
@@ -358,9 +358,9 @@ const NumericForecastTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles && userPreviousQuartiles && (
-              <Td className="text-orange-800 dark:text-orange-800-dark">
+              <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {checkQuartilesOutOfBorders(userPreviousQuartiles?.median)}
-                {getDisplayValue({
+                {getTableDisplayValue({
                   value: userPreviousQuartiles?.median,
                   questionType: question.type,
                   scaling: question.scaling,
@@ -374,9 +374,9 @@ const NumericForecastTable: FC<Props> = ({
               {t("thirdQuartile")}
             </Td>
             {withCommunityQuartiles && (
-              <Td className="text-olive-800 dark:text-olive-800-dark">
+              <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
                 {checkQuartilesOutOfBorders(communityQuartiles?.upper75)}
-                {getDisplayValue({
+                {getTableDisplayValue({
                   value: communityQuartiles?.upper75,
                   questionType: question.type,
                   scaling: question.scaling,
@@ -385,11 +385,11 @@ const NumericForecastTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles && (
-              <Td className="text-orange-800 dark:text-orange-800-dark">
+              <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
                   <>
                     {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
-                    {getDisplayValue({
+                    {getTableDisplayValue({
                       value: userQuartiles?.upper75,
                       questionType: question.type,
                       scaling: question.scaling,
@@ -402,9 +402,9 @@ const NumericForecastTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles && userPreviousQuartiles && (
-              <Td className="text-orange-800 dark:text-orange-800-dark">
+              <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {checkQuartilesOutOfBorders(userPreviousQuartiles?.upper75)}
-                {getDisplayValue({
+                {getTableDisplayValue({
                   value: userPreviousQuartiles?.upper75,
                   questionType: question.type,
                   scaling: question.scaling,

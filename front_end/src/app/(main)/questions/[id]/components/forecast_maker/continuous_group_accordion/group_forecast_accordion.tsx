@@ -67,7 +67,7 @@ const GroupForecastAccordion: FC<Props> = ({
   );
 
   return (
-    <div className="my-10 w-full">
+    <div className="w-full">
       {!!resolvedOptions.length && (
         <div className="mb-0.5 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
           <div className="shrink grow bg-blue-600/15 py-1 dark:bg-blue-400/15">

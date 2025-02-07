@@ -169,6 +169,7 @@ const ContinuousAreaChart: FC<Props> = ({
       cursorLabel={"label"}
       style={{
         strokeWidth: 0,
+        touchAction: "pan-y",
       }}
       cursorLabelComponent={
         <LineCursorPoints

@@ -131,9 +131,9 @@ const ContinuousPredictionChart: FC<Props> = ({
         onCursorChange={handleCursorChange}
         resolution={question.resolution}
       />
-      <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
-        {cursorDisplayData && (
-          <>
+      {cursorDisplayData && (
+        <>
+          <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
             <span>
               {graphType === "pmf" ? "P(x = " : "P(x < "}
               <span className="font-bold text-gray-900 dark:text-gray-900-dark">
@@ -171,9 +171,9 @@ const ContinuousPredictionChart: FC<Props> = ({
                 {")"}
               </span>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </>
   );
 };

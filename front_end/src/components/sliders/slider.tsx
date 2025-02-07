@@ -62,6 +62,7 @@ const Slider: FC<Props> = ({
         setControlledValue(roundedValue);
         onChange(roundedValue);
       }}
+      style={{ touchAction: "pan-y" }}
       styles={styles}
       disabled={disabled}
       handleRender={(origin) => (
