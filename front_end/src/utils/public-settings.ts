@@ -34,7 +34,7 @@ export function getPublicSettings() {
         : defVals.PUBLIC_MINIMAL_UI,
     PUBLIC_ALLOW_SIGNUP:
       process.env.PUBLIC_ALLOW_SIGNUP !== undefined
-        ? process.env.PUBLIC_ALLOW_SIGNUP === "true"
+        ? process.env.PUBLIC_ALLOW_SIGNUP.toLowerCase() === "true"
         : defVals.PUBLIC_ALLOW_SIGNUP,
     PUBLIC_TURNSTILE_SITE_KEY: process.env.PUBLIC_TURNSTILE_SITE_KEY ?? "",
     PUBLIC_APP_URL: process.env.PUBLIC_APP_URL ?? defVals.PUBLIC_APP_URL,
