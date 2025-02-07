@@ -20,11 +20,13 @@ import { useModal } from "@/contexts/modal_context";
 type SignInModalType = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
+  allowSignup?: boolean;
 };
 
 const SignInModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
+  allowSignup,
 }: SignInModalType) => {
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
@@ -68,7 +70,7 @@ const SignInModal: FC<SignInModalType> = ({
       onClose={onClose}
       className="mx-3 flex max-w-sm flex-col gap-2"
     >
-      {(process.env.ALLOW_SIGNUP || "true")?.toLowerCase() === "true" && (
+      {!!allowSignup && (
         <div className="mb-4 text-base leading-tight">
           <span className="text-blue-900 dark:text-gray-1000-dark">
             {t("loginSignUpHeading")}{" "}
