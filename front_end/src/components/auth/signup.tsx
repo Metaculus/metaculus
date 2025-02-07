@@ -19,6 +19,7 @@ import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
 
 type SignInModalType = {
@@ -27,16 +28,15 @@ type SignInModalType = {
   className?: string;
 };
 
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-
 export const SignupForm: FC<{
   forceIsBot?: boolean;
   addToProject?: number;
 }> = ({ forceIsBot, addToProject }) => {
   const t = useTranslations();
+  const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const [isTurnstileValidated, setIsTurnstileValidate] =
     // Treat as validated if project is not configured with Turnstile key
-    useState(!TURNSTILE_SITE_KEY);
+    useState(!PUBLIC_TURNSTILE_SITE_KEY);
   const { setCurrentModal } = useModal();
   const turnstileRef = useRef<TurnstileInstance | undefined>();
 
@@ -111,14 +111,14 @@ export const SignupForm: FC<{
           </Button>
           <FormError
             errors={errors}
-            name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
+            name={PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
           />
           <FormError errors={errors} />
         </div>
-        {TURNSTILE_SITE_KEY && (
+        {PUBLIC_TURNSTILE_SITE_KEY && (
           <Turnstile
             ref={turnstileRef}
-            siteKey={TURNSTILE_SITE_KEY}
+            siteKey={PUBLIC_TURNSTILE_SITE_KEY}
             onSuccess={(token) => {
               setIsTurnstileValidate(true);
               setValue("turnstileToken", token);

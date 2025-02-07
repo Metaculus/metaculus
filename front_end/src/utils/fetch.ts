@@ -10,6 +10,7 @@ import {
 } from "@/types/fetch";
 
 import { extractError } from "./errors";
+import { getPublicSettings } from "./public-settings";
 
 class ApiError extends Error {
   public digest: string;
@@ -121,9 +122,10 @@ const appFetch = async <T>(
   const authToken = passAuthHeader ? getServerSession() : null;
   const alphaToken = getAlphaTokenSession();
   const locale = includeLocale ? await getLocale() : "en";
+  const { PUBLIC_API_BASE_URL } = getPublicSettings();
 
   // Default values are configured in the next.config.mjs
-  const finalUrl = `${process.env.API_BASE_URL}/api${url}`;
+  const finalUrl = `${PUBLIC_API_BASE_URL}/api${url}`;
   const finalOptions: FetchOptions = {
     ...defaultOptions,
     ...options,
