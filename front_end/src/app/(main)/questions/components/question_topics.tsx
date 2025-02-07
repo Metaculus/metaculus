@@ -152,50 +152,54 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               />
             </>
           )}
-          <TopicItem
-            emoji="👥"
-            text={t("communities")}
-            onClick={() => {
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "Communities",
-              });
-              switchFeed(FeedType.COMMUNITIES);
-            }}
-            isActive={currentFeed === FeedType.COMMUNITIES}
-          />
-          <TopicItem
-            isActive={false}
-            emoji="🔭"
-            text="Bridgewater 2025"
-            href="/bridgewater/"
-            onClick={() =>
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "Bridgewater 2025",
-              })
-            }
-          />
-          <TopicItem
-            isActive={false}
-            emoji="🤖"
-            text="AI Benchmarking"
-            href="/aib"
-            onClick={() =>
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "AI Benchmarking",
-              })
-            }
-          />
-          <TopicItem
-            isActive={false}
-            emoji="📖"
-            text="ACX 2025"
-            href="/tournament/ACX2025/"
-            onClick={() =>
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "ACX 2025",
-              })
-            }
-          />
+          {process.env.MIMIMAL_UI?.toLowerCase() === "false" && ( // TODO: these should be database driven
+            <>
+              <TopicItem
+                emoji="👥"
+                text={t("communities")}
+                onClick={() => {
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "Communities",
+                  });
+                  switchFeed(FeedType.COMMUNITIES);
+                }}
+                isActive={currentFeed === FeedType.COMMUNITIES}
+              />
+              <TopicItem
+                isActive={false}
+                emoji="🔭"
+                text="Bridgewater 2025"
+                href="/bridgewater/"
+                onClick={() =>
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "Bridgewater 2025",
+                  })
+                }
+              />
+              <TopicItem
+                isActive={false}
+                emoji="🤖"
+                text="AI Benchmarking"
+                href="/aib"
+                onClick={() =>
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "AI Benchmarking",
+                  })
+                }
+              />
+              <TopicItem
+                isActive={false}
+                emoji="📖"
+                text="ACX 2025"
+                href="/tournament/ACX2025/"
+                onClick={() =>
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "ACX 2025",
+                  })
+                }
+              />
+            </>
+          )}
           {!!hotTopics.length && (
             <>
               <Title title={t("topics")} />
