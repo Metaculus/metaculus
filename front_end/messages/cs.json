@@ -1065,6 +1065,7 @@
   "totalEarned": "Celkem vyděláno",
   "currentRank": "Aktuální hodnocení",
   "bestEver": "Nejlepší vůbec",
+  "closeDateError": "Datum uzavření musí být po datu otevření. Zde změňte datum otevření nebo upravte otázku, aby se změnilo datum uzavření.",
   "table": "Stůl",
   "slider": "Posuvník",
   "lowerBound": "Dolní mez",

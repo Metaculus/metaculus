@@ -1065,6 +1065,7 @@
   "totalEarned": "Total Ganado",
   "currentRank": "Rango Actual",
   "bestEver": "El Mejor de Todos los Tiempos",
+  "closeDateError": "La fecha de cierre debe ser posterior a la fecha de apertura. Cambia la fecha de apertura aquí o edita la pregunta para cambiar la fecha de cierre.",
   "table": "Mesa",
   "slider": "Deslizador",
   "lowerBound": "Límite inferior",

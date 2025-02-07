@@ -1067,6 +1067,7 @@
   "totalEarned": "总收入",
   "currentRank": "当前排名",
   "bestEver": "历史最佳",
+  "closeDateError": "截止日期必须在开放日期之后。在此处更改开放日期或编辑问题以更改截止日期。",
   "table": "桌子",
   "slider": "滑块",
   "lowerBound": "下界",

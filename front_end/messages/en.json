@@ -1063,6 +1063,7 @@
   "currentRank": "Current Rank",
   "bestEver": "Best Ever",
   "questionsBy": "Questions by",
+  "closeDateError": "The close date must be after the open date. Change the open date here or edit the question to change the close date.",
   "table": "Table",
   "slider": "Slider",
   "lowerBound": "Lower bound",
