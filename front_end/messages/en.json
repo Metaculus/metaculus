@@ -1062,5 +1062,10 @@
   "totalEarned": "Total Earned",
   "currentRank": "Current Rank",
   "bestEver": "Best Ever",
-  "questionsBy": "Questions by"
+  "questionsBy": "Questions by",
+  "table": "Table",
+  "slider": "Slider",
+  "lowerBound": "Lower bound",
+  "quartiles": "Quartiles",
+  "upperBound": "Upper bound"
 }

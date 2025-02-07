@@ -2,6 +2,7 @@ import { FC, PropsWithChildren } from "react";
 
 import { ForecastInputType } from "@/types/charts";
 import cn from "@/utils/cn";
+import { useTranslations } from "next-intl";
 
 type Props = {
   mode: string;
@@ -9,13 +10,14 @@ type Props = {
 };
 
 const SliderInputModeSwitcher: FC<Props> = ({ mode, setMode }) => {
+  const t = useTranslations();
   return (
     <div className="flex h-fit gap-1">
       <SwitcherBtn setMode={setMode} mode={mode} value="slider">
-        Slider
+        {t("slider")}
       </SwitcherBtn>
       <SwitcherBtn setMode={setMode} mode={mode} value="table">
-        Table
+        {t("table")}
       </SwitcherBtn>
     </div>
   );
