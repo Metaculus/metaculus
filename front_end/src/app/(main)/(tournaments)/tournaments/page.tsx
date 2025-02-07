@@ -21,8 +21,7 @@ export default async function Tournaments() {
   const { activeTournaments, archivedTournaments, questionSeries } =
     extractTournamentLists(tournaments);
 
-  const minimalUI =
-    (process.env.MINIMAL_UI || "false").toLowerCase() === "true";
+  const minimalUI = (process.env.MINIMAL_UI ?? "false") === "true";
 
   return (
     <main className="mx-auto mb-24 mt-16 w-full max-w-7xl flex-1 px-4 text-blue-700 dark:text-blue-700-dark sm:mt-28 sm:px-8 md:px-12 lg:px-16">
