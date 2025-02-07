@@ -6,17 +6,25 @@ import cn from "@/utils/cn";
 
 type Props = {
   mode: string;
-  setMode: (mode: ForecastInputType) => void;
+  onChange: (mode: ForecastInputType) => void;
 };
 
-const SliderInputModeSwitcher: FC<Props> = ({ mode, setMode }) => {
+const SliderInputModeSwitcher: FC<Props> = ({ mode, onChange }) => {
   const t = useTranslations();
   return (
     <div className="flex h-fit gap-1">
-      <SwitcherBtn setMode={setMode} mode={mode} value="slider">
+      <SwitcherBtn
+        onChange={onChange}
+        mode={mode}
+        value={ForecastInputType.Slider}
+      >
         {t("slider")}
       </SwitcherBtn>
-      <SwitcherBtn setMode={setMode} mode={mode} value="table">
+      <SwitcherBtn
+        onChange={onChange}
+        mode={mode}
+        value={ForecastInputType.Quantile}
+      >
         {t("table")}
       </SwitcherBtn>
     </div>
@@ -26,19 +34,19 @@ const SliderInputModeSwitcher: FC<Props> = ({ mode, setMode }) => {
 type SwitcherBtnProps = {
   value: ForecastInputType;
   mode: string;
-  setMode: (mode: ForecastInputType) => void;
+  onChange: (mode: ForecastInputType) => void;
 };
 
 const SwitcherBtn: FC<PropsWithChildren<SwitcherBtnProps>> = ({
   value,
   mode,
-  setMode,
+  onChange,
   children,
 }) => {
   const isActive = mode === value;
   return (
     <button
-      onClick={() => setMode(value)}
+      onClick={() => onChange(value)}
       className={cn(
         "px-2 py-1 text-blue-800 transition-all duration-200 hover:bg-gray-0 dark:text-blue-800-dark dark:hover:bg-gray-0-dark",
         isActive &&

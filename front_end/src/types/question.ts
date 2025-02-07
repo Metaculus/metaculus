@@ -102,7 +102,7 @@ export type DistributionSliderComponent = {
 
 export type DistributionQuantileComponent = {
   // < lower bound
-  p0?: number;
+  p0: number;
   // 25%
   q1: number;
   // median
@@ -110,7 +110,20 @@ export type DistributionQuantileComponent = {
   // 75%
   q3: number;
   // > upper bound
-  p4?: number;
+  p4: number;
+};
+
+export type DistributionQuantileValue = {
+  value?: number;
+  isDirty: boolean;
+};
+
+export type DistributionQuantileComponentWithState = {
+  p0: DistributionQuantileValue;
+  q1: DistributionQuantileValue;
+  q2: DistributionQuantileValue;
+  q3: DistributionQuantileValue;
+  p4: DistributionQuantileValue;
 };
 
 export type DistributionSlider =

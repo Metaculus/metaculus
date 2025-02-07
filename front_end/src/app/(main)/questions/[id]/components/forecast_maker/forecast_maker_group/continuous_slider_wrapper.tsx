@@ -61,8 +61,9 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
       !!previousForecast?.forecast_values &&
         !previousForecast.distribution_input
     );
-  const [forecastInputMode, setForecastInputMode] =
-    useState<ForecastInputType>("slider");
+  const [forecastInputMode, setForecastInputMode] = useState<ForecastInputType>(
+    ForecastInputType.Slider
+  );
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const onSubmit = useCallback(async () => {
     setSubmitError(undefined);
