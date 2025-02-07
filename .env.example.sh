@@ -26,3 +26,6 @@ export PUBLIC_TURNSTILE_SITE_KEY=
 export OPENAI_API_KEY=
 # Required for search
 export SERPER_API_KEY=
+
+# Security
+export PUBLIC_ALLOW_SIGNUP=true # Defaults to true (if false, new users have to be invited)

@@ -111,9 +111,6 @@ const leagueGothic = localFont({
   variable: "--font-league-gothic",
 });
 
-const allowSignup =
-  (process.env.PUBLIC_ALLOW_SIGNUP ?? "true").toLowerCase() === "true";
-
 export async function generateMetadata(): Promise<Metadata> {
   const { PUBLIC_APP_URL, PUBLIC_DISALLOW_ALL_BOTS } = getPublicSettings();
 
@@ -150,7 +147,6 @@ export default async function RootLayout({
           <AppThemeProvided>
             <NextIntlClientProvider messages={messages}>
               <AuthProvider user={user}>
-<<<<<<< HEAD
                 <PublicSettingsProvider settings={publicSettings}>
                   <ModalProvider>
                     <NavigationProvider>
@@ -168,23 +164,6 @@ export default async function RootLayout({
                     </NavigationProvider>
                   </ModalProvider>
                 </PublicSettingsProvider>
-=======
-                <ModalProvider>
-                  <NavigationProvider>
-                    <GlobalSearchProvider>
-                      <TranslationsBannerProvider>
-                        <NextTopLoader
-                          showSpinner={false}
-                          color={METAC_COLORS.blue["500"].DEFAULT}
-                        />
-                        {children}
-                        <GlobalModals allowSignup={allowSignup} />
-                        <Toaster />
-                      </TranslationsBannerProvider>
-                    </GlobalSearchProvider>
-                  </NavigationProvider>
-                </ModalProvider>
->>>>>>> 9680bcb6 (rename allow signup to public, and read it in server component)
               </AuthProvider>
             </NextIntlClientProvider>
           </AppThemeProvided>
