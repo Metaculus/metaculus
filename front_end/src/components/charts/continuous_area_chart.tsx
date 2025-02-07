@@ -63,6 +63,7 @@ type Props = {
   resolution: Resolution | null;
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
   hideCP?: boolean;
+  hideLabels?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -76,6 +77,7 @@ const ContinuousAreaChart: FC<Props> = ({
   resolution,
   onCursorChange,
   hideCP,
+  hideLabels = false,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -332,7 +334,7 @@ const ContinuousAreaChart: FC<Props> = ({
           )}
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={xScale.tickFormat}
+            tickFormat={hideLabels ? () => "" : xScale.tickFormat}
             style={{ ticks: { strokeWidth: 1 } }}
           />
 
