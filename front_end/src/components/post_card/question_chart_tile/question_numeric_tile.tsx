@@ -11,6 +11,7 @@ import PredictionChip from "@/components/prediction_chip";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {
+  DistributionSliderComponent,
   ForecastAvailability,
   QuestionType,
   QuestionWithNumericForecasts,
@@ -93,16 +94,16 @@ const QuestionNumericTile: FC<Props> = ({
           const activeForecast = isNil(userForecast.end_time)
             ? userForecast
             : undefined;
-          const activeForecastSliderValues = activeForecast
+          const activeForecastDistribution = activeForecast
             ? extractPrevNumericForecastValue(activeForecast.distribution_input)
             : undefined;
-          const forecast = activeForecastSliderValues?.components;
+          const forecast = activeForecastDistribution?.components;
           if (!forecast) {
             return;
           }
 
           const dataset = getNumericForecastDataset(
-            forecast,
+            forecast as DistributionSliderComponent[],
             question.open_lower_bound,
             question.open_upper_bound
           );
@@ -118,7 +119,7 @@ const QuestionNumericTile: FC<Props> = ({
               },
               distributionInput: {
                 type: "slider",
-                components: forecast,
+                components: forecast as DistributionSliderComponent[],
               },
             },
           ]);

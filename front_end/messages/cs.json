@@ -1104,5 +1104,20 @@
   "commentPinned": "Komentář připnut",
   "unpinComment": "Odepnout",
   "commentUnpinned": "Komentář odepnout",
-  "closedForForecasting": "Uzavřeno pro predikování"
+  "closedForForecasting": "Uzavřeno pro predikování",
+  "invalidQuantileInput": "Neplatný vstup kvantilu",
+  "unexpectedError": "Neočekávaná chyba",
+  "quantileEmptyError": "Kvantile nemůže být prázdný",
+  "q1LessThanError": "Váš 25. percentil musí být menší než váš 50. a 75. percentil",
+  "q2BetweenError": "Váš 50. percentil musí být mezi vaším 25. a 75. percentilem",
+  "q3GreaterThanError": "Váš 75. percentil musí být větší než váš 25. a 50. percentil",
+  "probabilityRangeError": "Pravděpodobnost musí být mezi 0 a 100 %",
+  "quantileBelowBoundError": "Kvantile nemůže být pod uzavřenou dolní hranicí",
+  "quantileAboveBoundError": "Kvantile nemůže být nad uzavřenou horní hranicí",
+  "q1BelowRangeError": "Když je váš 25. percentil pod rozsahem, vaše pravděpodobnost pod dolní hranicí by měla být ≥ 25 %",
+  "q1AboveRangeError": "Když je váš 25. percentil nad rozsahem, vaše pravděpodobnost nad horní hranicí by měla být ≥ 75 %",
+  "q2BelowRangeError": "Když je vaše medián pod rozsahem, vaše pravděpodobnost pod dolní hranicí by měla být ≥ 50 %",
+  "q2AboveRangeError": "Když je vaše medián nad rozsahem, vaše pravděpodobnost nad horní hranicí by měla být ≥ 50 %",
+  "q3BelowRangeError": "Když je váš 75. percentil pod rozsahem, vaše pravděpodobnost pod dolní hranicí by měla být ≥ 75 %",
+  "q3AboveRangeError": "Když je váš 75. percentil nad rozsahem, vaše pravděpodobnost nad horní hranicí by měla být ≥ 25 %"
 }

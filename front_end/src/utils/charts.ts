@@ -15,6 +15,7 @@ import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
   ContinuousAreaType,
   FanOption,
+  ForecastInputType,
   Line,
   Scale,
   TimelineChartZoomOption,
@@ -49,6 +50,8 @@ import {
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
   getNumericForecastDataset,
+  getQuintileNumericForecastDataset,
+  populateQuantileComponents,
 } from "./forecasts";
 
 export function getContinuousChartTypeFromQuestion(
@@ -996,17 +999,26 @@ export function getFanOptionsFromContinuousGroup(
         latest && !latest.end_time ? latest.distribution_input : undefined
       );
 
+      let userCdf: number[] | null = null;
+      if (userForecast?.components) {
+        userForecast.type === ForecastInputType.Slider
+          ? (userCdf = getNumericForecastDataset(
+              userForecast.components,
+              q.open_lower_bound,
+              q.open_upper_bound
+            ).cdf)
+          : (userCdf = getQuintileNumericForecastDataset(
+              populateQuantileComponents(userForecast.components),
+              q.open_lower_bound,
+              q.open_upper_bound
+            ).cdf);
+      }
+
       return {
         name: q.label,
         communityCdf:
           q.aggregations.recency_weighted.latest?.forecast_values ?? [],
-        userCdf: userForecast?.components
-          ? getNumericForecastDataset(
-              userForecast.components,
-              q.open_lower_bound,
-              q.open_upper_bound
-            ).cdf
-          : null,
+        userCdf: userCdf,
         resolvedAt: new Date(q.scheduled_resolve_time),
         resolved: q.resolution !== null,
         question: q,

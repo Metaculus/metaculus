@@ -65,7 +65,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           ...acc,
           [question.id]: extractPrevNumericForecastValue(
             latest && !latest.end_time ? latest.distribution_input : undefined
-          )?.components,
+          )?.components as DistributionSliderComponent[],
         };
       }, {}),
     [questions]

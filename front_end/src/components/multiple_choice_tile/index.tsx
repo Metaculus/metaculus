@@ -304,7 +304,7 @@ function generateReaffirmData({
         if (latest && !latest.end_time) {
           forecastValues = extractPrevNumericForecastValue(
             latest.distribution_input
-          );
+          ) as DistributionSlider;
         }
 
         return {
