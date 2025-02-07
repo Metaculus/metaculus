@@ -12,13 +12,16 @@ import {
 } from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 
 export function CSPostHogProvider({ children }: { children: ReactNode }) {
+  const { PUBLIC_POSTHOG_KEY, PUBLIC_POSTHOG_BASE_URL } = usePublicSettings();
+
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-      posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-        api_host: process.env.NEXT_PUBLIC_POSTHOG_BASE_URL,
-        ui_host: process.env.NEXT_PUBLIC_POSTHOG_BASE_URL,
+    if (PUBLIC_POSTHOG_KEY) {
+      posthog.init(PUBLIC_POSTHOG_KEY, {
+        api_host: PUBLIC_POSTHOG_BASE_URL,
+        ui_host: PUBLIC_POSTHOG_BASE_URL,
         // set to 'always' to create profiles for anonymous users as well
         person_profiles: "identified_only",
         // Disable automatic pageview capture, as we capture manually
