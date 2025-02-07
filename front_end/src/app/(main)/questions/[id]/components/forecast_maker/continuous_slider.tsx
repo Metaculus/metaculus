@@ -107,7 +107,7 @@ const ContinuousSlider: FC<Props> = ({
             />
           </Tooltip>
           {menu && (
-            <div className="-mr-2 rounded-full bg-gray-100 dark:bg-gray-100-dark">
+            <div className="-mr-2 size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
               {menu}
             </div>
           )}

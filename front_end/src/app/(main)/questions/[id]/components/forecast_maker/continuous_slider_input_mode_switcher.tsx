@@ -42,7 +42,7 @@ const SwitcherBtn: FC<PropsWithChildren<SwitcherBtnProps>> = ({
       className={cn(
         "px-2 py-1 text-blue-800 transition-all duration-200 hover:bg-gray-0 dark:text-blue-800-dark dark:hover:bg-gray-0-dark",
         isActive &&
-          "rounded-[4px] bg-blue-700 text-gray-0 hover:bg-blue-800 dark:bg-blue-700-dark dark:text-gray-0-dark dark:hover:bg-blue-800-dark"
+          "rounded bg-blue-700 text-gray-0 hover:bg-blue-800 dark:bg-blue-700-dark dark:text-gray-0-dark dark:hover:bg-blue-800-dark"
       )}
     >
       {children}

@@ -332,8 +332,14 @@ function generateGroupOptions(
             question={q}
             permission={permission}
             button={
-              <Button className="h-8 w-8" variant="link">
-                <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
+              <Button
+                className="size-[26px] border border-blue-400 dark:border-blue-400-dark"
+                variant="link"
+              >
+                <FontAwesomeIcon
+                  className="text-blue-700 dark:text-blue-700-dark"
+                  icon={faEllipsis}
+                ></FontAwesomeIcon>
               </Button>
             }
             post={post}

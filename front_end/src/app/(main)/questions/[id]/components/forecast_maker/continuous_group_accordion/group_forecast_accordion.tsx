@@ -69,7 +69,7 @@ const GroupForecastAccordion: FC<Props> = ({
   return (
     <div className="my-10 w-full">
       {!!resolvedOptions.length && (
-        <div className="mb-1 flex w-full gap-[2px] text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
+        <div className="mb-0.5 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
           <div className="shrink grow bg-blue-600/15 py-1 dark:bg-blue-400/15">
             <span className="pl-4">{groupVariable}</span>
           </div>
@@ -105,11 +105,11 @@ const GroupForecastAccordion: FC<Props> = ({
         );
       })}
       {!!activeOptions.length && (
-        <div className="mb-1 mt-2 flex w-full gap-[2px] text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
+        <div className="mb-0.5 mt-2 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
           <div className="shrink grow bg-blue-600/15 py-1 dark:bg-blue-400/15">
             <span className="pl-4">{groupVariable}</span>
           </div>
-          <div className="flex max-w-[105px] shrink grow-[3] gap-[2px] text-center sm:max-w-[422px]">
+          <div className="flex max-w-[105px] shrink grow-[3] gap-0.5 text-center sm:max-w-[422px]">
             <div className="w-[105px] bg-blue-600/15 py-1 dark:bg-blue-400/15">
               median
             </div>

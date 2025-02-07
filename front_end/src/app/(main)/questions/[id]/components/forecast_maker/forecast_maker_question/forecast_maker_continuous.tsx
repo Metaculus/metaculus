@@ -203,6 +203,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               isDirty={isDirty}
               hasUserForecast={hasUserForecast}
               isPending={isPending}
+              predictLabel={previousForecast ? undefined : t("predict")}
             />
           </div>
           <FormError

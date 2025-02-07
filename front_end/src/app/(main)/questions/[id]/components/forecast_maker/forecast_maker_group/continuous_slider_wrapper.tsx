@@ -173,6 +173,7 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
                   option.userForecast === null &&
                   option.question.status !== QuestionStatus.OPEN
                 }
+                predictLabel={previousForecast ? undefined : t("predict")}
               />
             </>
           )}

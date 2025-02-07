@@ -47,22 +47,22 @@ const NumericForecastTable: FC<Props> = ({
               <>
                 <Td></Td>
                 {question.open_lower_bound && (
-                  <Td className="rounded-[4px] bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
+                  <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
                     {"<"}
                     {displayValue(question.scaling.range_min, question.type)}
                   </Td>
                 )}
-                <Td className="rounded-[4px] bg-blue-400/60 p-1 dark:bg-blue-600/20">
+                <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
                   {t("firstQuartile")}
                 </Td>
-                <Td className="rounded-[4px] bg-blue-400/60 p-1 dark:bg-blue-600/20">
+                <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
                   {t("secondQuartile")}
                 </Td>
-                <Td className="rounded-[4px] bg-blue-400/60 p-1 dark:bg-blue-600/20">
+                <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
                   {t("thirdQuartile")}
                 </Td>
                 {question.open_upper_bound && (
-                  <Td className="rounded-[4px] bg-blue-400/60 p-1 dark:bg-blue-600/20">
+                  <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
                     {">"}
                     {displayValue(question.scaling.range_max, question.type)}
                   </Td>
@@ -225,7 +225,7 @@ const NumericForecastTable: FC<Props> = ({
               {question.open_lower_bound ? t("lowerBound") : t("quartiles")}
             </Td>
             {withCommunityQuartiles && (
-              <Td className="text-olive-800 dark:text-olive-800-dark">
+              <Td className="capitalize text-olive-800 dark:text-olive-800-dark">
                 {t("community")}
               </Td>
             )}
@@ -245,7 +245,7 @@ const NumericForecastTable: FC<Props> = ({
           {question.open_lower_bound && (
             <>
               <tr>
-                <Td className="rounded-[4px] bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
+                <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
                   {"<"}
                   {displayValue(question.scaling.range_min, question.type)}
                 </Td>
@@ -282,7 +282,7 @@ const NumericForecastTable: FC<Props> = ({
             </>
           )}
           <tr>
-            <Td className="rounded-[4px] bg-blue-400/60 px-1 py-3 text-xs font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
+            <Td className="rounded bg-blue-400/60 px-1 py-3 text-xs font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
               {t("firstQuartile")}
             </Td>
             {withCommunityQuartiles && (
@@ -326,7 +326,7 @@ const NumericForecastTable: FC<Props> = ({
             )}
           </tr>
           <tr>
-            <Td className="rounded-[4px] bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
+            <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
               {t("secondQuartile")}
             </Td>
             {withCommunityQuartiles && (
@@ -370,7 +370,7 @@ const NumericForecastTable: FC<Props> = ({
             )}
           </tr>
           <tr>
-            <Td className="rounded-[4px] bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
+            <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
               {t("thirdQuartile")}
             </Td>
             {withCommunityQuartiles && (
@@ -424,7 +424,7 @@ const NumericForecastTable: FC<Props> = ({
                 {withCommunityQuartiles && <Td></Td>}
               </tr>
               <tr>
-                <Td className="rounded-[4px] bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
+                <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
                   {">"}
                   {displayValue(question.scaling.range_max, question.type)}
                 </Td>

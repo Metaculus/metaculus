@@ -103,11 +103,11 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                 ) : (
                   <>
                     <div className="flex h-full flex-col items-center justify-center sm:w-[105px]">
-                      <p className="m-0 text-olive-800 dark:text-olive-800-dark">
+                      <p className="m-0 text-sm leading-4 text-olive-800 dark:text-olive-800-dark">
                         {median}
                       </p>
                       {!!option.userQuartiles?.median && (
-                        <p className="m-0 text-orange-700 dark:text-orange-700-dark">
+                        <p className="m-0 text-sm leading-4 text-orange-700 dark:text-orange-700-dark">
                           {userMedian}
                         </p>
                       )}
@@ -129,11 +129,11 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                 )}
               </div>
               <div className="flex h-full w-[43px] shrink-0 grow-0 items-center justify-center">
-                <div className="flex size-[26px] items-center justify-center rounded-full border border-blue-400 dark:border-blue-400-dark">
+                <div className="flex size-[26px] items-center justify-center rounded-full border border-blue-400 bg-blue-100 dark:border-blue-400-dark dark:bg-blue-100-dark">
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={cn(
-                      "h-4 text-blue-500 duration-75 ease-linear dark:text-blue-500-dark",
+                      "h-4 text-blue-700 duration-75 ease-linear dark:text-blue-700-dark",
                       open && "rotate-180"
                     )}
                   />
@@ -184,7 +184,7 @@ const OpenAccordionButton: FC<PropsWithChildren<OpenAccordionButtonProps>> = ({
       {/* Mobile button */}
       <Button
         className={cn(
-          "flex h-[58px] w-full gap-0.5 rounded-none bg-blue-100 text-left text-xs font-bold text-blue-700 dark:bg-blue-100-dark dark:text-blue-700-dark sm:hidden",
+          "flex h-[58px] w-full gap-0.5 rounded-none bg-blue-100 p-0 text-left text-xs font-bold text-blue-700 dark:bg-blue-100-dark dark:text-blue-700-dark sm:hidden",
           open && "bg-blue-600/10 dark:bg-blue-400/10",
           !isResolved && isDirty && "bg-orange-100 dark:bg-orange-100-dark"
         )}

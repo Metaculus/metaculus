@@ -446,6 +446,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             hasUserForecast={hasUserForecast}
             isPending={isSubmitting}
             isDisabled={!questionsToSubmit.length}
+            predictLabel={previousForecast ? undefined : t("predict")}
           />
         </div>
       )}
