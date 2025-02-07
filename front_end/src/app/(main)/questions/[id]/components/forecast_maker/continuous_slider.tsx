@@ -3,7 +3,7 @@ import { faCircleQuestion, faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, ReactNode, useState } from "react";
 
 import MultiSlider from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
@@ -16,7 +16,6 @@ import {
   DistributionSliderComponent,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-
 import cn from "@/utils/cn";
 
 import ContinuousPredictionChart from "./continuous_prediction_chart";
@@ -37,6 +36,7 @@ type Props = {
   showInputModeSwitcher?: boolean;
   forecastInputMode?: ForecastInputType;
   setForecastInputMode?: (mode: ForecastInputType) => void;
+  menu?: ReactNode;
 };
 
 const ContinuousSlider: FC<Props> = ({
@@ -50,6 +50,7 @@ const ContinuousSlider: FC<Props> = ({
   showInputModeSwitcher = false,
   forecastInputMode = "slider",
   setForecastInputMode = () => {},
+  menu,
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
@@ -105,6 +106,11 @@ const ContinuousSlider: FC<Props> = ({
               className="text-gray-500 hover:text-blue-800 dark:text-gray-500-dark dark:hover:text-blue-800-dark"
             />
           </Tooltip>
+          {menu && (
+            <div className="-mr-2 rounded-full bg-gray-100 dark:bg-gray-100-dark">
+              {menu}
+            </div>
+          )}
         </div>
         {previousForecast && (
           <div className="ml-auto mr-auto mt-1 flex items-center md:mr-[-4px]">
@@ -192,6 +198,10 @@ const ContinuousSlider: FC<Props> = ({
                         className="inline cursor-pointer pl-2 pt-2"
                         icon={faClose}
                         onClick={() => {
+                          // This fix app crash when deleting the only component, need confirmation on review
+                          if (components.length === 1) {
+                            return;
+                          }
                           const newForecast = [
                             ...components.slice(0, index),
                             ...components.slice(index + 1, components.length),

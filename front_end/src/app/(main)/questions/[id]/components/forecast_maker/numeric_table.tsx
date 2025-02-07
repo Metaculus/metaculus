@@ -74,7 +74,7 @@ const NumericForecastTable: FC<Props> = ({
         <tbody>
           {withCommunityQuartiles && (
             <tr className="text-olive-800 dark:text-olive-800-dark">
-              <Td>{t("community")}</Td>
+              <Td className="capitalize">{t("community")}</Td>
 
               {question.open_lower_bound && (
                 <Td>
