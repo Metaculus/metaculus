@@ -50,7 +50,7 @@ import {
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
   getNumericForecastDataset,
-  getQuintileNumericForecastDataset,
+  getQuantileNumericForecastDataset,
   populateQuantileComponents,
 } from "./forecasts";
 
@@ -1036,10 +1036,9 @@ export function getFanOptionsFromContinuousGroup(
               q.open_lower_bound,
               q.open_upper_bound
             ).cdf)
-          : (userCdf = getQuintileNumericForecastDataset(
+          : (userCdf = getQuantileNumericForecastDataset(
               populateQuantileComponents(userForecast.components),
-              q.open_lower_bound,
-              q.open_upper_bound
+              q
             ).cdf);
       }
 

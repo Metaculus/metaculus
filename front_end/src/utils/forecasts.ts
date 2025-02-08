@@ -11,10 +11,12 @@ import {
   DistributionQuantileComponentWithState,
   DistributionSlider,
   DistributionSliderComponent,
+  Question,
   QuestionType,
   QuestionWithForecasts,
   Scaling,
   QuestionWithNumericForecasts,
+  Scaling,
   UserForecast,
 } from "@/types/question";
 import {
@@ -130,14 +132,126 @@ export function getNumericForecastDataset(
   };
 }
 
+export function nominalLocationToCdfLocation(
+  location: number,
+  question: Question
+) {
+  const { range_min, range_max, zero_point } = question.scaling;
+  if (range_min === null || range_max === null) {
+    throw new Error("range_min and range_max must be defined");
+  }
+  if (zero_point !== null) {
+    const derivRatio = (range_max - zero_point) / (range_min - zero_point);
+    return (
+      (Math.log(
+        (location - range_min) / (derivRatio - 1) + (range_max - range_min)
+      ) -
+        Math.log(range_max - range_min)) /
+      Math.log(derivRatio)
+    );
+  }
+  return (location - range_min) / (range_max - range_min);
+}
+
+export function generateContinuousCdf(
+  percentiles: { percentile: number; value: number }[],
+  probBelowLower: number,
+  probAboveUpper: number,
+  question: Question
+) {
+  const { range_min, range_max } = question.scaling;
+  if (range_min === null || range_max === null) {
+    throw new Error("range_min and range_max must be defined");
+  }
+
+  // create a sorted list of known points
+  const scaledPercentiles: { percentile: number; value: number }[] = [];
+  percentiles.forEach(({ percentile, value }) => {
+    const scaledValue = nominalLocationToCdfLocation(value, question);
+    scaledPercentiles.push({
+      percentile: percentile,
+      value: scaledValue,
+    });
+  });
+  scaledPercentiles.push({ percentile: probBelowLower, value: 0 });
+  scaledPercentiles.push({ percentile: 1 - probAboveUpper, value: 1 });
+  scaledPercentiles.sort((a, b) => a.value - b.value);
+
+  // check validity
+  const firstPoint = scaledPercentiles[0];
+  const lastPoint = scaledPercentiles[scaledPercentiles.length - 1];
+  if (
+    !firstPoint ||
+    firstPoint.value > 0 ||
+    !lastPoint ||
+    lastPoint.value < 1
+  ) {
+    // TODO: present some error: e.g. "The given percentiles must emcompass upper and lower bounds"
+    return [];
+  }
+
+  function getCdfAt(location: number) {
+    let previous = scaledPercentiles[0]!;
+    for (let i = 1; i < scaledPercentiles.length; i++) {
+      const current = scaledPercentiles[i]!;
+      if (previous.value <= location && location <= current.value) {
+        return (
+          previous.percentile +
+          ((current.percentile - previous.percentile) *
+            (location - previous.value)) /
+            (current.value - previous.value)
+        );
+      }
+      previous = current;
+    }
+  }
+
+  const cdf = [];
+  for (let i = 0; i < 100; i++) {
+    cdf.push(getCdfAt(i / 100));
+  }
+  return cdf;
+}
+
+export function standardizeCdf(cdf: number[], question: Question) {
+  if (cdf.length === 0) {
+    return [];
+  }
+  const { open_upper_bound, open_lower_bound } = question;
+  const scaleLowerTo = (open_lower_bound ? 0 : cdf[0])!;
+  const scaleUpperTo = (open_upper_bound ? 1 : cdf[cdf.length - 1])!;
+  const rescaledInboundMass = scaleUpperTo - scaleLowerTo;
+
+  function standardize(F: number, location: number) {
+    // rescale
+    const rescaledF = (F - scaleLowerTo) / rescaledInboundMass;
+    // offset
+    if (open_lower_bound && open_upper_bound) {
+      return 0.988 * rescaledF + 0.01 * location + 0.001;
+    } else if (open_lower_bound) {
+      return 0.989 * rescaledF + 0.01 * location + 0.001;
+    } else if (open_upper_bound) {
+      return 0.989 * rescaledF + 0.01 * location;
+    } else {
+      return 0.99 * rescaledF + 0.01 * location;
+    }
+  }
+
+  const standardizedCdf: number[] = [];
+  for (let i = 0; i < cdf.length; i++) {
+    const standardizedF = standardize(cdf[i]!, i / (cdf.length - 1));
+    standardizedCdf.push(Math.round(standardizedF * 1e10) / 1e10);
+  }
+  return standardizedCdf;
+}
+
 // TODO: Implement this funcion
 // get chart data from quantiles input (BE data)
-export function getQuintileNumericForecastDataset(
+export function getQuantileNumericForecastDataset(
   components:
     | DistributionQuantileComponentWithState[]
     | DistributionQuantileComponent[],
-  lowerOpen: boolean,
-  upperOpen: boolean
+  question: Question
 ) {
   const componentData = components[0];
   if (
@@ -150,213 +264,22 @@ export function getQuintileNumericForecastDataset(
     };
   }
 
-  const cdf = [
-    lowerOpen ? 0.0010297699 : 0,
-    0.0010840266,
-    0.001138892,
-    0.001194453,
-    0.0012508091,
-    0.001308074,
-    0.0013663775,
-    0.0014258683,
-    0.0014867159,
-    0.0015491143,
-    0.0016132853,
-    0.0016794821,
-    0.0017479942,
-    0.0018191526,
-    0.0018933354,
-    0.0019709747,
-    0.0020525642,
-    0.0021386684,
-    0.0022299319,
-    0.0023270916,
-    0.0024309893,
-    0.0025425866,
-    0.0026629825,
-    0.0027934322,
-    0.0029353695,
-    0.0030904321,
-    0.0032604905,
-    0.0034476805,
-    0.003654441,
-    0.003883556,
-    0.0041382034,
-    0.0044220098,
-    0.004739113,
-    0.0050942327,
-    0.0054927509,
-    0.0059408028,
-    0.0064453792,
-    0.0070144427,
-    0.0076570583,
-    0.0083835396,
-    0.0092056132,
-    0.0101366026,
-    0.0111916323,
-    0.012387854,
-    0.0137446968,
-    0.0152841404,
-    0.0170310132,
-    0.0190133134,
-    0.0212625514,
-    0.0238141107,
-    0.02670762,
-    0.0299873301,
-    0.033702482,
-    0.0379076511,
-    0.0426630457,
-    0.0480347313,
-    0.0540947483,
-    0.0609210775,
-    0.0685974053,
-    0.0772126273,
-    0.0868600267,
-    0.0976360558,
-    0.1096386499,
-    0.122965012,
-    0.1377088159,
-    0.1539568094,
-    0.1717848341,
-    0.1912533371,
-    0.2124025179,
-    0.2352473326,
-    0.2597726605,
-    0.2859290116,
-    0.3136292024,
-    0.3427464409,
-    0.3731142196,
-    0.404528314,
-    0.4367510219,
-    0.4695175711,
-    0.5025443965,
-    0.5355387718,
-    0.5682091189,
-    0.6002752313,
-    0.6314776608,
-    0.6615856184,
-    0.6904029219,
-    0.7177717382,
-    0.7435740988,
-    0.7677313637,
-    0.7902019583,
-    0.8109777977,
-    0.8300798386,
-    0.84755318,
-    0.8634620757,
-    0.8778851456,
-    0.8909109893,
-    0.9026343311,
-    0.9131527552,
-    0.9225640408,
-    0.930964068,
-    0.938445241,
-    0.9450953635,
-    0.9509968946,
-    0.9562265158,
-    0.9608549451,
-    0.9649469404,
-    0.9685614437,
-    0.971751825,
-    0.9745661928,
-    0.977047745,
-    0.9792351407,
-    0.9811628763,
-    0.9828616564,
-    0.9843587504,
-    0.9856783311,
-    0.9868417901,
-    0.9878680309,
-    0.9887737371,
-    0.9895736167,
-    0.9902806238,
-    0.990906158,
-    0.9914602438,
-    0.9919516905,
-    0.9923882356,
-    0.9927766716,
-    0.9931229588,
-    0.9934323256,
-    0.9937093567,
-    0.9939580712,
-    0.9941819915,
-    0.9943842041,
-    0.9945674129,
-    0.9947339863,
-    0.9948859986,
-    0.9950252661,
-    0.9951533792,
-    0.9952717302,
-    0.995381538,
-    0.9954838696,
-    0.9955796589,
-    0.9956697233,
-    0.9957547782,
-    0.9958354496,
-    0.9959122855,
-    0.9959857653,
-    0.9960563086,
-    0.9961242826,
-    0.9961900085,
-    0.9962537675,
-    0.9963158055,
-    0.9963763377,
-    0.9964355525,
-    0.9964936146,
-    0.9965506683,
-    0.9966068396,
-    0.9966622389,
-    0.9967169628,
-    0.9967710957,
-    0.9968247117,
-    0.9968778752,
-    0.9969306431,
-    0.9969830646,
-    0.9970351833,
-    0.9970870369,
-    0.9971386586,
-    0.9971900774,
-    0.9972413188,
-    0.9972924048,
-    0.997343355,
-    0.9973941863,
-    0.9974449136,
-    0.9974955499,
-    0.9975461066,
-    0.9975965937,
-    0.9976470199,
-    0.9976973927,
-    0.9977477189,
-    0.9977980042,
-    0.9978482539,
-    0.9978984724,
-    0.9979486635,
-    0.9979988307,
-    0.998048977,
-    0.9980991049,
-    0.9981492169,
-    0.9981993149,
-    0.9982494006,
-    0.9982994756,
-    0.9983495412,
-    0.9983995986,
-    0.9984496488,
-    0.9984996927,
-    0.9985497312,
-    0.9985997648,
-    0.9986497942,
-    0.99869982,
-    0.9987498425,
-    0.9987998622,
-    0.9988498794,
-    0.9988998945,
-    0.9989499077,
-    upperOpen ? 0.9989999193 : 1,
-  ];
+  const cdf = generateContinuousCdf(
+    [
+      { percentile: 0.25, value: componentData.q1.value },
+      { percentile: 0.5, value: componentData.q2.value },
+      { percentile: 0.75, value: componentData.q3.value },
+    ],
+    componentData.p0.value,
+    componentData.p4.value,
+    question
+  );
+
+  const standardizedCdf = standardizeCdf(cdf, question);
 
   return {
-    cdf: cdf,
-    pmf: cdfToPmf(cdf),
+    cdf: standardizedCdf,
+    pmf: cdfToPmf(standardizedCdf),
   };
 }
 
