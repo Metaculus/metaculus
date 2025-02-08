@@ -31,7 +31,7 @@ import {
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
   getNumericForecastDataset,
-  getQuintileNumericForecastDataset,
+  getQuantileNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -146,10 +146,9 @@ const ForecastMakerContinuous: FC<Props> = ({
               t,
               checkDirtyState: false,
             })
-          ? getQuintileNumericForecastDataset(
+          ? getQuantileNumericForecastDataset(
               quantileDistributionComponents,
-              question.open_lower_bound,
-              question.open_upper_bound
+              question
             )
           : {
               cdf: [],
