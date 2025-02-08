@@ -87,7 +87,8 @@ const ForecastMakerContinuous: FC<Props> = ({
     useState<DistributionSliderComponent[]>(
       getInitialSliderDistributionComponents(
         activeForecast,
-        activeForecastValues
+        activeForecastValues,
+        question
       )
     );
   const [quantileDistributionComponents, setQuantileDistributionComponents] =
@@ -122,7 +123,8 @@ const ForecastMakerContinuous: FC<Props> = ({
     setSliderDistributionComponents(
       getInitialSliderDistributionComponents(
         activeForecast,
-        activeForecastValues
+        activeForecastValues,
+        question
       )
     );
     setIsDirty(
@@ -269,7 +271,8 @@ const ForecastMakerContinuous: FC<Props> = ({
     setSliderDistributionComponents(
       getInitialSliderDistributionComponents(
         activeForecast,
-        activeForecastValues
+        activeForecastValues,
+        question
       )
     );
     setQuantileDistributionComponents(

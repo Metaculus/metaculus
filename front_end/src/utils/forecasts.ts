@@ -25,6 +25,7 @@ import {
   computeQuartilesFromCDF,
 } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { scaleInternalLocation } from "./charts";
 
 import { getQuestionDateFormatString } from "./charts";
 
@@ -207,9 +208,10 @@ export function generateContinuousCdf(
   }
 
   const cdf = [];
-  for (let i = 0; i < 100; i++) {
-    cdf.push(getCdfAt(i / 100));
+  for (let i = 0; i < 201; i++) {
+    cdf.push(getCdfAt(i / 200));
   }
+  console.log({ cdf });
   return cdf;
 }
 
@@ -245,8 +247,7 @@ export function standardizeCdf(cdf: number[], question: Question) {
   return standardizedCdf;
 }
 
-// TODO: Implement this funcion
-// get chart data from quantiles input (BE data)
+// get chart data from quantiles input
 export function getQuantileNumericForecastDataset(
   components:
     | DistributionQuantileComponentWithState[]
@@ -289,19 +290,29 @@ export function getSliderDistributionFromQuantiles(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   components:
     | DistributionQuantileComponentWithState[]
-    | DistributionQuantileComponent[]
+    | DistributionQuantileComponent[],
+  question: Question
 ): DistributionSliderComponent[] {
+  const component = components[0];
   return [
     {
-      left: 0.7,
-      center: 0.8,
-      right: 0.9,
+      left: nominalLocationToCdfLocation(
+        component.q1.value ?? component.q1,
+        question
+      ),
+      center: nominalLocationToCdfLocation(
+        component.q2.value ?? component.q2,
+        question
+      ),
+      right: nominalLocationToCdfLocation(
+        component.q3.value ?? component.q3,
+        question
+      ),
       weight: 1,
     },
   ];
 }
 
-// TODO: Implement this function
 // if user have slider forecast and want to switch to table forecast tab
 // /questions/31701/97th-academy-awards-winners-average-duration/ numeric question
 // /questions/3479/date-weakly-general-ai-is-publicly-known/ date question
@@ -310,29 +321,32 @@ export function getQuantilesDistributionFromSlider(
   components: DistributionSliderComponent[],
   question: QuestionWithNumericForecasts
 ): DistributionQuantileComponentWithState[] {
-  if (question.type === QuestionType.Numeric) {
-    return [
-      {
-        p0: { value: question.open_lower_bound ? 30 : 0, isDirty: true },
-        q1: { value: 80, isDirty: true },
-        q2: { value: 110, isDirty: true },
-        q3: { value: 150, isDirty: true },
-        p4: { value: question.open_upper_bound ? 20 : 100, isDirty: true },
+  const cdf = getNumericForecastDataset(
+    components,
+    question.open_lower_bound,
+    question.open_upper_bound
+  ).cdf;
+  const quartiles = computeQuartilesFromCDF(cdf);
+  const p0 = cdf[0];
+  const p4 = 1 - cdf[cdf.length - 1];
+  return [
+    {
+      p0: { value: p0, isDirty: false },
+      q1: {
+        value: scaleInternalLocation(quartiles.lower25, question.scaling),
+        isDirty: true,
       },
-    ];
-  }
-  if (question.type === QuestionType.Date) {
-    return [
-      {
-        p0: { value: question.open_lower_bound ? 1 : 0, isDirty: true },
-        q1: { value: 1585267800, isDirty: true },
-        q2: { value: 1738757520, isDirty: true },
-        q3: { value: 1738843920, isDirty: true },
-        p4: { value: question.open_upper_bound ? 2 : 100, isDirty: true },
+      q2: {
+        value: scaleInternalLocation(quartiles.median, question.scaling),
+        isDirty: true,
       },
-    ];
-  }
-  return [];
+      q3: {
+        value: scaleInternalLocation(quartiles.upper75, question.scaling),
+        isDirty: true,
+      },
+      p4: { value: p4, isDirty: false },
+    },
+  ];
 }
 
 export function populateQuantileComponents(
@@ -399,7 +413,8 @@ export function getInitialQuantileDistributionComponents(
 
 export function getInitialSliderDistributionComponents(
   activeForecast: UserForecast | undefined,
-  activeForecastValues: DistributionSlider | DistributionQuantile | undefined
+  activeForecastValues: DistributionSlider | DistributionQuantile | undefined,
+  question: Question
 ) {
   return !activeForecast ||
     activeForecast.distribution_input.type === ForecastInputType.Slider
@@ -407,7 +422,8 @@ export function getInitialSliderDistributionComponents(
         activeForecastValues?.components as DistributionSliderComponent[]
       )
     : getSliderDistributionFromQuantiles(
-        activeForecastValues?.components as DistributionQuantileComponent[]
+        activeForecastValues?.components as DistributionQuantileComponent[],
+        question
       );
 }
 export function generateCurveChoiceOptions(
