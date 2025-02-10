@@ -22,7 +22,7 @@ const ResolutionCriteria: FC<Props> = ({ post }) => {
 
     return (
       <div className="my-4 flex flex-col gap-2.5">
-        <SectionToggle title={t("parentResolutionCriteria")}>
+        <SectionToggle title={t("parentResolutionCriteria")} defaultOpen>
           <ExpandableContent
             maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
             expandLabel={expandLabel}
@@ -47,7 +47,7 @@ const ResolutionCriteria: FC<Props> = ({ post }) => {
           </ExpandableContent>
         </SectionToggle>
 
-        <SectionToggle title={t("childResolutionCriteria")}>
+        <SectionToggle title={t("childResolutionCriteria")} defaultOpen>
           <ExpandableContent
             maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
             expandLabel={expandLabel}
@@ -83,7 +83,11 @@ const ResolutionCriteria: FC<Props> = ({ post }) => {
     post.group_of_questions?.fine_print ?? post.question?.fine_print ?? "";
 
   return (
-    <SectionToggle title={t("resolutionCriteria")} wrapperClassName="my-4">
+    <SectionToggle
+      title={t("resolutionCriteria")}
+      wrapperClassName="my-4"
+      defaultOpen
+    >
       <ExpandableContent
         maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
         expandLabel={expandLabel}
