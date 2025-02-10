@@ -1075,5 +1075,11 @@
   "questionsBy": "问题由",
   "leaderboardCpInfo": "这是从所有预测者对每个问题的总预测中得出的主要预测。<br></br>了解它是如何计算的<link>这里</link>。",
   "shareInComment": "在评论中分享",
-  "youPredicted": "你预测"
+  "youPredicted": "你预测",
+  "signupInviteUsers": "邀请新用户",
+  "signupInviteUsersDescription": "输入您想邀请的用户的电子邮件地址，用换行符分隔。他们将通过电子邮件收到注册邀请。",
+  "signupInviteEmailAddresses": "电子邮件地址",
+  "signupInviteEmailAddressesPlaceholder": "每行输入一个电子邮件",
+  "signupInviteSendButton": "发送邀请",
+  "signupInviteSuccess": "邀请已发送"
 }
