@@ -23,6 +23,7 @@ import ProfileApi from "@/services/profile";
 import { getPublicSettings } from "@/utils/public-settings";
 
 import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
+const publicSettings = getPublicSettings();
 
 const PostHogPageView = dynamic(
   () => import("@/components/posthog_page_view"),
@@ -112,13 +113,13 @@ const leagueGothic = localFont({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { PUBLIC_APP_URL, PUBLIC_DISALLOW_ALL_BOTS } = getPublicSettings();
-
   return {
     title: "Metaculus",
     description: "Metaculus",
-    metadataBase: new URL(PUBLIC_APP_URL),
-    robots: PUBLIC_DISALLOW_ALL_BOTS ? { index: false, follow: true } : null,
+    metadataBase: new URL(publicSettings.PUBLIC_APP_URL),
+    robots: publicSettings.PUBLIC_DISALLOW_ALL_BOTS
+      ? { index: false, follow: true }
+      : null,
   };
 }
 
@@ -130,8 +131,6 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const user = await ProfileApi.getMyProfile();
-
-  const publicSettings = getPublicSettings();
 
   return (
     <html
