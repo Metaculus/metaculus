@@ -86,6 +86,8 @@ def job_close_question():
     questions_to_close = Question.objects.filter(
         actual_close_time__isnull=True,
         scheduled_close_time__lte=django.utils.timezone.now(),
+        # Don't close draft posts
+        related_posts__post__curation_status=Post.CurationStatus.APPROVED,
     ).all()
     for question in questions_to_close:
         try:
