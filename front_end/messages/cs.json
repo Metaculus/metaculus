@@ -1069,5 +1069,12 @@
   "slider": "Posuvník",
   "lowerBound": "Dolní mez",
   "quartiles": "Kvartily",
-  "upperBound": "Horní mez"
+  "upperBound": "Horní mez",
+  "signupInviteUsers": "Pozvat nové uživatele",
+  "signupInviteUsersDescription": "Zadejte e-mailové adresy uživatelů, které chcete pozvat, oddělené novými řádky. Obdrží pozvánku k registraci e-mailem.",
+  "signupInviteEmailAddresses": "E-mailové adresy",
+  "signupInviteEmailAddressesPlaceholder": "Zadejte jeden e-mail na řádek",
+  "signupInviteSendButton": "Odeslat pozvánky",
+  "signupInviteSuccess": "Pozvánky byly odeslány",
+  "questionsBy": "Otázky od"
 }

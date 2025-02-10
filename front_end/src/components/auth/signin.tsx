@@ -28,7 +28,6 @@ const SignInModal: FC<SignInModalType> = ({
   onClose,
 }: SignInModalType) => {
   const { PUBLIC_ALLOW_SIGNUP } = usePublicSettings();
-  console.log("PUBLIC_ALLOW_SIGNUP", PUBLIC_ALLOW_SIGNUP);
 
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();

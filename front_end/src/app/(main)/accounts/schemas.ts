@@ -14,7 +14,7 @@ export const signUpSchema = z.intersection(
     email: z.string().min(1, { message: "Email is required" }),
     isBot: z.boolean(),
     turnstileToken: z.string().optional(),
-    inviteToken: z.string().optional().nullable(),
+    inviteToken: z.string().optional(),
     addToProject: z.number().optional(),
     campaignKey: z.string().optional(),
     campaignData: z.record(z.any()).optional(),
