@@ -1,6 +1,6 @@
 "use client";
 
-import { faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Disclosure,
@@ -78,7 +78,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
               )}
             >
               <FontAwesomeIcon
-                icon={faChevronUp}
+                icon={faChevronDown}
                 className={cn(
                   "h-4 duration-75 ease-linear",
                   open && "rotate-180",
