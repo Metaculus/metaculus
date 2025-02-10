@@ -1,3 +1,5 @@
+"use client";
+
 import { faPlus, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
@@ -9,11 +11,11 @@ import NavUserButton from "@/components/auth";
 import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 
 import ContentTranslatedBanner from "../content_translated_banner";
 import GlobalSearch from "../global_search";
 import MobileMenu from "../mobile_menu";
-import { getPublicSettings } from "@/utils/public-settings";
 
 const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
   return (
@@ -29,7 +31,7 @@ const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
 
 const Header: FC = () => {
   const t = useTranslations();
-  const { PUBLIC_MINIMAL_UI } = getPublicSettings();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   const LINKS = [
     {
