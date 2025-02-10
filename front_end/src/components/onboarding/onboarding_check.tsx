@@ -4,14 +4,22 @@ import { useEffect } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { checkOnboardingAllowed } from "@/utils/onboarding";
 
 const OnboardingCheck: React.FC = () => {
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
 
+  const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
+
   useEffect(() => {
-    if (checkOnboardingAllowed() && user?.id && !user?.is_onboarding_complete) {
+    if (
+      PUBLIC_ALLOW_TUTORIAL &&
+      checkOnboardingAllowed() &&
+      user?.id &&
+      !user?.is_onboarding_complete
+    ) {
       // Start the onboarding process
       setCurrentModal({ type: "onboarding" });
     }

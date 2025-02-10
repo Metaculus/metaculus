@@ -8,9 +8,9 @@ import QuestionRepost from "@/app/(main)/questions/components/question_repost";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
+import { getPublicSettings } from "@/utils/public-settings";
 
 import QuestionTypePicker from "../components/question_type_picker";
-import { getPublicSettings } from "@/utils/public-settings";
 
 const linkClassName =
   "text-blue-800 hover:text-blue-900 dark:text-blue-800-dark dark:hover:text-blue-900-dark";

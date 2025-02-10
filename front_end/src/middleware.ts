@@ -8,6 +8,7 @@ import {
 } from "@/services/session";
 import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
+
 import { getPublicSettings } from "./utils/public-settings";
 
 export async function middleware(request: NextRequest) {
@@ -19,6 +20,7 @@ export async function middleware(request: NextRequest) {
       !request.nextUrl.pathname.startsWith("/not-found/") &&
       !getServerSession()
     ) {
+      console.log("no session");
       // return a not found page
       return NextResponse.rewrite(new URL("/not-found/", request.url));
     }
