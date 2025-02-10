@@ -69,18 +69,23 @@ export async function signUpAction(
 
   try {
     const response = await AuthApi.signUp(
-      validatedSignupData.email,
-      validatedSignupData.username,
-      validatedSignupData.password,
-      validatedSignupData.isBot,
       {
-        "cf-turnstile-response": validatedSignupData.turnstileToken,
-        ...(ipAddress ? { "CF-Connecting-IP": ipAddress } : {}),
+        email: validatedSignupData.email,
+        username: validatedSignupData.username,
+        password: validatedSignupData.password,
+        is_bot: validatedSignupData.isBot,
+        add_to_project: validatedSignupData.addToProject,
+        campaign_key: validatedSignupData.campaignKey,
+        campaign_data: validatedSignupData.campaignData,
+        redirect_url: validatedSignupData.redirectUrl,
+        invite_token: validatedSignupData.inviteToken,
       },
-      validatedSignupData.addToProject,
-      validatedSignupData.campaignKey,
-      validatedSignupData.campaignData,
-      validatedSignupData.redirectUrl
+      {
+        ...(validatedSignupData.turnstileToken
+          ? { "cf-turnstile-response": validatedSignupData.turnstileToken }
+          : {}),
+        ...(ipAddress ? { "CF-Connecting-IP": ipAddress } : {}),
+      }
     );
 
     if (response.is_active && response.token) {
@@ -133,4 +138,8 @@ export async function resendActivationEmailAction(
       errors: error.data,
     };
   }
+}
+
+export async function inviteUsers(emails: string[]) {
+  await AuthApi.inviteUsers(emails);
 }

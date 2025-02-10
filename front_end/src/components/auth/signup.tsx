@@ -31,7 +31,9 @@ type SignInModalType = {
 export const SignupForm: FC<{
   forceIsBot?: boolean;
   addToProject?: number;
-}> = ({ forceIsBot, addToProject }) => {
+  email?: string;
+  inviteToken?: string;
+}> = ({ forceIsBot, addToProject, email, inviteToken }) => {
   const t = useTranslations();
   const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const [isTurnstileValidated, setIsTurnstileValidate] =
@@ -43,8 +45,10 @@ export const SignupForm: FC<{
   const methods = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
+      email,
       isBot: forceIsBot ?? false,
       addToProject,
+      inviteToken,
     },
   });
 
@@ -99,7 +103,11 @@ export const SignupForm: FC<{
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
-        <SignUpFragment errors={errors} forceIsBot={forceIsBot} />
+        <SignUpFormFragment
+          errors={errors}
+          forceIsBot={forceIsBot}
+          disableEmail={!!email}
+        />
         <div>
           <Button
             variant="primary"
@@ -191,7 +199,7 @@ export const AccountInactive: FC<AccountInactiveModalProps> = ({
   );
 };
 
-const SignUpModal: FC<SignInModalType> = ({
+export const SignUpModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
 }: SignInModalType) => {
@@ -279,12 +287,11 @@ const SignUpModal: FC<SignInModalType> = ({
   );
 };
 
-export default SignUpModal;
-
-export const SignUpFragment: FC<{
+const SignUpFormFragment: FC<{
   forceIsBot?: boolean;
   errors: NonNullable<SignUpActionState>["errors"];
-}> = ({ forceIsBot = undefined, errors }) => {
+  disableEmail?: boolean;
+}> = ({ forceIsBot = undefined, errors, disableEmail = false }) => {
   const { register, setValue, watch } = useFormContext();
   const t = useTranslations();
   return (
@@ -319,6 +326,7 @@ export const SignUpFragment: FC<{
         placeholder={t("registrationEmailPlaceholder")}
         type="email"
         errors={errors}
+        disabled={disableEmail}
         {...register("email")}
       />
       {forceIsBot === null && (

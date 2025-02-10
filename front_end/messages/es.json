@@ -1069,5 +1069,12 @@
   "slider": "Deslizador",
   "lowerBound": "Límite inferior",
   "quartiles": "Cuartiles",
-  "upperBound": "Límite superior"
+  "upperBound": "Límite superior",
+  "signupInviteUsers": "Invitar a nuevos usuarios",
+  "signupInviteUsersDescription": "Ingrese las direcciones de correo electrónico de los usuarios que desea invitar, separadas por líneas nuevas. Recibirán una invitación para registrarse por correo electrónico.",
+  "signupInviteEmailAddresses": "Direcciones de correo electrónico",
+  "signupInviteEmailAddressesPlaceholder": "Ingrese un correo por línea",
+  "signupInviteSendButton": "Enviar invitaciones",
+  "signupInviteSuccess": "Las invitaciones han sido enviadas",
+  "questionsBy": "Preguntas de"
 }
