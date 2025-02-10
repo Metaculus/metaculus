@@ -5,11 +5,12 @@ import { FC } from "react";
 import Button from "@/components/ui/button";
 
 type Props = {
-  commentCount: number;
   onClick: () => void;
 };
 
-const CommentWelcomeMessage: FC<Props> = ({ commentCount, onClick }) => {
+const STORAGE_KEY = "welcome_message_closed";
+
+const CommentWelcomeMessage: FC<Props> = ({ onClick }) => {
   const t = useTranslations();
   return (
     <div className="rounded border border-orange-500 bg-orange-100 p-6 text-sm font-normal leading-5 text-gray-800 dark:border-orange-500-dark dark:bg-orange-100-dark dark:text-gray-800-dark">
@@ -29,11 +30,25 @@ const CommentWelcomeMessage: FC<Props> = ({ commentCount, onClick }) => {
         })}
       </p>
       <p className="m-0 mt-3">{t("keepCivilStayOnTopic")}</p>
-      <Button className="mt-4" onClick={onClick}>
-        {t(commentCount > 0 ? "closeThisMessage" : "understand")}
-      </Button>
+      {!getIsMessagePreviouslyClosed() && (
+        <Button
+          className="mt-4"
+          onClick={() => {
+            localStorage.setItem(STORAGE_KEY, "true");
+            onClick();
+          }}
+        >
+          {t("understand")}
+        </Button>
+      )}
     </div>
   );
 };
+
+export function getIsMessagePreviouslyClosed(): boolean {
+  const alreadyClosed = localStorage.getItem(STORAGE_KEY);
+
+  return Boolean(alreadyClosed);
+}
 
 export default CommentWelcomeMessage;

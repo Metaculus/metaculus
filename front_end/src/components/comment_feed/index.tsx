@@ -26,7 +26,9 @@ import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 
-import CommentWelcomeMessage from "./comment_welcome_message";
+import CommentWelcomeMessage, {
+  getIsMessagePreviouslyClosed,
+} from "./comment_welcome_message";
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
 
@@ -391,7 +393,7 @@ const CommentFeed: FC<Props> = ({
             </h2>
             {!profileId &&
               user &&
-              (!showWelcomeMessage || userCommentsAmount > 0) && (
+              (!showWelcomeMessage || getIsMessagePreviouslyClosed()) && (
                 <ButtonGroup
                   value={feedFilters.is_private ? "private" : "public"}
                   buttons={feedOptions}
@@ -404,7 +406,6 @@ const CommentFeed: FC<Props> = ({
           </div>
           {postId && showWelcomeMessage && (
             <CommentWelcomeMessage
-              commentCount={userCommentsAmount}
               onClick={() => {
                 setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
               }}
@@ -413,7 +414,7 @@ const CommentFeed: FC<Props> = ({
         </div>
         {postId && (
           <>
-            {showWelcomeMessage && userCommentsAmount === 0 ? null : (
+            {showWelcomeMessage && !getIsMessagePreviouslyClosed() ? null : (
               <CommentEditor
                 shouldIncludeForecast={includeUserForecast}
                 postId={postId}
