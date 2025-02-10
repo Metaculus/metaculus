@@ -263,7 +263,8 @@ def generate_question_writing_leaderboard_entries(
         forecasts_during_period = user_forecasts_map.get(question.pk) or []
         forecasters = set(forecast.author_id for forecast in forecasts_during_period)
         post = question_post_map.get(question.id)
-        forecaster_ids_for_post[post].update(forecasters)
+        if post:
+            forecaster_ids_for_post[post].update(forecasters)
 
     user_list = list(leaderboard.user_list.all())
     exclusions = {e.user: e for e in MedalExclusionRecord.objects.all()}

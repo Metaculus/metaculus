@@ -152,6 +152,7 @@ export const MedalsWidget: FC<Props> = async ({ profileId }) => {
     (r) => r.type === "questions_global"
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const total_prizes = userMedals
     .filter((medal) => medal.project_type === MedalProjectType.Tournament)
     .map((medal) => Math.round(medal.prize ?? 0))
@@ -168,11 +169,12 @@ export const MedalsWidget: FC<Props> = async ({ profileId }) => {
       value: tournamentRanks?.best_rank,
       footer: `of ${tournamentRanks?.best_rank_total}`,
     },
-    {
-      header: t("totalPrizes"),
-      value: `$${total_prizes}`,
-      footer: t("totalEarned"),
-    },
+    // TODO: uncomment when issue with total prizes will be fixed
+    // {
+    //   header: t("totalPrizes"),
+    //   value: `$${total_prizes}`,
+    //   footer: t("totalEarned"),
+    // },
   ];
 
   const baselineStats: StatsEntry[] = [
