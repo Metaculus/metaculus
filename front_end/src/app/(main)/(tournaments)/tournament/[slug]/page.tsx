@@ -13,7 +13,6 @@ import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
 import { defaultDescription } from "@/constants/metadata";
-import { usePublicSettings } from "@/contexts/public_settings_context";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
@@ -21,6 +20,7 @@ import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
 import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
+import { getPublicSettings } from "@/utils/public-settings";
 
 import TournamentDropdownMenu from "../components/dropdown_menu";
 import TournamentFeed from "../components/tournament_feed";
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TournamentSlug({ params }: Props) {
   const tournament = await ProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
-  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
+  const { PUBLIC_MINIMAL_UI } = getPublicSettings();
 
   const currentUser = await ProfileApi.getMyProfile();
 
