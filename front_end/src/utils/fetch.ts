@@ -105,14 +105,15 @@ const appFetch = async <T>(
   options: FetchOptions = {},
   config?: FetchConfig
 ): Promise<T> => {
-  let { emptyContentType = false, passAuthHeader = true } = config ?? {};
+  const { emptyContentType = false } = config ?? {};
+  // let { emptyContentType = false, passAuthHeader = true } = config ?? {};
 
-  // Warning: caching could be only applied to anonymised requests
-  // To prevent user token leaks and storage spam.
-  // NextJS caches every request variant including headers (auth token) diff
-  if (options.next?.revalidate !== undefined) {
-    passAuthHeader = false;
-  }
+  // // Warning: caching could be only applied to anonymised requests
+  // // To prevent user token leaks and storage spam.
+  // // NextJS caches every request variant including headers (auth token) diff
+  // if (options.next?.revalidate !== undefined) {
+  //   passAuthHeader = false;
+  // }
 
   // NOTE: Had to comment this out because of 404s when unauthenticated...
   // Unsure what do do about it.

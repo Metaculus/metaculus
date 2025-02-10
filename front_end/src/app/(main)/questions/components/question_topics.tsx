@@ -14,12 +14,12 @@ import { useContentTranslatedBannerProvider } from "@/app/providers";
 import Button from "@/components/ui/button";
 import { FeedType, POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 import cn from "@/utils/cn";
 
 import TopicItem from "./topic_item";
-import { usePublicSettings } from "@/contexts/public_settings_context";
 
 const EXPAND_THRESHOLD = 2;
 

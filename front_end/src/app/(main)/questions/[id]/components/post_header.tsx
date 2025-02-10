@@ -9,6 +9,7 @@ import { useContentTranslatedBannerProvider } from "@/app/providers";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions/";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Button from "@/components/ui/button";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import {
   PostStatus,
   PostWithForecasts,
@@ -19,7 +20,6 @@ import cn from "@/utils/cn";
 
 import PostApprovalModal from "./post_approval_modal";
 import { draftPost, submitPostForReview } from "../../actions";
-import { usePublicSettings } from "@/contexts/public_settings_context";
 
 export default function PostHeader({
   post,
@@ -97,6 +97,7 @@ export const PostStatusBox: FC<{
   const router = useRouter();
 
   const [approvalModalOpen, setIsApprovalModalOpen] = useState(false);
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   if (![PostStatus.PENDING, PostStatus.DRAFT].includes(post.curation_status)) {
     return null;
@@ -120,8 +121,6 @@ export const PostStatusBox: FC<{
     ProjectPermissions.CURATOR,
     ProjectPermissions.ADMIN,
   ].includes(post.user_permission);
-
-  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   return (
     <>
