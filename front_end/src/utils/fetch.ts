@@ -114,7 +114,9 @@ const appFetch = async <T>(
     passAuthHeader = false;
   }
 
-  const authToken = passAuthHeader ? getServerSession() : null;
+  // NOTE: Had to cinnebt this out because of 404s when unauthenticated... Unsure what do do about it.
+  // const authToken = passAuthHeader ? getServerSession() : null;
+  const authToken = getServerSession();
   const alphaToken = getAlphaTokenSession();
   const locale = await getLocale();
   const { PUBLIC_API_BASE_URL } = getPublicSettings();

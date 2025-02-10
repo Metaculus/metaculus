@@ -13,6 +13,7 @@ import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
 import { defaultDescription } from "@/constants/metadata";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
@@ -23,7 +24,6 @@ import { formatDate } from "@/utils/date_formatters";
 
 import TournamentDropdownMenu from "../components/dropdown_menu";
 import TournamentFeed from "../components/tournament_feed";
-import { getPublicSettings } from "@/utils/public-settings";
 
 const LazyProjectMembers = dynamic(() => import("../components/members"), {
   ssr: false,
@@ -56,11 +56,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const { PUBLIC_MINIMAL_UI } = getPublicSettings();
-
 export default async function TournamentSlug({ params }: Props) {
   const tournament = await ProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   const currentUser = await ProfileApi.getMyProfile();
 

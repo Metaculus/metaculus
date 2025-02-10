@@ -3,13 +3,13 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 
 import { defaultDescription } from "@/constants/metadata";
+import { getPublicSettings } from "@/utils/public-settings";
 
 import FeedbackFloat from "./(home)/components/feedback_float";
 import Bulletins from "./components/bulletins";
 import CookiesBanner from "./components/cookies_banner";
 import Footer from "./components/footer";
 import GlobalHeader from "./components/headers/global_header";
-import { getPublicSettings } from "@/utils/public-settings";
 
 config.autoAddCss = false;
 
