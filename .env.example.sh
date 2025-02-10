@@ -29,3 +29,10 @@ export SERPER_API_KEY=
 
 # Security
 export PUBLIC_ALLOW_SIGNUP=true # Defaults to true (if false, new users have to be invited)
+
+# Settings
+export PUBLIC_LANDING_PAGE_URL="/" # Defaults to /
+export PUBLIC_MINIMAL_UI=true # Defaults to false
+export PUBLIC_ALLOW_TUTORIAL=false # Defaults to true
+
+
