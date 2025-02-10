@@ -1073,5 +1073,11 @@
   "questionsBy": "Otázky od",
   "leaderboardCpInfo": "Jedná se o hlavní predikci agregovanou ze všech předpovědí na každou otázku.<br></br>Zjistěte, jak se vypočítá <link>zde</link>.",
   "shareInComment": "Sdílet v komentáři",
-  "youPredicted": "Předpověděli jste"
+  "youPredicted": "Předpověděli jste",
+  "signupInviteUsers": "Pozvat nové uživatele",
+  "signupInviteUsersDescription": "Zadejte e-mailové adresy uživatelů, které chcete pozvat, oddělené novými řádky. Obdrží pozvánku k registraci e-mailem.",
+  "signupInviteEmailAddresses": "E-mailové adresy",
+  "signupInviteEmailAddressesPlaceholder": "Zadejte jeden e-mail na řádek",
+  "signupInviteSendButton": "Odeslat pozvánky",
+  "signupInviteSuccess": "Pozvánky byly odeslány"
 }

@@ -1071,5 +1071,11 @@
   "questionsBy": "Perguntas por",
   "leaderboardCpInfo": "Esta é a principal previsão agregada de todos os previsores em cada pergunta.<br></br>Saiba como é calculada <link>aqui</link>.",
   "shareInComment": "Compartilhar no comentário",
-  "youPredicted": "Você previu"
+  "youPredicted": "Você previu",
+  "signupInviteUsers": "Convidar Novos Usuários",
+  "signupInviteUsersDescription": "Insira os endereços de email dos usuários que você gostaria de convidar, separados por novas linhas. Eles receberão um convite para se inscrever por email.",
+  "signupInviteEmailAddresses": "Endereços de Email",
+  "signupInviteEmailAddressesPlaceholder": "Insira um email por linha",
+  "signupInviteSendButton": "Enviar Convites",
+  "signupInviteSuccess": "Convites foram enviados"
 }

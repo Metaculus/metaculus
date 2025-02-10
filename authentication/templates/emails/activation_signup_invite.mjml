@@ -1,0 +1,41 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+                <mj-text>
+                    Hello,
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans %}
+                    You've been invited to join Metaculus!
+                    {% endblocktrans %}
+                    <p>
+                        {% blocktrans %}
+                        To complete your registration, please follow the link below:
+                        {% endblocktrans %}
+                    </p>
+                    <p>
+                        {% blocktrans %}
+                        Please <a href="{{ signup_link }}">click here</a> to create your account and start using Metaculus.
+                        {% endblocktrans %}
+                    </p>
+                    <p style="font-size: 80%;">
+                        {% blocktrans %}
+                        Alternatively, you can copy and paste the following link into a browser:
+                        {% endblocktrans %}
+                        <br/>
+                        {{ signup_link }}
+                    </p>
+
+                </mj-text>
+            </mj-column>
+
+        </mj-section>
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+    </mj-body>
+</mjml>
