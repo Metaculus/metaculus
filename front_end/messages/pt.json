@@ -1063,6 +1063,7 @@
   "totalEarned": "Total Ganho",
   "currentRank": "Classificação Atual",
   "bestEver": "Melhor de Sempre",
+  "closeDateError": "A data de fechamento deve ser posterior à data de abertura. Altere a data de abertura aqui ou edite a pergunta para alterar a data de fechamento.",
   "table": "Mesa",
   "slider": "Deslizador",
   "lowerBound": "Limite inferior",
