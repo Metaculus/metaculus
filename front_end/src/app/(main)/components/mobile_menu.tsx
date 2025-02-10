@@ -23,12 +23,12 @@ import LanguageMenu from "@/components/language_menu";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { Href } from "@/types/navigation";
 import { Community } from "@/types/projects";
 import cn from "@/utils/cn";
 
 import GlobalSearch from "./global_search";
-import { getPublicSettings } from "@/utils/public-settings";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex h-full items-center justify-center px-4 pb-1 pt-2 text-sm font-medium uppercase text-gray-200 opacity-50">
@@ -104,7 +104,7 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
     setIsSearchOpen(false);
   };
 
-  const { PUBLIC_ALLOW_TUTORIAL } = getPublicSettings();
+  const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
 
   if (!!community) {
     return (

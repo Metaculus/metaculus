@@ -11,16 +11,16 @@ import SignUpModal, {
 } from "@/components/auth/signup";
 import OnboardingModal from "@/components/onboarding/onboarding_modal";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 
 import ConfirmModal from "./confirm_modal";
 import ContactUsModal from "./contact_us_modal";
-import { getPublicSettings } from "@/utils/public-settings";
 
 const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();
   const onClose = () => setCurrentModal(null);
 
-  const { PUBLIC_ALLOW_TUTORIAL } = getPublicSettings();
+  const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
 
   return (
     <>

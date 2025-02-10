@@ -10,8 +10,8 @@ import { FC } from "react";
 import { LogOut } from "@/app/(main)/accounts/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import cn from "@/utils/cn";
-import { getPublicSettings } from "@/utils/public-settings";
 
 type Props = {
   btnClassName?: string;
@@ -21,6 +21,7 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
   const t = useTranslations();
+  const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
 
   if (!user) {
     return (
@@ -32,8 +33,6 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
       </button>
     );
   }
-
-  const { PUBLIC_ALLOW_TUTORIAL } = getPublicSettings();
 
   return (
     <Menu>
