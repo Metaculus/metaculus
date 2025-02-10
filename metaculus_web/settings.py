@@ -196,6 +196,8 @@ AUTH_SIGNUP_VERIFY_EMAIL = (
     os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
 )
 
+PUBLIC_ALLOW_SIGNUP = os.environ.get("PUBLIC_ALLOW_SIGNUP", "true").lower() == "true"
+
 SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_details",
     "social_core.pipeline.social_auth.social_uid",

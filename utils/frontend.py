@@ -21,6 +21,12 @@ def build_frontend_account_activation_url(
     )
 
 
+def build_frontend_account_signup_invitation_url(email: str, invite_token: str):
+    return build_frontend_url(
+        f"/accounts/signup?{urlencode({'email': email, 'invite_token': token})}"
+    )
+
+
 def build_frontend_password_reset_url(user_id: int, token: str):
     return build_frontend_url(
         f"/accounts/reset?{urlencode({'user_id': user_id, 'token': token})}"
