@@ -69,12 +69,7 @@ def signup_api_view(request):
     # Validating captcha
     validate_turnstile_from_request(request)
 
-    if os.getenv("PUBLIC_ALLOW_SIGNUP", "true").lower() == "false":
-        serializer = SignupSerializer(
-            data=request.data
-        )  # TODO: add context for specific signup authorization
-    else:
-        serializer = SignupSerializer(data=request.data)
+    serializer = SignupSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     email = serializer.validated_data["email"]

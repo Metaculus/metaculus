@@ -1,6 +1,5 @@
 export interface PublicSettings {
   PUBLIC_MINIMAL_UI: boolean;
-  PUBLIC_ALLOW_SIGNUP: boolean;
   PUBLIC_TURNSTILE_SITE_KEY: string;
   PUBLIC_APP_URL: string;
   PUBLIC_API_BASE_URL: string;
@@ -15,7 +14,6 @@ export interface PublicSettings {
 
 export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_MINIMAL_UI: false,
-  PUBLIC_ALLOW_SIGNUP: true,
   PUBLIC_TURNSTILE_SITE_KEY: "",
   PUBLIC_APP_URL: "http://localhost:3000",
   PUBLIC_API_BASE_URL: "http://localhost:8000",
@@ -36,10 +34,6 @@ export function getPublicSettings() {
       process.env.PUBLIC_MINIMAL_UI !== undefined
         ? process.env.PUBLIC_MINIMAL_UI.toLowerCase() === "true"
         : defVals.PUBLIC_MINIMAL_UI,
-    PUBLIC_ALLOW_SIGNUP:
-      process.env.PUBLIC_ALLOW_SIGNUP !== undefined
-        ? process.env.PUBLIC_ALLOW_SIGNUP.toLowerCase() === "true"
-        : defVals.PUBLIC_ALLOW_SIGNUP,
     PUBLIC_TURNSTILE_SITE_KEY: process.env.PUBLIC_TURNSTILE_SITE_KEY ?? "",
     PUBLIC_APP_URL: process.env.PUBLIC_APP_URL ?? defVals.PUBLIC_APP_URL,
     PUBLIC_API_BASE_URL:
