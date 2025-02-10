@@ -7,6 +7,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 
 from questions.models import (
+    AggregateForecast,
     Conditional,
     Question,
     GroupOfQuestions,
@@ -154,9 +155,23 @@ class GroupOfQuestionsAdmin(CustomTranslationAdmin):
 
 
 @admin.register(Forecast)
-class ForecastsAdmin(admin.ModelAdmin):
+class ForecastAdmin(admin.ModelAdmin):
     list_display = ["__str__", "author", "question", "start_time", "end_time"]
     autocomplete_fields = ["author", "question"]
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+        return actions
+
+
+@admin.register(AggregateForecast)
+class AggregateForecastAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "method", "question", "start_time", "end_time"]
+    autocomplete_fields = ["question"]
+    search_fields = ["question__title_original"]
+    list_filter = ["method"]
 
     def get_actions(self, request):
         actions = super().get_actions(request)
