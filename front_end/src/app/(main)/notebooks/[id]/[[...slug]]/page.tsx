@@ -189,36 +189,46 @@ export default async function IndividualNotebook({ params }: Props) {
               postData={postData as NotebookPost}
               contentId={NOTEBOOK_CONTENT_SECTION}
             />
-            {!!postData.projects.category?.length && (
-              <div>
-                <div>{t("Categories") + ":"}</div>
+            <div className="flex flex-col gap-2">
+              {!!postData.projects.category?.length && (
                 <div>
-                  {postData.projects.category?.map((category) => (
-                    <div key={category.id}>
+                  <span className="font-medium">{t("Categories") + ":"}</span>
+                  {postData.projects.category?.map((category, index) => (
+                    <span key={category.id}>
+                      {" "}
                       <Link
+                        className="text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
                         href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
                       >
                         {category.name}
                       </Link>
-                    </div>
+                      {index < (postData.projects.category?.length ?? 0) - 1
+                        ? ","
+                        : "."}
+                    </span>
                   ))}
                 </div>
-              </div>
-            )}
-            {!!postData.projects.tag?.length && (
-              <div>
-                <div>{t("tags") + ":"}</div>
+              )}
+              {!!postData.projects.tag?.length && (
                 <div>
-                  {postData.projects.tag?.map((tag) => (
-                    <div key={tag.id}>
-                      <Link href={`/questions?${POST_TAGS_FILTER}=${tag.slug}`}>
+                  <span className="font-medium">{t("tags") + ":"}</span>
+                  {postData.projects.tag?.map((tag, index) => (
+                    <span key={tag.id}>
+                      {" "}
+                      <Link
+                        className="text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
+                        href={`/questions?${POST_TAGS_FILTER}=${tag.slug}`}
+                      >
                         {tag.name}
                       </Link>
-                    </div>
+                      {index < (postData.projects.tag?.length ?? 0) - 1
+                        ? ","
+                        : "."}
+                    </span>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             <CommentFeed
               postData={postData}
               id={NOTEBOOK_COMMENTS_TITLE}

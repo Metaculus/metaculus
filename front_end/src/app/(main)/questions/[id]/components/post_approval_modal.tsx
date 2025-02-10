@@ -1,9 +1,9 @@
 "use client";
 
-import { addDays } from "date-fns";
+import { addDays, isBefore } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
@@ -41,6 +41,13 @@ const PostApprovalModal: FC<{
       "yyyy-MM-dd'T'HH:mm:ss'Z'"
     ),
   }));
+
+  useEffect(() => {
+    setSubmitErrors(undefined);
+    if (!isBefore(approvalData.open_time, post.scheduled_close_time)) {
+      setSubmitErrors(new Error(t("closeDateError")));
+    }
+  }, [approvalData.open_time, post.scheduled_close_time, t]);
 
   const handleSubmit = useCallback(async () => {
     setIsLoading(true);
@@ -112,7 +119,14 @@ const PostApprovalModal: FC<{
           >
             {t("cancel")}
           </Button>
-          <Button onClick={handleSubmit} disabled={isLoading} variant="primary">
+          <Button
+            onClick={handleSubmit}
+            disabled={
+              isLoading ||
+              !isBefore(approvalData.open_time, post.scheduled_close_time)
+            }
+            variant="primary"
+          >
             {t("approve")}
           </Button>
         </div>

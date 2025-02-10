@@ -627,7 +627,6 @@ def update_leaderboards_for_question(question: Question):
                 update_project_leaderboard(leaderboard=leaderboard)
 
 
-@transaction.atomic()
 def create_forecast(
     *,
     question: Question = None,
@@ -641,19 +640,6 @@ def create_forecast(
     now = timezone.now()
     post = question.get_post()
 
-    forecast_to_end = (
-        Forecast.objects.filter(
-            Q(end_time__isnull=True) | Q(end_time__gt=now),
-            question=question,
-            author=user,
-        )
-        .order_by("start_time")
-        .last()
-    )
-    if forecast_to_end:
-        forecast_to_end.end_time = now
-        forecast_to_end.save()
-
     forecast = Forecast.objects.create(
         question=question,
         author=user,
@@ -662,11 +648,33 @@ def create_forecast(
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
-        distribution_input=distribution_input if question.type in ["date", "numeric"] else None,
+        distribution_input=(
+            distribution_input if question.type in ["date", "numeric"] else None
+        ),
         post=post,
         **kwargs,
     )
-    forecast.save()
+    # tidy up all forecasts
+    # go backwards through time and make sure end_time isn't none for any forecast other
+    # than the last one, and there aren't any invalid end_times
+    user_forecasts = list(
+        Forecast.objects.filter(
+            question=question,
+            author=user,
+        )
+        .only("start_time", "end_time")
+        .order_by("-start_time")
+    )
+    if len(user_forecasts) > 1:
+        next_forecast = user_forecasts[0]
+        for previous_forecast in user_forecasts[1:]:
+            if (
+                previous_forecast.end_time is None
+                or previous_forecast.end_time > next_forecast.start_time
+            ):
+                previous_forecast.end_time = next_forecast.start_time
+                previous_forecast.save()
+            next_forecast = previous_forecast
 
     return forecast
 
