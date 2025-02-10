@@ -33,6 +33,10 @@ BLOCKED_MEDIAS = [
 ]
 
 
+def check_itn_enabled():
+    return bool(settings.ITN_DB_MACHINE_SSH_ADDR)
+
+
 @contextlib.contextmanager
 def itn_db():
     with tempfile.NamedTemporaryFile() as tmp_ssh_key:

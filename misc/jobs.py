@@ -6,6 +6,7 @@ from misc.services.itn import (
     update_article_embedding_vector,
     sync_itn_news,
     clear_old_itn_news,
+    check_itn_enabled,
 )
 from utils.management import parallel_command_executor
 
@@ -25,6 +26,9 @@ def generate_embedding_vectors__worker(ids, worker_idx):
 
 
 def sync_itn_articles(num_processes: int = 1):
+    if not check_itn_enabled():
+        return
+
     # Sync fresh ITN news
     sync_itn_news()
 
