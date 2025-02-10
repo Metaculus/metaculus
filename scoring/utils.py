@@ -182,9 +182,7 @@ def generate_comment_insight_leaderboard_entries(
 ) -> list[LeaderboardEntry]:
     now = timezone.now()
 
-    posts = Post.objects.filter(
-        Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
-    ).exclude(
+    posts = Post.objects.filter_for_main_feed().exclude(
         curation_status__in=[
             Post.CurationStatus.REJECTED,
             Post.CurationStatus.DRAFT,
@@ -816,7 +814,13 @@ def get_contributions(
     leaderboard: Leaderboard,
 ) -> list[Contribution]:
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
-        main_feed_posts = Post.objects.filter_for_main_feed()
+        main_feed_posts = Post.objects.filter_for_main_feed().exclude(
+            curation_status__in=[
+                Post.CurationStatus.REJECTED,
+                Post.CurationStatus.DRAFT,
+                Post.CurationStatus.DELETED,
+            ]
+        )
         comments = Comment.objects.filter(
             on_post__in=main_feed_posts,
             author=user,
