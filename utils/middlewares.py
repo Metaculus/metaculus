@@ -6,6 +6,8 @@ from django.http import JsonResponse, HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
 
+from rest_framework import status
+
 from users.models import User
 
 logger = logging.getLogger(__name__)
@@ -35,9 +37,10 @@ class AuthenticationRequiredMiddleware:
 
     def __call__(self, request):
         if os.getenv("AUTHENTICATION_REQUIRED", "false").lower() == "true":
-
             # Always allow the user to log in or sign up
-            if request.path.startswith("/api/auth/"):
+            if request.path.startswith("/api/auth/") or request.path.startswith(
+                "/admin/"
+            ):
                 return self.get_response(request)
 
             # Check if the user is already a real logged-in user
@@ -47,6 +50,11 @@ class AuthenticationRequiredMiddleware:
                 user = User.objects.filter(auth_token=token).first()
                 if user:
                     return self.get_response(request)
+
+            # return 404 not found
+            return JsonResponse(
+                {"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         return self.get_response(request)
 
