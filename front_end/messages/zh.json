@@ -1071,5 +1071,12 @@
   "slider": "滑块",
   "lowerBound": "下界",
   "quartiles": "四分位数",
-  "upperBound": "上界"
+  "upperBound": "上界",
+  "signupInviteUsers": "邀请新用户",
+  "signupInviteUsersDescription": "输入您想邀请的用户的电子邮件地址，用换行符分隔。他们将通过电子邮件收到注册邀请。",
+  "signupInviteEmailAddresses": "电子邮件地址",
+  "signupInviteEmailAddressesPlaceholder": "每行输入一个电子邮件",
+  "signupInviteSendButton": "发送邀请",
+  "signupInviteSuccess": "邀请已发送",
+  "questionsBy": "提问者"
 }

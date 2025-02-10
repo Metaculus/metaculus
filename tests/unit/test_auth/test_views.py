@@ -1,5 +1,7 @@
+from django.conf import settings
 from rest_framework.reverse import reverse
 
+from authentication.services import SignupInviteService
 from tests.unit.fixtures import *  # noqa
 from users.models import User
 
@@ -53,3 +55,49 @@ class TestVerifyEmail:
         assert user.last_login
         assert response.data["token"]
         mock_send_activation_email.assert_not_called()
+
+    def test_signup_invitation(self, anon_client):
+        settings.PUBLIC_ALLOW_SIGNUP = False
+        token = SignupInviteService()._generate_token("invitedUser@metaculus.com")
+
+        # Wrong email + token
+        response = anon_client.post(
+            self.url,
+            {
+                "email": "user@metaculus.com",
+                "username": "new_user",
+                "password": "StrongPassword@1",
+                "is_bot": False,
+            },
+        )
+        assert response.status_code == 400
+        assert "token" in response.data["non_field_errors"][0]
+
+        # Wrong email
+        response = anon_client.post(
+            self.url,
+            {
+                "email": "user@metaculus.com",
+                "username": "new_user",
+                "password": "StrongPassword@1",
+                "invite_token": token,
+                "is_bot": False,
+            },
+        )
+        assert response.status_code == 400
+        assert "signup invitation" in response.data["non_field_errors"][0]
+
+        # Successful signup
+        response = anon_client.post(
+            self.url,
+            {
+                "email": "InvitedUser@metaculus.com",
+                "username": "new_user",
+                "password": "StrongPassword@1",
+                "invite_token": token,
+                "is_bot": False,
+            },
+        )
+        assert response.status_code == 201
+        assert response.data["is_active"] == True
+        assert response.data["token"]

@@ -5,7 +5,8 @@ import ResetPasswordModal, {
   ResetPasswordConfirmModal,
 } from "@/components/auth/password_reset";
 import SignInModal from "@/components/auth/signin";
-import SignUpModal, {
+import {
+  SignUpModal,
   AccountInactive,
   SignUpModalSuccess,
 } from "@/components/auth/signup";

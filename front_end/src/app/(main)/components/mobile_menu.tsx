@@ -23,6 +23,7 @@ import LanguageMenu from "@/components/language_menu";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { Href } from "@/types/navigation";
 import { Community } from "@/types/projects";
 import cn from "@/utils/cn";
@@ -65,6 +66,7 @@ type Props = {
 
 const MobileMenu: FC<Props> = ({ community, onClick }) => {
   const { user } = useAuth();
+  const { PUBLIC_ALLOW_SIGNUP } = usePublicSettings();
   const { setCurrentModal } = useModal();
   const t = useTranslations();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -159,7 +161,14 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                   {t("tutorial")}
                 </MenuLink>
                 {user.is_superuser && (
-                  <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
+                  <>
+                    {!PUBLIC_ALLOW_SIGNUP && (
+                      <MenuLink href={"/accounts/invite/"}>
+                        {t("signupInviteUsers")}
+                      </MenuLink>
+                    )}
+                    <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
+                  </>
                 )}
                 <MenuLink
                   onClick={() => {
@@ -255,9 +264,14 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                   >
                     {t("tutorial")}
                   </MenuLink>
-                  {user.is_superuser && (
+                  <>
+                    {!PUBLIC_ALLOW_SIGNUP && (
+                      <MenuLink href={"/accounts/invite/"}>
+                        {t("signupInviteUsers")}
+                      </MenuLink>
+                    )}
                     <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
-                  )}
+                  </>
                   <MenuLink
                     onClick={() => {
                       void LogOut();
