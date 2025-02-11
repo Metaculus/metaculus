@@ -8,7 +8,6 @@ export interface PublicSettings {
   PUBLIC_SENTRY_DSN: string;
   PUBLIC_GOOGLE_MEASUREMENT_ID: string;
   PUBLIC_DISALLOW_ALL_BOTS: boolean;
-  PUBLIC_LANDING_PAGE_URL: string;
   PUBLIC_ALLOW_TUTORIAL: boolean;
   PUBLIC_ALLOW_SIGNUP: boolean;
 }
@@ -23,7 +22,6 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_SENTRY_DSN: "",
   PUBLIC_GOOGLE_MEASUREMENT_ID: "",
   PUBLIC_DISALLOW_ALL_BOTS: true,
-  PUBLIC_LANDING_PAGE_URL: "/",
   PUBLIC_ALLOW_TUTORIAL: true,
   PUBLIC_ALLOW_SIGNUP: true,
 };
