@@ -8,33 +8,38 @@ export const signInSchema = z.object({
 });
 export type SignInSchema = z.infer<typeof signInSchema>;
 
-export const signUpSchema = z.intersection(
-  z.object({
-    username: z.string().min(1, { message: "Username is required" }),
-    email: z.string().min(1, { message: "Email is required" }),
-    isBot: z.boolean(),
-    turnstileToken: z.string().optional(),
-    inviteToken: z.string().optional(),
-    addToProject: z.number().optional(),
-    campaignKey: z.string().optional(),
-    campaignData: z.record(z.any()).optional(),
-  }),
-  z
-    .object({
-      password: z
-        .string()
-        .min(8, { message: "Password must be at least 8 characters" }),
-      passwordAgain: z
-        .string()
-        .min(8, { message: "Password must be at least 8 characters" }),
-    })
-    .refine((data) => data.passwordAgain === data.password, {
-      message: "The passwords did not match",
-      path: ["password"],
-    })
-);
+export const generateSignUpSchema = (turnstileToken: string) =>
+  z.intersection(
+    z.object({
+      username: z.string().min(1, { message: "Username is required" }),
+      email: z.string().min(1, { message: "Email is required" }),
+      isBot: z.boolean(),
+      turnstileToken: turnstileToken
+        ? z.string({
+            required_error: "Turnstile token is required",
+          })
+        : z.string().optional(),
+      inviteToken: z.string().optional(),
+      addToProject: z.number().optional(),
+      campaignKey: z.string().optional(),
+      campaignData: z.record(z.any()).optional(),
+    }),
+    z
+      .object({
+        password: z
+          .string()
+          .min(8, { message: "Password must be at least 8 characters" }),
+        passwordAgain: z
+          .string()
+          .min(8, { message: "Password must be at least 8 characters" }),
+      })
+      .refine((data) => data.passwordAgain === data.password, {
+        message: "The passwords did not match",
+        path: ["password"],
+      })
+  );
 
-export type SignUpSchema = z.infer<typeof signUpSchema>;
+export type SignUpSchema = z.infer<ReturnType<typeof generateSignUpSchema>>;
 
 export const changeUsernameSchema = z
   .object({
