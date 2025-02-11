@@ -10,6 +10,7 @@ from utils.frontend import (
     build_frontend_account_activation_url,
     build_frontend_password_reset_url,
     build_frontend_account_signup_invitation_url,
+    get_frontend_host,
 )
 
 
@@ -105,17 +106,19 @@ class SignupInviteService:
 
         return email
 
-    def send_email(self, email: str):
+    def send_email(self, invited_by: User, email: str):
         invite_token = self._generate_token(email)
         signup_link = build_frontend_account_signup_invitation_url(email, invite_token)
 
         send_email_with_template(
             email,
             "Metaculus Signup Invitation",
-            "emails/activation_signup_invite.html",
+            "emails/signup_invite.html",
             context={
                 "email": email,
                 "signup_link": signup_link,
+                "invited_by": invited_by.username,
+                "app_name": get_frontend_host(),
             },
             from_email=settings.EMAIL_HOST_USER,
         )

@@ -221,6 +221,6 @@ def invite_user_api_view(request):
     )
 
     for email in emails:
-        SignupInviteService().send_email(email)
+        SignupInviteService().send_email(request.user, email)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
