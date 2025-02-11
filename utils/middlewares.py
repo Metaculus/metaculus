@@ -1,12 +1,9 @@
-import os
 import logging
 
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
-
-from rest_framework import status
 
 from users.models import User
 
@@ -30,31 +27,31 @@ class LocaleOverrideMiddleware:
         return response
 
 
-class AuthenticationRequiredMiddleware:
+class AuthenticationRequiredMiddleware(MiddlewareMixin):
 
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        if os.getenv("AUTHENTICATION_REQUIRED", "false").lower() == "true":
+    def process_request(self, request):
+        if settings.AUTHENTICATION_REQUIRED:
             # Always allow the user to log in or sign up
-            if request.path.startswith("/api/auth/") or request.path.startswith(
-                "/admin/"
+            if any(
+                [
+                    request.path.startswith("/admin/"),
+                    request.path.startswith("/api/auth/"),
+                    request.path.startswith("/accounts/signup/"),
+                    request.path.startswith("/static/"),
+                ]
             ):
                 return self.get_response(request)
 
             # Check if the user is already a real logged-in user
-            # Unsure why request.user is always Anonymous as this is the last middleware
-            token = request.headers.get("Authorization", "").split(" ")[-1]
-            if token:
-                user = User.objects.filter(auth_token=token).first()
-                if user:
-                    return self.get_response(request)
-
-            # return 404 not found
-            return JsonResponse(
-                {"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+            if request.user.is_authenticated:
+                return self.get_response(request)
+            # # Unsure why request.user is always Anonymous as this is the last middleware
+            # token = request.headers.get("Authorization", "").split(" ")[-1]
+            # if token:
+            #     user = User.objects.filter(auth_token=token).first()
+            #     if user:
+            #         return self.get_response(request)
+            raise Http404()
 
         return self.get_response(request)
 
