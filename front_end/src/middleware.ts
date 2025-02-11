@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
   if (process.env.AUTHENTICATION_REQUIRED?.toLowerCase() === "true") {
     if (
       !request.nextUrl.pathname.startsWith("/not-found/") &&
-      !request.nextUrl.pathname.startsWith("/accounts/signup/") &&
+      !request.nextUrl.pathname.startsWith("/accounts/") &&
       !getServerSession()
     ) {
       // return a not found page
