@@ -35,7 +35,6 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
                 [
                     request.path.startswith("/admin/"),
                     request.path.startswith("/api/auth/"),
-                    request.path.startswith("/accounts/signup/"),
                     request.path.startswith("/static/"),
                 ]
             ):
