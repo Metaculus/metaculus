@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { getPublicSettings } from "@/utils/public-settings";
+import { getPublicSettings } from "@/utils/public_settings.server";
 export const dynamic = "force-dynamic";
 
 const { PUBLIC_DISALLOW_ALL_BOTS } = getPublicSettings();
