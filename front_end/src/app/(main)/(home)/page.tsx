@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
@@ -22,6 +23,12 @@ import TopicLink from "./components/topic_link";
 import TournamentsBlock from "./components/tournaments_block";
 
 export default async function Home() {
+  const landingUrl = process.env.PUBLIC_LANDING_PAGE_URL || "/";
+
+  if (landingUrl !== "/") {
+    return redirect(landingUrl);
+  }
+
   const t = await getTranslations();
   const topics = await ProjectsApi.getTopics();
   const hotTopics = topics.filter((t) => t.section === "hot_topics");
