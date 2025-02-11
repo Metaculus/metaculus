@@ -73,6 +73,7 @@ RUN mkdir -p /var/cache/nginx && chown -R 1001:0 /var/cache/nginx && \
     mkdir -p /var/lib/nginx  && chown -R 1001:0 /var/lib/nginx && \
     touch /run/nginx.pid && chown -R 1001:0 /run/nginx.pid && \
     chown -R 1001:0 /etc/nginx && \
+    chmod -R 755 /var/lib/nginx /var/log/nginx && \
     rm /etc/nginx/http.d/default.conf
 
 # This is done to copy only the source code from HEAD into the image to avoid a COPY . and managing a long .dockerignore
