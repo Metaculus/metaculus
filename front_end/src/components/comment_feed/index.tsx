@@ -17,6 +17,7 @@ import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import useHash from "@/hooks/use_hash";
 import { getCommentsParams } from "@/services/comments";
 import { BECommentType, CommentType } from "@/types/comment";
@@ -126,11 +127,14 @@ const CommentFeed: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const [userCommentsAmount, setUserCommentsAmount] = useState<number | null>(
     user ? NEW_USER_COMMENT_LIMIT : null
   );
   const showWelcomeMessage =
-    userCommentsAmount !== null && userCommentsAmount < NEW_USER_COMMENT_LIMIT;
+    userCommentsAmount !== null &&
+    userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
+    !PUBLIC_MINIMAL_UI;
   /**
    * Returns commentId to focus on if id is provided and comment is not already rendered
    */
