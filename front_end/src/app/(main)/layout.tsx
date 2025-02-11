@@ -3,7 +3,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 
 import { defaultDescription } from "@/constants/metadata";
-import { getPublicSettings } from "@/utils/public-settings";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import FeedbackFloat from "./(home)/components/feedback_float";
 import Bulletins from "./components/bulletins";

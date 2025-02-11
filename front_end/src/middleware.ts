@@ -9,7 +9,7 @@ import {
 import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 
-import { getPublicSettings } from "./utils/public-settings";
+import { getPublicSettings } from "./utils/public_settings.server";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

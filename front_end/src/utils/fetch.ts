@@ -10,7 +10,7 @@ import {
 } from "@/types/fetch";
 
 import { extractError } from "./errors";
-import { getPublicSettings } from "./public-settings";
+import { getPublicSettings } from "./public_settings.server";
 
 class ApiError extends Error {
   public digest: string;

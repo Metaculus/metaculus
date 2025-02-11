@@ -5,7 +5,7 @@ import {
   HIDE_ZOOM_PICKER,
 } from "@/constants/global_search_params";
 import { logError } from "@/utils/errors";
-import { getPublicSettings } from "@/utils/public-settings";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function GET(
   request: NextRequest,

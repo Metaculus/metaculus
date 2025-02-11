@@ -2,7 +2,7 @@
 
 import AuthApi from "@/services/auth";
 import MiscApi, { ContactForm } from "@/services/misc";
-import { getPublicSettings } from "@/utils/public-settings";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function submitContactForm(data: ContactForm) {
   return await MiscApi.submitContactForm(data);

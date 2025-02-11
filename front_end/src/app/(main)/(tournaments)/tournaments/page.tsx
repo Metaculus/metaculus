@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 
 import ProjectsApi from "@/services/projects";
 import { TournamentPreview, TournamentType } from "@/types/projects";
-import { getPublicSettings } from "@/utils/public-settings";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import TournamentFilters from "./components/tournament_filters";
 import TournamentsList from "./components/tournaments_list";

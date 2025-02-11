@@ -3,7 +3,7 @@
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
 import { SocialProviderType } from "@/types/auth";
-import { getPublicSettings } from "@/utils/public-settings";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function exchangeSocialOauthCode(
   provider: SocialProviderType,
