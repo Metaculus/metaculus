@@ -3,9 +3,9 @@
 import { createContext, FC, PropsWithChildren, useContext } from "react";
 
 import {
-  PublicSettings,
+  type PublicSettings,
   defaultPublicSettingsValues,
-} from "@/utils/public-settings";
+} from "@/utils/public_settings";
 
 export const PublicSettingsContext = createContext<PublicSettings>(
   defaultPublicSettingsValues

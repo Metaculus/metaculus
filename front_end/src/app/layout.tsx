@@ -20,7 +20,7 @@ import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import ProfileApi from "@/services/profile";
-import { getPublicSettings } from "@/utils/public-settings";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
 const publicSettings = getPublicSettings();
