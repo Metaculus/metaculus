@@ -26,3 +26,10 @@ export PUBLIC_TURNSTILE_SITE_KEY=
 export OPENAI_API_KEY=
 # Required for search
 export SERPER_API_KEY=
+
+# Settings
+export PUBLIC_LANDING_PAGE_URL="/" # Defaults to /
+export PUBLIC_MINIMAL_UI=true # Defaults to false
+export PUBLIC_ALLOW_TUTORIAL=false # Defaults to true
+
+

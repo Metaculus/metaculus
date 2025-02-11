@@ -119,7 +119,11 @@ const appFetch = async <T>(
     passAuthHeader = false;
   }
 
-  const authToken = passAuthHeader ? getServerSession() : null;
+  const AUTHENTICATION_REQUIRED =
+    (process.env.AUTHENTICATION_REQUIRED ?? "false").toLowerCase() === "true";
+
+  const authToken =
+    passAuthHeader || AUTHENTICATION_REQUIRED ? getServerSession() : null;
   const alphaToken = getAlphaTokenSession();
   const locale = includeLocale ? await getLocale() : "en";
   const { PUBLIC_API_BASE_URL } = getPublicSettings();

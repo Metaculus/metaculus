@@ -3,6 +3,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 
 import { defaultDescription } from "@/constants/metadata";
+import { getPublicSettings } from "@/utils/public-settings";
 
 import FeedbackFloat from "./(home)/components/feedback_float";
 import Bulletins from "./components/bulletins";
@@ -17,6 +18,8 @@ export const metadata: Metadata = {
   description: defaultDescription,
 };
 
+const { PUBLIC_MINIMAL_UI } = getPublicSettings();
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -27,8 +30,12 @@ export default async function RootLayout({
       <GlobalHeader />
       <Bulletins />
       <div className="flex-grow">{children}</div>
-      <FeedbackFloat />
-      <Footer />
+      {!PUBLIC_MINIMAL_UI && (
+        <>
+          <FeedbackFloat />
+          <Footer />
+        </>
+      )}
       <CookiesBanner />
     </div>
   );

@@ -105,6 +105,8 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
     setIsSearchOpen(false);
   };
 
+  const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
+
   if (!!community) {
     return (
       <Menu>
@@ -155,11 +157,13 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                 <MenuLink href={"/accounts/settings/"}>
                   {t("settings")}
                 </MenuLink>
-                <MenuLink
-                  onClick={() => setCurrentModal({ type: "onboarding" })}
-                >
-                  {t("tutorial")}
-                </MenuLink>
+                {PUBLIC_ALLOW_TUTORIAL && (
+                  <MenuLink
+                    onClick={() => setCurrentModal({ type: "onboarding" })}
+                  >
+                    {t("tutorial")}
+                  </MenuLink>
+                )}
                 {user.is_superuser && (
                   <>
                     {!PUBLIC_ALLOW_SIGNUP && (
@@ -259,19 +263,23 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                   <MenuLink href={"/accounts/settings/"}>
                     {t("settings")}
                   </MenuLink>
-                  <MenuLink
-                    onClick={() => setCurrentModal({ type: "onboarding" })}
-                  >
-                    {t("tutorial")}
-                  </MenuLink>
-                  <>
-                    {!PUBLIC_ALLOW_SIGNUP && (
-                      <MenuLink href={"/accounts/invite/"}>
-                        {t("signupInviteUsers")}
-                      </MenuLink>
-                    )}
-                    <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
-                  </>
+                  {PUBLIC_ALLOW_TUTORIAL && (
+                    <MenuLink
+                      onClick={() => setCurrentModal({ type: "onboarding" })}
+                    >
+                      {t("tutorial")}
+                    </MenuLink>
+                  )}
+                  {user.is_superuser && (
+                    <>
+                      {!PUBLIC_ALLOW_SIGNUP && (
+                        <MenuLink href={"/accounts/invite/"}>
+                          {t("signupInviteUsers")}
+                        </MenuLink>
+                      )}
+                      <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
+                    </>
+                  )}
                   <MenuLink
                     onClick={() => {
                       void LogOut();

@@ -8,6 +8,8 @@ export interface PublicSettings {
   PUBLIC_SENTRY_DSN: string;
   PUBLIC_GOOGLE_MEASUREMENT_ID: string;
   PUBLIC_DISALLOW_ALL_BOTS: boolean;
+  PUBLIC_LANDING_PAGE_URL: string;
+  PUBLIC_ALLOW_TUTORIAL: boolean;
   PUBLIC_ALLOW_SIGNUP: boolean;
 }
 
@@ -21,6 +23,8 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_SENTRY_DSN: "",
   PUBLIC_GOOGLE_MEASUREMENT_ID: "",
   PUBLIC_DISALLOW_ALL_BOTS: true,
+  PUBLIC_LANDING_PAGE_URL: "/",
+  PUBLIC_ALLOW_TUTORIAL: true,
   PUBLIC_ALLOW_SIGNUP: true,
 };
 
@@ -30,7 +34,7 @@ export function getPublicSettings() {
   return {
     PUBLIC_MINIMAL_UI:
       process.env.PUBLIC_MINIMAL_UI !== undefined
-        ? process.env.PUBLIC_MINIMAL_UI === "true"
+        ? process.env.PUBLIC_MINIMAL_UI.toLowerCase() === "true"
         : defVals.PUBLIC_MINIMAL_UI,
     PUBLIC_TURNSTILE_SITE_KEY: process.env.PUBLIC_TURNSTILE_SITE_KEY ?? "",
     PUBLIC_APP_URL: process.env.PUBLIC_APP_URL ?? defVals.PUBLIC_APP_URL,
@@ -45,6 +49,12 @@ export function getPublicSettings() {
       process.env.PUBLIC_DISALLOW_ALL_BOTS !== undefined
         ? process.env.PUBLIC_DISALLOW_ALL_BOTS === "true"
         : defVals.PUBLIC_DISALLOW_ALL_BOTS,
+    PUBLIC_LANDING_PAGE_URL:
+      process.env.PUBLIC_LANDING_PAGE_URL ?? defVals.PUBLIC_LANDING_PAGE_URL,
+    PUBLIC_ALLOW_TUTORIAL:
+      process.env.PUBLIC_ALLOW_TUTORIAL !== undefined
+        ? process.env.PUBLIC_ALLOW_TUTORIAL.toLowerCase() === "true"
+        : defVals.PUBLIC_ALLOW_TUTORIAL,
     PUBLIC_ALLOW_SIGNUP:
       process.env.PUBLIC_ALLOW_SIGNUP !== undefined
         ? process.env.PUBLIC_ALLOW_SIGNUP === "true"
