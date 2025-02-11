@@ -4,8 +4,7 @@ from django.conf import settings
 from django.http import JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
-
-from users.models import User
+from rest_framework.authentication import TokenAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +38,9 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
                 ]
             ):
                 return None
-            token = request.headers.get("Authorization", "").split(" ")[-1]
-            if token:
-                if User.objects.filter(auth_token=token).first():
-                    return None
-            raise Http404()
+
+            if not TokenAuthentication().authenticate(request):
+                raise Http404()
         return None
 
 
