@@ -10,6 +10,7 @@ export interface PublicSettings {
   PUBLIC_DISALLOW_ALL_BOTS: boolean;
   PUBLIC_LANDING_PAGE_URL: string;
   PUBLIC_ALLOW_TUTORIAL: boolean;
+  PUBLIC_ALLOW_SIGNUP: boolean;
 }
 
 export const defaultPublicSettingsValues: PublicSettings = {
@@ -24,6 +25,7 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_DISALLOW_ALL_BOTS: true,
   PUBLIC_LANDING_PAGE_URL: "/",
   PUBLIC_ALLOW_TUTORIAL: true,
+  PUBLIC_ALLOW_SIGNUP: true,
 };
 
 export function getPublicSettings() {
@@ -53,5 +55,9 @@ export function getPublicSettings() {
       process.env.PUBLIC_ALLOW_TUTORIAL !== undefined
         ? process.env.PUBLIC_ALLOW_TUTORIAL.toLowerCase() === "true"
         : defVals.PUBLIC_ALLOW_TUTORIAL,
+    PUBLIC_ALLOW_SIGNUP:
+      process.env.PUBLIC_ALLOW_SIGNUP !== undefined
+        ? process.env.PUBLIC_ALLOW_SIGNUP === "true"
+        : defVals.PUBLIC_ALLOW_SIGNUP,
   };
 }

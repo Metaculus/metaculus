@@ -19,6 +19,7 @@ type Props = {
 
 const NavUserButton: FC<Props> = ({ btnClassName }) => {
   const { setCurrentModal } = useModal();
+  const { PUBLIC_ALLOW_SIGNUP } = usePublicSettings();
   const { user } = useAuth();
   const t = useTranslations();
   const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
@@ -76,14 +77,26 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
           </MenuItem>
         )}
         {user.is_superuser && (
-          <MenuItem>
-            <Link
-              className="flex items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
-              href={"/admin/"}
-            >
-              {t("admin")}
-            </Link>
-          </MenuItem>
+          <>
+            {!PUBLIC_ALLOW_SIGNUP && (
+              <MenuItem>
+                <Link
+                  className="flex items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
+                  href={"/accounts/invite/"}
+                >
+                  {t("signupInviteUsers")}
+                </Link>
+              </MenuItem>
+            )}
+            <MenuItem>
+              <Link
+                className="flex items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
+                href={"/admin/"}
+              >
+                {t("admin")}
+              </Link>
+            </MenuItem>
+          </>
         )}
         <MenuItem>
           <a

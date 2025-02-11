@@ -66,6 +66,7 @@ type Props = {
 
 const MobileMenu: FC<Props> = ({ community, onClick }) => {
   const { user } = useAuth();
+  const { PUBLIC_ALLOW_SIGNUP } = usePublicSettings();
   const { setCurrentModal } = useModal();
   const t = useTranslations();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -164,7 +165,14 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                   </MenuLink>
                 )}
                 {user.is_superuser && (
-                  <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
+                  <>
+                    {!PUBLIC_ALLOW_SIGNUP && (
+                      <MenuLink href={"/accounts/invite/"}>
+                        {t("signupInviteUsers")}
+                      </MenuLink>
+                    )}
+                    <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
+                  </>
                 )}
                 <MenuLink
                   onClick={() => {
@@ -263,7 +271,14 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
                     </MenuLink>
                   )}
                   {user.is_superuser && (
-                    <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
+                    <>
+                      {!PUBLIC_ALLOW_SIGNUP && (
+                        <MenuLink href={"/accounts/invite/"}>
+                          {t("signupInviteUsers")}
+                        </MenuLink>
+                      )}
+                      <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
+                    </>
                   )}
                   <MenuLink
                     onClick={() => {
