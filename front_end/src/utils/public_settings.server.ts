@@ -22,8 +22,6 @@ export function getPublicSettings() {
       process.env.PUBLIC_DISALLOW_ALL_BOTS !== undefined
         ? process.env.PUBLIC_DISALLOW_ALL_BOTS === "true"
         : defVals.PUBLIC_DISALLOW_ALL_BOTS,
-    PUBLIC_LANDING_PAGE_URL:
-      process.env.PUBLIC_LANDING_PAGE_URL ?? defVals.PUBLIC_LANDING_PAGE_URL,
     PUBLIC_ALLOW_TUTORIAL:
       process.env.PUBLIC_ALLOW_TUTORIAL !== undefined
         ? process.env.PUBLIC_ALLOW_TUTORIAL.toLowerCase() === "true"
