@@ -29,9 +29,8 @@ class LocaleOverrideMiddleware:
 
 class AuthenticationRequiredMiddleware(MiddlewareMixin):
 
-    def process_request(self, request):
+    def process_view(self, request, view_func, view_args, view_kwargs):
         if settings.AUTHENTICATION_REQUIRED:
-            # Always allow the user to log in or sign up
             if any(
                 [
                     request.path.startswith("/admin/"),
@@ -40,20 +39,13 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
                     request.path.startswith("/static/"),
                 ]
             ):
-                return self.get_response(request)
-
-            # Check if the user is already a real logged-in user
-            if request.user.is_authenticated:
-                return self.get_response(request)
-            # # Unsure why request.user is always Anonymous as this is the last middleware
-            # token = request.headers.get("Authorization", "").split(" ")[-1]
-            # if token:
-            #     user = User.objects.filter(auth_token=token).first()
-            #     if user:
-            #         return self.get_response(request)
+                return None
+            token = request.headers.get("Authorization", "").split(" ")[-1]
+            if token:
+                if User.objects.filter(auth_token=token).first():
+                    return None
             raise Http404()
-
-        return self.get_response(request)
+        return None
 
 
 def middleware_alpha_access_check(get_response):
