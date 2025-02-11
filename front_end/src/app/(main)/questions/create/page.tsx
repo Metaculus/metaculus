@@ -8,7 +8,7 @@ import QuestionRepost from "@/app/(main)/questions/components/question_repost";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
-import { getPublicSettings } from "@/utils/public-settings";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import QuestionTypePicker from "../components/question_type_picker";
 

@@ -20,7 +20,7 @@ import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
 import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
-import { getPublicSettings } from "@/utils/public-settings";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import TournamentDropdownMenu from "../components/dropdown_menu";
 import TournamentFeed from "../components/tournament_feed";
