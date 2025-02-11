@@ -12,7 +12,10 @@ import React, { FC, useRef, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 
 import { signUpAction, SignUpActionState } from "@/app/(main)/accounts/actions";
-import { SignUpSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
+import {
+  SignUpSchema,
+  generateSignUpSchema,
+} from "@/app/(main)/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
@@ -43,7 +46,7 @@ export const SignupForm: FC<{
   const turnstileRef = useRef<TurnstileInstance | undefined>();
 
   const methods = useForm<SignUpSchema>({
-    resolver: zodResolver(signUpSchema),
+    resolver: zodResolver(generateSignUpSchema(PUBLIC_TURNSTILE_SITE_KEY)),
     defaultValues: {
       email,
       isBot: forceIsBot ?? false,

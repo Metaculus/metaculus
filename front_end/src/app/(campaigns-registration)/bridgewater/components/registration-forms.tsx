@@ -15,7 +15,10 @@ import {
   registerUserCampaignAction,
   signUpAction,
 } from "@/app/(main)/accounts/actions";
-import { signUpSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
+import {
+  generateSignUpSchema,
+  SignUpSchema,
+} from "@/app/(main)/accounts/schemas";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
@@ -219,9 +222,13 @@ export const RegistrationAndSignupForm: FC<
   const t = useTranslations();
   const [isTurnstileValidated, setIsTurnstileValidate] = useState(false);
   const turnstileRef = useRef<TurnstileInstance | undefined>();
+  const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const methods = useForm<SignUpSchema & TournamentRegistrationSchema>({
     resolver: zodResolver(
-      z.intersection(signUpSchema, tournamentRegistrationSchema)
+      z.intersection(
+        generateSignUpSchema(PUBLIC_TURNSTILE_SITE_KEY),
+        tournamentRegistrationSchema
+      )
     ),
     defaultValues: {
       isBot: false,
@@ -235,8 +242,6 @@ export const RegistrationAndSignupForm: FC<
     methods;
 
   const currentLocation = usePathname();
-
-  const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
 
   const onSubmit = async (data: SignUpSchema) => {
     const response = await signUpAction({
