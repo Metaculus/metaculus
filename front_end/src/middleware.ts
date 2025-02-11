@@ -9,8 +9,6 @@ import {
 import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 
-import { getPublicSettings } from "./utils/public_settings.server";
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -24,11 +22,6 @@ export async function middleware(request: NextRequest) {
       // return a not found page
       return NextResponse.rewrite(new URL("/not-found/", request.url));
     }
-  }
-
-  const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
-  if (pathname === "/" && pathname !== PUBLIC_LANDING_PAGE_URL) {
-    return NextResponse.redirect(new URL(PUBLIC_LANDING_PAGE_URL, request.url));
   }
 
   let deleteCookieToken = false;
