@@ -95,6 +95,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "utils.middlewares.middleware_alpha_access_check",
+    "utils.middlewares.AuthenticationRequiredMiddleware",
 ]
 
 if DEBUG:
@@ -196,6 +197,9 @@ AUTH_SIGNUP_VERIFY_EMAIL = (
     os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
 )
 
+AUTHENTICATION_REQUIRED = (
+    os.environ.get("AUTHENTICATION_REQUIRED", "false").lower() == "true"
+)
 PUBLIC_ALLOW_SIGNUP = os.environ.get("PUBLIC_ALLOW_SIGNUP", "true").lower() == "true"
 
 SOCIAL_AUTH_PIPELINE = (
