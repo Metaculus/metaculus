@@ -12,7 +12,7 @@
 
                 <mj-text>
                     {% blocktrans %}
-                    You've been invited to join Metaculus!
+                    {{ invited_by }} has invited to join {{ app_name }}.
                     {% endblocktrans %}
                     <p>
                         {% blocktrans %}
@@ -21,7 +21,7 @@
                     </p>
                     <p>
                         {% blocktrans %}
-                        Please <a href="{{ signup_link }}">click here</a> to create your account and start using Metaculus.
+                        Please <a href="{{ signup_link }}">click here</a> to create your account and start forecasting.
                         {% endblocktrans %}
                     </p>
                     <p style="font-size: 80%;">

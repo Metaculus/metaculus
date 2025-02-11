@@ -1,4 +1,4 @@
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
 from django.utils.text import slugify
@@ -9,6 +9,10 @@ def build_frontend_url(path: str = None):
     path = path.strip().lstrip("/") if path else ""
 
     return f"{base_url}/{path}"
+
+
+def get_frontend_host() -> str:
+    return urlparse(build_frontend_url()).netloc
 
 
 def build_frontend_account_activation_url(

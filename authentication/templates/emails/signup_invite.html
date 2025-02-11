@@ -149,8 +149,8 @@
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} You've been invited to join Metaculus! {% endblocktrans %} <p> {% blocktrans %} To complete your registration, please follow the link below: {% endblocktrans %} </p>
-                          <p> {% blocktrans %} Please <a href="{{ signup_link }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">click here</a> to create your account and start using Metaculus. {% endblocktrans %} </p>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} {{ invited_by }} has invited to join {{ app_name }}. {% endblocktrans %} <p> {% blocktrans %} To complete your registration, please follow the link below: {% endblocktrans %} </p>
+                          <p> {% blocktrans %} Please <a href="{{ signup_link }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">click here</a> to create your account and start forecasting. {% endblocktrans %} </p>
                           <p style="font-size: 80%;"> {% blocktrans %} Alternatively, you can copy and paste the following link into a browser: {% endblocktrans %} <br>
                             {{ signup_link }}
                           </p>
