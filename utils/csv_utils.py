@@ -49,17 +49,12 @@ def export_data_for_questions(
     )
     if user_ids:
         forecasts = forecasts.filter(author_id__in=user_ids)
+
+    aggregate_forecasts = []
     if aggregation_dict is not None:
-        aggregate_forecasts = []
         for ad in aggregation_dict.values():
             for afs in ad.values():
                 aggregate_forecasts.extend(afs)
-    else:
-        aggregate_forecasts = list(
-            AggregateForecast.objects.filter(question_id__in=question_ids)
-            .select_related("question")
-            .order_by("question_id", "start_time")
-        )
 
     comments = (
         Comment.objects.none()

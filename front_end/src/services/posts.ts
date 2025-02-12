@@ -222,7 +222,9 @@ class PostsApi {
   }
 
   static async getPostZipData(postId: number): Promise<Blob> {
-    return await get<Blob>(`/posts/${postId}/download-data/`);
+    return await get<Blob>(
+      `/posts/${postId}/download-data/?aggregation_methods=recency_weighted`
+    );
   }
 
   static async repost(postId: number, projectId: number) {
