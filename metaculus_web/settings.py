@@ -295,9 +295,6 @@ REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 REDIS_URL_CONFIG = os.environ.get("REDIS_URL_CONFIG", "")
 
 SCREENSHOT_SERVICE_API_KEY = os.environ.get("SCREENSHOT_SERVICE_API_KEY", "")
-SCREENSHOT_SERVICE_API_URL = os.environ.get(
-    "SCREENSHOT_SERVICE_API_URL", "https://screenshot.metaculus.com/api/screenshot"
-)
 
 # django-dramatiq
 # https://github.com/Bogdanp/django_dramatiq
