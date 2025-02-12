@@ -100,41 +100,31 @@ export type DistributionSliderComponent = {
   right: number;
 };
 
-export type DistributionQuantileComponent = {
-  // < lower bound
-  p0: number;
-  // 25%
-  q1: number;
-  // median
-  q2: number;
-  // 75%
-  q3: number;
-  // > upper bound
-  p4: number;
+export enum Quantile {
+  lower = "below_lower_bound",
+  upper = "above_upper_bound",
+  q1 = 25,
+  q2 = 50,
+  q3 = 75,
+}
+
+export type QuantileValue = {
+  quantile: Quantile;
+  value?: number; // quantile value or out of bounds value
+  isDirty?: boolean;
 };
 
-export type DistributionQuantileValue = {
-  value?: number;
-  isDirty: boolean;
-};
-
-export type DistributionQuantileComponentWithState = {
-  p0: DistributionQuantileValue;
-  q1: DistributionQuantileValue;
-  q2: DistributionQuantileValue;
-  q3: DistributionQuantileValue;
-  p4: DistributionQuantileValue;
-};
+export type DistributionQuantileComponent = QuantileValue[];
 
 export type DistributionSlider =
   DistributionInput<DistributionSliderComponent> & {
     type: "slider";
   };
 
-export type DistributionQuantile =
-  DistributionInput<DistributionQuantileComponent> & {
-    type: "quantile";
-  };
+export type DistributionQuantile = {
+  components: DistributionQuantileComponent;
+  type: "quantile";
+};
 
 export type UserForecast = Forecast & {
   distribution_input: DistributionSlider | DistributionQuantile;

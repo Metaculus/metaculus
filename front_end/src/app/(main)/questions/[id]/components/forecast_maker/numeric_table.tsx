@@ -1,3 +1,4 @@
+import { uniq } from "lodash";
 import { useTranslations } from "next-intl";
 import React, {
   DetailedHTMLProps,
@@ -13,8 +14,8 @@ import { ForecastInputType } from "@/types/charts";
 import {
   Bounds,
   DistributionQuantileComponent,
-  DistributionQuantileComponentWithState,
-  DistributionQuantileValue,
+  Quantile,
+  QuantileValue,
   Quartiles,
   QuestionType,
   QuestionWithNumericForecasts,
@@ -22,7 +23,7 @@ import {
 import { displayValue, getTableDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 
-import { validateQuantileInput } from "./helpers";
+import { validateAllQuantileInputs } from "./helpers";
 import NumericTableInput from "./numeric_table_input";
 
 type Props = {
@@ -38,9 +39,9 @@ type Props = {
   hasUserForecast?: boolean;
   isDirty?: boolean;
   forecastInputMode?: ForecastInputType;
-  quantileComponents?: DistributionQuantileComponentWithState[];
+  quantileComponents?: DistributionQuantileComponent;
   onQuantileChange?: React.Dispatch<
-    React.SetStateAction<DistributionQuantileComponentWithState[]>
+    React.SetStateAction<DistributionQuantileComponent>
   >;
 };
 
@@ -61,126 +62,78 @@ const NumericForecastTable: FC<Props> = ({
   onQuantileChange,
 }) => {
   const t = useTranslations();
-  const quantilesToValidate = [
-    question.open_lower_bound ? "p0" : undefined,
-    "q1",
-    "q2",
-    "q3",
-    question.open_upper_bound ? "p4" : undefined,
-  ].filter(
-    (quantile) => quantile !== undefined
-  ) as (keyof DistributionQuantileComponent)[];
   // initial state is a safety measure to avoid errors when we already have slider forecast
   // and we switch to quantile forecast with transformed values
   const [errors, setErrors] = useState<
     {
-      quantile: keyof DistributionQuantileComponent;
+      quantile: Quantile;
       message?: string;
     }[]
   >(
     quantileComponents
-      ? quantilesToValidate
-          .map((quantileKey) => {
-            return {
-              quantile: quantileKey,
-              message: validateQuantileInput({
-                question,
-                components: quantileComponents,
-                newValue: quantileComponents[0]?.[quantileKey]?.value,
-                quantile: quantileKey,
-                t,
-              }),
-            };
-          })
-          .filter((error) => error.message !== undefined)
+      ? validateAllQuantileInputs({
+          question,
+          components: quantileComponents,
+          t,
+          checkDirtyState: false,
+        })
       : []
   );
 
   useEffect(() => {
     // clear errors on discard click
     if (
-      Object.values(quantileComponents?.[0] ?? {}).every(
-        (value) => !value?.isDirty
-      )
+      Object.values(quantileComponents ?? []).every((value) => !value?.isDirty)
     ) {
       setErrors([]);
     }
-    // revalidate when we make a new forecast with slider and tranform it to quantile data
+    // revalidate when we make a new forecast with slider and transform it to quantile data
     if (
       forecastInputMode === ForecastInputType.Slider &&
       quantileComponents &&
-      Object.values(quantileComponents?.[0] ?? {}).every(
-        (value) => value?.isDirty
-      )
+      Object.values(quantileComponents ?? []).every((value) => value?.isDirty)
     ) {
       setErrors(
-        quantilesToValidate
-          .map((quantileKey) => {
-            return {
-              quantile: quantileKey,
-              message: validateQuantileInput({
-                question,
-                components: quantileComponents,
-                newValue: quantileComponents[0]?.[quantileKey]?.value,
-                quantile: quantileKey,
-                t,
-              }),
-            };
-          })
-          .filter((error) => error.message !== undefined)
+        validateAllQuantileInputs({
+          question,
+          components: quantileComponents,
+          t,
+          checkDirtyState: false,
+        })
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quantileComponents]);
 
   const handleQuantileChange = useCallback(
-    (
-      quantile: keyof DistributionQuantileComponent,
-      newValue: DistributionQuantileValue
-    ) => {
+    (quantile: Quantile, newValue: Partial<QuantileValue>) => {
       if (!quantileComponents || !onQuantileChange) return;
       setErrors([]);
-      onQuantileChange((prev) => [
-        {
-          ...prev[0],
-          [quantile]: {
-            value: newValue.value,
-            isDirty: newValue.isDirty,
-          },
-        } as DistributionQuantileComponentWithState,
-      ]);
-      const localQuantileComponents = [
-        {
-          ...quantileComponents[0],
-          [quantile]: {
-            value: newValue?.value,
-            isDirty: newValue?.isDirty,
-          },
-        } as DistributionQuantileComponentWithState,
-      ];
+      const localQuantileComponents = [...quantileComponents];
+      const quantileIndex = localQuantileComponents.findIndex(
+        (q) => q.quantile === quantile
+      );
+      if (quantileIndex !== -1) {
+        localQuantileComponents[quantileIndex] = {
+          quantile: quantile,
+          value: newValue.value,
+          isDirty: newValue.isDirty,
+        };
+      }
+      onQuantileChange(() => localQuantileComponents);
 
-      const errors = quantilesToValidate
-        .map((quantileKey) => {
-          return {
-            quantile: quantileKey,
-            message: validateQuantileInput({
-              question,
-              components: localQuantileComponents,
-              newValue:
-                quantileKey === quantile
-                  ? newValue?.value
-                  : localQuantileComponents[0]?.[quantileKey]?.value,
-              quantile: quantileKey,
-              t,
-            }),
-          };
-        })
-        .filter((error) => error.message !== undefined);
-      if (errors) {
+      const errors = validateAllQuantileInputs({
+        question,
+        components: localQuantileComponents,
+        t,
+        checkDirtyState: false,
+      });
+
+      if (errors.length !== 0) {
         setErrors(errors);
       }
     },
-    [quantileComponents, onQuantileChange, question, quantilesToValidate, t]
+    [quantileComponents, onQuantileChange, question, t]
   );
 
   return (
@@ -331,14 +284,15 @@ const NumericForecastTable: FC<Props> = ({
                       <Td>
                         <NumericTableInput
                           type="number"
-                          quantileValue={quantileComponents?.[0]?.p0}
+                          quantileValue={quantileComponents?.[0]}
                           error={
-                            errors.find((e) => e.quantile === "p0")?.message
+                            errors.find((e) => e.quantile === Quantile.lower)
+                              ?.message
                           }
                           onQuantileChange={(
-                            quantileValue: DistributionQuantileValue
+                            quantileValue: Partial<QuantileValue>
                           ) => {
-                            handleQuantileChange("p0", quantileValue);
+                            handleQuantileChange(Quantile.lower, quantileValue);
                           }}
                         />
                       </Td>
@@ -350,12 +304,15 @@ const NumericForecastTable: FC<Props> = ({
                             ? "number"
                             : "date"
                         }
-                        quantileValue={quantileComponents?.[0]?.q1}
-                        error={errors.find((e) => e.quantile === "q1")?.message}
+                        quantileValue={quantileComponents?.[1]}
+                        error={
+                          errors.find((e) => e.quantile === Quantile.q1)
+                            ?.message
+                        }
                         onQuantileChange={(
-                          quantileValue: DistributionQuantileValue
+                          quantileValue: Partial<QuantileValue>
                         ) => {
-                          handleQuantileChange("q1", quantileValue);
+                          handleQuantileChange(Quantile.q1, quantileValue);
                         }}
                       />
                     </Td>
@@ -366,12 +323,15 @@ const NumericForecastTable: FC<Props> = ({
                             ? "number"
                             : "date"
                         }
-                        quantileValue={quantileComponents?.[0]?.q2}
-                        error={errors.find((e) => e.quantile === "q2")?.message}
+                        quantileValue={quantileComponents?.[2]}
+                        error={
+                          errors.find((e) => e.quantile === Quantile.q2)
+                            ?.message
+                        }
                         onQuantileChange={(
-                          quantileValue: DistributionQuantileValue
+                          quantileValue: Partial<QuantileValue>
                         ) => {
-                          handleQuantileChange("q2", quantileValue);
+                          handleQuantileChange(Quantile.q2, quantileValue);
                         }}
                       />
                     </Td>
@@ -382,12 +342,15 @@ const NumericForecastTable: FC<Props> = ({
                             ? "number"
                             : "date"
                         }
-                        quantileValue={quantileComponents?.[0]?.q3}
-                        error={errors.find((e) => e.quantile === "q3")?.message}
+                        quantileValue={quantileComponents?.[3]}
+                        error={
+                          errors.find((e) => e.quantile === Quantile.q3)
+                            ?.message
+                        }
                         onQuantileChange={(
-                          quantileValue: DistributionQuantileValue
+                          quantileValue: Partial<QuantileValue>
                         ) => {
-                          handleQuantileChange("q3", quantileValue);
+                          handleQuantileChange(Quantile.q3, quantileValue);
                         }}
                       />
                     </Td>
@@ -395,14 +358,15 @@ const NumericForecastTable: FC<Props> = ({
                       <Td>
                         <NumericTableInput
                           type="number"
-                          quantileValue={quantileComponents?.[0]?.p4}
+                          quantileValue={quantileComponents?.[4]}
                           error={
-                            errors.find((e) => e.quantile === "p4")?.message
+                            errors.find((e) => e.quantile === Quantile.upper)
+                              ?.message
                           }
                           onQuantileChange={(
-                            quantileValue: DistributionQuantileValue
+                            quantileValue: Partial<QuantileValue>
                           ) => {
-                            handleQuantileChange("p4", quantileValue);
+                            handleQuantileChange(Quantile.upper, quantileValue);
                           }}
                         />
                       </Td>
@@ -417,7 +381,14 @@ const NumericForecastTable: FC<Props> = ({
                       (question.open_upper_bound ? 1 : 0)
                     }
                   >
-                    <FormErrorMessage errors={errors.map((e) => e.message)} />
+                    {uniq(errors.map((e) => e.message)).map((message) => {
+                      return (
+                        <FormErrorMessage
+                          errors={[message]}
+                          key={`${message}-desktop`}
+                        />
+                      );
+                    })}
                   </Td>
                 </tr>
               </>
@@ -513,12 +484,15 @@ const NumericForecastTable: FC<Props> = ({
                   <Td>
                     <NumericTableInput
                       type="number"
-                      quantileValue={quantileComponents?.[0]?.p0}
-                      error={errors.find((e) => e.quantile === "p0")?.message}
+                      quantileValue={quantileComponents?.[0]}
+                      error={
+                        errors.find((e) => e.quantile === Quantile.lower)
+                          ?.message
+                      }
                       onQuantileChange={(
-                        quantileValue: DistributionQuantileValue
+                        quantileValue: Partial<QuantileValue>
                       ) => {
-                        handleQuantileChange("p0", quantileValue);
+                        handleQuantileChange(Quantile.lower, quantileValue);
                       }}
                     />
                   </Td>
@@ -569,12 +543,12 @@ const NumericForecastTable: FC<Props> = ({
                   type={
                     question.type === QuestionType.Numeric ? "number" : "date"
                   }
-                  quantileValue={quantileComponents?.[0]?.q1}
-                  error={errors.find((e) => e.quantile === "q1")?.message}
-                  onQuantileChange={(
-                    quantileValue: DistributionQuantileValue
-                  ) => {
-                    handleQuantileChange("q1", quantileValue);
+                  quantileValue={quantileComponents?.[1]}
+                  error={
+                    errors.find((e) => e.quantile === Quantile.q1)?.message
+                  }
+                  onQuantileChange={(quantileValue: Partial<QuantileValue>) => {
+                    handleQuantileChange(Quantile.q1, quantileValue);
                   }}
                 />
               </Td>
@@ -629,12 +603,12 @@ const NumericForecastTable: FC<Props> = ({
                   type={
                     question.type === QuestionType.Numeric ? "number" : "date"
                   }
-                  quantileValue={quantileComponents?.[0]?.q2}
-                  error={errors.find((e) => e.quantile === "q2")?.message}
-                  onQuantileChange={(
-                    quantileValue: DistributionQuantileValue
-                  ) => {
-                    handleQuantileChange("q2", quantileValue);
+                  quantileValue={quantileComponents?.[2]}
+                  error={
+                    errors.find((e) => e.quantile === Quantile.q2)?.message
+                  }
+                  onQuantileChange={(quantileValue: Partial<QuantileValue>) => {
+                    handleQuantileChange(Quantile.q2, quantileValue);
                   }}
                 />
               </Td>
@@ -689,12 +663,12 @@ const NumericForecastTable: FC<Props> = ({
                   type={
                     question.type === QuestionType.Numeric ? "number" : "date"
                   }
-                  quantileValue={quantileComponents?.[0]?.q3}
-                  error={errors.find((e) => e.quantile === "q3")?.message}
-                  onQuantileChange={(
-                    quantileValue: DistributionQuantileValue
-                  ) => {
-                    handleQuantileChange("q3", quantileValue);
+                  quantileValue={quantileComponents?.[3]}
+                  error={
+                    errors.find((e) => e.quantile === Quantile.q3)?.message
+                  }
+                  onQuantileChange={(quantileValue: Partial<QuantileValue>) => {
+                    handleQuantileChange(Quantile.q3, quantileValue);
                   }}
                 />
               </Td>
@@ -754,12 +728,15 @@ const NumericForecastTable: FC<Props> = ({
                   <Td>
                     <NumericTableInput
                       type="number"
-                      quantileValue={quantileComponents?.[0]?.p4}
-                      error={errors.find((e) => e.quantile === "p4")?.message}
+                      quantileValue={quantileComponents?.[4]}
+                      error={
+                        errors.find((e) => e.quantile === Quantile.upper)
+                          ?.message
+                      }
                       onQuantileChange={(
-                        quantileValue: DistributionQuantileValue
+                        quantileValue: Partial<QuantileValue>
                       ) => {
-                        handleQuantileChange("p4", quantileValue);
+                        handleQuantileChange(Quantile.upper, quantileValue);
                       }}
                     />
                   </Td>
@@ -788,7 +765,14 @@ const NumericForecastTable: FC<Props> = ({
                         (question.open_upper_bound ? 1 : 0)
                       }
                     >
-                      <FormErrorMessage errors={errors.map((e) => e.message)} />
+                      {uniq(errors.map((e) => e.message)).map((message) => {
+                        return (
+                          <FormErrorMessage
+                            errors={[message]}
+                            key={`${message}-mobile`}
+                          />
+                        );
+                      })}
                     </Td>
                   </tr>
                 )}

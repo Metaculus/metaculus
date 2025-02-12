@@ -1119,5 +1119,11 @@
   "q2BelowRangeError": "Cuando su mediana está por debajo del rango, su probabilidad por debajo del límite inferior debe ser ≥ 50%",
   "q2AboveRangeError": "Cuando su mediana está por encima del rango, su probabilidad por encima del límite superior debe ser ≥ 50%",
   "q3BelowRangeError": "Cuando su percentil 75 está por debajo del rango, su probabilidad por debajo del límite inferior debe ser ≥ 75%",
-  "q3AboveRangeError": "Cuando su percentil 75 está por encima del rango, su probabilidad por encima del límite superior debe ser ≥ 25%"
+  "q3AboveRangeError": "Cuando su percentil 75 está por encima del rango, su probabilidad por encima del límite superior debe ser ≥ 25%",
+  "questionsBy": "Preguntas por",
+  "probabilitySumError": "La suma de las probabilidades no debe ser mayor que el 99%",
+  "emptyCdfError": "continuous_cdf es necesario para preguntas continuas",
+  "invalidCdfLengthError": "continuous_cdf debe tener 201 valores",
+  "cdfMinStepSizeError": "continuous_cdf debe aumentar al menos {minDiff} en cada paso",
+  "cdfMaxStepSizeError": "continuous_cdf debe aumentar no más de {maxDiff} en cada paso"
 }

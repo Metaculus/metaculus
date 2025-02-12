@@ -1109,6 +1109,7 @@
   "q2BetweenError": "Your 50th percentile must be between your 25th and 75th percentiles",
   "q3GreaterThanError": "Your 75th percentile must be greater than your 25th and 50th percentiles",
   "probabilityRangeError": "Probability must be between 0 and 100%",
+  "probabilitySumError": "Sum of probabilities must not be greater than 99%",
   "quantileBelowBoundError": "Quantile can't be below closed lower bound",
   "quantileAboveBoundError": "Quantile can't be above closed upper bound",
   "q1BelowRangeError": "When your 25th percentile is below range, your probability below the lower bound should be ≥ 25%",
@@ -1116,5 +1117,9 @@
   "q2BelowRangeError": "When your median is below range, your probability below the lower bound should be ≥ 50%",
   "q2AboveRangeError": "When your median is above range, your probability above the upper bound should be ≥ 50%",
   "q3BelowRangeError": "When your 75th percentile is below range, your probability below the lower bound should be ≥ 75%",
-  "q3AboveRangeError": "When your 75th percentile is above range, your probability above the upper bound should be ≥ 25%"
+  "q3AboveRangeError": "When your 75th percentile is above range, your probability above the upper bound should be ≥ 25%",
+  "emptyCdfError": "continuous_cdf is required for continuous questions",
+  "invalidCdfLengthError": "continuous_cdf must have 201 values",
+  "cdfMinStepSizeError": "continuous_cdf must be increasing by at least {minDiff} at every step",
+  "cdfMaxStepSizeError": "continuous_cdf must be increasing by no more than {maxDiff} at every step"
 }
