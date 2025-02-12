@@ -402,13 +402,13 @@ class MedalExclusionRecord(models.Model):
     start_time = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="""Optional. 
+        help_text="""Optional.
         If not set, this exclusion will extend indefinitely backwards in time.""",
     )
     end_time = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="""Optional. 
+        help_text="""Optional.
         If not set, this exclusion will extend indefinitely forwards in time.""",
     )
 
