@@ -199,7 +199,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         </div>
       )}
       {!!errorMessage && (
-        <div className="text-end text-red-500 dark:text-red-500-dark">
+        <div className="text-balance text-center text-red-500 dark:text-red-500-dark">
           {errorMessage}
         </div>
       )}
