@@ -452,7 +452,7 @@
   "newest": "Newest",
   "stale": "Stale",
   "newComments": "New Comments",
-  "commentTooShort": "Your comment is too short. Try adding more details or insights so it adds value to the conversation.<br></br>Check our <link>Guidelines</link> for more information.",
+  "commentTooShort": "Your comment is too short. Try adding more details or insights so it adds value to the conversation.<br></br><info>Check our <link>Guidelines</link> for more information.</info>",
   "divergence": "Divergence",
   "myPredictions": "My Predictions",
   "special": "Special",
