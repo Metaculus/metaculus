@@ -1131,5 +1131,11 @@
   "q2BelowRangeError": "Když je vaše medián pod rozsahem, vaše pravděpodobnost pod dolní hranicí by měla být ≥ 50 %",
   "q2AboveRangeError": "Když je vaše medián nad rozsahem, vaše pravděpodobnost nad horní hranicí by měla být ≥ 50 %",
   "q3BelowRangeError": "Když je váš 75. percentil pod rozsahem, vaše pravděpodobnost pod dolní hranicí by měla být ≥ 75 %",
-  "q3AboveRangeError": "Když je váš 75. percentil nad rozsahem, vaše pravděpodobnost nad horní hranicí by měla být ≥ 25 %"
+  "q3AboveRangeError": "Když je váš 75. percentil nad rozsahem, vaše pravděpodobnost nad horní hranicí by měla být ≥ 25 %",
+  "questionsBy": "Otázky od",
+  "probabilitySumError": "Součet pravděpodobností nesmí být vyšší než 99 %",
+  "emptyCdfError": "continuous_cdf je vyžadován pro kontinuální otázky",
+  "invalidCdfLengthError": "continuous_cdf musí mít 201 hodnot",
+  "cdfMinStepSizeError": "continuous_cdf musí být zvyšován alespoň o {minDiff} v každém kroku",
+  "cdfMaxStepSizeError": "continuous_cdf nesmí být zvyšován o více než {maxDiff} v každém kroku"
 }

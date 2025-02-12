@@ -8,15 +8,14 @@ import {
   CurveQuestionLabels,
   DistributionQuantile,
   DistributionQuantileComponent,
-  DistributionQuantileComponentWithState,
   DistributionSlider,
   DistributionSliderComponent,
+  Quantile,
   Question,
   QuestionType,
   QuestionWithForecasts,
   Scaling,
   QuestionWithNumericForecasts,
-  Scaling,
   UserForecast,
 } from "@/types/question";
 import {
@@ -25,6 +24,7 @@ import {
   computeQuartilesFromCDF,
 } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+
 import { scaleInternalLocation } from "./charts";
 
 import { getQuestionDateFormatString } from "./charts";
@@ -154,8 +154,8 @@ export function nominalLocationToCdfLocation(
   return (location - range_min) / (range_max - range_min);
 }
 
-export function generateContinuousCdf(
-  percentiles: { percentile: number; value: number }[],
+export function generateQuantileContinuousCdf(
+  quantiles: { quantile: number; value: number }[],
   probBelowLower: number,
   probAboveUpper: number,
   question: Question
@@ -166,21 +166,25 @@ export function generateContinuousCdf(
   }
 
   // create a sorted list of known points
-  const scaledPercentiles: { percentile: number; value: number }[] = [];
-  percentiles.forEach(({ percentile, value }) => {
+  const scaledQuantiles: { quantile: number; value: number }[] = [];
+  quantiles.forEach(({ quantile, value }) => {
     const scaledValue = nominalLocationToCdfLocation(value, question);
-    scaledPercentiles.push({
-      percentile: percentile,
+    scaledQuantiles.push({
+      quantile: quantile,
       value: scaledValue,
     });
   });
-  scaledPercentiles.push({ percentile: probBelowLower, value: 0 });
-  scaledPercentiles.push({ percentile: 1 - probAboveUpper, value: 1 });
-  scaledPercentiles.sort((a, b) => a.value - b.value);
+
+  // TODO: change values and types for quantiles
+  // QUESTION: dissapointed about boundaries values and quantile values usage
+  scaledQuantiles.push({ quantile: probBelowLower / 100, value: 0 });
+  scaledQuantiles.push({ quantile: 1 - probAboveUpper / 100, value: 1 });
+  scaledQuantiles.sort((a, b) => a.value - b.value);
 
   // check validity
-  const firstPoint = scaledPercentiles[0];
-  const lastPoint = scaledPercentiles[scaledPercentiles.length - 1];
+  // QUESTION: why do we do this check in that way
+  const firstPoint = scaledQuantiles[0];
+  const lastPoint = scaledQuantiles[scaledQuantiles.length - 1];
   if (
     !firstPoint ||
     firstPoint.value > 0 ||
@@ -192,15 +196,18 @@ export function generateContinuousCdf(
   }
 
   function getCdfAt(location: number) {
-    let previous = scaledPercentiles[0]!;
-    for (let i = 1; i < scaledPercentiles.length; i++) {
-      const current = scaledPercentiles[i]!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    let previous = scaledQuantiles[0]!;
+    for (let i = 1; i < scaledQuantiles.length; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const current = scaledQuantiles[i]!;
       if (previous.value <= location && location <= current.value) {
         return (
-          previous.percentile +
-          ((current.percentile - previous.percentile) *
-            (location - previous.value)) /
-            (current.value - previous.value)
+          (previous.quantile +
+            ((current.quantile - previous.quantile) *
+              (location - previous.value)) /
+              (current.value - previous.value)) /
+          100
         );
       }
       previous = current;
@@ -209,9 +216,10 @@ export function generateContinuousCdf(
 
   const cdf = [];
   for (let i = 0; i < 201; i++) {
-    cdf.push(getCdfAt(i / 200));
+    const cdfValue = getCdfAt(i / 200);
+    !isNil(cdfValue) ? cdf.push(cdfValue) : undefined;
   }
-  console.log({ cdf });
+
   return cdf;
 }
 
@@ -220,8 +228,8 @@ export function standardizeCdf(cdf: number[], question: Question) {
     return [];
   }
   const { open_upper_bound, open_lower_bound } = question;
-  const scaleLowerTo = (open_lower_bound ? 0 : cdf[0])!;
-  const scaleUpperTo = (open_upper_bound ? 1 : cdf[cdf.length - 1])!;
+  const scaleLowerTo = open_lower_bound ? 0 : cdf[0] ?? 0;
+  const scaleUpperTo = open_upper_bound ? 1 : cdf[cdf.length - 1] ?? 1;
   const rescaledInboundMass = scaleUpperTo - scaleLowerTo;
 
   function standardize(F: number, location: number) {
@@ -241,7 +249,10 @@ export function standardizeCdf(cdf: number[], question: Question) {
 
   const standardizedCdf: number[] = [];
   for (let i = 0; i < cdf.length; i++) {
-    const standardizedF = standardize(cdf[i]!, i / (cdf.length - 1));
+    const cdfValue = cdf[i];
+    if (typeof cdfValue !== "number") continue;
+
+    const standardizedF = standardize(cdfValue, i / (cdf.length - 1));
     standardizedCdf.push(Math.round(standardizedF * 1e10) / 1e10);
   }
   return standardizedCdf;
@@ -249,15 +260,12 @@ export function standardizeCdf(cdf: number[], question: Question) {
 
 // get chart data from quantiles input
 export function getQuantileNumericForecastDataset(
-  components:
-    | DistributionQuantileComponentWithState[]
-    | DistributionQuantileComponent[],
+  components: DistributionQuantileComponent,
   question: Question
 ) {
-  const componentData = components[0];
   if (
-    !componentData ||
-    Object.values(componentData).some((quartile) => isNil(quartile.value))
+    !components ||
+    Object.values(components).some((quartile) => isNil(quartile.value))
   ) {
     return {
       cdf: [],
@@ -265,14 +273,24 @@ export function getQuantileNumericForecastDataset(
     };
   }
 
-  const cdf = generateContinuousCdf(
+  // find() should always return a value
+  const cdf = generateQuantileContinuousCdf(
     [
-      { percentile: 0.25, value: componentData.q1.value },
-      { percentile: 0.5, value: componentData.q2.value },
-      { percentile: 0.75, value: componentData.q3.value },
+      {
+        quantile: Number(Quantile.q1),
+        value: components.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
+      },
+      {
+        quantile: Number(Quantile.q2),
+        value: components.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
+      },
+      {
+        quantile: Number(Quantile.q3),
+        value: components.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
+      },
     ],
-    componentData.p0.value,
-    componentData.p4.value,
+    components.find((c) => c.quantile === Quantile.lower)?.value ?? 0,
+    components.find((c) => c.quantile === Quantile.upper)?.value ?? 1,
     question
   );
 
@@ -284,28 +302,23 @@ export function getQuantileNumericForecastDataset(
   };
 }
 
-// TODO: Implement this funcion
 // if user already have table forecast and want to switch to slider forecast tab
 export function getSliderDistributionFromQuantiles(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  components:
-    | DistributionQuantileComponentWithState[]
-    | DistributionQuantileComponent[],
+  component: DistributionQuantileComponent,
   question: Question
 ): DistributionSliderComponent[] {
-  const component = components[0];
   return [
     {
       left: nominalLocationToCdfLocation(
-        component.q1.value ?? component.q1,
+        component.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
         question
       ),
       center: nominalLocationToCdfLocation(
-        component.q2.value ?? component.q2,
+        component.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
         question
       ),
       right: nominalLocationToCdfLocation(
-        component.q3.value ?? component.q3,
+        component.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
         question
       ),
       weight: 1,
@@ -317,66 +330,69 @@ export function getSliderDistributionFromQuantiles(
 // /questions/31701/97th-academy-awards-winners-average-duration/ numeric question
 // /questions/3479/date-weakly-general-ai-is-publicly-known/ date question
 export function getQuantilesDistributionFromSlider(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   components: DistributionSliderComponent[],
   question: QuestionWithNumericForecasts
-): DistributionQuantileComponentWithState[] {
+): DistributionQuantileComponent {
   const cdf = getNumericForecastDataset(
     components,
     question.open_lower_bound,
     question.open_upper_bound
   ).cdf;
   const quartiles = computeQuartilesFromCDF(cdf);
-  const p0 = cdf[0];
-  const p4 = 1 - cdf[cdf.length - 1];
+  const firstCdfValue = cdf[0] ?? 0;
+  const p0 = Number((firstCdfValue * 100).toFixed(2));
+  const lastCdfValue = cdf[cdf.length - 1] ?? 1;
+  const p4 = Number(((1 - lastCdfValue) * 100).toFixed(2));
   return [
     {
-      p0: { value: p0, isDirty: false },
-      q1: {
-        value: scaleInternalLocation(quartiles.lower25, question.scaling),
-        isDirty: true,
-      },
-      q2: {
-        value: scaleInternalLocation(quartiles.median, question.scaling),
-        isDirty: true,
-      },
-      q3: {
-        value: scaleInternalLocation(quartiles.upper75, question.scaling),
-        isDirty: true,
-      },
-      p4: { value: p4, isDirty: false },
+      quantile: Quantile.lower,
+      value: p0,
+      isDirty: true,
+    },
+    {
+      quantile: Quantile.q1,
+      value: Number(
+        scaleInternalLocation(quartiles.lower25, question.scaling).toFixed(2)
+      ),
+      isDirty: true,
+    },
+    {
+      quantile: Quantile.q2,
+      value: Number(
+        scaleInternalLocation(quartiles.median, question.scaling).toFixed(2)
+      ),
+      isDirty: true,
+    },
+    {
+      quantile: Quantile.q3,
+      value: Number(
+        scaleInternalLocation(quartiles.upper75, question.scaling).toFixed(2)
+      ),
+      isDirty: true,
+    },
+    {
+      quantile: Quantile.upper,
+      value: p4,
+      isDirty: true,
     },
   ];
 }
 
 export function populateQuantileComponents(
-  components: DistributionQuantileComponent[]
-): DistributionQuantileComponentWithState[] {
+  components: DistributionQuantileComponent
+): DistributionQuantileComponent {
   return components.map((component) => ({
-    p0: {
-      value: component.p0 * 100,
-      isDirty: false,
-    },
-
-    q1: { value: component.q1, isDirty: false },
-    q2: { value: component.q2, isDirty: false },
-    q3: { value: component.q3, isDirty: false },
-    p4: {
-      value: component.p4 * 100,
-      isDirty: false,
-    },
+    ...component,
+    isDirty: false,
   }));
 }
 
 export function clearQuantileComponents(
-  components: DistributionQuantileComponentWithState[]
-): DistributionQuantileComponent[] {
+  components: DistributionQuantileComponent
+): DistributionQuantileComponent {
   return components.map((component) => ({
-    p0: component.p0.value ? component.p0.value / 100 : 0,
-    q1: component.q1.value ?? 0,
-    q2: component.q2.value ?? 0,
-    q3: component.q3.value ?? 0,
-    p4: component.p4.value ? component.p4.value / 100 : 1,
+    quantile: component.quantile,
+    value: component.value,
   }));
 }
 
@@ -384,11 +400,11 @@ export function getInitialQuantileDistributionComponents(
   activeForecast: UserForecast | undefined,
   activeForecastValues: DistributionSlider | DistributionQuantile | undefined,
   question: QuestionWithNumericForecasts
-) {
+): DistributionQuantileComponent {
   return activeForecast
     ? activeForecast.distribution_input.type === ForecastInputType.Quantile
       ? populateQuantileComponents(
-          activeForecastValues?.components as DistributionQuantileComponent[]
+          activeForecastValues?.components as DistributionQuantileComponent
         )
       : getQuantilesDistributionFromSlider(
           activeForecastValues?.components as DistributionSliderComponent[],
@@ -396,17 +412,29 @@ export function getInitialQuantileDistributionComponents(
         )
     : [
         {
-          p0: {
-            value: question.open_lower_bound ? undefined : 0,
-            isDirty: false,
-          },
-          q1: { value: undefined, isDirty: false },
-          q2: { value: undefined, isDirty: false },
-          q3: { value: undefined, isDirty: false },
-          p4: {
-            value: question.open_upper_bound ? undefined : 1,
-            isDirty: false,
-          },
+          quantile: Quantile.lower,
+          value: question.open_lower_bound ? undefined : 0,
+          isDirty: false,
+        },
+        {
+          quantile: Quantile.q1,
+          value: undefined,
+          isDirty: false,
+        },
+        {
+          quantile: Quantile.q2,
+          value: undefined,
+          isDirty: false,
+        },
+        {
+          quantile: Quantile.q3,
+          value: undefined,
+          isDirty: false,
+        },
+        {
+          quantile: Quantile.upper,
+          value: question.open_upper_bound ? undefined : 0,
+          isDirty: false,
         },
       ];
 }
@@ -422,7 +450,7 @@ export function getInitialSliderDistributionComponents(
         activeForecastValues?.components as DistributionSliderComponent[]
       )
     : getSliderDistributionFromQuantiles(
-        activeForecastValues?.components as DistributionQuantileComponent[],
+        activeForecastValues?.components as DistributionQuantileComponent,
         question
       );
 }

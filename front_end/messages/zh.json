@@ -1133,5 +1133,11 @@
   "q2BelowRangeError": "当您的中位数低于范围时，低于下界的概率应≥ 50%",
   "q2AboveRangeError": "当您的中位数高于范围时，高于上界的概率应≥ 50%",
   "q3BelowRangeError": "当您的第75百分位数低于范围时，低于下界的概率应≥ 75%",
-  "q3AboveRangeError": "当您的第75百分位数高于范围时，高于上界的概率应≥ 25%"
+  "q3AboveRangeError": "当您的第75百分位数高于范围时，高于上界的概率应≥ 25%",
+  "questionsBy": "问题由",
+  "probabilitySumError": "概率总和不得大于99%",
+  "emptyCdfError": "连续问题需要 continuous_cdf",
+  "invalidCdfLengthError": "continuous_cdf 必须有201个值",
+  "cdfMinStepSizeError": "continuous_cdf 每一步必须至少增加 {minDiff}",
+  "cdfMaxStepSizeError": "continuous_cdf 每一步必须至多增加 {maxDiff}"
 }
