@@ -398,16 +398,58 @@ class MedalExclusionRecord(models.Model):
     objects: models.Manager["MedalExclusionRecord"]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField(null=True, blank=True)
+
+    start_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Optional. 
+        If not set, this exclusion will extend indefinitely backwards in time.""",
+    )
+    end_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Optional. 
+        If not set, this exclusion will extend indefinitely forwards in time.""",
+    )
 
     class ExclusionTypes(models.TextChoices):
         STAFF = "staff"
         PROJECT_OWNER = "project_owner"
+        DISQUALIFIED = "disqualified"
+        OTHER = "other"
 
-    exclusion_type = models.CharField(max_length=200, choices=ExclusionTypes.choices)
+    exclusion_type = models.CharField(
+        max_length=200,
+        choices=ExclusionTypes.choices,
+        help_text="""Records the type of exclusion. Use Other for custom exclusions.""",
+    )
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        help_text="""Notes about this exclusion.
+        Use this field for disqualified and custom exclusions.""",
+    )
+
+    # Exclusion scopes
     project = models.ForeignKey(
-        Project, on_delete=models.SET_NULL, null=True, blank=True
+        Project,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="""Sets the scope of this exclusion to a specific project.
+        </br>If this and leaderboard are not set, the exclusion will be universal
+        </br>Only set this or leaderboard, though not strictly enforced.
+        """,
+    )
+    leaderboard = models.ForeignKey(
+        Leaderboard,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="""Sets the scope of this exclusion to a specific leaderboard.
+        </br>If this and project are not set, the exclusion will be universal
+        </br>Only set this or project, though not strictly enforced.
+        """,
     )
 
     def __str__(self) -> str:
