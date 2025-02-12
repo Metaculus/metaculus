@@ -4,13 +4,13 @@ import { FC } from "react";
 
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { Input } from "@/components/ui/form_field";
-import { DistributionQuantileValue } from "@/types/question";
+import { QuantileValue } from "@/types/question";
 import cn from "@/utils/cn";
 
 type Props = {
   type: "number" | "date";
-  onQuantileChange: (quantileValue: DistributionQuantileValue) => void;
-  quantileValue?: DistributionQuantileValue;
+  onQuantileChange: (quantileValue: Partial<QuantileValue>) => void;
+  quantileValue?: QuantileValue;
   error?: string;
 };
 
@@ -25,11 +25,10 @@ const NumericTableInput: FC<Props> = ({
       <Input
         onChange={(e) => {
           const inputValue = e.target.value;
-          onQuantileChange(
-            inputValue === ""
-              ? { value: undefined, isDirty: true }
-              : { value: Number(inputValue), isDirty: true }
-          );
+          onQuantileChange({
+            value: inputValue === "" ? undefined : Number(inputValue),
+            isDirty: true,
+          });
         }}
         value={!isNil(quantileValue?.value) ? quantileValue.value : ""}
         type="number"
@@ -55,18 +54,11 @@ const NumericTableInput: FC<Props> = ({
     <DatetimeUtc
       defaultValue={dateValue}
       onChange={(isoString) => {
-        if (isoString === "") {
-          onQuantileChange({
-            value: undefined,
-            isDirty: true,
-          });
-        } else {
-          const timestamp = getUnixTime(new Date(isoString));
-          onQuantileChange({
-            value: timestamp,
-            isDirty: true,
-          });
-        }
+        onQuantileChange({
+          value:
+            isoString === "" ? undefined : getUnixTime(new Date(isoString)),
+          isDirty: true,
+        });
       }}
       withFormValidation={true}
       withTimezoneMessage={false}

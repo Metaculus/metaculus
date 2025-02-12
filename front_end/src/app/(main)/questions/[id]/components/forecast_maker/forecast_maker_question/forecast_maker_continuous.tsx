@@ -19,10 +19,10 @@ import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   DistributionQuantile,
-  DistributionQuantileComponentWithState,
   DistributionSlider,
   DistributionSliderComponent,
   QuestionWithNumericForecasts,
+  DistributionQuantileComponent,
 } from "@/types/question";
 import { getCdfBounds, getDisplayValue } from "@/utils/charts";
 import {
@@ -39,7 +39,10 @@ import { sendGAPredictEvent } from "./ga_events";
 import PredictionSuccessBox from "./prediction_success_box";
 import { useHideCP } from "../../cp_provider";
 import ContinuousSlider from "../continuous_slider";
-import { validateAllQuantileInputs } from "../helpers";
+import {
+  validateAllQuantileInputs,
+  validateUserQuantileData,
+} from "../helpers";
 import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
@@ -92,7 +95,7 @@ const ForecastMakerContinuous: FC<Props> = ({
       )
     );
   const [quantileDistributionComponents, setQuantileDistributionComponents] =
-    useState<DistributionQuantileComponentWithState[]>(
+    useState<DistributionQuantileComponent>(
       getInitialQuantileDistributionComponents(
         activeForecast,
         activeForecastValues,
@@ -204,14 +207,19 @@ const ForecastMakerContinuous: FC<Props> = ({
     sendGAPredictEvent(post, question, hideCP);
 
     if (forecastInputMode === ForecastInputType.Quantile) {
-      const validated = validateAllQuantileInputs({
+      const validationErrors = validateUserQuantileData({
         question,
         components: quantileDistributionComponents,
+        cdf: userCdf,
         t,
       });
 
-      if (!validated) {
-        setSubmitError(new Error(t("invalidQuantileInput")));
+      if (validationErrors.length !== 0) {
+        setSubmitError(
+          !isNil(validationErrors[0])
+            ? new Error(validationErrors[0])
+            : new Error(t("unexpectedError"))
+        );
         return;
       }
     }
@@ -341,7 +349,7 @@ const ForecastMakerContinuous: FC<Props> = ({
                 type="submit"
                 disabled={
                   !isDirty &&
-                  !Object.values(quantileDistributionComponents[0] ?? {}).some(
+                  !Object.values(quantileDistributionComponents ?? []).some(
                     (value) => value?.isDirty === true
                   )
                 }
@@ -420,14 +428,14 @@ const ForecastMakerContinuous: FC<Props> = ({
               isPending={isPending}
               predictLabel={previousForecast ? undefined : t("predict")}
               isDisabled={
-                !validateAllQuantileInputs({
+                validateAllQuantileInputs({
                   question,
                   components: quantileDistributionComponents,
                   t,
-                })
+                }).length !== 0
               }
             />
-            {Object.values(quantileDistributionComponents[0] ?? {}).some(
+            {Object.values(quantileDistributionComponents ?? []).some(
               (value) => value?.isDirty === true
             ) && (
               <Button
@@ -435,7 +443,7 @@ const ForecastMakerContinuous: FC<Props> = ({
                 type="submit"
                 disabled={
                   !isDirty &&
-                  !Object.values(quantileDistributionComponents[0] ?? {}).some(
+                  !Object.values(quantileDistributionComponents ?? []).some(
                     (value) => value?.isDirty === true
                   )
                 }
