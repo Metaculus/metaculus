@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
             name="end_time",
             field=models.DateTimeField(
                 blank=True,
-                help_text="Optional. \n        If not set, this exclusion will extend indefinitely forwards in time.",
+                help_text="Optional.\n        If not set, this exclusion will extend indefinitely forwards in time.",
                 null=True,
             ),
         ),
@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
             name="start_time",
             field=models.DateTimeField(
                 blank=True,
-                help_text="Optional. \n        If not set, this exclusion will extend indefinitely backwards in time.",
+                help_text="Optional.\n        If not set, this exclusion will extend indefinitely backwards in time.",
                 null=True,
             ),
         ),
