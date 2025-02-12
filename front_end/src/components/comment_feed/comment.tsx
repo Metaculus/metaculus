@@ -31,6 +31,7 @@ import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import useContainerSize from "@/hooks/use_container_size";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
@@ -201,6 +202,7 @@ const Comment: FC<CommentProps> = ({
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { ref, width } = useContainerSize<HTMLDivElement>();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   const { user } = useAuth();
   const scrollTo = useScrollTo();
@@ -534,15 +536,15 @@ const Comment: FC<CommentProps> = ({
                       userTagPattern,
                       (match) => match.replace(/[\\]/g, "")
                     );
-                    const validateMessage = validateComment(
-                      parsedMarkdown,
-                      user,
-                      t
-                    );
+
+                    const validateMessage = PUBLIC_MINIMAL_UI
+                      ? null
+                      : validateComment(parsedMarkdown, user, t);
                     if (validateMessage) {
                       setErrorMessage(validateMessage);
                       return;
                     }
+
                     const response = await editComment({
                       id: comment.id,
                       text: parsedMarkdown,
