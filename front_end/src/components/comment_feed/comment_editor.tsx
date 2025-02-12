@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/form_field";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { CommentType } from "@/types/comment";
 import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
@@ -53,7 +54,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [hasInteracted, setHasInteracted] = useState(false);
-
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
@@ -66,7 +67,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const handleSubmit = async () => {
     setErrorMessage("");
     setIsLoading(true);
-    if (user) {
+    if (user && !PUBLIC_MINIMAL_UI) {
       const validateMessage = validateComment(markdown, user, t);
       if (validateMessage) {
         setErrorMessage(validateMessage);
