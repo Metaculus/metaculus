@@ -192,7 +192,6 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
               }
               communityBounds={getCdfBounds(communityCdf)}
               communityQuartiles={option.communityQuartiles ?? undefined}
-              withUserQuartiles={option.resolution === null}
               withCommunityQuartiles={!user || !hideCP}
               isDirty={option.isDirty}
               hasUserForecast={hasUserForecast}
