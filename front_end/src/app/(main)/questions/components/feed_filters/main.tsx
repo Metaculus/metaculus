@@ -63,7 +63,7 @@ const MainFeedFilters: FC<Props> = ({ following }) => {
         label: t("movers"),
       },
       {
-        value: QuestionOrder.PublishTimeDesc,
+        value: QuestionOrder.OpenTimeDesc,
         label: t("new"),
       },
     ],
