@@ -23,7 +23,7 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_POSTHOG_BASE_URL: "https://us.i.posthog.com",
   PUBLIC_FRONTEND_SENTRY_DSN: "",
   PUBLIC_GOOGLE_MEASUREMENT_ID: "",
-  PUBLIC_DISALLOW_ALL_BOTS: true,
+  PUBLIC_DISALLOW_ALL_BOTS: false,
   PUBLIC_ALLOW_TUTORIAL: true,
   PUBLIC_ALLOW_SIGNUP: true,
   PUBLIC_LANDING_PAGE_URL: "/",
