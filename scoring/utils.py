@@ -268,7 +268,7 @@ def generate_question_writing_leaderboard_entries(
 
     user_list = list(leaderboard.user_list.all())
     exclusions = {
-        e.user: e
+        e.user_id: e
         for e in MedalExclusionRecord.objects.filter(
             (Q(project__isnull=True) & Q(leaderboard__isnull=True))
             | Q(leaderboard=leaderboard)
@@ -281,7 +281,7 @@ def generate_question_writing_leaderboard_entries(
         if user_list:
             all_authors = [a for a in all_authors if a in user_list]
         for author in all_authors:
-            if exclusion := exclusions.get(author):
+            if exclusion := exclusions.get(author.id):
                 if post.published_at > exclusion.start_time and (
                     exclusion.end_time is None or post.published_at < exclusion.end_time
                 ):
