@@ -11,7 +11,7 @@ import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_over
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
 import { ForecastPayload } from "@/services/questions";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { ForecastInputType, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {
@@ -342,7 +342,7 @@ function generateReaffirmData({
               probabilityYes: null,
             },
             distributionInput: {
-              type: "slider",
+              type: ForecastInputType.Slider,
               components: userForecast,
             },
           };
