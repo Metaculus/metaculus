@@ -28,4 +28,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push to ghcr.io
         run: |
-          docker build --platform linux/amd64 . -t ghcr.io/metaculus/metaculus:$ENV_DOCKER_TAG-$GITHUB_SHA -t ghcr.io/metaculus/metaculus:$ENV_DOCKER_TAG-latest --target all_runners --push
+          docker build --platform linux/amd64 . -t ghcr.io/metaculus/metaculus:$ENV_DOCKER_TAG-$GITHUB_SHA -t ghcr.io/metaculus/metaculus:latest --target all_runners --push
