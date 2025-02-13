@@ -25,10 +25,9 @@ from sentry_sdk.integrations.dramatiq import DramatiqIntegration
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Current env
-ENV = os.environ.get("METACULUS_ENV", "").strip()
-ENV_DEV = "dev"
-ENV_PROD = "prod"
-ENV_PLAY = "play"
+# Metaculus instance identity
+METACULUS_ENV = os.environ.get("METACULUS_ENV", "").strip()
+METACULUS_ENV_TESTING = "testing"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -138,7 +137,7 @@ DATABASES = {
     },
 }
 
-if ENV != "testing":
+if METACULUS_ENV != METACULUS_ENV_TESTING:
     # Old database for the migrator
     DATABASES["old"] = {
         **dj_database_url.config(
@@ -317,7 +316,7 @@ DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
 
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
-if ENV == "testing":
+if METACULUS_ENV == METACULUS_ENV_TESTING:
     DRAMATIQ_BROKER.update(
         {"BROKER": "dramatiq.brokers.stub.StubBroker", "OPTIONS": {}}
     )
@@ -431,6 +430,11 @@ SHELL_PLUS_IMPORTS = [
     "from datetime import datetime, timedelta, timezone as dt_timezone",
 ]
 
+# Sentry config
+# TODO: add env name
+SENTRY_DNS = os.environ.get("SENTRY_DNS")
+SENTRY_SAMPLE_RATE = os.environ.get("SENTRY_SAMPLE_RATE", 0.25)
+
 
 def traces_sampler(sampling_context):
     exclude_endpoints = [
@@ -446,24 +450,18 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
-    # Custom traces configuration
-
-    # Capture all for non-prod envs
-    if ENV != ENV_PROD:
-        return 1.0
-
     if re.match(r"^/api/posts/\d+/similar-posts/?$", url) or url == "/api/medals/":
         return 0.1
 
-    return 0.25
+    return SENTRY_SAMPLE_RATE
 
 
-if os.environ.get("SENTRY_DNS", None):
+if SENTRY_DNS:
     sentry_sdk.init(
-        dsn=os.environ.get("SENTRY_DNS"),
+        dsn=SENTRY_DNS,
         traces_sampler=traces_sampler,
-        profiles_sample_rate=0.5,
-        environment=ENV,
+        profiles_sample_rate=SENTRY_SAMPLE_RATE,
+        environment=METACULUS_ENV,
         integrations=[
             DramatiqIntegration(),
         ],
