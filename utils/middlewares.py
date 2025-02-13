@@ -29,7 +29,7 @@ class LocaleOverrideMiddleware:
 class AuthenticationRequiredMiddleware(MiddlewareMixin):
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        if settings.AUTHENTICATION_REQUIRED:
+        if settings.PUBLIC_AUTHENTICATION_REQUIRED:
             if any(
                 [
                     request.path.startswith("/admin/"),
