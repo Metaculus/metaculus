@@ -34,7 +34,8 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
     ref
   ) => {
     const t = useTranslations();
-
+    const formatStr =
+      props.type === "date" ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm";
     const [localValue, setLocalValue] = useState<string>("");
 
     useEffect(() => {
@@ -43,10 +44,10 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
         const localDate = parseISO(defaultValue);
         if (isNaN(localDate.getTime())) return;
 
-        const localDateString = format(localDate, "yyyy-MM-dd'T'HH:mm");
+        const localDateString = format(localDate, formatStr);
         setLocalValue(localDateString);
       }
-    }, [defaultValue]);
+    }, [defaultValue, formatStr]);
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
       const localDateString = event.target.value;
@@ -77,9 +78,7 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
       <Input
         ref={ref}
         type="datetime-local"
-        defaultValue={
-          localValue ? format(localValue, "yyyy-MM-dd'T'HH:mm") : ""
-        }
+        defaultValue={localValue ? format(localValue, formatStr) : ""}
         className={className}
         onChange={handleChange}
         onBlur={handleChange}
