@@ -84,9 +84,10 @@ export default function PrivacyPolicy() {
       <p className={styles.paragraph}>
         If you are located in the European Economic Area (&quot;<b>EEA&quot;</b>
         ) or the United Kingdom (&quot;<b>U.K.</b>&quot;), this entire Privacy
-        Policy applies to you. However, please see our EEA and UK Privacy
-        Addendum, which provides more information about which rights you have
-        regarding the processing of your personal data.
+        Policy applies to you. However, please see our{" "}
+        <a href="/privacy-policy/eea-and-uk/">EEA and UK Privacy Addendum</a>,
+        which provides more information about which rights you have regarding
+        the processing of your personal data.
       </p>
 
       <h3 className={styles.subsectionHeader}>
@@ -230,7 +231,7 @@ export default function PrivacyPolicy() {
           of visits to Metaculus.com;
         </li>
         <li>
-          The contents of a user’s public comments and postings on
+          The contents of a user&apos;s public comments and postings on
           Metaculus.com;
         </li>
         <li>
@@ -383,11 +384,11 @@ export default function PrivacyPolicy() {
         members to engage in one-on-one communication. If you create an account,
         participate in a Community Forum or choose to communicate with others
         through the Service, certain information about you may be disclosed in
-        connection with your or others’ use of the Service, including certain
-        information about you and your network (such as your name and profile
-        photo, the number of connections you have, and the names and pictures of
-        your connections). Our servers may record and we may retain records of
-        the content of any such user-to-user communications.
+        connection with your or others&apos; use of the Service, including
+        certain information about you and your network (such as your name and
+        profile photo, the number of connections you have, and the names and
+        pictures of your connections). Our servers may record and we may retain
+        records of the content of any such user-to-user communications.
       </p>
 
       <h3 className={styles.subsectionHeader}>
@@ -555,18 +556,18 @@ export default function PrivacyPolicy() {
       <p className={styles.paragraph}>
         The personal data we collect is subject to this Privacy Policy. The
         information collected and stored by the third party remains subject to
-        the third party’s privacy practices and policies, including whether the
-        third party continues to share information with us, the types of
+        the third party&apos;s privacy practices and policies, including whether
+        the third party continues to share information with us, the types of
         information shared, and your choices with regard to what is visible to
         others on that third-party website and service. The third party may
         allow you to remove the application or feature, in which case, we will
         no longer collect personal data about you through the application or
         feature, but we may retain the personal data previously collected, in
         accordance with our data retention policies. We do not control these
-        third parties’ tracking technologies or how they may be used. If you
-        have any questions about an advertisement or other targeted content, you
-        should contact the responsible provider directly. For information about
-        how you can opt out of receiving targeted advertising from many
+        third parties&apos; tracking technologies or how they may be used. If
+        you have any questions about an advertisement or other targeted content,
+        you should contact the responsible provider directly. For information
+        about how you can opt out of receiving targeted advertising from many
         providers, see 
         <a href="#choices-about-how-we-use">
           Choices About How We Use and Disclose Your Information
@@ -723,9 +724,9 @@ export default function PrivacyPolicy() {
           </a>
            of website visitors in order to provide us a sense of where our
           visitors come from. Google Analytics does not store or report to us
-          visitors’ actual IP address information. For more information about
-          how Google collects and processes data when you visit websites or use
-          applications that use Google technologies, please see &nbsp;
+          visitors&apos; actual IP address information. For more information
+          about how Google collects and processes data when you visit websites
+          or use applications that use Google technologies, please see &nbsp;
           <a href="www.google.com/policies/privacy/partners" target="_blank">
             www.google.com/policies/privacy/partners
           </a>
@@ -746,7 +747,7 @@ export default function PrivacyPolicy() {
         others, you should log out of your account after each visit. If you log
         out of a Service, you will need to re-enter your password the next time
         you visit in order to log in to your account. You can remove persistent
-        cookies by following directions provided in your Internet browser’s
+        cookies by following directions provided in your Internet browser&apos;s
         &quot;help&quot; file. We also use a cookie which functions as a
         &quot;session&quot; cookie, meaning that it is used to identify a
         particular visit. Session cookies expire after a short period of time or
@@ -770,14 +771,14 @@ export default function PrivacyPolicy() {
         or opened an email and for similar materials, and other related website
         statistics (for example, recording the popularity of certain website
         content and verifying system and server integrity). In contrast to
-        cookies, which are stored on a user’s computer hard drive, clear gifs
-        are embedded invisibly on webpages and are about the size of the period
-        at the end of this sentence. This information is used to help improve
-        the overall quality and experience of our Service. We combine the
-        information gathered by clear gifs with our users’ personal data so that
-        we can optimize the Service according to your interests, to perform
-        marketing, and to improve personalized ads based on your personal
-        interests.
+        cookies, which are stored on a user&apos;s computer hard drive, clear
+        gifs are embedded invisibly on webpages and are about the size of the
+        period at the end of this sentence. This information is used to help
+        improve the overall quality and experience of our Service. We combine
+        the information gathered by clear gifs with our users&apos; personal
+        data so that we can optimize the Service according to your interests, to
+        perform marketing, and to improve personalized ads based on your
+        personal interests.
       </p>
 
       <p className={styles.paragraph}>
@@ -952,19 +953,20 @@ export default function PrivacyPolicy() {
           response to a subpoena; to defend our rights; in response to a written
           request from law enforcement regarding an investigation into criminal
           activity that may have occurred through or in any way using
-          Metaculus’s Service or property; to provide information to a claimed
-          owner of intellectual property who claims that content you have
-          provided to us infringes on their rights; upon request of an academic
-          institution connected to an investigation into academic integrity; to
-          enforce or apply our <a href="/terms-of-use/">Terms of Use</a> and
-          other agreements applicable to the Service, including for billing and
-          collection purposes; or if we believe disclosure is necessary or
-          appropriate to protect the personal safety, rights, property or
-          security of any organization or individual, including exchanging
-          information with other companies and organizations for the purposes of
-          fraud protection and credit risk reduction. We may also use Device
-          Identifiers, including IP addresses, to identify users, and may do so
-          in cooperation with copyright owners, Internet service providers,
+          Metaculus&apos;s Service or property; to provide information to a
+          claimed owner of intellectual property who claims that content you
+          have provided to us infringes on their rights; upon request of an
+          academic institution connected to an investigation into academic
+          integrity; to enforce or apply our 
+          <a href="/terms-of-use/">Terms of Use</a> and other agreements
+          applicable to the Service, including for billing and collection
+          purposes; or if we believe disclosure is necessary or appropriate to
+          protect the personal safety, rights, property or security of any
+          organization or individual, including exchanging information with
+          other companies and organizations for the purposes of fraud protection
+          and credit risk reduction. We may also use Device Identifiers,
+          including IP addresses, to identify users, and may do so in
+          cooperation with copyright owners, Internet service providers,
           wireless service providers or law enforcement agencies in our
           discretion. These disclosures may be conducted without notice to you.
         </li>
@@ -989,8 +991,8 @@ export default function PrivacyPolicy() {
           be disclosed to third parties or the public in connection with the
           administration of such Promotion, including, without limitation, in
           connection with winner selection, prize fulfillment, and as required
-          by law or permitted by the Promotion’s official rules, such as on a
-          winners list.
+          by law or permitted by the Promotion&apos;s official rules, such as on
+          a winners list.
         </li>
       </ol>
 
@@ -1028,8 +1030,9 @@ export default function PrivacyPolicy() {
         </li>
         <li>
           <b>Targeted Advertising:</b> If you do not want us to use your
-          personal data to deliver advertisements according to our advertisers’
-          target-audience preferences, you can opt out by sending an email to 
+          personal data to deliver advertisements according to our
+          advertisers&apos; target-audience preferences, you can opt out by
+          sending an email to 
           <a href="mailto:legal@metaculus.com">legal@metaculus.com</a>.
         </li>
       </ul>
@@ -1038,13 +1041,14 @@ export default function PrivacyPolicy() {
         <i>Privacy Options for Targeted Ads</i>
       </p>
       <p className={styles.paragraph}>
-        We do not control third parties’ collection or use of your personal data
-        to serve interest-based advertising. These third parties may, however,
-        provide you with ways to choose not to have your personal data collected
-        or used in this way. You may opt out of receiving targeted ads from
-        members of the Network Advertising Initiative (&quot;NAI&quot;) on the 
+        We do not control third parties&apos; collection or use of your personal
+        data to serve interest-based advertising. These third parties may,
+        however, provide you with ways to choose not to have your personal data
+        collected or used in this way. You may opt out of receiving targeted ads
+        from members of the Network Advertising Initiative (&quot;NAI&quot;) on
+        the 
         <a href="https://thenai.org/opt-out/" target="_blank">
-          NAI’s website
+          NAI&apos;s website
         </a>
         .
       </p>
@@ -1127,7 +1131,7 @@ export default function PrivacyPolicy() {
         privacy policies and business practices of those third parties. In
         addition, third-party partners of Metaculus from whom you order through
         the Service may have different privacy policies which apply to such
-        partner’s use of your information.
+        partner&apos;s use of your information.
       </p>
 
       <p className={styles.paragraph}>
@@ -1137,10 +1141,10 @@ export default function PrivacyPolicy() {
         Please also note that Metaculus content and widgets may be included on
         web pages and websites that are not associated with us and over which we
         have no control. These third parties may independently collect data. We
-        do not control these third parties’ tracking technologies or how they
-        may be used. Metaculus is not responsible for the privacy practices or
-        business practices of any third party. If you have any questions about
-        an advertisement or other targeted content, you should contact the
+        do not control these third parties&apos; tracking technologies or how
+        they may be used. Metaculus is not responsible for the privacy practices
+        or business practices of any third party. If you have any questions
+        about an advertisement or other targeted content, you should contact the
         responsible provider directly. For information about how you can opt out
         of receiving targeted advertising from many providers, see 
         <a href="#choices-about-how-we-use">
