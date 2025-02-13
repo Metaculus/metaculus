@@ -649,10 +649,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     movement = models.FloatField(
         null=True, blank=True, db_index=True
     )  # Jeffrey's Divergence
-    # TODO: these two fields might be necessary for display purposes
-    # movement_total = models.FloatField(null=True, blank=True)
-    # movement_asymmetric = models.FloatField(null=True, blank=True)
-    hotness = models.IntegerField(null=True, blank=True, editable=False, db_index=True)
+
+    hotness = models.IntegerField(default=0, editable=False, db_index=True)
     forecasts_count = models.PositiveIntegerField(
         default=0, editable=False, db_index=True
     )
