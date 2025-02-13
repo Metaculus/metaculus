@@ -207,14 +207,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   );
   const questionsToSubmit = useMemo(
     () =>
-      // TODO: decide how we want to handle dirty state and question to submit
-      // eg. user have dirty state for slider but left question in table tab - do we ignore this question?
       questionOptions.filter(
         (option) =>
           (option.forecastInputMode === ForecastInputType.Slider &&
-            option.value !== null) ||
+            option.value !== null &&
+            option.question.status === QuestionStatus.OPEN) ||
           (option.forecastInputMode === ForecastInputType.Quantile &&
-            option.quantileValue !== null)
+            option.quantileValue !== null &&
+            option.question.status === QuestionStatus.OPEN)
       ),
     [questionOptions]
   );
@@ -461,11 +461,15 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         }) => ({
           questionId: question.id,
           forecastData: {
-            continuousCdf: getNumericForecastDataset(
-              sliderForecast,
-              question.open_lower_bound,
-              question.open_upper_bound
-            ).cdf,
+            continuousCdf:
+              forecastInputMode === ForecastInputType.Quantile
+                ? getQuantileNumericForecastDataset(quantileForecast, question)
+                    .cdf
+                : getNumericForecastDataset(
+                    sliderForecast,
+                    question.open_lower_bound,
+                    question.open_upper_bound
+                  ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
           },
@@ -486,7 +490,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         hideCP
       );
     });
-    // update unactive forecast tab with new forecast data
+    // update inactive forecast tab with new forecast data
     setQuestionOptions((prev) =>
       prev.map((prevChoice) => {
         const questionToSubmit = questionsToSubmit.find(
@@ -828,14 +832,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                         t,
                       }).length !== 0
                     }
-                    // isDisabled={(() => {
-                    //   const errors = validateAllQuantileInputs({
-                    //     question: activeQuestion,
-                    //     components: activeOptionData.quantileForecast,
-                    //     t,
-                    //   });
-                    //   return errors.length !== 0;
-                    // })()}
                   />
                 </div>
                 <FormError

@@ -1108,7 +1108,7 @@
   "q1LessThanError": "Your 25th percentile must be less than your 50th and 75th percentiles",
   "q2BetweenError": "Your 50th percentile must be between your 25th and 75th percentiles",
   "q3GreaterThanError": "Your 75th percentile must be greater than your 25th and 50th percentiles",
-  "probabilityRangeError": "Probability must be between 0 and 100%",
+  "probabilityRangeError": "Probability must be between 0.1 and 99.9%",
   "probabilitySumError": "Sum of probabilities must not be greater than 99%",
   "quantileBelowBoundError": "Quantile can't be below closed lower bound",
   "quantileAboveBoundError": "Quantile can't be above closed upper bound",
