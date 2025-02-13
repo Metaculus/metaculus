@@ -1,5 +1,7 @@
 import { QuestionStatus, Resolution } from "@/types/post";
 
+import { ForecastInputType } from "./charts";
+
 export enum QuestionType {
   Numeric = "numeric",
   Date = "date",
@@ -118,12 +120,12 @@ export type DistributionQuantileComponent = QuantileValue[];
 
 export type DistributionSlider =
   DistributionInput<DistributionSliderComponent> & {
-    type: "slider";
+    type: ForecastInputType.Slider;
   };
 
 export type DistributionQuantile = {
   components: DistributionQuantileComponent;
-  type: "quantile";
+  type: ForecastInputType.Quantile;
 };
 
 export type UserForecast = Forecast & {

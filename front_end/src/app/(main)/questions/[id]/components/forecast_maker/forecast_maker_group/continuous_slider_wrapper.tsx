@@ -8,11 +8,18 @@ import { useAuth } from "@/contexts/auth_context";
 import { ForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { QuestionStatus } from "@/types/post";
-import { DistributionSliderComponent } from "@/types/question";
+import {
+  DistributionQuantile,
+  DistributionQuantileComponent,
+  DistributionSlider,
+  DistributionSliderComponent,
+} from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
+import cn from "@/utils/cn";
 import {
   getNormalizedContinuousForecast,
   getNumericForecastDataset,
+  getQuantileNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import {
@@ -21,25 +28,33 @@ import {
 } from "@/utils/questions";
 
 import { useHideCP } from "../../cp_provider";
+import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
 import ContinuousSlider from "../continuous_slider";
-import { ConditionalTableOption } from "../group_forecast_table";
+import {
+  validateAllQuantileInputs,
+  validateUserQuantileData,
+} from "../helpers";
 import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 
 type SliderWrapperProps = {
-  option: ConditionalTableOption;
+  option: ContinuousGroupOption;
   canPredict: boolean;
   isPending: boolean;
-  handleChange: (id: number, components: DistributionSliderComponent[]) => void;
-  handleAddComponent: (id: number) => void;
-  handleResetForecasts: (id?: number) => void;
+  handleChange: (
+    optionId: number,
+    distribution: DistributionSlider | DistributionQuantile
+  ) => void;
+  handleAddComponent: (option: ContinuousGroupOption) => void;
+  handleResetForecasts: (option?: ContinuousGroupOption) => void;
   handlePredictSubmit: (id: number) => Promise<
     | {
         errors: ErrorResponse | undefined;
       }
     | undefined
   >;
+  setForecastInputMode: (mode: ForecastInputType) => void;
 };
 
 const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
@@ -50,6 +65,7 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
   handleAddComponent,
   handleResetForecasts,
   handlePredictSubmit,
+  setForecastInputMode,
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
@@ -61,21 +77,15 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
       !!previousForecast?.forecast_values &&
         !previousForecast.distribution_input
     );
-  const [forecastInputMode, setForecastInputMode] = useState<ForecastInputType>(
-    ForecastInputType.Slider
-  );
   const [submitError, setSubmitError] = useState<ErrorResponse>();
-  const onSubmit = useCallback(async () => {
-    setSubmitError(undefined);
-    const response = await handlePredictSubmit(option.id);
-    if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors);
-    }
-  }, [option.id, handlePredictSubmit]);
+  const forecastInputMode = option.forecastInputMode;
 
   const forecast = useMemo(
-    () => getNormalizedContinuousForecast(option.userForecast),
-    [option]
+    () =>
+      forecastInputMode === ForecastInputType.Slider
+        ? getNormalizedContinuousForecast(option.userSliderForecast)
+        : option.userQuantileForecast,
+    [option, forecastInputMode]
   );
 
   const hasUserForecast = useMemo(() => {
@@ -86,19 +96,45 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
 
   const dataset = useMemo(
     () =>
-      getNumericForecastDataset(
-        forecast,
-        option.question.open_lower_bound,
-        option.question.open_upper_bound
-      ),
-    [option, forecast]
+      forecastInputMode === ForecastInputType.Slider
+        ? getNumericForecastDataset(
+            forecast as DistributionSliderComponent[],
+            option.question.open_lower_bound,
+            option.question.open_upper_bound
+          )
+        : getQuantileNumericForecastDataset(
+            forecast as DistributionQuantileComponent,
+            option.question
+          ),
+    [option, forecast, forecastInputMode]
   );
   const predictionMessage = useMemo(
     () => getSubquestionPredictionInputMessage(option),
     [option]
   );
+
+  const onSubmit = useCallback(async () => {
+    setSubmitError(undefined);
+    if (option.forecastInputMode === ForecastInputType.Quantile) {
+      const errors = validateUserQuantileData({
+        question: option.question,
+        components: option.userQuantileForecast,
+        cdf: dataset.cdf,
+        t,
+      });
+      if (errors.length) {
+        setSubmitError(new Error(errors[0] ?? t("unexpectedError")));
+        return;
+      }
+    }
+    const response = await handlePredictSubmit(option.id);
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+    }
+  }, [handlePredictSubmit, option, dataset, t]);
+
   const userCdf: number[] | undefined = getNumericForecastDataset(
-    getNormalizedContinuousForecast(option.userForecast),
+    getNormalizedContinuousForecast(option.userSliderForecast),
     option.question.open_lower_bound,
     option.question.open_upper_bound
   ).cdf;
@@ -111,20 +147,23 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
 
   return (
     <div className="mt-0.5 bg-blue-600/10 dark:bg-blue-400/10">
-      <div className="p-4">
+      <div className="p-4 pb-0">
         <ContinuousSlider
-          components={forecast}
+          components={option.userSliderForecast}
           question={option.question}
           overlayPreviousForecast={overlayPreviousForecast}
           setOverlayPreviousForecast={setOverlayPreviousForecast}
           dataset={dataset}
           onChange={(components) => {
-            handleChange(option.id, components);
+            handleChange(option.id, {
+              components: components,
+              type: ForecastInputType.Slider,
+            });
           }}
           disabled={
             !canPredict || option.question.status !== QuestionStatus.OPEN
           }
-          // showInputModeSwitcher
+          showInputModeSwitcher
           forecastInputMode={forecastInputMode}
           setForecastInputMode={setForecastInputMode}
           menu={option.menu}
@@ -136,30 +175,36 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
           {t(predictionMessage)}
         </div>
       )}
-      <FormError
-        errors={submitError}
-        className="mt-2 flex items-center justify-center"
-        detached
-      />
+      {option.forecastInputMode === ForecastInputType.Slider && (
+        <FormError
+          errors={submitError}
+          className="mt-2 flex items-center justify-center"
+          detached
+        />
+      )}
 
-      <div className="flex flex-wrap items-center justify-center gap-3 p-4">
+      <div
+        className={cn("flex flex-wrap items-center justify-center gap-3 p-4", {
+          "pt-0": forecastInputMode === ForecastInputType.Quantile,
+        })}
+      >
         {option.question.status === QuestionStatus.OPEN &&
           canPredict &&
-          forecastInputMode === "slider" && (
+          forecastInputMode === ForecastInputType.Slider && (
             <>
               {!!user && (
                 <>
                   <Button
                     variant="secondary"
                     type="reset"
-                    onClick={() => handleAddComponent(option.id)}
+                    onClick={() => handleAddComponent(option)}
                   >
                     {t("addComponentButton")}
                   </Button>
                   <Button
                     variant="secondary"
                     type="reset"
-                    onClick={() => handleResetForecasts(option.id)}
+                    onClick={() => handleResetForecasts(option)}
                     disabled={!option.isDirty}
                   >
                     {t("discardChangesButton")}
@@ -173,7 +218,7 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
                 hasUserForecast={hasUserForecast}
                 isPending={isPending}
                 isDisabled={
-                  option.userForecast === null &&
+                  option.userSliderForecast === null &&
                   option.question.status !== QuestionStatus.OPEN
                 }
                 predictLabel={previousForecast ? undefined : t("predict")}
@@ -181,46 +226,87 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
             </>
           )}
 
-        <>
-          {forecastInputMode === "slider" ? (
-            <NumericForecastTable
-              question={option.question}
-              userBounds={getCdfBounds(userCdf)}
-              userQuartiles={option.userQuartiles ?? undefined}
-              userPreviousBounds={getCdfBounds(userPreviousCdf)}
-              userPreviousQuartiles={
-                userPreviousCdf
-                  ? computeQuartilesFromCDF(userPreviousCdf)
-                  : undefined
-              }
-              communityBounds={getCdfBounds(communityCdf)}
-              communityQuartiles={option.communityQuartiles ?? undefined}
-              withCommunityQuartiles={!user || !hideCP}
-              isDirty={option.isDirty}
-              hasUserForecast={hasUserForecast}
-            />
-          ) : (
-            <div>There will be a table inputs</div>
-          )}
-
-          {!!option.resolution && (
-            <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
-              <p className="my-1 flex justify-center gap-1 text-base">
-                {t("resolutionDescriptionContinuous")}
-                <strong
-                  className="text-purple-800 dark:text-purple-800-dark"
-                  suppressHydrationWarning
+        <NumericForecastTable
+          question={option.question}
+          userBounds={getCdfBounds(userCdf)}
+          userQuartiles={option.userQuartiles ?? undefined}
+          userPreviousBounds={getCdfBounds(userPreviousCdf)}
+          userPreviousQuartiles={
+            userPreviousCdf
+              ? computeQuartilesFromCDF(userPreviousCdf)
+              : undefined
+          }
+          communityBounds={getCdfBounds(communityCdf)}
+          communityQuartiles={option.communityQuartiles ?? undefined}
+          withCommunityQuartiles={!user || !hideCP}
+          isDirty={option.isDirty}
+          hasUserForecast={hasUserForecast}
+          forecastInputMode={forecastInputMode}
+          quantileComponents={option.userQuantileForecast}
+          onQuantileChange={(quantileComponents) =>
+            handleChange(option.id, {
+              components: quantileComponents,
+              type: ForecastInputType.Quantile,
+            })
+          }
+        />
+        {option.question.status === QuestionStatus.OPEN &&
+          canPredict &&
+          forecastInputMode === ForecastInputType.Quantile && (
+            <>
+              {!!user && (
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={() => handleResetForecasts(option)}
+                  disabled={!option.isDirty}
                 >
-                  {formatResolution(
-                    option.resolution,
-                    option.question.type,
-                    locale
-                  )}
-                </strong>
-              </p>
-            </div>
+                  {t("discardChangesButton")}
+                </Button>
+              )}
+
+              <PredictButton
+                onSubmit={onSubmit}
+                isDirty={option.userQuantileForecast.some((q) => q.isDirty)}
+                hasUserForecast={hasUserForecast}
+                isPending={isPending}
+                isDisabled={
+                  validateAllQuantileInputs({
+                    question: option.question,
+                    components: option.userQuantileForecast,
+                    t,
+                  }).length !== 0
+                }
+                predictLabel={previousForecast ? undefined : t("predict")}
+              />
+            </>
           )}
-        </>
+        {option.forecastInputMode === ForecastInputType.Quantile && (
+          <div className="flex w-full items-center justify-center">
+            <FormError
+              errors={submitError}
+              className="mt-2 flex items-center justify-center"
+              detached
+            />
+          </div>
+        )}
+        {!!option.resolution && (
+          <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
+            <p className="my-1 flex justify-center gap-1 text-base">
+              {t("resolutionDescriptionContinuous")}
+              <strong
+                className="text-purple-800 dark:text-purple-800-dark"
+                suppressHydrationWarning
+              >
+                {formatResolution(
+                  option.resolution,
+                  option.question.type,
+                  locale
+                )}
+              </strong>
+            </p>
+          </div>
+        )}
       </div>
 
       {!isNil(option.question.resolution) && (

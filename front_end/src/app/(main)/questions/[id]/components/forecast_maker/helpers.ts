@@ -58,14 +58,14 @@ export function validateQuantileInput({
   // Check if quantile out of closed bounds
   if (
     !open_lower_bound &&
-    ["q1", "q2", "q3"].some((q) => q === quantile) &&
+    [Quantile.q1, Quantile.q2, Quantile.q3].some((q) => q === quantile) &&
     newValue < range_min
   ) {
     return t("quantileBelowBoundError");
   }
   if (
     !open_upper_bound &&
-    ["q1", "q2", "q3"].some((q) => q === quantile) &&
+    [Quantile.q1, Quantile.q2, Quantile.q3].some((q) => q === quantile) &&
     newValue > range_max
   ) {
     return t("quantileAboveBoundError");
@@ -109,7 +109,6 @@ export function validateQuantileInput({
       !isNil(probabilityValue) &&
       probabilityValue < validation.percentileValue
     ) {
-      console.log("quantile out of bounds", validation.errorMessageKey);
       return t(validation.errorMessageKey);
     }
 

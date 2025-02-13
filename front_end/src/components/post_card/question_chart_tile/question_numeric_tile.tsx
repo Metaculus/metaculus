@@ -8,7 +8,7 @@ import NumericChart from "@/components/charts/numeric_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { ForecastInputType, TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {
   DistributionSliderComponent,
@@ -108,7 +108,7 @@ const QuestionNumericTile: FC<Props> = ({
             question.open_upper_bound
           );
           const userCdf = dataset.cdf;
-
+          // TODO: check if it needs adjustments for table forecast
           onReaffirm([
             {
               questionId: question.id,
@@ -118,7 +118,7 @@ const QuestionNumericTile: FC<Props> = ({
                 probabilityYesPerCategory: null,
               },
               distributionInput: {
-                type: "slider",
+                type: ForecastInputType.Slider,
                 components: forecast as DistributionSliderComponent[],
               },
             },
