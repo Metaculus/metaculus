@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 import re
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -27,7 +28,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Current env
 # Metaculus instance identity
 METACULUS_ENV = os.environ.get("METACULUS_ENV", "").strip()
-METACULUS_ENV_TESTING = "testing"
+
+# Flag to determine if the current execution is within a test environment
+# This checks if pytest is loaded in sys.modules, which happens when running tests
+IS_TEST_ENV = "pytest" in sys.modules
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -137,7 +141,7 @@ DATABASES = {
     },
 }
 
-if METACULUS_ENV != METACULUS_ENV_TESTING:
+if not IS_TEST_ENV:
     # Old database for the migrator
     DATABASES["old"] = {
         **dj_database_url.config(
@@ -316,10 +320,11 @@ DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
 
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
-if METACULUS_ENV == METACULUS_ENV_TESTING:
+if IS_TEST_ENV:
     DRAMATIQ_BROKER.update(
         {"BROKER": "dramatiq.brokers.stub.StubBroker", "OPTIONS": {}}
     )
+
 DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 
 CACHES = {
