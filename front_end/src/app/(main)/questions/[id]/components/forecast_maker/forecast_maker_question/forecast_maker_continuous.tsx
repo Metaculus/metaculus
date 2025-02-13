@@ -149,8 +149,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               question,
               components: quantileDistributionComponents,
               t,
-              checkDirtyState: false,
-            })
+            }).length === 0
           ? getQuantileNumericForecastDataset(
               quantileDistributionComponents,
               question
@@ -402,6 +401,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         }
         withCommunityQuartiles={withCommunityQuartiles}
         isDirty={isDirty}
+        disableQuantileInput={!canPredict}
         hasUserForecast={hasUserForecast}
         forecastInputMode={forecastInputMode}
       />
@@ -423,7 +423,7 @@ const ForecastMakerContinuous: FC<Props> = ({
 
             <PredictButton
               onSubmit={submit}
-              isDirty={true}
+              isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
               hasUserForecast={hasUserForecast}
               isPending={isPending}
               predictLabel={previousForecast ? undefined : t("predict")}

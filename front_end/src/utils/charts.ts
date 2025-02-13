@@ -401,6 +401,7 @@ export function getTableDisplayValue({
   precision,
   truncation,
   range,
+  forecastInputMode = ForecastInputType.Slider,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -408,11 +409,18 @@ export function getTableDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
+  forecastInputMode?: ForecastInputType;
 }) {
   if (isNil(value)) {
     return "...";
   }
 
+  if (
+    questionType !== QuestionType.Date &&
+    forecastInputMode === ForecastInputType.Quantile
+  ) {
+    return String(value);
+  }
   return getDisplayValue({
     value,
     questionType,
