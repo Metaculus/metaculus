@@ -30,5 +30,11 @@ export function getPublicSettings() {
       process.env.PUBLIC_ALLOW_SIGNUP !== undefined
         ? process.env.PUBLIC_ALLOW_SIGNUP === "true"
         : defVals.PUBLIC_ALLOW_SIGNUP,
+    PUBLIC_LANDING_PAGE_URL:
+      process.env.PUBLIC_LANDING_PAGE_URL ?? defVals.PUBLIC_LANDING_PAGE_URL,
+    PUBLIC_AUTHENTICATION_REQUIRED:
+      process.env.PUBLIC_AUTHENTICATION_REQUIRED !== undefined
+        ? process.env.PUBLIC_AUTHENTICATION_REQUIRED === "true"
+        : defVals.PUBLIC_AUTHENTICATION_REQUIRED,
   };
 }

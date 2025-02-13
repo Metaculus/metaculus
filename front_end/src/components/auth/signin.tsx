@@ -18,6 +18,8 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 
+import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
+
 type SignInModalType = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
@@ -36,10 +38,13 @@ const SignInModal: FC<SignInModalType> = ({
   const { register, watch } = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
   });
+  const username = watch("login");
   const [state, formAction] = useFormState<LoginActionState, FormData>(
     loginAction,
     null
   );
+  const handlePostLoginAction = usePostLoginActionHandler();
+
   useEffect(() => {
     if (!state) {
       return;
@@ -49,6 +54,7 @@ const SignInModal: FC<SignInModalType> = ({
       sendGAEvent("event", "login");
       setUser(state.user);
       setCurrentModal(null);
+      handlePostLoginAction(state.postLoginAction);
     }
 
     if (
@@ -59,10 +65,10 @@ const SignInModal: FC<SignInModalType> = ({
       setCurrentModal(null);
       setCurrentModal({
         type: "accountInactive",
-        data: { login: watch("login") },
+        data: { login: username },
       });
     }
-  }, [setCurrentModal, setUser, state]);
+  }, [setCurrentModal, setUser, state, handlePostLoginAction, username]);
 
   return (
     <BaseModal
