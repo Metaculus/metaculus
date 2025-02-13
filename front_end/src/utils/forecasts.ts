@@ -490,18 +490,21 @@ export const getNormalizedContinuousForecast = (
 
 export function getUserContinuousQuartiles(
   components?: DistributionSliderComponent[],
-  openLower?: boolean,
-  openUpper?: boolean
+  question?: Question
 ) {
   if (
-    !components ||
-    !components.length ||
-    typeof openLower === "undefined" ||
-    typeof openUpper === "undefined"
+    !components?.length ||
+    typeof question?.open_lower_bound === "undefined" ||
+    typeof question?.open_upper_bound === "undefined"
   ) {
     return null;
   }
 
-  const dataset = getNumericForecastDataset(components, openLower, openUpper);
+  const dataset = getNumericForecastDataset(
+    components,
+    !!question.open_lower_bound,
+    !!question.open_upper_bound
+  );
+
   return computeQuartilesFromCDF(dataset.cdf);
 }

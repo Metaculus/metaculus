@@ -1125,7 +1125,7 @@
   "q1LessThanError": "您的第25百分位数必须小于第50和第75百分位数",
   "q2BetweenError": "您的第50百分位数必须介于第25和第75百分位数之间",
   "q3GreaterThanError": "您的第75百分位数必须大于第25和第50百分位数",
-  "probabilityRangeError": "概率必须在0%到100%之间",
+  "probabilityRangeError": "概率必须在0.1%到99.9%之间",
   "quantileBelowBoundError": "分位点不能低于封闭的下界",
   "quantileAboveBoundError": "分位点不能高于封闭的上界",
   "q1BelowRangeError": "当您的第25百分位数低于范围时，低于下界的概率应≥ 25%",

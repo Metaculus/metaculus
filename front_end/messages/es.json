@@ -1123,7 +1123,7 @@
   "q1LessThanError": "Su percentil 25 debe ser menor que sus percentiles 50 y 75",
   "q2BetweenError": "Su percentil 50 debe estar entre sus percentiles 25 y 75",
   "q3GreaterThanError": "Su percentil 75 debe ser mayor que sus percentiles 25 y 50",
-  "probabilityRangeError": "La probabilidad debe estar entre 0 y 100%",
+  "probabilityRangeError": "La probabilidad debe estar entre 0.1 y 99.9%",
   "quantileBelowBoundError": "El cuantil no puede estar por debajo del límite inferior cerrado",
   "quantileAboveBoundError": "El cuantil no puede estar por encima del límite superior cerrado",
   "q1BelowRangeError": "Cuando su percentil 25 está por debajo del rango, su probabilidad por debajo del límite inferior debe ser ≥ 25%",

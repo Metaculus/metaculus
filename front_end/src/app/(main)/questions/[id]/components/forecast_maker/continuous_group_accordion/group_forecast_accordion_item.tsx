@@ -5,19 +5,28 @@ import { useLocale } from "next-intl";
 import { FC, PropsWithChildren, useState } from "react";
 
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
+import { ForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { getContinuousAreaChartData, getDisplayValue } from "@/utils/charts";
+import { Quantile } from "@/types/question";
+import {
+  displayValue,
+  getContinuousAreaChartData,
+  getDisplayValue,
+} from "@/utils/charts";
 import cn from "@/utils/cn";
-import { getNumericForecastDataset } from "@/utils/forecasts";
+import {
+  getNumericForecastDataset,
+  getQuantileNumericForecastDataset,
+} from "@/utils/forecasts";
 import { formatResolution } from "@/utils/questions";
 
 import { AccordionOpenButton } from "./accordion_open_button";
 import { AccordionResolutionCell } from "./accordion_resolution_cell";
+import { ContinuousGroupOption } from "./group_forecast_accordion";
 import MobileAccordionModal from "./group_forecast_accordion_modal";
-import { ConditionalTableOption } from "../group_forecast_table";
 
 type AccordionItemProps = {
-  option: ConditionalTableOption;
+  option: ContinuousGroupOption;
   showCP?: boolean;
   subQuestionId?: number | null;
   type: QuestionStatus.OPEN | QuestionStatus.CLOSED | QuestionStatus.RESOLVED;
@@ -32,27 +41,39 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
 }) => {
   const locale = useLocale();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { question, name: title, isDirty, resolution } = option;
+  const {
+    question,
+    name: title,
+    isDirty,
+    resolution,
+    forecastInputMode,
+  } = option;
   const formatedResolution = formatResolution({
     resolution,
     questionType: question.type,
     locale,
     scaling: question.scaling,
   });
+
+  const showUserPrediction = question.my_forecasts?.latest || isDirty;
   const isResolvedOption = type === QuestionStatus.RESOLVED;
   const latest = question.aggregations.recency_weighted.latest;
-  const optionForecast = option.userForecast
-    ? getNumericForecastDataset(
-        option.userForecast,
-        question.open_lower_bound,
-        question.open_upper_bound
-      )
-    : null;
+  const optionForecast =
+    forecastInputMode === ForecastInputType.Slider
+      ? getNumericForecastDataset(
+          option.userSliderForecast,
+          question.open_lower_bound,
+          question.open_upper_bound
+        )
+      : getQuantileNumericForecastDataset(
+          option.userQuantileForecast,
+          question
+        );
 
   const continuousAreaChartData = getContinuousAreaChartData(
     latest,
     question.my_forecasts?.latest,
-    optionForecast
+    optionForecast && showUserPrediction
       ? { cdf: optionForecast.cdf, pmf: optionForecast.pmf }
       : undefined,
     type === QuestionStatus.CLOSED
@@ -62,11 +83,19 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     questionType: option.question.type,
     scaling: option.question.scaling,
   });
-  const userMedian = getDisplayValue({
-    value: option.userQuartiles?.median,
-    questionType: option.question.type,
-    scaling: option.question.scaling,
-  });
+  const userMedian = showUserPrediction
+    ? forecastInputMode === ForecastInputType.Quantile
+      ? displayValue(
+          option.userQuantileForecast?.find((q) => q.quantile === Quantile.q2)
+            ?.value ?? null,
+          option.question.type
+        )
+      : getDisplayValue({
+          value: option.userQuartiles?.median,
+          questionType: option.question.type,
+          scaling: option.question.scaling,
+        })
+    : undefined;
 
   const handleClick = () => {
     setIsModalOpen((prev) => !prev);
