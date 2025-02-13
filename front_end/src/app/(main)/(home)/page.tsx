@@ -8,6 +8,7 @@ import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { PostWithForecasts, NotebookPost } from "@/types/post";
 import { encodeQueryParams } from "@/utils/navigation";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import EmailConfirmation from "./components/email_confirmation";
 import EngageBlock from "./components/engage_block";
@@ -23,10 +24,10 @@ import TopicLink from "./components/topic_link";
 import TournamentsBlock from "./components/tournaments_block";
 
 export default async function Home() {
-  const landingUrl = process.env.PUBLIC_LANDING_PAGE_URL || "/";
+  const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
 
-  if (landingUrl !== "/") {
-    return redirect(landingUrl);
+  if (PUBLIC_LANDING_PAGE_URL !== "/") {
+    return redirect(PUBLIC_LANDING_PAGE_URL);
   }
 
   const t = await getTranslations();

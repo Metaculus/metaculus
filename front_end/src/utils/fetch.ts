@@ -114,14 +114,15 @@ const appFetch = async <T>(
     passAuthHeader = false;
   }
 
-  const AUTHENTICATION_REQUIRED =
-    (process.env.AUTHENTICATION_REQUIRED ?? "false").toLowerCase() === "true";
+  const { PUBLIC_API_BASE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
+    getPublicSettings();
 
   const authToken =
-    passAuthHeader || AUTHENTICATION_REQUIRED ? getServerSession() : null;
+    passAuthHeader || PUBLIC_AUTHENTICATION_REQUIRED
+      ? getServerSession()
+      : null;
   const alphaToken = getAlphaTokenSession();
   const locale = await getLocale();
-  const { PUBLIC_API_BASE_URL } = getPublicSettings();
 
   // Default values are configured in the next.config.mjs
   const finalUrl = `${PUBLIC_API_BASE_URL}/api${url}`;

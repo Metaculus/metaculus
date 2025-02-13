@@ -10,6 +10,8 @@ export interface PublicSettings {
   PUBLIC_DISALLOW_ALL_BOTS: boolean;
   PUBLIC_ALLOW_TUTORIAL: boolean;
   PUBLIC_ALLOW_SIGNUP: boolean;
+  PUBLIC_LANDING_PAGE_URL: string;
+  PUBLIC_AUTHENTICATION_REQUIRED: boolean;
 }
 
 export const defaultPublicSettingsValues: PublicSettings = {
@@ -24,4 +26,6 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_DISALLOW_ALL_BOTS: true,
   PUBLIC_ALLOW_TUTORIAL: true,
   PUBLIC_ALLOW_SIGNUP: true,
+  PUBLIC_LANDING_PAGE_URL: "/",
+  PUBLIC_AUTHENTICATION_REQUIRED: false,
 };
