@@ -200,8 +200,8 @@ AUTH_SIGNUP_VERIFY_EMAIL = (
     os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
 )
 
-AUTHENTICATION_REQUIRED = (
-    os.environ.get("AUTHENTICATION_REQUIRED", "false").lower() == "true"
+PUBLIC_AUTHENTICATION_REQUIRED = (
+    os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"
 )
 PUBLIC_ALLOW_SIGNUP = os.environ.get("PUBLIC_ALLOW_SIGNUP", "true").lower() == "true"
 

@@ -25,6 +25,8 @@ import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
 
+import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
+
 type SignInModalType = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
@@ -60,6 +62,8 @@ export const SignupForm: FC<{
   const { watch, setValue, formState, handleSubmit, setError, clearErrors } =
     methods;
 
+  const handlePostLoginAction = usePostLoginActionHandler();
+
   const onSubmit = async (data: SignUpSchema) => {
     const response = await signUpAction({
       ...data,
@@ -89,6 +93,7 @@ export const SignupForm: FC<{
           data: { email: watch("email"), username: watch("username") },
         });
       }
+      handlePostLoginAction(response?.postLoginAction);
     }
 
     return response;
