@@ -432,10 +432,8 @@ SHELL_PLUS_IMPORTS = [
 ]
 
 # Sentry config
-# TODO: add env name
 SENTRY_DNS = os.environ.get("SENTRY_DNS")
-SENTRY_SAMPLE_RATE = os.environ.get("SENTRY_SAMPLE_RATE", 0.25)
-
+SENTRY_SAMPLE_RATE = float(os.environ.get("SENTRY_SAMPLE_RATE", 0.25))
 
 def traces_sampler(sampling_context):
     exclude_endpoints = [
