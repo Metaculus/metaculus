@@ -40,9 +40,8 @@ type Props = {
   isDirty?: boolean;
   forecastInputMode?: ForecastInputType;
   quantileComponents?: DistributionQuantileComponent;
-  onQuantileChange?: React.Dispatch<
-    React.SetStateAction<DistributionQuantileComponent>
-  >;
+  onQuantileChange?: (quantileComponents: QuantileValue[]) => void;
+  disableQuantileInput?: boolean;
 };
 
 const NumericForecastTable: FC<Props> = ({
@@ -60,6 +59,7 @@ const NumericForecastTable: FC<Props> = ({
   forecastInputMode = "slider",
   quantileComponents,
   onQuantileChange,
+  disableQuantileInput = false,
 }) => {
   const t = useTranslations();
   // initial state is a safety measure to avoid errors when we already have slider forecast
@@ -75,7 +75,6 @@ const NumericForecastTable: FC<Props> = ({
           question,
           components: quantileComponents,
           t,
-          checkDirtyState: false,
         })
       : []
   );
@@ -98,7 +97,6 @@ const NumericForecastTable: FC<Props> = ({
           question,
           components: quantileComponents,
           t,
-          checkDirtyState: false,
         })
       );
     }
@@ -120,13 +118,12 @@ const NumericForecastTable: FC<Props> = ({
           isDirty: newValue.isDirty,
         };
       }
-      onQuantileChange(() => localQuantileComponents);
+      onQuantileChange(localQuantileComponents);
 
       const errors = validateAllQuantileInputs({
         question,
         components: localQuantileComponents,
         t,
-        checkDirtyState: false,
       });
 
       if (errors.length !== 0) {
@@ -294,6 +291,7 @@ const NumericForecastTable: FC<Props> = ({
                           ) => {
                             handleQuantileChange(Quantile.lower, quantileValue);
                           }}
+                          disabled={disableQuantileInput}
                         />
                       </Td>
                     )}
@@ -314,6 +312,7 @@ const NumericForecastTable: FC<Props> = ({
                         ) => {
                           handleQuantileChange(Quantile.q1, quantileValue);
                         }}
+                        disabled={disableQuantileInput}
                       />
                     </Td>
                     <Td>
@@ -333,6 +332,7 @@ const NumericForecastTable: FC<Props> = ({
                         ) => {
                           handleQuantileChange(Quantile.q2, quantileValue);
                         }}
+                        disabled={disableQuantileInput}
                       />
                     </Td>
                     <Td>
@@ -352,6 +352,7 @@ const NumericForecastTable: FC<Props> = ({
                         ) => {
                           handleQuantileChange(Quantile.q3, quantileValue);
                         }}
+                        disabled={disableQuantileInput}
                       />
                     </Td>
                     {question.open_upper_bound && (
@@ -368,6 +369,7 @@ const NumericForecastTable: FC<Props> = ({
                           ) => {
                             handleQuantileChange(Quantile.upper, quantileValue);
                           }}
+                          disabled={disableQuantileInput}
                         />
                       </Td>
                     )}
@@ -494,6 +496,7 @@ const NumericForecastTable: FC<Props> = ({
                       ) => {
                         handleQuantileChange(Quantile.lower, quantileValue);
                       }}
+                      disabled={disableQuantileInput}
                     />
                   </Td>
                 ) : (
@@ -550,6 +553,7 @@ const NumericForecastTable: FC<Props> = ({
                   onQuantileChange={(quantileValue: Partial<QuantileValue>) => {
                     handleQuantileChange(Quantile.q1, quantileValue);
                   }}
+                  disabled={disableQuantileInput}
                 />
               </Td>
             ) : (
@@ -610,6 +614,7 @@ const NumericForecastTable: FC<Props> = ({
                   onQuantileChange={(quantileValue: Partial<QuantileValue>) => {
                     handleQuantileChange(Quantile.q2, quantileValue);
                   }}
+                  disabled={disableQuantileInput}
                 />
               </Td>
             ) : (
@@ -670,6 +675,7 @@ const NumericForecastTable: FC<Props> = ({
                   onQuantileChange={(quantileValue: Partial<QuantileValue>) => {
                     handleQuantileChange(Quantile.q3, quantileValue);
                   }}
+                  disabled={disableQuantileInput}
                 />
               </Td>
             ) : (
@@ -738,6 +744,7 @@ const NumericForecastTable: FC<Props> = ({
                       ) => {
                         handleQuantileChange(Quantile.upper, quantileValue);
                       }}
+                      disabled={disableQuantileInput}
                     />
                   </Td>
                 ) : (

@@ -401,6 +401,7 @@ export function getTableDisplayValue({
   precision,
   truncation,
   range,
+  forecastInputMode = ForecastInputType.Slider,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -408,12 +409,16 @@ export function getTableDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
+  forecastInputMode?: ForecastInputType;
 }) {
   if (isNil(value)) {
     return "...";
   }
 
   if (questionType !== QuestionType.Date) {
+    if (forecastInputMode === ForecastInputType.Quantile) {
+      return String(value);
+    }
     return getDisplayValue({
       value,
       questionType,
@@ -441,7 +446,10 @@ export function getTableDisplayValue({
     }
   }
 
-  const scaledValue = scaleInternalLocation(value, scaling);
+  const scaledValue =
+    forecastInputMode === ForecastInputType.Quantile
+      ? value
+      : scaleInternalLocation(value, scaling);
   return format(fromUnixTime(scaledValue), dateFormat);
 }
 

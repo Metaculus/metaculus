@@ -136,12 +136,10 @@ export function validateAllQuantileInputs({
   question,
   components,
   t,
-  checkDirtyState = true,
 }: {
   question: QuestionWithNumericForecasts;
   components: DistributionQuantileComponent;
   t: ReturnType<typeof useTranslations>;
-  checkDirtyState?: boolean;
 }): {
   quantile: Quantile;
   message?: string;
@@ -153,21 +151,6 @@ export function validateAllQuantileInputs({
         message: t("unexpectedError"),
       },
     ];
-  }
-
-  if (checkDirtyState) {
-    const someDirty = components.some((value) => value?.isDirty === true);
-
-    if (!someDirty) {
-      // TODO: adjust error message
-      // when user trying to submit (not reafirm) new table forecast with no changes
-      return [
-        {
-          quantile: Quantile.q1,
-          message: t("unexpectedError"),
-        },
-      ];
-    }
   }
 
   const errors = components

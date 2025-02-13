@@ -12,6 +12,7 @@ type Props = {
   onQuantileChange: (quantileValue: Partial<QuantileValue>) => void;
   quantileValue?: QuantileValue;
   error?: string;
+  disabled?: boolean;
 };
 
 const NumericTableInput: FC<Props> = ({
@@ -19,10 +20,12 @@ const NumericTableInput: FC<Props> = ({
   onQuantileChange,
   quantileValue,
   error,
+  disabled,
 }) => {
   if (type === "number") {
     return (
       <Input
+        disabled={disabled}
         onChange={(e) => {
           const inputValue = e.target.value;
           onQuantileChange({
@@ -52,6 +55,7 @@ const NumericTableInput: FC<Props> = ({
 
   return (
     <DatetimeUtc
+      disabled={disabled}
       defaultValue={dateValue}
       onChange={(isoString) => {
         onQuantileChange({
@@ -62,6 +66,7 @@ const NumericTableInput: FC<Props> = ({
       }}
       withFormValidation={true}
       withTimezoneMessage={false}
+      type="date"
       className={cn(
         "h-10 w-full rounded border-2 border-transparent text-center text-xs text-orange-800 [appearance:textfield] placeholder:text-orange-800 hover:border-blue-600 focus:border-blue-700 focus:outline-none dark:bg-gray-0-dark dark:text-orange-800-dark dark:placeholder:text-orange-800-dark dark:focus:border-blue-700-dark sm:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
         quantileValue?.isDirty &&
