@@ -5,7 +5,7 @@ export interface PublicSettings {
   PUBLIC_API_BASE_URL: string;
   PUBLIC_POSTHOG_KEY: string;
   PUBLIC_POSTHOG_BASE_URL: string;
-  PUBLIC_SENTRY_DSN: string;
+  PUBLIC_FRONTEND_SENTRY_DSN: string;
   PUBLIC_GOOGLE_MEASUREMENT_ID: string;
   PUBLIC_DISALLOW_ALL_BOTS: boolean;
   PUBLIC_ALLOW_TUTORIAL: boolean;
@@ -21,7 +21,7 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_API_BASE_URL: "http://localhost:8000",
   PUBLIC_POSTHOG_KEY: "",
   PUBLIC_POSTHOG_BASE_URL: "https://us.i.posthog.com",
-  PUBLIC_SENTRY_DSN: "",
+  PUBLIC_FRONTEND_SENTRY_DSN: "",
   PUBLIC_GOOGLE_MEASUREMENT_ID: "",
   PUBLIC_DISALLOW_ALL_BOTS: true,
   PUBLIC_ALLOW_TUTORIAL: true,
