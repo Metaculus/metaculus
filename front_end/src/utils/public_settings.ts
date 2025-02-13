@@ -12,6 +12,7 @@ export interface PublicSettings {
   PUBLIC_ALLOW_SIGNUP: boolean;
   PUBLIC_LANDING_PAGE_URL: string;
   PUBLIC_AUTHENTICATION_REQUIRED: boolean;
+  PUBLIC_SCREENSHOT_SERVICE_ENABLED: boolean;
 }
 
 export const defaultPublicSettingsValues: PublicSettings = {
@@ -28,4 +29,5 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_ALLOW_SIGNUP: true,
   PUBLIC_LANDING_PAGE_URL: "/",
   PUBLIC_AUTHENTICATION_REQUIRED: false,
+  PUBLIC_SCREENSHOT_SERVICE_ENABLED: false,
 };
