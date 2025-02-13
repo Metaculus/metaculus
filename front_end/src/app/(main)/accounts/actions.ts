@@ -55,14 +55,14 @@ export default async function loginAction(
 
   setServerSession(response.token);
 
-  const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
+  const { PUBLIC_LANDING_PAGE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
+    getPublicSettings();
 
   return {
     user: response.user,
-    postLoginAction:
-      process.env.AUTHENTICATION_REQUIRED?.toLowerCase() === "true"
-        ? { type: "redirect", payload: PUBLIC_LANDING_PAGE_URL }
-        : undefined,
+    postLoginAction: PUBLIC_AUTHENTICATION_REQUIRED
+      ? { type: "redirect", payload: PUBLIC_LANDING_PAGE_URL }
+      : undefined,
   };
 }
 
@@ -108,9 +108,10 @@ export async function signUpAction(
 
       revalidatePath("/");
 
-      if (process.env.AUTHENTICATION_REQUIRED?.toLowerCase() === "true") {
-        const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
+      const { PUBLIC_LANDING_PAGE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
+        getPublicSettings();
 
+      if (PUBLIC_AUTHENTICATION_REQUIRED) {
         signUpActionState.postLoginAction = {
           type: "redirect",
           payload: PUBLIC_LANDING_PAGE_URL,
