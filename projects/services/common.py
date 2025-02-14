@@ -94,17 +94,20 @@ def invite_user_to_project(
 
 
 @transaction.atomic
-def subscribe_project(project: Project, user: User) -> ProjectSubscription:
+def subscribe_project(project: Project, user: User):
     obj = ProjectSubscription(
         project=project,
         user=user,
     )
-    obj.save()
+
+    try:
+        obj.save()
+    except IntegrityError:
+        # Skip if use has been already subscribed
+        return
 
     project.update_followers_count()
     project.save()
-
-    return obj
 
 
 @transaction.atomic
