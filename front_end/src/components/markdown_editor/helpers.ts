@@ -1,7 +1,7 @@
 import { transformTwitterLinks } from "./embedded_twitter/helpers";
 
 // match block math: $$...$$
-const BLOCK_MATH_REGEX = /(?<!\\)\$\$[^$]*\$\$/g;
+const BLOCK_MATH_REGEX = /(?<!\\)\$\$(?:[^$]|\\\$)*?\$\$/g;
 // match valid inline math: $...$ that starts and ends with a non-word character
 const INLINE_MATH_REGEX = /(?<!\\)(?<!\w|\d)\$([^\$]+?)\$(?!\w|\d)/gs;
 
