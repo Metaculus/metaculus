@@ -522,13 +522,13 @@ export function getUserPredictionDisplayValue(
     center,
     scaling ?? { range_min: 0, range_max: 1, zero_point: null }
   );
-  const scaledLower = lower
+  const scaledLower = !isNil(lower)
     ? scaleInternalLocation(
         lower,
         scaling ?? { range_min: 0, range_max: 1, zero_point: null }
       )
     : null;
-  const scaledUpper = upper
+  const scaledUpper = !isNil(upper)
     ? scaleInternalLocation(
         upper,
         scaling ?? { range_min: 0, range_max: 1, zero_point: null }
@@ -538,10 +538,10 @@ export function getUserPredictionDisplayValue(
   if (questionType === QuestionType.Date) {
     const displayCenter = format(fromUnixTime(scaledCenter), "yyyy-MM-dd");
     if (showRange) {
-      const displayLower = !!scaledLower
+      const displayLower = !isNil(scaledLower)
         ? format(fromUnixTime(scaledLower), "yyyy-MM-dd")
         : "...";
-      const displayUpper = !!scaledUpper
+      const displayUpper = !isNil(scaledUpper)
         ? format(fromUnixTime(scaledUpper), "yyyy-MM-dd")
         : "...";
       return `${displayCenter} (${displayLower} - ${displayUpper})`;
@@ -550,10 +550,10 @@ export function getUserPredictionDisplayValue(
   } else if (questionType === QuestionType.Numeric) {
     const displayCenter = abbreviatedNumber(scaledCenter);
     if (showRange) {
-      const displayLower = !!scaledLower
+      const displayLower = !isNil(scaledLower)
         ? abbreviatedNumber(scaledLower)
         : "...";
-      const displayUpper = !!scaledUpper
+      const displayUpper = !isNil(scaledUpper)
         ? abbreviatedNumber(scaledUpper)
         : "...";
       return `${displayCenter} (${displayLower} - ${displayUpper})`;
