@@ -9,7 +9,7 @@ from posts.models import Post, Notebook
 from posts.services.common import trigger_update_post_translations
 from questions.models import Question
 from questions.services import build_question_forecasts
-from utils.csv_utils import export_data_for_questions
+from utils.csv_utils import export_all_data_for_questions
 
 from utils.models import CustomTranslationAdmin
 
@@ -69,7 +69,11 @@ class PostAdmin(CustomTranslationAdmin):
 
         questions = Question.objects.filter(related_posts__post__in=queryset).distinct()
 
-        data = export_data_for_questions(questions, True, True, True)
+        data = export_all_data_for_questions(
+            questions,
+            include_comments=True,
+            include_scores=True,
+        )
         if data is None:
             self.message_user(request, "No questions selected.")
             return

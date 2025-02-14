@@ -603,7 +603,7 @@ class DownloadDataSerializer(serializers.Serializer):
     aggregation_methods = serializers.CharField(required=False)
     user_ids = serializers.CharField(required=False, allow_null=True)
     include_comments = serializers.BooleanField(required=False, default=False)
-    include_scores = serializers.BooleanField(required=False, default=False)
+    include_scores = serializers.BooleanField(required=False, default=True)
     include_bots = serializers.BooleanField(required=False, allow_null=True)
     minimize = serializers.BooleanField(required=False, default=True)
 
@@ -675,7 +675,7 @@ class DownloadDataSerializer(serializers.Serializer):
         minimize = attrs.get("minimize", True)
 
         if not aggregation_methods and (
-            user_ids is not None or include_bots is not None or not minimize
+            (user_ids is not None) or (include_bots is not None) or not minimize
         ):
             raise serializers.ValidationError(
                 "If user_ids, include_bots, or minimize is set, "
