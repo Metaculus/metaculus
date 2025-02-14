@@ -108,6 +108,8 @@ export const AggregationWrapper: FC<Props> = ({
       activeTab={activeTab}
       aggregationData={aggregationData}
       selectedSubQuestionOption={selectedSubQuestionOption}
+      postId={postId}
+      questionTitle={data.title}
     />
   ) : (
     <AggregationsDrawer
@@ -115,8 +117,6 @@ export const AggregationWrapper: FC<Props> = ({
       onFetchData={handleFetchAggregations}
       aggregationData={aggregationData}
       selectedSubQuestionOption={selectedSubQuestionOption}
-      postId={postId}
-      questionTitle={data.title}
     />
   );
 };

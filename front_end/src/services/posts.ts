@@ -236,7 +236,7 @@ class PostsApi {
       ...(aggregationMethods
         ? { aggregation_methods: aggregationMethods }
         : { aggregation_methods: "all" }),
-      ...(includeBots ? { include_bots: includeBots } : {}),
+      ...(includeBots !== undefined ? { include_bots: includeBots } : {}),
     });
 
     return await get<Blob>(`/posts/${postId}/download-data/${queryParams}`);

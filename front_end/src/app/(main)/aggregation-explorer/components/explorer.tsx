@@ -24,7 +24,6 @@ import { parseQuestionId } from "@/utils/questions";
 
 import { AggregationWrapper } from "./aggregation_wrapper";
 import { fetchPost, fetchQuestion } from "../actions";
-import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import { AggregationMethodWithBots } from "../types";
 
 type Props = { searchParams: SearchParams };
@@ -181,15 +180,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               </h1>
             </div>
           </div>
-          {activeTab && (
-            <p className="w-fit bg-gray-400 p-2 dark:bg-gray-400-dark">
-              {
-                AGGREGATION_EXPLORER_OPTIONS.find(
-                  (option) => option.id === activeTab
-                )?.label
-              }
-            </p>
-          )}
+
           <AggregationWrapper
             activeTab={activeTab}
             onTabChange={setActiveTab}

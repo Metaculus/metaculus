@@ -4,7 +4,7 @@ import AggregationExplorerAPI, {
   AggregationExplorerParams,
 } from "@/services/aggregation_explorer";
 import PostApi from "@/services/posts";
-import { Aggregations } from "@/types/question";
+import { AggregationMethod } from "@/types/question";
 
 export async function fetchAggregations({
   postId,
@@ -34,13 +34,13 @@ export async function fetchQuestion(questionId: number) {
 export async function getAggregationsPostZipData(
   postId: number,
   subQuestionId?: number,
-  aggregationMethods?: (keyof Aggregations)[],
+  aggregationMethod?: AggregationMethod,
   includeBots?: boolean
 ) {
   const blob = await PostApi.getAggregationsPostZipData(
     postId,
     subQuestionId,
-    aggregationMethods?.join(","),
+    aggregationMethod,
     includeBots
   );
   const arrayBuffer = await blob.arrayBuffer();

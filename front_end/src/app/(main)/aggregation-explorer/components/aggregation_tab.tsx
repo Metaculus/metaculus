@@ -1,17 +1,22 @@
 "use client";
 
+import { saveAs } from "file-saver";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState, memo, useMemo } from "react";
+import toast from "react-hot-toast";
 
 import NumericChart from "@/components/charts/numeric_chart";
+import Button from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import { QuestionType } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import { base64ToBlob } from "@/utils/files";
 
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
 import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
 import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
+import { getAggregationsPostZipData } from "../actions";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import { AggregationQuestionWithBots } from "../types";
 
@@ -19,12 +24,16 @@ type Props = {
   aggregationData: AggregationQuestionWithBots | null;
   activeTab: string;
   selectedSubQuestionOption: number | string | null;
+  postId: number;
+  questionTitle: string;
 };
 
 const AggregationsTab: FC<Props> = ({
   aggregationData,
   activeTab,
   selectedSubQuestionOption,
+  postId,
+  questionTitle,
 }) => {
   const t = useTranslations();
 
@@ -145,37 +154,78 @@ const AggregationsTab: FC<Props> = ({
     );
   }
 
+  const handleDownloadQuestionData = async () => {
+    try {
+      const aggregationMethod = tabData.value;
+
+      const base64 = await getAggregationsPostZipData(
+        postId,
+        typeof selectedSubQuestionOption === "number"
+          ? selectedSubQuestionOption
+          : undefined,
+        aggregationMethod,
+        tabData.includeBots
+      );
+
+      const blob = base64ToBlob(base64);
+      const filename = `${questionTitle.replaceAll(" ", "_")}-${aggregationMethod}${tabData.includeBots ? "-bots" : ""}.zip`;
+      saveAs(blob, filename);
+    } catch (error) {
+      toast.error(t("downloadQuestionDataError") + error);
+    }
+  };
+
   return (
-    <DetailsQuestionCardErrorBoundary>
-      <NumericChart
-        aggregation={activeAggregation}
-        aggregationIndex={aggregationIndex}
-        questionType={aggregationData.type}
-        actualCloseTime={actualCloseTime}
-        scaling={aggregationData.scaling}
-        resolution={resolution}
-        onCursorChange={handleCursorChange}
-      />
-      {!!cursorData && (
-        <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
-          <CursorDetailItem
-            title={t("totalForecastersLabel")}
-            content={cursorData.forecasterCount?.toString()}
-          />
-          <CursorDetailItem
-            title={t("communityPredictionLabel")}
-            content={getDisplayValue({
-              value: cursorData.center,
-              questionType: aggregationData.type,
-              scaling: aggregationData.scaling,
-            })}
-            variant="prediction"
-          />
+    <>
+      {activeTab && (
+        <div className="flex flex-col justify-between">
+          <Button
+            variant="text"
+            onClick={handleDownloadQuestionData}
+            className="w-fit cursor-pointer p-0 text-sm text-gray-500 underline dark:text-gray-500-dark"
+          >
+            {t("downloadQuestionData")}
+          </Button>
+          <p className="w-fit bg-gray-400 p-2 dark:bg-gray-400-dark">
+            {
+              AGGREGATION_EXPLORER_OPTIONS.find(
+                (option) => option.id === activeTab
+              )?.label
+            }
+          </p>
         </div>
       )}
+      <DetailsQuestionCardErrorBoundary>
+        <NumericChart
+          aggregation={activeAggregation}
+          aggregationIndex={aggregationIndex}
+          questionType={aggregationData.type}
+          actualCloseTime={actualCloseTime}
+          scaling={aggregationData.scaling}
+          resolution={resolution}
+          onCursorChange={handleCursorChange}
+        />
+        {!!cursorData && (
+          <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
+            <CursorDetailItem
+              title={t("totalForecastersLabel")}
+              content={cursorData.forecasterCount?.toString()}
+            />
+            <CursorDetailItem
+              title={t("communityPredictionLabel")}
+              content={getDisplayValue({
+                value: cursorData.center,
+                questionType: aggregationData.type,
+                scaling: aggregationData.scaling,
+              })}
+              variant="prediction"
+            />
+          </div>
+        )}
 
-      {renderAggregation(aggregationData)}
-    </DetailsQuestionCardErrorBoundary>
+        {renderAggregation(aggregationData)}
+      </DetailsQuestionCardErrorBoundary>
+    </>
   );
 };
 
