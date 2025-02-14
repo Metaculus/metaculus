@@ -1,3 +1,5 @@
+"use client";
+
 import { isNil } from "lodash";
 import Link from "next/link";
 import { FC, useState } from "react";
@@ -22,25 +24,22 @@ export const CommentWrapper: FC<Props> = ({
   last_viewed_at,
   postData,
 }) => {
+  const isUnread =
+    last_viewed_at && new Date(last_viewed_at) < new Date(comment.created_at);
+  const match = window.location.hash.match(/#comment-(\d+)/);
   const [isCollapsed, setIsCollapsed] = useState(
-    comment.author.is_bot &&
-      !isNil(comment.vote_score) &&
-      comment.vote_score < 3
+    isCommentCollapsed(comment, match)
   );
-  console.log(isCollapsed);
+
   return (
     <div
       key={comment.id}
       className={cn(
         "my-1.5 rounded-md border px-1.5 py-1 md:px-2.5 md:py-1.5",
         {
-          "border-blue-400 dark:border-blue-400-dark": !(
-            last_viewed_at &&
-            new Date(last_viewed_at) < new Date(comment.created_at)
-          ),
+          "border-blue-400 dark:border-blue-400-dark": !isUnread,
           "border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
-            last_viewed_at &&
-            new Date(last_viewed_at) < new Date(comment.created_at),
+            isUnread,
           "cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-100-dark":
             isCollapsed,
         }
@@ -70,3 +69,20 @@ export const CommentWrapper: FC<Props> = ({
     </div>
   );
 };
+
+function isCommentCollapsed(
+  comment: CommentType,
+  match: RegExpMatchArray | null
+) {
+  if (match) {
+    const focus_comment_id = Number(match[1]);
+    if (focus_comment_id === comment.id) {
+      return false;
+    }
+  }
+  return (
+    comment.author.is_bot &&
+    !isNil(comment.vote_score) &&
+    comment.vote_score < 3
+  );
+}

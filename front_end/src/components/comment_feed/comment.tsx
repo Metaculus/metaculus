@@ -7,6 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useState, useEffect, useRef, ReactNode } from "react";
 
@@ -29,6 +30,7 @@ import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
+import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
@@ -197,13 +199,14 @@ const Comment: FC<CommentProps> = ({
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const { ref, width } = useContainerSize<HTMLDivElement>();
 
   const { user } = useAuth();
   const scrollTo = useScrollTo();
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
-  console.log(comment);
+
   const isCmmButtonVisible =
     user?.id !== comment.author.id &&
     (!!postData?.question ||
@@ -406,11 +409,15 @@ const Comment: FC<CommentProps> = ({
           }}
           cmmContext={cmmContext}
         />
-        <div className="mb-1 flex flex-col items-start gap-1">
+        <div
+          className={cn("flex flex-col items-start gap-1", {
+            "mb-1": !isCollapsed,
+          })}
+        >
           <span className="inline-flex w-full flex-col items-start justify-start text-base sm:flex-row sm:items-center">
             <div className="flex flex-row items-center">
               {" "}
-              <a
+              <Link
                 className="flex flex-row items-center no-underline"
                 href={`/accounts/profile/${comment.author.id}/`}
               >
@@ -426,21 +433,30 @@ const Comment: FC<CommentProps> = ({
                   ProjectPermissions.ADMIN && (
                   <Admin className="ml-2 text-lg" />
                 )}
-              </a>
+              </Link>
               <span className="mx-1 opacity-55">·</span>
               <CommentDate comment={comment} />
             </div>
-            {/* TODO: adjust also for mobile view */}
+
             {isCollapsed && (
               <div className="flex w-full flex-1 flex-row items-center justify-between sm:ml-5 sm:w-auto">
-                {/* TODO: add a helper that will parse the comment text and truncate it */}
-                <div className="max-w-[350px] truncate">
-                  <MarkdownEditor
-                    mode="read"
-                    markdown={getMarkdownSummary(comment.text, 350, 24)}
-                    contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
-                    withUgcLinks
-                  />
+                <div
+                  className="mr-3 line-clamp-1 flex-grow sm:mr-0 sm:max-w-[350px]"
+                  ref={ref}
+                >
+                  {!!width && (
+                    <MarkdownEditor
+                      mode="read"
+                      markdown={getMarkdownSummary(
+                        comment.text,
+                        width,
+                        24,
+                        8.1
+                      )}
+                      contentEditableClassName="font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                      withUgcLinks
+                    />
+                  )}
                 </div>
                 <FontAwesomeIcon
                   size="sm"
