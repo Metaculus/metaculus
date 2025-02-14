@@ -39,6 +39,7 @@ import cn from "@/utils/cn";
 import { parseUserMentions } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 import { canPredictQuestion, getMarkdownSummary } from "@/utils/questions";
+import { formatUsername } from "@/utils/users";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
@@ -422,8 +423,7 @@ const Comment: FC<CommentProps> = ({
                 href={`/accounts/profile/${comment.author.id}/`}
               >
                 <h4 className="my-1 text-base">
-                  {comment.author.username}
-                  {comment.author.is_bot && " 🤖"}
+                  {formatUsername(comment.author)}
                 </h4>
                 {comment.author_staff_permission ===
                   ProjectPermissions.CURATOR && (
@@ -477,7 +477,7 @@ const Comment: FC<CommentProps> = ({
           {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
           {comment.included_forecast && !isCollapsed && (
             <IncludedForecast
-              author={comment.author.username}
+              author={formatUsername(comment.author)}
               forecast={comment.included_forecast}
             />
           )}

@@ -14,6 +14,7 @@ import { useNavigation } from "@/contexts/navigation_context";
 import { ProjectPermissions } from "@/types/post";
 import { Community } from "@/types/projects";
 import cn from "@/utils/cn";
+import { formatUsername } from "@/utils/users";
 
 import { useShowActiveCommunityContext } from "./community_context";
 import CommunityFollow from "./community_follow";
@@ -136,7 +137,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
                 className="text-blue-700 no-underline dark:text-blue-700-dark"
                 href={`/accounts/profile/${community.created_by.id}/`}
               >
-                {community.created_by.username}
+                {formatUsername(community.created_by)}
               </Link>
             </p>
             {!!community.header_logo && (
