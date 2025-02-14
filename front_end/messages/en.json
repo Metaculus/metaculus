@@ -1067,5 +1067,6 @@
   "slider": "Slider",
   "lowerBound": "Lower bound",
   "quartiles": "Quartiles",
-  "upperBound": "Upper bound"
+  "upperBound": "Upper bound",
+  "leaderboardCpInfo": "This is the main prediction aggregated from all forecasters on each question.<br></br>Learn how it's computed <link>here</link>."
 }
