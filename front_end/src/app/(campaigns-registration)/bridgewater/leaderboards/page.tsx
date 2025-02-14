@@ -73,10 +73,10 @@ export default async function Page() {
         <h1 className="mb-1 text-2xl font-bold">
           Bridgewater Forecasting Contest
         </h1>
-        <p className="mb-5 text-sm text-gray-700">
+        <p className="mb-5 text-sm text-gray-700 dark:text-gray-300">
           Leaderboards get updated when questions resolve.{" "}
           <Link
-            className="text-blue-700 hover:text-blue-800"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-400 hover:dark:text-blue-300"
             href="/tournament/bridgewater/"
           >
             View Tournament Page
