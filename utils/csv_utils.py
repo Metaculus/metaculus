@@ -209,6 +209,7 @@ def export_data_for_questions(
     question_writer.writerow(
         [
             "Question ID",
+            "Question URL",
             "Question Title",
             "Post ID",
             "Post Curation Status",
@@ -233,6 +234,11 @@ def export_data_for_questions(
         question_writer.writerow(
             [
                 question.id,
+                "https://www.metaculus.com/questions/"
+                + str(post.id)
+                + "/"
+                + str(post.url_title.lower().replace(" ", "-"))
+                + "/",
                 question.title,
                 post.id,
                 post.curation_status,
