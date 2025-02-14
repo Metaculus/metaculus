@@ -90,7 +90,7 @@ export const escapeRawDollarSigns = (markdown: string): string => {
   const blockMathRegex = /\$\$[^$]*\$\$/g;
 
   // match valid inline math: $...$ that doesn't end with space or parentheses, allowing end of string
-  const inlineMathRegex = /\$([^\$]+?)\$(?=\s|[^\w\s$]|$)/g;
+  const inlineMathRegex = /(?<!\S)\$([^\$]+?)\$(?!\S)/g;
 
   const placeholders = new Map<string, string>();
   let placeholderIndex = 0;
@@ -118,6 +118,7 @@ export const escapeRawDollarSigns = (markdown: string): string => {
     (placeholder) => placeholders.get(placeholder) || placeholder
   );
 };
+
 export function processMarkdown(
   markdown: string,
   config?: { revert?: boolean; withTwitterPreview?: boolean }
