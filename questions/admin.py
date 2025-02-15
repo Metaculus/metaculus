@@ -14,7 +14,7 @@ from questions.models import (
     Forecast,
 )
 from questions.services import build_question_forecasts
-from utils.csv_utils import export_data_for_questions
+from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
 
 
@@ -89,7 +89,11 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
 
-        data = export_data_for_questions(queryset, True, True, True)
+        data = export_all_data_for_questions(
+            queryset,
+            include_comments=True,
+            include_scores=True,
+        )
         if data is None:
             self.message_user(request, "No questions selected.")
             return

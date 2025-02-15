@@ -14,7 +14,7 @@ from projects.models import Project, ProjectUserPermission
 from questions.models import Question
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
-from utils.csv_utils import export_data_for_questions
+from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
 
 
@@ -308,7 +308,11 @@ class ProjectAdmin(CustomTranslationAdmin):
             | Q(related_posts__post__projects__in=queryset)
         ).distinct()
 
-        data = export_data_for_questions(questions, True, True, True)
+        data = export_all_data_for_questions(
+            questions,
+            include_comments=True,
+            include_scores=True,
+        )
         if data is None:
             self.message_user(request, "No questions selected.")
             return
