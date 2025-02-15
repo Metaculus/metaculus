@@ -336,7 +336,7 @@ export function getMainOrderOptions(
       label: t("movers"),
     },
     {
-      value: QuestionOrder.PublishTimeDesc,
+      value: QuestionOrder.OpenTimeDesc,
       label: t("new"),
     },
   ];
