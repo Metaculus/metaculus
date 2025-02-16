@@ -1,6 +1,7 @@
 import csv
 import io
 import zipfile
+import hashlib
 
 from django.db.models import QuerySet, Q
 from django.utils import timezone
@@ -110,6 +111,7 @@ def export_all_data_for_questions(
     include_scores: bool = False,
     include_bots: bool = False,
     minimize: bool = True,
+    anonymized: bool = False,
 ) -> bytes:
     # This method returns all data including private and should only be called by
     # admin panel or a view called by staff or whitelisted user.
@@ -178,6 +180,7 @@ def export_all_data_for_questions(
         aggregate_forecasts=aggregate_forecasts,
         comments=comments,
         scores=all_scores,
+        anonymized=anonymized,
     )
 
 
@@ -189,6 +192,7 @@ def export_data_for_questions(
     ) = None,
     comments: QuerySet[Comment] | list[Comment] | None = None,
     scores: QuerySet[Score | ArchivedScore] | list[Score | ArchivedScore] | None = None,
+    anonymized: bool = False,
 ) -> bytes:
     # generate a zip file with up to 4 csv files:
     #     question_data - Always
@@ -272,11 +276,13 @@ def export_data_for_questions(
     # forecast_data csv file
     forecast_output = io.StringIO()
     forecast_writer = csv.writer(forecast_output)
-    forecast_writer.writerow(
+    headers = ["Question ID"]
+    if anonymized:
+        headers.extend(["Forecaster (Anonymized)"])
+    else:
+        headers.extend(["Forecaster ID", "Forecaster Username"])
+    headers.extend(
         [
-            "Question ID",
-            "Forecaster ID",
-            "Forecaster Username",
             "Start Time",
             "End Time",
             "Forecaster Count",
@@ -285,12 +291,16 @@ def export_data_for_questions(
             "Continuous CDF",
         ]
     )
+    forecast_writer.writerow(headers)
+
     for forecast in user_forecasts or []:
-        forecast_writer.writerow(
+        row = [forecast.question.id]
+        if anonymized:
+            row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
+        else:
+            row.extend([forecast.author_id, forecast.author.username])
+        row.extend(
             [
-                forecast.question.id,
-                forecast.author_id,
-                forecast.author.username,
                 forecast.start_time,
                 forecast.end_time,
                 None,
@@ -299,6 +309,7 @@ def export_data_for_questions(
                 forecast.continuous_cdf,
             ]
         )
+        forecast_writer.writerow(row)
     for aggregate_forecast in aggregate_forecasts or []:
         match aggregate_forecast.question.type:
             case Question.QuestionType.BINARY:
@@ -313,11 +324,13 @@ def export_data_for_questions(
                 probability_yes = None
                 probability_yes_per_category = None
                 continuous_cdf = aggregate_forecast.forecast_values
-        forecast_writer.writerow(
+        row = [aggregate_forecast.question.id]
+        if anonymized:
+            row.append(aggregate_forecast.method)
+        else:
+            row.extend([None, aggregate_forecast.method])
+        row.extend(
             [
-                aggregate_forecast.question.id,
-                None,
-                aggregate_forecast.method,
                 aggregate_forecast.start_time,
                 aggregate_forecast.end_time,
                 aggregate_forecast.forecaster_count,
@@ -326,6 +339,7 @@ def export_data_for_questions(
                 continuous_cdf,
             ]
         )
+        forecast_writer.writerow(row)
 
     # comment_data csv file
     comment_output = io.StringIO()
