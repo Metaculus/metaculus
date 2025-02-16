@@ -46,6 +46,7 @@ class PostAdmin(CustomTranslationAdmin):
     readonly_fields = ["notebook"]
     actions = [
         "export_selected_posts_data",
+        "export_selected_posts_data_anonymized",
         "update_translations",
         "rebuild_aggregation_history",
     ]
@@ -63,7 +64,7 @@ class PostAdmin(CustomTranslationAdmin):
             del actions["delete_selected"]
         return actions
 
-    def export_selected_posts_data(self, request, queryset: QuerySet[Post]):
+    def export_selected_posts_data(self, request, queryset: QuerySet[Post], **kwargs):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
 
@@ -73,6 +74,7 @@ class PostAdmin(CustomTranslationAdmin):
             questions,
             include_comments=True,
             include_scores=True,
+            **kwargs,
         )
         if data is None:
             self.message_user(request, "No questions selected.")
@@ -83,6 +85,9 @@ class PostAdmin(CustomTranslationAdmin):
         response["Content-Disposition"] = 'attachment; filename="metaculus_data.zip"'
 
         return response
+
+    def export_selected_posts_data_anonymized(self, request, queryset: QuerySet[Post]):
+        return self.export_selected_posts_data(request, queryset, anonymized=True)
 
     def update_translations(self, request, posts_qs):
         for post in posts_qs:

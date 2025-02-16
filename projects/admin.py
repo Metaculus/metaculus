@@ -256,6 +256,7 @@ class ProjectAdmin(CustomTranslationAdmin):
     actions = [
         "update_leaderboards",
         "export_questions_data_for_projects",
+        "export_questions_data_for_projects_anonymized",
         "update_translations",
     ]
 
@@ -299,7 +300,9 @@ class ProjectAdmin(CustomTranslationAdmin):
         "Update All Leaderboards on Selected Projects"
     )
 
-    def export_questions_data_for_projects(self, request, queryset: QuerySet[Project]):
+    def export_questions_data_for_projects(
+        self, request, queryset: QuerySet[Project], **kwargs
+    ):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
 
@@ -312,6 +315,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             questions,
             include_comments=True,
             include_scores=True,
+            **kwargs,
         )
         if data is None:
             self.message_user(request, "No questions selected.")
@@ -325,6 +329,17 @@ class ProjectAdmin(CustomTranslationAdmin):
 
     export_questions_data_for_projects.short_description = (
         "Download Question Data for Selected Projects"
+    )
+
+    def export_questions_data_for_projects_anonymized(
+        self, request, queryset: QuerySet[Project]
+    ):
+        return self.export_questions_data_for_projects(
+            request, queryset, anonymized=True
+        )
+
+    export_questions_data_for_projects_anonymized.short_description = (
+        "Download Question Data for Selected Projects Anonymized"
     )
 
     def view_default_posts_link(self, obj):

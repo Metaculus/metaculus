@@ -33,6 +33,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     search_fields = ["title_original", "description_original"]
     actions = [
         "export_selected_questions_data",
+        "export_selected_questions_data_anonymized",
         "rebuild_aggregation_history",
         "trigger_scoring",
     ]
@@ -85,7 +86,9 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
             del actions["delete_selected"]
         return actions
 
-    def export_selected_questions_data(self, request, queryset: QuerySet[Question]):
+    def export_selected_questions_data(
+        self, request, queryset: QuerySet[Question], **kwargs
+    ):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
 
@@ -93,6 +96,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
             queryset,
             include_comments=True,
             include_scores=True,
+            **kwargs,
         )
         if data is None:
             self.message_user(request, "No questions selected.")
@@ -103,6 +107,11 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         response["Content-Disposition"] = 'attachment; filename="metaculus_data.zip"'
 
         return response
+
+    def export_selected_questions_data_anonymized(
+        self, request, queryset: QuerySet[Question]
+    ):
+        return self.export_selected_questions_data(request, queryset, anonymized=True)
 
     def rebuild_aggregation_history(self, request, queryset: QuerySet[Question]):
         for question in queryset:
