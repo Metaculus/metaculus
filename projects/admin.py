@@ -16,6 +16,7 @@ from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
+from utils.tasks import email_all_data_for_questions_task
 
 
 class ProjectUserPermissionVisibilityFilter(admin.SimpleListFilter):
@@ -257,6 +258,8 @@ class ProjectAdmin(CustomTranslationAdmin):
         "update_leaderboards",
         "export_questions_data_for_projects",
         "export_questions_data_for_projects_anonymized",
+        "email_me_questions_data_for_projects",
+        "email_me_questions_data_for_projects_anonymized",
         "update_translations",
     ]
 
@@ -340,6 +343,43 @@ class ProjectAdmin(CustomTranslationAdmin):
 
     export_questions_data_for_projects_anonymized.short_description = (
         "Download Question Data for Selected Projects Anonymized"
+    )
+
+    def email_me_questions_data_for_projects(
+        self, request, queryset: QuerySet[Project], **kwargs
+    ):
+        question_ids = list(
+            Question.objects.filter(
+                Q(related_posts__post__default_project__in=queryset)
+                | Q(related_posts__post__projects__in=queryset)
+            )
+            .distinct()
+            .values_list("id", flat=True)
+        )
+        email_all_data_for_questions_task.send(
+            email_address=request.user.email,
+            question_ids=question_ids,
+            include_comments=True,
+            include_scores=True,
+            **kwargs,
+        )
+
+        self.message_user(request, "Email will be sent when data is processed.")
+        return
+
+    email_me_questions_data_for_projects.short_description = (
+        "Email Me Question Data for Selected Projects"
+    )
+
+    def email_me_questions_data_for_projects_anonymized(
+        self, request, queryset: QuerySet[Project]
+    ):
+        return self.email_me_questions_data_for_projects(
+            request, queryset, anonymized=True
+        )
+
+    email_me_questions_data_for_projects_anonymized.short_description = (
+        "Email Me Question Data for Selected Projects Anonymized"
     )
 
     def view_default_posts_link(self, obj):
