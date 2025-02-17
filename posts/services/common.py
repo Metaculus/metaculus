@@ -147,8 +147,10 @@ def create_post(
             obj.question = create_question(**question)
         elif conditional:
             obj.conditional = create_conditional(**conditional)
-            # Populate url_title from condition child
-            obj.url_title = obj.conditional.condition_child.get_post().get_url_title()
+            # Populate title and url_title from condition child
+            condition_child = obj.conditional.condition_child
+            obj.title = obj.conditional.condition_child.title
+            obj.url_title = f"Conditional {condition_child.get_post().get_url_title()}"
         elif group_of_questions:
             obj.group_of_questions = create_group_of_questions(**group_of_questions)
         elif notebook:
