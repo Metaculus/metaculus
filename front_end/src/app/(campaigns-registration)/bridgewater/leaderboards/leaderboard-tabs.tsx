@@ -25,8 +25,12 @@ type Props = {
 
 export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
   const [activeSheet, setActiveSheet] = useState(sheets[0]?.name || "");
+  const [visibleRowsMap, setVisibleRowsMap] = useState<Record<string, number>>(
+    () => Object.fromEntries(sheets.map((sheet) => [sheet.name, 125]))
+  );
   const rankColumnIndex = 0;
   const usernameColumnIndex = 1;
+  const totalScoreColumnIndex = 2;
 
   const buttons: GroupButton<string>[] = sheets.map((sheet) => ({
     value: sheet.name,
@@ -48,8 +52,20 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
     (row) => row[usernameColumnIndex] !== highlightedUser
   );
 
+  // Get visible rows for current sheet
+  const currentVisibleRows = visibleRowsMap[activeSheet] ?? 125;
+  const visibleOtherRows = otherRows.slice(0, currentVisibleRows);
+  const hasMoreRows = otherRows.length > currentVisibleRows;
+
+  const handleLoadAll = () => {
+    setVisibleRowsMap((prev) => ({
+      ...prev,
+      [activeSheet]: otherRows.length,
+    }));
+  };
+
   return (
-    <div className="overflow-x-scroll">
+    <div className="overflow-x-hidden">
       <div className="mb-6 flex w-full justify-center">
         <ButtonGroup
           value={activeSheet}
@@ -66,9 +82,14 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
               <TableHeaderCell
                 key={index}
                 className={cn(
-                  "w-fit min-w-[200px] max-w-[400px] overflow-x-scroll whitespace-normal",
-                  index === rankColumnIndex && "w-16",
-                  index === usernameColumnIndex && "w-64"
+                  "w-fit min-w-[200px] max-w-[400px] whitespace-normal",
+                  index === rankColumnIndex && "w-16 min-w-[64px]",
+                  index === usernameColumnIndex && "w-full truncate md:w-64",
+                  index === totalScoreColumnIndex &&
+                    "ml-4 w-24 min-w-[96px] text-center",
+                  index > totalScoreColumnIndex &&
+                    "hidden text-center md:table-cell",
+                  index >= totalScoreColumnIndex && "tabular-nums"
                 )}
               >
                 {header}
@@ -82,19 +103,38 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
               {highlightedRow.map((cell: string, cellIndex: number) => (
                 <TableCell
                   key={cellIndex}
-                  className={cellIndex === 0 ? "font-medium" : ""}
+                  className={cn(
+                    cellIndex === rankColumnIndex && "w-16 min-w-[64px]",
+                    cellIndex === usernameColumnIndex &&
+                      "w-full truncate md:w-64",
+                    cellIndex === totalScoreColumnIndex && "w-24 min-w-[96px]",
+                    cellIndex === 0 && "font-medium",
+                    cellIndex > totalScoreColumnIndex && "hidden md:table-cell",
+                    cellIndex >= totalScoreColumnIndex &&
+                      "text-center text-sm tabular-nums"
+                  )}
                 >
                   {cell}
                 </TableCell>
               ))}
             </TableRow>
           )}
-          {otherRows.map((row: string[], rowIndex: number) => (
+          {visibleOtherRows.map((row: string[], rowIndex: number) => (
             <TableRow key={rowIndex}>
               {row.map((cell: string, cellIndex: number) => (
                 <TableCell
                   key={cellIndex}
-                  className={cellIndex === 0 ? "font-medium" : ""}
+                  className={cn(
+                    cellIndex === rankColumnIndex && "w-16 min-w-[64px]",
+                    cellIndex === usernameColumnIndex &&
+                      "w-full truncate md:w-64",
+                    cellIndex === totalScoreColumnIndex &&
+                      "w-24 min-w-[96px] text-right md:text-center",
+                    cellIndex === 0 && "font-medium",
+                    cellIndex > totalScoreColumnIndex && "hidden md:table-cell",
+                    cellIndex >= totalScoreColumnIndex &&
+                      "text-center text-sm tabular-nums"
+                  )}
                 >
                   {cell}
                 </TableCell>
@@ -103,6 +143,17 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
           ))}
         </TableBody>
       </Table>
+
+      {hasMoreRows && (
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={handleLoadAll}
+            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
+          >
+            Load All
+          </button>
+        </div>
+      )}
     </div>
   );
 }
