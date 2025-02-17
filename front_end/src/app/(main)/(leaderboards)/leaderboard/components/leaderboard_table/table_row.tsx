@@ -10,6 +10,7 @@ import {
 } from "@/types/scoring";
 import cn from "@/utils/cn";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { formatUsername } from "@/utils/users";
 
 import MedalIcon from "../../../components/medal_icon";
 import {
@@ -79,7 +80,7 @@ const LeaderboardRow: FC<Props> = ({
           prefetch={false}
         >
           {user
-            ? user.username
+            ? formatUsername(user)
             : aggregation_method == "recency_weighted"
               ? t("communityPrediction")
               : aggregation_method}

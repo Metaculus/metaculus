@@ -4,6 +4,7 @@ import { FC, PropsWithChildren } from "react";
 
 import { LeaderboardEntry } from "@/types/scoring";
 import cn from "@/utils/cn";
+import { formatUsername } from "@/utils/users";
 
 import MedalIcon from "../../../components/medal_icon";
 
@@ -46,7 +47,7 @@ const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
           }
         >
           {user
-            ? user.username
+            ? formatUsername(user)
             : aggregation_method == "recency_weighted"
               ? t("communityPrediction")
               : aggregation_method}
