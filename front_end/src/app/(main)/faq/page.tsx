@@ -2652,63 +2652,64 @@ export default async function FAQ() {
             How do I use the range interface?
           </h3>
           <p>
-            Some Metaculus questions allow numeric or date range inputs, where
-            you specify the distribution of probability you think is likely over
-            a possible range of outcomes. This probability distribution is known
-            as a{" "}
+            Some Metaculus questions are numeric or date ranges. To predict, 
+            you must specify a distribution of likelyhoods over a certain
+            range of outcomes. This probability distribution is known as a{" "}
             <a href="https://en.wikipedia.org/wiki/Probability_density_function">
               probability density function
             </a>{" "}
-            and is the probability per unit of length. The probability density
-            function can be used to determine the probability of a value falling
-            within a range of values.
+            ("PDF") and represents the relative likelyhood of each possible
+            outcome in the question range. The area under the pdf curve between 
+            two outcomes is proportional to the probability that the resolution
+            will be between these two values.
           </p>
-
           <p>
-            When you hover over the chart you see the probabilities at each
-            point at the bottom of the chart. For example, in the image below
-            you can see the probability density at the value 136, denoted by
-            &quot;P(x = 136)&quot;, and you can see the probability density that
-            you and the community have assigned to that point (in the image the
-            user has assigned a probability density of 1.40 to that value and
-            the community has assigned a probability density of 2.97).
+            To specify your pdf, move the sliders below the graph. The square
+            slider moves the mode of the distribution, and the round sliders 
+            change the shape of the distribution. To make a more complicated 
+            distribution, add more components using the button below the 
+            sliders. The weight sliders determine the relative weight of each 
+            component compared to the others.
+          </p>
+          <p>
+            When you hover over the chart you can read the probability densities
+            below it. For example, in the screenshot below, you can see that for
+            the value -7.0381 you assigned a density of 1.785 and the Community
+            Prediction assigns a density of 0.319.
           </p>
           <Image
-            src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/interface.png"
-            alt="Prediction Interface"
+            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/image_zcQBntc.png"
+            alt="Continuous Prediction Interface"
             className="my-4"
-            width={769}
-            height={773}
+            width={734}
+            height={799}
           />
           <p>
-            By selecting the &quot;Probability Density&quot; dropdown at the top
-            of the chart you can change the display to &quot;Cumulative
-            Probability&quot;. This display shows the{" "}
+            Below the sliders you can see a table. It lists your median, your
+            25th and 75th percentiles, and the mass you put out of each open
+            bound. It also lists the same values for the Community Prediction.
+            The median, 25th percentile and 75th percentiles are also visible
+            as vertical doted lines in the graph.
+          </p>
+          <p>
+            By using the toggle at the top right of the chart, you can switch
+            to the{" "}
             <a href="https://en.wikipedia.org/wiki/Cumulative_distribution_function">
-              cumulative distribution function
+              Cumulative Distribution Function
             </a>
-            , or in other words for any point it shows you the probability that
-            you and the community have assigned to the question resolving below
-            the indicated value. For example, in the image below you can see the
-            probability that you and the community have assigned to the question
-            resolving below the value of 136, denoted by &quot;P(x &lt;
-            136)&quot;. The probability that the user has assigned is 7% to the
-            question resolving below that value, while the community has
-            assigned an 83% chance to the question resolving below that value.
+            ("CDF"). It is the integral of the PDF, and for any value it shows
+            the probability that the question resolves anywhere below that
+            value. For example, in the screenshot below you can see that you
+            predict 50.47% chance the question resolves below -7.0588, while the
+            Community Prediction predicts 69.4%.
           </p>
           <Image
-            src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/cumulative.png"
+            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/image_eVvUMVQ.png"
             alt="Cumulative Interface"
             className="my-4"
-            width={771}
-            height={776}
+            width={734}
+            height={799}
           />
-          <p>
-            The vertical lines shown on the graphs indicate the 25th percentile,
-            median, and 75th percentile forecasts, respectively, of the user and
-            the community. These values are also shown for the user and the
-            community in the table at the bottom.
-          </p>
         </div>
 
         <div>
