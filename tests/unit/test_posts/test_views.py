@@ -114,7 +114,6 @@ class TestPostCreate:
         assert {q["title"] for q in questions} == {"Question #1", "Question #2"}
 
     def test_create__conditional(self, user1, user1_client):
-        # TODO: fix db records manually
         question = create_question(
             title_original="Condition Question",
             question_type=Question.QuestionType.BINARY,
@@ -154,7 +153,7 @@ class TestPostCreate:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        assert response.data["title"] == "Child Question"
+        assert response.data["title"] == "Condition Question → Child Question"
         assert response.data["url_title"] == "Conditional Child URL Title"
         assert response.data["author_id"] == user1.id
         assert (
