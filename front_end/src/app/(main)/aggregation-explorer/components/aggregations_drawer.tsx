@@ -5,6 +5,7 @@ import { isNil } from "lodash";
 import { FC, useCallback, useState, memo, useMemo, useEffect } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import { useAuth } from "@/contexts/auth_context";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
@@ -40,12 +41,13 @@ const AggregationsDrawer: FC<Props> = ({
   aggregationData,
   selectedSubQuestionOption,
 }) => {
+  const { user } = useAuth();
   const { actual_close_time, scaling, type } = aggregationData ?? {};
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
     [actual_close_time]
   );
-  const tooltips = useMemo(() => generateAggregationTooltips(), []);
+  const tooltips = useMemo(() => generateAggregationTooltips(user), [user]);
   const [choiceItems, setChoiceItems] = useState(
     aggregationData
       ? generateChoiceItemsFromAggregations({

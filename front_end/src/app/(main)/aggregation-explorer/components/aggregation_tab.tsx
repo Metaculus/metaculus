@@ -149,7 +149,9 @@ const AggregationsTab: FC<Props> = ({
   if (!aggregationData || !activeAggregation.history.length) {
     return (
       <p className="my-5 text-center text-gray-500 dark:text-gray-500-dark">
-        Aggregation data for this question is not available
+        {!aggregationData
+          ? t("aggregationDataIsNotAvailable")
+          : t("noAggregationData")}
       </p>
     );
   }

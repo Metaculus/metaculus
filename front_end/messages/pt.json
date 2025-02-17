@@ -1079,5 +1079,7 @@
   "signupInviteEmailAddresses": "Endereços de Email",
   "signupInviteEmailAddressesPlaceholder": "Insira um email por linha",
   "signupInviteSendButton": "Enviar Convites",
-  "signupInviteSuccess": "Convites foram enviados"
+  "signupInviteSuccess": "Convites foram enviados",
+  "aggregationDataIsNotAvailable": "Dados de agregação não estão disponíveis",
+  "noAggregationData": "Sem dados de agregação"
 }

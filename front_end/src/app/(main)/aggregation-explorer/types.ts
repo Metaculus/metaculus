@@ -25,6 +25,7 @@ export type AggregationOption = {
   value: AggregationMethod;
   label: string;
   includeBots: boolean;
+  isStaffOnly?: boolean;
 };
 
 export type AggregationTooltip = {

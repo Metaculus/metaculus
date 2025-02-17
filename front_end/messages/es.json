@@ -1081,5 +1081,7 @@
   "signupInviteEmailAddresses": "Direcciones de correo electrónico",
   "signupInviteEmailAddressesPlaceholder": "Ingrese un correo por línea",
   "signupInviteSendButton": "Enviar invitaciones",
-  "signupInviteSuccess": "Las invitaciones han sido enviadas"
+  "signupInviteSuccess": "Las invitaciones han sido enviadas",
+  "aggregationDataIsNotAvailable": "Los datos de agregación no están disponibles",
+  "noAggregationData": "Sin datos de agregación"
 }

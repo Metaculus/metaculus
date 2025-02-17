@@ -3,13 +3,19 @@ import { uniq } from "lodash";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ChoiceItem } from "@/types/choices";
 import { Aggregations, QuestionType } from "@/types/question";
+import { CurrentUser } from "@/types/users";
 import { formatResolution } from "@/utils/questions";
 
 import { AGGREGATION_EXPLORER_OPTIONS } from "./constants";
 import { AggregationQuestionWithBots, AggregationTooltip } from "./types";
 
-export function generateAggregationTooltips(): AggregationTooltip[] {
+export function generateAggregationTooltips(
+  user: CurrentUser | null
+): AggregationTooltip[] {
   return AGGREGATION_EXPLORER_OPTIONS.map((AggregationOption, index) => {
+    if (AggregationOption.isStaffOnly && (!user || !user.is_staff)) {
+      return null;
+    }
     return {
       aggregationMethod: AggregationOption.value,
       choice: AggregationOption.id,
@@ -17,7 +23,7 @@ export function generateAggregationTooltips(): AggregationTooltip[] {
       includeBots: AggregationOption.includeBots,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     };
-  });
+  }).filter((tooltip) => tooltip !== null) as AggregationTooltip[];
 }
 
 export function generateChoiceItemsFromAggregations({
