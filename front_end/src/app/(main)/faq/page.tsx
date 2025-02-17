@@ -226,9 +226,6 @@ export default async function FAQ() {
               </a>
             </li>
             <li>
-              <a href="#public-figure">What are public figure predictions?</a>
-            </li>
-            <li>
               <a href="#reaffirming">
                 What is &quot;Reaffirming&quot; a prediction?
               </a>
@@ -2901,204 +2898,19 @@ export default async function FAQ() {
             Brier score of 0.108.
           </p>
         </div>
-        <hr />
+
         <div>
-          <h2
+          <h3
             id="visibility-of-the-cp-and-mp"
             className="mb-4 scroll-mt-nav text-3xl font-bold"
           >
             Why can&apos;t I see the CP?
-          </h2>
+          </h3>
           <p>
             When a question first opens, nobody can see the Community Prediction
             for a while, to avoid giving inordinate weight to the very first
             predictions, which may &quot;ground&quot; or bias later ones.
           </p>
-        </div>
-
-        <div>
-          <h3
-            id="public-figure"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            What Are Public Figure Predictions?
-          </h3>
-          <p>
-            <a href="/organization/public-figures/">Public Figure Prediction</a>{" "}
-            pages are dedicated to collecting and preserving important
-            predictions made by prominent public figures and putting them into
-            conversation with Metaculus community forecasts. Each figure&apos;s
-            page features a list of predictions they made along with the source
-            that recorded the prediction, the date the prediction was made, and
-            related Metaculus questions. Public predictions are transparently
-            presented alongside community forecasts in a manner that is
-            inspectable and understandable by all, providing public
-            accountability and additional context for the linked Metaculus
-            questions.&nbsp;
-          </p>
-          <p>
-            A <em>Public Figure</em> is someone with a certain social position
-            within a particular sphere of influence, such as a politician, media
-            personality, scientist, journalist, economist, academic, or business
-            leader.&nbsp;
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            What qualifies as a prediction?
-          </h4>
-          <p>
-            A prediction is a claim or a statement about what someone thinks
-            will happen in the future, where the thing predicted has some amount
-            of uncertainty associated with it.&nbsp;
-          </p>
-          <p>
-            A Public Figure Prediction is a prediction made by the public figure
-            themselves and not by figures who might represent them, such as
-            employees, campaign managers, or spokespeople.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            Who can submit Public Figure Predictions?
-          </h4>
-          <p>
-            When predictions are made by public figures such as elected
-            politicians, public health officials, economists, journalists, and
-            business leaders, they become candidates for inclusion in the Public
-            Figure Prediction system.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            How can I submit a Public Figure Prediction?
-          </h4>
-          <p>
-            From a Public Figure&apos;s page, click Report Prediction and then
-            provide
-          </p>
-          <ol className="ml-5 list-inside list-decimal">
-            <li>A direct quotation from the prediction news source</li>
-            <li>The name of the news source</li>
-            <li>A link to the news source</li>
-            <li>The prediction date</li>
-            <li>At least one related Metaculus question</li>
-          </ol>
-          <p>
-            If the Public Figure does not yet have a dedicated page, you can
-            request that one be created by commenting on the{" "}
-            <a
-              href="/questions/8198/public-figure-predictions/"
-              target="_blank"
-              rel="noopener"
-            >
-              Public Figures Predictions
-            </a>{" "}
-            discussion post. Tag @christian for a faster moderation process.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            What are the criteria for selecting linked Metaculus questions
-            related to the Public Figure Prediction?
-          </h4>
-          <p>
-            Depending on the level of specificity and clarity of the Public
-            Figure Prediction, a linked Metaculus question might resolve
-            according to the exact same criteria as the prediction. For example,{" "}
-            <a
-              href="/questions/8225/public-figure-prediction-by-joe-biden/"
-              target="_blank"
-              rel="noopener"
-            >
-              Joe Biden expressed that he plans to run for reelection
-            </a>
-            .{" "}
-            <a
-              href="/questions/6438/will-joe-biden-run-for-reelection/"
-              target="_blank"
-              rel="noopener"
-            >
-              This Metaculus question asks directly whether he will run
-            </a>
-            .&nbsp;&nbsp;
-          </p>
-          <p>
-            Linked questions are not required, however, to directly correspond
-            to the public figure&apos;s prediction, and{" "}
-            <a
-              href="/questions/5712/biden-2024-re-nomination/"
-              target="_blank"
-              rel="noopener"
-            >
-              this question on whether Biden will be the Democratic nominee in
-              2024
-            </a>{" "}
-            is clearly relevant to public figure claim, even as it&apos;s
-            further away from the claim than asking whether Biden will run.
-            Relevant linked questions shed light on, create additional context
-            for, or provide potential evidence for or against the public
-            figure&apos;s claim. Note that a question being closed or resolved
-            does not disqualify it from being linked to the prediction.
-          </p>
-          <p>
-            On the other hand, this question about whether the{" "}
-            <a
-              href="/questions/8523/irs-designates-crypto-miners-brokers-by-2025/"
-              target="_blank"
-              rel="noopener"
-            >
-              IRS designates crypto miners as &lsquo;brokers&apos; by 2025
-            </a>{" "}
-            follows from Biden&apos;s Infrastructure Investment and Jobs Act,
-            but beyond the Biden connection, it fails to satisfy the above
-            criteria for a relevant linked question.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            Which sources are acceptable?
-          </h4>
-          <p>
-            News sources that have authority and are known to be accurate are
-            acceptable. If a number of news sources report the same prediction,
-            but the prediction originated from a single source, using the
-            original source is preferred. Twitter accounts or personal blogs are
-            acceptable if they are owned by the public figure themselves.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            Who decides what happens next?
-          </h4>
-          <p>
-            Moderators will review and approve your request or provide feedback.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            What happens if a public figure updates their prediction?
-          </h4>
-          <p>
-            On the page of the prediction, comment the update with the source
-            and tag a moderator. The moderator will review and perform the
-            update if necessary.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            I am the Public Figure who made the prediction. How can I claim this
-            page?
-          </h4>
-          <p>Please email us at support at metaculus.com.</p>
         </div>
 
         <div>
