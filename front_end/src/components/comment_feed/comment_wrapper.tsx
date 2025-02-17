@@ -80,9 +80,10 @@ function isCommentCollapsed(
       return false;
     }
   }
-  return (
-    comment.author.is_bot &&
-    !isNil(comment.vote_score) &&
-    comment.vote_score < 3
-  );
+
+  if (comment.author.is_bot) {
+    return !isNil(comment.vote_score) && comment.vote_score < 3;
+  }
+
+  return !isNil(comment.vote_score) && comment.vote_score <= -3;
 }
