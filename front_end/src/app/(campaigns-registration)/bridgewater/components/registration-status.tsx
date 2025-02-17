@@ -9,6 +9,7 @@ import React, { FC, PropsWithChildren, useState } from "react";
 import BaseModal from "@/components/base_modal";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/cn";
+import { formatUsername } from "@/utils/users";
 
 import { BWRegisterButton, ChoicesButtons } from "./hero-section";
 import { fbPixelTrackEvent, lnkdTrack } from "./pixel-apis";
@@ -63,7 +64,7 @@ const LoggedInNotRegisteredFragment: FC<{
     <p className="my-0 text-xs font-normal text-blue-400 dark:text-blue-400-dark dark:text-gray-0-dark">
       logged in as{" "}
       <span className="font-bold text-gray-100 dark:text-gray-100-dark">
-        {currentUser.username}
+        {formatUsername(currentUser)}
       </span>
     </p>
 

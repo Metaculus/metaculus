@@ -11,6 +11,7 @@ import { LogOut } from "@/app/(main)/accounts/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import cn from "@/utils/cn";
+import { formatUsername } from "@/utils/users";
 
 type Props = {
   btnClassName?: string;
@@ -40,7 +41,7 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
           btnClassName
         )}
       >
-        {user.username}
+        {formatUsername(user)}
         <FontAwesomeIcon size="xs" icon={faChevronDown} />
       </MenuButton>
       <MenuItems

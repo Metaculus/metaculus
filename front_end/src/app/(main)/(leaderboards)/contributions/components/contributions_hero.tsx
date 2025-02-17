@@ -9,6 +9,7 @@ import WithServerComponentErrorBoundary from "@/components/server_component_erro
 import Button from "@/components/ui/button";
 import ProfileApi from "@/services/profile";
 import { CategoryKey } from "@/types/scoring";
+import { formatUsername } from "@/utils/users";
 
 import { getPeriodLabel } from "../../helpers/filters";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
@@ -77,8 +78,9 @@ const AwaitedUserHeader: FC<{ userId: number }> =
   WithServerComponentErrorBoundary(async ({ userId }) => {
     const t = await getTranslations();
     const profile = await ProfileApi.getProfileById(userId);
+    const username = formatUsername(profile);
 
-    return <UserHeader>{profile.username ?? t("user")}</UserHeader>;
+    return <UserHeader>{username ?? t("user")}</UserHeader>;
   });
 
 const UserHeader: FC<PropsWithChildren> = ({ children }) => (
