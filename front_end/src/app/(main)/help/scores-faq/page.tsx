@@ -426,9 +426,9 @@ export default async function ScoresFAQ() {
         below the lower bound, it is scored like a binary question. We do not
         define or collect pdf values outside the question range, so the above
         formula does not apply. But we do have the total probability mass out
-        the bound, and that can be scored as in the question "Will the value
-        be below the lower bound?" or "Will the value be above the upper bound
-        ?".
+        the bound, and that can be scored as in the question &quot;Will the
+        value be below the lower bound?&quot; or &quot;Will the value be above
+        the upper bound?&quot;.
       </p>
       <hr />
       <h2 className="scroll-mt-nav" id="spot-score">

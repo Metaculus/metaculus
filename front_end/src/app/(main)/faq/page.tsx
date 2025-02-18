@@ -2652,23 +2652,23 @@ export default async function FAQ() {
             How do I use the range interface?
           </h3>
           <p>
-            Some Metaculus questions are numeric or date ranges. To predict, 
-            you must specify a distribution of likelyhoods over a certain
-            range of outcomes. This probability distribution is known as a{" "}
+            Some Metaculus questions are numeric or date ranges. To predict, you
+            must specify a distribution of likelyhoods over a certain range of
+            outcomes. This probability distribution is known as a{" "}
             <a href="https://en.wikipedia.org/wiki/Probability_density_function">
               probability density function
             </a>{" "}
-            ("PDF") and represents the relative likelyhood of each possible
-            outcome in the question range. The area under the pdf curve between 
-            two outcomes is proportional to the probability that the resolution
-            will be between these two values.
+            (&quot;PDF&quot;) and represents the relative likelyhood of each
+            possible outcome in the question range. The area under the pdf curve
+            between two outcomes is proportional to the probability that the
+            resolution will be between these two values.
           </p>
           <p>
             To specify your pdf, move the sliders below the graph. The square
-            slider moves the mode of the distribution, and the round sliders 
-            change the shape of the distribution. To make a more complicated 
-            distribution, add more components using the button below the 
-            sliders. The weight sliders determine the relative weight of each 
+            slider moves the mode of the distribution, and the round sliders
+            change the shape of the distribution. To make a more complicated
+            distribution, add more components using the button below the
+            sliders. The weight sliders determine the relative weight of each
             component compared to the others.
           </p>
           <p>
@@ -2688,20 +2688,20 @@ export default async function FAQ() {
             Below the sliders you can see a table. It lists your median, your
             25th and 75th percentiles, and the mass you put out of each open
             bound. It also lists the same values for the Community Prediction.
-            The median, 25th percentile and 75th percentiles are also visible
-            as vertical doted lines in the graph.
+            The median, 25th percentile and 75th percentiles are also visible as
+            vertical doted lines in the graph.
           </p>
           <p>
-            By using the toggle at the top right of the chart, you can switch
-            to the{" "}
+            By using the toggle at the top right of the chart, you can switch to
+            the{" "}
             <a href="https://en.wikipedia.org/wiki/Cumulative_distribution_function">
               Cumulative Distribution Function
             </a>
-            ("CDF"). It is the integral of the PDF, and for any value it shows
-            the probability that the question resolves anywhere below that
-            value. For example, in the screenshot below you can see that you
-            predict 50.47% chance the question resolves below -7.0588, while the
-            Community Prediction predicts 69.4%.
+            (&quot;CDF&quot;). It is the integral of the PDF, and for any value
+            it shows the probability that the question resolves anywhere below
+            that value. For example, in the screenshot below you can see that
+            you predict 50.47% chance the question resolves below -7.0588, while
+            the Community Prediction predicts 69.4%.
           </p>
           <Image
             src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/image_eVvUMVQ.png"
