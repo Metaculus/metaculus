@@ -11,7 +11,7 @@ import { FC, PropsWithChildren } from "react";
 
 import cn from "@/utils/cn";
 
-export type SectionVariant = "primary" | "light" | "gold";
+export type SectionVariant = "primary" | "light" | "gold" | "transparent";
 
 type Props = {
   title?: string;
@@ -44,6 +44,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
             "bg-blue-200 dark:bg-blue-200-dark": variant === "primary",
             "bg-gray-0 dark:bg-gray-0-dark": variant === "light",
             "bg-gold-200 dark:bg-gold-200-dark": variant === "gold",
+            "bg-transparent dark:bg-transparent": variant === "transparent",
             "bg-opacity-50": !open,
           })}
         >
