@@ -1,43 +1,46 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-} from "@headlessui/react";
+import { Disclosure, DisclosurePanel } from "@headlessui/react";
+import { isNil } from "lodash";
+import { useLocale } from "next-intl";
 import { FC, PropsWithChildren, useState } from "react";
 
 import ContinuousAreaChart, {
   ContinuousAreaGraphInput,
 } from "@/components/charts/continuous_area_chart";
-import ResolutionIcon from "@/components/icons/resolution";
-import Button from "@/components/ui/button";
 import { getContinuousAreaChartData, getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import { getNumericForecastDataset } from "@/utils/forecasts";
+import { formatResolution } from "@/utils/questions";
 
+import { AccordionOpenButton } from "./accordion_open_button";
+import { AccordionResolutionCell } from "./accordion_resolution_cell";
 import MobileAccordionModal from "./group_forecast_accordion_modal";
 import { ConditionalTableOption } from "../group_forecast_table";
-import ScoreDisplay from "../resolution/score_display";
 
 type AccordionItemProps = {
   option: ConditionalTableOption;
   showCP?: boolean;
-  resolution?: string;
   subQuestionId?: number | null;
+  isResolvedOption?: boolean;
 };
 
 const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   option,
   showCP,
-  resolution,
   children,
   subQuestionId,
+  isResolvedOption,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { question, name: title, isDirty } = option;
-  const isResolved = !!resolution;
-
+  const locale = useLocale();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { question, name: title, isDirty, resolution } = option;
+  const isResolved = !isNil(resolution);
+  const formatedResolution = formatResolution(
+    resolution,
+    question.type,
+    locale
+  );
   // Only calculate these if not resolved
   let continuousAreaChartData: ContinuousAreaGraphInput = [];
   let median: string | undefined;
@@ -72,34 +75,36 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     });
   }
 
+  const handleClick = () => {
+    setIsModalOpen((prev) => !prev);
+  };
+
   return (
     <>
       <Disclosure as="div" defaultOpen={subQuestionId === option.id}>
         {({ open }) => (
           <div>
-            <OpenAccordionButton
-              isOpen={isOpen}
-              setIsOpen={setIsOpen}
+            <AccordionOpenButton
+              onClick={handleClick}
               open={open}
-              isResolved={isResolved}
-              isDirty={!isResolved && isDirty}
+              isResolved={isResolvedOption}
+              isDirty={!isResolvedOption && isDirty}
             >
-              <div className="flex h-full shrink grow items-center">
-                <span className="pl-4 text-base font-bold text-gray-900 dark:text-gray-900-dark">
+              <div className="flex h-full shrink grow items-center overflow-hidden">
+                <span className="line-clamp-2 pl-4 pr-2 text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base">
                   {title}
                 </span>
               </div>
-              <div className="flex h-full max-w-[105px] shrink grow-[3] items-center justify-center gap-0.5 sm:max-w-[420px]">
-                {isResolved ? (
-                  <>
-                    <ResolutionIcon />
-                    <span
-                      className="text-sm font-bold text-purple-800 dark:text-purple-800-dark"
-                      suppressHydrationWarning
-                    >
-                      {resolution}
-                    </span>
-                  </>
+              <div className="flex h-full min-w-[105px] max-w-[105px] shrink-0 grow-[3] items-center justify-center gap-0.5 sm:min-w-[420px] sm:max-w-[420px]">
+                {isResolvedOption ? (
+                  <AccordionResolutionCell
+                    formatedResolution={formatedResolution}
+                    isResolved={isResolved}
+                    median={median}
+                    userMedian={
+                      option.userQuartiles?.median ? userMedian : undefined
+                    }
+                  />
                 ) : (
                   <>
                     <div className="flex h-full flex-col items-center justify-center gap-0.5 sm:w-[105px]">
@@ -139,70 +144,20 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                   />
                 </div>
               </div>
-            </OpenAccordionButton>
+            </AccordionOpenButton>
             <DisclosurePanel className="mb-2 hidden pt-0 sm:block">
-              <>
-                {children}
-                <ScoreDisplay
-                  question={question}
-                  className={isResolved ? "my-4" : undefined}
-                />
-              </>
+              {children}
             </DisclosurePanel>
           </div>
         )}
       </Disclosure>
       <MobileAccordionModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={title}
       >
         {children}
       </MobileAccordionModal>
-    </>
-  );
-};
-
-type OpenAccordionButtonProps = {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  open: boolean;
-  isDirty?: boolean;
-  isResolved?: boolean;
-};
-
-const OpenAccordionButton: FC<PropsWithChildren<OpenAccordionButtonProps>> = ({
-  isOpen,
-  setIsOpen,
-  open,
-  isDirty,
-  isResolved,
-  children,
-}) => {
-  return (
-    <>
-      {/* Mobile button */}
-      <Button
-        className={cn(
-          "flex h-[58px] w-full gap-0.5 rounded-none bg-blue-100 p-0 text-left text-xs font-bold text-blue-700 dark:bg-blue-100-dark dark:text-blue-700-dark sm:hidden",
-          open && "sm:bg-blue-600/10 dark:sm:bg-blue-400/10",
-          !isResolved && isDirty && "bg-orange-100 dark:bg-orange-100-dark"
-        )}
-        onClick={() => setIsOpen(!isOpen)}
-        variant="text"
-      >
-        {children}
-      </Button>
-      {/* Desktop button */}
-      <DisclosureButton
-        className={cn(
-          "hidden h-[58px] w-full gap-0.5 bg-blue-100 text-left text-xs font-bold text-blue-700 dark:bg-blue-100-dark dark:text-blue-700-dark sm:flex",
-          open && "bg-blue-600/10 dark:bg-blue-400/10",
-          !isResolved && isDirty && "bg-orange-100 dark:bg-orange-100-dark"
-        )}
-      >
-        {children}
-      </DisclosureButton>
     </>
   );
 };
