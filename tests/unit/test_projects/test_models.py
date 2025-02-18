@@ -33,9 +33,8 @@ def test_annotate_user_permission(user1, user2, user_admin):
     # No permissions
     project2 = factory_project(default_permission=None)
     assert not get_perm(project2, user1)
-    # And is not accessible for superuser
-    # (only from the admin panel)
-    assert not get_perm(project2, user_admin)
+    # But is accessible for superuser
+    assert get_perm(project2, user_admin) == ObjectPermission.ADMIN
 
     # Creator gets admin permissions
     project = factory_project(

@@ -13,8 +13,8 @@ from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
 
-from questions.constants import ResolutionType
 from projects.permissions import ObjectPermission
+from questions.constants import ResolutionType
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
 
@@ -138,8 +138,12 @@ class ProjectsQuerySet(models.QuerySet):
 
         user_id = user.id if user else None
 
+        # Superusers automatically get admin permission for all projects
+        if user and user.is_superuser:
+            return self.annotate(user_permission=models.Value(ObjectPermission.ADMIN))
+
         return self.annotate(
-            user_permission_override=FilteredRelation(
+            _user_permission_override=FilteredRelation(
                 "projectuserpermission",
                 condition=Q(
                     projectuserpermission__user_id=user_id,
@@ -151,7 +155,7 @@ class ProjectsQuerySet(models.QuerySet):
                     then=models.Value(ObjectPermission.ADMIN),
                 ),
                 default=Coalesce(
-                    F("user_permission_override__permission"),
+                    F("_user_permission_override__permission"),
                     F("default_permission"),
                 ),
                 output_field=models.CharField(),
