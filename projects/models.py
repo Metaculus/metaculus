@@ -9,7 +9,6 @@ from django.db.models import (
     OuterRef,
 )
 from django.db.models.functions import Coalesce
-from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
 
@@ -364,43 +363,25 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         ):
             return self.close_date > django_timezone.now() if self.close_date else True
 
-    def _get_users_for_permissions(
-        self, permissions: list[ObjectPermission]
-    ) -> QuerySet["User"]:
+    def get_users_for_permission(self, min_permission: ObjectPermission):
+        """
+        Returns a QuerySet of users that have given permission level OR greater for the given project
+        """
+
+        permissions = ObjectPermission.get_included_permissions(min_permission)
+
         qs = User.objects.all()
 
         if self.default_permission in permissions:
             return qs
 
         return qs.filter(
-            projectuserpermission__project=self,
-            projectuserpermission__permission__in=permissions,
+            Q(
+                projectuserpermission__project=self,
+                projectuserpermission__permission__in=permissions,
+            )
+            | Q(is_superuser=True)
         )
-
-    def get_users_for_permission(
-        self, permission: ObjectPermission
-    ) -> QuerySet["User"]:
-        """
-        Returns a QuerySet of users that have given permission level OR greater for the given project
-        """
-
-        return self._get_users_for_permissions(
-            ObjectPermission.get_included_permissions(permission)
-        )
-
-    def get_admins(self) -> QuerySet["User"]:
-        """
-        Returns admins only
-        """
-
-        return self._get_users_for_permissions([ObjectPermission.ADMIN])
-
-    def get_curators(self) -> QuerySet["User"]:
-        """
-        Returns curators/mods only
-        """
-
-        return self._get_users_for_permissions([ObjectPermission.CURATOR])
 
     def update_followers_count(self):
         self.followers_count = self.subscriptions.count()

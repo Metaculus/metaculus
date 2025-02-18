@@ -63,7 +63,7 @@ def test_filter_permission(user1, user2):
     ) == {project_3.pk}
 
 
-def test_get_users_for_permission(user1, user2):
+def test_get_users_for_permission(user1, user2, user_admin):
     factory_user()
 
     project = factory_project(
@@ -78,13 +78,13 @@ def test_get_users_for_permission(user1, user2):
         project.get_users_for_permission(ObjectPermission.VIEWER).values_list(
             "id", flat=True
         )
-    ) == {user1.pk, user2.pk}
+    ) == {user1.pk, user2.pk, user_admin.pk}
 
     assert set(
         project.get_users_for_permission(ObjectPermission.ADMIN).values_list(
             "id", flat=True
         )
-    ) == {user2.pk}
+    ) == {user2.pk, user_admin.pk}
 
     # Case #2
     project = factory_project(
@@ -94,13 +94,13 @@ def test_get_users_for_permission(user1, user2):
         },
     )
 
-    assert project.get_users_for_permission(ObjectPermission.VIEWER).count() > 2
-    assert project.get_users_for_permission(ObjectPermission.FORECASTER).count() > 2
+    assert project.get_users_for_permission(ObjectPermission.VIEWER).count() == 4
+    assert project.get_users_for_permission(ObjectPermission.FORECASTER).count() == 4
     assert set(
         project.get_users_for_permission(ObjectPermission.ADMIN).values_list(
             "id", flat=True
         )
-    ) == {user2.pk}
+    ) == {user2.pk, user_admin.pk}
 
 
 def test_annotate_posts_count(
