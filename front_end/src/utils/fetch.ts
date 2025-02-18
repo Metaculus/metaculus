@@ -98,13 +98,18 @@ const defaultOptions: FetchOptions = {
 type FetchConfig = {
   emptyContentType?: boolean;
   passAuthHeader?: boolean;
+  includeLocale?: boolean;
 };
 const appFetch = async <T>(
   url: string,
   options: FetchOptions = {},
   config?: FetchConfig
 ): Promise<T> => {
-  let { emptyContentType = false, passAuthHeader = true } = config ?? {};
+  let {
+    emptyContentType = false,
+    passAuthHeader = true,
+    includeLocale = true,
+  } = config ?? {};
 
   // Warning: caching could be only applied to anonymised requests
   // To prevent user token leaks and storage spam.
@@ -115,7 +120,7 @@ const appFetch = async <T>(
 
   const authToken = passAuthHeader ? getServerSession() : null;
   const alphaToken = getAlphaTokenSession();
-  const locale = await getLocale();
+  const locale = includeLocale ? await getLocale() : "en";
 
   // Default values are configured in the next.config.mjs
   const finalUrl = `${process.env.API_BASE_URL}/api${url}`;
