@@ -94,7 +94,7 @@ export default async function FAQ() {
               </a>
             </li>
             <li>
-              <a href="#question-private">What is a private question?</a>
+              <a href="#question-private">Where are my private questions?</a>
             </li>
             <li>
               <a href="#comments">
@@ -872,28 +872,14 @@ export default async function FAQ() {
           className="scroll-mt-nav text-xl font-semibold"
           id="question-private"
         >
-          What is a private question?
+          Where are my private questions?
         </h3>
         <p>
-          Private questions are questions that are not visible to the broader
-          community. They aren&apos;t subject to the normal review process, so
-          you can create one and predict on it right away. You can resolve your
-          own private questions at any time, but points for private predictions
-          won&apos;t be added to your overall Metaculus score and they
-          won&apos;t affect your ranking on the leaderboard.
-        </p>
-        <p>
-          You can use private questions for anything you want. Use them as
-          practice to calibrate your predictions before playing for points,
-          create a question series on a niche topic, or pose personal questions
-          that only you can resolve.{" "}
-          <strong>You can even invite up to 19 other users</strong> to view and
-          predict on your own questions!
-        </p>
-        <p>
-          To invite other forecasters to your private question, click the
-          &apos;...&apos; more options menu and select &apos;Share Private
-          Question&apos;.
+          Private questions are deprecated, it is no longer possible to create
+          new ones. If you had private questions, you can still find them by
+          going to the <a href="/questions/">Feed Home</a>, selecting &quot;My
+          questions and posts&quot; in the sidebar, and using the
+          &quot;Personal&quot; special filter.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="comments">
@@ -2403,7 +2389,7 @@ export default async function FAQ() {
             this means that, starting from the moment you withdrew and until you
             make a new prediction:
           </p>
-          <p>
+          <div className="text-gray-700 dark:text-gray-400">
             <ul className="list-disc pl-5">
               <li>
                 You stop accruing scores, including Peer scores, Baseline
@@ -2414,7 +2400,7 @@ export default async function FAQ() {
                 You aren’t part of the Community Prediction or other aggregates.
               </li>
             </ul>
-          </p>
+          </div>
           <p>
             None of those behaviours are retroactive: you still get scores and
             coverage for times up until you withdrew, and your past predictions
