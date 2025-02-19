@@ -83,7 +83,7 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
 
   return (
     <div>
-      <div className="flex flex-row gap-3">
+      <div className="mx-auto mb-6 flex max-w-2xl flex-row gap-3">
         <SearchInput
           value={search}
           onChange={(e) => {
@@ -92,9 +92,17 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
           }}
           onErase={eraseSearch}
           placeholder={t("articlesSearchPlaceholder")}
-          className="mx-auto mb-6 max-w-2xl"
         />
-        {user && <NewsSubscribeButton categories={categories} user={user} />}
+        {user && (
+          <>
+            <div className="hidden lg:block">
+              <NewsSubscribeButton categories={categories} user={user} />
+            </div>
+            <div className="lg:hidden">
+              <NewsSubscribeButton categories={categories} user={user} mini />
+            </div>
+          </>
+        )}
       </div>
 
       <TabGroup selectedIndex={selectedIndex} manual onChange={handleTabChange}>

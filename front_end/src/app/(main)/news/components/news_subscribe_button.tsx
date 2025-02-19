@@ -16,9 +16,10 @@ import { CurrentUser } from "@/types/users";
 type Props = {
   user?: CurrentUser | null;
   categories: NewsCategory[];
+  mini?: boolean;
 };
 
-const NewsSubscribeButton: FC<Props> = ({ user, categories }) => {
+const NewsSubscribeButton: FC<Props> = ({ user, categories, mini }) => {
   const t = useTranslations();
   const [isFollowing, setIsFollowing] = useState(() =>
     categories.some((obj) => obj.is_subscribed)
@@ -59,20 +60,18 @@ const NewsSubscribeButton: FC<Props> = ({ user, categories }) => {
           variant="primary"
           disabled={isLoading}
           onClick={handleUnsubscribe}
-          className="h-fit"
         >
           <FontAwesomeIcon icon={faBell} />
-          {t("unfollowButton")}
+          {!mini && t("unfollowButton")}
         </Button>
       ) : (
         <Button
           variant="secondary"
           onClick={handleSubscribe}
           disabled={isLoading}
-          className="h-fit"
         >
           <FontAwesomeIcon icon={faBell} />
-          {t("followButton")}
+          {!mini && t("followButton")}
         </Button>
       )}
     </>
