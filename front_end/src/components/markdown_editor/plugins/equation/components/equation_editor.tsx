@@ -14,7 +14,11 @@ function EquationEditor(
   forwardedRef: Ref<HTMLInputElement | HTMLTextAreaElement>
 ): JSX.Element {
   const onChange = (event: ChangeEvent) => {
-    setEquation((event.target as HTMLInputElement).value);
+    let value = (event.target as HTMLInputElement).value;
+    // escape dollar signs if they are not already escaped
+    value = value.replace(/(?<!\\)\$/g, "\\$");
+
+    setEquation(value);
   };
 
   const Container = inline ? "span" : "div";

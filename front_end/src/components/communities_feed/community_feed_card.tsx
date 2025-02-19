@@ -11,6 +11,7 @@ import useContainerSize from "@/hooks/use_container_size";
 import { Community } from "@/types/projects";
 import cn from "@/utils/cn";
 import { getMarkdownSummary } from "@/utils/questions";
+import { formatUsername } from "@/utils/users";
 
 import Button from "../ui/button";
 import "./styles.css";
@@ -83,7 +84,7 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
                 className="!p-0 font-medium text-blue-800 no-underline dark:text-blue-800-dark"
               >
                 <span className="lg:max-w-28 lg:truncate lg:pb-[1px]">
-                  {community.created_by.username}
+                  {formatUsername(community.created_by)}
                 </span>
               </Button>
             </p>

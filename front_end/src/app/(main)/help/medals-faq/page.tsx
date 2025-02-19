@@ -14,8 +14,8 @@ export default function MedalsFAQ() {
       <h1>Medals FAQ</h1>
       <p>
         Below are Frequently Asked Questions (and answers!) about medals. The
-        general FAQ is <a href="/faq/">here</a>, and the medals FAQ is{" "}
-        <a href="/help/medals-faq/">here</a>.
+        general FAQ is <a href="/faq/">here</a>, and the scores FAQ is{" "}
+        <a href="/help/scores-faq/">here</a>.
       </p>
 
       <div className="table-of-contents">

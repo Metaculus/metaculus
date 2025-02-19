@@ -1,4 +1,5 @@
 "use client";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
@@ -105,12 +106,14 @@ const DetailedContinuousChartCard: FC<Props> = ({
       value: cursorData?.center,
       questionType: question.type,
       scaling: question.scaling,
-      range: cursorData?.interval_lower_bound
-        ? [
-            cursorData?.interval_lower_bound as number,
-            cursorData?.interval_upper_bound as number,
-          ]
-        : [],
+      range:
+        !isNil(cursorData?.interval_lower_bound) &&
+        !isNil(cursorData?.interval_upper_bound)
+          ? [
+              cursorData?.interval_lower_bound as number,
+              cursorData?.interval_upper_bound as number,
+            ]
+          : [],
     });
   }, [
     t,

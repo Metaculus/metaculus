@@ -1071,5 +1071,9 @@
   "slider": "滑块",
   "lowerBound": "下界",
   "quartiles": "四分位数",
-  "upperBound": "上界"
+  "upperBound": "上界",
+  "questionsBy": "问题由",
+  "leaderboardCpInfo": "这是从所有预测者对每个问题的总预测中得出的主要预测。<br></br>了解它是如何计算的<link>这里</link>。",
+  "shareInComment": "在评论中分享",
+  "youPredicted": "你预测"
 }

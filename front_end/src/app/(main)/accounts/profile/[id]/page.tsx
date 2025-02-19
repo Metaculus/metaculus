@@ -19,6 +19,7 @@ import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
 import { ProfilePageMode, UserProfile } from "@/types/users";
 import cn from "@/utils/cn";
+import { formatUsername } from "@/utils/users";
 
 import SoftDeleteButton from "../components/soft_delete_button";
 import TrackRecord from "../components/track_record";
@@ -103,7 +104,7 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
             {profile.calibration_curve && (
               <CalibrationChart
                 calibrationData={profile.calibration_curve}
-                username={profile.username}
+                username={formatUsername(profile)}
               />
             )}
           </div>
@@ -125,7 +126,7 @@ export default async function Profile({ params: { id }, searchParams }: Props) {
       {mode === ProfilePageMode.Questions && (
         <div className="flex flex-col gap-6 rounded bg-white p-4 dark:bg-blue-900 md:p-6">
           <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-            {t("questionsBy") + " " + profile.username}
+            {t("questionsBy") + " " + formatUsername(profile)}
           </h3>
 
           <Suspense

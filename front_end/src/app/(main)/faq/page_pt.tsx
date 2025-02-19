@@ -83,7 +83,9 @@ export default function FAQ() {
               </a>
             </li>
             <li>
-              <a href="#question-private">O que é uma pergunta privada?</a>
+              <a href="#question-private">
+                Onde estão minhas questões privadas?
+              </a>
             </li>
             <li>
               <a href="#comments">
@@ -875,30 +877,16 @@ export default function FAQ() {
           className="scroll-mt-nav text-xl font-semibold"
           id="question-private"
         >
-          O que é uma pergunta privada?
+          Onde estão minhas questões privadas?
         </h3>
         <p>
-          Questões privadas são questões que não são visíveis para a comunidade
-          em geral. Eles não estão sujeitos ao processo de revisão normal, então
-          você pode criar um e prever sobre ele imediatamente. Você pode
-          resolver suas próprias perguntas privadas a qualquer momento, mas
-          pontos para previsões privadas não serão adicionados à sua pontuação
-          geral do Metaculus e eles não afetarão sua classificação na tabela de
-          classificação.
+          As questões privadas estão descontinuadas, não é mais possível criar
+          novas. Se você tinha questões privadas, ainda pode encontrá-las indo
+          para a <a href="/questions/">Página Inicial do Feed</a>, selecionando
+          &quot;Minhas questões e posts&quot; na barra lateral e usando o filtro
+          especial &quot;Pessoal&quot;.
         </p>
-        <p>
-          Você pode usar perguntas privadas para qualquer coisa que você quiser.
-          Use-os como prática para calibrar suas previsões antes de jogar por
-          pontos, criar uma série de perguntas sobre um tópico de nicho ou fazer
-          perguntas pessoais que só você pode resolver.{""}
-          <strong>Você pode até convidar até 19 outros usuários</strong>
-          para visualizar e prever em suas próprias perguntas!
-        </p>
-        <p>
-          Para convidar outros meteorologistas para sua pergunta privada, clique
-          no menu de opções &quot;...&quot; e selecione &quot;Compartilhar
-          Pergunta Privada&quot;.
-        </p>
+
         <h3 className="scroll-mt-nav text-xl font-semibold" id="comments">
           Quais são as regras e diretrizes para comentários e discussões?
         </h3>
@@ -2426,7 +2414,7 @@ export default function FAQ() {
             novamente. Concretamente, isso significa que, a partir do momento em
             que você se retirou e até fazer uma nova previsão:
           </p>
-          <p>
+          <div className="text-gray-700 dark:text-gray-400">
             <ul className="list-disc pl-5">
               <li>
                 Você para de acumular pontuações, incluindo escores de pares,
@@ -2440,7 +2428,7 @@ export default function FAQ() {
                 agregados.
               </li>
             </ul>
-          </p>
+          </div>
           <p>
             Nenhum desses comportamentos é retroativo: você ainda obtém
             pontuações e cobertura por horas até que você se retirou, e suas

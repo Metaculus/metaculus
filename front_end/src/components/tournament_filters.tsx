@@ -38,10 +38,7 @@ const OPEN_STATUS_FILTERS = [
   QuestionOrder.ScoreDesc,
   QuestionOrder.ScoreAsc,
 ];
-const RESOLVED_STATUS_FILTERS = [
-  QuestionOrder.HotAsc,
-  QuestionOrder.UnreadCommentCountDesc,
-];
+const RESOLVED_STATUS_FILTERS = [QuestionOrder.HotAsc];
 const FORECASTER_ID_FILTERS = [
   QuestionOrder.LastPredictionTimeAsc,
   QuestionOrder.LastPredictionTimeDesc,

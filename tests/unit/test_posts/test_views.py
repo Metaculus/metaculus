@@ -115,27 +115,32 @@ class TestPostCreate:
 
     def test_create__conditional(self, user1, user1_client):
         question = create_question(
-            title_original="Starship Reaches Orbit in 2024?",
+            title_original="Condition Question",
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.make_aware(datetime(2024, 3, 1)),
             scheduled_close_time=timezone.make_aware(datetime(2024, 5, 1)),
             scheduled_resolve_time=timezone.make_aware(datetime(2024, 5, 2)),
         )
-        factory_post(author=user1, question=question)
+        factory_post(
+            author=user1, question=question, url_title_original="Condition URL Title"
+        )
 
         question_numeric = create_question(
-            title_original="Starship Booster Tower Catch Attempt in 2024?",
+            title_original="Child Question",
             question_type=Question.QuestionType.NUMERIC,
             open_time=timezone.make_aware(datetime(2024, 3, 1)),
             scheduled_close_time=timezone.make_aware(datetime(2024, 4, 1)),
             scheduled_resolve_time=timezone.make_aware(datetime(2024, 4, 2)),
         )
-        factory_post(author=user1, question=question_numeric)
+        factory_post(
+            author=user1,
+            question=question_numeric,
+            url_title_original="Child URL Title",
+        )
 
         response = user1_client.post(
             self.url,
             {
-                "title": "Post Of Conditional",
                 "default_project": get_site_main_project().pk,
                 "projects": {},
                 "conditional": {
@@ -148,16 +153,17 @@ class TestPostCreate:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        assert response.data["title"] == "Post Of Conditional"
+        assert response.data["title"] == "Condition Question → Child Question"
+        assert response.data["url_title"] == "Conditional Child URL Title"
         assert response.data["author_id"] == user1.id
         assert (
             response.data["conditional"]["question_yes"]["title"]
-            == "Starship Reaches Orbit in 2024? (Yes) → Starship Booster Tower Catch Attempt in 2024?"
+            == "Condition Question (Yes) → Child Question"
         )
         assert response.data["conditional"]["question_yes"]["type"] == "numeric"
         assert (
             response.data["conditional"]["question_no"]["title"]
-            == "Starship Reaches Orbit in 2024? (No) → Starship Booster Tower Catch Attempt in 2024?"
+            == "Condition Question (No) → Child Question"
         )
         assert response.data["conditional"]["question_no"]["type"] == "numeric"
         assert response.data["scheduled_close_time"] == "2024-04-01T00:00:00Z"
@@ -581,9 +587,7 @@ def test_post_vote(user1, user1_client, user2_client, post_binary_public):
     url = reverse("post-vote", kwargs={"pk": post_binary_public.pk})
 
     def make_vote(client, direction):
-        response = client.post(
-            url, {"direction": direction}, format="json"
-        )
+        response = client.post(url, {"direction": direction}, format="json")
         assert response.status_code == status.HTTP_200_OK
 
         return response.json()["score"]

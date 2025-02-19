@@ -1067,5 +1067,9 @@
   "slider": "Deslizador",
   "lowerBound": "Limite inferior",
   "quartiles": "Quartis",
-  "upperBound": "Limite superior"
+  "upperBound": "Limite superior",
+  "questionsBy": "Perguntas por",
+  "leaderboardCpInfo": "Esta é a principal previsão agregada de todos os previsores em cada pergunta.<br></br>Saiba como é calculada <link>aqui</link>.",
+  "shareInComment": "Compartilhar no comentário",
+  "youPredicted": "Você previu"
 }

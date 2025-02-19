@@ -27,7 +27,7 @@ class AuthApi {
   }
 
   static async verifyToken() {
-    return get("/auth/verify_token/");
+    return get("/auth/verify_token/", {}, { includeLocale: false });
   }
 
   static async exchangeSocialOauthCode(
