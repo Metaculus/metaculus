@@ -215,8 +215,11 @@ class Conditional(TimeStampedModel):
         Question, related_name="conditional_no", on_delete=models.PROTECT
     )
 
+    def get_title(self):
+        return f"{self.condition.title} → {self.condition_child.title}"
+
     def __str__(self):
-        return f"Conditional {self.condition} -> {self.condition_child}"
+        return f"Conditional {self.get_title()}"
 
 
 class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore

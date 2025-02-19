@@ -239,7 +239,10 @@ class PostQuerySet(models.QuerySet):
             ),
             _user_permission=models.Case(
                 models.When(
-                    Q(default_project__created_by_id__isnull=False, default_project__created_by_id=user_id),
+                    Q(
+                        default_project__created_by_id__isnull=False,
+                        default_project__created_by_id=user_id,
+                    ),
                     then=models.Value(ObjectPermission.ADMIN),
                 ),
                 default=Coalesce(
@@ -601,6 +604,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
                 ],
                 default=None,
             )
+        elif self.notebook_id:
+            open_time = self.published_at
 
         self.open_time = open_time
 

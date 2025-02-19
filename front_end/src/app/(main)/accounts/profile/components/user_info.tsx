@@ -27,6 +27,7 @@ import useContainerSize from "@/hooks/use_container_size";
 import useSearchParams from "@/hooks/use_search_params";
 import { ProfilePageMode, UserProfile } from "@/types/users";
 import cn from "@/utils/cn";
+import { formatUsername } from "@/utils/users";
 
 import ChangeUsername from "./change_username";
 import SocialMediaFragment, {
@@ -175,8 +176,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
             <div className="flex flex-col items-start gap-10">
               <div className="flex flex-col">
                 <h1 className="mt-0 inline text-3xl md:text-4xl">
-                  {profile.username}
-                  {profile.is_bot && " 🤖"}
+                  {formatUsername(profile)}
                 </h1>
                 {isCurrentUser && (
                   <span className="inline">
@@ -246,8 +246,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
     >
       <div className="mb-6 flex flex-col gap-2  md:mb-8">
         <h1 className="mt-0 inline text-3xl md:text-4xl">
-          {profile.username}
-          {profile.is_bot && " 🤖"}
+          {formatUsername(profile)}
         </h1>
         {isCurrentUser && (
           <span className="inline">

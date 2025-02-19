@@ -2,6 +2,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import RichText from "@/components/rich_text";
+import Tooltip from "@/components/ui/tooltip";
 import { Href } from "@/types/navigation";
 import {
   CategoryKey,
@@ -10,6 +12,7 @@ import {
 } from "@/types/scoring";
 import cn from "@/utils/cn";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { formatUsername } from "@/utils/users";
 
 import MedalIcon from "../../../components/medal_icon";
 import {
@@ -63,8 +66,40 @@ const LeaderboardRow: FC<Props> = ({
           className="flex items-center justify-between gap-1.5 py-2.5 pl-2.5 text-gray-500 no-underline"
           prefetch={false}
         >
-          {!!medal && <MedalIcon type={medal} className="size-5" />}
-          <span className="flex-1 text-center">{rank}</span>
+          {!user && aggregation_method === "recency_weighted" ? (
+            <div className="flex flex-1 items-center justify-center">
+              <div className="relative text-blue-700 dark:text-blue-700-dark">
+                <span className="font-league-gothic text-xl">M</span>
+                <Tooltip
+                  showDelayMs={200}
+                  placement={"right"}
+                  tooltipContent={
+                    <RichText>
+                      {(tags) =>
+                        t.rich("leaderboardCpInfo", {
+                          ...tags,
+                          link: (chunks) => (
+                            <Link href={"/faq/#community-prediction"}>
+                              {chunks}
+                            </Link>
+                          ),
+                        })
+                      }
+                    </RichText>
+                  }
+                  className="absolute right-[-18px] inline-flex h-full items-center justify-center font-sans"
+                  tooltipClassName="font-sans text-center text-gray-800 dark:text-gray-800-dark border-blue-400 dark:border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark"
+                >
+                  <span className="top-[0.5px] leading-none">ⓘ</span>
+                </Tooltip>
+              </div>
+            </div>
+          ) : (
+            <>
+              {!!medal && <MedalIcon type={medal} className="size-5" />}
+              <span className="flex-1 text-center">{rank}</span>
+            </>
+          )}
         </Link>
       </td>
       <td
@@ -75,14 +110,16 @@ const LeaderboardRow: FC<Props> = ({
       >
         <Link
           href={href}
-          className="flex items-center truncate px-4 py-2.5 no-underline"
+          className="flex items-center px-4 py-2.5 no-underline"
           prefetch={false}
         >
-          {user
-            ? user.username
-            : aggregation_method == "recency_weighted"
-              ? t("communityPrediction")
-              : aggregation_method}
+          <span className="truncate">
+            {user
+              ? formatUsername(user)
+              : aggregation_method == "recency_weighted"
+                ? t("communityPrediction")
+                : aggregation_method}
+          </span>
         </Link>
       </td>
       <td className="hidden w-24 p-0 font-mono text-base leading-4 @md:!table-cell">

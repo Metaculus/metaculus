@@ -421,6 +421,15 @@ export default async function ScoresFAQ() {
         restricts how sharp pdfs can get (see the maximum scores tabulated
         below).
       </p>
+      <p>
+        When a continuous question resolves either above the upper bound or
+        below the lower bound, it is scored like a binary question. We do not
+        define or collect pdf values outside the question range, so the above
+        formula does not apply. But we do have the total probability mass out
+        the bound, and that can be scored as in the question &quot;Will the
+        value be below the lower bound?&quot; or &quot;Will the value be above
+        the upper bound?&quot;.
+      </p>
       <hr />
       <h2 className="scroll-mt-nav" id="spot-score">
         What is a spot score?

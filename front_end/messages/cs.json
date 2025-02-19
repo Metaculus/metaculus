@@ -1069,5 +1069,7 @@
   "slider": "Posuvník",
   "lowerBound": "Dolní mez",
   "quartiles": "Kvartily",
-  "upperBound": "Horní mez"
+  "upperBound": "Horní mez",
+  "questionsBy": "Otázky od",
+  "leaderboardCpInfo": "Jedná se o hlavní predikci agregovanou ze všech předpovědí na každou otázku.<br></br>Zjistěte, jak se vypočítá <link>zde</link>."
 }

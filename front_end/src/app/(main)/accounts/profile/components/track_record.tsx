@@ -4,6 +4,7 @@ import { FC } from "react";
 
 import TrackRecordCharts from "@/app/(main)/questions/track-record/components/track_record_charts";
 import { UserProfile } from "@/types/users";
+import { formatUsername } from "@/utils/users";
 
 const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
   const keyStatStyles =
@@ -15,7 +16,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
         scatterPlot={profile.score_scatter_plot}
         calibrationCurve={profile.calibration_curve}
         scoreHistogram={profile.score_histogram}
-        username={profile.username}
+        username={formatUsername(profile)}
         className="bg-white p-6 dark:bg-blue-900"
       />
 

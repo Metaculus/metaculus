@@ -8,6 +8,7 @@ import LeaderboardApi from "@/services/leaderboard";
 import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
 import { MedalsPath } from "@/types/scoring";
+import { formatUsername } from "@/utils/users";
 
 import { MEDALS_PATH_FILTER, MEDALS_USER_FILTER } from "./search_params";
 
@@ -35,7 +36,8 @@ export default async function Medals({
     MedalsPath.Profile;
 
   const userMedals = await LeaderboardApi.getUserMedals(userId);
-  const username = userMedals.at(0)?.user?.username;
+  const user = userMedals.at(0)?.user;
+  const username = user ? formatUsername(user) : undefined;
 
   return (
     <main className="mb-auto pb-3 text-blue-700 dark:text-blue-700-dark sm:px-3">
