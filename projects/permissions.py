@@ -132,10 +132,7 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
 
     @classmethod
     def can_resolve(cls, permission: Self, raise_exception=False):
-        can = permission in (
-            cls.CURATOR,
-            cls.ADMIN,
-        )
+        can = permission in (cls.ADMIN,)
 
         if raise_exception and not can:
             raise PermissionDenied(
