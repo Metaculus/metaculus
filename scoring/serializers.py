@@ -78,3 +78,14 @@ class ContributionSerializer(serializers.Serializer):
     post_id = serializers.IntegerField(source="post.id", required=False)
     comment_text = serializers.CharField(source="comment.text", required=False)
     comment_id = serializers.IntegerField(source="comment.id", required=False)
+
+
+class GetLeaderboardSerializer(serializers.Serializer):
+    for_user = serializers.IntegerField(required=False)
+    project = serializers.IntegerField(required=False)
+
+    score_type = serializers.CharField(required=False)
+    start_time = serializers.DateTimeField(required=False)
+    end_time = serializers.DateTimeField(required=False)
+    name = serializers.CharField(required=False)
+    primary = serializers.BooleanField(required=False, default=True)
