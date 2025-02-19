@@ -50,13 +50,7 @@ class ProjectsApi {
   }
 
   static async getNewsCategories(): Promise<NewsCategory[]> {
-    return await get<NewsCategory[]>(
-      "/projects/news-categories/",
-      { next: { revalidate: 86400 } },
-      {
-        passAuthHeader: false,
-      }
-    );
+    return await get<NewsCategory[]>("/projects/news-categories/");
   }
 
   static async getTags(params?: TagsParams): Promise<Tag[]> {
