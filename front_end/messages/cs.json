@@ -1071,5 +1071,7 @@
   "quartiles": "Kvartily",
   "upperBound": "Horní mez",
   "questionsBy": "Otázky od",
-  "leaderboardCpInfo": "Jedná se o hlavní predikci agregovanou ze všech předpovědí na každou otázku.<br></br>Zjistěte, jak se vypočítá <link>zde</link>."
+  "leaderboardCpInfo": "Jedná se o hlavní predikci agregovanou ze všech předpovědí na každou otázku.<br></br>Zjistěte, jak se vypočítá <link>zde</link>.",
+  "shareInComment": "Sdílet v komentáři",
+  "youPredicted": "Předpověděli jste"
 }

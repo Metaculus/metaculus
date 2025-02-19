@@ -2,7 +2,7 @@
 
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useRef, useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/form_field";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
 import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
@@ -40,6 +41,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   isPrivateFeed = false,
 }) => {
   const t = useTranslations();
+
   /* TODO: Investigate the synchronization between the internal state of MDXEditor and the external state. */
   /* Currently, manually updating the markdown state outside of MDXEditor only affects our local state, while the editor retains its previous state.
    As a temporary workaround, we use the 'key' prop to force a re-render, creating a new instance of the component with the updated initial state.
@@ -48,20 +50,38 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(true);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
+
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
   const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [hasInteracted, setHasInteracted] = useState(false);
-
+  const editorRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-
+  const { params, clearParams, shallowNavigateToSearchParams } =
+    useSearchParams();
   useEffect(() => {
     if (!isReplying) {
       setIsPrivateComment(isPrivateFeed);
     }
   }, [isPrivateFeed, isReplying]);
+
+  useEffect(() => {
+    if (params.get("action") === "comment-with-forecast") {
+      // Remove the parameter from URL
+      clearParams(false);
+      shallowNavigateToSearchParams();
+
+      // Scroll to editor
+      editorRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+
+      // Set the forecast checkbox
+      setHasIncludedForecast(true);
+    }
+  }, [params, clearParams]);
 
   const handleSubmit = async () => {
     setErrorMessage("");
@@ -151,9 +171,13 @@ const CommentEditor: FC<CommentEditorProps> = ({
         <IncludedForecast author="test" forecastValue={test} />
       )*/}
       <div
-        className={cn("border border-gray-500 dark:border-gray-500-dark", {
-          hidden: !isEditing,
-        })}
+        ref={editorRef}
+        className={cn(
+          "scroll-mt-24 border border-gray-500 dark:border-gray-500-dark",
+          {
+            hidden: !isEditing,
+          }
+        )}
       >
         <MarkdownEditor
           key={rerenderKey}
