@@ -27,7 +27,7 @@ def get_communities_feed(
     qs = qs.filter_communities()
 
     if user:
-        qs = qs.annotate_is_subscribed(user)
+        qs = qs.annotate_is_subscribed(user, include_members=True)
 
     # If hidden from the main feed
     if not ids and unlisted is not None:
