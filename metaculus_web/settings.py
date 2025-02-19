@@ -283,12 +283,9 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "docs")]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Frontend configuration
-PUBLIC_APP_URL = (
-    os.environ.get("PUBLIC_APP_URL")
-    # TODO: deprecate `FRONTEND_BASE_URL` in the future iterations
-    or os.environ.get("FRONTEND_BASE_URL")
-    or "http://localhost:3000"
-).rstrip("/")
+PUBLIC_APP_URL = (os.environ.get("PUBLIC_APP_URL") or "http://localhost:3000").rstrip(
+    "/"
+)
 
 SEND_ALL_MAIL_TO = os.environ.get("SEND_ALL_MAIL_TO", None)
 
