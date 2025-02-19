@@ -283,9 +283,12 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "docs")]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Frontend configuration
-FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000").rstrip(
-    "/"
-)
+PUBLIC_APP_URL = (
+    os.environ.get("PUBLIC_APP_URL")
+    # TODO: deprecate `FRONTEND_BASE_URL` in the future iterations
+    or os.environ.get("FRONTEND_BASE_URL")
+    or "http://localhost:3000"
+).rstrip("/")
 
 SEND_ALL_MAIL_TO = os.environ.get("SEND_ALL_MAIL_TO", None)
 
@@ -397,7 +400,7 @@ ALLOWED_HOSTS = [
     "dev-metaculus-web-023b332df454.herokuapp.com/",  # remove after we have a DNS entry for dev environment
 ]
 
-CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
+CSRF_TRUSTED_ORIGINS = [PUBLIC_APP_URL]
 INTERNAL_IPS = ["127.0.0.1"]
 
 LOGGING = {

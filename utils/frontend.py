@@ -5,7 +5,7 @@ from django.utils.text import slugify
 
 
 def build_frontend_url(path: str = None):
-    base_url = settings.FRONTEND_BASE_URL.strip().rstrip("/")
+    base_url = settings.PUBLIC_APP_URL.strip().rstrip("/")
     path = path.strip().lstrip("/") if path else ""
 
     return f"{base_url}/{path}"
