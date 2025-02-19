@@ -23,7 +23,6 @@ jobs:
       DATABASE_URL: "postgres://postgres:postgres@localhost:5432/test_metaculus"
       AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
       AWS_S3_REGION_NAME: ${{ vars.AWS_S3_REGION_NAME }}
-      PUBLIC_APP_URL: ${{ vars.PUBLIC_APP_URL }}
       PUBLIC_APP_URL: http://localhost:3000/
       NODE_ENV: "production"
     services:
