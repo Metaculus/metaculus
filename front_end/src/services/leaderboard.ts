@@ -12,7 +12,7 @@ export type ProjectContributionsParams = {
   type: "project";
   for_user: number;
   project: number;
-  primary: boolean;
+  primary?: boolean;
 };
 export type GlobalContributionsParams = {
   type: "global";
@@ -20,7 +20,7 @@ export type GlobalContributionsParams = {
   start_time: string;
   end_time: string;
   score_type: LeaderboardType;
-  primary: boolean;
+  primary?: boolean;
 };
 type ContributionsRequestParams = { for_user: number } & (
   | ProjectContributionsParams
