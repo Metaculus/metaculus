@@ -720,6 +720,8 @@
   "electionHubDisclaimer": "<bold>Currently, our map focuses only on the battleground states outlined</bold> <link>in this question</link>.  We marked some states “Safe Democrat” or “Safe Republican” based on historical election data. If you believe we should include forecasts for more states, let us know!",
   "shareOnFacebook": "Share on Facebook",
   "shareOnTwitter": "Share on Twitter",
+  "shareInComment": "Share in comment",
+  "youPredicted": "You predicted",
   "embed": "embed",
   "share": "share",
   "270VotesToWin": "270 votes to win",
