@@ -159,6 +159,11 @@ def export_all_data_for_questions(
         comments = Comment.objects.filter(
             on_post__in=questions.values_list("related_posts__post", flat=True)
         )
+        comments = Comment.objects.filter(
+            is_private=False,
+            is_soft_deleted=False,
+            on_post__in=questions.values_list("related_posts__post", flat=True),
+        ).order_by("created_at")
     else:
         comments = None
 
