@@ -13,6 +13,7 @@ import {
   POST_TAGS_FILTER,
 } from "@/constants/posts_feed";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { PostWithForecasts } from "@/types/post";
 
 import { removePostFromProject } from "../../../actions";
@@ -32,6 +33,7 @@ const SidebarQuestionTags: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   const {
     category: _category,
@@ -147,14 +149,16 @@ const SidebarQuestionTags: FC<Props> = ({
         </Button>
       )}
 
-      <Button
-        size="sm"
-        variant="tertiary"
-        onClick={() => setCurrentModal({ type: "contactUs" })}
-      >
-        <FontAwesomeIcon icon={faCircleQuestion} />
-        {t("submitTagsFeedback")}
-      </Button>
+      {!PUBLIC_MINIMAL_UI && (
+        <Button
+          size="sm"
+          variant="tertiary"
+          onClick={() => setCurrentModal({ type: "contactUs" })}
+        >
+          <FontAwesomeIcon icon={faCircleQuestion} />
+          {t("submitTagsFeedback")}
+        </Button>
+      )}
     </div>
   );
 };

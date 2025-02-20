@@ -8,8 +8,24 @@ import {
 } from "@/services/session";
 import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
+  // if authentication is required, check for token
+  if (PUBLIC_AUTHENTICATION_REQUIRED) {
+    if (
+      !request.nextUrl.pathname.startsWith("/not-found/") &&
+      !request.nextUrl.pathname.startsWith("/accounts/") &&
+      !getServerSession()
+    ) {
+      // return a not found page
+      return NextResponse.rewrite(new URL("/not-found/", request.url));
+    }
+  }
+
   let deleteCookieToken = false;
 
   const serverSession = getServerSession();
@@ -39,7 +55,7 @@ export async function middleware(request: NextRequest) {
     if (
       alphaAccessToken &&
       getAlphaTokenSession() !== alphaAccessToken &&
-      !request.nextUrl.pathname.startsWith(alphaAuthUrl)
+      !pathname.startsWith(alphaAuthUrl)
     ) {
       return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
     }

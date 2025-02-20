@@ -156,6 +156,7 @@ export function generateFiltersFromSearchParams(
         PostStatus.OPEN,
         PostStatus.CLOSED,
         PostStatus.RESOLVED,
+        PostStatus.UPCOMING,
       ];
     }
   }

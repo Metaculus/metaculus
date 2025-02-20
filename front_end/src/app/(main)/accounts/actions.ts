@@ -11,10 +11,17 @@ import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
+import { getPublicSettings } from "@/utils/public_settings.server";
+
+export type PostLoginAction = {
+  type: "redirect";
+  payload: string;
+};
 
 export type LoginActionState = {
   errors?: any;
   user?: CurrentUser;
+  postLoginAction?: PostLoginAction;
 } | null;
 
 export default async function loginAction(
@@ -48,15 +55,21 @@ export default async function loginAction(
 
   setServerSession(response.token);
 
+  const { PUBLIC_LANDING_PAGE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
+    getPublicSettings();
+
   return {
     user: response.user,
+    postLoginAction: PUBLIC_AUTHENTICATION_REQUIRED
+      ? { type: "redirect", payload: PUBLIC_LANDING_PAGE_URL }
+      : undefined,
   };
 }
 
 export type SignUpActionState =
   | ({
       errors?: any;
-    } & Partial<SignUpResponse>)
+    } & Partial<SignUpResponse> & { postLoginAction?: PostLoginAction })
   | null;
 
 export async function signUpAction(
@@ -69,26 +82,44 @@ export async function signUpAction(
 
   try {
     const response = await AuthApi.signUp(
-      validatedSignupData.email,
-      validatedSignupData.username,
-      validatedSignupData.password,
-      validatedSignupData.isBot,
       {
-        "cf-turnstile-response": validatedSignupData.turnstileToken,
-        ...(ipAddress ? { "CF-Connecting-IP": ipAddress } : {}),
+        email: validatedSignupData.email,
+        username: validatedSignupData.username,
+        password: validatedSignupData.password,
+        is_bot: validatedSignupData.isBot,
+        add_to_project: validatedSignupData.addToProject,
+        campaign_key: validatedSignupData.campaignKey,
+        campaign_data: validatedSignupData.campaignData,
+        redirect_url: validatedSignupData.redirectUrl,
+        invite_token: validatedSignupData.inviteToken,
       },
-      validatedSignupData.addToProject,
-      validatedSignupData.campaignKey,
-      validatedSignupData.campaignData,
-      validatedSignupData.redirectUrl
+      {
+        ...(validatedSignupData.turnstileToken
+          ? { "cf-turnstile-response": validatedSignupData.turnstileToken }
+          : {}),
+        ...(ipAddress ? { "CF-Connecting-IP": ipAddress } : {}),
+      }
     );
+
+    const signUpActionState: SignUpActionState = { ...response };
 
     if (response.is_active && response.token) {
       setServerSession(response.token);
+
       revalidatePath("/");
+
+      const { PUBLIC_LANDING_PAGE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
+        getPublicSettings();
+
+      if (PUBLIC_AUTHENTICATION_REQUIRED) {
+        signUpActionState.postLoginAction = {
+          type: "redirect",
+          payload: PUBLIC_LANDING_PAGE_URL,
+        };
+      }
     }
 
-    return response;
+    return signUpActionState;
   } catch (err) {
     const error = err as FetchError;
 
@@ -133,4 +164,8 @@ export async function resendActivationEmailAction(
       errors: error.data,
     };
   }
+}
+
+export async function inviteUsers(emails: string[]) {
+  await AuthApi.inviteUsers(emails);
 }

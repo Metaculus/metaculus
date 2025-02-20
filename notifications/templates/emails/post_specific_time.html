@@ -165,11 +165,9 @@
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                         <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);"><a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
                             {{ notification.post.post_title }}
-                          </a>
-                          <a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
+                          </a> {% if IS_SCREENSHOT_SERVICE_ENABLED %} <a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
                             <img class="question_graph_img" src="{% build_question_graph_image_url notification.post.post_id %}" style="border: none; display: block; outline: none; width: 100%; height: auto;" height="auto">
-                          </a>
-                        </div>
+                          </a> {% endif %}</div>
                       </td>
                     </tr> {% endfor %}
                   </tbody>
@@ -225,10 +223,9 @@
                           <div style="margin-bottom: 8px">
                             <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
                               {{ post.title }}
-                            </a>
-                            <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
+                            </a> {% if IS_SCREENSHOT_SERVICE_ENABLED %} <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
                               <img class="question_graph_img" src="{% build_question_graph_image_url post.id %}" style="border: none; display: block; outline: none; width: 100%; height: auto;" height="auto">
-                            </a>
+                            </a> {% endif %}
                           </div>
                         </div>
                       </td>
