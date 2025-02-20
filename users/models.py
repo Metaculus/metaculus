@@ -63,6 +63,7 @@ class User(TimeStampedModel, AbstractUser):
 
     class Meta:
         indexes = [
+            models.Index("is_superuser", name="is_superuser_idx"),
             models.Index(
                 models.Func("username", function="UPPER"),
                 name="upper_username_idx",

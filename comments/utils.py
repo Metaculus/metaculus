@@ -5,6 +5,7 @@ from typing import Iterable
 from django.db.models import Q, QuerySet
 
 from comments.models import Comment
+from projects.permissions import ObjectPermission
 from users.models import User
 
 # Regex pattern to find all @<username> mentions
@@ -24,7 +25,7 @@ def comment_extract_user_mentions(
     }
 
     if not unique_mentions:
-        return User.objects.none(), {}
+        return User.objects.none(), set()
 
     # Build a case-insensitive query for each mention
     query = Q()
@@ -32,11 +33,19 @@ def comment_extract_user_mentions(
         # Check static mentions
         if group_mentions:
             if mention == "admins":
-                query |= Q(pk__in=comment.on_post.default_project.get_admins())
+                query |= Q(
+                    pk__in=comment.on_post.default_project.get_users_for_permission(
+                        ObjectPermission.ADMIN
+                    )
+                )
                 continue
 
             if mention in ("moderators", "curators"):
-                query |= Q(pk__in=comment.on_post.default_project.get_curators())
+                query |= Q(
+                    pk__in=comment.on_post.default_project.get_users_for_permission(
+                        ObjectPermission.CURATOR
+                    )
+                )
                 continue
 
             if mention == "predictors":
