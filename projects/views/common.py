@@ -9,10 +9,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from misc.models import WhitelistUser
+from posts.serializers import DownloadDataSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
-    DownloadDataSerializer,
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
@@ -272,21 +272,30 @@ def download_data(request, project_id: int):
     qs = get_projects_qs(user=user)
     obj = get_object_or_404(qs, pk=project_id)
     # Check permissions
-    if not (
+    is_staff = user.is_authenticated and user.is_staff
+    is_whitelisted = (
         user.is_authenticated
-        and user.is_staff
-        or WhitelistUser.objects.filter(
+        and WhitelistUser.objects.filter(
             Q(project=obj) | (Q(post__isnull=True) & Q(project__isnull=True)),
             user=user,
         ).exists()
-    ):
+    )
+    if not (is_staff or is_whitelisted):
         raise PermissionDenied("You are not allowed to download this project")
+    serializer_context = {
+        "user": user if user.is_authenticated else None,
+        "is_staff": is_staff,
+        "is_whitelisted": is_whitelisted,
+    }
 
-    serializer = DownloadDataSerializer(data=request.query_params)
+    serializer = DownloadDataSerializer(
+        data=request.query_params, context=serializer_context
+    )
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
     include_comments = params.get("include_comments", False)
     include_scores = params.get("include_scores", False)
+    anonymized = params.get("anonymized", False) if is_staff else True
     # TODO: consider adding support for other params supported by post download_data
 
     questions = Question.objects.filter(
@@ -299,6 +308,7 @@ def download_data(request, project_id: int):
         include_user_forecasts=True,
         include_comments=include_comments,
         include_scores=include_scores,
+        anonymized=anonymized,
     )
 
     filename = "_".join(obj.name.split(" "))

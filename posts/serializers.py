@@ -615,11 +615,12 @@ class DownloadDataSerializer(serializers.Serializer):
     include_scores = serializers.BooleanField(required=False, default=True)
     include_bots = serializers.BooleanField(required=False, allow_null=True)
     minimize = serializers.BooleanField(required=False, default=True)
+    anonymized = serializers.BooleanField(required=False)
 
     def validate_aggregation_methods(self, value: str | None):
         if value is None:
             return
-        user: User = self.context["user"]
+        user: User = self.context.get("user")
         if value == "all":
             aggregation_methods = [
                 AggregationMethod.RECENCY_WEIGHTED,
@@ -653,7 +654,7 @@ class DownloadDataSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "Invalid user_ids. Must be a comma-separated list of integers."
             )
-        if not self.context["can_view_private_data"]:
+        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."
