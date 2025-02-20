@@ -76,7 +76,7 @@ def perform_post_search(qs, search_text: str):
     ]
 
     # Annotating embedding vector distance
-    qs = qs.annotate(
+    qs = qs.filter(embedding_vector__isnull=False).annotate(
         rank=Case(
             *semantic_whens,
             default=1 - CosineDistance("embedding_vector", embedding_vector),
