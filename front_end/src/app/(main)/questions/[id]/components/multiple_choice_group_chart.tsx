@@ -188,10 +188,14 @@ const MultipleChoiceGroupChart: FC<Props> = ({
     return choiceItems
       .filter(({ active }) => active)
       .map(
-        (
-          { choice, userValues, color, userTimestamps: timestamps, closeTime },
-          index
-        ) => {
+        ({
+          id,
+          choice,
+          userValues,
+          color,
+          userTimestamps: timestamps,
+          closeTime,
+        }) => {
           return {
             choiceLabel: choice,
             color,
@@ -199,8 +203,8 @@ const MultipleChoiceGroupChart: FC<Props> = ({
               timestamps,
               values: userValues,
               cursorTimestamp,
-              question: questions[index],
               closeTime,
+              question: questions.find((q) => q.id === id),
             }),
           };
         }
