@@ -46,7 +46,7 @@ const AggregationTooltip: FC<Props> = ({
   const foundChoiceItem = choiceItems.find((item) => item.choice === choice);
 
   return (
-    <div className="flex w-[300px] border-black bg-gray-0 p-5 dark:bg-gray-0-dark">
+    <div className="flex w-full border-black bg-gray-0 p-5 dark:bg-gray-0-dark">
       <div className="flex flex-col">
         <ChoiceCheckbox
           label={label}

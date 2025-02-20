@@ -28,7 +28,7 @@ export const AGGREGATION_EXPLORER_OPTIONS: readonly [
   {
     id: AggregationMethodWithBots.metaculus_prediction,
     value: AggregationMethod.metaculus_prediction,
-    label: "Metaculus prediction (no bots)",
+    label: "Metaculus prediction",
     includeBots: false,
   },
   {
@@ -49,11 +49,5 @@ export const AGGREGATION_EXPLORER_OPTIONS: readonly [
     label: "Single aggregation (with bots)",
     includeBots: true,
     isStaffOnly: true,
-  },
-  {
-    id: AggregationMethodWithBots.metaculus_prediction_bot,
-    value: AggregationMethod.metaculus_prediction,
-    label: "Metaculus prediction (with bots)",
-    includeBots: true,
   },
 ];

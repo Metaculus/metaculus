@@ -219,6 +219,12 @@ const AggregationsTab: FC<Props> = ({
                 value: cursorData.center,
                 questionType: aggregationData.type,
                 scaling: aggregationData.scaling,
+                range: cursorData?.interval_lower_bound
+                  ? [
+                      cursorData?.interval_lower_bound as number,
+                      cursorData?.interval_upper_bound as number,
+                    ]
+                  : [],
               })}
               variant="prediction"
             />

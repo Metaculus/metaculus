@@ -7,23 +7,50 @@ import { CurrentUser } from "@/types/users";
 import { formatResolution } from "@/utils/questions";
 
 import { AGGREGATION_EXPLORER_OPTIONS } from "./constants";
-import { AggregationQuestionWithBots, AggregationTooltip } from "./types";
+import {
+  AggregationMethodWithBots,
+  AggregationQuestionWithBots,
+  AggregationTooltip,
+} from "./types";
 
 export function generateAggregationTooltips(
   user: CurrentUser | null
 ): AggregationTooltip[] {
-  return AGGREGATION_EXPLORER_OPTIONS.map((AggregationOption, index) => {
-    if (AggregationOption.isStaffOnly && (!user || !user.is_staff)) {
-      return null;
-    }
-    return {
-      aggregationMethod: AggregationOption.value,
-      choice: AggregationOption.id,
-      label: AggregationOption.label,
-      includeBots: AggregationOption.includeBots,
-      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-    };
-  }).filter((tooltip) => tooltip !== null) as AggregationTooltip[];
+  const order: AggregationMethodWithBots[] = user?.is_superuser
+    ? [
+        AggregationMethodWithBots.recency_weighted,
+        AggregationMethodWithBots.unweighted,
+        AggregationMethodWithBots.single_aggregation,
+        AggregationMethodWithBots.recency_weighted_bot,
+        AggregationMethodWithBots.unweighted_bot,
+        AggregationMethodWithBots.single_aggregation_bot,
+        AggregationMethodWithBots.metaculus_prediction,
+      ]
+    : [
+        AggregationMethodWithBots.recency_weighted,
+        AggregationMethodWithBots.unweighted,
+        AggregationMethodWithBots.single_aggregation,
+        AggregationMethodWithBots.metaculus_prediction,
+        AggregationMethodWithBots.recency_weighted_bot,
+        AggregationMethodWithBots.unweighted_bot,
+        AggregationMethodWithBots.single_aggregation_bot,
+      ];
+
+  return [...AGGREGATION_EXPLORER_OPTIONS]
+    .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id))
+    .map((AggregationOption, index) => {
+      if (AggregationOption.isStaffOnly && (!user || !user.is_staff)) {
+        return null;
+      }
+      return {
+        aggregationMethod: AggregationOption.value,
+        choice: AggregationOption.id,
+        label: AggregationOption.label,
+        includeBots: AggregationOption.includeBots,
+        color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      };
+    })
+    .filter((tooltip) => tooltip !== null) as AggregationTooltip[];
 }
 
 export function generateChoiceItemsFromAggregations({
