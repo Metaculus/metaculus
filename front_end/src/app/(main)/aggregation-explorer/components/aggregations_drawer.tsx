@@ -2,41 +2,62 @@
 
 import { uniq } from "lodash";
 import { isNil } from "lodash";
-import { FC, useCallback, useState, memo, useMemo } from "react";
+import { FC, useCallback, useState, memo, useMemo, useEffect } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import { useAuth } from "@/contexts/auth_context";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
-import {
-  AggregationMethod,
-  AggregationQuestion,
-  QuestionType,
-  Scaling,
-} from "@/types/question";
+import { QuestionType, Scaling } from "@/types/question";
 import {
   displayValue,
   findPreviousTimestamp,
-  generateChoiceItemsFromAggregations,
   scaleInternalLocation,
 } from "@/utils/charts";
 
 import AggregationTooltip from "./aggregation_tooltip";
+import {
+  generateAggregationTooltips,
+  generateChoiceItemsFromAggregations,
+} from "../helpers";
+import {
+  AggregationMethodWithBots,
+  AggregationQuestionWithBots,
+} from "../types";
 
 type Props = {
-  questionData: AggregationQuestion;
-  onTabChange: (activeTab: AggregationMethod) => void;
+  onTabChange: (activeTab: AggregationMethodWithBots) => void;
+  onFetchData: (
+    aggregationOptionId: AggregationMethodWithBots
+  ) => Promise<void>;
+  aggregationData: AggregationQuestionWithBots | null;
+  selectedSubQuestionOption: number | string | null;
 };
 
-const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
-  const { actual_close_time, scaling, type } = questionData;
+const AggregationsDrawer: FC<Props> = ({
+  onTabChange,
+  onFetchData,
+  aggregationData,
+  selectedSubQuestionOption,
+}) => {
+  const { user } = useAuth();
+  const { actual_close_time, scaling, type } = aggregationData ?? {};
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
     [actual_close_time]
   );
+  const tooltips = useMemo(() => generateAggregationTooltips(user), [user]);
   const [choiceItems, setChoiceItems] = useState(
-    generateChoiceItemsFromAggregations(questionData)
+    aggregationData
+      ? generateChoiceItemsFromAggregations({
+          question: aggregationData,
+          tooltips,
+          selectedSubQuestionOption,
+        })
+      : []
   );
+
   const timestamps = useMemo(
     () =>
       uniq(
@@ -77,33 +98,73 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
     },
     []
   );
+  useEffect(() => {
+    if (aggregationData) {
+      const newChoiceItems = generateChoiceItemsFromAggregations({
+        question: aggregationData,
+        tooltips,
+        selectedSubQuestionOption,
+      });
+
+      // Update or create new items while preserving existing state
+      setChoiceItems((prevItems) => {
+        const existingItemsMap = new Map(
+          prevItems.map((item) => [item.choice, item])
+        );
+
+        return newChoiceItems.map((newItem) => {
+          const existingItem = existingItemsMap.get(newItem.choice);
+          if (existingItem) {
+            return {
+              ...newItem,
+              active: existingItem.active,
+              highlighted: existingItem.highlighted,
+            };
+          }
+          return newItem;
+        });
+      });
+    }
+  }, [aggregationData, selectedSubQuestionOption, tooltips]);
 
   return (
     <>
-      <MultipleChoiceChart
-        timestamps={timestamps}
-        actualCloseTime={actualCloseTime}
-        choiceItems={choiceItems}
-        onCursorChange={handleCursorChange}
-        defaultZoom={TimelineChartZoomOption.All}
-        aggregation
-        withZoomPicker
-        questionType={type}
-        scaling={type === QuestionType.Binary ? undefined : scaling}
-      />
-      <div className="my-5 grid grid-cols-3 justify-items-center gap-x-5 gap-y-3">
-        {choiceItems.map((choiceItem, idx) => {
+      {aggregationData && (
+        <MultipleChoiceChart
+          timestamps={timestamps}
+          actualCloseTime={actualCloseTime}
+          choiceItems={choiceItems}
+          onCursorChange={handleCursorChange}
+          defaultZoom={TimelineChartZoomOption.All}
+          aggregation
+          withZoomPicker
+          questionType={type}
+          scaling={type === QuestionType.Binary ? undefined : scaling}
+        />
+      )}
+      <div className="my-5 grid grid-cols-1 justify-items-center gap-x-5 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+        {tooltips.map((tooltip, index) => {
+          const choiceItem = choiceItems.find(
+            (item) => item.choice === tooltip.choice
+          );
+
           return (
             <AggregationTooltip
-              key={idx}
-              choiceItem={choiceItem}
-              valueLabel={getQuestionTooltipLabel(
-                choiceItem.aggregationTimestamps ?? timestamps,
-                choiceItem.aggregationValues,
-                cursorTimestamp,
-                type,
-                scaling
-              )}
+              key={index}
+              tooltips={tooltip}
+              choiceItems={choiceItems}
+              valueLabel={
+                choiceItem?.active
+                  ? getQuestionTooltipLabel(
+                      choiceItem.aggregationTimestamps,
+                      choiceItem.aggregationValues,
+                      cursorTimestamp,
+                      type,
+                      scaling
+                    )
+                  : ""
+              }
+              onFetchData={onFetchData}
               onChoiceChange={handleChoiceChange}
               onChoiceHighlight={handleChoiceHighlight}
               onTabChange={onTabChange}
@@ -119,13 +180,12 @@ function getQuestionTooltipLabel(
   timestamps: number[],
   values: (number | null)[],
   cursorTimestamp: number | null,
-  qType: QuestionType,
-  scaling: Scaling
+  qType?: QuestionType,
+  scaling?: Scaling
 ) {
   const hasValue =
-    !isNil(cursorTimestamp) &&
-    cursorTimestamp >= Math.min(...timestamps) &&
-    cursorTimestamp <= Math.max(...timestamps);
+    !isNil(cursorTimestamp) && cursorTimestamp >= Math.min(...timestamps);
+
   if (!hasValue) {
     return "?";
   }
@@ -144,11 +204,11 @@ function getQuestionTooltipLabel(
     return displayValue(cursorValue, qType);
   } else {
     const scaledValue = scaleInternalLocation(cursorValue, {
-      range_min: scaling.range_min ?? 0,
-      range_max: scaling.range_max ?? 1,
-      zero_point: scaling.zero_point,
+      range_min: scaling?.range_min ?? 0,
+      range_max: scaling?.range_max ?? 1,
+      zero_point: scaling?.zero_point ?? null,
     });
-    return displayValue(scaledValue, qType);
+    return displayValue(scaledValue, qType ?? QuestionType.Numeric);
   }
 }
 

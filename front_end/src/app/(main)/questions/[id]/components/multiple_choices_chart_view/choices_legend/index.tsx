@@ -48,7 +48,7 @@ const ChoicesLegend: FC<Props> = ({
       {legendChoices.map(({ choice, color, active }, idx) => (
         <ChoiceCheckbox
           key={`multiple-choice-legend-${choice}-${idx}`}
-          choice={choice}
+          label={choice}
           color={color.DEFAULT}
           checked={active}
           onChange={(checked) => onChoiceChange(choice, checked)}
@@ -83,7 +83,7 @@ const ChoicesLegend: FC<Props> = ({
                 {dropdownChoices.map(({ choice, color, active }, idx) => (
                   <ChoiceCheckbox
                     key={`multiple-choice-dropdown-${choice}-${idx}`}
-                    choice={choice}
+                    label={choice}
                     color={color.DEFAULT}
                     checked={active}
                     onChange={(checked) => onChoiceChange(choice, checked)}

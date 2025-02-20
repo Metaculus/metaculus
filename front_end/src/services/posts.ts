@@ -225,6 +225,23 @@ class PostsApi {
     return await get<Blob>(`/posts/${postId}/download-data/`);
   }
 
+  static async getAggregationsPostZipData(
+    postId: number,
+    subQuestionId?: number,
+    aggregationMethods?: string,
+    includeBots?: boolean
+  ): Promise<Blob> {
+    const queryParams = encodeQueryParams({
+      ...(subQuestionId ? { sub_question: subQuestionId } : {}),
+      ...(aggregationMethods
+        ? { aggregation_methods: aggregationMethods }
+        : { aggregation_methods: "all" }),
+      ...(includeBots !== undefined ? { include_bots: includeBots } : {}),
+    });
+
+    return await get<Blob>(`/posts/${postId}/download-data/${queryParams}`);
+  }
+
   static async repost(postId: number, projectId: number) {
     return post(`/posts/${postId}/repost/`, { project_id: projectId });
   }

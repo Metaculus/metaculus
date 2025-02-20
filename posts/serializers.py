@@ -606,6 +606,8 @@ class PostRelatedArticleSerializer(serializers.ModelSerializer):
 
 
 class DownloadDataSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField(required=False)
+    post_id = serializers.IntegerField(required=False)
     sub_question = serializers.IntegerField(required=False)
     aggregation_methods = serializers.CharField(required=False)
     user_ids = serializers.CharField(required=False, allow_null=True)
@@ -614,7 +616,7 @@ class DownloadDataSerializer(serializers.Serializer):
     include_bots = serializers.BooleanField(required=False, allow_null=True)
     minimize = serializers.BooleanField(required=False, default=True)
 
-    def validate_aggregation_methods(self, value):
+    def validate_aggregation_methods(self, value: str | None):
         if value is None:
             return
         user: User = self.context["user"]
@@ -627,7 +629,7 @@ class DownloadDataSerializer(serializers.Serializer):
             if user.is_staff:
                 aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
             return aggregation_methods
-        methods = value.split(",")
+        methods: list[str] = [v.strip() for v in value.split(",")]
         invalid_methods = [
             method for method in methods if method not in AggregationMethod.values
         ]
@@ -662,6 +664,8 @@ class DownloadDataSerializer(serializers.Serializer):
     def validate(self, attrs):
         # Check if there are any unexpected fields
         allowed_fields = {
+            "post_id",
+            "question_id",
             "sub_question",
             "aggregation_methods",
             "user_ids",

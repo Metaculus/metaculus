@@ -1,42 +1,69 @@
 "use client";
 
+import { saveAs } from "file-saver";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState, memo, useMemo } from "react";
+import toast from "react-hot-toast";
 
 import NumericChart from "@/components/charts/numeric_chart";
+import Button from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use_debounce";
-import {
-  AggregationQuestion,
-  Aggregations,
-  QuestionType,
-} from "@/types/question";
+import { QuestionType } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import { base64ToBlob } from "@/utils/files";
 
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
 import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
 import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
+import { getAggregationsPostZipData } from "../actions";
+import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
+import { AggregationQuestionWithBots } from "../types";
 
 type Props = {
-  questionData: AggregationQuestion;
-  activeTab: keyof Aggregations;
+  aggregationData: AggregationQuestionWithBots | null;
+  activeTab: string;
+  selectedSubQuestionOption: number | string | null;
+  postId: number;
+  questionTitle: string;
 };
 
-const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
+const AggregationsTab: FC<Props> = ({
+  aggregationData,
+  activeTab,
+  selectedSubQuestionOption,
+  postId,
+  questionTitle,
+}) => {
   const t = useTranslations();
 
-  const {
-    aggregations,
-    actual_close_time,
-    scaling,
-    type: qType,
-    resolution,
-  } = questionData;
+  const { aggregations, bot_aggregations, actual_close_time, resolution } =
+    aggregationData ?? {};
+
+  const tabData =
+    AGGREGATION_EXPLORER_OPTIONS.find((option) => option.id === activeTab) ??
+    AGGREGATION_EXPLORER_OPTIONS[0];
 
   const activeAggregation = useMemo(
-    () => aggregations[activeTab],
-    [activeTab, aggregations]
+    () =>
+      tabData?.includeBots
+        ? bot_aggregations?.[tabData.value]
+        : aggregations?.[tabData.value],
+    [aggregations, bot_aggregations, tabData]
   );
+
+  let aggregationIndex: number | undefined;
+  if (
+    typeof selectedSubQuestionOption === "string" &&
+    aggregationData?.options
+  ) {
+    const indexCandidate = aggregationData.options.findIndex(
+      (o) => o === selectedSubQuestionOption
+    );
+    if (indexCandidate !== -1) {
+      aggregationIndex = indexCandidate;
+    }
+  }
 
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
@@ -86,23 +113,32 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
     return null;
   }
 
-  const renderAggregation = () => {
-    switch (qType) {
+  const renderAggregation = (questionData: AggregationQuestionWithBots) => {
+    switch (questionData.type) {
       case QuestionType.Binary:
         return (
           <HistogramDrawer
+            activeAggregation={activeAggregation}
             questionData={questionData}
-            activeTab={activeTab}
             selectedTimestamp={aggregationTimestamp}
+          />
+        );
+      case QuestionType.MultipleChoice:
+        return (
+          <HistogramDrawer
+            activeAggregation={activeAggregation}
+            questionData={questionData}
+            selectedTimestamp={aggregationTimestamp}
+            aggregationIndex={aggregationIndex}
           />
         );
       case QuestionType.Numeric:
       case QuestionType.Date:
         return (
           <ContinuousAggregationChart
+            activeAggregation={activeAggregation}
             selectedTimestamp={aggregationTimestamp}
             questionData={questionData}
-            activeTab={activeTab}
           />
         );
       default:
@@ -110,36 +146,94 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
     }
   };
 
+  if (!aggregationData || !activeAggregation.history.length) {
+    return (
+      <p className="my-5 text-center text-gray-500 dark:text-gray-500-dark">
+        {!aggregationData
+          ? t("aggregationDataIsNotAvailable")
+          : t("noAggregationData")}
+      </p>
+    );
+  }
+
+  const handleDownloadQuestionData = async () => {
+    try {
+      const aggregationMethod = tabData.value;
+
+      const base64 = await getAggregationsPostZipData(
+        postId,
+        typeof selectedSubQuestionOption === "number"
+          ? selectedSubQuestionOption
+          : undefined,
+        aggregationMethod,
+        tabData.includeBots
+      );
+
+      const blob = base64ToBlob(base64);
+      const filename = `${questionTitle.replaceAll(" ", "_")}-${aggregationMethod}${tabData.includeBots ? "-bots" : ""}.zip`;
+      saveAs(blob, filename);
+    } catch (error) {
+      toast.error(t("downloadQuestionDataError") + error);
+    }
+  };
+
   return (
-    <DetailsQuestionCardErrorBoundary>
-      <NumericChart
-        aggregation={activeAggregation}
-        questionType={qType}
-        actualCloseTime={actualCloseTime}
-        scaling={scaling}
-        resolution={resolution}
-        onCursorChange={handleCursorChange}
-      />
-      {!!cursorData && (
-        <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
-          <CursorDetailItem
-            title={t("totalForecastersLabel")}
-            content={cursorData.forecasterCount?.toString()}
-          />
-          <CursorDetailItem
-            title={t("communityPredictionLabel")}
-            content={getDisplayValue({
-              value: cursorData.center,
-              questionType: qType,
-              scaling,
-            })}
-            variant="prediction"
-          />
+    <>
+      {activeTab && (
+        <div className="flex flex-col justify-between">
+          <Button
+            variant="text"
+            onClick={handleDownloadQuestionData}
+            className="w-fit cursor-pointer p-0 text-sm text-gray-500 underline dark:text-gray-500-dark"
+          >
+            {t("downloadQuestionData")}
+          </Button>
+          <p className="w-fit bg-gray-400 p-2 dark:bg-gray-400-dark">
+            {
+              AGGREGATION_EXPLORER_OPTIONS.find(
+                (option) => option.id === activeTab
+              )?.label
+            }
+          </p>
         </div>
       )}
+      <DetailsQuestionCardErrorBoundary>
+        <NumericChart
+          aggregation={activeAggregation}
+          aggregationIndex={aggregationIndex}
+          questionType={aggregationData.type}
+          actualCloseTime={actualCloseTime}
+          scaling={aggregationData.scaling}
+          resolution={resolution}
+          onCursorChange={handleCursorChange}
+        />
+        {!!cursorData && (
+          <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
+            <CursorDetailItem
+              title={t("totalForecastersLabel")}
+              content={cursorData.forecasterCount?.toString()}
+            />
+            <CursorDetailItem
+              title={t("communityPredictionLabel")}
+              content={getDisplayValue({
+                value: cursorData.center,
+                questionType: aggregationData.type,
+                scaling: aggregationData.scaling,
+                range: cursorData?.interval_lower_bound
+                  ? [
+                      cursorData?.interval_lower_bound as number,
+                      cursorData?.interval_upper_bound as number,
+                    ]
+                  : [],
+              })}
+              variant="prediction"
+            />
+          </div>
+        )}
 
-      {renderAggregation()}
-    </DetailsQuestionCardErrorBoundary>
+        {renderAggregation(aggregationData)}
+      </DetailsQuestionCardErrorBoundary>
+    </>
   );
 };
 

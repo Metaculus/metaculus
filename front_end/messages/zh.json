@@ -1083,5 +1083,7 @@
   "signupInviteEmailAddresses": "电子邮件地址",
   "signupInviteEmailAddressesPlaceholder": "每行输入一个电子邮件",
   "signupInviteSendButton": "发送邀请",
-  "signupInviteSuccess": "邀请已发送"
+  "signupInviteSuccess": "邀请已发送",
+  "aggregationDataIsNotAvailable": "汇总数据不可用",
+  "noAggregationData": "没有汇总数据"
 }
