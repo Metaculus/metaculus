@@ -57,6 +57,8 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
   // Get visible rows for current sheet
   const currentVisibleRows = visibleRowsMap[activeSheet] ?? 125;
   const visibleOtherRows = otherRows.slice(0, currentVisibleRows);
+  const reorderedOtherRows = [highlightedRow ?? [], ...visibleOtherRows];
+
   const hasMoreRows = otherRows.length > currentVisibleRows;
 
   const handleLoadAll = () => {
@@ -102,37 +104,14 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {highlightedRow && (
-            <TableRow className="bg-orange-200 dark:bg-orange-200-dark">
-              {highlightedRow.map((cell: string, cellIndex: number) =>
-                cellIndex !== userIDColumn ? (
-                  <TableCell
-                    key={cellIndex}
-                    className={cn(
-                      cellIndex === rankColumnIndex && "w-16 min-w-[64px]",
-                      cellIndex === usernameColumnIndex &&
-                        "w-full truncate md:w-64",
-                      cellIndex === totalScoreColumnIndex &&
-                        "w-24 min-w-[96px]",
-                      cellIndex === 0 && "font-medium",
-                      cellIndex > totalScoreColumnIndex &&
-                        "hidden md:table-cell",
-                      cellIndex >= totalScoreColumnIndex &&
-                        "text-center text-sm tabular-nums"
-                    )}
-                  >
-                    <Link
-                      href={`/accounts/profile/${highlightedRow[userIDColumn]}`}
-                    >
-                      {cell}
-                    </Link>
-                  </TableCell>
-                ) : null
+          {reorderedOtherRows.map((row: string[], rowIndex: number) => (
+            <TableRow
+              key={rowIndex}
+              className={cn(
+                highlightedUser === row[usernameColumnIndex] &&
+                  "bg-orange-200 dark:bg-orange-200-dark"
               )}
-            </TableRow>
-          )}
-          {visibleOtherRows.map((row: string[], rowIndex: number) => (
-            <TableRow key={rowIndex}>
+            >
               {row.map((cell: string, cellIndex: number) =>
                 cellIndex !== userIDColumn ? (
                   <TableCell
@@ -150,9 +129,13 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
                         "text-center text-sm tabular-nums"
                     )}
                   >
-                    <Link href={`/accounts/profile/${row[userIDColumn]}`}>
-                      {cell}
-                    </Link>
+                    {cellIndex === usernameColumnIndex ? (
+                      <Link href={`/accounts/profile/${row[userIDColumn]}`}>
+                        {cell}
+                      </Link>
+                    ) : (
+                      cell
+                    )}
                   </TableCell>
                 ) : null
               )}
