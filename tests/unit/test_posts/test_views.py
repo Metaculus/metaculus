@@ -598,3 +598,27 @@ def test_post_vote(user1, user1_client, user2_client, post_binary_public):
     assert make_vote(user1_client, -1) == -1
     assert make_vote(user2_client, -1) == -2
     assert make_vote(user2_client, 1) == 0
+
+
+def test_post_vote__private(user1, user1_client, user2_client):
+    """
+    Ensure users can't vote on post they don't have access to
+    """
+
+    private_post = factory_post(
+        author=user1,
+        default_project=factory_project(
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=None,
+        ),
+    )
+    url = reverse("post-vote", kwargs={"pk": private_post.pk})
+
+    # Allowed
+    response = user1_client.post(url, {"direction": 1}, format="json")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["score"] == 1
+
+    # Denied
+    response = user2_client.post(url, {"direction": 1}, format="json")
+    assert response.status_code == status.HTTP_403_FORBIDDEN
