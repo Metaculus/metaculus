@@ -1026,7 +1026,7 @@ export function generateChoiceItemsFromGroupQuestions(
       const aggregationForecast = aggregationHistory.find((forecast) => {
         return (
           forecast.start_time <= timestamp &&
-          (forecast.end_time === null || forecast.end_time > timestamp)
+          (forecast.end_time === null || forecast.end_time >= timestamp)
         );
       });
       aggregationValues.push(aggregationForecast?.centers?.[0] || null);
