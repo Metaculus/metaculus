@@ -1,15 +1,6 @@
 #! /bin/bash
 set -e
 
-required_vars=("NEXT_PUBLIC_TURNSTILE_SITE_KEY" "HEROKU_APP" "NEXT_PUBLIC_APP_URL" "SENTRY_AUTH_TOKEN" "NEXT_PUBLIC_POSTHOG_KEY")
-
-for var in "${required_vars[@]}"; do
-    if [ -z "${!var}" ]; then
-        echo "Error: $var environment variable is not set."
-        exit 1
-    fi
-done
-
 wait_and_fail_if_release_failed() {
     max_iters=40
     for ((i = 1; i <= max_iters; i++)); do
@@ -29,25 +20,9 @@ wait_and_fail_if_release_failed() {
     exit 1
 }
 
-# These are needed for nextjs build phase, as it replaces the value of these environmental variables
-# at build time :/
-FRONTEND_ENV_FILE=$(mktemp)
-env | grep NEXT_PUBLIC > $FRONTEND_ENV_FILE
-# This needs to be propagated too, so source maps are uploaded to Sentry
-env | grep SENTRY_AUTH_TOKEN >> $FRONTEND_ENV_FILE
 
-docker buildx build \
-    --secret id=frontend_env,src=$FRONTEND_ENV_FILE \
-    --platform linux/amd64 -t registry.heroku.com/$HEROKU_APP/web --target web .
-
-# The rest of the target images don't require any special env variables
-for target in release dramatiq_worker django_cron; do
-    docker build --platform linux/amd64 . -t registry.heroku.com/$HEROKU_APP/$target --target $target
-done
-
-# Push all built images to the heroku docker registry
 for target in release dramatiq_worker django_cron web; do
-    docker push registry.heroku.com/$HEROKU_APP/$target
+    docker build --platform linux/amd64 . -t registry.heroku.com/$HEROKU_APP/$target --target $target --push
 done
 
 # Release them all

@@ -189,6 +189,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
 
     ids = serializers.ListField(child=serializers.IntegerField(), required=False)
     access = serializers.ChoiceField(required=False, choices=Access.choices)
+    default_project_id = serializers.IntegerField(required=False)
     topic = serializers.CharField(required=False)
     community = serializers.CharField(required=False)
     tags = serializers.ListField(child=serializers.CharField(), required=False)
@@ -232,6 +233,12 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         "scheduled_resolve_time",
         "scheduled_close_time",
     ]
+
+    def validate_default_project_id(self, value: int):
+        try:
+            return Project.objects.get(pk=value)
+        except Project.DoesNotExist:
+            raise ValidationError("Project does not exist")
 
     def validate_public_figure(self, value: int):
         try:

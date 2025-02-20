@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
@@ -31,6 +32,7 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
   const rankColumnIndex = 0;
   const usernameColumnIndex = 1;
   const totalScoreColumnIndex = 2;
+  const userIDColumn = 6;
 
   const buttons: GroupButton<string>[] = sheets.map((sheet) => ({
     value: sheet.name,
@@ -55,6 +57,8 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
   // Get visible rows for current sheet
   const currentVisibleRows = visibleRowsMap[activeSheet] ?? 125;
   const visibleOtherRows = otherRows.slice(0, currentVisibleRows);
+  const reorderedOtherRows = [highlightedRow ?? [], ...visibleOtherRows];
+
   const hasMoreRows = otherRows.length > currentVisibleRows;
 
   const handleLoadAll = () => {
@@ -78,67 +82,63 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
       <Table>
         <TableHead>
           <TableRow>
-            {headers?.map((header: string, index: number) => (
-              <TableHeaderCell
-                key={index}
-                className={cn(
-                  "w-fit min-w-[200px] max-w-[400px] whitespace-normal",
-                  index === rankColumnIndex && "w-16 min-w-[64px]",
-                  index === usernameColumnIndex && "w-full truncate md:w-64",
-                  index === totalScoreColumnIndex &&
-                    "ml-4 w-24 min-w-[96px] text-center",
-                  index > totalScoreColumnIndex &&
-                    "hidden text-center md:table-cell",
-                  index >= totalScoreColumnIndex && "tabular-nums"
-                )}
-              >
-                {header}
-              </TableHeaderCell>
-            ))}
+            {headers?.map((header: string, index: number) =>
+              index !== userIDColumn ? (
+                <TableHeaderCell
+                  key={index}
+                  className={cn(
+                    "w-fit min-w-[200px] max-w-[400px] whitespace-normal",
+                    index === rankColumnIndex && "w-16 min-w-[64px]",
+                    index === usernameColumnIndex && "w-full truncate md:w-64",
+                    index === totalScoreColumnIndex &&
+                      "ml-4 w-24 min-w-[96px] text-center",
+                    index > totalScoreColumnIndex &&
+                      "hidden text-center md:table-cell",
+                    index >= totalScoreColumnIndex && "tabular-nums"
+                  )}
+                >
+                  {header}
+                </TableHeaderCell>
+              ) : null
+            )}
           </TableRow>
         </TableHead>
         <TableBody>
-          {highlightedRow && (
-            <TableRow className="bg-orange-200 dark:bg-orange-200-dark">
-              {highlightedRow.map((cell: string, cellIndex: number) => (
-                <TableCell
-                  key={cellIndex}
-                  className={cn(
-                    cellIndex === rankColumnIndex && "w-16 min-w-[64px]",
-                    cellIndex === usernameColumnIndex &&
-                      "w-full truncate md:w-64",
-                    cellIndex === totalScoreColumnIndex && "w-24 min-w-[96px]",
-                    cellIndex === 0 && "font-medium",
-                    cellIndex > totalScoreColumnIndex && "hidden md:table-cell",
-                    cellIndex >= totalScoreColumnIndex &&
-                      "text-center text-sm tabular-nums"
-                  )}
-                >
-                  {cell}
-                </TableCell>
-              ))}
-            </TableRow>
-          )}
-          {visibleOtherRows.map((row: string[], rowIndex: number) => (
-            <TableRow key={rowIndex}>
-              {row.map((cell: string, cellIndex: number) => (
-                <TableCell
-                  key={cellIndex}
-                  className={cn(
-                    cellIndex === rankColumnIndex && "w-16 min-w-[64px]",
-                    cellIndex === usernameColumnIndex &&
-                      "w-full truncate md:w-64",
-                    cellIndex === totalScoreColumnIndex &&
-                      "w-24 min-w-[96px] text-right md:text-center",
-                    cellIndex === 0 && "font-medium",
-                    cellIndex > totalScoreColumnIndex && "hidden md:table-cell",
-                    cellIndex >= totalScoreColumnIndex &&
-                      "text-center text-sm tabular-nums"
-                  )}
-                >
-                  {cell}
-                </TableCell>
-              ))}
+          {reorderedOtherRows.map((row: string[], rowIndex: number) => (
+            <TableRow
+              key={rowIndex}
+              className={cn(
+                highlightedUser === row[usernameColumnIndex] &&
+                  "bg-orange-200 dark:bg-orange-200-dark"
+              )}
+            >
+              {row.map((cell: string, cellIndex: number) =>
+                cellIndex !== userIDColumn ? (
+                  <TableCell
+                    key={cellIndex}
+                    className={cn(
+                      cellIndex === rankColumnIndex && "w-16 min-w-[64px]",
+                      cellIndex === usernameColumnIndex &&
+                        "w-full truncate md:w-64",
+                      cellIndex === totalScoreColumnIndex &&
+                        "w-24 min-w-[96px] text-right md:text-center",
+                      cellIndex === 0 && "font-medium",
+                      cellIndex > totalScoreColumnIndex &&
+                        "hidden md:table-cell",
+                      cellIndex >= totalScoreColumnIndex &&
+                        "text-center text-sm tabular-nums"
+                    )}
+                  >
+                    {cellIndex === usernameColumnIndex ? (
+                      <Link href={`/accounts/profile/${row[userIDColumn]}`}>
+                        {cell}
+                      </Link>
+                    ) : (
+                      cell
+                    )}
+                  </TableCell>
+                ) : null
+              )}
             </TableRow>
           ))}
         </TableBody>

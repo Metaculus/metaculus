@@ -28,9 +28,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
   } = post;
   const canPredict = canPredictQuestion(post);
   const canResolve =
-    [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
-      post.user_permission
-    ) &&
+    permission === ProjectPermissions.ADMIN &&
     !isNil(post.published_at) &&
     parseISO(post.published_at) <= new Date() &&
     [PostStatus.APPROVED, PostStatus.OPEN, PostStatus.CLOSED].includes(status);

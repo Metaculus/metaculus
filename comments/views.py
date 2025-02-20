@@ -208,6 +208,9 @@ def comment_edit_api_view(request: Request, pk: int):
 def comment_vote_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
+    permission = get_post_permission_for_user(comment.on_post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
     if comment.author_id == request.user.pk:
         raise ValidationError("You can not vote your own comment.")
 

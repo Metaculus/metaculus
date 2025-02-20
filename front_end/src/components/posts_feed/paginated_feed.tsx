@@ -12,6 +12,7 @@ import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, NotebookPost } from "@/types/post";
@@ -62,6 +63,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   >();
 
   const { setBannerIsVisible } = useContentTranslatedBannerProvider();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   useEffect(() => {
     if (
@@ -136,9 +138,10 @@ const PaginatedPostsFeed: FC<Props> = ({
   return (
     <>
       <div className="flex flex-col gap-3">
-        {filters.statuses && filters.statuses === "pending" && !isCommunity && (
-          <InReviewBox />
-        )}
+        {filters.statuses &&
+          filters.statuses === "pending" &&
+          !isCommunity &&
+          !PUBLIC_MINIMAL_UI && <InReviewBox />}
         {!paginatedPosts.length && (
           <>
             {isCommunity ? (

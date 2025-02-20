@@ -11,6 +11,7 @@ class SignupSerializer(serializers.ModelSerializer):
     campaign_key = serializers.CharField(required=False)
     campaign_data = serializers.JSONField(required=False)
     redirect_url = serializers.CharField(required=False)
+    invite_token = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = User
@@ -23,6 +24,7 @@ class SignupSerializer(serializers.ModelSerializer):
             "campaign_key",
             "campaign_data",
             "redirect_url",
+            "invite_token"
         )
         extra_kwargs = {"email": {"required": True}}
 

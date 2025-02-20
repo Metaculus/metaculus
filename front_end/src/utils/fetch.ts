@@ -10,6 +10,7 @@ import {
 } from "@/types/fetch";
 
 import { extractError } from "./errors";
+import { getPublicSettings } from "./public_settings.server";
 
 class ApiError extends Error {
   public digest: string;
@@ -98,13 +99,18 @@ const defaultOptions: FetchOptions = {
 type FetchConfig = {
   emptyContentType?: boolean;
   passAuthHeader?: boolean;
+  includeLocale?: boolean;
 };
 const appFetch = async <T>(
   url: string,
   options: FetchOptions = {},
   config?: FetchConfig
 ): Promise<T> => {
-  let { emptyContentType = false, passAuthHeader = true } = config ?? {};
+  let {
+    emptyContentType = false,
+    passAuthHeader = true,
+    includeLocale = true,
+  } = config ?? {};
 
   // Warning: caching could be only applied to anonymised requests
   // To prevent user token leaks and storage spam.
@@ -113,12 +119,18 @@ const appFetch = async <T>(
     passAuthHeader = false;
   }
 
-  const authToken = passAuthHeader ? getServerSession() : null;
+  const { PUBLIC_API_BASE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
+    getPublicSettings();
+
+  const authToken =
+    passAuthHeader || PUBLIC_AUTHENTICATION_REQUIRED
+      ? getServerSession()
+      : null;
   const alphaToken = getAlphaTokenSession();
-  const locale = await getLocale();
+  const locale = includeLocale ? await getLocale() : "en";
 
   // Default values are configured in the next.config.mjs
-  const finalUrl = `${process.env.API_BASE_URL}/api${url}`;
+  const finalUrl = `${PUBLIC_API_BASE_URL}/api${url}`;
   const finalOptions: FetchOptions = {
     ...defaultOptions,
     ...options,

@@ -94,7 +94,7 @@ export default async function FAQ() {
               </a>
             </li>
             <li>
-              <a href="#question-private">What is a private question?</a>
+              <a href="#question-private">Where are my private questions?</a>
             </li>
             <li>
               <a href="#comments">
@@ -224,9 +224,6 @@ export default async function FAQ() {
               <a href="#metaculus-prediction">
                 What is the Metaculus Prediction?
               </a>
-            </li>
-            <li>
-              <a href="#public-figure">What are public figure predictions?</a>
             </li>
             <li>
               <a href="#reaffirming">
@@ -875,28 +872,14 @@ export default async function FAQ() {
           className="scroll-mt-nav text-xl font-semibold"
           id="question-private"
         >
-          What is a private question?
+          Where are my private questions?
         </h3>
         <p>
-          Private questions are questions that are not visible to the broader
-          community. They aren&apos;t subject to the normal review process, so
-          you can create one and predict on it right away. You can resolve your
-          own private questions at any time, but points for private predictions
-          won&apos;t be added to your overall Metaculus score and they
-          won&apos;t affect your ranking on the leaderboard.
-        </p>
-        <p>
-          You can use private questions for anything you want. Use them as
-          practice to calibrate your predictions before playing for points,
-          create a question series on a niche topic, or pose personal questions
-          that only you can resolve.{" "}
-          <strong>You can even invite up to 19 other users</strong> to view and
-          predict on your own questions!
-        </p>
-        <p>
-          To invite other forecasters to your private question, click the
-          &apos;...&apos; more options menu and select &apos;Share Private
-          Question&apos;.
+          Private questions are deprecated, it is no longer possible to create
+          new ones. If you had private questions, you can still find them by
+          going to the <a href="/questions/">Feed Home</a>, selecting &quot;My
+          questions and posts&quot; in the sidebar, and using the
+          &quot;Personal&quot; special filter.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="comments">
@@ -2406,7 +2389,7 @@ export default async function FAQ() {
             this means that, starting from the moment you withdrew and until you
             make a new prediction:
           </p>
-          <p>
+          <div className="text-gray-700 dark:text-gray-400">
             <ul className="list-disc pl-5">
               <li>
                 You stop accruing scores, including Peer scores, Baseline
@@ -2417,7 +2400,7 @@ export default async function FAQ() {
                 You aren’t part of the Community Prediction or other aggregates.
               </li>
             </ul>
-          </p>
+          </div>
           <p>
             None of those behaviours are retroactive: you still get scores and
             coverage for times up until you withdrew, and your past predictions
@@ -2655,63 +2638,64 @@ export default async function FAQ() {
             How do I use the range interface?
           </h3>
           <p>
-            Some Metaculus questions allow numeric or date range inputs, where
-            you specify the distribution of probability you think is likely over
-            a possible range of outcomes. This probability distribution is known
-            as a{" "}
+            Some Metaculus questions are numeric or date ranges. To predict, you
+            must specify a distribution of likelyhoods over a certain range of
+            outcomes. This probability distribution is known as a{" "}
             <a href="https://en.wikipedia.org/wiki/Probability_density_function">
               probability density function
             </a>{" "}
-            and is the probability per unit of length. The probability density
-            function can be used to determine the probability of a value falling
-            within a range of values.
+            (&quot;PDF&quot;) and represents the relative likelyhood of each
+            possible outcome in the question range. The area under the pdf curve
+            between two outcomes is proportional to the probability that the
+            resolution will be between these two values.
           </p>
-
           <p>
-            When you hover over the chart you see the probabilities at each
-            point at the bottom of the chart. For example, in the image below
-            you can see the probability density at the value 136, denoted by
-            &quot;P(x = 136)&quot;, and you can see the probability density that
-            you and the community have assigned to that point (in the image the
-            user has assigned a probability density of 1.40 to that value and
-            the community has assigned a probability density of 2.97).
+            To specify your pdf, move the sliders below the graph. The square
+            slider moves the mode of the distribution, and the round sliders
+            change the shape of the distribution. To make a more complicated
+            distribution, add more components using the button below the
+            sliders. The weight sliders determine the relative weight of each
+            component compared to the others.
+          </p>
+          <p>
+            When you hover over the chart you can read the probability densities
+            below it. For example, in the screenshot below, you can see that for
+            the value -7.0381 you assigned a density of 1.785 and the Community
+            Prediction assigns a density of 0.319.
           </p>
           <Image
-            src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/interface.png"
-            alt="Prediction Interface"
+            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/image_zcQBntc.png"
+            alt="Continuous Prediction Interface"
             className="my-4"
-            width={769}
-            height={773}
+            width={734}
+            height={799}
           />
           <p>
-            By selecting the &quot;Probability Density&quot; dropdown at the top
-            of the chart you can change the display to &quot;Cumulative
-            Probability&quot;. This display shows the{" "}
+            Below the sliders you can see a table. It lists your median, your
+            25th and 75th percentiles, and the mass you put out of each open
+            bound. It also lists the same values for the Community Prediction.
+            The median, 25th percentile and 75th percentiles are also visible as
+            vertical doted lines in the graph.
+          </p>
+          <p>
+            By using the toggle at the top right of the chart, you can switch to
+            the{" "}
             <a href="https://en.wikipedia.org/wiki/Cumulative_distribution_function">
-              cumulative distribution function
+              Cumulative Distribution Function
             </a>
-            , or in other words for any point it shows you the probability that
-            you and the community have assigned to the question resolving below
-            the indicated value. For example, in the image below you can see the
-            probability that you and the community have assigned to the question
-            resolving below the value of 136, denoted by &quot;P(x &lt;
-            136)&quot;. The probability that the user has assigned is 7% to the
-            question resolving below that value, while the community has
-            assigned an 83% chance to the question resolving below that value.
+            (&quot;CDF&quot;). It is the integral of the PDF, and for any value
+            it shows the probability that the question resolves anywhere below
+            that value. For example, in the screenshot below you can see that
+            you predict 50.47% chance the question resolves below -7.0588, while
+            the Community Prediction predicts 69.4%.
           </p>
           <Image
-            src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/cumulative.png"
+            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/image_eVvUMVQ.png"
             alt="Cumulative Interface"
             className="my-4"
-            width={771}
-            height={776}
+            width={734}
+            height={799}
           />
-          <p>
-            The vertical lines shown on the graphs indicate the 25th percentile,
-            median, and 75th percentile forecasts, respectively, of the user and
-            the community. These values are also shown for the user and the
-            community in the table at the bottom.
-          </p>
         </div>
 
         <div>
@@ -2901,204 +2885,19 @@ export default async function FAQ() {
             Brier score of 0.108.
           </p>
         </div>
-        <hr />
+
         <div>
-          <h2
+          <h3
             id="visibility-of-the-cp-and-mp"
             className="mb-4 scroll-mt-nav text-3xl font-bold"
           >
             Why can&apos;t I see the CP?
-          </h2>
+          </h3>
           <p>
             When a question first opens, nobody can see the Community Prediction
             for a while, to avoid giving inordinate weight to the very first
             predictions, which may &quot;ground&quot; or bias later ones.
           </p>
-        </div>
-
-        <div>
-          <h3
-            id="public-figure"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            What Are Public Figure Predictions?
-          </h3>
-          <p>
-            <a href="/organization/public-figures/">Public Figure Prediction</a>{" "}
-            pages are dedicated to collecting and preserving important
-            predictions made by prominent public figures and putting them into
-            conversation with Metaculus community forecasts. Each figure&apos;s
-            page features a list of predictions they made along with the source
-            that recorded the prediction, the date the prediction was made, and
-            related Metaculus questions. Public predictions are transparently
-            presented alongside community forecasts in a manner that is
-            inspectable and understandable by all, providing public
-            accountability and additional context for the linked Metaculus
-            questions.&nbsp;
-          </p>
-          <p>
-            A <em>Public Figure</em> is someone with a certain social position
-            within a particular sphere of influence, such as a politician, media
-            personality, scientist, journalist, economist, academic, or business
-            leader.&nbsp;
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            What qualifies as a prediction?
-          </h4>
-          <p>
-            A prediction is a claim or a statement about what someone thinks
-            will happen in the future, where the thing predicted has some amount
-            of uncertainty associated with it.&nbsp;
-          </p>
-          <p>
-            A Public Figure Prediction is a prediction made by the public figure
-            themselves and not by figures who might represent them, such as
-            employees, campaign managers, or spokespeople.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            Who can submit Public Figure Predictions?
-          </h4>
-          <p>
-            When predictions are made by public figures such as elected
-            politicians, public health officials, economists, journalists, and
-            business leaders, they become candidates for inclusion in the Public
-            Figure Prediction system.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            How can I submit a Public Figure Prediction?
-          </h4>
-          <p>
-            From a Public Figure&apos;s page, click Report Prediction and then
-            provide
-          </p>
-          <ol className="ml-5 list-inside list-decimal">
-            <li>A direct quotation from the prediction news source</li>
-            <li>The name of the news source</li>
-            <li>A link to the news source</li>
-            <li>The prediction date</li>
-            <li>At least one related Metaculus question</li>
-          </ol>
-          <p>
-            If the Public Figure does not yet have a dedicated page, you can
-            request that one be created by commenting on the{" "}
-            <a
-              href="/questions/8198/public-figure-predictions/"
-              target="_blank"
-              rel="noopener"
-            >
-              Public Figures Predictions
-            </a>{" "}
-            discussion post. Tag @christian for a faster moderation process.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            What are the criteria for selecting linked Metaculus questions
-            related to the Public Figure Prediction?
-          </h4>
-          <p>
-            Depending on the level of specificity and clarity of the Public
-            Figure Prediction, a linked Metaculus question might resolve
-            according to the exact same criteria as the prediction. For example,{" "}
-            <a
-              href="/questions/8225/public-figure-prediction-by-joe-biden/"
-              target="_blank"
-              rel="noopener"
-            >
-              Joe Biden expressed that he plans to run for reelection
-            </a>
-            .{" "}
-            <a
-              href="/questions/6438/will-joe-biden-run-for-reelection/"
-              target="_blank"
-              rel="noopener"
-            >
-              This Metaculus question asks directly whether he will run
-            </a>
-            .&nbsp;&nbsp;
-          </p>
-          <p>
-            Linked questions are not required, however, to directly correspond
-            to the public figure&apos;s prediction, and{" "}
-            <a
-              href="/questions/5712/biden-2024-re-nomination/"
-              target="_blank"
-              rel="noopener"
-            >
-              this question on whether Biden will be the Democratic nominee in
-              2024
-            </a>{" "}
-            is clearly relevant to public figure claim, even as it&apos;s
-            further away from the claim than asking whether Biden will run.
-            Relevant linked questions shed light on, create additional context
-            for, or provide potential evidence for or against the public
-            figure&apos;s claim. Note that a question being closed or resolved
-            does not disqualify it from being linked to the prediction.
-          </p>
-          <p>
-            On the other hand, this question about whether the{" "}
-            <a
-              href="/questions/8523/irs-designates-crypto-miners-brokers-by-2025/"
-              target="_blank"
-              rel="noopener"
-            >
-              IRS designates crypto miners as &lsquo;brokers&apos; by 2025
-            </a>{" "}
-            follows from Biden&apos;s Infrastructure Investment and Jobs Act,
-            but beyond the Biden connection, it fails to satisfy the above
-            criteria for a relevant linked question.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            Which sources are acceptable?
-          </h4>
-          <p>
-            News sources that have authority and are known to be accurate are
-            acceptable. If a number of news sources report the same prediction,
-            but the prediction originated from a single source, using the
-            original source is preferred. Twitter accounts or personal blogs are
-            acceptable if they are owned by the public figure themselves.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            Who decides what happens next?
-          </h4>
-          <p>
-            Moderators will review and approve your request or provide feedback.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            What happens if a public figure updates their prediction?
-          </h4>
-          <p>
-            On the page of the prediction, comment the update with the source
-            and tag a moderator. The moderator will review and perform the
-            update if necessary.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="mb-4 text-xl font-semibold">
-            I am the Public Figure who made the prediction. How can I claim this
-            page?
-          </h4>
-          <p>Please email us at support at metaculus.com.</p>
         </div>
 
         <div>

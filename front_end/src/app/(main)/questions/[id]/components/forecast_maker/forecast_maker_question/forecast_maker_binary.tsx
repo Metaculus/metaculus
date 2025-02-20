@@ -1,5 +1,6 @@
 "use client";
 import { round } from "lodash";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect, useState } from "react";
 
@@ -18,6 +19,7 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import { sendGAPredictEvent } from "./ga_events";
+import PredictionSuccessBox from "./prediction_success_box";
 import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import PredictButton from "../predict_button";
@@ -55,6 +57,10 @@ const ForecastMakerBinary: FC<Props> = ({
   const [forecast, setForecast] = useState<number | null>(prevForecastValue);
 
   const [isForecastDirty, setIsForecastDirty] = useState(false);
+  const [showSuccessBox, setShowSuccessBox] = useState(false);
+  const pathname = usePathname();
+
+  const router = useRouter();
 
   useEffect(() => {
     setForecast(prevForecastValue);
@@ -83,6 +89,8 @@ const ForecastMakerBinary: FC<Props> = ({
 
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
+    } else {
+      setShowSuccessBox(true);
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
@@ -116,6 +124,7 @@ const ForecastMakerBinary: FC<Props> = ({
         communityForecast={!!user && hideCP ? null : communityForecast}
         onBecomeDirty={() => {
           setIsForecastDirty(true);
+          setShowSuccessBox(false);
         }}
         disabled={!canPredict}
       />
@@ -158,6 +167,17 @@ const ForecastMakerBinary: FC<Props> = ({
           <div className="h-[32px] w-full">
             <LoadingIndicator />
           </div>
+        )}
+
+        {showSuccessBox && !isPending && (
+          <PredictionSuccessBox
+            post={post}
+            forecastValue={forecast ? `${forecast}%` : "-"}
+            onCommentClick={() => {
+              router.push(`${pathname}?action=comment-with-forecast`);
+            }}
+            className="mb-4 w-full justify-center"
+          />
         )}
 
         <QuestionUnresolveButton question={question} permission={permission} />
