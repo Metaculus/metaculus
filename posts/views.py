@@ -343,6 +343,11 @@ def post_delete_api_view(request, pk):
 @api_view(["POST"])
 def post_vote_api_view(request: Request, pk: int):
     post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
     direction = serializers.ChoiceField(
         required=False, allow_null=True, choices=Vote.VoteDirection.choices
     ).run_validation(request.data.get("direction"))

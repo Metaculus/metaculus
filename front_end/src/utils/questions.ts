@@ -138,7 +138,7 @@ export function canChangeQuestionResolution(
       ? !isResolved(question.resolution)
       : isResolved(question.resolution)) &&
     permission &&
-    [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(permission)
+    permission === ProjectPermissions.ADMIN
   );
 }
 

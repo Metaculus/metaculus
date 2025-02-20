@@ -18,9 +18,12 @@ import AuthProvider from "@/contexts/auth_context";
 import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
+import PublicSettingsProvider from "@/contexts/public_settings_context";
 import ProfileApi from "@/services/profile";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
+const publicSettings = getPublicSettings();
 
 const PostHogPageView = dynamic(
   () => import("@/components/posthog_page_view"),
@@ -129,13 +132,10 @@ export async function generateMetadata(): Promise<Metadata> {
         alt: "Metaculus",
       },
     },
-    metadataBase: new URL(
-      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-    ),
-    robots:
-      process.env.NEXT_PUBLIC_DISALLOW_ALL_BOTS === "true"
-        ? { index: false, follow: true }
-        : null,
+    metadataBase: new URL(publicSettings.PUBLIC_APP_URL),
+    robots: publicSettings.PUBLIC_DISALLOW_ALL_BOTS
+      ? { index: false, follow: true }
+      : null,
   };
 }
 
@@ -162,29 +162,29 @@ export default async function RootLayout({
           <AppThemeProvided>
             <NextIntlClientProvider messages={messages}>
               <AuthProvider user={user}>
-                <ModalProvider>
-                  <NavigationProvider>
-                    <GlobalSearchProvider>
-                      <TranslationsBannerProvider>
-                        <NextTopLoader
-                          showSpinner={false}
-                          color={METAC_COLORS.blue["500"].DEFAULT}
-                        />
-                        {children}
-                        <GlobalModals />
-                        <Toaster />
-                      </TranslationsBannerProvider>
-                    </GlobalSearchProvider>
-                  </NavigationProvider>
-                </ModalProvider>
+                <PublicSettingsProvider settings={publicSettings}>
+                  <ModalProvider>
+                    <NavigationProvider>
+                      <GlobalSearchProvider>
+                        <TranslationsBannerProvider>
+                          <NextTopLoader
+                            showSpinner={false}
+                            color={METAC_COLORS.blue["500"].DEFAULT}
+                          />
+                          {children}
+                          <GlobalModals />
+                          <Toaster />
+                        </TranslationsBannerProvider>
+                      </GlobalSearchProvider>
+                    </NavigationProvider>
+                  </ModalProvider>
+                </PublicSettingsProvider>
               </AuthProvider>
             </NextIntlClientProvider>
           </AppThemeProvided>
         </body>
-        {!!process.env.NEXT_PUBLIC_GOOGLE_MEASUREMENT_ID && (
-          <GoogleAnalytics
-            gaId={process.env.NEXT_PUBLIC_GOOGLE_MEASUREMENT_ID}
-          />
+        {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />
         )}
       </CSPostHogProvider>
       <ChunkRetryScript />

@@ -159,9 +159,14 @@ def get_projects_staff_users(
     )
     project_staff_map = generate_map_from_list(m2m_objects, lambda x: x.project_id)
 
+    # Extracting superusers
+    # Should be visible as admins in every project
+    superusers = User.objects.filter(is_superuser=True).only("id")
+
     return {
         project_id: {
-            obj.user_id: obj.permission for obj in project_staff_map.get(project_id, [])
+            **{obj.user_id: obj.permission for obj in project_staff_map.get(project_id, [])},
+            **{obj.id: ObjectPermission.ADMIN for obj in superusers},
         }
         for project_id in project_ids
     }

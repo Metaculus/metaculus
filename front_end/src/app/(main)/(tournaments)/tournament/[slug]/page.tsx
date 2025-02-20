@@ -20,6 +20,7 @@ import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
 import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import TournamentDropdownMenu from "../components/dropdown_menu";
 import TournamentFeed from "../components/tournament_feed";
@@ -58,6 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TournamentSlug({ params }: Props) {
   const tournament = await ProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
+  const { PUBLIC_MINIMAL_UI } = getPublicSettings();
 
   const currentUser = await ProfileApi.getMyProfile();
 
@@ -167,9 +169,10 @@ export default async function TournamentSlug({ params }: Props) {
           <TournamentFeed tournament={tournament} />
         </section>
       </div>
-      {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
-        tournament.user_permission
-      ) && <LazyProjectMembers project={tournament} />}
+      {!PUBLIC_MINIMAL_UI &&
+        [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
+          tournament.user_permission
+        ) && <LazyProjectMembers project={tournament} />}
     </main>
   );
 }
