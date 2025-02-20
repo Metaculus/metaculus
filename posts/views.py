@@ -549,9 +549,10 @@ def download_data(request, post_id: int):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # Context for the serializer
-    can_view_private_data = user.is_authenticated and (
-        user.is_staff
-        or WhitelistUser.objects.filter(
+    is_staff = user.is_authenticated and user.is_staff
+    is_whitelisted = (
+        user.is_authenticated
+        and WhitelistUser.objects.filter(
             Q(post=post)
             | Q(project=post.default_project)
             | (Q(post__isnull=True) & Q(project__isnull=True)),
@@ -560,7 +561,8 @@ def download_data(request, post_id: int):
     )
     serializer_context = {
         "user": user if user.is_authenticated else None,
-        "can_view_private_data": can_view_private_data,
+        "is_staff": is_staff,
+        "is_whitelisted": is_whitelisted,
     }
 
     serializer = DownloadDataSerializer(
@@ -575,6 +577,7 @@ def download_data(request, post_id: int):
     include_scores = params.get("include_scores", True)
     include_bots = params.get("include_bots")
     minimize = params.get("minimize", True)
+    anonymized = params.get("anonymized", False)
 
     # Get all questions
     if post.group_of_questions:
@@ -593,7 +596,7 @@ def download_data(request, post_id: int):
     else:
         raise NotFound("Post has no questions")
 
-    if can_view_private_data:
+    if is_staff:
         data = export_all_data_for_questions(
             questions,
             aggregation_methods=aggregation_methods,
@@ -602,6 +605,18 @@ def download_data(request, post_id: int):
             include_scores=include_scores,
             include_bots=include_bots,
             minimize=minimize,
+            anonymized=anonymized,
+        )
+    elif is_whitelisted:
+        data = export_all_data_for_questions(
+            questions,
+            aggregation_methods=aggregation_methods,
+            user_ids=user_ids,
+            include_comments=include_comments,
+            include_scores=include_scores,
+            include_bots=include_bots,
+            minimize=minimize,
+            anonymized=True,
         )
     else:
         data = export_specific_data_for_questions(

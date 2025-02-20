@@ -44,9 +44,9 @@ def aggregation_explorer_api_view(request):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # Context for the serializer
-    can_view_private_data = user.is_authenticated and (
-        user.is_staff
-        or WhitelistUser.objects.filter(
+    is_staff = user.is_authenticated and user.is_staff
+    is_whitelisted = user.is_authenticated and (
+        WhitelistUser.objects.filter(
             Q(post=post)
             | Q(project=post.default_project)
             | (Q(post__isnull=True) & Q(project__isnull=True)),
@@ -55,8 +55,10 @@ def aggregation_explorer_api_view(request):
     )
     serializer_context = {
         "user": user if user.is_authenticated else None,
-        "can_view_private_data": can_view_private_data,
+        "is_staff": is_staff,
+        "is_whitelisted": is_whitelisted,
     }
+
     serializer = DownloadDataSerializer(
         data=request.query_params, context=serializer_context
     )
