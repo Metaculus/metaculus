@@ -29,3 +29,9 @@ jobs:
       - name: Push to ghcr.io
         run: |
           docker build --platform linux/amd64 . -t ghcr.io/metaculus/metaculus:$ENV_DOCKER_TAG-$GITHUB_SHA -t ghcr.io/metaculus/metaculus:latest --target all_runners --push
+      - name: "Cloudflare: Purge cache"
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
