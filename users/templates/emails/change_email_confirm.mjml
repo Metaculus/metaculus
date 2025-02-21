@@ -11,7 +11,7 @@
                 </mj-text>
 
                 <mj-text>
-                    {% blocktrans with username=token.user.username new_email=token.new_email %}
+                    {% blocktrans %}
                     We just received a request to change the email address associated with your Metaculus account. <a
                         href="{{ reset_link }}">Click this link
                 </a> to change your Metaculus email address to <code>{{ new_email }}</code>.
