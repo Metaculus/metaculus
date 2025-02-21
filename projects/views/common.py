@@ -51,12 +51,21 @@ def topics_list_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def news_categories_list_api_view(request: Request):
+    user = request.user if request.user.is_authenticated else None
+
     qs = (
         get_projects_qs(user=request.user).filter_news_category().annotate_posts_count()
     )
 
+    if user:
+        qs = qs.annotate_is_subscribed(user, include_members=False)
+
     data = [
-        {**NewsCategorySerialize(obj).data, "posts_count": obj.posts_count}
+        {
+            **NewsCategorySerialize(obj).data,
+            "posts_count": obj.posts_count,
+            "is_subscribed": getattr(obj, "is_subscribed", False),
+        }
         for obj in qs.all()
     ]
 

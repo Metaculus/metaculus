@@ -104,24 +104,24 @@ class ProjectsQuerySet(models.QuerySet):
             + Coalesce(F("default_posts_questions_count"), 0)
         )
 
-    def annotate_is_subscribed(self, user: User):
+    def annotate_is_subscribed(self, user: User, include_members: bool = False):
         """
         Annotates user subscription if user is subscribed or is actually an admin
         """
 
+        condition = Exists(
+            ProjectSubscription.objects.filter(user=user, project=OuterRef("pk"))
+        )
+
+        if include_members:
+            condition |= Exists(
+                ProjectUserPermission.objects.filter(user=user, project=OuterRef("pk"))
+            )
+
         return self.annotate(
             is_subscribed=models.Case(
                 models.When(
-                    Exists(
-                        ProjectSubscription.objects.filter(
-                            user=user, project=OuterRef("pk")
-                        )
-                    )
-                    | Exists(
-                        ProjectUserPermission.objects.filter(
-                            user=user, project=OuterRef("pk")
-                        )
-                    ),
+                    condition,
                     then=models.Value(True),
                 ),
                 default=models.Value(False),

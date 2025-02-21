@@ -18,10 +18,13 @@ import {
   POST_PAGE_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
 import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { NewsCategory } from "@/types/projects";
 import cn from "@/utils/cn";
+
+import NewsSubscribeButton from "./news_subscribe_button";
 
 type Props = {
   categories: NewsCategory[];
@@ -29,6 +32,7 @@ type Props = {
 
 const NewsFilters: React.FC<Props> = ({ categories }) => {
   const { params, setParam, deleteParam } = useSearchParams();
+  const { user } = useAuth();
 
   const [search, setSearch] = useSearchInputState(POST_TEXT_SEARCH_FILTER, {
     mode: "server",
@@ -79,16 +83,23 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
 
   return (
     <div>
-      <SearchInput
-        value={search}
-        onChange={(e) => {
-          debouncedGAEvent();
-          setSearch(e.target.value);
-        }}
-        onErase={eraseSearch}
-        placeholder={t("articlesSearchPlaceholder")}
-        className="mx-auto mb-6 max-w-2xl"
-      />
+      <div className="mx-auto mb-6 flex max-w-2xl flex-row gap-3">
+        <SearchInput
+          value={search}
+          onChange={(e) => {
+            debouncedGAEvent();
+            setSearch(e.target.value);
+          }}
+          onErase={eraseSearch}
+          placeholder={t("articlesSearchPlaceholder")}
+        />
+        <div className="hidden lg:block">
+          <NewsSubscribeButton categories={categories} user={user} />
+        </div>
+        <div className="lg:hidden">
+          <NewsSubscribeButton categories={categories} user={user} mini />
+        </div>
+      </div>
 
       <TabGroup selectedIndex={selectedIndex} manual onChange={handleTabChange}>
         <TabList className="mb-6 flex flex-wrap justify-center gap-x-3 gap-y-1 font-serif text-base text-blue-700 dark:text-blue-700-dark">
