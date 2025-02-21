@@ -93,16 +93,12 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
           onErase={eraseSearch}
           placeholder={t("articlesSearchPlaceholder")}
         />
-        {user && (
-          <>
-            <div className="hidden lg:block">
-              <NewsSubscribeButton categories={categories} user={user} />
-            </div>
-            <div className="lg:hidden">
-              <NewsSubscribeButton categories={categories} user={user} mini />
-            </div>
-          </>
-        )}
+        <div className="hidden lg:block">
+          <NewsSubscribeButton categories={categories} user={user} />
+        </div>
+        <div className="lg:hidden">
+          <NewsSubscribeButton categories={categories} user={user} mini />
+        </div>
       </div>
 
       <TabGroup selectedIndex={selectedIndex} manual onChange={handleTabChange}>
