@@ -1085,5 +1085,8 @@
   "parentQuestion": "父问题",
   "parentInputDescription": "请输入二元问题的URL/ID/标题。如果选择一个子问题，请输入完整的URL，例如/questions/123/?sub-question=456",
   "childQuestion": "子问题",
-  "childInputDescription": "请输入二元、数值或日期问题的URL/ID/标题。多项选择即将推出。如果选择一个子问题，请输入完整的URL，例如/questions/123/?sub-question=456"
+  "childInputDescription": "请输入二元、数值或日期问题的URL/ID/标题。多项选择即将推出。如果选择一个子问题，请输入完整的URL，例如/questions/123/?sub-question=456",
+  "selectParentQuestion": "选择父问题",
+  "selectChildQuestion": "选择子问题",
+  "pickQuestion": "选择问题"
 }

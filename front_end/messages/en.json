@@ -1080,5 +1080,8 @@
   "upperBound": "Upper bound",
   "leaderboardCpInfo": "This is the main prediction aggregated from all forecasters on each question.<br></br>Learn how it's computed <link>here</link>.",
   "aggregationDataIsNotAvailable": "Aggregation data is not available",
-  "noAggregationData": "No aggregation data"
+  "noAggregationData": "No aggregation data",
+  "selectParentQuestion": "Select Parent Question",
+  "selectChildQuestion": "Select Child Question",
+  "pickQuestion": "Pick Question"
 }

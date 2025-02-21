@@ -1083,5 +1083,8 @@
   "parentQuestion": "Nadřazená otázka",
   "parentInputDescription": "Zadejte prosím URL/ID/Název binární otázky. Pokud vybíráte podotázku, zadejte prosím úplnou URL např. /questions/123/?sub-question=456",
   "childQuestion": "Podřazená otázka",
-  "childInputDescription": "Zadejte prosím URL/ID/Název binární, číselné nebo datové otázky. Brzy bude k dispozici Více možností. Pokud vybíráte podotázku, zadejte prosím úplnou URL např. /questions/123/?sub-question=456"
+  "childInputDescription": "Zadejte prosím URL/ID/Název binární, číselné nebo datové otázky. Brzy bude k dispozici Více možností. Pokud vybíráte podotázku, zadejte prosím úplnou URL např. /questions/123/?sub-question=456",
+  "selectParentQuestion": "Vyberte rodičovskou otázku",
+  "selectChildQuestion": "Vyberte podřízenou otázku",
+  "pickQuestion": "Vybrat otázku"
 }

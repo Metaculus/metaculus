@@ -187,7 +187,7 @@ const ConditionalForm: React.FC<{
                 "condition_id"
               );
             }}
-            title={"Select Parent Question"}
+            title={t("selectParentQuestion")}
             isParentQuestion={true}
             disabled={isLive && mode !== "create"}
           />
@@ -217,7 +217,7 @@ const ConditionalForm: React.FC<{
                 "condition_child_id"
               );
             }}
-            title={"Select Child Question"}
+            title={t("selectChildQuestion")}
             isParentQuestion={false}
             disabled={isLive && mode !== "create"}
           />
