@@ -149,7 +149,7 @@
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans with username=token.user.username new_email=token.new_email %} We just received a request to change the email address associated with your Metaculus account. <a href="{{ reset_link }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">Click this link </a> to change your Metaculus email address to <code>{{ new_email }}</code>. <p>If you did not make this request, you can safely ignore this email.</p>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} We just received a request to change the email address associated with your Metaculus account. <a href="{{ reset_link }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">Click this link </a> to change your Metaculus email address to <code>{{ new_email }}</code>. <p>If you did not make this request, you can safely ignore this email.</p>
                           <p style="font-size: 80%;"> Alternatively, you can copy and paste the following link into a browser: <br>
                             {{ reset_link }}
                           </p> {% endblocktrans %}
