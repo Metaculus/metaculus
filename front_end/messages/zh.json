@@ -1088,5 +1088,8 @@
   "childInputDescription": "请输入二元、数值或日期问题的URL/ID/标题。多项选择即将推出。如果选择一个子问题，请输入完整的URL，例如/questions/123/?sub-question=456",
   "selectParentQuestion": "选择父问题",
   "selectChildQuestion": "选择子问题",
-  "pickQuestion": "选择问题"
+  "pickQuestion": "选择问题",
+  "showApiToken": "显示 API 令牌",
+  "copyApiToken": "复制 API 令牌",
+  "copiedApiTokenMessage": "API 令牌已复制到您的剪贴板"
 }
