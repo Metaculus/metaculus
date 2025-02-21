@@ -119,7 +119,7 @@ const ConditionalForecastTable: FC<Props> = ({
                         )
                       : option.value,
                   })}{" "}
-                  {/* TODO: remove if this is not needed */}
+                  {/* TODO: This is not mentioned in the design, confirm during the review */}
                   {option.forecastInputMode && `(${option.forecastInputMode})`}
                 </td>
               </>

@@ -99,32 +99,46 @@ export function validateQuantileInput({
     const probabilityValue = isLowerBoundCheck
       ? probBelowLower
       : probAboveUpper;
-
-    // validate quantile out of bounds
-    if (
-      quantile === validation.quantile &&
-      isOpenBound &&
-      ((isLowerBoundCheck && newValue < boundValue) ||
-        (!isLowerBoundCheck && newValue > boundValue)) &&
-      !isNil(probabilityValue) &&
-      probabilityValue < validation.percentileValue
-    ) {
-      return t(validation.errorMessageKey);
-    }
-
-    // validate probability out of bounds
     const quantileValue = components.find(
       (q) => q.quantile === validation.quantile
     )?.value;
-    if (
-      quantile === (isLowerBoundCheck ? Quantile.lower : Quantile.upper) &&
-      isOpenBound &&
-      !isNil(quantileValue) &&
-      ((isLowerBoundCheck && quantileValue < boundValue) ||
-        (!isLowerBoundCheck && quantileValue > boundValue)) &&
-      newValue < validation.percentileValue
-    ) {
-      return t(validation.errorMessageKey);
+
+    if (validation.withinBounds) {
+      // check if percentile is not greater then the bound within range
+
+      if (
+        quantile === (isLowerBoundCheck ? Quantile.lower : Quantile.upper) &&
+        !isNil(quantileValue) &&
+        ((isLowerBoundCheck && quantileValue >= boundValue) ||
+          (!isLowerBoundCheck && quantileValue <= boundValue)) &&
+        newValue >= validation.percentileValue
+      ) {
+        return t(validation.errorMessageKey);
+      }
+    } else {
+      // validate quantile out of bounds
+      if (
+        quantile === validation.quantile &&
+        isOpenBound &&
+        ((isLowerBoundCheck && newValue < boundValue) ||
+          (!isLowerBoundCheck && newValue > boundValue)) &&
+        !isNil(probabilityValue) &&
+        probabilityValue < validation.percentileValue
+      ) {
+        return t(validation.errorMessageKey);
+      }
+
+      // validate probability out of bounds
+      if (
+        quantile === (isLowerBoundCheck ? Quantile.lower : Quantile.upper) &&
+        isOpenBound &&
+        !isNil(quantileValue) &&
+        ((isLowerBoundCheck && quantileValue < boundValue) ||
+          (!isLowerBoundCheck && quantileValue > boundValue)) &&
+        newValue < validation.percentileValue
+      ) {
+        return t(validation.errorMessageKey);
+      }
     }
   }
 
@@ -169,7 +183,6 @@ export function validateAllQuantileInputs({
   return errors;
 }
 
-// TODO: check validation for cdf
 export function validateUserQuantileData({
   question,
   components,
@@ -209,7 +222,7 @@ export function validateUserQuantileData({
   }
 
   // Check minimum step size (0.00005)
-  const minDiff = 0.01 / 200; // 0.00005
+  const minDiff = 0.01 / 200;
   if (inboundPmf.some((diff) => diff < minDiff)) {
     validationErrors.push(t("cdfMinStepSizeError", { minDiff }));
   }
@@ -227,6 +240,7 @@ type QuantileCheck = {
   percentileValue: number;
   errorMessageKey: ValidationErrorKey;
   boundType: "lower" | "upper";
+  withinBounds?: boolean;
 };
 
 const QUANTILE_OUT_OF_BOUND_VALIDATIONS: QuantileCheck[] = [
@@ -265,5 +279,48 @@ const QUANTILE_OUT_OF_BOUND_VALIDATIONS: QuantileCheck[] = [
     percentileValue: 25,
     errorMessageKey: "q3AboveRangeError",
     boundType: "upper",
+  },
+  // validation when quartiles are within bounds
+  {
+    quantile: Quantile.q1,
+    percentileValue: 25,
+    errorMessageKey: "quantileWithinBoundsError",
+    boundType: "lower",
+    withinBounds: true,
+  },
+  {
+    quantile: Quantile.q1,
+    percentileValue: 75,
+    errorMessageKey: "quantileWithinBoundsError",
+    boundType: "upper",
+    withinBounds: true,
+  },
+  {
+    quantile: Quantile.q2,
+    percentileValue: 50,
+    errorMessageKey: "quantileWithinBoundsError",
+    boundType: "lower",
+    withinBounds: true,
+  },
+  {
+    quantile: Quantile.q2,
+    percentileValue: 50,
+    errorMessageKey: "quantileWithinBoundsError",
+    boundType: "upper",
+    withinBounds: true,
+  },
+  {
+    quantile: Quantile.q3,
+    percentileValue: 75,
+    errorMessageKey: "quantileWithinBoundsError",
+    boundType: "lower",
+    withinBounds: true,
+  },
+  {
+    quantile: Quantile.q3,
+    percentileValue: 25,
+    errorMessageKey: "quantileWithinBoundsError",
+    boundType: "upper",
+    withinBounds: true,
   },
 ];

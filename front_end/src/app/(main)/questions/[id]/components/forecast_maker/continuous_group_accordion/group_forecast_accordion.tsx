@@ -28,6 +28,7 @@ export type ContinuousGroupOption = {
   userQuartiles: Quartiles | null;
   communityQuartiles: Quartiles | null;
   isDirty: boolean;
+  hasUserForecast: boolean;
   resolution: Resolution | null;
   menu?: ReactNode;
 };

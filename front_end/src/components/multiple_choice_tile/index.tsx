@@ -11,23 +11,17 @@ import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_over
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
 import { ForecastPayload } from "@/services/questions";
-import { ForecastInputType, TimelineChartZoomOption } from "@/types/charts";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {
-  DistributionSlider,
   ForecastAvailability,
   QuestionType,
   QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
-import {
-  extractPrevBinaryForecastValue,
-  extractPrevNumericForecastValue,
-  getNormalizedContinuousForecast,
-  getNumericForecastDataset,
-} from "@/utils/forecasts";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
 
@@ -300,51 +294,38 @@ function generateReaffirmData({
     if (groupType === QuestionType.Date || groupType === QuestionType.Numeric) {
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
-        let forecastValues: DistributionSlider | undefined = undefined;
+        let forecastValues: number[] | undefined = undefined;
         if (latest && !latest.end_time) {
-          forecastValues = extractPrevNumericForecastValue(
-            latest.distribution_input
-          ) as DistributionSlider;
+          forecastValues = latest.forecast_values;
         }
 
         return {
           id: q.id,
-          forecastValues: forecastValues?.components,
+          forecastValues,
+          distributionInput: latest?.distribution_input,
           status: q.status,
-          openLowerBound: q.open_lower_bound,
-          openUpperBound: q.open_upper_bound,
         };
       });
 
       const reaffirmForecasts = groupForecasts.filter(
         (q) =>
           !isNil(q.forecastValues) &&
-          !isNil(q.forecastValues) &&
+          !isNil(q.distributionInput) &&
           q.status === QuestionStatus.OPEN
       );
 
       return {
         canReaffirm: !!reaffirmForecasts.length,
         forecast: reaffirmForecasts.map((q) => {
-          const userForecast = getNormalizedContinuousForecast(
-            q.forecastValues
-          );
-
           return {
             questionId: q.id,
             forecastData: {
-              continuousCdf: getNumericForecastDataset(
-                userForecast,
-                q.openLowerBound,
-                q.openUpperBound
-              ).cdf,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              continuousCdf: q.forecastValues!,
               probabilityYesPerCategory: null,
               probabilityYes: null,
             },
-            distributionInput: {
-              type: ForecastInputType.Slider,
-              components: userForecast,
-            },
+            distributionInput: q.distributionInput,
           };
         }),
       };

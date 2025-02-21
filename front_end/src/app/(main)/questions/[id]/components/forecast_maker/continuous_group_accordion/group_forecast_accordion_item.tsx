@@ -2,7 +2,7 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Disclosure, DisclosurePanel } from "@headlessui/react";
 import { useLocale } from "next-intl";
-import { FC, PropsWithChildren, useState } from "react";
+import { FC, PropsWithChildren, useMemo, useState } from "react";
 
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import { ForecastInputType } from "@/types/charts";
@@ -48,6 +48,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     isDirty,
     resolution,
     forecastInputMode,
+    hasUserForecast,
   } = option;
   const formatedResolution = formatResolution(
     resolution,
@@ -55,7 +56,10 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     locale
   );
 
-  const showUserPrediction = question.my_forecasts?.latest || isDirty;
+  const showUserPrediction = useMemo(
+    () => hasUserForecast || isDirty,
+    [hasUserForecast, isDirty]
+  );
   const isResolvedOption = type === QuestionStatus.RESOLVED;
   const latest = question.aggregations.recency_weighted.latest;
   const optionForecast =
