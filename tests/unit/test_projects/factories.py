@@ -10,7 +10,7 @@ def factory_project(
     *,
     default_permission: ObjectPermission | None = ObjectPermission.FORECASTER,
     # user_id -> permission
-    override_permissions: dict[int, ObjectPermission] = None,
+    override_permissions: dict[int | User, ObjectPermission] = None,
     subscribers: list[User] = None,
     **kwargs
 ) -> Project:
@@ -26,7 +26,9 @@ def factory_project(
         )
     )
 
-    for user_id, permission in override_permissions.items():
+    for user_value, permission in override_permissions.items():
+        user_id = user_value.id if isinstance(user_value, User) else user_value
+
         project.override_permissions.through.objects.create(
             user_id=user_id, project=project, permission=permission
         )

@@ -29,16 +29,15 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
   if (post.question?.type === "binary") {
     const question = post.question;
 
-    if (!question.aggregations.recency_weighted.latest?.histogram) {
+    const histogram =
+      question.aggregations.recency_weighted.latest?.histogram?.at(0);
+    if (!histogram?.length) {
       return null;
     }
-    const histogramData =
-      question.aggregations.recency_weighted.latest.histogram.map(
-        (value, index) => ({
-          x: index,
-          y: value,
-        })
-      );
+    const histogramData = histogram.map((value, index) => ({
+      x: index,
+      y: value,
+    }));
     const median =
       question?.aggregations?.recency_weighted?.latest?.centers?.[0];
     const mean = question?.aggregations?.recency_weighted?.latest?.means?.[0];
@@ -69,10 +68,12 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     if (!latest_yes) {
       return null;
     }
-    const histogramData_yes = latest_yes.histogram?.map((value, index) => ({
-      x: index,
-      y: value,
-    }));
+    const histogramData_yes = latest_yes.histogram
+      ?.at(0)
+      ?.map((value, index) => ({
+        x: index,
+        y: value,
+      }));
     const median_yes = latest_yes.centers?.[0];
     const mean_yes = latest_yes.means?.[0];
 
@@ -81,10 +82,12 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     if (!latest_no) {
       return null;
     }
-    const histogramData_no = latest_no.histogram?.map((value, index) => ({
-      x: index,
-      y: value,
-    }));
+    const histogramData_no = latest_no.histogram
+      ?.at(0)
+      ?.map((value, index) => ({
+        x: index,
+        y: value,
+      }));
     const median_no = latest_no.centers?.[0];
     const mean_no = latest_no.means?.[0];
 

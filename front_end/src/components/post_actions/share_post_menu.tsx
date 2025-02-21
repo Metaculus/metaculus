@@ -7,6 +7,7 @@ import { FC } from "react";
 import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import useEmbedModalContext from "@/contexts/embed_modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import {
   useCopyUrl,
   useShareOnFacebookLink,
@@ -28,6 +29,7 @@ export const SharePostMenu: FC<Props> = ({
 }) => {
   const isLargeScreen = useBreakpoint("md");
   const t = useTranslations();
+  const { PUBLIC_SCREENSHOT_SERVICE_ENABLED } = usePublicSettings();
   const { updateIsOpen } = useEmbedModalContext();
   const copyUrl = useCopyUrl();
   const shareOnTwitterLink = useShareOnTwitterLink(
@@ -59,7 +61,7 @@ export const SharePostMenu: FC<Props> = ({
           link: shareOnTwitterLink,
           openNewTab: true,
         },
-        ...(questionId
+        ...(questionId && PUBLIC_SCREENSHOT_SERVICE_ENABLED
           ? [
               {
                 id: "image",

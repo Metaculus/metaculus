@@ -10,6 +10,7 @@ import { FC } from "react";
 import { LogOut } from "@/app/(main)/accounts/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import cn from "@/utils/cn";
 import { formatUsername } from "@/utils/users";
 
@@ -19,8 +20,10 @@ type Props = {
 
 const NavUserButton: FC<Props> = ({ btnClassName }) => {
   const { setCurrentModal } = useModal();
+  const { PUBLIC_ALLOW_SIGNUP } = usePublicSettings();
   const { user } = useAuth();
   const t = useTranslations();
+  const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
 
   if (!user) {
     return (
@@ -64,23 +67,37 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
             {t("settings")}
           </Link>
         </MenuItem>
-        <MenuItem>
-          <a
-            className="flex cursor-pointer items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
-            onClick={() => setCurrentModal({ type: "onboarding" })}
-          >
-            {t("tutorial")}
-          </a>
-        </MenuItem>
-        {user.is_superuser && (
+        {PUBLIC_ALLOW_TUTORIAL && (
           <MenuItem>
-            <Link
-              className="flex items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
-              href={"/admin/"}
+            <a
+              className="flex cursor-pointer items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
+              onClick={() => setCurrentModal({ type: "onboarding" })}
             >
-              {t("admin")}
-            </Link>
+              {t("tutorial")}
+            </a>
           </MenuItem>
+        )}
+        {user.is_superuser && (
+          <>
+            {!PUBLIC_ALLOW_SIGNUP && (
+              <MenuItem>
+                <Link
+                  className="flex items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
+                  href={"/accounts/invite/"}
+                >
+                  {t("signupInviteUsers")}
+                </Link>
+              </MenuItem>
+            )}
+            <MenuItem>
+              <Link
+                className="flex items-center justify-center whitespace-nowrap px-6 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:text-right lg:hover:bg-blue-200-dark"
+                href={"/admin/"}
+              >
+                {t("admin")}
+              </Link>
+            </MenuItem>
+          </>
         )}
         <MenuItem>
           <a

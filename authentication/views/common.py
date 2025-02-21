@@ -4,11 +4,12 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
+from django.db.models import Q
 from rest_framework import status, serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from authentication.backends import AuthLoginBackend
@@ -22,13 +23,13 @@ from authentication.services import (
     send_activation_email,
     send_password_reset_email,
     check_password_reset,
+    SignupInviteService,
 )
-from users.models import User
 from projects.models import ProjectUserPermission
-from django.db.models import Q
 from projects.permissions import ObjectPermission
-from users.services.common import register_user_to_campaign
+from users.models import User
 from users.serializers import UserPrivateSerializer
+from users.services.common import register_user_to_campaign
 from utils.cloudflare import validate_turnstile_from_request
 
 logger = logging.getLogger(__name__)
@@ -81,6 +82,17 @@ def signup_api_view(request):
     campaign_data = serializer.validated_data.get("campaign_data", None)
     redirect_url = serializer.validated_data.get("redirect_url", None)
 
+    is_active = not settings.AUTH_SIGNUP_VERIFY_EMAIL
+
+    # If sign up only via email invite
+    if not settings.PUBLIC_ALLOW_SIGNUP:
+        invite_token = serializer.validated_data.get("invite_token")
+        # Verify invite token
+        SignupInviteService().verify_email(email, invite_token)
+
+        # Activate user
+        is_active = True
+
     if project is not None and project.default_permission is None:
         raise ValidationError("Cannot add user to a private project")
 
@@ -89,7 +101,7 @@ def signup_api_view(request):
             username=username,
             email=email,
             password=password,
-            is_active=not settings.AUTH_SIGNUP_VERIFY_EMAIL,
+            is_active=is_active,
             is_bot=is_bot,
         )
 
@@ -197,5 +209,18 @@ def password_reset_confirm_api_view(request):
         token, _ = Token.objects.get_or_create(user=user)
 
         return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def invite_user_api_view(request):
+    emails = serializers.ListField(child=serializers.EmailField()).run_validation(
+        request.data.get("emails")
+    )
+
+    for email in emails:
+        SignupInviteService().send_email(request.user, email)
 
     return Response(status=status.HTTP_204_NO_CONTENT)

@@ -58,7 +58,7 @@ def email_all_data_for_questions_task(
         email = EmailMessage(
             subject="Your Metaculus Data",
             body="Attached is your Metaculus data.",
-            from_email="data@metaculus.com",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[email_address],
         )
         email.attach("metaculus_data.zip", data, "application/zip")
@@ -69,7 +69,7 @@ def email_all_data_for_questions_task(
             subject="Error generating Metaculus data",
             body="Error generating Metaculus data. Please contact an adminstrator "
             f"for assistance.\nError: {e}",
-            from_email="data@metaculus.com",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[email_address],
         )
         email.send()
