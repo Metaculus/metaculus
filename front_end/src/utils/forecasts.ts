@@ -145,7 +145,7 @@ export function nominalLocationToCdfLocation(
     const derivRatio = (range_max - zero_point) / (range_min - zero_point);
     return (
       (Math.log(
-        (location - range_min) / (derivRatio - 1) + (range_max - range_min)
+        (location - range_min) * (derivRatio - 1) + (range_max - range_min)
       ) -
         Math.log(range_max - range_min)) /
       Math.log(derivRatio)
@@ -177,9 +177,11 @@ export function generateQuantileContinuousCdf(
 
   // TODO: change values and types for quantiles
   // QUESTION: dissapointed about boundaries values and quantile values usage
-  scaledQuantiles.push({ quantile: probBelowLower / 100, value: 0 });
-  scaledQuantiles.push({ quantile: 1 - probAboveUpper / 100, value: 1 });
+  scaledQuantiles.push({ quantile: probBelowLower, value: 0 });
+  scaledQuantiles.push({ quantile: 100 - probAboveUpper, value: 1 });
   scaledQuantiles.sort((a, b) => a.value - b.value);
+
+  console.log({ probBelowLower, probAboveUpper, quantiles, scaledQuantiles });
 
   // check validity
   // QUESTION: why do we do this check in that way
@@ -290,7 +292,7 @@ export function getQuantileNumericForecastDataset(
       },
     ],
     components.find((c) => c.quantile === Quantile.lower)?.value ?? 0,
-    components.find((c) => c.quantile === Quantile.upper)?.value ?? 1,
+    components.find((c) => c.quantile === Quantile.upper)?.value ?? 0,
     question
   );
 
