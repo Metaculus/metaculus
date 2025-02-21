@@ -735,10 +735,6 @@
   "subquestionLabel": "Etiqueta de subpregunta",
   "subquestionLabelDescription": "La etiqueta o parámetro que identifica esta subpregunta, como \"Opción 1\", \"2033\" o \"Francia\"",
   "conditionalPairDescription": "Un Par Condicional es un tipo especial de Grupo de Preguntas que solicita probabilidades condicionales. Cada Par Condicional se encuentra entre una Pregunta Principal y una Pregunta Secundaria. La Principal debe ser una pregunta binaria, mientras que la secundaria puede ser una pregunta binaria, numérica o de fecha.",
-  "parentId": "ID Principal",
-  "parentInputDescription": "Por favor ingresa el ID de una pregunta binaria.",
-  "childId": "ID Secundaria",
-  "childInputDescription": "Por favor ingresa el ID de una pregunta binaria, numérica o de fecha.",
   "isDoneError": "No se pueden editar preguntas cerradas, resueltas o rechazadas",
   "editNotebook": "editar notebook",
   "createNotebook": "crear notebook",
@@ -1083,5 +1079,12 @@
   "signupInviteSendButton": "Enviar invitaciones",
   "signupInviteSuccess": "Las invitaciones han sido enviadas",
   "aggregationDataIsNotAvailable": "Los datos de agregación no están disponibles",
-  "noAggregationData": "Sin datos de agregación"
+  "noAggregationData": "Sin datos de agregación",
+  "parentQuestion": "Pregunta principal",
+  "parentInputDescription": "Por favor, introduzca la URL/ID/Título de una pregunta binaria. Si está seleccionando una subpregunta, por favor introduzca la URL completa, por ejemplo: /questions/123/?sub-question=456",
+  "childQuestion": "Pregunta secundaria",
+  "childInputDescription": "Por favor, introduzca la URL/ID/Título de una pregunta binaria, numérica o de fecha. La opción de múltiple elección llegará pronto. Si está seleccionando una subpregunta, por favor introduzca la URL completa, por ejemplo: /questions/123/?sub-question=456",
+  "selectParentQuestion": "Seleccionar pregunta principal",
+  "selectChildQuestion": "Seleccionar pregunta secundaria",
+  "pickQuestion": "Elegir pregunta"
 }
