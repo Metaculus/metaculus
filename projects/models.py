@@ -381,7 +381,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
                 projectuserpermission__permission__in=permissions,
             )
             | Q(is_superuser=True)
-        )
+        ).distinct("pk")
 
     def update_followers_count(self):
         self.followers_count = self.subscriptions.count()
