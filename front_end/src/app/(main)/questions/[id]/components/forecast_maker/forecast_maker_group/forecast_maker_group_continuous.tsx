@@ -2,6 +2,7 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { differenceInMilliseconds } from "date-fns";
+import { isNil } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
@@ -80,7 +81,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       }, {}),
     [questions]
   );
-
   const [groupOptions, setGroupOptions] = useState<ContinuousGroupOption[]>(
     generateGroupOptions(questions, prevForecastValuesMap, permission, post)
   );
@@ -351,7 +351,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     // update inactive forecast tab with new forecast data
     setGroupOptions((prev) =>
       prev.map((prevQuestion) => {
-        return updateGroupOptions(prevQuestion);
+        return questionsToSubmit.some((q) => q.id === prevQuestion.id)
+          ? updateGroupOptions(prevQuestion)
+          : prevQuestion;
       })
     );
     setIsSubmitting(false);
@@ -446,6 +448,7 @@ function generateGroupOptions(
           : null,
         resolution: q.resolution,
         isDirty: false,
+        hasUserForecast: !isNil(prevForecast),
         menu: (
           <ForecastMakerGroupControls
             question={q}
@@ -496,6 +499,7 @@ function updateGroupOptions(groupOption: ContinuousGroupOption) {
     userQuantileForecast,
     userQuartiles,
     isDirty: false,
+    hasUserForecast: true,
   };
 }
 

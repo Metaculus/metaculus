@@ -1130,6 +1130,7 @@
   "q2AboveRangeError": "When your median is above range, your probability above the upper bound should be ≥ 50%",
   "q3BelowRangeError": "When your 75th percentile is below range, your probability below the lower bound should be ≥ 75%",
   "q3AboveRangeError": "When your 75th percentile is above range, your probability above the upper bound should be ≥ 25%",
+  "quantileWithinBoundsError": "If quantile is within bounds, probability can't be greater than quantile",
   "emptyCdfError": "continuous_cdf is required for continuous questions",
   "invalidCdfLengthError": "continuous_cdf must have 201 values",
   "cdfMinStepSizeError": "continuous_cdf must be increasing by at least {minDiff} at every step",
