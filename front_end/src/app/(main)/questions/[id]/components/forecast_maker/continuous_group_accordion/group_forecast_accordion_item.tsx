@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Disclosure, DisclosurePanel } from "@headlessui/react";
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
-import { FC, PropsWithChildren, useState } from "react";
+import { FC, PropsWithChildren, useMemo, useState } from "react";
 
 import ContinuousAreaChart, {
   ContinuousAreaGraphInput,
@@ -49,6 +49,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     isDirty,
     resolution,
     forecastInputMode,
+    hasUserForecast,
   } = option;
   const isResolved = !isNil(resolution);
   const formatedResolution = formatResolution(
@@ -57,8 +58,10 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     locale
   );
 
-  // TODO: adjust render of median and user prediction on empty question and right after prediction
-  const showUserPrediction = question.my_forecasts?.latest || isDirty;
+  const showUserPrediction = useMemo(
+    () => hasUserForecast || isDirty,
+    [hasUserForecast, isDirty]
+  );
 
   // Only calculate these if not resolved
   let continuousAreaChartData: ContinuousAreaGraphInput = [];

@@ -8,10 +8,9 @@ import NumericChart from "@/components/charts/numeric_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
-import { ForecastInputType, TimelineChartZoomOption } from "@/types/charts";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {
-  DistributionSliderComponent,
   ForecastAvailability,
   QuestionType,
   QuestionWithNumericForecasts,
@@ -21,11 +20,7 @@ import {
   getContinuousAreaChartData,
   getContinuousChartTypeFromQuestion,
 } from "@/utils/charts";
-import {
-  extractPrevBinaryForecastValue,
-  extractPrevNumericForecastValue,
-  getNumericForecastDataset,
-} from "@/utils/forecasts";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 const HEIGHT = 100;
 
@@ -94,46 +89,27 @@ const QuestionNumericTile: FC<Props> = ({
           const activeForecast = isNil(userForecast.end_time)
             ? userForecast
             : undefined;
-          const activeForecastDistribution = activeForecast
-            ? extractPrevNumericForecastValue(activeForecast.distribution_input)
-            : undefined;
-          const forecast = activeForecastDistribution?.components;
-          if (!forecast) {
+
+          if (!activeForecast) {
             return;
           }
 
-          const dataset = getNumericForecastDataset(
-            forecast as DistributionSliderComponent[],
-            question.open_lower_bound,
-            question.open_upper_bound
-          );
-          const userCdf = dataset.cdf;
-          // TODO: check if it needs adjustments for table forecast
           onReaffirm([
             {
               questionId: question.id,
               forecastData: {
-                continuousCdf: userCdf,
+                continuousCdf: activeForecast.forecast_values,
                 probabilityYes: null,
                 probabilityYesPerCategory: null,
               },
-              distributionInput: {
-                type: ForecastInputType.Slider,
-                components: forecast as DistributionSliderComponent[],
-              },
+              distributionInput: activeForecast.distribution_input,
             },
           ]);
           break;
         }
       }
     },
-    [
-      onReaffirm,
-      question.id,
-      question.open_lower_bound,
-      question.open_upper_bound,
-      question.type,
-    ]
+    [onReaffirm, question.id, question.type]
   );
 
   return (
