@@ -1,0 +1,149 @@
+import { useTranslations } from "next-intl";
+import { FC, useEffect, useMemo, useState } from "react";
+
+import BaseModal from "@/components/base_modal";
+import PostCard from "@/components/post_card";
+import QuestionChartTile from "@/components/post_card/question_chart_tile";
+import SearchInput from "@/components/search_input";
+import Button from "@/components/ui/button";
+import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
+import { PostsParams } from "@/services/posts";
+import { PostStatus, PostWithForecasts } from "@/types/post";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { parseQuestionId } from "@/utils/questions";
+
+import { fetchPosts, getPost, getQuestion } from "../actions";
+
+type Props = {
+  isParentQuestion: boolean;
+  onQuestionChange: (question: QuestionWithForecasts) => void;
+  title?: string;
+  disabled?: boolean;
+};
+
+const ConditionalQuestionPicker: FC<Props> = ({
+  isParentQuestion,
+  onQuestionChange,
+  title,
+  disabled,
+}) => {
+  const t = useTranslations();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [posts, setPosts] = useState<
+    (PostWithForecasts | QuestionWithForecasts)[]
+  >([]);
+  const filters = useMemo(() => {
+    return {
+      search,
+      forecast_type: isParentQuestion
+        ? [QuestionType.Binary]
+        : [QuestionType.Binary, QuestionType.Numeric, QuestionType.Date],
+      statuses: [PostStatus.OPEN, PostStatus.CLOSED, PostStatus.UPCOMING],
+    };
+  }, [isParentQuestion, search]);
+
+  const handleSearch = useDebouncedCallback(async (filters: PostsParams) => {
+    if (!!filters.search) {
+      setIsLoading(true);
+      const parsedInput = parseQuestionId(filters.search);
+      if (parsedInput.questionId) {
+        const question = await getQuestion(parsedInput.questionId);
+        setPosts([question]);
+      } else if (parsedInput.postId) {
+        const post = await getPost(parsedInput.postId);
+        setPosts([post]);
+      }
+      if (!parsedInput.questionId && !parsedInput.postId) {
+        const posts = await fetchPosts(filters, 0, 20);
+        setPosts(posts.questions);
+      }
+    }
+    setIsLoading(false);
+  }, 500);
+
+  useEffect(() => {
+    handleSearch(filters);
+  }, [filters]);
+
+  return (
+    <div>
+      <Button onClick={() => setIsOpen(true)} disabled={disabled}>
+        Pick Question
+      </Button>
+      {isOpen && (
+        <BaseModal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          label={title}
+          className="w-full max-w-xl"
+        >
+          <div className="flex w-full flex-col">
+            <SearchInput
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+              }}
+              onErase={() => setSearch("")}
+              placeholder={t("questionSearchPlaceholder")}
+            />
+            <span className="mt-1 px-1 text-xs normal-case text-gray-700 dark:text-gray-700-dark">
+              {isParentQuestion
+                ? t("parentInputDescription")
+                : t("childInputDescription")}
+            </span>
+            <div className="mt-2 flex h-[400px] max-h-[400px] flex-col gap-2 overflow-y-scroll pr-3">
+              {isLoading ? (
+                <LoadingIndicator />
+              ) : (
+                <>
+                  {posts.map((post) =>
+                    "type" in post ? (
+                      <div
+                        key={post.id}
+                        onClick={() => {
+                          onQuestionChange(post);
+                          setIsOpen(false);
+                        }}
+                        className="cursor-pointer rounded border bg-gray-50 p-3 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800"
+                      >
+                        <h1 className="m-0 text-lg font-bold">{post.title}</h1>
+                        <QuestionChartTile
+                          question={post}
+                          authorUsername={post.author_username}
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                          curationStatus={post.status!}
+                          hideCP={false}
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        key={post.id}
+                        onClickCapture={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log("capture");
+                          if (post.question) {
+                            onQuestionChange(post.question);
+                            setIsOpen(false);
+                          }
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <PostCard post={post} />
+                      </div>
+                    )
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </BaseModal>
+      )}
+    </div>
+  );
+};
+
+export default ConditionalQuestionPicker;

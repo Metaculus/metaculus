@@ -724,10 +724,6 @@
   "subquestionLabel": "子問題標籤",
   "subquestionLabelDescription": "識別此子問題的���籤或參數，如「選項1」、「2033」或「法國」",
   "conditionalPairDescription": "條件對是一種特殊類型的問題組，用於獲取條件概率。每個條件對位於父問題和子問題之間。父問題必須是二元問題，而子問題可以是單一二元、數值或日期問題。",
-  "parentId": "父問題ID",
-  "parentInputDescription": "請輸入一個二元問題的ID。",
-  "childId": "子問題ID",
-  "childInputDescription": "請輸入一個二元、數值或日期問題的ID。",
   "isDoneError": "無法編輯已關閉、已解決或被拒絕的問題",
   "editNotebook": "編輯筆記本",
   "createNotebook": "創建筆記本",
@@ -1085,5 +1081,9 @@
   "signupInviteSendButton": "发送邀请",
   "signupInviteSuccess": "邀请已发送",
   "aggregationDataIsNotAvailable": "汇总数据不可用",
-  "noAggregationData": "没有汇总数据"
+  "noAggregationData": "没有汇总数据",
+  "parentQuestion": "父问题",
+  "parentInputDescription": "请输入二元问题的URL/ID/标题。如果选择一个子问题，请输入完整的URL，例如/questions/123/?sub-question=456",
+  "childQuestion": "子问题",
+  "childInputDescription": "请输入二元、数值或日期问题的URL/ID/标题。多项选择即将推出。如果选择一个子问题，请输入完整的URL，例如/questions/123/?sub-question=456"
 }

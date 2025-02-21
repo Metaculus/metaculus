@@ -817,10 +817,6 @@
   "subquestionLabel": "Rótulo da Subpergunta",
   "subquestionLabelDescription": "O rótulo ou parâmetro que identifica esta subpergunta, como \"Opção 1\", \"2033\" ou \"França\"",
   "conditionalPairDescription": "Um Par Condicional é um tipo especial de Grupo de Perguntas que elicia probabilidades condicionais. Cada Par Condicional está entre uma Pergunta Pai e uma Pergunta Filha. O Pai deve ser uma pergunta binária, enquanto a filha pode ser uma única pergunta binária, numérica ou de data.",
-  "parentId": "ID do Pai",
-  "parentInputDescription": "Por favor, insira a URL/ID de uma pergunta binária. Selecione uma subpergunta, insira a URL completa, por exemplo, /questions/123/?sub-question=456",
-  "childId": "ID do Filho",
-  "childInputDescription": "Por favor, insira a URL/ID de uma pergunta binária, numérica ou de data. Múltipla Escolha em breve. Selecione uma subpergunta, insira a URL completa, por exemplo, /questions/123/?sub-question=456",
   "isDoneError": "Não é possível editar perguntas fechadas, resolvidas ou rejeitadas",
   "editNotebook": "editar caderno",
   "createNotebook": "criar caderno",
@@ -1081,5 +1077,9 @@
   "signupInviteSendButton": "Enviar Convites",
   "signupInviteSuccess": "Convites foram enviados",
   "aggregationDataIsNotAvailable": "Dados de agregação não estão disponíveis",
-  "noAggregationData": "Sem dados de agregação"
+  "noAggregationData": "Sem dados de agregação",
+  "parentQuestion": "Pergunta Pai",
+  "parentInputDescription": "Por favor, insira a URL/ID/Título de uma pergunta binária. Se estiver selecionando uma subpergunta, por favor, insira a URL completa, ex.: /questions/123/?sub-question=456",
+  "childQuestion": "Pergunta Filha",
+  "childInputDescription": "Por favor, insira a URL/ID/Título de uma pergunta binária, numérica ou de data. Opção Múltipla em breve. Se estiver selecionando uma subpergunta, por favor, insira a URL completa, ex.: /questions/123/?sub-question=456"
 }
