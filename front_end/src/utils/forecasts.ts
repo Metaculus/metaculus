@@ -168,14 +168,11 @@ export function generateQuantileContinuousCdf(
     });
   });
 
-  // TODO: change values and types for quantiles
-  // QUESTION: dissapointed about boundaries values and quantile values usage
   scaledQuantiles.push({ quantile: probBelowLower, value: 0 });
   scaledQuantiles.push({ quantile: 100 - probAboveUpper, value: 1 });
   scaledQuantiles.sort((a, b) => a.value - b.value);
 
   // check validity
-  // QUESTION: why do we do this check in that way
   const firstPoint = scaledQuantiles[0];
   const lastPoint = scaledQuantiles[scaledQuantiles.length - 1];
   if (
@@ -266,7 +263,6 @@ export function getQuantileNumericForecastDataset(
     };
   }
 
-  // find() should always return a value
   const cdf = generateQuantileContinuousCdf(
     [
       {
@@ -295,6 +291,23 @@ export function getQuantileNumericForecastDataset(
   };
 }
 
+export function getSliderDistributionFromQuantilesV2(
+  activeForecast: UserForecast
+): DistributionSliderComponent[] {
+  const quartiles = computeQuartilesFromCDF(activeForecast?.forecast_values);
+  if (!quartiles) {
+    return [];
+  }
+  return [
+    {
+      left: quartiles.lower25,
+      center: quartiles.median,
+      right: quartiles.upper75,
+      weight: 1,
+    },
+  ];
+}
+
 // if user already have table forecast and want to switch to slider forecast tab
 export function getSliderDistributionFromQuantiles(
   component: DistributionQuantileComponent,
@@ -320,8 +333,6 @@ export function getSliderDistributionFromQuantiles(
 }
 
 // if user have slider forecast and want to switch to table forecast tab
-// /questions/31701/97th-academy-awards-winners-average-duration/ numeric question
-// /questions/3479/date-weakly-general-ai-is-publicly-known/ date question
 export function getQuantilesDistributionFromSlider(
   components: DistributionSliderComponent[],
   question: QuestionWithNumericForecasts
@@ -447,6 +458,7 @@ export function getInitialSliderDistributionComponents(
         question
       );
 }
+
 export function generateCurveChoiceOptions(
   questions: QuestionWithForecasts[]
 ): CurveChoiceOption[] {
