@@ -12,6 +12,7 @@ import Button from "@/components/ui/button";
 import { useModal } from "@/contexts/modal_context";
 import { NewsCategory } from "@/types/projects";
 import { CurrentUser } from "@/types/users";
+import cn from "@/utils/cn";
 
 type Props = {
   user?: CurrentUser | null;
@@ -58,6 +59,7 @@ const NewsSubscribeButton: FC<Props> = ({ user, categories, mini }) => {
       {user && isFollowing ? (
         <Button
           variant="primary"
+          className={cn({ "min-w-28": !mini })}
           disabled={isLoading}
           onClick={handleUnsubscribe}
         >
@@ -67,6 +69,7 @@ const NewsSubscribeButton: FC<Props> = ({ user, categories, mini }) => {
       ) : (
         <Button
           variant="secondary"
+          className={cn({ "min-w-28": !mini })}
           onClick={handleSubscribe}
           disabled={isLoading}
         >
