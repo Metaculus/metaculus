@@ -174,8 +174,6 @@ export function generateQuantileContinuousCdf(
   scaledQuantiles.push({ quantile: 100 - probAboveUpper, value: 1 });
   scaledQuantiles.sort((a, b) => a.value - b.value);
 
-  console.log({ probBelowLower, probAboveUpper, quantiles, scaledQuantiles });
-
   // check validity
   // QUESTION: why do we do this check in that way
   const firstPoint = scaledQuantiles[0];
