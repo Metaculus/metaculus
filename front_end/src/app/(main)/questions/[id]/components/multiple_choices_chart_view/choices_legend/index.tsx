@@ -72,7 +72,7 @@ const ChoicesLegend: FC<Props> = ({
               </PopoverButton>
               <PopoverPanel
                 anchor="bottom"
-                className="flex max-h-48 w-max flex-col overflow-y-auto rounded border border-gray-300 bg-gray-0 p-1 text-xs [--anchor-gap:4px] dark:border-gray-300-dark dark:bg-gray-0-dark"
+                className="z-100 flex max-h-48 w-max flex-col overflow-y-auto rounded border border-gray-300 bg-gray-0 p-1 text-xs [--anchor-gap:4px] dark:border-gray-300-dark dark:bg-gray-0-dark"
               >
                 <Checkbox
                   checked={areAllSelected}
