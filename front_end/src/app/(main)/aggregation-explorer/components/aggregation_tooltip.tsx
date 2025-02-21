@@ -1,44 +1,90 @@
+"use client";
+
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import ChoiceCheckbox from "@/components/choice_checkbox";
 import Button from "@/components/ui/button";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { ChoiceItem } from "@/types/choices";
-import { AggregationMethod, aggregationMethodLabel } from "@/types/question";
+import { AggregationMethod } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
+import { logError } from "@/utils/errors";
+
+import { AggregationMethodWithBots } from "../types";
 
 type Props = {
-  choiceItem: ChoiceItem;
   valueLabel: string;
+  tooltips: {
+    aggregationMethod: AggregationMethod;
+    choice: AggregationMethodWithBots;
+    label: string;
+    includeBots: boolean;
+    color: ThemeColor;
+  };
+  onFetchData: (
+    aggregationOptionId: AggregationMethodWithBots
+  ) => Promise<void>;
   onChoiceChange: (choice: string, checked: boolean) => void;
   onChoiceHighlight: (choice: string, highlighted: boolean) => void;
-  onTabChange: (activeTab: AggregationMethod) => void;
+  choiceItems: ChoiceItem[];
+  onTabChange: (activeTab: AggregationMethodWithBots) => void;
 };
 
 const AggregationTooltip: FC<Props> = ({
-  choiceItem,
   valueLabel,
+  tooltips,
+  onFetchData,
   onChoiceChange,
   onChoiceHighlight,
+  choiceItems,
   onTabChange,
 }) => {
-  const { color, choice, active } = choiceItem;
-  return (
-    <div className="flex w-[300px] border-black bg-gray-0 p-5 dark:bg-gray-0-dark">
-      <div>
-        <ChoiceCheckbox
-          choice={aggregationMethodLabel[choice as AggregationMethod]}
-          color={color.DEFAULT}
-          checked={active}
-          onChange={(checked) => onChoiceChange(choice, checked)}
-          onHighlight={(highlighted) => onChoiceHighlight(choice, highlighted)}
-        />
+  const [isLoading, setIsLoading] = useState(false);
+  const { label, color, choice } = tooltips;
+  const foundChoiceItem = choiceItems.find((item) => item.choice === choice);
 
+  return (
+    <div className="flex w-full border-black bg-gray-0 p-5 dark:bg-gray-0-dark">
+      <div className="flex flex-col">
+        <ChoiceCheckbox
+          label={label}
+          color={color.DEFAULT}
+          checked={foundChoiceItem?.active ?? false}
+          onChange={async (checked) => {
+            if (checked) {
+              try {
+                setIsLoading(true);
+                await onFetchData(choice);
+              } catch (error) {
+                logError(error);
+              } finally {
+                setIsLoading(false);
+              }
+            }
+            onChoiceChange(choice, checked);
+          }}
+          onHighlight={(highlighted) => {
+            onChoiceHighlight(choice, highlighted);
+          }}
+        />
         <p className="mb-0">{valueLabel}</p>
+        <div className="mt-auto h-8">{isLoading && <LoadingIndicator />}</div>
       </div>
       <Button
         className="ml-auto h-10"
-        onClick={() => onTabChange(choice as AggregationMethod)}
+        onClick={async () => {
+          try {
+            setIsLoading(true);
+            await onFetchData(choice);
+          } catch (error) {
+            logError(error);
+          } finally {
+            setIsLoading(false);
+            onTabChange(choice);
+          }
+        }}
       >
         <FontAwesomeIcon icon={faArrowRight} />
       </Button>

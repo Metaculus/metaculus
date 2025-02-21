@@ -315,6 +315,7 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
     centers = serializers.SerializerMethodField()
     interval_upper_bounds = serializers.SerializerMethodField()
     means = serializers.SerializerMethodField()
+    histogram = serializers.SerializerMethodField()
 
     class Meta:
         model = AggregateForecast
@@ -385,6 +386,16 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
         if question_type == Question.QuestionType.BINARY and aggregate_forecast.means:
             return aggregate_forecast.means[1:]
         return aggregate_forecast.means
+
+    def get_histogram(
+        self, aggregate_forecast: AggregateForecast
+    ) -> list[list[float]] | None:
+        h = aggregate_forecast.histogram
+        if not h:  # h is None or []
+            return None
+        if isinstance(h[0], list):
+            return h
+        return [h]
 
 
 class ForecastWriteSerializer(serializers.ModelSerializer):

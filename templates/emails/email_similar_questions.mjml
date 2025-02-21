@@ -16,9 +16,11 @@
                 <a href="{% post_url post.id post.title %}">
                     {{ post.title }}
                 </a>
-                <a href="{% post_url post.id post.title %}">
+                {% if IS_SCREENSHOT_SERVICE_ENABLED %}
+                 <a href="{% post_url post.id post.title %}">
                     <img class="question_graph_img" src='{% build_question_graph_image_url post.id %}'/>
                 </a>
+                {% endif %}
             </div>
         </mj-text>
     </mj-column>

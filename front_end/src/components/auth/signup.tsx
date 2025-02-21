@@ -12,14 +12,20 @@ import React, { FC, useRef, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 
 import { signUpAction, SignUpActionState } from "@/app/(main)/accounts/actions";
-import { SignUpSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
+import {
+  SignUpSchema,
+  generateSignUpSchema,
+} from "@/app/(main)/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
+
+import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -27,24 +33,27 @@ type SignInModalType = {
   className?: string;
 };
 
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-
 export const SignupForm: FC<{
   forceIsBot?: boolean;
   addToProject?: number;
-}> = ({ forceIsBot, addToProject }) => {
+  email?: string;
+  inviteToken?: string;
+}> = ({ forceIsBot, addToProject, email, inviteToken }) => {
   const t = useTranslations();
+  const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const [isTurnstileValidated, setIsTurnstileValidate] =
     // Treat as validated if project is not configured with Turnstile key
-    useState(!TURNSTILE_SITE_KEY);
+    useState(!PUBLIC_TURNSTILE_SITE_KEY);
   const { setCurrentModal } = useModal();
   const turnstileRef = useRef<TurnstileInstance | undefined>();
 
   const methods = useForm<SignUpSchema>({
-    resolver: zodResolver(signUpSchema),
+    resolver: zodResolver(generateSignUpSchema(PUBLIC_TURNSTILE_SITE_KEY)),
     defaultValues: {
+      email,
       isBot: forceIsBot ?? false,
       addToProject,
+      inviteToken,
     },
   });
 
@@ -52,6 +61,8 @@ export const SignupForm: FC<{
 
   const { watch, setValue, formState, handleSubmit, setError, clearErrors } =
     methods;
+
+  const handlePostLoginAction = usePostLoginActionHandler();
 
   const onSubmit = async (data: SignUpSchema) => {
     const response = await signUpAction({
@@ -82,6 +93,7 @@ export const SignupForm: FC<{
           data: { email: watch("email"), username: watch("username") },
         });
       }
+      handlePostLoginAction(response?.postLoginAction);
     }
 
     return response;
@@ -99,7 +111,11 @@ export const SignupForm: FC<{
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
-        <SignUpFragment errors={errors} forceIsBot={forceIsBot} />
+        <SignUpFormFragment
+          errors={errors}
+          forceIsBot={forceIsBot}
+          disableEmail={!!email}
+        />
         <div>
           <Button
             variant="primary"
@@ -111,14 +127,14 @@ export const SignupForm: FC<{
           </Button>
           <FormError
             errors={errors}
-            name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
+            name={PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
           />
           <FormError errors={errors} />
         </div>
-        {TURNSTILE_SITE_KEY && (
+        {PUBLIC_TURNSTILE_SITE_KEY && (
           <Turnstile
             ref={turnstileRef}
-            siteKey={TURNSTILE_SITE_KEY}
+            siteKey={PUBLIC_TURNSTILE_SITE_KEY}
             onSuccess={(token) => {
               setIsTurnstileValidate(true);
               setValue("turnstileToken", token);
@@ -191,7 +207,7 @@ export const AccountInactive: FC<AccountInactiveModalProps> = ({
   );
 };
 
-const SignUpModal: FC<SignInModalType> = ({
+export const SignUpModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
 }: SignInModalType) => {
@@ -279,12 +295,11 @@ const SignUpModal: FC<SignInModalType> = ({
   );
 };
 
-export default SignUpModal;
-
-export const SignUpFragment: FC<{
+const SignUpFormFragment: FC<{
   forceIsBot?: boolean;
   errors: NonNullable<SignUpActionState>["errors"];
-}> = ({ forceIsBot = undefined, errors }) => {
+  disableEmail?: boolean;
+}> = ({ forceIsBot = undefined, errors, disableEmail = false }) => {
   const { register, setValue, watch } = useFormContext();
   const t = useTranslations();
   return (
@@ -319,6 +334,7 @@ export const SignUpFragment: FC<{
         placeholder={t("registrationEmailPlaceholder")}
         type="email"
         errors={errors}
+        disabled={disableEmail}
         {...register("email")}
       />
       {forceIsBot === null && (

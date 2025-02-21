@@ -29,6 +29,7 @@ export type Category = Project & {
 export type Tag = Project;
 export type NewsCategory = Project & {
   type: TournamentType.NewsCategory;
+  is_subscribed?: boolean;
 };
 
 export enum TournamentType {

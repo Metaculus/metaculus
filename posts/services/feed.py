@@ -23,6 +23,7 @@ def get_posts_feed(
     qs: Post.objects = None,
     user: User = None,
     search: str = None,
+    default_project_id: int = None,
     topic: Project = None,
     community: Project = None,
     tags: list[Project] = None,
@@ -67,6 +68,9 @@ def get_posts_feed(
         qs = qs.filter(author__username__in=usernames)
 
     # Filters
+    if default_project_id:
+        qs = qs.filter(default_project_id=default_project_id)
+
     if topic:
         qs = qs.filter_projects(topic)
 

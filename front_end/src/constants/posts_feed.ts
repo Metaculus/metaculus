@@ -27,5 +27,6 @@ export const POST_ACCESS_FILTER = "access";
 export const POST_ORDER_BY_FILTER = "order_by";
 export const POST_NEWS_TYPE_FILTER = "news_type";
 export const POST_COMMUNITIES_FILTER = "communities";
+export const POST_PROJECT_FILTER = "default_project_id";
 
 export const POSTS_PER_PAGE = 10;

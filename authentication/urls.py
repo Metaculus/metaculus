@@ -14,4 +14,6 @@ urlpatterns = [
     # Password Reset
     path("auth/password-reset/", common.password_reset_api_view),
     path("auth/password-reset/change/", common.password_reset_confirm_api_view),
+    # Invite user
+    path("auth/invite/", common.invite_user_api_view),
 ]
