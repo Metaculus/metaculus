@@ -5,8 +5,10 @@ import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POST_COMMUNITIES_FILTER } from "@/constants/posts_feed";
+import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
+import { TournamentPreview } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 
 import FeedFilters from "./components/feed_filters";
@@ -24,6 +26,7 @@ export default async function Questions({
 }: {
   searchParams: SearchParams;
 }) {
+  const user = await ProfileApi.getMyProfile();
   const isCommunityFeed = searchParams[POST_COMMUNITIES_FILTER];
   const filters = generateFiltersFromSearchParams(searchParams, {
     // Default Feed ordering should be hotness
@@ -31,6 +34,13 @@ export default async function Questions({
     defaultForMainFeed: true,
   });
   const topics = await ProjectsApi.getTopics();
+  const tournament = [] as TournamentPreview[];
+  if (user?.is_superuser) {
+    const tournamentResponse = await ProjectsApi.getTournaments();
+    const siteMain = await ProjectsApi.getSiteMain();
+    tournament.push(siteMain);
+    tournament.push(...tournamentResponse);
+  }
 
   return (
     <>
@@ -51,7 +61,7 @@ export default async function Questions({
             ) : (
               <>
                 <div id="existing-search">
-                  <FeedFilters />
+                  <FeedFilters tournaments={tournament} />
                 </div>
                 <Suspense
                   key={JSON.stringify(searchParams)}

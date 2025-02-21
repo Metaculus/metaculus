@@ -48,7 +48,7 @@ const ChoicesLegend: FC<Props> = ({
       {legendChoices.map(({ choice, color, active }, idx) => (
         <ChoiceCheckbox
           key={`multiple-choice-legend-${choice}-${idx}`}
-          choice={choice}
+          label={choice}
           color={color.DEFAULT}
           checked={active}
           onChange={(checked) => onChoiceChange(choice, checked)}
@@ -72,7 +72,7 @@ const ChoicesLegend: FC<Props> = ({
               </PopoverButton>
               <PopoverPanel
                 anchor="bottom"
-                className="flex max-h-48 w-max flex-col overflow-y-auto rounded border border-gray-300 bg-gray-0 p-1 text-xs [--anchor-gap:4px] dark:border-gray-300-dark dark:bg-gray-0-dark"
+                className="z-100 flex max-h-48 w-max flex-col overflow-y-auto rounded border border-gray-300 bg-gray-0 p-1 text-xs [--anchor-gap:4px] dark:border-gray-300-dark dark:bg-gray-0-dark"
               >
                 <Checkbox
                   checked={areAllSelected}
@@ -83,7 +83,7 @@ const ChoicesLegend: FC<Props> = ({
                 {dropdownChoices.map(({ choice, color, active }, idx) => (
                   <ChoiceCheckbox
                     key={`multiple-choice-dropdown-${choice}-${idx}`}
-                    choice={choice}
+                    label={choice}
                     color={color.DEFAULT}
                     checked={active}
                     onChange={(checked) => onChoiceChange(choice, checked)}

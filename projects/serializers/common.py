@@ -219,19 +219,3 @@ class ProjectUserSerializer(serializers.ModelSerializer):
             "user",
             "permission",
         )
-
-
-class DownloadDataSerializer(serializers.Serializer):
-    include_comments = serializers.BooleanField(required=False, default=False)
-    include_scores = serializers.BooleanField(required=False, default=False)
-
-    def validate(self, attrs):
-        allowed_fields = {"include_comments", "include_scores"}
-        input_fields = set(self.initial_data.keys())
-
-        # Check if there are any unexpected fields
-        unexpected_fields = input_fields - allowed_fields
-        if unexpected_fields:
-            raise ValidationError(f"Unexpected fields: {', '.join(unexpected_fields)}")
-
-        return attrs

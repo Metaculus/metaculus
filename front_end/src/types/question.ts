@@ -50,12 +50,6 @@ export const aggregationMethodsArray = [
   AggregationMethod.single_aggregation,
   AggregationMethod.metaculus_prediction,
 ];
-export const aggregationMethodLabel = {
-  recency_weighted: "Recency Weighted",
-  unweighted: "Unweighted",
-  single_aggregation: "Single Aggregation",
-  metaculus_prediction: "Metaculus Prediction",
-};
 
 export type Bounds = {
   belowLower: number;
@@ -143,7 +137,7 @@ export type AggregateForecast = Forecast & {
   method: AggregationMethod;
   forecaster_count: number;
   means: number[] | null;
-  histogram: number[] | null;
+  histogram: number[][] | null;
   forecast_values: number[] | null;
 };
 
@@ -296,6 +290,7 @@ export type AggregationQuestion = {
   scheduled_close_time: string;
   scheduled_resolve_time: string;
   title: string;
+  url_title: string;
   type: QuestionType;
 };
 

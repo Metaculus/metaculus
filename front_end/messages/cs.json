@@ -733,10 +733,6 @@
   "subquestionLabel": "Štítek podotázky",
   "subquestionLabelDescription": "Štítek nebo parametr, který identifikuje tuto podotázku, jako je \"Možnost 1\", \"2033\" nebo \"Francie\"",
   "conditionalPairDescription": "Podmíněný pár je speciální typ skupiny otázek, který vyvolává podmíněné pravděpodobnosti. Každý podmíněný pár je mezi nadřazenou otázkou a podřazenou otázkou. Nadřazená otázka musí být binární, zatímco podřazená může být buď binární, číselná nebo datová otázka.",
-  "parentId": "ID nadřazené otázky",
-  "parentInputDescription": "Prosím, zadejte ID binární otázky.",
-  "childId": "ID podřazené otázky",
-  "childInputDescription": "Prosím, zadejte ID binární, číselné nebo datové otázky.",
   "isDoneError": "Nelze upravit uzavřené, vyřešené nebo odmítnuté otázky",
   "editNotebook": "upravit notebook",
   "createNotebook": "vytvořit notebook",
@@ -1081,5 +1077,14 @@
   "signupInviteEmailAddresses": "E-mailové adresy",
   "signupInviteEmailAddressesPlaceholder": "Zadejte jeden e-mail na řádek",
   "signupInviteSendButton": "Odeslat pozvánky",
-  "signupInviteSuccess": "Pozvánky byly odeslány"
+  "signupInviteSuccess": "Pozvánky byly odeslány",
+  "aggregationDataIsNotAvailable": "Údaje o agregaci nejsou k dispozici",
+  "noAggregationData": "Žádné údaje o agregaci",
+  "parentQuestion": "Nadřazená otázka",
+  "parentInputDescription": "Zadejte prosím URL/ID/Název binární otázky. Pokud vybíráte podotázku, zadejte prosím úplnou URL např. /questions/123/?sub-question=456",
+  "childQuestion": "Podřazená otázka",
+  "childInputDescription": "Zadejte prosím URL/ID/Název binární, číselné nebo datové otázky. Brzy bude k dispozici Více možností. Pokud vybíráte podotázku, zadejte prosím úplnou URL např. /questions/123/?sub-question=456",
+  "selectParentQuestion": "Vyberte rodičovskou otázku",
+  "selectChildQuestion": "Vyberte podřízenou otázku",
+  "pickQuestion": "Vybrat otázku"
 }
