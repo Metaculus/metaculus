@@ -46,6 +46,7 @@ export type PostsParams = PaginationParams & {
   curation_status?: string;
   notebook_type?: string;
   similar_to_post_id?: number;
+  default_project_id?: string;
 };
 
 export type ApprovePostParams = {

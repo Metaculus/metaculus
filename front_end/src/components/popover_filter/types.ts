@@ -36,6 +36,7 @@ type ComboboxFilterSection = Omit<BaseFilterSection, "options"> & {
   shouldEnforceSearch?: boolean;
   options: FilterOption[];
   optionsFetcher?: (query: string) => Promise<FilterOption[]>;
+  multiple?: boolean;
 };
 
 type ToggleChipFilterSection = BaseFilterSection & {
