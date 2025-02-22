@@ -26,6 +26,7 @@ import {
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { scaleInternalLocation } from "./charts";
+import { quantile } from "d3";
 
 import { getQuestionDateFormatString } from "./charts";
 
@@ -154,6 +155,48 @@ export function nominalLocationToCdfLocation(
   return (location - range_min) / (range_max - range_min);
 }
 
+
+function hydrateQuantiles(
+  quantiles: { quantile: number; value: number }[],
+  cdfEvalLocs: number[]
+) {
+  // returns an altered set of data that replaces any points that don't lie
+  // exactly on one of the eval locations with the 2 closest points with
+  // slope of the average slope of the two adjacent segments and crosses
+  // exactly through the original point. This guarantees that evaluating
+  // specific percentiles that were inputs will return the exact
+  // intended value.
+  // Note: all points must be within x range
+  const new_quantiles: { quantile: number; value: number }[] = [];
+  for (let i = 0; i < quantiles.length; i++) {
+    const point = quantiles[i]
+    if (cdfEvalLocs.includes(point!.value)) {
+      new_quantiles.push(point!);
+    } else if (i === 0 || i === quantiles.length - 1) {
+      throw new Error;
+    } else {
+
+      const { value: x0, quantile: y0 } = quantiles[i - 1]!;
+      const { value: x1, quantile: y1 } = point!;
+      const { value: x2, quantile: y2 } = quantiles[i + 1]!;
+      const m01 = (y1 - y0) / (x1 - x0);
+      const m12 = (y2 - y1) / (x2 - x1);
+      const m1 = (m01 + m12) / 2;
+      const b1 = y1 - m1 * x1;
+      
+      // find the closest eval points
+      const xe0 = cdfEvalLocs.slice().reverse().find(x => x < x1);
+      const xe1 = cdfEvalLocs.find(x => x > x1);
+      const ye0 = m1 * xe0! + b1;
+      const ye1 = m1 * xe1! + b1;
+      
+      new_quantiles.push({quantile: ye0, value: xe0!});
+      new_quantiles.push({quantile: ye1, value: xe1!});
+    }
+  }
+  return new_quantiles;
+}
+
 export function generateQuantileContinuousCdf(
   quantiles: { quantile: number; value: number }[],
   probBelowLower: number,
@@ -169,19 +212,33 @@ export function generateQuantileContinuousCdf(
   const scaledQuantiles: { quantile: number; value: number }[] = [];
   quantiles.forEach(({ quantile, value }) => {
     const scaledValue = nominalLocationToCdfLocation(value, question);
-    scaledQuantiles.push({
-      quantile: quantile,
-      value: scaledValue,
-    });
+    // TODO: support for quantiles on boundaries
+    if (0 < scaledValue && scaledValue < 1) {
+      scaledQuantiles.push({
+        quantile: quantile,
+        value: scaledValue,
+      });
+    }
   });
 
   scaledQuantiles.push({ quantile: probBelowLower, value: 0 });
   scaledQuantiles.push({ quantile: 100 - probAboveUpper, value: 1 });
   scaledQuantiles.sort((a, b) => a.value - b.value);
 
+  const cdfEvalLocs: number[] = [];
+  // TODO: set up for arbitrary cdf size
+  for (let i = 0; i < 201; i++) {
+    cdfEvalLocs.push(i / 200);
+  }
+
+  const hydratedQuantiles = hydrateQuantiles(scaledQuantiles, cdfEvalLocs)
+  if (hydratedQuantiles.length < 3) {
+    return [];
+  }
+
   // check validity
-  const firstPoint = scaledQuantiles[0];
-  const lastPoint = scaledQuantiles[scaledQuantiles.length - 1];
+  const firstPoint = hydratedQuantiles[0];
+  const lastPoint = hydratedQuantiles[hydratedQuantiles.length - 1];
   if (
     !firstPoint ||
     firstPoint.value > 0 ||
@@ -194,10 +251,10 @@ export function generateQuantileContinuousCdf(
 
   function getCdfAt(location: number) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    let previous = scaledQuantiles[0]!;
-    for (let i = 1; i < scaledQuantiles.length; i++) {
+    let previous = hydratedQuantiles[0]!;
+    for (let i = 1; i < hydratedQuantiles.length; i++) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const current = scaledQuantiles[i]!;
+      const current = hydratedQuantiles[i]!;
       if (previous.value <= location && location <= current.value) {
         return (
           (previous.quantile +
