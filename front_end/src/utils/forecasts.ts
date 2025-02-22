@@ -220,41 +220,6 @@ export function generateQuantileContinuousCdf(
   return cdf;
 }
 
-export function standardizeCdf(cdf: number[], question: Question) {
-  if (cdf.length === 0) {
-    return [];
-  }
-  const { open_upper_bound, open_lower_bound } = question;
-  const scaleLowerTo = open_lower_bound ? 0 : cdf[0] ?? 0;
-  const scaleUpperTo = open_upper_bound ? 1 : cdf[cdf.length - 1] ?? 1;
-  const rescaledInboundMass = scaleUpperTo - scaleLowerTo;
-
-  function standardize(F: number, location: number) {
-    // rescale
-    const rescaledF = (F - scaleLowerTo) / rescaledInboundMass;
-    // offset
-    if (open_lower_bound && open_upper_bound) {
-      return 0.988 * rescaledF + 0.01 * location + 0.001;
-    } else if (open_lower_bound) {
-      return 0.989 * rescaledF + 0.01 * location + 0.001;
-    } else if (open_upper_bound) {
-      return 0.989 * rescaledF + 0.01 * location;
-    } else {
-      return 0.99 * rescaledF + 0.01 * location;
-    }
-  }
-
-  const standardizedCdf: number[] = [];
-  for (let i = 0; i < cdf.length; i++) {
-    const cdfValue = cdf[i];
-    if (typeof cdfValue !== "number") continue;
-
-    const standardizedF = standardize(cdfValue, i / (cdf.length - 1));
-    standardizedCdf.push(Math.round(standardizedF * 1e10) / 1e10);
-  }
-  return standardizedCdf;
-}
-
 // get chart data from quantiles input
 export function getQuantileNumericForecastDataset(
   components: DistributionQuantileComponent,
@@ -290,11 +255,9 @@ export function getQuantileNumericForecastDataset(
     question
   );
 
-  const standardizedCdf = standardizeCdf(cdf, question);
-
   return {
-    cdf: standardizedCdf,
-    pmf: cdfToPmf(standardizedCdf),
+    cdf: cdf,
+    pmf: cdfToPmf(cdf),
   };
 }
 
