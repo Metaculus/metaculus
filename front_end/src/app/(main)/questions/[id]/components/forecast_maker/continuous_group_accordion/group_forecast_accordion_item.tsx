@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Disclosure, DisclosurePanel } from "@headlessui/react";
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
-import { FC, PropsWithChildren, useMemo, useState } from "react";
+import { FC, PropsWithChildren, useState } from "react";
 
 import ContinuousAreaChart, {
   ContinuousAreaGraphInput,
