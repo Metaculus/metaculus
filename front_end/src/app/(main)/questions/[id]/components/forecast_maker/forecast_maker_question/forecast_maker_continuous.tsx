@@ -292,6 +292,18 @@ const ForecastMakerContinuous: FC<Props> = ({
     setIsDirty(false);
   };
 
+  const SuccessBoxElement =
+    showSuccessBox && !isPending ? (
+      <PredictionSuccessBox
+        post={post}
+        forecastValue={`${forecastDisplayValue(userQuartiles?.median)} (${forecastDisplayValue(userQuartiles?.lower25)} - ${forecastDisplayValue(userQuartiles?.upper75)})`}
+        onCommentClick={() => {
+          router.push(`${pathname}?action=comment-with-forecast`);
+        }}
+        className="mb-4 w-full justify-center"
+      />
+    ) : null;
+
   return (
     <>
       <ContinuousSlider
@@ -367,16 +379,7 @@ const ForecastMakerContinuous: FC<Props> = ({
             {(isPending || withdrawalIsPending) && <LoadingIndicator />}
           </div>
 
-          {showSuccessBox && !isPending && (
-            <PredictionSuccessBox
-              post={post}
-              forecastValue={`${forecastDisplayValue(userQuartiles?.median)} (${forecastDisplayValue(userQuartiles?.lower25)} - ${forecastDisplayValue(userQuartiles?.upper75)})`}
-              onCommentClick={() => {
-                router.push(`${pathname}?action=comment-with-forecast`);
-              }}
-              className="mb-4 w-full justify-center"
-            />
-          )}
+          {SuccessBoxElement}
         </>
       )}
       {predictionMessage && (
@@ -461,23 +464,19 @@ const ForecastMakerContinuous: FC<Props> = ({
           <div className="h-[32px]">
             {(isPending || withdrawalIsPending) && <LoadingIndicator />}
           </div>
+          {SuccessBoxElement}
         </>
       )}
 
-      {forecastInputMode === ForecastInputType.Slider && (
-        <div className="flex flex-col items-center justify-center">
-          <QuestionUnresolveButton
+      <div className="flex flex-col items-center justify-center">
+        <QuestionUnresolveButton question={question} permission={permission} />
+        {canResolve && (
+          <QuestionResolutionButton
             question={question}
             permission={permission}
           />
-          {canResolve && (
-            <QuestionResolutionButton
-              question={question}
-              permission={permission}
-            />
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 };

@@ -73,7 +73,7 @@ export function extractPrevBinaryForecastValue(
 }
 
 export function extractPrevNumericForecastValue(
-  prevForecast: DistributionSlider | DistributionQuantile | undefined
+  prevForecast: DistributionSlider | DistributionQuantile | null | undefined
 ): DistributionSlider | DistributionQuantile | undefined {
   if (typeof prevForecast !== "object" || prevForecast === null) {
     return undefined;
@@ -548,3 +548,11 @@ export function getUserContinuousQuartiles(
 
   return computeQuartilesFromCDF(dataset.cdf);
 }
+
+export const isSliderForecast = (
+  input: DistributionSlider | DistributionQuantile | null | undefined
+): input is DistributionSlider => input?.type === ForecastInputType.Slider;
+
+export const isQuantileForecast = (
+  input: DistributionSlider | DistributionQuantile | null | undefined
+): input is DistributionQuantile => input?.type === ForecastInputType.Quantile;
