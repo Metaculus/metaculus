@@ -5,12 +5,19 @@ import { differenceInMilliseconds } from "date-fns";
 import { isNil } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import React, {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import {
   Post,
@@ -29,10 +36,10 @@ import {
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
   getNormalizedContinuousForecast,
-  getNumericForecastDataset,
   getQuantileNumericForecastDataset,
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
+  getSliderNumericForecastDataset,
   getUserContinuousQuartiles,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
@@ -85,15 +92,24 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     generateGroupOptions(questions, prevForecastValuesMap, permission, post)
   );
 
+  // ensure options have the latest forecast data
+  useEffect(() => {
+    setGroupOptions((prev) =>
+      prev.map((o) => ({
+        ...o,
+        question: questions.find((q) => q.id === o.question.id) ?? o.question,
+      }))
+    );
+  }, [questions]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const questionsToSubmit = useMemo(
     () =>
       groupOptions.filter(
         (option) =>
-          option.isDirty &&
           option.question.status === QuestionStatus.OPEN &&
-          option.forecastInputMode
+          (option.isDirty || option.hasUserForecast)
       ),
     [groupOptions]
   );
@@ -110,7 +126,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             return {
               ...option,
               forecastInputMode: forecastInputMode,
-              ...(forecastInputMode === ForecastInputType.Slider
+              ...(forecastInputMode === ContinuousForecastInputType.Slider
                 ? {
                     userSliderForecast: components,
                     userQuartiles: getUserContinuousQuartiles(
@@ -131,13 +147,16 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const handleForecastInputModeChange = useCallback(
-    (optionId: number, mode: ForecastInputType) => {
+    (optionId: number, mode: ContinuousForecastInputType) => {
       setGroupOptions((prev) =>
         prev.map((prevChoice) => {
           if (prevChoice.id === optionId) {
+            const prevValue = prevForecastValuesMap[prevChoice.id];
+
             return {
               ...prevChoice,
               forecastInputMode: mode,
+              isDirty: !!prevValue && prevValue.type !== mode,
             };
           }
 
@@ -145,7 +164,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         })
       );
     },
-    []
+    [prevForecastValuesMap]
   );
 
   const handleAddComponent = useCallback((option: ContinuousGroupOption) => {
@@ -190,6 +209,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             );
             return {
               ...prevOption,
+              forecastInputMode:
+                prevForecast?.type ?? ContinuousForecastInputType.Slider,
               userQuartiles: getUserContinuousQuartiles(
                 userSliderForecast,
                 prevOption.question
@@ -225,12 +246,13 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           questionId: optionToSubmit.question.id,
           forecastData: {
             continuousCdf:
-              optionToSubmit.forecastInputMode === ForecastInputType.Quantile
+              optionToSubmit.forecastInputMode ===
+              ContinuousForecastInputType.Quantile
                 ? getQuantileNumericForecastDataset(
                     optionToSubmit.userQuantileForecast,
                     optionToSubmit.question
                   ).cdf
-                : getNumericForecastDataset(
+                : getSliderNumericForecastDataset(
                     getNormalizedContinuousForecast(
                       optionToSubmit.userSliderForecast
                     ),
@@ -241,15 +263,16 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             probabilityYes: null,
           },
           distributionInput:
-            optionToSubmit.forecastInputMode === ForecastInputType.Slider
+            optionToSubmit.forecastInputMode ===
+            ContinuousForecastInputType.Slider
               ? {
-                  type: ForecastInputType.Slider,
+                  type: ContinuousForecastInputType.Slider,
                   components: getNormalizedContinuousForecast(
                     optionToSubmit.userSliderForecast
                   ),
                 }
               : {
-                  type: ForecastInputType.Quantile,
+                  type: ContinuousForecastInputType.Quantile,
                   components: clearQuantileComponents(
                     optionToSubmit.userQuantileForecast
                   ),
@@ -282,7 +305,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setIsSubmitting(true);
     // validate table forecast before submission
     for (const option of questionsToSubmit) {
-      if (option.forecastInputMode === ForecastInputType.Quantile) {
+      if (option.forecastInputMode === ContinuousForecastInputType.Quantile) {
         const subquestionErrors = validateUserQuantileData({
           question: option.question,
           components: option.userQuantileForecast,
@@ -313,12 +336,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             questionId: question.id,
             forecastData: {
               continuousCdf:
-                forecastInputMode === ForecastInputType.Quantile
+                forecastInputMode === ContinuousForecastInputType.Quantile
                   ? getQuantileNumericForecastDataset(
                       userQuantileForecast,
                       question
                     ).cdf
-                  : getNumericForecastDataset(
+                  : getSliderNumericForecastDataset(
                       getNormalizedContinuousForecast(userSliderForecast),
                       question.open_lower_bound,
                       question.open_upper_bound
@@ -327,14 +350,14 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               probabilityYes: null,
             },
             distributionInput:
-              forecastInputMode === ForecastInputType.Slider
+              forecastInputMode === ContinuousForecastInputType.Slider
                 ? {
                     type: forecastInputMode,
                     components:
                       getNormalizedContinuousForecast(userSliderForecast),
                   }
                 : {
-                    type: ForecastInputType.Quantile,
+                    type: ContinuousForecastInputType.Quantile,
                     components: clearQuantileComponents(userQuantileForecast),
                   },
           };
@@ -440,7 +463,8 @@ function generateGroupOptions(
           prevForecast,
           q
         ),
-        forecastInputMode: prevForecast?.type ?? ForecastInputType.Slider,
+        forecastInputMode:
+          prevForecast?.type ?? ContinuousForecastInputType.Slider,
         communityQuartiles: q.aggregations.recency_weighted.latest
           ? computeQuartilesFromCDF(
               q.aggregations.recency_weighted.latest.forecast_values
@@ -473,14 +497,14 @@ function generateGroupOptions(
 
 function updateGroupOptions(groupOption: ContinuousGroupOption) {
   const userSliderForecast =
-    groupOption.forecastInputMode === ForecastInputType.Slider
+    groupOption.forecastInputMode === ContinuousForecastInputType.Slider
       ? groupOption.userSliderForecast
       : getSliderDistributionFromQuantiles(
           groupOption.userQuantileForecast,
           groupOption.question
         );
   const userQuantileForecast =
-    groupOption.forecastInputMode === ForecastInputType.Quantile
+    groupOption.forecastInputMode === ContinuousForecastInputType.Quantile
       ? groupOption.userQuantileForecast.map((q) => ({
           ...q,
           isDirty: false,

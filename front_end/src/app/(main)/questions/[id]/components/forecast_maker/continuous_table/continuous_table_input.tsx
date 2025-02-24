@@ -15,7 +15,7 @@ type Props = {
   disabled?: boolean;
 };
 
-const NumericTableInput: FC<Props> = ({
+const ContinuousTableInput: FC<Props> = ({
   type,
   onQuantileChange,
   quantileValue,
@@ -80,4 +80,4 @@ const NumericTableInput: FC<Props> = ({
   );
 };
 
-export default NumericTableInput;
+export default ContinuousTableInput;
