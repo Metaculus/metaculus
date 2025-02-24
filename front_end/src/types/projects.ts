@@ -35,6 +35,7 @@ export type NewsCategory = Project & {
 export enum TournamentType {
   QuestionSeries = "question_series",
   Tournament = "tournament",
+  Index = "index",
   GlobalLeaderboard = "global_leaderboard",
   Community = "community",
   NewsCategory = "news_category",

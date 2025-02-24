@@ -66,7 +66,11 @@ export default async function TournamentSlug({ params }: Props) {
   const t = await getTranslations();
   const locale = await getLocale();
   const isQuestionSeries = tournament.type === TournamentType.QuestionSeries;
-  const title = isQuestionSeries ? t("QuestionSeries") : t("Tournament");
+  const title = isQuestionSeries
+    ? t("QuestionSeries")
+    : tournament.type === TournamentType.Index
+      ? t("Index")
+      : t("Tournament");
   const questionsTitle = isQuestionSeries
     ? t("SeriesContents")
     : t("questions");
@@ -141,19 +145,21 @@ export default async function TournamentSlug({ params }: Props) {
           </div>
           <HtmlContent content={tournament.description} />
 
-          <div className="mt-3 flex flex-col gap-3">
-            <ProjectLeaderboard
-              projectId={tournament.id}
-              userId={currentUser?.id}
-              isQuestionSeries={isQuestionSeries}
-            />
-            {currentUser && (
-              <ProjectContributions
-                project={tournament}
-                userId={currentUser.id}
+          {tournament.score_type && (
+            <div className="mt-3 flex flex-col gap-3">
+              <ProjectLeaderboard
+                projectId={tournament.id}
+                userId={currentUser?.id}
+                isQuestionSeries={isQuestionSeries}
               />
-            )}
-          </div>
+              {currentUser && (
+                <ProjectContributions
+                  project={tournament}
+                  userId={currentUser.id}
+                />
+              )}
+            </div>
+          )}
         </div>
 
         <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
