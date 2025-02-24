@@ -26,7 +26,6 @@ import {
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { scaleInternalLocation } from "./charts";
-import { quantile } from "d3";
 
 import { getQuestionDateFormatString } from "./charts";
 
@@ -155,7 +154,6 @@ export function nominalLocationToCdfLocation(
   return (location - range_min) / (range_max - range_min);
 }
 
-
 function hydrateQuantiles(
   quantiles: { quantile: number; value: number }[],
   cdfEvalLocs: number[]
@@ -169,31 +167,41 @@ function hydrateQuantiles(
   // Note: all points must be within x range
   const new_quantiles: { quantile: number; value: number }[] = [];
   for (let i = 0; i < quantiles.length; i++) {
-    const point = quantiles[i]
-    if (cdfEvalLocs.includes(point!.value)) {
-      new_quantiles.push(point!);
-    } else if (i === 0 || i === quantiles.length - 1) {
-      throw new Error;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const point = quantiles[i]!;
+    if (cdfEvalLocs.includes(point.value)) {
+      new_quantiles.push(point);
     } else {
+      if (i === 0 || i === quantiles.length - 1) {
+        continue;
+      }
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const { value: x0, quantile: y0 } = quantiles[i - 1]!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const { value: x1, quantile: y1 } = point!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const { value: x2, quantile: y2 } = quantiles[i + 1]!;
       const m01 = (y1 - y0) / (x1 - x0);
       const m12 = (y2 - y1) / (x2 - x1);
       const m1 = (m01 + m12) / 2;
       const b1 = y1 - m1 * x1;
-      
+
       // find the closest eval points
-      const xe0 = cdfEvalLocs.slice().reverse().find(x => x < x1);
-      const xe1 = cdfEvalLocs.find(x => x > x1);
-      const ye0 = m1 * xe0! + b1;
-      const ye1 = m1 * xe1! + b1;
-      
-      new_quantiles.push({quantile: ye0, value: xe0!});
-      new_quantiles.push({quantile: ye1, value: xe1!});
+      const xe0 =
+        cdfEvalLocs
+          .slice()
+          .reverse()
+          .find((x) => x < x1) ?? 0;
+      const xe1 = cdfEvalLocs.find((x) => x > x1) ?? 0;
+      const ye0 = m1 * xe0 + b1;
+      const ye1 = m1 * xe1 + b1;
+
+      new_quantiles.push({ quantile: ye0, value: xe0 });
+      new_quantiles.push({ quantile: ye1, value: xe1 });
     }
   }
+
   return new_quantiles;
 }
 
@@ -231,7 +239,7 @@ export function generateQuantileContinuousCdf(
     cdfEvalLocs.push(i / 200);
   }
 
-  const hydratedQuantiles = hydrateQuantiles(scaledQuantiles, cdfEvalLocs)
+  const hydratedQuantiles = hydrateQuantiles(scaledQuantiles, cdfEvalLocs);
   if (hydratedQuantiles.length < 3) {
     return [];
   }
