@@ -12,7 +12,7 @@ import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional, QuestionStatus } from "@/types/post";
 import {
@@ -24,17 +24,17 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { getCdfBounds, getTableDisplayValue } from "@/utils/charts";
+import { getTableDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
   clearQuantileComponents,
   extractPrevNumericForecastValue,
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
-  getNumericForecastDataset,
   getQuantileNumericForecastDataset,
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
+  getSliderNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -43,12 +43,11 @@ import { useHideCP } from "../../cp_provider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
-import ContinuousSlider from "../continuous_slider";
+import ContinuousInput from "../continuous_input";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
 } from "../helpers";
-import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 
@@ -95,7 +94,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         sliderForecast: DistributionSliderComponent[];
         quantileForecast: DistributionQuantileComponent;
         quantileValue: number | null;
-        forecastInputMode: ForecastInputType;
+        forecastInputMode: ContinuousForecastInputType;
       }
     >
   >(() => [
@@ -114,9 +113,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           question_yes
         );
         const forecastInputMode =
-          prevYesForecastValue?.type === ForecastInputType.Quantile
-            ? ForecastInputType.Quantile
-            : ForecastInputType.Slider;
+          prevYesForecastValue?.type === ContinuousForecastInputType.Quantile
+            ? ContinuousForecastInputType.Quantile
+            : ContinuousForecastInputType.Slider;
         return {
           forecastInputMode,
           sliderForecast,
@@ -126,7 +125,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 sliderForecast,
                 question_yes.open_lower_bound,
                 question_yes.open_upper_bound,
-                ForecastInputType.Slider
+                ContinuousForecastInputType.Slider
               )
             : null,
           quantileValue: prevYesForecastValue
@@ -134,7 +133,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 quantileForecast,
                 question_yes.open_lower_bound,
                 question_yes.open_upper_bound,
-                ForecastInputType.Quantile
+                ContinuousForecastInputType.Quantile
               )
             : null,
         };
@@ -157,9 +156,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           question_no
         );
         const forecastInputMode =
-          prevNoForecastValue?.type === ForecastInputType.Quantile
-            ? ForecastInputType.Quantile
-            : ForecastInputType.Slider;
+          prevNoForecastValue?.type === ContinuousForecastInputType.Quantile
+            ? ContinuousForecastInputType.Quantile
+            : ContinuousForecastInputType.Slider;
 
         return {
           forecastInputMode,
@@ -170,7 +169,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 sliderForecast,
                 question_no.open_lower_bound,
                 question_no.open_upper_bound,
-                ForecastInputType.Slider
+                ContinuousForecastInputType.Slider
               )
             : null,
           quantileValue: prevNoForecastValue
@@ -178,7 +177,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 quantileForecast,
                 question_no.open_lower_bound,
                 question_no.open_upper_bound,
-                ForecastInputType.Quantile
+                ContinuousForecastInputType.Quantile
               )
             : null,
         };
@@ -209,10 +208,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     () =>
       questionOptions.filter(
         (option) =>
-          (option.forecastInputMode === ForecastInputType.Slider &&
+          (option.forecastInputMode === ContinuousForecastInputType.Slider &&
             option.value !== null &&
             option.question.status === QuestionStatus.OPEN) ||
-          (option.forecastInputMode === ForecastInputType.Quantile &&
+          (option.forecastInputMode === ContinuousForecastInputType.Quantile &&
             option.quantileValue !== null &&
             option.question.status === QuestionStatus.OPEN)
       ),
@@ -276,14 +275,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     (
       optionId: number,
       components: DistributionSliderComponent[] | DistributionQuantileComponent,
-      forecastInputMode: ForecastInputType
+      forecastInputMode: ContinuousForecastInputType
     ) => {
       setQuestionOptions((prev) =>
         prev.map((option) => {
           if (option.id === optionId) {
             return {
               ...option,
-              ...(forecastInputMode === ForecastInputType.Quantile
+              ...(forecastInputMode === ContinuousForecastInputType.Quantile
                 ? {
                     quantileValue: getTableValue(
                       components,
@@ -301,7 +300,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                     ),
                   }),
               isDirty: true,
-              ...(forecastInputMode === ForecastInputType.Slider
+              ...(forecastInputMode === ContinuousForecastInputType.Slider
                 ? {
                     sliderForecast: components as DistributionSliderComponent[],
                   }
@@ -320,13 +319,21 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   );
 
   const handleForecastInputModeChange = useCallback(
-    (optionId: number, mode: ForecastInputType) => {
+    (optionId: number, mode: ContinuousForecastInputType) => {
       setQuestionOptions((prev) =>
         prev.map((prevChoice) => {
           if (prevChoice.id === optionId) {
+            const hasValue =
+              !isNil(prevChoice.value) || !isNil(prevChoice.quantileValue);
+            const didChangeMode =
+              (optionId === questionYesId &&
+                prevYesForecastValue?.type !== mode) ||
+              (optionId === questionNoId && prevNoForecastValue?.type !== mode);
+
             return {
               ...prevChoice,
               forecastInputMode: mode,
+              isDirty: hasValue && didChangeMode,
             };
           }
 
@@ -334,7 +341,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         })
       );
     },
-    []
+    [
+      prevNoForecastValue?.type,
+      prevYesForecastValue?.type,
+      questionNoId,
+      questionYesId,
+    ]
   );
 
   const handleAddComponent = useCallback((optionId: number) => {
@@ -379,9 +391,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ),
             isDirty: false,
             forecastInputMode:
-              prevYesForecastValue?.type === ForecastInputType.Quantile
-                ? ForecastInputType.Quantile
-                : ForecastInputType.Slider,
+              prevYesForecastValue?.type ===
+              ContinuousForecastInputType.Quantile
+                ? ContinuousForecastInputType.Quantile
+                : ContinuousForecastInputType.Slider,
           };
         } else if (prevChoice.id === questionNoId) {
           return {
@@ -403,9 +416,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ),
             isDirty: false,
             forecastInputMode:
-              prevNoForecastValue?.type === ForecastInputType.Quantile
-                ? ForecastInputType.Quantile
-                : ForecastInputType.Slider,
+              prevNoForecastValue?.type === ContinuousForecastInputType.Quantile
+                ? ContinuousForecastInputType.Quantile
+                : ContinuousForecastInputType.Slider,
           };
         } else {
           return prevChoice;
@@ -430,7 +443,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     }
     setIsSubmitting(true);
     for (const q of questionsToSubmit) {
-      if (q.forecastInputMode === ForecastInputType.Quantile) {
+      if (q.forecastInputMode === ContinuousForecastInputType.Quantile) {
         const validationErrors = validateUserQuantileData({
           question: q.question,
           components: q.quantileForecast,
@@ -462,10 +475,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           questionId: question.id,
           forecastData: {
             continuousCdf:
-              forecastInputMode === ForecastInputType.Quantile
+              forecastInputMode === ContinuousForecastInputType.Quantile
                 ? getQuantileNumericForecastDataset(quantileForecast, question)
                     .cdf
-                : getNumericForecastDataset(
+                : getSliderNumericForecastDataset(
                     sliderForecast,
                     question.open_lower_bound,
                     question.open_upper_bound
@@ -476,7 +489,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           distributionInput: {
             type: forecastInputMode,
             components:
-              forecastInputMode === ForecastInputType.Slider
+              forecastInputMode === ContinuousForecastInputType.Slider
                 ? sliderForecast
                 : clearQuantileComponents(quantileForecast),
           } as DistributionSlider | DistributionQuantile,
@@ -501,7 +514,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         }
 
         const quantileForecast =
-          prevChoice.forecastInputMode === ForecastInputType.Quantile
+          prevChoice.forecastInputMode === ContinuousForecastInputType.Quantile
             ? prevChoice.quantileForecast.map((q) => ({
                 ...q,
                 isDirty: false,
@@ -511,7 +524,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 prevChoice.question
               );
         const sliderForecast =
-          prevChoice.forecastInputMode === ForecastInputType.Slider
+          prevChoice.forecastInputMode === ContinuousForecastInputType.Slider
             ? prevChoice.sliderForecast
             : getSliderDistributionFromQuantiles(
                 prevChoice.quantileForecast,
@@ -522,13 +535,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           ...prevChoice,
           quantileForecast,
           sliderForecast,
-          ...(prevChoice.forecastInputMode === ForecastInputType.Quantile
+          ...(prevChoice.forecastInputMode ===
+          ContinuousForecastInputType.Quantile
             ? {
                 value: getTableValue(
                   sliderForecast,
                   prevChoice.question.open_lower_bound,
                   prevChoice.question.open_upper_bound,
-                  ForecastInputType.Slider
+                  ContinuousForecastInputType.Slider
                 ),
               }
             : {
@@ -536,7 +550,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                   quantileForecast,
                   prevChoice.question.open_lower_bound,
                   prevChoice.question.open_upper_bound,
-                  ForecastInputType.Quantile
+                  ContinuousForecastInputType.Quantile
                 ),
               }),
           isDirty: false,
@@ -579,7 +593,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
   const userCdf: number[] | undefined =
     activeOptionData &&
-    getNumericForecastDataset(
+    getSliderNumericForecastDataset(
       activeOptionData.sliderForecast,
       activeOptionData.question.open_lower_bound,
       activeOptionData.question.open_upper_bound
@@ -594,6 +608,131 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     aggregateLatest && !aggregateLatest.end_time
       ? aggregateLatest.forecast_values
       : undefined;
+
+  let SubmitControls: ReactNode = null;
+  if (canPredict) {
+    SubmitControls = (
+      <>
+        <div
+          className={cn(
+            "flex flex-wrap items-center justify-center gap-3 px-4",
+            {
+              "my-5":
+                activeOptionData?.forecastInputMode ===
+                ContinuousForecastInputType.Slider,
+              "mt-5":
+                activeOptionData?.forecastInputMode ===
+                ContinuousForecastInputType.Quantile,
+            }
+          )}
+        >
+          {!!user && (
+            <>
+              <Button
+                variant="secondary"
+                type="reset"
+                onClick={
+                  copyForecastButton
+                    ? () =>
+                        copyForecast(
+                          copyForecastButton.fromQuestionId,
+                          copyForecastButton.toQuestionId
+                        )
+                    : undefined
+                }
+                disabled={!copyForecastButton}
+              >
+                {copyForecastButton?.label ?? "Copy from Child"}
+              </Button>
+              {activeOptionData?.forecastInputMode ===
+                ContinuousForecastInputType.Slider &&
+                activeTableOption !== null && (
+                  <Button
+                    variant="secondary"
+                    type="reset"
+                    onClick={() => handleAddComponent(activeTableOption)}
+                  >
+                    {t("addComponentButton")}
+                  </Button>
+                )}
+              <Button
+                variant="secondary"
+                type="reset"
+                onClick={handleResetForecasts}
+                disabled={
+                  activeOptionData?.forecastInputMode ===
+                  ContinuousForecastInputType.Slider
+                    ? !isPickerDirty
+                    : !activeOptionData?.isDirty &&
+                      !(activeOptionData?.quantileForecast ?? []).some(
+                        (value) => value?.isDirty === true
+                      )
+                }
+              >
+                {t("discardChangesButton")}
+              </Button>
+              {(!!prevYesForecastValue || !!prevNoForecastValue) && (
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )}
+            </>
+          )}
+
+          {activeOptionData?.forecastInputMode ===
+            ContinuousForecastInputType.Slider && (
+            <PredictButton
+              onSubmit={handlePredictSubmit}
+              isDirty={isPickerDirty}
+              hasUserForecast={hasUserForecast}
+              isPending={isSubmitting}
+              isDisabled={!questionsToSubmit.length}
+              predictLabel={previousForecast ? undefined : t("predict")}
+            />
+          )}
+
+          {activeOptionData?.forecastInputMode ===
+            ContinuousForecastInputType.Quantile &&
+            activeQuestion && (
+              <PredictButton
+                onSubmit={handlePredictSubmit}
+                isDirty={activeOptionData.quantileForecast.some(
+                  (q) => q.isDirty
+                )}
+                hasUserForecast={hasUserForecast}
+                isPending={isSubmitting}
+                predictLabel={previousForecast ? undefined : t("predict")}
+                isDisabled={
+                  validateAllQuantileInputs({
+                    question: activeQuestion,
+                    components: activeOptionData.quantileForecast,
+                    t,
+                  }).length !== 0
+                }
+              />
+            )}
+        </div>
+
+        <FormError
+          errors={submitError}
+          className={cn("flex items-center justify-center", {
+            "mt-2":
+              activeOptionData?.forecastInputMode ===
+              ContinuousForecastInputType.Quantile,
+          })}
+          detached
+        />
+        <div className="h-[32px]">
+          {(isSubmitting || withdrawalIsPending) && <LoadingIndicator />}
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -618,236 +757,66 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           }
         }}
       />
-      {questionOptions.map((option) => (
-        <div
-          key={option.id}
-          className={cn("mt-3", option.id !== activeTableOption && "hidden")}
-        >
-          <ContinuousSlider
-            question={option.question}
-            components={option.sliderForecast}
-            overlayPreviousForecast={overlayPreviousForecast}
-            setOverlayPreviousForecast={setOverlayPreviousForecast}
-            dataset={
-              option.forecastInputMode === ForecastInputType.Slider
-                ? getNumericForecastDataset(
-                    option.sliderForecast,
-                    option.question.open_lower_bound,
-                    option.question.open_upper_bound
-                  )
-                : validateAllQuantileInputs({
-                      question: option.question,
-                      components: option.quantileForecast,
-                      t,
-                    }).length === 0
-                  ? getQuantileNumericForecastDataset(
-                      option.quantileForecast,
-                      option.question
-                    )
-                  : {
-                      cdf: [],
-                      pmf: [],
-                    }
-            }
-            onChange={(components) =>
-              handleChange(option.id, components, option.forecastInputMode)
-            }
-            disabled={!canPredict}
-            showInputModeSwitcher
-            forecastInputMode={option.forecastInputMode}
-            setForecastInputMode={(mode) =>
-              handleForecastInputModeChange(option.id, mode)
-            }
-          />
-        </div>
-      ))}
-      {predictionMessage && (
-        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {predictionMessage}
-        </div>
-      )}
-      {canPredict &&
-        activeOptionData?.forecastInputMode === ForecastInputType.Slider && (
-          <>
-            <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-              {!!user && (
-                <>
-                  <Button
-                    variant="secondary"
-                    type="reset"
-                    onClick={
-                      copyForecastButton
-                        ? () =>
-                            copyForecast(
-                              copyForecastButton.fromQuestionId,
-                              copyForecastButton.toQuestionId
-                            )
-                        : undefined
-                    }
-                    disabled={!copyForecastButton}
-                  >
-                    {copyForecastButton?.label ?? "Copy from Child"}
-                  </Button>
-                  {activeTableOption !== null && (
-                    <Button
-                      variant="secondary"
-                      type="reset"
-                      onClick={() => handleAddComponent(activeTableOption)}
-                    >
-                      {t("addComponentButton")}
-                    </Button>
-                  )}
-                  <Button
-                    variant="secondary"
-                    type="reset"
-                    onClick={handleResetForecasts}
-                    disabled={!isPickerDirty}
-                  >
-                    {t("discardChangesButton")}
-                  </Button>
-                  {(!!prevYesForecastValue || !!prevNoForecastValue) && (
-                    <Button
-                      variant="secondary"
-                      type="submit"
-                      disabled={withdrawalIsPending}
-                      onClick={withdraw}
-                    >
-                      {t("withdraw")}
-                    </Button>
-                  )}
-                </>
-              )}
-              <PredictButton
-                onSubmit={handlePredictSubmit}
-                isDirty={isPickerDirty}
-                hasUserForecast={hasUserForecast}
-                isPending={isSubmitting}
-                isDisabled={!questionsToSubmit.length}
-                predictLabel={previousForecast ? undefined : t("predict")}
-              />
-            </div>
-            <FormError
-              errors={submitError}
-              className="flex items-center justify-center"
-              detached
-            />
-          </>
-        )}
-      {!!activeOptionData && (
-        <>
-          <NumericForecastTable
-            question={activeOptionData.question}
-            userBounds={getCdfBounds(userCdf)}
-            userQuartiles={userCdf && computeQuartilesFromCDF(userCdf)}
-            communityBounds={getCdfBounds(communityCdf)}
-            userPreviousBounds={getCdfBounds(userPreviousCdf)}
-            userPreviousQuartiles={
-              userPreviousCdf
-                ? computeQuartilesFromCDF(userPreviousCdf)
-                : undefined
-            }
-            communityQuartiles={
-              communityCdf && computeQuartilesFromCDF(communityCdf)
-            }
-            withCommunityQuartiles={!user || !hideCP}
-            withUserQuartiles={
-              !!previousForecast ||
-              activeOptionData.question.status === QuestionStatus.OPEN
-            }
-            quantileComponents={activeOptionData.quantileForecast}
-            onQuantileChange={(quantileComponents) =>
-              activeTableOption &&
-              handleChange(
-                activeTableOption,
-                quantileComponents,
-                ForecastInputType.Quantile
+      {questionOptions.map((option) => {
+        const dataset =
+          option.forecastInputMode === ContinuousForecastInputType.Slider
+            ? getSliderNumericForecastDataset(
+                option.sliderForecast,
+                option.question.open_lower_bound,
+                option.question.open_upper_bound
               )
-            }
-            isDirty={activeOptionData.isDirty}
-            hasUserForecast={
-              activeTableOption === questionYesId
-                ? !!prevYesForecastValue
-                : !!prevNoForecastValue
-            }
-            forecastInputMode={activeOptionData.forecastInputMode}
-          />
+            : validateAllQuantileInputs({
+                  question: option.question,
+                  components: option.quantileForecast,
+                  t,
+                }).length === 0
+              ? getQuantileNumericForecastDataset(
+                  option.quantileForecast,
+                  option.question
+                )
+              : {
+                  cdf: [],
+                  pmf: [],
+                };
 
-          {canPredict &&
-            activeOptionData.forecastInputMode === ForecastInputType.Quantile &&
-            activeQuestion && (
-              <>
-                <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
-                  <Button
-                    variant="secondary"
-                    type="reset"
-                    onClick={
-                      copyForecastButton
-                        ? () =>
-                            copyForecast(
-                              copyForecastButton.fromQuestionId,
-                              copyForecastButton.toQuestionId
-                            )
-                        : undefined
-                    }
-                    disabled={!copyForecastButton}
-                  >
-                    {copyForecastButton?.label ?? "Copy from Child"}
-                  </Button>
-
-                  <Button
-                    variant="secondary"
-                    type="submit"
-                    disabled={
-                      !activeOptionData?.isDirty &&
-                      !(activeOptionData?.quantileForecast ?? []).some(
-                        (value) => value?.isDirty === true
-                      )
-                    }
-                    onClick={handleResetForecasts}
-                  >
-                    {t("discardChangesButton")}
-                  </Button>
-
-                  <Button
-                    variant="secondary"
-                    type="submit"
-                    disabled={withdrawalIsPending}
-                    onClick={withdraw}
-                  >
-                    {t("withdraw")}
-                  </Button>
-
-                  <PredictButton
-                    onSubmit={handlePredictSubmit}
-                    isDirty={activeOptionData.quantileForecast.some(
-                      (q) => q.isDirty
-                    )}
-                    hasUserForecast={hasUserForecast}
-                    isPending={isSubmitting}
-                    predictLabel={previousForecast ? undefined : t("predict")}
-                    isDisabled={
-                      validateAllQuantileInputs({
-                        question: activeQuestion,
-                        components: activeOptionData.quantileForecast,
-                        t,
-                      }).length !== 0
-                    }
-                  />
-                </div>
-                <FormError
-                  errors={submitError}
-                  className="mt-2 flex items-center justify-center"
-                  detached
-                />
-                <div className="h-[32px]">
-                  {(isSubmitting || withdrawalIsPending) && (
-                    <LoadingIndicator />
-                  )}
-                </div>
-              </>
-            )}
-        </>
-      )}
+        return (
+          <div
+            key={option.id}
+            className={cn("mt-3", option.id !== activeTableOption && "hidden")}
+          >
+            <ContinuousInput
+              question={option.question}
+              dataset={dataset}
+              userCdf={userCdf}
+              userPreviousCdf={userPreviousCdf}
+              communityCdf={communityCdf}
+              sliderComponents={option.sliderForecast}
+              onSliderChange={(components) =>
+                handleChange(option.id, components, option.forecastInputMode)
+              }
+              quantileComponent={option.quantileForecast}
+              onQuantileChange={(quantileComponents) =>
+                handleChange(
+                  option.id,
+                  quantileComponents,
+                  ContinuousForecastInputType.Quantile
+                )
+              }
+              overlayPreviousForecast={overlayPreviousForecast}
+              onOverlayPreviousForecastChange={setOverlayPreviousForecast}
+              forecastInputMode={option.forecastInputMode}
+              onForecastInputModeChange={(mode) =>
+                handleForecastInputModeChange(option.id, mode)
+              }
+              hasUserForecast={hasUserForecast}
+              isDirty={option.isDirty}
+              submitControls={SubmitControls}
+              disabled={!canPredict}
+              predictionMessage={predictionMessage}
+            />
+          </div>
+        );
+      })}
       {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
@@ -866,7 +835,11 @@ function getUserQuartiles(
     return null;
   }
 
-  const dataset = getNumericForecastDataset(components, openLower, openUpper);
+  const dataset = getSliderNumericForecastDataset(
+    components,
+    openLower,
+    openUpper
+  );
   return computeQuartilesFromCDF(dataset.cdf);
 }
 
@@ -874,9 +847,9 @@ function getTableValue(
   components?: DistributionSliderComponent[] | DistributionQuantileComponent,
   openLower?: boolean,
   openUpper?: boolean,
-  forecastInputMode?: ForecastInputType
+  forecastInputMode?: ContinuousForecastInputType
 ) {
-  if (forecastInputMode === ForecastInputType.Quantile) {
+  if (forecastInputMode === ContinuousForecastInputType.Quantile) {
     return (
       (components as DistributionQuantileComponent)?.find(
         (component) => component.quantile === Quantile.q2

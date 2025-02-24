@@ -2,7 +2,7 @@ import { format, fromUnixTime } from "date-fns";
 import { isNil, round } from "lodash";
 import * as math from "mathjs";
 
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import {
   CurveChoiceOption,
   CurveQuestionLabels,
@@ -84,7 +84,7 @@ export function extractPrevNumericForecastValue(
   }
 }
 
-export function getNumericForecastDataset(
+export function getSliderNumericForecastDataset(
   components: DistributionSliderComponent[],
   lowerOpen: boolean,
   upperOpen: boolean
@@ -372,7 +372,7 @@ export function getQuantilesDistributionFromSlider(
   components: DistributionSliderComponent[],
   question: QuestionWithNumericForecasts
 ): DistributionQuantileComponent {
-  const cdf = getNumericForecastDataset(
+  const cdf = getSliderNumericForecastDataset(
     components,
     question.open_lower_bound,
     question.open_upper_bound
@@ -440,13 +440,14 @@ export function getInitialQuantileDistributionComponents(
   activeForecastValues: DistributionSlider | DistributionQuantile | undefined,
   question: QuestionWithNumericForecasts
 ): DistributionQuantileComponent {
-  return activeForecast
-    ? activeForecast.distribution_input.type === ForecastInputType.Quantile
+  return activeForecast && activeForecastValues
+    ? activeForecast.distribution_input.type ===
+      ContinuousForecastInputType.Quantile
       ? populateQuantileComponents(
-          activeForecastValues?.components as DistributionQuantileComponent
+          activeForecastValues.components as DistributionQuantileComponent
         )
       : getQuantilesDistributionFromSlider(
-          activeForecastValues?.components as DistributionSliderComponent[],
+          activeForecastValues.components as DistributionSliderComponent[],
           question
         )
     : [
@@ -484,7 +485,9 @@ export function getInitialSliderDistributionComponents(
   question: Question
 ) {
   return !activeForecast ||
-    activeForecast.distribution_input.type === ForecastInputType.Slider
+    !activeForecastValues ||
+    activeForecast.distribution_input.type ===
+      ContinuousForecastInputType.Slider
     ? getNormalizedContinuousForecast(
         activeForecastValues?.components as DistributionSliderComponent[]
       )
@@ -540,7 +543,7 @@ export function getUserContinuousQuartiles(
     return null;
   }
 
-  const dataset = getNumericForecastDataset(
+  const dataset = getSliderNumericForecastDataset(
     components,
     !!question.open_lower_bound,
     !!question.open_upper_bound
@@ -551,8 +554,10 @@ export function getUserContinuousQuartiles(
 
 export const isSliderForecast = (
   input: DistributionSlider | DistributionQuantile | null | undefined
-): input is DistributionSlider => input?.type === ForecastInputType.Slider;
+): input is DistributionSlider =>
+  input?.type === ContinuousForecastInputType.Slider;
 
 export const isQuantileForecast = (
   input: DistributionSlider | DistributionQuantile | null | undefined
-): input is DistributionQuantile => input?.type === ForecastInputType.Quantile;
+): input is DistributionQuantile =>
+  input?.type === ContinuousForecastInputType.Quantile;

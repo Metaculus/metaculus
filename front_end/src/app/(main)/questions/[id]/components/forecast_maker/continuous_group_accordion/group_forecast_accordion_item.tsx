@@ -2,10 +2,10 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Disclosure, DisclosurePanel } from "@headlessui/react";
 import { useLocale } from "next-intl";
-import { FC, PropsWithChildren, useMemo, useState } from "react";
+import { FC, PropsWithChildren, useState } from "react";
 
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
 import { Quantile } from "@/types/question";
 import {
@@ -15,7 +15,7 @@ import {
 } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
-  getNumericForecastDataset,
+  getSliderNumericForecastDataset,
   getQuantileNumericForecastDataset,
 } from "@/utils/forecasts";
 import { formatResolution } from "@/utils/questions";
@@ -56,15 +56,12 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     scaling: question.scaling,
   });
 
-  const showUserPrediction = useMemo(
-    () => hasUserForecast || isDirty,
-    [hasUserForecast, isDirty]
-  );
+  const showUserPrediction = hasUserForecast || isDirty;
   const isResolvedOption = type === QuestionStatus.RESOLVED;
   const latest = question.aggregations.recency_weighted.latest;
   const optionForecast =
-    forecastInputMode === ForecastInputType.Slider
-      ? getNumericForecastDataset(
+    forecastInputMode === ContinuousForecastInputType.Slider
+      ? getSliderNumericForecastDataset(
           option.userSliderForecast,
           question.open_lower_bound,
           question.open_upper_bound
@@ -88,7 +85,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     scaling: option.question.scaling,
   });
   const userMedian = showUserPrediction
-    ? forecastInputMode === ForecastInputType.Quantile
+    ? forecastInputMode === ContinuousForecastInputType.Quantile
       ? displayValue(
           option.userQuantileForecast?.find((q) => q.quantile === Quantile.q2)
             ?.value ?? null,

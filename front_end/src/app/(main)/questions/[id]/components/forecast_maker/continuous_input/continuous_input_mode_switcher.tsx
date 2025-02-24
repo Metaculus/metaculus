@@ -1,29 +1,29 @@
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import cn from "@/utils/cn";
 
 type Props = {
-  mode: string;
-  onChange: (mode: ForecastInputType) => void;
+  mode: ContinuousForecastInputType;
+  onChange: (mode: ContinuousForecastInputType) => void;
 };
 
-const SliderInputModeSwitcher: FC<Props> = ({ mode, onChange }) => {
+const ContinuousInputModeSwitcher: FC<Props> = ({ mode, onChange }) => {
   const t = useTranslations();
   return (
     <div className="flex h-fit gap-1">
       <SwitcherBtn
         onChange={onChange}
         mode={mode}
-        value={ForecastInputType.Slider}
+        value={ContinuousForecastInputType.Slider}
       >
         {t("slider")}
       </SwitcherBtn>
       <SwitcherBtn
         onChange={onChange}
         mode={mode}
-        value={ForecastInputType.Quantile}
+        value={ContinuousForecastInputType.Quantile}
       >
         {t("table")}
       </SwitcherBtn>
@@ -32,9 +32,9 @@ const SliderInputModeSwitcher: FC<Props> = ({ mode, onChange }) => {
 };
 
 type SwitcherBtnProps = {
-  value: ForecastInputType;
+  value: ContinuousForecastInputType;
   mode: string;
-  onChange: (mode: ForecastInputType) => void;
+  onChange: (mode: ContinuousForecastInputType) => void;
 };
 
 const SwitcherBtn: FC<PropsWithChildren<SwitcherBtnProps>> = ({
@@ -58,4 +58,4 @@ const SwitcherBtn: FC<PropsWithChildren<SwitcherBtnProps>> = ({
   );
 };
 
-export default SliderInputModeSwitcher;
+export default ContinuousInputModeSwitcher;

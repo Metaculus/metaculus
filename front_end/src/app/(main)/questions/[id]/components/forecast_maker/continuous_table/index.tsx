@@ -10,7 +10,7 @@ import React, {
 } from "react";
 
 import { FormErrorMessage } from "@/components/ui/form_field";
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import {
   Bounds,
   DistributionQuantileComponent,
@@ -23,8 +23,8 @@ import {
 import { displayValue, getTableDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 
-import { validateAllQuantileInputs } from "./helpers";
-import NumericTableInput from "./numeric_table_input";
+import ContinuousTableInput from "./continuous_table_input";
+import { validateAllQuantileInputs } from "../helpers";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -38,13 +38,13 @@ type Props = {
   withCommunityQuartiles?: boolean;
   hasUserForecast?: boolean;
   isDirty?: boolean;
-  forecastInputMode?: ForecastInputType;
+  forecastInputMode?: ContinuousForecastInputType;
   quantileComponents?: DistributionQuantileComponent;
   onQuantileChange?: (quantileComponents: QuantileValue[]) => void;
   disableQuantileInput?: boolean;
 };
 
-const NumericForecastTable: FC<Props> = ({
+const ContinuousTable: FC<Props> = ({
   question,
   userBounds,
   userQuartiles,
@@ -56,7 +56,7 @@ const NumericForecastTable: FC<Props> = ({
   withCommunityQuartiles = true,
   hasUserForecast,
   isDirty,
-  forecastInputMode = "slider",
+  forecastInputMode = ContinuousForecastInputType.Slider,
   quantileComponents,
   onQuantileChange,
   disableQuantileInput = false,
@@ -88,7 +88,7 @@ const NumericForecastTable: FC<Props> = ({
     }
     // revalidate when we make a new forecast with slider and transform it to quantile data
     if (
-      forecastInputMode === ForecastInputType.Slider &&
+      forecastInputMode === ContinuousForecastInputType.Slider &&
       quantileComponents &&
       Object.values(quantileComponents ?? []).every((value) => value?.isDirty)
     ) {
@@ -224,61 +224,63 @@ const NumericForecastTable: FC<Props> = ({
               )}
             </tr>
           )}
-          {withUserQuartiles && forecastInputMode === "slider" && (
-            <tr className="text-orange-800 dark:text-orange-800-dark">
-              <Td>{t("myPrediction")}</Td>
-              {isDirty || hasUserForecast ? (
-                <>
-                  {question.open_lower_bound && (
-                    <Td>
-                      {userBounds && (userBounds.belowLower * 100).toFixed(1)}%
+          {withUserQuartiles &&
+            forecastInputMode === ContinuousForecastInputType.Slider && (
+              <tr className="text-orange-800 dark:text-orange-800-dark">
+                <Td>{t("myPrediction")}</Td>
+                {isDirty || hasUserForecast ? (
+                  <>
+                    {question.open_lower_bound && (
+                      <Td>
+                        {userBounds && (userBounds.belowLower * 100).toFixed(1)}
+                        %
+                      </Td>
+                    )}
+                    <Td className="tabular-nums tracking-tight">
+                      {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
+                      {getTableDisplayValue({
+                        value: userQuartiles?.lower25,
+                        questionType: question.type,
+                        scaling: question.scaling,
+                        precision: 4,
+                      })}
                     </Td>
-                  )}
-                  <Td className="tabular-nums tracking-tight">
-                    {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
-                    {getTableDisplayValue({
-                      value: userQuartiles?.lower25,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
+                    <Td className="tabular-nums tracking-tight">
+                      {checkQuartilesOutOfBorders(userQuartiles?.median)}
+                      {getTableDisplayValue({
+                        value: userQuartiles?.median,
+                        questionType: question.type,
+                        scaling: question.scaling,
+                        precision: 4,
+                      })}
+                    </Td>
+                    <Td className="tabular-nums tracking-tight">
+                      {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
+                      {getTableDisplayValue({
+                        value: userQuartiles?.upper75,
+                        questionType: question.type,
+                        scaling: question.scaling,
+                        precision: 4,
+                      })}
+                    </Td>
+                    {question.open_upper_bound && userBounds && (
+                      <Td>{(userBounds.aboveUpper * 100).toFixed(1)}%</Td>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {question.open_lower_bound && <Td>—</Td>}
+                    {[...Array(3)].map((_, i) => {
+                      return <Td key={i}>—</Td>;
                     })}
-                  </Td>
-                  <Td className="tabular-nums tracking-tight">
-                    {checkQuartilesOutOfBorders(userQuartiles?.median)}
-                    {getTableDisplayValue({
-                      value: userQuartiles?.median,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
-                    })}
-                  </Td>
-                  <Td className="tabular-nums tracking-tight">
-                    {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
-                    {getTableDisplayValue({
-                      value: userQuartiles?.upper75,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
-                    })}
-                  </Td>
-                  {question.open_upper_bound && userBounds && (
-                    <Td>{(userBounds.aboveUpper * 100).toFixed(1)}%</Td>
-                  )}
-                </>
-              ) : (
-                <>
-                  {question.open_lower_bound && <Td>—</Td>}
-                  {[...Array(3)].map((_, i) => {
-                    return <Td key={i}>—</Td>;
-                  })}
-                  {question.open_upper_bound && <Td>—</Td>}
-                </>
-              )}
-            </tr>
-          )}
+                    {question.open_upper_bound && <Td>—</Td>}
+                  </>
+                )}
+              </tr>
+            )}
 
           {withUserQuartiles &&
-            forecastInputMode === ForecastInputType.Quantile && (
+            forecastInputMode === ContinuousForecastInputType.Quantile && (
               <>
                 <tr className="text-orange-800 dark:text-orange-800-dark">
                   <Td>
@@ -289,7 +291,7 @@ const NumericForecastTable: FC<Props> = ({
                   <>
                     {question.open_lower_bound && (
                       <Td>
-                        <NumericTableInput
+                        <ContinuousTableInput
                           type="number"
                           quantileValue={quantileComponents?.[0]}
                           error={
@@ -306,7 +308,7 @@ const NumericForecastTable: FC<Props> = ({
                       </Td>
                     )}
                     <Td>
-                      <NumericTableInput
+                      <ContinuousTableInput
                         type={
                           question.type === QuestionType.Numeric
                             ? "number"
@@ -326,7 +328,7 @@ const NumericForecastTable: FC<Props> = ({
                       />
                     </Td>
                     <Td>
-                      <NumericTableInput
+                      <ContinuousTableInput
                         type={
                           question.type === QuestionType.Numeric
                             ? "number"
@@ -346,7 +348,7 @@ const NumericForecastTable: FC<Props> = ({
                       />
                     </Td>
                     <Td>
-                      <NumericTableInput
+                      <ContinuousTableInput
                         type={
                           question.type === QuestionType.Numeric
                             ? "number"
@@ -367,7 +369,7 @@ const NumericForecastTable: FC<Props> = ({
                     </Td>
                     {question.open_upper_bound && (
                       <Td>
-                        <NumericTableInput
+                        <ContinuousTableInput
                           type="number"
                           quantileValue={quantileComponents?.[4]}
                           error={
@@ -495,9 +497,9 @@ const NumericForecastTable: FC<Props> = ({
                   </Td>
                 )}
                 {withUserQuartiles &&
-                forecastInputMode === ForecastInputType.Quantile ? (
+                forecastInputMode === ContinuousForecastInputType.Quantile ? (
                   <Td>
-                    <NumericTableInput
+                    <ContinuousTableInput
                       type="number"
                       quantileValue={quantileComponents?.[0]}
                       error={
@@ -553,9 +555,9 @@ const NumericForecastTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles &&
-            forecastInputMode === ForecastInputType.Quantile ? (
+            forecastInputMode === ContinuousForecastInputType.Quantile ? (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
-                <NumericTableInput
+                <ContinuousTableInput
                   type={
                     question.type === QuestionType.Numeric ? "number" : "date"
                   }
@@ -614,9 +616,9 @@ const NumericForecastTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles &&
-            forecastInputMode === ForecastInputType.Quantile ? (
+            forecastInputMode === ContinuousForecastInputType.Quantile ? (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
-                <NumericTableInput
+                <ContinuousTableInput
                   type={
                     question.type === QuestionType.Numeric ? "number" : "date"
                   }
@@ -675,9 +677,9 @@ const NumericForecastTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles &&
-            forecastInputMode === ForecastInputType.Quantile ? (
+            forecastInputMode === ContinuousForecastInputType.Quantile ? (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
-                <NumericTableInput
+                <ContinuousTableInput
                   type={
                     question.type === QuestionType.Numeric ? "number" : "date"
                   }
@@ -746,9 +748,9 @@ const NumericForecastTable: FC<Props> = ({
                   </Td>
                 )}
                 {withUserQuartiles &&
-                forecastInputMode === ForecastInputType.Quantile ? (
+                forecastInputMode === ContinuousForecastInputType.Quantile ? (
                   <Td>
-                    <NumericTableInput
+                    <ContinuousTableInput
                       type="number"
                       quantileValue={quantileComponents?.[4]}
                       error={
@@ -779,7 +781,7 @@ const NumericForecastTable: FC<Props> = ({
                 )}
               </tr>
               {withUserQuartiles &&
-                forecastInputMode === ForecastInputType.Quantile && (
+                forecastInputMode === ContinuousForecastInputType.Quantile && (
                   <tr>
                     <Td
                       colSpan={
@@ -822,4 +824,4 @@ function checkQuartilesOutOfBorders(quartile: number | undefined) {
   return quartile === 0 ? "<" : quartile === 1 ? ">" : null;
 }
 
-export default NumericForecastTable;
+export default ContinuousTable;
