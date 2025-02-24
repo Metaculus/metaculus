@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import RadioButton from "@/components/ui/radio_button";
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import { Question, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/cn";
 import {
@@ -21,6 +21,8 @@ export type ConditionalTableOption = {
   name: string;
   value: number | null;
   isDirty: boolean;
+  quantileValue?: number | null;
+  forecastInputMode?: ContinuousForecastInputType;
 };
 
 type Props = {
@@ -29,14 +31,11 @@ type Props = {
   conditionChild: QuestionWithForecasts;
   childQuestion: Question;
   value: number | null;
-  options: (ConditionalTableOption & {
-    quantileValue?: number | null;
-    forecastInputMode?: ForecastInputType;
-  })[];
+  options: ConditionalTableOption[];
   onChange: (value: number) => void;
   formatForecastValue?: (
     value: number | null,
-    forecastInputMode?: ForecastInputType
+    forecastInputMode?: ContinuousForecastInputType
   ) => string;
 };
 
@@ -112,7 +111,7 @@ const ConditionalForecastTable: FC<Props> = ({
                     forecastValue: formatForecastValue
                       ? formatForecastValue(
                           option.forecastInputMode ===
-                            ForecastInputType.Quantile
+                            ContinuousForecastInputType.Quantile
                             ? option.quantileValue ?? null
                             : option.value,
                           option.forecastInputMode

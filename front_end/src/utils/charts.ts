@@ -15,7 +15,7 @@ import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
   ContinuousAreaType,
   FanOption,
-  ForecastInputType,
+  ContinuousForecastInputType,
   Line,
   Scale,
   TimelineChartZoomOption,
@@ -49,7 +49,7 @@ import {
   getForecastDateDisplayValue,
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
-  getNumericForecastDataset,
+  getSliderNumericForecastDataset,
   getQuantileNumericForecastDataset,
   populateQuantileComponents,
 } from "./forecasts";
@@ -401,7 +401,7 @@ export function getTableDisplayValue({
   precision,
   truncation,
   range,
-  forecastInputMode = ForecastInputType.Slider,
+  forecastInputMode = ContinuousForecastInputType.Slider,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -409,14 +409,14 @@ export function getTableDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
-  forecastInputMode?: ForecastInputType;
+  forecastInputMode?: ContinuousForecastInputType;
 }) {
   if (isNil(value)) {
     return "...";
   }
 
   if (questionType !== QuestionType.Date) {
-    if (forecastInputMode === ForecastInputType.Quantile) {
+    if (forecastInputMode === ContinuousForecastInputType.Quantile) {
       return String(value);
     }
     return getDisplayValue({
@@ -447,7 +447,7 @@ export function getTableDisplayValue({
   }
 
   const scaledValue =
-    forecastInputMode === ForecastInputType.Quantile
+    forecastInputMode === ContinuousForecastInputType.Quantile
       ? value
       : scaleInternalLocation(value, scaling);
   return format(fromUnixTime(scaledValue), dateFormat);
@@ -1009,8 +1009,8 @@ export function getFanOptionsFromContinuousGroup(
 
       let userCdf: number[] | null = null;
       if (userForecast?.components) {
-        userForecast.type === ForecastInputType.Slider
-          ? (userCdf = getNumericForecastDataset(
+        userForecast.type === ContinuousForecastInputType.Slider
+          ? (userCdf = getSliderNumericForecastDataset(
               userForecast.components,
               q.open_lower_bound,
               q.open_upper_bound

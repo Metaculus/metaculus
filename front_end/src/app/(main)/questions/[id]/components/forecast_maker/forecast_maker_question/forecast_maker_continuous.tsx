@@ -1,7 +1,6 @@
 "use client";
 import { isNil } from "lodash";
-import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect, useMemo, useState } from "react";
 
@@ -14,36 +13,35 @@ import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   DistributionQuantile,
+  DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
   QuestionWithNumericForecasts,
-  DistributionQuantileComponent,
 } from "@/types/question";
-import { getCdfBounds, getDisplayValue } from "@/utils/charts";
+import { getDisplayValue } from "@/utils/charts";
 import {
   clearQuantileComponents,
   extractPrevNumericForecastValue,
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
-  getNumericForecastDataset,
   getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import { sendGAPredictEvent } from "./ga_events";
 import PredictionSuccessBox from "./prediction_success_box";
 import { useHideCP } from "../../cp_provider";
-import ContinuousSlider from "../continuous_slider";
+import ContinuousInput from "../continuous_input";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
 } from "../helpers";
-import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
@@ -77,14 +75,15 @@ const ForecastMakerContinuous: FC<Props> = ({
   const activeForecastValues = activeForecast
     ? extractPrevNumericForecastValue(activeForecast.distribution_input)
     : undefined;
-  const withCommunityQuartiles = !user || !hideCP;
   const hasUserForecast = !!activeForecastValues;
   const t = useTranslations();
-  const [forecastInputMode, setForecastInputMode] = useState<ForecastInputType>(
-    previousForecast?.distribution_input.type === ForecastInputType.Quantile
-      ? ForecastInputType.Quantile
-      : ForecastInputType.Slider
-  );
+  const [forecastInputMode, setForecastInputMode] =
+    useState<ContinuousForecastInputType>(
+      previousForecast?.distribution_input.type ===
+        ContinuousForecastInputType.Quantile
+        ? ContinuousForecastInputType.Quantile
+        : ContinuousForecastInputType.Slider
+    );
 
   const [sliderDistributionComponents, setSliderDistributionComponents] =
     useState<DistributionSliderComponent[]>(
@@ -112,9 +111,10 @@ const ForecastMakerContinuous: FC<Props> = ({
   // Update states of forecast maker after new forecast is made
   useEffect(() => {
     setForecastInputMode(
-      activeForecast?.distribution_input.type === ForecastInputType.Quantile
-        ? ForecastInputType.Quantile
-        : ForecastInputType.Slider
+      activeForecast?.distribution_input.type ===
+        ContinuousForecastInputType.Quantile
+        ? ContinuousForecastInputType.Quantile
+        : ContinuousForecastInputType.Slider
     );
     setQuantileDistributionComponents(
       getInitialQuantileDistributionComponents(
@@ -132,15 +132,16 @@ const ForecastMakerContinuous: FC<Props> = ({
     );
     setIsDirty(
       activeForecast
-        ? activeForecast.distribution_input.type !== ForecastInputType.Slider
+        ? activeForecast.distribution_input.type !==
+            ContinuousForecastInputType.Slider
         : false
     );
   }, [activeForecastValues, activeForecast, question]);
 
   const dataset = useMemo(
     () =>
-      forecastInputMode === ForecastInputType.Slider
-        ? getNumericForecastDataset(
+      forecastInputMode === ContinuousForecastInputType.Slider
+        ? getSliderNumericForecastDataset(
             sliderDistributionComponents,
             question.open_lower_bound,
             question.open_upper_bound
@@ -205,7 +206,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     setSubmitError(undefined);
     sendGAPredictEvent(post, question, hideCP);
 
-    if (forecastInputMode === ForecastInputType.Quantile) {
+    if (forecastInputMode === ContinuousForecastInputType.Quantile) {
       const validationErrors = validateUserQuantileData({
         question,
         components: quantileDistributionComponents,
@@ -234,7 +235,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         distributionInput: {
           type: forecastInputMode,
           components:
-            forecastInputMode === ForecastInputType.Slider
+            forecastInputMode === ContinuousForecastInputType.Slider
               ? sliderDistributionComponents
               : clearQuantileComponents(quantileDistributionComponents),
         } as DistributionSlider | DistributionQuantile,
@@ -271,9 +272,10 @@ const ForecastMakerContinuous: FC<Props> = ({
 
   const handleDiscard = () => {
     setForecastInputMode(
-      activeForecast?.distribution_input.type === ForecastInputType.Quantile
-        ? ForecastInputType.Quantile
-        : ForecastInputType.Slider
+      activeForecast?.distribution_input.type ===
+        ContinuousForecastInputType.Quantile
+        ? ContinuousForecastInputType.Quantile
+        : ContinuousForecastInputType.Slider
     );
     setSliderDistributionComponents(
       getInitialSliderDistributionComponents(
@@ -304,29 +306,13 @@ const ForecastMakerContinuous: FC<Props> = ({
       />
     ) : null;
 
-  return (
-    <>
-      <ContinuousSlider
-        components={sliderDistributionComponents}
-        dataset={dataset}
-        onChange={(components) => {
-          setSliderDistributionComponents(components);
-          setIsDirty(true);
-          setShowSuccessBox(false);
-        }}
-        overlayPreviousForecast={overlayPreviousForecast}
-        setOverlayPreviousForecast={setOverlayPreviousForecast}
-        question={question}
-        disabled={!canPredict}
-        showInputModeSwitcher
-        forecastInputMode={forecastInputMode}
-        setForecastInputMode={setForecastInputMode}
-      />
-
-      {canPredict && forecastInputMode === ForecastInputType.Slider && (
-        <>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
-            {!!user && (
+  let SubmitControls: ReactNode = null;
+  if (canPredict) {
+    SubmitControls = (
+      <>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
+          {!!user &&
+            forecastInputMode === ContinuousForecastInputType.Slider && (
               <Button
                 variant="secondary"
                 type="reset"
@@ -336,16 +322,18 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
 
-            {!!activeForecast && (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={withdrawalIsPending}
-                onClick={withdraw}
-              >
-                {t("withdraw")}
-              </Button>
-            )}
+          {!!activeForecast && (
+            <Button
+              variant="secondary"
+              type="submit"
+              disabled={withdrawalIsPending}
+              onClick={withdraw}
+            >
+              {t("withdraw")}
+            </Button>
+          )}
+
+          {forecastInputMode === ContinuousForecastInputType.Slider ? (
             <PredictButton
               onSubmit={submit}
               isDirty={isDirty}
@@ -353,77 +341,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               isPending={isPending}
               predictLabel={previousForecast ? undefined : t("predict")}
             />
-
-            {isDirty && (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={
-                  !isDirty &&
-                  !Object.values(quantileDistributionComponents ?? []).some(
-                    (value) => value?.isDirty === true
-                  )
-                }
-                onClick={handleDiscard}
-              >
-                {t("discard")}
-              </Button>
-            )}
-          </div>
-          <FormError
-            errors={submitError}
-            className="mt-2 flex items-center justify-center"
-            detached
-          />
-          <div className="h-[32px]">
-            {(isPending || withdrawalIsPending) && <LoadingIndicator />}
-          </div>
-
-          {SuccessBoxElement}
-        </>
-      )}
-      {predictionMessage && (
-        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {predictionMessage}
-        </div>
-      )}
-
-      <NumericForecastTable
-        question={question}
-        userBounds={getCdfBounds(userCdf)}
-        userQuartiles={userCdf ? computeQuartilesFromCDF(userCdf) : undefined}
-        quantileComponents={quantileDistributionComponents}
-        onQuantileChange={setQuantileDistributionComponents}
-        userPreviousBounds={getCdfBounds(userPreviousCdf)}
-        userPreviousQuartiles={
-          userPreviousCdf ? computeQuartilesFromCDF(userPreviousCdf) : undefined
-        }
-        communityBounds={getCdfBounds(communityCdf)}
-        communityQuartiles={
-          communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
-        }
-        withCommunityQuartiles={withCommunityQuartiles}
-        isDirty={isDirty}
-        disableQuantileInput={!canPredict}
-        hasUserForecast={hasUserForecast}
-        forecastInputMode={forecastInputMode}
-      />
-      {canPredict && forecastInputMode === ForecastInputType.Quantile && (
-        <>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
-            {!!activeForecast &&
-              activeForecast.distribution_input.type ===
-                ForecastInputType.Quantile && (
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
-                >
-                  {t("withdraw")}
-                </Button>
-              )}
-
+          ) : (
             <PredictButton
               onSubmit={submit}
               isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
@@ -438,7 +356,26 @@ const ForecastMakerContinuous: FC<Props> = ({
                 }).length !== 0
               }
             />
-            {Object.values(quantileDistributionComponents ?? []).some(
+          )}
+
+          {forecastInputMode === ContinuousForecastInputType.Slider &&
+            isDirty && (
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={
+                  !isDirty &&
+                  !Object.values(quantileDistributionComponents ?? []).some(
+                    (value) => value?.isDirty === true
+                  )
+                }
+                onClick={handleDiscard}
+              >
+                {t("discard")}
+              </Button>
+            )}
+          {forecastInputMode === ContinuousForecastInputType.Quantile &&
+            Object.values(quantileDistributionComponents ?? []).some(
               (value) => value?.isDirty === true
             ) && (
               <Button
@@ -455,18 +392,52 @@ const ForecastMakerContinuous: FC<Props> = ({
                 {t("discard")}
               </Button>
             )}
-          </div>
-          <FormError
-            errors={submitError}
-            className="mt-2 flex items-center justify-center"
-            detached
-          />
-          <div className="h-[32px]">
-            {(isPending || withdrawalIsPending) && <LoadingIndicator />}
-          </div>
-          {SuccessBoxElement}
-        </>
-      )}
+        </div>
+
+        <FormError
+          errors={submitError}
+          className="mt-2 flex items-center justify-center"
+          detached
+        />
+        <div className="h-[32px]">
+          {(isPending || withdrawalIsPending) && <LoadingIndicator />}
+        </div>
+
+        {SuccessBoxElement}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <ContinuousInput
+        question={question}
+        dataset={dataset}
+        userCdf={userCdf}
+        userPreviousCdf={userPreviousCdf}
+        communityCdf={communityCdf}
+        sliderComponents={sliderDistributionComponents}
+        onSliderChange={(components) => {
+          setSliderDistributionComponents(components);
+          setIsDirty(true);
+          setShowSuccessBox(false);
+        }}
+        quantileComponent={quantileDistributionComponents}
+        onQuantileChange={(quantileComponents) => {
+          setQuantileDistributionComponents(quantileComponents);
+          setIsDirty(true);
+          setShowSuccessBox(false);
+        }}
+        overlayPreviousForecast={overlayPreviousForecast}
+        onOverlayPreviousForecastChange={setOverlayPreviousForecast}
+        forecastInputMode={forecastInputMode}
+        onForecastInputModeChange={setForecastInputMode}
+        hasUserForecast={hasUserForecast}
+        isDirty={isDirty}
+        submitControls={SubmitControls}
+        disabled={!canPredict}
+        predictionMessage={predictionMessage}
+      />
 
       <div className="flex flex-col items-center justify-center">
         <QuestionUnresolveButton question={question} permission={permission} />
