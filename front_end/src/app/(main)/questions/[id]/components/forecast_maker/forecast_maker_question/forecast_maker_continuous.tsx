@@ -431,7 +431,16 @@ const ForecastMakerContinuous: FC<Props> = ({
         overlayPreviousForecast={overlayPreviousForecast}
         onOverlayPreviousForecastChange={setOverlayPreviousForecast}
         forecastInputMode={forecastInputMode}
-        onForecastInputModeChange={setForecastInputMode}
+        onForecastInputModeChange={(mode) => {
+          setForecastInputMode(mode);
+          if (
+            activeForecast &&
+            activeForecast.distribution_input.type !==
+              ContinuousForecastInputType.Slider
+          ) {
+            setIsDirty(true);
+          }
+        }}
         hasUserForecast={hasUserForecast}
         isDirty={isDirty}
         submitControls={SubmitControls}
