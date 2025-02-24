@@ -40,33 +40,6 @@ class TopicSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "slug", "emoji", "section", "type")
 
 
-class MiniTournamentSerializer(serializers.ModelSerializer):
-    is_current_content_translated = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = Project
-        fields = (
-            "id",
-            "type",
-            "name",
-            "slug",
-            "prize_pool",
-            "start_date",
-            "close_date",
-            "meta_description",
-            "is_ongoing",
-            "user_permission",
-            "created_at",
-            "edited_at",
-            "default_permission",
-            "visibility",
-            "is_current_content_translated",
-        )
-
-    def get_is_current_content_translated(self, project: Project) -> bool:
-        return project.is_current_content_translated()
-
-
 class TournamentShortSerializer(serializers.ModelSerializer):
     score_type = serializers.SerializerMethodField(read_only=True)
     is_current_content_translated = serializers.SerializerMethodField(read_only=True)
@@ -82,9 +55,11 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "prize_pool",
             "start_date",
             "close_date",
+            "meta_description",
             "is_ongoing",
             "user_permission",
             "created_at",
+            "edited_at",
             "score_type",
             "default_permission",
             "visibility",
@@ -123,11 +98,13 @@ def serialize_project(obj: Project):
         case obj.ProjectTypes.CATEGORY:
             serializer = CategorySerializer
         case obj.ProjectTypes.TOURNAMENT:
-            serializer = MiniTournamentSerializer
+            serializer = TournamentShortSerializer
         case obj.ProjectTypes.QUESTION_SERIES:
-            serializer = MiniTournamentSerializer
+            serializer = TournamentShortSerializer
+        case obj.ProjectTypes.INDEX:
+            serializer = TournamentShortSerializer
         case obj.ProjectTypes.SITE_MAIN:
-            serializer = MiniTournamentSerializer
+            serializer = TournamentShortSerializer
         case obj.ProjectTypes.NEWS_CATEGORY:
             serializer = NewsCategorySerialize
         case obj.ProjectTypes.COMMUNITY:

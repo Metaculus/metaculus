@@ -33,6 +33,7 @@ class ProjectsQuerySet(models.QuerySet):
             type__in=(
                 Project.ProjectTypes.TOURNAMENT,
                 Project.ProjectTypes.QUESTION_SERIES,
+                Project.ProjectTypes.INDEX,
             )
         )
 
@@ -183,6 +184,7 @@ class ProjectsQuerySet(models.QuerySet):
 class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
+        INDEX = "index"
         TOURNAMENT = "tournament"
         QUESTION_SERIES = "question_series"
         PERSONAL_PROJECT = "personal_project"
@@ -360,6 +362,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         if self.type in (
             self.ProjectTypes.TOURNAMENT,
             self.ProjectTypes.QUESTION_SERIES,
+            self.ProjectTypes.INDEX,
         ):
             return self.close_date > django_timezone.now() if self.close_date else True
 
