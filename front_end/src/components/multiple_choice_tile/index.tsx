@@ -320,6 +320,7 @@ function generateReaffirmData({
           return {
             questionId: q.id,
             forecastData: {
+              // okay to ignore, we check for null when calculating reaffirmForecasts
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               continuousCdf: q.forecastValues!,
               probabilityYesPerCategory: null,
