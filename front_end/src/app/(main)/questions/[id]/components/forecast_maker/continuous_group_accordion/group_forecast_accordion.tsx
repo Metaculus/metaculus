@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
@@ -16,7 +16,7 @@ import {
 
 import { AccordionItem } from "./group_forecast_accordion_item";
 import { useHideCP } from "../../cp_provider";
-import SliderWrapper from "../forecast_maker_group/continuous_slider_wrapper";
+import ContinuousInputWrapper from "../forecast_maker_group/continuous_input_wrapper";
 
 export type ContinuousGroupOption = {
   id: number;
@@ -24,7 +24,7 @@ export type ContinuousGroupOption = {
   question: QuestionWithNumericForecasts;
   userSliderForecast: DistributionSliderComponent[];
   userQuantileForecast: DistributionQuantileComponent;
-  forecastInputMode: ForecastInputType;
+  forecastInputMode: ContinuousForecastInputType;
   userQuartiles: Quartiles | null;
   communityQuartiles: Quartiles | null;
   isDirty: boolean;
@@ -53,7 +53,7 @@ type Props = {
   >;
   handleForecastInputModeChange: (
     optionId: number,
-    mode: ForecastInputType
+    mode: ContinuousForecastInputType
   ) => void;
 };
 
@@ -116,7 +116,7 @@ const GroupForecastAccordion: FC<Props> = ({
             isResolvedOption={true}
             key={option.id}
           >
-            <SliderWrapper
+            <ContinuousInputWrapper
               option={option}
               canPredict={false}
               isPending={isPending}
@@ -155,7 +155,7 @@ const GroupForecastAccordion: FC<Props> = ({
             key={option.id}
             subQuestionId={subQuestionId}
           >
-            <SliderWrapper
+            <ContinuousInputWrapper
               option={option}
               canPredict={canPredict}
               isPending={isPending}

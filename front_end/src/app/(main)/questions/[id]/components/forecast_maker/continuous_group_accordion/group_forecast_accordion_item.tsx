@@ -8,7 +8,7 @@ import { FC, PropsWithChildren, useMemo, useState } from "react";
 import ContinuousAreaChart, {
   ContinuousAreaGraphInput,
 } from "@/components/charts/continuous_area_chart";
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import { Quantile } from "@/types/question";
 import {
   displayValue,
@@ -17,7 +17,7 @@ import {
 } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
-  getNumericForecastDataset,
+  getSliderNumericForecastDataset,
   getQuantileNumericForecastDataset,
 } from "@/utils/forecasts";
 import { formatResolution } from "@/utils/questions";
@@ -58,10 +58,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     locale
   );
 
-  const showUserPrediction = useMemo(
-    () => hasUserForecast || isDirty,
-    [hasUserForecast, isDirty]
-  );
+  const showUserPrediction = hasUserForecast || isDirty;
 
   // Only calculate these if not resolved
   let continuousAreaChartData: ContinuousAreaGraphInput = [];
@@ -71,8 +68,8 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   if (!isResolved) {
     const latest = question.aggregations.recency_weighted.latest;
     const optionForecast =
-      forecastInputMode === ForecastInputType.Slider
-        ? getNumericForecastDataset(
+      forecastInputMode === ContinuousForecastInputType.Slider
+        ? getSliderNumericForecastDataset(
             option.userSliderForecast,
             question.open_lower_bound,
             question.open_upper_bound
@@ -95,7 +92,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
       scaling: option.question.scaling,
     });
     userMedian = showUserPrediction
-      ? forecastInputMode === ForecastInputType.Quantile
+      ? forecastInputMode === ContinuousForecastInputType.Quantile
         ? displayValue(
             option.userQuantileForecast?.find((q) => q.quantile === Quantile.q2)
               ?.value ?? null,

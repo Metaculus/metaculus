@@ -63,7 +63,7 @@ export enum GroupOfQuestionsGraphType {
   MultipleChoiceGraph = "multiple_choice_graph",
 }
 
-export enum ForecastInputType {
+export enum ContinuousForecastInputType {
   Slider = "slider",
   Quantile = "quantile",
 }
