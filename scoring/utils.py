@@ -267,14 +267,21 @@ def generate_question_writing_leaderboard_entries(
             forecaster_ids_for_post[post].update(forecasters)
 
     user_list = list(leaderboard.user_list.all())
-    exclusions = {e.user: e for e in MedalExclusionRecord.objects.all()}
+    exclusions = {
+        e.user_id: e
+        for e in MedalExclusionRecord.objects.filter(
+            (Q(project__isnull=True) & Q(leaderboard__isnull=True))
+            | Q(leaderboard=leaderboard)
+            | Q(project=leaderboard.project),
+        )
+    }
     scores_for_author: dict[User, list[float]] = defaultdict(list)
     for post, forecaster_ids in forecaster_ids_for_post.items():
         all_authors = [post.author] + list(post.coauthors.all())
         if user_list:
             all_authors = [a for a in all_authors if a in user_list]
         for author in all_authors:
-            if exclusion := exclusions.get(author):
+            if exclusion := exclusions.get(author.id):
                 if post.published_at > exclusion.start_time and (
                     exclusion.end_time is None or post.published_at < exclusion.end_time
                 ):
@@ -332,7 +339,11 @@ def assign_ranks(
         entries.sort(key=lambda entry: entry.score, reverse=True)
 
     # set up exclusions
-    exclusion_records = MedalExclusionRecord.objects.all()
+    exclusion_records = MedalExclusionRecord.objects.filter(
+        (Q(project__isnull=True) & Q(leaderboard__isnull=True))
+        | Q(leaderboard=leaderboard)
+        | Q(project=leaderboard.project),
+    )
     start_time = leaderboard.start_time or (
         leaderboard.project.start_date if leaderboard.project else None
     )
@@ -348,10 +359,14 @@ def assign_ranks(
         )
     if end_time:
         # only exclude by end_time if it's set
-        exclusion_records = exclusion_records.filter(start_time__lte=end_time)
+        exclusion_records = exclusion_records.filter(
+            Q(start_time__isnull=True) | Q(start_time__lte=end_time)
+        )
     elif finalize_time:
         # if end_time is not set, use finalize_time
-        exclusion_records = exclusion_records.filter(start_time__lte=finalize_time)
+        exclusion_records = exclusion_records.filter(
+            Q(start_time__isnull=True) | Q(start_time__lte=finalize_time)
+        )
     excluded_ids: set[int | None] = set(
         exclusion_records.values_list("user_id", flat=True)
     )
