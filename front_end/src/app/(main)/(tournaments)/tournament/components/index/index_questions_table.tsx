@@ -40,6 +40,7 @@ type TableItem = {
   weight: number;
   communityPrediction: IndexCommunityPrediction;
   post: PostWithForecasts;
+  questionId: number;
 };
 
 const columnHelper = createColumnHelper<TableItem>();
@@ -74,7 +75,10 @@ const IndexQuestionsTable: FC<Props> = ({ indexWeights, HeadingSection }) => {
         cell: (info) => (
           <>
             <Link
-              href={getPostLink(info.row.original.post)}
+              href={getPostLink(
+                info.row.original.post,
+                info.row.original.questionId
+              )}
               className="absolute inset-0"
             />
             {info.getValue()}
@@ -213,6 +217,7 @@ function getTableData(questions: ProjectIndexWeights[]): TableItem[] {
         displayValue: cpDisplayValue,
       },
       post: obj.post,
+      questionId: obj.question_id,
     });
   }
 
@@ -220,11 +225,11 @@ function getTableData(questions: ProjectIndexWeights[]): TableItem[] {
 }
 
 const MobileQuestionCell: FC<CellContext<TableItem, string>> = ({ row }) => {
-  const { title, weight, communityPrediction, post } = row.original;
+  const { title, weight, communityPrediction, post, questionId } = row.original;
 
   return (
     <div className="flex flex-col gap-2">
-      <Link href={getPostLink(post)} className="absolute inset-0" />
+      <Link href={getPostLink(post, questionId)} className="absolute inset-0" />
 
       <span className="text-sm font-medium leading-5">{title}</span>
       <CommunityPrediction post={post} {...communityPrediction} />

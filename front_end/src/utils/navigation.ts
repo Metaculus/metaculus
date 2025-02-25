@@ -1,5 +1,6 @@
 import { Post } from "@/types/post";
 import { Project, TournamentType } from "@/types/projects";
+import { Question } from "@/types/question";
 import { Optional } from "@/types/utils";
 
 type EncodableValue = string | number | boolean;
@@ -35,17 +36,26 @@ export const addUrlParams = (
 
 export const getPostLink = (
   post: Optional<
-    Pick<Post, "id" | "slug" | "notebook" | "projects">,
-    "notebook" | "projects"
-  >
+    Pick<Post, "id" | "slug" | "notebook" | "projects" | "group_of_questions">,
+    "notebook" | "projects" | "group_of_questions"
+  >,
+  questionId?: number
 ) => {
+  let url = `/questions/${post.id}/${post.slug}/`;
   const defaultProject = post.projects?.default_project;
-  if (defaultProject?.type === TournamentType.Community) {
-    return `/c/${defaultProject.slug}/${post.id}/${post.slug}/`;
-  }
-  if (!!post.notebook) return `/notebooks/${post.id}/${post.slug}/`;
 
-  return `/questions/${post.id}/${post.slug}/`;
+  if (defaultProject?.type === TournamentType.Community) {
+    url = `/c/${defaultProject.slug}/${post.id}/${post.slug}/`;
+  } else if (!!post.notebook) {
+    url = `/notebooks/${post.id}/${post.slug}/`;
+  }
+
+  // If generate links to the specific subquestion
+  if (post?.group_of_questions?.questions.length && questionId) {
+    url += `?sub-question=${questionId}`;
+  }
+
+  return url;
 };
 
 export const getProjectLink = (project: Project) => {
