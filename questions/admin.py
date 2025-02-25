@@ -30,7 +30,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "post_link",
     ]
     readonly_fields = ["post_link"]
-    search_fields = ["title_original", "description_original"]
+    search_fields = ["title_original", "description_original", "related_posts__post__id", "related_posts__post__title"]
     actions = [
         "export_selected_questions_data",
         "export_selected_questions_data_anonymized",
