@@ -230,9 +230,7 @@ class GroupOfQuestionsUpdateSerializer(GroupOfQuestionsWriteSerializer):
 
 class ForecastSerializer(serializers.ModelSerializer):
     quartiles = serializers.SerializerMethodField()
-    range_min = serializers.FloatField(source="question.range_min")
-    range_max = serializers.FloatField(source="question.range_max")
-    zero_point = serializers.FloatField(source="question.zero_point")
+    scaling = serializers.SerializerMethodField()
     options = serializers.ListField(
         child=serializers.CharField(), source="question.options"
     )
@@ -246,9 +244,7 @@ class ForecastSerializer(serializers.ModelSerializer):
             "probability_yes_per_category",
             "continuous_cdf",
             "quartiles",
-            "range_min",
-            "range_max",
-            "zero_point",
+            "scaling",
             "options",
             "question_type",
         )
@@ -257,6 +253,14 @@ class ForecastSerializer(serializers.ModelSerializer):
         question = forecast.question
         if question.type in [Question.QuestionType.DATE, Question.QuestionType.NUMERIC]:
             return get_scaled_quartiles_from_cdf(forecast.continuous_cdf, question)
+
+    def get_scaling(self, forecast: Forecast):
+        question = forecast.question
+        return {
+            "range_max": question.range_max,
+            "range_min": question.range_min,
+            "zero_point": question.zero_point,
+        }
 
 
 class MyForecastSerializer(serializers.ModelSerializer):
