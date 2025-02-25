@@ -10,7 +10,7 @@ from django.utils.html import format_html
 from django_select2.forms import ModelSelect2MultipleWidget
 
 from posts.models import Post
-from projects.models import Project, ProjectUserPermission
+from projects.models import Project, ProjectUserPermission, ProjectIndexQuestion
 from questions.models import Question
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
@@ -78,6 +78,15 @@ class ProjectUserPermissionInline(admin.TabularInline):
         if project_id and qs.filter(project_id=project_id).count() > 100:
             return qs.none()
         return qs.filter(project_id=project_id)
+
+
+class ProjectIndexQuestionsInline(admin.TabularInline):
+    verbose_name = "Index: question weight"
+
+    model = ProjectIndexQuestion
+    extra = 1
+    # TODO: try to pre-populate only questions related to the given Project
+    autocomplete_fields = ("question",)
 
 
 class PostSelect2MultipleWidget(ModelSelect2MultipleWidget):
@@ -250,6 +259,7 @@ class ProjectAdmin(CustomTranslationAdmin):
     autocomplete_fields = ["created_by"]
     ordering = ["-created_at"]
     inlines = [
+        ProjectIndexQuestionsInline,
         ProjectUserPermissionInline,
         PostDefaultProjectInline,
         PostProjectInline,

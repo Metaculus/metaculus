@@ -20,6 +20,7 @@ from projects.serializers.common import (
     ProjectUserSerializer,
     TournamentShortSerializer,
     NewsCategorySerialize,
+    serialize_project_index_weights,
 )
 from projects.services.common import (
     get_projects_qs,
@@ -183,6 +184,8 @@ def tournament_by_slug_api_view(request: Request, slug: str):
 
     if request.user.is_authenticated:
         data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
+
+    data["index_weights"] = serialize_project_index_weights(obj)
 
     return Response(data)
 

@@ -24,7 +24,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import useScreenSize from "@/hooks/use_screen_size";
-import { PostWithForecasts, PostWithForecastsAndWeight } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
+import { ProjectIndexWeights } from "@/types/projects";
 import { getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import { getPostLink } from "@/utils/navigation";
@@ -39,19 +40,20 @@ type TableItem = {
   weight: number;
   communityPrediction: IndexCommunityPrediction;
   post: PostWithForecasts;
+  questionId: number;
 };
 
 const columnHelper = createColumnHelper<TableItem>();
 
 type Props = {
-  indexQuestions: PostWithForecastsAndWeight[];
+  indexWeights: ProjectIndexWeights[];
   HeadingSection?: ReactNode;
 };
 
-const IndexQuestionsTable: FC<Props> = ({ indexQuestions, HeadingSection }) => {
+const IndexQuestionsTable: FC<Props> = ({ indexWeights, HeadingSection }) => {
   const t = useTranslations();
 
-  const data = useMemo(() => getTableData(indexQuestions), [indexQuestions]);
+  const data = useMemo(() => getTableData(indexWeights), [indexWeights]);
   const questionsCount = data.length;
 
   const { width } = useScreenSize();
@@ -73,7 +75,10 @@ const IndexQuestionsTable: FC<Props> = ({ indexQuestions, HeadingSection }) => {
         cell: (info) => (
           <>
             <Link
-              href={getPostLink(info.row.original.post)}
+              href={getPostLink(
+                info.row.original.post,
+                info.row.original.questionId
+              )}
               className="absolute inset-0"
             />
             {info.getValue()}
@@ -183,29 +188,36 @@ const IndexQuestionsTable: FC<Props> = ({ indexQuestions, HeadingSection }) => {
   );
 };
 
-function getTableData(questions: PostWithForecastsAndWeight[]): TableItem[] {
+function getTableData(questions: ProjectIndexWeights[]): TableItem[] {
   const data: TableItem[] = [];
-  for (const post of questions) {
-    if (!post.question) {
+  for (const obj of questions) {
+    const question =
+      obj.post.question ||
+      obj.post.group_of_questions?.questions?.find(
+        (q) => obj.question_id === q.id
+      );
+
+    if (!question) {
       continue;
     }
 
     const cpRawValue =
-      post.question.aggregations.recency_weighted.latest?.centers?.[0] ?? null;
+      question.aggregations.recency_weighted.latest?.centers?.[0] ?? null;
     const cpDisplayValue = getDisplayValue({
       value: cpRawValue,
-      questionType: post.question.type,
-      scaling: post.question.scaling,
+      questionType: question.type,
+      scaling: question.scaling,
     });
 
     data.push({
-      title: post.title,
-      weight: post.weight,
+      title: question.title,
+      weight: obj.weight,
       communityPrediction: {
         rawValue: cpRawValue,
         displayValue: cpDisplayValue,
       },
-      post,
+      post: obj.post,
+      questionId: obj.question_id,
     });
   }
 
@@ -213,11 +225,11 @@ function getTableData(questions: PostWithForecastsAndWeight[]): TableItem[] {
 }
 
 const MobileQuestionCell: FC<CellContext<TableItem, string>> = ({ row }) => {
-  const { title, weight, communityPrediction, post } = row.original;
+  const { title, weight, communityPrediction, post, questionId } = row.original;
 
   return (
     <div className="flex flex-col gap-2">
-      <Link href={getPostLink(post)} className="absolute inset-0" />
+      <Link href={getPostLink(post, questionId)} className="absolute inset-0" />
 
       <span className="text-sm font-medium leading-5">{title}</span>
       <CommunityPrediction post={post} {...communityPrediction} />
