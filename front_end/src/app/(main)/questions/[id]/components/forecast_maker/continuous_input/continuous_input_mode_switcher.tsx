@@ -1,22 +1,30 @@
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import { ForecastInputType } from "@/types/charts";
+import { ContinuousForecastInputType } from "@/types/charts";
 import cn from "@/utils/cn";
 
 type Props = {
-  mode: string;
-  setMode: (mode: ForecastInputType) => void;
+  mode: ContinuousForecastInputType;
+  onChange: (mode: ContinuousForecastInputType) => void;
 };
 
-const SliderInputModeSwitcher: FC<Props> = ({ mode, setMode }) => {
+const ContinuousInputModeSwitcher: FC<Props> = ({ mode, onChange }) => {
   const t = useTranslations();
   return (
     <div className="flex h-fit gap-1">
-      <SwitcherBtn setMode={setMode} mode={mode} value="slider">
+      <SwitcherBtn
+        onChange={onChange}
+        mode={mode}
+        value={ContinuousForecastInputType.Slider}
+      >
         {t("slider")}
       </SwitcherBtn>
-      <SwitcherBtn setMode={setMode} mode={mode} value="table">
+      <SwitcherBtn
+        onChange={onChange}
+        mode={mode}
+        value={ContinuousForecastInputType.Quantile}
+      >
         {t("table")}
       </SwitcherBtn>
     </div>
@@ -24,21 +32,21 @@ const SliderInputModeSwitcher: FC<Props> = ({ mode, setMode }) => {
 };
 
 type SwitcherBtnProps = {
-  value: ForecastInputType;
+  value: ContinuousForecastInputType;
   mode: string;
-  setMode: (mode: ForecastInputType) => void;
+  onChange: (mode: ContinuousForecastInputType) => void;
 };
 
 const SwitcherBtn: FC<PropsWithChildren<SwitcherBtnProps>> = ({
   value,
   mode,
-  setMode,
+  onChange,
   children,
 }) => {
   const isActive = mode === value;
   return (
     <button
-      onClick={() => setMode(value)}
+      onClick={() => onChange(value)}
       className={cn(
         "px-2 py-1 text-blue-800 transition-all duration-200 hover:bg-gray-0 dark:text-blue-800-dark dark:hover:bg-gray-0-dark",
         isActive &&
@@ -50,4 +58,4 @@ const SwitcherBtn: FC<PropsWithChildren<SwitcherBtnProps>> = ({
   );
 };
 
-export default SliderInputModeSwitcher;
+export default ContinuousInputModeSwitcher;
