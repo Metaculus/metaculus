@@ -135,7 +135,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
         textAlign="left"
       >
         {isPending ? (
-          <LoadingSpinner size="lg" className="h-[32px] w-[32px]" />
+          <LoadingSpinner size="lg" className="size-[26px]" />
         ) : (
           button
         )}
