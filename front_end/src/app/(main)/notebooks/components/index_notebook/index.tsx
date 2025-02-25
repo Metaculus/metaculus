@@ -107,6 +107,8 @@ function calculateIndex(posts: PostWithForecastsAndWeight[]): {
   if (weightSum === 0) {
     return { index: 0, indexWeekAgo: 0 };
   }
+  const dateNow = new Date();
+  const weekAgoDate = subWeeks(dateNow, 1);
 
   const { scoreSum, weeklyScoreSum } = posts.reduce(
     (acc, post) => {
@@ -125,11 +127,14 @@ function calculateIndex(posts: PostWithForecastsAndWeight[]): {
       let postValue = 0;
       let postValueWeekAgo = 0;
       const cp = latestAggregation.centers?.at(-1);
-      const latestDate = fromUnixTime(latestAggregation.start_time);
-      const weekAgoDate = subWeeks(latestDate, 1);
-      const weekAgoCP = historyAggregation.find(
-        (el) => fromUnixTime(el.start_time) >= weekAgoDate
-      )?.centers?.[0];
+
+      const weekAgoCP =
+        historyAggregation.find(
+          (el) =>
+            el.end_time &&
+            fromUnixTime(el.end_time) >=
+              fromUnixTime(weekAgoDate.getTime() / 1000)
+        )?.centers?.[0] ?? null;
 
       switch (post.question.type) {
         case QuestionType.Binary: {

@@ -30,7 +30,9 @@ const CommunityPrediction: FC<Props> = ({ rawValue, displayValue, post }) => {
       <span className="font-bold text-gray-700 dark:text-gray-700-dark">
         {displayValue}
       </span>
-      {!!post.question && <CPWeeklyMovement question={post.question} />}
+      {!!post.question && (
+        <CPWeeklyMovement question={post.question} checkDelta={false} />
+      )}
     </div>
   );
 };
