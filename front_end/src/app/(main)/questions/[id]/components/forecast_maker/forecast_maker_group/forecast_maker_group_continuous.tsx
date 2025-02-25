@@ -94,12 +94,24 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   // ensure options have the latest forecast data
   useEffect(() => {
-    setGroupOptions((prev) =>
-      prev.map((o) => ({
-        ...o,
-        question: questions.find((q) => q.id === o.question.id) ?? o.question,
-      }))
+    const newGroupOptions = generateGroupOptions(
+      questions,
+      prevForecastValuesMap,
+      permission,
+      post
     );
+    setGroupOptions((prev) =>
+      prev.map((o) => {
+        const newOption = newGroupOptions.find((q) => q.id === o.question.id);
+        return {
+          ...o,
+          resolution: newOption?.resolution ?? o.resolution,
+          menu: newOption?.menu ?? o.menu,
+          question: newOption?.question ?? o.question,
+        };
+      })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
