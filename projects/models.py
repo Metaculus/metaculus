@@ -14,6 +14,7 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.permissions import ObjectPermission
 from questions.constants import ResolutionType
+from questions.models import Question
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
 
@@ -421,5 +422,35 @@ class ProjectSubscription(TimeStampedModel):
             models.UniqueConstraint(
                 name="projectsubscription_unique_user_project",
                 fields=["user_id", "project_id"],
+            )
+        ]
+
+
+class ProjectIndexQuestion(TimeStampedModel):
+    """
+    Index project question weights
+    """
+
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="index_questions"
+    )
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        help_text="Index Post Question",
+    )
+    weight = models.FloatField()
+
+    order = models.IntegerField(
+        help_text="Will be displayed ordered by this field inside each section",
+        default=0,
+    )
+
+    class Meta:
+        ordering = ("order",)
+        constraints = [
+            models.UniqueConstraint(
+                name="projectindexquestion_unique_project_question",
+                fields=["project", "question"],
             )
         ]

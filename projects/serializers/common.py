@@ -7,8 +7,8 @@ from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission
 from projects.serializers.communities import CommunitySerializer
-from users.serializers import UserPublicSerializer
 from scoring.models import GLOBAL_LEADERBOARD_STRING
+from users.serializers import UserPublicSerializer
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -131,6 +131,36 @@ def serialize_projects(
         if obj == default_project:
             data["default_project"] = serialized_data
     return data
+
+
+def serialize_project_index_weights(project: Project):
+    """
+    Serialize project index posts with weight mapping
+    """
+
+    from posts.serializers import serialize_post_many
+
+    index_weights = []
+    qs = project.index_questions.prefetch_related("question__related_posts__post")
+    posts_map = {
+        x["id"]: x
+        for x in serialize_post_many(
+            {x.question.get_post().id for x in qs}, with_cp=True
+        )
+    }
+
+    for project_question in qs:
+        post = posts_map[project_question.question.get_post().id]
+
+        index_weights.append(
+            {
+                "post": post,
+                "question_id": project_question.question_id,
+                "weight": project_question.weight,
+            }
+        )
+
+    return index_weights
 
 
 def validate_categories(lookup_field: str, lookup_values: list):
