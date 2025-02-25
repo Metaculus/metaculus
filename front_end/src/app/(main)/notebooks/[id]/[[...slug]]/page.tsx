@@ -17,7 +17,7 @@ import {
 } from "@/app/(main)/notebooks/constants/page_sections";
 import PostHeader from "@/app/(main)/questions/[id]/components/post_header";
 import CommentFeed from "@/components/comment_feed";
-import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
+import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import CircleDivider from "@/components/ui/circle_divider";
@@ -28,13 +28,10 @@ import {
 } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
-import { PostStatus, NotebookPost } from "@/types/post";
+import { NotebookPost, PostStatus } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
-
-import IndexNotebook from "../../components/index_notebook";
-import { NOTEBOOK_INDEXES } from "../../constants/indexes";
 
 type Props = {
   params: { id: number; slug: string[] };
@@ -81,28 +78,6 @@ export default async function IndividualNotebook({ params }: Props) {
   ) : (
     <Header />
   );
-
-  // we can pass custom slug for indexes in params
-  const slugParam = params.slug?.[0] ?? postData.slug;
-  const indexNotebook = NOTEBOOK_INDEXES[slugParam];
-  if (!!indexNotebook) {
-    const questionIds = indexNotebook.map((q) => q.questionId);
-    const questionWeightsMap = Object.fromEntries(
-      indexNotebook.map((q) => [q.questionId, q.weight])
-    );
-
-    return (
-      <>
-        {HeaderElement}
-        <IndexNotebook
-          postData={postData}
-          questionTitle={questionTitle}
-          questionIds={questionIds}
-          questionWeightsMap={questionWeightsMap}
-        />
-      </>
-    );
-  }
 
   return (
     <>

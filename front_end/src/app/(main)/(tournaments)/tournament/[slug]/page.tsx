@@ -8,6 +8,7 @@ import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
+import IndexSection from "@/app/(main)/(tournaments)/tournament/components/index";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
@@ -74,6 +75,8 @@ export default async function TournamentSlug({ params }: Props) {
   const questionsTitle = isQuestionSeries
     ? t("SeriesContents")
     : t("questions");
+
+  const indexWeights = tournament.index_weights ?? [];
 
   return (
     <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto px-0">
@@ -144,6 +147,10 @@ export default async function TournamentSlug({ params }: Props) {
             </div>
           </div>
           <HtmlContent content={tournament.description} />
+
+          {indexWeights.length > 0 && (
+            <IndexSection indexWeights={indexWeights} />
+          )}
 
           {tournament.score_type && (
             <div className="mt-3 flex flex-col gap-3">

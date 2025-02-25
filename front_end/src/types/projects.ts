@@ -1,4 +1,4 @@
-import { ProjectPermissions } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { UserBase, UserProfile } from "@/types/users";
 
 type TopicSection = "hot_categories" | "hot_topics";
@@ -76,6 +76,13 @@ export type Tournament = TournamentPreview & {
   visibility: ProjectVisibility;
   default_permission?: ProjectPermissions | null;
   is_current_content_translated?: boolean;
+  index_weights?: ProjectIndexWeights[];
+};
+
+export type ProjectIndexWeights = {
+  post: PostWithForecasts;
+  question_id: number;
+  weight: number;
 };
 
 export type Community = Project & {
