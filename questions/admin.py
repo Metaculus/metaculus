@@ -1,10 +1,10 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 from django.db.models import QuerySet
-from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django.http import HttpResponse
-from django.utils.html import format_html
 from django.urls import reverse
+from django.utils.html import format_html
+from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
 from questions.models import (
     AggregateForecast,
@@ -30,7 +30,13 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "post_link",
     ]
     readonly_fields = ["post_link"]
-    search_fields = ["title_original", "description_original", "related_posts__post__id", "related_posts__post__title"]
+    search_fields = [
+        "id",
+        "title_original",
+        "description_original",
+        "related_posts__post__id",
+        "related_posts__post__title",
+    ]
     actions = [
         "export_selected_questions_data",
         "export_selected_questions_data_anonymized",
