@@ -2,6 +2,7 @@ import { faCalendar } from "@fortawesome/free-regular-svg-icons";
 import { faAward } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isAfter } from "date-fns";
+import { isNil } from "lodash";
 import Image from "next/image";
 import Link, { LinkProps } from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -15,7 +16,7 @@ type Props = {
   headerImageSrc: string;
   name: string;
   questionsCount: number;
-  closeDate: string;
+  closeDate?: string;
   showCloseDate: boolean;
   isPrivate?: boolean;
   prizePool?: string | null;
@@ -100,7 +101,7 @@ const TournamentCard: FC<Props> = ({
             </span>
           </div>
         )}
-        {!!showCloseDate && (
+        {!!showCloseDate && !isNil(closeDate) && (
           <div className="mt-2">
             <FontAwesomeIcon
               icon={faCalendar}

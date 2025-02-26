@@ -59,7 +59,7 @@ const TournamentSubscribeButton: FC<Props> = ({ user, tournament }) => {
           variant="primary"
           onClick={handleUnsubscribe}
           disabled={isLoading}
-          className="border-blue-400 px-4 text-base font-medium leading-5 text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark"
+          className="border-blue-400 px-4 py-[5px] text-sm font-medium leading-5 text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark lg:text-base"
         >
           <FontAwesomeIcon icon={faBell} type="solid" />
           {t("unfollowButton")}
@@ -69,7 +69,7 @@ const TournamentSubscribeButton: FC<Props> = ({ user, tournament }) => {
           variant="secondary"
           onClick={handleSubscribe}
           disabled={isLoading}
-          className="border-blue-400 px-4 text-base font-medium leading-5 text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark"
+          className="border-blue-400 px-4 py-[5px] text-sm font-medium leading-5 text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark lg:text-base"
         >
           <FontAwesomeIcon icon={faBell} type="solid" />
           {t("followButton")}
