@@ -35,12 +35,12 @@ const TournamentDropdownMenu: FC<Props> = ({ tournament }) => {
   return (
     <DropdownMenu items={menuItems} className="normal-case">
       <Button
-        className=" rounded border-0 bg-transparent hover:bg-blue-500 dark:hover:bg-blue-500-dark"
+        className="rounded-full border-0 bg-black/50 hover:bg-blue-500 dark:bg-black/50 dark:hover:bg-blue-500-dark"
         presentationType="icon"
       >
         <FontAwesomeIcon
           icon={faEllipsis}
-          className="text-gray-0 dark:text-gray-0-dark"
+          className="text-gray-0 dark:text-gray-0"
         />
       </Button>
     </DropdownMenu>

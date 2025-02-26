@@ -29,7 +29,7 @@ export default function PostHeader({
   questionTitle: string;
 }) {
   const t = useTranslations();
-
+  console.log(post);
   let typeLabel = t("notebook");
   if (post.group_of_questions) {
     typeLabel = t("group");

@@ -1,9 +1,10 @@
+import { isNil } from "lodash";
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { FC } from "react";
+import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
@@ -12,6 +13,7 @@ import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/com
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 import { defaultDescription } from "@/constants/metadata";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
@@ -22,9 +24,10 @@ import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+import TempImage from "./temp.png"; // TODO: Remove this
 import TournamentDropdownMenu from "../components/dropdown_menu";
 import TournamentFeed from "../components/tournament_feed";
-
+import TournamentTimeline from "../components/tournament_timeline";
 const LazyProjectMembers = dynamic(() => import("../components/members"), {
   ssr: false,
 });
@@ -60,7 +63,7 @@ export default async function TournamentSlug({ params }: Props) {
   const tournament = await ProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
-
+  console.log(tournament);
   const currentUser = await ProfileApi.getMyProfile();
 
   const t = await getTranslations();
@@ -72,48 +75,58 @@ export default async function TournamentSlug({ params }: Props) {
     : t("questions");
 
   return (
-    <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto px-0">
-      <div className="bg-gray-0 dark:bg-gray-0-dark">
-        <div
-          className={cn(
-            "flex flex-wrap items-center justify-between gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
-            tournament.type === TournamentType.QuestionSeries
-              ? "bg-gray-500 dark:bg-gray-500-dark"
-              : "bg-blue-600 dark:bg-blue-600-dark"
-          )}
-        >
-          <Link
-            href={"/tournaments"}
-            className="no-underline hover:text-gray-400 dark:hover:text-gray-400-dark"
+    <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
+      {/* header block */}
+      <div className="overflow-hidden rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
+        <div className="relative h-[130px] w-full">
+          <div
+            className={cn(
+              "absolute z-10 flex h-6 w-full flex-wrap items-center justify-between gap-2.5 bg-transparent p-[10px] text-[20px] uppercase text-gray-100 dark:text-gray-100-dark"
+            )}
           >
-            {title}
-          </Link>
-          <TournamentDropdownMenu tournament={tournament} />
-        </div>
-        {!!tournament.header_image && (
-          <div className="relative h-[130px] w-full">
+            <Link
+              href={"/tournaments"}
+              className="block bg-black/30 px-1.5 py-1 text-xs font-bold leading-4 text-gray-0 no-underline hover:text-gray-400 dark:hover:text-gray-400-dark"
+            >
+              {title}
+            </Link>
+            <TournamentDropdownMenu tournament={tournament} />
+          </div>
+          {!!tournament.header_image && (
             <Image
-              src={tournament.header_image}
+              src={TempImage ?? tournament.header_image}
               alt=""
               fill
               priority
               className="size-full object-cover object-center"
               unoptimized
             />
+          )}
+        </div>
+        <div className="px-4 pb-5 pt-4 sm:p-8">
+          <div className="flex items-start justify-between gap-1 sm:gap-4">
+            <div className="flex flex-row items-center">
+              <h1 className="m-0 text-xl text-blue-800 dark:text-blue-800-dark md:text-2xl lg:text-3xl xl:text-4xl">
+                {tournament.name}
+              </h1>
+              {tournament.default_permission === null && (
+                <strong className="self-start rounded-sm bg-blue-300 px-1 text-sm uppercase text-gray-900 dark:bg-blue-300-dark dark:text-gray-900-dark">
+                  {t("private")}
+                </strong>
+              )}
+            </div>
+            <div>
+              <TournamentSubscribeButton
+                user={currentUser}
+                tournament={tournament}
+              />
+            </div>
           </div>
-        )}
-        <div className="bg-gray-0 px-3 pb-4 dark:bg-gray-0-dark">
-          <div className="flex justify-between gap-1 pb-2">
-            <h1>{tournament.name}</h1>
-            {tournament.default_permission === null && (
-              <strong className="mt-4 self-start rounded-sm bg-blue-300 px-1 text-sm uppercase text-gray-900 dark:bg-blue-300-dark dark:text-gray-900-dark">
-                {t("private")}
-              </strong>
-            )}
-          </div>
-          <div className="flex flex-row items-center justify-between">
-            <div className="flex flex-wrap gap-9 py-4">
-              {tournament.prize_pool !== null && (
+          {/* Timeline block */}
+          {/* <div className="flex flex-row items-center justify-between"> */}
+          {tournament.type === TournamentType.QuestionSeries && (
+            <div className="flex flex-wrap gap-x-9 gap-y-4 py-4">
+              {!isNil(tournament.prize_pool) && (
                 <TournamentStat
                   title={t("prizePool")}
                   text={"$" + Number(tournament.prize_pool).toLocaleString()}
@@ -123,22 +136,45 @@ export default async function TournamentSlug({ params }: Props) {
                 title={t("StartDate")}
                 text={formatDate(locale, new Date(tournament.start_date))}
               />
-              <TournamentStat
-                title={t("EndDate")}
-                text={formatDate(locale, new Date(tournament.close_date))}
-              />
+              {!isNil(tournament.close_date) && (
+                <TournamentStat
+                  title={t("EndDate")}
+                  text={formatDate(locale, new Date(tournament.close_date))}
+                />
+              )}
               <TournamentStat
                 title={t("questions")}
                 text={tournament.questions_count.toString()}
               />
             </div>
-            <div>
-              <TournamentSubscribeButton
-                user={currentUser}
-                tournament={tournament}
-              />
-            </div>
-          </div>
+          )}
+          {tournament.type === TournamentType.Tournament && (
+            <Suspense fallback={<LoadingSpinner />}>
+              <TournamentTimeline tournament={tournament} />
+            </Suspense>
+          )}
+        </div>
+      </div>
+      {/* Links block */}
+      <div className="mx-4 mt-4 flex flex-row justify-between gap-2 lg:mx-0">
+        {/* TODO: Uncomment this when the forecast flow is implemented */}
+        {/* <Link href="/forecastFlowLink" className="flex-1">
+          <Button className="w-full border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg md:leading-7">
+            {t("forecastFlow")}
+          </Button>
+        </Link> */}
+        <Link href="#questions" className="flex-1">
+          <Button className="w-full gap-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg md:leading-7">
+            {t.rich("viewQuestions", {
+              count: tournament.questions_count,
+              bold: (chunks) => <span className="font-bold">{chunks}</span>,
+            })}
+          </Button>
+        </Link>
+      </div>
+      {/* description block */}
+      <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">
+        <div>
           <HtmlContent content={tournament.description} />
 
           <div className="mt-3 flex flex-col gap-3">
@@ -155,10 +191,18 @@ export default async function TournamentSlug({ params }: Props) {
             )}
           </div>
         </div>
+      </div>
 
-        <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
+      {/* Questions block */}
+      <div
+        id="questions"
+        className="mx-4 mt-4 scroll-mt-nav rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0"
+      >
+        <section className="mx-2 px-1 py-4">
           <div className="mb-5 flex flex-row justify-between">
-            <h2 className="m-0">{questionsTitle}</h2>
+            <h2 className="m-0 text-blue-800 dark:text-blue-800-dark">
+              {questionsTitle}
+            </h2>
             {currentUser && (
               <Button href={`/questions/create?tournament_id=${tournament.id}`}>
                 + {t("question")}
@@ -169,6 +213,7 @@ export default async function TournamentSlug({ params }: Props) {
           <TournamentFeed tournament={tournament} />
         </section>
       </div>
+
       {!PUBLIC_MINIMAL_UI &&
         [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
           tournament.user_permission
@@ -181,8 +226,10 @@ const TournamentStat: FC<{ title: string; text: string }> = ({
   text,
   title,
 }) => (
-  <div className="flex flex-col">
-    <span className="font-semibold capitalize leading-5">{title}</span>
+  <div className="flex flex-col text-blue-800 dark:text-blue-800-dark">
+    <span className="text-sm font-normal capitalize leading-5 opacity-50">
+      {title}
+    </span>
     <span className="text-xl font-bold leading-6">{text}</span>
   </div>
 );
