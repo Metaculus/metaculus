@@ -36,6 +36,7 @@ const WeeklyMovement: FC<Props> = ({
               isNegative
                 ? "text-salmon-600 dark:text-salmon-600-dark"
                 : "text-olive-700 dark:text-olive-700-dark",
+              "mr-1",
               iconClassName
             )}
             icon={isNegative ? faCaretDown : faCaretUp}

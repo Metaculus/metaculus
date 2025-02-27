@@ -11,11 +11,16 @@ import WeeklyMovement from "./weekly_movement";
 type Props = {
   question: QuestionWithForecasts;
   className?: string;
+  checkDelta?: boolean;
 };
 
-const CPWeeklyMovement: FC<Props> = ({ question, className }) => {
+const CPWeeklyMovement: FC<Props> = ({
+  question,
+  className,
+  checkDelta = true,
+}) => {
   const t = useTranslations();
-  const weeklyMovement = getQuestionWeeklyMovement(question);
+  const weeklyMovement = getQuestionWeeklyMovement(question, checkDelta);
   const percentagePoints =
     question?.type === QuestionType.Binary ? ` ${t("percentagePoints")}` : "";
 
@@ -39,7 +44,8 @@ const CPWeeklyMovement: FC<Props> = ({ question, className }) => {
 };
 
 function getQuestionWeeklyMovement(
-  question: QuestionWithForecasts
+  question: QuestionWithForecasts,
+  checkDelta: boolean = true
 ): number | null {
   if (
     question.type === QuestionType.MultipleChoice ||
@@ -53,13 +59,15 @@ function getQuestionWeeklyMovement(
     return null;
   }
 
-  const latestDate = fromUnixTime(latestAggregation.start_time);
   const latestCP = latestAggregation.centers?.[0] ?? null;
 
-  const weekAgoDate = subWeeks(latestDate, 1);
+  const dateNow = new Date();
+  const weekAgoDate = subWeeks(dateNow, 1);
   const weekAgoCP =
     historyAggregation.find(
-      (el) => el.end_time && fromUnixTime(el.end_time) >= weekAgoDate
+      (el) =>
+        el.end_time &&
+        fromUnixTime(el.end_time) >= fromUnixTime(weekAgoDate.getTime() / 1000)
     )?.centers?.[0] ?? null;
 
   if (!latestCP || !weekAgoCP) {
@@ -67,7 +75,7 @@ function getQuestionWeeklyMovement(
   }
 
   const delta = latestCP - weekAgoCP;
-  if (Math.abs(delta) < 0.1) {
+  if (checkDelta && Math.abs(delta) < 0.1) {
     return null;
   }
 
