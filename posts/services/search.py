@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 import numpy as np
+from asgiref.sync import async_to_sync
 from django.contrib.postgres.search import SearchVector, SearchQuery
 from django.db.models import Value, Case, When, FloatField, QuerySet
 from pgvector.django import CosineDistance
@@ -66,9 +67,9 @@ def update_post_search_embedding_vector(post: Post):
 
 
 def perform_post_search(qs, search_text: str):
-    embedding_vector, semantic_scores_by_id = asyncio.run(
-        gather_search_results(search_text)
-    )
+    embedding_vector, semantic_scores_by_id = async_to_sync(
+        gather_search_results
+    )(search_text)
     semantic_scores_by_id = semantic_scores_by_id or {}
 
     semantic_whens = [
