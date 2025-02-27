@@ -1,6 +1,5 @@
 import { Post } from "@/types/post";
 import { Project, TournamentType } from "@/types/projects";
-import { Question } from "@/types/question";
 import { Optional } from "@/types/utils";
 
 type EncodableValue = string | number | boolean;
@@ -58,12 +57,16 @@ export const getPostLink = (
   return url;
 };
 
-export const getProjectLink = (project: Project) => {
+export const getProjectLink = (
+  project: Pick<Project, "id" | "type" | "slug">
+) => {
   switch (project.type) {
     case TournamentType.NewsCategory:
       return `/news/?news_type=${project.slug}`;
     case TournamentType.Community:
       return `/c/${project.slug}/`;
+    case TournamentType.Index:
+      return `/index/${project.slug || project.id}/`;
     default:
       return `/tournament/${project.slug ?? project.id}`;
   }
