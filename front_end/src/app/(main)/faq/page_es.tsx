@@ -1,13 +1,10 @@
 import Image from "next/image";
-
 import PageWrapper from "../components/pagewrapper";
-
 export const metadata = {
   title: "Metaculus FAQ",
   description:
     "Frequently asked questions about Metaculus, including basics, question types, resolution processes, predictions, scoring, and more.",
 };
-
 export default function FAQ() {
   return (
     <PageWrapper>
@@ -91,8 +88,8 @@ export default function FAQ() {
             </li>
             <li>
               <a href="#definitions">
-                Qué significan &amp;Quot;creditable source &amp; Quot; y
-                &amp;Quot;ans de la fecha X&amp;Quot; y tales frases?
+                Qué significan &amp;&quot;creditable source &amp; &quot; y
+                &amp;&quot;ans de la fecha X&amp;&quot; y tales frases?
               </a>
             </li>
             <li>
@@ -118,9 +115,9 @@ export default function FAQ() {
           <ul className="space-y-1">
             <li>
               <a href="#closers">
-                Qué son &amp;Quot;data open&amp;Quot;, &amp;Quot;data
-                close&amp;Quot; y &amp;Quot; resolución de resolución?
-                &amp;Quot;
+                Qué son &amp;&quot;data open&amp;&quot;, &amp;&quot;data
+                close&amp;&quot; y &amp;&quot; resolución de resolución?
+                &amp;&quot;
               </a>
             </li>
             <li>
@@ -135,8 +132,8 @@ export default function FAQ() {
             </li>
             <li>
               <a href="#ambiguous-annulled">
-                Qué son las resoluciones de &amp;Quot;angiqua;&amp;Quot; y
-                &amp;Quot;nuuladas&amp;Quot;?
+                Qué son las resoluciones de &amp;&quot;angiqua;&amp;&quot; y
+                &amp;&quot;nuuladas&amp;&quot;?
               </a>
             </li>
             <li>
@@ -333,7 +330,7 @@ export default function FAQ() {
           comunidad de meteorólogos participantes - usted.
         </p>
         <p>
-          El nombre &amp;Quot;Metaculus&amp;Quot; deriva del{" "}
+          El nombre &amp;&quot;Metaculus&amp;&quot; deriva del
           <a href="https://en.wikipedia.org/wiki/Eriophyidae">
             género Metaculus
           </a>
@@ -359,14 +356,14 @@ export default function FAQ() {
         </p>
         <p>
           En segundo lugar, Metaculus agrega las previsiones en un pronóstico
-          comunitario basado en la{" "}
-          <a href="https://en.wikipedia.org/wiki/Median">mediana</a>
-          de las predicciones de los usuarios con peso actual.
-          Sorprendentemente, la predicción de la comunidad es a menudo{" "}
+          comunitario basado en la
+          <a href="https://en.wikipedia.org/wiki/Median">mediana</a> de las
+          predicciones de los usuarios con peso actual. Sorprendentemente, la
+          predicción de la comunidad es a menudo
           <a href="/questions/track-record/">
-            mejor que cualquier predictor individual.{" "}
+            mejor que cualquier predictor individual.
           </a>
-          Este principio se conoce como{" "}
+          Este principio se conoce como
           <a href="https://en.wikipedia.org/wiki/Wisdom_of_the_crowd">
             la sabiduría de la multitud,
           </a>
@@ -378,7 +375,7 @@ export default function FAQ() {
         <p>
           Tercero, medimos la habilidad relativa de cada meteorólogo, usando sus
           predicciones cuantificadas. Cuando conocemos el resultado de la
-          pregunta, la pregunta es &amp;Quolued&amp;Quot; y los pronosticadores
+          pregunta, la pregunta es &amp;Quolued&amp;&quot; y los pronosticadores
           reciben sus puntuaciones. Al rastrear estas puntuaciones de muchas
           predicciones sobre diferentes temas durante un largo período de
           tiempo, se convierten en una métrica cada vez mejor de lo bueno que es
@@ -437,10 +434,10 @@ export default function FAQ() {
         </h3>
         <p>
           Metaculeno se originó con dos científicos de investigación, Anthony
-          Aguirre y Greg Laughlin. Aguirre, físico, es cofundador del{" "}
+          Aguirre y Greg Laughlin. Aguirre, físico, es cofundador del
           <a href="https://fqxi.org/">Instituto de Preguntas Fundonitarias</a>,
           que cataliza la investigación innovadora sobre la física fundamental,
-          y el{" "}
+          y el
           <a href="https://futureoflife.org/">Instituto Futuro de la Vida</a>,
           que pretende aumentar el beneficio y la seguridad de tecnologías
           disruptivas como la IA. Laughlin, astrofísica, es un experto en
@@ -459,25 +456,24 @@ export default function FAQ() {
           Los torneos suelen ser colaboraciones entre Metaculus y una
           organización sin fines de lucro, u otra organización que busca
           utilizar el pronóstico para apoyar la toma de decisiones efectiva.
-          Puedes encontrar torneos actuales y archivados en nuestra{" "}
+          Puedes encontrar torneos actuales y archivados en nuestra
           <a href="/tournaments/">página de Torneos</a>.
         </p>
         <p>
           Los torneos son el lugar perfecto para demostrar sus habilidades de
           previsión, al tiempo que ayudan a mejorar nuestra capacidad colectiva
-          de toma de decisiones. Los premios en efectivo y{" "}
-          <a href="/help/medals-faq/">las medallas</a>
-          se <a href="/help/medals-faq/">otorgan</a>a los analistas más precisos
-          y a veces por otras contribuciones valiosas (como comentarios). Siga
-          un Torneo (con el botón Seguir) para no perderse ninguna pregunta
-          nueva.
+          de toma de decisiones. Los premios en efectivo y
+          <a href="/help/medals-faq/">las medallas</a> se
+          <a href="/help/medals-faq/">otorgan</a>a los analistas más precisos y
+          a veces por otras contribuciones valiosas (como comentarios). Siga un
+          Torneo (con el botón Seguir) para no perderse ninguna pregunta nueva.
         </p>
         <p>
           Después de que al menos una pregunta haya sido resuelta, una tabla de
           clasificación aparecerá en la página del torneo exhibiendo las
           puntuaciones y calificaciones actuales. También aparecerá un marcador
-          personal (&amp;Quot; My Score&amp;Quot;), detallando su rendimiento
-          para cada pregunta (ver{" "}
+          personal (&amp;&quot; My Score&amp;&quot;), detallando su rendimiento
+          para cada pregunta (ver
           <a href="/help/scores-faq/#tournament-scores">
             Cómo están programados los torneos?
           </a>
@@ -496,7 +492,7 @@ export default function FAQ() {
           Si tienes excelentes ganancias de torneos, Metaculus estará encantado
           de facilitar donaciones a varias organizaciones sin fines de lucro,
           reescritas y organizaciones de fondos. Puedes encontrar la lista de
-          organizaciones que facilitamos los pagos{" "}
+          organizaciones que facilitamos los pagos
           <a href="/questions/11556/donating-tournament-prizes/">aquí</a>.
         </p>
         <h4 className="text-lg font-semibold">Serie de preguntas</h4>
@@ -507,13 +503,12 @@ export default function FAQ() {
         </p>
         <p>
           La serie de preguntas todavía muestra tablas de clasificación, para el
-          interés y la diversión. Pero no <b>se dan cuenta</b>
-          de que conceden medallas.
+          interés y la diversión. Pero no <b>se dan cuenta</b> de que conceden
+          medallas.
         </p>
         <p>
-          Puedes encontrar toda una serie de preguntas en una sección especial{" "}
-          <a href="/tournaments/">de</a>
-          la <a href="/tournaments/">página</a>
+          Puedes encontrar toda una serie de preguntas en una sección especial
+          <a href="/tournaments/">de</a> la <a href="/tournaments/">página</a>
           de <a href="/tournaments/">torneos</a>.
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="predmarket">
@@ -529,7 +524,7 @@ export default function FAQ() {
           demasiado bajas (o altas) una probabilidad de que ocurra un evento.
           Metaculus, en cambio, solicita directamente las probabilidades
           previstas de sus usuarios y luego agrega esas probabilidades. Creemos
-          que este tipo de predictores de &amp;Quot; tiene ventajas y
+          que este tipo de predictores de &amp;&quot; tiene ventajas y
           desventajas sobre un mercado de previsión.
         </p>
         <h4 className="text-lg font-semibold">
@@ -549,11 +544,11 @@ export default function FAQ() {
             bloquearlos en un mercado de pronóstico a largo plazo, ya que por lo
             general puede obtener rendimientos mucho mejores invirtiendo, lo que
             significa que es probable que los mercados a largo plazo tengan poca
-            liquidez. Por ejemplo, este{" "}
+            liquidez. Por ejemplo, este
             <a href="https://wip.gatspress.com/wp-content/uploads/2024/05/thu9F-cumulative-traded-volume-on-the-2020-us-election-4-1024x897.png">
               gráfico
             </a>
-            de un{" "}
+            de un
             <a href="https://worksinprogress.co/issue/why-prediction-markets-arent-popular/">
               artículo de Works in Progress
             </a>
@@ -563,47 +558,46 @@ export default function FAQ() {
             ocurriendo sólo un mes fuera de las elecciones.
           </li>
           <li>
-            <b>Problemas con las probabilidades bajas.</b>
-            Los mercados de pronósticos tienen fricciones de mercado que los
-            hacen menos útiles para las probabilidades bajas. El rendimiento del
-            uso de su dinero para traer una probabilidad de 2% a 1% es
-            insignificante, o potencialmente negativo si el mercado previsto
-            extrae una tasa de los traders. Por eso se obtienen resultados
-            extraños como Michelle Obama con un 6 por ciento de posibilidades de
-            convertirse en la candidata demócrata para las elecciones
-            presidenciales de 2024 de 2024 en junio de 2024, como fue el caso{" "}
+            <b>Problemas con las probabilidades bajas.</b> Los mercados de
+            pronósticos tienen fricciones de mercado que los hacen menos útiles
+            para las probabilidades bajas. El rendimiento del uso de su dinero
+            para traer una probabilidad de 2% a 1% es insignificante, o
+            potencialmente negativo si el mercado previsto extrae una tasa de
+            los traders. Por eso se obtienen resultados extraños como Michelle
+            Obama con un 6 por ciento de posibilidades de convertirse en la
+            candidata demócrata para las elecciones presidenciales de 2024 de
+            2024 en junio de 2024, como fue el caso
             <a href="https://polymarket.com/event/democratic-nominee-2024?tid=1724174308005">
               de Polymarket
             </a>
             .
           </li>
           <li>
-            <b>El foco no siempre se pronostica.</b>
-            Pronóstico incentivos del mercado no siempre están en línea con las
-            previsiones más precisas. Considere que un posible uso para la
-            previsión de los mercados es protegerse de los resultados riesgosos.
-            Además, las personas que son irracionales pero dispuestas a poner
-            una tonelada de dinero detrás de sus creencias pueden distorsionar
-            el resultado. Por supuesto, lo ideal es que un mercado líquido
-            corrija para estos sillones, pero es posible que puedan tener un
-            efecto en el precio. Vea{" "}
+            <b>El foco no siempre se pronostica.</b> Pronóstico incentivos del
+            mercado no siempre están en línea con las previsiones más precisas.
+            Considere que un posible uso para la previsión de los mercados es
+            protegerse de los resultados riesgosos. Además, las personas que son
+            irracionales pero dispuestas a poner una tonelada de dinero detrás
+            de sus creencias pueden distorsionar el resultado. Por supuesto, lo
+            ideal es que un mercado líquido corrija para estos sillones, pero es
+            posible que puedan tener un efecto en el precio. Vea
             <a href="https://asteriskmag.com/issues/05/prediction-markets-have-an-elections-problem-jeremiah-johnson">
               esta pieza en la revista Asterisk
             </a>
-            para obtener más información en &amp;Quot; burck money&amp;Quot; en
-            los mercados de previsión.
+            para obtener más información en &amp;&quot; burck money&amp;&quot;
+            en los mercados de previsión.
           </li>
           <li>
-            <b>Qué piensa la gente que va a pasar? </b>
-            Los participantes del mercado de pronósticos están expresando si
-            piensan que la probabilidad es mayor o menor que el precio de
-            mercado, no haciendo una predicción. Si alguien piensa que el
-            mercado es demasiado bajo en 35% y apuesta en consecuencia, no sabes
-            si cree que la probabilidad real es del 40% u 80%. Esto no afecta
-            realmente a la utilidad del agregado, pero hace que los datos sean
-            menos ricos e informativos, y más difícil de ver la distribución
-            completa de las previsiones como se puede con histogramas para
-            preguntas binarias sobre Metaculus.
+            <b>Qué piensa la gente que va a pasar? </b> Los participantes del
+            mercado de pronósticos están expresando si piensan que la
+            probabilidad es mayor o menor que el precio de mercado, no haciendo
+            una predicción. Si alguien piensa que el mercado es demasiado bajo
+            en 35% y apuesta en consecuencia, no sabes si cree que la
+            probabilidad real es del 40% u 80%. Esto no afecta realmente a la
+            utilidad del agregado, pero hace que los datos sean menos ricos e
+            informativos, y más difícil de ver la distribución completa de las
+            previsiones como se puede con histogramas para preguntas binarias
+            sobre Metaculus.
           </li>
           <li>
             <b>
@@ -613,7 +607,7 @@ export default function FAQ() {
             Excelente desempeño individual del mercado sólo puede indicar
             competencia en operar en los mercados, o la capacidad de
             aprovecharse de las malas apuestas hechas por otros. Por ejemplo,
-            vea{" "}
+            vea
             <a href="https://www.cspicenter.com/p/salem-tournament-5-days-in#:~:text=The%20first%20problem%20we%20saw%20was%20that%20there%20were%20some%20individuals%20who%20made%20a%20killing%20by%20taking%20advantage%20of%20those%20who%20did%20not%20know%20how%20the%20markets%20work%20(see%20discussion%20here).">
               este post
             </a>
@@ -629,24 +623,23 @@ export default function FAQ() {
               necesidad de gestionar una cartera.
             </b>
             Sólo hay algunas comparaciones de manzanas para las manzanas entre
-            plataformas, pero{" "}
+            plataformas, pero
             <a href="https://www.metaculus.com/notebooks/15359/predictive-performance-on-metaculus-vs-manifold-markets/">
               éstas
             </a>
             <a href="https://firstsigma.substack.com/p/midterm-elections-forecast-comparison-analysis">
               encuentran
             </a>
-            una{" "}
+            una
             <a href="https://www.astralcodexten.com/p/who-predicted-2023">
               ventaja
             </a>
             para Metaculus sobre los mercados de previsión. Tenga en cuenta que
             los tamaños de la muestra tienden a ser pequeños. Sin embargo,
-            también hay una comparación{" "}
-            <a href="https://calibration.city/">indirecta</a>
-            (indirectamente porque no considera las mismas preguntas entre
-            plataformas) que encontró que los mercados de previsión están más
-            calibrados.
+            también hay una comparación
+            <a href="https://calibration.city/">indirecta</a> (indirectamente
+            porque no considera las mismas preguntas entre plataformas) que
+            encontró que los mercados de previsión están más calibrados.
           </li>
         </ol>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="justpolling">
@@ -655,24 +648,24 @@ export default function FAQ() {
         <p>
           - No, no. La investigación de la opinión puede ser una manera útil de
           evaluar el sentimiento y los cambios en un grupo o cultura, pero a
-          menudo no hay una sola respuesta &amp;Quot; correcta, como en una{" "}
+          menudo no hay una sola respuesta &amp;&quot; correcta, como en una
           <a href="https://news.gallup.com/poll/391547/seven-year-stretch-elevated-environmental-concern.aspx">
             investigación de Gallup
           </a>
-          &amp;Quot; está preocupada por el medio ambiente? &amp;Quot;
+          &amp;&quot; está preocupada por el medio ambiente? &amp;&quot;
         </p>
         <p>
           En contraste, las preguntas de Metaculus están diseñadas para ser
-          objetivamente solucionables (como en{" "}
+          objetivamente solucionables (como en
           <a href="/questions/9942/brent-oil-to-breach-140-before-may">
             Will Brent Crude Oil top $140/barrel antes de mayo de 2022?
           </a>
           ), y a los meteorólogos no se les pregunta por sus preferencias, sino
           por sus predicciones. A diferencia de una encuesta, en muchas
           predicciones, los participantes acumulan un historial que indica su
-          precisión de pronóstico. Estos registros se incorporan a{" "}
+          precisión de pronóstico. Estos registros se incorporan a
           <a href="/faq/#metaculus-prediction">Metaculus Forecast</a>. La
-          precisión de la historia de Metaculus en sí se rastrea{" "}
+          precisión de la historia de Metaculus en sí se rastrea
           <a href="/questions/track-record/">aquí</a>.
         </p>
         <h2
@@ -688,16 +681,16 @@ export default function FAQ() {
         <p>
           Las cuestiones deben centrarse en hechos tangibles y objetivos sobre
           el mundo que están bien definidos y no en una cuestión de opinión.
-          Cuándo colapsar los Estados Unidos? es un tema pobre y ambiguo;{" "}
+          Cuándo colapsar los Estados Unidos? es un tema pobre y ambiguo;
           <q>
             <a href="/questions/8579/us-freedom-in-the-world-score-in-2050/">
               cuál será la puntuación de Estados Unidos en el Informe Mundial de
-              la Libertad para 2050?{" "}
+              la Libertad para 2050?
             </a>
           </q>
-          Por lo general toman la forma{" "}
-          <q>de que sucederá la X por (fecha) Y? </q>O{" "}
-          <q>cuando (el evento) X ocurrirá? </q>o{" "}
+          Por lo general toman la forma
+          <q>de que sucederá la X por (fecha) Y? </q>O
+          <q>cuando (el evento) X ocurrirá? </q>o
           <q>Cuál será el valor o la cantidad de X per (fecha) Y?</q>
         </p>
         <p>
@@ -743,22 +736,22 @@ export default function FAQ() {
           preguntas propuestas serán analizadas por un grupo de moderadores
           nombrados por Metaculus. Los moderadores seleccionarán las mejores
           preguntas presentadas y ayudarán a editar la pregunta para ser claro,
-          bien informado y{" "}
+          bien informado y
           <a href="/question-writing/">
             alineado con nuestro estilo de escritura
           </a>
           .
         </p>
         <p>
-          Metaculus organiza preguntas sobre{" "}
+          Metaculus organiza preguntas sobre
           <a href="/questions/categories/">muchos temas</a>, pero nuestras
-          principales áreas de enfoque son Ciencia,{" "}
-          <a href="/questions/?categories=technology">Tecnología</a>,{" "}
+          principales áreas de enfoque son Ciencia,
+          <a href="/questions/?categories=technology">Tecnología</a>,
           <a href="/questions/?tags=effective-altruism">
             Metatruísismo Efectivo
           </a>
-          , <a href="/questions/?topic=ai">Inteligencia Artificial</a>,{" "}
-          <a href="/questions/?topic=biosecurity">Salud</a>y{" "}
+          , <a href="/questions/?topic=ai">Inteligencia Artificial</a>,
+          <a href="/questions/?topic=biosecurity">Salud</a>y
           <a href="/questions/?categories=geopolitics">Geopolítica</a>.
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="whoedits">
@@ -794,7 +787,7 @@ export default function FAQ() {
           <li>
             Si usted tiene una idea básica para una pregunta, pero no tiene el
             tiempo / energía para elaborar los detalles, puede enviarlo,
-            discutirlo en nuestro{" "}
+            discutirlo en nuestro
             <a href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
               tema
             </a>
@@ -804,7 +797,7 @@ export default function FAQ() {
             <a href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
               de pregunta
             </a>
-            o en nuestro{" "}
+            o en nuestro
             <a href="https://discord.gg/v2Bf5tppeT">canal Discord</a>.
           </li>
           <li>
@@ -814,15 +807,15 @@ export default function FAQ() {
             revisada y publicada rápidamente.
           </li>
           <li>
-            Metaculus organiza preguntas sobre{" "}
+            Metaculus organiza preguntas sobre
             <a href="/questions/categories/">muchos temas</a>, pero nuestras
-            principales áreas de enfoque son Ciencia,{" "}
-            <a href="/questions/?categories=technology">Tecnología</a>,{" "}
+            principales áreas de enfoque son Ciencia,
+            <a href="/questions/?categories=technology">Tecnología</a>,
             <a href="/questions/?tags=effective-altruism">
               Metatruísismo Efectivo
             </a>
-            , <a href="/questions/?topic=ai">Inteligencia Artificial</a>,{" "}
-            <a href="/questions/?topic=biosecurity">Salud</a>y{" "}
+            , <a href="/questions/?topic=ai">Inteligencia Artificial</a>,
+            <a href="/questions/?topic=biosecurity">Salud</a>y
             <a href="/questions/?categories=geopolitics">Geopolítica</a>. Las
             preguntas sobre otros temas, especialmente que requieren mucho
             esfuerzo moderador para ser lanzados, recibirán menor prioridad y
@@ -850,13 +843,13 @@ export default function FAQ() {
           de las cuales son interesantes y bien escritas. Dicho esto, tratamos
           de aprobar suficientes preguntas para que cada una de ellas pueda
           recibir la atención que merecen de nuestros meteorólogos. Metaculus
-          prioriza las preguntas sobre Ciencia,{" "}
-          <a href="/questions/?categories=technology">Tecnología</a>,{" "}
+          prioriza las preguntas sobre Ciencia,
+          <a href="/questions/?categories=technology">Tecnología</a>,
           <a href="/questions/?tags=effective-altruism">
             Metaísividad Efectiva
           </a>
-          , <a href="/questions/?topic=ai">Inteligencia Artificial</a>,{" "}
-          <a href="/questions/?topic=biosecurity">Salud</a>y{" "}
+          , <a href="/questions/?topic=ai">Inteligencia Artificial</a>,
+          <a href="/questions/?topic=biosecurity">Salud</a>y
           <a href="/questions/?categories=geopolitics">Geopolítica</a>. Si su
           pregunta cae en una de estas categorías, o es muy urgente o
           importante, puede etiquetarnos con los moderadores para llamar nuestra
@@ -884,7 +877,7 @@ export default function FAQ() {
         <p>
           Los problemas privados se descontinúan, ya no es posible crear otros
           nuevos. Si usted tenía preguntas privadas, todavía puede encontrarlas
-          yendo a la{" "}
+          yendo a la
           <a href="/questions/">Página de inicio de la alimentación</a>,
           seleccionando "Mis preguntas y publicaciones" en la barra lateral y
           usando el filtro especial "Personal".
@@ -901,7 +894,7 @@ export default function FAQ() {
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>Los usuarios son bienvenidos a comentar cualquier pregunta.</li>
           <li>
-            Comentarios y preguntas pueden utilizar{" "}
+            Comentarios y preguntas pueden utilizar
             <a href="/help/markdown/">formato de marcación</a>
           </li>
           <li>
@@ -912,8 +905,7 @@ export default function FAQ() {
             comentarios que son spam, agresivo, profano, ofensivo, despectivo o
             acosador, así como aquellos que son explícitamente publicidad
             comercial o aquellos que son de alguna manera ilegales. Ver
-            Metaculus <a href="/terms-of-use/">términos de uso</a>
-            para más
+            Metaculus <a href="/terms-of-use/">términos de uso</a> para más
           </li>
           <li>
             Puedes hacer ping en otros usuarios usando "? Nombre del usuario",
@@ -972,20 +964,18 @@ export default function FAQ() {
         </h3>
         <h4 className="text-lg font-semibold">Preguntas binarias</h4>
         <p>
-          Las cuestiones binarias se pueden resolver como <strong>Sí</strong>o{" "}
-          <strong>No</strong>
-          (a menos que los criterios de resolución sean subficilados o
-          contorsionados de otra manera, en cuyo caso pueden resolverlo tan{" "}
-          <strong>ambiguo</strong>
-          ). Las preguntas binarias son apropiadas cuando un evento puede
-          ocurrir o no ocurre. Por ejemplo, la pregunta{" "}
+          Las cuestiones binarias se pueden resolver como <strong>Sí</strong>o
+          <strong>No</strong> (a menos que los criterios de resolución sean
+          subficilados o contorsionados de otra manera, en cuyo caso pueden
+          resolverlo tan <strong>ambiguo</strong> ). Las preguntas binarias son
+          apropiadas cuando un evento puede ocurrir o no ocurre. Por ejemplo, la
+          pregunta
           <a href="/questions/6296/us-unemployment-above-5-through-nov-2021/">
             "La tasa de desempleo de los EE.UU. se mantendrá por encima del 5%
-            hasta noviembre de 2021?".{" "}
+            hasta noviembre de 2021?".
           </a>
-          No <strong>Não</strong>
-          porque la tasa de desempleo cayó por debajo del 5% antes de la hora
-          especificada.
+          No <strong>Não</strong> porque la tasa de desempleo cayó por debajo
+          del 5% antes de la hora especificada.
         </p>
         <h4 className="text-lg font-semibold">Cuestiones de gamma</h4>
         <p>
@@ -1001,9 +991,9 @@ export default function FAQ() {
         </p>
         <p>
           La interfaz de intervalo le permite introducir varias distribuciones
-          de probabilidad con diferentes pesos.{" "}
-          <a href="#range-interface">Vea aquí</a>
-          para más detalles sobre el uso de la interfaz.
+          de probabilidad con diferentes pesos.
+          <a href="#range-interface">Vea aquí</a> para más detalles sobre el uso
+          de la interfaz.
         </p>
         <p>
           Hay dos tipos de preguntas de rango, preguntas de intervalo nucleal y
@@ -1012,48 +1002,47 @@ export default function FAQ() {
         <h5 className="text-lg font-semibold">El rango numérico</h5>
         <p>
           Las preguntas de rango numérico se pueden resolver como un valor
-          numérico. Por ejemplo, la pregunta{" "}
+          numérico. Por ejemplo, la pregunta
           <a href="/questions/7346/initial-jobless-claims-july-2021/">
             "Cuál será el promedio de 4 semanas de solicitudes iniciales de
-            desempleo (en miles) presentadas en julio de 2021?"{" "}
+            desempleo (en miles) presentadas en julio de 2021?"
           </a>
-          resuelto como <strong>395,</strong>
-          porque la fuente subyacente reportó 395.000 solicitudes iniciales de
-          desempleo para julio de 2021.
+          resuelto como <strong>395,</strong> porque la fuente subyacente
+          reportó 395.000 solicitudes iniciales de desempleo para julio de 2021.
         </p>
         <p>
           Las preguntas también pueden resolver fuera del intervalo numérico.
-          Por ejemplo, la pregunta{" "}
+          Por ejemplo, la pregunta
           <a href="/questions/6645/highest-us-core-cpi-growth-in-2021/">
             "Cuál será el nivel más alto de crecimiento anualizado del IPC de
             los Estados Unidos en 2021", según EE.UU. Los datos de la Oficina de
             Estadísticas Laborales se
           </a>
-          resolvieron como <strong>6.5</strong>
-          porque la fuente subyacente reportó un crecimiento anualizado del IPC
-          básico de 6.5% en los EE.UU., y 6.5 fue el límite superior.
+          resolvieron como <strong>6.5</strong> porque la fuente subyacente
+          reportó un crecimiento anualizado del IPC básico de 6.5% en los
+          EE.UU., y 6.5 fue el límite superior.
         </p>
         <h5 className="text-lg font-semibold">Alcance de fechas</h5>
         <p>
           Las preguntas del intervalo de fecha se pueden resolver como una fecha
-          determinada. Por ejemplo, la pregunta{" "}
+          determinada. Por ejemplo, la pregunta
           <a href="/questions/8723/date-of-next-who-pheic-declaration/">
             "Cuándo se declarará la próxima emergencia de salud pública de la
-            preocupación internacional" por la OMS?{" "}
+            preocupación internacional" por la OMS?
           </a>
-          Resolución el <strong>23</strong>
-          de <strong>julio de 2022</strong>, porque en esa fecha se declaró una
-          emergencia de salud pública de preocupación internacional.
+          Resolución el <strong>23</strong> de <strong>julio de 2022</strong>,
+          porque en esa fecha se declaró una emergencia de salud pública de
+          preocupación internacional.
         </p>
         <p>
           Las preguntas también se pueden resolver fuera del rango de fechas.
-          Por ejemplo, la pregunta{" "}
+          Por ejemplo, la pregunta
           <a href="/questions/6947/first-super-heavy-flight/">
-            Cuándo volará un SpaceX Super Heavy Booster?{" "}
+            Cuándo volará un SpaceX Super Heavy Booster?
           </a>
-          Resuelto el 29 de <strong>marzo de 2022</strong>
-          porque un propulsor SpaceX Super Heavy no fue lanzado antes del 29 de
-          marzo de 2022, que era el límite superior.
+          Resuelto el 29 de <strong>marzo de 2022</strong> porque un propulsor
+          SpaceX Super Heavy no fue lanzado antes del 29 de marzo de 2022, que
+          era el límite superior.
         </p>
         <h3
           className="scroll-mt-nav text-xl font-semibold"
@@ -1097,7 +1086,7 @@ export default function FAQ() {
           preguntas?
         </h4>
         <p>
-          - No, no. Los grupos de preguntas comprenden varias subpreguntas{" "}
+          - No, no. Los grupos de preguntas comprenden varias subpreguntas
           <i>independientes</i>. Por esta razón, no hay ningún requisito de que
           prediga todos los resultados dentro de un grupo.
         </p>
@@ -1122,7 +1111,7 @@ export default function FAQ() {
         </p>
         <p>
           La retroalimentación de los grupos de preguntas puede proporcionarse
-          en el{" "}
+          en el
           <a href="/questions/9861/2022-3-9-update-forecast-question-groups/">
             post de
           </a>
@@ -1141,17 +1130,15 @@ export default function FAQ() {
           Qué son los pares condicionales?
         </h3>
         <p>
-          Un Padre Acondicionado es un tipo especial de{" "}
+          Un Padre Acondicionado es un tipo especial de
           <a href="/faq/#question-groups">Grupo</a>
-          <a href="/faq/#question-groups">de</a>
-          Preguntas que causa{" "}
+          <a href="/faq/#question-groups">de</a> Preguntas que causa
           <a href="https://en.wikipedia.org/wiki/Conditional_probability">
             probabilidades condicionales
           </a>
           . Cada Padre condicional se encuentra entre una pregunta de los padres
           y una pregunta del niño. Tanto el Padre como el Hijo deben tener
-          preguntas <a href="/faq/#question-types">binarias</a>
-          del metaculus.
+          preguntas <a href="/faq/#question-types">binarias</a> del metaculus.
         </p>
         <p>
           Los pares condicionales hacen dos Preguntas Concondicionales (o
@@ -1185,7 +1172,7 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            Cuando el padre decide el Sí, el "si no" condicional es{" "}
+            Cuando el padre decide el Sí, el "si no" condicional es
             <a href="/faq/#ambiguous-annulled">anulado</a>. (Y viceversa.)
           </li>
           <li>
@@ -1240,10 +1227,10 @@ export default function FAQ() {
         </h4>
         <p>
           Usted puede crear y enviar pares condicionales como cualquier otro
-          tipo de pregunta. En{" "}
-          <a href="/questions/create/">la página "Crear una</a>
-          pregunta", seleccione Tipo de pregunta "condicional" y seleccione
-          Preguntas de Padre y Niño.
+          tipo de pregunta. En
+          <a href="/questions/create/">la página "Crear una</a> pregunta",
+          seleccione Tipo de pregunta "condicional" y seleccione Preguntas de
+          Padre y Niño.
         </p>
         <p>
           Nota: Puede utilizar sub-preguntas grupales de preguntas como Padre o
@@ -1309,25 +1296,23 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            La <strong>fecha de apertura</strong>
-            es la fecha/hora en que la cuestión está abierta para las
-            previsiones. Antes de este momento, si el tema está activo, tendrá
-            estatus "promado" y potencialmente estará sujeto a cambios basados
-            en la retroalimentación. Después de la fecha de apertura, el cambio
-            de preguntas está altamente desalentado (ya que podría alterar los
-            detalles que son relevantes para las predicciones que ya se han
-            enviado) y estos cambios se notan generalmente en el cuerpo del tema
-            y en los comentarios sobre el tema.
+            La <strong>fecha de apertura</strong> es la fecha/hora en que la
+            cuestión está abierta para las previsiones. Antes de este momento,
+            si el tema está activo, tendrá estatus "promado" y potencialmente
+            estará sujeto a cambios basados en la retroalimentación. Después de
+            la fecha de apertura, el cambio de preguntas está altamente
+            desalentado (ya que podría alterar los detalles que son relevantes
+            para las predicciones que ya se han enviado) y estos cambios se
+            notan generalmente en el cuerpo del tema y en los comentarios sobre
+            el tema.
           </li>
           <li>
-            La <strong>fecha de cierre</strong>
-            es la fecha/hora posterior a la cual las previsiones ya no se pueden
-            actualizar.
+            La <strong>fecha de cierre</strong> es la fecha/hora posterior a la
+            cual las previsiones ya no se pueden actualizar.
           </li>
           <li>
-            La <strong>fecha</strong>
-            de <strong>la resolución</strong>
-            es la fecha en que el evento programado debe haber ocurrido
+            La <strong>fecha</strong> de <strong>la resolución</strong> es la
+            fecha en que el evento programado debe haber ocurrido
             definitivamente (o no). Esta fecha permite a Metaculus Admins saber
             cuándo la pregunta puede estar lista para ser resuelta. Sin embargo,
             esto suele ser sólo una conjetura y no es obligatorio en absoluto.
@@ -1341,15 +1326,14 @@ export default function FAQ() {
           interesantes y perspicaces. La fecha o el plazo que se está haciendo
           la pregunta debe ser siempre mencionado explícitamente en el texto
           (por ejemplo, "esta pregunta se resuelve como el valor de X el 1 de
-          enero de 2040, según la fuente Y" o "esta cuestión resuelve cómo{" "}
-          <strong>Sí</strong>
-          si X sucede antes del 1 de enero de 2040)".
+          enero de 2040, según la fuente Y" o "esta cuestión resuelve cómo
+          <strong>Sí</strong> si X sucede antes del 1 de enero de 2040)".
         </p>
         <p>
-          La fecha límite <em>debería</em>
-          ser al menos una hora antes de la fecha de la resolución, pero puede
-          ser mucho más temprana dependiendo del contexto. Aquí están algunas
-          pautas para especificar la fecha de cierre:
+          La fecha límite <em>debería</em> ser al menos una hora antes de la
+          fecha de la resolución, pero puede ser mucho más temprana dependiendo
+          del contexto. Aquí están algunas pautas para especificar la fecha de
+          cierre:
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
@@ -1363,7 +1347,7 @@ export default function FAQ() {
             Si el resultado de una pregunta está determinado por algún proceso
             que se producirá en un momento desconocido, pero es probable que el
             resultado sea independiente de ese tiempo, entonces debe
-            especificarse que la cuestión{" "}
+            especificarse que la cuestión
             <a href="/faq/#retroactive-closure">cierra retroactivamente</a>
             algún tiempo apropiado antes del comienzo del proceso. (Ejemplo:
             éxito de un lanzamiento de cohete en un momento desconocido)
@@ -1376,12 +1360,11 @@ export default function FAQ() {
           </li>
         </ul>
         <p>
-          <strong>Nota:</strong>
-          Las directrices anteriores sugerían que una pregunta se cerrara entre
-          1/2 y 2/3 de la trayectoria entre el tiempo de apertura y el tiempo de
-          resolución. Esto era necesario debido al sistema de puntuación en ese
-          momento, pero fue reemplazado por las directrices anteriores debido a
-          una{" "}
+          <strong>Nota:</strong> Las directrices anteriores sugerían que una
+          pregunta se cerrara entre 1/2 y 2/3 de la trayectoria entre el tiempo
+          de apertura y el tiempo de resolución. Esto era necesario debido al
+          sistema de puntuación en ese momento, pero fue reemplazado por las
+          directrices anteriores debido a una
           <a href="/questions/10801/discontinuing-the-final-forecast-bonus/">
             actualización del sistema de puntuación
           </a>
@@ -1393,7 +1376,7 @@ export default function FAQ() {
         <p>
           Para fechas y horarios escritos en la pregunta, como "el evento X
           tendrá lugar antes del 1 de enero de 2030?", si no se especifica el
-          tiempo{" "}
+          tiempo
           <a href="https://en.wikipedia.org/wiki/Coordinated_Universal_Time">
             establecido Tiempo Universal Coordinado (UTC).
           </a>
@@ -1402,14 +1385,14 @@ export default function FAQ() {
           huso horario especificado en el texto.
         </p>
         <p>
-          Para preguntas del <a href="/faq/#question-types">rango</a>
-          de <a href="/faq/#question-types">fechas</a>, las fechas en la
-          interfaz están en UTC. Normalmente, la hora del día hace poca
-          diferencia, ya que un día es diminuto en comparación con el rango
-          completo, pero ocasionalmente para preguntas a corto plazo, la hora
-          del día puede afectar materialmente las puntuaciones. Si no está claro
-          qué punto en un plazo determinado se resolverá una cuestión de
-          intervalo de fecha, se resolverá como punto{" "}
+          Para preguntas del <a href="/faq/#question-types">rango</a> de
+          <a href="/faq/#question-types">fechas</a>, las fechas en la interfaz
+          están en UTC. Normalmente, la hora del día hace poca diferencia, ya
+          que un día es diminuto en comparación con el rango completo, pero
+          ocasionalmente para preguntas a corto plazo, la hora del día puede
+          afectar materialmente las puntuaciones. Si no está claro qué punto en
+          un plazo determinado se resolverá una cuestión de intervalo de fecha,
+          se resolverá como punto
           <a href="/faq/#whenresolve">medio de dicho período</a>. Por ejemplo,
           si una pregunta dice que resolverá como un día en particular, pero no
           a la hora del día, se resolverá como UTC mediodía de ese día.
@@ -1419,8 +1402,8 @@ export default function FAQ() {
         </h3>
         <p>
           Sólo los administradores de Metaculus pueden resolver preguntas. Las
-          preguntas binarias pueden resolver <strong>Sí</strong>,{" "}
-          <strong>No</strong>,{" "}
+          preguntas binarias pueden resolver <strong>Sí</strong>,
+          <strong>No</strong>,
           <a href="/faq/#ambiguous-annulled">Imbig o Anguated</a>. Las preguntas
           interval pueden resolver un valor específico, un valor fuera de los
           límites, <a href="/faq/#ambiguous-annulled">capaz o anulado</a>.
@@ -1443,9 +1426,8 @@ export default function FAQ() {
         </p>
         <p>
           Del mismo modo, cuando un condicional resulta basarse en un resultado
-          que no se produjo, se anula. Por ejemplo, cuando un padre de Par{" "}
-          <a href="/faq/#conditionals">conlational</a>
-          resuelve Sí, el <q>no</q>
+          que no se produjo, se anula. Por ejemplo, cuando un padre de Par
+          <a href="/faq/#conditionals">conlational</a> resuelve Sí, el <q>no</q>
           condicional es Cancelar.
         </p>
         <p>
@@ -1534,63 +1516,58 @@ export default function FAQ() {
                 <a href="#ambiguous-details">
                   <strong>Resolución ambigua</strong>
                 </a>
-                <strong>.</strong>
-                Reserviada para cuestiones en las que la realidad no está clara.
+                <strong>.</strong> Reserviada para cuestiones en las que la
+                realidad no está clara.
               </li>
               <ul className="ml-4 list-inside list-disc space-y-2">
                 <li>
                   <a href="#no-clear-consensus">
                     <strong>No hay un consenso claro</strong>
                   </a>
-                  <strong>,</strong>
-                  no hay suficiente información para llegar a una resolución
-                  apropiada.
+                  <strong>,</strong> no hay suficiente información para llegar a
+                  una resolución apropiada.
                 </li>
               </ul>
               <li>
                 <a href="#annulment-details">
                   <strong>A anulação</strong>
                 </a>
-                <strong>.</strong>
-                Reservado para preguntas dónde la realidad es clara, pero la
-                cuestión no lo es.
+                <strong>.</strong> Reservado para preguntas dónde la realidad es
+                clara, pero la cuestión no lo es.
               </li>
               <ul className="ml-4 list-inside list-disc space-y-2">
                 <li>
                   <a href="#annulled-underspecified">
                     <strong>Subespección bajo especificación</strong>
                   </a>
-                  <strong>.</strong>
-                  La cuestión no describe claramente un método apropiado para
-                  resolver el problema.
+                  <strong>.</strong> La cuestión no describe claramente un
+                  método apropiado para resolver el problema.
                 </li>
                 <li>
                   <a href="#annulled-subverted">
                     <strong>La</strong>
                   </a>
-                  <strong>.</strong>
-                  pregunta hizo que suposiciones sobre el estado presente o
-                  futuro del mundo violaran.
+                  <strong>.</strong> pregunta hizo que suposiciones sobre el
+                  estado presente o futuro del mundo violaran.
                 </li>
                 <li>
                   <a href="#annulled-imbalanced">
                     <strong>La</strong>
                   </a>
-                  <strong>.</strong>
-                  cuestión binaria no especificó adecuadamente un medio para la
-                  resolución Sí o No, que dio lugar a resultados desequilibrados
-                  e incentivos malos.
+                  <strong>.</strong> cuestión binaria no especificó
+                  adecuadamente un medio para la resolución Sí o No, que dio
+                  lugar a resultados desequilibrados e incentivos malos.
                 </li>
               </ul>
             </ul>
             <p>
-              <strong>Nota:</strong>
-              Anteriormente Metaculuso tenía sólo un tipo de resolución -
-              ambigua - para los casos en que una cuestión no podía resolverse
-              de otra manera. Desde entonces, hemos separado esto en dos tipos
-              ambiguos y anulados para proporcionar claridad sobre por qué una
-              pregunta no podría resolverse de otra manera. Las preguntas
-              denuncian se convirtieron en una opción en abril de 2023.
+              <strong>Nota:</strong> Anteriormente Metaculuso tenía sólo un tipo
+              de resolución - ambigua - para los casos en que una cuestión no
+              podía resolverse de otra manera. Desde entonces, hemos separado
+              esto en dos tipos ambiguos y anulados para proporcionar claridad
+              sobre por qué una pregunta no podría resolverse de otra manera.
+              Las preguntas denuncian se convirtieron en una opción en abril de
+              2023.
             </p>
             <h4
               className="scroll-mt-nav text-lg font-semibold"
@@ -1604,9 +1581,9 @@ export default function FAQ() {
               es contradictorio o no está claro sobre lo que realmente sucedió,
               o el material disponible guarda silencio sobre la información que
               se busca. Describimos el tipo de cuestiones en las que la ambigua
-              resolución es apropiada, para aquellos que{" "}
-              <a href="#no-clear-consensus">no</a>
-              tienen <a href="#no-clear-consensus">un consenso claro</a>.
+              resolución es apropiada, para aquellos que
+              <a href="#no-clear-consensus">no</a> tienen
+              <a href="#no-clear-consensus">un consenso claro</a>.
             </p>
           </div>
         </div>
@@ -1675,14 +1652,14 @@ export default function FAQ() {
               <li>
                 Esta pregunta se basó en los datos publicados en un informe de
                 Microsoft, sin embargo, el informe de Microsoft correspondiente
-                al año en cuestión ya no contenía los datos pertinentes. La{" "}
-                <a href="/faq/#ressrc">política de Metaculus</a>
-                es que, por defecto, si no se dispone de una fuente de
-                resolución, Metaculus puede utilizar una fuente funcionalmente
-                equivalente en su lugar, a menos que se especifique otra cosa en
-                el texto de resolución, pero para esa cuestión no apareció en
-                absoluto una búsqueda de fuentes alternativas, lo que condujo a
-                una resolución ambigua.
+                al año en cuestión ya no contenía los datos pertinentes. La
+                <a href="/faq/#ressrc">política de Metaculus</a> es que, por
+                defecto, si no se dispone de una fuente de resolución, Metaculus
+                puede utilizar una fuente funcionalmente equivalente en su
+                lugar, a menos que se especifique otra cosa en el texto de
+                resolución, pero para esa cuestión no apareció en absoluto una
+                búsqueda de fuentes alternativas, lo que condujo a una
+                resolución ambigua.
               </li>
             </ul>
           </li>
@@ -1700,10 +1677,9 @@ export default function FAQ() {
           clara.
         </p>
         <p>
-          <strong>Nota:</strong>
-          La anulación se introdujo en abril de 2023, así que mientras que los
-          siguientes ejemplos describen la anulación, las cuestiones de la
-          realidad se han resuelto como ambiguas.
+          <strong>Nota:</strong> La anulación se introdujo en abril de 2023, así
+          que mientras que los siguientes ejemplos describen la anulación, las
+          cuestiones de la realidad se han resuelto como ambiguas.
         </p>
         <h5
           className="scroll-mt-nav text-lg font-semibold"
@@ -1719,13 +1695,13 @@ export default function FAQ() {
           que puedan producirse en el futuro; en otras palabras, debe haber una
           dirección clara de cómo se resuelve la cuestión en todos los
           resultados posibles. La mayoría de las preguntas, incluso las bien
-          elaboradas, no pueden considerar <em>todos los</em>
-          resultados posibles. Cuando se produzca un resultado que no se
-          corresponda con las instrucciones proporcionadas en los criterios para
-          la resolución de la cuestión, entonces esta cuestión puede tener que
-          ser anulada. En algunos casos, podemos encontrar una interpretación
-          que se adapte claramente a los criterios de resolución, pero esto no
-          siempre es posible.
+          elaboradas, no pueden considerar <em>todos los</em> resultados
+          posibles. Cuando se produzca un resultado que no se corresponda con
+          las instrucciones proporcionadas en los criterios para la resolución
+          de la cuestión, entonces esta cuestión puede tener que ser anulada. En
+          algunos casos, podemos encontrar una interpretación que se adapte
+          claramente a los criterios de resolución, pero esto no siempre es
+          posible.
         </p>
         <p>
           Aquí hay algunos ejemplos de anulación debido a preguntas
@@ -1747,7 +1723,7 @@ export default function FAQ() {
                 tendencias de Google para llegar al índice promedio de diciembre
                 de 2022, porque el valor del índice depende del rango de fechas
                 especificado en Google Trends. Un administrador ha proporcionado
-                más detalles en este{" "}
+                más detalles en este
                 <a href="/questions/12433/substacks-google-trends-at-end-of-2022/#comment-112592">
                   comentario
                 </a>
@@ -1764,7 +1740,7 @@ export default function FAQ() {
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Esta pregunta no definió claramente lo que se entiende por
-                ignición. Como administrador descrito en este{" "}
+                ignición. Como administrador descrito en este
                 <a href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/#comment-110164">
                   comentario
                 </a>
@@ -1794,7 +1770,7 @@ export default function FAQ() {
                 utilizadas en los criterios de resolución difirieron de la
                 comprensión común de una movilización general y no explicaron
                 adecuadamente la movilización parcial real que finalmente se
-                ordenó, como{" "}
+                ordenó, como
                 <a href="/questions/12532/russia-general-mobilization-before-2023/">
                   explica un administrador aquí
                 </a>
@@ -1843,7 +1819,7 @@ export default function FAQ() {
                 especificó una fecha en la que debía publicarse el informe, lo
                 que dio lugar a una resolución del No. Como esto no fue
                 especificado y se violó la suposición de un futuro informe de la
-                NTSB, la cuestión fue edicto, como{" "}
+                NTSB, la cuestión fue edicto, como
                 <a href="/questions/10444/cause-of-flight-5735-crash/">
                   explicó un administrador aquí
                 </a>
@@ -1890,7 +1866,7 @@ export default function FAQ() {
                 cuestión. Sin embargo, una investigación más exhaustiva encontró
                 que la preparación nuclear de Rusia probablemente no cambió.
                 Esto violó la asunción de la pregunta que llevó a la cuestión de
-                ser anulada, como{" "}
+                ser anulada, como
                 <a href="/questions/10048/russia-to-return-to-nuclear-level-1/#comment-100275">
                   explica un administrador aquí
                 </a>
@@ -2049,7 +2025,7 @@ export default function FAQ() {
             y la fecha real de resolución no se puede conocer de antemano.
           </p>
           <p>
-            Para las preguntas que se hagan cuándo sucederá algo (como{" "}
+            Para las preguntas que se hagan cuándo sucederá algo (como
             <q>
               <a href="/questions/3515/when-will-the-first-humans-land-successfully-on-mars/">
                 cuando los primeros humanos aterrizarán con éxito en Marte?
@@ -2128,19 +2104,19 @@ export default function FAQ() {
             significado.
           </p>
           <p>
-            En muchos casos, estas cuestiones deben resolverse como{" "}
-            <a href="#ambiguous-annulled">ambiguas o anuladas</a>
-            para preservar la equidad en la puntuación. Si usted cree que hay
-            ambiguedades o conflictos en los criterios de resolución para una
-            pregunta, por favor hágales a los Administradores marcando los
-            amputs en un comentario. Esperamos que las inconstras se puedan
-            identificar lo antes posible en la vida de un tema para que puedan
-            abordarse. Las alegaciones de criterios de resolución poco claros
-            hechos para las cuestiones que ya se han cerrado o a las
-            reclamaciones que resuelvan incorrectamente por cuestiones que ya se
-            han resuelto se mantendrán a un nivel de prueba más alto si la
-            cuestión con los criterios de resolución no se ha mencionado antes,
-            mientras que la cuestión estaba abierta a la previsión.
+            En muchos casos, estas cuestiones deben resolverse como
+            <a href="#ambiguous-annulled">ambiguas o anuladas</a> para preservar
+            la equidad en la puntuación. Si usted cree que hay ambiguedades o
+            conflictos en los criterios de resolución para una pregunta, por
+            favor hágales a los Administradores marcando los amputs en un
+            comentario. Esperamos que las inconstras se puedan identificar lo
+            antes posible en la vida de un tema para que puedan abordarse. Las
+            alegaciones de criterios de resolución poco claros hechos para las
+            cuestiones que ya se han cerrado o a las reclamaciones que resuelvan
+            incorrectamente por cuestiones que ya se han resuelto se mantendrán
+            a un nivel de prueba más alto si la cuestión con los criterios de
+            resolución no se ha mencionado antes, mientras que la cuestión
+            estaba abierta a la previsión.
           </p>
         </div>
         <div>
@@ -2180,13 +2156,12 @@ export default function FAQ() {
             resolución es incierta.
           </p>
           <p>
-            Cuando una pregunta se cierra temprano, los puntos adjudicados son{" "}
-            <em>sólo</em>
-            los acumulados hasta la (nueva) hora de cierre. Esto es necesario
-            para seguir anotando "adeto" (es decir, recompensando el máximo para
-            predecir la probabilidad correcta) y evitar el juego de puntos, pero
-            esto significa que los puntos generales (positivos o negativos)
-            pueden terminar siendo más bajos de lo esperado.
+            Cuando una pregunta se cierra temprano, los puntos adjudicados son
+            <em>sólo</em> los acumulados hasta la (nueva) hora de cierre. Esto
+            es necesario para seguir anotando "adeto" (es decir, recompensando
+            el máximo para predecir la probabilidad correcta) y evitar el juego
+            de puntos, pero esto significa que los puntos generales (positivos o
+            negativos) pueden terminar siendo más bajos de lo esperado.
           </p>
         </div>
         <div>
@@ -2222,14 +2197,14 @@ export default function FAQ() {
             </li>
             <li>
               En algunos países, se pueden convocar elecciones antes de lo
-              previsto (estos se conocen como{" "}
+              previsto (estos se conocen como
               <a href="https://en.wikipedia.org/wiki/Snap_election">
                 elecciones anticipadas
               </a>
               ). El calendario de las elecciones anticipadas suele estar a la
               altura del partido gobernante, y las elecciones suelen programadas
               en un momento en que el titular del partido lo considera favorable
-              a sus perspectivas. <strong>En este caso</strong>,{" "}
+              a sus perspectivas. <strong>En este caso</strong>,
               <strong>el cierre retroactivo es apropiado</strong>, ya que el
               momento de la elección afectará las predicciones para el resultado
               electoral, violando la puntuación adecuada.
@@ -2237,16 +2212,15 @@ export default function FAQ() {
             <li>
               Anteriormente, algunas preguntas sobre Metaculus fueron aprobadas
               con cláusulas de cierre retroactiva inapropiada. Por ejemplo, la
-              pregunta{" "}
+              pregunta
               <a href="/questions/6662/date-earth-functional-satellites-exceed-5000/">
                 "Cuándo superará el número de satélites artificiales funcionales
-                en órbita más allá de 5.000?"{" "}
+                en órbita más allá de 5.000?"
               </a>
-              En{" "}
+              En
               <strong>
-                este caso, <ins>el</ins>
-                cierre retroactivo <ins>no</ins>
-                era apropiado
+                este caso, <ins>el</ins> cierre retroactivo <ins>no</ins> era
+                apropiado
               </strong>
               , ya que la resolución del asunto dependía de la fecha de cierre,
               ya que ambas se basaban en el número de satélites lanzados.
@@ -2257,9 +2231,9 @@ export default function FAQ() {
             evita que los puntos se rompan cuando se produce un evento antes de
             la fecha de cierre programada originalmente. Pero para obtener las
             mejores predicciones, es importante seguir las reglas de puntuación
-            adecuadas. Para obtener más información sobre{" "}
-            <a href="/help/scores-faq/#score-truncation">de</a>
-            puntos truncantes
+            adecuadas. Para obtener más información sobre
+            <a href="/help/scores-faq/#score-truncation">de</a> puntos
+            truncantes
             <a href="/help/scores-faq/#score-truncation">
               , esta sección de preguntas frecuentes
             </a>
@@ -2284,22 +2258,21 @@ export default function FAQ() {
             Nuestros moderadores y autores cuestionan si se esfuerzan por ser lo
             más claros e informados posible sobre cada tema, pero los errores
             ocasionalmente ocurren y se decidirán por el mejor juicio de
-            nuestros administradores. Para una pregunta hipotética como{" "}
+            nuestros administradores. Para una pregunta hipotética como
             <q>
               Will, una detonación nuclear ocurrirá en una ciudad japonesa para
-              2030?{" "}
+              2030?
             </q>
             puede ser comprendido por el sentido común que estamos preguntando
-            sobre la <em>próxima</em>
-            detonación después de las detonaciones en 1945. En otros temas como{" "}
+            sobre la <em>próxima</em> detonación después de las detonaciones en
+            1945. En otros temas como
             <q>
               <a href="/questions/8946/facebook-uses-explainable-news-feed-by-2026/)">
                 Will, Facebook implementa un recurso para explicar las
                 recomendaciones
               </a>
             </q>
-            del <q></q>
-            uno<q></q>, estamos preguntando por la <em>primera</em>
+            del <q></q> uno<q></q>, estamos preguntando por la <em>primera</em>
             ocurrencia de este evento. Dado que este acontecimiento tuvo lugar
             antes de la apertura de la cuestión y esto no fue conocido por el
             autor de la cuestión, la cuestión se resolvió de manera ambigua.
@@ -2313,12 +2286,12 @@ export default function FAQ() {
             Hay momentos en que la intención de un tema es rastrear
             específicamente las acciones o declaraciones de organizaciones o
             personas específicas (como "tal cómo muchos votos electorales
-            ganarán en las elecciones presidenciales de los EE.UU". 2020{" "}
-            <em>de acuerdo con el Colegio Electoral);</em>
-            en otras ocasiones, nos interesan sólo la verdad real, y aceptamos
-            una fuente de resolución como una aproximación aceptable (como,
-            "cuántas muertes de COVID-19" estarán en los EE.UU. en 2021). Dicho
-            esto, en muchos casos no está claro lo que se pretende.
+            ganarán en las elecciones presidenciales de los EE.UU". 2020
+            <em>de acuerdo con el Colegio Electoral);</em> en otras ocasiones,
+            nos interesan sólo la verdad real, y aceptamos una fuente de
+            resolución como una aproximación aceptable (como, "cuántas muertes
+            de COVID-19" estarán en los EE.UU. en 2021). Dicho esto, en muchos
+            casos no está claro lo que se pretende.
           </p>
           <p>
             Idealmente, todas las preguntas se escribirían con un lenguaje
@@ -2590,43 +2563,37 @@ export default function FAQ() {
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 14</div>
-                    <div>Par de pares: 6</div>
+                    <div>Línea base: 14</div> <div>Par de pares: 6</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 14</div>
-                    <div>Peer: 17</div>
+                    <div>Línea base: 14</div> <div>Peer: 17</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 14</div>
-                    <div>Peer: 17</div>
+                    <div>Línea base: 14</div> <div>Peer: 17</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 14</div>
-                    <div>Parer: 28 libras</div>
+                    <div>Línea base: 14</div> <div>Parer: 28 libras</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 14</div>
-                    <div>Parer: 28 libras</div>
+                    <div>Línea base: 14</div> <div>Parer: 28 libras</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 70</div>
-                    <div>Pared: 96</div>
+                    <div>Línea base: 70</div> <div>Pared: 96</div>
                     <div>Cobertura: 1.0</div>
                   </div>
                 </td>
@@ -2637,43 +2604,37 @@ export default function FAQ() {
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 5</div>
-                    <div>Peer: -6</div>
+                    <div>Línea base: 5</div> <div>Peer: -6</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 5</div>
-                    <div>Parer: 8</div>
+                    <div>Línea base: 5</div> <div>Parer: 8</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 5</div>
-                    <div>Parer: 8</div>
+                    <div>Línea base: 5</div> <div>Parer: 8</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 0</div>
-                    <div>Peer: 0 (En el juego)</div>
+                    <div>Línea base: 0</div> <div>Peer: 0 (En el juego)</div>
                     <div>Cobertura: 0</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 0</div>
-                    <div>Peer: 0 (En el juego)</div>
+                    <div>Línea base: 0</div> <div>Peer: 0 (En el juego)</div>
                     <div>Cobertura: 0</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 15</div>
-                    <div>Peer: 10</div>
+                    <div>Línea base: 15</div> <div>Peer: 10</div>
                     <div>Cobertura: 0,6</div>
                   </div>
                 </td>
@@ -2684,43 +2645,37 @@ export default function FAQ() {
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea base: 0</div>
-                    <div>Peer: 0 (En el juego)</div>
+                    <div>Línea base: 0</div> <div>Peer: 0 (En el juego)</div>
                     <div>Cobertura: 0</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea de base: - 17</div>
-                    <div>Peer: - 25</div>
+                    <div>Línea de base: - 17</div> <div>Peer: - 25</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea de base: - 17</div>
-                    <div>Peer: - 25</div>
+                    <div>Línea de base: - 17</div> <div>Peer: - 25</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea de base: - 17</div>
-                    <div>Peer: -28</div>
+                    <div>Línea de base: - 17</div> <div>Peer: -28</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea de base: - 17</div>
-                    <div>Peer: -28</div>
+                    <div>Línea de base: - 17</div> <div>Peer: -28</div>
                     <div>Cobertura: 0,2</div>
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   <div className="flex flex-col gap-1">
-                    <div>Línea de base: -68</div>
-                    <div>Peer: -106</div>
+                    <div>Línea de base: -68</div> <div>Peer: -106</div>
                     <div>Cobertura: 0,8</div>
                   </div>
                 </td>
@@ -2768,15 +2723,15 @@ export default function FAQ() {
             Algunas preguntas de Metaculus permiten entradas numéricas o de
             intervalo de fecha donde especifica la distribución de probabilidad
             que cree que es probable en una posible gama de resultados. Esta
-            distribución de probabilidad se conoce como una{" "}
+            distribución de probabilidad se conoce como una
             <a href="https://en.wikipedia.org/wiki/Probability_density_function">
               función
             </a>
-            de{" "}
+            de
             <a href="https://en.wikipedia.org/wiki/Probability_density_function">
               densidad
             </a>
-            de{" "}
+            de
             <a href="https://en.wikipedia.org/wiki/Probability_density_function">
               probabilidad
             </a>
@@ -2804,7 +2759,7 @@ export default function FAQ() {
           <p>
             Cuando seleccione el menú desplegable "Probabilidad de la densidad"
             en la parte superior de la tabla, puede cambiar la vista a
-            "Probabilidad bucotuativa". Esta vista muestra la{" "}
+            "Probabilidad bucotuativa". Esta vista muestra la
             <a href="https://en.wikipedia.org/wiki/Cumulative_distribution_function">
               función de distribución acumulada
             </a>
@@ -2931,7 +2886,7 @@ export default function FAQ() {
           <ul className="ml-5 list-disc space-y-2">
             <li>Mantenga sólo el último pronóstico de cada meteorólogo.</li>
             <li>
-              Asignarlos un número{" "}
+              Asignarlos un número
               <span role="math" tabIndex={-1} className="!whitespace-normal">
                 <span className="katex">
                   <span className="katex-html" aria-hidden="true">
@@ -2942,7 +2897,7 @@ export default function FAQ() {
                   </span>
                 </span>
               </span>
-              , de los más viejos a los más jóvenes (el mayor es{" "}
+              , de los más viejos a los más jóvenes (el mayor es
               <span role="math" tabIndex={-1} className="!whitespace-normal">
                 <span className="katex">
                   <span className="katex-html" aria-hidden="true">
@@ -2956,7 +2911,7 @@ export default function FAQ() {
               1).
             </li>
             <li>
-              Peso cada uno por{" "}
+              Peso cada uno por
               <span role="math" tabIndex={-1} className="!whitespace-normal">
                 <span className="katex">
                   <span className="katex-html" aria-hidden="true">
@@ -3034,16 +2989,16 @@ export default function FAQ() {
             <ul className="ml-5 list-disc">
               <li>
                 Para <a href="/faq/#question-types">asuntos binarios</a>, el
-                pronóstico de la comunidad es una{" "}
+                pronóstico de la comunidad es una
                 <a href="https://en.wikipedia.org/wiki/Weighted_median">
                   mediana mediana ponderada
                 </a>
                 de las posibilidades del pronosticador individual.
               </li>
               <li>
-                Para{" "}
+                Para
                 <a href="/faq/#question-types">preguntas de opción múltiple</a>,
-                la previsión comunitaria es una{" "}
+                la previsión comunitaria es una
                 <a href="https://en.wikipedia.org/wiki/Weighted_median">
                   mediana ponderada
                 </a>
@@ -3067,11 +3022,11 @@ export default function FAQ() {
                 ].
               </li>
               <li>
-                Para{" "}
+                Para
                 <a href="/faq/#question-types">
                   las preguntas numéricas y de fecha
                 </a>
-                , la previsión comunitaria es una{" "}
+                , la previsión comunitaria es una
                 <a href="https://en.wikipedia.org/wiki/Mixture_distribution">
                   media ponderada
                 </a>
@@ -3079,7 +3034,7 @@ export default function FAQ() {
               </li>
             </ul>
             <li>
-              La forma particular de pesos significa que aproximadamente{" "}
+              La forma particular de pesos significa que aproximadamente
               <span role="math" tabIndex={-1} className="!whitespace-normal">
                 <span className="katex">
                   <span className="katex-html" aria-hidden="true">
@@ -3124,7 +3079,7 @@ export default function FAQ() {
               </span>
               ​ ​ Los analistas pronosticarán o actualizarán sus previsiones
               para modificar sustancialmente las previsiones comunitarias sobre
-              una cuestión que ya tiene{" "}
+              una cuestión que ya tiene
               <span role="math" tabIndex={-1} className="!whitespace-normal">
                 <span className="katex">
                   <span className="katex-html" aria-hidden="true">
@@ -3135,7 +3090,7 @@ export default function FAQ() {
                   </span>
                 </span>
               </span>
-              previsiones{" "}
+              previsiones
               <span role="math" tabIndex={-1} className="!whitespace-normal">
                 <span className="katex">
                   <span className="katex-html" aria-hidden="true">
@@ -3172,7 +3127,7 @@ export default function FAQ() {
             Qué es el pronóstico de Metaculus?
           </h3>
           <p>
-            El pronóstico de Metaculus sólo se puede ver en el{" "}
+            El pronóstico de Metaculus sólo se puede ver en el
             <a href="/aggregation-explorer/">Explorer de Agregación</a>. Ha
             estado obsoleto desde noviembre de 2024, pero muestra un registro de
             la mejor estimación del sistema Metaculus de cómo se resolverá un
@@ -3212,25 +3167,25 @@ export default function FAQ() {
             Cuáles son las previsiones de las cifras públicas?
           </h3>
           <p>
-            Las páginas de{" "}
-            <a href="/organization/public-figures/">predicción</a>
-            de <a href="/organization/public-figures/">figuras</a>
-            públicas se dedican a recopilar y preservar importantes predicciones
-            hechas por figuras públicas prominentes y a ponerlas en conversación
-            con las predicciones de la comunidad Metaculus. Cada cifra presenta
-            una lista de predicciones que hicieron junto con la fuente que
-            registró el pronóstico, la fecha en la que se hizo el pronóstico y
-            las preguntas relacionadas con Metaculus. Las previsiones públicas
-            se presentan de manera transparente junto con las previsiones
+            Las páginas de
+            <a href="/organization/public-figures/">predicción</a> de
+            <a href="/organization/public-figures/">figuras</a> públicas se
+            dedican a recopilar y preservar importantes predicciones hechas por
+            figuras públicas prominentes y a ponerlas en conversación con las
+            predicciones de la comunidad Metaculus. Cada cifra presenta una
+            lista de predicciones que hicieron junto con la fuente que registró
+            el pronóstico, la fecha en la que se hizo el pronóstico y las
+            preguntas relacionadas con Metaculus. Las previsiones públicas se
+            presentan de manera transparente junto con las previsiones
             comunitarias de manera inspectora y comprensible por parte de todos,
             proporcionando responsabilidad pública y contexto adicional para los
             temas del Metaculuso vinculado.
           </p>
           <p>
-            Una <em>figura pública</em>
-            es alguien con cierta posición social dentro de una esfera
-            particular de influencia, como un político, personalidad mediática,
-            científico, periodista, economista, académico o líder empresarial.
+            Una <em>figura pública</em> es alguien con cierta posición social
+            dentro de una esfera particular de influencia, como un político,
+            personalidad mediática, científico, periodista, economista,
+            académico o líder empresarial.
           </p>
         </div>
         <div>
@@ -3276,7 +3231,7 @@ export default function FAQ() {
           </ol>
           <p>
             Si la Figura Pública no tiene ya una página dedicada, puede
-            solicitar que crees comentando el post de{" "}
+            solicitar que crees comentando el post de
             <a
               href="/questions/8198/public-figure-predictions/"
               target="_blank"
@@ -3284,7 +3239,7 @@ export default function FAQ() {
             >
               de
             </a>
-            discusión de{" "}
+            discusión de
             <a
               href="/questions/8198/public-figure-predictions/"
               target="_blank"
@@ -3303,7 +3258,7 @@ export default function FAQ() {
           <p>
             Dependiendo del nivel de especificidad y claridad de la predicción
             de la figura pública, un problema vinculado Metaculus puede resolver
-            de acuerdo con los criterios exactos de la predicción. Por ejemplo,{" "}
+            de acuerdo con los criterios exactos de la predicción. Por ejemplo,
             <a
               href="/questions/8225/public-figure-prediction-by-joe-biden/"
               target="_blank"
@@ -3323,7 +3278,7 @@ export default function FAQ() {
           </p>
           <p>
             Las preguntas viles no son necesarias, sin embargo, para
-            corresponder directamente a la predicción de la figura pública, y{" "}
+            corresponder directamente a la predicción de la figura pública, y
             <a
               href="/questions/5712/biden-2024-re-nomination/"
               target="_blank"
@@ -3340,7 +3295,7 @@ export default function FAQ() {
             estar vinculado a la previsión.
           </p>
           <p>
-            Por otro lado, esta pregunta sobre si el{" "}
+            Por otro lado, esta pregunta sobre si el
             <a
               href="/questions/8523/irs-designates-crypto-miners-brokers-by-2025/"
               target="_blank"
@@ -3454,7 +3409,7 @@ export default function FAQ() {
             encontrar en la página de preguntas.
           </p>
           <p>
-            Más información en las{" "}
+            Más información en las
             <a href="/help/scores-faq/">
               preguntas frecuentes de Puntuaciones dedicadas
             </a>
@@ -3476,10 +3431,10 @@ export default function FAQ() {
             otorgan medallas para el rendimiento del torneo.
           </p>
           <p>
-            Más información en las{" "}
+            Más información en las
             <a href="/help/medals-faq/">preguntas frecuentes sobre</a>
-            <a href="/help/medals-faq/">las medallas</a>
-            dedicadas<a href="/help/medals-faq/">.</a>
+            <a href="/help/medals-faq/">las medallas</a> dedicadas
+            <a href="/help/medals-faq/">.</a>
           </p>
         </div>
         <div>
@@ -3496,15 +3451,15 @@ export default function FAQ() {
             Qué es la revista Metaculus?
           </h3>
           <p>
-            <a href="/project/journal/">Metaculus Journal</a>
-            publica ensayos educativos largos y educativos sobre temas críticos
-            como la ciencia y la tecnología emergentes, la salud global, la
-            bioseguridad, la economía y la econométrica, la ciencia ambiental y
-            la geopolítica, todo fortificado con predicciones cuantificadas.
+            <a href="/project/journal/">Metaculus Journal</a> publica ensayos
+            educativos largos y educativos sobre temas críticos como la ciencia
+            y la tecnología emergentes, la salud global, la bioseguridad, la
+            economía y la econométrica, la ciencia ambiental y la geopolítica,
+            todo fortificado con predicciones cuantificadas.
           </p>
           <p>
             Si desea escribir a Metaculus Journal, por favor envíe un correo
-            electrónico a{" "}
+            electrónico a
             <a href="mailto:christian@metaculus.com">christian.metaculus.com</a>
             con un currículum o currículum, una muestra de escritura y dos
             lanzamientos de la historia.
@@ -3553,10 +3508,10 @@ export default function FAQ() {
             Qué son los meteorólogos Metaculus Pro?
           </h3>
           <p>
-            Para ciertos proyectos, Metaculus emplea{" "}
-            <a href="/pro-forecasters/">Procandeos Progres</a>
-            que han demostrado una excelente capacidad predictiva y que tienen
-            un historial de describir claramente sus justificaciones. Los
+            Para ciertos proyectos, Metaculus emplea
+            <a href="/pro-forecasters/">Procandeos Progres</a> que han
+            demostrado una excelente capacidad predictiva y que tienen un
+            historial de describir claramente sus justificaciones. Los
             profesionales prevén conjuntos de preguntas privadas y públicas para
             producir predicciones bien calibradas y justificaciones descriptivas
             para nuestros socios. Reclutamos principalmente a miembros de la
@@ -3566,10 +3521,10 @@ export default function FAQ() {
           </p>
           <p>
             Si usted está interesado en contratar Metaculus Procasters para un
-            proyecto, por favor contáctenos en{" "}
+            proyecto, por favor contáctenos en
             <a href="mailto:support@metaculus.com">e-soco.com</a>.
-            <a href="mailto:support@metaculus.com">com</a>
-            con el tema "Investigación de proyectos".
+            <a href="mailto:support@metaculus.com">com</a> con el tema
+            "Investigación de proyectos".
           </p>
           <p>
             Metaculus selecciona a los individuos de acuerdo con los siguientes
@@ -3623,7 +3578,7 @@ export default function FAQ() {
             Metaculus puede, aunque esto, afortunadamente, ocurre muy raramente
             - emite las suspensiones temporales de una cuenta. Esto ocurre
             cuando un usuario ha actuado de una manera que consideramos
-            inapropiada, como cuando se violan nuestros{" "}
+            inapropiada, como cuando se violan nuestros
             <a href="/terms-of-use/">términos de uso</a>. En este punto, el
             usuario recibirá una advertencia sobre la suspensión y se le
             informará de que continuar con este comportamiento es inaceptable.
@@ -3666,7 +3621,7 @@ export default function FAQ() {
             corresponde a los artículos para las preguntas de Metaculus.
           </p>
           <p>
-            El modelo de coincidencia de artículos es apoyado por{" "}
+            El modelo de coincidencia de artículos es apoyado por
             <a href="https://www.improvethenews.org/">Improve the News</a>, un
             agregador de noticias desarrollado por un grupo de investigadores
             del MIT. Diseñado para dar a los lectores más control sobre el
@@ -3679,7 +3634,7 @@ export default function FAQ() {
             relevantes de Metaculus por un modelo de aprendizaje automático
             basado en transformadores capacitado para cartografiar pasajes
             semánticamente similares a regiones en "espacio retrasado". Las
-            adiciones se generan utilizando{" "}
+            adiciones se generan utilizando
             <a href="https://arxiv.org/abs/2004.09297">MPNet</a>.
           </p>
         </div>
@@ -3705,7 +3660,7 @@ export default function FAQ() {
             y en curso con importantes temas de comentarios y se actualizará
             periódicamente a medida que surjan nuevos debates en los
             comentarios. Si tienes retroalimentación sobre estos resúmenes - o
-            quieres verlos aparecer en una gama más amplia de preguntas -{" "}
+            quieres verlos aparecer en una gama más amplia de preguntas -
             <a href="mailto:support@metaculus.com">email support.com</a>.
           </p>
           <p>
@@ -3783,7 +3738,7 @@ export default function FAQ() {
           </h3>
           <p>
             Por supuesto, si desea cerrar su cuenta, por favor envíe un correo
-            electrónico a su solicitud a{" "}
+            electrónico a su solicitud a
             <a href="mailto:closemyaccount@metaculus.com">
               closemyaccount.metaculus.com
             </a>
