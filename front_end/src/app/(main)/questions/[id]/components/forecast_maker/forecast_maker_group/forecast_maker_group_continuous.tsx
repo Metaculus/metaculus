@@ -222,7 +222,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             return {
               ...prevOption,
               forecastInputMode:
-                prevForecast?.type ?? ContinuousForecastInputType.Slider,
+                prevForecast?.type ?? prevOption.forecastInputMode,
               userQuartiles: getUserContinuousQuartiles(
                 userSliderForecast,
                 prevOption.question
@@ -420,7 +420,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             type="reset"
             onClick={() => handleResetForecasts()}
           >
-            {t("discardChangesButton")}
+            {t("discardAllChangesButton")}
           </Button>
 
           <PredictButton
@@ -428,6 +428,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             isDirty={true}
             hasUserForecast={true}
             isPending={isSubmitting}
+            predictLabel={t("saveAllChanges")}
           />
         </div>
       )}

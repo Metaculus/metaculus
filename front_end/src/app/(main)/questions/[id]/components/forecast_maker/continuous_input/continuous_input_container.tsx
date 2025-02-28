@@ -23,6 +23,7 @@ export type ContinuousInputContainerProps = {
   previousForecast?: UserForecast;
   menu?: ReactNode;
   children?: (graphType: ContinuousAreaGraphType) => ReactNode;
+  disabled?: boolean;
 };
 
 const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
@@ -33,6 +34,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   onOverlayPreviousForecastChange,
   menu,
   children,
+  disabled,
 }) => {
   const t = useTranslations();
 
@@ -40,11 +42,13 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
 
   return (
     <div className="mr-0 flex flex-col sm:mr-2">
-      <div className="flex justify-between">
-        <ContinuousInputModeSwitcher
-          mode={forecastInputMode}
-          onChange={onInputModeChange}
-        />
+      <div className={cn("flex justify-between", disabled && "justify-end")}>
+        {!disabled && (
+          <ContinuousInputModeSwitcher
+            mode={forecastInputMode}
+            onChange={onInputModeChange}
+          />
+        )}
         <div className="flex flex-col items-center gap-2 self-end">
           <div className="flex w-fit flex-row items-center gap-2 self-end">
             <p
