@@ -1,4 +1,5 @@
 import { fromUnixTime, subWeeks } from "date-fns";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
@@ -24,6 +25,7 @@ const IndexSection: FC<Props> = ({ indexWeights }) => {
   return (
     <IndexQuestionsTable
       indexWeights={indexWeights}
+      showWeeklyMovement={indexWeeklyMovement !== 0}
       HeadingSection={
         <div className="flex flex-col items-center border-b border-gray-300 bg-blue-100 px-4 py-4 text-center leading-4 dark:border-gray-300-dark dark:bg-blue-100-dark">
           <p className="m-0 mb-2 text-3xl capitalize leading-9">
@@ -57,8 +59,8 @@ function calculateIndex(posts: ProjectIndexWeights[]): {
   if (weightSum === 0) {
     return { index: 0, indexWeekAgo: 0 };
   }
-  const dateNow = new Date();
-  const weekAgoDate = subWeeks(dateNow, 1);
+
+  const weekAgoDate = subWeeks(Date.now(), 1);
 
   const { scoreSum, weeklyScoreSum } = posts.reduce(
     (acc, obj) => {
@@ -91,7 +93,7 @@ function calculateIndex(posts: ProjectIndexWeights[]): {
 
       switch (question.type) {
         case QuestionType.Binary: {
-          if (!cp) {
+          if (isNil(cp)) {
             break;
           }
 
@@ -114,11 +116,11 @@ function calculateIndex(posts: ProjectIndexWeights[]): {
           const scaling = question.scaling;
           const min = scaling.range_min;
           const max = scaling.range_max;
-          if (!min || !max) {
+          if (isNil(min) || isNil(max)) {
             break;
           }
 
-          if (!cp) {
+          if (isNil(cp)) {
             break;
           }
           const median = scaleInternalLocation(cp, scaling);
