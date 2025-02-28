@@ -1,5 +1,5 @@
 import { ProjectPermissions } from "@/types/post";
-import { QuestionType } from "@/types/question";
+import { QuestionType, Scaling } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
 export type AuthorType = {
@@ -48,6 +48,7 @@ export type ForecastType = {
   options: string[];
   continuous_cdf: number[];
   quartiles: [number, number, number];
+  scaling: Scaling;
   question_type: QuestionType;
 };
 
