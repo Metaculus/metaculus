@@ -3,7 +3,6 @@ import { Resolution } from "@/types/post";
 import { User } from "@/types/users";
 
 import { QuestionType } from "./question";
-import { boolean } from "zod";
 
 export type ScoreType = "peer" | "spot_peer" | "baseline" | "spot_baseline";
 
