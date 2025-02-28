@@ -46,6 +46,7 @@ export type PostsParams = PaginationParams & {
   curation_status?: string;
   notebook_type?: string;
   similar_to_post_id?: number;
+  default_project_id?: string;
 };
 
 export type ApprovePostParams = {
@@ -222,9 +223,24 @@ class PostsApi {
   }
 
   static async getPostZipData(postId: number): Promise<Blob> {
-    return await get<Blob>(
-      `/posts/${postId}/download-data/?aggregation_methods=recency_weighted`
-    );
+    return await get<Blob>(`/posts/${postId}/download-data/`);
+  }
+
+  static async getAggregationsPostZipData(
+    postId: number,
+    subQuestionId?: number,
+    aggregationMethods?: string,
+    includeBots?: boolean
+  ): Promise<Blob> {
+    const queryParams = encodeQueryParams({
+      ...(subQuestionId ? { sub_question: subQuestionId } : {}),
+      ...(aggregationMethods
+        ? { aggregation_methods: aggregationMethods }
+        : { aggregation_methods: "all" }),
+      ...(includeBots !== undefined ? { include_bots: includeBots } : {}),
+    });
+
+    return await get<Blob>(`/posts/${postId}/download-data/${queryParams}`);
   }
 
   static async repost(postId: number, projectId: number) {

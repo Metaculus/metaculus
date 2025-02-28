@@ -1,91 +1,213 @@
 import csv
 import io
 import zipfile
+import hashlib
 
 from django.db.models import QuerySet, Q
+from django.utils import timezone
 
 from comments.models import Comment
 from questions.models import Question, AggregateForecast, Forecast
+from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
+from users.models import User
+from utils.the_math.aggregations import get_aggregation_history
+
+
+def export_specific_data_for_questions(
+    questions: QuerySet[Question],
+    user: User | None = None,
+    aggregation_methods: list[AggregationMethod] | None = None,
+    include_comments: bool = False,
+    include_scores: bool = False,
+    include_bots: bool = False,
+    minimize: bool = True,
+) -> bytes:
+    # This method only returns a specific user's own data and public data - typically
+    # only called by a view. Respects cp_reveal_time.
+
+    # check input
+    if not aggregation_methods and (include_bots or not minimize):
+        raise ValueError(
+            "If user_ids, include_bots, or minimize is set, "
+            "aggregation_methods must also be set."
+        )
+
+    user_forecasts = (
+        None
+        if user is None
+        else Forecast.objects.filter(author=user, question__in=questions).order_by(
+            "question_id", "start_time"
+        )
+    )
+
+    now = timezone.now()
+    aggregate_forecasts: list[AggregateForecast] = []
+    for question in questions:
+        if question.cp_reveal_time and question.cp_reveal_time > now:
+            # CP is hidden, don't return any aggregate forecasts
+            continue
+
+        if not aggregation_methods:
+            aggregate_forecasts = list(
+                AggregateForecast.objects.filter(question__in=questions).order_by(
+                    "question_id", "start_time"
+                )
+            )
+        else:
+            aggregate_forecasts = []
+            for question in questions:
+                aggregation_dict = get_aggregation_history(
+                    question,
+                    aggregation_methods,
+                    user_ids=None,
+                    minimize=minimize,
+                    include_stats=True,
+                    include_bots=(
+                        include_bots
+                        if include_bots is not None
+                        else question.include_bots_in_aggregates
+                    ),
+                    histogram=True,
+                )
+                for values in aggregation_dict.values():
+                    aggregate_forecasts.extend(values)
+
+    if include_comments:
+        comments = Comment.objects.filter(
+            Q(is_private=False) | Q(author=user),
+            Q(is_soft_deleted=False) | Q(author=user),
+            on_post__in=questions.values_list("related_posts__post", flat=True),
+        ).order_by("created_at")
+    else:
+        comments = None
+
+    if include_scores:
+        scores = Score.objects.filter(
+            Q(user=user) | Q(user__isnull=True),
+            question__in=questions,
+        ).order_by("created_at")
+        archived_scores = ArchivedScore.objects.filter(
+            Q(user=user) | Q(user__isnull=True),
+            question__in=questions,
+        ).order_by("created_at")
+        all_scores = scores.union(archived_scores)
+    else:
+        all_scores = None
+    return export_data_for_questions(
+        questions=questions,
+        user_forecasts=user_forecasts,
+        aggregate_forecasts=aggregate_forecasts,
+        comments=comments,
+        scores=all_scores,
+    )
+
+
+def export_all_data_for_questions(
+    questions: QuerySet[Question],
+    aggregation_methods: list[AggregationMethod] | None = None,
+    user_ids: list[int] | None = None,
+    include_comments: bool = False,
+    include_scores: bool = False,
+    include_bots: bool = False,
+    minimize: bool = True,
+    anonymized: bool = False,
+) -> bytes:
+    # This method returns all data including private and should only be called by
+    # admin panel or a view called by staff or whitelisted user.
+    # Does not respect cp_reveal_time.
+
+    # check input
+    if not aggregation_methods and (
+        (user_ids is not None) or include_bots or not minimize
+    ):
+        raise ValueError(
+            "If user_ids, include_bots, or minimize is set, "
+            "aggregation_methods must also be set."
+        )
+
+    user_forecasts = Forecast.objects.filter(question__in=questions).order_by(
+        "question_id", "start_time"
+    )
+    if user_ids:
+        user_forecasts = user_forecasts.filter(user_id__in=user_ids)
+
+    if not aggregation_methods:
+        aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
+            AggregateForecast.objects.filter(question__in=questions)
+        ).order_by("question_id", "start_time")
+    else:
+        aggregate_forecasts = []
+        for question in questions:
+            aggregation_dict = get_aggregation_history(
+                question,
+                aggregation_methods,
+                user_ids=user_ids,
+                minimize=minimize,
+                include_stats=True,
+                include_bots=(
+                    include_bots
+                    if include_bots is not None
+                    else question.include_bots_in_aggregates
+                ),
+                histogram=True,
+            )
+            for values in aggregation_dict.values():
+                aggregate_forecasts.extend(values)
+
+    if include_comments:
+        comments = Comment.objects.filter(
+            is_private=False,
+            is_soft_deleted=False,
+            on_post__in=questions.values_list("related_posts__post", flat=True),
+        ).order_by("created_at")
+    else:
+        comments = None
+
+    if include_scores:
+        scores = Score.objects.filter(question__in=questions)
+        archived_scores = ArchivedScore.objects.filter(question__in=questions)
+        if user_ids:
+            scores = scores.filter(Q(user_id__in=user_ids) | Q(user__isnull=True))
+            archived_scores = archived_scores.filter(
+                Q(user_id__in=user_ids) | Q(user__isnull=True)
+            )
+        all_scores = scores.union(archived_scores)
+    else:
+        all_scores = None
+
+    return export_data_for_questions(
+        questions=questions,
+        user_forecasts=user_forecasts,
+        aggregate_forecasts=aggregate_forecasts,
+        comments=comments,
+        scores=all_scores,
+        anonymized=anonymized,
+    )
 
 
 def export_data_for_questions(
     questions: QuerySet[Question],
-    include_user_forecasts: bool = False,
-    include_comments: bool = False,
-    include_scores: bool = False,
-    user_ids: list[int] | None = None,
-    aggregation_dict: dict[Question, dict[str, list[AggregateForecast]]] | None = None,
+    user_forecasts: QuerySet[Forecast] | list[Forecast] | None = None,
+    aggregate_forecasts: (
+        QuerySet[AggregateForecast] | list[AggregateForecast] | None
+    ) = None,
+    comments: QuerySet[Comment] | list[Comment] | None = None,
+    scores: QuerySet[Score | ArchivedScore] | list[Score | ArchivedScore] | None = None,
+    anonymized: bool = False,
 ) -> bytes:
     # generate a zip file with up to 4 csv files:
-    #     question_data
-    #     forecast_data
-    #     comment_data
-    #     score_data
-    # If user_ids is give, aggregation_dict must also be provided as this method does
-    #     not recalculate aggregations
-    if user_ids and not aggregation_dict:
-        raise ValueError(
-            "If user_ids are provided, aggregation_dict must be "
-            "generated before this method"
-        )
+    #     question_data - Always
+    #     forecast_data - Always (populated by user_forecasts and aggregate_forecasts)
+    #     comment_data - only if comments given
+    #     score_data - only if scores given
 
     questions = questions.prefetch_related(
         "related_posts__post", "related_posts__post__default_project"
     )
-    post_ids = questions.values_list("related_posts__post__id", flat=True)
     question_ids = questions.values_list("id", flat=True)
     if not question_ids:
         return
-
-    forecasts = (
-        Forecast.objects.none()
-        if not include_user_forecasts
-        else (
-            Forecast.objects.filter(question_id__in=question_ids)
-            .select_related("question", "author")
-            .order_by("question_id", "start_time")
-        )
-    )
-    if user_ids:
-        forecasts = forecasts.filter(author_id__in=user_ids)
-
-    aggregate_forecasts = []
-    if aggregation_dict is not None:
-        for ad in aggregation_dict.values():
-            for afs in ad.values():
-                aggregate_forecasts.extend(afs)
-
-    comments = (
-        Comment.objects.none()
-        if not include_comments
-        else (
-            Comment.objects.filter(
-                on_post_id__in=post_ids,
-                is_private=False,
-                is_soft_deleted=False,
-            )
-            .prefetch_related("author")
-            .distinct()
-        ).order_by("on_post_id", "created_at")
-    )
-
-    scores = (
-        Score.objects.none()
-        if not include_scores
-        else (Score.objects.filter(question_id__in=question_ids))
-    )
-    archived_scores = (
-        ArchivedScore.objects.none()
-        if not include_scores
-        else (ArchivedScore.objects.filter(question_id__in=question_ids))
-    )
-    if user_ids:
-        scores = scores.filter(Q(user_id__in=user_ids) | Q(user__isnull=True))
-        archived_scores = archived_scores.filter(
-            Q(user_id__in=user_ids) | Q(user__isnull=True)
-        )
-    all_scores = scores.union(archived_scores)
 
     # question_data csv file
     question_output = io.StringIO()
@@ -93,6 +215,7 @@ def export_data_for_questions(
     question_writer.writerow(
         [
             "Question ID",
+            "Question URL",
             "Question Title",
             "Post ID",
             "Post Curation Status",
@@ -117,6 +240,11 @@ def export_data_for_questions(
         question_writer.writerow(
             [
                 question.id,
+                "https://www.metaculus.com/questions/"
+                + str(post.id)
+                + "/"
+                + str(post.url_title.lower().replace(" ", "-"))
+                + "/",
                 question.title,
                 post.id,
                 post.curation_status,
@@ -150,11 +278,13 @@ def export_data_for_questions(
     # forecast_data csv file
     forecast_output = io.StringIO()
     forecast_writer = csv.writer(forecast_output)
-    forecast_writer.writerow(
+    headers = ["Question ID"]
+    if anonymized:
+        headers.extend(["Forecaster (Anonymized)"])
+    else:
+        headers.extend(["Forecaster ID", "Forecaster Username"])
+    headers.extend(
         [
-            "Question ID",
-            "Forecaster ID",
-            "Forecaster Username",
             "Start Time",
             "End Time",
             "Forecaster Count",
@@ -163,12 +293,16 @@ def export_data_for_questions(
             "Continuous CDF",
         ]
     )
-    for forecast in forecasts:
-        forecast_writer.writerow(
+    forecast_writer.writerow(headers)
+
+    for forecast in user_forecasts or []:
+        row = [forecast.question.id]
+        if anonymized:
+            row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
+        else:
+            row.extend([forecast.author_id, forecast.author.username])
+        row.extend(
             [
-                forecast.question.id,
-                forecast.author_id,
-                forecast.author.username,
                 forecast.start_time,
                 forecast.end_time,
                 None,
@@ -177,7 +311,8 @@ def export_data_for_questions(
                 forecast.continuous_cdf,
             ]
         )
-    for aggregate_forecast in aggregate_forecasts:
+        forecast_writer.writerow(row)
+    for aggregate_forecast in aggregate_forecasts or []:
         match aggregate_forecast.question.type:
             case Question.QuestionType.BINARY:
                 probability_yes = aggregate_forecast.forecast_values[1]
@@ -191,11 +326,13 @@ def export_data_for_questions(
                 probability_yes = None
                 probability_yes_per_category = None
                 continuous_cdf = aggregate_forecast.forecast_values
-        forecast_writer.writerow(
+        row = [aggregate_forecast.question.id]
+        if anonymized:
+            row.append(aggregate_forecast.method)
+        else:
+            row.extend([None, aggregate_forecast.method])
+        row.extend(
             [
-                aggregate_forecast.question.id,
-                None,
-                aggregate_forecast.method,
                 aggregate_forecast.start_time,
                 aggregate_forecast.end_time,
                 aggregate_forecast.forecaster_count,
@@ -204,6 +341,7 @@ def export_data_for_questions(
                 continuous_cdf,
             ]
         )
+        forecast_writer.writerow(row)
 
     # comment_data csv file
     comment_output = io.StringIO()
@@ -219,7 +357,7 @@ def export_data_for_questions(
             "Comment Text",
         ]
     )
-    for comment in comments:
+    for comment in comments or []:
         comment_writer.writerow(
             [
                 comment.on_post_id,
@@ -245,7 +383,7 @@ def export_data_for_questions(
             "Coverage",
         ]
     )
-    for score in all_scores:
+    for score in scores or []:
         score_writer.writerow(
             [
                 score.question_id,
@@ -262,9 +400,9 @@ def export_data_for_questions(
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
         zip_file.writestr("question_data.csv", question_output.getvalue())
         zip_file.writestr("forecast_data.csv", forecast_output.getvalue())
-        if include_comments:
+        if comments:
             zip_file.writestr("comment_data.csv", comment_output.getvalue())
-        if include_scores:
+        if scores:
             zip_file.writestr("score_data.csv", score_output.getvalue())
 
     # return the zip file

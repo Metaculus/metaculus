@@ -231,24 +231,33 @@ class PostQuerySet(models.QuerySet):
         user_id = user.id if user else None
         site_main_project = get_site_main_project()
 
-        # Annotate with user-specific permission or project's default permission
-        qs = self.annotate(
-            user_permission_override=FilteredRelation(
-                "default_project__projectuserpermission",
-                condition=Q(default_project__projectuserpermission__user_id=user_id),
-            ),
-            _user_permission=models.Case(
-                models.When(
-                    Q(default_project__created_by_id__isnull=False, default_project__created_by_id=user_id),
-                    then=models.Value(ObjectPermission.ADMIN),
+        # Superusers automatically get admin permission for all posts
+        if user and user.is_superuser:
+            qs = self.annotate(
+                _user_permission=models.Value(ObjectPermission.ADMIN)
+            )
+        else:
+            # Annotate with user-specific permission or project's default permission
+            qs = self.annotate(
+                _user_permission_override=FilteredRelation(
+                    "default_project__projectuserpermission",
+                    condition=Q(default_project__projectuserpermission__user_id=user_id),
                 ),
-                default=Coalesce(
-                    F("user_permission_override__permission"),
-                    F("default_project__default_permission"),
+                _user_permission=models.Case(
+                    models.When(
+                        Q(
+                            default_project__created_by_id__isnull=False,
+                            default_project__created_by_id=user_id,
+                        ),
+                        then=models.Value(ObjectPermission.ADMIN),
+                    ),
+                    default=Coalesce(
+                        F("_user_permission_override__permission"),
+                        F("default_project__default_permission"),
+                    ),
+                    output_field=models.CharField(),
                 ),
-                output_field=models.CharField(),
-            ),
-        )
+            )
 
         # Exclude posts user doesn't have access to
         qs = qs.filter(
@@ -601,6 +610,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
                 ],
                 default=None,
             )
+        elif self.notebook_id:
+            open_time = self.published_at
 
         self.open_time = open_time
 

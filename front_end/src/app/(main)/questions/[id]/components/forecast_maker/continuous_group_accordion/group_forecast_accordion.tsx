@@ -1,11 +1,10 @@
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
 import { ErrorResponse } from "@/types/fetch";
 import { QuestionStatus } from "@/types/post";
 import { DistributionSliderComponent } from "@/types/question";
-import { formatResolution } from "@/utils/questions";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
 import { useHideCP } from "../../cp_provider";
@@ -41,7 +40,6 @@ const GroupForecastAccordion: FC<Props> = ({
   handlePredictSubmit,
 }) => {
   const t = useTranslations();
-  const locale = useLocale();
   const { hideCP } = useHideCP();
   const { user } = useAuth();
   const showCP = !user || !hideCP;
@@ -70,10 +68,10 @@ const GroupForecastAccordion: FC<Props> = ({
     <div className="w-full">
       {!!resolvedOptions.length && (
         <div className="mb-0.5 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
-          <div className="shrink grow bg-blue-600/15 py-1 dark:bg-blue-400/15">
-            <span className="pl-4">{groupVariable}</span>
+          <div className="shrink grow overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15">
+            <span className="line-clamp-2 pl-4">{groupVariable}</span>
           </div>
-          <div className="max-w-[105px] shrink grow-[3] bg-blue-600/15 py-1 text-center dark:bg-blue-400/15 sm:max-w-[422px]">
+          <div className="min-w-[105px] max-w-[105px] shrink grow-[3] bg-blue-600/15 py-1 text-center dark:bg-blue-400/15 sm:min-w-[422px] sm:max-w-[422px]">
             {t("resolution")}
           </div>
           <div className="w-[43px] shrink-0 grow-0 bg-blue-600/15 py-1 dark:bg-blue-400/15"></div>
@@ -83,13 +81,9 @@ const GroupForecastAccordion: FC<Props> = ({
         return (
           <AccordionItem
             option={option}
-            resolution={formatResolution(
-              option.resolution,
-              option.question.type,
-              locale
-            )}
             showCP={true}
             subQuestionId={subQuestionId}
+            isResolvedOption={true}
             key={option.id}
           >
             <SliderWrapper
@@ -106,8 +100,8 @@ const GroupForecastAccordion: FC<Props> = ({
       })}
       {!!activeOptions.length && (
         <div className="mb-0.5 mt-2 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
-          <div className="shrink grow bg-blue-600/15 py-1 dark:bg-blue-400/15">
-            <span className="pl-4">{groupVariable}</span>
+          <div className="shrink grow overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15">
+            <span className="line-clamp-2 pl-4">{groupVariable}</span>
           </div>
           <div className="flex max-w-[105px] shrink grow-[3] gap-0.5 text-center sm:max-w-[422px]">
             <div className="w-[105px] bg-blue-600/15 py-1 dark:bg-blue-400/15">

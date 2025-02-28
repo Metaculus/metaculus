@@ -44,7 +44,10 @@ const PostApprovalModal: FC<{
 
   useEffect(() => {
     setSubmitErrors(undefined);
-    if (!isBefore(approvalData.open_time, post.scheduled_close_time)) {
+    if (
+      !post.notebook &&
+      !isBefore(approvalData.open_time, post.scheduled_close_time)
+    ) {
       setSubmitErrors(new Error(t("closeDateError")));
     }
   }, [approvalData.open_time, post.scheduled_close_time, t]);
@@ -123,7 +126,8 @@ const PostApprovalModal: FC<{
             onClick={handleSubmit}
             disabled={
               isLoading ||
-              !isBefore(approvalData.open_time, post.scheduled_close_time)
+              (!post.notebook &&
+                !isBefore(approvalData.open_time, post.scheduled_close_time))
             }
             variant="primary"
           >

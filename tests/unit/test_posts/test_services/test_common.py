@@ -1,4 +1,8 @@
+import datetime
+
 from django.utils import timezone
+from django.utils.timezone import make_aware
+from freezegun import freeze_time
 
 from posts.services.common import get_posts_staff_users, update_post
 from projects.permissions import ObjectPermission
@@ -75,3 +79,64 @@ def test_update_post__run_post_indexing(user1, user2, mocker):
     # Updated question text - reindexing
     update_post(post_1, question={"title": "Updated Binary Question"})
     mock_run_post_indexing.assert_called_once()
+
+
+@freeze_time("2024-01-01")
+def test_update_post__actual_close_time(user1, user2, mocker):
+    mocker.patch("posts.tasks.run_post_indexing.send")
+
+    post = factory_post(
+        author=user1,
+        title="Post",
+        question=create_question(
+            title="Binary Question",
+            question_type=Question.QuestionType.BINARY,
+            scheduled_close_time=make_aware(datetime.datetime(2024, 1, 1)),
+            actual_close_time=make_aware(datetime.datetime(2024, 1, 1)),
+        ),
+    )
+    post.update_pseudo_materialized_fields()
+
+    assert post.scheduled_close_time == make_aware(datetime.datetime(2024, 1, 1))
+    assert post.actual_close_time == make_aware(datetime.datetime(2024, 1, 1))
+
+    # No close date updated
+    update_post(post, title="Updated")
+    post.refresh_from_db()
+
+    assert post.actual_close_time == post.scheduled_close_time
+
+    # Change in the past
+    update_post(
+        post,
+        question={
+            "title": "question",
+            "scheduled_close_time": make_aware(datetime.datetime(2023, 12, 1)),
+        },
+    )
+    post.refresh_from_db()
+
+    # No change
+    assert post.question.scheduled_close_time == make_aware(
+        datetime.datetime(2023, 12, 1)
+    )
+    assert post.question.actual_close_time == make_aware(datetime.datetime(2024, 1, 1))
+    assert post.scheduled_close_time == make_aware(datetime.datetime(2023, 12, 1))
+    assert post.actual_close_time == make_aware(datetime.datetime(2024, 1, 1))
+
+    # Change in the future
+    update_post(
+        post,
+        question={
+            "title": "question",
+            "scheduled_close_time": make_aware(datetime.datetime(2024, 5, 12)),
+        },
+    )
+    post.refresh_from_db()
+
+    # No close time
+    assert not post.actual_close_time
+    assert not post.question.actual_close_time
+    assert post.question.scheduled_close_time == make_aware(
+        datetime.datetime(2024, 5, 12)
+    )

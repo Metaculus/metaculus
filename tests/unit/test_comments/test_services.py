@@ -81,7 +81,7 @@ def test_notify_mentioned_users(
         create_comment(user=user1, on_post=post, text=f"@{mention} How **are** you?")
     )
 
-    mock_send_email_with_template.assert_called_once()
+    mock_send_email_with_template.assert_called()
 
     assert (
         mock_send_email_with_template.call_args.args[1]

@@ -5,12 +5,14 @@ import ResetPasswordModal, {
   ResetPasswordConfirmModal,
 } from "@/components/auth/password_reset";
 import SignInModal from "@/components/auth/signin";
-import SignUpModal, {
+import {
+  SignUpModal,
   AccountInactive,
   SignUpModalSuccess,
 } from "@/components/auth/signup";
 import OnboardingModal from "@/components/onboarding/onboarding_modal";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 
 import ConfirmModal from "./confirm_modal";
 import ContactUsModal from "./contact_us_modal";
@@ -18,6 +20,8 @@ import ContactUsModal from "./contact_us_modal";
 const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();
   const onClose = () => setCurrentModal(null);
+
+  const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
 
   return (
     <>
@@ -46,10 +50,12 @@ const GlobalModals: FC = () => {
         isOpen={currentModal?.type === "contactUs"}
         onClose={onClose}
       />{" "}
-      <OnboardingModal
-        isOpen={currentModal?.type === "onboarding"}
-        onClose={() => setCurrentModal(null)}
-      />
+      {PUBLIC_ALLOW_TUTORIAL && (
+        <OnboardingModal
+          isOpen={currentModal?.type === "onboarding"}
+          onClose={() => setCurrentModal(null)}
+        />
+      )}
       <ConfirmModal
         isOpen={currentModal?.type === "confirm"}
         onClose={onClose}

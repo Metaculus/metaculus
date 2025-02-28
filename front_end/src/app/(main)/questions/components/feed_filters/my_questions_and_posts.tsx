@@ -86,7 +86,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
       { value: QuestionOrder.CommentCountDesc, label: t("totalComments") },
       { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
       {
-        value: QuestionOrder.PublishTimeDesc,
+        value: QuestionOrder.OpenTimeDesc,
         label: t("newest"),
       },
     ],

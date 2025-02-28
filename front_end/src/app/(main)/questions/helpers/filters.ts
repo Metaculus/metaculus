@@ -27,6 +27,7 @@ import {
   POST_UPVOTED_BY_FILTER,
   POST_USERNAMES_FILTER,
   POST_FOLLOWING_FILTER,
+  POST_PROJECT_FILTER,
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
@@ -36,6 +37,7 @@ import {
   PostForecastType,
   PostStatus,
 } from "@/types/post";
+import { TournamentPreview } from "@/types/projects";
 import { QuestionOrder, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/cn";
@@ -113,7 +115,9 @@ export function generateFiltersFromSearchParams(
   if (searchParams[POST_USERNAMES_FILTER]) {
     filters.usernames = searchParams[POST_USERNAMES_FILTER];
   }
-
+  if (searchParams[POST_PROJECT_FILTER]) {
+    filters.default_project_id = searchParams[POST_PROJECT_FILTER].toString();
+  }
   if (typeof searchParams[POST_FOR_MAIN_FEED] === "string") {
     filters.for_main_feed = searchParams[POST_FOR_MAIN_FEED];
   } else if (
@@ -156,6 +160,7 @@ export function generateFiltersFromSearchParams(
         PostStatus.OPEN,
         PostStatus.CLOSED,
         PostStatus.RESOLVED,
+        PostStatus.UPCOMING,
       ];
     }
   }
@@ -242,6 +247,31 @@ export function getFilterSectionUsername({
     chipFormat: (value: string) =>
       t("questionAuthorFilter", { author: value.toLowerCase() }),
     shouldEnforceSearch: true,
+  };
+}
+
+export function getFilterSectionProjects({
+  t,
+  params,
+  tournaments,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  params: URLSearchParams;
+  tournaments: TournamentPreview[];
+}): FilterSection {
+  const options = tournaments.map((project) => ({
+    label: project.name,
+    value: project.id.toString(),
+    active: params.getAll(POST_PROJECT_FILTER).includes(project.id.toString()),
+  }));
+  return {
+    id: POST_PROJECT_FILTER,
+    title: t("projects"),
+    type: FilterOptionType.Combobox,
+    options,
+    chipColor: getFilterChipColor(POST_PROJECT_FILTER),
+    shouldEnforceSearch: false,
+    multiple: false,
   };
 }
 
@@ -336,7 +366,7 @@ export function getMainOrderOptions(
       label: t("movers"),
     },
     {
-      value: QuestionOrder.PublishTimeDesc,
+      value: QuestionOrder.OpenTimeDesc,
       label: t("new"),
     },
   ];
@@ -403,6 +433,8 @@ export function getDropdownSortOptions(
 export function getFilterChipColor(id: string): ChipColor {
   if (id === POST_CATEGORIES_FILTER) {
     return "olive";
+  } else if (id === POST_PROJECT_FILTER) {
+    return "orange";
   }
 
   return "blue";

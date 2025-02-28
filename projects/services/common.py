@@ -3,6 +3,7 @@ from typing import Iterable
 
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.utils import timezone
 
 from notifications.constants import MailingTags
 from notifications.services import (
@@ -94,17 +95,20 @@ def invite_user_to_project(
 
 
 @transaction.atomic
-def subscribe_project(project: Project, user: User) -> ProjectSubscription:
+def subscribe_project(project: Project, user: User):
     obj = ProjectSubscription(
         project=project,
         user=user,
     )
-    obj.save()
+
+    try:
+        obj.save()
+    except IntegrityError:
+        # Skip if use has been already subscribed
+        return
 
     project.update_followers_count()
     project.save()
-
-    return obj
 
 
 @transaction.atomic
@@ -156,9 +160,14 @@ def get_projects_staff_users(
     )
     project_staff_map = generate_map_from_list(m2m_objects, lambda x: x.project_id)
 
+    # Extracting superusers
+    # Should be visible as admins in every project
+    superusers = User.objects.filter(is_superuser=True).only("id")
+
     return {
         project_id: {
-            obj.user_id: obj.permission for obj in project_staff_map.get(project_id, [])
+            **{obj.user_id: obj.permission for obj in project_staff_map.get(project_id, [])},
+            **{obj.id: ObjectPermission.ADMIN for obj in superusers},
         }
         for project_id in project_ids
     }
@@ -189,3 +198,55 @@ def get_projects_for_posts(
             post_projects_map[m2m_obj.post_id].append(project)
 
     return post_projects_map
+
+
+def get_project_timeline_data(project: Project):
+    all_questions_resolved = True
+    all_questions_closed = True
+
+    cp_reveal_times = []
+    actual_resolve_times = []
+    scheduled_resolve_times = []
+    actual_close_times = []
+    scheduled_close_times = []
+
+    posts = (
+        Post.objects.filter_projects(project)
+        .filter_questions()
+        .prefetch_questions()
+        .filter(curation_status=Post.CurationStatus.APPROVED)
+    )
+
+    for post in posts:
+        if not post.resolved:
+            all_questions_resolved = False
+        if not post.actual_close_time or post.actual_close_time > timezone.now():
+            all_questions_closed = False
+
+        questions = post.get_questions()
+
+        for question in questions:
+            if question.cp_reveal_time:
+                cp_reveal_times.append(question.cp_reveal_time)
+
+            if question.actual_resolve_time:
+                actual_resolve_times.append(question.actual_resolve_time)
+
+        if post.scheduled_resolve_time:
+            scheduled_resolve_times.append(post.scheduled_resolve_time)
+
+        if post.actual_close_time:
+            actual_close_times.append(post.actual_close_time)
+
+        if post.scheduled_close_time:
+            scheduled_close_times.append(post.scheduled_close_time)
+
+    return {
+        "last_cp_reveal_time": max(cp_reveal_times, default=None),
+        "latest_actual_resolve_time": max(actual_resolve_times, default=None),
+        "latest_scheduled_resolve_time": max(scheduled_resolve_times, default=None),
+        "latest_actual_close_time": max(actual_close_times, default=None),
+        "latest_scheduled_close_time": max(scheduled_close_times, default=None),
+        "all_questions_resolved": all_questions_resolved,
+        "all_questions_closed": all_questions_closed,
+    }

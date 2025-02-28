@@ -73,6 +73,7 @@ RUN mkdir -p /var/cache/nginx && chown -R 1001:0 /var/cache/nginx && \
     mkdir -p /var/lib/nginx  && chown -R 1001:0 /var/lib/nginx && \
     touch /run/nginx.pid && chown -R 1001:0 /run/nginx.pid && \
     chown -R 1001:0 /etc/nginx && \
+    chmod -R 755 /var/lib/nginx /var/log/nginx && \
     rm /etc/nginx/http.d/default.conf
 
 # This is done to copy only the source code from HEAD into the image to avoid a COPY . and managing a long .dockerignore
@@ -84,8 +85,7 @@ COPY --from=backend_deps /app/venv /app/venv
 COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_modules
 
 ENV NODE_ENV=production
-RUN --mount=type=secret,id=frontend_env,target=/app/front_end/.env cd front_end && npm run build
-RUN npm install pm2 -g
+RUN cd front_end && npm run build && npm install pm2 -g
 
 RUN source venv/bin/activate && ./manage.py collectstatic --noinput
 
@@ -104,3 +104,6 @@ CMD ["sh", "-c", "scripts/prod/django_cron.sh"]
 
 FROM final_env AS dramatiq_worker
 CMD ["sh", "-c", "scripts/prod/run_dramatiq.sh"]
+
+FROM final_env AS all_runners
+CMD ["sh", "-c", "scripts/prod/run_all.sh"]

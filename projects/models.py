@@ -9,12 +9,11 @@ from django.db.models import (
     OuterRef,
 )
 from django.db.models.functions import Coalesce
-from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
 
-from questions.constants import ResolutionType
 from projects.permissions import ObjectPermission
+from questions.constants import ResolutionType
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
 
@@ -105,24 +104,24 @@ class ProjectsQuerySet(models.QuerySet):
             + Coalesce(F("default_posts_questions_count"), 0)
         )
 
-    def annotate_is_subscribed(self, user: User):
+    def annotate_is_subscribed(self, user: User, include_members: bool = False):
         """
         Annotates user subscription if user is subscribed or is actually an admin
         """
 
+        condition = Exists(
+            ProjectSubscription.objects.filter(user=user, project=OuterRef("pk"))
+        )
+
+        if include_members:
+            condition |= Exists(
+                ProjectUserPermission.objects.filter(user=user, project=OuterRef("pk"))
+            )
+
         return self.annotate(
             is_subscribed=models.Case(
                 models.When(
-                    Exists(
-                        ProjectSubscription.objects.filter(
-                            user=user, project=OuterRef("pk")
-                        )
-                    )
-                    | Exists(
-                        ProjectUserPermission.objects.filter(
-                            user=user, project=OuterRef("pk")
-                        )
-                    ),
+                    condition,
                     then=models.Value(True),
                 ),
                 default=models.Value(False),
@@ -138,8 +137,12 @@ class ProjectsQuerySet(models.QuerySet):
 
         user_id = user.id if user else None
 
+        # Superusers automatically get admin permission for all projects
+        if user and user.is_superuser:
+            return self.annotate(user_permission=models.Value(ObjectPermission.ADMIN))
+
         return self.annotate(
-            user_permission_override=FilteredRelation(
+            _user_permission_override=FilteredRelation(
                 "projectuserpermission",
                 condition=Q(
                     projectuserpermission__user_id=user_id,
@@ -151,7 +154,7 @@ class ProjectsQuerySet(models.QuerySet):
                     then=models.Value(ObjectPermission.ADMIN),
                 ),
                 default=Coalesce(
-                    F("user_permission_override__permission"),
+                    F("_user_permission_override__permission"),
                     F("default_permission"),
                 ),
                 output_field=models.CharField(),
@@ -360,43 +363,25 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         ):
             return self.close_date > django_timezone.now() if self.close_date else True
 
-    def _get_users_for_permissions(
-        self, permissions: list[ObjectPermission]
-    ) -> QuerySet["User"]:
+    def get_users_for_permission(self, min_permission: ObjectPermission):
+        """
+        Returns a QuerySet of users that have given permission level OR greater for the given project
+        """
+
+        permissions = ObjectPermission.get_included_permissions(min_permission)
+
         qs = User.objects.all()
 
         if self.default_permission in permissions:
             return qs
 
         return qs.filter(
-            projectuserpermission__project=self,
-            projectuserpermission__permission__in=permissions,
-        )
-
-    def get_users_for_permission(
-        self, permission: ObjectPermission
-    ) -> QuerySet["User"]:
-        """
-        Returns a QuerySet of users that have given permission level OR greater for the given project
-        """
-
-        return self._get_users_for_permissions(
-            ObjectPermission.get_included_permissions(permission)
-        )
-
-    def get_admins(self) -> QuerySet["User"]:
-        """
-        Returns admins only
-        """
-
-        return self._get_users_for_permissions([ObjectPermission.ADMIN])
-
-    def get_curators(self) -> QuerySet["User"]:
-        """
-        Returns curators/mods only
-        """
-
-        return self._get_users_for_permissions([ObjectPermission.CURATOR])
+            Q(
+                projectuserpermission__project=self,
+                projectuserpermission__permission__in=permissions,
+            )
+            | Q(is_superuser=True)
+        ).distinct("pk")
 
     def update_followers_count(self):
         self.followers_count = self.subscriptions.count()

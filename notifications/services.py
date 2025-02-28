@@ -45,19 +45,22 @@ class NotificationPostParams:
     post_type: str
 
     @classmethod
+    def _extract_post_type(cls, post: Post):
+        if post.question_id:
+            return "question"
+        if post.conditional_id:
+            return "conditional"
+        if post.group_of_questions_id:
+            return "group_of_questions"
+        if post.notebook_id:
+            return "notebook"
+
+    @classmethod
     def from_post(cls, post: Post):
         return NotificationPostParams(
             post_id=post.id,
             post_title=post.title,
-            post_type=(
-                "question"
-                if post.question_id
-                else (
-                    "conditional"
-                    if post.conditional_id
-                    else "group_of_questions" if post.group_of_questions_id else None
-                )
-            ),
+            post_type=cls._extract_post_type(post),
         )
 
 

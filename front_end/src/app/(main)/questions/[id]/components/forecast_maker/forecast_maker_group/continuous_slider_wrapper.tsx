@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useState, useMemo, useCallback } from "react";
 
@@ -24,6 +25,7 @@ import ContinuousSlider from "../continuous_slider";
 import { ConditionalTableOption } from "../group_forecast_table";
 import NumericForecastTable from "../numeric_table";
 import PredictButton from "../predict_button";
+import ScoreDisplay from "../resolution/score_display";
 
 type SliderWrapperProps = {
   option: ConditionalTableOption;
@@ -219,6 +221,12 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
           )}
         </>
       </div>
+
+      {!isNil(option.question.resolution) && (
+        <div className="my-4 p-4">
+          <ScoreDisplay question={option.question} variant="transparent" />
+        </div>
+      )}
     </div>
   );
 };

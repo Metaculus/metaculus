@@ -3,13 +3,11 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { getComments, markPostAsRead } from "@/app/(main)/questions/actions";
 import { useContentTranslatedBannerProvider } from "@/app/providers";
-import Comment from "@/components/comment_feed/comment";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import { DefaultUserMentionsContextProvider } from "@/components/markdown_editor/plugins/mentions/components/default_mentions_context";
 import { MentionItem } from "@/components/markdown_editor/plugins/mentions/types";
@@ -17,6 +15,7 @@ import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import useHash from "@/hooks/use_hash";
 import { getCommentsParams } from "@/services/comments";
 import { BECommentType, CommentType } from "@/types/comment";
@@ -29,6 +28,7 @@ import { logError } from "@/utils/errors";
 import CommentWelcomeMessage, {
   getIsMessagePreviouslyClosed,
 } from "./comment_welcome_message";
+import { CommentWrapper } from "./comment_wrapper";
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
 
@@ -126,11 +126,14 @@ const CommentFeed: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const [userCommentsAmount, setUserCommentsAmount] = useState<number | null>(
     user ? NEW_USER_COMMENT_LIMIT : null
   );
   const showWelcomeMessage =
-    userCommentsAmount !== null && userCommentsAmount < NEW_USER_COMMENT_LIMIT;
+    userCommentsAmount !== null &&
+    userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
+    !PUBLIC_MINIMAL_UI;
   /**
    * Returns commentId to focus on if id is provided and comment is not already rendered
    */
@@ -452,43 +455,13 @@ const CommentFeed: FC<Props> = ({
           </DropdownMenu>
         </div>
         {comments.map((comment: CommentType) => (
-          <div
+          <CommentWrapper
             key={comment.id}
-            className={cn(
-              "my-1.5 rounded-md border px-1.5 py-1 md:px-2.5 md:py-1.5",
-              {
-                "border-blue-400 dark:border-blue-400-dark": !(
-                  postData?.last_viewed_at &&
-                  new Date(postData.last_viewed_at) <
-                    new Date(comment.created_at)
-                ),
-                "border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
-                  postData?.last_viewed_at &&
-                  new Date(postData.last_viewed_at) <
-                    new Date(comment.created_at),
-              }
-            )}
-          >
-            {profileId && comment.on_post_data && (
-              <h3 className="mb-2 text-lg font-semibold">
-                <Link
-                  href={`/questions/${comment.on_post_data.id}#comment-${comment.id}`}
-                  className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-600-dark hover:dark:text-blue-300"
-                >
-                  {comment.on_post_data.title}
-                </Link>
-              </h3>
-            )}
-            <Comment
-              onProfile={!!profileId}
-              comment={comment}
-              treeDepth={0}
-              /* replies should always be sorted from oldest to newest */
-              sort={"created_at" as SortOption}
-              postData={postData}
-              lastViewedAt={postData?.last_viewed_at}
-            />
-          </div>
+            comment={comment}
+            profileId={profileId}
+            last_viewed_at={postData?.last_viewed_at}
+            postData={postData}
+          />
         ))}
         {comments.length === 0 && !isLoading && (
           <>

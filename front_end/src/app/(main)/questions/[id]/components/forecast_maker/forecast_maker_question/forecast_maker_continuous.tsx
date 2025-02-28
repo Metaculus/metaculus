@@ -1,5 +1,7 @@
 "use client";
 import { isNil } from "lodash";
+import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useMemo, useState } from "react";
 
@@ -19,7 +21,7 @@ import {
   DistributionSliderComponent,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { getCdfBounds } from "@/utils/charts";
+import { getCdfBounds, getDisplayValue } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
   getNormalizedContinuousForecast,
@@ -28,6 +30,7 @@ import {
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import { sendGAPredictEvent } from "./ga_events";
+import PredictionSuccessBox from "./prediction_success_box";
 import { useHideCP } from "../../cp_provider";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
@@ -92,6 +95,10 @@ const ForecastMakerContinuous: FC<Props> = ({
     ]
   );
 
+  const [showSuccessBox, setShowSuccessBox] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
   const userCdf: number[] = dataset.cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
@@ -112,6 +119,15 @@ const ForecastMakerContinuous: FC<Props> = ({
       },
     ]);
   };
+
+  const userQuartiles = userCdf ? computeQuartilesFromCDF(userCdf) : undefined;
+
+  const forecastDisplayValue = (value: number | null | undefined) =>
+    getDisplayValue({
+      value,
+      questionType: question.type,
+      scaling: question.scaling,
+    });
 
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
@@ -134,6 +150,8 @@ const ForecastMakerContinuous: FC<Props> = ({
     setIsDirty(false);
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
+    } else {
+      setShowSuccessBox(true);
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
@@ -165,6 +183,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         onChange={(components) => {
           setDistributionComponents(components);
           setIsDirty(true);
+          setShowSuccessBox(false);
         }}
         overlayPreviousForecast={overlayPreviousForecast}
         setOverlayPreviousForecast={setOverlayPreviousForecast}
@@ -214,6 +233,17 @@ const ForecastMakerContinuous: FC<Props> = ({
           <div className="h-[32px]">
             {(isPending || withdrawalIsPending) && <LoadingIndicator />}
           </div>
+
+          {showSuccessBox && !isPending && (
+            <PredictionSuccessBox
+              post={post}
+              forecastValue={`${forecastDisplayValue(userQuartiles?.median)} (${forecastDisplayValue(userQuartiles?.lower25)} - ${forecastDisplayValue(userQuartiles?.upper75)})`}
+              onCommentClick={() => {
+                router.push(`${pathname}?action=comment-with-forecast`);
+              }}
+              className="mb-4 w-full justify-center"
+            />
+          )}
         </>
       )}
       {predictionMessage && (
@@ -221,11 +251,12 @@ const ForecastMakerContinuous: FC<Props> = ({
           {predictionMessage}
         </div>
       )}
+
       {forecastInputMode === "slider" ? (
         <NumericForecastTable
           question={question}
           userBounds={getCdfBounds(userCdf)}
-          userQuartiles={userCdf ? computeQuartilesFromCDF(userCdf) : undefined}
+          userQuartiles={userQuartiles}
           userPreviousBounds={getCdfBounds(userPreviousCdf)}
           userPreviousQuartiles={
             userPreviousCdf

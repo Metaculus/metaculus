@@ -31,6 +31,215 @@ info:
     </blockquote>
     
     Please note that we throttle requests to 1000 requests per hour to prevent abuse.
+
+    <b>How to generate a continuous cdf?</b>
+    
+    Generating a CDF to predict on a continuous question can be a bit tricky. We only accept predictions in the form of a 201 point
+    CDF, represented as a list of floats, so getting scaling right is very important.
+
+    <details>
+    <summary>Expand for CDF generation details and examples</summary>
+
+    To start off, let's take an example question: "What will be the temperature (in Celcius) in New York City on January 1st, 3000?"<br>
+
+    If you were to open the question on the website, you would see that the prediction input will have an x-axis that goes from `-40` to `110`.
+    You could also find those values in the api by looking at the `"range_min"` and `"range_max"` properties inside `question["scaling"]`.
+    If you want to build a cdf, what does that mean to you? It means that you'll need to generate the heights of the cdf at 201 points
+    representing locations between -40 and 110. In this case, the first value of the CDF array we are going to build will be the probability
+    that the temperature is less than (not equal to) to -40. The last value will represent the probability that the temperature is less 
+    than or equal to 110. We then see that the `"zero_point"` in `question["scaling"]` is None, so we can conclude that the remaining
+    values in the CDF array represent the height of the cdf at equally spaced locations between -40 and 110. This is because the `"zero_point"`
+    being empty means that the question scaling is linear.<br>
+
+    Here's a function that can take in a nominal location and return the corresponding "internal location" x-value. Note that it
+    does account for logarithmic scaling.
+    ```python
+    import datetime
+    import numpy as np
+
+    def nominal_location_to_cdf_location(
+        nominal_location: str | float,
+        question_data: dict,
+    ) -> float:
+        """Takes a location in nominal format (e.g. 123, "123",
+        or datetime in iso format) and scales it to metaculus's
+        "internal representation" range [0,1] incorporating question scaling"""
+        if question_data["type"] == "date":
+            scaled_location = datetime.fromisoformat(nominal_location).timestamp()
+        else:
+            scaled_location = float(nominal_location)
+        # Unscale the value to put it into the range [0,1]
+        scaling = question_data["scaling"]
+        range_min = scaling.get("range_min")
+        range_max = scaling.get("range_max")
+        zero_point = scaling.get("zero_point")
+        if zero_point is not None:
+            # logarithmically scaled question
+            deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
+            unscaled_location = (
+                np.log(
+                    (scaled_location - range_min) * (deriv_ratio - 1)
+                    + (range_max - range_min)
+                )
+                - np.log(range_max - range_min)
+            ) / np.log(deriv_ratio)
+        else:
+            # linearly scaled question
+            unscaled_location = (scaled_location - range_min) / (range_max - range_min)
+        return unscaled_location
+    ```
+
+    But you don't want to have to do this manually for every point in a 201 point CDF, so instead let's do it with percentiles.
+    Let's say that we have a solid idea about what our 5th, 25th, 50th, 75th, and 95th percentiles are in real units. We can use those to
+    generate a CDF. But, note that if our 5th and 95th percentiles don't overlap the range of the question, we'll have to add a few
+    more bits of information to complete our CDF.<br>
+
+    Here's a function that can take in some percentiles and return an inferred linearly interpolated CDF.
+    ```python
+    def generate_continuous_cdf(
+        percentiles: dict,
+        question_data: dict,
+        below_lower_bound: float = None,
+        above_upper_bound: float = None,
+    ) -> list[float]:
+        """
+        Takes a set of percentiles and returns a corresponding cdf with 201 values
+
+        Param: percentiles
+        dict[str, float | str]
+        keys must terminate in a number interpretable as a float in range (0, 100)
+          optionally preceded by an underscore "_"
+        values must be a nominal value in the scale of the question, either
+          interpretable as a float (for "numeric" type questions) or a datetime in
+          ISO format (for "date" type questions)
+        example percentiles:
+        percentiles = {
+          "percentile_01": 25,
+          "precentile_25.123": 500,
+          "50": 650,
+          "percentile_75": "700",
+          "percentile_99": 990,
+        }
+        optionally, include `below_lower_bound` and `above_upper_bound`
+        to indicate the amount of probability mass assigned to those locations
+        percentiles = {
+          "percentile_25": 500,
+          "percentile_50": 650,
+          "percentile_75": 700,
+        }
+        below_lower_bound = 0.0025,
+        above_upper_bound = 0.009,
+
+        If the percentile locations don't encompass
+          [scaling["range_min"], scaling["range_max"]]
+        and "below_lower_bound"/"above_upper_bound" aren't provided,
+        then the prediction can't be interpreted as a cdf properly.
+        Note that range_min/range_max for date questions are unix timestamps.
+        """
+
+        # This will be the set of (x, y) points that are the set points
+        # of the cdf
+        percentile_locations = []
+
+        # take the given boundary values
+        if below_lower_bound is not None:
+            percentile_locations.append((0.0, below_lower_bound))
+        if above_upper_bound is not None:
+            percentile_locations.append((1.0, 1 - above_upper_bound))
+
+        # generate the remaining set of points
+        for percentile, nominal_location in percentiles.items():
+            height = float(str(percentile).split("_")[-1]) / 100
+            location = nominal_location_to_cdf_location(nominal_location, question_data)
+            percentile_locations.append((location, height))
+
+        # sort to ensure lookup works
+        percentile_locations.sort()
+
+        # check validity
+        first_point, last_point = percentile_locations[0], percentile_locations[-1]
+        if (first_point[0] > 0.0) or (last_point[0] < 1.0):
+            raise ValueError("Percentiles must encompass bounds of the question")
+
+        def get_cdf_at(location):
+            # helper function that takes a location and returns
+            # the height of the cdf at that location, linearly
+            # interpolating between values
+            previous = percentile_locations[0]
+            for i in range(1, len(percentile_locations)):
+                current = percentile_locations[i]
+                if previous[0] <= location <= current[0]:
+                    return previous[1] + (current[1] - previous[1]) * (
+                        location - previous[0]
+                    ) / (current[0] - previous[0])
+                previous = current
+
+        # generate that cdf
+        continuous_cdf = [get_cdf_at(i / 200) for i in range(201)]
+        return continuous_cdf
+    ```
+
+    Phew, that was pretty long, but now we can take a set of nominal percentiles and generate a CDF that is in the format
+    that the Metaculus api will accept. But wait! Just because we have a cdf that represents out beliefs, it doesn't 
+    mean Metaculus will accept it. We'll have to make sure it obeys a few rules, lest it be rejected as invalid.
+    
+    1. The cdf must be strictly increasing by at least 0.00005 per step. This is because Metaculus evaluates continuous forecasts
+        by their PDF (technically a PMF) dervied as the set of differences between consecutive CDF points, and 0.00005 is the 
+        minimum value allowed to avoid scores getting too arbitrarily negative.
+    
+    2. The cdf must not increase by more than 0.59 at any step, as this is the maximum value attainable via the sliders in the UI.
+        This threshold may be lowered in the future.
+    
+    3. The cdf must obey bounds. If a boundary is open, at least 0.1% of probability mass must be assigned outside of it; if it
+        is closed, no probability mass may be outside of it.
+
+    Here's a standardization function that ensures your CDF will be accepted. It does add a linear component to the cdf,
+    so those with an abundance of precision in their forecasts way want to skip it. The cdfs (and thus their derived pdfs)
+    you see on the website have been standardized in this way.
+    ```python
+    def standardize_cdf(cdf: list[float], question_data: dict) -> list[float]:
+        """
+        Takes a cdf and returns a standardized version of it
+
+        - assigns no mass outside of closed bounds (scales accordingly)
+        - assigns at least a minimum amount of mass outside of open bounds
+        - increasing by at least the minimum amount (0.01 / 200 = 0.0005)
+
+        TODO: add smoothing over cdfs that spike too heavily (exceed a change of 0.59)
+        """
+        lower_open = question_data["open_lower_bound"]
+        upper_open = question_data["open_upper_bound"]
+
+        scale_lower_to = 0 if lower_open else cdf[0]
+        scale_upper_to = 1.0 if upper_open else cdf[-1]
+        rescaled_inbound_mass = scale_upper_to - scale_lower_to
+
+        def standardize(F: float, location: float) -> float:
+            # `F` is the height of the cdf at `location` (in range [0, 1])
+            # rescale
+            rescaled_F = (F - scale_lower_to) / rescaled_inbound_mass
+            # offset
+            if lower_open and upper_open:
+                return 0.988 * rescaled_F + 0.01 * location + 0.001
+            elif lower_open:
+                return 0.989 * rescaled_F + 0.01 * location + 0.001
+            elif upper_open:
+                return 0.989 * rescaled_F + 0.01 * location
+            return 0.99 * rescaled_F + 0.01 * location
+
+        standardized_cdf = []
+        for i, F in enumerate(cdf):
+            standardized_F = standardize(F, i / (len(cdf) - 1))
+            # round to avoid floating point errors
+            standardized_cdf.append(round(standardized_F, 10))
+
+        return standardized_cdf
+    ```
+
+    With this tiny guide, you can be well along your way to submitting continuous forecasts to Metaculus.
+    If you have any questions or suggestions, feel free to create tickets on the github: https://github.com/Metaculus/metaculus/issues
+    </details>
+
 servers:
   - url: https://www.metaculus.com
     description: Production Server
@@ -813,213 +1022,7 @@ tags:
       The primary entry point for retrieving feed data and interacting with both Posts and Questions is the `/api/posts` endpoint.
   - name: Questions & Forecasts
     description: |
-      <details>
-      <summary>Guide to Generating a Continuous CDF</summary>
 
-      ## Generating a Continuous CDF
-
-      Generating a CDF to predict on a continuous question can be a bit tricky. We only accept predictions in the form of a 201 point
-      CDF, represented as a list of floats, so getting scaling right is very important.<br>
-
-      To start off, let's take an example question: "What will be the temperature (in Celcius) in New York City on January 1st, 3000?"<br>
-
-      If you were to open the question on the website, you would see that the prediction input will have an x-axis that goes from `-40` to `110`.
-      You could also find those values in the api by looking at the `"range_min"` and `"range_max"` properties inside `question["scaling"]`.
-      If you want to build a cdf, what does that mean to you? It means that you'll need to generate the heights of the cdf at 201 points
-      representing locations between -40 and 110. In this case, the first value of the CDF array we are going to build will be the probability
-      that the temperature is less than (not equal to) to -40. The last value will represent the probability that the temperature is less 
-      than or equal to 110. We then see that the `"zero_point"` in `question["scaling"]` is None, so we can conclude that the remaining
-      values in the CDF array represent the height of the cdf at equally spaced locations between -40 and 110. This is because the `"zero_point"`
-      being empty means that the question scaling is linear.<br>
-
-      Here's a function that can take in a nominal location and return the corresponding "internal location" x-value. Note that it
-      does account for logarithmic scaling.
-      ```python
-      import datetime
-      import numpy as np
-
-      def nominal_location_to_cdf_location(
-          nominal_location: str | float,
-          question_data: dict,
-      ) -> float:
-          """Takes a location in nominal format (e.g. 123, "123",
-          or datetime in iso format) and scales it to metaculus's
-          "internal representation" range [0,1] incorporating question scaling"""
-          if question_data["type"] == "date":
-              scaled_location = datetime.fromisoformat(nominal_location).timestamp()
-          else:
-              scaled_location = float(nominal_location)
-          # Unscale the value to put it into the range [0,1]
-          scaling = question_data["scaling"]
-          range_min = scaling.get("range_min")
-          range_max = scaling.get("range_max")
-          zero_point = scaling.get("zero_point")
-          if zero_point is not None:
-              # logarithmically scaled question
-              deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
-              unscaled_location = (
-                  np.log(
-                      (scaled_location - range_min) * (deriv_ratio - 1)
-                      + (range_max - range_min)
-                  )
-                  - np.log(range_max - range_min)
-              ) / np.log(deriv_ratio)
-          else:
-              # linearly scaled question
-              unscaled_location = (scaled_location - range_min) / (range_max - range_min)
-          return unscaled_location
-      ```
-
-      But you don't want to have to do this manually for every point in a 201 point CDF, so instead let's do it with percentiles.
-      Let's say that we have a solid idea about what our 5th, 25th, 50th, 75th, and 95th percentiles are in real units. We can use those to
-      generate a CDF. But, note that if our 5th and 95th percentiles don't overlap the range of the question, we'll have to add a few
-      more bits of information to complete our CDF.<br>
-
-      Here's a function that can take in some percentiles and return an inferred linearly interpolated CDF.
-      ```python
-      def generate_continuous_cdf(
-          percentiles: dict,
-          question_data: dict,
-          below_lower_bound: float = None,
-          above_upper_bound: float = None,
-      ) -> list[float]:
-          """
-          Takes a set of percentiles and returns a corresponding cdf with 201 values
-
-          Param: percentiles
-          dict[str, float | str]
-          keys must terminate in a number interpretable as a float in range (0, 100)
-            optionally preceded by an underscore "_"
-          values must be a nominal value in the scale of the question, either
-            interpretable as a float (for "numeric" type questions) or a datetime in
-            ISO format (for "date" type questions)
-          example percentiles:
-          percentiles = {
-            "percentile_01": 25,
-            "precentile_25.123": 500,
-            "50": 650,
-            "percentile_75": "700",
-            "percentile_99": 990,
-          }
-          optionally, include `below_lower_bound` and `above_upper_bound`
-          to indicate the amount of probability mass assigned to those locations
-          percentiles = {
-            "percentile_25": 500,
-            "percentile_50": 650,
-            "percentile_75": 700,
-          }
-          below_lower_bound = 0.0025,
-          above_upper_bound = 0.009,
-
-          If the percentile locations don't encompass
-            [scaling["range_min"], scaling["range_max"]]
-          and "below_lower_bound"/"above_upper_bound" aren't provided,
-          then the prediction can't be interpreted as a cdf properly.
-          Note that range_min/range_max for date questions are unix timestamps.
-          """
-
-          # This will be the set of (x, y) points that are the set points
-          # of the cdf
-          percentile_locations = []
-
-          # take the given boundary values
-          if below_lower_bound is not None:
-              percentile_locations.append((0.0, below_lower_bound))
-          if above_upper_bound is not None:
-              percentile_locations.append((1.0, 1 - above_upper_bound))
-
-          # generate the remaining set of points
-          for percentile, nominal_location in percentiles.items():
-              height = float(str(percentile).split("_")[-1]) / 100
-              location = nominal_location_to_cdf_location(nominal_location, question_data)
-              percentile_locations.append((location, height))
-
-          # sort to ensure lookup works
-          percentile_locations.sort()
-
-          # check validity
-          first_point, last_point = percentile_locations[0], percentile_locations[-1]
-          if (first_point[0] > 0.0) or (last_point[0] < 1.0):
-              raise ValueError("Percentiles must encompass bounds of the question")
-
-          def get_cdf_at(location):
-              # helper function that takes a location and returns
-              # the height of the cdf at that location, linearly
-              # interpolating between values
-              previous = percentile_locations[0]
-              for i in range(1, len(percentile_locations)):
-                  current = percentile_locations[i]
-                  if previous[0] <= location <= current[0]:
-                      return previous[1] + (current[1] - previous[1]) * (
-                          location - previous[0]
-                      ) / (current[0] - previous[0])
-                  previous = current
-
-          # generate that cdf
-          continuous_cdf = [get_cdf_at(i / 200) for i in range(201)]
-          return continuous_cdf
-      ```
-
-      Phew, that was pretty long, but now we can take a set of nominal percentiles and generate a CDF that is in the format
-      that the Metaculus api will accept. But wait! Just because we have a cdf that represents out beliefs, it doesn't 
-      mean Metaculus will accept it. We'll have to make sure it obeys a few rules, lest it be rejected as invalid.
-      
-      1. The cdf must be strictly increasing by at least 0.00005 per step. This is because Metaculus evaluates continuous forecasts
-          by their PDF (technically a PMF) dervied as the set of differences between consecutive CDF points, and 0.00005 is the 
-          minimum value allowed to avoid scores getting too arbitrarily negative.
-      
-      2. The cdf must not increase by more than 0.59 at any step, as this is the maximum value attainable via the sliders in the UI.
-          This threshold may be lowered in the future.
-      
-      3. The cdf must obey bounds. If a boundary is open, at least 0.1% of probability mass must be assigned outside of it; if it
-          is closed, no probability mass may be outside of it.
-
-      Here's a standardization function that ensures your CDF will be accepted. It does add a linear component to the cdf,
-      so those with an abundance of precision in their forecasts way want to skip it. The cdfs (and thus their derived pdfs)
-      you see on the website have been standardized in this way.
-      ```python
-      def standardize_cdf(cdf: list[float], question_data: dict) -> list[float]:
-          """
-          Takes a cdf and returns a standardized version of it
-
-          - assigns no mass outside of closed bounds (scales accordingly)
-          - assigns at least a minimum amount of mass outside of open bounds
-          - increasing by at least the minimum amount (0.01 / 200 = 0.0005)
-
-          TODO: add smoothing over cdfs that spike too heavily (exceed a change of 0.59)
-          """
-          lower_open = question_data["open_lower_bound"]
-          upper_open = question_data["open_upper_bound"]
-
-          scale_lower_to = 0 if lower_open else cdf[0]
-          scale_upper_to = 1.0 if upper_open else cdf[-1]
-          rescaled_inbound_mass = scale_upper_to - scale_lower_to
-
-          def standardize(F: float, location: float) -> float:
-              # `F` is the height of the cdf at `location` (in range [0, 1])
-              # rescale
-              rescaled_F = (F - scale_lower_to) / rescaled_inbound_mass
-              # offset
-              if lower_open and upper_open:
-                  return 0.988 * rescaled_F + 0.01 * location + 0.001
-              elif lower_open:
-                  return 0.989 * rescaled_F + 0.01 * location + 0.001
-              elif upper_open:
-                  return 0.989 * rescaled_F + 0.01 * location
-              return 0.99 * rescaled_F + 0.01 * location
-
-          standardized_cdf = []
-          for i, F in enumerate(cdf):
-              standardized_F = standardize(F, i / (len(cdf) - 1))
-              # round to avoid floating point errors
-              standardized_cdf.append(round(standardized_F, 10))
-
-          return standardized_cdf
-      ```
-
-      With this tiny guide, you can be well along your way to submitting continuous forecasts to Metaculus.
-      If you have any questions or suggestions, feel free to create tickets on the github: https://github.com/Metaculus/metaculus/issues
-      </details>
   - name: Comments
   - name: Utilities & Data
 paths:

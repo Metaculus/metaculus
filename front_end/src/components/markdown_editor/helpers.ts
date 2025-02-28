@@ -1,21 +1,47 @@
 import { transformTwitterLinks } from "./embedded_twitter/helpers";
 
+// match block math: $$...$$
+const BLOCK_MATH_REGEX = /(?<!\\)\$\$(?:[^$]|\\\$)*?\$\$/g;
+// match valid inline math: $...$ that starts and ends with a non-word character
+const INLINE_MATH_REGEX = /(?<!\\)(?<!\w|\d)\$([^\$]+?)\$(?!\w|\d)/gs;
+
 // escape < and { that is not correctly used
 function escapePlainTextSymbols(str: string) {
-  const tags: any = [];
+  // pre-process html tags
+  const tags: string[] = [];
   const tagRegex = /<\/?\s*[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*?)?>/g;
   let tempStr = str.replace(tagRegex, function (match) {
     tags.push(match);
     return "___HTML_TAG___";
   });
 
-  tempStr = tempStr.replace(/([^\\])</g, "$1\\<").replace(/^</g, "\\<");
-
-  let index = 0;
-  tempStr = tempStr.replace(/___HTML_TAG___/g, function () {
-    return tags[index++];
+  // pre-process math expressions
+  const mathExpressions: string[] = [];
+  tempStr = tempStr.replace(BLOCK_MATH_REGEX, function (match) {
+    mathExpressions.push(match);
+    return "___MATH_BLOCK___";
+  });
+  tempStr = tempStr.replace(INLINE_MATH_REGEX, function (match) {
+    mathExpressions.push(match);
+    return "___MATH_INLINE___";
   });
 
+  // escape < that is not correctly used
+  tempStr = tempStr.replace(/([^\\])</g, "$1\\<").replace(/^</g, "\\<");
+
+  // restore math expressions
+  let mathIndex = 0;
+  tempStr = tempStr.replace(/___MATH_(BLOCK|INLINE)___/g, function () {
+    return mathExpressions[mathIndex++] ?? "";
+  });
+
+  // restore html tags
+  let tagIndex = 0;
+  tempStr = tempStr.replace(/___HTML_TAG___/g, function () {
+    return tags[tagIndex++] ?? "";
+  });
+
+  // escape { that is not correctly used
   tempStr = tempStr
     .replace(/([^{]){(?![^}]*})/g, "$1\\{")
     .replace(/^{(?![^}]*})/g, "\\{");
@@ -30,6 +56,10 @@ function formatBlockquoteNewlines(markdown: string): string {
 // backwards compatibility util to handle the old mathjax syntax
 const transformMathJaxToLatex = (markdown: string): string => {
   const markdownLinkPattern = /\[([^\]]+)\]\(([^)]+)\)/g;
+
+  // remove non-breaking spaces
+  // syntax trigger for block math must start from new line
+  markdown = markdown.replace(/\u00A0/g, " ");
 
   // Temporary replacements for links to avoid interfering with MathJax processing
   const links: string[] = [];
@@ -86,24 +116,20 @@ const transformMathJaxToLatex = (markdown: string): string => {
 
 // escape dollar signs that are not used for math
 export const escapeRawDollarSigns = (markdown: string): string => {
-  // match block math: $$...$$
-  const blockMathRegex = /\$\$[^$]*\$\$/g;
-
-  // match valid inline math: $...$ that doesn't end with space or parentheses, allowing end of string
-  const inlineMathRegex = /\$([^\$]+?)\$(?=\s|[^\w\s$]|$)/g;
-
   const placeholders = new Map<string, string>();
   let placeholderIndex = 0;
 
-  // replace block math with placeholders
-  let processedMarkdown = markdown.replace(blockMathRegex, (blockMath) => {
+  // replace block math with placeholders and ensure newlines are added
+  let processedMarkdown = markdown.replace(BLOCK_MATH_REGEX, (blockMath) => {
+    const trimmedMath = blockMath.trim();
+    const formattedMath = `\n${trimmedMath}\n`;
     const placeholder = `{{MATH_BLOCK_${placeholderIndex++}}}`;
-    placeholders.set(placeholder, blockMath);
+    placeholders.set(placeholder, formattedMath);
     return placeholder;
   });
 
   // replace valid inline math with placeholders
-  processedMarkdown = processedMarkdown.replace(inlineMathRegex, (match) => {
+  processedMarkdown = processedMarkdown.replace(INLINE_MATH_REGEX, (match) => {
     const placeholder = `{{MATH_INLINE_${placeholderIndex++}}}`;
     placeholders.set(placeholder, match); // Save the valid inline math as is
     return placeholder;
@@ -118,6 +144,7 @@ export const escapeRawDollarSigns = (markdown: string): string => {
     (placeholder) => placeholders.get(placeholder) || placeholder
   );
 };
+
 export function processMarkdown(
   markdown: string,
   config?: { revert?: boolean; withTwitterPreview?: boolean }
@@ -133,6 +160,5 @@ export function processMarkdown(
   if (withTwitterPreview) {
     markdown = transformTwitterLinks(markdown);
   }
-
   return markdown;
 }

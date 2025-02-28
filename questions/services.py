@@ -141,10 +141,17 @@ def create_question(*, title: str = None, **kwargs) -> Question:
 
 
 def update_question(question: Question, **kwargs) -> Question:
+    scheduled_close_time = kwargs.get("scheduled_close_time")
+
     question, _ = model_update(
         instance=question,
         data=kwargs,
     )
+
+    # Remove actual close time on value change
+    if scheduled_close_time and scheduled_close_time > timezone.now():
+        question.actual_close_time = None
+        question.save()
 
     return question
 
