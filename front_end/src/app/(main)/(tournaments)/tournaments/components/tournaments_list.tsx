@@ -11,6 +11,7 @@ import {
   TournamentsSortBy,
   TournamentType,
 } from "@/types/projects";
+import { getProjectLink } from "@/utils/navigation";
 
 import {
   TOURNAMENTS_SEARCH,
@@ -66,11 +67,7 @@ const TournamentsList: FC<Props> = ({
           {filteredItems.slice(0, displayItemsCount).map((item) => (
             <TournamentCard
               key={item.id}
-              href={
-                item.slug
-                  ? `/tournament/${item.slug}`
-                  : `/tournament/${item.id}`
-              }
+              href={getProjectLink(item)}
               headerImageSrc={item.header_image}
               name={item.name}
               questionsCount={item.questions_count}
@@ -125,8 +122,8 @@ function filterItems(
         return Number(b.prize_pool) - Number(a.prize_pool);
       case TournamentsSortBy.CloseDateAsc:
         return differenceInMilliseconds(
-          new Date(a.close_date),
-          new Date(b.close_date)
+          new Date(a.close_date ?? 0),
+          new Date(b.close_date ?? 0)
         );
       case TournamentsSortBy.StartDateDesc:
         return differenceInMilliseconds(
