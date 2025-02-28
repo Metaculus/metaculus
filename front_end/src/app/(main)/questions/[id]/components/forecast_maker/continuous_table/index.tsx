@@ -304,6 +304,7 @@ const ContinuousTable: FC<Props> = ({
                             handleQuantileChange(Quantile.lower, quantileValue);
                           }}
                           disabled={disableQuantileInput}
+                          showPercentSign={true}
                         />
                       </Td>
                     )}
@@ -382,6 +383,7 @@ const ContinuousTable: FC<Props> = ({
                             handleQuantileChange(Quantile.upper, quantileValue);
                           }}
                           disabled={disableQuantileInput}
+                          showPercentSign={true}
                         />
                       </Td>
                     )}

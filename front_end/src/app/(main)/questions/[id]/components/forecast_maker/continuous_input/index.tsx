@@ -78,6 +78,7 @@ const ContinuousInput: FC<Props> = ({
       onOverlayPreviousForecastChange={onOverlayPreviousForecastChange}
       previousForecast={previousForecast}
       menu={menu}
+      disabled={disabled}
     >
       {(graphType) => (
         <>

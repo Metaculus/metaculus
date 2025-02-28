@@ -272,10 +272,7 @@ const ForecastMakerContinuous: FC<Props> = ({
 
   const handleDiscard = () => {
     setForecastInputMode(
-      activeForecast?.distribution_input.type ===
-        ContinuousForecastInputType.Quantile
-        ? ContinuousForecastInputType.Quantile
-        : ContinuousForecastInputType.Slider
+      (prev) => activeForecast?.distribution_input.type ?? prev
     );
     setSliderDistributionComponents(
       getInitialSliderDistributionComponents(

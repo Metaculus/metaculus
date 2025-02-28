@@ -1139,5 +1139,7 @@
   "invalidCdfLengthError": "continuous_cdf 必须有201个值",
   "cdfMinStepSizeError": "continuous_cdf 每一步必须至少增加 {minDiff}",
   "cdfMaxStepSizeError": "continuous_cdf 每一步必须至多增加 {maxDiff}",
-  "quantileWithinBoundsError": "如果分位数在范围内，概率不能大于分位数"
+  "quantileWithinBoundsError": "如果分位数在范围内，概率不能大于分位数",
+  "discardAllChangesButton": "放弃所有更改",
+  "saveAllChanges": "保存所有更改"
 }

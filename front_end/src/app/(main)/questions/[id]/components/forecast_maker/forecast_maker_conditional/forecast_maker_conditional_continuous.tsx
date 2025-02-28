@@ -391,10 +391,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ),
             isDirty: false,
             forecastInputMode:
-              prevYesForecastValue?.type ===
-              ContinuousForecastInputType.Quantile
-                ? ContinuousForecastInputType.Quantile
-                : ContinuousForecastInputType.Slider,
+              prevYesForecastValue?.type ?? prevChoice.forecastInputMode,
           };
         } else if (prevChoice.id === questionNoId) {
           return {
@@ -416,9 +413,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ),
             isDirty: false,
             forecastInputMode:
-              prevNoForecastValue?.type === ContinuousForecastInputType.Quantile
-                ? ContinuousForecastInputType.Quantile
-                : ContinuousForecastInputType.Slider,
+              prevNoForecastValue?.type ?? prevChoice.forecastInputMode,
           };
         } else {
           return prevChoice;
