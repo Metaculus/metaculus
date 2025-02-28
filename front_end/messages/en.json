@@ -1088,5 +1088,12 @@
   "noAggregationData": "No aggregation data",
   "selectParentQuestion": "Select Parent Question",
   "selectChildQuestion": "Select Child Question",
-  "pickQuestion": "Pick Question"
+  "pickQuestion": "Pick Question",
+  "forecastFlow": "Forecast Flow",
+  "viewQuestions": "View Questions<bold>({count})</bold>",
+  "started": "Started",
+  "starts": "Starts",
+  "lastDayForPrizeParticipation": "Last day for prize participation",
+  "questionsResolved": "Questions resolved",
+  "winnersAnnounced": "Winners announced"
 }
