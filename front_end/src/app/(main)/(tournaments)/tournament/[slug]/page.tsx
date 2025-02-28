@@ -88,12 +88,19 @@ export default async function TournamentSlug({ params }: Props) {
               "absolute z-10 flex h-6 w-full flex-wrap items-center justify-between gap-2.5 bg-transparent p-[10px] text-[20px] uppercase text-gray-100 dark:text-gray-100-dark"
             )}
           >
-            <Link
-              href={"/tournaments"}
-              className="block bg-black/30 px-1.5 py-1 text-xs font-bold leading-4 text-gray-0 no-underline hover:text-gray-400 dark:hover:text-gray-400-dark"
-            >
-              {title}
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href={"/tournaments"}
+                className="block rounded-sm bg-black/30 px-1.5 py-1 text-xs font-bold leading-4 text-gray-0 no-underline hover:text-gray-400 dark:hover:text-gray-400-dark"
+              >
+                {title}
+              </Link>
+              {tournament.default_permission === null && (
+                <strong className="block rounded-sm bg-black/30 px-1.5 py-1 text-xs font-bold uppercase leading-4 text-gray-0">
+                  {t("private")}
+                </strong>
+              )}
+            </div>
             <TournamentDropdownMenu tournament={tournament} />
           </div>
           {!!tournament.header_image && (
@@ -109,16 +116,10 @@ export default async function TournamentSlug({ params }: Props) {
         </div>
         <div className="px-4 pb-5 pt-4 sm:p-8">
           <div className="flex items-start justify-between gap-1 sm:gap-4">
-            <div className="flex flex-row items-center">
-              <h1 className="m-0 text-xl text-blue-800 dark:text-blue-800-dark md:text-2xl lg:text-3xl xl:text-4xl">
-                {tournament.name}
-              </h1>
-              {tournament.default_permission === null && (
-                <strong className="self-start rounded-sm bg-blue-300 px-1 text-sm uppercase text-gray-900 dark:bg-blue-300-dark dark:text-gray-900-dark">
-                  {t("private")}
-                </strong>
-              )}
-            </div>
+            <h1 className="m-0 text-xl text-blue-800 dark:text-blue-800-dark md:text-2xl lg:text-3xl xl:text-4xl">
+              {tournament.name}
+            </h1>
+
             <div>
               <TournamentSubscribeButton
                 user={currentUser}
