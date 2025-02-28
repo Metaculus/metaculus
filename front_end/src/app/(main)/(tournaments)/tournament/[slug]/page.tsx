@@ -1,9 +1,10 @@
+import { isNil } from "lodash";
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { FC } from "react";
+import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
@@ -25,7 +26,7 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 
 import TournamentDropdownMenu from "../components/dropdown_menu";
 import TournamentFeed from "../components/tournament_feed";
-
+import TournamentTimeline from "../components/tournament_timeline";
 const LazyProjectMembers = dynamic(() => import("../components/members"), {
   ssr: false,
 });
@@ -61,7 +62,6 @@ export default async function TournamentSlug({ params }: Props) {
   const tournament = await ProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
-
   const currentUser = await ProfileApi.getMyProfile();
 
   const t = await getTranslations();
@@ -81,7 +81,7 @@ export default async function TournamentSlug({ params }: Props) {
   return (
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
       {/* header block */}
-      <div className="overflow-hidden rounded-md bg-gray-0 dark:bg-gray-0-dark">
+      <div className="overflow-hidden rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
         <div className="relative h-[130px] w-full">
           <div
             className={cn(
@@ -102,15 +102,15 @@ export default async function TournamentSlug({ params }: Props) {
               alt=""
               fill
               priority
-              className="size-full rounded-t object-cover object-center"
+              className="size-full object-cover object-center"
               unoptimized
             />
           )}
         </div>
         <div className="px-4 pb-5 pt-4 sm:p-8">
           <div className="flex items-start justify-between gap-1 sm:gap-4">
-            <div>
-              <h1 className="m-0 text-4xl text-blue-800 dark:text-blue-800-dark">
+            <div className="flex flex-row items-center">
+              <h1 className="m-0 text-xl text-blue-800 dark:text-blue-800-dark md:text-2xl lg:text-3xl xl:text-4xl">
                 {tournament.name}
               </h1>
               {tournament.default_permission === null && (
@@ -126,9 +126,10 @@ export default async function TournamentSlug({ params }: Props) {
               />
             </div>
           </div>
-          <div className="flex flex-row items-center justify-between">
-            <div className="flex flex-wrap gap-9 py-4">
-              {tournament.prize_pool !== null && (
+
+          {tournament.type === TournamentType.QuestionSeries && (
+            <div className="flex flex-wrap gap-x-9 gap-y-4 py-4">
+              {!isNil(tournament.prize_pool) && (
                 <TournamentStat
                   title={t("prizePool")}
                   text={"$" + Number(tournament.prize_pool).toLocaleString()}
@@ -138,22 +139,46 @@ export default async function TournamentSlug({ params }: Props) {
                 title={t("StartDate")}
                 text={formatDate(locale, new Date(tournament.start_date))}
               />
-              <TournamentStat
-                title={t("EndDate")}
-                text={formatDate(locale, new Date(tournament.close_date))}
-              />
+              {!isNil(tournament.close_date) && (
+                <TournamentStat
+                  title={t("EndDate")}
+                  text={formatDate(locale, new Date(tournament.close_date))}
+                />
+              )}
               <TournamentStat
                 title={t("questions")}
                 text={tournament.questions_count.toString()}
               />
             </div>
-          </div>
+          )}
+          {tournament.type === TournamentType.Tournament && (
+            <Suspense fallback={<Skeleton />}>
+              <TournamentTimeline tournament={tournament} />
+            </Suspense>
+          )}
         </div>
       </div>
-      {/* buttons block */}
-      <div></div>
-      {/* description block */}
-      <div className="mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8">
+
+      {/* Links block */}
+      <div className="mx-4 mt-4 flex flex-row justify-between gap-2 lg:mx-0">
+        {/* TODO: Uncomment this when the forecast flow is implemented */}
+        {/* <Link href="/forecastFlowLink" className="flex-1">
+          <Button className="w-full border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg">
+            {t("forecastFlow")}
+          </Button>
+        </Link> */}
+        <Link href="#questions" className="flex-1">
+          <Button className="w-full gap-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg">
+            {t.rich("viewQuestions", {
+              count: tournament.questions_count,
+              bold: (chunks) => <span className="font-bold">{chunks}</span>,
+            })}
+          </Button>
+        </Link>
+      </div>
+
+      {/* Description block */}
+      <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">
         <div>
           <HtmlContent content={tournament.description} />
 
@@ -180,7 +205,10 @@ export default async function TournamentSlug({ params }: Props) {
       </div>
 
       {/* Questions block */}
-      <div className="mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8">
+      <div
+        id="questions"
+        className="mt-4 scroll-mt-nav rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark xs:mx-4 sm:p-8 lg:mx-0"
+      >
         <section className="mx-2 px-1 py-4">
           <div className="mb-5 flex flex-row justify-between">
             <h2 className="m-0 text-blue-800 dark:text-blue-800-dark">
@@ -216,3 +244,19 @@ const TournamentStat: FC<{ title: string; text: string }> = ({
     <span className="text-xl font-bold leading-6">{text}</span>
   </div>
 );
+
+const Skeleton: FC = () => {
+  return (
+    <div className="mt-4 flex min-h-20 flex-col gap-x-5 gap-y-4 sm:mt-5 sm:flex-row">
+      <div className="flex flex-1 animate-pulse flex-col justify-between">
+        <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="my-3 h-1 w-full rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
+      </div>
+
+      <div className="flex max-h-20 animate-pulse items-center justify-center rounded bg-gray-200 py-1.5 dark:bg-gray-700 sm:w-[200px] sm:flex-col sm:py-3">
+        <div className="h-6 w-24 rounded bg-gray-300 dark:bg-gray-600 sm:h-8 sm:w-32" />
+      </div>
+    </div>
+  );
+};

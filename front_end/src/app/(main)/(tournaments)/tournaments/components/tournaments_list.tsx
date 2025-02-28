@@ -122,8 +122,8 @@ function filterItems(
         return Number(b.prize_pool) - Number(a.prize_pool);
       case TournamentsSortBy.CloseDateAsc:
         return differenceInMilliseconds(
-          new Date(a.close_date),
-          new Date(b.close_date)
+          new Date(a.close_date ?? 0),
+          new Date(b.close_date ?? 0)
         );
       case TournamentsSortBy.StartDateDesc:
         return differenceInMilliseconds(

@@ -57,7 +57,7 @@ export type TournamentPreview = Project & {
   header_image: string;
   prize_pool: string | null;
   start_date: string;
-  close_date: string;
+  close_date?: string;
   is_ongoing: boolean;
   created_at: string;
   questions_count: number;
