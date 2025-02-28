@@ -1,5 +1,7 @@
 import Image from "next/image";
+
 import PageWrapper from "../components/pagewrapper";
+
 export const metadata = {
   title: "Metaculus FAQ",
   description:
@@ -713,10 +715,11 @@ export default function FAQ() {
             de personas individuales o incluso de grupos pequeños. En los casos
             de interés público (según lo designado por los tribunales y figuras
             políticas), el asunto debe ser formulado en otros términos más
-            directamente relevantes, como "cuando X ya no prestará servicio en
-            los tribunales" o "no puede solicitar el cargo en la fecha X".
-            Cuando el tema es muerte (o longevidad), las preguntas en sí mismas
-            deben tratar a las personas en forma agregada o hipotéticamente.
+            directamente relevantes, como $quot;cuando X ya no prestará servicio
+            en los tribunales$quot; o $quot;no puede solicitar el cargo en la
+            fecha X$quot;. Cuando el tema es muerte (o longevidad), las
+            preguntas en sí mismas deben tratar a las personas en forma agregada
+            o hipotéticamente.
           </li>
           <li>
             De manera más general, las preguntas deben evitar ser escritas de
@@ -827,8 +830,8 @@ export default function FAQ() {
             nombre en una pregunta que se cambia de lo que usted envía, o le
             gustaría ver la pregunta antes de que sea emitida, por favor tenga
             en cuenta esto en la propia pregunta; las preguntas están ocultas
-            desde la vista pública hasta que se les da "apropiaciones" y se
-            pueden publicar de forma anónima bajo petición.
+            desde la vista pública hasta que se les da $quot;apropiaciones$quot;
+            y se pueden publicar de forma anónima bajo petición.
           </li>
         </ol>
         <h3
@@ -879,8 +882,8 @@ export default function FAQ() {
           nuevos. Si usted tenía preguntas privadas, todavía puede encontrarlas
           yendo a la
           <a href="/questions/">Página de inicio de la alimentación</a>,
-          seleccionando "Mis preguntas y publicaciones" en la barra lateral y
-          usando el filtro especial "Personal".
+          seleccionando $quot;Mis preguntas y publicaciones$quot; en la barra
+          lateral y usando el filtro especial $quot;Personal$quot;.
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="comments">
           Cuáles son las normas y directrices para los comentarios y
@@ -908,9 +911,9 @@ export default function FAQ() {
             Metaculus <a href="/terms-of-use/">términos de uso</a> para más
           </li>
           <li>
-            Puedes hacer ping en otros usuarios usando "? Nombre del usuario",
-            quién enviará una notificación a ese usuario (si establece esta
-            opción en su configuración de notificación).
+            Puedes hacer ping en otros usuarios usando $quot;? Nombre del
+            usuario$quot;, quién enviará una notificación a ese usuario (si
+            establece esta opción en su configuración de notificación).
           </li>
           <li>
             Le invitamos a apoyar los comentarios que contienen información
@@ -920,11 +923,12 @@ export default function FAQ() {
           </li>
           <li>
             Si un comentario es spam, inapropiado/ofensivo o rompe nuestras
-            reglas, por favor envíenos un informe (bajo el "menú"...).
+            reglas, por favor envíenos un informe (bajo el &quot;menú&quot;...).
           </li>
         </ul>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="definitions">
-          Qué significa "fuente creíble" y "antes fecha X" y tales frases?
+          Qué significa $quot;fuente creíble$quot; y $quot;antes fecha X$quot; y
+          tales frases?
         </h3>
         <p>
           Para reducir la ambiguedad de manera eficiente, aquí están algunas
@@ -944,17 +948,17 @@ export default function FAQ() {
             web de individuos.
           </li>
           <li>
-            La frase "Antes [fecha X] se tomará como resultado antes del primer
-            momento [fecha X] se aplicaría, en UTC. Por ejemplo, "Antes de 2010"
-            se entenderá antes de la medianoche del 1 de enero de 2010; "Antes
-            del 30 de junio" significaría antes de la medianoche (00:00:00) UTC
-            30 de junio.
+            La frase $quot;Antes [fecha X] se tomará como resultado antes del
+            primer momento [fecha X] se aplicaría, en UTC. Por ejemplo,
+            $quot;Antes de 2010$quot; se entenderá antes de la medianoche del 1
+            de enero de 2010; $quot;Antes del 30 de junio$quot; significaría
+            antes de la medianoche (00:00:00) UTC 30 de junio.
             <ul className="ml-4 mt-2 list-inside list-disc space-y-2">
               <li>
-                <strong>Anteriormente</strong>, esta sección se usaba "para
-                [fecha x]" en lugar de "antes [fecha x]", sin embargo, "antes"
-                es mucho más claro y siempre debe ser utilizado en lugar de
-                "by", cuando sea posible.
+                <strong>Anteriormente</strong>, esta sección se usaba $quot;para
+                [fecha x]$quot; en lugar de $quot;antes [fecha x]$quot;, sin
+                embargo, $quot;antes$quot; es mucho más claro y siempre debe ser
+                utilizado en lugar de &quot;by&quot;, cuando sea posible.
               </li>
             </ul>
           </li>
@@ -971,8 +975,8 @@ export default function FAQ() {
           apropiadas cuando un evento puede ocurrir o no ocurre. Por ejemplo, la
           pregunta
           <a href="/questions/6296/us-unemployment-above-5-through-nov-2021/">
-            "La tasa de desempleo de los EE.UU. se mantendrá por encima del 5%
-            hasta noviembre de 2021?".
+            $quot;La tasa de desempleo de los EE.UU. se mantendrá por encima del
+            5% hasta noviembre de 2021?$quot;.
           </a>
           No <strong>Não</strong> porque la tasa de desempleo cayó por debajo
           del 5% antes de la hora especificada.
@@ -1004,8 +1008,8 @@ export default function FAQ() {
           Las preguntas de rango numérico se pueden resolver como un valor
           numérico. Por ejemplo, la pregunta
           <a href="/questions/7346/initial-jobless-claims-july-2021/">
-            "Cuál será el promedio de 4 semanas de solicitudes iniciales de
-            desempleo (en miles) presentadas en julio de 2021?"
+            &quot;Cuál será el promedio de 4 semanas de solicitudes iniciales de
+            desempleo (en miles) presentadas en julio de 2021?&quot;
           </a>
           resuelto como <strong>395,</strong> porque la fuente subyacente
           reportó 395.000 solicitudes iniciales de desempleo para julio de 2021.
@@ -1014,9 +1018,9 @@ export default function FAQ() {
           Las preguntas también pueden resolver fuera del intervalo numérico.
           Por ejemplo, la pregunta
           <a href="/questions/6645/highest-us-core-cpi-growth-in-2021/">
-            "Cuál será el nivel más alto de crecimiento anualizado del IPC de
-            los Estados Unidos en 2021", según EE.UU. Los datos de la Oficina de
-            Estadísticas Laborales se
+            $quot;Cuál será el nivel más alto de crecimiento anualizado del IPC
+            de los Estados Unidos en 2021$quot;, según EE.UU. Los datos de la
+            Oficina de Estadísticas Laborales se
           </a>
           resolvieron como <strong>6.5</strong> porque la fuente subyacente
           reportó un crecimiento anualizado del IPC básico de 6.5% en los
@@ -1027,8 +1031,8 @@ export default function FAQ() {
           Las preguntas del intervalo de fecha se pueden resolver como una fecha
           determinada. Por ejemplo, la pregunta
           <a href="/questions/8723/date-of-next-who-pheic-declaration/">
-            "Cuándo se declarará la próxima emergencia de salud pública de la
-            preocupación internacional" por la OMS?
+            &quot;Cuándo se declarará la próxima emergencia de salud pública de
+            la preocupación internacional&quot; por la OMS?
           </a>
           Resolución el <strong>23</strong> de <strong>julio de 2022</strong>,
           porque en esa fecha se declaró una emergencia de salud pública de
@@ -1075,11 +1079,11 @@ export default function FAQ() {
         </h4>
         <p>
           Cuando las preguntas regulares de predicción se convierten en
-          "sub-preguntas" de un grupo de preguntas, las páginas originales se
-          sustituyen por una sola página de grupo de preguntas. Los comentarios
-          que alguna vez vivieron en las páginas de preguntas individuales se
-          trasladan a la sección de comentarios de la página de grupo recién
-          creada con una nota que indica el cambio.
+          &quot;sub-preguntas&quot; de un grupo de preguntas, las páginas
+          originales se sustituyen por una sola página de grupo de preguntas.
+          Los comentarios que alguna vez vivieron en las páginas de preguntas
+          individuales se trasladan a la sección de comentarios de la página de
+          grupo recién creada con una nota que indica el cambio.
         </p>
         <h4 className="text-lg font-semibold">
           Necesito predecir en cada resultado/sub-pregunta de un grupo de
@@ -1142,16 +1146,16 @@ export default function FAQ() {
         </p>
         <p>
           Los pares condicionales hacen dos Preguntas Concondicionales (o
-          "Condicionales" para abreviar), cada una correspondiente a un posible
-          resultado del Padre:
+          &quot;Condicionales&quot; para abreviar), cada una correspondiente a
+          un posible resultado del Padre:
         </p>
         <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
           <li>Si papá resuelve Sí, cómo lo resolverá el hijo?</li>
           <li>Si el Padre resuelve el No, cómo lo resolverá el niño?</li>
         </ol>
         <p>
-          El primer condicional asume que "El padre resuelve el sí" (o "si sí"
-          pronto). La segunda condición hace lo mismo para No.
+          El primer condicional asume que &quot;El padre resuelve el sí&quot; (o
+          &quot;si sí&quot; pronto). La segunda condición hace lo mismo para No.
         </p>
         <p>
           Las probabilidades condicionales son probabilidades, por lo que la
@@ -1172,7 +1176,7 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            Cuando el padre decide el Sí, el "si no" condicional es
+            Cuando el padre decide el Sí, el &quot;si no&quot; condicional es
             <a href="/faq/#ambiguous-annulled">anulado</a>. (Y viceversa.)
           </li>
           <li>
@@ -1182,13 +1186,13 @@ export default function FAQ() {
         </ul>
         <p>Trabajemos con un ejemplo:</p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
-          <li>Papá está "Va a llover hoy?"</li>
-          <li>El niño es "Lluvia de flotación mañana?"</li>
+          <li>Papá está $quot;Va a llover hoy?$quot;</li>
+          <li>El niño es $quot;Lluvia de flotación mañana?$quot;</li>
         </ul>
         <p>Así, los dos Conlotarios en el Par Con condicional serán:</p>
         <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
-          <li>"Si llueve hoy, llovirá mañana?"</li>
-          <li>"Si no llueve hoy, lloverá mañana?"</li>
+          <li>$quot;Si llueve hoy, llovirá mañana?$quot;</li>
+          <li>$quot;Si no llueve hoy, lloverá mañana?$quot;</li>
         </ol>
         <p>
           Para la simplicidad, Metaculus presenta preguntas gráficamente
@@ -1215,12 +1219,12 @@ export default function FAQ() {
         <p>Vuelve al ejemplo:</p>
         <p>
           Llueve hoy. Los padres resuelven. Esto desencadena que el segundo
-          condicional ("si no") sea anulado. No está marcado.
+          condicional (&quot;si no&quot;) sea anulado. No está marcado.
         </p>
         <p>
           Espera un día. Esta vez no llueve. El niño no decide. Esto desencadena
-          el reposo condicional ("si sí") para resolver No. Se puntúa como una
-          pregunta binaria normal.
+          el reposo condicional ($quot;si sí$quot;) para resolver No. Se puntúa
+          como una pregunta binaria normal.
         </p>
         <h4 className="text-lg font-semibold">
           Cómo puedo crear pares condicionales?
@@ -1228,9 +1232,9 @@ export default function FAQ() {
         <p>
           Usted puede crear y enviar pares condicionales como cualquier otro
           tipo de pregunta. En
-          <a href="/questions/create/">la página "Crear una</a> pregunta",
-          seleccione Tipo de pregunta "condicional" y seleccione Preguntas de
-          Padre y Niño.
+          <a href="/questions/create/">la página &quot;Crear una</a>{" "}
+          pregunta&quot;, seleccione Tipo de pregunta &quot;condicional&quot; y
+          seleccione Preguntas de Padre y Niño.
         </p>
         <p>
           Nota: Puede utilizar sub-preguntas grupales de preguntas como Padre o
@@ -1239,8 +1243,8 @@ export default function FAQ() {
         </p>
         <p>
           Para copiar la URL de una sub-cuestión, simplemente visite una página
-          de preguntas y haga clic en el menú "."... para revelar la opción Copy
-          Link.
+          de preguntas y haga clic en el menú &quot;.&quot;... para revelar la
+          opción Copy Link.
         </p>
         <h3
           className="scroll-mt-nav text-xl font-semibold"
@@ -1272,10 +1276,10 @@ export default function FAQ() {
           Las preguntas se pueden ordenar y filtrar de manera diferente a la
           norma utilizando el menú de filtro. Las preguntas se pueden filtrar
           por tipo, estatus y participación. Las preguntas también se pueden
-          ordenar, por ejemplo, "más joven". Tenga en cuenta que las opciones
-          disponibles cambian cuando se seleccionan diferentes filtros. Por
-          ejemplo, si se filtra por preguntas "Closed", se mostrará una opción a
-          pedido por "Soonest Resolve".
+          ordenar, por ejemplo, $quot;más joven$quot;. Tenga en cuenta que las
+          opciones disponibles cambian cuando se seleccionan diferentes filtros.
+          Por ejemplo, si se filtra por preguntas $quot;Closed$quot;, se
+          mostrará una opción a pedido por $quot;Soonest Resolve$quot;.
         </p>
         <h2
           className="scroll-mt-nav scroll-mt-nav text-2xl font-bold"
@@ -1284,8 +1288,8 @@ export default function FAQ() {
           Solución de cuestiones
         </h2>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="closers">
-          Qué son la "fecha de apertura", "fecha de cierre" y "fecha de
-          resolución"?
+          Qué son la $quot;fecha de apertura$quot;, $quot;fecha de cierre$quot;
+          y $quot;fecha de resolución$quot;?
         </h3>
         <p>
           Al enviar una pregunta, debe especificar la fecha de cierre (cuando la
@@ -1298,13 +1302,13 @@ export default function FAQ() {
           <li>
             La <strong>fecha de apertura</strong> es la fecha/hora en que la
             cuestión está abierta para las previsiones. Antes de este momento,
-            si el tema está activo, tendrá estatus "promado" y potencialmente
-            estará sujeto a cambios basados en la retroalimentación. Después de
-            la fecha de apertura, el cambio de preguntas está altamente
-            desalentado (ya que podría alterar los detalles que son relevantes
-            para las predicciones que ya se han enviado) y estos cambios se
-            notan generalmente en el cuerpo del tema y en los comentarios sobre
-            el tema.
+            si el tema está activo, tendrá estatus &quot;promado&quot; y
+            potencialmente estará sujeto a cambios basados en la
+            retroalimentación. Después de la fecha de apertura, el cambio de
+            preguntas está altamente desalentado (ya que podría alterar los
+            detalles que son relevantes para las predicciones que ya se han
+            enviado) y estos cambios se notan generalmente en el cuerpo del tema
+            y en los comentarios sobre el tema.
           </li>
           <li>
             La <strong>fecha de cierre</strong> es la fecha/hora posterior a la
@@ -1325,9 +1329,10 @@ export default function FAQ() {
           Trate de establecer fechas de resolución que hagan las preguntas
           interesantes y perspicaces. La fecha o el plazo que se está haciendo
           la pregunta debe ser siempre mencionado explícitamente en el texto
-          (por ejemplo, "esta pregunta se resuelve como el valor de X el 1 de
-          enero de 2040, según la fuente Y" o "esta cuestión resuelve cómo
-          <strong>Sí</strong> si X sucede antes del 1 de enero de 2040)".
+          (por ejemplo, &quot;esta pregunta se resuelve como el valor de X el 1
+          de enero de 2040, según la fuente Y&quot; o &quot;esta cuestión
+          resuelve cómo
+          <strong>Sí</strong> si X sucede antes del 1 de enero de 2040)&quot;.
         </p>
         <p>
           La fecha límite <em>debería</em> ser al menos una hora antes de la
@@ -1374,9 +1379,9 @@ export default function FAQ() {
           Qué zona horaria se utiliza para preguntas?
         </h3>
         <p>
-          Para fechas y horarios escritos en la pregunta, como "el evento X
-          tendrá lugar antes del 1 de enero de 2030?", si no se especifica el
-          tiempo
+          Para fechas y horarios escritos en la pregunta, como &quot;el evento X
+          tendrá lugar antes del 1 de enero de 2030?&quot;, si no se especifica
+          el tiempo
           <a href="https://en.wikipedia.org/wiki/Coordinated_Universal_Time">
             establecido Tiempo Universal Coordinado (UTC).
           </a>
@@ -1412,7 +1417,8 @@ export default function FAQ() {
           className="scroll-mt-nav text-xl font-semibold"
           id="ambiguous-annulled"
         >
-          Qué son las resoluciones de "angectic" y "annulled"?
+          Qué son las resoluciones de &quot;angectic&quot; y
+          &quot;annulled&quot;?
         </h3>
         <p>
           A veces una pregunta no se puede resolver porque el estado del mundo,
@@ -2019,10 +2025,11 @@ export default function FAQ() {
             Las preguntas se resolverán cuando haya cumplido los criterios
             especificados en la sección de resolución del asunto (o, a la
             inversa, cuando estos criterios no se hayan cumplido de manera
-            concluyente). Cada pregunta también tiene una "Fecha de Resolución"
-            listada en nuestro sistema para fines de clasificación de preguntas;
-            sin embargo, esta fecha lista no suele ser más que una aproximación,
-            y la fecha real de resolución no se puede conocer de antemano.
+            concluyente). Cada pregunta también tiene una $quot;Fecha de
+            Resolución$quot; listada en nuestro sistema para fines de
+            clasificación de preguntas; sin embargo, esta fecha lista no suele
+            ser más que una aproximación, y la fecha real de resolución no se
+            puede conocer de antemano.
           </p>
           <p>
             Para las preguntas que se hagan cuándo sucederá algo (como
@@ -2035,10 +2042,11 @@ export default function FAQ() {
             han cumplido los criterios (aunque el tema puede decidirse y los
             puntos adjudicados en algún momento posterior cuando la evidencia es
             concluyente). Algunas preguntas predicen intervalos de tiempo
-            general, como "qué mes el desempleo pasará por debajo del 4%?" ;
-            Cuando se especifique la fecha/hora que se utilizará, se utilizarán
-            estos términos. Si no se dan estos términos, la política de impago
-            será resolverla como <strong>punto medio de ese periodo</strong>
+            general, como &quot;qué mes el desempleo pasará por debajo del
+            4%?&quot; ; Cuando se especifique la fecha/hora que se utilizará, se
+            utilizarán estos términos. Si no se dan estos términos, la política
+            de impago será resolverla como{" "}
+            <strong>punto medio de ese periodo</strong>
             (por ejemplo, si el informe de enero es el primer mes de desempleo
             por debajo del 4%, la fecha de la resolución será incumplida para el
             15 de enero).
@@ -2158,10 +2166,11 @@ export default function FAQ() {
           <p>
             Cuando una pregunta se cierra temprano, los puntos adjudicados son
             <em>sólo</em> los acumulados hasta la (nueva) hora de cierre. Esto
-            es necesario para seguir anotando "adeto" (es decir, recompensando
-            el máximo para predecir la probabilidad correcta) y evitar el juego
-            de puntos, pero esto significa que los puntos generales (positivos o
-            negativos) pueden terminar siendo más bajos de lo esperado.
+            es necesario para seguir anotando &quot;adeto&quot; (es decir,
+            recompensando el máximo para predecir la probabilidad correcta) y
+            evitar el juego de puntos, pero esto significa que los puntos
+            generales (positivos o negativos) pueden terminar siendo más bajos
+            de lo esperado.
           </p>
         </div>
         <div>
@@ -2214,8 +2223,8 @@ export default function FAQ() {
               con cláusulas de cierre retroactiva inapropiada. Por ejemplo, la
               pregunta
               <a href="/questions/6662/date-earth-functional-satellites-exceed-5000/">
-                "Cuándo superará el número de satélites artificiales funcionales
-                en órbita más allá de 5.000?"
+                $quot;Cuándo superará el número de satélites artificiales
+                funcionales en órbita más allá de 5.000?$quot;
               </a>
               En
               <strong>
@@ -2285,13 +2294,13 @@ export default function FAQ() {
           <p>
             Hay momentos en que la intención de un tema es rastrear
             específicamente las acciones o declaraciones de organizaciones o
-            personas específicas (como "tal cómo muchos votos electorales
-            ganarán en las elecciones presidenciales de los EE.UU". 2020
+            personas específicas (como &quot;tal cómo muchos votos electorales
+            ganarán en las elecciones presidenciales de los EE.UU&quot;. 2020
             <em>de acuerdo con el Colegio Electoral);</em> en otras ocasiones,
             nos interesan sólo la verdad real, y aceptamos una fuente de
-            resolución como una aproximación aceptable (como, "cuántas muertes
-            de COVID-19" estarán en los EE.UU. en 2021). Dicho esto, en muchos
-            casos no está claro lo que se pretende.
+            resolución como una aproximación aceptable (como, &quot;cuántas
+            muertes de COVID-19&quot; estarán en los EE.UU. en 2021). Dicho
+            esto, en muchos casos no está claro lo que se pretende.
           </p>
           <p>
             Idealmente, todas las preguntas se escribirían con un lenguaje
@@ -2300,10 +2309,11 @@ export default function FAQ() {
             juzgada por los administradores de Metaculus como extintas,
             obsoletas o inapropiadas, los Administradores harán el mejor
             esfuerzo para reemplazarlo por un equivalente funcional. Las
-            preguntas pueden exagerar esta política con un lenguaje como "Si
-            [esta fuente] ya no está disponible, la pregunta resolverá
-            ambiguamente" o "Esta pregunta rastrea publicaciones de [esa
-            fuente], independientemente de los mensajes de otras fuentes".
+            preguntas pueden exagerar esta política con un lenguaje como
+            &quot;Si [esta fuente] ya no está disponible, la pregunta resolverá
+            ambiguamente&quot; o &quot;Esta pregunta rastrea publicaciones de
+            [esa fuente], independientemente de los mensajes de otras
+            fuentes&quot;.
           </p>
         </div>
         <div>
@@ -2378,8 +2388,9 @@ export default function FAQ() {
           <p>
             Si usted ha hecho una predicción sobre una pregunta y todavía está
             abierto a predecir, puede retirar su predicción pulsando el botón
-            "retirar". Para preguntas grupales, el botón "retirar" se anida en
-            el menú ""... junto a la opción que desea eliminar.
+            $quot;retirar$quot;. Para preguntas grupales, el botón
+            $quot;retirar$quot; se anida en el menú $quot;$quot;... junto a la
+            opción que desea eliminar.
           </p>
           {/* <img alt="Interfaz de predicción" loading="lazy" width="700" height="400" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75"> */}
           <Image
@@ -2426,7 +2437,7 @@ export default function FAQ() {
                   El día
                 </th>
                 <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
-                  1 en ("
+                  1 en (&quot;
                 </th>
                 <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   2 2
@@ -2537,7 +2548,7 @@ export default function FAQ() {
                   El día
                 </th>
                 <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
-                  1 en ("
+                  1 en (&quot;
                 </th>
                 <th className="border border-gray-300 p-2 dark:border-gray-300-dark">
                   2 2
@@ -2743,7 +2754,7 @@ export default function FAQ() {
             Cuando se cuela sobre el gráfico, se ven las probabilidades en cada
             punto en la parte inferior del gráfico. Por ejemplo, en la imagen de
             abajo se puede ver la densidad de probabilidad en el valor de 136,
-            denotada por "P(x - 136) ", y se puede ver la densidad de
+            denotada por &quot;P(x - 136) &quot;, y se puede ver la densidad de
             probabilidad que usted y la comunidad asignó a ese punto (en la
             imagen el usuario asignó una densidad de probabilidad de 1,40 a ese
             valor y la comunidad asignó una densidad de probabilidad de 2.97).
@@ -2757,9 +2768,9 @@ export default function FAQ() {
             height={773}
           />
           <p>
-            Cuando seleccione el menú desplegable "Probabilidad de la densidad"
-            en la parte superior de la tabla, puede cambiar la vista a
-            "Probabilidad bucotuativa". Esta vista muestra la
+            Cuando seleccione el menú desplegable &quot;Probabilidad de la
+            densidad&quot; en la parte superior de la tabla, puede cambiar la
+            vista a &quot;Probabilidad bucotuativa&quot;. Esta vista muestra la
             <a href="https://en.wikipedia.org/wiki/Cumulative_distribution_function">
               función de distribución acumulada
             </a>
@@ -2768,10 +2779,10 @@ export default function FAQ() {
             por debajo del valor indicado. Por ejemplo, en la imagen de abajo se
             puede ver la probabilidad de que usted y la comunidad hayan asignado
             al problema resolviendo por debajo del valor de 136, denotado por
-            "P(x - 136) ". La probabilidad de que el usuario haya asignado es
-            del 7% para el problema que se resuelve por debajo de este valor,
-            mientras que la comunidad atribuyó un 83% de posibilidades al
-            problema al resolver por debajo de ese valor.
+            &quot;P(x - 136) &quot;. La probabilidad de que el usuario haya
+            asignado es del 7% para el problema que se resuelve por debajo de
+            este valor, mientras que la comunidad atribuyó un 83% de
+            posibilidades al problema al resolver por debajo de ese valor.
           </p>
           {/* <img alt="Interfaz acumulada" loading="lazy" width="771" height="776" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Fcumulative.png&amp;w=828&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Fcumulative.png&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Fcumulative.png&amp;w=1920&amp;q=75"> */}
           <Image
@@ -2799,9 +2810,9 @@ export default function FAQ() {
             En la tabla que muestra las predicciones en la parte inferior de las
             imágenes de arriba, verás que además del percentil 25, mediana y
             probabilidades del percentil 75, también hay uno etiquetado como
-            "500". Esta pregunta tiene un límite superior abierto, lo que
-            significa que los analistas pueden asignar una probabilidad de que
-            el problema se resuelva como un valor por encima del extremo
+            &quot;500&quot;. Esta pregunta tiene un límite superior abierto, lo
+            que significa que los analistas pueden asignar una probabilidad de
+            que el problema se resuelva como un valor por encima del extremo
             superior del rango especificado. Para la pregunta descrita
             anteriormente, la comunidad y el predictor atribuyen una
             probabilidad del 1% al problema que se resuelve por encima del
@@ -2864,9 +2875,10 @@ export default function FAQ() {
           <p>
             En las imágenes mostradas arriba, se puede ver que el usuario asignó
             dos distribuciones de probabilidad. Se pueden añadir hasta cinco
-            distribuciones logísticas utilizando el botón "Añadir componente".
-            El peso relativo de cada uno se puede ajustar usando el control
-            deslizante "peso" por debajo de cada componente.
+            distribuciones logísticas utilizando el botón &quot;Añadir
+            componente&quot;. El peso relativo de cada uno se puede ajustar
+            usando el control deslizante &quot;peso&quot; por debajo de cada
+            componente.
           </p>
         </div>
         <div>
@@ -3116,7 +3128,7 @@ export default function FAQ() {
           </h4>
           <p>
             Por defecto, los bots no están incluidos en ninguna agregación. Si
-            lo son, se indica en la barra lateral como "Incluye Bots".
+            lo son, se indica en la barra lateral como &quot;Incluye Bots&quot;.
           </p>
         </div>
         <div>
@@ -3301,8 +3313,8 @@ export default function FAQ() {
               target="_blank"
               rel="noopener"
             >
-              IRS designa a los mineros de criptomonedas como "brokers" hasta
-              2025
+              IRS designa a los mineros de criptomonedas como
+              &quot;brokers&quot; hasta 2025
             </a>
             sigue la Ley de Empleos de Inversión e Infraestructura de Biden,
             pero más allá de la conexión de Biden, no cumple con los criterios
@@ -3360,8 +3372,8 @@ export default function FAQ() {
           <p>
             A veces no has cambiado de opinión en una pregunta, pero todavía
             quieres registrar tu pronóstico actual. Esto se llama
-            "reafifirmación": predúne el mismo valor que predijiste antes,
-            ahora.
+            &quot;reafifirmación&quot;: predúne el mismo valor que predijiste
+            antes, ahora.
           </p>
           <p>
             También es útil al clasificar las preguntas por la edad de su
@@ -3523,8 +3535,11 @@ export default function FAQ() {
             Si usted está interesado en contratar Metaculus Procasters para un
             proyecto, por favor contáctenos en
             <a href="mailto:support@metaculus.com">e-soco.com</a>.
-            <a href="mailto:support@metaculus.com">com</a> con el tema
-            "Investigación de proyectos".
+            <a href="mailto:support@metaculus.com">com</a> con el tema 2306:73
+            error `&quot;` can be escaped with `&quot;`, `&ldquo;`, `&#34;`,
+            `&rdquo;` react/no-unescaped-entitiesInvestigación de proyectos
+            2306:73 error `&quot;` can be escaped with `&quot;`, `&ldquo;`,
+            `&#34;`, `&rdquo;` react/no-unescaped-entities.
           </p>
           <p>
             Metaculus selecciona a los individuos de acuerdo con los siguientes
@@ -3633,8 +3648,8 @@ export default function FAQ() {
             Los artículos de la base de datos ITN se combinan con preguntas
             relevantes de Metaculus por un modelo de aprendizaje automático
             basado en transformadores capacitado para cartografiar pasajes
-            semánticamente similares a regiones en "espacio retrasado". Las
-            adiciones se generan utilizando
+            semánticamente similares a regiones en &quot;espacio
+            retrasado&quot;. Las adiciones se generan utilizando
             <a href="https://arxiv.org/abs/2004.09297">MPNet</a>.
           </p>
         </div>
@@ -3666,8 +3681,8 @@ export default function FAQ() {
           <p>
             Si encuentras un resumen de Community Insights incorrecto, ofensivo
             o engañoso, usa el botón en la parte inferior del resumen para
-            "Desplaza este resumen" para que el equipo de Metaculus pueda
-            resolverlo.
+            &quot;Desplaza este resumen&quot; para que el equipo de Metaculus
+            pueda resolverlo.
           </p>
         </div>
         <div>
@@ -3679,14 +3694,14 @@ export default function FAQ() {
           </h3>
           <p>
             Sí, sí. Sí, sí. Metaculus tiene un sistema de dominio, donde cada
-            dominio (como "exemplople.metaculus.com") tiene un subconjunto de
-            preguntas y usuarios asignados a él. Cada pregunta tiene un conjunto
-            de dominios donde se publica y cada usuario tiene un conjunto de
-            dominios de los que son miembros. Por lo tanto, un dominio es una
-            forma flexible de definir un conjunto específico de preguntas que
-            son privadas a un conjunto de usuarios, al tiempo que permite que
-            algunas preguntas en el dominio se publiquen también para
-            metaculus.com. Los dominios son un producto que Metaculus puede
+            dominio (como &quot;exemplople.metaculus.com&quot;) tiene un
+            subconjunto de preguntas y usuarios asignados a él. Cada pregunta
+            tiene un conjunto de dominios donde se publica y cada usuario tiene
+            un conjunto de dominios de los que son miembros. Por lo tanto, un
+            dominio es una forma flexible de definir un conjunto específico de
+            preguntas que son privadas a un conjunto de usuarios, al tiempo que
+            permite que algunas preguntas en el dominio se publiquen también
+            para metaculus.com. Los dominios son un producto que Metaculus puede
             proporcionar con múltiples niveles de soporte por tarifa; por favor
             contáctenos para más detalles.
           </p>
@@ -3708,8 +3723,8 @@ export default function FAQ() {
           <ol className="ml-5 list-decimal">
             <li>
               Publica preguntas específicas como Twitter, Facebook y Reddit,
-              usando el botón "compartir" en cada página, que establece un
-              tuit/post predeterminado que puedes editar.
+              usando el botón &quot;compartir&quot; en cada página, que
+              establece un tuit/post predeterminado que puedes editar.
             </li>
             <li>
               <a href="https://www.twitter.com/metaculus/">
