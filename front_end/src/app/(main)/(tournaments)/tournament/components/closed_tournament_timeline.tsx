@@ -77,7 +77,7 @@ const ClosedTournamentTimeline: FC<Props> = async ({
       {/* Timeline dates */}
       <div className="flex w-full justify-between">
         <p className="m-0 text-xs text-blue-800 dark:text-blue-800-dark md:text-base">
-          {format(new Date(latestActualCloseTimestamp), "MMM dd yyyy")}
+          {format(new Date(latestActualCloseTimestamp), "MMM dd")}
         </p>
         <p className="m-0 text-xs text-blue-800 dark:text-blue-800-dark md:text-base">
           {format(
@@ -86,11 +86,11 @@ const ClosedTournamentTimeline: FC<Props> = async ({
                 ? latestActualResolutionTimestamp
                 : latestScheduledResolutionTimestamp
             ),
-            "MMM dd yyyy"
+            "MMM dd"
           )}
         </p>
         <p className="m-0 text-xs text-blue-800 dark:text-blue-800-dark md:text-base">
-          {format(new Date(endDateTimestamp), "MMM dd yyyy")}
+          {format(new Date(endDateTimestamp), "MMM dd")}
         </p>
       </div>
     </div>

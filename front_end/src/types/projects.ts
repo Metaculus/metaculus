@@ -66,6 +66,16 @@ export type TournamentPreview = Project & {
   score_type: string;
 };
 
+export type TournamentTimeline = {
+  last_cp_reveal_time?: string;
+  latest_actual_resolve_time?: string;
+  latest_scheduled_resolve_time?: string;
+  latest_actual_close_time?: string;
+  latest_scheduled_close_time?: string;
+  all_questions_resolved: boolean;
+  all_questions_closed: boolean;
+};
+
 export type Tournament = TournamentPreview & {
   subtitle: string;
   description: string;
@@ -77,6 +87,7 @@ export type Tournament = TournamentPreview & {
   default_permission?: ProjectPermissions | null;
   is_current_content_translated?: boolean;
   index_weights?: ProjectIndexWeights[];
+  timeline: TournamentTimeline;
 };
 
 export type ProjectIndexWeights = {
