@@ -62,8 +62,8 @@ function getQuestionWeeklyMovement(
 
   const latestCP = latestAggregation.centers?.[0] ?? null;
 
-  const dateNow = new Date();
-  const weekAgoDate = subWeeks(dateNow, 1);
+  const weekAgoDate = subWeeks(Date.now(), 1);
+
   const weekAgoCP =
     historyAggregation.find(
       (el) =>

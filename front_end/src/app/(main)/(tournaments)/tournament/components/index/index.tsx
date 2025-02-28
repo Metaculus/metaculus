@@ -59,8 +59,8 @@ function calculateIndex(posts: ProjectIndexWeights[]): {
   if (weightSum === 0) {
     return { index: 0, indexWeekAgo: 0 };
   }
-  const dateNow = new Date();
-  const weekAgoDate = subWeeks(dateNow, 1);
+
+  const weekAgoDate = subWeeks(Date.now(), 1);
 
   const { scoreSum, weeklyScoreSum } = posts.reduce(
     (acc, obj) => {
