@@ -1089,5 +1089,7 @@
   "pickQuestion": "Vybrat otázku",
   "showApiToken": "Zobrazit API token",
   "copyApiToken": "Kopírovat API token",
-  "copiedApiTokenMessage": "API token byl zkopírován do vaší schránky"
+  "copiedApiTokenMessage": "API token byl zkopírován do vaší schránky",
+  "Indexes": "Indexy",
+  "Index": "Index"
 }
