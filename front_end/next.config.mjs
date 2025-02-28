@@ -63,6 +63,14 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/index/:slug",
+        destination: "/tournament/:slug",
+      },
+    ];
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

@@ -20,6 +20,7 @@ from projects.serializers.common import (
     ProjectUserSerializer,
     TournamentShortSerializer,
     NewsCategorySerialize,
+    serialize_project_index_weights,
 )
 from projects.services.common import (
     get_projects_qs,
@@ -28,6 +29,7 @@ from projects.services.common import (
     subscribe_project,
     unsubscribe_project,
     get_site_main_project,
+    get_project_timeline_data,
 )
 from questions.models import Question
 from users.services.common import get_users_by_usernames
@@ -180,9 +182,12 @@ def tournament_by_slug_api_view(request: Request, slug: str):
 
     data = TournamentSerializer(obj).data
     data["questions_count"] = getattr(obj, "questions_count", None)
+    data["timeline"] = get_project_timeline_data(obj)
 
     if request.user.is_authenticated:
         data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
+
+    data["index_weights"] = serialize_project_index_weights(obj)
 
     return Response(data)
 

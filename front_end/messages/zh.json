@@ -1091,5 +1091,7 @@
   "pickQuestion": "选择问题",
   "showApiToken": "显示 API 令牌",
   "copyApiToken": "复制 API 令牌",
-  "copiedApiTokenMessage": "API 令牌已复制到您的剪贴板"
+  "copiedApiTokenMessage": "API 令牌已复制到您的剪贴板",
+  "Indexes": "索引",
+  "Index": "索引"
 }
