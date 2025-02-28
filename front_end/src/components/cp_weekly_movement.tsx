@@ -1,4 +1,5 @@
 import { fromUnixTime, subWeeks } from "date-fns";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -70,7 +71,7 @@ function getQuestionWeeklyMovement(
         fromUnixTime(el.end_time) >= fromUnixTime(weekAgoDate.getTime() / 1000)
     )?.centers?.[0] ?? null;
 
-  if (!latestCP || !weekAgoCP) {
+  if (isNil(latestCP) || isNil(weekAgoCP)) {
     return null;
   }
 

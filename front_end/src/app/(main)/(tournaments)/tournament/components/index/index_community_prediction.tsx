@@ -12,9 +12,15 @@ export type IndexCommunityPrediction = {
 
 type Props = {
   post: PostWithForecasts;
+  checkDelta: boolean;
 } & IndexCommunityPrediction;
 
-const CommunityPrediction: FC<Props> = ({ rawValue, displayValue, post }) => {
+const CommunityPrediction: FC<Props> = ({
+  rawValue,
+  displayValue,
+  post,
+  checkDelta,
+}) => {
   const t = useTranslations();
 
   if (isNil(rawValue)) {
@@ -31,7 +37,7 @@ const CommunityPrediction: FC<Props> = ({ rawValue, displayValue, post }) => {
         {displayValue}
       </span>
       {!!post.question && (
-        <CPWeeklyMovement question={post.question} checkDelta={false} />
+        <CPWeeklyMovement question={post.question} checkDelta={checkDelta} />
       )}
     </div>
   );
