@@ -59,7 +59,7 @@ const TournamentSubscribeButton: FC<Props> = ({ user, tournament }) => {
           variant="primary"
           onClick={handleUnsubscribe}
           disabled={isLoading}
-          className="border-blue-400 px-4 py-[5px] text-sm font-medium leading-5 text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark lg:text-base"
+          className="border-blue-700 px-4 py-[5px] text-sm font-medium leading-5 text-blue-400 dark:border-blue-700-dark dark:text-blue-400-dark lg:text-base"
         >
           <FontAwesomeIcon icon={faBell} type="solid" />
           {t("unfollowButton")}
