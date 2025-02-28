@@ -437,7 +437,7 @@ def serialize_post(
 
 
 def serialize_post_many(
-    posts: Union[QuerySet[Post], list[Post], list[int]],
+    posts: Union[QuerySet[Post], list[Post], list[int] | set[int]],
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,

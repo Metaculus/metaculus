@@ -2,18 +2,20 @@ from logging import getLogger
 
 import aiohttp
 from django.conf import settings
+import re
 
 logger = getLogger(__name__)
 
 DEFAULT_GOOGLE_SCORES_FROM = 0.87
 DEFAULT_GOOGLE_SCORES_TO = 0.9
-DEFAULT_URL_POSTFIXES = {"questions", "notebooks"}
+
+METACULUS_URL_PATTERN = (
+    r"https?://(?:www\.)?metaculus\.com/(?:questions|c/[^/]+|notebooks?)/(\d+)(?:/|$)"
+)
 
 
 async def get_google_search_results(
-    search_query: str,
-    max_pages: int = 1,
-    url_postfixes: set[str] | None = None,
+    search_query: str, max_pages: int = 1
 ) -> dict[int, float]:
     """
     Returns a dictionary mapping question IDs to scores based on Google search results.
@@ -25,16 +27,10 @@ async def get_google_search_results(
         search_query: The search query to use.
         max_pages: The maximum number of Google pages to search.
                    Each page contains 100 results.
-        url_postfixes: Only consider URLs with these postfixes.
-                       E.g. https://www.metaculus.com/{postfix}/123456/
     """
-    if url_postfixes is None:
-        url_postfixes = DEFAULT_URL_POSTFIXES
     try:
         return await _get_google_search_results(
-            search_query=search_query,
-            max_pages=max_pages,
-            url_postfixes=url_postfixes,
+            search_query=search_query, max_pages=max_pages
         )
     except Exception as e:
         logger.warning(
@@ -46,21 +42,13 @@ async def get_google_search_results(
 async def _get_google_search_results(
     search_query: str,
     max_pages: int,
-    url_postfixes: set[str],
 ) -> dict[int, float]:
     results = await _get_serper_results(search_query, max_pages)
     question_ids = []
     for result in results:
-        # URL format: https://www.metaculus.com/{postfix}/123456/
-        # Parts: 0: https, 1: "", 2: www.metaculus.com, 3: {postfix}, 4: 123456, 5: ""
-        link_parts = result["link"].split("/")
-        if len(link_parts) < 5:
-            continue
-        if link_parts[3] not in url_postfixes:
-            continue
-        if not link_parts[4].isnumeric():
-            continue
-        question_ids.append(int(link_parts[4]))
+        if match := re.match(METACULUS_URL_PATTERN, result["link"]):
+            question_ids.append(int(match.group(1)))
+
     question_id_to_score = _normalize_google_scores(
         question_ids=question_ids,
     )
@@ -102,6 +90,10 @@ def _normalize_google_scores(
 ):
     question_id_to_score: dict[int, float] = {}
     for i, question_id in enumerate(question_ids):
+        if question_id_to_score.get(question_id, None) is not None:
+            # Don't overwrite existing scores with a lower one
+            continue
+
         question_id_to_score[question_id] = DEFAULT_GOOGLE_SCORES_TO - (
             i / len(question_ids)
         ) * (DEFAULT_GOOGLE_SCORES_TO - DEFAULT_GOOGLE_SCORES_FROM)

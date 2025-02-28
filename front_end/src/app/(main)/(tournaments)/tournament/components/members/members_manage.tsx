@@ -68,7 +68,7 @@ const UsersManage: FC<Props> = ({ members, project, user_permission }) => {
   );
 
   return (
-    <div className="mt-12 rounded-t bg-gray-0 px-3 py-6 dark:bg-gray-0-dark">
+    <div className="mt-4 rounded-md bg-gray-0 px-2 py-4 dark:bg-gray-0-dark xs:mx-4 xs:p-4 sm:p-8 lg:mx-0">
       <h2 className="mt-0">Manage Members</h2>
       <p>List of people who are part of this project. Edit user roles.</p>
       <table className="w-full table-auto text-sm">

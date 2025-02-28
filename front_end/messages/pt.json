@@ -1087,5 +1087,14 @@
   "pickQuestion": "Escolher Pergunta",
   "showApiToken": "Mostrar token da API",
   "copyApiToken": "Copiar token da API",
-  "copiedApiTokenMessage": "Token da API foi copiado para sua área de transferência"
+  "copiedApiTokenMessage": "Token da API foi copiado para sua área de transferência",
+  "Indexes": "Índices",
+  "Index": "Índice",
+  "forecastFlow": "Fluxo de Previsão",
+  "viewQuestions": "Ver Perguntas<bold>({count})</bold>",
+  "started": "Iniciado",
+  "starts": "Começa",
+  "lastDayForPrizeParticipation": "Último dia para participação no prêmio",
+  "questionsResolved": "Perguntas resolvidas",
+  "winnersAnnounced": "Vencedores anunciados"
 }
