@@ -3,6 +3,7 @@ import { Resolution } from "@/types/post";
 import { User } from "@/types/users";
 
 import { QuestionType } from "./question";
+import { boolean } from "zod";
 
 export type ScoreType = "peer" | "spot_peer" | "baseline" | "spot_baseline";
 
@@ -98,6 +99,7 @@ type BaseLeaderboardDetails = {
   start_time: string;
   end_time: string | null;
   finalize_time: string;
+  simplified_view: boolean; // Feature Flag: leaderboard simplified view
 };
 
 export type LeaderboardDetails = BaseLeaderboardDetails & {
