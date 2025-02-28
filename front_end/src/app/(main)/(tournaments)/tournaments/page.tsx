@@ -19,7 +19,7 @@ export default async function Tournaments() {
   const t = await getTranslations();
 
   const tournaments = await ProjectsApi.getTournaments();
-  const { activeTournaments, archivedTournaments, questionSeries } =
+  const { activeTournaments, archivedTournaments, questionSeries, indexes } =
     extractTournamentLists(tournaments);
 
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
@@ -54,6 +54,15 @@ export default async function Tournaments() {
 
       <hr className="hidden border-gray-300 dark:border-gray-300-dark md:block" />
 
+      {indexes.length > 0 && (
+        <TournamentsList
+          title={t("Indexes")}
+          items={indexes}
+          cardsPerPage={12}
+          withEmptyState
+        />
+      )}
+
       <TournamentsList
         title={t("ActiveTournaments")}
         items={activeTournaments}
@@ -81,6 +90,7 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
   const activeTournaments: TournamentPreview[] = [];
   const archivedTournaments: TournamentPreview[] = [];
   const questionSeries: TournamentPreview[] = [];
+  const indexes: TournamentPreview[] = [];
 
   const sortedTournaments = [...tournaments].sort((a, b) =>
     differenceInMilliseconds(new Date(b.start_date), new Date(a.start_date))
@@ -90,6 +100,8 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
     if (tournament.is_ongoing) {
       if (tournament.type === TournamentType.QuestionSeries) {
         questionSeries.push(tournament);
+      } else if (tournament.type === TournamentType.Index) {
+        indexes.push(tournament);
       } else {
         activeTournaments.push(tournament);
       }
@@ -98,5 +110,5 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
     }
   }
 
-  return { activeTournaments, archivedTournaments, questionSeries };
+  return { activeTournaments, archivedTournaments, questionSeries, indexes };
 }

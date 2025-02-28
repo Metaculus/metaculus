@@ -1091,5 +1091,14 @@
   "pickQuestion": "选择问题",
   "showApiToken": "显示 API 令牌",
   "copyApiToken": "复制 API 令牌",
-  "copiedApiTokenMessage": "API 令牌已复制到您的剪贴板"
+  "copiedApiTokenMessage": "API 令牌已复制到您的剪贴板",
+  "Indexes": "索引",
+  "Index": "索引",
+  "forecastFlow": "预测流程",
+  "viewQuestions": "查看问题<bold>({count})</bold>",
+  "started": "已开始",
+  "starts": "开始",
+  "lastDayForPrizeParticipation": "奖品参与的最后一天",
+  "questionsResolved": "问题已解决",
+  "winnersAnnounced": "公布获奖者"
 }

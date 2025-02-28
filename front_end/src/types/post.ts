@@ -120,6 +120,7 @@ export type Post<QT = Question> = {
     question_series?: Tournament[];
     tag?: Tag[];
     community?: Community[];
+    index?: Tournament[];
   };
   title: string;
   url_title: string;
@@ -168,8 +169,6 @@ export type NotebookPost = Omit<Post, "notebook"> & {
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;
-
-export type PostWithForecastsAndWeight = PostWithForecasts & { weight: number };
 
 export enum PostSubscriptionType {
   CP_CHANGE = "cp_change",
