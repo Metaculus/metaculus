@@ -79,44 +79,52 @@ export default async function TournamentSlug({ params }: Props) {
   const indexWeights = tournament.index_weights ?? [];
 
   return (
-    <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto px-0">
-      <div className="bg-gray-0 dark:bg-gray-0-dark">
-        <div
-          className={cn(
-            "flex flex-wrap items-center justify-between gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
-            tournament.type === TournamentType.QuestionSeries
-              ? "bg-gray-500 dark:bg-gray-500-dark"
-              : "bg-blue-600 dark:bg-blue-600-dark"
-          )}
-        >
-          <Link
-            href={"/tournaments"}
-            className="no-underline hover:text-gray-400 dark:hover:text-gray-400-dark"
+    <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
+      {/* header block */}
+      <div className="overflow-hidden rounded-md bg-gray-0 dark:bg-gray-0-dark">
+        <div className="relative h-[130px] w-full">
+          <div
+            className={cn(
+              "absolute z-10 flex h-6 w-full flex-wrap items-center justify-between gap-2.5 bg-transparent p-[10px] text-[20px] uppercase text-gray-100 dark:text-gray-100-dark"
+            )}
           >
-            {title}
-          </Link>
-          <TournamentDropdownMenu tournament={tournament} />
-        </div>
-        {!!tournament.header_image && (
-          <div className="relative h-[130px] w-full">
+            <Link
+              href={"/tournaments"}
+              className="block bg-black/30 px-1.5 py-1 text-xs font-bold leading-4 text-gray-0 no-underline hover:text-gray-400 dark:hover:text-gray-400-dark"
+            >
+              {title}
+            </Link>
+            <TournamentDropdownMenu tournament={tournament} />
+          </div>
+          {!!tournament.header_image && (
             <Image
               src={tournament.header_image}
               alt=""
               fill
               priority
-              className="size-full object-cover object-center"
+              className="size-full rounded-t object-cover object-center"
               unoptimized
             />
-          </div>
-        )}
-        <div className="bg-gray-0 px-3 pb-4 dark:bg-gray-0-dark">
-          <div className="flex justify-between gap-1 pb-2">
-            <h1>{tournament.name}</h1>
-            {tournament.default_permission === null && (
-              <strong className="mt-4 self-start rounded-sm bg-blue-300 px-1 text-sm uppercase text-gray-900 dark:bg-blue-300-dark dark:text-gray-900-dark">
-                {t("private")}
-              </strong>
-            )}
+          )}
+        </div>
+        <div className="px-4 pb-5 pt-4 sm:p-8">
+          <div className="flex items-start justify-between gap-1 sm:gap-4">
+            <div>
+              <h1 className="m-0 text-4xl text-blue-800 dark:text-blue-800-dark">
+                {tournament.name}
+              </h1>
+              {tournament.default_permission === null && (
+                <strong className="self-start rounded-sm bg-blue-300 px-1 text-sm uppercase text-gray-900 dark:bg-blue-300-dark dark:text-gray-900-dark">
+                  {t("private")}
+                </strong>
+              )}
+            </div>
+            <div>
+              <TournamentSubscribeButton
+                user={currentUser}
+                tournament={tournament}
+              />
+            </div>
           </div>
           <div className="flex flex-row items-center justify-between">
             <div className="flex flex-wrap gap-9 py-4">
@@ -139,13 +147,14 @@ export default async function TournamentSlug({ params }: Props) {
                 text={tournament.questions_count.toString()}
               />
             </div>
-            <div>
-              <TournamentSubscribeButton
-                user={currentUser}
-                tournament={tournament}
-              />
-            </div>
           </div>
+        </div>
+      </div>
+      {/* buttons block */}
+      <div></div>
+      {/* description block */}
+      <div className="mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8">
+        <div>
           <HtmlContent content={tournament.description} />
 
           {indexWeights.length > 0 && (
@@ -168,10 +177,15 @@ export default async function TournamentSlug({ params }: Props) {
             </div>
           )}
         </div>
+      </div>
 
-        <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
+      {/* Questions block */}
+      <div className="mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8">
+        <section className="mx-2 px-1 py-4">
           <div className="mb-5 flex flex-row justify-between">
-            <h2 className="m-0">{questionsTitle}</h2>
+            <h2 className="m-0 text-blue-800 dark:text-blue-800-dark">
+              {questionsTitle}
+            </h2>
             {currentUser && (
               <Button href={`/questions/create?tournament_id=${tournament.id}`}>
                 + {t("question")}
@@ -182,6 +196,7 @@ export default async function TournamentSlug({ params }: Props) {
           <TournamentFeed tournament={tournament} />
         </section>
       </div>
+
       {!PUBLIC_MINIMAL_UI &&
         [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
           tournament.user_permission
@@ -194,8 +209,10 @@ const TournamentStat: FC<{ title: string; text: string }> = ({
   text,
   title,
 }) => (
-  <div className="flex flex-col">
-    <span className="font-semibold capitalize leading-5">{title}</span>
+  <div className="flex flex-col text-blue-800 dark:text-blue-800-dark">
+    <span className="text-sm font-normal capitalize leading-5 opacity-50">
+      {title}
+    </span>
     <span className="text-xl font-bold leading-6">{text}</span>
   </div>
 );

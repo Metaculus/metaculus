@@ -1,5 +1,5 @@
 "use client";
-import { faBell } from "@fortawesome/free-regular-svg-icons";
+import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState } from "react";
@@ -57,10 +57,11 @@ const TournamentSubscribeButton: FC<Props> = ({ user, tournament }) => {
       {user && isFollowing ? (
         <Button
           variant="primary"
-          disabled={isLoading}
           onClick={handleUnsubscribe}
+          disabled={isLoading}
+          className="border-blue-400 px-4 text-base font-medium leading-5 text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark"
         >
-          <FontAwesomeIcon icon={faBell} />
+          <FontAwesomeIcon icon={faBell} type="solid" />
           {t("unfollowButton")}
         </Button>
       ) : (
@@ -68,8 +69,9 @@ const TournamentSubscribeButton: FC<Props> = ({ user, tournament }) => {
           variant="secondary"
           onClick={handleSubscribe}
           disabled={isLoading}
+          className="border-blue-400 px-4 text-base font-medium leading-5 text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark"
         >
-          <FontAwesomeIcon icon={faBell} />
+          <FontAwesomeIcon icon={faBell} type="solid" />
           {t("followButton")}
         </Button>
       )}
