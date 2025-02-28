@@ -1,4 +1,4 @@
-import { addDays, addWeeks, format } from "date-fns";
+import { addDays, addWeeks, format, getYear } from "date-fns";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
@@ -39,6 +39,12 @@ const ClosedTournamentTimeline: FC<Props> = async ({
         2
       ).getTime();
 
+  const formatString =
+    getYear(new Date(latestActualCloseTimestamp)) ===
+    getYear(new Date(endDateTimestamp))
+      ? "MMM dd"
+      : "MMM dd yyyy";
+
   let timelineProgressPercentage = 0;
   if (latestScheduledResolutionTimestamp <= dateNowTimestamp) {
     timelineProgressPercentage = 50;
@@ -77,7 +83,7 @@ const ClosedTournamentTimeline: FC<Props> = async ({
       {/* Timeline dates */}
       <div className="flex w-full justify-between">
         <p className="m-0 text-xs text-blue-800 dark:text-blue-800-dark md:text-base">
-          {format(new Date(latestActualCloseTimestamp), "MMM dd")}
+          {format(new Date(latestActualCloseTimestamp), formatString)}
         </p>
         <p className="m-0 text-xs text-blue-800 dark:text-blue-800-dark md:text-base">
           {format(
@@ -86,11 +92,11 @@ const ClosedTournamentTimeline: FC<Props> = async ({
                 ? latestActualResolutionTimestamp
                 : latestScheduledResolutionTimestamp
             ),
-            "MMM dd"
+            formatString
           )}
         </p>
         <p className="m-0 text-xs text-blue-800 dark:text-blue-800-dark md:text-base">
-          {format(new Date(endDateTimestamp), "MMM dd")}
+          {format(new Date(endDateTimestamp), formatString)}
         </p>
       </div>
     </div>

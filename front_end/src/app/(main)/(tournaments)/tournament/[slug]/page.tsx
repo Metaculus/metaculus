@@ -128,7 +128,11 @@ export default async function TournamentSlug({ params }: Props) {
             </div>
           </div>
 
-          {tournament.type === TournamentType.QuestionSeries && (
+          {tournament.type === TournamentType.Tournament ? (
+            <Suspense fallback={<Skeleton />}>
+              <TournamentTimeline tournament={tournament} />
+            </Suspense>
+          ) : (
             <div className="flex flex-wrap gap-x-9 gap-y-4 py-4">
               {!isNil(tournament.prize_pool) && (
                 <TournamentStat
@@ -151,11 +155,6 @@ export default async function TournamentSlug({ params }: Props) {
                 text={tournament.questions_count.toString()}
               />
             </div>
-          )}
-          {tournament.type === TournamentType.Tournament && (
-            <Suspense fallback={<Skeleton />}>
-              <TournamentTimeline tournament={tournament} />
-            </Suspense>
           )}
         </div>
       </div>

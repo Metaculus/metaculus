@@ -1,4 +1,4 @@
-import { differenceInMilliseconds, format } from "date-fns";
+import { differenceInMilliseconds, format, getYear } from "date-fns";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
@@ -38,6 +38,11 @@ const ActiveTournamentTimeline: FC<Props> = async ({
     tournament.start_date,
     totalTime
   );
+  const formatString =
+    getYear(new Date(latestScheduledCloseTimestamp)) ===
+    getYear(new Date(tournament.start_date))
+      ? "MMM dd"
+      : "MMM dd yyyy";
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex w-full justify-between">
@@ -75,10 +80,10 @@ const ActiveTournamentTimeline: FC<Props> = async ({
       </div>
       <div className="flex w-full justify-between">
         <p className="m-0 text-xs text-blue-800 dark:text-blue-800-dark sm:text-base">
-          {format(new Date(tournament.start_date), "MMM dd")}
+          {format(new Date(tournament.start_date), formatString)}
         </p>
         <p className="m-0 text-xs text-blue-800 dark:text-blue-800-dark sm:text-base">
-          {format(new Date(latestScheduledCloseTimestamp), "MMM dd")}
+          {format(new Date(latestScheduledCloseTimestamp), formatString)}
         </p>
       </div>
       {lastParticipationDayTimestamp && (
@@ -89,7 +94,7 @@ const ActiveTournamentTimeline: FC<Props> = async ({
           />
           <p className="m-0 ml-1.5 text-xs text-gray-600 dark:text-gray-600-dark sm:text-base">
             <b className="text-gray-800 dark:text-gray-800-dark">
-              {format(new Date(lastParticipationDayTimestamp), "MMM dd")}:
+              {format(new Date(lastParticipationDayTimestamp), formatString)}:
             </b>{" "}
             {t("lastDayForPrizeParticipation")}
           </p>
