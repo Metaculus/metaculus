@@ -5,8 +5,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
-import { getComments, markPostAsRead } from "@/app/(main)/questions/actions";
+import {
+  getComments,
+  markPostAsRead,
+  pinComment,
+  unpinComment,
+} from "@/app/(main)/questions/actions";
 import { useContentTranslatedBannerProvider } from "@/app/providers";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import { DefaultUserMentionsContextProvider } from "@/components/markdown_editor/plugins/mentions/components/default_mentions_context";
@@ -369,6 +375,22 @@ const CommentFeed: FC<Props> = ({
     [postData?.last_viewed_at]
   );
 
+  const handleCommentPin = useCallback(
+    async (comment: CommentType) => {
+      const action = comment.is_pinned ? unpinComment : pinComment;
+      const { is_pinned } = await action(comment.id);
+
+      await fetchComments(false, { ...feedFilters, offset });
+
+      if (is_pinned) {
+        toast(t("commentPinned"));
+      } else {
+        toast(t("commentUnpinned"));
+      }
+    },
+    [t]
+  );
+
   return (
     <DefaultUserMentionsContextProvider
       defaultUserMentions={commentAuthorMentionItems}
@@ -458,6 +480,7 @@ const CommentFeed: FC<Props> = ({
           <CommentWrapper
             key={comment.id}
             comment={comment}
+            handleCommentPin={handleCommentPin}
             profileId={profileId}
             last_viewed_at={postData?.last_viewed_at}
             postData={postData}

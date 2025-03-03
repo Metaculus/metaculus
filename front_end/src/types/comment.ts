@@ -35,6 +35,7 @@ export type BECommentType = {
   };
   is_current_content_translated?: boolean;
   key_factors?: KeyFactor[];
+  is_pinned: boolean;
 };
 
 export type CommentType = BECommentType & {

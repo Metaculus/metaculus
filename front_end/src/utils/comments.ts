@@ -25,6 +25,7 @@ export function parseComment(
     mentioned_users: comment.mentioned_users,
     is_current_content_translated: comment.is_current_content_translated,
     key_factors: comment.key_factors,
+    is_pinned: comment.is_pinned,
   };
 }
 

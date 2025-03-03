@@ -1,9 +1,10 @@
 "use client";
 
 import {
-  faXmark,
   faChevronDown,
   faReply,
+  faThumbtack,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
@@ -175,6 +176,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
 type CommentProps = {
   comment: CommentType;
+  handleCommentPin?: (comment: CommentType) => void;
   onProfile?: boolean;
   treeDepth: number;
   sort: SortOption;
@@ -191,6 +193,7 @@ const Comment: FC<CommentProps> = ({
   postData,
   lastViewedAt,
   isCollapsed = false,
+  handleCommentPin,
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
@@ -320,6 +323,17 @@ const Comment: FC<CommentProps> = ({
       openNewTab: true,
     },
     {
+      hidden:
+        !postData ||
+        postData.user_permission !== ProjectPermissions.ADMIN ||
+        !!comment.root_id,
+      id: "pinComment",
+      name: comment.is_pinned ? t("unpinComment") : t("pinComment"),
+      onClick: () => {
+        if (handleCommentPin) handleCommentPin(comment);
+      },
+    },
+    {
       hidden: !user?.id,
       id: "report",
       name: t("report"),
@@ -439,6 +453,15 @@ const Comment: FC<CommentProps> = ({
               <span className="mx-1 opacity-55">·</span>
               <CommentDate comment={comment} />
             </div>
+            {comment.is_pinned && (
+              <div className="ml-auto flex flex-row items-center gap-2 text-sm text-blue-500 dark:text-blue-500-dark">
+                <FontAwesomeIcon
+                  icon={faThumbtack}
+                  className="hidden lg:block"
+                />
+                {t("pinned")}
+              </div>
+            )}
 
             {isCollapsed && (
               <div className="flex w-full flex-1 flex-row items-center justify-between sm:ml-5 sm:w-auto">
@@ -664,7 +687,7 @@ const Comment: FC<CommentProps> = ({
       {comment.children?.length > 0 && !isCollapsed && (
         <CommentChildrenTree
           commentChildren={comment.children}
-          expandedChildren={!onProfile}
+          expandedChildren={!onProfile && !comment.is_pinned}
           treeDepth={treeDepth + 1}
           sort={sort}
           postData={postData}
