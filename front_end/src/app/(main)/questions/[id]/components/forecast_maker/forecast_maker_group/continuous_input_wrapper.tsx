@@ -5,6 +5,7 @@ import React, {
   PropsWithChildren,
   ReactNode,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -25,7 +26,10 @@ import cn from "@/utils/cn";
 import {
   getNormalizedContinuousForecast,
   getQuantileNumericForecastDataset,
+  getQuantilesDistributionFromSlider,
+  getSliderDistributionFromQuantiles,
   getSliderNumericForecastDataset,
+  isAllQuantileComponentsDirty,
 } from "@/utils/forecasts";
 import {
   formatResolution,
@@ -97,6 +101,38 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
 
     return !!prevForecast && !!prevForecast.distribution_input;
   }, [option]);
+
+  useEffect(() => {
+    if (
+      option.forecastInputMode === ContinuousForecastInputType.Quantile &&
+      option.isDirty
+    ) {
+      handleChange(option.id, {
+        components: getQuantilesDistributionFromSlider(
+          option.userSliderForecast,
+          option.question
+        ),
+        type: ContinuousForecastInputType.Quantile,
+      });
+    } else if (
+      option.forecastInputMode === ContinuousForecastInputType.Slider &&
+      isAllQuantileComponentsDirty(option.userQuantileForecast) &&
+      validateAllQuantileInputs({
+        question: option.question,
+        components: option.userQuantileForecast,
+        t,
+      }).length === 0
+    ) {
+      handleChange(option.id, {
+        components: getSliderDistributionFromQuantiles(
+          option.userQuantileForecast,
+          option.question
+        ),
+        type: ContinuousForecastInputType.Slider,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [option.forecastInputMode]);
 
   const dataset = useMemo(
     () =>

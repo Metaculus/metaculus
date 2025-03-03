@@ -1,7 +1,7 @@
 "use client";
 
 import { isNil } from "lodash";
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/form_field";
 import cn from "@/utils/cn";
@@ -31,6 +31,12 @@ const AbreviatedNumericInput: FC<Props> = ({
   const [localValue, setLocalValue] = useState<string>(
     isNil(value) ? "" : abbreviatedNumber(value, 4)
   );
+
+  useEffect(() => {
+    if (!isNil(value)) {
+      setLocalValue(abbreviatedNumber(value, 4));
+    }
+  }, [value]);
 
   const handleBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
