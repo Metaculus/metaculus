@@ -153,6 +153,11 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   if (option.question.status === QuestionStatus.OPEN && canPredict) {
     SubmitControls = (
       <>
+        <FormError
+          errors={submitError}
+          className="mb-2 flex items-center justify-center"
+          detached
+        />
         <div
           className={cn(
             "flex flex-wrap items-center justify-center gap-3 p-4",
@@ -212,12 +217,6 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
               predictLabel={previousForecast ? undefined : t("predict")}
             />
           )}
-
-          <FormError
-            errors={submitError}
-            className="mt-2 flex items-center justify-center"
-            detached
-          />
         </div>
       </>
     );
