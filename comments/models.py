@@ -112,6 +112,7 @@ class Comment(TimeStampedModel, TranslatedModel):
     # TODO: ensure comments counter is correct
     # TODO: ensure pinned comments are not displayed differently in the user profile page
     # TODO: add constraint that is_pinned could be only root comment
+    # TODO: test in dark mode
     is_pinned = models.BooleanField(default=False, db_index=True)
 
     # annotated fields

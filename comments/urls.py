@@ -18,10 +18,7 @@ urlpatterns = [
         "comments/<int:pk>/report/", views.comment_report_api_view, name="comment-report"
     ),
     path(
-        "comments/<int:pk>/pin/", views.comment_pin_view, name="comment-pin"
-    ),
-    path(
-        "comments/<int:pk>/unpin/", views.comment_unpin_view, name="comment-unpin"
+        "comments/<int:pk>/toggle-pin/", views.comment_toggle_pin_view, name="comment-togle-pin"
     ),
     path("comments/create/", views.comment_create_api_view, name="comment-create"),
     path("key-factors/<int:pk>/vote/", views.key_factor_vote_view, name="key-factor-vote"),

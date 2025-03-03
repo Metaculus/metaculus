@@ -345,16 +345,19 @@ def _get_comment_to_pin(user: User, comment_id: int):
 
 
 @api_view(["POST"])
-def comment_pin_view(request: Request, pk: int):
-    comment = _get_comment_to_pin(request.user, pk)
-    comment = pin_comment(comment)
+def comment_toggle_pin_view(request: Request, pk: int):
+    pin = serializers.BooleanField(
+        allow_null=True
+    ).run_validation(request.data.get("pin"))
 
-    return Response(serialize_comment(comment))
+    comment = get_object_or_404(Comment, pk=pk)
 
+    permission = get_post_permission_for_user(comment.on_post, user=request.user)
+    ObjectPermission.can_pin_comment(permission, raise_exception=True)
 
-@api_view(["POST"])
-def comment_unpin_view(request: Request, pk: int):
-    comment = _get_comment_to_pin(request.user, pk)
-    comment = unpin_comment(comment)
+    if pin:
+        pin_comment(comment)
+    else:
+        unpin_comment(comment)
 
     return Response(serialize_comment(comment))
