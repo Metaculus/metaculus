@@ -31,6 +31,7 @@ import {
   getInitialSliderDistributionComponents,
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
+  isAllQuantileComponentsDirty,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -422,7 +423,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         quantileComponent={quantileDistributionComponents}
         onQuantileChange={(quantileComponents) => {
           setQuantileDistributionComponents(quantileComponents);
-          setIsDirty(true);
+          isAllQuantileComponentsDirty(quantileComponents) && setIsDirty(true);
           setShowSuccessBox(false);
         }}
         overlayPreviousForecast={overlayPreviousForecast}

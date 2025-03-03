@@ -55,6 +55,28 @@ export function validateQuantileInput({
     return t("q3GreaterThanError");
   }
 
+  // Check minimum distances between quantiles
+  // 0.007 is the same limit as the clampStep in the ContinuousSlider
+  const scale = range_max - range_min;
+  const MIN_ABSOLUTE_DISTANCE = scale * 0.007;
+
+  if (quantile === Quantile.q1) {
+    if (q2 && Math.abs(newValue - q2) < MIN_ABSOLUTE_DISTANCE) {
+      return t("quantileTooCloseError");
+    }
+  } else if (quantile === Quantile.q2) {
+    if (
+      (q1 && Math.abs(newValue - q1) < MIN_ABSOLUTE_DISTANCE) ||
+      (q3 && Math.abs(newValue - q3) < MIN_ABSOLUTE_DISTANCE)
+    ) {
+      return t("quantileTooCloseError");
+    }
+  } else if (quantile === Quantile.q3) {
+    if (q2 && Math.abs(newValue - q2) < MIN_ABSOLUTE_DISTANCE) {
+      return t("quantileTooCloseError");
+    }
+  }
+
   // Check if quantile out of closed bounds
   if (
     !open_lower_bound &&
@@ -155,7 +177,7 @@ export function validateAllQuantileInputs({
   t: ReturnType<typeof useTranslations>;
 }): {
   quantile: Quantile;
-  message?: string;
+  message: string;
 }[] {
   if (!components.length) {
     return [
@@ -179,7 +201,10 @@ export function validateAllQuantileInputs({
         }),
       };
     })
-    .filter((error) => error.message !== undefined);
+    .filter(
+      (error): error is { quantile: Quantile; message: string } =>
+        error.message !== undefined
+    );
   return errors;
 }
 
@@ -188,18 +213,22 @@ export function validateUserQuantileData({
   components,
   cdf,
   t,
+  checkInputData = true,
 }: {
   question: QuestionWithNumericForecasts;
   components: DistributionQuantileComponent;
   cdf: number[];
   t: ReturnType<typeof useTranslations>;
-}) {
+  checkInputData?: boolean;
+}): string[] {
   // Validate the quantile inputs
-  const validationErrors = validateAllQuantileInputs({
-    question,
-    components,
-    t,
-  }).map((error) => error.message);
+  const validationErrors = checkInputData
+    ? validateAllQuantileInputs({
+        question,
+        components,
+        t,
+      }).map((error) => error.message)
+    : [];
 
   // Validate the cdf dataset
   if (!cdf || cdf.length === 0) {
@@ -232,7 +261,7 @@ export function validateUserQuantileData({
   if (inboundPmf.some((diff) => diff > maxDiff)) {
     validationErrors.push(t("cdfMaxStepSizeError", { maxDiff }));
   }
-  return validationErrors;
+  return validationErrors.filter((error) => error !== undefined);
 }
 
 type QuantileCheck = {

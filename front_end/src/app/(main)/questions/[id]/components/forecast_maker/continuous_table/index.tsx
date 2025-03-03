@@ -1,4 +1,4 @@
-import { uniq } from "lodash";
+import { isNil, uniq } from "lodash";
 import { useTranslations } from "next-intl";
 import React, {
   DetailedHTMLProps,
@@ -22,9 +22,16 @@ import {
 } from "@/types/question";
 import { displayValue, getTableDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
+import {
+  getQuantileNumericForecastDataset,
+  isAllQuantileComponentsDirty,
+} from "@/utils/forecasts";
 
 import ContinuousTableInput from "./continuous_table_input";
-import { validateAllQuantileInputs } from "../helpers";
+import {
+  validateAllQuantileInputs,
+  validateUserQuantileData,
+} from "../helpers";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -66,11 +73,11 @@ const ContinuousTable: FC<Props> = ({
   // and we switch to quantile forecast with transformed values
   const [errors, setErrors] = useState<
     {
-      quantile: Quantile;
+      quantile?: Quantile;
       message?: string;
     }[]
   >(
-    quantileComponents
+    quantileComponents && isAllQuantileComponentsDirty(quantileComponents)
       ? validateAllQuantileInputs({
           question,
           components: quantileComponents,
@@ -86,11 +93,10 @@ const ContinuousTable: FC<Props> = ({
     ) {
       setErrors([]);
     }
-    // revalidate when we make a new forecast with slider and transform it to quantile data
+    // revalidate when we populate the table with slider forecast data
     if (
-      forecastInputMode === ContinuousForecastInputType.Slider &&
       quantileComponents &&
-      Object.values(quantileComponents ?? []).every((value) => value?.isDirty)
+      isAllQuantileComponentsDirty(quantileComponents)
     ) {
       setErrors(
         validateAllQuantileInputs({
@@ -101,7 +107,7 @@ const ContinuousTable: FC<Props> = ({
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quantileComponents]);
+  }, [forecastInputMode, quantileComponents]);
 
   const handleQuantileChange = useCallback(
     (quantile: Quantile, newValue: Partial<QuantileValue>) => {
@@ -128,6 +134,26 @@ const ContinuousTable: FC<Props> = ({
 
       if (errors.length !== 0) {
         setErrors(errors);
+      } else {
+        const dataset = getQuantileNumericForecastDataset(
+          localQuantileComponents as DistributionQuantileComponent,
+          question
+        );
+        const cdfValidation = validateUserQuantileData({
+          question,
+          components: localQuantileComponents,
+          cdf: dataset.cdf,
+          t,
+          checkInputData: false,
+        });
+        if (cdfValidation.length !== 0) {
+          setErrors(
+            cdfValidation.map((error) => ({
+              quantile: undefined,
+              message: error,
+            }))
+          );
+        }
       }
     },
     [quantileComponents, onQuantileChange, question, t]
@@ -285,8 +311,11 @@ const ContinuousTable: FC<Props> = ({
                           type="number"
                           quantileValue={quantileComponents?.[0]}
                           error={
-                            errors.find((e) => e.quantile === Quantile.lower)
-                              ?.message
+                            errors.find(
+                              (e) =>
+                                isNil(e.quantile) ||
+                                e.quantile === Quantile.lower
+                            )?.message
                           }
                           onQuantileChange={(
                             quantileValue: Partial<QuantileValue>
@@ -307,8 +336,10 @@ const ContinuousTable: FC<Props> = ({
                         }
                         quantileValue={quantileComponents?.[1]}
                         error={
-                          errors.find((e) => e.quantile === Quantile.q1)
-                            ?.message
+                          errors.find(
+                            (e) =>
+                              isNil(e.quantile) || e.quantile === Quantile.q1
+                          )?.message
                         }
                         onQuantileChange={(
                           quantileValue: Partial<QuantileValue>
@@ -327,8 +358,10 @@ const ContinuousTable: FC<Props> = ({
                         }
                         quantileValue={quantileComponents?.[2]}
                         error={
-                          errors.find((e) => e.quantile === Quantile.q2)
-                            ?.message
+                          errors.find(
+                            (e) =>
+                              isNil(e.quantile) || e.quantile === Quantile.q2
+                          )?.message
                         }
                         onQuantileChange={(
                           quantileValue: Partial<QuantileValue>
@@ -347,8 +380,10 @@ const ContinuousTable: FC<Props> = ({
                         }
                         quantileValue={quantileComponents?.[3]}
                         error={
-                          errors.find((e) => e.quantile === Quantile.q3)
-                            ?.message
+                          errors.find(
+                            (e) =>
+                              isNil(e.quantile) || e.quantile === Quantile.q3
+                          )?.message
                         }
                         onQuantileChange={(
                           quantileValue: Partial<QuantileValue>
@@ -364,8 +399,11 @@ const ContinuousTable: FC<Props> = ({
                           type="number"
                           quantileValue={quantileComponents?.[4]}
                           error={
-                            errors.find((e) => e.quantile === Quantile.upper)
-                              ?.message
+                            errors.find(
+                              (e) =>
+                                isNil(e.quantile) ||
+                                e.quantile === Quantile.upper
+                            )?.message
                           }
                           onQuantileChange={(
                             quantileValue: Partial<QuantileValue>
