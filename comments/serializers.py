@@ -56,6 +56,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "is_private",
             "vote_score",
             "changed_my_mind",
+            "is_pinned",
         )
 
     def get_changed_my_mind(self, comment: Comment) -> dict[str, bool | int]:

@@ -13,12 +13,27 @@ def get_comments_feed(
     include_deleted=False,
 ):
     user = user if user and user.is_authenticated else None
+    sort = sort or "-created_at"
+    order_by_args = []
 
     if parent_isnull is not None:
         qs = qs.filter(parent=None)
 
-    if post is not None:
+    if post:
         qs = qs.filter(on_post=post)
+
+        # Display pinned comments first if no sort param provided
+        if sort == "-created_at":
+            qs = qs.annotate(
+                is_pinned_thread=Case(
+                    When(Q(is_pinned=True) | Q(root__is_pinned=True), then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                )
+            )
+
+            order_by_args.append("-is_pinned_thread")
+
 
     if author is not None:
         qs = qs.filter(author_id=author)
@@ -34,8 +49,6 @@ def get_comments_feed(
         ).distinct()
 
     qs = qs.annotate_vote_score()
-
-    order_by_args = []
 
     # Filter comments located under Posts current user is allowed to see
     qs = qs.filter_by_user_permission(user=user)

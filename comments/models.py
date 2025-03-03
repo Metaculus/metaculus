@@ -108,6 +108,11 @@ class Comment(TimeStampedModel, TranslatedModel):
     )
     is_private = models.BooleanField(default=False, db_index=True)
     edit_history = models.JSONField(default=list, null=False, blank=True)
+    # TODO: ensure pinning a comment do not update it's edition date
+    # TODO: ensure comments counter is correct
+    # TODO: ensure pinned comments are not displayed differently in the user profile page
+    # TODO: add constraint that is_pinned could be only root comment
+    is_pinned = models.BooleanField(default=False, db_index=True)
 
     # annotated fields
     vote_score: int = 0
@@ -117,6 +122,15 @@ class Comment(TimeStampedModel, TranslatedModel):
     children = []
 
     objects = models.Manager.from_queryset(CommentQuerySet)()
+
+    class Meta:
+        constraints = [
+            # Pinned comment could be root only
+            models.CheckConstraint(
+                check=models.Q(is_pinned=False) | models.Q(root__isnull=True),
+                name='comment_check_pinned_comment_is_root'
+            )
+        ]
 
     def __str__(self):
         return f"Comment by {self.author.username} on {self.on_post or self.on_project}"

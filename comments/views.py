@@ -27,7 +27,12 @@ from comments.serializers import (
     serialize_comment_many,
     CommentFilterSerializer,
 )
-from comments.services.common import create_comment, trigger_update_comment_translations
+from comments.services.common import (
+    create_comment,
+    trigger_update_comment_translations,
+    pin_comment,
+    unpin_comment,
+)
 from comments.services.feed import get_comments_feed
 from comments.services.key_factors import key_factor_vote
 from notifications.services import send_comment_report_notification_to_staff
@@ -328,3 +333,28 @@ def key_factor_vote_view(request: Request, pk: int):
     score = key_factor_vote(key_factor, user=request.user, vote=vote)
 
     return Response({"score": score})
+
+
+def _get_comment_to_pin(user: User, comment_id: int):
+    comment = get_object_or_404(Comment, pk=comment_id)
+
+    permission = get_post_permission_for_user(comment.on_post, user=user)
+    ObjectPermission.can_pin_comment(permission, raise_exception=True)
+
+    return comment
+
+
+@api_view(["POST"])
+def comment_pin_view(request: Request, pk: int):
+    comment = _get_comment_to_pin(request.user, pk)
+    comment = pin_comment(comment)
+
+    return Response(serialize_comment(comment))
+
+
+@api_view(["POST"])
+def comment_unpin_view(request: Request, pk: int):
+    comment = _get_comment_to_pin(request.user, pk)
+    comment = unpin_comment(comment)
+
+    return Response(serialize_comment(comment))

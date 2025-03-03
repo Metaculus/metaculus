@@ -1,4 +1,5 @@
 from django.db import transaction
+from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
 from posts.models import Post, PostUserSnapshot
@@ -98,3 +99,19 @@ def trigger_update_comment_translations(comment: Comment, force: bool = False):
     on_private_post = on_post.is_private() is None
     if not (author.is_bot and on_bots_tournament) and not on_private_post:
         comment.update_and_maybe_translate()
+
+
+def pin_comment(comment: Comment):
+    if comment.root_id:
+        raise ValidationError("Cannot pin child comment")
+
+    comment.is_pinned = True
+    comment.save(update_fields=["is_pinned"])
+
+    return comment
+
+def unpin_comment(comment: Comment):
+    comment.is_pinned = False
+    comment.save(update_fields=["is_pinned"])
+
+    return comment

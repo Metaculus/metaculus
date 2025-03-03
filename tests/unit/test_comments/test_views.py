@@ -14,32 +14,32 @@ class TestPagination:
     def comments(self, user2):
         post = factory_post(author=user2)
 
-        c1 = factory_comment(author=user2, on_post=post, text="Comment 1")
-        c2 = factory_comment(author=user2, on_post=post, text="Comment 2")
-        c3 = factory_comment(author=user2, on_post=post, text="Comment 3")
+        c1 = factory_comment(author=user2, on_post=post, text_original="Comment 1")
+        c2 = factory_comment(author=user2, on_post=post, text_original="Comment 2")
+        c3 = factory_comment(author=user2, on_post=post, text_original="Comment 3")
 
         # Child comments
         # 2.1
         c2_1 = factory_comment(
-            author=user2, on_post=post, parent=c2, text="Comment 2.1"
+            author=user2, on_post=post, parent=c2, text_original="Comment 2.1"
         )
         # 2.2
         c2_2 = factory_comment(
-            author=user2, on_post=post, parent=c2, text="Comment 2.2"
+            author=user2, on_post=post, parent=c2, text_original="Comment 2.2"
         )
         # 2.2.1
         c2_2_1 = factory_comment(
-            author=user2, on_post=post, parent=c2_2, text="Comment 2.2.1"
+            author=user2, on_post=post, parent=c2_2, text_original="Comment 2.2.1"
         )
 
         # Page 2
-        c4 = factory_comment(author=user2, on_post=post, text="Comment 4")
-        c5 = factory_comment(author=user2, on_post=post, text="Comment 5")
+        c4 = factory_comment(author=user2, on_post=post, text_original="Comment 4")
+        c5 = factory_comment(author=user2, on_post=post, text_original="Comment 5")
         c4_1 = factory_comment(
-            author=user2, on_post=post, parent=c4, text="Comment 4.1"
+            author=user2, on_post=post, parent=c4, text_original="Comment 4.1"
         )
         c4_1_1 = factory_comment(
-            author=user2, on_post=post, parent=c4_1, text="Comment 4.1.1"
+            author=user2, on_post=post, parent=c4_1, text_original="Comment 4.1.1"
         )
 
         return {
@@ -131,6 +131,45 @@ class TestPagination:
             comments["c3"].pk,
             comments["c1"].pk,
         ]
+
+    def test_focus_on_comment__root__with_pinned_comment(self, user2, user1_client, comments):
+        c2 = comments["c2"]
+        c2.is_pinned = True
+        c2.save()
+
+        # Should not show pinned comments if post filter is not defined
+        response = user1_client.get(
+            f"/api/comments/?limit=3&sort=-created_at&use_root_comments_pagination=true"
+            f"&focus_comment_id={comments['c3'].pk}"
+        )
+
+        assert [x["id"] for x in response.data["results"]] == [
+            comments["c3"].pk,
+            comments["c4_1_1"].pk,
+            comments["c4_1"].pk,
+            comments["c5"].pk,
+            comments["c4"].pk,
+        ]
+
+        # Now should show pinned comments
+        response = user1_client.get(
+            f"/api/comments/?limit=3&sort=-created_at&use_root_comments_pagination=true"
+            f"&focus_comment_id={comments['c3'].pk}"
+            f"&post={c2.on_post_id}"
+        )
+
+        assert [x["id"] for x in response.data["results"]] == [
+            # Pinned comment go first
+            comments["c2_2_1"].pk,
+            comments["c2_2"].pk,
+            comments["c2_1"].pk,
+            comments["c2"].pk,
+            # Focused one
+            comments["c3"].pk,
+            # All other ordered by -created_at
+            comments["c5"].pk,
+        ]
+
 
 
 def test_get_comments_feed_permissions(user1, user2):
