@@ -8,10 +8,9 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 import {
+  commentTogglePin,
   getComments,
   markPostAsRead,
-  pinComment,
-  unpinComment,
 } from "@/app/(main)/questions/actions";
 import { useContentTranslatedBannerProvider } from "@/app/providers";
 import CommentEditor from "@/components/comment_feed/comment_editor";
@@ -377,8 +376,10 @@ const CommentFeed: FC<Props> = ({
 
   const handleCommentPin = useCallback(
     async (comment: CommentType) => {
-      const action = comment.is_pinned ? unpinComment : pinComment;
-      const { is_pinned } = await action(comment.id);
+      const { is_pinned } = await commentTogglePin(
+        comment.id,
+        !comment.is_pinned
+      );
 
       await fetchComments(false, { ...feedFilters, offset });
 

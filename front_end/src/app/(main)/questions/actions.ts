@@ -302,12 +302,8 @@ export async function createComment(commentData: CreateCommentParams) {
   }
 }
 
-export async function pinComment(commentId: number) {
-  return await CommentsApi.pin(commentId);
-}
-
-export async function unpinComment(commentId: number) {
-  return await CommentsApi.unpin(commentId);
+export async function commentTogglePin(commentId: number, pin: boolean) {
+  return await CommentsApi.togglePin(commentId, pin);
 }
 
 export async function voteComment(voteData: VoteParams) {

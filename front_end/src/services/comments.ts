@@ -90,12 +90,13 @@ class CommentsApi {
     );
   }
 
-  static async pin(commentId: number): Promise<BECommentType> {
-    return await post(`/comments/${commentId}/pin/`, {});
-  }
-
-  static async unpin(commentId: number): Promise<BECommentType> {
-    return await post(`/comments/${commentId}/unpin/`, {});
+  static async togglePin(
+    commentId: number,
+    pin: boolean
+  ): Promise<BECommentType> {
+    return await post(`/comments/${commentId}/toggle-pin/`, {
+      pin,
+    });
   }
 
   static async voteComment(voteData: VoteParams): Promise<Response | null> {

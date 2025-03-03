@@ -324,9 +324,9 @@ const Comment: FC<CommentProps> = ({
     },
     {
       hidden:
-        !postData ||
-        postData.user_permission !== ProjectPermissions.ADMIN ||
-        !!comment.root_id,
+        postData?.user_permission !== ProjectPermissions.ADMIN ||
+        !!comment.root_id ||
+        !handleCommentPin,
       id: "pinComment",
       name: comment.is_pinned ? t("unpinComment") : t("pinComment"),
       onClick: () => {
