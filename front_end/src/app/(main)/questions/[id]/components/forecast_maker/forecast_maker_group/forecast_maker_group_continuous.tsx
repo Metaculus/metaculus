@@ -41,6 +41,7 @@ import {
   getSliderDistributionFromQuantiles,
   getSliderNumericForecastDataset,
   getUserContinuousQuartiles,
+  isAllQuantileComponentsDirty,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -147,7 +148,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                     ),
                   }
                 : { userQuantileForecast: components }),
-              isDirty: true,
+              isDirty:
+                forecastInputMode === ContinuousForecastInputType.Slider
+                  ? true
+                  : isAllQuantileComponentsDirty(components),
             };
           }
 
@@ -163,12 +167,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       setGroupOptions((prev) =>
         prev.map((prevChoice) => {
           if (prevChoice.id === optionId) {
-            const prevValue = prevForecastValuesMap[prevChoice.id];
-
             return {
               ...prevChoice,
               forecastInputMode: mode,
-              isDirty: !!prevValue && prevValue.type !== mode,
+              isDirty: prevChoice.isDirty,
             };
           }
 
@@ -176,7 +178,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         })
       );
     },
-    [prevForecastValuesMap]
+    []
   );
 
   const handleAddComponent = useCallback((option: ContinuousGroupOption) => {

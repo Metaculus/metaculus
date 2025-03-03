@@ -1,4 +1,5 @@
-import React, { FC, ReactNode } from "react";
+import { useTranslations } from "next-intl";
+import React, { FC, ReactNode, useEffect } from "react";
 
 import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import ContinuousTable from "@/app/(main)/questions/[id]/components/forecast_maker/continuous_table";
@@ -11,11 +12,17 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
+import {
+  getQuantilesDistributionFromSlider,
+  getSliderDistributionFromQuantiles,
+  isAllQuantileComponentsDirty,
+} from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import ContinuousInputContainer from "./continuous_input_container";
 import ContinuousPredictionChart from "./continuous_prediction_chart";
 import ContinuousSlider from "./continuous_slider";
+import { validateAllQuantileInputs } from "../helpers";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -65,10 +72,32 @@ const ContinuousInput: FC<Props> = ({
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
-
+  const t = useTranslations();
   const previousForecast = question.my_forecasts?.latest;
 
   const withCommunityQuartiles = !user || !hideCP;
+
+  // populate forecast data from another tab
+  useEffect(() => {
+    if (forecastInputMode === ContinuousForecastInputType.Quantile && isDirty) {
+      onQuantileChange(
+        getQuantilesDistributionFromSlider(sliderComponents, question)
+      );
+    } else if (
+      forecastInputMode === ContinuousForecastInputType.Slider &&
+      isAllQuantileComponentsDirty(quantileComponent) &&
+      validateAllQuantileInputs({
+        question,
+        components: quantileComponent,
+        t,
+      }).length === 0
+    ) {
+      onSliderChange(
+        getSliderDistributionFromQuantiles(quantileComponent, question)
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forecastInputMode]);
 
   return (
     <ContinuousInputContainer

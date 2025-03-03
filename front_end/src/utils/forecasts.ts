@@ -326,23 +326,6 @@ export function getQuantileNumericForecastDataset(
   };
 }
 
-export function getSliderDistributionFromQuantilesV2(
-  activeForecast: UserForecast
-): DistributionSliderComponent[] {
-  const quartiles = computeQuartilesFromCDF(activeForecast?.forecast_values);
-  if (!quartiles) {
-    return [];
-  }
-  return [
-    {
-      left: quartiles.lower25,
-      center: quartiles.median,
-      right: quartiles.upper75,
-      weight: 1,
-    },
-  ];
-}
-
 // if user already have table forecast and want to switch to slider forecast tab
 export function getSliderDistributionFromQuantiles(
   component: DistributionQuantileComponent,
@@ -415,6 +398,21 @@ export function getQuantilesDistributionFromSlider(
       isDirty: true,
     },
   ];
+}
+
+export function isAllQuantileComponentsDirty(
+  components: DistributionQuantileComponent
+): boolean {
+  return components.every((component) => {
+    if (
+      (component.quantile === Quantile.lower ||
+        component.quantile === Quantile.upper) &&
+      component.value === 0
+    ) {
+      return true;
+    }
+    return component.isDirty;
+  });
 }
 
 export function populateQuantileComponents(

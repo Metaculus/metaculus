@@ -1141,5 +1141,6 @@
   "cdfMaxStepSizeError": "continuous_cdf 每一步必须至多增加 {maxDiff}",
   "quantileWithinBoundsError": "如果分位数在范围内，概率不能大于分位数",
   "discardAllChangesButton": "放弃所有更改",
-  "saveAllChanges": "保存所有更改"
+  "saveAllChanges": "保存所有更改",
+  "quantileTooCloseError": "分位数与另一个分位数太接近"
 }

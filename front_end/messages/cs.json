@@ -1139,5 +1139,6 @@
   "cdfMaxStepSizeError": "continuous_cdf nesmí být zvyšován o více než {maxDiff} v každém kroku",
   "quantileWithinBoundsError": "Je-li kvantil v mezích, nemůže být pravděpodobnost větší než kvantil",
   "discardAllChangesButton": "Zahodit všechny změny",
-  "saveAllChanges": "Uložit všechny změny"
+  "saveAllChanges": "Uložit všechny změny",
+  "quantileTooCloseError": "Kvantil je příliš blízko k jinému kvantilu"
 }

@@ -1137,5 +1137,6 @@
   "cdfMaxStepSizeError": "continuous_cdf deve aumentar no máximo {maxDiff} a cada passo",
   "quantileWithinBoundsError": "Se o quantil está dentro dos limites, a probabilidade não pode ser maior que o quantil",
   "discardAllChangesButton": "Descartar Todas as Alterações",
-  "saveAllChanges": "Salvar Todas as Alterações"
+  "saveAllChanges": "Salvar Todas as Alterações",
+  "quantileTooCloseError": "O quantil está muito próximo de outro quantil"
 }
