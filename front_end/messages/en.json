@@ -1123,5 +1123,8 @@
   "quantileWithinBoundsError": "If quantile is within bounds, probability can't be greater than quantile",
   "emptyCdfError": "continuous_cdf is required for continuous questions",
   "invalidCdfLengthError": "continuous_cdf must have 201 values",
-  "quantileTooCloseError": "Your quantiles are too close to each other, please space them out."
+  "quantileTooCloseError": "Your quantiles are too close to each other, please space them out.",
+  "questionRangeError": "range_min and range_max must be defined",
+  "chartDataError": "There was an error generating the chart data",
+  "percentileBoundsError": "The given percentiles must emcompass upper and lower bounds"
 }

@@ -1126,5 +1126,8 @@
   "quantileWithinBoundsError": "Je-li kvantil v mezích, nemůže být pravděpodobnost větší než kvantil",
   "discardAllChangesButton": "Zahodit všechny změny",
   "saveAllChanges": "Uložit všechny změny",
-  "quantileTooCloseError": "Vaše kvantily jsou příliš blízko u sebe, prosím, rozmístěte je více od sebe."
+  "quantileTooCloseError": "Vaše kvantily jsou příliš blízko u sebe, prosím, rozmístěte je více od sebe.",
+  "questionRangeError": "range_min a range_max musí být definovány",
+  "chartDataError": "Při generování dat grafu došlo k chybě",
+  "percentileBoundsError": "Zadané percentily musí zahrnovat horní a dolní meze"
 }

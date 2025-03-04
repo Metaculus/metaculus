@@ -1128,5 +1128,8 @@
   "quantileWithinBoundsError": "如果分位数在范围内，概率不能大于分位数",
   "discardAllChangesButton": "放弃所有更改",
   "saveAllChanges": "保存所有更改",
-  "quantileTooCloseError": "您的分位数太接近了，请将它们分散开。"
+  "quantileTooCloseError": "您的分位数太接近了，请将它们分散开。",
+  "questionRangeError": "必须定义 range_min 和 range_max",
+  "chartDataError": "生成图表数据时出错",
+  "percentileBoundsError": "给定的百分位数必须包含上下限"
 }

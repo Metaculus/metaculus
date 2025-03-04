@@ -166,9 +166,9 @@ const ForecastMakerContinuous: FC<Props> = ({
       quantileDistributionComponents,
       question
     );
-    if (quantileDataset.error instanceof Error) {
+    if (quantileDataset.error) {
       setSubmitError(
-        new Error(quantileDataset.error.message ?? t("unexpectedError"))
+        new Error(t(quantileDataset.error) ?? t("unexpectedError"))
       );
     }
     return quantileDataset;

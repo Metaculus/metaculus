@@ -2,6 +2,7 @@ import { format, fromUnixTime } from "date-fns";
 import { isNil, round } from "lodash";
 import * as math from "mathjs";
 
+import { ValidationErrorKey } from "@/app/(main)/questions/[id]/components/forecast_maker/helpers";
 import { ContinuousForecastInputType } from "@/types/charts";
 import {
   CurveChoiceOption,
@@ -208,10 +209,10 @@ export function generateQuantileContinuousCdf({
   probBelowLower: number;
   probAboveUpper: number;
   question: Question;
-}) {
+}): number[] | string {
   const { range_min, range_max } = question.scaling;
   if (range_min === null || range_max === null) {
-    throw new Error("range_min and range_max must be defined");
+    return "questionRangeError";
   }
 
   // create a sorted list of known points
@@ -240,7 +241,7 @@ export function generateQuantileContinuousCdf({
   const hydratedQuantiles = hydrateQuantiles(scaledQuantiles, cdfEvalLocs);
   if (hydratedQuantiles.length < 3) {
     // TODO: adjust error message
-    throw new Error("There was an error generating the chart data");
+    return "chartDataError";
   }
 
   // check validity
@@ -252,9 +253,7 @@ export function generateQuantileContinuousCdf({
     !lastPoint ||
     lastPoint.value < 1
   ) {
-    throw new Error(
-      "The given percentiles must emcompass upper and lower bounds"
-    );
+    return "percentileBoundsError";
   }
 
   function getCdfAt(location: number) {
@@ -300,39 +299,38 @@ export function getQuantileNumericForecastDataset(
     };
   }
 
-  try {
-    const cdf = generateQuantileContinuousCdf({
-      quantiles: [
-        {
-          quantile: Number(Quantile.q1),
-          value: components.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
-        },
-        {
-          quantile: Number(Quantile.q2),
-          value: components.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
-        },
-        {
-          quantile: Number(Quantile.q3),
-          value: components.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
-        },
-      ],
-      probBelowLower:
-        components.find((c) => c.quantile === Quantile.lower)?.value ?? 0,
-      probAboveUpper:
-        components.find((c) => c.quantile === Quantile.upper)?.value ?? 0,
-      question,
-    });
-    return {
-      cdf: cdf,
-      pmf: cdfToPmf(cdf),
-    };
-  } catch (error) {
+  const cdf = generateQuantileContinuousCdf({
+    quantiles: [
+      {
+        quantile: Number(Quantile.q1),
+        value: components.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
+      },
+      {
+        quantile: Number(Quantile.q2),
+        value: components.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
+      },
+      {
+        quantile: Number(Quantile.q3),
+        value: components.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
+      },
+    ],
+    probBelowLower:
+      components.find((c) => c.quantile === Quantile.lower)?.value ?? 0,
+    probAboveUpper:
+      components.find((c) => c.quantile === Quantile.upper)?.value ?? 0,
+    question,
+  });
+  if (typeof cdf === "string") {
     return {
       cdf: [],
       pmf: [],
-      error: error,
+      error: cdf as ValidationErrorKey,
     };
   }
+  return {
+    cdf: cdf,
+    pmf: cdfToPmf(cdf),
+  };
 }
 
 // if user already have table forecast and want to switch to slider forecast tab

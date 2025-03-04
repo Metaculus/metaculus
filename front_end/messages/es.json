@@ -1126,5 +1126,8 @@
   "quantileWithinBoundsError": "Si el cuantil está dentro de los límites, la probabilidad no puede ser mayor que el cuantil",
   "discardAllChangesButton": "Descartar todos los cambios",
   "saveAllChanges": "Guardar todos los cambios",
-  "quantileTooCloseError": "Los cuantiles están demasiado cerca entre sí, por favor, sepárelos más."
+  "quantileTooCloseError": "Los cuantiles están demasiado cerca entre sí, por favor, sepárelos más.",
+  "questionRangeError": "range_min y range_max deben estar definidos",
+  "chartDataError": "Hubo un error al generar los datos del gráfico",
+  "percentileBoundsError": "Los percentiles dados deben abarcar los límites superior e inferior"
 }
