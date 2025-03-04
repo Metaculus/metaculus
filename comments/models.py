@@ -108,11 +108,6 @@ class Comment(TimeStampedModel, TranslatedModel):
     )
     is_private = models.BooleanField(default=False, db_index=True)
     edit_history = models.JSONField(default=list, null=False, blank=True)
-    # TODO: ensure pinning a comment do not update it's edition date
-    # TODO: ensure comments counter is correct
-    # TODO: ensure pinned comments are not displayed differently in the user profile page
-    # TODO: add constraint that is_pinned could be only root comment
-    # TODO: test in dark mode
     is_pinned = models.BooleanField(default=False, db_index=True)
 
     # The edited_at field updates whenever any comment attribute changes.
