@@ -176,7 +176,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
 type CommentProps = {
   comment: CommentType;
-  handleCommentPin?: (comment: CommentType) => void;
+  handleCommentPin?: (comment: CommentType) => Promise<void>;
   onProfile?: boolean;
   treeDepth: number;
   sort: SortOption;
@@ -329,8 +329,8 @@ const Comment: FC<CommentProps> = ({
         !handleCommentPin,
       id: "pinComment",
       name: comment.is_pinned ? t("unpinComment") : t("pinComment"),
-      onClick: () => {
-        if (handleCommentPin) handleCommentPin(comment);
+      onClick: async () => {
+        if (handleCommentPin) await handleCommentPin(comment);
       },
     },
     {
