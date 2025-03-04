@@ -150,7 +150,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
               <div
                 key={child.id}
                 className={cn(
-                  "my-1 rounded-l-md border py-1 pl-1.5 md:py-1.5 md:pl-2.5",
+                  "my-1 rounded-l-md border py-1 pl-1.5 md:py-2 md:pl-3",
                   opacityClass,
                   {
                     "border-blue-500/70 dark:border-blue-400-dark": !isUnread,
