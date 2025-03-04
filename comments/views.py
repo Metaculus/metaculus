@@ -317,15 +317,6 @@ def key_factor_vote_view(request: Request, pk: int):
     return Response({"score": score})
 
 
-def _get_comment_to_pin(user: User, comment_id: int):
-    comment = get_object_or_404(Comment, pk=comment_id)
-
-    permission = get_post_permission_for_user(comment.on_post, user=user)
-    ObjectPermission.can_pin_comment(permission, raise_exception=True)
-
-    return comment
-
-
 @api_view(["POST"])
 def comment_toggle_pin_view(request: Request, pk: int):
     pin = serializers.BooleanField(allow_null=True).run_validation(
