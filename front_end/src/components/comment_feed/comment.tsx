@@ -432,36 +432,49 @@ const Comment: FC<CommentProps> = ({
           })}
         >
           <span className="inline-flex w-full flex-col items-start justify-start text-base sm:flex-row sm:items-center">
-            <div className="flex flex-row items-center">
-              {" "}
-              <Link
-                className="flex flex-row items-center no-underline"
-                href={`/accounts/profile/${comment.author.id}/`}
+            <div
+              className={cn("flex flex-row items-start", {
+                "w-full": comment.is_pinned,
+              })}
+            >
+              <div
+                className={cn("flex sm:flex-row sm:items-center", {
+                  "flex-col": !isCollapsed,
+                  "items-center": isCollapsed,
+                })}
               >
-                <h4 className="my-1 text-base">
-                  {formatUsername(comment.author)}
-                </h4>
-                {comment.author_staff_permission ===
-                  ProjectPermissions.CURATOR && (
-                  <Moderator className="ml-2 text-lg" />
-                )}
-                {comment.author_staff_permission ===
-                  ProjectPermissions.ADMIN && (
-                  <Admin className="ml-2 text-lg" />
-                )}
-              </Link>
-              <span className="mx-1 opacity-55">·</span>
-              <CommentDate comment={comment} />
-            </div>
-            {comment.is_pinned && (
-              <div className="ml-auto flex flex-row items-center gap-2 text-sm text-blue-500 dark:text-blue-500-dark">
-                <FontAwesomeIcon
-                  icon={faThumbtack}
-                  className="hidden lg:block"
-                />
-                {t("pinned")}
+                <Link
+                  className="flex flex-row items-center no-underline"
+                  href={`/accounts/profile/${comment.author.id}/`}
+                >
+                  <h4 className="my-1 text-base">
+                    {formatUsername(comment.author)}
+                  </h4>
+                  {comment.author_staff_permission ===
+                    ProjectPermissions.CURATOR && (
+                    <Moderator className="ml-2 text-lg" />
+                  )}
+                  {comment.author_staff_permission ===
+                    ProjectPermissions.ADMIN && (
+                    <Admin className="ml-2 text-lg" />
+                  )}
+                </Link>
+                <span
+                  className={cn("mx-1 opacity-55 sm:inline", {
+                    hidden: !isCollapsed,
+                  })}
+                >
+                  ·
+                </span>
+                <CommentDate comment={comment} />
               </div>
-            )}
+              {comment.is_pinned && (
+                <div className="ml-auto mt-1 flex flex-row items-center gap-2 text-sm text-blue-500 dark:text-blue-500-dark">
+                  <FontAwesomeIcon icon={faThumbtack} />
+                  <span className="hidden lg:inline">{t("pinned")}</span>
+                </div>
+              )}
+            </div>
 
             {isCollapsed && (
               <div className="flex w-full flex-1 flex-row items-center justify-between sm:ml-5 sm:w-auto">

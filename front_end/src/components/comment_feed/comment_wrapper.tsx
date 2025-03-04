@@ -78,6 +78,8 @@ function isCommentCollapsed(
   comment: CommentType,
   match: RegExpMatchArray | null
 ) {
+  if (comment.id === 277759) return true;
+
   // Don't collapse pinned comments
   if (comment.is_pinned) return false;
 
