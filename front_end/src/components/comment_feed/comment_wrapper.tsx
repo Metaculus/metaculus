@@ -15,7 +15,7 @@ type Props = {
   comment: CommentType;
   last_viewed_at?: string;
   profileId?: number;
-  handleCommentPin?: (comment: CommentType) => void;
+  handleCommentPin?: (comment: CommentType) => Promise<void>;
   postData?: PostWithForecasts;
 };
 

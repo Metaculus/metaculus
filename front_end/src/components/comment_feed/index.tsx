@@ -4,7 +4,7 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import {
@@ -135,6 +135,7 @@ const CommentFeed: FC<Props> = ({
   const [userCommentsAmount, setUserCommentsAmount] = useState<number | null>(
     user ? NEW_USER_COMMENT_LIMIT : null
   );
+  const commentsRef = useRef<HTMLDivElement>(null);
   const showWelcomeMessage =
     userCommentsAmount !== null &&
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
@@ -383,6 +384,10 @@ const CommentFeed: FC<Props> = ({
 
       await fetchComments(false, { ...feedFilters, offset });
 
+      setTimeout(() => {
+        commentsRef.current?.scrollIntoView();
+      }, 100);
+
       if (is_pinned) {
         toast(t("commentPinned"));
       } else {
@@ -398,6 +403,7 @@ const CommentFeed: FC<Props> = ({
     >
       <section
         id={id}
+        ref={commentsRef}
         className={cn(
           "max-w-full rounded text-gray-900 dark:text-gray-900-dark",
           {
