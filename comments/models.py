@@ -109,6 +109,10 @@ class Comment(TimeStampedModel, TranslatedModel):
     is_private = models.BooleanField(default=False, db_index=True)
     edit_history = models.JSONField(default=list, null=False, blank=True)
 
+    # The edited_at field updates whenever any comment attribute changes.
+    # We need a separate field to track text changes only
+    text_edited_at = models.DateTimeField(null=True, blank=True, editable=False)
+
     # annotated fields
     vote_score: int = 0
     author_username: str = ""
