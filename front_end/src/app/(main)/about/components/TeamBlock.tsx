@@ -333,7 +333,6 @@ const groups: Groups = {
     "Atakan Seçkin",
     "Molly Hickman",
     "Leonard Barrett",
-    "Connor McCormick",
     "Christian Williams",
     "Ryan Beck",
     "Sylvain Chevalier",
@@ -343,6 +342,7 @@ const groups: Groups = {
     "Ben Wilson",
     "Nikita Oleinykof",
     "Luke Sabor",
+    "Nikitas Angeletos Chrysaitis",
     "John Bash",
   ],
   board: [
