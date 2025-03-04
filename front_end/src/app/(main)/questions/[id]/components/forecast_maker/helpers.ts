@@ -7,7 +7,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 
-type ValidationErrorKey = MessageKeys<IntlMessages, keyof IntlMessages>;
+export type ValidationErrorKey = MessageKeys<IntlMessages, keyof IntlMessages>;
 export function validateQuantileInput({
   question,
   components,
