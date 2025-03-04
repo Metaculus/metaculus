@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("comments", "0009_alter_comment_is_soft_deleted"),
+        ("comments", "0010_comment_text_edited_at"),
         ("posts", "0013_alter_post_hotness"),
         ("projects", "0011_alter_project_type_projectindexquestion"),
         ("questions", "0015_remove_forecast_distribution_components_and_more"),
