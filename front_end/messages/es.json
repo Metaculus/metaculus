@@ -1135,10 +1135,8 @@
   "probabilitySumError": "La suma de las probabilidades no debe ser mayor que el 99%",
   "emptyCdfError": "continuous_cdf es necesario para preguntas continuas",
   "invalidCdfLengthError": "continuous_cdf debe tener 201 valores",
-  "cdfMinStepSizeError": "continuous_cdf debe aumentar al menos {minDiff} en cada paso",
-  "cdfMaxStepSizeError": "continuous_cdf debe aumentar no más de {maxDiff} en cada paso",
   "quantileWithinBoundsError": "Si el cuantil está dentro de los límites, la probabilidad no puede ser mayor que el cuantil",
   "discardAllChangesButton": "Descartar todos los cambios",
   "saveAllChanges": "Guardar todos los cambios",
-  "quantileTooCloseError": "El cuantil está demasiado cerca de otro cuantil"
+  "quantileTooCloseError": "Los cuantiles están demasiado cerca entre sí, por favor, sepárelos más."
 }

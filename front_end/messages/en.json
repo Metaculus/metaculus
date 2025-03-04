@@ -1135,7 +1135,5 @@
   "quantileWithinBoundsError": "If quantile is within bounds, probability can't be greater than quantile",
   "emptyCdfError": "continuous_cdf is required for continuous questions",
   "invalidCdfLengthError": "continuous_cdf must have 201 values",
-  "cdfMinStepSizeError": "continuous_cdf must be increasing by at least {minDiff} at every step",
-  "cdfMaxStepSizeError": "continuous_cdf must be increasing by no more than {maxDiff} at every step",
-  "quantileTooCloseError": "Quantile is too close to another quantile"
+  "quantileTooCloseError": "Your quantiles are too close to each other, please space them out."
 }

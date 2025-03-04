@@ -205,12 +205,17 @@ function hydrateQuantiles(
   return new_quantiles;
 }
 
-export function generateQuantileContinuousCdf(
-  quantiles: { quantile: number; value: number }[],
-  probBelowLower: number,
-  probAboveUpper: number,
-  question: Question
-) {
+export function generateQuantileContinuousCdf({
+  quantiles,
+  probBelowLower,
+  probAboveUpper,
+  question,
+}: {
+  quantiles: { quantile: number; value: number }[];
+  probBelowLower: number;
+  probAboveUpper: number;
+  question: Question;
+}) {
   const { range_min, range_max } = question.scaling;
   if (range_min === null || range_max === null) {
     throw new Error("range_min and range_max must be defined");
@@ -241,7 +246,8 @@ export function generateQuantileContinuousCdf(
 
   const hydratedQuantiles = hydrateQuantiles(scaledQuantiles, cdfEvalLocs);
   if (hydratedQuantiles.length < 3) {
-    return [];
+    // TODO: adjust error message
+    throw new Error("There was an error generating the chart data");
   }
 
   // check validity
@@ -253,8 +259,9 @@ export function generateQuantileContinuousCdf(
     !lastPoint ||
     lastPoint.value < 1
   ) {
-    // TODO: present some error: e.g. "The given percentiles must emcompass upper and lower bounds"
-    return [];
+    throw new Error(
+      "The given percentiles must emcompass upper and lower bounds"
+    );
   }
 
   function getCdfAt(location: number) {
@@ -300,30 +307,39 @@ export function getQuantileNumericForecastDataset(
     };
   }
 
-  const cdf = generateQuantileContinuousCdf(
-    [
-      {
-        quantile: Number(Quantile.q1),
-        value: components.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
-      },
-      {
-        quantile: Number(Quantile.q2),
-        value: components.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
-      },
-      {
-        quantile: Number(Quantile.q3),
-        value: components.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
-      },
-    ],
-    components.find((c) => c.quantile === Quantile.lower)?.value ?? 0,
-    components.find((c) => c.quantile === Quantile.upper)?.value ?? 0,
-    question
-  );
-
-  return {
-    cdf: cdf,
-    pmf: cdfToPmf(cdf),
-  };
+  try {
+    const cdf = generateQuantileContinuousCdf({
+      quantiles: [
+        {
+          quantile: Number(Quantile.q1),
+          value: components.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
+        },
+        {
+          quantile: Number(Quantile.q2),
+          value: components.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
+        },
+        {
+          quantile: Number(Quantile.q3),
+          value: components.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
+        },
+      ],
+      probBelowLower:
+        components.find((c) => c.quantile === Quantile.lower)?.value ?? 0,
+      probAboveUpper:
+        components.find((c) => c.quantile === Quantile.upper)?.value ?? 0,
+      question,
+    });
+    return {
+      cdf: cdf,
+      pmf: cdfToPmf(cdf),
+    };
+  } catch (error) {
+    return {
+      cdf: [],
+      pmf: [],
+      error: error,
+    };
+  }
 }
 
 // if user already have table forecast and want to switch to slider forecast tab
@@ -353,7 +369,8 @@ export function getSliderDistributionFromQuantiles(
 // if user have slider forecast and want to switch to table forecast tab
 export function getQuantilesDistributionFromSlider(
   components: DistributionSliderComponent[],
-  question: QuestionWithNumericForecasts
+  question: QuestionWithNumericForecasts,
+  isDirty: boolean = false
 ): DistributionQuantileComponent {
   const cdf = getSliderNumericForecastDataset(
     components,
@@ -369,33 +386,33 @@ export function getQuantilesDistributionFromSlider(
     {
       quantile: Quantile.lower,
       value: p0,
-      isDirty: true,
+      isDirty: isDirty,
     },
     {
       quantile: Quantile.q1,
       value: Number(
         scaleInternalLocation(quartiles.lower25, question.scaling).toFixed(2)
       ),
-      isDirty: true,
+      isDirty: isDirty,
     },
     {
       quantile: Quantile.q2,
       value: Number(
         scaleInternalLocation(quartiles.median, question.scaling).toFixed(2)
       ),
-      isDirty: true,
+      isDirty: isDirty,
     },
     {
       quantile: Quantile.q3,
       value: Number(
         scaleInternalLocation(quartiles.upper75, question.scaling).toFixed(2)
       ),
-      isDirty: true,
+      isDirty: isDirty,
     },
     {
       quantile: Quantile.upper,
       value: p4,
-      isDirty: true,
+      isDirty: isDirty,
     },
   ];
 }

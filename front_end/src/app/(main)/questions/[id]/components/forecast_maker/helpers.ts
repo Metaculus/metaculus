@@ -253,13 +253,13 @@ export function validateUserQuantileData({
   // Check minimum step size (0.00005)
   const minDiff = 0.01 / 200;
   if (inboundPmf.some((diff) => diff < minDiff)) {
-    validationErrors.push(t("cdfMinStepSizeError", { minDiff }));
+    validationErrors.push(t("quantileTooCloseError"));
   }
 
   // Check maximum step size (0.59)
   const maxDiff = 0.59;
   if (inboundPmf.some((diff) => diff > maxDiff)) {
-    validationErrors.push(t("cdfMaxStepSizeError", { maxDiff }));
+    validationErrors.push(t("quantileTooCloseError"));
   }
   return validationErrors.filter((error) => error !== undefined);
 }
