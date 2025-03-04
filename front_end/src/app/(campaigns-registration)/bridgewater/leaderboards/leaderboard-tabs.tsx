@@ -29,23 +29,32 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
   const [visibleRowsMap, setVisibleRowsMap] = useState<Record<string, number>>(
     () => Object.fromEntries(sheets.map((sheet) => [sheet.name, 125]))
   );
-  const rankColumnIndex = 0;
-  const usernameColumnIndex = 1;
-  const totalScoreColumnIndex = 2;
-  const userIDColumn = 6;
+  const currentSheet = sheets.find((s) => s.name === activeSheet);
+  const headers = currentSheet?.data[0];
+
+  if (
+    !currentSheet ||
+    !currentSheet.data ||
+    currentSheet.data.length === 0 ||
+    !headers
+  ) {
+    return <div>No data found</div>;
+  }
+
+  const getColumnIndex = (header: string) => {
+    return headers.findIndex((h) => h.toLowerCase() === header.toLowerCase());
+  };
+
+  const rankColumnIndex = getColumnIndex("Rank");
+  const usernameColumnIndex = getColumnIndex("Forecaster");
+  const totalScoreColumnIndex = getColumnIndex("Total Score");
+  const userIDColumn = getColumnIndex("User ID");
 
   const buttons: GroupButton<string>[] = sheets.map((sheet) => ({
     value: sheet.name,
     label: sheet.name,
   }));
 
-  const currentSheet = sheets.find((s) => s.name === activeSheet);
-
-  if (!currentSheet || !currentSheet.data || currentSheet.data.length === 0) {
-    return <div>No data found</div>;
-  }
-
-  const headers = currentSheet.data[0];
   const dataRows = currentSheet.data.slice(1);
   const highlightedRow = dataRows.find(
     (row) => row[usernameColumnIndex] === highlightedUser
