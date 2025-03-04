@@ -524,11 +524,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             option.question
           ),
         };
-        if (quantileDataset.dataset.error instanceof Error) {
+        if (quantileDataset.dataset.error) {
           setSubmitError(
-            new Error(
-              quantileDataset.dataset.error.message ?? t("unexpectedError")
-            )
+            new Error(t(quantileDataset.dataset.error) ?? t("unexpectedError"))
           );
         }
         return quantileDataset;
