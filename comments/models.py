@@ -128,7 +128,7 @@ class Comment(TimeStampedModel, TranslatedModel):
             # Pinned comment could be root only
             models.CheckConstraint(
                 check=models.Q(is_pinned=False) | models.Q(root__isnull=True),
-                name='comment_check_pinned_comment_is_root'
+                name="comment_check_pinned_comment_is_root",
             )
         ]
 

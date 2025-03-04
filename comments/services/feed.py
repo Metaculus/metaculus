@@ -34,7 +34,6 @@ def get_comments_feed(
 
             order_by_args.append("-is_pinned_thread")
 
-
     if author is not None:
         qs = qs.filter(author_id=author)
 

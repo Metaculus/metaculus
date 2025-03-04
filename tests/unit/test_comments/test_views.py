@@ -171,7 +171,6 @@ class TestPagination:
         ]
 
 
-
 def test_get_comments_feed_permissions(user1, user2):
     private_post = factory_post(
         author=user2,
