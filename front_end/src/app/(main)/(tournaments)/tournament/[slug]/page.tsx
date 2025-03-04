@@ -20,13 +20,13 @@ import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
-import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
-import TournamentDropdownMenu from "../components/dropdown_menu";
+import HeaderBlockNav from "../components/header_block_navigation";
 import TournamentFeed from "../components/tournament_feed";
 import TournamentTimeline from "../components/tournament_timeline";
+
 const LazyProjectMembers = dynamic(() => import("../components/members"), {
   ssr: false,
 });
@@ -67,11 +67,6 @@ export default async function TournamentSlug({ params }: Props) {
   const t = await getTranslations();
   const locale = await getLocale();
   const isQuestionSeries = tournament.type === TournamentType.QuestionSeries;
-  const title = isQuestionSeries
-    ? t("QuestionSeries")
-    : tournament.type === TournamentType.Index
-      ? t("Index")
-      : t("Tournament");
   const questionsTitle = isQuestionSeries
     ? t("SeriesContents")
     : t("questions");
@@ -82,28 +77,14 @@ export default async function TournamentSlug({ params }: Props) {
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
       {/* header block */}
       <div className="overflow-hidden rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
-        <div className="relative h-[130px] w-full">
-          <div
-            className={cn(
-              "absolute z-10 flex h-6 w-full flex-wrap items-center justify-between gap-2.5 bg-transparent p-[10px] text-[20px] uppercase text-gray-100 dark:text-gray-100-dark"
-            )}
-          >
-            <div className="flex items-center gap-2">
-              <Link
-                href={"/tournaments"}
-                className="block rounded-sm bg-black/30 px-1.5 py-1 text-xs font-bold leading-4 text-gray-0 no-underline hover:text-gray-400 dark:hover:text-gray-400-dark"
-              >
-                {title}
-              </Link>
-              {tournament.default_permission === null && (
-                <strong className="block rounded-sm bg-black/30 px-1.5 py-1 text-xs font-bold uppercase leading-4 text-gray-0">
-                  {t("private")}
-                </strong>
-              )}
-            </div>
-            <TournamentDropdownMenu tournament={tournament} />
-          </div>
-          {!!tournament.header_image && (
+        {!!tournament.header_image && (
+          <div className="relative h-[130px] w-full">
+            <HeaderBlockNav
+              tournament={tournament}
+              className="absolute z-10 px-4 py-3 md:p-2.5"
+              variant="image_overflow"
+            />
+
             <Image
               src={tournament.header_image}
               alt=""
@@ -112,9 +93,15 @@ export default async function TournamentSlug({ params }: Props) {
               className="size-full object-cover object-center"
               unoptimized
             />
-          )}
-        </div>
+          </div>
+        )}
         <div className="px-4 pb-5 pt-4 sm:p-8">
+          {!tournament.header_image && (
+            <HeaderBlockNav
+              tournament={tournament}
+              className="mb-2.5 md:mb-4"
+            />
+          )}
           <div className="flex items-start justify-between gap-1 sm:gap-4">
             <h1 className="m-0 text-xl text-blue-800 dark:text-blue-800-dark md:text-2xl lg:text-3xl xl:text-4xl">
               {tournament.name}
