@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { FC, useState } from "react";
@@ -69,7 +70,7 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
   // continuous questions get customized formatting
   if (forecast.quartiles.length !== 3) return null;
   const { range_min, range_max } = forecast.scaling;
-  if (!range_min || !range_max) return null;
+  if (isNil(range_min) || isNil(range_max)) return null;
 
   const q1 =
     forecast.quartiles[0] <= range_min
