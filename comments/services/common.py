@@ -1,7 +1,10 @@
+import difflib
+
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Comment
+from comments.models import Comment, CommentDiff
 from posts.models import Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -84,6 +87,27 @@ def create_comment(
     return obj
 
 
+def update_comment(comment: Comment, text: str = None):
+    differ = difflib.Differ()
+
+    diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))
+    text_diff = "\n".join(diff)
+
+    with transaction.atomic():
+        comment_diff = CommentDiff.objects.create(
+            comment=comment,
+            author=comment.author,
+            text_diff=text_diff,
+        )
+
+        comment.edit_history.append(comment_diff.id)
+        comment.text = text
+        comment.text_edited_at = timezone.now()
+        comment.save(update_fields=["text", "edit_history", "text_edited_at"])
+
+    trigger_update_comment_translations(comment, force=False)
+
+
 def trigger_update_comment_translations(comment: Comment, force: bool = False):
     if force:
         comment.update_and_maybe_translate()
@@ -109,6 +133,7 @@ def pin_comment(comment: Comment):
     comment.save(update_fields=["is_pinned"])
 
     return comment
+
 
 def unpin_comment(comment: Comment):
     comment.is_pinned = False

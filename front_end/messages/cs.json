@@ -1091,5 +1091,12 @@
   "copyApiToken": "Kopírovat API token",
   "copiedApiTokenMessage": "API token byl zkopírován do vaší schránky",
   "Indexes": "Indexy",
-  "Index": "Index"
+  "Index": "Index",
+  "forecastFlow": "Předpověď průtoků",
+  "viewQuestions": "Zobrazit otázky<bold>({count})</bold>",
+  "started": "Začátek",
+  "starts": "Začíná",
+  "lastDayForPrizeParticipation": "Poslední den pro účast v soutěži o ceny",
+  "questionsResolved": "Otázky vyřešeny",
+  "winnersAnnounced": "Vítězové vyhlášeni"
 }

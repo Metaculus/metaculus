@@ -52,9 +52,10 @@ def generate_text_embed_vector(text: str) -> list[float]:
 
 
 async def generate_text_embed_vector_async(text: str) -> list[float]:
-    response = await get_openai_client_async().embeddings.create(
-        input=text, model=EMBEDDING_MODEL
-    )
+    async with get_openai_client_async() as client:
+        response = await client.embeddings.create(
+            input=text, model=EMBEDDING_MODEL
+        )
     vector = response.data[0].embedding
 
     return vector

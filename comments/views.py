@@ -1,5 +1,3 @@
-import difflib
-
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -16,7 +14,6 @@ from comments.models import (
     ChangedMyMindEntry,
     Comment,
     CommentVote,
-    CommentDiff,
     KeyFactor,
     KeyFactorVote,
 )
@@ -29,10 +26,10 @@ from comments.serializers import (
 )
 from comments.services.common import (
     create_comment,
-    trigger_update_comment_translations,
     pin_comment,
     unpin_comment,
 )
+from comments.services.common import update_comment
 from comments.services.feed import get_comments_feed
 from comments.services.key_factors import key_factor_vote
 from notifications.services import send_comment_report_notification_to_staff
@@ -188,22 +185,7 @@ def comment_edit_api_view(request: Request, pk: int):
     if not (comment.author == request.user):
         raise PermissionDenied("You do not have permission to edit this comment.")
 
-    differ = difflib.Differ()
-
-    diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))
-    text_diff = "\n".join(diff)
-
-    with transaction.atomic():
-        comment_diff = CommentDiff.objects.create(
-            comment=comment,
-            author=comment.author,
-            text_diff=text_diff,
-        )
-
-        comment.edit_history.append(comment_diff.id)
-        comment.text = text
-        comment.save(update_fields=["text", "edit_history"])
-    trigger_update_comment_translations(comment, force=False)
+    update_comment(comment, text)
 
     return Response({}, status=status.HTTP_200_OK)
 
@@ -346,9 +328,9 @@ def _get_comment_to_pin(user: User, comment_id: int):
 
 @api_view(["POST"])
 def comment_toggle_pin_view(request: Request, pk: int):
-    pin = serializers.BooleanField(
-        allow_null=True
-    ).run_validation(request.data.get("pin"))
+    pin = serializers.BooleanField(allow_null=True).run_validation(
+        request.data.get("pin")
+    )
 
     comment = get_object_or_404(Comment, pk=pk)
 
