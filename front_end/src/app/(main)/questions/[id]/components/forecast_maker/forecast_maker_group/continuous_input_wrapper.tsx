@@ -5,7 +5,6 @@ import React, {
   PropsWithChildren,
   ReactNode,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -26,10 +25,7 @@ import cn from "@/utils/cn";
 import {
   getNormalizedContinuousForecast,
   getQuantileNumericForecastDataset,
-  getQuantilesDistributionFromSlider,
-  getSliderDistributionFromQuantiles,
   getSliderNumericForecastDataset,
-  isAllQuantileComponentsDirty,
 } from "@/utils/forecasts";
 import {
   formatResolution,
@@ -102,52 +98,27 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     return !!prevForecast && !!prevForecast.distribution_input;
   }, [option]);
 
-  useEffect(() => {
-    if (
-      option.forecastInputMode === ContinuousForecastInputType.Quantile &&
-      option.isDirty
-    ) {
-      handleChange(option.id, {
-        components: getQuantilesDistributionFromSlider(
-          option.userSliderForecast,
-          option.question
-        ),
-        type: ContinuousForecastInputType.Quantile,
-      });
-    } else if (
-      option.forecastInputMode === ContinuousForecastInputType.Slider &&
-      isAllQuantileComponentsDirty(option.userQuantileForecast) &&
-      validateAllQuantileInputs({
-        question: option.question,
-        components: option.userQuantileForecast,
-        t,
-      }).length === 0
-    ) {
-      handleChange(option.id, {
-        components: getSliderDistributionFromQuantiles(
-          option.userQuantileForecast,
-          option.question
-        ),
-        type: ContinuousForecastInputType.Slider,
-      });
+  const dataset = useMemo(() => {
+    setSubmitError(undefined);
+    if (forecastInputMode === ContinuousForecastInputType.Slider) {
+      return getSliderNumericForecastDataset(
+        forecast as DistributionSliderComponent[],
+        option.question.open_lower_bound,
+        option.question.open_upper_bound
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [option.forecastInputMode]);
+    const quantileDataset = getQuantileNumericForecastDataset(
+      forecast as DistributionQuantileComponent,
+      option.question
+    );
+    if (quantileDataset.error instanceof Error) {
+      setSubmitError(
+        new Error(quantileDataset.error.message ?? t("unexpectedError"))
+      );
+    }
+    return quantileDataset;
+  }, [option, forecast, forecastInputMode, t]);
 
-  const dataset = useMemo(
-    () =>
-      forecastInputMode === ContinuousForecastInputType.Slider
-        ? getSliderNumericForecastDataset(
-            forecast as DistributionSliderComponent[],
-            option.question.open_lower_bound,
-            option.question.open_upper_bound
-          )
-        : getQuantileNumericForecastDataset(
-            forecast as DistributionQuantileComponent,
-            option.question
-          ),
-    [option, forecast, forecastInputMode]
-  );
   const predictionMessage = useMemo(
     () => getSubquestionPredictionInputMessage(option),
     [option]
@@ -248,7 +219,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
                   question: option.question,
                   components: option.userQuantileForecast,
                   t,
-                }).length !== 0
+                }).length !== 0 || !isNil(submitError)
               }
               predictLabel={previousForecast ? undefined : t("predict")}
             />
