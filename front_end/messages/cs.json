@@ -1098,5 +1098,10 @@
   "starts": "Začíná",
   "lastDayForPrizeParticipation": "Poslední den pro účast v soutěži o ceny",
   "questionsResolved": "Otázky vyřešeny",
-  "winnersAnnounced": "Vítězové vyhlášeni"
+  "winnersAnnounced": "Vítězové vyhlášeni",
+  "pinComment": "Připnout",
+  "pinned": "Připnuté",
+  "commentPinned": "Komentář připnut",
+  "unpinComment": "Odepnout",
+  "commentUnpinned": "Komentář odepnout"
 }

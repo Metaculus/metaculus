@@ -1100,5 +1100,10 @@
   "starts": "开始",
   "lastDayForPrizeParticipation": "奖品参与的最后一天",
   "questionsResolved": "问题已解决",
-  "winnersAnnounced": "公布获奖者"
+  "winnersAnnounced": "公布获奖者",
+  "pinComment": "置顶",
+  "pinned": "已置顶",
+  "commentPinned": "评论已置顶",
+  "unpinComment": "取消置顶",
+  "commentUnpinned": "评论已取消置顶"
 }
