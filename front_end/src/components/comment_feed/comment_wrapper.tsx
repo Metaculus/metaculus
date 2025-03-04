@@ -15,6 +15,7 @@ type Props = {
   comment: CommentType;
   last_viewed_at?: string;
   profileId?: number;
+  handleCommentPin?: (comment: CommentType) => Promise<void>;
   postData?: PostWithForecasts;
 };
 
@@ -23,6 +24,7 @@ export const CommentWrapper: FC<Props> = ({
   profileId,
   last_viewed_at,
   postData,
+  handleCommentPin,
 }) => {
   const isUnread =
     last_viewed_at && new Date(last_viewed_at) < new Date(comment.created_at);
@@ -31,19 +33,20 @@ export const CommentWrapper: FC<Props> = ({
     isCommentCollapsed(comment, match)
   );
 
+  const { is_pinned } = comment;
+
   return (
     <div
       key={comment.id}
-      className={cn(
-        "my-1.5 rounded-md border px-1.5 py-1 md:px-2.5 md:py-1.5",
-        {
-          "border-blue-400 dark:border-blue-400-dark": !isUnread,
-          "border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
-            isUnread,
-          "cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-100-dark":
-            isCollapsed,
-        }
-      )}
+      className={cn("my-1.5 rounded-md border px-1.5 py-1 md:px-3 md:py-2", {
+        "border-blue-500 bg-blue-300/70 dark:border-blue-500-dark dark:bg-blue-300-dark/70":
+          is_pinned,
+        "border-blue-400 dark:border-blue-400-dark": !isUnread && !is_pinned,
+        "border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
+          isUnread && !is_pinned,
+        "cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-100-dark":
+          isCollapsed,
+      })}
       onClick={() => (isCollapsed ? setIsCollapsed(!isCollapsed) : null)}
     >
       {profileId && comment.on_post_data && (
@@ -59,6 +62,7 @@ export const CommentWrapper: FC<Props> = ({
       <Comment
         onProfile={!!profileId}
         comment={comment}
+        handleCommentPin={handleCommentPin}
         treeDepth={0}
         /* replies should always be sorted from oldest to newest */
         sort={"created_at" as SortOption}
@@ -74,6 +78,9 @@ function isCommentCollapsed(
   comment: CommentType,
   match: RegExpMatchArray | null
 ) {
+  // Don't collapse pinned comments
+  if (comment.is_pinned) return false;
+
   if (match) {
     const focus_comment_id = Number(match[1]);
     if (focus_comment_id === comment.id) {
