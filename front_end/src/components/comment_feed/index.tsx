@@ -4,9 +4,14 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
-import { getComments, markPostAsRead } from "@/app/(main)/questions/actions";
+import {
+  commentTogglePin,
+  getComments,
+  markPostAsRead,
+} from "@/app/(main)/questions/actions";
 import { useContentTranslatedBannerProvider } from "@/app/providers";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import { DefaultUserMentionsContextProvider } from "@/components/markdown_editor/plugins/mentions/components/default_mentions_context";
@@ -130,6 +135,7 @@ const CommentFeed: FC<Props> = ({
   const [userCommentsAmount, setUserCommentsAmount] = useState<number | null>(
     user ? NEW_USER_COMMENT_LIMIT : null
   );
+  const commentsRef = useRef<HTMLDivElement>(null);
   const showWelcomeMessage =
     userCommentsAmount !== null &&
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
@@ -369,12 +375,35 @@ const CommentFeed: FC<Props> = ({
     [postData?.last_viewed_at]
   );
 
+  const handleCommentPin = useCallback(
+    async (comment: CommentType) => {
+      const { is_pinned } = await commentTogglePin(
+        comment.id,
+        !comment.is_pinned
+      );
+
+      await fetchComments(false, { ...feedFilters, offset });
+
+      setTimeout(() => {
+        commentsRef.current?.scrollIntoView();
+      }, 100);
+
+      if (is_pinned) {
+        toast(t("commentPinned"));
+      } else {
+        toast(t("commentUnpinned"));
+      }
+    },
+    [t]
+  );
+
   return (
     <DefaultUserMentionsContextProvider
       defaultUserMentions={commentAuthorMentionItems}
     >
       <section
         id={id}
+        ref={commentsRef}
         className={cn(
           "max-w-full rounded text-gray-900 dark:text-gray-900-dark",
           {
@@ -458,6 +487,7 @@ const CommentFeed: FC<Props> = ({
           <CommentWrapper
             key={comment.id}
             comment={comment}
+            handleCommentPin={handleCommentPin}
             profileId={profileId}
             last_viewed_at={postData?.last_viewed_at}
             postData={postData}

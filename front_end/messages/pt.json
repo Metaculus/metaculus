@@ -1096,5 +1096,10 @@
   "starts": "Começa",
   "lastDayForPrizeParticipation": "Último dia para participação no prêmio",
   "questionsResolved": "Perguntas resolvidas",
-  "winnersAnnounced": "Vencedores anunciados"
+  "winnersAnnounced": "Vencedores anunciados",
+  "pinComment": "Fixar",
+  "pinned": "Fixado",
+  "commentPinned": "Comentário fixado",
+  "unpinComment": "Desafixar",
+  "commentUnpinned": "Comentário desafixado"
 }
