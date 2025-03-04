@@ -71,6 +71,7 @@ class PostReadSerializer(serializers.ModelSerializer):
             "published_at",
             "edited_at",
             "curation_status",
+            "curation_status_updated_at",
             "comment_count",
             "status",
             "resolved",

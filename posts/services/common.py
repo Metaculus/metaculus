@@ -497,16 +497,16 @@ def submit_for_review_post(post: Post):
     if post.curation_status != Post.CurationStatus.DRAFT:
         raise ValueError("Can't submit for review non-draft post")
 
-    post.curation_status = Post.CurationStatus.PENDING
-    post.save(update_fields=["curation_status"])
+    post.update_curation_status(Post.CurationStatus.PENDING)
+    post.save()
 
 
 def post_make_draft(post: Post):
     if post.curation_status != Post.CurationStatus.PENDING:
         raise ValueError("Can't submit for review non-pending post")
 
-    post.curation_status = Post.CurationStatus.DRAFT
-    post.save(update_fields=["curation_status"])
+    post.update_curation_status(Post.CurationStatus.DRAFT)
+    post.save()
 
 
 def resolve_post(post: Post):
