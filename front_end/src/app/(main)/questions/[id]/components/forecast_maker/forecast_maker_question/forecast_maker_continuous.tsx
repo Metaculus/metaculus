@@ -139,36 +139,46 @@ const ForecastMakerContinuous: FC<Props> = ({
     );
   }, [activeForecastValues, activeForecast, question]);
 
-  const dataset = useMemo(
-    () =>
-      forecastInputMode === ContinuousForecastInputType.Slider
-        ? getSliderNumericForecastDataset(
-            sliderDistributionComponents,
-            question.open_lower_bound,
-            question.open_upper_bound
-          )
-        : validateAllQuantileInputs({
-              question,
-              components: quantileDistributionComponents,
-              t,
-            }).length === 0
-          ? getQuantileNumericForecastDataset(
-              quantileDistributionComponents,
-              question
-            )
-          : {
-              cdf: [],
-              pmf: [],
-            },
-    [
-      sliderDistributionComponents,
-      quantileDistributionComponents,
-      forecastInputMode,
-      question,
-      t,
-    ]
-  );
+  const dataset = useMemo(() => {
+    setSubmitError(undefined);
+    if (forecastInputMode === ContinuousForecastInputType.Slider) {
+      return getSliderNumericForecastDataset(
+        sliderDistributionComponents,
+        question.open_lower_bound,
+        question.open_upper_bound
+      );
+    }
 
+    const validationErrors = validateAllQuantileInputs({
+      question,
+      components: quantileDistributionComponents,
+      t,
+    });
+
+    if (validationErrors.length > 0) {
+      return {
+        cdf: [],
+        pmf: [],
+      };
+    }
+
+    const quantileDataset = getQuantileNumericForecastDataset(
+      quantileDistributionComponents,
+      question
+    );
+    if (quantileDataset.error instanceof Error) {
+      setSubmitError(
+        new Error(quantileDataset.error.message ?? t("unexpectedError"))
+      );
+    }
+    return quantileDataset;
+  }, [
+    sliderDistributionComponents,
+    quantileDistributionComponents,
+    forecastInputMode,
+    question,
+    t,
+  ]);
   const [showSuccessBox, setShowSuccessBox] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -351,7 +361,7 @@ const ForecastMakerContinuous: FC<Props> = ({
                   question,
                   components: quantileDistributionComponents,
                   t,
-                }).length !== 0
+                }).length !== 0 || !isNil(submitError)
               }
             />
           )}

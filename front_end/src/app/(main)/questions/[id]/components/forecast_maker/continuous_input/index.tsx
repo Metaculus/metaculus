@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect } from "react";
 
@@ -79,9 +80,15 @@ const ContinuousInput: FC<Props> = ({
 
   // populate forecast data from another tab
   useEffect(() => {
-    if (forecastInputMode === ContinuousForecastInputType.Quantile && isDirty) {
+    if (
+      forecastInputMode === ContinuousForecastInputType.Quantile &&
+      (isDirty ||
+        (previousForecast?.distribution_input.type ===
+          ContinuousForecastInputType.Slider &&
+          isNil(previousForecast.end_time)))
+    ) {
       onQuantileChange(
-        getQuantilesDistributionFromSlider(sliderComponents, question)
+        getQuantilesDistributionFromSlider(sliderComponents, question, true)
       );
     } else if (
       forecastInputMode === ContinuousForecastInputType.Slider &&

@@ -31,12 +31,13 @@ const AbreviatedNumericInput: FC<Props> = ({
   const [localValue, setLocalValue] = useState<string>(
     isNil(value) ? "" : abbreviatedNumber(value, 4)
   );
-
+  const [isFocused, setIsFocused] = useState(false);
   useEffect(() => {
-    if (!isNil(value)) {
-      setLocalValue(abbreviatedNumber(value, 4));
+    if (isFocused) {
+      return;
     }
-  }, [value]);
+    setLocalValue(isNil(value) ? "" : abbreviatedNumber(value, 4));
+  }, [value, isFocused]);
 
   const handleBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
@@ -82,9 +83,13 @@ const AbreviatedNumericInput: FC<Props> = ({
           className
         )}
         onFocus={(e) => {
+          setIsFocused(true);
           e.target.placeholder = "";
         }}
-        onBlur={(e) => handleBlur(e)}
+        onBlur={(e) => {
+          setIsFocused(false);
+          handleBlur(e);
+        }}
       />
       {showPercentSign && !disabled && (
         <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-orange-800 dark:text-orange-800-dark sm:text-sm">
@@ -106,7 +111,7 @@ const parseFormattedNumber = (value: string): number | undefined => {
     t: 1e12,
   };
 
-  const match = value.match(/^-?(\d*\.?\d+)([kmbt])?$/);
+  const match = value.match(/^(-?\d*\.?\d+)([kmbt])?$/);
   if (!match || !match[1]) return undefined;
 
   const number = parseFloat(match[1]);
