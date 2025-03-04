@@ -120,6 +120,7 @@ export type Post<QT = Question> = {
     question_series?: Tournament[];
     tag?: Tag[];
     community?: Community[];
+    index?: Tournament[];
   };
   title: string;
   url_title: string;

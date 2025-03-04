@@ -115,6 +115,10 @@ class Comment(TimeStampedModel, TranslatedModel):
     # TODO: test in dark mode
     is_pinned = models.BooleanField(default=False, db_index=True)
 
+    # The edited_at field updates whenever any comment attribute changes.
+    # We need a separate field to track text changes only
+    text_edited_at = models.DateTimeField(null=True, blank=True, editable=False)
+
     # annotated fields
     vote_score: int = 0
     author_username: str = ""

@@ -3,7 +3,7 @@
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  CellContext,
+  Row,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
@@ -48,9 +48,14 @@ const columnHelper = createColumnHelper<TableItem>();
 type Props = {
   indexWeights: ProjectIndexWeights[];
   HeadingSection?: ReactNode;
+  showWeeklyMovement: boolean;
 };
 
-const IndexQuestionsTable: FC<Props> = ({ indexWeights, HeadingSection }) => {
+const IndexQuestionsTable: FC<Props> = ({
+  indexWeights,
+  HeadingSection,
+  showWeeklyMovement,
+}) => {
   const t = useTranslations();
 
   const data = useMemo(() => getTableData(indexWeights), [indexWeights]);
@@ -64,7 +69,12 @@ const IndexQuestionsTable: FC<Props> = ({ indexWeights, HeadingSection }) => {
       return [
         columnHelper.accessor("title", {
           header: t("indexQuestion"),
-          cell: MobileQuestionCell,
+          cell: (info) => (
+            <MobileQuestionCell
+              row={info.row}
+              checkDelta={!showWeeklyMovement}
+            />
+          ),
         }),
       ];
     }
@@ -97,6 +107,7 @@ const IndexQuestionsTable: FC<Props> = ({ indexWeights, HeadingSection }) => {
         cell: (info) => (
           <CommunityPrediction
             post={info.row.original.post}
+            checkDelta={!showWeeklyMovement}
             {...info.getValue()}
           />
         ),
@@ -123,7 +134,7 @@ const IndexQuestionsTable: FC<Props> = ({ indexWeights, HeadingSection }) => {
         },
       }),
     ];
-  }, [t, isLargeScreen]);
+  }, [t, isLargeScreen, showWeeklyMovement]);
 
   const table = useReactTable({
     data,
@@ -224,7 +235,15 @@ function getTableData(questions: ProjectIndexWeights[]): TableItem[] {
   return data;
 }
 
-const MobileQuestionCell: FC<CellContext<TableItem, string>> = ({ row }) => {
+type MobileQuestionCellProps = {
+  row: Row<TableItem>;
+  checkDelta: boolean;
+};
+
+const MobileQuestionCell: FC<MobileQuestionCellProps> = ({
+  row,
+  checkDelta,
+}) => {
   const { title, weight, communityPrediction, post, questionId } = row.original;
 
   return (
@@ -232,7 +251,11 @@ const MobileQuestionCell: FC<CellContext<TableItem, string>> = ({ row }) => {
       <Link href={getPostLink(post, questionId)} className="absolute inset-0" />
 
       <span className="text-sm font-medium leading-5">{title}</span>
-      <CommunityPrediction post={post} {...communityPrediction} />
+      <CommunityPrediction
+        post={post}
+        {...communityPrediction}
+        checkDelta={checkDelta}
+      />
       <IndexWeightChip value={weight} />
     </div>
   );
