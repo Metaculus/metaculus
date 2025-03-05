@@ -44,7 +44,6 @@ urlpatterns = [
     path("api/", include("scoring.urls")),
     path("api/", include("utils.urls")),
     path("api/", include("misc.urls")),
-    path("proxy/", include("fab_credits.urls")),
     # Backward compatibility endpoints
     path("api2/", include(comments.urls.old_api)),
     path("api2/", include(posts.urls.old_api)),
