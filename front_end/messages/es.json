@@ -1104,5 +1104,7 @@
   "commentPinned": "Comentario fijado",
   "unpinComment": "Desfijar",
   "commentUnpinned": "Comentario desfijado",
-  "closedForForecasting": "Cerrado para pronósticos"
+  "closedForForecasting": "Cerrado para pronósticos",
+  "markdownHelp": "Ayuda de Markdown",
+  "sourceMode": "Modo fuente"
 }
