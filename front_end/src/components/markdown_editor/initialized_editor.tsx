@@ -142,7 +142,8 @@ const InitializedMarkdownEditor: FC<
   );
   const debouncedHandleEditorChange = useDebouncedCallback(
     handleEditorChange,
-    100
+    100,
+    { leading: true }
   );
 
   useEffect(() => {
