@@ -70,10 +70,19 @@ const IndexQuestionsTable: FC<Props> = ({
         columnHelper.accessor("title", {
           header: t("indexQuestion"),
           cell: (info) => (
-            <MobileQuestionCell
-              row={info.row}
-              checkDelta={!showWeeklyMovement}
-            />
+            <>
+              <Link
+                href={getPostLink(
+                  info.row.original.post,
+                  info.row.original.questionId
+                )}
+                className="absolute inset-0"
+              />
+              <MobileQuestionCell
+                row={info.row}
+                checkDelta={!showWeeklyMovement}
+              />
+            </>
           ),
         }),
       ];
@@ -97,7 +106,18 @@ const IndexQuestionsTable: FC<Props> = ({
       }),
       columnHelper.accessor("weight", {
         header: t("indexWeight"),
-        cell: (info) => <IndexWeightChip value={info.getValue()} />,
+        cell: (info) => (
+          <>
+            <Link
+              href={getPostLink(
+                info.row.original.post,
+                info.row.original.questionId
+              )}
+              className="absolute inset-0"
+            />
+            <IndexWeightChip value={info.getValue()} />
+          </>
+        ),
         meta: {
           className: "text-center",
         },
@@ -105,11 +125,20 @@ const IndexQuestionsTable: FC<Props> = ({
       columnHelper.accessor("communityPrediction", {
         header: t("indexCP"),
         cell: (info) => (
-          <CommunityPrediction
-            post={info.row.original.post}
-            checkDelta={!showWeeklyMovement}
-            {...info.getValue()}
-          />
+          <>
+            <Link
+              href={getPostLink(
+                info.row.original.post,
+                info.row.original.questionId
+              )}
+              className="absolute inset-0"
+            />
+            <CommunityPrediction
+              post={info.row.original.post}
+              checkDelta={!showWeeklyMovement}
+              {...info.getValue()}
+            />
+          </>
         ),
         meta: {
           className: "text-center",
@@ -179,14 +208,17 @@ const IndexQuestionsTable: FC<Props> = ({
         {table.getRowModel().rows.map((row, index) => (
           <TableRow
             key={row.id}
-            className={cn("relative", {
+            className={cn({
               "border-b-0": index === questionsCount - 1,
             })}
           >
             {row.getVisibleCells().map((cell, cellIndex) => (
               <TableCell
                 key={cell.id}
-                className={cn(cell.column.columnDef.meta?.className)}
+                className={cn(
+                  "relative",
+                  cell.column.columnDef.meta?.className
+                )}
                 colSpan={cellIndex === 0 ? 2 : undefined}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -244,12 +276,10 @@ const MobileQuestionCell: FC<MobileQuestionCellProps> = ({
   row,
   checkDelta,
 }) => {
-  const { title, weight, communityPrediction, post, questionId } = row.original;
+  const { title, weight, communityPrediction, post } = row.original;
 
   return (
     <div className="flex flex-col gap-2">
-      <Link href={getPostLink(post, questionId)} className="absolute inset-0" />
-
       <span className="text-sm font-medium leading-5">{title}</span>
       <CommunityPrediction
         post={post}
