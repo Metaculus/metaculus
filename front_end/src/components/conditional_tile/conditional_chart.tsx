@@ -13,7 +13,10 @@ import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
-  getNumericForecastDataset,
+  getSliderNumericForecastDataset,
+  getQuantileNumericForecastDataset,
+  isQuantileForecast,
+  isSliderForecast,
 } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
 import { getQuestionForecastAvailability } from "@/utils/questions";
@@ -145,13 +148,20 @@ const ConditionalChart: FC<Props> = ({
           ? userLatest.distribution_input
           : null;
       const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
-      const dataset = prevForecastValue?.components
-        ? getNumericForecastDataset(
-            prevForecastValue.components,
-            question.open_lower_bound,
-            question.open_upper_bound
-          )
-        : null;
+      let dataset: { cdf: number[]; pmf: number[] } | null = null;
+      if (isSliderForecast(prevForecastValue)) {
+        dataset = getSliderNumericForecastDataset(
+          prevForecastValue.components,
+          question.open_lower_bound,
+          question.open_upper_bound
+        );
+      }
+      if (isQuantileForecast(prevForecastValue)) {
+        dataset = getQuantileNumericForecastDataset(
+          prevForecastValue.components,
+          question
+        );
+      }
 
       if (!!dataset) {
         continuousAreaChartData.push({
