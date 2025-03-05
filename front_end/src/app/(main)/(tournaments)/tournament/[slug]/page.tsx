@@ -137,10 +137,6 @@ export default async function TournamentSlug({ params }: Props) {
                   text={formatDate(locale, new Date(tournament.close_date))}
                 />
               )}
-              <TournamentStat
-                title={t("questions")}
-                text={tournament.questions_count.toString()}
-              />
             </div>
           )}
         </div>
