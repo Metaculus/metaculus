@@ -24,9 +24,9 @@ const AccordionResolutionCell: FC<Props> = ({
   const isResolved = !isNil(resolution);
   if (isResolved) {
     return (
-      <div className="wrap flex w-full items-center justify-center gap-1">
+      <div className="flex w-full flex-wrap items-center justify-center gap-1">
         <ResolutionIcon
-          className={cn({
+          className={cn("text-purple-700 dark:text-purple-700-dark", {
             "sm:hidden": !isUnsuccessfullyResolved(resolution),
           })}
         />
