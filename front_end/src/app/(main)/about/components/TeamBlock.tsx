@@ -62,7 +62,6 @@ const people: Person[] = [
       "Christian oversees Metaculus’ communications and marketing efforts, working closely with the operations and program teams. Previously, he worked in the aerospace and defense industry as a marketing operations lead. He received his master’s in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before entering the science world, he wrote for <cite>The Onion AV Club</cite> and contributed material to <cite>Saturday Night Live</cite>.",
   },
   {
-    userId: 126626,
     name: "Nikitas Angeletos Chrysaitis",
     position: "Forecasting Analyst",
     imgSrc:
