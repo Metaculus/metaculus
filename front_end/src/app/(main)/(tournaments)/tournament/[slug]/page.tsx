@@ -2,7 +2,6 @@ import { isNil } from "lodash";
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
@@ -145,19 +144,22 @@ export default async function TournamentSlug({ params }: Props) {
       {/* Links block */}
       <div className="mx-4 mt-4 flex flex-row justify-between gap-2 lg:mx-0">
         {/* TODO: Uncomment this when the forecast flow is implemented */}
-        {/* <Link href="/forecastFlowLink" className="flex-1">
-          <Button className="w-full border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg">
-            {t("forecastFlow")}
-          </Button>
-        </Link> */}
-        <Link href="#questions" className="flex-1">
-          <Button className="w-full gap-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg">
-            {t.rich("viewQuestions", {
-              count: tournament.questions_count,
-              bold: (chunks) => <span className="font-bold">{chunks}</span>,
-            })}
-          </Button>
-        </Link>
+        {/* <Button
+          href="/forecastFlowLink"
+          className="w-full flex-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg"
+        >
+          {t("forecastFlow")}
+        </Button> */}
+
+        <Button
+          href={"#questions"}
+          className="w-full flex-1 gap-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg"
+        >
+          {t.rich("viewQuestions", {
+            count: tournament.questions_count,
+            bold: (chunks) => <span className="font-bold">{chunks}</span>,
+          })}
+        </Button>
       </div>
 
       {/* Description block */}
