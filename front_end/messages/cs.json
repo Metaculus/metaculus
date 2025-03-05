@@ -1104,5 +1104,7 @@
   "commentPinned": "Komentář připnut",
   "unpinComment": "Odepnout",
   "commentUnpinned": "Komentář odepnout",
-  "closedForForecasting": "Uzavřeno pro predikování"
+  "closedForForecasting": "Uzavřeno pro predikování",
+  "markdownHelp": "Nápověda pro Markdown",
+  "sourceMode": "Režim zdroje"
 }

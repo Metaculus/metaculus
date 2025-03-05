@@ -1106,5 +1106,7 @@
   "commentPinned": "评论已置顶",
   "unpinComment": "取消置顶",
   "commentUnpinned": "评论已取消置顶",
-  "closedForForecasting": "预测已关闭"
+  "closedForForecasting": "预测已关闭",
+  "markdownHelp": "Markdown 帮助",
+  "sourceMode": "源模式"
 }
