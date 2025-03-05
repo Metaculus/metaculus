@@ -44,14 +44,17 @@ const GroupForecastAccordion: FC<Props> = ({
   const { user } = useAuth();
   const showCP = !user || !hideCP;
 
-  const { resolvedOptions, activeOptions } = useMemo(
+  const { resolvedOptions, closedOptions, activeOptions } = useMemo(
     () => ({
       resolvedOptions: options.filter(
         (option) =>
           option.question.status &&
-          [QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
-            option.question.status
-          )
+          [QuestionStatus.RESOLVED].includes(option.question.status)
+      ),
+      closedOptions: options.filter(
+        (option) =>
+          option.question.status &&
+          [QuestionStatus.CLOSED].includes(option.question.status)
       ),
       activeOptions: options.filter(
         (option) =>
@@ -66,38 +69,6 @@ const GroupForecastAccordion: FC<Props> = ({
 
   return (
     <div className="w-full">
-      {!!resolvedOptions.length && (
-        <div className="mb-0.5 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
-          <div className="shrink grow overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15">
-            <span className="line-clamp-2 pl-4">{groupVariable}</span>
-          </div>
-          <div className="min-w-[105px] max-w-[105px] shrink grow-[3] bg-blue-600/15 py-1 text-center dark:bg-blue-400/15 sm:min-w-[422px] sm:max-w-[422px]">
-            {t("resolution")}
-          </div>
-          <div className="w-[43px] shrink-0 grow-0 bg-blue-600/15 py-1 dark:bg-blue-400/15"></div>
-        </div>
-      )}
-      {resolvedOptions.map((option) => {
-        return (
-          <AccordionItem
-            option={option}
-            showCP={true}
-            subQuestionId={subQuestionId}
-            isResolvedOption={true}
-            key={option.id}
-          >
-            <SliderWrapper
-              option={option}
-              canPredict={false}
-              isPending={isPending}
-              handleChange={handleChange}
-              handleAddComponent={handleAddComponent}
-              handleResetForecasts={handleResetForecasts}
-              handlePredictSubmit={handlePredictSubmit}
-            />
-          </AccordionItem>
-        );
-      })}
       {!!activeOptions.length && (
         <div className="mb-0.5 mt-2 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
           <div className="shrink grow overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15">
@@ -121,10 +92,65 @@ const GroupForecastAccordion: FC<Props> = ({
             showCP={showCP}
             key={option.id}
             subQuestionId={subQuestionId}
+            type={QuestionStatus.OPEN}
           >
             <SliderWrapper
               option={option}
               canPredict={canPredict}
+              isPending={isPending}
+              handleChange={handleChange}
+              handleAddComponent={handleAddComponent}
+              handleResetForecasts={handleResetForecasts}
+              handlePredictSubmit={handlePredictSubmit}
+            />
+          </AccordionItem>
+        );
+      })}
+      {/* Closed questions block */}
+      {!!closedOptions.length && (
+        <div className="m-0 flex w-full items-center justify-center bg-blue-600/15 py-1 text-center text-xs font-bold text-blue-700 dark:bg-blue-400/15 dark:text-blue-700-dark">
+          {t("closedForForecasting")}
+        </div>
+      )}
+      {closedOptions.map((option) => {
+        return (
+          <AccordionItem
+            option={option}
+            showCP={true}
+            subQuestionId={subQuestionId}
+            type={QuestionStatus.CLOSED}
+            key={option.id}
+          >
+            <SliderWrapper
+              option={option}
+              canPredict={false}
+              isPending={isPending}
+              handleChange={handleChange}
+              handleAddComponent={handleAddComponent}
+              handleResetForecasts={handleResetForecasts}
+              handlePredictSubmit={handlePredictSubmit}
+            />
+          </AccordionItem>
+        );
+      })}
+      {/* Resolved questions block */}
+      {!!resolvedOptions.length && (
+        <div className="m-0 flex w-full items-center justify-center bg-blue-600/15 py-1 text-center text-xs font-bold text-blue-700 dark:bg-blue-400/15 dark:text-blue-700-dark">
+          {t("resolved")}
+        </div>
+      )}
+      {resolvedOptions.map((option) => {
+        return (
+          <AccordionItem
+            option={option}
+            showCP={true}
+            subQuestionId={subQuestionId}
+            type={QuestionStatus.RESOLVED}
+            key={option.id}
+          >
+            <SliderWrapper
+              option={option}
+              canPredict={false}
               isPending={isPending}
               handleChange={handleChange}
               handleAddComponent={handleAddComponent}

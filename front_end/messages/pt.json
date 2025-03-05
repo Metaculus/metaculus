@@ -1101,5 +1101,6 @@
   "pinned": "Fixado",
   "commentPinned": "Comentário fixado",
   "unpinComment": "Desafixar",
-  "commentUnpinned": "Comentário desafixado"
+  "commentUnpinned": "Comentário desafixado",
+  "closedForForecasting": "Fechado para previsão"
 }

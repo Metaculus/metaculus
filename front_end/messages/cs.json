@@ -1103,5 +1103,6 @@
   "pinned": "Připnuté",
   "commentPinned": "Komentář připnut",
   "unpinComment": "Odepnout",
-  "commentUnpinned": "Komentář odepnout"
+  "commentUnpinned": "Komentář odepnout",
+  "closedForForecasting": "Uzavřeno pro predikování"
 }
