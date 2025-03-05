@@ -35,9 +35,10 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
 
-type ContinuousAreaColor = "orange" | "green";
+type ContinuousAreaColor = "orange" | "green" | "gray";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   community: "green",
+  community_closed: "gray",
   user: "orange",
   user_previous: "orange",
 };
@@ -151,7 +152,7 @@ const ContinuousAreaChart: FC<Props> = ({
     [height, yDomain]
   );
 
-  const resolutionPoint = resolution
+  const resolutionPoint = !isNil(resolution)
     ? getResolutionData({
         questionType,
         resolution,
@@ -211,6 +212,7 @@ const ContinuousAreaChart: FC<Props> = ({
               community: 0,
               user: 0,
               user_previous: 0,
+              community_closed: 0,
             },
           }
         );
@@ -267,16 +269,22 @@ const ContinuousAreaChart: FC<Props> = ({
               data={chart.graphLine}
               style={{
                 data: {
-                  fill:
-                    chart.color === "orange"
-                      ? getThemeColor(
+                  fill: (() => {
+                    switch (chart.color) {
+                      case "orange":
+                        return getThemeColor(
                           METAC_COLORS.orange[
                             chart.type === "user" ? "700" : "400"
                           ]
-                        )
-                      : chart.color === "green"
-                        ? getThemeColor(METAC_COLORS.olive["500"])
-                        : undefined,
+                        );
+                      case "green":
+                        return getThemeColor(METAC_COLORS.olive["500"]);
+                      case "gray":
+                        return getThemeColor(METAC_COLORS.gray["500"]);
+                      default:
+                        return undefined;
+                    }
+                  })(),
                   opacity: chart.type === "user_previous" ? 0.1 : 0.3,
                 },
               }}

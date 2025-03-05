@@ -1329,7 +1329,8 @@ export function getContinuousAreaChartData(
   userCustomForecast?: {
     cdf: number[];
     pmf: number[];
-  }
+  },
+  isClosedForecast?: boolean
 ): ContinuousAreaGraphInput {
   const chartData: ContinuousAreaGraphInput = [];
 
@@ -1337,7 +1338,9 @@ export function getContinuousAreaChartData(
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
       cdf: latest.forecast_values,
-      type: "community" as ContinuousAreaType,
+      type: (isClosedForecast
+        ? "community_closed"
+        : "community") as ContinuousAreaType,
     });
   }
 
