@@ -13,16 +13,22 @@ type Props = { tournaments?: TournamentPreview[] };
 
 const FeedFilters: FC<Props> = ({ tournaments }) => {
   const { currentFeed } = useFeed();
+  const panelClassname = "sm:w-[370px] md:w-[500px]";
 
   switch (currentFeed) {
     case FeedType.MY_PREDICTIONS:
-      return <MyPredictionsFilters />;
+      return <MyPredictionsFilters panelClassname={panelClassname} />;
     case FeedType.MY_QUESTIONS_AND_POSTS:
-      return <MyQuestionsAndPostsFilters />;
+      return <MyQuestionsAndPostsFilters panelClassname={panelClassname} />;
     case FeedType.FOLLOWING:
-      return <MainFeedFilters following />;
+      return <MainFeedFilters following panelClassname={panelClassname} />;
     default:
-      return <MainFeedFilters tournaments={tournaments} />;
+      return (
+        <MainFeedFilters
+          tournaments={tournaments}
+          panelClassname={panelClassname}
+        />
+      );
   }
 };
 
