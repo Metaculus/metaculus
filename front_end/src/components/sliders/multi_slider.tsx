@@ -54,9 +54,21 @@ const MultiSlider: FC<Props> = ({
 
   useEffect(() => {
     if (shouldSyncWithDefault) {
-      setControlledValue([value.left, value.center, value.right]);
+      // prevent slider thumbs from being stuck one on top of the other
+      const center = value.center;
+      const left = Math.min(value.left, center - clampStep);
+      const right = Math.max(value.right, center + clampStep);
+
+      setControlledValue([left, center, right]);
+      if (left !== value.left || right !== value.right) {
+        onChange({
+          left,
+          center,
+          right,
+        });
+      }
     }
-  }, [value, shouldSyncWithDefault]);
+  }, [value, shouldSyncWithDefault, onChange, clampStep]);
 
   const handleValueChange = (value: ControlledValue) => {
     if (persistedPositionOrigin.current === undefined) {

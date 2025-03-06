@@ -1,31 +1,60 @@
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, ReactNode, useMemo } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
+import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
-import { QuestionStatus } from "@/types/post";
-import { DistributionSliderComponent } from "@/types/question";
+import { QuestionStatus, Resolution } from "@/types/post";
+import {
+  DistributionQuantile,
+  DistributionQuantileComponent,
+  DistributionSlider,
+  DistributionSliderComponent,
+  Quartiles,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
 import { useHideCP } from "../../cp_provider";
-import SliderWrapper from "../forecast_maker_group/continuous_slider_wrapper";
-import { ConditionalTableOption } from "../group_forecast_table";
+import ContinuousInputWrapper from "../forecast_maker_group/continuous_input_wrapper";
+
+export type ContinuousGroupOption = {
+  id: number;
+  name: string;
+  question: QuestionWithNumericForecasts;
+  userSliderForecast: DistributionSliderComponent[];
+  userQuantileForecast: DistributionQuantileComponent;
+  forecastInputMode: ContinuousForecastInputType;
+  userQuartiles: Quartiles | null;
+  communityQuartiles: Quartiles | null;
+  isDirty: boolean;
+  hasUserForecast: boolean;
+  resolution: Resolution | null;
+  menu?: ReactNode;
+};
 
 type Props = {
-  options: ConditionalTableOption[];
+  options: ContinuousGroupOption[];
   groupVariable: string;
   canPredict: boolean;
   isPending: boolean;
   subQuestionId?: number | null;
-  handleChange: (id: number, components: DistributionSliderComponent[]) => void;
-  handleAddComponent: (id: number) => void;
-  handleResetForecasts: (id?: number) => void;
+  handleChange: (
+    optionId: number,
+    distribution: DistributionSlider | DistributionQuantile
+  ) => void;
+  handleAddComponent: (option: ContinuousGroupOption) => void;
+  handleResetForecasts: (option?: ContinuousGroupOption) => void;
   handlePredictSubmit: (id: number) => Promise<
     | {
         errors: ErrorResponse | undefined;
       }
     | undefined
   >;
+  handleForecastInputModeChange: (
+    optionId: number,
+    mode: ContinuousForecastInputType
+  ) => void;
 };
 
 const GroupForecastAccordion: FC<Props> = ({
@@ -38,6 +67,7 @@ const GroupForecastAccordion: FC<Props> = ({
   handleAddComponent,
   handleResetForecasts,
   handlePredictSubmit,
+  handleForecastInputModeChange,
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
@@ -94,7 +124,7 @@ const GroupForecastAccordion: FC<Props> = ({
             subQuestionId={subQuestionId}
             type={QuestionStatus.OPEN}
           >
-            <SliderWrapper
+            <ContinuousInputWrapper
               option={option}
               canPredict={canPredict}
               isPending={isPending}
@@ -102,6 +132,9 @@ const GroupForecastAccordion: FC<Props> = ({
               handleAddComponent={handleAddComponent}
               handleResetForecasts={handleResetForecasts}
               handlePredictSubmit={handlePredictSubmit}
+              setForecastInputMode={(mode) =>
+                handleForecastInputModeChange(option.id, mode)
+              }
             />
           </AccordionItem>
         );
@@ -121,7 +154,7 @@ const GroupForecastAccordion: FC<Props> = ({
             type={QuestionStatus.CLOSED}
             key={option.id}
           >
-            <SliderWrapper
+            <ContinuousInputWrapper
               option={option}
               canPredict={false}
               isPending={isPending}
@@ -129,6 +162,9 @@ const GroupForecastAccordion: FC<Props> = ({
               handleAddComponent={handleAddComponent}
               handleResetForecasts={handleResetForecasts}
               handlePredictSubmit={handlePredictSubmit}
+              setForecastInputMode={(mode) =>
+                handleForecastInputModeChange(option.id, mode)
+              }
             />
           </AccordionItem>
         );
@@ -148,7 +184,7 @@ const GroupForecastAccordion: FC<Props> = ({
             type={QuestionStatus.RESOLVED}
             key={option.id}
           >
-            <SliderWrapper
+            <ContinuousInputWrapper
               option={option}
               canPredict={false}
               isPending={isPending}
@@ -156,6 +192,9 @@ const GroupForecastAccordion: FC<Props> = ({
               handleAddComponent={handleAddComponent}
               handleResetForecasts={handleResetForecasts}
               handlePredictSubmit={handlePredictSubmit}
+              setForecastInputMode={(mode) =>
+                handleForecastInputModeChange(option.id, mode)
+              }
             />
           </AccordionItem>
         );
