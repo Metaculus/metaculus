@@ -9,7 +9,7 @@ from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, activate, get_language
 
-from utils.tasks import update_translations
+from utils.tasks import update_translations_task
 from utils.translation import (
     get_translation_fields_for_model,
     build_supported_localized_fieldname,
@@ -210,7 +210,7 @@ class TranslatedModel(models.Model):
         # 3. If the content is dirty and the content is supposed to be translated
         if should_translate_if_dirty and is_translation_dirty(self):
             app_label, model_name = model._meta.app_label, model._meta.model_name
-            update_translations.send(app_label, model_name, self.pk)
+            update_translations_task.send(app_label, model_name, self.pk)
 
 
 class TimeStampedModel(models.Model):

@@ -19,7 +19,7 @@ from utils.translation import (
     # So it's fine to set mutex lock timeout for this duration
     ttl=60_000,
 )
-def update_translations(app_label, model_name, pk):
+def update_translations_task(app_label, model_name, pk):
     if not settings.GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY:
         return
 
