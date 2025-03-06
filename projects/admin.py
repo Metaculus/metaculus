@@ -127,10 +127,7 @@ class PostInlineBase(admin.TabularInline):
         if not project.close_date:
             return None
 
-        return not any(
-            q.scheduled_close_time > project.close_date
-            for q in questions
-        )
+        return not any(q.scheduled_close_time > project.close_date for q in questions)
 
     closes_before.short_description = "Closes Before"
     closes_before.boolean = True
@@ -142,14 +139,10 @@ class PostInlineBase(admin.TabularInline):
         if not project.close_date:
             return None
 
-        return not any(
-            q.scheduled_resolve_time > project.close_date
-            for q in questions
-        )
+        return not any(q.scheduled_resolve_time > project.close_date for q in questions)
 
     resolves_before.short_description = "Resolves Before"
     resolves_before.boolean = True
-
 
 
 class PostDefaultProjectInline(PostInlineBase):
