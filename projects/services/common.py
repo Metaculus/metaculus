@@ -226,10 +226,6 @@ def get_project_timeline_data(project: Project):
 
     for post in posts:
         for question in post.get_questions():
-            # Don't include questions that resolve after tournament end_date
-            #if question.scheduled_resolve_time > project_close_date:
-            #    continue
-
             if all_questions_resolved:
                 all_questions_resolved = (
                     question.actual_resolve_time
