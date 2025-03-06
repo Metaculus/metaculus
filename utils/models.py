@@ -18,6 +18,10 @@ from utils.translation import (
 from utils.types import DjangoModelType
 
 
+def uniques_ordered_list(ordered_list):
+    return list(dict.fromkeys(ordered_list))
+
+
 class CustomTranslationAdmin(admin.ModelAdmin):
     actions = ["update_translations"]
 
@@ -31,11 +35,14 @@ class CustomTranslationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj: "TranslatedModel", form, change):
         super().save_model(request, obj, form, change)
 
-        if self.should_update_translations(obj):
+        if self.should_update_translations(obj) and obj.is_automatically_translated:
             obj.update_and_maybe_translate()
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
+        if obj and not obj.is_automatically_translated:
+            return fields
+
         model_class = self.model
         all_translation_fields = get_translation_fields_for_model(model_class)
         specified_translation_fields = list(set(fields) & set(all_translation_fields))
@@ -46,14 +53,17 @@ class CustomTranslationAdmin(admin.ModelAdmin):
                 for lang in settings.LANGUAGES
             ]
             extra_fields += localized_field_names
-        return fields + extra_fields
+        return uniques_ordered_list(fields + extra_fields)
 
     def get_readonly_fields(self, request, obj=None):
-        # We are showing the language specific fields as read only
-        ro_fields = super().get_readonly_fields(request, obj)
-
         model_class = self.model
         translation_fields = get_translation_fields_for_model(model_class)
+        ro_fields = list(super().get_readonly_fields(request, obj))
+
+        if obj and not obj.is_automatically_translated:
+            return uniques_ordered_list(ro_fields + translation_fields)
+
+        # We are showing the language specific fields as read only
         extra_ro_fields = []
         for field_name in translation_fields:
             localized_field_names = [
@@ -64,12 +74,12 @@ class CustomTranslationAdmin(admin.ModelAdmin):
 
         extra_ro_fields.append("content_last_md5")
 
-        return list(ro_fields) + extra_ro_fields
+        return uniques_ordered_list(ro_fields + extra_ro_fields)
 
     @admin.action(description="Update translations")
     def update_translations(self, request, queryset):
         for obj in queryset:
-            obj.save()
+            obj.update_and_maybe_translate()
         messages.success(request, "Translations update triggered")
 
 
@@ -89,6 +99,7 @@ class TranslatedModel(models.Model):
 
     content_last_md5 = models.CharField(max_length=32, null=True, blank=True)
     content_original_lang = models.CharField(max_length=16, null=True, blank=True)
+    is_automatically_translated = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
@@ -100,6 +111,7 @@ class TranslatedModel(models.Model):
         if (
             current_language == settings.ORIGINAL_LANGUAGE_CODE
             or self.content_original_lang is None
+            or not self.is_automatically_translated
         ):
             return False
 
