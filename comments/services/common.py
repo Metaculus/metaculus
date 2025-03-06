@@ -82,7 +82,7 @@ def create_comment(
         run_on_post_comment_create.send(obj.id)
 
     # Handle translations
-    trigger_update_comment_translations(obj, force=False)
+    trigger_update_comment_translations(obj)
 
     return obj
 
@@ -105,14 +105,10 @@ def update_comment(comment: Comment, text: str = None):
         comment.text_edited_at = timezone.now()
         comment.save(update_fields=["text", "edit_history", "text_edited_at"])
 
-    trigger_update_comment_translations(comment, force=False)
+    trigger_update_comment_translations(comment)
 
 
-def trigger_update_comment_translations(comment: Comment, force: bool = False):
-    if force:
-        comment.update_and_maybe_translate()
-        return
-
+def trigger_update_comment_translations(comment: Comment):
     on_post = comment.on_post
     author = comment.author
     on_bots_tournament = (
@@ -121,7 +117,11 @@ def trigger_update_comment_translations(comment: Comment, force: bool = False):
     )
 
     on_private_post = on_post.is_private() is None
-    if not (author.is_bot and on_bots_tournament) and not on_private_post:
+    if (
+        not (author.is_bot and on_bots_tournament)
+        and not on_private_post
+        and comment.is_automatically_translated
+    ):
         comment.update_and_maybe_translate()
 
 
