@@ -243,7 +243,7 @@ def export_data_for_questions(
                 "https://www.metaculus.com/questions/"
                 + str(post.id)
                 + "/"
-                + str(post.url_title.lower().replace(" ", "-"))
+                + str(post.short_title.lower().replace(" ", "-"))
                 + "/",
                 question.title,
                 post.id,
