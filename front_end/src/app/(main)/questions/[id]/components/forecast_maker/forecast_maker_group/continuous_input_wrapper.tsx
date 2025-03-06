@@ -107,6 +107,19 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
         option.question.open_upper_bound
       );
     }
+    const validationErrors = validateAllQuantileInputs({
+      question: option.question,
+      components: forecast as DistributionQuantileComponent,
+      t,
+    });
+
+    if (validationErrors.length > 0) {
+      return {
+        cdf: [],
+        pmf: [],
+      };
+    }
+
     const quantileDataset = getQuantileNumericForecastDataset(
       forecast as DistributionQuantileComponent,
       option.question

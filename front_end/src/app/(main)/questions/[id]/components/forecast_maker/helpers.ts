@@ -5,7 +5,9 @@ import {
   DistributionQuantileComponent,
   Quantile,
   QuestionWithNumericForecasts,
+  Scaling,
 } from "@/types/question";
+import { unscaleNominalLocation } from "@/utils/charts";
 
 export type ValidationErrorKey = MessageKeys<IntlMessages, keyof IntlMessages>;
 export function validateQuantileInput({
@@ -56,23 +58,19 @@ export function validateQuantileInput({
   }
 
   // Check minimum distances between quantiles
-  // 0.007 is the same limit as the clampStep in the ContinuousSlider
-  const scale = range_max - range_min;
-  const MIN_ABSOLUTE_DISTANCE = scale * 0.007;
-
   if (quantile === Quantile.q1) {
-    if (q2 && Math.abs(newValue - q2) < MIN_ABSOLUTE_DISTANCE) {
+    if (q2 && checkNormalizedDistance(newValue, q2, question.scaling)) {
       return t("quantileTooCloseError");
     }
   } else if (quantile === Quantile.q2) {
     if (
-      (q1 && Math.abs(newValue - q1) < MIN_ABSOLUTE_DISTANCE) ||
-      (q3 && Math.abs(newValue - q3) < MIN_ABSOLUTE_DISTANCE)
+      (q1 && checkNormalizedDistance(newValue, q1, question.scaling)) ||
+      (q3 && checkNormalizedDistance(newValue, q3, question.scaling))
     ) {
       return t("quantileTooCloseError");
     }
   } else if (quantile === Quantile.q3) {
-    if (q2 && Math.abs(newValue - q2) < MIN_ABSOLUTE_DISTANCE) {
+    if (q2 && checkNormalizedDistance(newValue, q2, question.scaling)) {
       return t("quantileTooCloseError");
     }
   }
@@ -353,3 +351,16 @@ const QUANTILE_OUT_OF_BOUND_VALIDATIONS: QuantileCheck[] = [
     withinBounds: true,
   },
 ];
+
+function checkNormalizedDistance(
+  value1: number,
+  value2: number,
+  scaling: Scaling
+): boolean {
+  const normalized1 = unscaleNominalLocation(value1, scaling);
+  const normalized2 = unscaleNominalLocation(value2, scaling);
+
+  // 0.007 is the same limit as the clampStep in the ContinuousSlider
+  const NORMALIZED_MIN_DISTANCE = 0.007;
+  return Math.abs(normalized1 - normalized2) < NORMALIZED_MIN_DISTANCE;
+}
