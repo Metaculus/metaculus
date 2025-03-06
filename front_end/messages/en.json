@@ -1101,5 +1101,7 @@
   "lastDayForPrizeParticipation": "Last day for prize participation",
   "questionsResolved": "Questions resolved",
   "winnersAnnounced": "Winners announced",
-  "closedForForecasting": "Closed for forecasting"
+  "closedForForecasting": "Closed for forecasting",
+  "markdownHelp": "Markdown help",
+  "sourceMode": "Source mode"
 }
