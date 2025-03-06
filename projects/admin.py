@@ -113,17 +113,60 @@ class AddPostsToProjectForm(forms.Form):
     )
 
 
-class PostDefaultProjectInline(admin.TabularInline):
+class PostInlineBase(admin.TabularInline):
+    def get_project(self, obj) -> Project:
+        raise NotImplementedError
+
+    def get_post(self, obj) -> Post:
+        return obj
+
+    def closes_before(self, obj):
+        project = self.get_project(obj)
+        questions = self.get_post(obj).get_questions()
+
+        if not project.close_date:
+            return None
+
+        return not any(
+            q.scheduled_close_time > project.close_date
+            for q in questions
+        )
+
+    closes_before.short_description = "Closes Before"
+    closes_before.boolean = True
+
+    def resolves_before(self, obj):
+        project = self.get_project(obj)
+        questions = self.get_post(obj).get_questions()
+
+        if not project.close_date:
+            return None
+
+        return not any(
+            q.scheduled_resolve_time > project.close_date
+            for q in questions
+        )
+
+    resolves_before.short_description = "Resolves Before"
+    resolves_before.boolean = True
+
+
+
+class PostDefaultProjectInline(PostInlineBase):
     model = Post
     extra = 0
     fields = (
         "title_link",
         "curation_status",
         "published_at",
+        "closes_before",
+        "resolves_before",
     )
     readonly_fields = (
         "title_link",
         "published_at",
+        "closes_before",
+        "resolves_before",
     )
     can_delete = False
     verbose_name = "Post with this as Default Project (determines permissions)"
@@ -144,6 +187,9 @@ class PostDefaultProjectInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
+
+    def get_project(self, obj) -> Project:
+        return obj.default_project
 
 
 class PostProjectInlineForm(forms.ModelForm):
@@ -168,7 +214,7 @@ class PostProjectInlineForm(forms.ModelForm):
         return super().save(commit=commit)
 
 
-class PostProjectInline(admin.TabularInline):
+class PostProjectInline(PostInlineBase):
     model = Post.projects.through
     form = PostProjectInlineForm
     extra = 0
@@ -177,6 +223,8 @@ class PostProjectInline(admin.TabularInline):
         "curation_status",
         "published_at",
         "default_project",
+        "closes_before",
+        "resolves_before",
         "remove_from_project",
     )
     readonly_fields = (
@@ -184,6 +232,8 @@ class PostProjectInline(admin.TabularInline):
         "curation_status",
         "published_at",
         "default_project",
+        "closes_before",
+        "resolves_before",
     )
     can_delete = False  # this is a hack to rename the "delete" checkbox
     verbose_name = "Post with this as a Secondary Project (no permission effects)"
@@ -215,6 +265,12 @@ class PostProjectInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
+
+    def get_project(self, obj) -> Project:
+        return obj.project
+
+    def get_post(self, obj) -> Post:
+        return obj.post
 
 
 class ProjectAdminForm(forms.ModelForm):
