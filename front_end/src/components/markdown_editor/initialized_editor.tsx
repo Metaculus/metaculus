@@ -57,6 +57,7 @@ import { equationPlugin } from "./plugins/equation";
 import AddEquationAction from "./plugins/equation/components/add_equation_action";
 import { linkPlugin } from "./plugins/link";
 import { mentionsPlugin } from "./plugins/mentions";
+import { SourceModeTitle } from "./source_mode_title";
 
 type EditorMode = "write" | "read";
 
@@ -195,20 +196,23 @@ const InitializedMarkdownEditor: FC<
 
     return toolbarPlugin({
       toolbarContents: () => (
-        <DiffSourceToggleWrapper options={["rich-text", "source"]}>
-          <UndoRedo />
-          <Separator />
-          <BlockTypeSelect />
-          <BoldItalicUnderlineToggles />
-          <Separator />
-          <CreateLink />
-          <InsertImage />
-          <InsertThematicBreak />
-          <InsertTable />
-          <AddEquationAction />
-          <Separator />
-          <EmbedQuestionAction />
-        </DiffSourceToggleWrapper>
+        <>
+          <SourceModeTitle />
+          <DiffSourceToggleWrapper options={["rich-text", "source"]}>
+            <UndoRedo />
+            <Separator />
+            <BlockTypeSelect />
+            <BoldItalicUnderlineToggles />
+            <Separator />
+            <CreateLink />
+            <InsertImage />
+            <InsertThematicBreak />
+            <InsertTable />
+            <AddEquationAction />
+            <Separator />
+            <EmbedQuestionAction />
+          </DiffSourceToggleWrapper>
+        </>
       ),
     });
   }, [mode]);
