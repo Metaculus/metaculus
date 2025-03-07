@@ -51,7 +51,8 @@ const PredictionChip: FC<Props> = ({
   const formattedResolution = formatResolution(
     resolution,
     question.type,
-    locale
+    locale,
+    question.scaling
   );
 
   const renderUserForecast = () => {

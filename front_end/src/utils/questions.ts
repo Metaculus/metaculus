@@ -1,5 +1,5 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { differenceInMilliseconds, isValid, parseISO } from "date-fns";
+import { differenceInMilliseconds, format, isValid, parseISO } from "date-fns";
 import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -29,7 +29,11 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
-import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
+import {
+  getQuestionDateFormatString,
+  scaleInternalLocation,
+  unscaleNominalLocation,
+} from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
@@ -181,7 +185,8 @@ export function isSuccessfullyResolved(resolution: Resolution | null) {
 export function formatResolution(
   resolution: number | string | null | undefined,
   questionType: QuestionType,
-  locale: string
+  locale: string,
+  scaling?: Scaling
 ) {
   if (resolution === null || resolution === undefined) {
     return "-";
@@ -207,16 +212,21 @@ export function formatResolution(
   if (questionType === QuestionType.Date) {
     if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
       const date = new Date(Number(resolution));
-
-      return isValid(date)
-        ? formatDate(locale, new Date(Number(resolution)))
-        : resolution;
+      if (isValid(date)) {
+        return scaling
+          ? format(date, getQuestionDateFormatString(scaling))
+          : formatDate(locale, date);
+      }
+      return resolution;
     }
 
     const date = new Date(resolution);
-    return isValid(date)
-      ? formatDate(locale, new Date(resolution))
-      : resolution;
+    if (isValid(date)) {
+      return scaling
+        ? format(date, getQuestionDateFormatString(scaling))
+        : formatDate(locale, date);
+    }
+    return resolution;
   }
 
   if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
