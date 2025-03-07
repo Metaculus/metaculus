@@ -1104,5 +1104,8 @@
   "commentUnpinned": "Comentário desafixado",
   "closedForForecasting": "Fechado para previsão",
   "markdownHelp": "Ajuda de Markdown",
-  "sourceMode": "Modo de origem"
+  "sourceMode": "Modo de origem",
+  "reject": "Rejeitar",
+  "sendBackToReview": "Enviar de volta para revisão",
+  "deleteRejectPostDescription": "Tem certeza de que deseja {destructiveAction} esta pergunta?"
 }
