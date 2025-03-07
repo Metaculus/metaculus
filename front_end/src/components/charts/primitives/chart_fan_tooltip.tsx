@@ -129,12 +129,12 @@ const ChartFanTooltip: FC<Props> = ({
                   colSpan={3}
                 >
                   <div>
-                    {formatResolution(
-                      question.resolution,
-                      question.type,
+                    {formatResolution({
+                      resolution: question.resolution,
+                      questionType: question.type,
                       locale,
-                      question.scaling
-                    )}
+                      scaling: question.scaling,
+                    })}
                   </div>
                 </td>
               </tr>

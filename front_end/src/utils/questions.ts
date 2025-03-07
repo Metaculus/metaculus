@@ -182,12 +182,17 @@ export function isSuccessfullyResolved(resolution: Resolution | null) {
   return isResolved(resolution) && !isUnsuccessfullyResolved(resolution);
 }
 
-export function formatResolution(
-  resolution: number | string | null | undefined,
-  questionType: QuestionType,
-  locale: string,
-  scaling?: Scaling
-) {
+export function formatResolution({
+  resolution,
+  questionType,
+  locale,
+  scaling,
+}: {
+  resolution: number | string | null | undefined;
+  questionType: QuestionType;
+  locale: string;
+  scaling?: Scaling;
+}) {
   if (resolution === null || resolution === undefined) {
     return "-";
   }

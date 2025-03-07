@@ -48,12 +48,12 @@ const PredictionChip: FC<Props> = ({
 
   const { resolution, nr_forecasters } = question;
 
-  const formattedResolution = formatResolution(
+  const formattedResolution = formatResolution({
     resolution,
-    question.type,
+    questionType: question.type,
     locale,
-    question.scaling
-  );
+    scaling: question.scaling,
+  });
 
   const renderUserForecast = () => {
     const latest = question.my_forecasts?.latest;

@@ -125,12 +125,12 @@ function parseAggregationData({
         active: true,
         resolution: question.resolution,
         displayedResolution: !!question.resolution
-          ? formatResolution(
-              question.resolution,
-              question.type,
-              locale ?? "en",
-              question.scaling
-            )
+          ? formatResolution({
+              resolution: question.resolution,
+              questionType: question.type,
+              locale: locale ?? "en",
+              scaling: question.scaling,
+            })
           : null,
         closeTime: Math.min(
           new Date(question.scheduled_close_time).getTime(),
@@ -209,12 +209,12 @@ function parseAggregationData({
       active: true,
       resolution: question.resolution,
       displayedResolution: !!question.resolution
-        ? formatResolution(
-            question.resolution,
-            question.type,
-            locale ?? "en",
-            question.scaling
-          )
+        ? formatResolution({
+            resolution: question.resolution,
+            questionType: question.type,
+            locale: locale ?? "en",
+            scaling: question.scaling,
+          })
         : null,
       closeTime: Math.min(
         new Date(question.scheduled_close_time).getTime(),
