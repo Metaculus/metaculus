@@ -12,6 +12,7 @@ import { Toaster } from "react-hot-toast";
 
 import ChunkRetryScript from "@/components/chunk_retry_script";
 import GlobalModals from "@/components/global_modals";
+import PublicSettingsScript from "@/components/public_settings_script";
 import AppThemeProvided from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
@@ -23,7 +24,6 @@ import ProfileApi from "@/services/profile";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
-const publicSettings = getPublicSettings();
 
 const PostHogPageView = dynamic(
   () => import("@/components/posthog_page_view"),
@@ -113,6 +113,8 @@ const leagueGothic = localFont({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  const publicSettings = getPublicSettings();
+
   return {
     title: "Metaculus",
     description: "Metaculus",
@@ -147,6 +149,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const user = await ProfileApi.getMyProfile();
+  const publicSettings = getPublicSettings();
 
   return (
     <html
@@ -156,6 +159,9 @@ export default async function RootLayout({
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
     >
+      <head>
+        <PublicSettingsScript publicSettings={publicSettings} />
+      </head>
       <CSPostHogProvider>
         <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
           <PostHogPageView />
