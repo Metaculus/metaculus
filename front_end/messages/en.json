@@ -37,6 +37,7 @@
   "edit": "Edit",
   "report": "Report",
   "delete": "Delete",
+  "reject": "Reject",
   "copyLink": "Copy Link",
   "copyId": "Copy ID",
   "continueButton": "Continue",
@@ -1103,5 +1104,7 @@
   "winnersAnnounced": "Winners announced",
   "closedForForecasting": "Closed for forecasting",
   "markdownHelp": "Markdown help",
-  "sourceMode": "Source mode"
+  "sourceMode": "Source mode",
+  "deleteRejectPostDescription": "Are you sure you want to {destructiveAction} this question?",
+  "sendBackToReview": "Send back to review"
 }

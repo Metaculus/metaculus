@@ -274,6 +274,7 @@ class PostQuerySet(models.QuerySet):
                     curation_status__in=[
                         Post.CurationStatus.DRAFT,
                         Post.CurationStatus.PENDING,
+                        Post.CurationStatus.REJECTED,
                     ]
                 )
             )

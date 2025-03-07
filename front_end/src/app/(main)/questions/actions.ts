@@ -183,6 +183,18 @@ export async function submitPostForReview(postId: number) {
   return await PostsApi.submitForReview(postId);
 }
 
+export async function rejectPost(postId: number) {
+  return await PostsApi.rejectPost(postId);
+}
+
+export async function deletePost(postId: number) {
+  return await PostsApi.deletePost(postId);
+}
+
+export async function sendBackToReview(postId: number) {
+  return await PostsApi.sendBackToReview(postId);
+}
+
 export async function updateNotebook(
   postId: number,
   markdown: string,
