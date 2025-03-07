@@ -23,9 +23,14 @@ import { QuestionOrder } from "@/types/question";
 type Props = {
   following?: boolean;
   tournaments?: TournamentPreview[];
+  panelClassname?: string;
 };
 
-const MainFeedFilters: FC<Props> = ({ following, tournaments }) => {
+const MainFeedFilters: FC<Props> = ({
+  following,
+  tournaments,
+  panelClassname,
+}) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
@@ -121,6 +126,7 @@ const MainFeedFilters: FC<Props> = ({ following, tournaments }) => {
       onOrderChange={onOrderChange}
       defaultOrder={QuestionOrder.HotDesc}
       showRandomButton
+      panelClassname={panelClassname}
     />
   );
 };

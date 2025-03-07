@@ -16,7 +16,9 @@ import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
-const MyQuestionsAndPostsFilters: FC = () => {
+type Props = { panelClassname?: string };
+
+const MyQuestionsAndPostsFilters: FC<Props> = ({ panelClassname }) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
@@ -99,6 +101,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
       mainSortOptions={mainSortOptions}
       sortOptions={sortOptions}
       defaultOrder={QuestionOrder.HotDesc}
+      panelClassname={panelClassname}
     />
   );
 };
