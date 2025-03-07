@@ -247,7 +247,10 @@ def get_project_timeline_data(project: Project):
                 actual_resolve_times.append(question.actual_resolve_time)
 
             if question.scheduled_resolve_time:
-                scheduled_resolve_times.append(question.scheduled_resolve_time)
+                scheduled_resolve_time = (
+                    question.actual_resolve_time or question.scheduled_resolve_time
+                )
+                scheduled_resolve_times.append(scheduled_resolve_time)
 
             if question.actual_close_time:
                 actual_close_times.append(question.actual_close_time)
