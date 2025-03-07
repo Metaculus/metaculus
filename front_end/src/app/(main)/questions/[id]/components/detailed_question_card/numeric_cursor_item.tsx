@@ -20,7 +20,7 @@ const CursorDetailItem: FC<Props> = ({
       <span className="text-xs">{title}</span>
       <span
         className={cn(
-          "font-bold",
+          "whitespace-pre-line text-center font-bold",
           {
             "text-olive-700 dark:text-olive-700-dark": variant === "prediction",
           },
