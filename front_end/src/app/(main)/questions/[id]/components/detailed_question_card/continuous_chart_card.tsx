@@ -1,7 +1,7 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
 import CPRevealTime from "@/components/cp_reveal_time";
@@ -114,15 +114,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
               cursorData?.interval_upper_bound as number,
             ]
           : [],
-    }).split("\n");
-    return (
-      <>
-        <div>{displayValue[0]}</div>
-        {!isNil(displayValue[1]) && (
-          <div className="text-xs font-medium">{displayValue[1]}</div>
-        )}
-      </>
-    );
+    });
+    return renderDisplayValue(displayValue);
   }, [
     t,
     cursorData,
@@ -136,21 +129,14 @@ const DetailedContinuousChartCard: FC<Props> = ({
     if (!question.my_forecasts?.history.length) {
       return null;
     }
-    const userDisplayValue = getUserPredictionDisplayValue(
-      question.my_forecasts,
-      cursorData.timestamp,
-      question.type,
-      question.scaling,
-      true
-    ).split("\n");
-    return (
-      <>
-        <div>{userDisplayValue[0]}</div>
-        {!isNil(userDisplayValue[1]) && (
-          <div className="text-xs font-medium">{userDisplayValue[1]}</div>
-        )}
-      </>
-    );
+    const userDisplayValue = getUserPredictionDisplayValue({
+      myForecasts: question.my_forecasts,
+      timestamp: cursorData.timestamp,
+      questionType: question.type,
+      scaling: question.scaling,
+      showRange: true,
+    });
+    return renderDisplayValue(userDisplayValue);
   }, [
     question.my_forecasts,
     cursorData.timestamp,
@@ -234,5 +220,21 @@ const DetailedContinuousChartCard: FC<Props> = ({
     </div>
   );
 };
+
+function renderDisplayValue(displayValue: string): ReactNode {
+  const displayValueChunks = displayValue.split("\n");
+  if (displayValueChunks.length > 1) {
+    const [centerLabel, intervalLabel] = displayValueChunks;
+    return (
+      <>
+        <div>{centerLabel}</div>
+        {!isNil(intervalLabel) && (
+          <div className="text-xs font-medium">{intervalLabel}</div>
+        )}
+      </>
+    );
+  }
+  return displayValue;
+}
 
 export default DetailedContinuousChartCard;

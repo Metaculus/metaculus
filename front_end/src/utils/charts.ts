@@ -295,37 +295,29 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
   return unscaled_location;
 }
 
-export function displayValue(
-  value: number | null,
-  questionType: QuestionType,
-  precision?: number,
-  truncation?: number
-): string {
+export function displayValue({
+  value,
+  questionType,
+  precision,
+  scaling,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  truncation,
+  dateFormatString,
+}: {
+  value: number | null;
+  questionType: QuestionType;
+  precision?: number;
+  scaling?: Scaling;
+  truncation?: number;
+  dateFormatString?: string;
+}): string {
   if (value === null) {
     return "...";
   }
   precision = precision ?? 3;
-  truncation = truncation ?? 0;
-  if (questionType === QuestionType.Date) {
-    let dateFormat: string;
-    if (precision <= 1) {
-      dateFormat = "yyyy";
-    } else if (precision <= 2) {
-      dateFormat = truncation < 1 ? "yyyy-MM" : "MM";
-    } else if (precision <= 3) {
-      dateFormat =
-        truncation < 1 ? "yyyy-MM-dd" : truncation < 2 ? "MM-dd" : "dd";
-    } else {
-      dateFormat =
-        truncation < 1
-          ? "yyyy-MM-dd HH:mm"
-          : truncation < 2
-            ? "MM-dd HH:mm"
-            : truncation < 3
-              ? "dd HH:mm"
-              : "HH:mm";
-    }
-    return format(fromUnixTime(value), dateFormat);
+  if (questionType === QuestionType.Date && scaling) {
+    const dateFormat = getQuestionDateFormatString(scaling);
+    return format(fromUnixTime(value), dateFormatString ?? dateFormat);
   } else if (questionType === QuestionType.Numeric) {
     // TODO add truncation to abbreviatedNumber
     return abbreviatedNumber(value, precision);
@@ -347,6 +339,7 @@ export function getDisplayValue({
   precision,
   truncation,
   range,
+  dateFormatString,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -354,19 +347,20 @@ export function getDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
+  dateFormatString?: string;
 }): string {
   if (value === undefined || value === null) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
-  const centerDisplay =
-    questionType === QuestionType.Date
-      ? getTableDisplayValue({
-          value,
-          questionType,
-          scaling,
-        })
-      : displayValue(scaledValue, questionType, precision, truncation);
+  const centerDisplay = displayValue({
+    value: scaledValue,
+    questionType,
+    precision,
+    truncation,
+    scaling,
+    dateFormatString,
+  });
   if (range) {
     const lowerX = range[0];
     const upperX = range[1];
@@ -375,23 +369,23 @@ export function getDisplayValue({
     }
 
     const scaledLower = scaleInternalLocation(lowerX, scaling);
-    const lowerDisplay =
-      questionType === QuestionType.Date
-        ? getTableDisplayValue({
-            value: lowerX,
-            questionType,
-            scaling,
-          })
-        : displayValue(scaledLower, questionType, precision, truncation);
+    const lowerDisplay = displayValue({
+      value: scaledLower,
+      questionType,
+      precision,
+      scaling,
+      truncation,
+      dateFormatString,
+    });
     const scaledUpper = scaleInternalLocation(upperX, scaling);
-    const upperDisplay =
-      questionType === QuestionType.Date
-        ? getTableDisplayValue({
-            value: upperX,
-            questionType,
-            scaling,
-          })
-        : displayValue(scaledUpper, questionType, precision, truncation);
+    const upperDisplay = displayValue({
+      value: scaledUpper,
+      questionType,
+      precision,
+      scaling,
+      truncation,
+      dateFormatString,
+    });
     return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }
   return centerDisplay;
@@ -404,7 +398,6 @@ export function getTableDisplayValue({
   precision,
   truncation,
   range,
-  dateFormatString,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -412,26 +405,19 @@ export function getTableDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
-  dateFormatString?: string;
 }) {
   if (isNil(value)) {
     return "...";
   }
 
-  if (questionType !== QuestionType.Date) {
-    return getDisplayValue({
-      value,
-      questionType,
-      scaling,
-      precision,
-      truncation,
-      range,
-    });
-  }
-
-  const dateFormat = getQuestionDateFormatString(scaling);
-  const scaledValue = scaleInternalLocation(value, scaling);
-  return format(fromUnixTime(scaledValue), dateFormatString ?? dateFormat);
+  return getDisplayValue({
+    value,
+    questionType,
+    scaling,
+    precision,
+    truncation,
+    range,
+  });
 }
 
 export function getQuestionDateFormatString(scaling: Scaling) {
@@ -482,13 +468,19 @@ export function getChoiceOptionValue(
   }
 }
 
-export function getUserPredictionDisplayValue(
-  myForecasts: UserForecastHistory,
-  timestamp: number | null | undefined,
-  questionType: Question | QuestionType,
-  scaling?: Scaling,
-  showRange?: boolean
-): string {
+export function getUserPredictionDisplayValue({
+  myForecasts,
+  timestamp,
+  questionType,
+  scaling,
+  showRange,
+}: {
+  myForecasts: UserForecastHistory;
+  timestamp: number | null | undefined;
+  questionType: Question | QuestionType;
+  scaling?: Scaling;
+  showRange?: boolean;
+}): string {
   if (!timestamp) {
     return "...";
   }
@@ -546,14 +538,14 @@ export function getUserPredictionDisplayValue(
     : null;
 
   if (questionType === QuestionType.Date) {
-    const displayCenter = getTableDisplayValue({
+    const displayCenter = getDisplayValue({
       value: center,
       questionType,
       scaling: scaling ?? { range_min: 0, range_max: 1, zero_point: null },
     });
     if (showRange) {
       const displayLower = !isNil(lower)
-        ? getTableDisplayValue({
+        ? getDisplayValue({
             value: lower,
             questionType,
             scaling: scaling ?? {
@@ -564,7 +556,7 @@ export function getUserPredictionDisplayValue(
           })
         : "...";
       const displayUpper = !isNil(upper)
-        ? getTableDisplayValue({
+        ? getDisplayValue({
             value: upper,
             questionType,
             scaling: scaling ?? {
@@ -695,7 +687,7 @@ export function generateScale({
         const unscaled = unscaleNominalLocation(x, domainScaling);
 
         return (
-          getTableDisplayValue({
+          getDisplayValue({
             value: unscaled,
             questionType: displayType as QuestionType,
             scaling: rangeScaling,
@@ -977,12 +969,12 @@ export function generateChoiceItemsFromGroupQuestions(
       active: true,
       resolution: question.resolution,
       displayedResolution: !isNil(question.resolution)
-        ? formatResolution(
-            question.resolution,
-            question.type,
-            locale ?? "en",
-            question.scaling
-          )
+        ? formatResolution({
+            resolution: question.resolution,
+            questionType: question.type,
+            locale: locale ?? "en",
+            scaling: question.scaling,
+          })
         : null,
       closeTime,
       rangeMin: question.scaling.range_min ?? 0,

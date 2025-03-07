@@ -201,14 +201,18 @@ function getQuestionTooltipLabel(
   }
 
   if (qType === QuestionType.Binary) {
-    return displayValue(cursorValue, qType);
+    return displayValue({ value: cursorValue, questionType: qType });
   } else {
     const scaledValue = scaleInternalLocation(cursorValue, {
       range_min: scaling?.range_min ?? 0,
       range_max: scaling?.range_max ?? 1,
       zero_point: scaling?.zero_point ?? null,
     });
-    return displayValue(scaledValue, qType ?? QuestionType.Numeric);
+    return displayValue({
+      value: scaledValue,
+      questionType: qType ?? QuestionType.Numeric,
+      scaling,
+    });
   }
 }
 

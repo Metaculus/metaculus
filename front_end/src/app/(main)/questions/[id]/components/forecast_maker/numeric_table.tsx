@@ -257,7 +257,10 @@ const NumericForecastTable: FC<Props> = ({
               <tr>
                 <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
                   {"<"}
-                  {displayValue(question.scaling.range_min, question.type)}
+                  {displayValue({
+                    value: question.scaling.range_min,
+                    questionType: question.type,
+                  })}
                 </Td>
                 {withCommunityQuartiles && (
                   <Td className="text-olive-800 dark:text-olive-800-dark">
@@ -436,7 +439,10 @@ const NumericForecastTable: FC<Props> = ({
               <tr>
                 <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
                   {">"}
-                  {displayValue(question.scaling.range_max, question.type)}
+                  {displayValue({
+                    value: question.scaling.range_max,
+                    questionType: question.type,
+                  })}
                 </Td>
                 {withCommunityQuartiles && (
                   <Td className="text-olive-800 dark:text-olive-800-dark">

@@ -33,12 +33,12 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   const locale = useLocale();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { question, name: title, isDirty, resolution } = option;
-  const formatedResolution = formatResolution(
+  const formatedResolution = formatResolution({
     resolution,
-    question.type,
+    questionType: question.type,
     locale,
-    question.scaling
-  );
+    scaling: question.scaling,
+  });
   const isResolvedOption = type === QuestionStatus.RESOLVED;
   const latest = question.aggregations.recency_weighted.latest;
   const optionForecast = option.userForecast
