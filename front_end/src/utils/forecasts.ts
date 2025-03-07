@@ -17,6 +17,7 @@ import {
   computeQuartilesFromCDF,
 } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+
 import { getQuestionDateFormatString } from "./charts";
 
 export function getForecastPctDisplayValue(
