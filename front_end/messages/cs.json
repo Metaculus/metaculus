@@ -1106,5 +1106,8 @@
   "commentUnpinned": "Komentář odepnout",
   "closedForForecasting": "Uzavřeno pro predikování",
   "markdownHelp": "Nápověda pro Markdown",
-  "sourceMode": "Režim zdroje"
+  "sourceMode": "Režim zdroje",
+  "reject": "Zamítnout",
+  "sendBackToReview": "Vrátit k posouzení",
+  "deleteRejectPostDescription": "Opravdu chcete {destructiveAction} tuto otázku?"
 }

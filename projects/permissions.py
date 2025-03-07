@@ -118,7 +118,7 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         return can
 
     @classmethod
-    def can_approve(cls, permission: Self, raise_exception=False):
+    def can_approve_or_reject(cls, permission: Self, raise_exception=False):
         can = permission in (cls.CURATOR, cls.ADMIN)
 
         if raise_exception and not can:

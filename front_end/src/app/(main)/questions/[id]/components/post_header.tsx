@@ -19,6 +19,7 @@ import { TournamentType } from "@/types/projects";
 import cn from "@/utils/cn";
 
 import PostApprovalModal from "./post_approval_modal";
+import PostDestructiveActionModal from "./post_destructive_action_modal";
 import { draftPost, submitPostForReview } from "../../actions";
 
 export default function PostHeader({
@@ -99,6 +100,13 @@ export const PostStatusBox: FC<{
   const [approvalModalOpen, setIsApprovalModalOpen] = useState(false);
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
+  const [confirmModalOpen, setConfirmModalOpen] = useState<{
+    type?: "reject" | "delete";
+    open: boolean;
+  }>({
+    open: false,
+  });
+
   if (![PostStatus.PENDING, PostStatus.DRAFT].includes(post.curation_status)) {
     return null;
   }
@@ -117,10 +125,11 @@ export const PostStatusBox: FC<{
     post.curation_status === PostStatus.PENDING && canEdit;
   const canSubmitForReview =
     post.curation_status === PostStatus.DRAFT && canEdit;
-  const canApprove = [
-    ProjectPermissions.CURATOR,
-    ProjectPermissions.ADMIN,
-  ].includes(post.user_permission);
+  const canApproveOrReject =
+    post.curation_status === PostStatus.PENDING &&
+    [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+      post.user_permission
+    );
 
   return (
     <>
@@ -206,6 +215,34 @@ export const PostStatusBox: FC<{
               {t("submitForReview")}
             </Button>
           )}
+
+          {canApproveOrReject && (
+            <Button
+              onClick={() => {
+                setConfirmModalOpen({
+                  type: "reject",
+                  open: true,
+                });
+              }}
+              className="capitalize"
+            >
+              {t("reject")}
+            </Button>
+          )}
+
+          {canEdit && (
+            <Button
+              onClick={() => {
+                setConfirmModalOpen({
+                  type: "delete",
+                  open: true,
+                });
+              }}
+            >
+              {t("delete")}
+            </Button>
+          )}
+
           {canSendBackToDrafts && (
             <Button
               onClick={async () => {
@@ -215,7 +252,7 @@ export const PostStatusBox: FC<{
               {t("sendBackToDrafts")}
             </Button>
           )}
-          {canApprove && (
+          {canApproveOrReject && (
             <Button
               onClick={async () => {
                 setIsApprovalModalOpen(true);
@@ -227,6 +264,17 @@ export const PostStatusBox: FC<{
           )}
         </div>
       </div>
+      <PostDestructiveActionModal
+        isOpen={confirmModalOpen.open}
+        post={post}
+        destructiveAction={confirmModalOpen.type ?? "reject"}
+        onClose={() =>
+          setConfirmModalOpen({ ...confirmModalOpen, open: false })
+        }
+        onActionComplete={() => {
+          router.refresh();
+        }}
+      />
       <PostApprovalModal
         isOpen={approvalModalOpen}
         post={post}
