@@ -20,7 +20,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { displayValue, getDisplayValue } from "@/utils/charts";
+import { getDisplayValue, unscaleNominalLocation } from "@/utils/charts";
 import cn from "@/utils/cn";
 import { formatResolution } from "@/utils/questions";
 
@@ -280,7 +280,14 @@ function getTooltipItems({
 
   if (question.open_lower_bound) {
     tooltipItems.unshift({
-      choiceLabel: `< ${displayValue(question.scaling.range_min, question.type)}`,
+      choiceLabel: `< ${getDisplayValue({
+        value: unscaleNominalLocation(
+          question.scaling.range_min ?? 0,
+          question.scaling
+        ),
+        questionType: question.type,
+        scaling: question.scaling,
+      })}`,
       valueElement: getBoundsLabel({
         t,
         value: bounds?.belowLower,
@@ -292,7 +299,14 @@ function getTooltipItems({
 
   if (question.open_upper_bound) {
     tooltipItems.push({
-      choiceLabel: `> ${displayValue(question.scaling.range_max, question.type)}`,
+      choiceLabel: `> ${getDisplayValue({
+        value: unscaleNominalLocation(
+          question.scaling.range_max ?? 1,
+          question.scaling
+        ),
+        questionType: question.type,
+        scaling: question.scaling,
+      })}`,
       valueElement: getBoundsLabel({
         t,
         value: bounds?.aboveUpper,
