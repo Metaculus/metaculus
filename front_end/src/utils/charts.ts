@@ -359,12 +359,14 @@ export function getDisplayValue({
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
-  const centerDisplay = displayValue(
-    scaledValue,
-    questionType,
-    precision,
-    truncation
-  );
+  const centerDisplay =
+    questionType === QuestionType.Date
+      ? getTableDisplayValue({
+          value,
+          questionType,
+          scaling,
+        })
+      : displayValue(scaledValue, questionType, precision, truncation);
   if (range) {
     const lowerX = range[0];
     const upperX = range[1];
@@ -373,20 +375,24 @@ export function getDisplayValue({
     }
 
     const scaledLower = scaleInternalLocation(lowerX, scaling);
-    const lowerDisplay = displayValue(
-      scaledLower,
-      questionType,
-      precision,
-      truncation
-    );
+    const lowerDisplay =
+      questionType === QuestionType.Date
+        ? getTableDisplayValue({
+            value: lowerX,
+            questionType,
+            scaling,
+          })
+        : displayValue(scaledLower, questionType, precision, truncation);
     const scaledUpper = scaleInternalLocation(upperX, scaling);
-    const upperDisplay = displayValue(
-      scaledUpper,
-      questionType,
-      precision,
-      truncation
-    );
-    return `${centerDisplay} (${lowerDisplay} - ${upperDisplay})`;
+    const upperDisplay =
+      questionType === QuestionType.Date
+        ? getTableDisplayValue({
+            value: upperX,
+            questionType,
+            scaling,
+          })
+        : displayValue(scaledUpper, questionType, precision, truncation);
+    return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }
   return centerDisplay;
 }
@@ -398,6 +404,7 @@ export function getTableDisplayValue({
   precision,
   truncation,
   range,
+  dateFormatString,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -405,6 +412,7 @@ export function getTableDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
+  dateFormatString?: string;
 }) {
   if (isNil(value)) {
     return "...";
@@ -421,9 +429,16 @@ export function getTableDisplayValue({
     });
   }
 
-  let dateFormat: string = "dd MMM yyyy HH:mm";
-  if (!isNil(scaling.range_min) && !isNil(scaling.range_max)) {
-    const diffInSeconds = scaling.range_max - scaling.range_min;
+  const dateFormat = getQuestionDateFormatString(scaling);
+  const scaledValue = scaleInternalLocation(value, scaling);
+  return format(fromUnixTime(scaledValue), dateFormatString ?? dateFormat);
+}
+
+export function getQuestionDateFormatString(scaling: Scaling) {
+  const { range_min, range_max } = scaling;
+  let dateFormat = "dd MMM yyyy HH:mm";
+  if (!isNil(range_min) && !isNil(range_max)) {
+    const diffInSeconds = range_max - range_min;
     const oneWeek = 7 * 24 * 60 * 60;
     const oneYear = 365.25 * 24 * 60 * 60;
 
@@ -437,9 +452,7 @@ export function getTableDisplayValue({
       dateFormat = "yyyy";
     }
   }
-
-  const scaledValue = scaleInternalLocation(value, scaling);
-  return format(fromUnixTime(scaledValue), dateFormat);
+  return dateFormat;
 }
 
 export function getChoiceOptionValue(
@@ -533,16 +546,37 @@ export function getUserPredictionDisplayValue(
     : null;
 
   if (questionType === QuestionType.Date) {
-    const displayCenter = format(fromUnixTime(scaledCenter), "yyyy-MM-dd");
+    const displayCenter = getTableDisplayValue({
+      value: center,
+      questionType,
+      scaling: scaling ?? { range_min: 0, range_max: 1, zero_point: null },
+    });
     if (showRange) {
-      const displayLower = !isNil(scaledLower)
-        ? format(fromUnixTime(scaledLower), "yyyy-MM-dd")
+      const displayLower = !isNil(lower)
+        ? getTableDisplayValue({
+            value: lower,
+            questionType,
+            scaling: scaling ?? {
+              range_min: 0,
+              range_max: 1,
+              zero_point: null,
+            },
+          })
         : "...";
-      const displayUpper = !isNil(scaledUpper)
-        ? format(fromUnixTime(scaledUpper), "yyyy-MM-dd")
+      const displayUpper = !isNil(upper)
+        ? getTableDisplayValue({
+            value: upper,
+            questionType,
+            scaling: scaling ?? {
+              range_min: 0,
+              range_max: 1,
+              zero_point: null,
+            },
+          })
         : "...";
-      return `${displayCenter} (${displayLower} - ${displayUpper})`;
+      return `${displayCenter}\n(${displayLower} - ${displayUpper})`;
     }
+
     return displayCenter;
   } else if (questionType === QuestionType.Numeric) {
     const displayCenter = abbreviatedNumber(scaledCenter);
@@ -553,7 +587,7 @@ export function getUserPredictionDisplayValue(
       const displayUpper = !isNil(scaledUpper)
         ? abbreviatedNumber(scaledUpper)
         : "...";
-      return `${displayCenter} (${displayLower} - ${displayUpper})`;
+      return `${displayCenter}\n(${displayLower} - ${displayUpper})`;
     }
     return displayCenter;
   } else {
@@ -641,20 +675,6 @@ export function generateScale({
   }
   const tickCount = (maxLabelCount - 1) * 5 + 1;
 
-  // console.log({
-  //   displayType,
-  //   axisLength,
-  //   domain,
-  //   scaling,
-  //   displayLabel,
-  //   withCursorFormat,
-  //   cursorDisplayLabel,
-  //   maxLabelCount,
-  //   tickCount,
-  //   domainScaling,
-  //   rangeScaling,
-  // });
-
   const tickInterval = zoomedDomainMax / (tickCount - 1);
   const labeledTickInterval = zoomedDomainMax / (maxLabelCount - 1);
   const majorTicks: number[] = range(
@@ -673,12 +693,14 @@ export function generateScale({
     tickFormat: (x) => {
       if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
         const unscaled = unscaleNominalLocation(x, domainScaling);
+
         return (
-          getDisplayValue({
+          getTableDisplayValue({
             value: unscaled,
             questionType: displayType as QuestionType,
             scaling: rangeScaling,
             precision: 3,
+            dateFormatString: "dd MMM yyyy",
           }) + displayLabel
         );
       }

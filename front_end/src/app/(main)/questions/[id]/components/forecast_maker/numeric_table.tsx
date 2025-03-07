@@ -49,7 +49,12 @@ const NumericForecastTable: FC<Props> = ({
                 {question.open_lower_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
                     {"<"}
-                    {displayValue(question.scaling.range_min, question.type)}
+                    {getTableDisplayValue({
+                      value: 0,
+                      questionType: question.type,
+                      scaling: question.scaling,
+                      precision: 4,
+                    })}
                   </Td>
                 )}
                 <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
@@ -64,7 +69,12 @@ const NumericForecastTable: FC<Props> = ({
                 {question.open_upper_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
                     {">"}
-                    {displayValue(question.scaling.range_max, question.type)}
+                    {getTableDisplayValue({
+                      value: 1,
+                      questionType: question.type,
+                      scaling: question.scaling,
+                      precision: 4,
+                    })}
                   </Td>
                 )}
               </>

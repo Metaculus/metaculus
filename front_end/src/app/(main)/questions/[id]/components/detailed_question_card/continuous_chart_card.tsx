@@ -102,7 +102,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       return "...";
     }
 
-    return getDisplayValue({
+    const displayValue = getDisplayValue({
       value: cursorData?.center,
       questionType: question.type,
       scaling: question.scaling,
@@ -114,7 +114,15 @@ const DetailedContinuousChartCard: FC<Props> = ({
               cursorData?.interval_upper_bound as number,
             ]
           : [],
-    });
+    }).split("\n");
+    return (
+      <>
+        <div>{displayValue[0]}</div>
+        {!isNil(displayValue[1]) && (
+          <div className="text-xs font-medium">{displayValue[1]}</div>
+        )}
+      </>
+    );
   }, [
     t,
     cursorData,
@@ -122,6 +130,32 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.scaling,
     question.type,
     hideCP,
+  ]);
+
+  const userCursorElement = useMemo(() => {
+    if (!question.my_forecasts?.history.length) {
+      return null;
+    }
+    const userDisplayValue = getUserPredictionDisplayValue(
+      question.my_forecasts,
+      cursorData.timestamp,
+      question.type,
+      question.scaling,
+      true
+    ).split("\n");
+    return (
+      <>
+        <div>{userDisplayValue[0]}</div>
+        {!isNil(userDisplayValue[1]) && (
+          <div className="text-xs font-medium">{userDisplayValue[1]}</div>
+        )}
+      </>
+    );
+  }, [
+    question.my_forecasts,
+    cursorData.timestamp,
+    question.type,
+    question.scaling,
   ]);
 
   const handleCursorChange = useCallback((value: number | null) => {
@@ -176,7 +210,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       </div>
       <div
         className={cn(
-          "my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
+          "my-3 flex flex-col items-center justify-center gap-x-4 gap-y-2 xs:flex-row xs:flex-wrap xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
           { "sm:grid-cols-3": !!question.my_forecasts?.history.length }
         )}
       >
@@ -192,13 +226,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         {!!question.my_forecasts?.history.length && (
           <CursorDetailItem
             title={t("myPrediction")}
-            content={getUserPredictionDisplayValue(
-              question.my_forecasts,
-              cursorData.timestamp,
-              question.type,
-              question.scaling,
-              true
-            )}
+            content={userCursorElement}
             variant="my-prediction"
           />
         )}
