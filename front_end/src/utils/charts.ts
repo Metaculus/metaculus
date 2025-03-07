@@ -475,7 +475,7 @@ export function getChoiceOptionValue(
     case QuestionType.Numeric:
       return getForecastNumericDisplayValue(scaledValue);
     case QuestionType.Date:
-      return getForecastDateDisplayValue(scaledValue);
+      return getForecastDateDisplayValue(scaledValue, scaling);
     case QuestionType.Binary:
     default:
       return getForecastPctDisplayValue(value);
@@ -976,8 +976,13 @@ export function generateChoiceItemsFromGroupQuestions(
       highlighted: false,
       active: true,
       resolution: question.resolution,
-      displayedResolution: !!question.resolution
-        ? formatResolution(question.resolution, question.type, locale ?? "en")
+      displayedResolution: !isNil(question.resolution)
+        ? formatResolution(
+            question.resolution,
+            question.type,
+            locale ?? "en",
+            question.scaling
+          )
         : null,
       closeTime,
       rangeMin: question.scaling.range_min ?? 0,

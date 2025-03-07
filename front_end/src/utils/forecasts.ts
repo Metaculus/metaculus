@@ -9,6 +9,7 @@ import {
   DistributionSliderComponent,
   QuestionType,
   QuestionWithForecasts,
+  Scaling,
 } from "@/types/question";
 import {
   cdfFromSliders,
@@ -16,6 +17,7 @@ import {
   computeQuartilesFromCDF,
 } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { getQuestionDateFormatString } from "./charts";
 
 export function getForecastPctDisplayValue(
   value: number | string | null | undefined
@@ -30,13 +32,17 @@ export function getForecastNumericDisplayValue(value: number | string) {
   return abbreviatedNumber(value);
 }
 
-export function getForecastDateDisplayValue(value: number) {
-  return format(fromUnixTime(value), "d MMM yyyy");
+export function getForecastDateDisplayValue(value: number, scaling?: Scaling) {
+  return format(
+    fromUnixTime(value),
+    scaling ? getQuestionDateFormatString(scaling) : "d MMM yyyy"
+  );
 }
 
 export function formatPrediction(
   prediction: number,
-  questionType: QuestionType
+  questionType: QuestionType,
+  scaling?: Scaling
 ) {
   switch (questionType) {
     case QuestionType.Numeric:
@@ -44,7 +50,7 @@ export function formatPrediction(
     case QuestionType.Binary:
       return getForecastPctDisplayValue(prediction);
     case QuestionType.Date:
-      return getForecastDateDisplayValue(prediction);
+      return getForecastDateDisplayValue(prediction, scaling);
     default:
       return prediction.toString();
   }

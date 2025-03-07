@@ -111,7 +111,8 @@ const QuestionResolutionText = ({
   const formattedResolution = formatResolution(
     question.resolution,
     question.type,
-    locale
+    locale,
+    question.scaling
   );
 
   return (

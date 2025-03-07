@@ -213,7 +213,8 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
                   {formatResolution(
                     option.resolution,
                     option.question.type,
-                    locale
+                    locale,
+                    option.question.scaling
                   )}
                 </strong>
               </p>
