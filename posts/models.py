@@ -465,7 +465,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     curation_status_updated_at = models.DateTimeField(null=True, blank=True)
 
     title = models.CharField(max_length=2000, blank=True)
-    url_title = models.CharField(max_length=2000, default="", blank=True)
+
+    short_title = models.CharField(max_length=2000, default="", blank=True)
     author = models.ForeignKey(
         User, models.CASCADE, related_name="posts"
     )  # are we sure we want this?
@@ -506,6 +507,15 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # Whether we should display Post/Notebook on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
+
+    url_title = models.CharField(
+        max_length=2000, default="", blank=True, editable=False
+    )
+    url_title.system_check_deprecated_details = dict(
+        msg="The Post.url_title field has been renamed to url_title and will be removed in future releases",
+        hint="User Post.url_title instead",
+        id="Post.url_title",
+    )
 
     def set_scheduled_close_time(self):
         if self.question:
@@ -734,8 +744,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     def get_comment_count(self) -> int:
         return self.comments.filter(is_private=False).count()
 
-    def get_url_title(self):
-        return self.url_title or self.title
+    def get_short_title(self):
+        return self.short_title or self.title
 
     def clean_fields(self, exclude=None):
         """

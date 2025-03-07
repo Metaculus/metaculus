@@ -54,7 +54,7 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
     try {
       const base64 = await getPostZipData(post.id);
       const blob = base64ToBlob(base64);
-      const filename = `${post.url_title.replaceAll(" ", "_")}.zip`;
+      const filename = `${post.short_title.replaceAll(" ", "_")}.zip`;
       saveAs(blob, filename);
     } catch (error) {
       toast.error(t("downloadQuestionDataError") + error);
