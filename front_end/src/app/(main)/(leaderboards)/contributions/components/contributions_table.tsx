@@ -257,7 +257,7 @@ const ContributionsTable: FC<Props> = ({
                   <MarkdownEditor
                     mode="read"
                     markdown={getMarkdownSummary({
-                      markdown: contribution.comment_text as string,
+                      markdown: contribution.comment_text ?? "",
                       width,
                       height: 30,
                       charWidth: 6,
