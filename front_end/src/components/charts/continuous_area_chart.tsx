@@ -176,11 +176,18 @@ const ContinuousAreaChart: FC<Props> = ({
         <LineCursorPoints
           chartData={charts.map((chart) => ({
             line: chart.graphLine,
-            color: getThemeColor(
-              chart.color === "orange"
-                ? METAC_COLORS.orange[chart.type === "user" ? "800" : "500"]
-                : METAC_COLORS.olive["700"]
-            ),
+            color: (() => {
+              switch (chart.color) {
+                case "orange":
+                  return getThemeColor(
+                    METAC_COLORS.orange[chart.type === "user" ? "800" : "500"]
+                  );
+                case "gray":
+                  return getThemeColor(METAC_COLORS.gray["500"]);
+                default:
+                  return getThemeColor(METAC_COLORS.olive["700"]);
+              }
+            })(),
             type: chart.type,
           }))}
           yDomain={yDomain}
@@ -296,16 +303,22 @@ const ContinuousAreaChart: FC<Props> = ({
               data={chart.graphLine}
               style={{
                 data: {
-                  stroke:
-                    chart.color === "orange"
-                      ? getThemeColor(
+                  stroke: (() => {
+                    switch (chart.color) {
+                      case "orange":
+                        return getThemeColor(
                           METAC_COLORS.orange[
                             chart.type === "user" ? "800" : "500"
                           ]
-                        )
-                      : chart.color === "green"
-                        ? getThemeColor(METAC_COLORS.olive["500"])
-                        : undefined,
+                        );
+                      case "green":
+                        return getThemeColor(METAC_COLORS.olive["500"]);
+                      case "gray":
+                        return getThemeColor(METAC_COLORS.gray["500"]);
+                      default:
+                        return undefined;
+                    }
+                  })(),
                   strokeDasharray: chart.color === "orange" ? "2,2" : undefined,
                 },
               }}
@@ -357,10 +370,16 @@ const ContinuousAreaChart: FC<Props> = ({
                 ]}
                 style={{
                   data: {
-                    stroke:
-                      chart.color === "orange"
-                        ? getThemeColor(METAC_COLORS.orange["800"])
-                        : undefined,
+                    stroke: (() => {
+                      switch (chart.color) {
+                        case "orange":
+                          return getThemeColor(METAC_COLORS.orange["800"]);
+                        case "gray":
+                          return getThemeColor(METAC_COLORS.gray["500"]);
+                        default:
+                          return undefined;
+                      }
+                    })(),
                     strokeDasharray: "2,1",
                   },
                 }}
