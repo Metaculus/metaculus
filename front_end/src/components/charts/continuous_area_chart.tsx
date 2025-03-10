@@ -247,13 +247,8 @@ const ContinuousAreaChart: FC<Props> = ({
     const svg = chartContainerRef.current?.firstChild as SVGElement;
     if (!svg) return;
 
-    if (svg.dataset.cleanup) {
-      svg.removeEventListener("mousemove", handleMouseMove);
-      svg.removeEventListener("mouseleave", handleMouseLeave);
-    }
     svg.addEventListener("mousemove", handleMouseMove);
     svg.addEventListener("mouseleave", handleMouseLeave);
-    svg.dataset.cleanup = "true";
 
     return () => {
       svg.removeEventListener("mousemove", handleMouseMove);
