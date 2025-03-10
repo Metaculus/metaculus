@@ -70,12 +70,19 @@ export function extractPostResolution(post: Post): Resolution | null {
   return null;
 }
 
-export function getMarkdownSummary(
-  markdown: string,
-  width: number,
-  height: number,
-  charWidth?: number
-) {
+export function getMarkdownSummary({
+  markdown,
+  width,
+  height,
+  charWidth,
+  withLinks = true,
+}: {
+  markdown: string;
+  width: number;
+  height: number;
+  charWidth?: number;
+  withLinks?: boolean;
+}) {
   const approxCharWidth = charWidth ?? 8;
   const approxLineHeight = 20;
   const charsPerLine = Math.floor(width / approxCharWidth);
@@ -83,7 +90,7 @@ export function getMarkdownSummary(
   const maxChars = charsPerLine * maxLines;
 
   const file = remark()
-    .use(strip, { keep: ["link"] })
+    .use(strip, { keep: withLinks ? ["link"] : [] })
     .processSync(markdown);
 
   markdown = String(file).split("\n").join(" ");
