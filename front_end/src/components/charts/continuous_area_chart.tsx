@@ -1,6 +1,6 @@
 "use client";
 import { isNil, merge } from "lodash";
-import React, { FC, useMemo } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Tuple,
   VictoryArea,
@@ -52,6 +52,8 @@ export type ContinuousAreaGraphInput = Array<{
 const TOP_PADDING = 10;
 const BOTTOM_PADDING = 20;
 const HORIZONTAL_PADDING = 10;
+const CURSOR_POINT_OFFSET = 5;
+const CURSOR_CHART_EXTENSION = 10;
 
 type Props = {
   scaling: Scaling;
@@ -83,7 +85,7 @@ const ContinuousAreaChart: FC<Props> = ({
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
-
+  const [cursorEdge, setCursorEdge] = useState<number | null>(null);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -149,7 +151,7 @@ const ContinuousAreaChart: FC<Props> = ({
         direction: "vertical",
         domain: yDomain,
       }),
-    [height, yDomain]
+    [height, yDomain, paddingTop]
   );
 
   const resolutionPoint = !isNil(resolution)
@@ -164,6 +166,101 @@ const ContinuousAreaChart: FC<Props> = ({
   // TODO: find a nice way to display the out of bounds weights as numbers
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
+  const leftPadding = useMemo(() => {
+    if (graphType === "cdf") {
+      const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
+      const longestLabelLength = Math.max(
+        ...labels.map((label) => label.length)
+      );
+      const longestLabelWidth = longestLabelLength * 9;
+
+      return HORIZONTAL_PADDING + longestLabelWidth;
+    }
+
+    return HORIZONTAL_PADDING;
+  }, [graphType, yScale]);
+
+  const handleMouseLeave = useCallback(() => {
+    onCursorChange?.(null);
+    setCursorEdge(null);
+  }, [onCursorChange]);
+
+  const handleMouseMove = useCallback(
+    (evt: MouseEvent) => {
+      const svg = chartContainerRef.current?.firstChild as SVGElement;
+      if (!svg) return;
+      setCursorEdge(null);
+      const bounds = svg.getBoundingClientRect();
+      const chartLeft = bounds.left + leftPadding;
+      const chartRight = bounds.right - HORIZONTAL_PADDING;
+
+      // Used to handle cursor display when hovering chart edges
+      if (
+        (evt.clientX >= chartLeft - CURSOR_CHART_EXTENSION &&
+          evt.clientX <= chartLeft) ||
+        (evt.clientX <= chartRight + CURSOR_CHART_EXTENSION &&
+          evt.clientX >= chartRight)
+      ) {
+        let normalizedX: number | undefined;
+
+        if (evt.clientX < chartLeft) {
+          normalizedX = 0;
+        } else if (evt.clientX > chartRight) {
+          normalizedX = graphType === "cdf" ? 0.9999 : 1;
+        }
+        if (normalizedX !== undefined) {
+          setCursorEdge(normalizedX);
+          normalizedX = Math.max(0, Math.min(1, normalizedX));
+          const hoverState = charts.reduce<ContinuousAreaHoverState>(
+            (acc, el) => {
+              if (el.graphType === "pmf") {
+                acc.yData[el.type] = getClosestYValue(
+                  normalizedX as number,
+                  el.graphLine
+                );
+                return acc;
+              }
+
+              acc.yData[el.type] = interpolateYValue(
+                normalizedX as number,
+                el.graphLine
+              );
+              return acc;
+            },
+            {
+              x: normalizedX > 0 ? 1 : 0,
+              yData: {
+                community: 0,
+                user: 0,
+                user_previous: 0,
+                community_closed: 0,
+              },
+            }
+          );
+          onCursorChange?.(hoverState);
+        }
+      }
+    },
+    [charts, onCursorChange, chartContainerRef, leftPadding, graphType]
+  );
+  useEffect(() => {
+    const svg = chartContainerRef.current?.firstChild as SVGElement;
+    if (!svg) return;
+
+    if (svg.dataset.cleanup) {
+      svg.removeEventListener("mousemove", handleMouseMove);
+      svg.removeEventListener("mouseleave", handleMouseLeave);
+    }
+    svg.addEventListener("mousemove", handleMouseMove);
+    svg.addEventListener("mouseleave", handleMouseLeave);
+    svg.dataset.cleanup = "true";
+
+    return () => {
+      svg.removeEventListener("mousemove", handleMouseMove);
+      svg.removeEventListener("mouseleave", handleMouseLeave);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartContainerRef.current, handleMouseMove, handleMouseLeave]);
 
   const CursorContainer = (
     <VictoryCursorContainer
@@ -229,19 +326,6 @@ const ContinuousAreaChart: FC<Props> = ({
     />
   );
 
-  const leftPadding = useMemo(() => {
-    if (graphType === "cdf") {
-      const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
-      const longestLabelLength = Math.max(
-        ...labels.map((label) => label.length)
-      );
-      const longestLabelWidth = longestLabelLength * 9;
-
-      return HORIZONTAL_PADDING + longestLabelWidth;
-    }
-
-    return HORIZONTAL_PADDING;
-  }, [graphType, yScale]);
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
       {!!chartWidth && (
@@ -385,6 +469,33 @@ const ContinuousAreaChart: FC<Props> = ({
                 }}
               />
             ))
+          )}
+          {/* Manually render cursor component when cursor is on edge */}
+          {!isNil(cursorEdge) && (
+            <LineCursorPoints
+              x={
+                cursorEdge === 0
+                  ? leftPadding + CURSOR_POINT_OFFSET
+                  : chartWidth - CURSOR_POINT_OFFSET
+              }
+              datum={{
+                x: cursorEdge,
+                y: 0,
+              }}
+              chartData={charts.map((chart) => ({
+                line: chart.graphLine,
+                color: getThemeColor(
+                  chart.color === "orange"
+                    ? METAC_COLORS.orange[chart.type === "user" ? "800" : "500"]
+                    : METAC_COLORS.olive["700"]
+                ),
+                type: chart.type,
+              }))}
+              chartHeight={height}
+              yDomain={yDomain}
+              paddingBottom={BOTTOM_PADDING}
+              paddingTop={paddingTop}
+            />
           )}
         </VictoryChart>
       )}
