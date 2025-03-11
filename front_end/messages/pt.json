@@ -1107,5 +1107,7 @@
   "sourceMode": "Modo de origem",
   "reject": "Rejeitar",
   "sendBackToReview": "Enviar de volta para revisão",
-  "deleteRejectPostDescription": "Tem certeza de que deseja {destructiveAction} esta pergunta?"
+  "deleteRejectPostDescription": "Tem certeza de que deseja {destructiveAction} esta pergunta?",
+  "forecastRevealed": "Previsão revelada",
+  "closedForForecastingDescription": "Esta pergunta está fechada para previsões. A última previsão da Comunidade está exibida."
 }

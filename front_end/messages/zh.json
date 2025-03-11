@@ -1111,5 +1111,7 @@
   "sourceMode": "源模式",
   "reject": "拒绝",
   "sendBackToReview": "退回审核",
-  "deleteRejectPostDescription": "您确定要{destructiveAction}这个问题吗？"
+  "deleteRejectPostDescription": "您确定要{destructiveAction}这个问题吗？",
+  "forecastRevealed": "预测已揭示",
+  "closedForForecastingDescription": "此问题已关闭预测。显示的是最新的社区预测。"
 }

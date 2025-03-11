@@ -1109,5 +1109,7 @@
   "sourceMode": "Režim zdroje",
   "reject": "Zamítnout",
   "sendBackToReview": "Vrátit k posouzení",
-  "deleteRejectPostDescription": "Opravdu chcete {destructiveAction} tuto otázku?"
+  "deleteRejectPostDescription": "Opravdu chcete {destructiveAction} tuto otázku?",
+  "forecastRevealed": "Předpověď odhalena",
+  "closedForForecastingDescription": "Tato otázka je uzavřena pro předpovídání. Zobrazuje se poslední předpověď komunity."
 }
