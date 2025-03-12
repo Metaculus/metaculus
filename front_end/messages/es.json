@@ -1109,5 +1109,7 @@
   "sourceMode": "Modo fuente",
   "reject": "Rechazar",
   "sendBackToReview": "Enviar de nuevo a revisión",
-  "deleteRejectPostDescription": "¿Estás seguro de que quieres {destructiveAction} esta pregunta?"
+  "deleteRejectPostDescription": "¿Estás seguro de que quieres {destructiveAction} esta pregunta?",
+  "forecastRevealed": "Pronóstico revelado",
+  "closedForForecastingDescription": "Esta pregunta está cerrada para pronósticos. Se muestra la última predicción de la comunidad."
 }

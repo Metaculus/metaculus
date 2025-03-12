@@ -1,4 +1,5 @@
 "use client";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, useState } from "react";
 
 import HideCPProvider from "@/app/(main)/questions/[id]/components/cp_provider";
@@ -7,6 +8,7 @@ import NotebookTile from "@/components/post_card/notebook_tile";
 import { CardReaffirmContextProvider } from "@/components/post_card/reaffirm_context";
 import { useAuth } from "@/contexts/auth_context";
 import { PostStatus, PostWithForecasts } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import {
   canPredictQuestion,
   isConditionalPost,
@@ -16,6 +18,7 @@ import {
 } from "@/utils/questions";
 
 import BasicPostCard from "./basic_post_card";
+import ConsumerPostCard from "./consumer_post_card";
 import PostCardErrorBoundary from "./error_boundary";
 import GroupOfQuestionsTile from "./group_of_questions_tile";
 import QuestionChartTile from "./question_chart_tile";
@@ -29,10 +32,20 @@ const PostCard: FC<Props> = ({ post }) => {
   const hideCP =
     user?.hide_community_prediction &&
     ![PostStatus.CLOSED, PostStatus.RESOLVED].includes(post.status);
+  const isConsumerViewEnabled = useFeatureFlagEnabled("consumerView");
 
   const [internalPost, setInternalPost] = useState<PostWithForecasts>(post);
 
   const canPredict = canPredictQuestion(internalPost);
+
+  // TODO: adjust condition for other post types when ready
+  if (
+    isConsumerViewEnabled &&
+    post.question &&
+    post.question.type === QuestionType.Date
+  ) {
+    return <ConsumerPostCard post={internalPost} />;
+  }
 
   return (
     <CardReaffirmContextProvider

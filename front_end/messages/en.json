@@ -1106,5 +1106,7 @@
   "markdownHelp": "Markdown help",
   "sourceMode": "Source mode",
   "deleteRejectPostDescription": "Are you sure you want to {destructiveAction} this question?",
-  "sendBackToReview": "Send back to review"
+  "sendBackToReview": "Send back to review",
+  "forecastRevealed": "Forecast revealed",
+  "closedForForecastingDescription": "This question is closed for forecasting. Latest Community prediction is displayed."
 }

@@ -12,10 +12,11 @@ import {
 } from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
-import { usePublicSettings } from "@/contexts/public_settings_context";
+import { getPublicSetting } from "@/components/public_settings_script";
 
 export function CSPostHogProvider({ children }: { children: ReactNode }) {
-  const { PUBLIC_POSTHOG_KEY, PUBLIC_POSTHOG_BASE_URL } = usePublicSettings();
+  const PUBLIC_POSTHOG_KEY = getPublicSetting("PUBLIC_POSTHOG_KEY");
+  const PUBLIC_POSTHOG_BASE_URL = getPublicSetting("PUBLIC_POSTHOG_BASE_URL");
 
   useEffect(() => {
     if (PUBLIC_POSTHOG_KEY) {
