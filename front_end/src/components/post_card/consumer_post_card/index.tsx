@@ -3,7 +3,6 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { QuestionType } from "@/types/question";
 import cn from "@/utils/cn";
 import { getPostLink } from "@/utils/navigation";
 import {
@@ -15,7 +14,6 @@ import {
 
 import ConsumerKeyFactor from "./key_factor";
 import ConsumerPredictionInfo from "./prediction_info";
-import PostCard from "..";
 
 type Props = {
   post: PostWithForecasts;
@@ -27,15 +25,6 @@ const ConsumerPostCard: FC<Props> = ({ post }) => {
   const t = useTranslations();
   const isShortTitle = title.length < 100;
   const forecastAvailability = getPostForecastAvailability(post);
-
-  // TODO: adjust condition for other post types when ready
-  // PS: eventually we will render PostCard here only for conditional questions
-  if (
-    !isQuestionPost(post) ||
-    ![QuestionType.Date, QuestionType.Binary].includes(post.question.type)
-  ) {
-    return <PostCard post={post} />;
-  }
 
   return (
     <Link

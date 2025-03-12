@@ -17,7 +17,9 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, NotebookPost } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { logError } from "@/utils/errors";
+import { isQuestionPost } from "@/utils/questions";
 
 import { SCROLL_CACHE_KEY } from "./constants";
 import EmptyCommunityFeed from "./empty_community_feed";
@@ -134,7 +136,13 @@ const PaginatedPostsFeed: FC<Props> = ({
     if (type === "news" && post.notebook) {
       return <NewsCard post={post as NotebookPost} />;
     }
-    if (isConsumerViewEnabled) {
+    // TODO: adjust condition for other post types when implemented
+    // PS: eventually we will render PostCard here only for conditional questions
+    if (
+      isConsumerViewEnabled &&
+      isQuestionPost(post) &&
+      [QuestionType.Date, QuestionType.Binary].includes(post.question.type)
+    ) {
       return <ConsumerPostCard post={post} />;
     }
     return <PostCard post={post} />;
