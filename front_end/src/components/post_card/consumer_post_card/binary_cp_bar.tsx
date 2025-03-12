@@ -166,9 +166,9 @@ function getColorStyles(percentage: number, isClosed: boolean) {
   }
   if (percentage > 85) {
     return {
-      textColor: `text-[#979a72]`,
-      strokeColor: `stroke-[#979a72]`,
-      progressColor: "#979a72",
+      textColor: `text-[#66A566]`,
+      strokeColor: `stroke-[#66A566]`,
+      progressColor: "#66A566",
     };
   } else if (percentage > 75) {
     return {
