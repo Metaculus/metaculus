@@ -15,6 +15,7 @@ import {
 } from "@/hooks/share";
 import { useBreakpoint } from "@/hooks/tailwind";
 import cn from "@/utils/cn";
+import useAppTheme from "@/hooks/use_app_theme";
 
 type Props = {
   questionTitle: string;
@@ -36,6 +37,7 @@ export const SharePostMenu: FC<Props> = ({
     `${questionTitle} #metaculus`
   );
   const shareOnFacebookLink = useShareOnFacebookLink();
+  const { theme } = useAppTheme();
 
   return (
     <DropdownMenu
@@ -66,7 +68,7 @@ export const SharePostMenu: FC<Props> = ({
               {
                 id: "image",
                 name: t("image"),
-                link: `/questions/${questionId}/image-preview/`,
+                link: `/questions/${questionId}/image-preview/?theme=${theme}`,
                 openNewTab: true,
               },
             ]
