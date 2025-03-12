@@ -1083,9 +1083,7 @@
   "aggregationDataIsNotAvailable": "汇总数据不可用",
   "noAggregationData": "没有汇总数据",
   "parentQuestion": "父问题",
-  "parentInputDescription": "请输入二元问题的URL/ID/标题。如果选择一个子问题，请输入完整的URL，例如/questions/123/?sub-question=456",
   "childQuestion": "子问题",
-  "childInputDescription": "请输入二元、数值或日期问题的URL/ID/标题。多项选择即将推出。如果选择一个子问题，请输入完整的URL，例如/questions/123/?sub-question=456",
   "selectParentQuestion": "选择父问题",
   "selectChildQuestion": "选择子问题",
   "pickQuestion": "选择问题",
@@ -1113,5 +1111,9 @@
   "sendBackToReview": "退回审核",
   "deleteRejectPostDescription": "您确定要{destructiveAction}这个问题吗？",
   "forecastRevealed": "预测已揭示",
-  "closedForForecastingDescription": "此问题已关闭预测。显示的是最新的社区预测。"
+  "closedForForecastingDescription": "此问题已关闭预测。显示的是最新的社区预测。",
+  "parentInputDescription": "请搜索二进制问题的标题，或输入网址。如果选择一个组中的子问题，请输入完整的网址，例如/questions/123/?sub-question=456",
+  "childInputDescription": "请搜索二进制、数字或日期问题的标题，或输入网址。选择题即将推出。如果选择一个组中的子问题，请输入完整的网址，例如/questions/123/?sub-question=456",
+  "invalidQuestionType": "无效的问题类型",
+  "invalidQuestionStatus": "问题状态应为开放或即将开放"
 }
