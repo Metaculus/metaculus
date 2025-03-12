@@ -20,4 +20,4 @@ def check_can_edit_post(post: Post, user: User):
 
 
 def get_post_slug(post: Post) -> str:
-    return slugify(post.url_title or post.title or "")
+    return slugify(post.short_title or post.title or "")

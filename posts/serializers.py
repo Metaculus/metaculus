@@ -56,12 +56,15 @@ class PostReadSerializer(serializers.ModelSerializer):
     coauthors = serializers.SerializerMethodField()
     nr_forecasters = serializers.IntegerField(source="forecasters_count")
     slug = serializers.SerializerMethodField()
+    url_title = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = (
             "id",
             "title",
+            "short_title",
+            # Backward compatibility
             "url_title",
             "slug",
             "author_id",
@@ -81,6 +84,10 @@ class PostReadSerializer(serializers.ModelSerializer):
             "open_time",
             "nr_forecasters",
         )
+
+    def get_url_title(self, obj: Post):
+        # Backward compatibility field
+        return obj.short_title
 
     def get_author_username(self, obj: Post):
         return obj.author.username
@@ -123,7 +130,7 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
 
 class PostWriteSerializer(serializers.ModelSerializer):
     title = serializers.CharField(required=False)
-    url_title = serializers.CharField(required=False)
+    short_title = serializers.CharField(required=False)
     default_project = serializers.IntegerField(required=True)
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
@@ -135,7 +142,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             "title",
-            "url_title",
+            "short_title",
             "question",
             "conditional",
             "group_of_questions",

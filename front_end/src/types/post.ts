@@ -123,7 +123,7 @@ export type Post<QT = Question> = {
     index?: Tournament[];
   };
   title: string;
-  url_title: string;
+  short_title: string;
   slug: string;
   created_at: string;
   updated_at: string;

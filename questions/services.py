@@ -307,9 +307,9 @@ def update_conditional(
             obj.condition = condition
         if condition_child:
             obj.condition_child = condition_child
-            # Update post url_title from condition child
-            post.url_title = condition_child.get_post().get_url_title()
-            post.save(update_fields=["url_title"])
+            # Update post short_title from condition child
+            post.short_title = condition_child.get_post().get_short_title()
+            post.save(update_fields=["short_title"])
 
         title = f"{obj.condition.title} (%s) → {obj.condition_child.title}"
 
