@@ -95,6 +95,7 @@ def posts_list_api_view(request):
         with_cp=with_cp,
         current_user=request.user,
         group_cutoff=group_cutoff,
+        with_key_factors=True,
     )
 
     return paginator.get_paginated_response(data)

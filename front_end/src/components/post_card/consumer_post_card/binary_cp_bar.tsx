@@ -1,0 +1,216 @@
+import { useTranslations } from "next-intl";
+import { FC } from "react";
+
+import { QuestionStatus } from "@/types/post";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import cn from "@/utils/cn";
+
+type Props = {
+  question: QuestionWithNumericForecasts;
+};
+
+const BinaryCPBar: FC<Props> = ({ question }) => {
+  const t = useTranslations();
+  const questionCP =
+    question.aggregations.recency_weighted.latest?.centers?.[0];
+  if (question.type !== QuestionType.Binary || !questionCP) {
+    return null;
+  }
+  const isClosed = question.status === QuestionStatus.CLOSED;
+  const cpPercentage = Math.round(questionCP * 1000) / 10;
+
+  // SVG configurations
+  const strokeWidth = 12;
+  const width = 112;
+  const height = 66;
+  const radius = (width - strokeWidth / 2) / 2;
+  const arcAngle = Math.PI * 1.1;
+  const center = {
+    x: width / 2,
+    y: height - strokeWidth,
+  };
+
+  const backgroundArc = describeArc({
+    percentage: 100,
+    isLargerFlag: 1,
+    arcAngle,
+    center,
+    radius,
+  });
+  const progressArc = describeArc({
+    percentage: cpPercentage,
+    isLargerFlag: cpPercentage > 90 ? 1 : 0,
+    arcAngle,
+    center,
+    radius,
+  });
+  const { textColor, strokeColor, progressColor } = getColorStyles(
+    cpPercentage,
+    isClosed
+  );
+
+  return (
+    <div className="relative flex min-w-[200px] max-w-[200px] items-center justify-center">
+      <svg width={width} height={height} className="overflow-visible">
+        <defs>
+          {/* TODO: adjust gradient vector to follow arc shape */}
+          <linearGradient
+            id={`progressGradient-${question.id}`}
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="0%"
+            gradientUnits="userSpaceOnUse"
+            gradientTransform={`rotate(${(cpPercentage / 100) * -90}, ${center.x}, ${center.y})`}
+          >
+            <stop offset="0%" stopColor={progressColor} stopOpacity="0" />
+            <stop
+              offset={`${cpPercentage}%`}
+              stopColor={progressColor}
+              stopOpacity="1"
+            />
+          </linearGradient>
+        </defs>
+
+        {/* Background arc */}
+        <path
+          d={backgroundArc.path}
+          fill="none"
+          stroke={undefined}
+          strokeWidth={strokeWidth}
+          className={cn("opacity-15", strokeColor)}
+        />
+
+        {/* Progress arc */}
+        <path
+          d={progressArc.path}
+          fill="none"
+          stroke={`url(#progressGradient-${question.id})`}
+          strokeWidth={strokeWidth}
+        />
+
+        {/* Tick marker */}
+        {cpPercentage > 0 && (
+          <line
+            x1={
+              progressArc.endPoint.x -
+              2 * Math.cos(progressArc.angle + Math.PI / 2)
+            }
+            y1={
+              progressArc.endPoint.y -
+              2 * Math.sin(progressArc.angle + Math.PI / 2)
+            }
+            x2={
+              progressArc.endPoint.x +
+              2 * Math.cos(progressArc.angle + Math.PI / 2)
+            }
+            y2={
+              progressArc.endPoint.y +
+              2 * Math.sin(progressArc.angle + Math.PI / 2)
+            }
+            className={strokeColor}
+            strokeWidth="20"
+          />
+        )}
+      </svg>
+      <div
+        className={cn(
+          "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center text-sm",
+          textColor
+        )}
+      >
+        <span className="text-2xl font-bold leading-8">{cpPercentage}%</span>
+        <span className="leading text-xs uppercase">{t("chance")}</span>
+      </div>
+    </div>
+  );
+};
+
+function describeArc({
+  percentage,
+  isLargerFlag,
+  arcAngle,
+  center,
+  radius,
+}: {
+  percentage: number;
+  isLargerFlag: 0 | 1;
+  arcAngle: number;
+  center: { x: number; y: number };
+  radius: number;
+}) {
+  const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
+  const endAngle = startAngle + (percentage / 100) * arcAngle;
+  const startX = center.x + radius * Math.cos(startAngle);
+  const startY = center.y + radius * Math.sin(startAngle);
+  const endX = center.x + radius * Math.cos(endAngle);
+  const endY = center.y + radius * Math.sin(endAngle);
+
+  return {
+    path: `
+        M ${startX} ${startY}
+        A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}
+      `,
+    endPoint: { x: endX, y: endY },
+    angle: endAngle,
+  };
+}
+
+function getColorStyles(percentage: number, isClosed: boolean) {
+  if (isClosed) {
+    return {
+      textColor: `text-gray-600 dark:text-gray-600-dark`,
+      strokeColor: `stroke-gray-600 dark:stroke-gray-600-dark`,
+      progressColor: "#777777",
+    };
+  }
+  if (percentage > 85) {
+    return {
+      textColor: `text-[#979a72]`,
+      strokeColor: `stroke-[#979a72]`,
+      progressColor: "#979a72",
+    };
+  } else if (percentage > 75) {
+    return {
+      textColor: `text-[#7BA06B]`,
+      strokeColor: `stroke-[#7BA06B]`,
+      progressColor: "#7BA06B",
+    };
+  } else if (percentage > 50) {
+    return {
+      textColor: `text-[#899D6E]`,
+      strokeColor: `stroke-[#899D6E]`,
+      progressColor: "#899D6E",
+    };
+  } else if (percentage > 35) {
+    return {
+      textColor: `text-[#979A72]`,
+      strokeColor: `stroke-[#979A72]`,
+      progressColor: "#979A72",
+    };
+  } else if (percentage > 25) {
+    return {
+      textColor: `text-[#A59775]`,
+      strokeColor: `stroke-[#A59775]`,
+      progressColor: "#A59775",
+    };
+  } else if (percentage > 15) {
+    return {
+      textColor: `text-[#B29378]`,
+      strokeColor: `stroke-[#B29378]`,
+      progressColor: "#B29378",
+    };
+  } else if (percentage > 10) {
+    return {
+      textColor: `text-[#C0907B]`,
+      strokeColor: `stroke-[#C0907B]`,
+      progressColor: "#C0907B",
+    };
+  }
+  return {
+    textColor: `text-[#D58B80]`,
+    strokeColor: `stroke-[#D58B80]`,
+    progressColor: "#D58B80",
+  };
+}
+export default BinaryCPBar;

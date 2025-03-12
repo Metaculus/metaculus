@@ -3,6 +3,7 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, Fragment, useEffect, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
@@ -22,6 +23,7 @@ import { SCROLL_CACHE_KEY } from "./constants";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import InReviewBox from "./in_review_box";
+import ConsumerPostCard from "../post_card/consumer_post_card";
 import { FormErrorMessage } from "../ui/form_field";
 
 export type PostsFeedType = "posts" | "news";
@@ -43,6 +45,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   const pathname = usePathname();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
 
+  const isConsumerViewEnabled = useFeatureFlagEnabled("consumerView");
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
     ? Number(params.get(POST_PAGE_FILTER))
@@ -131,7 +134,9 @@ const PaginatedPostsFeed: FC<Props> = ({
     if (type === "news" && post.notebook) {
       return <NewsCard post={post as NotebookPost} />;
     }
-
+    if (isConsumerViewEnabled) {
+      return <ConsumerPostCard post={post} />;
+    }
     return <PostCard post={post} />;
   };
 
