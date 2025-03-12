@@ -8,6 +8,7 @@ import {
   ContinuousAreaGraphType,
   ContinuousAreaHoverState,
 } from "@/types/charts";
+import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
@@ -88,7 +89,10 @@ const ContinuousPredictionChart: FC<Props> = ({
       charts.push({
         pmf: cdfToPmf(latest.forecast_values),
         cdf: latest.forecast_values,
-        type: "community",
+        type:
+          question.status === QuestionStatus.CLOSED
+            ? "community_closed"
+            : "community",
       });
     }
 
@@ -111,6 +115,7 @@ const ContinuousPredictionChart: FC<Props> = ({
     return charts;
   }, [
     question.aggregations.recency_weighted.latest,
+    question.status,
     dataset.cdf,
     dataset.pmf,
     readOnly,
