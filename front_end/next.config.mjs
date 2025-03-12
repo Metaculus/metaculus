@@ -74,6 +74,14 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  webpack: (config, { buildId }) => {
+    config.output.filename = config.output.filename.replace(
+      "[chunkhash]",
+      buildId
+    );
+
+    return config;
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {
