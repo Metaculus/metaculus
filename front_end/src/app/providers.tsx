@@ -22,7 +22,7 @@ export function CSPostHogProvider({ children }: { children: ReactNode }) {
     if (PUBLIC_POSTHOG_KEY) {
       posthog.init(PUBLIC_POSTHOG_KEY, {
         api_host: PUBLIC_POSTHOG_BASE_URL,
-        ui_host: PUBLIC_POSTHOG_BASE_URL,
+        ui_host: "https://us.posthog.com",
         // set to 'always' to create profiles for anonymous users as well
         person_profiles: "identified_only",
         // Disable automatic pageview capture, as we capture manually
