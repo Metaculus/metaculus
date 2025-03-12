@@ -57,6 +57,7 @@
     "next-intl": "^3.14.1",
     "next-themes": "^0.3.0",
     "nextjs-toploader": "^1.6.12",
+    "numeric": "^1.2.6",
     "openai": "^4.78.1",
     "posthog-js": "^1.181.0",
     "posthog-node": "^4.2.1",
