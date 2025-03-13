@@ -358,9 +358,9 @@ export function getSliderDistributionFromQuantiles(
     const quartiles = getUserContinuousQuartiles(
       [
         {
-          left: params.at(0) || 0.4,
-          center: params.at(1) || 0.5,
-          right: params.at(2) || 0.6,
+          left: params.at(0) ?? 0.4,
+          center: params.at(1) ?? 0.5,
+          right: params.at(2) ?? 0.6,
           weight: 1,
         },
       ],
@@ -390,9 +390,9 @@ export function getSliderDistributionFromQuantiles(
 
   return [
     {
-      left: result.solution.at(0) || 0.4,
-      center: result.solution.at(1) || 0.5,
-      right: result.solution.at(2) || 0.6,
+      left: result.solution.at(0) ?? 0.4,
+      center: result.solution.at(1) ?? 0.5,
+      right: result.solution.at(2) ?? 0.6,
       weight: 1,
     },
   ];
