@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import dynamic from "next/dynamic";
 import localFont from "next/font/local";
+import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
@@ -161,6 +162,19 @@ export default async function RootLayout({
     >
       <head>
         <PublicSettingsScript publicSettings={publicSettings} />
+        {/* Set default consent mode before GA loads */}
+        <Script id="default-consent" strategy="beforeInteractive">
+          {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){ 
+                dataLayer.push(arguments); 
+              }
+              gtag('consent', 'default', {
+                'analytics_storage': 'denied',
+                'ad_storage': 'denied'
+              });
+            `}
+        </Script>
       </head>
       <CSPostHogProvider>
         <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
