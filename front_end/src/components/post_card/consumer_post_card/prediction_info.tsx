@@ -3,9 +3,18 @@ import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import { PostWithForecasts } from "@/types/post";
-import { ForecastAvailability, QuestionType } from "@/types/question";
-import { formatResolution, isSuccessfullyResolved } from "@/utils/questions";
+import {
+  ForecastAvailability,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
+import {
+  formatResolution,
+  isGroupOfQuestionsPost,
+  isMultipleChoicePost,
+  isSuccessfullyResolved,
+} from "@/utils/questions";
 
+import GroupForecastCard from "./group_forecast_card";
 import QuestionForecastChip from "./question_forecast_chip";
 import QuestionResolutionChip from "./question_resolution_chip";
 import UpcomingCP from "./upcoming_cp";
@@ -16,21 +25,22 @@ type Props = {
 };
 
 const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
-  const { question, group_of_questions } = post;
+  const { question } = post;
   const locale = useLocale();
 
-  // CP empty
-  if (forecastAvailability?.isEmpty) {
-    return null;
-  }
   // CP hidden
   if (!isNil(forecastAvailability?.cpRevealsOn)) {
     return <UpcomingCP cpRevealsOn={forecastAvailability.cpRevealsOn} />;
   }
 
-  // TODO: implement view for group and MC questions
-  if (group_of_questions || question?.type === QuestionType.MultipleChoice) {
-    return <div>Group or MC question</div>;
+  // CP empty
+  if (forecastAvailability?.isEmpty) {
+    return null;
+  }
+
+  // TODO: implement view for numeric and date group questions
+  if (isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) {
+    return <GroupForecastCard post={post} />;
   }
 
   if (question) {
@@ -51,7 +61,11 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
     }
 
     // Open/Closed
-    return <QuestionForecastChip question={question} />;
+    return (
+      <QuestionForecastChip
+        question={question as QuestionWithNumericForecasts}
+      />
+    );
   }
   return null;
 };
