@@ -13,7 +13,7 @@ type Props = {
 };
 
 // TODO: implement numeric group forecast chart
-const NumericGroupForecastChart: FC<Props> = ({ post }) => {
+const NumericForecastCard: FC<Props> = ({ post }) => {
   const visibleChoicesCount = 3;
   const t = useTranslations();
   const locale = useLocale();
@@ -56,4 +56,4 @@ const NumericGroupForecastChart: FC<Props> = ({ post }) => {
   );
 };
 
-export default NumericGroupForecastChart;
+export default NumericForecastCard;

@@ -11,7 +11,7 @@ import {
   getQuestionForecastAvailability,
   isGroupOfQuestionsPost,
   isQuestionPost,
-  isMcQuestion,
+  isMultipleChoicePost,
 } from "@/utils/questions";
 
 import ConsumerKeyFactor from "./key_factor";
@@ -28,7 +28,7 @@ const ConsumerPostCard: FC<Props> = ({ post }) => {
   const isShortTitle = title.length < 100;
   const forecastAvailability = getPostForecastAvailability(post);
   const isGroupOrMCPost =
-    isGroupOfQuestionsPost(post) || isMcQuestion(post.question);
+    isGroupOfQuestionsPost(post) || isMultipleChoicePost(post);
 
   return (
     <Link
@@ -41,7 +41,7 @@ const ConsumerPostCard: FC<Props> = ({ post }) => {
         className={cn(
           "flex w-full flex-col items-center justify-between gap-4 @[500px]:flex-row @[500px]:gap-2",
           {
-            "@[500px]:flex-col":
+            "@[500px]:flex-col @[500px]:gap-4":
               isGroupOrMCPost && !forecastAvailability?.cpRevealsOn,
           }
         )}

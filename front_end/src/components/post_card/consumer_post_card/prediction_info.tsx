@@ -10,11 +10,11 @@ import {
 import {
   formatResolution,
   isGroupOfQuestionsPost,
-  isMcQuestion,
+  isMultipleChoicePost,
   isSuccessfullyResolved,
 } from "@/utils/questions";
 
-import GroupForecastChart from "./group_forecast_chart";
+import GroupForecastCard from "./group_forecast_card";
 import QuestionForecastChip from "./question_forecast_chip";
 import QuestionResolutionChip from "./question_resolution_chip";
 import UpcomingCP from "./upcoming_cp";
@@ -39,8 +39,8 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
   }
 
   // TODO: implement view for numeric and date group questions
-  if (isGroupOfQuestionsPost(post) || isMcQuestion(question)) {
-    return <GroupForecastChart post={post} />;
+  if (isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) {
+    return <GroupForecastCard post={post} />;
   }
 
   if (question) {
