@@ -255,9 +255,7 @@ const GroupForm: React.FC<Props> = ({
               scaling: x.scaling,
               open_lower_bound: x.open_lower_bound,
               open_upper_bound: x.open_upper_bound,
-              has_forecasts:
-                (x.aggregations?.recency_weighted?.history?.length ??
-                  x.nr_forecasters) > 0, // TODO: change after BE will return valid field, because aggregation history is empty before we reach CP reveal time
+              has_forecasts: (x.nr_forecasters || 0) > 0,
             };
           })
       : []
