@@ -141,16 +141,16 @@ def serialize_project_index_weights(project: Project):
     from posts.serializers import serialize_post_many
 
     index_weights = []
-    qs = project.index_questions.prefetch_related("question__related_posts__post")
+    qs = project.index_questions.prefetch_related("question__related_posts")
     posts_map = {
         x["id"]: x
         for x in serialize_post_many(
-            {x.question.get_post().id for x in qs}, with_cp=True
+            {x.question.get_post_id() for x in qs}, with_cp=True
         )
     }
 
     for project_question in qs:
-        post = posts_map[project_question.question.get_post().id]
+        post = posts_map[project_question.question.get_post_id()]
 
         index_weights.append(
             {
