@@ -37,6 +37,18 @@ import { formatDate } from "./date_formatters";
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
 
+export function isMcQuestion(question?: Question) {
+  return question?.type === QuestionType.MultipleChoice;
+}
+export function checkGroupOfQuestionsPostType(
+  post: PostWithForecasts,
+  type: QuestionType
+) {
+  return (
+    isGroupOfQuestionsPost(post) &&
+    post.group_of_questions?.questions[0]?.type === type
+  );
+}
 export function isQuestionPost<QT>(post: Post<QT>): post is QuestionPost<QT> {
   return !isNil(post.question);
 }
@@ -593,9 +605,7 @@ export function getQuestionForecastAvailability(
   question: QuestionWithForecasts
 ): ForecastAvailability {
   return {
-    isEmpty:
-      !question.aggregations.recency_weighted.history.length &&
-      !question.my_forecasts?.history.length,
+    isEmpty: getIsQuestionForecastEmpty(question),
     cpRevealsOn:
       question.cp_reveal_time && new Date(question.cp_reveal_time) >= new Date()
         ? question.cp_reveal_time
