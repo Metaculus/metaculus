@@ -1116,5 +1116,7 @@
   "childInputDescription": "请搜索二进制、数字或日期问题的标题，或输入网址。选择题即将推出。如果选择一个组中的子问题，请输入完整的网址，例如/questions/123/?sub-question=456",
   "invalidQuestionType": "无效的问题类型",
   "invalidQuestionStatus": "问题状态应为开放或即将开放",
-  "chance": "机会"
+  "chance": "机会",
+  "closedForForecastingGroupDescription": "此问题已关闭预测。<br></br> 最新的社区预测是：",
+  "and": "和"
 }
