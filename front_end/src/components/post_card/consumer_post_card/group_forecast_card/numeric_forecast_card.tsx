@@ -9,6 +9,7 @@ import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   generateChoiceItemsFromGroupQuestions,
   getChoiceOptionValue,
+  scaleInternalLocation,
 } from "@/utils/charts";
 import {
   isGroupOfQuestionsPost,
@@ -36,6 +37,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
     {
       activeCount: visibleChoicesCount,
       locale,
+      preserveOrder: true,
     }
   );
   const sortedChoices = [...choices].sort((a, b) => {
@@ -48,54 +50,84 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
 
     const aValue = a.aggregationValues[a.aggregationValues.length - 1] ?? 0;
     const bValue = b.aggregationValues[b.aggregationValues.length - 1] ?? 0;
-    return bValue - aValue;
+    const aValueScaled = scaleInternalLocation(aValue, {
+      range_min: a.scaling?.range_min ?? 0,
+      range_max: a.scaling?.range_max ?? 1,
+      zero_point: a.scaling?.zero_point ?? null,
+    });
+    const bValueScaled = scaleInternalLocation(bValue, {
+      range_min: b.scaling?.range_min ?? 0,
+      range_max: b.scaling?.range_max ?? 1,
+      zero_point: b.scaling?.zero_point ?? null,
+    });
+    return bValueScaled - aValueScaled;
   });
+
   const isPostClosed = post.status === PostStatus.CLOSED;
   const visibleChoices = sortedChoices.slice(0, visibleChoicesCount);
   const otherItemsCount = sortedChoices.length - visibleChoices.length;
-  const maxChoiceValue = Math.max(
+  const maxScaledValue = Math.max(
     ...sortedChoices
       .filter((choice) => isNil(choice.resolution))
-      .map(
-        (choice) =>
-          choice.aggregationValues[choice.aggregationValues.length - 1] ?? 0
+      .map(({ aggregationValues, scaling }) =>
+        scaleInternalLocation(
+          aggregationValues[aggregationValues.length - 1] ?? 0,
+          {
+            range_min: scaling?.range_min ?? 0,
+            range_max: scaling?.range_max ?? 1,
+            zero_point: scaling?.zero_point ?? null,
+          }
+        )
       )
   );
 
   return (
     <div className="flex w-full flex-col gap-2">
-      {visibleChoices.map((choice) => {
-        const isChoiceClosed = choice.closeTime
-          ? choice.closeTime < Date.now()
-          : false;
-        const rawChoiceValue =
-          choice.aggregationValues[choice.aggregationValues.length - 1] ?? null;
+      {visibleChoices.map(
+        ({
+          closeTime,
+          aggregationValues,
+          scaling,
+          resolution,
+          id,
+          color,
+          displayedResolution,
+          choice,
+        }) => {
+          const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
+          const rawChoiceValue =
+            aggregationValues[aggregationValues.length - 1] ?? null;
+          const formattedChoiceValue = getChoiceOptionValue(
+            rawChoiceValue,
+            QuestionType.Numeric,
+            scaling
+          );
+          const scaledChoiceValue = scaleInternalLocation(rawChoiceValue ?? 0, {
+            range_min: scaling?.range_min ?? 0,
+            range_max: scaling?.range_max ?? 1,
+            zero_point: scaling?.zero_point ?? null,
+          });
+          const relativeWidth = !isNil(resolution)
+            ? 100
+            : maxScaledValue > 0
+              ? ((scaledChoiceValue ?? 0) / maxScaledValue) * 100
+              : 0;
 
-        const formattedChoiceValue = getChoiceOptionValue(
-          rawChoiceValue,
-          QuestionType.Numeric,
-          choice.scaling
-        );
-        const relativeWidth = !isNil(choice.resolution)
-          ? 100
-          : maxChoiceValue > 0
-            ? ((rawChoiceValue ?? 0) / maxChoiceValue) * 100
-            : 0;
-
-        return (
-          <ForecastChoiceBar
-            key={choice.id}
-            choiceLabel={choice.choice}
-            choiceValue={formattedChoiceValue}
-            isSuccessfullyResolved={isSuccessfullyResolved(choice.resolution)}
-            isClosed={isChoiceClosed || isPostClosed}
-            displayedResolution={choice.displayedResolution}
-            resolution={choice.resolution}
-            width={relativeWidth}
-            color={choice.color}
-          />
-        );
-      })}
+          return (
+            <ForecastChoiceBar
+              key={id}
+              choiceLabel={choice}
+              choiceValue={formattedChoiceValue}
+              isSuccessfullyResolved={isSuccessfullyResolved(resolution)}
+              isClosed={isChoiceClosed || isPostClosed}
+              displayedResolution={displayedResolution}
+              resolution={resolution}
+              width={relativeWidth}
+              color={color}
+            />
+          );
+        }
+      )}
       {otherItemsCount > 0 && (
         <div className="flex flex-row items-center text-gray-600 dark:text-gray-600-dark">
           <div className="self-center py-0 pr-1.5 text-center">
