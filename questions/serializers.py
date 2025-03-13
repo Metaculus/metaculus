@@ -579,7 +579,7 @@ def serialize_question(
     """
 
     serialized_data = QuestionSerializer(question).data
-    serialized_data["post_id"] = post.id if post else question.get_post().id
+    serialized_data["post_id"] = post.id if post else question.get_post_id()
     serialized_data["aggregations"] = {
         "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
         "unweighted": {"history": [], "latest": None, "score_data": dict()},

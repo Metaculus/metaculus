@@ -86,7 +86,7 @@ def get_score_scatter_plot_data(
                 "score": score.score,
                 "score_timestamp": score.edited_at.timestamp(),
                 "question_title": score.question.title,
-                "post_id": score.question.get_post().id,
+                "post_id": score.question.get_post_id(),
                 "question_resolution": score.question.resolution,
             }
         )
@@ -327,7 +327,9 @@ def get_authoring_stats_data(
     user: User,
 ) -> dict:
     posts_authored = Post.objects.filter_public().filter(
-        Q(author=user) | Q(coauthors=user), notebook__isnull=True
+        Q(author=user) | Q(coauthors=user),
+        notebook__isnull=True,
+        curation_status=Post.CurationStatus.APPROVED,
     )
 
     # Each post has a cached `Post.forecasts_count` value.
@@ -340,7 +342,13 @@ def get_authoring_stats_data(
     )
 
     notebooks_authored_count = (
-        Post.objects.filter_public().filter(author=user, notebook__isnull=False).count()
+        Post.objects.filter_public()
+        .filter(
+            author=user,
+            notebook__isnull=False,
+            curation_status=Post.CurationStatus.APPROVED,
+        )
+        .count()
     )
     comment_count = Comment.objects.filter(
         author=user, on_post__in=Post.objects.filter_public()
@@ -385,7 +393,7 @@ def serialize_profile(
         score_qs = score_qs.filter(aggregation_method=aggregation_method)
     scores = list(
         score_qs.select_related("question").prefetch_related(
-            "question__related_posts__post"
+            "question__related_posts"
         )
     )
     data = {}
