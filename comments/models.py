@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from django.db import models
 from django.db.models import (
     Sum,
@@ -182,8 +184,8 @@ class ChangedMyMindEntry(TimeStampedModel):
 
 
 class KeyFactorQuerySet(models.QuerySet):
-    def for_post(self, post: Post):
-        return self.filter(comment__on_post=post)
+    def for_posts(self, posts: Iterable[Post]):
+        return self.filter(comment__on_post__in=posts)
 
     def filter_active(self):
         return self.filter(is_active=True)

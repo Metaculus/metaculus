@@ -42,7 +42,7 @@ const ConditionalQuestionPicker: FC<Props> = ({
       forecast_type: isParentQuestion
         ? [QuestionType.Binary]
         : [QuestionType.Binary, QuestionType.Numeric, QuestionType.Date],
-      statuses: [PostStatus.OPEN, PostStatus.CLOSED, PostStatus.UPCOMING],
+      statuses: [PostStatus.OPEN, PostStatus.UPCOMING],
     };
   }, [isParentQuestion, search]);
 
@@ -85,9 +85,9 @@ const ConditionalQuestionPicker: FC<Props> = ({
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           label={title}
-          className="w-full max-w-3xl px-3"
+          className="h-full w-full max-w-3xl px-3 md:h-auto"
         >
-          <div className="flex w-full flex-col">
+          <div className="flex h-[calc(100%-50px)] w-full flex-col md:h-auto">
             <SearchInput
               value={search}
               onChange={(e) => {
@@ -101,7 +101,7 @@ const ConditionalQuestionPicker: FC<Props> = ({
                 ? t("parentInputDescription")
                 : t("childInputDescription")}
             </span>
-            <div className="mt-2 flex h-[400px] max-h-[400px] flex-col gap-2 overflow-y-scroll">
+            <div className="mt-2 flex min-h-[400px] flex-1 flex-col gap-2 overflow-y-scroll md:max-h-[400px]">
               {isLoading ? (
                 <LoadingIndicator />
               ) : (

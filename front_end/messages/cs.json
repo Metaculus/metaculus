@@ -1081,9 +1081,7 @@
   "aggregationDataIsNotAvailable": "Údaje o agregaci nejsou k dispozici",
   "noAggregationData": "Žádné údaje o agregaci",
   "parentQuestion": "Nadřazená otázka",
-  "parentInputDescription": "Zadejte prosím URL/ID/Název binární otázky. Pokud vybíráte podotázku, zadejte prosím úplnou URL např. /questions/123/?sub-question=456",
   "childQuestion": "Podřazená otázka",
-  "childInputDescription": "Zadejte prosím URL/ID/Název binární, číselné nebo datové otázky. Brzy bude k dispozici Více možností. Pokud vybíráte podotázku, zadejte prosím úplnou URL např. /questions/123/?sub-question=456",
   "selectParentQuestion": "Vyberte rodičovskou otázku",
   "selectChildQuestion": "Vyberte podřízenou otázku",
   "pickQuestion": "Vybrat otázku",
@@ -1109,5 +1107,12 @@
   "sourceMode": "Režim zdroje",
   "reject": "Zamítnout",
   "sendBackToReview": "Vrátit k posouzení",
-  "deleteRejectPostDescription": "Opravdu chcete {destructiveAction} tuto otázku?"
+  "deleteRejectPostDescription": "Opravdu chcete {destructiveAction} tuto otázku?",
+  "forecastRevealed": "Předpověď odhalena",
+  "closedForForecastingDescription": "Tato otázka je uzavřena pro předpovídání. Zobrazuje se poslední předpověď komunity.",
+  "parentInputDescription": "Prosím, buď vyhledejte název binární otázky, nebo zadejte URL. Pokud vybíráte podotázku ze skupiny, zadejte prosím celou URL, např. /questions/123/?sub-question=456",
+  "childInputDescription": "Prosím, buď vyhledejte název binární, číselné, nebo datové otázky, nebo zadejte URL. Možnost výběru přichází brzy. Pokud vybíráte podotázku ze skupiny, zadejte prosím celou URL, např. /questions/123/?sub-question=456",
+  "invalidQuestionType": "Neplatný typ otázky",
+  "invalidQuestionStatus": "Stav otázky by měl být otevřený nebo připravovaný",
+  "chance": "šance"
 }

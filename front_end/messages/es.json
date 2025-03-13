@@ -1081,9 +1081,7 @@
   "aggregationDataIsNotAvailable": "Los datos de agregación no están disponibles",
   "noAggregationData": "Sin datos de agregación",
   "parentQuestion": "Pregunta principal",
-  "parentInputDescription": "Por favor, introduzca la URL/ID/Título de una pregunta binaria. Si está seleccionando una subpregunta, por favor introduzca la URL completa, por ejemplo: /questions/123/?sub-question=456",
   "childQuestion": "Pregunta secundaria",
-  "childInputDescription": "Por favor, introduzca la URL/ID/Título de una pregunta binaria, numérica o de fecha. La opción de múltiple elección llegará pronto. Si está seleccionando una subpregunta, por favor introduzca la URL completa, por ejemplo: /questions/123/?sub-question=456",
   "selectParentQuestion": "Seleccionar pregunta principal",
   "selectChildQuestion": "Seleccionar pregunta secundaria",
   "pickQuestion": "Elegir pregunta",
@@ -1109,5 +1107,12 @@
   "sourceMode": "Modo fuente",
   "reject": "Rechazar",
   "sendBackToReview": "Enviar de nuevo a revisión",
-  "deleteRejectPostDescription": "¿Estás seguro de que quieres {destructiveAction} esta pregunta?"
+  "deleteRejectPostDescription": "¿Estás seguro de que quieres {destructiveAction} esta pregunta?",
+  "forecastRevealed": "Pronóstico revelado",
+  "closedForForecastingDescription": "Esta pregunta está cerrada para pronósticos. Se muestra la última predicción de la comunidad.",
+  "parentInputDescription": "Por favor, busque el título de una pregunta binaria o ingrese la URL. Si selecciona una subpregunta de un grupo, ingrese la URL completa, por ejemplo, /questions/123/?sub-question=456",
+  "childInputDescription": "Por favor, busque el título de una pregunta binaria, numérica o de fecha, o ingrese la URL. La opción Múltiple pronto estará disponible. Si selecciona una subpregunta de un grupo, ingrese la URL completa, por ejemplo, /questions/123/?sub-question=456",
+  "invalidQuestionType": "Tipo de pregunta inválido",
+  "invalidQuestionStatus": "El estado de la pregunta debe ser abierta o próxima",
+  "chance": "oportunidad"
 }

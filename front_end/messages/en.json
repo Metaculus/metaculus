@@ -880,9 +880,9 @@
   "subquestionLabelDescription": "The label or parameter which identifies this subquestion, like \"Option 1\", \"2033\" or \"France\"",
   "conditionalPairDescription": "A Conditional Pair is a special type of Question Group that elicits conditional probabilities. Each Conditional Pair sits between a Parent Question and a Child Question.  The Parent must be a binary question, while the child may be a single binary, numeric, or date question.",
   "parentQuestion": "Parent Question",
-  "parentInputDescription": "Please enter the URL/ID/Title of a binary question. If selecting a subquestion, please enter the full url e.g. /questions/123/?sub-question=456",
+  "parentInputDescription": "Please either search for the title of a binary question, or enter the URL. If selecting a subquestion from a group, please enter the full URL e.g. /questions/123/?sub-question=456",
   "childQuestion": "Child Question",
-  "childInputDescription": "Please enter the URL/ID/Title of a binary, numeric, or date question. Multiple Choice coming soon. If selecting a subquestion, please enter the full url e.g. /questions/123/?sub-question=456",
+  "childInputDescription": "Please either search for the title of a binary, numeric, or date question or enter the URL. Multiple Choice coming soon. If selecting a subquestion from a group, please enter the full url e.g. /questions/123/?sub-question=456",
   "enterQuestionIdUrl": "Please enter the URL/ID of an existing Metaculus question.",
   "isDoneError": "Cannot edit closed, resolved or rejected questions",
   "editNotebook": "edit notebook",
@@ -1106,5 +1106,10 @@
   "markdownHelp": "Markdown help",
   "sourceMode": "Source mode",
   "deleteRejectPostDescription": "Are you sure you want to {destructiveAction} this question?",
-  "sendBackToReview": "Send back to review"
+  "sendBackToReview": "Send back to review",
+  "forecastRevealed": "Forecast revealed",
+  "closedForForecastingDescription": "This question is closed for forecasting. Latest Community prediction is displayed.",
+  "invalidQuestionType": "Invalid question type",
+  "invalidQuestionStatus": "Question status should be open or upcoming",
+  "chance": "chance"
 }
