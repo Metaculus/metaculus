@@ -352,7 +352,6 @@ def serialize_post(
     if post.question:
         serialized_data["question"] = serialize_question(
             post.question,
-            with_cp=with_cp,
             current_user=current_user,
             post=post,
             aggregate_forecasts=(
