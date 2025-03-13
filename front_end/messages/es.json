@@ -1114,5 +1114,8 @@
   "childInputDescription": "Por favor, busque el título de una pregunta binaria, numérica o de fecha, o ingrese la URL. La opción Múltiple pronto estará disponible. Si selecciona una subpregunta de un grupo, ingrese la URL completa, por ejemplo, /questions/123/?sub-question=456",
   "invalidQuestionType": "Tipo de pregunta inválido",
   "invalidQuestionStatus": "El estado de la pregunta debe ser abierta o próxima",
-  "chance": "oportunidad"
+  "chance": "oportunidad",
+  "questionUnit": "Unidad de Pregunta",
+  "subquestionUnit": "Unidad de Subpregunta",
+  "questionUnitDescription": "La unidad se muestra junto con la mediana y en varios otros lugares. Ejemplos: “$”, “Casos”, “Personas”."
 }
