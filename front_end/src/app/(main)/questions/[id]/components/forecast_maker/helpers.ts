@@ -40,19 +40,34 @@ export function validateQuantileInput({
   // Check for strictly increasing quantiles
   if (
     quantile === Quantile.q1 &&
-    ((q2 && newValue >= q2) || (q3 && newValue >= q3))
+    ((q2 &&
+      (newValue > q2 ||
+        (range_min < q2 && q2 < range_max && newValue === q2))) ||
+      (q3 &&
+        (newValue > q3 ||
+          (range_min < q3 && q3 < range_max && newValue === q3))))
   ) {
     return t("q1LessThanError");
   }
   if (
     quantile === Quantile.q2 &&
-    ((q1 && newValue <= q1) || (q3 && newValue >= q3))
+    ((q1 &&
+      (newValue < q1 ||
+        (range_min < q1 && q1 < range_max && newValue === q1))) ||
+      (q3 &&
+        (newValue > q3 ||
+          (range_min < q3 && q3 < range_max && newValue === q3))))
   ) {
     return t("q2BetweenError");
   }
   if (
     quantile === Quantile.q3 &&
-    ((q1 && newValue <= q1) || (q2 && newValue <= q2))
+    ((q1 &&
+      (newValue < q1 ||
+        (range_min < q1 && q1 < range_max && newValue === q1))) ||
+      (q2 &&
+        (newValue < q2 ||
+          (range_min < q2 && q2 < range_max && newValue === q2))))
   ) {
     return t("q3GreaterThanError");
   }
@@ -134,8 +149,8 @@ export function validateQuantileInput({
       if (
         quantile === validation.quantile &&
         isOpenBound &&
-        ((isLowerBoundCheck && newValue < boundValue) ||
-          (!isLowerBoundCheck && newValue > boundValue)) &&
+        ((isLowerBoundCheck && newValue <= boundValue) ||
+          (!isLowerBoundCheck && newValue >= boundValue)) &&
         !isNil(probabilityValue) &&
         probabilityValue < validation.percentileValue
       ) {
@@ -147,8 +162,8 @@ export function validateQuantileInput({
         quantile === (isLowerBoundCheck ? Quantile.lower : Quantile.upper) &&
         isOpenBound &&
         !isNil(quantileValue) &&
-        ((isLowerBoundCheck && quantileValue < boundValue) ||
-          (!isLowerBoundCheck && quantileValue > boundValue)) &&
+        ((isLowerBoundCheck && quantileValue <= boundValue) ||
+          (!isLowerBoundCheck && quantileValue >= boundValue)) &&
         newValue < validation.percentileValue
       ) {
         return t(validation.errorMessageKey);
@@ -362,6 +377,14 @@ function checkNormalizedDistance(
 ): boolean {
   const normalized1 = unscaleNominalLocation(value1, scaling);
   const normalized2 = unscaleNominalLocation(value2, scaling);
+
+  if (
+    normalized1 === 0 ||
+    normalized1 === 1 ||
+    normalized2 === 0 ||
+    normalized2 === 1
+  )
+    return false;
 
   // 0.007 is the same limit as the clampStep in the ContinuousSlider
   const NORMALIZED_MIN_DISTANCE = 0.007;

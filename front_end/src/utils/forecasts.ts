@@ -240,7 +240,7 @@ export function generateQuantileContinuousCdf({
   }
 
   const hydratedQuantiles = hydrateQuantiles(scaledQuantiles, cdfEvalLocs);
-  if (hydratedQuantiles.length < 3) {
+  if (hydratedQuantiles.length < 2) {
     // TODO: adjust error message
     return "chartDataError";
   }
