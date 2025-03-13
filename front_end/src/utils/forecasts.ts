@@ -1,6 +1,7 @@
 import { format, fromUnixTime } from "date-fns";
 import { isNil, round } from "lodash";
 import * as math from "mathjs";
+import { uncmin } from "numeric";
 
 import { ValidationErrorKey } from "@/app/(main)/questions/[id]/components/forecast_maker/helpers";
 import { ContinuousForecastInputType } from "@/types/charts";
@@ -345,20 +346,60 @@ export function getSliderDistributionFromQuantiles(
   component: DistributionQuantileComponent,
   question: Question
 ): DistributionSliderComponent[] {
+  const q1 = nominalLocationToCdfLocation(
+    component.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
+    question
+  );
+  const q2 = nominalLocationToCdfLocation(
+    component.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
+    question
+  );
+  const q3 = nominalLocationToCdfLocation(
+    component.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
+    question
+  );
+
+  const initialParams = [q1, q2, q3];
+
+  const costFunc = (params: number[]) => {
+    const quartiles = getUserContinuousQuartiles(
+      [
+        {
+          left: params.at(0) ?? 0.4,
+          center: params.at(1) ?? 0.5,
+          right: params.at(2) ?? 0.6,
+          weight: 1,
+        },
+      ],
+      question
+    );
+
+    if (
+      !quartiles ||
+      quartiles.lower25 < 0 ||
+      quartiles.median < 0 ||
+      quartiles.upper75 < 0 ||
+      quartiles.lower25 > 1 ||
+      quartiles.median > 1 ||
+      quartiles.upper75 > 1
+    ) {
+      return 3;
+    }
+
+    return (
+      (quartiles.lower25 - q1) ** 2 +
+      (quartiles.median - q2) ** 2 +
+      (quartiles.upper75 - q3) ** 2
+    );
+  };
+
+  const result = uncmin(costFunc, initialParams);
+
   return [
     {
-      left: nominalLocationToCdfLocation(
-        component.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
-        question
-      ),
-      center: nominalLocationToCdfLocation(
-        component.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
-        question
-      ),
-      right: nominalLocationToCdfLocation(
-        component.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
-        question
-      ),
+      left: result.solution.at(0) ?? 0.4,
+      center: result.solution.at(1) ?? 0.5,
+      right: result.solution.at(2) ?? 0.6,
       weight: 1,
     },
   ];
