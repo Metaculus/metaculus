@@ -21,7 +21,7 @@ import cn from "@/utils/cn";
 import { addOpacityToHex } from "@/utils/colors";
 import {
   isGroupOfQuestionsPost,
-  isMcQuestion,
+  isMultipleChoicePost,
   isSuccessfullyResolved,
 } from "@/utils/questions";
 
@@ -29,12 +29,12 @@ type Props = {
   post: PostWithForecasts;
 };
 
-const BinaryGroupForecastChart: FC<Props> = ({ post }) => {
+const PercentageForecastCard: FC<Props> = ({ post }) => {
   const visibleChoicesCount = 3;
   const t = useTranslations();
   const locale = useLocale();
   const { getThemeColor } = useAppTheme();
-  if (!isMcQuestion(post.question) && !isGroupOfQuestionsPost(post)) {
+  if (!isMultipleChoicePost(post) && !isGroupOfQuestionsPost(post)) {
     return null;
   }
 
@@ -59,7 +59,7 @@ const BinaryGroupForecastChart: FC<Props> = ({ post }) => {
 
         return (
           <div
-            key={choice.id}
+            key={choice.id ?? choice.choice}
             className={cn(
               "relative flex h-8 w-full items-center justify-between gap-2 rounded-lg border border-blue-400 bg-transparent px-2.5 py-1 text-base font-medium leading-6 text-gray-900 dark:border-blue-400-dark dark:text-gray-900-dark",
               {
@@ -80,19 +80,12 @@ const BinaryGroupForecastChart: FC<Props> = ({ post }) => {
             </span>
 
             <div
-              className={cn("absolute -inset-[1px] z-0 h-8 rounded-lg border")}
+              className={"absolute -inset-[1px] z-0 h-8 rounded-lg border"}
               style={{
-                display: (() => {
-                  if (choice.resolution) {
-                    return "none";
-                  }
-                  return "block";
-                })(),
-                width: (() => {
-                  return choiceValue.includes("%")
-                    ? `max(${choiceValue}, 3%)`
-                    : `${choiceValue}%`;
-                })(),
+                display: choice.resolution ? "none" : "block",
+                width: choiceValue.includes("%")
+                  ? `max(${choiceValue}, 3%)`
+                  : `${choiceValue}%`,
                 background: (() => {
                   if (choice.resolution) {
                     return "transparent";
@@ -104,12 +97,10 @@ const BinaryGroupForecastChart: FC<Props> = ({ post }) => {
                   }
                   return addOpacityToHex(getThemeColor(choice.color), 0.3);
                 })(),
-                borderColor: (() => {
-                  if (isPostClosed || isChoiceClosed) {
-                    return getThemeColor(METAC_COLORS.gray["500"]);
-                  }
-                  return getThemeColor(choice.color);
-                })(),
+                borderColor:
+                  isPostClosed || isChoiceClosed
+                    ? getThemeColor(METAC_COLORS.gray["500"])
+                    : getThemeColor(choice.color),
               }}
             ></div>
           </div>
@@ -138,14 +129,15 @@ function generateChoiceItems(
   visibleChoicesCount: number,
   locale: string
 ) {
-  if (isMcQuestion(post.question)) {
+  if (isMultipleChoicePost(post)) {
     return generateChoiceItemsFromMultipleChoiceForecast(
       post.question as QuestionWithMultipleChoiceForecasts,
       {
         activeCount: visibleChoicesCount,
       }
     );
-  } else if (isGroupOfQuestionsPost(post)) {
+  }
+  if (isGroupOfQuestionsPost(post)) {
     return generateChoiceItemsFromGroupQuestions(
       post.group_of_questions?.questions as QuestionWithNumericForecasts[],
       {
@@ -156,4 +148,4 @@ function generateChoiceItems(
   }
   return [];
 }
-export default BinaryGroupForecastChart;
+export default PercentageForecastCard;

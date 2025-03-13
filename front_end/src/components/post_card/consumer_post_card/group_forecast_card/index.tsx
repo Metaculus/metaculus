@@ -2,24 +2,27 @@ import { FC } from "react";
 
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import { checkGroupOfQuestionsPostType, isMcQuestion } from "@/utils/questions";
+import {
+  checkGroupOfQuestionsPostType,
+  isMultipleChoicePost,
+} from "@/utils/questions";
 
-import BinaryGroupForecastChart from "./binary_group_forecast_chart";
-import NumericGroupForecastChart from "./numeric_group_forecast_chart";
+import NumericForecastCard from "./numeric_forecast_card";
+import PercentageForecastCard from "./percentage_forecast_card";
 
 type Props = {
   post: PostWithForecasts;
 };
 
-const GroupForecastChart: FC<Props> = ({ post }) => {
+const GroupForecastCard: FC<Props> = ({ post }) => {
   if (
-    isMcQuestion(post.question) ||
+    isMultipleChoicePost(post) ||
     checkGroupOfQuestionsPostType(post, QuestionType.Binary)
   ) {
-    return <BinaryGroupForecastChart post={post} />;
+    return <PercentageForecastCard post={post} />;
   } else if (checkGroupOfQuestionsPostType(post, QuestionType.Numeric)) {
     // TODO: implement charts for numeric group questions
-    return <NumericGroupForecastChart post={post} />;
+    return <NumericForecastCard post={post} />;
   } else if (checkGroupOfQuestionsPostType(post, QuestionType.Date)) {
     // TODO: implement charts for date group and time series
     return <div>Date and time series charts</div>;
@@ -27,4 +30,4 @@ const GroupForecastChart: FC<Props> = ({ post }) => {
   return null;
 };
 
-export default GroupForecastChart;
+export default GroupForecastCard;

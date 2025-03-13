@@ -37,9 +37,10 @@ import { formatDate } from "./date_formatters";
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
 
-export function isMcQuestion(question?: Question) {
-  return question?.type === QuestionType.MultipleChoice;
+export function isMultipleChoicePost(post: PostWithForecasts) {
+  return post.question?.type === QuestionType.MultipleChoice;
 }
+// TODO: remove this function when we will have consumer view for all group questions
 export function checkGroupOfQuestionsPostType(
   post: PostWithForecasts,
   type: QuestionType
