@@ -1112,8 +1112,8 @@
   "q3GreaterThanError": "Your 75th percentile must be greater than your 25th and 50th percentiles",
   "probabilityRangeError": "Probability must be between 0.1 and 99.9%",
   "probabilitySumError": "Sum of probabilities must not be greater than 99%",
-  "quantileBelowBoundError": "Quantile can't be below closed lower bound",
-  "quantileAboveBoundError": "Quantile can't be above closed upper bound",
+  "quantileBelowBoundError": "Quantile can't be at or below closed lower bound",
+  "quantileAboveBoundError": "Quantile can't be at or above closed upper bound",
   "q1BelowRangeError": "When your 25th percentile is below range, your probability below the lower bound should be ≥ 25%",
   "q1AboveRangeError": "When your 25th percentile is above range, your probability above the upper bound should be ≥ 75%",
   "q2BelowRangeError": "When your median is below range, your probability below the lower bound should be ≥ 50%",
@@ -1124,6 +1124,7 @@
   "emptyCdfError": "continuous_cdf is required for continuous questions",
   "invalidCdfLengthError": "continuous_cdf must have 201 values",
   "quantileTooCloseError": "Your quantiles are too close to each other, please space them out.",
+  "quantileTooCloseToClosedBound": "Your quantiles are too close to a closed bound, please add space between them and the edge.",
   "questionRangeError": "range_min and range_max must be defined",
   "chartDataError": "There was an error generating the chart data",
   "percentileBoundsError": "The given percentiles must emcompass upper and lower bounds"

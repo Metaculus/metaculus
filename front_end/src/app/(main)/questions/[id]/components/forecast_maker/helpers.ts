@@ -76,18 +76,12 @@ export function validateQuantileInput({
   }
 
   // Check if quantile out of closed bounds
-  if (
-    !open_lower_bound &&
-    [Quantile.q1, Quantile.q2, Quantile.q3].some((q) => q === quantile) &&
-    newValue < range_min
-  ) {
-    return t("quantileBelowBoundError");
+  if ([Quantile.q1, Quantile.q2, Quantile.q3].some((q) => q === quantile)) {
+    if (!open_lower_bound && newValue <= range_min) {
+      return t("quantileBelowBoundError");
+    }
   }
-  if (
-    !open_upper_bound &&
-    [Quantile.q1, Quantile.q2, Quantile.q3].some((q) => q === quantile) &&
-    newValue > range_max
-  ) {
+  if (!open_upper_bound && newValue >= range_max) {
     return t("quantileAboveBoundError");
   }
 
@@ -129,9 +123,9 @@ export function validateQuantileInput({
       if (
         quantile === (isLowerBoundCheck ? Quantile.lower : Quantile.upper) &&
         !isNil(quantileValue) &&
-        ((isLowerBoundCheck && quantileValue >= boundValue) ||
-          (!isLowerBoundCheck && quantileValue <= boundValue)) &&
-        newValue >= validation.percentileValue
+        ((isLowerBoundCheck && quantileValue > boundValue) ||
+          (!isLowerBoundCheck && quantileValue < boundValue)) &&
+        newValue > validation.percentileValue
       ) {
         return t(validation.errorMessageKey);
       }
@@ -259,6 +253,15 @@ export function validateUserQuantileData({
   if (inboundPmf.some((diff) => diff > maxDiff)) {
     validationErrors.push(t("quantileTooCloseError"));
   }
+
+  // Check bounds
+  if (!question.open_lower_bound && cdf[0] !== 0) {
+    validationErrors.push(t("quantileTooCloseToClosedBound"));
+  }
+  if (!question.open_upper_bound && cdf[cdf.length - 1] !== 1) {
+    validationErrors.push(t("quantileTooCloseToClosedBound"));
+  }
+
   return validationErrors.filter((error) => error !== undefined);
 }
 

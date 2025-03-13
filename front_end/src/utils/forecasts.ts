@@ -352,7 +352,7 @@ export function getSliderDistributionFromQuantiles(
     question
   );
 
-  const initialParams = [q1, q2, q3];
+  const initialParams = [0.4, 0.5, 0.6];
 
   const costFunc = (params: number[]) => {
     const quartiles = getUserContinuousQuartiles(
@@ -367,23 +367,29 @@ export function getSliderDistributionFromQuantiles(
       question
     );
 
-    if (
-      !quartiles ||
-      quartiles.lower25 < 0 ||
-      quartiles.median < 0 ||
-      quartiles.upper75 < 0 ||
-      quartiles.lower25 > 1 ||
-      quartiles.median > 1 ||
-      quartiles.upper75 > 1
-    ) {
-      return 3;
+    if (!quartiles) {
+      return 1e10;
     }
+    const leftCost =
+      quartiles.lower25 >= 0
+        ? quartiles.lower25 < 1
+          ? (quartiles.lower25 - q1) ** 2
+          : quartiles.lower25
+        : 1 - quartiles.lower25;
+    const centerCost =
+      quartiles.median >= 0
+        ? quartiles.median < 1
+          ? (quartiles.median - q2) ** 2
+          : quartiles.median
+        : 1 - quartiles.median;
+    const rightCost =
+      quartiles.upper75 >= 0
+        ? quartiles.upper75 < 1
+          ? (quartiles.upper75 - q3) ** 2
+          : quartiles.upper75
+        : 1 - quartiles.upper75;
 
-    return (
-      (quartiles.lower25 - q1) ** 2 +
-      (quartiles.median - q2) ** 2 +
-      (quartiles.upper75 - q3) ** 2
-    );
+    return leftCost + centerCost + rightCost;
   };
 
   const result = uncmin(costFunc, initialParams);
