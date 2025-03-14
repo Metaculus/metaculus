@@ -1,7 +1,7 @@
 import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useState } from "react";
+import { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import Checkbox from "@/components/ui/checkbox";
 import Switch from "@/components/ui/switch";
@@ -22,7 +22,10 @@ export type ContinuousInputContainerProps = {
   onOverlayPreviousForecastChange: (value: boolean) => void;
   previousForecast?: UserForecast;
   menu?: ReactNode;
-  children?: (graphType: ContinuousAreaGraphType) => ReactNode;
+  children?: (
+    sliderGraphType: ContinuousAreaGraphType,
+    tableGraphType: ContinuousAreaGraphType
+  ) => ReactNode;
   disabled?: boolean;
 };
 
@@ -38,7 +41,26 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
 }) => {
   const t = useTranslations();
 
-  const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
+  const [sliderGraphType, setSliderGraphType] =
+    useState<ContinuousAreaGraphType>("pmf");
+  const [tableGraphType, setTableGraphType] =
+    useState<ContinuousAreaGraphType>("cdf");
+  const activeGraphType = useMemo(() => {
+    if (forecastInputMode === ContinuousForecastInputType.Slider) {
+      return sliderGraphType;
+    }
+    return tableGraphType;
+  }, [forecastInputMode, sliderGraphType, tableGraphType]);
+  const handleGraphTypeChange = useCallback(
+    (graphType: ContinuousAreaGraphType) => {
+      if (forecastInputMode === ContinuousForecastInputType.Slider) {
+        setSliderGraphType(graphType);
+      } else {
+        setTableGraphType(graphType);
+      }
+    },
+    [forecastInputMode]
+  );
 
   return (
     <div className="mr-0 flex flex-col sm:mr-2">
@@ -54,20 +76,22 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
             <p
               className={cn(
                 "m-0 text-sm",
-                graphType === "cdf" ? "opacity-60" : "opacity-90"
+                activeGraphType === "cdf" ? "opacity-60" : "opacity-90"
               )}
               title="probability density function"
             >
               {t("pdf")}
             </p>
             <Switch
-              checked={graphType === "cdf"}
-              onChange={(checked) => setGraphType(checked ? "cdf" : "pmf")}
+              checked={activeGraphType === "cdf"}
+              onChange={(checked) =>
+                handleGraphTypeChange(checked ? "cdf" : "pmf")
+              }
             />
             <p
               className={cn(
                 "m-0 text-sm",
-                graphType === "cdf" ? "opacity-90" : "opacity-60"
+                activeGraphType === "cdf" ? "opacity-90" : "opacity-60"
               )}
               title="cumulative density function"
             >
@@ -110,7 +134,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
           )}
         </div>
       </div>
-      {children?.(graphType)}
+      {children?.(sliderGraphType, tableGraphType)}
     </div>
   );
 };
