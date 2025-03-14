@@ -90,6 +90,7 @@ const NumericForecastTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
               <Td className="tabular-nums tracking-tight">
@@ -99,6 +100,7 @@ const NumericForecastTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
               <Td className="tabular-nums tracking-tight">
@@ -108,6 +110,7 @@ const NumericForecastTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
               {question.open_upper_bound && (
@@ -136,6 +139,7 @@ const NumericForecastTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </Td>
                   <Td className="tabular-nums tracking-tight">
@@ -145,6 +149,7 @@ const NumericForecastTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </Td>
                   <Td className="tabular-nums tracking-tight">
@@ -154,6 +159,7 @@ const NumericForecastTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </Td>
                   {question.open_upper_bound && userBounds && (
@@ -189,6 +195,7 @@ const NumericForecastTable: FC<Props> = ({
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
+                    unit: question.unit,
                   })}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
@@ -198,6 +205,7 @@ const NumericForecastTable: FC<Props> = ({
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
+                    unit: question.unit,
                   })}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
@@ -207,6 +215,7 @@ const NumericForecastTable: FC<Props> = ({
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
+                    unit: question.unit,
                   })}
                 </Td>
                 {question.open_upper_bound && userPreviousBounds && (
@@ -293,6 +302,7 @@ const NumericForecastTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -306,6 +316,7 @@ const NumericForecastTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </>
                 ) : (
@@ -321,6 +332,7 @@ const NumericForecastTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -337,6 +349,7 @@ const NumericForecastTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -350,6 +363,7 @@ const NumericForecastTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </>
                 ) : (
@@ -365,6 +379,7 @@ const NumericForecastTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -381,6 +396,7 @@ const NumericForecastTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -394,6 +410,7 @@ const NumericForecastTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </>
                 ) : (
@@ -409,6 +426,7 @@ const NumericForecastTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}

@@ -65,6 +65,7 @@ type Props = {
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
   hideCP?: boolean;
   hideLabels?: boolean;
+  unit?: string;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -79,6 +80,7 @@ const ContinuousAreaChart: FC<Props> = ({
   onCursorChange,
   hideCP,
   hideLabels = false,
+  unit,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -138,8 +140,9 @@ const ContinuousAreaChart: FC<Props> = ({
         direction: "horizontal",
         domain: xDomain,
         scaling: scaling,
+        unit,
       }),
-    [chartWidth, questionType, scaling, xDomain]
+    [chartWidth, questionType, scaling, unit, xDomain]
   );
   const yScale = useMemo(
     () =>
@@ -357,7 +360,18 @@ const ContinuousAreaChart: FC<Props> = ({
           <VictoryAxis
             tickValues={xScale.ticks}
             tickFormat={hideLabels ? () => "" : xScale.tickFormat}
-            style={{ ticks: { strokeWidth: 1 } }}
+            style={{
+              ticks: { strokeWidth: 1 },
+              tickLabels: {
+                textAnchor: ({ index, ticks }) =>
+                  // We want first and last labels be aligned against area boundaries
+                  index === 0
+                    ? "start"
+                    : index === ticks.length - 1
+                      ? "end"
+                      : "middle",
+              },
+            }}
           />
 
           {charts.map((chart, k) =>

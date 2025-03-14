@@ -51,6 +51,9 @@ import {
   getNumericForecastDataset,
 } from "./forecasts";
 
+// Max length of a unit to be treated as compact
+const UNIT_COMPACT_LENGTH = 3;
+
 export function getContinuousChartTypeFromQuestion(
   type: QuestionType
 ): QuestionType | undefined {
@@ -398,6 +401,7 @@ export function getTableDisplayValue({
   precision,
   truncation,
   range,
+  unit,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -405,13 +409,14 @@ export function getTableDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
+  unit?: string;
 }) {
   if (isNil(value)) {
     return "...";
   }
 
   if (questionType !== QuestionType.Date) {
-    return getDisplayValue({
+    const formatted_value = getDisplayValue({
       value,
       questionType,
       scaling,
@@ -419,6 +424,10 @@ export function getTableDisplayValue({
       truncation,
       range,
     });
+
+    return unit && unit.length <= UNIT_COMPACT_LENGTH
+      ? `${formatted_value} ${unit}`
+      : formatted_value;
   }
 
   let dateFormat: string = "dd MMM yyyy HH:mm";
@@ -568,7 +577,7 @@ type GenerateScaleParams = {
   domain?: Tuple<number>;
   zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
-  displayLabel?: string;
+  unit?: string;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
 };
@@ -585,7 +594,7 @@ type GenerateScaleParams = {
  *  but for dates can be the min and max unix timestamps
  * @param scaling the Scaling related to the data, defaults to null
  *  which in turn is the same as a linear scaling along the given domain
- * @param displayLabel this is the label that will be appended to the
+ * @param unit this is the label that will be appended to the
  *  formatted tick values, defaults to an empty string
  * @param cursorDisplayLabel specifies the label to appear on the cursor
  *  state, which defaults to the displayLabel
@@ -599,7 +608,7 @@ export function generateScale({
   domain = [0, 1],
   zoomedDomain = [0, 1],
   scaling = null,
-  displayLabel = "",
+  unit,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -668,9 +677,21 @@ export function generateScale({
     tickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
 
+  const formatUnit = (idx: number | undefined) => {
+    if (
+      unit &&
+      (unit.length <= UNIT_COMPACT_LENGTH ||
+        idx === 0 ||
+        idx === allTicks.length - 1)
+    )
+      return ` ${unit}`;
+
+    return "";
+  };
+
   return {
     ticks: allTicks,
-    tickFormat: (x) => {
+    tickFormat: (x, idx) => {
       if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
         const unscaled = unscaleNominalLocation(x, domainScaling);
         return (
@@ -679,12 +700,13 @@ export function generateScale({
             questionType: displayType as QuestionType,
             scaling: rangeScaling,
             precision: 3,
-          }) + displayLabel
+          }) + formatUnit(idx)
         );
       }
       return "";
     },
     cursorFormat: (x) => {
+      // TODO: investigate whether we need to keep unit here
       const unscaled = unscaleNominalLocation(x, domainScaling);
       return (
         getDisplayValue({
@@ -692,7 +714,7 @@ export function generateScale({
           questionType: displayType as QuestionType,
           scaling: rangeScaling,
           precision: 6,
-        }) + displayLabel
+        }) + unit
       );
     },
   };

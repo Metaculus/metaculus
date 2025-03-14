@@ -189,6 +189,7 @@ const QuestionNumericTile: FC<Props> = ({
             questionType={question.type}
             resolution={question.resolution}
             hideCP={hideCP}
+            unit={question.unit}
           />
         )}
 
