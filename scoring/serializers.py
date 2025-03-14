@@ -64,7 +64,11 @@ class LeaderboardSerializer(serializers.Serializer):
         ]
 
     def get_prize_pool(self, obj: Leaderboard):
-        return obj.prize_pool or (obj.project.prize_pool if obj.project else None)
+        if obj.prize_pool is not None:
+            return obj.prize_pool
+        if obj.project:
+            return obj.project.prize_pool
+        return None
 
 
 class ContributionSerializer(serializers.Serializer):

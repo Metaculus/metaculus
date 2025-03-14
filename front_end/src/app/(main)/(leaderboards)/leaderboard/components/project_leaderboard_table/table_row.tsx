@@ -12,14 +12,14 @@ type Props = {
   rowEntry: LeaderboardEntry;
   withCoverage?: boolean;
   userId?: number;
-  withPrizePool?: boolean; // Feature Flag: leaderboard simplified view
+  withPrizePool?: boolean;
 };
 
 const TableRow: FC<Props> = ({
   rowEntry,
   withCoverage = false,
   userId,
-  withPrizePool = true, // Feature Flag: leaderboard simplified view
+  withPrizePool = true,
 }) => {
   const {
     user,
@@ -35,7 +35,6 @@ const TableRow: FC<Props> = ({
   const highlight = user?.id === userId;
   const t = useTranslations();
 
-  // Feature Flag: leaderboard simplified view
   if (!withPrizePool) {
     return (
       <tr>
