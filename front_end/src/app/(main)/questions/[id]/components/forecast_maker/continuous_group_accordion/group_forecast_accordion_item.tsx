@@ -36,7 +36,8 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   const formatedResolution = formatResolution(
     resolution,
     question.type,
-    locale
+    locale,
+    question.unit
   );
   const isResolvedOption = type === QuestionStatus.RESOLVED;
   const latest = question.aggregations.recency_weighted.latest;

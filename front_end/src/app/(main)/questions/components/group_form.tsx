@@ -167,6 +167,7 @@ const GroupForm: React.FC<Props> = ({
         }
         return {
           ...subquestionData,
+          unit: x.unit,
           scaling: x.scaling,
           open_lower_bound: x.open_lower_bound,
           open_upper_bound: x.open_upper_bound,
@@ -252,6 +253,7 @@ const GroupForm: React.FC<Props> = ({
               open_time: x.open_time,
               cp_reveal_time: x.cp_reveal_time,
               label: x.label,
+              unit: x.unit,
               scaling: x.scaling,
               open_lower_bound: x.open_lower_bound,
               open_upper_bound: x.open_upper_bound,
@@ -473,6 +475,26 @@ const GroupForm: React.FC<Props> = ({
                     value={subQuestion?.label}
                   />
                 </InputContainer>
+                {subtype === QuestionType.Numeric && (
+                  <InputContainer
+                    labelText={t("subquestionUnit")}
+                    explanation={t("questionUnitDescription")}
+                  >
+                    <Input
+                      onChange={(e) => {
+                        setSubQuestions(
+                          subQuestions.map((subQuestion, iter_index) => {
+                            if (index === iter_index)
+                              subQuestion.unit = e.target.value;
+                            return subQuestion;
+                          })
+                        );
+                      }}
+                      className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                      value={subQuestion?.unit}
+                    />
+                  </InputContainer>
+                )}
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4">
                     <div className="flex flex-col gap-4 md:flex-row">

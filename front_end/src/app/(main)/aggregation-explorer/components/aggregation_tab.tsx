@@ -37,8 +37,13 @@ const AggregationsTab: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const { aggregations, bot_aggregations, actual_close_time, resolution } =
-    aggregationData ?? {};
+  const {
+    aggregations,
+    bot_aggregations,
+    actual_close_time,
+    resolution,
+    unit,
+  } = aggregationData ?? {};
 
   const tabData =
     AGGREGATION_EXPLORER_OPTIONS.find((option) => option.id === activeTab) ??
@@ -206,6 +211,7 @@ const AggregationsTab: FC<Props> = ({
           scaling={aggregationData.scaling}
           resolution={resolution}
           onCursorChange={handleCursorChange}
+          unit={unit}
         />
         {!!cursorData && (
           <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">

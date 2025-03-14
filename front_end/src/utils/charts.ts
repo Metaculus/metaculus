@@ -1,13 +1,13 @@
 import * as d3 from "d3";
 import {
-  format,
   differenceInMilliseconds,
+  format,
   fromUnixTime,
   getUnixTime,
   subDays,
   subMonths,
 } from "date-fns";
-import { findLastIndex, isNil, uniq, range } from "lodash";
+import { findLastIndex, isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
@@ -22,23 +22,24 @@ import {
 import { ChoiceItem } from "@/types/choices";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
-  QuestionType,
-  QuestionWithNumericForecasts,
-  Question,
-  QuestionWithMultipleChoiceForecasts,
-  UserForecastHistory,
-  Scaling,
   AggregateForecast,
-  QuestionWithForecasts,
   AggregateForecastHistory,
   Bounds,
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithMultipleChoiceForecasts,
+  QuestionWithNumericForecasts,
+  Scaling,
   UserForecast,
+  UserForecastHistory,
 } from "@/types/question";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 import {
   formatMultipleChoiceResolution,
   formatResolution,
+  formatValueUnit,
   isUnsuccessfullyResolved,
 } from "@/utils/questions";
 
@@ -50,6 +51,9 @@ import {
   getForecastPctDisplayValue,
   getNumericForecastDataset,
 } from "./forecasts";
+
+// Max length of a unit to be treated as compact
+const UNIT_COMPACT_LENGTH = 3;
 
 export function getContinuousChartTypeFromQuestion(
   type: QuestionType
@@ -105,6 +109,7 @@ type GenerateYDomainParams = {
   isChartEmpty: boolean;
   zoomDomainPadding?: number;
 };
+
 export function generateYDomain({
   zoom,
   isChartEmpty,
@@ -398,6 +403,7 @@ export function getTableDisplayValue({
   precision,
   truncation,
   range,
+  unit,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -405,13 +411,14 @@ export function getTableDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
+  unit?: string;
 }) {
   if (isNil(value)) {
     return "...";
   }
 
   if (questionType !== QuestionType.Date) {
-    return getDisplayValue({
+    const formatted_value = getDisplayValue({
       value,
       questionType,
       scaling,
@@ -419,6 +426,10 @@ export function getTableDisplayValue({
       truncation,
       range,
     });
+
+    return unit && unit.length <= UNIT_COMPACT_LENGTH
+      ? formatValueUnit(formatted_value, unit)
+      : formatted_value;
   }
 
   let dateFormat: string = "dd MMM yyyy HH:mm";
@@ -445,7 +456,8 @@ export function getTableDisplayValue({
 export function getChoiceOptionValue(
   value: number | null,
   questionType?: QuestionType,
-  scaling?: Scaling
+  scaling?: Scaling,
+  unit?: string | undefined
 ) {
   if (isNil(value)) {
     return `?`;
@@ -460,7 +472,7 @@ export function getChoiceOptionValue(
   });
   switch (questionType) {
     case QuestionType.Numeric:
-      return getForecastNumericDisplayValue(scaledValue);
+      return formatValueUnit(getForecastNumericDisplayValue(scaledValue), unit);
     case QuestionType.Date:
       return getForecastDateDisplayValue(scaledValue);
     case QuestionType.Binary:
@@ -568,7 +580,7 @@ type GenerateScaleParams = {
   domain?: Tuple<number>;
   zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
-  displayLabel?: string;
+  unit?: string;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
 };
@@ -585,7 +597,7 @@ type GenerateScaleParams = {
  *  but for dates can be the min and max unix timestamps
  * @param scaling the Scaling related to the data, defaults to null
  *  which in turn is the same as a linear scaling along the given domain
- * @param displayLabel this is the label that will be appended to the
+ * @param unit this is the label that will be appended to the
  *  formatted tick values, defaults to an empty string
  * @param cursorDisplayLabel specifies the label to appear on the cursor
  *  state, which defaults to the displayLabel
@@ -599,7 +611,7 @@ export function generateScale({
   domain = [0, 1],
   zoomedDomain = [0, 1],
   scaling = null,
-  displayLabel = "",
+  unit,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -668,31 +680,51 @@ export function generateScale({
     tickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
 
+  const conditionallyShowUnit = (value: string, idx?: number): string => {
+    if (!unit) return value;
+
+    // Include unit if it's within the length limit
+    if (unit.length <= UNIT_COMPACT_LENGTH) return formatValueUnit(value, unit);
+
+    // Include unit only for the first and last tick in horizontal mode
+    if (
+      direction === "horizontal" &&
+      (idx === 0 || idx === allTicks.length - 1)
+    ) {
+      return formatValueUnit(value, unit);
+    }
+
+    return value;
+  };
+
   return {
     ticks: allTicks,
-    tickFormat: (x) => {
+    tickFormat: (x, idx) => {
       if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
         const unscaled = unscaleNominalLocation(x, domainScaling);
-        return (
+        return conditionallyShowUnit(
           getDisplayValue({
             value: unscaled,
             questionType: displayType as QuestionType,
             scaling: rangeScaling,
             precision: 3,
-          }) + displayLabel
+          }),
+          idx
         );
       }
       return "";
     },
     cursorFormat: (x) => {
+      // TODO: investigate whether we need to keep unit here
       const unscaled = unscaleNominalLocation(x, domainScaling);
-      return (
+      return formatValueUnit(
         getDisplayValue({
           value: unscaled,
           questionType: displayType as QuestionType,
           scaling: rangeScaling,
           precision: 6,
-        }) + displayLabel
+        }),
+        unit
       );
     },
   };
@@ -955,9 +987,15 @@ export function generateChoiceItemsFromGroupQuestions(
       active: true,
       resolution: question.resolution,
       displayedResolution: !!question.resolution
-        ? formatResolution(question.resolution, question.type, locale ?? "en")
+        ? formatResolution(
+            question.resolution,
+            question.type,
+            locale ?? "en",
+            question.unit
+          )
         : null,
       closeTime,
+      unit: question.unit,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,

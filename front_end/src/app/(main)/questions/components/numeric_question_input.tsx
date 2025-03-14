@@ -86,6 +86,7 @@ const NumericQuestionInput: React.FC<{
     fine_print: "",
     resolution_criteria: "",
     label: "",
+    unit: "",
     nr_forecasters: 0,
     author_username: "",
     post_id: 0,

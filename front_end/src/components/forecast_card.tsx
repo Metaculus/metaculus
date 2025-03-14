@@ -185,6 +185,7 @@ const ForecastCard: FC<Props> = ({
                     ? new Date(question.open_time).getTime()
                     : undefined
                 }
+                unit={question.unit}
               />
               <ForecastAvailabilityChartOverflow
                 forecastAvailability={forecastAvailability}

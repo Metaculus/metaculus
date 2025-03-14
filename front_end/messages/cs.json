@@ -1114,5 +1114,8 @@
   "childInputDescription": "Prosím, buď vyhledejte název binární, číselné, nebo datové otázky, nebo zadejte URL. Možnost výběru přichází brzy. Pokud vybíráte podotázku ze skupiny, zadejte prosím celou URL, např. /questions/123/?sub-question=456",
   "invalidQuestionType": "Neplatný typ otázky",
   "invalidQuestionStatus": "Stav otázky by měl být otevřený nebo připravovaný",
-  "chance": "šance"
+  "chance": "šance",
+  "questionUnit": "Jednotka otázky",
+  "subquestionUnit": "Jednotka podotázky",
+  "questionUnitDescription": "Jednotka se zobrazuje vedle mediánu a na různých dalších místech. Příklady: „$“, „Případy“, „Lidé“."
 }

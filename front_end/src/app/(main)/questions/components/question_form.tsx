@@ -141,6 +141,9 @@ const createQuestionSchemas = (
 
   const numericQuestionSchema = continuousQuestionSchema.merge(
     z.object({
+      unit: z.string().max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 20 }),
+      }),
       max: z.number().optional(),
       min: z.number().optional(),
     })
@@ -396,6 +399,19 @@ const QuestionForm: FC<Props> = ({
             className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
+        {questionType === "numeric" && (
+          <InputContainer
+            labelText={t("questionUnit")}
+            explanation={t("questionUnitDescription")}
+          >
+            <Input
+              {...form.register("unit")}
+              errors={form.formState.errors.unit}
+              defaultValue={post?.question?.unit}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+        )}
         <InputContainer
           labelText={t("backgroundInformation")}
           explanation={t.rich("backgroundInfoExplanation", {

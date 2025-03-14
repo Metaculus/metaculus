@@ -132,7 +132,8 @@ const ChartFanTooltip: FC<Props> = ({
                     {formatResolution(
                       question.resolution,
                       question.type,
-                      locale
+                      locale,
+                      question.unit
                     )}
                   </div>
                 </td>

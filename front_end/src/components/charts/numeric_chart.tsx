@@ -74,6 +74,7 @@ type Props = {
   withUserForecastTimestamps?: boolean;
   isEmptyDomain?: boolean;
   openTime?: number;
+  unit?: string;
 };
 
 const NumericChart: FC<Props> = ({
@@ -96,6 +97,7 @@ const NumericChart: FC<Props> = ({
   withUserForecastTimestamps,
   isEmptyDomain,
   openTime,
+  unit,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -127,6 +129,7 @@ const NumericChart: FC<Props> = ({
         extraTheme,
         isAggregationsEmpty: isEmptyDomain,
         openTime,
+        unit,
       }),
     [
       questionType,
@@ -376,6 +379,7 @@ function buildChartData({
   extraTheme,
   isAggregationsEmpty,
   openTime,
+  unit,
 }: {
   questionType: QuestionType;
   actualCloseTime: number | null;
@@ -389,6 +393,7 @@ function buildChartData({
   extraTheme?: VictoryThemeDefinition;
   isAggregationsEmpty?: boolean;
   openTime?: number;
+  unit?: string;
 }): ChartData {
   const line: Line = [];
   const area: Area = [];
@@ -556,6 +561,7 @@ function buildChartData({
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
     scaling,
+    unit,
   });
 
   return {

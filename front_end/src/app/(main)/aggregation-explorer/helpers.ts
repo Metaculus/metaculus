@@ -125,7 +125,12 @@ function parseAggregationData({
         active: true,
         resolution: question.resolution,
         displayedResolution: !!question.resolution
-          ? formatResolution(question.resolution, question.type, locale ?? "en")
+          ? formatResolution(
+              question.resolution,
+              question.type,
+              locale ?? "en",
+              question.unit
+            )
           : null,
         closeTime: Math.min(
           new Date(question.scheduled_close_time).getTime(),
@@ -133,6 +138,7 @@ function parseAggregationData({
             question.actual_resolve_time ?? question.scheduled_resolve_time
           ).getTime()
         ),
+        unit: question.unit,
         rangeMin: question.scaling.range_min ?? 0,
         rangeMax: question.scaling.range_min ?? 1,
         scaling: question.scaling,
@@ -204,7 +210,12 @@ function parseAggregationData({
       active: true,
       resolution: question.resolution,
       displayedResolution: !!question.resolution
-        ? formatResolution(question.resolution, question.type, locale ?? "en")
+        ? formatResolution(
+            question.resolution,
+            question.type,
+            locale ?? "en",
+            question.unit
+          )
         : null,
       closeTime: Math.min(
         new Date(question.scheduled_close_time).getTime(),
@@ -212,6 +223,7 @@ function parseAggregationData({
           question.actual_resolve_time ?? question.scheduled_resolve_time
         ).getTime()
       ),
+      unit: question.unit,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,

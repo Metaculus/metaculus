@@ -180,6 +180,7 @@ const QuestionNumericTile: FC<Props> = ({
                 ? new Date(question.open_time).getTime()
                 : undefined
             }
+            unit={question.unit}
           />
         ) : (
           <ContinuousAreaChart
@@ -189,6 +190,7 @@ const QuestionNumericTile: FC<Props> = ({
             questionType={question.type}
             resolution={question.resolution}
             hideCP={hideCP}
+            unit={question.unit}
           />
         )}
 

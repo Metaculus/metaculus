@@ -106,6 +106,8 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
     group_variable = models.CharField(blank=True, null=False)
 
+    unit = models.CharField(max_length=25, blank=True)
+
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 

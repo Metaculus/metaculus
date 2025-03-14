@@ -39,7 +39,8 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
       const formatedResolution = formatResolution(
         question.resolution,
         question.type,
-        locale
+        locale,
+        question.unit
       );
       const successfullResolution = isSuccessfullyResolved(question.resolution);
       return (
