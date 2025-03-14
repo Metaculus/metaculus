@@ -51,7 +51,7 @@ const ContinuousSlider: FC<Props> = ({
               />
             )}
 
-            {!!components.length && !isNil(forecastValue.weight) && (
+            {components.length > 1 && !isNil(forecastValue.weight) && (
               <div className="flex flex-row justify-between">
                 <span className="inline pr-2 pt-2">weight:</span>
                 <div className="inline w-3/4">
