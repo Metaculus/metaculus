@@ -1,12 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import React, { FC, useMemo } from "react";
 
 import PostStatusIcon from "@/components/post_status/status_icon";
 import { Post, PostStatus as PostStatusEnum, Resolution } from "@/types/post";
-import { formatRelativeDate } from "@/utils/date_formatters";
+
+import LocalDaytime from "../ui/local_daytime";
 
 type Props = {
   resolution: Resolution | null;
@@ -16,7 +17,6 @@ type Props = {
 // TODO: revisit this component once BE provide all data, required for status definition
 const PostStatus: FC<Props> = ({ resolution, post }) => {
   const t = useTranslations();
-  const locale = useLocale();
   const {
     status,
     scheduled_close_time,
@@ -25,51 +25,43 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
     open_time,
   } = post;
 
-  const statusInfo = useMemo(() => {
+  const statusText = useMemo(() => {
     if (status === PostStatusEnum.PENDING) {
-      return [t("inReview")];
+      return t("inReview");
     }
-
     if (status === PostStatusEnum.CLOSED) {
       if (new Date(scheduled_resolve_time).getTime() < Date.now()) {
-        return [t("resolutionPending")];
+        return t("resolutionPending");
       }
-      return [t("closed")];
+      return t("closed");
     }
-
     if ([PostStatusEnum.APPROVED, PostStatusEnum.OPEN].includes(status)) {
       if (new Date(open_time).getTime() > Date.now()) {
-        return [
-          t("opens"),
-          formatRelativeDate(locale, new Date(open_time), {
-            short: true,
-          }),
-        ];
+        return (
+          <>
+            {t("opens")} <LocalDaytime date={open_time} />
+          </>
+        );
       }
-      return [
-        t("closes"),
-        formatRelativeDate(locale, new Date(scheduled_close_time), {
-          short: true,
-        }),
-      ];
+      return (
+        <>
+          {t("closes")} <LocalDaytime date={scheduled_close_time} />
+        </>
+      );
     }
-
     if (status === PostStatusEnum.RESOLVED) {
-      return [
-        t("resolved"),
-        formatRelativeDate(locale, new Date(actual_close_time), {
-          short: true,
-        }),
-      ];
+      return (
+        <>
+          {t("resolved")} <LocalDaytime date={actual_close_time} />
+        </>
+      );
     }
-
-    return [];
+    return null;
   }, [
     status,
     t,
     scheduled_resolve_time,
     open_time,
-    locale,
     scheduled_close_time,
     actual_close_time,
   ]);
@@ -87,11 +79,7 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
         resolution={resolution}
       />
       <span className="whitespace-nowrap text-sm" suppressHydrationWarning>
-        {statusInfo.map((part) => (
-          <React.Fragment key={`${post.id}-status-${part}`}>
-            {part + " "}
-          </React.Fragment>
-        ))}
+        {statusText}
       </span>
     </div>
   );
