@@ -119,7 +119,8 @@ const GroupForecastTable: FC<Props> = ({
                         {formatResolution(
                           option.resolution,
                           option.question.type,
-                          locale
+                          locale,
+                          option.question.unit
                         )}
                       </span>
                     </div>
