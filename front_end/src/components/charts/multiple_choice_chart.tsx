@@ -41,6 +41,7 @@ import {
   generateScale,
   generateTimestampXScale,
   generateYDomain,
+  getLeftPadding,
   getTickLabelFontSize,
   scaleInternalLocation,
   unscaleNominalLocation,
@@ -148,6 +149,11 @@ const MultipleChoiceChart: FC<Props> = ({
       openTime,
     ]
   );
+
+  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
+    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
+
   const isHighlightActive = useMemo(
     () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
     [choiceItems]
@@ -217,6 +223,17 @@ const MultipleChoiceChart: FC<Props> = ({
           width={chartWidth}
           height={height}
           theme={actualTheme}
+          padding={(() => {
+            if (questionType === QuestionType.Date) {
+              return {
+                left: Math.max(leftPadding, MIN_LEFT_PADDING),
+                top: 10,
+                right: 10,
+                bottom: 20,
+              };
+            }
+            return undefined;
+          })()}
           events={[
             {
               target: "parent",
@@ -336,9 +353,10 @@ const MultipleChoiceChart: FC<Props> = ({
               tickLabels: { padding: 2 },
             }}
             label={yLabel}
+            offsetX={Math.max(leftPadding - 2, MIN_LEFT_PADDING - 2)}
             axisLabelComponent={
               <VictoryLabel
-                dy={-10}
+                dy={-Math.max(leftPadding - 40, MIN_LEFT_PADDING - 40)}
                 style={{ fill: getThemeColor(METAC_COLORS.gray["1000"]) }}
               />
             }

@@ -149,7 +149,7 @@ const ContinuousAreaChart: FC<Props> = ({
         direction: "vertical",
         domain: yDomain,
       }),
-    [height, yDomain]
+    [height, yDomain, paddingTop]
   );
 
   const resolutionPoint = !isNil(resolution)
