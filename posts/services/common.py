@@ -147,8 +147,9 @@ def create_post(
             obj.question = create_question(**question)
         elif conditional:
             obj.conditional = create_conditional(**conditional)
-            # Populate url_title from condition child
-            obj.url_title = obj.conditional.condition_child.get_post().get_url_title()
+            # Populate title and url_title from condition child
+            obj.title = obj.conditional.get_title()
+            obj.url_title = f"Conditional {obj.conditional.condition_child.get_post().get_url_title()}"
         elif group_of_questions:
             obj.group_of_questions = create_group_of_questions(**group_of_questions)
         elif notebook:
@@ -181,6 +182,9 @@ def create_post(
 def trigger_update_post_translations(
     post: Post, with_comments: bool = False, force: bool = False
 ):
+    if not force and not post.is_automatically_translated:
+        return
+
     is_private = post.default_project.default_permission is None
     should_translate_if_dirty = not is_private or force
 
@@ -492,20 +496,38 @@ def approve_post(post: Post, open_time: date, cp_reveal_time: date):
     post.update_pseudo_materialized_fields()
 
 
+@transaction.atomic
+def reject_post(post: Post):
+    if post.curation_status != Post.CurationStatus.PENDING:
+        raise ValidationError("Post is not under review")
+
+    post.update_curation_status(Post.CurationStatus.REJECTED)
+    post.save()
+
+
 def submit_for_review_post(post: Post):
     if post.curation_status != Post.CurationStatus.DRAFT:
         raise ValueError("Can't submit for review non-draft post")
 
-    post.curation_status = Post.CurationStatus.PENDING
-    post.save(update_fields=["curation_status"])
+    post.update_curation_status(Post.CurationStatus.PENDING)
+    post.save()
 
 
 def post_make_draft(post: Post):
     if post.curation_status != Post.CurationStatus.PENDING:
         raise ValueError("Can't submit for review non-pending post")
 
-    post.curation_status = Post.CurationStatus.DRAFT
-    post.save(update_fields=["curation_status"])
+    post.update_curation_status(Post.CurationStatus.DRAFT)
+    post.save()
+
+
+def send_back_to_review(post: Post):
+    if post.curation_status != Post.CurationStatus.APPROVED:
+        raise ValueError("Can't send back to review non-approved post")
+
+    post.curation_status = Post.CurationStatus.PENDING
+    post.open_time = None
+    post.save(update_fields=["curation_status", "open_time"])
 
 
 def resolve_post(post: Post):

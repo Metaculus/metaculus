@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 import re
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -25,10 +26,12 @@ from sentry_sdk.integrations.dramatiq import DramatiqIntegration
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Current env
-ENV = os.environ.get("METACULUS_ENV", "").strip()
-ENV_DEV = "dev"
-ENV_PROD = "prod"
-ENV_PLAY = "play"
+# Metaculus instance identity
+METACULUS_ENV = os.environ.get("METACULUS_ENV", "").strip()
+
+# Flag to determine if the current execution is within a test environment
+# This checks if pytest is loaded in sys.modules, which happens when running tests
+IS_TEST_ENV = "pytest" in sys.modules
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -95,6 +98,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "utils.middlewares.middleware_alpha_access_check",
+    "utils.middlewares.AuthenticationRequiredMiddleware",
 ]
 
 if DEBUG:
@@ -137,7 +141,7 @@ DATABASES = {
     },
 }
 
-if ENV != "testing":
+if not IS_TEST_ENV:
     # Old database for the migrator
     DATABASES["old"] = {
         **dj_database_url.config(
@@ -196,6 +200,11 @@ AUTH_SIGNUP_VERIFY_EMAIL = (
     os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
 )
 
+PUBLIC_AUTHENTICATION_REQUIRED = (
+    os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"
+)
+PUBLIC_ALLOW_SIGNUP = os.environ.get("PUBLIC_ALLOW_SIGNUP", "true").lower() == "true"
+
 SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_details",
     "social_core.pipeline.social_auth.social_uid",
@@ -203,6 +212,7 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_user",
     "social_core.pipeline.user.get_username",
     "social_core.pipeline.social_auth.associate_by_email",
+    "authentication.social_pipeline.check_signup_allowed",
     "social_core.pipeline.user.create_user",
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.social_auth.load_extra_data",
@@ -273,7 +283,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "docs")]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Frontend configuration
-FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000").rstrip(
+PUBLIC_APP_URL = (os.environ.get("PUBLIC_APP_URL") or "http://localhost:3000").rstrip(
     "/"
 )
 
@@ -285,9 +295,6 @@ REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 REDIS_URL_CONFIG = os.environ.get("REDIS_URL_CONFIG", "")
 
 SCREENSHOT_SERVICE_API_KEY = os.environ.get("SCREENSHOT_SERVICE_API_KEY", "")
-SCREENSHOT_SERVICE_API_URL = os.environ.get(
-    "SCREENSHOT_SERVICE_API_URL", "https://screenshot.metaculus.com/api/screenshot"
-)
 
 # django-dramatiq
 # https://github.com/Bogdanp/django_dramatiq
@@ -313,10 +320,11 @@ DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
 
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
-if ENV == "testing":
+if IS_TEST_ENV:
     DRAMATIQ_BROKER.update(
         {"BROKER": "dramatiq.brokers.stub.StubBroker", "OPTIONS": {}}
     )
+
 DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 
 CACHES = {
@@ -389,7 +397,7 @@ ALLOWED_HOSTS = [
     "dev-metaculus-web-023b332df454.herokuapp.com/",  # remove after we have a DNS entry for dev environment
 ]
 
-CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
+CSRF_TRUSTED_ORIGINS = [PUBLIC_APP_URL]
 INTERNAL_IPS = ["127.0.0.1"]
 
 LOGGING = {
@@ -427,6 +435,10 @@ SHELL_PLUS_IMPORTS = [
     "from datetime import datetime, timedelta, timezone as dt_timezone",
 ]
 
+# Sentry config
+SENTRY_DNS = os.environ.get("SENTRY_DNS")
+SENTRY_SAMPLE_RATE = float(os.environ.get("SENTRY_SAMPLE_RATE", 0.25))
+
 
 def traces_sampler(sampling_context):
     exclude_endpoints = [
@@ -442,24 +454,18 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
-    # Custom traces configuration
-
-    # Capture all for non-prod envs
-    if ENV != ENV_PROD:
-        return 1.0
-
     if re.match(r"^/api/posts/\d+/similar-posts/?$", url) or url == "/api/medals/":
         return 0.1
 
-    return 0.25
+    return SENTRY_SAMPLE_RATE
 
 
-if os.environ.get("SENTRY_DNS", None):
+if SENTRY_DNS:
     sentry_sdk.init(
-        dsn=os.environ.get("SENTRY_DNS"),
+        dsn=SENTRY_DNS,
         traces_sampler=traces_sampler,
-        profiles_sample_rate=0.5,
-        environment=ENV,
+        profiles_sample_rate=SENTRY_SAMPLE_RATE,
+        environment=METACULUS_ENV,
         integrations=[
             DramatiqIntegration(),
         ],

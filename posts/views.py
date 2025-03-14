@@ -1,10 +1,7 @@
-from collections import defaultdict
-
 from django.core.files.storage import default_storage
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
@@ -40,7 +37,9 @@ from posts.services.common import (
     approve_post,
     update_post,
     submit_for_review_post,
+    reject_post,
     post_make_draft,
+    send_back_to_review,
     compute_hotness,
     trigger_update_post_translations,
     make_repost,
@@ -52,15 +51,18 @@ from posts.utils import check_can_edit_post, get_post_slug
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_project_permission_for_user
-from questions.models import AggregateForecast, Question
+from questions.models import Question
 from questions.serializers import (
     QuestionApproveSerializer,
 )
+
 from users.models import User
-from utils.csv_utils import export_data_for_questions
+from utils.csv_utils import (
+    export_all_data_for_questions,
+    export_specific_data_for_questions,
+)
 from utils.files import UserUploadedImage, generate_filename
 from utils.paginator import CountlessLimitOffsetPagination
-from utils.the_math.aggregations import get_aggregation_history
 
 
 @api_view(["GET"])
@@ -93,6 +95,7 @@ def posts_list_api_view(request):
         with_cp=with_cp,
         current_user=request.user,
         group_cutoff=group_cutoff,
+        with_key_factors=True,
     )
 
     return paginator.get_paginated_response(data)
@@ -296,7 +299,7 @@ def post_update_api_view(request, pk):
 def post_approve_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
     permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_approve(permission, raise_exception=True)
+    ObjectPermission.can_approve_or_reject(permission, raise_exception=True)
 
     serializer = QuestionApproveSerializer(post, data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -318,6 +321,17 @@ def post_submit_for_review_api_view(request, pk):
 
 
 @api_view(["POST"])
+def post_reject_api_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_approve_or_reject(permission, raise_exception=True)
+
+    reject_post(post)
+
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
 def post_make_draft_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
     permission = get_post_permission_for_user(post, user=request.user)
@@ -326,6 +340,20 @@ def post_make_draft_api_view(request, pk):
     post_make_draft(post)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def post_send_back_to_review_api_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    permission = get_post_permission_for_user(post, user=request.user)
+    if permission not in (ObjectPermission.ADMIN):
+        raise PermissionDenied(
+            "You do not have permission to send back to review this post"
+        )
+
+    send_back_to_review(post)
+
+    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(["DELETE"])
@@ -343,6 +371,11 @@ def post_delete_api_view(request, pk):
 @api_view(["POST"])
 def post_vote_api_view(request: Request, pk: int):
     post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
     direction = serializers.ChoiceField(
         required=False, allow_null=True, choices=Vote.VoteDirection.choices
     ).run_validation(request.data.get("direction"))
@@ -544,9 +577,10 @@ def download_data(request, post_id: int):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # Context for the serializer
-    can_view_private_data = user.is_authenticated and (
-        user.is_staff
-        or WhitelistUser.objects.filter(
+    is_staff = user.is_authenticated and user.is_staff
+    is_whitelisted = (
+        user.is_authenticated
+        and WhitelistUser.objects.filter(
             Q(post=post)
             | Q(project=post.default_project)
             | (Q(post__isnull=True) & Q(project__isnull=True)),
@@ -554,8 +588,9 @@ def download_data(request, post_id: int):
         ).exists()
     )
     serializer_context = {
-        "user": user,
-        "can_view_private_data": can_view_private_data,
+        "user": user if user.is_authenticated else None,
+        "is_staff": is_staff,
+        "is_whitelisted": is_whitelisted,
     }
 
     serializer = DownloadDataSerializer(
@@ -567,11 +602,12 @@ def download_data(request, post_id: int):
     aggregation_methods = params.get("aggregation_methods")
     user_ids = params.get("user_ids")
     include_comments = params.get("include_comments", False)
-    include_scores = params.get("include_scores", False)
+    include_scores = params.get("include_scores", True)
     include_bots = params.get("include_bots")
     minimize = params.get("minimize", True)
+    anonymized = params.get("anonymized", False)
 
-    # Get questions based on sub_question parameter
+    # Get all questions
     if post.group_of_questions:
         if sub_question is None:
             questions = post.group_of_questions.questions.all()
@@ -588,51 +624,41 @@ def download_data(request, post_id: int):
     else:
         raise NotFound("Post has no questions")
 
-    if not aggregation_methods and (
-        (user_ids is not None) or (include_bots is not None) or (not minimize)
-    ):
-        raise ValueError(
-            "If user_ids, include_bots or minimize is set, "
-            "aggregation_methods must also be set"
+    if is_staff:
+        data = export_all_data_for_questions(
+            questions,
+            aggregation_methods=aggregation_methods,
+            user_ids=user_ids,
+            include_comments=include_comments,
+            include_scores=include_scores,
+            include_bots=include_bots,
+            minimize=minimize,
+            anonymized=anonymized,
+        )
+    elif is_whitelisted:
+        data = export_all_data_for_questions(
+            questions,
+            aggregation_methods=aggregation_methods,
+            user_ids=user_ids,
+            include_comments=include_comments,
+            include_scores=include_scores,
+            include_bots=include_bots,
+            minimize=minimize,
+            anonymized=True,
+        )
+    else:
+        data = export_specific_data_for_questions(
+            questions,
+            user=user if user.is_authenticated else None,
+            aggregation_methods=aggregation_methods,
+            include_comments=include_comments,
+            include_scores=include_scores,
+            include_bots=include_bots,
+            minimize=minimize,
         )
 
-    now = timezone.now()
-    aggregation_dict: dict[Question, dict[str, list[AggregateForecast]]] = defaultdict(
-        dict
-    )
-    if aggregation_methods:
-        for question in questions:
-            if (
-                question.cp_reveal_time
-                and question.cp_reveal_time > now
-                and (not user or not user.is_superuser)
-            ):
-                continue
-
-            aggregation_dict[question] = get_aggregation_history(
-                question,
-                aggregation_methods,
-                user_ids=user_ids,
-                minimize=minimize,
-                include_stats=True,
-                include_bots=(
-                    include_bots
-                    if include_bots is not None
-                    else question.include_bots_in_aggregates
-                ),
-                histogram=True,
-            )
-
-    data = export_data_for_questions(
-        questions=questions,
-        include_user_forecasts=can_view_private_data,
-        include_comments=include_comments,
-        include_scores=include_scores,
-        user_ids=user_ids,
-        aggregation_dict=aggregation_dict or None,
-    )
-
-    filename = "_".join(post.title.split(" "))
+    title = post.title.replace("?", "")
+    filename = "_".join(title.split(" ")) or "data"
     response = HttpResponse(
         data,
         content_type="application/zip",

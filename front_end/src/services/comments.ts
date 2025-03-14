@@ -90,6 +90,15 @@ class CommentsApi {
     );
   }
 
+  static async togglePin(
+    commentId: number,
+    pin: boolean
+  ): Promise<BECommentType> {
+    return await post(`/comments/${commentId}/toggle-pin/`, {
+      pin,
+    });
+  }
+
   static async voteComment(voteData: VoteParams): Promise<Response | null> {
     return await post<null, VoteParams>(
       `/comments/${voteData.id}/vote/`,

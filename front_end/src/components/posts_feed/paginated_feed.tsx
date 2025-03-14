@@ -3,6 +3,7 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, Fragment, useEffect, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
@@ -12,15 +13,19 @@ import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, NotebookPost } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { logError } from "@/utils/errors";
+import { isQuestionPost } from "@/utils/questions";
 
 import { SCROLL_CACHE_KEY } from "./constants";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import InReviewBox from "./in_review_box";
+import ConsumerPostCard from "../post_card/consumer_post_card";
 import { FormErrorMessage } from "../ui/form_field";
 
 export type PostsFeedType = "posts" | "news";
@@ -42,6 +47,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   const pathname = usePathname();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
 
+  const isConsumerViewEnabled = useFeatureFlagEnabled("consumerView");
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
     ? Number(params.get(POST_PAGE_FILTER))
@@ -62,6 +68,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   >();
 
   const { setBannerIsVisible } = useContentTranslatedBannerProvider();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   useEffect(() => {
     if (
@@ -129,16 +136,25 @@ const PaginatedPostsFeed: FC<Props> = ({
     if (type === "news" && post.notebook) {
       return <NewsCard post={post as NotebookPost} />;
     }
-
+    // TODO: adjust condition for other post types when implemented
+    // PS: eventually we will render PostCard here only for conditional questions
+    if (
+      isConsumerViewEnabled &&
+      isQuestionPost(post) &&
+      [QuestionType.Date, QuestionType.Binary].includes(post.question.type)
+    ) {
+      return <ConsumerPostCard post={post} />;
+    }
     return <PostCard post={post} />;
   };
 
   return (
     <>
       <div className="flex flex-col gap-3">
-        {filters.statuses && filters.statuses === "pending" && !isCommunity && (
-          <InReviewBox />
-        )}
+        {filters.statuses &&
+          filters.statuses === "pending" &&
+          !isCommunity &&
+          !PUBLIC_MINIMAL_UI && <InReviewBox />}
         {!paginatedPosts.length && (
           <>
             {isCommunity ? (

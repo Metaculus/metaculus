@@ -7,12 +7,14 @@ import { FC } from "react";
 import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import useEmbedModalContext from "@/contexts/embed_modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import {
   useCopyUrl,
   useShareOnFacebookLink,
   useShareOnTwitterLink,
 } from "@/hooks/share";
 import { useBreakpoint } from "@/hooks/tailwind";
+import useAppTheme from "@/hooks/use_app_theme";
 import cn from "@/utils/cn";
 
 type Props = {
@@ -28,12 +30,14 @@ export const SharePostMenu: FC<Props> = ({
 }) => {
   const isLargeScreen = useBreakpoint("md");
   const t = useTranslations();
+  const { PUBLIC_SCREENSHOT_SERVICE_ENABLED } = usePublicSettings();
   const { updateIsOpen } = useEmbedModalContext();
   const copyUrl = useCopyUrl();
   const shareOnTwitterLink = useShareOnTwitterLink(
     `${questionTitle} #metaculus`
   );
   const shareOnFacebookLink = useShareOnFacebookLink();
+  const { theme } = useAppTheme();
 
   return (
     <DropdownMenu
@@ -59,12 +63,12 @@ export const SharePostMenu: FC<Props> = ({
           link: shareOnTwitterLink,
           openNewTab: true,
         },
-        ...(questionId
+        ...(questionId && PUBLIC_SCREENSHOT_SERVICE_ENABLED
           ? [
               {
                 id: "image",
                 name: t("image"),
-                link: `/questions/${questionId}/image-preview/`,
+                link: `/questions/${questionId}/image-preview/?theme=${theme}`,
                 openNewTab: true,
               },
             ]

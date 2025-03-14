@@ -6,6 +6,7 @@ import {
   getFilterSectionParticipation,
   getFilterSectionPostStatus,
   getFilterSectionPostType,
+  getFilterSectionProjects,
   getFilterSectionUsername,
 } from "@/app/(main)/questions/helpers/filters";
 import PostsFilters from "@/components/posts_filters";
@@ -17,13 +18,19 @@ import {
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
+import { TournamentPreview } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
-
 type Props = {
   following?: boolean;
+  tournaments?: TournamentPreview[];
+  panelClassname?: string;
 };
 
-const MainFeedFilters: FC<Props> = ({ following }) => {
+const MainFeedFilters: FC<Props> = ({
+  following,
+  tournaments,
+  panelClassname,
+}) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
@@ -48,9 +55,12 @@ const MainFeedFilters: FC<Props> = ({ following }) => {
     ];
     if (user) {
       filters.push(getFilterSectionParticipation({ t, params, user }));
+      if (user.is_superuser && tournaments) {
+        filters.push(getFilterSectionProjects({ t, params, tournaments }));
+      }
     }
     return filters;
-  }, [params, t, user]);
+  }, [params, t, user, tournaments]);
 
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
@@ -63,7 +73,7 @@ const MainFeedFilters: FC<Props> = ({ following }) => {
         label: t("movers"),
       },
       {
-        value: QuestionOrder.PublishTimeDesc,
+        value: QuestionOrder.OpenTimeDesc,
         label: t("new"),
       },
     ],
@@ -116,6 +126,7 @@ const MainFeedFilters: FC<Props> = ({ following }) => {
       onOrderChange={onOrderChange}
       defaultOrder={QuestionOrder.HotDesc}
       showRandomButton
+      panelClassname={panelClassname}
     />
   );
 };

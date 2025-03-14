@@ -1,9 +1,10 @@
 import logging
 
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
+from rest_framework.authentication import TokenAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,24 @@ class LocaleOverrideMiddleware:
             activate(original_lang_code)
         response = self.get_response(request)
         return response
+
+
+class AuthenticationRequiredMiddleware(MiddlewareMixin):
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if settings.PUBLIC_AUTHENTICATION_REQUIRED:
+            if any(
+                [
+                    request.path.startswith("/admin/"),
+                    request.path.startswith("/api/auth/"),
+                    request.path.startswith("/static/"),
+                ]
+            ):
+                return None
+
+            if not TokenAuthentication().authenticate(request):
+                raise Http404()
+        return None
 
 
 def middleware_alpha_access_check(get_response):

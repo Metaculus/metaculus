@@ -1,5 +1,5 @@
 import { ProjectPermissions } from "@/types/post";
-import { QuestionType } from "@/types/question";
+import { QuestionType, Scaling } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
 export type AuthorType = {
@@ -17,7 +17,7 @@ export type BECommentType = {
   root_id: number | null;
   parent_id: number | null;
   created_at: string;
-  edited_at: string;
+  text_edited_at: string;
   is_soft_deleted: boolean;
   text: string;
   included_forecast?: ForecastType;
@@ -35,6 +35,7 @@ export type BECommentType = {
   };
   is_current_content_translated?: boolean;
   key_factors?: KeyFactor[];
+  is_pinned: boolean;
 };
 
 export type CommentType = BECommentType & {
@@ -48,6 +49,7 @@ export type ForecastType = {
   options: string[];
   continuous_cdf: number[];
   quartiles: [number, number, number];
+  scaling: Scaling;
   question_type: QuestionType;
 };
 

@@ -13,7 +13,9 @@ import {
   POST_TAGS_FILTER,
 } from "@/constants/posts_feed";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { PostWithForecasts } from "@/types/post";
+import { getProjectLink } from "@/utils/navigation";
 
 import { removePostFromProject } from "../../../actions";
 
@@ -32,6 +34,7 @@ const SidebarQuestionTags: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   const {
     category: _category,
@@ -39,12 +42,16 @@ const SidebarQuestionTags: FC<Props> = ({
     tournament: _tournament,
     question_series: _question_series,
     community: _community,
+    index: _index,
   } = tagData;
   const tag = _tag ?? [];
   const category = _category ?? [];
   const tournament = _tournament ?? [];
   const question_series = _question_series ?? [];
   const community = _community ?? [];
+  const index = _index ?? [];
+
+  const projects = [...index, ...tournament, ...question_series, ...community];
 
   const [showAllTags, setShowAllTags] = useState(
     (tag.length ?? 0) < INITIAL_NUM_OF_TAGS
@@ -56,41 +63,11 @@ const SidebarQuestionTags: FC<Props> = ({
   return (
     <div className="flex flex-col items-center justify-center gap-4 self-stretch">
       <div className="flex flex-wrap content-start items-start gap-2.5 self-stretch @lg:m-0">
-        {tournament.map((element) => (
+        {projects.map((element) => (
           <Chip
             color="orange"
             key={element.id}
-            href={`/tournament/${element.slug ?? element.id}/`}
-            onClick={() =>
-              sendGAEvent("event", "questionTagClicked", {
-                event_category: element.name,
-              })
-            }
-          >
-            {element.name}
-          </Chip>
-        ))}
-
-        {question_series.map((element) => (
-          <Chip
-            color="orange"
-            key={element.id}
-            href={`/tournament/${element.slug ?? element.id}/`}
-            onClick={() =>
-              sendGAEvent("event", "questionTagClicked", {
-                event_category: element.name,
-              })
-            }
-          >
-            {element.name}
-          </Chip>
-        ))}
-
-        {community.map((element) => (
-          <Chip
-            color="orange"
-            key={element.id}
-            href={`/c/${element.slug}`}
+            href={getProjectLink(element)}
             onClick={() =>
               sendGAEvent("event", "questionTagClicked", {
                 event_category: element.name,
@@ -147,14 +124,16 @@ const SidebarQuestionTags: FC<Props> = ({
         </Button>
       )}
 
-      <Button
-        size="sm"
-        variant="tertiary"
-        onClick={() => setCurrentModal({ type: "contactUs" })}
-      >
-        <FontAwesomeIcon icon={faCircleQuestion} />
-        {t("submitTagsFeedback")}
-      </Button>
+      {!PUBLIC_MINIMAL_UI && (
+        <Button
+          size="sm"
+          variant="tertiary"
+          onClick={() => setCurrentModal({ type: "contactUs" })}
+        >
+          <FontAwesomeIcon icon={faCircleQuestion} />
+          {t("submitTagsFeedback")}
+        </Button>
+      )}
     </div>
   );
 };

@@ -31,7 +31,7 @@ from questions.serializers import (
 from questions.services import get_aggregated_forecasts_for_questions
 from questions.types import AggregationMethod
 from users.models import User
-from utils.dtypes import flatten
+from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
 from .models import Notebook, Post, PostSubscription
 from .utils import get_post_slug
@@ -71,6 +71,7 @@ class PostReadSerializer(serializers.ModelSerializer):
             "published_at",
             "edited_at",
             "curation_status",
+            "curation_status_updated_at",
             "comment_count",
             "status",
             "resolved",
@@ -189,6 +190,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
 
     ids = serializers.ListField(child=serializers.IntegerField(), required=False)
     access = serializers.ChoiceField(required=False, choices=Access.choices)
+    default_project_id = serializers.IntegerField(required=False)
     topic = serializers.CharField(required=False)
     community = serializers.CharField(required=False)
     tags = serializers.ListField(child=serializers.CharField(), required=False)
@@ -232,6 +234,12 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         "scheduled_resolve_time",
         "scheduled_close_time",
     ]
+
+    def validate_default_project_id(self, value: int):
+        try:
+            return Project.objects.get(pk=value)
+        except Project.DoesNotExist:
+            raise ValidationError("Project does not exist")
 
     def validate_public_figure(self, value: int):
         try:
@@ -328,7 +336,7 @@ def serialize_post(
     current_user: User = None,
     with_subscriptions: bool = False,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
-    with_key_factors: bool = False,
+    key_factors: list[dict] = None,
     projects: Iterable[Project] = None,
 ) -> dict:
     current_user = (
@@ -412,11 +420,7 @@ def serialize_post(
             }
         )
 
-    if with_key_factors:
-        serialized_data["key_factors"] = serialize_key_factors_many(
-            KeyFactor.objects.for_post(post).filter_active().order_by("-votes_score"),
-            current_user=current_user,
-        )
+    serialized_data["key_factors"] = key_factors or []
 
     is_current_content_translated = (
         post.is_current_content_translated()
@@ -430,7 +434,7 @@ def serialize_post(
 
 
 def serialize_post_many(
-    posts: Union[QuerySet[Post], list[Post], list[int]],
+    posts: Union[QuerySet[Post], list[Post], list[int] | set[int]],
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
@@ -447,9 +451,10 @@ def serialize_post_many(
         qs.annotate_user_permission(user=current_user)
         .prefetch_questions()
         .prefetch_condition_post()
-        .select_related("default_project", "author", "notebook")
+        .select_related("default_project__primary_leaderboard", "author", "notebook")
         .prefetch_related("coauthors")
     )
+
     if current_user:
         qs = qs.annotate_user_vote(current_user)
 
@@ -474,6 +479,19 @@ def serialize_post_many(
             flatten([p.get_questions() for p in posts]), group_cutoff=group_cutoff
         )
 
+    comment_key_factors_map = {}
+
+    if with_key_factors:
+        comment_key_factors_map = generate_map_from_list(
+            serialize_key_factors_many(
+                KeyFactor.objects.for_posts(posts)
+                .filter_active()
+                .order_by("-votes_score"),
+                current_user=current_user,
+            ),
+            key=lambda x: x["post_id"],
+        )
+
     # Fetch projects
     projects_map = get_projects_for_posts(posts, user=current_user)
 
@@ -488,7 +506,7 @@ def serialize_post_many(
                 for q, v in aggregate_forecasts.items()
                 if q in post.get_questions()
             },
-            with_key_factors=with_key_factors,
+            key_factors=comment_key_factors_map.get(post.id),
             projects=projects_map.get(post.id),
         )
         for post in posts
@@ -599,18 +617,21 @@ class PostRelatedArticleSerializer(serializers.ModelSerializer):
 
 
 class DownloadDataSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField(required=False)
+    post_id = serializers.IntegerField(required=False)
     sub_question = serializers.IntegerField(required=False)
     aggregation_methods = serializers.CharField(required=False)
     user_ids = serializers.CharField(required=False, allow_null=True)
     include_comments = serializers.BooleanField(required=False, default=False)
-    include_scores = serializers.BooleanField(required=False, default=False)
+    include_scores = serializers.BooleanField(required=False, default=True)
     include_bots = serializers.BooleanField(required=False, allow_null=True)
     minimize = serializers.BooleanField(required=False, default=True)
+    anonymized = serializers.BooleanField(required=False)
 
-    def validate_aggregation_methods(self, value):
+    def validate_aggregation_methods(self, value: str | None):
         if value is None:
             return
-        user: User = self.context["user"]
+        user: User = self.context.get("user")
         if value == "all":
             aggregation_methods = [
                 AggregationMethod.RECENCY_WEIGHTED,
@@ -620,7 +641,7 @@ class DownloadDataSerializer(serializers.Serializer):
             if user.is_staff:
                 aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
             return aggregation_methods
-        methods = value.split(",")
+        methods: list[str] = [v.strip() for v in value.split(",")]
         invalid_methods = [
             method for method in methods if method not in AggregationMethod.values
         ]
@@ -644,7 +665,7 @@ class DownloadDataSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "Invalid user_ids. Must be a comma-separated list of integers."
             )
-        if not self.context["can_view_private_data"]:
+        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."
@@ -655,6 +676,8 @@ class DownloadDataSerializer(serializers.Serializer):
     def validate(self, attrs):
         # Check if there are any unexpected fields
         allowed_fields = {
+            "post_id",
+            "question_id",
             "sub_question",
             "aggregation_methods",
             "user_ids",
@@ -675,7 +698,7 @@ class DownloadDataSerializer(serializers.Serializer):
         minimize = attrs.get("minimize", True)
 
         if not aggregation_methods and (
-            user_ids is not None or include_bots is not None or not minimize
+            (user_ids is not None) or (include_bots is not None) or not minimize
         ):
             raise serializers.ValidationError(
                 "If user_ids, include_bots, or minimize is set, "

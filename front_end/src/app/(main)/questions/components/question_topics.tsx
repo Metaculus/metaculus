@@ -14,6 +14,7 @@ import { useContentTranslatedBannerProvider } from "@/app/providers";
 import Button from "@/components/ui/button";
 import { FeedType, POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 import cn from "@/utils/cn";
@@ -65,6 +66,8 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     ? "top-24 lg:top-20"
     : "top-12 lg:top-20";
 
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
+
   return (
     <div
       className={cn(
@@ -105,7 +108,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
 
         <div
           className={cn(
-            "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 md:w-64",
+            "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 md:w-[210px] md:px-0 min-[812px]:w-64 min-[812px]:px-1",
             isMobileExpanded ? "flex-wrap" : "pr-10"
           )}
         >
@@ -152,50 +155,54 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               />
             </>
           )}
-          <TopicItem
-            emoji="👥"
-            text={t("communities")}
-            onClick={() => {
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "Communities",
-              });
-              switchFeed(FeedType.COMMUNITIES);
-            }}
-            isActive={currentFeed === FeedType.COMMUNITIES}
-          />
-          <TopicItem
-            isActive={false}
-            emoji="🔭"
-            text="Bridgewater 2025"
-            href="/bridgewater/"
-            onClick={() =>
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "Bridgewater 2025",
-              })
-            }
-          />
-          <TopicItem
-            isActive={false}
-            emoji="🤖"
-            text="AI Benchmarking"
-            href="/aib"
-            onClick={() =>
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "AI Benchmarking",
-              })
-            }
-          />
-          <TopicItem
-            isActive={false}
-            emoji="📖"
-            text="ACX 2025"
-            href="/tournament/ACX2025/"
-            onClick={() =>
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "ACX 2025",
-              })
-            }
-          />
+          {!PUBLIC_MINIMAL_UI && ( // TODO: these should be database driven
+            <>
+              <TopicItem
+                emoji="👥"
+                text={t("communities")}
+                onClick={() => {
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "Communities",
+                  });
+                  switchFeed(FeedType.COMMUNITIES);
+                }}
+                isActive={currentFeed === FeedType.COMMUNITIES}
+              />
+              <TopicItem
+                isActive={false}
+                emoji="🔭"
+                text="Bridgewater 2025"
+                href="/bridgewater/"
+                onClick={() =>
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "Bridgewater 2025",
+                  })
+                }
+              />
+              <TopicItem
+                isActive={false}
+                emoji="🤖"
+                text="AI Benchmarking"
+                href="/aib"
+                onClick={() =>
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "AI Benchmarking",
+                  })
+                }
+              />
+              <TopicItem
+                isActive={false}
+                emoji="📖"
+                text="ACX 2025"
+                href="/tournament/ACX2025/"
+                onClick={() =>
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "ACX 2025",
+                  })
+                }
+              />
+            </>
+          )}
           {!!hotTopics.length && (
             <>
               <Title title={t("topics")} />

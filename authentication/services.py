@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
+from django.core.signing import TimestampSigner
+from django.utils.crypto import get_random_string
 from rest_framework.exceptions import ValidationError
 
 from users.models import User
@@ -7,6 +9,8 @@ from utils.email import send_email_with_template
 from utils.frontend import (
     build_frontend_account_activation_url,
     build_frontend_password_reset_url,
+    build_frontend_account_signup_invitation_url,
+    get_frontend_host,
 )
 
 
@@ -79,3 +83,42 @@ def check_password_reset(user_id: User, token: str):
         raise ValidationError({"token": ["Password Reset Token is expired or invalid"]})
 
     return user
+
+
+class SignupInviteService:
+    def __init__(self):
+        self.signer = TimestampSigner()
+
+    def _generate_token(self, email: str) -> str:
+        token = f"{email.lower()}:{get_random_string(20)}"
+
+        return self.signer.sign(token)
+
+    def verify_email(self, email: str, token: str):
+        if not token:
+            raise ValidationError("Invalid signup invitation token")
+
+        token = self.signer.unsign(token, max_age=None)
+        invitation_email, _ = token.split(":")
+
+        if email.lower() != invitation_email.lower():
+            raise ValidationError("Can't verify signup invitation")
+
+        return email
+
+    def send_email(self, invited_by: User, email: str):
+        invite_token = self._generate_token(email)
+        signup_link = build_frontend_account_signup_invitation_url(email, invite_token)
+
+        send_email_with_template(
+            email,
+            "Metaculus Signup Invitation",
+            "emails/signup_invite.html",
+            context={
+                "email": email,
+                "signup_link": signup_link,
+                "invited_by": invited_by.username,
+                "app_name": get_frontend_host(),
+            },
+            from_email=settings.EMAIL_HOST_USER,
+        )

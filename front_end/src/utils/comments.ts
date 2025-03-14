@@ -15,7 +15,7 @@ export function parseComment(
     on_post: comment.on_post,
     on_post_data: comment.on_post_data,
     created_at: comment.created_at,
-    edited_at: comment.edited_at,
+    text_edited_at: comment.text_edited_at,
     is_soft_deleted: comment.is_soft_deleted,
     included_forecast: comment.included_forecast,
     is_private: comment.is_private,
@@ -25,6 +25,7 @@ export function parseComment(
     mentioned_users: comment.mentioned_users,
     is_current_content_translated: comment.is_current_content_translated,
     key_factors: comment.key_factors,
+    is_pinned: comment.is_pinned,
   };
 }
 

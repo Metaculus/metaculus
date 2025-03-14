@@ -1,12 +1,14 @@
 "use client";
 
 import {
-  faXmark,
   faChevronDown,
   faReply,
+  faThumbtack,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useState, useEffect, useRef, ReactNode } from "react";
 
@@ -29,6 +31,8 @@ import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
+import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
@@ -36,7 +40,8 @@ import { QuestionType } from "@/types/question";
 import cn from "@/utils/cn";
 import { parseUserMentions } from "@/utils/comments";
 import { logError } from "@/utils/errors";
-import { canPredictQuestion } from "@/utils/questions";
+import { canPredictQuestion, getMarkdownSummary } from "@/utils/questions";
+import { formatUsername } from "@/utils/users";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
@@ -145,7 +150,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
               <div
                 key={child.id}
                 className={cn(
-                  "my-1 rounded-l-md border py-1 pl-1.5 md:py-1.5 md:pl-2.5",
+                  "my-1 rounded-l-md border py-1 pl-1.5 md:py-2 md:pl-3",
                   opacityClass,
                   {
                     "border-blue-500/70 dark:border-blue-400-dark": !isUnread,
@@ -171,11 +176,13 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
 type CommentProps = {
   comment: CommentType;
+  handleCommentPin?: (comment: CommentType) => Promise<void>;
   onProfile?: boolean;
   treeDepth: number;
   sort: SortOption;
   postData?: PostWithForecasts;
   lastViewedAt?: string;
+  isCollapsed?: boolean;
 };
 
 const Comment: FC<CommentProps> = ({
@@ -185,6 +192,8 @@ const Comment: FC<CommentProps> = ({
   sort,
   postData,
   lastViewedAt,
+  isCollapsed = false,
+  handleCommentPin,
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
@@ -195,6 +204,8 @@ const Comment: FC<CommentProps> = ({
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const { ref, width } = useContainerSize<HTMLDivElement>();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   const { user } = useAuth();
   const scrollTo = useScrollTo();
@@ -312,6 +323,17 @@ const Comment: FC<CommentProps> = ({
       openNewTab: true,
     },
     {
+      hidden:
+        postData?.user_permission !== ProjectPermissions.ADMIN ||
+        !!comment.root_id ||
+        !handleCommentPin,
+      id: "pinComment",
+      name: comment.is_pinned ? t("unpinComment") : t("pinComment"),
+      onClick: async () => {
+        if (handleCommentPin) await handleCommentPin(comment);
+      },
+    },
+    {
       hidden: !user?.id,
       id: "report",
       name: t("report"),
@@ -404,26 +426,83 @@ const Comment: FC<CommentProps> = ({
           }}
           cmmContext={cmmContext}
         />
-        <div className="mb-1 flex flex-col items-start gap-1">
-          <span className="inline-flex items-center text-base">
-            <a
-              className="flex flex-row items-center no-underline"
-              href={`/accounts/profile/${comment.author.id}/`}
+        <div
+          className={cn("flex flex-col items-start gap-1", {
+            "mb-1": !isCollapsed,
+          })}
+        >
+          <span className="inline-flex w-full flex-col items-start justify-start text-base sm:flex-row sm:items-center">
+            <div
+              className={cn("flex flex-row items-start", {
+                "w-full": comment.is_pinned,
+              })}
             >
-              <h4 className="my-1 text-base">
-                {comment.author.username}
-                {comment.author.is_bot && " 🤖"}
-              </h4>
-              {comment.author_staff_permission ===
-                ProjectPermissions.CURATOR && (
-                <Moderator className="ml-2 text-lg" />
+              <div
+                className={cn("flex sm:flex-row sm:items-center", {
+                  "flex-col": !isCollapsed,
+                  "items-center": isCollapsed,
+                })}
+              >
+                <Link
+                  className="flex flex-row items-center no-underline"
+                  href={`/accounts/profile/${comment.author.id}/`}
+                >
+                  <h4 className="my-1 text-base">
+                    {formatUsername(comment.author)}
+                  </h4>
+                  {comment.author_staff_permission ===
+                    ProjectPermissions.CURATOR && (
+                    <Moderator className="ml-2 text-lg" />
+                  )}
+                  {comment.author_staff_permission ===
+                    ProjectPermissions.ADMIN && (
+                    <Admin className="ml-2 text-lg" />
+                  )}
+                </Link>
+                <span
+                  className={cn("mx-1 opacity-55 sm:inline", {
+                    hidden: !isCollapsed,
+                  })}
+                >
+                  ·
+                </span>
+                <CommentDate comment={comment} />
+              </div>
+              {comment.is_pinned && (
+                <div className="ml-auto mt-1 flex flex-row items-center gap-2 text-sm text-blue-500 dark:text-blue-500-dark">
+                  <FontAwesomeIcon icon={faThumbtack} />
+                  <span className="hidden lg:inline">{t("pinned")}</span>
+                </div>
               )}
-              {comment.author_staff_permission === ProjectPermissions.ADMIN && (
-                <Admin className="ml-2 text-lg" />
-              )}
-            </a>
-            <span className="mx-1 opacity-55">·</span>
-            <CommentDate comment={comment} />
+            </div>
+
+            {isCollapsed && (
+              <div className="flex w-full flex-1 flex-row items-center justify-between sm:ml-5 sm:w-auto">
+                <div
+                  className="mr-3 line-clamp-1 flex-grow sm:mr-0 sm:max-w-[350px]"
+                  ref={ref}
+                >
+                  {!!width && (
+                    <MarkdownEditor
+                      mode="read"
+                      markdown={getMarkdownSummary({
+                        markdown: comment.text,
+                        width,
+                        height: 24,
+                        charWidth: 8.1,
+                      })}
+                      contentEditableClassName="font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                      withUgcLinks
+                    />
+                  )}
+                </div>
+                <FontAwesomeIcon
+                  size="sm"
+                  icon={faChevronDown}
+                  className="ml-auto block text-blue-500 dark:text-blue-500-dark"
+                />
+              </div>
+            )}
           </span>
           {/*
         <span className="text-gray-600 dark:text-gray-600-dark block text-xs leading-3">
@@ -434,9 +513,9 @@ const Comment: FC<CommentProps> = ({
         </span>
         */}
           {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
-          {comment.included_forecast && (
+          {comment.included_forecast && !isCollapsed && (
             <IncludedForecast
-              author={comment.author.username}
+              author={formatUsername(comment.author)}
               forecast={comment.included_forecast}
             />
           )}
@@ -451,152 +530,160 @@ const Comment: FC<CommentProps> = ({
           </a>
         </div>
       )} */}
-        <div className="break-anywhere">
-          {isEditing && (
-            <MarkdownEditor
-              markdown={commentMarkdown}
-              mode={"write"}
-              onChange={setCommentMarkdown}
-              withUgcLinks
-            />
-          )}{" "}
-          {!isEditing && (
-            <MarkdownEditor
-              markdown={parseUserMentions(
-                commentMarkdown,
-                comment.mentioned_users
-              )}
-              mode={"read"}
-              withUgcLinks
-              withTwitterPreview
-            />
-          )}
-        </div>
-        {!!errorMessage && isEditing && (
-          <div className="text-balance text-center text-red-500 dark:text-red-500-dark">
-            {errorMessage}
-          </div>
-        )}
-        {isEditing && (
-          <>
-            <Button
-              onClick={async () => {
-                if (!user) {
-                  // usually, don't expect this, as action is available only for logged-in users
-                  return;
-                }
-                setErrorMessage("");
-                const parsedMarkdown = commentMarkdown.replace(
-                  userTagPattern,
-                  (match) => match.replace(/[\\]/g, "")
-                );
-                const validateMessage = validateComment(
-                  parsedMarkdown,
-                  user,
-                  t
-                );
-                if (validateMessage) {
-                  setErrorMessage(validateMessage);
-                  return;
-                }
-                const response = await editComment({
-                  id: comment.id,
-                  text: parsedMarkdown,
-                  author: user.id,
-                });
-                if (response && "errors" in response) {
-                  console.error(t("errorDeletingComment"), response.errors);
-                } else {
-                  const newCommentDataResponse = await getComments({
-                    focus_comment_id: String(comment.id),
-                    sort: "-created_at",
-                  });
-                  if (
-                    newCommentDataResponse &&
-                    "errors" in newCommentDataResponse
-                  ) {
-                    console.error(
-                      t("errorDeletingComment"),
-                      newCommentDataResponse.errors
-                    );
-                  } else {
-                    setCommentMarkdown(parsedMarkdown);
-                  }
-                  setIsEditing(false);
-                }
-              }}
-            >
-              {t("save")}
-            </Button>
-            <Button
-              className="ml-2"
-              onClick={() => {
-                setCommentMarkdown(tempCommentMarkdown);
-                setIsEditing(false);
-              }}
-            >
-              {t("cancel")}
-            </Button>
-          </>
-        )}
-        <div className="mb-2 mt-1 h-7 overflow-visible">
-          <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
-            <div className="inline-flex items-center gap-2.5">
-              <CommentVoter
-                voteData={{
-                  commentAuthorId: comment.author.id,
-                  commentId: comment.id,
-                  voteScore: comment.vote_score,
-                  userVote: comment.user_vote ?? null,
-                }}
-              />
 
-              {isCmmButtonVisible && !isMobileScreen && (
-                <CmmToggleButton
-                  cmmContext={cmmContext}
-                  comment_id={comment.id}
-                  disabled={isCmmButtonDisabled}
-                  ref={cmmContext.setAnchorRef}
+        {!isCollapsed && (
+          <>
+            <div className="break-anywhere">
+              {isEditing && (
+                <MarkdownEditor
+                  markdown={commentMarkdown}
+                  mode={"write"}
+                  onChange={setCommentMarkdown}
+                  withUgcLinks
+                />
+              )}{" "}
+              {!isEditing && (
+                <MarkdownEditor
+                  markdown={parseUserMentions(
+                    commentMarkdown,
+                    comment.mentioned_users
+                  )}
+                  mode={"read"}
+                  withUgcLinks
+                  withTwitterPreview
                 />
               )}
+            </div>
+            {!!errorMessage && isEditing && (
+              <div className="text-balance text-center text-red-500 dark:text-red-500-dark">
+                {errorMessage}
+              </div>
+            )}
+            {isEditing && (
+              <>
+                <Button
+                  onClick={async () => {
+                    if (!user) {
+                      // usually, don't expect this, as action is available only for logged-in users
+                      return;
+                    }
+                    setErrorMessage("");
+                    const parsedMarkdown = commentMarkdown.replace(
+                      userTagPattern,
+                      (match) => match.replace(/[\\]/g, "")
+                    );
 
-              {!onProfile &&
-                (isReplying ? (
-                  <Button
-                    size="xxs"
-                    variant="tertiary"
-                    onClick={() => {
-                      setIsReplying(false);
+                    const validateMessage = PUBLIC_MINIMAL_UI
+                      ? null
+                      : validateComment(parsedMarkdown, user, t);
+                    if (validateMessage) {
+                      setErrorMessage(validateMessage);
+                      return;
+                    }
+
+                    const response = await editComment({
+                      id: comment.id,
+                      text: parsedMarkdown,
+                      author: user.id,
+                    });
+                    if (response && "errors" in response) {
+                      console.error(t("errorDeletingComment"), response.errors);
+                    } else {
+                      const newCommentDataResponse = await getComments({
+                        focus_comment_id: String(comment.id),
+                        sort: "-created_at",
+                      });
+                      if (
+                        newCommentDataResponse &&
+                        "errors" in newCommentDataResponse
+                      ) {
+                        console.error(
+                          t("errorDeletingComment"),
+                          newCommentDataResponse.errors
+                        );
+                      } else {
+                        setCommentMarkdown(parsedMarkdown);
+                      }
+                      setIsEditing(false);
+                    }
+                  }}
+                >
+                  {t("save")}
+                </Button>
+                <Button
+                  className="ml-2"
+                  onClick={() => {
+                    setCommentMarkdown(tempCommentMarkdown);
+                    setIsEditing(false);
+                  }}
+                >
+                  {t("cancel")}
+                </Button>
+              </>
+            )}
+            <div className="mb-2 mt-1 h-7 overflow-visible">
+              <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
+                <div className="inline-flex items-center gap-2.5">
+                  <CommentVoter
+                    voteData={{
+                      commentAuthorId: comment.author.id,
+                      commentId: comment.id,
+                      voteScore: comment.vote_score,
+                      userVote: comment.user_vote ?? null,
                     }}
-                  >
-                    <FontAwesomeIcon icon={faXmark} className="size-4 p-1" />
-                    {t("cancel")}
-                  </Button>
-                ) : (
-                  <Button
-                    size="xxs"
-                    onClick={() => setIsReplying(true)}
-                    variant="tertiary"
-                    className="gap-0.5"
-                  >
-                    <FontAwesomeIcon
-                      icon={faReply}
-                      className="size-4 p-1"
-                      size="xs"
-                    />
-                    {t("reply")}
-                  </Button>
-                ))}
-            </div>
+                  />
 
-            <div
-              ref={isMobileScreen ? cmmContext.setAnchorRef : null}
-              className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}
-            >
-              <DropdownMenu items={menuItems} />
+                  {isCmmButtonVisible && !isMobileScreen && (
+                    <CmmToggleButton
+                      cmmContext={cmmContext}
+                      comment_id={comment.id}
+                      disabled={isCmmButtonDisabled}
+                      ref={cmmContext.setAnchorRef}
+                    />
+                  )}
+
+                  {!onProfile &&
+                    (isReplying ? (
+                      <Button
+                        size="xxs"
+                        variant="tertiary"
+                        onClick={() => {
+                          setIsReplying(false);
+                        }}
+                      >
+                        <FontAwesomeIcon
+                          icon={faXmark}
+                          className="size-4 p-1"
+                        />
+                        {t("cancel")}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="xxs"
+                        onClick={() => setIsReplying(true)}
+                        variant="tertiary"
+                        className="gap-0.5"
+                      >
+                        <FontAwesomeIcon
+                          icon={faReply}
+                          className="size-4 p-1"
+                          size="xs"
+                        />
+                        {t("reply")}
+                      </Button>
+                    ))}
+                </div>
+
+                <div
+                  ref={isMobileScreen ? cmmContext.setAnchorRef : null}
+                  className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}
+                >
+                  <DropdownMenu items={menuItems} />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
       {isReplying && (
         <CommentEditor
@@ -610,10 +697,10 @@ const Comment: FC<CommentProps> = ({
           isReplying={isReplying}
         />
       )}
-      {comment.children?.length > 0 && (
+      {comment.children?.length > 0 && !isCollapsed && (
         <CommentChildrenTree
           commentChildren={comment.children}
-          expandedChildren={!onProfile}
+          expandedChildren={!onProfile && !comment.is_pinned}
           treeDepth={treeDepth + 1}
           sort={sort}
           postData={postData}

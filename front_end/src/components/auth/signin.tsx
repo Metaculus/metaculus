@@ -16,6 +16,9 @@ import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
+
+import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -26,6 +29,8 @@ const SignInModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
 }: SignInModalType) => {
+  const { PUBLIC_ALLOW_SIGNUP } = usePublicSettings();
+
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
   const { setUser } = useAuth();
@@ -33,10 +38,13 @@ const SignInModal: FC<SignInModalType> = ({
   const { register, watch } = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
   });
+  const username = watch("login");
   const [state, formAction] = useFormState<LoginActionState, FormData>(
     loginAction,
     null
   );
+  const handlePostLoginAction = usePostLoginActionHandler();
+
   useEffect(() => {
     if (!state) {
       return;
@@ -46,6 +54,7 @@ const SignInModal: FC<SignInModalType> = ({
       sendGAEvent("event", "login");
       setUser(state.user);
       setCurrentModal(null);
+      handlePostLoginAction(state.postLoginAction);
     }
 
     if (
@@ -56,10 +65,10 @@ const SignInModal: FC<SignInModalType> = ({
       setCurrentModal(null);
       setCurrentModal({
         type: "accountInactive",
-        data: { login: watch("login") },
+        data: { login: username },
       });
     }
-  }, [setCurrentModal, setUser, state]);
+  }, [setCurrentModal, setUser, state, handlePostLoginAction, username]);
 
   return (
     <BaseModal
@@ -68,18 +77,20 @@ const SignInModal: FC<SignInModalType> = ({
       onClose={onClose}
       className="mx-3 flex max-w-sm flex-col gap-2"
     >
-      <div className="mb-4 text-base leading-tight">
-        <span className="text-blue-900 dark:text-gray-1000-dark">
-          {t("loginSignUpHeading")}{" "}
-        </span>
-        <Button
-          variant="link"
-          size="md"
-          onClick={() => setCurrentModal({ type: "signup" })}
-        >
-          {t("createAnAccount")}
-        </Button>
-      </div>
+      {PUBLIC_ALLOW_SIGNUP && (
+        <div className="mb-4 text-base leading-tight">
+          <span className="text-blue-900 dark:text-gray-1000-dark">
+            {t("loginSignUpHeading")}{" "}
+          </span>
+          <Button
+            variant="link"
+            size="md"
+            onClick={() => setCurrentModal({ type: "signup" })}
+          >
+            {t("createAnAccount")}
+          </Button>
+        </div>
+      )}
       <form
         action={(data) => {
           startTransition(() => {

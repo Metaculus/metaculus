@@ -15,12 +15,16 @@ import {
   registerUserCampaignAction,
   signUpAction,
 } from "@/app/(main)/accounts/actions";
-import { signUpSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
+import {
+  generateSignUpSchema,
+  SignUpSchema,
+} from "@/app/(main)/accounts/schemas";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import RadioButton from "@/components/ui/radio_button";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 
@@ -218,9 +222,13 @@ export const RegistrationAndSignupForm: FC<
   const t = useTranslations();
   const [isTurnstileValidated, setIsTurnstileValidate] = useState(false);
   const turnstileRef = useRef<TurnstileInstance | undefined>();
+  const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const methods = useForm<SignUpSchema & TournamentRegistrationSchema>({
     resolver: zodResolver(
-      z.intersection(signUpSchema, tournamentRegistrationSchema)
+      z.intersection(
+        generateSignUpSchema(PUBLIC_TURNSTILE_SITE_KEY),
+        tournamentRegistrationSchema
+      )
     ),
     defaultValues: {
       isBot: false,
@@ -317,14 +325,12 @@ export const RegistrationAndSignupForm: FC<
         <div className="mt-7 flex flex-col items-center gap-7">
           <FormError
             errors={errors}
-            name={
-              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"
-            }
+            name={PUBLIC_TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
           />
-          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          {PUBLIC_TURNSTILE_SITE_KEY && (
             <Turnstile
               ref={turnstileRef}
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              siteKey={PUBLIC_TURNSTILE_SITE_KEY}
               onSuccess={(token) => {
                 setIsTurnstileValidate(true);
                 setValue("turnstileToken", token);

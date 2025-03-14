@@ -50,7 +50,7 @@ const MembersInvite: FC<Props> = ({ projectId, members }) => {
   );
 
   return (
-    <div className="mt-12 rounded-t bg-gray-0 px-3 py-6 dark:bg-gray-0-dark">
+    <div className="mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark xs:mx-4 sm:p-8 lg:mx-0">
       <form onSubmit={handleSubmit(onSubmit)}>
         <h2 className="mt-0">Invite Users to Project</h2>
         <p>

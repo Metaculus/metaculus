@@ -11,6 +11,7 @@ import Listbox from "@/components/ui/listbox";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import { Tournament, TournamentMember } from "@/types/projects";
+import { formatUsername } from "@/utils/users";
 
 type Props = {
   user_permission: ProjectPermissions;
@@ -67,7 +68,7 @@ const UsersManage: FC<Props> = ({ members, project, user_permission }) => {
   );
 
   return (
-    <div className="mt-12 rounded-t bg-gray-0 px-3 py-6 dark:bg-gray-0-dark">
+    <div className="mt-4 rounded-md bg-gray-0 px-2 py-4 dark:bg-gray-0-dark xs:mx-4 xs:p-4 sm:p-8 lg:mx-0">
       <h2 className="mt-0">Manage Members</h2>
       <p>List of people who are part of this project. Edit user roles.</p>
       <table className="w-full table-auto text-sm">
@@ -82,7 +83,7 @@ const UsersManage: FC<Props> = ({ members, project, user_permission }) => {
         <tbody>
           {members.map((member) => (
             <tr key={`user-${member.user.id}`}>
-              <td className="py-2">{member.user.username}</td>
+              <td className="py-2">{formatUsername(member.user)}</td>
               <td className="py-2">{member.permission}</td>
               <td className="py-2">
                 <Button
@@ -117,7 +118,9 @@ const UsersManage: FC<Props> = ({ members, project, user_permission }) => {
           <>
             <div>
               member:{" "}
-              <span className="font-bold">{editingMember.user.username}</span>
+              <span className="font-bold">
+                {formatUsername(editingMember.user)}
+              </span>
             </div>
             <div className="my-2 w-fit">
               <Listbox

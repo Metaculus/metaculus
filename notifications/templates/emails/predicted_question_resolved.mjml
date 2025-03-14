@@ -25,10 +25,13 @@
                     <a href="{% post_url notification.post.post_id notification.post.post_title %}">
                         {{ notification.question.title }}
                     </a>
+
+                    {% if IS_SCREENSHOT_SERVICE_ENABLED %}
                     <a href="{% post_url notification.post.post_id notification.post.post_title %}">
                         <img class="question_graph_img"
                              src='{% build_question_graph_image_url notification.post.post_id %}'/>
                     </a>
+                    {% endif %}
 
                     {% blocktrans with resolution=notification.resolution coverage=notification.format_coverage peer_score=notification.format_peer_score baseline_score=notification.format_baseline_score %}
                     Just resolved to <b>{{resolution}}</b>.

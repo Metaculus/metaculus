@@ -4,16 +4,23 @@ import { FC, PropsWithChildren } from "react";
 
 import { LeaderboardEntry } from "@/types/scoring";
 import cn from "@/utils/cn";
+import { formatUsername } from "@/utils/users";
 
 import MedalIcon from "../../../components/medal_icon";
 
 type Props = {
   rowEntry: LeaderboardEntry;
-  withCoverage: boolean;
+  withCoverage?: boolean;
   userId?: number;
+  simplifiedView?: boolean; // Feature Flag: leaderboard simplified view
 };
 
-const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
+const TableRow: FC<Props> = ({
+  rowEntry,
+  withCoverage = false,
+  userId,
+  simplifiedView = false, // Feature Flag: leaderboard simplified view
+}) => {
   const {
     user,
     aggregation_method,
@@ -27,6 +34,41 @@ const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
   } = rowEntry;
   const highlight = user?.id === userId;
   const t = useTranslations();
+
+  // Feature Flag: leaderboard simplified view
+  if (simplifiedView) {
+    return (
+      <tr>
+        <Td className="sticky left-0 text-left" highlight={highlight}>
+          {medal ? (
+            <MedalIcon type={medal} className="mr-2 inline-block size-4" />
+          ) : (
+            <div className="mr-2 inline-block size-4" />
+          )}
+          {rank}
+        </Td>
+        <Td className="sticky left-0 text-left" highlight={highlight}>
+          <Link
+            href={
+              user
+                ? `/accounts/profile/${user.id}/`
+                : `/faq/#community-prediction`
+            }
+          >
+            {user
+              ? formatUsername(user)
+              : aggregation_method == "recency_weighted"
+                ? t("communityPrediction")
+                : aggregation_method}
+          </Link>
+        </Td>
+        <Td className="text-right tabular-nums" highlight={highlight}>
+          {score.toFixed(3)}
+        </Td>
+      </tr>
+    );
+  }
+
   return (
     <tr>
       <Td className="sticky left-0 text-left" highlight={highlight}>
@@ -46,7 +88,7 @@ const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
           }
         >
           {user
-            ? user.username
+            ? formatUsername(user)
             : aggregation_method == "recency_weighted"
               ? t("communityPrediction")
               : aggregation_method}

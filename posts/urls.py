@@ -13,9 +13,19 @@ urlpatterns = [
     path("posts/<int:pk>/repost/", views.repost_api_view, name="post-repost"),
     path("posts/<int:pk>/approve/", views.post_approve_api_view, name="post-approve"),
     path(
+        "posts/<int:pk>/send-back-to-review/",
+        views.post_send_back_to_review_api_view,
+        name="post-send-back-to-review",
+    ),
+    path(
         "posts/<int:pk>/submit-for-review/",
         views.post_submit_for_review_api_view,
         name="post-submit-for-review",
+    ),
+    path(
+        "posts/<int:pk>/reject/",
+        views.post_reject_api_view,
+        name="post-reject",
     ),
     path(
         "posts/<int:pk>/make-draft/",

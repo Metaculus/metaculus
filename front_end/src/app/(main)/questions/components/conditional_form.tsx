@@ -14,7 +14,7 @@ import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { Post, PostWithForecasts } from "@/types/post";
+import { Post, PostWithForecasts, QuestionStatus } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
@@ -23,16 +23,11 @@ import {
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
-import { getQuestionStatus, parseQuestionId } from "@/utils/questions";
+import { getQuestionStatus } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
-import ConditionalQuestionInput from "./conditional_question_inpu";
-import {
-  createQuestionPost,
-  getPost,
-  getQuestion,
-  updatePost,
-} from "../actions";
+import ConditionalQuestionPicker from "./conditional_question_picker";
+import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
   default_project: number;
@@ -101,22 +96,8 @@ const ConditionalForm: React.FC<{
   const submitQuestion = async (data: FieldValues) => {
     setIsLoading(true);
     setError(undefined);
-    let parentId = conditionParent?.id;
-    let childId = conditionChild?.id;
-    if (!parentId) {
-      parentId = await setConditionQuestion(
-        control,
-        setConditionParent,
-        "condition_id"
-      );
-    }
-    if (!childId) {
-      childId = await setConditionQuestion(
-        control,
-        setConditionChild,
-        "condition_child_id"
-      );
-    }
+    const parentId = conditionParent?.id;
+    const childId = conditionChild?.id;
 
     const post_data: PostCreationData = {
       default_project: data["default_project"],
@@ -196,56 +177,66 @@ const ConditionalForm: React.FC<{
             }}
           />
         )}
-        <InputContainer labelText={t("parentId")}>
-          <ConditionalQuestionInput
-            isLive={isLive}
-            mode={mode}
-            control={control}
-            fieldName="condition_id"
-            setConditionQuestion={() =>
-              setConditionQuestion(control, setConditionParent, "condition_id")
-            }
+        <InputContainer labelText={t("parentQuestion")}>
+          <ConditionalQuestionPicker
+            onQuestionChange={(question: QuestionWithForecasts) => {
+              setConditionQuestion({
+                question,
+                control,
+                setQuestionState: setConditionParent,
+                fieldName: "condition_id",
+                t,
+              });
+            }}
+            title={t("selectParentQuestion")}
+            isParentQuestion={true}
+            disabled={isLive && mode !== "create"}
           />
-          {conditionParent ? (
-            <QuestionChartTile
-              question={conditionParent}
-              authorUsername={conditionParent.author_username}
-              // we expect status to be populated on BE for conditional questions
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              curationStatus={conditionParent.status!}
-            />
-          ) : (
-            <span className="text-xs normal-case text-gray-700 dark:text-gray-700-dark">
-              {t("parentInputDescription")}
-            </span>
+          <FormErrorMessage
+            errors={control.formState.errors.condition_id?.message}
+          />
+          {conditionParent && (
+            <>
+              <h1 className="m-0 text-lg font-bold">{conditionParent.title}</h1>
+              <QuestionChartTile
+                question={conditionParent}
+                authorUsername={conditionParent.author_username}
+                // we expect status to be populated on BE for conditional questions
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                curationStatus={conditionParent.status!}
+              />
+            </>
           )}
         </InputContainer>
-        <InputContainer labelText={t("childId")}>
-          <ConditionalQuestionInput
-            isLive={isLive}
-            mode={mode}
-            control={control}
-            fieldName="condition_child_id"
-            setConditionQuestion={() =>
-              setConditionQuestion(
+        <InputContainer labelText={t("childQuestion")}>
+          <ConditionalQuestionPicker
+            onQuestionChange={(question: QuestionWithForecasts) => {
+              setConditionQuestion({
+                question,
                 control,
-                setConditionChild,
-                "condition_child_id"
-              )
-            }
+                setQuestionState: setConditionChild,
+                fieldName: "condition_child_id",
+                t,
+              });
+            }}
+            title={t("selectChildQuestion")}
+            isParentQuestion={false}
+            disabled={isLive && mode !== "create"}
           />
-          {conditionChild ? (
-            <QuestionChartTile
-              question={conditionChild}
-              authorUsername={conditionChild.author_username}
-              // we expect status to be populated on BE for conditional questions
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              curationStatus={conditionChild.status!}
-            />
-          ) : (
-            <span className="text-xs normal-case text-gray-700 dark:text-gray-700-dark">
-              {t("childInputDescription")}
-            </span>
+          <FormErrorMessage
+            errors={control.formState.errors.condition_child_id?.message}
+          />
+          {conditionChild && (
+            <>
+              <h1 className="m-0 text-lg font-bold">{conditionChild.title}</h1>
+              <QuestionChartTile
+                question={conditionChild}
+                authorUsername={conditionChild.author_username}
+                // we expect status to be populated on BE for conditional questions
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                curationStatus={conditionChild.status!}
+              />
+            </>
           )}
         </InputContainer>
 
@@ -267,49 +258,57 @@ const ConditionalForm: React.FC<{
   );
 };
 
-async function setConditionQuestion(
+async function setConditionQuestion({
+  question,
+  control,
+  setQuestionState,
+  fieldName,
+  t,
+}: {
+  question: QuestionWithForecasts | null;
   control: UseFormReturn<{
     condition_id: string | undefined;
     condition_child_id: string | undefined;
     default_project: number | null;
-  }>,
+  }>;
   setQuestionState: (
     value: SetStateAction<QuestionWithForecasts | null>
-  ) => void,
-  fieldName: "condition_id" | "condition_child_id"
-) {
+  ) => void;
+  fieldName: "condition_id" | "condition_child_id";
+  t: ReturnType<typeof useTranslations>;
+}) {
   control.clearErrors(fieldName);
-  const parsedInput = parseQuestionId(control.getValues(fieldName) ?? "");
-  try {
-    let question: QuestionWithForecasts | null = null;
-    if (parsedInput.questionId) {
-      question = await getQuestion(parsedInput.questionId);
-    } else if (parsedInput.postId) {
-      const post = await getPost(parsedInput.postId);
-      question = post.question ?? null;
-    }
+  if (
+    question &&
+    (question.type === QuestionType.Binary ||
+      (fieldName === "condition_child_id" &&
+        (question.type === QuestionType.Numeric ||
+          question.type === QuestionType.Date)))
+  ) {
     if (
-      question &&
-      (question.type === QuestionType.Binary ||
-        (fieldName === "condition_child_id" &&
-          (question.type === QuestionType.Numeric ||
-            question.type === QuestionType.Date)))
+      ![QuestionStatus.OPEN, QuestionStatus.UPCOMING].includes(
+        question?.status ?? QuestionStatus.CLOSED
+      )
     ) {
-      setQuestionState(question);
-      return question.id;
-    } else {
       control.setError(fieldName, {
         type: "manual",
-        message: "Invalid question type",
+        message: t("invalidQuestionStatus"),
       });
       setQuestionState(null);
+      control.setValue(fieldName, "");
+      return null;
     }
-  } catch {
+    setQuestionState(question);
+    control.setValue(fieldName, question.id.toString());
+    return question.id;
+  } else {
     control.setError(fieldName, {
       type: "manual",
-      message: "Invalid question ID/URL",
+      message: t("invalidQuestionType"),
     });
     setQuestionState(null);
+    control.setValue(fieldName, "");
+    return null;
   }
 }
 

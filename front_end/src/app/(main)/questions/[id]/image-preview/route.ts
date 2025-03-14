@@ -5,6 +5,7 @@ import {
   HIDE_ZOOM_PICKER,
 } from "@/constants/global_search_params";
 import { logError } from "@/utils/errors";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function GET(
   request: NextRequest,
@@ -13,9 +14,10 @@ export async function GET(
   const { id } = params;
   const width = 1200;
   const height = 630;
-  const theme = "dark";
+  const theme = request.nextUrl.searchParams.get("theme") ?? "dark";
+  const { PUBLIC_APP_URL } = getPublicSettings();
 
-  const imageUrl = `${process.env.APP_URL}/questions/embed/${id}/?${ENFORCED_THEME_PARAM}=${theme}&${HIDE_ZOOM_PICKER}=true&non-interactive=true`;
+  const imageUrl = `${PUBLIC_APP_URL}/questions/embed/${id}/?${ENFORCED_THEME_PARAM}=${theme}&${HIDE_ZOOM_PICKER}=true&non-interactive=true`;
 
   const payload = {
     url: imageUrl,

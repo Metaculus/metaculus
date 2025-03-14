@@ -47,7 +47,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "parent_id",
             "root_id",
             "created_at",
-            "edited_at",
+            "text_edited_at",
             "is_soft_deleted",
             "text",
             "on_post",
@@ -56,6 +56,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "is_private",
             "vote_score",
             "changed_my_mind",
+            "is_pinned",
         )
 
     def get_changed_my_mind(self, comment: Comment) -> dict[str, bool | int]:
@@ -210,6 +211,7 @@ def serialize_key_factor(key_factor: KeyFactor) -> dict:
         "id": key_factor.id,
         "text": key_factor.text,
         "comment_id": key_factor.comment_id,
+        "post_id": key_factor.comment.on_post_id,
         "user_vote": key_factor.user_vote,
         "votes_score": key_factor.votes_score,
     }
@@ -220,7 +222,11 @@ def serialize_key_factors_many(
 ):
     # Get original ordering of the comments
     ids = [p.pk for p in key_factors]
-    qs = KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors]).filter_active()
+    qs = (
+        KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors])
+        .filter_active()
+        .prefetch_related("comment")
+    )
 
     if current_user and not current_user.is_anonymous:
         qs = qs.annotate_user_vote(current_user)

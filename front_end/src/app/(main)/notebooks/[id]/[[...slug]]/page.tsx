@@ -17,7 +17,8 @@ import {
 } from "@/app/(main)/notebooks/constants/page_sections";
 import PostHeader from "@/app/(main)/questions/[id]/components/post_header";
 import CommentFeed from "@/components/comment_feed";
-import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
+import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
+import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import CircleDivider from "@/components/ui/circle_divider";
 import { defaultDescription } from "@/constants/metadata";
@@ -27,13 +28,10 @@ import {
 } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
-import { PostStatus, NotebookPost } from "@/types/post";
+import { NotebookPost, PostStatus } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
-
-import IndexNotebook from "../../components/index_notebook";
-import { NOTEBOOK_INDEXES } from "../../constants/indexes";
 
 type Props = {
   params: { id: number; slug: string[] };
@@ -80,28 +78,6 @@ export default async function IndividualNotebook({ params }: Props) {
   ) : (
     <Header />
   );
-
-  // we can pass custom slug for indexes in params
-  const slugParam = params.slug?.[0] ?? postData.slug;
-  const indexNotebook = NOTEBOOK_INDEXES[slugParam];
-  if (!!indexNotebook) {
-    const questionIds = indexNotebook.map((q) => q.questionId);
-    const questionWeightsMap = Object.fromEntries(
-      indexNotebook.map((q) => [q.questionId, q.weight])
-    );
-
-    return (
-      <>
-        {HeaderElement}
-        <IndexNotebook
-          postData={postData}
-          questionTitle={questionTitle}
-          questionIds={questionIds}
-          questionWeightsMap={questionWeightsMap}
-        />
-      </>
-    );
-  }
 
   return (
     <>
@@ -159,19 +135,26 @@ export default async function IndividualNotebook({ params }: Props) {
               })}
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            {postData.curation_status == PostStatus.APPROVED && (
-              <>
-                <div className="mr-3 hidden lg:block">
-                  <PostSubscribeButton post={postData} />
-                </div>
-                <div className="lg:hidden">
-                  <PostSubscribeButton post={postData} mini />
-                </div>
-              </>
-            )}
-            <SharePostMenu questionTitle={questionTitle} />
-            <PostDropdownMenu post={postData} />
+          <div className="flex flex-col items-center justify-end gap-1 sm:flex-row">
+            <PostVoter
+              className="w-full justify-end sm:mr-3 sm:w-auto"
+              post={postData}
+              questionPage
+            />
+            <div className="flex items-center gap-1">
+              {postData.curation_status == PostStatus.APPROVED && (
+                <>
+                  <div className="mr-2 hidden lg:block">
+                    <PostSubscribeButton post={postData} />
+                  </div>
+                  <div className="lg:hidden">
+                    <PostSubscribeButton post={postData} mini />
+                  </div>
+                </>
+              )}
+              <SharePostMenu questionTitle={questionTitle} />
+              <PostDropdownMenu post={postData} />
+            </div>
           </div>
         </div>
 

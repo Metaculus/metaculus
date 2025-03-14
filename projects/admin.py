@@ -10,12 +10,13 @@ from django.utils.html import format_html
 from django_select2.forms import ModelSelect2MultipleWidget
 
 from posts.models import Post
-from projects.models import Project, ProjectUserPermission
+from projects.models import Project, ProjectUserPermission, ProjectIndexQuestion
 from questions.models import Question
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
-from utils.csv_utils import export_data_for_questions
+from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
+from utils.tasks import email_all_data_for_questions_task
 
 
 class ProjectUserPermissionVisibilityFilter(admin.SimpleListFilter):
@@ -79,6 +80,15 @@ class ProjectUserPermissionInline(admin.TabularInline):
         return qs.filter(project_id=project_id)
 
 
+class ProjectIndexQuestionsInline(admin.TabularInline):
+    verbose_name = "Index: question weight"
+
+    model = ProjectIndexQuestion
+    extra = 1
+    # TODO: try to pre-populate only questions related to the given Project
+    autocomplete_fields = ("question",)
+
+
 class PostSelect2MultipleWidget(ModelSelect2MultipleWidget):
     model = Post
     search_fields = ["title__icontains"]  # Remove 'id__exact'
@@ -103,17 +113,53 @@ class AddPostsToProjectForm(forms.Form):
     )
 
 
-class PostDefaultProjectInline(admin.TabularInline):
+class PostInlineBase(admin.TabularInline):
+    def get_project(self, obj) -> Project:
+        raise NotImplementedError
+
+    def get_post(self, obj) -> Post:
+        return obj
+
+    def closes_before(self, obj):
+        project = self.get_project(obj)
+        questions = self.get_post(obj).get_questions()
+
+        if not project.close_date:
+            return None
+
+        return not any(q.scheduled_close_time > project.close_date for q in questions)
+
+    closes_before.short_description = "Closes Before"
+    closes_before.boolean = True
+
+    def resolves_before(self, obj):
+        project = self.get_project(obj)
+        questions = self.get_post(obj).get_questions()
+
+        if not project.close_date:
+            return None
+
+        return not any(q.scheduled_resolve_time > project.close_date for q in questions)
+
+    resolves_before.short_description = "Resolves Before"
+    resolves_before.boolean = True
+
+
+class PostDefaultProjectInline(PostInlineBase):
     model = Post
     extra = 0
     fields = (
         "title_link",
         "curation_status",
         "published_at",
+        "closes_before",
+        "resolves_before",
     )
     readonly_fields = (
         "title_link",
         "published_at",
+        "closes_before",
+        "resolves_before",
     )
     can_delete = False
     verbose_name = "Post with this as Default Project (determines permissions)"
@@ -134,6 +180,9 @@ class PostDefaultProjectInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
+
+    def get_project(self, obj) -> Project:
+        return obj.default_project
 
 
 class PostProjectInlineForm(forms.ModelForm):
@@ -158,7 +207,7 @@ class PostProjectInlineForm(forms.ModelForm):
         return super().save(commit=commit)
 
 
-class PostProjectInline(admin.TabularInline):
+class PostProjectInline(PostInlineBase):
     model = Post.projects.through
     form = PostProjectInlineForm
     extra = 0
@@ -167,6 +216,8 @@ class PostProjectInline(admin.TabularInline):
         "curation_status",
         "published_at",
         "default_project",
+        "closes_before",
+        "resolves_before",
         "remove_from_project",
     )
     readonly_fields = (
@@ -174,6 +225,8 @@ class PostProjectInline(admin.TabularInline):
         "curation_status",
         "published_at",
         "default_project",
+        "closes_before",
+        "resolves_before",
     )
     can_delete = False  # this is a hack to rename the "delete" checkbox
     verbose_name = "Post with this as a Secondary Project (no permission effects)"
@@ -205,6 +258,12 @@ class PostProjectInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
+
+    def get_project(self, obj) -> Project:
+        return obj.project
+
+    def get_post(self, obj) -> Post:
+        return obj.post
 
 
 class ProjectAdminForm(forms.ModelForm):
@@ -249,6 +308,7 @@ class ProjectAdmin(CustomTranslationAdmin):
     autocomplete_fields = ["created_by"]
     ordering = ["-created_at"]
     inlines = [
+        ProjectIndexQuestionsInline,
         ProjectUserPermissionInline,
         PostDefaultProjectInline,
         PostProjectInline,
@@ -256,6 +316,9 @@ class ProjectAdmin(CustomTranslationAdmin):
     actions = [
         "update_leaderboards",
         "export_questions_data_for_projects",
+        "export_questions_data_for_projects_anonymized",
+        "email_me_questions_data_for_projects",
+        "email_me_questions_data_for_projects_anonymized",
         "update_translations",
     ]
 
@@ -299,7 +362,9 @@ class ProjectAdmin(CustomTranslationAdmin):
         "Update All Leaderboards on Selected Projects"
     )
 
-    def export_questions_data_for_projects(self, request, queryset: QuerySet[Project]):
+    def export_questions_data_for_projects(
+        self, request, queryset: QuerySet[Project], **kwargs
+    ):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
 
@@ -308,19 +373,99 @@ class ProjectAdmin(CustomTranslationAdmin):
             | Q(related_posts__post__projects__in=queryset)
         ).distinct()
 
-        data = export_data_for_questions(questions, True, True, True)
+        data = export_all_data_for_questions(
+            questions,
+            include_comments=True,
+            include_scores=True,
+            **kwargs,
+        )
         if data is None:
             self.message_user(request, "No questions selected.")
             return
 
         # return the zip file as a response
+        if queryset.count() == 1:
+            project = queryset.first()
+            if project.slug:
+                filename = f"{project.slug}_metaculus_data"
+            else:
+                name = project.name
+                for char in [" ", "-", "/", ":", ",", "."]:
+                    name = name.replace(char, "_")
+                filename = f"{name}_metaculus_data"
+        else:
+            filename = "project_metaculus_data"
+        if kwargs.get("anonymized", False):
+            filename += "_anonymized"
         response = HttpResponse(data, content_type="application/zip")
-        response["Content-Disposition"] = 'attachment; filename="metaculus_data.zip"'
+        response["Content-Disposition"] = f"attachment; filename={filename}"
 
         return response
 
     export_questions_data_for_projects.short_description = (
         "Download Question Data for Selected Projects"
+    )
+
+    def export_questions_data_for_projects_anonymized(
+        self, request, queryset: QuerySet[Project]
+    ):
+        return self.export_questions_data_for_projects(
+            request, queryset, anonymized=True
+        )
+
+    export_questions_data_for_projects_anonymized.short_description = (
+        "Download Question Data for Selected Projects Anonymized"
+    )
+
+    def email_me_questions_data_for_projects(
+        self, request, queryset: QuerySet[Project], **kwargs
+    ):
+        question_ids = list(
+            Question.objects.filter(
+                Q(related_posts__post__default_project__in=queryset)
+                | Q(related_posts__post__projects__in=queryset)
+            )
+            .distinct()
+            .values_list("id", flat=True)
+        )
+        if queryset.count() == 1:
+            project = queryset.first()
+            if project.slug:
+                filename = f"{project.slug}_metaculus_data"
+            else:
+                name = project.name
+                for char in [" ", "-", "/", ":", ",", "."]:
+                    name = name.replace(char, "_")
+                filename = f"{name}_metaculus_data"
+        else:
+            filename = "project_metaculus_data"
+        if kwargs.get("anonymized", False):
+            filename += "_anonymized"
+        email_all_data_for_questions_task.send(
+            email_address=request.user.email,
+            question_ids=question_ids,
+            filename=filename + ".zip",
+            include_comments=True,
+            include_scores=True,
+            **kwargs,
+        )
+
+        self.message_user(request, "Email will be sent when data is processed.")
+        return
+
+    email_me_questions_data_for_projects.short_description = (
+        "Email Me Question Data for Selected Projects"
+    )
+
+    def email_me_questions_data_for_projects_anonymized(
+        self, request, queryset: QuerySet[Project]
+    ):
+        return self.email_me_questions_data_for_projects(
+            request, queryset, anonymized=True
+        )
+
+    email_me_questions_data_for_projects_anonymized.short_description = (
+        "Email Me Question Data for Selected Projects Anonymized"
     )
 
     def view_default_posts_link(self, obj):

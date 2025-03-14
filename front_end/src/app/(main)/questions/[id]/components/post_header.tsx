@@ -9,6 +9,7 @@ import { useContentTranslatedBannerProvider } from "@/app/providers";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions/";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Button from "@/components/ui/button";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import {
   PostStatus,
   PostWithForecasts,
@@ -18,6 +19,7 @@ import { TournamentType } from "@/types/projects";
 import cn from "@/utils/cn";
 
 import PostApprovalModal from "./post_approval_modal";
+import PostDestructiveActionModal from "./post_destructive_action_modal";
 import { draftPost, submitPostForReview } from "../../actions";
 
 export default function PostHeader({
@@ -96,6 +98,14 @@ export const PostStatusBox: FC<{
   const router = useRouter();
 
   const [approvalModalOpen, setIsApprovalModalOpen] = useState(false);
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
+
+  const [confirmModalOpen, setConfirmModalOpen] = useState<{
+    type?: "reject" | "delete";
+    open: boolean;
+  }>({
+    open: false,
+  });
 
   if (![PostStatus.PENDING, PostStatus.DRAFT].includes(post.curation_status)) {
     return null;
@@ -115,10 +125,11 @@ export const PostStatusBox: FC<{
     post.curation_status === PostStatus.PENDING && canEdit;
   const canSubmitForReview =
     post.curation_status === PostStatus.DRAFT && canEdit;
-  const canApprove = [
-    ProjectPermissions.CURATOR,
-    ProjectPermissions.ADMIN,
-  ].includes(post.user_permission);
+  const canApproveOrReject =
+    post.curation_status === PostStatus.PENDING &&
+    [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+      post.user_permission
+    );
 
   return (
     <>
@@ -150,26 +161,42 @@ export const PostStatusBox: FC<{
           ) : (
             <>
               <h4 className="mb-2 mt-0">{t("inReview")}</h4>
-              <p className="mb-3 mt-0 leading-5">
-                {t.rich("inReviewStatusBox1", {
-                  link1: (chunks) => (
-                    <Link href="/question-writing/">{chunks}</Link>
-                  ),
-                  link2: (chunks) => (
-                    <Link href="/question-writing/#what-types">{chunks}</Link>
-                  ),
-                })}
-              </p>
-              <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox2")}</p>
-              {post.conditional && (
-                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox4")}</p>
+              {!PUBLIC_MINIMAL_UI ? (
+                <>
+                  <p className="mb-3 mt-0 leading-5">
+                    {t.rich("inReviewStatusBox1", {
+                      link1: (chunks) => (
+                        <Link href="/question-writing/">{chunks}</Link>
+                      ),
+                      link2: (chunks) => (
+                        <Link href="/question-writing/#what-types">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </p>
+                  <p className="mb-3 mt-0 leading-5">
+                    {t("inReviewStatusBox2")}
+                  </p>
+                  {post.conditional && (
+                    <p className="mb-3 mt-0 leading-5">
+                      {t("inReviewStatusBox4")}
+                    </p>
+                  )}{" "}
+                </>
+              ) : (
+                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox5")}</p>
               )}
             </>
           ))}
         {canSubmitForReview && (
           <>
             <h4 className="mb-2 mt-0">{t("draftStatusBox1")}</h4>
-            <p className="mb-3 mt-0 leading-5">{t("draftStatusBox2")}</p>
+            {!PUBLIC_MINIMAL_UI ? (
+              <p className="mb-3 mt-0 leading-5">{t("draftStatusBox2")}</p>
+            ) : (
+              <p className="mb-3 mt-0 leading-5">{t("draftStatusBox3")}</p>
+            )}
           </>
         )}
         <div className="flex gap-2">
@@ -188,6 +215,34 @@ export const PostStatusBox: FC<{
               {t("submitForReview")}
             </Button>
           )}
+
+          {canApproveOrReject && (
+            <Button
+              onClick={() => {
+                setConfirmModalOpen({
+                  type: "reject",
+                  open: true,
+                });
+              }}
+              className="capitalize"
+            >
+              {t("reject")}
+            </Button>
+          )}
+
+          {canEdit && (
+            <Button
+              onClick={() => {
+                setConfirmModalOpen({
+                  type: "delete",
+                  open: true,
+                });
+              }}
+            >
+              {t("delete")}
+            </Button>
+          )}
+
           {canSendBackToDrafts && (
             <Button
               onClick={async () => {
@@ -197,7 +252,7 @@ export const PostStatusBox: FC<{
               {t("sendBackToDrafts")}
             </Button>
           )}
-          {canApprove && (
+          {canApproveOrReject && (
             <Button
               onClick={async () => {
                 setIsApprovalModalOpen(true);
@@ -209,6 +264,17 @@ export const PostStatusBox: FC<{
           )}
         </div>
       </div>
+      <PostDestructiveActionModal
+        isOpen={confirmModalOpen.open}
+        post={post}
+        destructiveAction={confirmModalOpen.type ?? "reject"}
+        onClose={() =>
+          setConfirmModalOpen({ ...confirmModalOpen, open: false })
+        }
+        onActionComplete={() => {
+          router.refresh();
+        }}
+      />
       <PostApprovalModal
         isOpen={approvalModalOpen}
         post={post}

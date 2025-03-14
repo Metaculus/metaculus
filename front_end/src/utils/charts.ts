@@ -7,8 +7,7 @@ import {
   subDays,
   subMonths,
 } from "date-fns";
-import { range } from "lodash";
-import { findLastIndex, isNil, uniq } from "lodash";
+import { findLastIndex, isNil, uniq, range } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
@@ -30,8 +29,6 @@ import {
   UserForecastHistory,
   Scaling,
   AggregateForecast,
-  AggregationQuestion,
-  Aggregations,
   QuestionWithForecasts,
   AggregateForecastHistory,
   Bounds,
@@ -522,13 +519,13 @@ export function getUserPredictionDisplayValue(
     center,
     scaling ?? { range_min: 0, range_max: 1, zero_point: null }
   );
-  const scaledLower = lower
+  const scaledLower = !isNil(lower)
     ? scaleInternalLocation(
         lower,
         scaling ?? { range_min: 0, range_max: 1, zero_point: null }
       )
     : null;
-  const scaledUpper = upper
+  const scaledUpper = !isNil(upper)
     ? scaleInternalLocation(
         upper,
         scaling ?? { range_min: 0, range_max: 1, zero_point: null }
@@ -538,10 +535,10 @@ export function getUserPredictionDisplayValue(
   if (questionType === QuestionType.Date) {
     const displayCenter = format(fromUnixTime(scaledCenter), "yyyy-MM-dd");
     if (showRange) {
-      const displayLower = !!scaledLower
+      const displayLower = !isNil(scaledLower)
         ? format(fromUnixTime(scaledLower), "yyyy-MM-dd")
         : "...";
-      const displayUpper = !!scaledUpper
+      const displayUpper = !isNil(scaledUpper)
         ? format(fromUnixTime(scaledUpper), "yyyy-MM-dd")
         : "...";
       return `${displayCenter} (${displayLower} - ${displayUpper})`;
@@ -550,10 +547,10 @@ export function getUserPredictionDisplayValue(
   } else if (questionType === QuestionType.Numeric) {
     const displayCenter = abbreviatedNumber(scaledCenter);
     if (showRange) {
-      const displayLower = !!scaledLower
+      const displayLower = !isNil(scaledLower)
         ? abbreviatedNumber(scaledLower)
         : "...";
-      const displayUpper = !!scaledUpper
+      const displayUpper = !isNil(scaledUpper)
         ? abbreviatedNumber(scaledUpper)
         : "...";
       return `${displayCenter} (${displayLower} - ${displayUpper})`;
@@ -831,97 +828,6 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   return orderedChoiceItems.filter((el) => !isNil(el)) as ChoiceItem[];
 }
 
-export function generateChoiceItemsFromAggregations(
-  question: AggregationQuestion,
-  config?: {
-    locale?: string;
-  }
-): ChoiceItem[] {
-  const { locale } = config ?? {};
-
-  const choiceItems: ChoiceItem[] = [];
-  const aggregations = question.aggregations;
-  let index = 0;
-  for (const key in aggregations) {
-    const aggregationKey = key as keyof Aggregations;
-    const aggregation = aggregations[aggregationKey];
-
-    if (!aggregation?.history || !aggregation.history.length) {
-      continue;
-    }
-
-    const aggregationHistory = aggregation.history;
-    const aggregationTimestamps: number[] = [];
-    aggregationHistory.forEach((forecast) => {
-      aggregationTimestamps.push(forecast.start_time);
-      if (forecast.end_time) {
-        aggregationTimestamps.push(forecast.end_time);
-      }
-    });
-    const sortedAggregationTimestamps = uniq(aggregationTimestamps).sort(
-      (a, b) => a - b
-    );
-    const userValues: (number | null)[] = [];
-    const userMinValues: (number | null)[] = [];
-    const userMaxValues: (number | null)[] = [];
-    const aggregationValues: (number | null)[] = [];
-    const aggregationMinValues: (number | null)[] = [];
-    const aggregationMaxValues: (number | null)[] = [];
-    const aggregationForecasterCounts: number[] = [];
-    sortedAggregationTimestamps.forEach((timestamp) => {
-      const aggregationForecast = aggregationHistory.find((forecast) => {
-        return (
-          forecast.start_time <= timestamp &&
-          (forecast.end_time === null || forecast.end_time > timestamp)
-        );
-      });
-      aggregationValues.push(aggregationForecast?.centers?.[0] || null);
-      aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds?.[0] || null
-      );
-      aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds?.[0] || null
-      );
-      aggregationForecasterCounts.push(
-        aggregationForecast?.forecaster_count || 0
-      );
-    });
-    choiceItems.push({
-      id: question.id,
-      choice: aggregationKey,
-      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      highlighted: false,
-      active: true,
-      resolution: question.resolution,
-      displayedResolution: !!question.resolution
-        ? formatResolution(question.resolution, question.type, locale ?? "en")
-        : null,
-      closeTime: Math.min(
-        new Date(question.scheduled_close_time).getTime(),
-        new Date(
-          question.actual_resolve_time ?? question.scheduled_resolve_time
-        ).getTime()
-      ),
-      rangeMin: question.scaling.range_min ?? 0,
-      rangeMax: question.scaling.range_min ?? 1,
-      scaling: question.scaling,
-      aggregationTimestamps: sortedAggregationTimestamps,
-      aggregationValues: aggregationValues,
-      aggregationMinValues: aggregationMinValues,
-      aggregationMaxValues: aggregationMaxValues,
-      aggregationForecasterCounts: aggregationForecasterCounts,
-      userTimestamps: [],
-      userValues: userValues,
-      userMinValues:
-        question.type === QuestionType.Binary ? undefined : userMinValues, // used in continuous group questions
-      userMaxValues:
-        question.type === QuestionType.Binary ? undefined : userMaxValues, // used in continuous group questions
-    });
-    index++;
-  }
-  return choiceItems;
-}
-
 export function generateChoiceItemsFromGroupQuestions(
   questions: QuestionWithNumericForecasts[],
   config?: {
@@ -1026,7 +932,7 @@ export function generateChoiceItemsFromGroupQuestions(
       const aggregationForecast = aggregationHistory.find((forecast) => {
         return (
           forecast.start_time <= timestamp &&
-          (forecast.end_time === null || forecast.end_time > timestamp)
+          (forecast.end_time === null || forecast.end_time >= timestamp)
         );
       });
       aggregationValues.push(aggregationForecast?.centers?.[0] || null);
@@ -1423,7 +1329,8 @@ export function getContinuousAreaChartData(
   userCustomForecast?: {
     cdf: number[];
     pmf: number[];
-  }
+  },
+  isClosedForecast?: boolean
 ): ContinuousAreaGraphInput {
   const chartData: ContinuousAreaGraphInput = [];
 
@@ -1431,7 +1338,9 @@ export function getContinuousAreaChartData(
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
       cdf: latest.forecast_values,
-      type: "community" as ContinuousAreaType,
+      type: (isClosedForecast
+        ? "community_closed"
+        : "community") as ContinuousAreaType,
     });
   }
 

@@ -24,7 +24,9 @@
                                 <a href="{% post_url notification.post.post_id notification.post.post_title %}">
                                     {{ notification.post.post_title }}
                                 </a>
+                                {% if notification.post.post_type != 'notebook' %}
                                 is now {{notification.event}}
+                                {% endif %}
                             </li>
                             {% endfor %}
                         {% endfor %}

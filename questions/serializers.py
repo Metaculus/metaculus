@@ -230,9 +230,7 @@ class GroupOfQuestionsUpdateSerializer(GroupOfQuestionsWriteSerializer):
 
 class ForecastSerializer(serializers.ModelSerializer):
     quartiles = serializers.SerializerMethodField()
-    range_min = serializers.FloatField(source="question.range_min")
-    range_max = serializers.FloatField(source="question.range_max")
-    zero_point = serializers.FloatField(source="question.zero_point")
+    scaling = serializers.SerializerMethodField()
     options = serializers.ListField(
         child=serializers.CharField(), source="question.options"
     )
@@ -246,9 +244,7 @@ class ForecastSerializer(serializers.ModelSerializer):
             "probability_yes_per_category",
             "continuous_cdf",
             "quartiles",
-            "range_min",
-            "range_max",
-            "zero_point",
+            "scaling",
             "options",
             "question_type",
         )
@@ -257,6 +253,14 @@ class ForecastSerializer(serializers.ModelSerializer):
         question = forecast.question
         if question.type in [Question.QuestionType.DATE, Question.QuestionType.NUMERIC]:
             return get_scaled_quartiles_from_cdf(forecast.continuous_cdf, question)
+
+    def get_scaling(self, forecast: Forecast):
+        question = forecast.question
+        return {
+            "range_max": question.range_max,
+            "range_min": question.range_min,
+            "zero_point": question.zero_point,
+        }
 
 
 class MyForecastSerializer(serializers.ModelSerializer):
@@ -311,6 +315,7 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
     centers = serializers.SerializerMethodField()
     interval_upper_bounds = serializers.SerializerMethodField()
     means = serializers.SerializerMethodField()
+    histogram = serializers.SerializerMethodField()
 
     class Meta:
         model = AggregateForecast
@@ -381,6 +386,16 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
         if question_type == Question.QuestionType.BINARY and aggregate_forecast.means:
             return aggregate_forecast.means[1:]
         return aggregate_forecast.means
+
+    def get_histogram(
+        self, aggregate_forecast: AggregateForecast
+    ) -> list[list[float]] | None:
+        h = aggregate_forecast.histogram
+        if not h:  # h is None or []
+            return None
+        if isinstance(h[0], list):
+            return h
+        return [h]
 
 
 class ForecastWriteSerializer(serializers.ModelSerializer):
@@ -564,7 +579,7 @@ def serialize_question(
     """
 
     serialized_data = QuestionSerializer(question).data
-    serialized_data["post_id"] = post.id if post else question.get_post().id
+    serialized_data["post_id"] = post.id if post else question.get_post_id()
     serialized_data["aggregations"] = {
         "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
         "unweighted": {"history": [], "latest": None, "score_data": dict()},

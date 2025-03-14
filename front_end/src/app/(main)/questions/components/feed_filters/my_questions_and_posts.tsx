@@ -16,7 +16,9 @@ import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
-const MyQuestionsAndPostsFilters: FC = () => {
+type Props = { panelClassname?: string };
+
+const MyQuestionsAndPostsFilters: FC<Props> = ({ panelClassname }) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
@@ -86,7 +88,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
       { value: QuestionOrder.CommentCountDesc, label: t("totalComments") },
       { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
       {
-        value: QuestionOrder.PublishTimeDesc,
+        value: QuestionOrder.OpenTimeDesc,
         label: t("newest"),
       },
     ],
@@ -99,6 +101,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
       mainSortOptions={mainSortOptions}
       sortOptions={sortOptions}
       defaultOrder={QuestionOrder.HotDesc}
+      panelClassname={panelClassname}
     />
   );
 };

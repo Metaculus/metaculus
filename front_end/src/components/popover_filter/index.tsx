@@ -136,6 +136,7 @@ const PopoverFilter: FC<Props> = ({
                       chipColor={filter.chipColor}
                       chipFormat={filter.chipFormat}
                       shouldEnforceSearch={filter.shouldEnforceSearch}
+                      multiple={filter.multiple}
                     />
                   )}
                   {filter.type === FilterOptionType.ToggleChip && (

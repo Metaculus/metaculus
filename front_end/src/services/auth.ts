@@ -7,6 +7,18 @@ import {
 } from "@/types/auth";
 import { get, post } from "@/utils/fetch";
 
+export type SignUpProps = {
+  email: string;
+  username: string;
+  password: string;
+  is_bot: boolean;
+  add_to_project?: number;
+  campaign_key?: string;
+  campaign_data?: object;
+  redirect_url?: string;
+  invite_token?: string;
+};
+
 class AuthApi {
   static async getSocialProviders(
     redirect_uri: string
@@ -27,7 +39,7 @@ class AuthApi {
   }
 
   static async verifyToken() {
-    return get("/auth/verify_token/");
+    return get("/auth/verify_token/", {}, { includeLocale: false });
   }
 
   static async exchangeSocialOauthCode(
@@ -61,43 +73,10 @@ class AuthApi {
     );
   }
 
-  static async signUp(
-    email: string,
-    username: string,
-    password: string,
-    is_bot: boolean,
-    turnstileHeaders: Record<string, any>,
-    add_to_project?: number,
-    campaign_key?: string,
-    campaign_data?: object,
-    redirect_url?: string
-  ) {
-    return post<
-      SignUpResponse,
-      {
-        email: string;
-        username: string;
-        password: string;
-        is_bot: boolean;
-        add_to_project?: number;
-        campaign_key?: string;
-        campaign_data?: object;
-        redirect_url?: string;
-      }
-    >(
-      "/auth/signup/",
-      {
-        email,
-        username,
-        password,
-        is_bot,
-        add_to_project,
-        campaign_key,
-        campaign_data,
-        redirect_url,
-      },
-      { headers: turnstileHeaders }
-    );
+  static async signUp(props: SignUpProps, turnstileHeaders: HeadersInit) {
+    return post<SignUpResponse, SignUpProps>("/auth/signup/", props, {
+      headers: turnstileHeaders,
+    });
   }
 
   static async activateAccount(userId: string, token: string) {
@@ -130,6 +109,12 @@ class AuthApi {
         password,
       }
     );
+  }
+
+  static async inviteUsers(emails: string[]) {
+    return post(`/auth/invite/`, {
+      emails,
+    });
   }
 }
 

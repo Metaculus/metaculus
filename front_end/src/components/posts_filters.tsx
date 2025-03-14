@@ -21,6 +21,7 @@ import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
+import cn from "@/utils/cn";
 
 import RandomButton from "./random_button";
 import VisibilityObserver from "./visibility_observer";
@@ -58,6 +59,7 @@ type Props = {
   ) => void;
   inputConfig?: { mode: "client" | "server"; debounceTime?: number };
   showRandomButton?: boolean;
+  panelClassname?: string;
 };
 
 const PostsFilters: FC<Props> = ({
@@ -68,6 +70,7 @@ const PostsFilters: FC<Props> = ({
   onPopOverFilterChange,
   onOrderChange,
   showRandomButton,
+  panelClassname,
 }) => {
   const t = useTranslations();
   const {
@@ -262,7 +265,7 @@ const PostsFilters: FC<Props> = ({
             <PopoverFilter
               filters={popoverFilters}
               onChange={handlePopOverFilterChange}
-              panelClassName="w-[500px]"
+              panelClassName={cn("w-[500px]", panelClassname)}
               onClear={clearPopupFilters}
               fullScreenEnabled
             />
