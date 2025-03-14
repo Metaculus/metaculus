@@ -1,13 +1,13 @@
 import * as d3 from "d3";
 import {
-  format,
   differenceInMilliseconds,
+  format,
   fromUnixTime,
   getUnixTime,
   subDays,
   subMonths,
 } from "date-fns";
-import { findLastIndex, isNil, uniq, range } from "lodash";
+import { findLastIndex, isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
@@ -22,17 +22,17 @@ import {
 import { ChoiceItem } from "@/types/choices";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
-  QuestionType,
-  QuestionWithNumericForecasts,
-  Question,
-  QuestionWithMultipleChoiceForecasts,
-  UserForecastHistory,
-  Scaling,
   AggregateForecast,
-  QuestionWithForecasts,
   AggregateForecastHistory,
   Bounds,
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithMultipleChoiceForecasts,
+  QuestionWithNumericForecasts,
+  Scaling,
   UserForecast,
+  UserForecastHistory,
 } from "@/types/question";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -109,6 +109,7 @@ type GenerateYDomainParams = {
   isChartEmpty: boolean;
   zoomDomainPadding?: number;
 };
+
 export function generateYDomain({
   zoom,
   isChartEmpty,
@@ -679,18 +680,19 @@ export function generateScale({
     tickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
 
-  const conditionallyShowUnit = (
-    value: string,
-    idx: number | undefined
-  ): string => {
-    // Don't include unit if too long
+  const conditionallyShowUnit = (value: string, idx?: number): string => {
+    if (!unit) return value;
+
+    // Include unit if it's within the length limit
+    if (unit.length <= UNIT_COMPACT_LENGTH) return formatValueUnit(value, unit);
+
+    // Include unit only for the first and last tick in horizontal mode
     if (
-      unit &&
-      (unit.length <= UNIT_COMPACT_LENGTH ||
-        idx === 0 ||
-        idx === allTicks.length - 1)
-    )
+      direction === "horizontal" &&
+      (idx === 0 || idx === allTicks.length - 1)
+    ) {
       return formatValueUnit(value, unit);
+    }
 
     return value;
   };
