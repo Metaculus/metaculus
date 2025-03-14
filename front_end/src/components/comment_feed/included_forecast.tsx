@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { FC, useState } from "react";
@@ -65,23 +66,117 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
       </ol>
     );
   }
-  if (forecast.question_type == "date") {
-    return (
-      <div
-        className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark"
-        suppressHydrationWarning
-      >
-        {`${formatDate(locale, new Date(forecast.quartiles[1] * 1000))} (${formatDate(locale, new Date(forecast.quartiles[0] * 1000))} - ${formatDate(locale, new Date(forecast.quartiles[2] * 1000))})`}
-      </div>
-    );
+
+  // continuous questions get customized formatting
+  if (forecast.quartiles.length !== 3) return null;
+  const { range_min, range_max } = forecast.scaling;
+  if (isNil(range_min) || isNil(range_max)) return null;
+
+  const q1 =
+    forecast.quartiles[0] <= range_min
+      ? "below"
+      : forecast.quartiles[0] >= range_max
+        ? "above"
+        : "inRange";
+  const q2 =
+    forecast.quartiles[1] <= range_min
+      ? "below"
+      : forecast.quartiles[1] >= range_max
+        ? "above"
+        : "inRange";
+  const q3 =
+    forecast.quartiles[2] <= range_min
+      ? "below"
+      : forecast.quartiles[2] >= range_max
+        ? "above"
+        : "inRange";
+
+  const probBelow =
+    Math.round((forecast.continuous_cdf.at(0) || 0) * 1000) / 10;
+  const probAbove =
+    Math.round((1 - (forecast.continuous_cdf.at(-1) || 0)) * 1000) / 10;
+  const valueText: string[] =
+    forecast.question_type === "numeric"
+      ? [
+          abbreviatedNumber(range_min),
+          abbreviatedNumber(forecast.quartiles[0]),
+          abbreviatedNumber(forecast.quartiles[1]),
+          abbreviatedNumber(forecast.quartiles[2]),
+          abbreviatedNumber(range_max),
+        ]
+      : [
+          formatDate(locale, new Date(range_min * 1000)),
+          formatDate(locale, new Date(forecast.quartiles[0] * 1000)),
+          formatDate(locale, new Date(forecast.quartiles[1] * 1000)),
+          formatDate(locale, new Date(forecast.quartiles[2] * 1000)),
+          formatDate(locale, new Date(range_max * 1000)),
+        ];
+  let text: string = "";
+  if (q1 === "below" && q2 === "below" && q3 === "below") {
+    text =
+      probBelow +
+      "% " +
+      (forecast.question_type === "numeric" ? "below " : "before ") +
+      valueText[0];
   }
-  if (forecast.question_type == "numeric") {
-    return (
-      <div className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
-        {`${abbreviatedNumber(forecast.quartiles[1])} (${abbreviatedNumber(forecast.quartiles[0])} - ${abbreviatedNumber(forecast.quartiles[2])})`}
-      </div>
-    );
+  if (q1 === "below" && q2 === "below" && q3 === "inRange") {
+    text =
+      probBelow +
+      "% " +
+      (forecast.question_type === "numeric" ? "below " : "before ") +
+      valueText[0] +
+      " (upper 75%=" +
+      valueText[3] +
+      ")";
   }
+  if (q1 === "below" && q2 === "inRange" && q3 === "inRange") {
+    text =
+      valueText[2] +
+      " (" +
+      probBelow +
+      "% " +
+      (forecast.question_type === "numeric" ? "below " : "before ") +
+      valueText[0] +
+      ")";
+  }
+  if (q1 === "inRange" && q2 === "inRange" && q3 === "inRange") {
+    text = valueText[2] + " (" + valueText[1] + " - " + valueText[3] + ")";
+  }
+  if (q1 === "inRange" && q2 === "inRange" && q3 === "above") {
+    text =
+      valueText[2] +
+      " (" +
+      probAbove +
+      "% " +
+      (forecast.question_type === "numeric" ? "above " : "after ") +
+      valueText[4] +
+      ")";
+  }
+  if (q1 === "inRange" && q2 === "above" && q3 === "above") {
+    text =
+      probAbove +
+      "% " +
+      (forecast.question_type === "numeric" ? "above " : "after ") +
+      valueText[4] +
+      " (lower 25%=" +
+      valueText[1] +
+      ")";
+  }
+  if (q1 === "above" && q2 === "above" && q3 === "above") {
+    text =
+      probAbove +
+      "% " +
+      (forecast.question_type === "numeric" ? "above " : "after ") +
+      valueText[4];
+  }
+  if (q1 === "below" && q2 === "inRange" && q3 === "above") {
+    text = valueText[2] + " (" + valueText[1] + " - " + valueText[3] + ")";
+  }
+  return (
+    <div className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
+      {`${text}`}
+    </div>
+  );
 };
 
 const IncludedForecast: FC<Props> = ({ author, forecast }) => {

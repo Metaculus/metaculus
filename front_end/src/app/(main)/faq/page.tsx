@@ -4,6 +4,7 @@ import { getLocale } from "next-intl/server";
 
 import KatexRenderer from "@/components/katex_renderer";
 
+import content_es from "./page_es";
 import content_pt from "./page_pt";
 import PageWrapper from "../components/pagewrapper";
 
@@ -17,6 +18,9 @@ export default async function FAQ() {
   const locale = await getLocale();
   if (locale === "pt") {
     return content_pt();
+  }
+  if (locale === "es") {
+    return content_es();
   }
 
   return (

@@ -1,4 +1,5 @@
 "use client";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const getHash = () =>
@@ -8,20 +9,23 @@ const getHash = () =>
 
 const useHash = () => {
   const [hash, setHash] = useState(getHash());
-  const [isClient, setIsClient] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    setIsClient(true);
+    setHash(getHash());
+    // for backward compatibility
     const handleHashChange = () => {
       setHash(getHash());
     };
+
     window.addEventListener("hashchange", handleHashChange);
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
     };
-  }, []);
+  }, [pathname, searchParams]);
 
-  return isClient ? hash : null;
+  return hash ?? null;
 };
 
 export default useHash;

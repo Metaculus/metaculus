@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import dynamic from "next/dynamic";
 import localFont from "next/font/local";
+import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
@@ -12,6 +13,7 @@ import { Toaster } from "react-hot-toast";
 
 import ChunkRetryScript from "@/components/chunk_retry_script";
 import GlobalModals from "@/components/global_modals";
+import PublicSettingsScript from "@/components/public_settings_script";
 import AppThemeProvided from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
@@ -23,7 +25,6 @@ import ProfileApi from "@/services/profile";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
-const publicSettings = getPublicSettings();
 
 const PostHogPageView = dynamic(
   () => import("@/components/posthog_page_view"),
@@ -113,6 +114,8 @@ const leagueGothic = localFont({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  const publicSettings = getPublicSettings();
+
   return {
     title: "Metaculus",
     description: "Metaculus",
@@ -147,6 +150,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const user = await ProfileApi.getMyProfile();
+  const publicSettings = getPublicSettings();
 
   return (
     <html
@@ -156,6 +160,22 @@ export default async function RootLayout({
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
     >
+      <head>
+        <PublicSettingsScript publicSettings={publicSettings} />
+        {/* Set default consent mode before GA loads */}
+        <Script id="default-consent" strategy="beforeInteractive">
+          {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){ 
+                dataLayer.push(arguments); 
+              }
+              gtag('consent', 'default', {
+                'analytics_storage': 'denied',
+                'ad_storage': 'denied'
+              });
+            `}
+        </Script>
+      </head>
       <CSPostHogProvider>
         <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
           <PostHogPageView />

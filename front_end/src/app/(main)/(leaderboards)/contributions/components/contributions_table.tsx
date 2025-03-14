@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import MarkdownEditor from "@/components/markdown_editor";
+import useContainerSize from "@/hooks/use_container_size";
 import { QuestionType } from "@/types/question";
 import {
   CategoryKey,
@@ -21,7 +22,10 @@ import {
 } from "@/types/scoring";
 import cn from "@/utils/cn";
 import { abbreviatedNumber } from "@/utils/number_formatters";
-import { isUnsuccessfullyResolved } from "@/utils/questions";
+import {
+  getMarkdownSummary,
+  isUnsuccessfullyResolved,
+} from "@/utils/questions";
 
 type SortingColumn = "score" | "coverage" | "title" | "type";
 type SortingDirection = "asc" | "desc";
@@ -40,7 +44,7 @@ const ContributionsTable: FC<Props> = ({
   contributions,
 }) => {
   const t = useTranslations();
-
+  const { ref, width } = useContainerSize<HTMLTableCellElement>();
   const [sortingColumn, setSortingColumn] = useState<SortingColumn>("score");
   const [sortingDirection, setSortingDirection] =
     useState<SortingDirection>("desc");
@@ -145,9 +149,11 @@ const ContributionsTable: FC<Props> = ({
             <InfoHeaderTd className="w-24 font-medium leading-4 " />
           )}
           <InfoHeaderTd className="w-full font-medium">
-            {category === "baseline" && t("totalScore")}
-            {category === "peer" && t("weightedAverageScore")}
-            {isNonQuestionCategory && t("hIndex")}
+            <div ref={ref}>
+              {category === "baseline" && t("totalScore")}
+              {category === "peer" && t("weightedAverageScore")}
+              {isNonQuestionCategory && t("hIndex")}
+            </div>
           </InfoHeaderTd>
           {isQuestionCategory && (
             <InfoHeaderTd className="w-40 font-medium leading-4 " />
@@ -250,10 +256,14 @@ const ContributionsTable: FC<Props> = ({
                 >
                   <MarkdownEditor
                     mode="read"
-                    markdown={getCommentSummary(
-                      contribution.comment_text as string
-                    )}
-                    contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                    markdown={getMarkdownSummary({
+                      markdown: contribution.comment_text ?? "",
+                      width,
+                      height: 30,
+                      charWidth: 6,
+                      withLinks: false,
+                    })}
+                    contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0 !line-clamp-1"
                   />
                 </Link>
               )}
@@ -307,14 +317,5 @@ const SortArrow: FC<{ isAsc: boolean }> = ({ isAsc }) => (
 const getIsResolved = (contribution: Contribution) =>
   !!contribution.question_resolution &&
   !isUnsuccessfullyResolved(contribution.question_resolution);
-
-const getCommentSummary = (markdown: string) => {
-  if ([">", "*"].includes(markdown[0] ?? "")) {
-    markdown = markdown.slice(1);
-  }
-  markdown = markdown.replace(/\<.*?\>/g, "");
-  const normalized = markdown.split("\n").join(" ");
-  return normalized;
-};
 
 export default ContributionsTable;

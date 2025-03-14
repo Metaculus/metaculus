@@ -5,7 +5,6 @@ import { useState } from "react";
 
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import {
-  Table,
   TableHead,
   TableBody,
   TableRow,
@@ -29,23 +28,34 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
   const [visibleRowsMap, setVisibleRowsMap] = useState<Record<string, number>>(
     () => Object.fromEntries(sheets.map((sheet) => [sheet.name, 125]))
   );
-  const rankColumnIndex = 0;
-  const usernameColumnIndex = 1;
-  const totalScoreColumnIndex = 2;
-  const userIDColumn = 6;
+  const currentSheet = sheets.find((s) => s.name === activeSheet);
+  const headers = currentSheet?.data[0];
+
+  if (
+    !currentSheet ||
+    !currentSheet.data ||
+    currentSheet.data.length === 0 ||
+    !headers
+  ) {
+    return <div>No data found</div>;
+  }
+
+  const getColumnIndex = (header: string) => {
+    return headers.findIndex((h) => h.toLowerCase() === header.toLowerCase());
+  };
+
+  const rankColumnIndex = getColumnIndex("Rank");
+  const usernameColumnIndex = getColumnIndex("Forecaster");
+  const totalScoreColumnIndex = getColumnIndex("Total Score");
+  const userIDColumn = getColumnIndex("User ID");
+  const institutionColumnIndex = getColumnIndex("Institution");
+  const participantsColumnIndex = getColumnIndex("Participants");
 
   const buttons: GroupButton<string>[] = sheets.map((sheet) => ({
     value: sheet.name,
     label: sheet.name,
   }));
 
-  const currentSheet = sheets.find((s) => s.name === activeSheet);
-
-  if (!currentSheet || !currentSheet.data || currentSheet.data.length === 0) {
-    return <div>No data found</div>;
-  }
-
-  const headers = currentSheet.data[0];
   const dataRows = currentSheet.data.slice(1);
   const highlightedRow = dataRows.find(
     (row) => row[usernameColumnIndex] === highlightedUser
@@ -57,7 +67,13 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
   // Get visible rows for current sheet
   const currentVisibleRows = visibleRowsMap[activeSheet] ?? 125;
   const visibleOtherRows = otherRows.slice(0, currentVisibleRows);
-  const reorderedOtherRows = [highlightedRow ?? [], ...visibleOtherRows];
+  let reorderedOtherRows = [highlightedRow ?? [], ...visibleOtherRows];
+
+  // If the table has no username column, show all rows without highlighting
+  if (usernameColumnIndex === -1) {
+    reorderedOtherRows = [...dataRows];
+    highlightedUser = "";
+  }
 
   const hasMoreRows = otherRows.length > currentVisibleRows;
 
@@ -79,70 +95,77 @@ export default function LeaderboardTabs({ sheets, highlightedUser }: Props) {
           className="w-fit"
         />
       </div>
-      <Table>
-        <TableHead>
-          <TableRow>
-            {headers?.map((header: string, index: number) =>
-              index !== userIDColumn ? (
-                <TableHeaderCell
-                  key={index}
-                  className={cn(
-                    "w-fit min-w-[200px] max-w-[400px] whitespace-normal",
-                    index === rankColumnIndex && "w-16 min-w-[64px]",
-                    index === usernameColumnIndex && "w-full truncate md:w-64",
-                    index === totalScoreColumnIndex &&
-                      "ml-4 w-24 min-w-[96px] text-center",
-                    index > totalScoreColumnIndex &&
-                      "hidden text-center md:table-cell",
-                    index >= totalScoreColumnIndex && "tabular-nums"
-                  )}
-                >
-                  {header}
-                </TableHeaderCell>
-              ) : null
-            )}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {reorderedOtherRows.map((row: string[], rowIndex: number) => (
-            <TableRow
-              key={rowIndex}
-              className={cn(
-                highlightedUser === row[usernameColumnIndex] &&
-                  "bg-orange-200 dark:bg-orange-200-dark"
-              )}
-            >
-              {row.map((cell: string, cellIndex: number) =>
-                cellIndex !== userIDColumn ? (
-                  <TableCell
-                    key={cellIndex}
+
+      <div
+        className={cn(
+          "overflow-hidden rounded border border-gray-300 bg-gray-0 text-gray-800 @container dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-800-dark"
+        )}
+      >
+        <table className="table w-full">
+          <TableHead>
+            <TableRow>
+              {headers?.map((header: string, index: number) =>
+                index !== userIDColumn ? (
+                  <TableHeaderCell
+                    key={index}
                     className={cn(
-                      cellIndex === rankColumnIndex && "w-16 min-w-[64px]",
-                      cellIndex === usernameColumnIndex &&
-                        "w-full truncate md:w-64",
-                      cellIndex === totalScoreColumnIndex &&
-                        "w-24 min-w-[96px] text-right md:text-center",
-                      cellIndex === 0 && "font-medium",
-                      cellIndex > totalScoreColumnIndex &&
-                        "hidden md:table-cell",
-                      cellIndex >= totalScoreColumnIndex &&
-                        "text-center text-sm tabular-nums"
+                      " whitespace-normal",
+                      index === rankColumnIndex && "",
+                      index === usernameColumnIndex && "truncate ",
+                      index === totalScoreColumnIndex && "ml-4  text-center",
+                      index > totalScoreColumnIndex &&
+                        "hidden text-center md:table-cell",
+                      index >= totalScoreColumnIndex && "tabular-nums"
                     )}
                   >
-                    {cellIndex === usernameColumnIndex ? (
-                      <Link href={`/accounts/profile/${row[userIDColumn]}`}>
-                        {cell}
-                      </Link>
-                    ) : (
-                      cell
-                    )}
-                  </TableCell>
+                    {header}
+                  </TableHeaderCell>
                 ) : null
               )}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {reorderedOtherRows.map((row: string[], rowIndex: number) => (
+              <TableRow
+                key={rowIndex}
+                className={cn(
+                  highlightedUser === row[usernameColumnIndex] &&
+                    "bg-orange-200 dark:bg-orange-200-dark"
+                )}
+              >
+                {row.map((cell: string, cellIndex: number) =>
+                  cellIndex !== userIDColumn ? (
+                    <TableCell
+                      key={cellIndex}
+                      className={cn(
+                        cellIndex === usernameColumnIndex && "truncate",
+                        cellIndex === totalScoreColumnIndex &&
+                          "text-right md:text-center",
+                        cellIndex === institutionColumnIndex &&
+                          "text-sm md:text-base",
+                        cellIndex === 0 && "font-medium",
+                        cellIndex > totalScoreColumnIndex &&
+                          "hidden md:table-cell",
+                        cellIndex >= totalScoreColumnIndex &&
+                          "text-center text-sm tabular-nums",
+                        cellIndex === participantsColumnIndex && "text-center"
+                      )}
+                    >
+                      {cellIndex === usernameColumnIndex ? (
+                        <Link href={`/accounts/profile/${row[userIDColumn]}`}>
+                          {cell}
+                        </Link>
+                      ) : (
+                        cell
+                      )}
+                    </TableCell>
+                  ) : null
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </table>
+      </div>
 
       {hasMoreRows && (
         <div className="mt-4 flex justify-center">

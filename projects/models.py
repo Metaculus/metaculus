@@ -14,6 +14,7 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.permissions import ObjectPermission
 from questions.constants import ResolutionType
+from questions.models import Question
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
 
@@ -33,6 +34,7 @@ class ProjectsQuerySet(models.QuerySet):
             type__in=(
                 Project.ProjectTypes.TOURNAMENT,
                 Project.ProjectTypes.QUESTION_SERIES,
+                Project.ProjectTypes.INDEX,
             )
         )
 
@@ -183,6 +185,7 @@ class ProjectsQuerySet(models.QuerySet):
 class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
+        INDEX = "index"
         TOURNAMENT = "tournament"
         QUESTION_SERIES = "question_series"
         PERSONAL_PROJECT = "personal_project"
@@ -360,6 +363,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         if self.type in (
             self.ProjectTypes.TOURNAMENT,
             self.ProjectTypes.QUESTION_SERIES,
+            self.ProjectTypes.INDEX,
         ):
             return self.close_date > django_timezone.now() if self.close_date else True
 
@@ -381,7 +385,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
                 projectuserpermission__permission__in=permissions,
             )
             | Q(is_superuser=True)
-        )
+        ).distinct("pk")
 
     def update_followers_count(self):
         self.followers_count = self.subscriptions.count()
@@ -418,5 +422,35 @@ class ProjectSubscription(TimeStampedModel):
             models.UniqueConstraint(
                 name="projectsubscription_unique_user_project",
                 fields=["user_id", "project_id"],
+            )
+        ]
+
+
+class ProjectIndexQuestion(TimeStampedModel):
+    """
+    Index project question weights
+    """
+
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="index_questions"
+    )
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        help_text="Index Post Question",
+    )
+    weight = models.FloatField()
+
+    order = models.IntegerField(
+        help_text="Will be displayed ordered by this field inside each section",
+        default=0,
+    )
+
+    class Meta:
+        ordering = ("order",)
+        constraints = [
+            models.UniqueConstraint(
+                name="projectindexquestion_unique_project_question",
+                fields=["project", "question"],
             )
         ]

@@ -1,4 +1,4 @@
-import { ProjectPermissions } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { UserBase, UserProfile } from "@/types/users";
 
 type TopicSection = "hot_categories" | "hot_topics";
@@ -35,6 +35,7 @@ export type NewsCategory = Project & {
 export enum TournamentType {
   QuestionSeries = "question_series",
   Tournament = "tournament",
+  Index = "index",
   GlobalLeaderboard = "global_leaderboard",
   Community = "community",
   NewsCategory = "news_category",
@@ -56,13 +57,23 @@ export type TournamentPreview = Project & {
   header_image: string;
   prize_pool: string | null;
   start_date: string;
-  close_date: string;
+  close_date?: string;
   is_ongoing: boolean;
   created_at: string;
   questions_count: number;
   user_permission: ProjectPermissions;
   default_permission: ProjectPermissions | null;
   score_type: string;
+};
+
+export type TournamentTimeline = {
+  last_cp_reveal_time?: string;
+  latest_actual_resolve_time?: string;
+  latest_scheduled_resolve_time?: string;
+  latest_actual_close_time?: string;
+  latest_scheduled_close_time?: string;
+  all_questions_resolved: boolean;
+  all_questions_closed: boolean;
 };
 
 export type Tournament = TournamentPreview & {
@@ -75,6 +86,14 @@ export type Tournament = TournamentPreview & {
   visibility: ProjectVisibility;
   default_permission?: ProjectPermissions | null;
   is_current_content_translated?: boolean;
+  index_weights?: ProjectIndexWeights[];
+  timeline: TournamentTimeline;
+};
+
+export type ProjectIndexWeights = {
+  post: PostWithForecasts;
+  question_id: number;
+  weight: number;
 };
 
 export type Community = Project & {

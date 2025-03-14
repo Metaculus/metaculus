@@ -14,7 +14,7 @@ import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { Post, PostWithForecasts } from "@/types/post";
+import { Post, PostWithForecasts, QuestionStatus } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
@@ -180,12 +180,13 @@ const ConditionalForm: React.FC<{
         <InputContainer labelText={t("parentQuestion")}>
           <ConditionalQuestionPicker
             onQuestionChange={(question: QuestionWithForecasts) => {
-              setConditionQuestion(
+              setConditionQuestion({
                 question,
                 control,
-                setConditionParent,
-                "condition_id"
-              );
+                setQuestionState: setConditionParent,
+                fieldName: "condition_id",
+                t,
+              });
             }}
             title={t("selectParentQuestion")}
             isParentQuestion={true}
@@ -210,12 +211,13 @@ const ConditionalForm: React.FC<{
         <InputContainer labelText={t("childQuestion")}>
           <ConditionalQuestionPicker
             onQuestionChange={(question: QuestionWithForecasts) => {
-              setConditionQuestion(
+              setConditionQuestion({
                 question,
                 control,
-                setConditionChild,
-                "condition_child_id"
-              );
+                setQuestionState: setConditionChild,
+                fieldName: "condition_child_id",
+                t,
+              });
             }}
             title={t("selectChildQuestion")}
             isParentQuestion={false}
@@ -256,20 +258,26 @@ const ConditionalForm: React.FC<{
   );
 };
 
-async function setConditionQuestion(
-  question: QuestionWithForecasts | null,
+async function setConditionQuestion({
+  question,
+  control,
+  setQuestionState,
+  fieldName,
+  t,
+}: {
+  question: QuestionWithForecasts | null;
   control: UseFormReturn<{
     condition_id: string | undefined;
     condition_child_id: string | undefined;
     default_project: number | null;
-  }>,
+  }>;
   setQuestionState: (
     value: SetStateAction<QuestionWithForecasts | null>
-  ) => void,
-  fieldName: "condition_id" | "condition_child_id"
-) {
+  ) => void;
+  fieldName: "condition_id" | "condition_child_id";
+  t: ReturnType<typeof useTranslations>;
+}) {
   control.clearErrors(fieldName);
-
   if (
     question &&
     (question.type === QuestionType.Binary ||
@@ -277,16 +285,30 @@ async function setConditionQuestion(
         (question.type === QuestionType.Numeric ||
           question.type === QuestionType.Date)))
   ) {
+    if (
+      ![QuestionStatus.OPEN, QuestionStatus.UPCOMING].includes(
+        question?.status ?? QuestionStatus.CLOSED
+      )
+    ) {
+      control.setError(fieldName, {
+        type: "manual",
+        message: t("invalidQuestionStatus"),
+      });
+      setQuestionState(null);
+      control.setValue(fieldName, "");
+      return null;
+    }
     setQuestionState(question);
     control.setValue(fieldName, question.id.toString());
     return question.id;
   } else {
     control.setError(fieldName, {
       type: "manual",
-      message: "Invalid question type",
+      message: t("invalidQuestionType"),
     });
     setQuestionState(null);
     control.setValue(fieldName, "");
+    return null;
   }
 }
 

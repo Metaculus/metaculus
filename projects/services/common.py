@@ -1,8 +1,11 @@
 from collections import defaultdict
+from datetime import datetime
 from typing import Iterable
 
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.utils import timezone
+from django.utils.timezone import make_aware
 
 from notifications.constants import MailingTags
 from notifications.services import (
@@ -165,7 +168,10 @@ def get_projects_staff_users(
 
     return {
         project_id: {
-            **{obj.user_id: obj.permission for obj in project_staff_map.get(project_id, [])},
+            **{
+                obj.user_id: obj.permission
+                for obj in project_staff_map.get(project_id, [])
+            },
             **{obj.id: ObjectPermission.ADMIN for obj in superusers},
         }
         for project_id in project_ids
@@ -197,3 +203,73 @@ def get_projects_for_posts(
             post_projects_map[m2m_obj.post_id].append(project)
 
     return post_projects_map
+
+
+def get_project_timeline_data(project: Project):
+    all_questions_resolved = True
+    all_questions_closed = True
+
+    cp_reveal_times = []
+    actual_resolve_times = []
+    scheduled_resolve_times = []
+    actual_close_times = []
+    scheduled_close_times = []
+
+    posts = (
+        Post.objects.filter_projects(project)
+        .filter_questions()
+        .prefetch_questions()
+        .filter(curation_status=Post.CurationStatus.APPROVED)
+    )
+
+    project_close_date = project.close_date or make_aware(datetime.max)
+
+    for post in posts:
+        for question in post.get_questions():
+            if all_questions_resolved:
+                all_questions_resolved = (
+                    question.actual_resolve_time
+                    # Or treat as resolved as scheduled resolution is in the future
+                    or question.scheduled_resolve_time > project_close_date
+                )
+
+            # Determine questions closure
+            if all_questions_closed:
+                close_time = question.actual_close_time or question.scheduled_close_time
+                all_questions_closed = (
+                    close_time <= timezone.now() or close_time > project_close_date
+                )
+
+            if question.cp_reveal_time:
+                cp_reveal_times.append(question.cp_reveal_time)
+
+            if question.actual_resolve_time:
+                actual_resolve_times.append(question.actual_resolve_time)
+
+            if question.scheduled_resolve_time:
+                scheduled_resolve_time = (
+                    question.actual_resolve_time or question.scheduled_resolve_time
+                )
+                scheduled_resolve_times.append(scheduled_resolve_time)
+
+            if question.actual_close_time:
+                actual_close_times.append(question.actual_close_time)
+
+            if question.scheduled_close_time:
+                scheduled_close_times.append(question.scheduled_close_time)
+
+    def get_max(data: list):
+        if project.close_date:
+            data = [x for x in data if x <= project.close_date]
+
+        return max(data, default=None)
+
+    return {
+        "last_cp_reveal_time": get_max(cp_reveal_times),
+        "latest_actual_resolve_time": get_max(actual_resolve_times),
+        "latest_scheduled_resolve_time": get_max(scheduled_resolve_times),
+        "latest_actual_close_time": get_max(actual_close_times),
+        "latest_scheduled_close_time": get_max(scheduled_close_times),
+        "all_questions_resolved": all_questions_resolved,
+        "all_questions_closed": all_questions_closed,
+    }

@@ -15,7 +15,7 @@ import {
 import { QuestionWithForecasts } from "@/types/question";
 import { Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
-import { get, post, put } from "@/utils/fetch";
+import { get, post, put, del } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {
@@ -153,6 +153,18 @@ class PostsApi {
 
   static async submitForReview(id: number) {
     return await post(`/posts/${id}/submit-for-review/`, {});
+  }
+
+  static async rejectPost(id: number) {
+    return await post(`/posts/${id}/reject/`, {});
+  }
+
+  static async deletePost(id: number) {
+    return await del(`/posts/${id}/delete/`, {});
+  }
+
+  static async sendBackToReview(id: number) {
+    return await post(`/posts/${id}/send-back-to-review/`, {});
   }
 
   static async makeDraft(id: number) {

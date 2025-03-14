@@ -31,7 +31,7 @@ from questions.serializers import (
 from questions.services import get_aggregated_forecasts_for_questions
 from questions.types import AggregationMethod
 from users.models import User
-from utils.dtypes import flatten
+from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
 from .models import Notebook, Post, PostSubscription
 from .utils import get_post_slug
@@ -71,6 +71,7 @@ class PostReadSerializer(serializers.ModelSerializer):
             "published_at",
             "edited_at",
             "curation_status",
+            "curation_status_updated_at",
             "comment_count",
             "status",
             "resolved",
@@ -335,7 +336,7 @@ def serialize_post(
     current_user: User = None,
     with_subscriptions: bool = False,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
-    with_key_factors: bool = False,
+    key_factors: list[dict] = None,
     projects: Iterable[Project] = None,
 ) -> dict:
     current_user = (
@@ -419,11 +420,7 @@ def serialize_post(
             }
         )
 
-    if with_key_factors:
-        serialized_data["key_factors"] = serialize_key_factors_many(
-            KeyFactor.objects.for_post(post).filter_active().order_by("-votes_score"),
-            current_user=current_user,
-        )
+    serialized_data["key_factors"] = key_factors or []
 
     is_current_content_translated = (
         post.is_current_content_translated()
@@ -437,7 +434,7 @@ def serialize_post(
 
 
 def serialize_post_many(
-    posts: Union[QuerySet[Post], list[Post], list[int]],
+    posts: Union[QuerySet[Post], list[Post], list[int] | set[int]],
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
@@ -454,9 +451,10 @@ def serialize_post_many(
         qs.annotate_user_permission(user=current_user)
         .prefetch_questions()
         .prefetch_condition_post()
-        .select_related("default_project", "author", "notebook")
+        .select_related("default_project__primary_leaderboard", "author", "notebook")
         .prefetch_related("coauthors")
     )
+
     if current_user:
         qs = qs.annotate_user_vote(current_user)
 
@@ -481,6 +479,19 @@ def serialize_post_many(
             flatten([p.get_questions() for p in posts]), group_cutoff=group_cutoff
         )
 
+    comment_key_factors_map = {}
+
+    if with_key_factors:
+        comment_key_factors_map = generate_map_from_list(
+            serialize_key_factors_many(
+                KeyFactor.objects.for_posts(posts)
+                .filter_active()
+                .order_by("-votes_score"),
+                current_user=current_user,
+            ),
+            key=lambda x: x["post_id"],
+        )
+
     # Fetch projects
     projects_map = get_projects_for_posts(posts, user=current_user)
 
@@ -495,7 +506,7 @@ def serialize_post_many(
                 for q, v in aggregate_forecasts.items()
                 if q in post.get_questions()
             },
-            with_key_factors=with_key_factors,
+            key_factors=comment_key_factors_map.get(post.id),
             projects=projects_map.get(post.id),
         )
         for post in posts

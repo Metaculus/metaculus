@@ -14,6 +14,7 @@ const PostDefaultProject: FC<Props> = ({ defaultProject }) => {
       TournamentType.Tournament,
       TournamentType.QuestionSeries,
       TournamentType.Community,
+      TournamentType.Index,
     ].includes(defaultProject.type) && !!defaultProject.default_permission;
 
   if (!withDefaultProjectBadge) {

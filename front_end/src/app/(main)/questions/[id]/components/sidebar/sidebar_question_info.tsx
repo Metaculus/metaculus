@@ -45,6 +45,21 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
           </div>
         </div>
 
+        {postData.status === PostStatus.PENDING && (
+          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+              {t("inReview")}:
+            </span>
+            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+              {postData.curation_status_updated_at ? (
+                <LocalDaytime date={postData.curation_status_updated_at} />
+              ) : (
+                "-"
+              )}
+            </span>
+          </div>
+        )}
+
         {(postData.open_time || postData.published_at) && (
           <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
             <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">

@@ -63,8 +63,24 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/index/:slug",
+        destination: "/tournament/:slug",
+      },
+    ];
+  },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  webpack: (config, { buildId }) => {
+    config.output.filename = config.output.filename.replace(
+      "[chunkhash]",
+      buildId
+    );
+
+    return config;
   },
 };
 

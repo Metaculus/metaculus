@@ -7,8 +7,8 @@ from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission
 from projects.serializers.communities import CommunitySerializer
-from users.serializers import UserPublicSerializer
 from scoring.models import GLOBAL_LEADERBOARD_STRING
+from users.serializers import UserPublicSerializer
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -40,33 +40,6 @@ class TopicSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "slug", "emoji", "section", "type")
 
 
-class MiniTournamentSerializer(serializers.ModelSerializer):
-    is_current_content_translated = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = Project
-        fields = (
-            "id",
-            "type",
-            "name",
-            "slug",
-            "prize_pool",
-            "start_date",
-            "close_date",
-            "meta_description",
-            "is_ongoing",
-            "user_permission",
-            "created_at",
-            "edited_at",
-            "default_permission",
-            "visibility",
-            "is_current_content_translated",
-        )
-
-    def get_is_current_content_translated(self, project: Project) -> bool:
-        return project.is_current_content_translated()
-
-
 class TournamentShortSerializer(serializers.ModelSerializer):
     score_type = serializers.SerializerMethodField(read_only=True)
     is_current_content_translated = serializers.SerializerMethodField(read_only=True)
@@ -82,9 +55,11 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "prize_pool",
             "start_date",
             "close_date",
+            "meta_description",
             "is_ongoing",
             "user_permission",
             "created_at",
+            "edited_at",
             "score_type",
             "default_permission",
             "visibility",
@@ -123,11 +98,13 @@ def serialize_project(obj: Project):
         case obj.ProjectTypes.CATEGORY:
             serializer = CategorySerializer
         case obj.ProjectTypes.TOURNAMENT:
-            serializer = MiniTournamentSerializer
+            serializer = TournamentShortSerializer
         case obj.ProjectTypes.QUESTION_SERIES:
-            serializer = MiniTournamentSerializer
+            serializer = TournamentShortSerializer
+        case obj.ProjectTypes.INDEX:
+            serializer = TournamentShortSerializer
         case obj.ProjectTypes.SITE_MAIN:
-            serializer = MiniTournamentSerializer
+            serializer = TournamentShortSerializer
         case obj.ProjectTypes.NEWS_CATEGORY:
             serializer = NewsCategorySerialize
         case obj.ProjectTypes.COMMUNITY:
@@ -154,6 +131,36 @@ def serialize_projects(
         if obj == default_project:
             data["default_project"] = serialized_data
     return data
+
+
+def serialize_project_index_weights(project: Project):
+    """
+    Serialize project index posts with weight mapping
+    """
+
+    from posts.serializers import serialize_post_many
+
+    index_weights = []
+    qs = project.index_questions.prefetch_related("question__related_posts")
+    posts_map = {
+        x["id"]: x
+        for x in serialize_post_many(
+            {x.question.get_post_id() for x in qs}, with_cp=True
+        )
+    }
+
+    for project_question in qs:
+        post = posts_map[project_question.question.get_post_id()]
+
+        index_weights.append(
+            {
+                "post": post,
+                "question_id": project_question.question_id,
+                "weight": project_question.weight,
+            }
+        )
+
+    return index_weights
 
 
 def validate_categories(lookup_field: str, lookup_values: list):

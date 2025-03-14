@@ -4,9 +4,14 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
-import { getComments, markPostAsRead } from "@/app/(main)/questions/actions";
+import {
+  commentTogglePin,
+  getComments,
+  markPostAsRead,
+} from "@/app/(main)/questions/actions";
 import { useContentTranslatedBannerProvider } from "@/app/providers";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import { DefaultUserMentionsContextProvider } from "@/components/markdown_editor/plugins/mentions/components/default_mentions_context";
@@ -17,6 +22,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import useHash from "@/hooks/use_hash";
+import useScrollTo from "@/hooks/use_scroll_to";
 import { getCommentsParams } from "@/services/comments";
 import { BECommentType, CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
@@ -130,6 +136,9 @@ const CommentFeed: FC<Props> = ({
   const [userCommentsAmount, setUserCommentsAmount] = useState<number | null>(
     user ? NEW_USER_COMMENT_LIMIT : null
   );
+  const isFirstRender = useRef(true);
+  const scrollTo = useScrollTo();
+  const commentsRef = useRef<HTMLDivElement>(null);
   const showWelcomeMessage =
     userCommentsAmount !== null &&
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
@@ -256,7 +265,7 @@ const CommentFeed: FC<Props> = ({
 
   const hash = useHash();
 
-  // Track #comment-id hash changes to load & focus on target comment
+  // Track #comment-id and #comments hash changes to load & focus on target comment
   useEffect(() => {
     if (hash) {
       const focus_comment_id = getCommentIdToFocusOn();
@@ -270,9 +279,22 @@ const CommentFeed: FC<Props> = ({
           ...feedFilters,
           focus_comment_id,
         });
+      } else if (hash === "comments" && isFirstRender.current && !isLoading) {
+        isFirstRender.current = false;
+        // same workaround as in comment.tsx
+        const timeoutId = setTimeout(() => {
+          if (commentsRef.current) {
+            scrollTo(commentsRef.current.getBoundingClientRect().top);
+          }
+        }, 1000);
+
+        return () => {
+          clearTimeout(timeoutId);
+        };
       }
     }
-  }, [hash]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hash, isLoading]);
 
   // Handling filters change
   useEffect(() => {
@@ -369,12 +391,35 @@ const CommentFeed: FC<Props> = ({
     [postData?.last_viewed_at]
   );
 
+  const handleCommentPin = useCallback(
+    async (comment: CommentType) => {
+      const { is_pinned } = await commentTogglePin(
+        comment.id,
+        !comment.is_pinned
+      );
+
+      await fetchComments(false, { ...feedFilters, offset });
+
+      setTimeout(() => {
+        commentsRef.current?.scrollIntoView();
+      }, 100);
+
+      if (is_pinned) {
+        toast(t("commentPinned"));
+      } else {
+        toast(t("commentUnpinned"));
+      }
+    },
+    [t]
+  );
+
   return (
     <DefaultUserMentionsContextProvider
       defaultUserMentions={commentAuthorMentionItems}
     >
       <section
         id={id}
+        ref={commentsRef}
         className={cn(
           "max-w-full rounded text-gray-900 dark:text-gray-900-dark",
           {
@@ -458,6 +503,7 @@ const CommentFeed: FC<Props> = ({
           <CommentWrapper
             key={comment.id}
             comment={comment}
+            handleCommentPin={handleCommentPin}
             profileId={profileId}
             last_viewed_at={postData?.last_viewed_at}
             postData={postData}
