@@ -49,23 +49,28 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
     isClosed
   );
 
+  const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
+  const endAngle = startAngle + (cpPercentage / 100) * arcAngle;
+  const gradientStartX = center.x + radius * Math.cos(startAngle);
+  const gradientStartY = center.y + radius * Math.sin(startAngle);
+  const gradientEndX = center.x + radius * Math.cos(endAngle);
+  const gradientEndY = center.y + radius * Math.sin(endAngle);
+
   return (
     <div className="relative flex min-w-[200px] max-w-[200px] items-center justify-center">
       <svg width={width} height={height} className="overflow-visible">
         <defs>
-          {/* TODO: adjust gradient vector to follow arc shape */}
           <linearGradient
             id={`progressGradient-${question.id}`}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="0%"
+            x1={gradientStartX}
+            y1={gradientStartY}
+            x2={gradientEndX}
+            y2={gradientEndY}
             gradientUnits="userSpaceOnUse"
-            gradientTransform={`rotate(${(cpPercentage / 100) * -90}, ${center.x}, ${center.y})`}
           >
             <stop offset="0%" stopColor={progressColor} stopOpacity="0" />
             <stop
-              offset={`${cpPercentage}%`}
+              offset={`${Math.min(100, (cpPercentage / 15) * 100)}%`}
               stopColor={progressColor}
               stopOpacity="1"
             />
@@ -109,7 +114,7 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
               2 * Math.sin(progressArc.angle + Math.PI / 2)
             }
             className={strokeColor}
-            strokeWidth="20"
+            strokeWidth="17"
           />
         )}
       </svg>
