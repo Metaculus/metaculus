@@ -1132,12 +1132,17 @@
   "q2AboveRangeError": "When your median is above range, your probability above the upper bound should be ≥ 50%",
   "q3BelowRangeError": "When your 75th percentile is below range, your probability below the lower bound should be ≥ 75%",
   "q3AboveRangeError": "When your 75th percentile is above range, your probability above the upper bound should be ≥ 25%",
-  "quantileWithinBoundsError": "If quantile is within bounds, probability can't be greater than quantile",
   "emptyCdfError": "continuous_cdf is required for continuous questions",
   "invalidCdfLengthError": "continuous_cdf must have 201 values",
   "quantileTooCloseError": "Your quantiles are too close to each other, please space them out.",
   "quantileTooCloseToClosedBound": "Your quantiles are too close to a closed bound, please add space between them and the edge.",
   "questionRangeError": "range_min and range_max must be defined",
   "chartDataError": "There was an error generating the chart data",
-  "percentileBoundsError": "The given percentiles must emcompass upper and lower bounds"
+  "percentileBoundsError": "The given percentiles must emcompass upper and lower bounds",
+  "q1InRangeProbBelowError": "When your 25th percentile is in range, your probability below the range should be ≤ 25%",
+  "q1InRangeProbAboveError": "When your 25th percentile is in range, your probability above the range should be ≤ 75%",
+  "q2InRangeProbBelowError": "When your 50th percentile is in range, your probability below the range should be ≤ 50%",
+  "q2InRangeProbAboveError": "When your 50th percentile is in range, your probability above the range should be ≤ 50%",
+  "q3InRangeProbBelowError": "When your 75th percentile is in range, your probability below the range should be ≤ 75%",
+  "q3InRangeProbAboveError": "When your 75th percentile is in range, your probability above the range should be ≤ 25%"
 }

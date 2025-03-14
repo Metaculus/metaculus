@@ -1135,11 +1135,17 @@
   "probabilitySumError": "Součet pravděpodobností nesmí být vyšší než 99 %",
   "emptyCdfError": "continuous_cdf je vyžadován pro kontinuální otázky",
   "invalidCdfLengthError": "continuous_cdf musí mít 201 hodnot",
-  "quantileWithinBoundsError": "Je-li kvantil v mezích, nemůže být pravděpodobnost větší než kvantil",
   "discardAllChangesButton": "Zahodit všechny změny",
   "saveAllChanges": "Uložit všechny změny",
   "quantileTooCloseError": "Vaše kvantily jsou příliš blízko u sebe, prosím, rozmístěte je více od sebe.",
   "questionRangeError": "range_min a range_max musí být definovány",
   "chartDataError": "Při generování dat grafu došlo k chybě",
-  "percentileBoundsError": "Zadané percentily musí zahrnovat horní a dolní meze"
+  "percentileBoundsError": "Zadané percentily musí zahrnovat horní a dolní meze",
+  "quantileTooCloseToClosedBound": "Vaše kvantily jsou příliš blízko uzavřené hranice, prosím přidejte prostor mezi nimi a okrajem.",
+  "q1InRangeProbBelowError": "Když je váš 25. percentil v rozsahu, pravděpodobnost pod rozsahem by měla být ≤ 25%",
+  "q1InRangeProbAboveError": "Když je váš 25. percentil v rozsahu, pravděpodobnost nad rozsahem by měla být ≤ 75%",
+  "q2InRangeProbBelowError": "Když je váš 50. percentil v rozsahu, pravděpodobnost pod rozsahem by měla být ≤ 50%",
+  "q2InRangeProbAboveError": "Když je váš 50. percentil v rozsahu, pravděpodobnost nad rozsahem by měla být ≤ 50%",
+  "q3InRangeProbBelowError": "Když je váš 75. percentil v rozsahu, pravděpodobnost pod rozsahem by měla být ≤ 75%",
+  "q3InRangeProbAboveError": "Když je váš 75. percentil v rozsahu, pravděpodobnost nad rozsahem by měla být ≤ 25%"
 }

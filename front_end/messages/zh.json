@@ -1137,11 +1137,17 @@
   "probabilitySumError": "概率总和不得大于99%",
   "emptyCdfError": "连续问题需要 continuous_cdf",
   "invalidCdfLengthError": "continuous_cdf 必须有201个值",
-  "quantileWithinBoundsError": "如果分位数在范围内，概率不能大于分位数",
   "discardAllChangesButton": "放弃所有更改",
   "saveAllChanges": "保存所有更改",
   "quantileTooCloseError": "您的分位数太接近了，请将它们分散开。",
   "questionRangeError": "必须定义 range_min 和 range_max",
   "chartDataError": "生成图表数据时出错",
-  "percentileBoundsError": "给定的百分位数必须包含上下限"
+  "percentileBoundsError": "给定的百分位数必须包含上下限",
+  "quantileTooCloseToClosedBound": "您的分位数太接近于封闭边界，请在它们与边缘之间添加间隔。",
+  "q1InRangeProbBelowError": "当您的 25 分位数在范围内时，范围以下的概率应为 ≤ 25%。",
+  "q1InRangeProbAboveError": "当您的 25 分位数在范围内时，范围以上的概率应为 ≤ 75%。",
+  "q2InRangeProbBelowError": "当您的 50 分位数在范围内时，范围以下的概率应为 ≤ 50%。",
+  "q2InRangeProbAboveError": "当您的 50 分位数在范围内时，范围以上的概率应为 ≤ 50%。",
+  "q3InRangeProbBelowError": "当您的 75 分位数在范围内时，范围以下的概率应为 ≤ 75%。",
+  "q3InRangeProbAboveError": "当您的 75 分位数在范围内时，范围以上的概率应为 ≤ 25%。"
 }
