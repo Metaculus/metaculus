@@ -1,11 +1,6 @@
-import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { isNil } from "lodash";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { FC } from "react";
 
-import { METAC_COLORS } from "@/constants/colors";
-import useAppTheme from "@/hooks/use_app_theme";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
@@ -17,13 +12,13 @@ import {
   generateChoiceItemsFromMultipleChoiceForecast,
   getChoiceOptionValue,
 } from "@/utils/charts";
-import cn from "@/utils/cn";
-import { addOpacityToHex } from "@/utils/colors";
 import {
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
-  isSuccessfullyResolved,
 } from "@/utils/questions";
+
+import ForecastCardWrapper from "./forecast_card_wrapper";
+import ForecastChoiceBar from "./forecast_choice_bar";
 
 type Props = {
   post: PostWithForecasts;
@@ -31,9 +26,7 @@ type Props = {
 
 const PercentageForecastCard: FC<Props> = ({ post }) => {
   const visibleChoicesCount = 3;
-  const t = useTranslations();
   const locale = useLocale();
-  const { getThemeColor } = useAppTheme();
   if (!isMultipleChoicePost(post) && !isGroupOfQuestionsPost(post)) {
     return null;
   }
@@ -44,83 +37,32 @@ const PercentageForecastCard: FC<Props> = ({ post }) => {
   const otherItemsCount = choices.length - visibleChoices.length;
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <ForecastCardWrapper otherItemsCount={otherItemsCount}>
       {visibleChoices.map((choice) => {
         const choiceValue = getChoiceOptionValue(
           choice.aggregationValues[choice.aggregationValues.length - 1] ?? null,
-          QuestionType.Binary
+          QuestionType.Binary,
+          choice.scaling
         );
         const isChoiceClosed = choice.closeTime
           ? choice.closeTime < Date.now()
           : false;
-        const isSuccessfullResolution = isSuccessfullyResolved(
-          choice.resolution
-        );
 
         return (
-          <div
+          <ForecastChoiceBar
             key={choice.id ?? choice.choice}
-            className={cn(
-              "relative flex h-8 w-full items-center justify-between gap-2 rounded-lg border border-blue-400 bg-transparent px-2.5 py-1 text-base font-medium leading-6 text-gray-900 dark:border-blue-400-dark dark:text-gray-900-dark",
-              {
-                "border-2 border-purple-700 text-purple-800 dark:border-purple-700-dark dark:text-purple-800-dark":
-                  isSuccessfullResolution,
-                "border-2 border-gray-400 text-gray-700 dark:border-gray-400-dark dark:text-gray-700-dark":
-                  !isNil(choice.resolution) && !isSuccessfullResolution,
-              }
-            )}
-          >
-            <span className="z-10 line-clamp-1 max-w-[85%]">
-              {choice.choice}
-            </span>
-            <span className="z-10 text-nowrap">
-              {choice.displayedResolution
-                ? `${isSuccessfullResolution ? t("resolved") : ""} ${choice.displayedResolution}`
-                : choiceValue}
-            </span>
-
-            <div
-              className={"absolute -inset-[1px] z-0 h-8 rounded-lg border"}
-              style={{
-                display: choice.resolution ? "none" : "block",
-                width: choiceValue.includes("%")
-                  ? `max(${choiceValue}, 3%)`
-                  : `${choiceValue}%`,
-                background: (() => {
-                  if (choice.resolution) {
-                    return "transparent";
-                  } else if (isPostClosed || isChoiceClosed) {
-                    return addOpacityToHex(
-                      getThemeColor(METAC_COLORS.gray["500"]),
-                      0.5
-                    );
-                  }
-                  return addOpacityToHex(getThemeColor(choice.color), 0.3);
-                })(),
-                borderColor:
-                  isPostClosed || isChoiceClosed
-                    ? getThemeColor(METAC_COLORS.gray["500"])
-                    : getThemeColor(choice.color),
-              }}
-            ></div>
-          </div>
+            choiceLabel={choice.choice}
+            choiceValue={choiceValue}
+            isClosed={isChoiceClosed || isPostClosed}
+            displayedResolution={choice.displayedResolution}
+            resolution={choice.resolution}
+            progress={Number(choiceValue.replace("%", ""))}
+            color={choice.color}
+            isBordered={true}
+          />
         );
       })}
-      {otherItemsCount > 0 && (
-        <div className="flex flex-row items-center text-gray-600 dark:text-gray-600-dark">
-          <div className="self-center py-0 pr-1.5 text-center">
-            <FontAwesomeIcon
-              icon={faEllipsis}
-              size="xl"
-              className="resize-ellipsis"
-            />
-          </div>
-          <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
-            {t("and")} {t("otherWithCount", { count: otherItemsCount })}
-          </div>
-        </div>
-      )}
-    </div>
+    </ForecastCardWrapper>
   );
 };
 

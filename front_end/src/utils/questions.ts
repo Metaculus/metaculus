@@ -47,7 +47,7 @@ export function checkGroupOfQuestionsPostType(
 ) {
   return (
     isGroupOfQuestionsPost(post) &&
-    post.group_of_questions?.questions[0]?.type === type
+    post.group_of_questions.questions[0]?.type === type
   );
 }
 export function isQuestionPost<QT>(post: Post<QT>): post is QuestionPost<QT> {
