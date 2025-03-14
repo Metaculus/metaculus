@@ -293,6 +293,7 @@ export type AggregationQuestion = {
   title: string;
   url_title: string;
   type: QuestionType;
+  unit?: string;
 };
 
 export enum CurveQuestionLabels {

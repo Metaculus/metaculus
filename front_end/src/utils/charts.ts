@@ -980,6 +980,7 @@ export function generateChoiceItemsFromGroupQuestions(
         ? formatResolution(question.resolution, question.type, locale ?? "en")
         : null,
       closeTime,
+      unit: question.unit,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,

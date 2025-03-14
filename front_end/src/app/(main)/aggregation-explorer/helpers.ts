@@ -133,6 +133,7 @@ function parseAggregationData({
             question.actual_resolve_time ?? question.scheduled_resolve_time
           ).getTime()
         ),
+        unit: question.unit,
         rangeMin: question.scaling.range_min ?? 0,
         rangeMax: question.scaling.range_min ?? 1,
         scaling: question.scaling,
@@ -212,6 +213,7 @@ function parseAggregationData({
           question.actual_resolve_time ?? question.scheduled_resolve_time
         ).getTime()
       ),
+      unit: question.unit,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,

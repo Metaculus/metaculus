@@ -19,6 +19,7 @@ type Props = {
   scaling?: Scaling;
   hideIcon?: boolean;
   labelClassName?: string;
+  unit?: string;
 };
 
 const ChoiceOption: FC<Props> = ({
@@ -31,6 +32,7 @@ const ChoiceOption: FC<Props> = ({
   scaling,
   hideIcon,
   labelClassName,
+  unit,
 }) => {
   return (
     <div
@@ -64,6 +66,7 @@ const ChoiceOption: FC<Props> = ({
         <div className="resize-label flex items-center whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
           <ResolutionIcon />
           {displayedResolution ?? resolution}
+          {unit && ` ${unit}`}
         </div>
       )}
     </div>

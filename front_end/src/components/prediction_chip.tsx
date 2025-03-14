@@ -140,6 +140,7 @@ const PredictionChip: FC<Props> = ({
             >
               <FontAwesomeIcon icon={faUserGroup} size="xs" />
               {communityPredictionDisplayValue}
+              {question.unit && ` ${question.unit}`}
             </Chip>
           )}
           {!!nr_forecasters && (
@@ -180,6 +181,7 @@ const PredictionChip: FC<Props> = ({
             >
               <FontAwesomeIcon icon={faUserGroup} size="xs" />
               {communityPredictionDisplayValue}
+              {question.unit && ` ${question.unit}`}
             </Chip>
           )}
           {!!nr_forecasters && (
@@ -213,6 +215,7 @@ const PredictionChip: FC<Props> = ({
               >
                 <FontAwesomeIcon icon={faUserGroup} size="xs" />
                 {communityPredictionDisplayValue}
+                {question.unit && ` ${question.unit}`}
               </Chip>
               {!compact && (
                 <CPWeeklyMovement
