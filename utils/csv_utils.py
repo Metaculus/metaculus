@@ -353,8 +353,6 @@ def export_data_for_questions(
         headers.extend(["Author ID", "Author Username"])
     headers.extend(
         [
-            "Author ID",
-            "Author Username",
             "Parent Comment ID",
             "Root Comment ID",
             "Created At",
