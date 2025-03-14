@@ -13,6 +13,7 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
+import { formatValueUnit } from "@/utils/questions";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -143,8 +144,7 @@ const ContinuousPredictionChart: FC<Props> = ({
             <span>
               {graphType === "pmf" ? "P(x = " : "P(x < "}
               <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                {cursorDisplayData.xLabel}
-                {question.unit && ` ${question.unit}`}
+                {formatValueUnit(cursorDisplayData.xLabel, question.unit)}
               </span>
               {"):"}
             </span>

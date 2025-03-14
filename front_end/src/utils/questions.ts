@@ -168,7 +168,8 @@ export function isSuccessfullyResolved(resolution: Resolution | null) {
 export function formatResolution(
   resolution: number | string | null | undefined,
   questionType: QuestionType,
-  locale: string
+  locale: string,
+  unit: string | undefined
 ) {
   if (resolution === null || resolution === undefined) {
     return "-";
@@ -207,7 +208,7 @@ export function formatResolution(
   }
 
   if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
-    return abbreviatedNumber(Number(resolution));
+    return formatValueUnit(abbreviatedNumber(Number(resolution)), unit);
   }
 
   if (questionType === QuestionType.MultipleChoice) {
@@ -606,3 +607,9 @@ export function getQuestionForecastAvailability(
 const getIsQuestionForecastEmpty = (question: QuestionWithForecasts): boolean =>
   !question.aggregations.recency_weighted.history.length &&
   !question.my_forecasts?.history.length;
+
+export const formatValueUnit = (value: string, unit?: string | undefined) => {
+  if (!unit) return value;
+
+  return `${value} ${unit}`;
+};

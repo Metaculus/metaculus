@@ -10,7 +10,11 @@ import { PostStatus } from "@/types/post";
 import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
-import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
+import {
+  formatResolution,
+  formatValueUnit,
+  isUnsuccessfullyResolved,
+} from "@/utils/questions";
 
 type Size = "compact" | "large";
 
@@ -51,7 +55,8 @@ const PredictionChip: FC<Props> = ({
   const formattedResolution = formatResolution(
     resolution,
     question.type,
-    locale
+    locale,
+    question.unit
   );
 
   const renderUserForecast = () => {
@@ -139,8 +144,7 @@ const PredictionChip: FC<Props> = ({
               style={unresovledChipStyle}
             >
               <FontAwesomeIcon icon={faUserGroup} size="xs" />
-              {communityPredictionDisplayValue}
-              {question.unit && ` ${question.unit}`}
+              {formatValueUnit(communityPredictionDisplayValue, question.unit)}
             </Chip>
           )}
           {!!nr_forecasters && (
@@ -180,8 +184,7 @@ const PredictionChip: FC<Props> = ({
               style={unresovledChipStyle}
             >
               <FontAwesomeIcon icon={faUserGroup} size="xs" />
-              {communityPredictionDisplayValue}
-              {question.unit && ` ${question.unit}`}
+              {formatValueUnit(communityPredictionDisplayValue, question.unit)}
             </Chip>
           )}
           {!!nr_forecasters && (
@@ -214,8 +217,10 @@ const PredictionChip: FC<Props> = ({
                 style={unresovledChipStyle}
               >
                 <FontAwesomeIcon icon={faUserGroup} size="xs" />
-                {communityPredictionDisplayValue}
-                {question.unit && ` ${question.unit}`}
+                {formatValueUnit(
+                  communityPredictionDisplayValue,
+                  question.unit
+                )}
               </Chip>
               {!compact && (
                 <CPWeeklyMovement

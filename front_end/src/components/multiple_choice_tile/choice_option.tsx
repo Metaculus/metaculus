@@ -59,14 +59,14 @@ const ChoiceOption: FC<Props> = ({
           {getChoiceOptionValue(
             values[values.length - 1] ?? null,
             questionType,
-            scaling
+            scaling,
+            unit
           )}
         </div>
       ) : (
         <div className="resize-label flex items-center whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
           <ResolutionIcon />
           {displayedResolution ?? resolution}
-          {unit && ` ${unit}`}
         </div>
       )}
     </div>

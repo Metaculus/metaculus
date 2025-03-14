@@ -16,6 +16,7 @@ import {
   computeQuartilesFromCDF,
 } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { formatValueUnit } from "@/utils/questions";
 
 export function getForecastPctDisplayValue(
   value: number | string | null | undefined
@@ -36,11 +37,12 @@ export function getForecastDateDisplayValue(value: number) {
 
 export function formatPrediction(
   prediction: number,
-  questionType: QuestionType
+  questionType: QuestionType,
+  unit?: string | undefined
 ) {
   switch (questionType) {
     case QuestionType.Numeric:
-      return getForecastNumericDisplayValue(prediction);
+      return formatValueUnit(getForecastNumericDisplayValue(prediction), unit);
     case QuestionType.Binary:
       return getForecastPctDisplayValue(prediction);
     case QuestionType.Date:

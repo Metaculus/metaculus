@@ -39,6 +39,7 @@ import { abbreviatedNumber } from "@/utils/number_formatters";
 import {
   formatMultipleChoiceResolution,
   formatResolution,
+  formatValueUnit,
   isUnsuccessfullyResolved,
 } from "@/utils/questions";
 
@@ -426,7 +427,7 @@ export function getTableDisplayValue({
     });
 
     return unit && unit.length <= UNIT_COMPACT_LENGTH
-      ? `${formatted_value} ${unit}`
+      ? formatValueUnit(formatted_value, unit)
       : formatted_value;
   }
 
@@ -454,7 +455,8 @@ export function getTableDisplayValue({
 export function getChoiceOptionValue(
   value: number | null,
   questionType?: QuestionType,
-  scaling?: Scaling
+  scaling?: Scaling,
+  unit?: string | undefined
 ) {
   if (isNil(value)) {
     return `?`;
@@ -469,7 +471,7 @@ export function getChoiceOptionValue(
   });
   switch (questionType) {
     case QuestionType.Numeric:
-      return getForecastNumericDisplayValue(scaledValue);
+      return formatValueUnit(getForecastNumericDisplayValue(scaledValue), unit);
     case QuestionType.Date:
       return getForecastDateDisplayValue(scaledValue);
     case QuestionType.Binary:
@@ -677,16 +679,20 @@ export function generateScale({
     tickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
 
-  const formatUnit = (idx: number | undefined) => {
+  const conditionallyShowUnit = (
+    value: string,
+    idx: number | undefined
+  ): string => {
+    // Don't include unit if too long
     if (
       unit &&
       (unit.length <= UNIT_COMPACT_LENGTH ||
         idx === 0 ||
         idx === allTicks.length - 1)
     )
-      return ` ${unit}`;
+      return formatValueUnit(value, unit);
 
-    return "";
+    return value;
   };
 
   return {
@@ -694,13 +700,14 @@ export function generateScale({
     tickFormat: (x, idx) => {
       if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
         const unscaled = unscaleNominalLocation(x, domainScaling);
-        return (
+        return conditionallyShowUnit(
           getDisplayValue({
             value: unscaled,
             questionType: displayType as QuestionType,
             scaling: rangeScaling,
             precision: 3,
-          }) + formatUnit(idx)
+          }),
+          idx
         );
       }
       return "";
@@ -708,13 +715,14 @@ export function generateScale({
     cursorFormat: (x) => {
       // TODO: investigate whether we need to keep unit here
       const unscaled = unscaleNominalLocation(x, domainScaling);
-      return (
+      return formatValueUnit(
         getDisplayValue({
           value: unscaled,
           questionType: displayType as QuestionType,
           scaling: rangeScaling,
           precision: 6,
-        }) + unit
+        }),
+        unit
       );
     },
   };
@@ -977,7 +985,12 @@ export function generateChoiceItemsFromGroupQuestions(
       active: true,
       resolution: question.resolution,
       displayedResolution: !!question.resolution
-        ? formatResolution(question.resolution, question.type, locale ?? "en")
+        ? formatResolution(
+            question.resolution,
+            question.type,
+            locale ?? "en",
+            question.unit
+          )
         : null,
       closeTime,
       unit: question.unit,
