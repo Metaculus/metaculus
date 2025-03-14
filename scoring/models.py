@@ -309,7 +309,7 @@ class Leaderboard(TimeStampedModel):
 
 
 def name_and_slug_for_global_leaderboard_dates(
-    gl_dates: tuple[datetime, datetime]
+    gl_dates: tuple[datetime, datetime],
 ) -> tuple[str, str]:
     """
     Generates a tag name for a global leaderboard tag given the start and end dates
@@ -404,6 +404,7 @@ class MedalExclusionRecord(models.Model):
         blank=True,
         help_text="""Optional.
         If not set, this exclusion will extend indefinitely backwards in time.""",
+        db_index=True,
     )
     end_time = models.DateTimeField(
         null=True,
