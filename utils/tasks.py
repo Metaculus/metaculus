@@ -37,6 +37,7 @@ def update_translations_task(app_label, model_name, pk):
 def email_all_data_for_questions_task(
     email_address: str,
     question_ids: list[int],
+    filename: str | None = None,
     include_comments: bool = False,
     include_scores: bool = True,
     **kwargs,
@@ -61,7 +62,7 @@ def email_all_data_for_questions_task(
             from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[email_address],
         )
-        email.attach("metaculus_data.zip", data, "application/zip")
+        email.attach(filename or "metaculus_data.zip", data, "application/zip")
         email.send()
 
     except Exception as e:
