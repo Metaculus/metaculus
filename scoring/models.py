@@ -228,9 +228,6 @@ class Leaderboard(TimeStampedModel):
         """,
     )
 
-    # Feature Flag: leaderboard simplified view
-    simplified_view = models.BooleanField(default=False)
-
     def __str__(self):
         if self.name:
             return f"Leaderboard {self.name}"
@@ -312,7 +309,7 @@ class Leaderboard(TimeStampedModel):
 
 
 def name_and_slug_for_global_leaderboard_dates(
-    gl_dates: tuple[datetime, datetime]
+    gl_dates: tuple[datetime, datetime],
 ) -> tuple[str, str]:
     """
     Generates a tag name for a global leaderboard tag given the start and end dates
