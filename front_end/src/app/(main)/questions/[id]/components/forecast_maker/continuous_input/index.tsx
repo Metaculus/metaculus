@@ -116,11 +116,15 @@ const ContinuousInput: FC<Props> = ({
       menu={menu}
       disabled={disabled}
     >
-      {(graphType) => (
+      {(sliderGraphType, tableGraphType) => (
         <>
           <ContinuousPredictionChart
             dataset={dataset}
-            graphType={graphType}
+            graphType={
+              forecastInputMode === ContinuousForecastInputType.Slider
+                ? sliderGraphType
+                : tableGraphType
+            }
             overlayPreviousForecast={overlayPreviousForecast}
             question={question}
             readOnly={disabled}
