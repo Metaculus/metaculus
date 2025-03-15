@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import NotFound
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -33,8 +34,8 @@ def global_leaderboard(
     serializer = GetLeaderboardSerializer(data=request.GET)
     serializer.is_valid(raise_exception=True)
     score_type = serializer.validated_data.get("score_type")
-    start_time = serializer.validated_data.get("start_time", True)
-    end_time = serializer.validated_data.get("end_time", True)
+    start_time = serializer.validated_data.get("start_time")
+    end_time = serializer.validated_data.get("end_time")
 
     # filtering
     leaderboards = Leaderboard.objects.filter(
@@ -224,10 +225,10 @@ def medal_contributions(
     permission = get_project_permission_for_user(project, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    start_time = serializer.validated_data.get("start_time", None)
-    end_time = serializer.validated_data.get("end_time", None)
-    score_type = serializer.validated_data.get("score_type", None)
-    name = serializer.validated_data.get("name", None)
+    start_time = serializer.validated_data.get("start_time")
+    end_time = serializer.validated_data.get("end_time")
+    score_type = serializer.validated_data.get("score_type")
+    name = serializer.validated_data.get("name")
     primary = serializer.validated_data.get("primary", True)
 
     if primary:
@@ -254,7 +255,7 @@ def medal_contributions(
         if leaderboard_count > 1:
             leaderboard = project.primary_leaderboard
             if not leaderboard:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+                raise NotFound()
         else:
             leaderboard = leaderboards.first()
 
