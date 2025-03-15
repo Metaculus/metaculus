@@ -90,7 +90,7 @@ def resolve_question_and_send_notifications(question_id: int):
 
     update_leaderboards_for_question(question)
 
-    # Update stored aggregations
+    # Rebuild question aggregations
     build_question_forecasts(question)
 
     # Send notifications
