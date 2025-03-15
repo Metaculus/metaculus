@@ -43,6 +43,7 @@ type Props = {
   showCP?: boolean;
 };
 
+// This is an old version of continuous group table, currently not used
 const GroupForecastTable: FC<Props> = ({
   options,
   value,
