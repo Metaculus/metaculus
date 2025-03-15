@@ -17,8 +17,8 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
   const t = await getTranslations();
   const contributionsDetails = await LeaderboardApi.getContributions({
     type: "project",
-    userId,
-    projectId: project.id,
+    for_user: userId,
+    project: project.id,
   });
   const hasQuestionWeights = contributionsDetails.contributions.some(
     (contribution) =>
