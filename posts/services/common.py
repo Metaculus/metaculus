@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Iterable
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 
 from django.db import transaction
 from django.db.models import Q, Count, Sum, Value, Case, When, QuerySet
@@ -128,6 +128,7 @@ def create_post(
     notebook: dict = None,
     author: User = None,
     url_title: str = None,
+    published_at: datetime = None,
 ) -> Post:
     site_main = get_site_main_project()
 
@@ -140,6 +141,7 @@ def create_post(
             url_title=url_title or title or "",
             author=author,
             curation_status=Post.CurationStatus.DRAFT,
+            published_at=published_at,
         )
 
         # Adding questions
@@ -480,19 +482,37 @@ def compute_hotness(qs: QuerySet[Post]):
 
 
 @transaction.atomic
-def approve_post(post: Post, open_time: date, cp_reveal_time: date):
+def approve_post(
+    post: Post,
+    published_at: date,
+    open_time: date,
+    cp_reveal_time: date,
+    scheduled_close_time: date,
+    scheduled_resolve_time: date,
+):
     if post.curation_status == Post.CurationStatus.APPROVED:
         raise ValidationError("Post is already approved")
 
     post.update_curation_status(Post.CurationStatus.APPROVED)
+    post.published_at = published_at
     questions = post.get_questions()
 
     for question in questions:
         question.open_time = open_time
         question.cp_reveal_time = cp_reveal_time
+        question.scheduled_close_time = scheduled_close_time
+        question.scheduled_resolve_time = scheduled_resolve_time
 
     post.save()
-    Question.objects.bulk_update(questions, fields=["open_time", "cp_reveal_time"])
+    Question.objects.bulk_update(
+        questions,
+        fields=[
+            "open_time",
+            "cp_reveal_time",
+            "scheduled_close_time",
+            "scheduled_resolve_time",
+        ],
+    )
     post.update_pseudo_materialized_fields()
 
 

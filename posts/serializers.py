@@ -130,6 +130,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
     notebook = NotebookWriteSerializer(required=False)
     categories = serializers.ListField(child=serializers.IntegerField(), required=False)
+    published_at = serializers.DateTimeField(required=False)
 
     class Meta:
         model = Post
@@ -142,6 +143,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "default_project",
             "notebook",
             "categories",
+            "published_at",
         )
 
     def get_user(self):

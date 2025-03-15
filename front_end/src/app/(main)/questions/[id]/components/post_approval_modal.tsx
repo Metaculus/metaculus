@@ -1,6 +1,6 @@
 "use client";
 
-import { addDays, isBefore } from "date-fns";
+import { addDays, isBefore, isAfter } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
@@ -30,27 +30,87 @@ const PostApprovalModal: FC<{
   );
 
   const [approvalData, setApprovalData] = useState<ApprovePostParams>(() => ({
-    open_time: formatInTimeZone(
-      addDays(new Date(), 1),
-      "UTC",
-      "yyyy-MM-dd'T'HH:mm:ss'Z'"
-    ),
-    cp_reveal_time: formatInTimeZone(
-      addDays(new Date(), 5),
-      "UTC",
-      "yyyy-MM-dd'T'HH:mm:ss'Z'"
-    ),
+    published_at:
+      post.published_at ??
+      formatInTimeZone(new Date(), "UTC", "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+    open_time:
+      post.question?.open_time ??
+      post.published_at ??
+      formatInTimeZone(
+        addDays(new Date(), 1),
+        "UTC",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'"
+      ),
+    cp_reveal_time:
+      post.question?.cp_reveal_time ??
+      formatInTimeZone(
+        addDays(new Date(), 5),
+        "UTC",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'"
+      ),
+    scheduled_close_time:
+      post.question?.scheduled_close_time ??
+      formatInTimeZone(
+        addDays(new Date(), 30),
+        "UTC",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'"
+      ),
+    scheduled_resolve_time:
+      post.question?.scheduled_resolve_time ??
+      formatInTimeZone(
+        addDays(new Date(), 30),
+        "UTC",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'"
+      ),
   }));
 
   useEffect(() => {
     setSubmitErrors(undefined);
-    if (
-      !post.notebook &&
-      !isBefore(approvalData.open_time, post.scheduled_close_time)
-    ) {
-      setSubmitErrors(new Error(t("closeDateError")));
+    if (!post.notebook) {
+      if (isAfter(approvalData.published_at, approvalData.open_time)) {
+        setSubmitErrors(new Error("Publish Time cannot be after Open Time."));
+      }
+      if (isAfter(approvalData.published_at, approvalData.cp_reveal_time)) {
+        setSubmitErrors(
+          new Error("Publish Time cannot be after CP Reveal Time.")
+        );
+      }
+      if (
+        isAfter(approvalData.published_at, approvalData.scheduled_close_time)
+      ) {
+        setSubmitErrors(
+          new Error("Publish Time cannot be after Closing Time.")
+        );
+      }
+      if (
+        isAfter(approvalData.published_at, approvalData.scheduled_resolve_time)
+      ) {
+        setSubmitErrors(
+          new Error("Publish Time cannot be after Resolving Time.")
+        );
+      }
+      if (
+        !isBefore(approvalData.open_time, approvalData.scheduled_close_time)
+      ) {
+        setSubmitErrors(new Error("Open Time must be before Closing Time."));
+      }
+      if (
+        !isBefore(approvalData.open_time, approvalData.scheduled_resolve_time)
+      ) {
+        setSubmitErrors(new Error("Open Time must be before Resolving Time."));
+      }
+      if (
+        isAfter(
+          approvalData.scheduled_close_time,
+          approvalData.scheduled_resolve_time
+        )
+      ) {
+        setSubmitErrors(
+          new Error("Closing Time cannot be after Resolving Time.")
+        );
+      }
     }
-  }, [approvalData.open_time, post.scheduled_close_time, t]);
+  }, [post.notebook, approvalData, t]);
 
   const handleSubmit = useCallback(async () => {
     setIsLoading(true);
@@ -88,6 +148,17 @@ const PostApprovalModal: FC<{
         </p>
         {!post.notebook && (
           <div className="mb-4 flex flex-col gap-2">
+            <span>{"Post Publish Time"}</span>
+            <DatetimeUtc
+              placeholder="time when post becomes visible"
+              onChange={(dt) =>
+                setApprovalData({
+                  ...approvalData,
+                  published_at: dt,
+                })
+              }
+              defaultValue={approvalData.published_at}
+            />
             <span>{t("openTime")}</span>
             <DatetimeUtc
               placeholder="date when forecasts will open"
@@ -112,6 +183,30 @@ const PostApprovalModal: FC<{
               }
               defaultValue={approvalData.cp_reveal_time}
             />
+            <span>{"Closing Time"}</span>
+            <DatetimeUtc
+              placeholder="scheduled close time of question"
+              min={approvalData.open_time}
+              onChange={(dt) =>
+                setApprovalData({
+                  ...approvalData,
+                  scheduled_close_time: dt,
+                })
+              }
+              defaultValue={approvalData.scheduled_close_time}
+            />
+            <span>{"Resolving Time"}</span>
+            <DatetimeUtc
+              placeholder="scheduled resolve time of question"
+              min={approvalData.scheduled_close_time}
+              onChange={(dt) =>
+                setApprovalData({
+                  ...approvalData,
+                  scheduled_resolve_time: dt,
+                })
+              }
+              defaultValue={approvalData.scheduled_resolve_time}
+            />
           </div>
         )}
         <div className="flex w-full justify-end gap-2">
@@ -124,11 +219,7 @@ const PostApprovalModal: FC<{
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={
-              isLoading ||
-              (!post.notebook &&
-                !isBefore(approvalData.open_time, post.scheduled_close_time))
-            }
+            disabled={isLoading || !!submitErrors}
             variant="primary"
           >
             {t("approve")}

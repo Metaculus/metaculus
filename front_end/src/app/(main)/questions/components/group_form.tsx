@@ -77,7 +77,7 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
 type SupportedType =
   | QuestionType.Binary
   | QuestionType.Numeric
-  | QuestionType.MultipleChoice
+  | QuestionType.Date
   | string;
 
 type Props = {
