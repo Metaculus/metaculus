@@ -580,6 +580,9 @@ def unresolve_question(question: Question):
     # Update leaderboards
     update_leaderboards_for_question(question)
 
+    # Rebuild question aggregations
+    build_question_forecasts(question)
+
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
     now = timezone.now()
