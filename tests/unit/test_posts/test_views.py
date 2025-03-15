@@ -522,8 +522,11 @@ def test_approve_post(user1, user1_client, question_binary):
     response = user1_client.post(
         url,
         {
+            "published_at": "2024-11-17T11:00Z",
             "open_time": "2024-11-17T11:00Z",
             "cp_reveal_time": "2024-11-18T11:00Z",
+            "scheduled_close_time": "2024-11-19T11:00Z",
+            "scheduled_resolve_time": "2024-11-19T11:00Z",
         },
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -538,8 +541,11 @@ def test_approve_post(user1, user1_client, question_binary):
     response = user1_client.post(
         url,
         {
+            "published_at": "2024-11-17T11:00Z",
             "open_time": "2024-11-17T11:00Z",
             "cp_reveal_time": "2024-11-18T11:00Z",
+            "scheduled_close_time": "2024-11-19T11:00Z",
+            "scheduled_resolve_time": "2024-11-19T11:00Z",
         },
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
