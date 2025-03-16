@@ -41,6 +41,7 @@ class PostQuerySet(models.QuerySet):
             "question",
             "conditional__question_yes",
             "conditional__question_no",
+            "conditional__condition_child",
             "group_of_questions__questions",
         ]
 
@@ -233,15 +234,15 @@ class PostQuerySet(models.QuerySet):
 
         # Superusers automatically get admin permission for all posts
         if user and user.is_superuser:
-            qs = self.annotate(
-                _user_permission=models.Value(ObjectPermission.ADMIN)
-            )
+            qs = self.annotate(_user_permission=models.Value(ObjectPermission.ADMIN))
         else:
             # Annotate with user-specific permission or project's default permission
             qs = self.annotate(
                 _user_permission_override=FilteredRelation(
                     "default_project__projectuserpermission",
-                    condition=Q(default_project__projectuserpermission__user_id=user_id),
+                    condition=Q(
+                        default_project__projectuserpermission__user_id=user_id
+                    ),
                 ),
                 _user_permission=models.Case(
                     models.When(

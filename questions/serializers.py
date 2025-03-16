@@ -735,7 +735,9 @@ def serialize_conditional(
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
-        with_cp=False,
+        # TODO: remove we don't need the CP but do need the current user predictions
+        with_cp=True,
+        current_user=current_user,
         post=conditional.condition_child.get_post(),
     )
 

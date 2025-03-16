@@ -123,25 +123,41 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       (option) => option.id !== activeTableOption
     );
 
-    if (!inactiveOption || inactiveOption.value === null) {
-      return null;
+    if (!!inactiveOption?.value) {
+      // Copy forecast from inactive option if there is a prediction
+      return {
+        label: t("copyFromBranch", {
+          branch: inactiveOption.name.toUpperCase(),
+        }),
+        fromQuestionId: inactiveOption.id,
+        toQuestionId: activeTableOption,
+      };
     }
 
-    return {
-      label: t("copyFromBranch", { branch: inactiveOption.name.toUpperCase() }),
-      fromQuestionId: inactiveOption.id,
-      toQuestionId: activeTableOption,
-    };
-  }, [activeTableOption, questionOptions, t]);
+    if (!!condition_child.my_forecasts?.latest) {
+      // Copy forecast from child question if there is a prediction
+      // a prediction on it
+      return {
+        label: "Copy from Child",
+        fromQuestionId: condition_child.id,
+        toQuestionId: activeTableOption,
+      };
+    }
+    return null;
+  }, [activeTableOption, questionOptions, condition_child, t]);
 
   const copyForecast = useCallback(
     (fromQuestionId: number, toQuestionId: number) => {
       setQuestionOptions((prev) =>
         prev.map((prevChoice) => {
           if (prevChoice.id === toQuestionId) {
-            const fromChoiceValue = prev.find(
-              (prevChoice) => prevChoice.id === fromQuestionId
-            )?.value;
+            const fromChoiceValue =
+              prev.find((prevChoice) => prevChoice.id === fromQuestionId)
+                ?.value ??
+              (condition_child.id === fromQuestionId &&
+              condition_child.my_forecasts?.latest?.forecast_values[1]
+                ? condition_child.my_forecasts.latest.forecast_values[1] * 100
+                : null);
 
             return {
               ...prevChoice,
@@ -154,7 +170,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         })
       );
     },
-    []
+    [condition_child]
   );
 
   const resetForecasts = useCallback(() => {

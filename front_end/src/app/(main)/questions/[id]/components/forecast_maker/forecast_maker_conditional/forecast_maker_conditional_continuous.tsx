@@ -136,40 +136,67 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       (option) => option.id !== activeTableOption
     );
 
-    if (!inactiveOption || inactiveOption.value === null) {
-      return null;
+    if (!!inactiveOption?.value) {
+      // Copy forecast from inactive option if there is a prediction
+      return {
+        label: t("copyFromBranch", {
+          branch: inactiveOption.name.toUpperCase(),
+        }),
+        fromQuestionId: inactiveOption.id,
+        toQuestionId: activeTableOption,
+      };
     }
 
-    return {
-      label: t("copyFromBranch", { branch: inactiveOption.name.toUpperCase() }),
-      fromQuestionId: inactiveOption.id,
-      toQuestionId: activeTableOption,
-    };
-  }, [activeTableOption, questionOptions, t]);
+    if (!!condition_child.my_forecasts?.latest) {
+      // Copy forecast from child question if there is a prediction
+      // a prediction on it
+      return {
+        label: "Copy from Child",
+        fromQuestionId: condition_child.id,
+        toQuestionId: activeTableOption,
+      };
+    }
+    return null;
+  }, [activeTableOption, questionOptions, condition_child, t]);
 
   const copyForecast = useCallback(
     (fromQuestionId: number, toQuestionId: number) => {
       setQuestionOptions((prev) =>
         prev.map((prevChoice) => {
           if (prevChoice.id === toQuestionId) {
-            const fromChoiceOption = prev.find(
+            const fromChoice = prev.find(
               (prevChoice) => prevChoice.id === fromQuestionId
             );
+            if (fromChoice?.value) {
+              return {
+                ...prevChoice,
+                value: fromChoice.value,
+                sliderForecast: fromChoice.sliderForecast,
+                isDirty: true,
+              };
+            }
 
-            return {
-              ...prevChoice,
-              value: fromChoiceOption?.value ?? prevChoice.value,
-              sliderForecast:
-                fromChoiceOption?.sliderForecast ?? prevChoice.sliderForecast,
-              isDirty: true,
-            };
+            const latest = condition_child.my_forecasts?.latest;
+            if (latest?.distribution_input?.components) {
+              return {
+                ...prevChoice,
+                value: latest.centers?.at(0) ?? null,
+                sliderForecast: getSliderValue(
+                  latest.distribution_input
+                    .components as DistributionSliderComponent[]
+                ),
+                isDirty: true,
+              };
+            }
+
+            return prevChoice;
           }
 
           return prevChoice;
         })
       );
     },
-    []
+    [condition_child]
   );
 
   const handleChange = useCallback(
