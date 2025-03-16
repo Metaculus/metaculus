@@ -9,6 +9,7 @@ import {
 } from "date-fns";
 import { findLastIndex, isNil, uniq, range } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
+import { number } from "zod";
 
 import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
@@ -641,60 +642,124 @@ export function generateScale({
   }
   const tickCount = (maxLabelCount - 1) * 5 + 1;
 
-  // console.log({
-  //   displayType,
-  //   axisLength,
-  //   domain,
-  //   scaling,
-  //   displayLabel,
-  //   withCursorFormat,
-  //   cursorDisplayLabel,
-  //   maxLabelCount,
-  //   tickCount,
-  //   domainScaling,
-  //   rangeScaling,
-  // });
+  // TODO: this does not support choosing values intelligently in
+  // real scaling. The y-axis is always a domain of 0-1 with
+  // linear scaling as that is the native format for the
+  // forecast data. To get this to intelligently choose ticks and
+  // labels, this operation will have to be done in the real
+  // scaling first, then transformed back into the domain scale.
+  const zoomedRange = zoomedDomainMax - zoomedDomainMin;
+  let minorRes: number;
+  let majorRes: number;
+  if (zoomedRange > 0.7) {
+    minorRes = 0.05; // only tick on multiples of 0.05
+    majorRes = 0.25; // only label on multiples of 0.25
+  } else if (zoomedRange > 0.5) {
+    minorRes = 0.025; // only tick on multiples of 0.025
+    majorRes = 0.1; // only label on multiples of 0.10
+  } else if (zoomedRange > 0.3) {
+    minorRes = 0.01; // only tick on multiples of 0.01
+    majorRes = 0.05; // only label on multiples of 0.05
+  } else if (zoomedRange > 0.1) {
+    minorRes = 0.005; // only tick on multiples of 0.005
+    majorRes = 0.025; // only label on multiples of 0.025
+  } else {
+    minorRes = 0.0025; // only tick on multiples of 0.0025
+    majorRes = 0.01; // only label on multiples of 0.01
+  }
 
-  const tickInterval = zoomedDomainMax / (tickCount - 1);
-  const labeledTickInterval = zoomedDomainMax / (maxLabelCount - 1);
+  const minorTickInterval =
+    Math.round(zoomedRange / (tickCount - 1) / minorRes) * minorRes;
+  const tickStart = Math.round(zoomedDomainMin / minorRes) * minorRes;
+  const tickEnd =
+    Math.round((zoomedDomainMax + minorTickInterval / 100) / minorRes) *
+    minorRes *
+    1.001;
+  const allTicks: number[] = range(tickStart, tickEnd, minorTickInterval).map(
+    (x) => Math.round(x * 1000) / 1000
+  );
+
+  const labeledTickInterval =
+    Math.round(zoomedRange / (maxLabelCount - 1) / majorRes) * majorRes;
   const majorTicks: number[] = range(
-    zoomedDomainMin,
-    zoomedDomainMax + tickInterval / 100,
+    tickStart,
+    tickEnd,
     labeledTickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
-  const allTicks: number[] = range(
-    zoomedDomainMin,
-    zoomedDomainMax + tickInterval / 100,
-    tickInterval
-  ).map((x) => Math.round(x * 1000) / 1000);
 
-  return {
-    ticks: allTicks,
-    tickFormat: (x) => {
-      if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
-        const unscaled = unscaleNominalLocation(x, domainScaling);
-        return (
-          getDisplayValue({
-            value: unscaled,
-            questionType: displayType as QuestionType,
-            scaling: rangeScaling,
-            precision: 3,
-          }) + displayLabel
-        );
-      }
-      return "";
-    },
-    cursorFormat: (x) => {
+  // Debugging - do not remove
+  // console.log(
+  //   "\ndisplayType:",
+  //   displayType,
+  //   "\naxisLength:",
+  //   axisLength,
+  //   "\ndomain:",
+  //   domain,
+  //   "\nzoomedDomain:",
+  //   zoomedDomain,
+  //   "\nzoomedRange:",
+  //   zoomedRange,
+  //   "\nscaling:",
+  //   scaling,
+  //   "\ndisplayLabel:",
+  //   displayLabel,
+  //   "\nmaxLabelCount:",
+  //   maxLabelCount,
+  //   "\ntickCount:",
+  //   tickCount,
+  //   "\ndomainScaling:",
+  //   domainScaling,
+  //   "\nrangeScaling:",
+  //   rangeScaling,
+  //   "\nminorRes:",
+  //   minorRes,
+  //   "\nmajorRes:",
+  //   majorRes,
+  //   "\ntickStart:",
+  //   tickStart,
+  //   "\ntickEnd:",
+  //   tickEnd,
+  //   "\nminorTickInterval:",
+  //   minorTickInterval,
+  //   "\nallTicks:",
+  //   allTicks,
+  //   "\nlabeledTickInterval:",
+  //   labeledTickInterval,
+  //   "\nmajorTicks:",
+  //   majorTicks
+  // );
+
+  function tickFormat(x: number) {
+    if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
       const unscaled = unscaleNominalLocation(x, domainScaling);
       return (
         getDisplayValue({
           value: unscaled,
           questionType: displayType as QuestionType,
           scaling: rangeScaling,
-          precision: 6,
+          precision: 3,
         }) + displayLabel
       );
-    },
+    }
+    return "";
+  }
+
+  function cursorFormat(x: number) {
+    const unscaled = unscaleNominalLocation(x, domainScaling);
+    return (
+      getDisplayValue({
+        value: unscaled,
+        questionType: displayType as QuestionType,
+        scaling: rangeScaling,
+        precision: 6,
+      }) + displayLabel
+    );
+  }
+
+  return {
+    ticks: allTicks,
+    tickFormat: tickFormat,
+    cursorFormat: cursorFormat,
   };
 }
 
