@@ -149,7 +149,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
     if (!!condition_child.my_forecasts?.latest) {
       // Copy forecast from child question if there is a prediction
-      // a prediction on it
       return {
         label: "Copy from Child",
         fromQuestionId: condition_child.id,
