@@ -865,7 +865,17 @@ export function generateChoiceItemsFromGroupQuestions(
     choiceOrdering.sort((a, b) => {
       const aCenter = latests[a]?.centers?.[0] ?? 0;
       const bCenter = latests[b]?.centers?.[0] ?? 0;
-      return bCenter - aCenter;
+      const aValueScaled = scaleInternalLocation(aCenter, {
+        range_min: questions[a]?.scaling?.range_min ?? 0,
+        range_max: questions[a]?.scaling?.range_max ?? 1,
+        zero_point: questions[a]?.scaling?.zero_point ?? null,
+      });
+      const bValueScaled = scaleInternalLocation(bCenter, {
+        range_min: questions[b]?.scaling?.range_min ?? 0,
+        range_max: questions[b]?.scaling?.range_max ?? 1,
+        zero_point: questions[b]?.scaling?.zero_point ?? null,
+      });
+      return bValueScaled - aValueScaled;
     });
   }
   const preselectedQuestionLabel = preselectedQuestionId
@@ -943,7 +953,7 @@ export function generateChoiceItemsFromGroupQuestions(
       }
     });
     sortedAggregationTimestamps.forEach((timestamp) => {
-      const aggregationForecast = aggregationHistory.find((forecast) => {
+      const aggregationForecast = aggregationHistory.findLast((forecast) => {
         return (
           forecast.start_time <= timestamp &&
           (forecast.end_time === null || forecast.end_time >= timestamp)
