@@ -47,6 +47,7 @@ export type UserProfile = User & {
   forecasts_on_authored_questions_count?: number;
   notebooks_authored_count?: number;
   comments_count?: number;
+  spam_count?: number;
 };
 
 export type CurrentUser = User & {
