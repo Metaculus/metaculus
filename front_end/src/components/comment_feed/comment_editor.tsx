@@ -114,8 +114,11 @@ const CommentEditor: FC<CommentEditorProps> = ({
       });
 
       if ("errors" in newComment) {
-        console.error(newComment.errors?.message);
-        setErrorMessage(newComment.errors?.message);
+        const errorMessage =
+          newComment.errors?.message ??
+          newComment.errors?.non_field_errors?.[0];
+
+        setErrorMessage(errorMessage);
         return;
       }
 

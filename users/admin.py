@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
 
-from users.models import User, UserCampaignRegistration
+from users.models import User, UserCampaignRegistration, UserSpamActivity
 from users.services.spam_detection import (
     check_profile_data_for_spam,
     send_deactivation_email,
@@ -238,4 +238,18 @@ class UserAdmin(admin.ModelAdmin):
 class UserCampaignRegistrationAdmin(admin.ModelAdmin):
     list_display = ["user", "key", "details"]
     readonly_fields = ["user", "key"]
+    search_fields = ["user__username", "user__email"]
+
+
+@admin.register(UserSpamActivity)
+class UserSpamActivityAdmin(admin.ModelAdmin):
+    list_display = ["user", "content_type", "content_id", "confidence", "reason"]
+    readonly_fields = [
+        "user",
+        "content_type",
+        "content_id",
+        "confidence",
+        "reason",
+        "text",
+    ]
     search_fields = ["user__username", "user__email"]

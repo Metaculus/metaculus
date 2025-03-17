@@ -1,5 +1,8 @@
+from datetime import timedelta
 import difflib
+import logging
 
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -9,8 +12,23 @@ from posts.models import Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
-from users.models import User
+from users.models import User, UserSpamActivity
+from users.services.spam_detection import (
+    send_repeated_spam_to_admins_email,
+    should_check_for_user_spam,
+    send_suspected_spam_to_admins_email,
+    send_deactivation_email,
+)
+from utils.frontend import build_frontend_url
+from utils.openai import run_spam_analysis
 from ..tasks import run_on_post_comment_create
+
+
+spam_error = ValidationError(
+    detail="This comment seems to be spam. Please contact "
+    "support@metaculus.com if you believe this was a mistake.",
+    code="SPAM_DETECTED",
+)
 
 
 def get_comment_permission_for_user(
@@ -47,6 +65,83 @@ def get_comment_permission_for_user(
     return permissions
 
 
+def check_and_handle_comment_spam(author: User, comment: Comment) -> bool:
+    CONFIDENCE_THRESHOLD = 0.9
+
+    private_note = comment.is_private
+    private_post = comment.on_post.is_private() if comment.on_post else None
+    if (
+        not settings.CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS
+        or not should_check_for_user_spam(author)
+        or private_note
+        or private_post
+    ):
+        return False
+
+    recipients = comment.on_post.default_project.get_users_for_permission(
+        ObjectPermission.CURATOR
+    )
+
+    result = run_spam_analysis(comment.text, UserSpamActivity.SpamContentType.COMMENT)
+
+    # TODO: Remove this once we gain some confidence it the level of false positives is acceptable
+    logging.debug("Spam analysis result", result)
+
+    if not result.is_spam:
+        return False
+
+    UserSpamActivity.objects.create(
+        user=author,
+        reason=result.reason,
+        confidence=result.confidence,
+        content_type=UserSpamActivity.SpamContentType.COMMENT,
+        content_id=comment.id,
+        text=comment.text,
+    )
+
+    # High confidence spam
+    if result.confidence > CONFIDENCE_THRESHOLD:
+        # Deactivate user if they have 10 or more spam entries
+        total_spam_count = UserSpamActivity.objects.filter(
+            user=author, confidence__gte=CONFIDENCE_THRESHOLD
+        ).count()
+        if total_spam_count > 10:
+            author.is_active = False
+            author.is_spam = True
+            author.save(update_fields=["is_active", "is_spam"])
+            send_deactivation_email(author.email)
+
+        # Send an email to admins if the user has 2 or more spam entries within 2 weeks
+        spam_count = UserSpamActivity.objects.filter(
+            user=author,
+            created_at__gte=timezone.now() - timedelta(days=14),
+        ).count()
+        if spam_count >= 2:
+            send_repeated_spam_to_admins_email(
+                [x.email for x in recipients],
+                author=author,
+                content_type="comment",
+                # link to admin, as the comment is soft-deleted
+                content_url=build_frontend_url(
+                    f"/admin/comments/comment/{comment.id}/change/"
+                ),
+                content_text=comment.text,
+            )
+        return True
+
+    # Low confidence spam
+    send_suspected_spam_to_admins_email(
+        [x.email for x in recipients],
+        author=author,
+        content_type="comment",
+        # link to admin, as the comment is soft-deleted
+        content_url=build_frontend_url(f"/admin/comments/comment/{comment.id}/change/"),
+        content_text=comment.text,
+    )
+
+    return False
+
+
 def create_comment(
     user: User,
     on_post: Post = None,
@@ -56,6 +151,7 @@ def create_comment(
     text: str = None,
 ) -> Comment:
     on_post = parent.on_post if parent else on_post
+    should_soft_delete = False
 
     with transaction.atomic():
         obj = Comment(
@@ -72,8 +168,16 @@ def create_comment(
         obj.full_clean()
         obj.save()
 
-        # Update comments read cache counter
-        PostUserSnapshot.update_viewed_at(on_post, user)
+        should_soft_delete = check_and_handle_comment_spam(user, obj)
+
+        if not should_soft_delete:
+            # Update comments read cache counter
+            PostUserSnapshot.update_viewed_at(on_post, user)
+
+    if should_soft_delete:
+        obj.is_soft_deleted = True
+        obj.save(update_fields=["is_soft_deleted"])
+        raise spam_error
 
     # Send related notifications and update counters
     # Only if comment is public
@@ -92,6 +196,7 @@ def update_comment(comment: Comment, text: str = None):
 
     diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))
     text_diff = "\n".join(diff)
+    should_soft_delete = False
 
     with transaction.atomic():
         comment_diff = CommentDiff.objects.create(
@@ -103,9 +208,18 @@ def update_comment(comment: Comment, text: str = None):
         comment.edit_history.append(comment_diff.id)
         comment.text = text
         comment.text_edited_at = timezone.now()
-        comment.save(update_fields=["text", "edit_history", "text_edited_at"])
+
+        should_soft_delete = check_and_handle_comment_spam(comment.author, comment)
+        comment.is_soft_deleted = should_soft_delete
+
+        comment.save(
+            update_fields=["text", "edit_history", "text_edited_at", "is_soft_deleted"]
+        )
 
     trigger_update_comment_translations(comment)
+
+    if should_soft_delete:
+        raise spam_error
 
 
 def trigger_update_comment_translations(comment: Comment):

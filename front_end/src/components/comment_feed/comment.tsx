@@ -587,7 +587,10 @@ const Comment: FC<CommentProps> = ({
                       author: user.id,
                     });
                     if (response && "errors" in response) {
-                      console.error(t("errorDeletingComment"), response.errors);
+                      const errorMessage =
+                        response.errors?.message ??
+                        response.errors?.non_field_errors?.[0];
+                      setErrorMessage(errorMessage);
                     } else {
                       const newCommentDataResponse = await getComments({
                         focus_comment_id: String(comment.id),
