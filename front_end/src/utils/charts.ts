@@ -9,7 +9,6 @@ import {
 } from "date-fns";
 import { findLastIndex, isNil, uniq, range } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
-import { number } from "zod";
 
 import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
