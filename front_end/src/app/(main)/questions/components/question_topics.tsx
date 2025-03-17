@@ -192,12 +192,12 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               />
               <TopicItem
                 isActive={false}
-                emoji="📖"
-                text="ACX 2025"
-                href="/tournament/ACX2025/"
+                emoji="🌍"
+                text="USAID Outlook"
+                href="/tournament/usaid/"
                 onClick={() =>
                   sendGAEvent("event", "sidebarClick", {
-                    event_category: "ACX 2025",
+                    event_category: "USAID Outlook",
                   })
                 }
               />
