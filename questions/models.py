@@ -94,6 +94,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     resolution_set_time = models.DateTimeField(db_index=True, null=True, blank=True)
     actual_close_time = models.DateTimeField(db_index=True, null=True, blank=True)
     cp_reveal_time = models.DateTimeField(null=True, blank=True)
+    spot_scoring_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Time when spot scores are evaluated.
+        If not set, defaults to spot_scoring time.""",
+    )
 
     # continuous range fields
     range_max = models.FloatField(null=True, blank=True)
@@ -190,7 +196,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
                 continue
             if forecast_horizon_end > gl_end + timedelta(days=3):
                 continue
-            if (self.resolution_set_time or self.scheduled_resolve_time) > gl_end + timedelta(days=100):
+            if (
+                self.resolution_set_time or self.scheduled_resolve_time
+            ) > gl_end + timedelta(days=100):
                 # we allow for a 100 day buffer after the global leaderboard closes
                 # for questions to be resolved
                 continue

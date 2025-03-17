@@ -51,6 +51,7 @@
   "pending": "pending",
   "resolves": "Resolves",
   "resolved": "Resolved",
+  "spotScoingTime": "Spot Scoring Time",
   "scheduledResolution": "Scheduled resolution",
   "scheduledCloseTime": "scheduled close time",
   "forDiscussion": "for discussion",

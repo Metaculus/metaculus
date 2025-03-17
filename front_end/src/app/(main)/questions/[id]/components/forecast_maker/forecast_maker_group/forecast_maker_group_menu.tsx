@@ -194,6 +194,17 @@ const GroupQuestionInfo = ({ question }: { question: Question }) => {
           </span>
         </div>
 
+        {!!question.spot_scoring_time && (
+          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+            <span className="w-min text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+              {t("spotScoingTime")}:
+            </span>
+            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+              <LocalDaytime date={question.spot_scoring_time} />
+            </span>
+          </div>
+        )}
+
         <QuestionWeightInfo questionWeight={question.question_weight} />
         <IncludeBotsInfo
           includeBotsInAggregate={question.include_bots_in_aggregates}

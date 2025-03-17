@@ -564,15 +564,15 @@ def unresolve_question(question: Question):
         Score.ScoreTypes.PEER,
         Score.ScoreTypes.RELATIVE_LEGACY,
     ]
-    spot_forecast_time = question.cp_reveal_time
-    if spot_forecast_time:
+    spot_scoring_time = question.spot_scoring_time or question.cp_reveal_time
+    if spot_scoring_time:
         score_types.append(Score.ScoreTypes.SPOT_PEER)
         score_types.append(Score.ScoreTypes.SPOT_BASELINE)
     score_question(
         question,
         None,  # None is the equivalent of unsetting scores
-        spot_forecast_time=(
-            spot_forecast_time.timestamp() if spot_forecast_time else None
+        spot_scoring_time=(
+            spot_scoring_time.timestamp() if spot_scoring_time else None
         ),
         score_types=score_types,
     )
