@@ -1146,8 +1146,12 @@
   "q2InRangeProbAboveError": "Quando seu percentil 50 está dentro do intervalo, a probabilidade acima do intervalo deve ser ≤ 50%",
   "q3InRangeProbBelowError": "Quando seu percentil 75 está dentro do intervalo, a probabilidade abaixo do intervalo deve ser ≤ 75%",
   "q3InRangeProbAboveError": "Quando seu percentil 75 está dentro do intervalo, a probabilidade acima do intervalo deve ser ≤ 25%",
-  "chance": "chance",
   "questionUnit": "Unidade de Pergunta",
   "subquestionUnit": "Unidade de Subquestão",
-  "questionUnitDescription": "A unidade é exibida junto com a mediana e em vários outros lugares. Exemplos: “$”, “Casos”, “Pessoas”."
+  "questionUnitDescription": "A unidade é exibida junto com a mediana e em vários outros lugares. Exemplos: “$”, “Casos”, “Pessoas”.",
+  "manualSubquestionOrder": "Manual (Clique nas setas para reordenar)",
+  "cpAscendingSubquestionOrder": "Previsão da Comunidade (Ascendente)",
+  "cpDescendingSubquestionOrder": "Previsão da Comunidade (Descendente)",
+  "groupSorting": "Ordenação do grupo",
+  "groupSortingDescription": "A ordem das subperguntas no grupo"
 }

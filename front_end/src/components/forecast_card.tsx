@@ -78,6 +78,11 @@ const ForecastCard: FC<Props> = ({
       const { questions } = post.group_of_questions;
       const groupType = questions.at(0)?.type;
 
+      const sortedQuestions = sortGroupPredictionOptions(
+        questions as QuestionWithNumericForecasts[],
+        post.group_of_questions
+      );
+
       if (!groupType) {
         return null;
       }
@@ -92,10 +97,10 @@ const ForecastCard: FC<Props> = ({
           const predictionQuestion =
             graphType === "continuous"
               ? getFanOptionsFromContinuousGroup(
-                  questions as QuestionWithNumericForecasts[]
+                  sortedQuestions as QuestionWithNumericForecasts[]
                 )
               : getFanOptionsFromBinaryGroup(
-                  questions as QuestionWithNumericForecasts[]
+                  sortedQuestions as QuestionWithNumericForecasts[]
                 );
 
           return (
@@ -109,9 +114,6 @@ const ForecastCard: FC<Props> = ({
           );
         }
         case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
-          const sortedQuestions = sortGroupPredictionOptions(
-            questions as QuestionWithNumericForecasts[]
-          );
           const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
             withUserTimestamps: !!forecastAvailability.cpRevealsOn,
           });

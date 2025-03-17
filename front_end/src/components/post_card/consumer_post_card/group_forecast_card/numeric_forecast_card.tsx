@@ -9,7 +9,10 @@ import {
   getChoiceOptionValue,
   scaleInternalLocation,
 } from "@/utils/charts";
-import { isGroupOfQuestionsPost } from "@/utils/questions";
+import {
+  isGroupOfQuestionsPost,
+  sortGroupPredictionOptions,
+} from "@/utils/questions";
 
 import ForecastCardWrapper from "./forecast_card_wrapper";
 import ForecastChoiceBar from "./forecast_choice_bar";
@@ -26,13 +29,15 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
     return null;
   }
 
-  const choices = generateChoiceItemsFromGroupQuestions(
+  const sortedQuestions = sortGroupPredictionOptions(
     post.group_of_questions?.questions as QuestionWithNumericForecasts[],
-    {
-      activeCount: visibleChoicesCount,
-      locale,
-    }
+    post.group_of_questions
   );
+
+  const choices = generateChoiceItemsFromGroupQuestions(sortedQuestions, {
+    activeCount: visibleChoicesCount,
+    locale,
+  });
   // Move resolved/annulled choices to the start
   const sortedChoices = [...choices].sort((a, b) => {
     const aResolved = !isNil(a.resolution);

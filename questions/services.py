@@ -188,6 +188,7 @@ def update_group_of_questions(
             "resolution_criteria",
             "description",
             "group_variable",
+            "subquestions_order",
         ],
         data=kwargs,
     )

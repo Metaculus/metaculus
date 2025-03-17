@@ -1,7 +1,6 @@
 "use client";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { differenceInMilliseconds } from "date-fns";
 import { isNil } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -453,61 +452,54 @@ function generateGroupOptions(
   permission?: ProjectPermissions,
   post?: Post
 ): ContinuousGroupOption[] {
-  return [...questions]
-    .sort((a, b) =>
-      differenceInMilliseconds(
-        new Date(a.scheduled_resolve_time),
-        new Date(b.scheduled_resolve_time)
-      )
-    )
-    .map((q) => {
-      const prevForecast = prevForecastValuesMap[q.id];
-      const userSliderForecast = getInitialSliderDistributionComponents(
+  return [...questions].map((q) => {
+    const prevForecast = prevForecastValuesMap[q.id];
+    const userSliderForecast = getInitialSliderDistributionComponents(
+      q.my_forecasts?.latest,
+      prevForecast,
+      q
+    );
+    return {
+      id: q.id,
+      name: q.label,
+      question: q,
+      userQuartiles: getUserContinuousQuartiles(userSliderForecast, q),
+      userSliderForecast,
+      userQuantileForecast: getInitialQuantileDistributionComponents(
         q.my_forecasts?.latest,
         prevForecast,
         q
-      );
-      return {
-        id: q.id,
-        name: q.label,
-        question: q,
-        userQuartiles: getUserContinuousQuartiles(userSliderForecast, q),
-        userSliderForecast,
-        userQuantileForecast: getInitialQuantileDistributionComponents(
-          q.my_forecasts?.latest,
-          prevForecast,
-          q
-        ),
-        forecastInputMode:
-          prevForecast?.type ?? ContinuousForecastInputType.Slider,
-        communityQuartiles: q.aggregations.recency_weighted.latest
-          ? computeQuartilesFromCDF(
-              q.aggregations.recency_weighted.latest.forecast_values
-            )
-          : null,
-        resolution: q.resolution,
-        isDirty: false,
-        hasUserForecast: !isNil(prevForecast),
-        menu: (
-          <ForecastMakerGroupControls
-            question={q}
-            permission={permission}
-            button={
-              <Button
-                className="size-[26px] border border-blue-400 dark:border-blue-400-dark"
-                variant="link"
-              >
-                <FontAwesomeIcon
-                  className="text-blue-700 dark:text-blue-700-dark"
-                  icon={faEllipsis}
-                ></FontAwesomeIcon>
-              </Button>
-            }
-            post={post}
-          />
-        ),
-      };
-    });
+      ),
+      forecastInputMode:
+        prevForecast?.type ?? ContinuousForecastInputType.Slider,
+      communityQuartiles: q.aggregations.recency_weighted.latest
+        ? computeQuartilesFromCDF(
+            q.aggregations.recency_weighted.latest.forecast_values
+          )
+        : null,
+      resolution: q.resolution,
+      isDirty: false,
+      hasUserForecast: !isNil(prevForecast),
+      menu: (
+        <ForecastMakerGroupControls
+          question={q}
+          permission={permission}
+          button={
+            <Button
+              className="size-[26px] border border-blue-400 dark:border-blue-400-dark"
+              variant="link"
+            >
+              <FontAwesomeIcon
+                className="text-blue-700 dark:text-blue-700-dark"
+                icon={faEllipsis}
+              ></FontAwesomeIcon>
+            </Button>
+          }
+          post={post}
+        />
+      ),
+    };
+  });
 }
 
 function updateGroupOptions(groupOption: ContinuousGroupOption) {

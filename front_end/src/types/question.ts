@@ -204,6 +204,7 @@ export type Question = {
   // Multiple-choice only
   options?: string[];
   group_variable?: string;
+  group_rank?: number;
   // Other
   scaling: Scaling;
   possibilities: {

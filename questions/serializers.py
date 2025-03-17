@@ -62,6 +62,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "open_upper_bound",
             "open_lower_bound",
             "scaling",
+            "group_rank",
         )
 
     def get_scaling(self, question: Question):
@@ -117,6 +118,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "scheduled_close_time",
             "resolution_criteria",
             "fine_print",
+            "group_rank",
         )
 
     def validate(self, data: dict):
@@ -198,6 +200,7 @@ class GroupOfQuestionsSerializer(serializers.ModelSerializer):
             "fine_print",
             "group_variable",
             "graph_type",
+            "subquestions_order",
         )
 
 
@@ -212,6 +215,7 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
             "resolution_criteria",
             "description",
             "group_variable",
+            "subquestions_order",
         )
 
     def validate_questions(self, data: list[str]):
