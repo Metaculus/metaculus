@@ -29,6 +29,7 @@ from utils.dtypes import generate_map_from_list
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.measures import percent_point_function
+from utils.the_math.formulas import unscaled_location_to_scaled_location
 
 logger = logging.getLogger(__name__)
 
@@ -835,7 +836,9 @@ def get_aggregated_forecasts_for_questions(
                 case "binary":
                     return aggregation.forecast_values[1]
                 case "numeric" | "date":
-                    return aggregation.centers[0]
+                    return unscaled_location_to_scaled_location(
+                        aggregation.centers[0], q
+                    )
                 case "multiple_choice":
                     return max(aggregation.forecast_values)
 

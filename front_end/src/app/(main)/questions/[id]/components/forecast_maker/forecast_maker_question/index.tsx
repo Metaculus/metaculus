@@ -108,12 +108,13 @@ const QuestionResolutionText = ({
       resolutionText = t("resolutionDescriptionContinuous");
   }
 
-  const formattedResolution = formatResolution(
-    question.resolution,
-    question.type,
+  const formattedResolution = formatResolution({
+    resolution: question.resolution,
+    questionType: question.type,
     locale,
-    question.unit
-  );
+    scaling: question.scaling,
+    unit: question.unit,
+  });
 
   return (
     <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
