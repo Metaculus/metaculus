@@ -901,45 +901,18 @@ export function generateChoiceItemsFromGroupQuestions(
     activeCount?: number;
     preselectedQuestionId?: number;
     locale?: string;
-    preserveOrder?: boolean;
   }
 ): ChoiceItem[] {
   if (questions.length == 0) {
     return [];
   }
-  const { activeCount, preselectedQuestionId, locale, preserveOrder } =
-    config ?? {};
+  const { activeCount, preselectedQuestionId, locale } = config ?? {};
 
-  const latests: (AggregateForecast | undefined)[] = questions.map(
-    (question) => question.aggregations.recency_weighted.latest
-  );
-  const choiceOrdering: number[] = latests.map((_, i) => i);
-  if (!preserveOrder) {
-    choiceOrdering.sort((a, b) => {
-      const aCenter = latests[a]?.centers?.[0] ?? 0;
-      const bCenter = latests[b]?.centers?.[0] ?? 0;
-      const aValueScaled = scaleInternalLocation(aCenter, {
-        range_min: questions[a]?.scaling?.range_min ?? 0,
-        range_max: questions[a]?.scaling?.range_max ?? 1,
-        zero_point: questions[a]?.scaling?.zero_point ?? null,
-      });
-      const bValueScaled = scaleInternalLocation(bCenter, {
-        range_min: questions[b]?.scaling?.range_min ?? 0,
-        range_max: questions[b]?.scaling?.range_max ?? 1,
-        zero_point: questions[b]?.scaling?.zero_point ?? null,
-      });
-      return bValueScaled - aValueScaled;
-    });
-  }
   const preselectedQuestionLabel = preselectedQuestionId
     ? questions.find((q) => q.id === preselectedQuestionId)?.label
     : undefined;
 
-  const choiceItems: ChoiceItem[] = choiceOrdering.map((order, index) => {
-    // that's okay to do no-non-null-assertion, as choiceOrdering is generated based on questions array
-    // so we don't expect that it will have a different length
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const question = questions[order]!;
+  const choiceItems: ChoiceItem[] = questions.map((question, index) => {
     const label = question.label;
     const userHistory = question.my_forecasts?.history;
 
@@ -1099,12 +1072,10 @@ export function getFanOptionsFromContinuousGroup(
         communityCdf:
           q.aggregations.recency_weighted.latest?.forecast_values ?? [],
         userCdf: userCdf,
-        resolvedAt: new Date(q.scheduled_resolve_time),
         resolved: q.resolution !== null,
         question: q,
       };
     })
-    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
     .map(({ name, communityCdf, resolved, question, userCdf }) => ({
       name,
       communityQuartiles: communityCdf.length
@@ -1121,40 +1092,37 @@ export function getFanOptionsFromContinuousGroup(
 export function getFanOptionsFromBinaryGroup(
   questions: QuestionWithNumericForecasts[]
 ): FanOption[] {
-  return questions
-    .map((q) => {
-      const aggregation = q.aggregations.recency_weighted.latest;
-      const resolved = q.resolution !== null;
+  return questions.map((q) => {
+    const aggregation = q.aggregations.recency_weighted.latest;
+    const resolved = q.resolution !== null;
 
-      const latest = q.my_forecasts?.latest;
-      const userForecast = extractPrevBinaryForecastValue(
-        latest && !latest.end_time ? latest.forecast_values[1] : null
-      );
+    const latest = q.my_forecasts?.latest;
+    const userForecast = extractPrevBinaryForecastValue(
+      latest && !latest.end_time ? latest.forecast_values[1] : null
+    );
 
-      return {
-        name: q.label,
-        communityQuartiles: !!aggregation
-          ? {
-              median: aggregation.centers?.[0] ?? 0,
-              lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
-              upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
-            }
-          : null,
-        communityBounds: null,
-        userQuartiles: userForecast
-          ? {
-              lower25: userForecast / 100,
-              median: userForecast / 100,
-              upper75: userForecast / 100,
-            }
-          : null,
-        userBounds: null,
-        resolved,
-        question: q,
-        resolvedAt: new Date(q.scheduled_resolve_time),
-      };
-    })
-    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
+    return {
+      name: q.label,
+      communityQuartiles: !!aggregation
+        ? {
+            median: aggregation.centers?.[0] ?? 0,
+            lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
+            upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
+          }
+        : null,
+      communityBounds: null,
+      userQuartiles: userForecast
+        ? {
+            lower25: userForecast / 100,
+            median: userForecast / 100,
+            upper75: userForecast / 100,
+          }
+        : null,
+      userBounds: null,
+      resolved,
+      question: q,
+    };
+  });
 }
 
 export function getQuestionTimestamps(

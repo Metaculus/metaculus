@@ -1147,5 +1147,10 @@
   "q2InRangeProbBelowError": "When your 50th percentile is in range, your probability below the range should be ≤ 50%",
   "q2InRangeProbAboveError": "When your 50th percentile is in range, your probability above the range should be ≤ 50%",
   "q3InRangeProbBelowError": "When your 75th percentile is in range, your probability below the range should be ≤ 75%",
-  "q3InRangeProbAboveError": "When your 75th percentile is in range, your probability above the range should be ≤ 25%"
+  "q3InRangeProbAboveError": "When your 75th percentile is in range, your probability above the range should be ≤ 25%",
+  "manualSubquestionOrder": "Manual (Click the arrows to reorder)",
+  "cpAscendingSubquestionOrder": "Community Prediction (Ascending)",
+  "cpDescendingSubquestionOrder": "Community Prediction (Descending)",
+  "groupSorting": "Group sorting",
+  "groupSortingDescription": "The order of the subquestions in the group"
 }

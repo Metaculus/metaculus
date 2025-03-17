@@ -74,6 +74,7 @@ class TestPostCreate:
                 "projects": {},
                 "default_project": get_site_main_project().pk,
                 "group_of_questions": {
+                    "subquestions_order": "MANUAL",
                     "questions": [
                         {
                             "title": "Question #1",
@@ -84,6 +85,7 @@ class TestPostCreate:
                             "open_time": "2024-04-01T00:00:00Z",
                             "scheduled_close_time": "2024-05-01T00:00:00Z",
                             "scheduled_resolve_time": "2024-05-11T00:00:00Z",
+                            "group_rank": 0,
                         },
                         {
                             "title": "Question #2",
@@ -94,6 +96,7 @@ class TestPostCreate:
                             "open_time": "2024-04-01T00:00:00Z",
                             "scheduled_close_time": "2024-05-05T00:00:00Z",
                             "scheduled_resolve_time": "2024-05-10T00:00:00Z",
+                            "group_rank": 1,
                         },
                     ]
                 },

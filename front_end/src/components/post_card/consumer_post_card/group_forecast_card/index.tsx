@@ -7,6 +7,7 @@ import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   checkGroupOfQuestionsPostType,
   isMultipleChoicePost,
+  sortGroupPredictionOptions,
 } from "@/utils/questions";
 
 import NumericForecastCard from "./numeric_forecast_card";
@@ -21,13 +22,12 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
   if (
     post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph
   ) {
-    return (
-      <TimeSeriesChart
-        questions={
-          post.group_of_questions.questions as QuestionWithNumericForecasts[]
-        }
-      />
+    const sortedQuestions = sortGroupPredictionOptions(
+      post.group_of_questions?.questions as QuestionWithNumericForecasts[],
+      post.group_of_questions
     );
+
+    return <TimeSeriesChart questions={sortedQuestions} />;
   }
   if (
     isMultipleChoicePost(post) ||

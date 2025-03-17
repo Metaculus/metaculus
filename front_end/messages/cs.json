@@ -1148,8 +1148,12 @@
   "q2InRangeProbAboveError": "Když je váš 50. percentil v rozsahu, pravděpodobnost nad rozsahem by měla být ≤ 50%",
   "q3InRangeProbBelowError": "Když je váš 75. percentil v rozsahu, pravděpodobnost pod rozsahem by měla být ≤ 75%",
   "q3InRangeProbAboveError": "Když je váš 75. percentil v rozsahu, pravděpodobnost nad rozsahem by měla být ≤ 25%",
-  "chance": "šance",
   "questionUnit": "Jednotka otázky",
   "subquestionUnit": "Jednotka podotázky",
-  "questionUnitDescription": "Jednotka se zobrazuje vedle mediánu a na různých dalších místech. Příklady: „$“, „Případy“, „Lidé“."
+  "questionUnitDescription": "Jednotka se zobrazuje vedle mediánu a na různých dalších místech. Příklady: „$“, „Případy“, „Lidé“.",
+  "manualSubquestionOrder": "Manuální (Kliknutím na šipky změňte pořadí)",
+  "cpAscendingSubquestionOrder": "Předpověď komunity (Vzestupně)",
+  "cpDescendingSubquestionOrder": "Předpověď komunity (Sestupně)",
+  "groupSorting": "Třídění skupin",
+  "groupSortingDescription": "Pořadí podotázek ve skupině"
 }
