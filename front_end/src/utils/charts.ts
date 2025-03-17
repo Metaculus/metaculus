@@ -943,7 +943,7 @@ export function generateChoiceItemsFromGroupQuestions(
       }
     });
     sortedAggregationTimestamps.forEach((timestamp) => {
-      const aggregationForecast = aggregationHistory.find((forecast) => {
+      const aggregationForecast = aggregationHistory.findLast((forecast) => {
         return (
           forecast.start_time <= timestamp &&
           (forecast.end_time === null || forecast.end_time >= timestamp)
