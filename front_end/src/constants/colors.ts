@@ -68,7 +68,7 @@ export const METAC_COLORS = {
   },
   salmon: {
     100: { DEFAULT: "#fef6f6", dark: "#753e3e" },
-    200: { DEFAULT: "#fc3838", dark: "#904747" },
+    200: { DEFAULT: "#fce8e8", dark: "#904747" },
     300: { DEFAULT: "#f9d2d2", dark: "#ab5959" },
     400: { DEFAULT: "#f3b4b4", dark: "#c56d6d" },
     500: { DEFAULT: "#d89292", dark: "#d89292" },

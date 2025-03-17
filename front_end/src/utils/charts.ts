@@ -15,6 +15,7 @@ import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
   ContinuousAreaType,
   FanOption,
+  ContinuousForecastInputType,
   Line,
   Scale,
   TimelineChartZoomOption,
@@ -48,7 +49,9 @@ import {
   getForecastDateDisplayValue,
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
-  getNumericForecastDataset,
+  getSliderNumericForecastDataset,
+  getQuantileNumericForecastDataset,
+  populateQuantileComponents,
 } from "./forecasts";
 
 export function getContinuousChartTypeFromQuestion(
@@ -398,6 +401,7 @@ export function getTableDisplayValue({
   precision,
   truncation,
   range,
+  forecastInputMode = ContinuousForecastInputType.Slider,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -405,9 +409,20 @@ export function getTableDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
+  forecastInputMode?: ContinuousForecastInputType;
 }) {
   if (isNil(value)) {
     return "...";
+  }
+
+  if (forecastInputMode === ContinuousForecastInputType.Quantile) {
+    return displayValue({
+      value,
+      questionType,
+      scaling,
+      precision,
+      truncation,
+    });
   }
 
   return getDisplayValue({
@@ -1025,17 +1040,25 @@ export function getFanOptionsFromContinuousGroup(
         latest && !latest.end_time ? latest.distribution_input : undefined
       );
 
+      let userCdf: number[] | null = null;
+      if (userForecast?.components) {
+        userForecast.type === ContinuousForecastInputType.Slider
+          ? (userCdf = getSliderNumericForecastDataset(
+              userForecast.components,
+              q.open_lower_bound,
+              q.open_upper_bound
+            ).cdf)
+          : (userCdf = getQuantileNumericForecastDataset(
+              populateQuantileComponents(userForecast.components),
+              q
+            ).cdf);
+      }
+
       return {
         name: q.label,
         communityCdf:
           q.aggregations.recency_weighted.latest?.forecast_values ?? [],
-        userCdf: userForecast?.components
-          ? getNumericForecastDataset(
-              userForecast.components,
-              q.open_lower_bound,
-              q.open_upper_bound
-            ).cdf
-          : null,
+        userCdf: userCdf,
         resolvedAt: new Date(q.scheduled_resolve_time),
         resolved: q.resolution !== null,
         question: q,

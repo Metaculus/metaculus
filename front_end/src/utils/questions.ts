@@ -4,7 +4,7 @@ import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
-import { ConditionalTableOption } from "@/app/(main)/questions/[id]/components/forecast_maker/group_forecast_table";
+import { ContinuousGroupOption } from "@/app/(main)/questions/[id]/components/forecast_maker/continuous_group_accordion/group_forecast_accordion";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
 import {
@@ -535,7 +535,7 @@ export function getPredictionInputMessage(post: Post) {
 }
 
 export function getSubquestionPredictionInputMessage(
-  option: ConditionalTableOption
+  option: ContinuousGroupOption
 ) {
   switch (option.question.status) {
     case QuestionStatus.CLOSED:
