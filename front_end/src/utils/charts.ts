@@ -339,38 +339,29 @@ export function displayValue(
   }
 }
 
-type DisplayValueProps = {
-  value: number | null | undefined;
-  questionType: QuestionType;
-  scaling: Scaling;
-  precision?: number;
-  truncation?: number;
-  range?: number[];
-};
-
-type DisplayValueObject = {
-  centerDisplay?: string;
-  lowerDisplay?: string;
-  upperDisplay?: string;
-};
-
 /**
- * Returns the display value components object of an internal location given the
- * details of the question.
+ * Returns the display value of an internal location given the
+ * details of the question
  *
  * Accepts a Question or the individual parameters of a Question
- * Returns an object which allows to build customized components for each block
  */
-export function getDisplayValueObject({
+export function getDisplayValue({
   value,
   questionType,
   scaling,
   precision,
   truncation,
   range,
-}: DisplayValueProps): DisplayValueObject {
+}: {
+  value: number | null | undefined;
+  questionType: QuestionType;
+  scaling: Scaling;
+  precision?: number;
+  truncation?: number;
+  range?: number[];
+}): string {
   if (value === undefined || value === null) {
-    return {};
+    return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
   const centerDisplay = displayValue(
@@ -383,7 +374,7 @@ export function getDisplayValueObject({
     const lowerX = range[0];
     const upperX = range[1];
     if (isNil(lowerX) || isNil(upperX)) {
-      return {};
+      return "...";
     }
 
     const scaledLower = scaleInternalLocation(lowerX, scaling);
@@ -400,36 +391,8 @@ export function getDisplayValueObject({
       precision,
       truncation
     );
-    return {
-      centerDisplay,
-      lowerDisplay,
-      upperDisplay,
-    };
-  }
-
-  return {
-    centerDisplay,
-  };
-}
-
-/**
- * Returns the display value of an internal location given the
- * details of the question
- *
- * Accepts a Question or the individual parameters of a Question
- */
-export function getDisplayValue(props: DisplayValueProps): string {
-  const { centerDisplay, lowerDisplay, upperDisplay } =
-    getDisplayValueObject(props);
-
-  if (centerDisplay == null) {
-    return "...";
-  }
-
-  if (lowerDisplay != null && upperDisplay !== null) {
     return `${centerDisplay} (${lowerDisplay} - ${upperDisplay})`;
   }
-
   return centerDisplay;
 }
 
@@ -517,15 +480,15 @@ export function getChoiceOptionValue(
   }
 }
 
-export function getUserPredictionDisplayObject(
+export function getUserPredictionDisplayValue(
   myForecasts: UserForecastHistory,
   timestamp: number | null | undefined,
   questionType: Question | QuestionType,
   scaling?: Scaling,
   showRange?: boolean
-): DisplayValueObject {
+): string {
   if (!timestamp) {
-    return {};
+    return "...";
   }
 
   let closestUserForecastIndex = -1;
@@ -538,11 +501,11 @@ export function getUserPredictionDisplayObject(
     }
   });
   if (closestUserForecastIndex === -1) {
-    return {};
+    return "...";
   }
   const closestUserForecast = myForecasts.history[closestUserForecastIndex];
   if (!closestUserForecast) {
-    return {};
+    return "...";
   }
 
   let center: number | undefined;
@@ -560,7 +523,7 @@ export function getUserPredictionDisplayObject(
       : undefined;
   }
   if (isNil(center)) {
-    return {};
+    return "...";
   }
 
   const scaledCenter = scaleInternalLocation(
@@ -589,13 +552,9 @@ export function getUserPredictionDisplayObject(
       const displayUpper = !isNil(scaledUpper)
         ? format(fromUnixTime(scaledUpper), "yyyy-MM-dd")
         : "...";
-      return {
-        centerDisplay: displayCenter,
-        lowerDisplay: displayLower,
-        upperDisplay: displayUpper,
-      };
+      return `${displayCenter} (${displayLower} - ${displayUpper})`;
     }
-    return { centerDisplay: displayCenter };
+    return displayCenter;
   } else if (questionType === QuestionType.Numeric) {
     const displayCenter = abbreviatedNumber(scaledCenter);
     if (showRange) {
@@ -605,15 +564,11 @@ export function getUserPredictionDisplayObject(
       const displayUpper = !isNil(scaledUpper)
         ? abbreviatedNumber(scaledUpper)
         : "...";
-      return {
-        centerDisplay: displayCenter,
-        lowerDisplay: displayLower,
-        upperDisplay: displayUpper,
-      };
+      return `${displayCenter} (${displayLower} - ${displayUpper})`;
     }
-    return { centerDisplay: displayCenter };
+    return displayCenter;
   } else {
-    return { centerDisplay: `${Math.round(scaledCenter * 1000) / 10}%` };
+    return `${Math.round(scaledCenter * 1000) / 10}%`;
   }
 }
 
