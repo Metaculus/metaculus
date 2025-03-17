@@ -415,12 +415,16 @@ export function getTableDisplayValue({
     return "...";
   }
 
-  if (
-    questionType !== QuestionType.Date &&
-    forecastInputMode === ContinuousForecastInputType.Quantile
-  ) {
-    return String(value);
+  if (forecastInputMode === ContinuousForecastInputType.Quantile) {
+    return displayValue({
+      value,
+      questionType,
+      scaling,
+      precision,
+      truncation,
+    });
   }
+
   return getDisplayValue({
     value,
     questionType,

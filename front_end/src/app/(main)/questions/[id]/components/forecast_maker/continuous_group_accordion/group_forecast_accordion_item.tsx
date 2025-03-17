@@ -86,11 +86,13 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   });
   const userMedian = showUserPrediction
     ? forecastInputMode === ContinuousForecastInputType.Quantile
-      ? displayValue(
-          option.userQuantileForecast?.find((q) => q.quantile === Quantile.q2)
-            ?.value ?? null,
-          option.question.type
-        )
+      ? displayValue({
+          value:
+            option.userQuantileForecast?.find((q) => q.quantile === Quantile.q2)
+              ?.value ?? null,
+          questionType: option.question.type,
+          scaling: option.question.scaling,
+        })
       : getDisplayValue({
           value: option.userQuartiles?.median,
           questionType: option.question.type,

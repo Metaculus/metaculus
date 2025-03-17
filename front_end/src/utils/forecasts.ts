@@ -27,9 +27,7 @@ import {
 } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
-import { scaleInternalLocation } from "./charts";
-
-import { getQuestionDateFormatString } from "./charts";
+import { getQuestionDateFormatString, scaleInternalLocation } from "./charts";
 
 export function getForecastPctDisplayValue(
   value: number | string | null | undefined

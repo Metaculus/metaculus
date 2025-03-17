@@ -285,6 +285,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     setQuestionOptions((prev) =>
       prev.map((prevChoice) => {
         if (prevChoice.id === questionYesId) {
+          const quantileForecast = getInitialQuantileDistributionComponents(
+            latestYes,
+            prevYesForecastValue,
+            question_yes
+          );
           return {
             ...prevChoice,
             value: getTableValue(
@@ -297,16 +302,23 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               prevYesForecastValue,
               question_yes
             ),
-            quantileForecast: getInitialQuantileDistributionComponents(
-              latestYes,
-              prevYesForecastValue,
-              question_yes
+            quantileValue: getTableValue(
+              quantileForecast,
+              question_yes.open_lower_bound,
+              question_yes.open_upper_bound,
+              ContinuousForecastInputType.Quantile
             ),
+            quantileForecast,
             isDirty: false,
             forecastInputMode:
               prevYesForecastValue?.type ?? prevChoice.forecastInputMode,
           };
         } else if (prevChoice.id === questionNoId) {
+          const quantileForecast = getInitialQuantileDistributionComponents(
+            latestNo,
+            prevNoForecastValue,
+            question_no
+          );
           return {
             ...prevChoice,
             value: getTableValue(
@@ -319,11 +331,13 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               prevNoForecastValue,
               question_no
             ),
-            quantileForecast: getInitialQuantileDistributionComponents(
-              latestNo,
-              prevNoForecastValue,
-              question_no
+            quantileValue: getTableValue(
+              quantileForecast,
+              question_no.open_lower_bound,
+              question_no.open_upper_bound,
+              ContinuousForecastInputType.Quantile
             ),
+            quantileForecast,
             isDirty: false,
             forecastInputMode:
               prevNoForecastValue?.type ?? prevChoice.forecastInputMode,
