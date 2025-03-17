@@ -54,7 +54,7 @@ export function formatPrediction(
   prediction: number,
   questionType: QuestionType,
   scaling?: Scaling,
-  unit?: string | undefined,
+  unit?: string | undefined
 ) {
   switch (questionType) {
     case QuestionType.Numeric:

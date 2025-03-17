@@ -196,7 +196,7 @@ export function formatResolution({
   questionType: QuestionType;
   locale: string;
   scaling?: Scaling;
-  unit?: string,
+  unit?: string;
 }) {
   if (resolution === null || resolution === undefined) {
     return "-";
