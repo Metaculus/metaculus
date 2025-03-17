@@ -311,6 +311,7 @@ export function displayValue({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   truncation,
   dateFormatString,
+  unit,
 }: {
   value: number | null;
   questionType: QuestionType;
@@ -318,6 +319,7 @@ export function displayValue({
   scaling?: Scaling;
   truncation?: number;
   dateFormatString?: string;
+  unit?: string;
 }): string {
   if (value === null) {
     return "...";
@@ -328,7 +330,7 @@ export function displayValue({
     return format(fromUnixTime(value), dateFormatString ?? dateFormat);
   } else if (questionType === QuestionType.Numeric) {
     // TODO add truncation to abbreviatedNumber
-    return abbreviatedNumber(value, precision);
+    return formatValueUnit(abbreviatedNumber(value, precision), unit);
   } else {
     return `${Math.round(value * 1000) / 10}%`;
   }
@@ -370,6 +372,7 @@ export function getDisplayValue({
     truncation,
     scaling,
     dateFormatString,
+    unit,
   });
   if (range) {
     const lowerX = range[0];
@@ -395,6 +398,7 @@ export function getDisplayValue({
       scaling,
       truncation,
       dateFormatString,
+      unit,
     });
     return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }
@@ -502,12 +506,14 @@ export function getUserPredictionDisplayValue({
   questionType,
   scaling,
   showRange,
+  unit,
 }: {
   myForecasts: UserForecastHistory;
   timestamp: number | null | undefined;
   questionType: Question | QuestionType;
   scaling?: Scaling;
   showRange?: boolean;
+  unit?: string;
 }): string {
   if (!timestamp) {
     return "...";
@@ -599,7 +605,10 @@ export function getUserPredictionDisplayValue({
 
     return displayCenter;
   } else if (questionType === QuestionType.Numeric) {
-    const displayCenter = abbreviatedNumber(scaledCenter);
+    const displayCenter = formatValueUnit(
+      abbreviatedNumber(scaledCenter),
+      unit
+    );
     if (showRange) {
       const displayLower = !isNil(scaledLower)
         ? abbreviatedNumber(scaledLower)
