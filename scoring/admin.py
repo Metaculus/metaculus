@@ -168,12 +168,19 @@ class MedalExclusionRecordAdmin(admin.ModelAdmin):
         "end_time",
         "exclusion_type",
         "project",
+        "leaderboard",
     ]
-    search_fields = ["user__username", "user__email"]
-    autocomplete_fields = ["user", "project"]
+    search_fields = [
+        "user__username",
+        "user__email",
+        "project__name",
+        "leaderboard__name",
+    ]
+    autocomplete_fields = ["user", "project", "leaderboard"]
     list_filter = [
         AutocompleteFilterFactory("User", "user"),
         AutocompleteFilterFactory("Project", "project"),
+        AutocompleteFilterFactory("Leaderboard", "leaderboard"),
     ]
 
 

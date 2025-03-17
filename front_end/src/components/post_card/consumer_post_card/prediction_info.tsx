@@ -2,10 +2,20 @@ import { isNil } from "lodash";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 
+import CPWeeklyMovement from "@/components/cp_weekly_movement";
 import { PostWithForecasts } from "@/types/post";
-import { ForecastAvailability, QuestionType } from "@/types/question";
-import { formatResolution, isSuccessfullyResolved } from "@/utils/questions";
+import {
+  ForecastAvailability,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
+import {
+  formatResolution,
+  isGroupOfQuestionsPost,
+  isMultipleChoicePost,
+  isSuccessfullyResolved,
+} from "@/utils/questions";
 
+import GroupForecastCard from "./group_forecast_card";
 import QuestionForecastChip from "./question_forecast_chip";
 import QuestionResolutionChip from "./question_resolution_chip";
 import UpcomingCP from "./upcoming_cp";
@@ -16,31 +26,32 @@ type Props = {
 };
 
 const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
-  const { question, group_of_questions } = post;
+  const { question } = post;
   const locale = useLocale();
 
-  // CP empty
-  if (forecastAvailability?.isEmpty) {
-    return null;
-  }
   // CP hidden
   if (!isNil(forecastAvailability?.cpRevealsOn)) {
     return <UpcomingCP cpRevealsOn={forecastAvailability.cpRevealsOn} />;
   }
 
-  // TODO: implement view for group and MC questions
-  if (group_of_questions || question?.type === QuestionType.MultipleChoice) {
-    return <div>Group or MC question</div>;
+  // CP empty
+  if (forecastAvailability?.isEmpty) {
+    return null;
+  }
+
+  // TODO: implement view for date group questions and time series
+  if (isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) {
+    return <GroupForecastCard post={post} />;
   }
 
   if (question) {
     // Resolved/Annulled/Ambiguous
     if (question.resolution) {
-      const formatedResolution = formatResolution(
-        question.resolution,
-        question.type,
-        locale
-      );
+      const formatedResolution = formatResolution({
+        resolution: question.resolution,
+        questionType: question.type,
+        locale,
+      });
       const successfullResolution = isSuccessfullyResolved(question.resolution);
       return (
         <QuestionResolutionChip
@@ -51,7 +62,14 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
     }
 
     // Open/Closed
-    return <QuestionForecastChip question={question} />;
+    return (
+      <div className="flex max-w-[200px] flex-col items-center justify-center gap-3">
+        <QuestionForecastChip
+          question={question as QuestionWithNumericForecasts}
+        />
+        <CPWeeklyMovement question={question} />
+      </div>
+    );
   }
   return null;
 };

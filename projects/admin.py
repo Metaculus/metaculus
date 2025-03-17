@@ -384,8 +384,21 @@ class ProjectAdmin(CustomTranslationAdmin):
             return
 
         # return the zip file as a response
+        if queryset.count() == 1:
+            project = queryset.first()
+            if project.slug:
+                filename = f"{project.slug}_metaculus_data"
+            else:
+                name = project.name
+                for char in [" ", "-", "/", ":", ",", "."]:
+                    name = name.replace(char, "_")
+                filename = f"{name}_metaculus_data"
+        else:
+            filename = "project_metaculus_data"
+        if kwargs.get("anonymized", False):
+            filename += "_anonymized"
         response = HttpResponse(data, content_type="application/zip")
-        response["Content-Disposition"] = 'attachment; filename="metaculus_data.zip"'
+        response["Content-Disposition"] = f"attachment; filename={filename}"
 
         return response
 
@@ -415,9 +428,23 @@ class ProjectAdmin(CustomTranslationAdmin):
             .distinct()
             .values_list("id", flat=True)
         )
+        if queryset.count() == 1:
+            project = queryset.first()
+            if project.slug:
+                filename = f"{project.slug}_metaculus_data"
+            else:
+                name = project.name
+                for char in [" ", "-", "/", ":", ",", "."]:
+                    name = name.replace(char, "_")
+                filename = f"{name}_metaculus_data"
+        else:
+            filename = "project_metaculus_data"
+        if kwargs.get("anonymized", False):
+            filename += "_anonymized"
         email_all_data_for_questions_task.send(
             email_address=request.user.email,
             question_ids=question_ids,
+            filename=filename + ".zip",
             include_comments=True,
             include_scores=True,
             **kwargs,

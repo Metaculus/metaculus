@@ -15,6 +15,7 @@ import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
   ContinuousAreaType,
   FanOption,
+  ContinuousForecastInputType,
   Line,
   Scale,
   TimelineChartZoomOption,
@@ -48,7 +49,9 @@ import {
   getForecastDateDisplayValue,
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
-  getNumericForecastDataset,
+  getSliderNumericForecastDataset,
+  getQuantileNumericForecastDataset,
+  populateQuantileComponents,
 } from "./forecasts";
 
 export function getContinuousChartTypeFromQuestion(
@@ -295,37 +298,29 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
   return unscaled_location;
 }
 
-export function displayValue(
-  value: number | null,
-  questionType: QuestionType,
-  precision?: number,
-  truncation?: number
-): string {
+export function displayValue({
+  value,
+  questionType,
+  precision,
+  scaling,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  truncation,
+  dateFormatString,
+}: {
+  value: number | null;
+  questionType: QuestionType;
+  precision?: number;
+  scaling?: Scaling;
+  truncation?: number;
+  dateFormatString?: string;
+}): string {
   if (value === null) {
     return "...";
   }
   precision = precision ?? 3;
-  truncation = truncation ?? 0;
-  if (questionType === QuestionType.Date) {
-    let dateFormat: string;
-    if (precision <= 1) {
-      dateFormat = "yyyy";
-    } else if (precision <= 2) {
-      dateFormat = truncation < 1 ? "yyyy-MM" : "MM";
-    } else if (precision <= 3) {
-      dateFormat =
-        truncation < 1 ? "yyyy-MM-dd" : truncation < 2 ? "MM-dd" : "dd";
-    } else {
-      dateFormat =
-        truncation < 1
-          ? "yyyy-MM-dd HH:mm"
-          : truncation < 2
-            ? "MM-dd HH:mm"
-            : truncation < 3
-              ? "dd HH:mm"
-              : "HH:mm";
-    }
-    return format(fromUnixTime(value), dateFormat);
+  if (questionType === QuestionType.Date && scaling) {
+    const dateFormat = getQuestionDateFormatString(scaling);
+    return format(fromUnixTime(value), dateFormatString ?? dateFormat);
   } else if (questionType === QuestionType.Numeric) {
     // TODO add truncation to abbreviatedNumber
     return abbreviatedNumber(value, precision);
@@ -347,6 +342,7 @@ export function getDisplayValue({
   precision,
   truncation,
   range,
+  dateFormatString,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -354,17 +350,20 @@ export function getDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
+  dateFormatString?: string;
 }): string {
   if (value === undefined || value === null) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
-  const centerDisplay = displayValue(
-    scaledValue,
+  const centerDisplay = displayValue({
+    value: scaledValue,
     questionType,
     precision,
-    truncation
-  );
+    truncation,
+    scaling,
+    dateFormatString,
+  });
   if (range) {
     const lowerX = range[0];
     const upperX = range[1];
@@ -373,20 +372,24 @@ export function getDisplayValue({
     }
 
     const scaledLower = scaleInternalLocation(lowerX, scaling);
-    const lowerDisplay = displayValue(
-      scaledLower,
+    const lowerDisplay = displayValue({
+      value: scaledLower,
       questionType,
       precision,
-      truncation
-    );
+      scaling,
+      truncation,
+      dateFormatString,
+    });
     const scaledUpper = scaleInternalLocation(upperX, scaling);
-    const upperDisplay = displayValue(
-      scaledUpper,
+    const upperDisplay = displayValue({
+      value: scaledUpper,
       questionType,
       precision,
-      truncation
-    );
-    return `${centerDisplay} (${lowerDisplay} - ${upperDisplay})`;
+      scaling,
+      truncation,
+      dateFormatString,
+    });
+    return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }
   return centerDisplay;
 }
@@ -398,6 +401,7 @@ export function getTableDisplayValue({
   precision,
   truncation,
   range,
+  forecastInputMode = ContinuousForecastInputType.Slider,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -405,25 +409,37 @@ export function getTableDisplayValue({
   precision?: number;
   truncation?: number;
   range?: number[];
+  forecastInputMode?: ContinuousForecastInputType;
 }) {
   if (isNil(value)) {
     return "...";
   }
 
-  if (questionType !== QuestionType.Date) {
-    return getDisplayValue({
+  if (forecastInputMode === ContinuousForecastInputType.Quantile) {
+    return displayValue({
       value,
       questionType,
       scaling,
       precision,
       truncation,
-      range,
     });
   }
 
-  let dateFormat: string = "dd MMM yyyy HH:mm";
-  if (!isNil(scaling.range_min) && !isNil(scaling.range_max)) {
-    const diffInSeconds = scaling.range_max - scaling.range_min;
+  return getDisplayValue({
+    value,
+    questionType,
+    scaling,
+    precision,
+    truncation,
+    range,
+  });
+}
+
+export function getQuestionDateFormatString(scaling: Scaling) {
+  const { range_min, range_max } = scaling;
+  let dateFormat = "dd MMM yyyy HH:mm";
+  if (!isNil(range_min) && !isNil(range_max)) {
+    const diffInSeconds = range_max - range_min;
     const oneWeek = 7 * 24 * 60 * 60;
     const oneYear = 365.25 * 24 * 60 * 60;
 
@@ -437,9 +453,7 @@ export function getTableDisplayValue({
       dateFormat = "yyyy";
     }
   }
-
-  const scaledValue = scaleInternalLocation(value, scaling);
-  return format(fromUnixTime(scaledValue), dateFormat);
+  return dateFormat;
 }
 
 export function getChoiceOptionValue(
@@ -462,20 +476,26 @@ export function getChoiceOptionValue(
     case QuestionType.Numeric:
       return getForecastNumericDisplayValue(scaledValue);
     case QuestionType.Date:
-      return getForecastDateDisplayValue(scaledValue);
+      return getForecastDateDisplayValue(scaledValue, scaling);
     case QuestionType.Binary:
     default:
       return getForecastPctDisplayValue(value);
   }
 }
 
-export function getUserPredictionDisplayValue(
-  myForecasts: UserForecastHistory,
-  timestamp: number | null | undefined,
-  questionType: Question | QuestionType,
-  scaling?: Scaling,
-  showRange?: boolean
-): string {
+export function getUserPredictionDisplayValue({
+  myForecasts,
+  timestamp,
+  questionType,
+  scaling,
+  showRange,
+}: {
+  myForecasts: UserForecastHistory;
+  timestamp: number | null | undefined;
+  questionType: Question | QuestionType;
+  scaling?: Scaling;
+  showRange?: boolean;
+}): string {
   if (!timestamp) {
     return "...";
   }
@@ -533,16 +553,37 @@ export function getUserPredictionDisplayValue(
     : null;
 
   if (questionType === QuestionType.Date) {
-    const displayCenter = format(fromUnixTime(scaledCenter), "yyyy-MM-dd");
+    const displayCenter = getDisplayValue({
+      value: center,
+      questionType,
+      scaling: scaling ?? { range_min: 0, range_max: 1, zero_point: null },
+    });
     if (showRange) {
-      const displayLower = !isNil(scaledLower)
-        ? format(fromUnixTime(scaledLower), "yyyy-MM-dd")
+      const displayLower = !isNil(lower)
+        ? getDisplayValue({
+            value: lower,
+            questionType,
+            scaling: scaling ?? {
+              range_min: 0,
+              range_max: 1,
+              zero_point: null,
+            },
+          })
         : "...";
-      const displayUpper = !isNil(scaledUpper)
-        ? format(fromUnixTime(scaledUpper), "yyyy-MM-dd")
+      const displayUpper = !isNil(upper)
+        ? getDisplayValue({
+            value: upper,
+            questionType,
+            scaling: scaling ?? {
+              range_min: 0,
+              range_max: 1,
+              zero_point: null,
+            },
+          })
         : "...";
-      return `${displayCenter} (${displayLower} - ${displayUpper})`;
+      return `${displayCenter}\n(${displayLower} - ${displayUpper})`;
     }
+
     return displayCenter;
   } else if (questionType === QuestionType.Numeric) {
     const displayCenter = abbreviatedNumber(scaledCenter);
@@ -553,7 +594,7 @@ export function getUserPredictionDisplayValue(
       const displayUpper = !isNil(scaledUpper)
         ? abbreviatedNumber(scaledUpper)
         : "...";
-      return `${displayCenter} (${displayLower} - ${displayUpper})`;
+      return `${displayCenter}\n(${displayLower} - ${displayUpper})`;
     }
     return displayCenter;
   } else {
@@ -641,20 +682,6 @@ export function generateScale({
   }
   const tickCount = (maxLabelCount - 1) * 5 + 1;
 
-  // console.log({
-  //   displayType,
-  //   axisLength,
-  //   domain,
-  //   scaling,
-  //   displayLabel,
-  //   withCursorFormat,
-  //   cursorDisplayLabel,
-  //   maxLabelCount,
-  //   tickCount,
-  //   domainScaling,
-  //   rangeScaling,
-  // });
-
   const tickInterval = zoomedDomainMax / (tickCount - 1);
   const labeledTickInterval = zoomedDomainMax / (maxLabelCount - 1);
   const majorTicks: number[] = range(
@@ -673,12 +700,14 @@ export function generateScale({
     tickFormat: (x) => {
       if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
         const unscaled = unscaleNominalLocation(x, domainScaling);
+
         return (
           getDisplayValue({
             value: unscaled,
             questionType: displayType as QuestionType,
             scaling: rangeScaling,
             precision: 3,
+            dateFormatString: "dd MMM yyyy",
           }) + displayLabel
         );
       }
@@ -851,7 +880,17 @@ export function generateChoiceItemsFromGroupQuestions(
     choiceOrdering.sort((a, b) => {
       const aCenter = latests[a]?.centers?.[0] ?? 0;
       const bCenter = latests[b]?.centers?.[0] ?? 0;
-      return bCenter - aCenter;
+      const aValueScaled = scaleInternalLocation(aCenter, {
+        range_min: questions[a]?.scaling?.range_min ?? 0,
+        range_max: questions[a]?.scaling?.range_max ?? 1,
+        zero_point: questions[a]?.scaling?.zero_point ?? null,
+      });
+      const bValueScaled = scaleInternalLocation(bCenter, {
+        range_min: questions[b]?.scaling?.range_min ?? 0,
+        range_max: questions[b]?.scaling?.range_max ?? 1,
+        zero_point: questions[b]?.scaling?.zero_point ?? null,
+      });
+      return bValueScaled - aValueScaled;
     });
   }
   const preselectedQuestionLabel = preselectedQuestionId
@@ -929,7 +968,7 @@ export function generateChoiceItemsFromGroupQuestions(
       }
     });
     sortedAggregationTimestamps.forEach((timestamp) => {
-      const aggregationForecast = aggregationHistory.find((forecast) => {
+      const aggregationForecast = aggregationHistory.findLast((forecast) => {
         return (
           forecast.start_time <= timestamp &&
           (forecast.end_time === null || forecast.end_time >= timestamp)
@@ -954,8 +993,13 @@ export function generateChoiceItemsFromGroupQuestions(
       highlighted: false,
       active: true,
       resolution: question.resolution,
-      displayedResolution: !!question.resolution
-        ? formatResolution(question.resolution, question.type, locale ?? "en")
+      displayedResolution: !isNil(question.resolution)
+        ? formatResolution({
+            resolution: question.resolution,
+            questionType: question.type,
+            locale: locale ?? "en",
+            scaling: question.scaling,
+          })
         : null,
       closeTime,
       rangeMin: question.scaling.range_min ?? 0,
@@ -996,17 +1040,25 @@ export function getFanOptionsFromContinuousGroup(
         latest && !latest.end_time ? latest.distribution_input : undefined
       );
 
+      let userCdf: number[] | null = null;
+      if (userForecast?.components) {
+        userForecast.type === ContinuousForecastInputType.Slider
+          ? (userCdf = getSliderNumericForecastDataset(
+              userForecast.components,
+              q.open_lower_bound,
+              q.open_upper_bound
+            ).cdf)
+          : (userCdf = getQuantileNumericForecastDataset(
+              populateQuantileComponents(userForecast.components),
+              q
+            ).cdf);
+      }
+
       return {
         name: q.label,
         communityCdf:
           q.aggregations.recency_weighted.latest?.forecast_values ?? [],
-        userCdf: userForecast?.components
-          ? getNumericForecastDataset(
-              userForecast.components,
-              q.open_lower_bound,
-              q.open_upper_bound
-            ).cdf
-          : null,
+        userCdf: userCdf,
         resolvedAt: new Date(q.scheduled_resolve_time),
         resolved: q.resolution !== null,
         question: q,
