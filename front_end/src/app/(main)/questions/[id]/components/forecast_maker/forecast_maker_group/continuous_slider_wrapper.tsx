@@ -210,11 +210,12 @@ const SliderWrapper: FC<PropsWithChildren<SliderWrapperProps>> = ({
                   className="text-purple-800 dark:text-purple-800-dark"
                   suppressHydrationWarning
                 >
-                  {formatResolution(
-                    option.resolution,
-                    option.question.type,
-                    locale
-                  )}
+                  {formatResolution({
+                    resolution: option.resolution,
+                    questionType: option.question.type,
+                    locale,
+                    scaling: option.question.scaling,
+                  })}
                 </strong>
               </p>
             </div>

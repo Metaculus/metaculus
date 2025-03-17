@@ -116,11 +116,12 @@ const GroupForecastTable: FC<Props> = ({
                         className="text-purple-800 dark:text-purple-800-dark"
                         suppressHydrationWarning
                       >
-                        {formatResolution(
-                          option.resolution,
-                          option.question.type,
-                          locale
-                        )}
+                        {formatResolution({
+                          resolution: option.resolution,
+                          questionType: option.question.type,
+                          locale,
+                          scaling: option.question.scaling,
+                        })}
                       </span>
                     </div>
                     <div>{option.menu}</div>

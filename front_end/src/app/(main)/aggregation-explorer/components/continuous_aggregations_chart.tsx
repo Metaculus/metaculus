@@ -42,7 +42,11 @@ const ContinuousAggregationChart: FC<Props> = ({
       range_max: scaling.range_max ?? 1,
       zero_point: scaling.zero_point,
     });
-    const xLabel = displayValue(scaledValue, qType, 5);
+    const xLabel = displayValue({
+      value: scaledValue,
+      questionType: qType,
+      precision: 5,
+    });
     return {
       xLabel,
       yUserLabel: null,

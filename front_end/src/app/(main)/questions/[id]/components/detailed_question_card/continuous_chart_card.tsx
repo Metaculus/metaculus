@@ -1,7 +1,7 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
 import CPRevealTime from "@/components/cp_reveal_time";
@@ -102,7 +102,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       return "...";
     }
 
-    return getDisplayValue({
+    const displayValue = getDisplayValue({
       value: cursorData?.center,
       questionType: question.type,
       scaling: question.scaling,
@@ -115,6 +115,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             ]
           : [],
     });
+    return renderDisplayValue(displayValue);
   }, [
     t,
     cursorData,
@@ -122,6 +123,25 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.scaling,
     question.type,
     hideCP,
+  ]);
+
+  const userCursorElement = useMemo(() => {
+    if (!question.my_forecasts?.history.length) {
+      return null;
+    }
+    const userDisplayValue = getUserPredictionDisplayValue({
+      myForecasts: question.my_forecasts,
+      timestamp: cursorData.timestamp,
+      questionType: question.type,
+      scaling: question.scaling,
+      showRange: true,
+    });
+    return renderDisplayValue(userDisplayValue);
+  }, [
+    question.my_forecasts,
+    cursorData.timestamp,
+    question.type,
+    question.scaling,
   ]);
 
   const handleCursorChange = useCallback((value: number | null) => {
@@ -176,7 +196,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       </div>
       <div
         className={cn(
-          "my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
+          "my-3 flex flex-col items-center justify-center gap-x-4 gap-y-2 xs:flex-row xs:flex-wrap xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
           { "sm:grid-cols-3": !!question.my_forecasts?.history.length }
         )}
       >
@@ -192,13 +212,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         {!!question.my_forecasts?.history.length && (
           <CursorDetailItem
             title={t("myPrediction")}
-            content={getUserPredictionDisplayValue(
-              question.my_forecasts,
-              cursorData.timestamp,
-              question.type,
-              question.scaling,
-              true
-            )}
+            content={userCursorElement}
             variant="my-prediction"
           />
         )}
@@ -206,5 +220,21 @@ const DetailedContinuousChartCard: FC<Props> = ({
     </div>
   );
 };
+
+function renderDisplayValue(displayValue: string): ReactNode {
+  const displayValueChunks = displayValue.split("\n");
+  if (displayValueChunks.length > 1) {
+    const [centerLabel, intervalLabel] = displayValueChunks;
+    return (
+      <>
+        <div>{centerLabel}</div>
+        {!isNil(intervalLabel) && (
+          <div className="text-xs font-medium">{intervalLabel}</div>
+        )}
+      </>
+    );
+  }
+  return displayValue;
+}
 
 export default DetailedContinuousChartCard;
