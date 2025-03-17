@@ -2,6 +2,7 @@ import { isNil } from "lodash";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 
+import CPWeeklyMovement from "@/components/cp_weekly_movement";
 import { PostWithForecasts } from "@/types/post";
 import {
   ForecastAvailability,
@@ -62,9 +63,12 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
 
     // Open/Closed
     return (
-      <QuestionForecastChip
-        question={question as QuestionWithNumericForecasts}
-      />
+      <div className="flex max-w-[200px] flex-col items-center justify-center gap-3">
+        <QuestionForecastChip
+          question={question as QuestionWithNumericForecasts}
+        />
+        <CPWeeklyMovement question={question} />
+      </div>
     );
   }
   return null;

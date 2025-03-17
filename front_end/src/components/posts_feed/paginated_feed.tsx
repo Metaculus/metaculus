@@ -149,7 +149,8 @@ const PaginatedPostsFeed: FC<Props> = ({
           QuestionType.Binary,
           QuestionType.MultipleChoice,
         ].includes(post.question.type)) ||
-        checkGroupOfQuestionsPostType(post, QuestionType.Binary))
+        checkGroupOfQuestionsPostType(post, QuestionType.Binary) ||
+        checkGroupOfQuestionsPostType(post, QuestionType.Numeric))
     ) {
       return <ConsumerPostCard post={post} />;
     }
