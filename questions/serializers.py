@@ -237,6 +237,7 @@ class ForecastSerializer(serializers.ModelSerializer):
         child=serializers.CharField(), source="question.options"
     )
     question_type = serializers.CharField(source="question.type")
+    question_unit = serializers.CharField(source="question.unit")
 
     class Meta:
         model = Forecast
@@ -249,6 +250,7 @@ class ForecastSerializer(serializers.ModelSerializer):
             "scaling",
             "options",
             "question_type",
+            "question_unit",
         )
 
     def get_quartiles(self, forecast: Forecast):
