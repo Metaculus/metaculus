@@ -31,30 +31,16 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
     {
       activeCount: visibleChoicesCount,
       locale,
-      preserveOrder: true,
     }
   );
+  // Move resolved/annulled choices to the start
   const sortedChoices = [...choices].sort((a, b) => {
-    // First comes the resolved/anulled choices
     const aResolved = !isNil(a.resolution);
     const bResolved = !isNil(b.resolution);
     if (aResolved !== bResolved) {
       return bResolved ? 1 : -1;
     }
-
-    const aValue = a.aggregationValues[a.aggregationValues.length - 1] ?? 0;
-    const bValue = b.aggregationValues[b.aggregationValues.length - 1] ?? 0;
-    const aValueScaled = scaleInternalLocation(aValue, {
-      range_min: a.scaling?.range_min ?? 0,
-      range_max: a.scaling?.range_max ?? 1,
-      zero_point: a.scaling?.zero_point ?? null,
-    });
-    const bValueScaled = scaleInternalLocation(bValue, {
-      range_min: b.scaling?.range_min ?? 0,
-      range_max: b.scaling?.range_max ?? 1,
-      zero_point: b.scaling?.zero_point ?? null,
-    });
-    return bValueScaled - aValueScaled;
+    return 0;
   });
 
   const isPostClosed = post.status === PostStatus.CLOSED;
