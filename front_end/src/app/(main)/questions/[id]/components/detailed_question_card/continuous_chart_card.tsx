@@ -9,13 +9,15 @@ import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ForecastAvailability, Question } from "@/types/question";
 import {
-  getUserPredictionDisplayValue,
-  getDisplayValue,
   getCursorForecast,
+  getDisplayValueObject,
+  getUserPredictionDisplayObject,
 } from "@/utils/charts";
 import cn from "@/utils/cn";
 
-import CursorDetailItem from "./numeric_cursor_item";
+import CursorDetailItem, {
+  CursorPredictionDrawer,
+} from "./numeric_cursor_item";
 
 type Props = {
   question: Question;
@@ -102,7 +104,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       return "...";
     }
 
-    return getDisplayValue({
+    const displayValueObject = getDisplayValueObject({
       value: cursorData?.center,
       questionType: question.type,
       scaling: question.scaling,
@@ -115,6 +117,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
             ]
           : [],
     });
+
+    return (
+      <CursorPredictionDrawer {...displayValueObject} unit={question.unit} />
+    );
   }, [
     t,
     cursorData,
@@ -193,13 +199,18 @@ const DetailedContinuousChartCard: FC<Props> = ({
         {!!question.my_forecasts?.history.length && (
           <CursorDetailItem
             title={t("myPrediction")}
-            content={getUserPredictionDisplayValue(
-              question.my_forecasts,
-              cursorData.timestamp,
-              question.type,
-              question.scaling,
-              true
-            )}
+            content={
+              <CursorPredictionDrawer
+                {...getUserPredictionDisplayObject(
+                  question.my_forecasts,
+                  cursorData.timestamp,
+                  question.type,
+                  question.scaling,
+                  true
+                )}
+                unit={question.unit}
+              />
+            }
             variant="my-prediction"
           />
         )}
