@@ -1,6 +1,4 @@
-import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
@@ -17,9 +15,9 @@ import {
 import {
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
-  isSuccessfullyResolved,
 } from "@/utils/questions";
 
+import ForecastCardWrapper from "./forecast_card_wrapper";
 import ForecastChoiceBar from "./forecast_choice_bar";
 
 type Props = {
@@ -28,7 +26,6 @@ type Props = {
 
 const PercentageForecastCard: FC<Props> = ({ post }) => {
   const visibleChoicesCount = 3;
-  const t = useTranslations();
   const locale = useLocale();
   if (!isMultipleChoicePost(post) && !isGroupOfQuestionsPost(post)) {
     return null;
@@ -40,7 +37,7 @@ const PercentageForecastCard: FC<Props> = ({ post }) => {
   const otherItemsCount = choices.length - visibleChoices.length;
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <ForecastCardWrapper otherItemsCount={otherItemsCount}>
       {visibleChoices.map((choice) => {
         const choiceValue = getChoiceOptionValue(
           choice.aggregationValues[choice.aggregationValues.length - 1] ?? null,
@@ -56,31 +53,16 @@ const PercentageForecastCard: FC<Props> = ({ post }) => {
             key={choice.id ?? choice.choice}
             choiceLabel={choice.choice}
             choiceValue={choiceValue}
-            isSuccessfullyResolved={isSuccessfullyResolved(choice.resolution)}
             isClosed={isChoiceClosed || isPostClosed}
             displayedResolution={choice.displayedResolution}
             resolution={choice.resolution}
-            width={Math.max(Number(choiceValue.replace("%", "")), 3)}
+            progress={Number(choiceValue.replace("%", ""))}
             color={choice.color}
-            withWrapper={true}
+            isBordered={true}
           />
         );
       })}
-      {otherItemsCount > 0 && (
-        <div className="flex flex-row items-center text-gray-600 dark:text-gray-600-dark">
-          <div className="self-center py-0 pr-1.5 text-center">
-            <FontAwesomeIcon
-              icon={faEllipsis}
-              size="xl"
-              className="resize-ellipsis"
-            />
-          </div>
-          <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
-            {t("and")} {t("otherWithCount", { count: otherItemsCount })}
-          </div>
-        </div>
-      )}
-    </div>
+    </ForecastCardWrapper>
   );
 };
 

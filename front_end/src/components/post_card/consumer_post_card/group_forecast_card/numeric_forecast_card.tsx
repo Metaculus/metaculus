@@ -1,7 +1,5 @@
-import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
@@ -11,21 +9,17 @@ import {
   getChoiceOptionValue,
   scaleInternalLocation,
 } from "@/utils/charts";
-import {
-  isGroupOfQuestionsPost,
-  isSuccessfullyResolved,
-} from "@/utils/questions";
+import { isGroupOfQuestionsPost } from "@/utils/questions";
 
+import ForecastCardWrapper from "./forecast_card_wrapper";
 import ForecastChoiceBar from "./forecast_choice_bar";
 
 type Props = {
   post: PostWithForecasts;
 };
 
-// TODO: implement numeric group forecast chart
 const NumericForecastCard: FC<Props> = ({ post }) => {
   const visibleChoicesCount = 3;
-  const t = useTranslations();
   const locale = useLocale();
 
   if (!isGroupOfQuestionsPost(post)) {
@@ -82,7 +76,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
   );
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <ForecastCardWrapper otherItemsCount={otherItemsCount}>
       {visibleChoices.map(
         ({
           closeTime,
@@ -118,31 +112,16 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
               key={id}
               choiceLabel={choice}
               choiceValue={formattedChoiceValue}
-              isSuccessfullyResolved={isSuccessfullyResolved(resolution)}
               isClosed={isChoiceClosed || isPostClosed}
               displayedResolution={displayedResolution}
               resolution={resolution}
-              width={relativeWidth}
+              progress={relativeWidth}
               color={color}
             />
           );
         }
       )}
-      {otherItemsCount > 0 && (
-        <div className="flex flex-row items-center text-gray-600 dark:text-gray-600-dark">
-          <div className="self-center py-0 pr-1.5 text-center">
-            <FontAwesomeIcon
-              icon={faEllipsis}
-              size="xl"
-              className="resize-ellipsis"
-            />
-          </div>
-          <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
-            {t("and")} {t("otherWithCount", { count: otherItemsCount })}
-          </div>
-        </div>
-      )}
-    </div>
+    </ForecastCardWrapper>
   );
 };
 
