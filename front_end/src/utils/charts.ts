@@ -456,8 +456,7 @@ export function getTableDisplayValue({
 export function getChoiceOptionValue(
   value: number | null,
   questionType?: QuestionType,
-  scaling?: Scaling,
-  unit?: string | undefined
+  scaling?: Scaling
 ) {
   if (isNil(value)) {
     return `?`;
@@ -472,7 +471,7 @@ export function getChoiceOptionValue(
   });
   switch (questionType) {
     case QuestionType.Numeric:
-      return formatValueUnit(getForecastNumericDisplayValue(scaledValue), unit);
+      return getForecastNumericDisplayValue(scaledValue);
     case QuestionType.Date:
       return getForecastDateDisplayValue(scaledValue);
     case QuestionType.Binary:

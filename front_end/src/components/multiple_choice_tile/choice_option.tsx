@@ -19,7 +19,6 @@ type Props = {
   scaling?: Scaling;
   hideIcon?: boolean;
   labelClassName?: string;
-  unit?: string;
 };
 
 const ChoiceOption: FC<Props> = ({
@@ -32,7 +31,6 @@ const ChoiceOption: FC<Props> = ({
   scaling,
   hideIcon,
   labelClassName,
-  unit,
 }) => {
   return (
     <div
@@ -59,8 +57,7 @@ const ChoiceOption: FC<Props> = ({
           {getChoiceOptionValue(
             values[values.length - 1] ?? null,
             questionType,
-            scaling,
-            unit
+            scaling
           )}
         </div>
       ) : (

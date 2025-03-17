@@ -40,7 +40,6 @@ const MultipleChoiceTileLegend: FC<Props> = ({
       {visibleChoices.map(
         ({
           choice,
-          unit,
           color,
           aggregationValues,
           resolution,
@@ -58,7 +57,6 @@ const MultipleChoiceTileLegend: FC<Props> = ({
             scaling={scaling}
             hideIcon={hideChoiceIcon}
             labelClassName={optionLabelClassName}
-            unit={unit}
           />
         )
       )}
