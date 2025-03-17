@@ -1145,7 +1145,7 @@
   "q2InRangeProbBelowError": "Quando seu percentil 50 está dentro do intervalo, a probabilidade abaixo do intervalo deve ser ≤ 50%",
   "q2InRangeProbAboveError": "Quando seu percentil 50 está dentro do intervalo, a probabilidade acima do intervalo deve ser ≤ 50%",
   "q3InRangeProbBelowError": "Quando seu percentil 75 está dentro do intervalo, a probabilidade abaixo do intervalo deve ser ≤ 75%",
-  "q3InRangeProbAboveError": "Quando seu percentil 75 está dentro do intervalo, a probabilidade acima do intervalo deve ser ≤ 25%"
+  "q3InRangeProbAboveError": "Quando seu percentil 75 está dentro do intervalo, a probabilidade acima do intervalo deve ser ≤ 25%",
   "chance": "chance",
   "questionUnit": "Unidade de Pergunta",
   "subquestionUnit": "Unidade de Subquestão",

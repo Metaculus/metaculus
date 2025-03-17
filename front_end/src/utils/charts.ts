@@ -348,6 +348,7 @@ export function getDisplayValue({
   truncation,
   range,
   dateFormatString,
+  unit,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -356,6 +357,7 @@ export function getDisplayValue({
   truncation?: number;
   range?: number[];
   dateFormatString?: string;
+  unit?: string;
 }): string {
   if (value === undefined || value === null) {
     return "...";
