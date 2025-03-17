@@ -46,11 +46,11 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
   if (question) {
     // Resolved/Annulled/Ambiguous
     if (question.resolution) {
-      const formatedResolution = formatResolution(
-        question.resolution,
-        question.type,
-        locale
-      );
+      const formatedResolution = formatResolution({
+        resolution: question.resolution,
+        questionType: question.type,
+        locale,
+      });
       const successfullResolution = isSuccessfullyResolved(question.resolution);
       return (
         <QuestionResolutionChip
