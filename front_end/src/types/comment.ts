@@ -51,6 +51,7 @@ export type ForecastType = {
   quartiles: [number, number, number];
   scaling: Scaling;
   question_type: QuestionType;
+  question_unit?: string;
 };
 
 export type KeyFactor = {
