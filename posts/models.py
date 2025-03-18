@@ -517,15 +517,6 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     # Whether we should display Post/Notebook on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
 
-    url_title = models.CharField(
-        max_length=2000, default="", blank=True, editable=False
-    )
-    url_title.system_check_deprecated_details = dict(
-        msg="The Post.url_title field has been renamed to url_title and will be removed in future releases",
-        hint="User Post.url_title instead",
-        id="Post.url_title",
-    )
-
     def set_scheduled_close_time(self):
         if self.question:
             self.scheduled_close_time = self.question.scheduled_close_time

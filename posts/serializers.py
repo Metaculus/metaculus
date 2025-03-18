@@ -56,7 +56,7 @@ class PostReadSerializer(serializers.ModelSerializer):
     coauthors = serializers.SerializerMethodField()
     nr_forecasters = serializers.IntegerField(source="forecasters_count")
     slug = serializers.SerializerMethodField()
-    url_title = serializers.SerializerMethodField()
+    url_title = serializers.CharField(source="short_title")
 
     class Meta:
         model = Post
@@ -84,10 +84,6 @@ class PostReadSerializer(serializers.ModelSerializer):
             "open_time",
             "nr_forecasters",
         )
-
-    def get_url_title(self, obj: Post):
-        # Backward compatibility field
-        return obj.short_title
 
     def get_author_username(self, obj: Post):
         return obj.author.username
