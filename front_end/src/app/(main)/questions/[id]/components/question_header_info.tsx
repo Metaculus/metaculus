@@ -5,6 +5,7 @@ import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostStatus from "@/components/post_status";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions";
 
 import ForecastersCounter from "../../components/forecaster_counter";
@@ -28,7 +29,7 @@ const QuestionHeaderInfo: FC<Props> = ({ post }) => {
 
         <CommentStatus
           newCommentsCount={newCommentsCount}
-          url={`/questions/${post.id}`}
+          url={getPostLink(post)}
         />
         {(post.group_of_questions ||
           post.question?.type === QuestionType.MultipleChoice) && (

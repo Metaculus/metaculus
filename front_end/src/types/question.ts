@@ -1,5 +1,7 @@
 import { QuestionStatus, Resolution } from "@/types/post";
 
+import { ContinuousForecastInputType } from "./charts";
+
 export enum QuestionType {
   Numeric = "numeric",
   Date = "date",
@@ -100,28 +102,31 @@ export type DistributionSliderComponent = {
   right: number;
 };
 
-export type DistributionQuantileComponent = {
-  // < lower bound
-  p0?: number;
-  // 25%
-  q1: number;
-  // median
-  q2: number;
-  // 75%
-  q3: number;
-  // > upper bound
-  p4?: number;
+export enum Quantile {
+  lower = "below_lower_bound",
+  upper = "above_upper_bound",
+  q1 = 25,
+  q2 = 50,
+  q3 = 75,
+}
+
+export type QuantileValue = {
+  quantile: Quantile;
+  value?: number; // quantile value or out of bounds value
+  isDirty?: boolean;
 };
+
+export type DistributionQuantileComponent = QuantileValue[];
 
 export type DistributionSlider =
   DistributionInput<DistributionSliderComponent> & {
-    type: "slider";
+    type: ContinuousForecastInputType.Slider;
   };
 
-export type DistributionQuantile =
-  DistributionInput<DistributionQuantileComponent> & {
-    type: "quantile";
-  };
+export type DistributionQuantile = {
+  components: DistributionQuantileComponent;
+  type: ContinuousForecastInputType.Quantile;
+};
 
 export type UserForecast = Forecast & {
   distribution_input: DistributionSlider | DistributionQuantile;
@@ -218,6 +223,7 @@ export type Question = {
   fine_print: string | null;
   resolution_criteria: string | null;
   label: string;
+  unit: string;
   nr_forecasters: number;
   author_username: string;
   post_id: number;
@@ -292,6 +298,7 @@ export type AggregationQuestion = {
   title: string;
   short_title: string;
   type: QuestionType;
+  unit?: string;
 };
 
 export enum CurveQuestionLabels {

@@ -22,7 +22,6 @@ from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
 from utils.the_math.measures import percent_point_function
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -59,6 +58,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution_criteria",
             "fine_print",
             "label",
+            "unit",
             "open_upper_bound",
             "open_lower_bound",
             "scaling",
@@ -112,6 +112,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "options",
             "group_variable",
             "label",
+            "unit",
             "scheduled_resolve_time",
             "scheduled_close_time",
             "resolution_criteria",
@@ -235,6 +236,7 @@ class ForecastSerializer(serializers.ModelSerializer):
         child=serializers.CharField(), source="question.options"
     )
     question_type = serializers.CharField(source="question.type")
+    question_unit = serializers.CharField(source="question.unit")
 
     class Meta:
         model = Forecast
@@ -247,6 +249,7 @@ class ForecastSerializer(serializers.ModelSerializer):
             "scaling",
             "options",
             "question_type",
+            "question_unit",
         )
 
     def get_quartiles(self, forecast: Forecast):
@@ -567,7 +570,6 @@ class ForecastWithdrawSerializer(serializers.Serializer):
 
 def serialize_question(
     question: Question,
-    with_cp: bool = False,
     current_user: User | None = None,
     post: Post | None = None,
     aggregate_forecasts: list[AggregateForecast] = None,
@@ -579,7 +581,7 @@ def serialize_question(
     """
 
     serialized_data = QuestionSerializer(question).data
-    serialized_data["post_id"] = post.id if post else question.get_post().id
+    serialized_data["post_id"] = post.id if post else question.get_post_id()
     serialized_data["aggregations"] = {
         "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
         "unweighted": {"history": [], "latest": None, "score_data": dict()},
@@ -591,36 +593,37 @@ def serialize_question(
         },
     }
 
-    if with_cp:
-        if question.cp_reveal_time and question.cp_reveal_time > timezone.now():
-            # don't show any forecasts
-            aggregate_forecasts = []
-
+    if aggregate_forecasts is not None:
         aggregate_forecasts_by_method: dict[
             AggregationMethod, list[AggregateForecast]
         ] = defaultdict(list)
 
-        if aggregate_forecasts is not None:
-            for aggregate in aggregate_forecasts:
-                aggregate_forecasts_by_method[aggregate.method].append(aggregate)
-        else:
-            if minimize:
-                aggregate_forecasts = question.aggregate_forecasts.all()
-                for aggregate in aggregate_forecasts:
-                    aggregate_forecasts_by_method[aggregate.method].append(aggregate)
-            else:
-                # TODO: accept other url params
-                aggregate_forecasts_by_method = get_aggregation_history(
-                    question,
-                    aggregation_methods=[
-                        AggregationMethod.RECENCY_WEIGHTED,
-                        AggregationMethod.UNWEIGHTED,
-                    ],
-                    minimize=minimize,
-                    include_stats=True,
-                    include_bots=question.include_bots_in_aggregates,
-                    histogram=True,
-                )
+        for aggregate in aggregate_forecasts:
+            aggregate_forecasts_by_method[aggregate.method].append(aggregate)
+
+        # Debug method for building aggregation history from scratch
+        # Will be replaced in favour of aggregation explorer
+        if not minimize:
+            aggregate_forecasts_by_method = get_aggregation_history(
+                question,
+                aggregation_methods=[
+                    AggregationMethod.RECENCY_WEIGHTED,
+                    AggregationMethod.UNWEIGHTED,
+                ],
+                minimize=False,
+                include_stats=True,
+                include_bots=question.include_bots_in_aggregates,
+                histogram=True,
+            )
+
+        recency_weighted = aggregate_forecasts_by_method.get(AggregationMethod.RECENCY_WEIGHTED)
+        serialized_data["nr_forecasters"] = (
+            recency_weighted[-1].forecaster_count if recency_weighted else 0
+        )
+
+        if question.cp_reveal_time and question.cp_reveal_time > timezone.now():
+            # don't show any forecasts
+            aggregate_forecasts_by_method = {}
 
         # Appending score data
         for suffix, scores in (
@@ -731,11 +734,10 @@ def serialize_conditional(
 
     # Generic questions
     serialized_data["condition"] = serialize_question(
-        conditional.condition, with_cp=False, post=conditional.condition.get_post()
+        conditional.condition, post=conditional.condition.get_post()
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
-        with_cp=False,
         post=conditional.condition_child.get_post(),
     )
 
@@ -747,7 +749,6 @@ def serialize_conditional(
     )
     serialized_data["question_yes"] = serialize_question(
         conditional.question_yes,
-        with_cp=with_cp,
         current_user=current_user,
         post=post,
         aggregate_forecasts=question_yes_aggregate_forecasts,
@@ -759,7 +760,6 @@ def serialize_conditional(
     )
     serialized_data["question_no"] = serialize_question(
         conditional.question_no,
-        with_cp=with_cp,
         current_user=current_user,
         post=post,
         aggregate_forecasts=question_no_aggregate_forecasts,
@@ -784,7 +784,6 @@ def serialize_group(
         serialized_data["questions"].append(
             serialize_question(
                 question,
-                with_cp=with_cp,
                 current_user=current_user,
                 post=post,
                 aggregate_forecasts=(

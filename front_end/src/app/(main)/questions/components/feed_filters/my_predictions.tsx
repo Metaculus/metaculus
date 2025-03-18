@@ -20,7 +20,9 @@ import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
-const MyPredictionsFilters: FC = () => {
+type Props = { panelClassname?: string };
+
+const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
@@ -146,6 +148,7 @@ const MyPredictionsFilters: FC = () => {
       onOrderChange={handleOrderChange}
       onPopOverFilterChange={handleFilterChange}
       defaultOrder={QuestionOrder.WeeklyMovementDesc}
+      panelClassname={panelClassname}
     />
   );
 };

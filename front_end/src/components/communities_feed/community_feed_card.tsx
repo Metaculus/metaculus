@@ -48,7 +48,12 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
           {!!width && (
             <MarkdownEditor
               mode="read"
-              markdown={getMarkdownSummary(community.description, width, 44, 7)}
+              markdown={getMarkdownSummary({
+                markdown: community.description,
+                width,
+                height: 44,
+                charWidth: 7,
+              })}
               contentEditableClassName="community font-serif *:m-0"
               withUgcLinks
             />

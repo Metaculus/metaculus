@@ -10,7 +10,11 @@ import { PostStatus } from "@/types/post";
 import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
-import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
+import {
+  formatResolution,
+  formatValueUnit,
+  isUnsuccessfullyResolved,
+} from "@/utils/questions";
 
 type Size = "compact" | "large";
 
@@ -48,11 +52,13 @@ const PredictionChip: FC<Props> = ({
 
   const { resolution, nr_forecasters } = question;
 
-  const formattedResolution = formatResolution(
+  const formattedResolution = formatResolution({
     resolution,
-    question.type,
-    locale
-  );
+    questionType: question.type,
+    locale,
+    scaling: question.scaling,
+    unit: question.unit,
+  });
 
   const renderUserForecast = () => {
     const latest = question.my_forecasts?.latest;
@@ -139,7 +145,7 @@ const PredictionChip: FC<Props> = ({
               style={unresovledChipStyle}
             >
               <FontAwesomeIcon icon={faUserGroup} size="xs" />
-              {communityPredictionDisplayValue}
+              {formatValueUnit(communityPredictionDisplayValue, question.unit)}
             </Chip>
           )}
           {!!nr_forecasters && (
@@ -179,7 +185,7 @@ const PredictionChip: FC<Props> = ({
               style={unresovledChipStyle}
             >
               <FontAwesomeIcon icon={faUserGroup} size="xs" />
-              {communityPredictionDisplayValue}
+              {formatValueUnit(communityPredictionDisplayValue, question.unit)}
             </Chip>
           )}
           {!!nr_forecasters && (
@@ -212,7 +218,10 @@ const PredictionChip: FC<Props> = ({
                 style={unresovledChipStyle}
               >
                 <FontAwesomeIcon icon={faUserGroup} size="xs" />
-                {communityPredictionDisplayValue}
+                {formatValueUnit(
+                  communityPredictionDisplayValue,
+                  question.unit
+                )}
               </Chip>
               {!compact && (
                 <CPWeeklyMovement

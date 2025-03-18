@@ -106,6 +106,8 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
     group_variable = models.CharField(blank=True, null=False)
 
+    unit = models.CharField(max_length=25, blank=True)
+
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
@@ -129,15 +131,21 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return super().save(**kwargs)
 
-    def get_post(self) -> "Post | None":
-        posts = [x.post for x in self.related_posts.all()]
+    def _get_post_rel(self):
+        rels = self.related_posts.all()
 
-        if len(posts) == 0:
+        if len(rels) == 0:
             return None
-        if len(posts) == 1:
-            return posts[0]
-        if len(posts) > 1:
-            raise ValueError(f"Question {self.id} has more than one post: {posts}")
+        if len(rels) == 1:
+            return rels[0]
+        if len(rels) > 1:
+            raise ValueError(f"Question {self.id} has more than one post: {rels}")
+
+    def get_post(self) -> "Post | None":
+        return getattr(self._get_post_rel(), "post", None)
+
+    def get_post_id(self):
+        return getattr(self._get_post_rel(), "post_id", None)
 
     @property
     def status(self) -> QuestionStatus:

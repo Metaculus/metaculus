@@ -14,7 +14,7 @@ urlpatterns = [
         name="create-withdraw",
     ),
     path(
-        "questions/<int:pk>/", views.question_detail_api_view, name="question-resolve"
+        "questions/<int:pk>/", views.question_detail_api_view, name="question-details"
     ),
     path(
         "questions/<int:pk>/resolve/", views.resolve_api_view, name="question-resolve"

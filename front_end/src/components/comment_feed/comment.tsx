@@ -485,12 +485,12 @@ const Comment: FC<CommentProps> = ({
                   {!!width && (
                     <MarkdownEditor
                       mode="read"
-                      markdown={getMarkdownSummary(
-                        comment.text,
+                      markdown={getMarkdownSummary({
+                        markdown: comment.text,
                         width,
-                        24,
-                        8.1
-                      )}
+                        height: 24,
+                        charWidth: 8.1,
+                      })}
                       contentEditableClassName="font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
                       withUgcLinks
                     />

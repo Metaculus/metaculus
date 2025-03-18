@@ -63,7 +63,7 @@ def update_post_search_embedding_vector(post: Post):
     )
 
     post.embedding_vector = vector
-    post.save()
+    post.save(update_fields=["embedding_vector"])
 
 
 def perform_post_search(qs, search_text: str):

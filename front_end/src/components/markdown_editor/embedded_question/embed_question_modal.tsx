@@ -147,7 +147,14 @@ const PredictionInfo: FC<{ question: QuestionWithNumericForecasts }> = ({
             name="community"
             className="w-[13px]"
           />
-          <span>{formatPrediction(prediction, question.type)}</span>
+          <span>
+            {formatPrediction(
+              prediction,
+              question.type,
+              question.scaling,
+              question.unit
+            )}
+          </span>
         </div>
       )}
     </div>

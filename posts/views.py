@@ -37,7 +37,9 @@ from posts.services.common import (
     approve_post,
     update_post,
     submit_for_review_post,
+    reject_post,
     post_make_draft,
+    send_back_to_review,
     compute_hotness,
     trigger_update_post_translations,
     make_repost,
@@ -93,6 +95,7 @@ def posts_list_api_view(request):
         with_cp=with_cp,
         current_user=request.user,
         group_cutoff=group_cutoff,
+        with_key_factors=True,
     )
 
     return paginator.get_paginated_response(data)
@@ -296,7 +299,7 @@ def post_update_api_view(request, pk):
 def post_approve_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
     permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_approve(permission, raise_exception=True)
+    ObjectPermission.can_approve_or_reject(permission, raise_exception=True)
 
     serializer = QuestionApproveSerializer(post, data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -318,6 +321,17 @@ def post_submit_for_review_api_view(request, pk):
 
 
 @api_view(["POST"])
+def post_reject_api_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_approve_or_reject(permission, raise_exception=True)
+
+    reject_post(post)
+
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
 def post_make_draft_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
     permission = get_post_permission_for_user(post, user=request.user)
@@ -326,6 +340,20 @@ def post_make_draft_api_view(request, pk):
     post_make_draft(post)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def post_send_back_to_review_api_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    permission = get_post_permission_for_user(post, user=request.user)
+    if permission not in (ObjectPermission.ADMIN):
+        raise PermissionDenied(
+            "You do not have permission to send back to review this post"
+        )
+
+    send_back_to_review(post)
+
+    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(["DELETE"])
