@@ -396,7 +396,6 @@ export function getDisplayValue({
       scaling,
       truncation,
       dateFormatString,
-      unit,
     });
     return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }

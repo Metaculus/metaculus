@@ -68,7 +68,7 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
         <QuestionForecastChip
           question={question as QuestionWithNumericForecasts}
         />
-        <CPWeeklyMovement question={question} />
+        <CPWeeklyMovement question={question} displayUnit={false} />
       </div>
     );
   }
