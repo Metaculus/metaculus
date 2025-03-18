@@ -1147,5 +1147,9 @@
   "q2InRangeProbBelowError": "Cuando su percentil 50 está dentro del rango, su probabilidad debajo del rango debe ser ≤ 50%",
   "q2InRangeProbAboveError": "Cuando su percentil 50 está dentro del rango, su probabilidad por encima del rango debe ser ≤ 50%",
   "q3InRangeProbBelowError": "Cuando su percentil 75 está dentro del rango, su probabilidad debajo del rango debe ser ≤ 75%",
-  "q3InRangeProbAboveError": "Cuando su percentil 75 está dentro del rango, su probabilidad por encima del rango debe ser ≤ 25%"
+  "q3InRangeProbAboveError": "Cuando su percentil 75 está dentro del rango, su probabilidad por encima del rango debe ser ≤ 25%",
+  "chance": "oportunidad",
+  "questionUnit": "Unidad de Pregunta",
+  "subquestionUnit": "Unidad de Subpregunta",
+  "questionUnitDescription": "La unidad se muestra junto con la mediana y en varios otros lugares. Ejemplos: “$”, “Casos”, “Personas”."
 }

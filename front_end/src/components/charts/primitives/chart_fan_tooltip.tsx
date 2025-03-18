@@ -134,6 +134,7 @@ const ChartFanTooltip: FC<Props> = ({
                       questionType: question.type,
                       locale,
                       scaling: question.scaling,
+                      unit: question.unit,
                     })}
                   </div>
                 </td>

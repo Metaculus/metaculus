@@ -54,6 +54,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     questionType: question.type,
     locale,
     scaling: question.scaling,
+    unit: question.unit,
   });
 
   const showUserPrediction = hasUserForecast || isDirty;

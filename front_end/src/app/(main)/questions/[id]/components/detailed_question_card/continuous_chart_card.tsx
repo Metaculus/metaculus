@@ -114,6 +114,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
               cursorData?.interval_upper_bound as number,
             ]
           : [],
+      unit: question.unit,
     });
     return renderDisplayValue(displayValue);
   }, [
@@ -135,6 +136,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       questionType: question.type,
       scaling: question.scaling,
       showRange: true,
+      unit: question.unit,
     });
     return renderDisplayValue(userDisplayValue);
   }, [
@@ -192,6 +194,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
               ? new Date(question.open_time).getTime()
               : undefined
           }
+          unit={question.unit}
         />
       </div>
       <div
