@@ -40,6 +40,8 @@ import { formatDate } from "./date_formatters";
 
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
+// Max length of a unit to be treated as compact
+export const QUESTION_UNIT_COMPACT_LENGTH = 3;
 
 export function isMultipleChoicePost(post: PostWithForecasts) {
   return post.question?.type === QuestionType.MultipleChoice;
@@ -643,3 +645,6 @@ export const formatValueUnit = (value: string, unit?: string) => {
 
   return unit === "%" ? `${value}%` : `${value} ${unit}`;
 };
+
+export const isUnitCompact = (unit?: string) =>
+  unit && unit.length <= QUESTION_UNIT_COMPACT_LENGTH;
