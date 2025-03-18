@@ -18,6 +18,7 @@ from questions.models import (
     AggregationMethod,
 )
 from users.models import User
+from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
 from utils.the_math.measures import percent_point_function
 
@@ -573,6 +574,7 @@ def serialize_question(
     post: Post | None = None,
     aggregate_forecasts: list[AggregateForecast] = None,
     full_forecast_values: bool = False,
+    minimize: bool = True,
 ):
     """
     Serializes question object
@@ -598,6 +600,21 @@ def serialize_question(
 
         for aggregate in aggregate_forecasts:
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
+
+        # Debug method for building aggregation history from scratch
+        # Will be replaced in favour of aggregation explorer
+        if not minimize:
+            aggregate_forecasts_by_method = get_aggregation_history(
+                question,
+                aggregation_methods=[
+                    AggregationMethod.RECENCY_WEIGHTED,
+                    AggregationMethod.UNWEIGHTED,
+                ],
+                minimize=False,
+                include_stats=True,
+                include_bots=question.include_bots_in_aggregates,
+                histogram=True,
+            )
 
         recency_weighted = aggregate_forecasts_by_method.get(AggregationMethod.RECENCY_WEIGHTED)
         serialized_data["nr_forecasters"] = (

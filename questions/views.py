@@ -38,12 +38,16 @@ def question_detail_api_view(request, pk: int):
 
     with_cp = request.GET.get("with_cp", False)
 
+    # minimize the aggregation data by default
+    minimize = str(request.GET.get("minimize", "true")).lower() == "true"
+
     return Response(
         serialize_question(
             question,
             post=question.get_post(),
             aggregate_forecasts=question.aggregate_forecasts.all() if with_cp else None,
             current_user=request.user,
+            minimize=minimize,
         )
     )
 
