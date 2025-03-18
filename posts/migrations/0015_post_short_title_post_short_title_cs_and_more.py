@@ -28,7 +28,7 @@ def migrate(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("posts", "0013_alter_post_hotness"),
+        ("posts", "0014_notebook_is_automatically_translated_and_more"),
     ]
 
     operations = [
