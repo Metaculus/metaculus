@@ -145,6 +145,7 @@ const PaginatedPostsFeed: FC<Props> = ({
       isConsumerViewEnabled &&
       ((isQuestionPost(post) &&
         [
+          QuestionType.Numeric,
           QuestionType.Date,
           QuestionType.Binary,
           QuestionType.MultipleChoice,
