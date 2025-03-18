@@ -13,6 +13,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { isUnitCompact } from "@/utils/questions";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
 import { useHideCP } from "../../cp_provider";
@@ -97,19 +98,30 @@ const GroupForecastAccordion: FC<Props> = ({
     [options]
   );
 
+  const homogeneousUnit = useMemo(() => {
+    const units = Array.from(new Set(options.map((obj) => obj.question.unit)));
+
+    if (units.length !== 1) return undefined;
+
+    return units[0] || undefined;
+  }, [options]);
+
   return (
     <div className="w-full">
       {!!activeOptions.length && (
         <div className="mb-0.5 mt-2 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
-          <div className="shrink grow overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15">
+          <div className="flex shrink grow items-center overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15">
             <span className="line-clamp-2 pl-4">{groupVariable}</span>
           </div>
-          <div className="flex max-w-[105px] shrink grow-[3] gap-0.5 text-center sm:max-w-[422px]">
+          <div className="flex max-w-[105px] shrink grow-[3] items-center gap-0.5 text-center sm:max-w-[422px]">
             <div className="w-[105px] bg-blue-600/15 py-1 dark:bg-blue-400/15">
-              median
+              {t("median")}
+              {homogeneousUnit && !isUnitCompact(homogeneousUnit) && (
+                <div>({homogeneousUnit})</div>
+              )}
             </div>
-            <div className="hidden bg-blue-600/15 dark:bg-blue-400/15 sm:block sm:w-[325px] sm:shrink-0 sm:grow-0 sm:py-1">
-              PDF
+            <div className="hidden h-full bg-blue-600/15 dark:bg-blue-400/15 sm:flex sm:w-[325px] sm:shrink-0 sm:grow-0 sm:py-1">
+              <div className="m-auto">{t("pdf")}</div>
             </div>
           </div>
           <div className="w-[43px] shrink-0 grow-0 bg-blue-600/15 py-1 dark:bg-blue-400/15"></div>
@@ -123,6 +135,11 @@ const GroupForecastAccordion: FC<Props> = ({
             key={option.id}
             subQuestionId={subQuestionId}
             type={QuestionStatus.OPEN}
+            unit={
+              option.question.unit && isUnitCompact(option.question.unit)
+                ? option.question.unit
+                : undefined
+            }
           >
             <ContinuousInputWrapper
               option={option}

@@ -41,6 +41,7 @@ import {
   formatMultipleChoiceResolution,
   formatResolution,
   formatValueUnit,
+  isUnitCompact,
   isUnsuccessfullyResolved,
 } from "@/utils/questions";
 
@@ -54,9 +55,6 @@ import {
   getSliderNumericForecastDataset,
   populateQuantileComponents,
 } from "./forecasts";
-
-// Max length of a unit to be treated as compact
-const UNIT_COMPACT_LENGTH = 3;
 
 export function getContinuousChartTypeFromQuestion(
   type: QuestionType
@@ -447,7 +445,7 @@ export function getTableDisplayValue({
     range,
   });
 
-  return unit && unit.length <= UNIT_COMPACT_LENGTH
+  return isUnitCompact(unit)
     ? formatValueUnit(formatted_value, unit)
     : formatted_value;
 }
@@ -721,7 +719,7 @@ export function generateScale({
     if (!unit) return value;
 
     // Include unit if it's within the length limit
-    if (unit.length <= UNIT_COMPACT_LENGTH) return formatValueUnit(value, unit);
+    if (isUnitCompact(unit)) return formatValueUnit(value, unit);
 
     // Include unit only for the first and last tick in horizontal mode
     if (
