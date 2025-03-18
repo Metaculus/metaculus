@@ -1,6 +1,9 @@
+from datetime import datetime
+
 import pytest  # noqa
-from django.utils import timezone
 from freezegun import freeze_time
+from django.utils import timezone
+
 
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
@@ -8,10 +11,10 @@ from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
-from tests.unit.test_posts.factories import factory_post_snapshot
+from tests.unit.test_posts.factories import factory_post, factory_post_snapshot
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import factory_forecast
+from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_users.factories import factory_user
 
 
