@@ -6,6 +6,7 @@ import { FC } from "react";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
 import cn from "@/utils/cn";
+import { formatValueUnit } from "@/utils/questions";
 
 import WeeklyMovement from "./weekly_movement";
 
@@ -29,15 +30,17 @@ const CPWeeklyMovement: FC<Props> = ({
     return null;
   }
 
-  const message = `${displayValue(
-    Math.abs(weeklyMovement),
-    question.type
-  )}${percentagePoints}`.replace("%", "");
+  const message = `${displayValue({
+    value: Math.abs(weeklyMovement),
+    questionType: question.type,
+  })}${percentagePoints}`.replace("%", "");
 
   return (
     <WeeklyMovement
       weeklyMovement={weeklyMovement}
-      message={t("weeklyMovementChange", { value: message })}
+      message={t("weeklyMovementChange", {
+        value: formatValueUnit(message, question.unit),
+      })}
       className={cn("text-xs", className)}
       iconClassName="text-sm"
     />

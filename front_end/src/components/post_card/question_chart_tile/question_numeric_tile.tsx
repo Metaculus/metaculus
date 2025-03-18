@@ -20,11 +20,7 @@ import {
   getContinuousAreaChartData,
   getContinuousChartTypeFromQuestion,
 } from "@/utils/charts";
-import {
-  extractPrevBinaryForecastValue,
-  extractPrevNumericForecastValue,
-  getNumericForecastDataset,
-} from "@/utils/forecasts";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 const HEIGHT = 100;
 
@@ -93,46 +89,27 @@ const QuestionNumericTile: FC<Props> = ({
           const activeForecast = isNil(userForecast.end_time)
             ? userForecast
             : undefined;
-          const activeForecastSliderValues = activeForecast
-            ? extractPrevNumericForecastValue(activeForecast.distribution_input)
-            : undefined;
-          const forecast = activeForecastSliderValues?.components;
-          if (!forecast) {
+
+          if (!activeForecast) {
             return;
           }
-
-          const dataset = getNumericForecastDataset(
-            forecast,
-            question.open_lower_bound,
-            question.open_upper_bound
-          );
-          const userCdf = dataset.cdf;
 
           onReaffirm([
             {
               questionId: question.id,
               forecastData: {
-                continuousCdf: userCdf,
+                continuousCdf: activeForecast.forecast_values,
                 probabilityYes: null,
                 probabilityYesPerCategory: null,
               },
-              distributionInput: {
-                type: "slider",
-                components: forecast,
-              },
+              distributionInput: activeForecast.distribution_input,
             },
           ]);
           break;
         }
       }
     },
-    [
-      onReaffirm,
-      question.id,
-      question.open_lower_bound,
-      question.open_upper_bound,
-      question.type,
-    ]
+    [onReaffirm, question.id, question.type]
   );
 
   return (
@@ -180,6 +157,7 @@ const QuestionNumericTile: FC<Props> = ({
                 ? new Date(question.open_time).getTime()
                 : undefined
             }
+            unit={question.unit}
           />
         ) : (
           <ContinuousAreaChart
@@ -189,6 +167,7 @@ const QuestionNumericTile: FC<Props> = ({
             questionType={question.type}
             resolution={question.resolution}
             hideCP={hideCP}
+            unit={question.unit}
           />
         )}
 

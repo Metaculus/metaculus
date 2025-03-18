@@ -59,3 +59,10 @@ def abbreviated_number(
     return (
         to_scientific_notation(val, sigfigs, leading_numbers, trailing_zeros) + suffix
     )
+
+
+def format_value_unit(value, unit):
+    if not unit:
+        return value
+
+    return f"{value}%" if unit == "%" else f"{value} {unit}"

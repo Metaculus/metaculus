@@ -1,10 +1,10 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { differenceInMilliseconds, isValid, parseISO } from "date-fns";
+import { differenceInMilliseconds, format, isValid, parseISO } from "date-fns";
 import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
-import { ConditionalTableOption } from "@/app/(main)/questions/[id]/components/forecast_maker/group_forecast_table";
+import { ContinuousGroupOption } from "@/app/(main)/questions/[id]/components/forecast_maker/continuous_group_accordion/group_forecast_accordion";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
 import {
@@ -29,7 +29,11 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
-import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
+import {
+  getQuestionDateFormatString,
+  scaleInternalLocation,
+  unscaleNominalLocation,
+} from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
@@ -37,19 +41,35 @@ import { formatDate } from "./date_formatters";
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
 
+export function isMultipleChoicePost(post: PostWithForecasts) {
+  return post.question?.type === QuestionType.MultipleChoice;
+}
+// TODO: remove this function when we will have consumer view for all group questions
+export function checkGroupOfQuestionsPostType(
+  post: PostWithForecasts,
+  type: QuestionType
+) {
+  return (
+    isGroupOfQuestionsPost(post) &&
+    post.group_of_questions.questions[0]?.type === type
+  );
+}
 export function isQuestionPost<QT>(post: Post<QT>): post is QuestionPost<QT> {
   return !isNil(post.question);
 }
+
 export function isGroupOfQuestionsPost<QT>(
   post: Post<QT>
 ): post is GroupOfQuestionsPost<QT> {
   return !isNil(post.group_of_questions);
 }
+
 export function isConditionalPost<QT>(
   post: Post<QT>
 ): post is ConditionalPost<QT> {
   return !isNil(post.conditional);
 }
+
 export function isNotebookPost(post: Post): post is NotebookPost {
   return !isNil(post.notebook);
 }
@@ -165,11 +185,19 @@ export function isSuccessfullyResolved(resolution: Resolution | null) {
   return isResolved(resolution) && !isUnsuccessfullyResolved(resolution);
 }
 
-export function formatResolution(
-  resolution: number | string | null | undefined,
-  questionType: QuestionType,
-  locale: string
-) {
+export function formatResolution({
+  resolution,
+  questionType,
+  locale,
+  scaling,
+  unit,
+}: {
+  resolution: number | string | null | undefined;
+  questionType: QuestionType;
+  locale: string;
+  scaling?: Scaling;
+  unit?: string;
+}) {
   if (resolution === null || resolution === undefined) {
     return "-";
   }
@@ -194,20 +222,25 @@ export function formatResolution(
   if (questionType === QuestionType.Date) {
     if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
       const date = new Date(Number(resolution));
-
-      return isValid(date)
-        ? formatDate(locale, new Date(Number(resolution)))
-        : resolution;
+      if (isValid(date)) {
+        return scaling
+          ? format(date, getQuestionDateFormatString(scaling))
+          : formatDate(locale, date);
+      }
+      return resolution;
     }
 
     const date = new Date(resolution);
-    return isValid(date)
-      ? formatDate(locale, new Date(resolution))
-      : resolution;
+    if (isValid(date)) {
+      return scaling
+        ? format(date, getQuestionDateFormatString(scaling))
+        : formatDate(locale, date);
+    }
+    return resolution;
   }
 
   if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
-    return abbreviatedNumber(Number(resolution));
+    return formatValueUnit(abbreviatedNumber(Number(resolution)), unit);
   }
 
   if (questionType === QuestionType.MultipleChoice) {
@@ -507,7 +540,7 @@ export function getPredictionInputMessage(post: Post) {
 }
 
 export function getSubquestionPredictionInputMessage(
-  option: ConditionalTableOption
+  option: ContinuousGroupOption
 ) {
   switch (option.question.status) {
     case QuestionStatus.CLOSED:
@@ -593,9 +626,7 @@ export function getQuestionForecastAvailability(
   question: QuestionWithForecasts
 ): ForecastAvailability {
   return {
-    isEmpty:
-      !question.aggregations.recency_weighted.history.length &&
-      !question.my_forecasts?.history.length,
+    isEmpty: getIsQuestionForecastEmpty(question),
     cpRevealsOn:
       question.cp_reveal_time && new Date(question.cp_reveal_time) >= new Date()
         ? question.cp_reveal_time
@@ -606,3 +637,9 @@ export function getQuestionForecastAvailability(
 const getIsQuestionForecastEmpty = (question: QuestionWithForecasts): boolean =>
   !question.aggregations.recency_weighted.history.length &&
   !question.my_forecasts?.history.length;
+
+export const formatValueUnit = (value: string, unit?: string) => {
+  if (!unit) return value;
+
+  return unit === "%" ? `${value}%` : `${value} ${unit}`;
+};
