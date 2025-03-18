@@ -296,7 +296,7 @@ export type AggregationQuestion = {
   scheduled_close_time: string;
   scheduled_resolve_time: string;
   title: string;
-  url_title: string;
+  short_title: string;
   type: QuestionType;
   unit?: string;
 };
