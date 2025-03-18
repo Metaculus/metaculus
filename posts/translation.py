@@ -3,7 +3,7 @@ from .models import Post, Notebook
 
 
 class PostTranslationOptions(TranslationOptions):
-    fields = ("title", "url_title")
+    fields = ("title", "short_title", "url_title")
 
 
 class NotebookTranslationOptions(TranslationOptions):

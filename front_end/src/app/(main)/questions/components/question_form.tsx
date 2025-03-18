@@ -45,7 +45,7 @@ const MIN_OPTIONS_AMOUNT = 2;
 
 type PostCreationData = {
   title: string;
-  url_title: string;
+  short_title: string;
   categories: number[];
   question: any;
   default_project: number;
@@ -65,7 +65,7 @@ const createQuestionSchemas = (
       .max(200, {
         message: t("errorMaxLength", { field: "String", maxLength: 200 }),
       }),
-    url_title: z
+    short_title: z
       .string()
       .min(4, {
         message: t("errorMinLength", { field: "String", minLength: 4 }),
@@ -263,7 +263,7 @@ const QuestionForm: FC<Props> = ({
 
     const post_data: PostCreationData = {
       title: data["title"],
-      url_title: data["url_title"],
+      short_title: data["short_title"],
       default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
       question: data,
@@ -393,9 +393,9 @@ const QuestionForm: FC<Props> = ({
           explanation={t("shortTitleExplanation")}
         >
           <Input
-            {...form.register("url_title")}
-            errors={form.formState.errors.url_title}
-            defaultValue={post?.url_title}
+            {...form.register("short_title")}
+            errors={form.formState.errors.short_title}
+            defaultValue={post?.short_title}
             className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>

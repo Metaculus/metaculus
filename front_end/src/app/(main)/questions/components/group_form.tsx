@@ -46,7 +46,7 @@ import { createQuestionPost, updatePost } from "../actions";
 type PostCreationData = {
   group_of_questions: any;
   title: string;
-  url_title: string;
+  short_title: string;
   categories: number[];
   default_project: number;
 };
@@ -61,7 +61,7 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
       .max(200, {
         message: t("errorMaxLength", { field: "String", maxLength: 200 }),
       }),
-    url_title: z.string().min(1, { message: t("errorRequired") }),
+    short_title: z.string().min(1, { message: t("errorRequired") }),
     group_variable: z.string().max(200, {
       message: t("errorMaxLength", { field: "String", maxLength: 200 }),
     }),
@@ -206,7 +206,7 @@ const GroupForm: React.FC<Props> = ({
     }
     const post_data: PostCreationData = {
       title: data["title"],
-      url_title: data["url_title"],
+      short_title: data["short_title"],
       default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
       group_of_questions: {
@@ -365,9 +365,9 @@ const GroupForm: React.FC<Props> = ({
           explanation={t("shortTitleExplanation")}
         >
           <Input
-            {...form.register("url_title")}
-            errors={form.formState.errors.url_title}
-            defaultValue={post?.url_title}
+            {...form.register("short_title")}
+            errors={form.formState.errors.short_title}
+            defaultValue={post?.short_title}
             className={
               "rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             }
