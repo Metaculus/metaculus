@@ -59,6 +59,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution_criteria",
             "fine_print",
             "label",
+            "unit",
             "open_upper_bound",
             "open_lower_bound",
             "scaling",
@@ -112,6 +113,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "options",
             "group_variable",
             "label",
+            "unit",
             "scheduled_resolve_time",
             "scheduled_close_time",
             "resolution_criteria",
@@ -235,6 +237,7 @@ class ForecastSerializer(serializers.ModelSerializer):
         child=serializers.CharField(), source="question.options"
     )
     question_type = serializers.CharField(source="question.type")
+    question_unit = serializers.CharField(source="question.unit")
 
     class Meta:
         model = Forecast
@@ -247,6 +250,7 @@ class ForecastSerializer(serializers.ModelSerializer):
             "scaling",
             "options",
             "question_type",
+            "question_unit",
         )
 
     def get_quartiles(self, forecast: Forecast):

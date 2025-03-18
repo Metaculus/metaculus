@@ -57,16 +57,19 @@ export function checkGroupOfQuestionsPostType(
 export function isQuestionPost<QT>(post: Post<QT>): post is QuestionPost<QT> {
   return !isNil(post.question);
 }
+
 export function isGroupOfQuestionsPost<QT>(
   post: Post<QT>
 ): post is GroupOfQuestionsPost<QT> {
   return !isNil(post.group_of_questions);
 }
+
 export function isConditionalPost<QT>(
   post: Post<QT>
 ): post is ConditionalPost<QT> {
   return !isNil(post.conditional);
 }
+
 export function isNotebookPost(post: Post): post is NotebookPost {
   return !isNil(post.notebook);
 }
@@ -187,11 +190,13 @@ export function formatResolution({
   questionType,
   locale,
   scaling,
+  unit,
 }: {
   resolution: number | string | null | undefined;
   questionType: QuestionType;
   locale: string;
   scaling?: Scaling;
+  unit?: string;
 }) {
   if (resolution === null || resolution === undefined) {
     return "-";
@@ -235,7 +240,7 @@ export function formatResolution({
   }
 
   if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
-    return abbreviatedNumber(Number(resolution));
+    return formatValueUnit(abbreviatedNumber(Number(resolution)), unit);
   }
 
   if (questionType === QuestionType.MultipleChoice) {
@@ -632,3 +637,9 @@ export function getQuestionForecastAvailability(
 const getIsQuestionForecastEmpty = (question: QuestionWithForecasts): boolean =>
   !question.aggregations.recency_weighted.history.length &&
   !question.my_forecasts?.history.length;
+
+export const formatValueUnit = (value: string, unit?: string) => {
+  if (!unit) return value;
+
+  return unit === "%" ? `${value}%` : `${value} ${unit}`;
+};
