@@ -257,6 +257,7 @@ const GroupForm: React.FC<Props> = ({
               scaling: x.scaling,
               open_lower_bound: x.open_lower_bound,
               open_upper_bound: x.open_upper_bound,
+              has_forecasts: (x.nr_forecasters || 0) > 0,
             };
           })
       : []
@@ -440,9 +441,6 @@ const GroupForm: React.FC<Props> = ({
           <h4 className="m-0 capitalize">{t("subquestions")}</h4>
 
           {subQuestions.map((subQuestion, index) => {
-            const subquestionHasForecasts =
-              (subQuestion.aggregations?.recency_weighted?.history?.length ??
-                0) > 0;
             return (
               <div
                 key={index}
@@ -503,9 +501,6 @@ const GroupForm: React.FC<Props> = ({
                         className="w-full"
                       >
                         <DatetimeUtc
-                          readOnly={
-                            subquestionHasForecasts && mode !== "create"
-                          }
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           defaultValue={subQuestion.scheduled_close_time}
                           onChange={(value) => {
@@ -545,9 +540,6 @@ const GroupForm: React.FC<Props> = ({
                         className="w-full"
                       >
                         <DatetimeUtc
-                          readOnly={
-                            subquestionHasForecasts && mode !== "create"
-                          }
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           defaultValue={subQuestion.scheduled_resolve_time}
                           onChange={(value) => {
@@ -635,7 +627,7 @@ const GroupForm: React.FC<Props> = ({
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
                         defaultZeroPoint={subQuestion.scaling.zero_point}
                         hasForecasts={
-                          subquestionHasForecasts && mode !== "create"
+                          subQuestion.has_forecasts && mode !== "create"
                         }
                         chartWidth={720}
                         onChange={({
