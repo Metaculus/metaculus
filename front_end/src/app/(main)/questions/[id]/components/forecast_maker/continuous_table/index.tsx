@@ -175,6 +175,7 @@ const ContinuousTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </Td>
                 )}
@@ -195,6 +196,7 @@ const ContinuousTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </Td>
                 )}
@@ -221,6 +223,7 @@ const ContinuousTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
               <Td className="tabular-nums tracking-tight">
@@ -230,6 +233,7 @@ const ContinuousTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
               <Td className="tabular-nums tracking-tight">
@@ -239,6 +243,7 @@ const ContinuousTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
               {question.open_upper_bound && (
@@ -269,6 +274,7 @@ const ContinuousTable: FC<Props> = ({
                         questionType: question.type,
                         scaling: question.scaling,
                         precision: 4,
+                        unit: question.unit,
                       })}
                     </Td>
                     <Td className="tabular-nums tracking-tight">
@@ -278,6 +284,7 @@ const ContinuousTable: FC<Props> = ({
                         questionType: question.type,
                         scaling: question.scaling,
                         precision: 4,
+                        unit: question.unit,
                       })}
                     </Td>
                     <Td className="tabular-nums tracking-tight">
@@ -287,6 +294,7 @@ const ContinuousTable: FC<Props> = ({
                         questionType: question.type,
                         scaling: question.scaling,
                         precision: 4,
+                        unit: question.unit,
                       })}
                     </Td>
                     {question.open_upper_bound && userBounds && (
@@ -466,6 +474,7 @@ const ContinuousTable: FC<Props> = ({
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
+                    unit: question.unit,
                   })}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
@@ -475,6 +484,7 @@ const ContinuousTable: FC<Props> = ({
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
+                    unit: question.unit,
                   })}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
@@ -484,6 +494,7 @@ const ContinuousTable: FC<Props> = ({
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
+                    unit: question.unit,
                   })}
                 </Td>
                 {question.open_upper_bound && userPreviousBounds && (
@@ -591,6 +602,7 @@ const ContinuousTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -621,6 +633,7 @@ const ContinuousTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </>
                 ) : (
@@ -636,6 +649,7 @@ const ContinuousTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -652,6 +666,7 @@ const ContinuousTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -682,6 +697,7 @@ const ContinuousTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </>
                 ) : (
@@ -697,6 +713,7 @@ const ContinuousTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -713,6 +730,7 @@ const ContinuousTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}
@@ -743,6 +761,7 @@ const ContinuousTable: FC<Props> = ({
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
+                      unit: question.unit,
                     })}
                   </>
                 ) : (
@@ -758,6 +777,7 @@ const ContinuousTable: FC<Props> = ({
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
+                  unit: question.unit,
                 })}
               </Td>
             )}

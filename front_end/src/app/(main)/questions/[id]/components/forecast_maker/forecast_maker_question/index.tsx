@@ -113,6 +113,7 @@ const QuestionResolutionText = ({
     questionType: question.type,
     locale,
     scaling: question.scaling,
+    unit: question.unit,
   });
 
   return (

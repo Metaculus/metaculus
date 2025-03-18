@@ -1,21 +1,21 @@
 import * as d3 from "d3";
 import {
-  format,
   differenceInMilliseconds,
+  format,
   fromUnixTime,
   getUnixTime,
   subDays,
   subMonths,
 } from "date-fns";
-import { findLastIndex, isNil, uniq, range } from "lodash";
+import { findLastIndex, isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
   ContinuousAreaType,
-  FanOption,
   ContinuousForecastInputType,
+  FanOption,
   Line,
   Scale,
   TimelineChartZoomOption,
@@ -23,23 +23,24 @@ import {
 import { ChoiceItem } from "@/types/choices";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
-  QuestionType,
-  QuestionWithNumericForecasts,
-  Question,
-  QuestionWithMultipleChoiceForecasts,
-  UserForecastHistory,
-  Scaling,
   AggregateForecast,
-  QuestionWithForecasts,
   AggregateForecastHistory,
   Bounds,
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithMultipleChoiceForecasts,
+  QuestionWithNumericForecasts,
+  Scaling,
   UserForecast,
+  UserForecastHistory,
 } from "@/types/question";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 import {
   formatMultipleChoiceResolution,
   formatResolution,
+  formatValueUnit,
   isUnsuccessfullyResolved,
 } from "@/utils/questions";
 
@@ -49,10 +50,13 @@ import {
   getForecastDateDisplayValue,
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
-  getSliderNumericForecastDataset,
   getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
   populateQuantileComponents,
 } from "./forecasts";
+
+// Max length of a unit to be treated as compact
+const UNIT_COMPACT_LENGTH = 3;
 
 export function getContinuousChartTypeFromQuestion(
   type: QuestionType
@@ -108,6 +112,7 @@ type GenerateYDomainParams = {
   isChartEmpty: boolean;
   zoomDomainPadding?: number;
 };
+
 export function generateYDomain({
   zoom,
   isChartEmpty,
@@ -306,6 +311,7 @@ export function displayValue({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   truncation,
   dateFormatString,
+  unit,
 }: {
   value: number | null;
   questionType: QuestionType;
@@ -313,6 +319,7 @@ export function displayValue({
   scaling?: Scaling;
   truncation?: number;
   dateFormatString?: string;
+  unit?: string;
 }): string {
   if (value === null) {
     return "...";
@@ -323,7 +330,7 @@ export function displayValue({
     return format(fromUnixTime(value), dateFormatString ?? dateFormat);
   } else if (questionType === QuestionType.Numeric) {
     // TODO add truncation to abbreviatedNumber
-    return abbreviatedNumber(value, precision);
+    return formatValueUnit(abbreviatedNumber(value, precision), unit);
   } else {
     return `${Math.round(value * 1000) / 10}%`;
   }
@@ -343,6 +350,7 @@ export function getDisplayValue({
   truncation,
   range,
   dateFormatString,
+  unit,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -351,6 +359,7 @@ export function getDisplayValue({
   truncation?: number;
   range?: number[];
   dateFormatString?: string;
+  unit?: string;
 }): string {
   if (value === undefined || value === null) {
     return "...";
@@ -363,6 +372,7 @@ export function getDisplayValue({
     truncation,
     scaling,
     dateFormatString,
+    unit,
   });
   if (range) {
     const lowerX = range[0];
@@ -388,6 +398,7 @@ export function getDisplayValue({
       scaling,
       truncation,
       dateFormatString,
+      unit,
     });
     return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }
@@ -402,6 +413,7 @@ export function getTableDisplayValue({
   truncation,
   range,
   forecastInputMode = ContinuousForecastInputType.Slider,
+  unit,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -410,6 +422,7 @@ export function getTableDisplayValue({
   truncation?: number;
   range?: number[];
   forecastInputMode?: ContinuousForecastInputType;
+  unit?: string;
 }) {
   if (isNil(value)) {
     return "...";
@@ -425,7 +438,7 @@ export function getTableDisplayValue({
     });
   }
 
-  return getDisplayValue({
+  const formatted_value = getDisplayValue({
     value,
     questionType,
     scaling,
@@ -433,6 +446,10 @@ export function getTableDisplayValue({
     truncation,
     range,
   });
+
+  return unit && unit.length <= UNIT_COMPACT_LENGTH
+    ? formatValueUnit(formatted_value, unit)
+    : formatted_value;
 }
 
 export function getQuestionDateFormatString(scaling: Scaling) {
@@ -489,12 +506,14 @@ export function getUserPredictionDisplayValue({
   questionType,
   scaling,
   showRange,
+  unit,
 }: {
   myForecasts: UserForecastHistory;
   timestamp: number | null | undefined;
   questionType: Question | QuestionType;
   scaling?: Scaling;
   showRange?: boolean;
+  unit?: string;
 }): string {
   if (!timestamp) {
     return "...";
@@ -586,7 +605,10 @@ export function getUserPredictionDisplayValue({
 
     return displayCenter;
   } else if (questionType === QuestionType.Numeric) {
-    const displayCenter = abbreviatedNumber(scaledCenter);
+    const displayCenter = formatValueUnit(
+      abbreviatedNumber(scaledCenter),
+      unit
+    );
     if (showRange) {
       const displayLower = !isNil(scaledLower)
         ? abbreviatedNumber(scaledLower)
@@ -609,7 +631,7 @@ type GenerateScaleParams = {
   domain?: Tuple<number>;
   zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
-  displayLabel?: string;
+  unit?: string;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
 };
@@ -626,7 +648,7 @@ type GenerateScaleParams = {
  *  but for dates can be the min and max unix timestamps
  * @param scaling the Scaling related to the data, defaults to null
  *  which in turn is the same as a linear scaling along the given domain
- * @param displayLabel this is the label that will be appended to the
+ * @param unit this is the label that will be appended to the
  *  formatted tick values, defaults to an empty string
  * @param cursorDisplayLabel specifies the label to appear on the cursor
  *  state, which defaults to the displayLabel
@@ -640,7 +662,7 @@ export function generateScale({
   domain = [0, 1],
   zoomedDomain = [0, 1],
   scaling = null,
-  displayLabel = "",
+  unit,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -695,33 +717,52 @@ export function generateScale({
     tickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
 
+  const conditionallyShowUnit = (value: string, idx?: number): string => {
+    if (!unit) return value;
+
+    // Include unit if it's within the length limit
+    if (unit.length <= UNIT_COMPACT_LENGTH) return formatValueUnit(value, unit);
+
+    // Include unit only for the first and last tick in horizontal mode
+    if (
+      direction === "horizontal" &&
+      (idx === 0 || idx === allTicks.length - 1)
+    ) {
+      return formatValueUnit(value, unit);
+    }
+
+    return value;
+  };
+
   return {
     ticks: allTicks,
-    tickFormat: (x) => {
+    tickFormat: (x, idx) => {
       if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
         const unscaled = unscaleNominalLocation(x, domainScaling);
 
-        return (
+        return conditionallyShowUnit(
           getDisplayValue({
             value: unscaled,
             questionType: displayType as QuestionType,
             scaling: rangeScaling,
             precision: 3,
             dateFormatString: "dd MMM yyyy",
-          }) + displayLabel
+          }),
+          idx
         );
       }
       return "";
     },
     cursorFormat: (x) => {
       const unscaled = unscaleNominalLocation(x, domainScaling);
-      return (
+      return formatValueUnit(
         getDisplayValue({
           value: unscaled,
           questionType: displayType as QuestionType,
           scaling: rangeScaling,
           precision: 6,
-        }) + displayLabel
+        }),
+        unit
       );
     },
   };
@@ -999,9 +1040,11 @@ export function generateChoiceItemsFromGroupQuestions(
             questionType: question.type,
             locale: locale ?? "en",
             scaling: question.scaling,
+            unit: question.unit,
           })
         : null,
       closeTime,
+      unit: question.unit,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,

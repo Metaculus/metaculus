@@ -245,6 +245,7 @@ def clone_question(question: Question, title: str = None, **kwargs) -> Question:
         ),
         open_time=kwargs.pop("open_time", question.open_time),
         actual_close_time=kwargs.pop("actual_close_time", question.actual_close_time),
+        unit=kwargs.pop("unit", question.unit),
         **kwargs,
     )
 

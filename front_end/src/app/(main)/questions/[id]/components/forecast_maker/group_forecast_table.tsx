@@ -122,6 +122,7 @@ const GroupForecastTable: FC<Props> = ({
                           questionType: option.question.type,
                           locale,
                           scaling: option.question.scaling,
+                          unit: option.question.unit,
                         })}
                       </span>
                     </div>

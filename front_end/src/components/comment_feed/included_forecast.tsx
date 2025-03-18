@@ -12,6 +12,7 @@ import { getQuestionDateFormatString } from "@/utils/charts";
 import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { formatValueUnit } from "@/utils/questions";
 
 type Props = {
   author: string;
@@ -104,7 +105,10 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
       ? [
           abbreviatedNumber(range_min),
           abbreviatedNumber(forecast.quartiles[0]),
-          abbreviatedNumber(forecast.quartiles[1]),
+          formatValueUnit(
+            abbreviatedNumber(forecast.quartiles[1]),
+            forecast.question_unit
+          ),
           abbreviatedNumber(forecast.quartiles[2]),
           abbreviatedNumber(range_max),
         ]

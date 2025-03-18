@@ -130,6 +130,7 @@ function parseAggregationData({
               questionType: question.type,
               locale: locale ?? "en",
               scaling: question.scaling,
+              unit: question.unit,
             })
           : null,
         closeTime: Math.min(
@@ -138,6 +139,7 @@ function parseAggregationData({
             question.actual_resolve_time ?? question.scheduled_resolve_time
           ).getTime()
         ),
+        unit: question.unit,
         rangeMin: question.scaling.range_min ?? 0,
         rangeMax: question.scaling.range_min ?? 1,
         scaling: question.scaling,
@@ -214,6 +216,7 @@ function parseAggregationData({
             questionType: question.type,
             locale: locale ?? "en",
             scaling: question.scaling,
+            unit: question.unit,
           })
         : null,
       closeTime: Math.min(
@@ -222,6 +225,7 @@ function parseAggregationData({
           question.actual_resolve_time ?? question.scheduled_resolve_time
         ).getTime()
       ),
+      unit: question.unit,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,

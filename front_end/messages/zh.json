@@ -1149,5 +1149,9 @@
   "q2InRangeProbBelowError": "当您的 50 分位数在范围内时，范围以下的概率应为 ≤ 50%。",
   "q2InRangeProbAboveError": "当您的 50 分位数在范围内时，范围以上的概率应为 ≤ 50%。",
   "q3InRangeProbBelowError": "当您的 75 分位数在范围内时，范围以下的概率应为 ≤ 75%。",
-  "q3InRangeProbAboveError": "当您的 75 分位数在范围内时，范围以上的概率应为 ≤ 25%。"
+  "q3InRangeProbAboveError": "当您的 75 分位数在范围内时，范围以上的概率应为 ≤ 25%。",
+  "chance": "机会",
+  "questionUnit": "问题单位",
+  "subquestionUnit": "子问题单位",
+  "questionUnitDescription": "单位显示在中位数以及其他各种地方。例如：“$”、“案件”、“人”。"
 }

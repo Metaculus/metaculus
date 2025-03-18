@@ -224,6 +224,7 @@ export type Question = {
   fine_print: string | null;
   resolution_criteria: string | null;
   label: string;
+  unit: string;
   nr_forecasters: number;
   author_username: string;
   post_id: number;
@@ -298,6 +299,7 @@ export type AggregationQuestion = {
   title: string;
   url_title: string;
   type: QuestionType;
+  unit?: string;
 };
 
 export enum CurveQuestionLabels {
