@@ -367,7 +367,6 @@ def serialize_post(
     if post.conditional:
         serialized_data["conditional"] = serialize_conditional(
             post.conditional,
-            with_cp=with_cp,
             current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
@@ -376,7 +375,6 @@ def serialize_post(
     if post.group_of_questions:
         serialized_data["group_of_questions"] = serialize_group(
             post.group_of_questions,
-            with_cp=with_cp,
             current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
