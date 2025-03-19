@@ -230,10 +230,10 @@ const ForecastCard: FC<Props> = ({
             <PredictionChip
               question={question}
               status={post.status}
-              prediction={cursorForecast?.centers?.at(-1)}
+              predictionOverride={cursorForecast?.centers?.at(-1)}
               className="ForecastCard-prediction"
-              unresovledChipStyle={embedTheme?.predictionChip}
-              compact
+              unresolvedChipStyle={embedTheme?.predictionChip}
+              enforceCPDisplay
             />
           );
         }
