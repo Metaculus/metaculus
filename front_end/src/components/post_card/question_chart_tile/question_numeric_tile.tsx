@@ -20,11 +20,7 @@ import {
   getContinuousAreaChartData,
   getContinuousChartTypeFromQuestion,
 } from "@/utils/charts";
-import {
-  extractPrevBinaryForecastValue,
-  extractPrevNumericForecastValue,
-  getNumericForecastDataset,
-} from "@/utils/forecasts";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 const HEIGHT = 100;
 
@@ -50,8 +46,6 @@ const QuestionNumericTile: FC<Props> = ({
   const { onReaffirm } = useCardReaffirmContext();
 
   const latest = question.aggregations.recency_weighted.latest;
-  const prediction = latest?.centers?.[0];
-
   const continuousAreaChartData = getContinuousAreaChartData(
     latest,
     question.my_forecasts?.latest
@@ -93,46 +87,27 @@ const QuestionNumericTile: FC<Props> = ({
           const activeForecast = isNil(userForecast.end_time)
             ? userForecast
             : undefined;
-          const activeForecastSliderValues = activeForecast
-            ? extractPrevNumericForecastValue(activeForecast.distribution_input)
-            : undefined;
-          const forecast = activeForecastSliderValues?.components;
-          if (!forecast) {
+
+          if (!activeForecast) {
             return;
           }
-
-          const dataset = getNumericForecastDataset(
-            forecast,
-            question.open_lower_bound,
-            question.open_upper_bound
-          );
-          const userCdf = dataset.cdf;
 
           onReaffirm([
             {
               questionId: question.id,
               forecastData: {
-                continuousCdf: userCdf,
+                continuousCdf: activeForecast.forecast_values,
                 probabilityYes: null,
                 probabilityYesPerCategory: null,
               },
-              distributionInput: {
-                type: "slider",
-                components: forecast,
-              },
+              distributionInput: activeForecast.distribution_input,
             },
           ]);
           break;
         }
       }
     },
-    [
-      onReaffirm,
-      question.id,
-      question.open_lower_bound,
-      question.open_upper_bound,
-      question.type,
-    ]
+    [onReaffirm, question.id, question.type]
   );
 
   return (
@@ -140,12 +115,13 @@ const QuestionNumericTile: FC<Props> = ({
       <div className="mr-3 inline-flex flex-col justify-center gap-0.5 text-xs font-semibold text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
         <PredictionChip
           question={question}
-          prediction={prediction}
           status={curationStatus as PostStatus}
           showUserForecast
           hideCP={hideCP}
           onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
           canPredict={canPredict}
+          showWeeklyMovement
+          enforceCPDisplay
         />
 
         <ForecastersCounter forecasters={forecasters} className="p-1" />
@@ -180,6 +156,7 @@ const QuestionNumericTile: FC<Props> = ({
                 ? new Date(question.open_time).getTime()
                 : undefined
             }
+            unit={question.unit}
           />
         ) : (
           <ContinuousAreaChart
@@ -189,6 +166,7 @@ const QuestionNumericTile: FC<Props> = ({
             questionType={question.type}
             resolution={question.resolution}
             hideCP={hideCP}
+            unit={question.unit}
           />
         )}
 

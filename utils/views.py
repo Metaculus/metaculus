@@ -88,7 +88,6 @@ def aggregation_explorer_api_view(request):
 
     data: dict = serialize_question(
         question,
-        with_cp=True,
         post=question.get_post(),
         aggregate_forecasts=aggregate_forecasts,
         full_forecast_values=True,

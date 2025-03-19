@@ -107,14 +107,14 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       return generateChoiceItemsFromGroupQuestions(questions, {
         activeCount: maxVisibleCheckboxes,
         preselectedQuestionId,
-        preserveOrder: type === "binary",
       });
     },
-    [maxVisibleCheckboxes, type]
+    [maxVisibleCheckboxes]
   );
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(questions, preselectedQuestionId)
   );
+
   // sync BE driven data with local state
   useEffect(() => {
     if (

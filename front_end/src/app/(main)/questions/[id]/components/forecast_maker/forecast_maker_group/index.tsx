@@ -35,14 +35,17 @@ const ForecastMakerGroup: FC<Props> = ({
     return null;
   }
 
+  const sortedQuestions = sortGroupPredictionOptions(
+    questions as QuestionWithNumericForecasts[],
+    post.group_of_questions
+  );
+
   return (
     <ForecastMakerContainer>
       {tileType === QuestionType.Binary && (
         <ForecastMakerGroupBinary
           post={post}
-          questions={sortGroupPredictionOptions(
-            questions as QuestionWithNumericForecasts[]
-          )}
+          questions={sortedQuestions}
           groupVariable={groupVariable}
           canResolve={canResolve}
           canPredict={canPredict}
@@ -53,7 +56,7 @@ const ForecastMakerGroup: FC<Props> = ({
         tileType === QuestionType.Numeric) && (
         <ForecastMakerGroupContinuous
           post={post}
-          questions={questions as QuestionWithNumericForecasts[]}
+          questions={sortedQuestions}
           groupVariable={groupVariable}
           canResolve={canResolve}
           canPredict={canPredict}
