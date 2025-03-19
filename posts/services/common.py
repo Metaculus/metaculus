@@ -127,7 +127,7 @@ def create_post(
     group_of_questions: dict = None,
     notebook: dict = None,
     author: User = None,
-    url_title: str = None,
+    short_title: str = None,
     published_at: datetime = None,
 ) -> Post:
     site_main = get_site_main_project()
@@ -138,7 +138,7 @@ def create_post(
     with transaction.atomic():
         obj = Post(
             title=title or "",
-            url_title=url_title or title or "",
+            short_title=short_title or title or "",
             author=author,
             curation_status=Post.CurationStatus.DRAFT,
             published_at=published_at,
@@ -149,9 +149,9 @@ def create_post(
             obj.question = create_question(**question)
         elif conditional:
             obj.conditional = create_conditional(**conditional)
-            # Populate title and url_title from condition child
+            # Populate title and short_title from condition child
             obj.title = obj.conditional.get_title()
-            obj.url_title = f"Conditional {obj.conditional.condition_child.get_post().get_url_title()}"
+            obj.short_title = f"Conditional {obj.conditional.condition_child.get_post().get_short_title()}"
         elif group_of_questions:
             obj.group_of_questions = create_group_of_questions(**group_of_questions)
         elif notebook:
@@ -244,7 +244,7 @@ def update_post(
     # Updating non-side effect fields
     post, _ = model_update(
         instance=post,
-        fields=["title", "url_title", "default_project"],
+        fields=["title", "short_title", "default_project"],
         data=kwargs,
     )
 

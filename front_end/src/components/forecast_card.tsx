@@ -78,6 +78,11 @@ const ForecastCard: FC<Props> = ({
       const { questions } = post.group_of_questions;
       const groupType = questions.at(0)?.type;
 
+      const sortedQuestions = sortGroupPredictionOptions(
+        questions as QuestionWithNumericForecasts[],
+        post.group_of_questions
+      );
+
       if (!groupType) {
         return null;
       }
@@ -92,10 +97,10 @@ const ForecastCard: FC<Props> = ({
           const predictionQuestion =
             graphType === "continuous"
               ? getFanOptionsFromContinuousGroup(
-                  questions as QuestionWithNumericForecasts[]
+                  sortedQuestions as QuestionWithNumericForecasts[]
                 )
               : getFanOptionsFromBinaryGroup(
-                  questions as QuestionWithNumericForecasts[]
+                  sortedQuestions as QuestionWithNumericForecasts[]
                 );
 
           return (
@@ -109,9 +114,6 @@ const ForecastCard: FC<Props> = ({
           );
         }
         case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
-          const sortedQuestions = sortGroupPredictionOptions(
-            questions as QuestionWithNumericForecasts[]
-          );
           const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
             withUserTimestamps: !!forecastAvailability.cpRevealsOn,
           });
@@ -185,6 +187,7 @@ const ForecastCard: FC<Props> = ({
                     ? new Date(question.open_time).getTime()
                     : undefined
                 }
+                unit={question.unit}
               />
               <ForecastAvailabilityChartOverflow
                 forecastAvailability={forecastAvailability}
@@ -227,10 +230,10 @@ const ForecastCard: FC<Props> = ({
             <PredictionChip
               question={question}
               status={post.status}
-              prediction={cursorForecast?.centers?.at(-1)}
+              predictionOverride={cursorForecast?.centers?.at(-1)}
               className="ForecastCard-prediction"
-              unresovledChipStyle={embedTheme?.predictionChip}
-              compact
+              unresolvedChipStyle={embedTheme?.predictionChip}
+              enforceCPDisplay
             />
           );
         }

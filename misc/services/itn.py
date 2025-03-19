@@ -184,7 +184,7 @@ def get_post_similar_articles(post: Post):
         version=1,
     )
 
-    return ITNArticle.objects.filter(pk__in=article_ids)
+    return ITNArticle.objects.filter(pk__in=article_ids).order_by("-created_at")
 
 
 def remove_article(article: ITNArticle):
