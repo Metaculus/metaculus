@@ -68,7 +68,6 @@ class LeaderboardSerializer(serializers.Serializer):
             return obj.prize_pool
         if obj.project:
             return obj.project.prize_pool
-        return None
 
 
 class ContributionSerializer(serializers.Serializer):
