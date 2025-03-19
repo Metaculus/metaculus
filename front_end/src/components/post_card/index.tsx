@@ -53,7 +53,7 @@ const PostCard: FC<Props> = ({ post }) => {
                 authorUsername={post.author_username}
                 curationStatus={post.status}
                 hideCP={hideCP}
-                forecasters={post.nr_forecasters}
+                forecasters={internalPost.question.nr_forecasters}
                 canPredict={canPredict}
               />
             )}

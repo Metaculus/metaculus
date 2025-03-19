@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
@@ -7,9 +8,11 @@ import ChoiceIcon from "@/components/choice_icon";
 import Button from "@/components/ui/button";
 import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ForecastType } from "@/types/comment";
+import { getQuestionDateFormatString } from "@/utils/charts";
 import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { formatValueUnit } from "@/utils/questions";
 
 type Props = {
   author: string;
@@ -22,8 +25,6 @@ type ForecastValueProps = {
 
 const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
   const t = useTranslations();
-  const locale = useLocale();
-
   const [showAll, setShowAll] = useState(false);
 
   if (forecast.question_type == "binary") {
@@ -95,21 +96,28 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
     Math.round((forecast.continuous_cdf.at(0) || 0) * 1000) / 10;
   const probAbove =
     Math.round((1 - (forecast.continuous_cdf.at(-1) || 0)) * 1000) / 10;
+  const dateFormatString =
+    forecast.question_type === "date"
+      ? getQuestionDateFormatString(forecast.scaling)
+      : "";
   const valueText: string[] =
     forecast.question_type === "numeric"
       ? [
           abbreviatedNumber(range_min),
           abbreviatedNumber(forecast.quartiles[0]),
-          abbreviatedNumber(forecast.quartiles[1]),
+          formatValueUnit(
+            abbreviatedNumber(forecast.quartiles[1]),
+            forecast.question_unit
+          ),
           abbreviatedNumber(forecast.quartiles[2]),
           abbreviatedNumber(range_max),
         ]
       : [
-          formatDate(locale, new Date(range_min * 1000)),
-          formatDate(locale, new Date(forecast.quartiles[0] * 1000)),
-          formatDate(locale, new Date(forecast.quartiles[1] * 1000)),
-          formatDate(locale, new Date(forecast.quartiles[2] * 1000)),
-          formatDate(locale, new Date(range_max * 1000)),
+          format(new Date(range_min * 1000), dateFormatString),
+          format(new Date(forecast.quartiles[0] * 1000), dateFormatString),
+          format(new Date(forecast.quartiles[1] * 1000), dateFormatString),
+          format(new Date(forecast.quartiles[2] * 1000), dateFormatString),
+          format(new Date(range_max * 1000), dateFormatString),
         ];
   let text: string = "";
   if (q1 === "below" && q2 === "below" && q3 === "below") {

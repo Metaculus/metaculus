@@ -6,6 +6,7 @@ import { FC } from "react";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
 import cn from "@/utils/cn";
+import { formatValueUnit } from "@/utils/questions";
 
 import WeeklyMovement from "./weekly_movement";
 
@@ -13,12 +14,14 @@ type Props = {
   question: QuestionWithForecasts;
   className?: string;
   checkDelta?: boolean;
+  displayUnit?: boolean;
 };
 
 const CPWeeklyMovement: FC<Props> = ({
   question,
   className,
   checkDelta = true,
+  displayUnit = true,
 }) => {
   const t = useTranslations();
   const weeklyMovement = getQuestionWeeklyMovement(question, checkDelta);
@@ -29,15 +32,20 @@ const CPWeeklyMovement: FC<Props> = ({
     return null;
   }
 
-  const message = `${displayValue(
-    Math.abs(weeklyMovement),
-    question.type
-  )}${percentagePoints}`.replace("%", "");
+  const message = `${displayValue({
+    value: Math.abs(weeklyMovement),
+    questionType: question.type,
+  })}${percentagePoints}`.replace("%", "");
 
   return (
     <WeeklyMovement
       weeklyMovement={weeklyMovement}
-      message={t("weeklyMovementChange", { value: message })}
+      message={t("weeklyMovementChange", {
+        value: formatValueUnit(
+          message,
+          displayUnit ? question.unit : undefined
+        ),
+      })}
       className={cn("text-xs", className)}
       iconClassName="text-sm"
     />

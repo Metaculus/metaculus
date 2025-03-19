@@ -21,7 +21,7 @@ const MobileAccordionModal: FC<
       isImmersive={true}
       className="m-0 h-full w-full max-w-none overscroll-contain rounded-none p-0 lg:hidden"
     >
-      <div className="flex h-full flex-col bg-white dark:bg-gray-900">
+      <div className="flex h-full flex-col bg-white dark:bg-blue-200-dark">
         <div className="flex items-center justify-between px-4 py-2">
           <h2 className="text-xl font-medium leading-7">{title}</h2>
           <Button

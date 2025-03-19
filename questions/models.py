@@ -106,6 +106,8 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
     group_variable = models.CharField(blank=True, null=False)
 
+    unit = models.CharField(max_length=25, blank=True)
+
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
@@ -118,6 +120,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         related_name="questions",
         on_delete=models.CASCADE,
     )
+    group_rank = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.type} {self.title}"
@@ -226,6 +229,11 @@ class Conditional(TimeStampedModel):
 
 
 class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
+    class GroupOfQuestionsSubquestionsOrder(models.TextChoices):
+        MANUAL = "MANUAL"
+        CP_ASC = "CP_ASC"
+        CP_DESC = "CP_DESC"
+
     class GroupOfQuestionsGraphType(models.TextChoices):
         FAN_GRAPH = "fan_graph"
         MULTIPLE_CHOICE_GRAPH = "multiple_choice_graph"
@@ -239,6 +247,12 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
         max_length=256,
         choices=GroupOfQuestionsGraphType.choices,
         default=GroupOfQuestionsGraphType.MULTIPLE_CHOICE_GRAPH,
+    )
+    subquestions_order = models.CharField(
+        max_length=12,
+        choices=GroupOfQuestionsSubquestionsOrder.choices,
+        null=True,
+        default=None
     )
 
     def __str__(self):

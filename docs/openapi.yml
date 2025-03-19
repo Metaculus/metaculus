@@ -264,7 +264,7 @@ components:
         title:
           type: string
           example: "Binary Post title"
-        url_title:
+        short_title:
           type: string
           example: "Binary Post url title"
         slug:
@@ -1147,7 +1147,7 @@ paths:
                     results:
                       - id: 3530
                         title: "How many people will die as a result of the 2019 novel coronavirus (COVID-19) before 2021?"
-                        url_title: "COVID-19 Related Deaths before 2021"
+                        short_title: "COVID-19 Related Deaths before 2021"
                         slug: "covid-19-related-deaths-before-2021"
                         author_id: 101465
                         author_username: "Jgalt"
@@ -1319,7 +1319,7 @@ paths:
                     results:
                       - id: 1
                         title: "Will advanced LIGO announce discovery of gravitational waves by Jan. 31 2016?"
-                        url_title: ""
+                        short_title: ""
                         slug: "will-advanced-ligo-announce-discovery-of-gravitational-waves-by-jan-31-2016"
                         author_id: 8
                         author_username: "Anthony"
@@ -1378,7 +1378,7 @@ paths:
                     results:
                       - id: 20772
                         title: "Which party will win the 2024 US presidential election?"
-                        url_title: "Party Winning the Presidency in 2024?"
+                        short_title: "Party Winning the Presidency in 2024?"
                         slug: "party-winning-the-presidency-in-2024"
                         author_id: 117502
                         author_username: "RyanBeck"
@@ -1438,7 +1438,7 @@ paths:
                     results:
                       - id: 21475
                         title: "2024 Democratic Presidential Nominee? (Joe Biden) → Democrat Wins 2024 US Presidential Election?"
-                        url_title: "Democrat Wins 2024 US Presidential Election?"
+                        short_title: "Democrat Wins 2024 US Presidential Election?"
                         slug: "democrat-wins-2024-us-presidential-election"
                         author_id: 130973
                         author_username: "NMorrison"
@@ -1583,7 +1583,7 @@ paths:
                     results:
                       - id: 11480
                         title: "Will China launch a full-scale invasion of Taiwan by the following years?"
-                        url_title: "Chinese Invasion of Taiwan?"
+                        short_title: "Chinese Invasion of Taiwan?"
                         slug: "chinese-invasion-of-taiwan"
                         author_id: 104161
                         author_username: "casens"
