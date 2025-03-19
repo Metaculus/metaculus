@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from collections.abc import Iterable
 from datetime import datetime
 from typing import cast
@@ -25,7 +26,6 @@ from questions.types import AggregationMethod
 from scoring.models import Score, Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
-from utils.dtypes import generate_map_from_list
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import unscaled_location_to_scaled_location
@@ -803,68 +803,55 @@ def get_aggregated_forecasts_for_questions(
 
     # Copy questions list
     questions = list(questions)
-    aggregate_for_questions = questions[:]
-    aggregated_forecasts: list[AggregateForecast] = []
-    questions_map = {q.pk: q for q in questions}
+    questions_to_fetch = set(questions)
+    question_map = {q.pk: q for q in questions}
+    aggregated_forecasts = set()
 
     if group_cutoff is not None:
-        cutoff_questions = [
-            q
-            for q in questions
-            if q.group_id
-            and q.group.graph_type
-            != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
-        ]
-
         recently_weighted = get_recency_weighted_for_questions(questions)
-        # Append recently weighted aggregations to the initial list to be able to reuse them
-        # for all questions regardless of the group_cutoff number
-        aggregated_forecasts += list(recently_weighted.values())
-        cutoff_questions_map = generate_map_from_list(
-            cutoff_questions, lambda q: q.group_id
-        )
+        aggregated_forecasts.update(recently_weighted.values())
+
+        grouped = defaultdict(list)
+        for q in questions:
+            if (
+                q.group_id
+                and q.group.graph_type
+                != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
+            ):
+                grouped[q.group_id].append(q)
 
         def sorting_key(q: Question):
             """
             Extracts question aggregation forecast value
             """
 
-            aggregation = recently_weighted.get(q)
-
-            if (
-                not aggregation
-                or not aggregation.forecast_values
-                or len(aggregation.forecast_values) < 2
-            ):
+            agg = recently_weighted.get(q)
+            if not agg or len(agg.forecast_values) < 2:
                 return 0
+            if q.type == "binary":
+                return agg.forecast_values[1]
+            if q.type in ("numeric", "date"):
+                return unscaled_location_to_scaled_location(agg.centers[0], q)
+            if q.type == "multiple_choice":
+                return max(agg.forecast_values)
+            return 0
 
-            match q.type:
-                case "binary":
-                    return aggregation.forecast_values[1]
-                case "numeric" | "date":
-                    return unscaled_location_to_scaled_location(
-                        aggregation.centers[0], q
-                    )
-                case "multiple_choice":
-                    return max(aggregation.forecast_values)
+        cutoff_excluded = {
+            q
+            for qs in grouped.values()
+            for q in sorted(qs, key=sorting_key, reverse=True)[group_cutoff:]
+        }
+        questions_to_fetch = questions_to_fetch - cutoff_excluded
 
-        for cutoff_questions in cutoff_questions_map.values():
-            cutoff_questions = sorted(cutoff_questions, key=sorting_key, reverse=True)
-
-            # Exclude other questions from the list
-            for q in cutoff_questions[group_cutoff:]:
-                aggregate_for_questions.remove(q)
-
-    aggregated_forecasts += list(
-        AggregateForecast.objects.filter(Q(question__in=aggregate_for_questions))
-        # Exclude previously fetched forecasts
-        .exclude(id__in=[x.id for x in aggregated_forecasts])
+    aggregated_forecasts.update(
+        AggregateForecast.objects.filter(question__in=questions_to_fetch).exclude(
+            # Exclude previously fetched aggregated_forecasts
+            id__in=[f.id for f in aggregated_forecasts]
+        )
     )
-    aggregated_forecasts = sorted(aggregated_forecasts, key=lambda x: x.start_time)
 
-    forecasts_map = {q: [] for q in questions}
+    forecasts_by_question = defaultdict(list)
+    for forecast in sorted(aggregated_forecasts, key=lambda f: f.start_time):
+        forecasts_by_question[question_map[forecast.question_id]].append(forecast)
 
-    for forecast in aggregated_forecasts:
-        forecasts_map[questions_map[forecast.question_id]].append(forecast)
-
-    return forecasts_map
+    return forecasts_by_question
