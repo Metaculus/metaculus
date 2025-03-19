@@ -1,7 +1,13 @@
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
 import { FC } from "react";
-import { VictoryAxis, VictoryBar, VictoryChart, VictoryGroup } from "victory";
+import {
+  VictoryAxis,
+  VictoryBar,
+  VictoryChart,
+  VictoryContainer,
+  VictoryGroup,
+} from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -51,7 +57,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
   );
 
   return (
-    <div ref={chartContainerRef} className="relative w-full" style={{ height }}>
+    <div ref={chartContainerRef} className="relative w-full">
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
@@ -64,9 +70,18 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
             bottom: 25,
           }}
           domainPadding={{
-            x: chartWidth > 400 ? 60 : chartData.length > 5 ? 10 : 20,
+            x: chartWidth > 400 ? 60 : chartData.length > 3 ? 12 : 50,
             y: 20,
           }}
+          containerComponent={
+            <VictoryContainer
+              style={{
+                userSelect: "auto",
+                pointerEvents: "auto",
+                touchAction: "auto",
+              }}
+            />
+          }
         >
           <VictoryAxis
             style={{
@@ -261,7 +276,7 @@ function adjustLabelsForDisplay(
   chartWidth: number,
   isBarLabel?: boolean
 ) {
-  const labelMargin = isBarLabel ? 0 : 2;
+  const labelMargin = isBarLabel ? 0 : 5;
   const charWidth = calculateCharWidth(isBarLabel ? 8 : 9);
 
   const labels = [
@@ -272,17 +287,17 @@ function adjustLabelsForDisplay(
   ];
 
   if (!charWidth) {
-    return labels;
+    return labels.map(() => true);
   }
 
   const maxLabelLength = Math.max(...labels.map((label) => label.length));
   const maxLabelWidth = maxLabelLength * charWidth + labelMargin;
-  const chartDomainPadding = chartWidth > 400 ? 60 : 10;
+  const chartDomainPadding = chartWidth > 400 ? 60 : 30;
   let availableSpacePerLabel =
     (chartWidth - chartDomainPadding) / labels.length;
 
   if (maxLabelWidth < availableSpacePerLabel) {
-    return labels;
+    return labels.map(() => true);
   }
 
   let step = 1;
@@ -294,7 +309,10 @@ function adjustLabelsForDisplay(
     step++;
   }
 
-  return datum.map((_, index) => index % step === 0);
+  return datum.map(
+    (_, index) =>
+      index % step === 0 || (datum.length === 3 && index === datum.length - 1)
+  );
 }
 
 export default TimeSeriesChart;
