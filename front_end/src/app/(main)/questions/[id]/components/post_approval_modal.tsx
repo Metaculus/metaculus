@@ -66,6 +66,7 @@ const PostApprovalModal: FC<{
 
   useEffect(() => {
     setSubmitErrors(undefined);
+    // TODO: refactor to use react-hook-form and zod validation
     if (!post.notebook) {
       if (isAfter(approvalData.published_at, approvalData.open_time)) {
         setSubmitErrors(new Error("Publish Time cannot be after Open Time."));
@@ -148,7 +149,7 @@ const PostApprovalModal: FC<{
         </p>
         {!post.notebook && (
           <div className="mb-4 flex flex-col gap-2">
-            <span>{"Post Publish Time"}</span>
+            <span>{t("postPublishTime")}</span>
             <DatetimeUtc
               placeholder="time when post becomes visible"
               onChange={(dt) =>
@@ -183,7 +184,7 @@ const PostApprovalModal: FC<{
               }
               defaultValue={approvalData.cp_reveal_time}
             />
-            <span>{"Closing Time"}</span>
+            <span>{t("closingTime")}</span>
             <DatetimeUtc
               placeholder="scheduled close time of question"
               min={approvalData.open_time}
@@ -195,7 +196,7 @@ const PostApprovalModal: FC<{
               }
               defaultValue={approvalData.scheduled_close_time}
             />
-            <span>{"Resolving Time"}</span>
+            <span>{t("resolvingTime")}</span>
             <DatetimeUtc
               placeholder="scheduled resolve time of question"
               min={approvalData.scheduled_close_time}

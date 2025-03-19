@@ -322,7 +322,6 @@ const QuestionForm: FC<Props> = ({
         ? optionsList.map((option) => option.trim())
         : [];
 
-    console.log(data);
     const post_data: PostCreationData = {
       title: data["title"],
       short_title: data["short_title"],
@@ -612,9 +611,7 @@ const QuestionForm: FC<Props> = ({
         <hr className="my-4" />
         <h2 className="text-lg font-semibold">{"Advanced Options"}</h2>
         <div className="text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
-          {
-            "These options are not required. Moderators will generally fill these out at the time of approval."
-          }
+          {t("advancedOptionsDescription")}
         </div>
 
         <div className="flex w-full flex-col gap-4 md:flex-row">
@@ -633,9 +630,7 @@ const QuestionForm: FC<Props> = ({
           </InputContainer>
           <InputContainer
             labelText={"Publish Time"}
-            explanation={
-              "Time this question will become visible to the public."
-            }
+            explanation={t("publishTimeDescription")}
             className="w-full gap-2"
           >
             <DateInput
@@ -650,7 +645,7 @@ const QuestionForm: FC<Props> = ({
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer
             labelText={"Closing Time"}
-            explanation={"When this question will be closed for predictions."}
+            explanation={t("closingTimeDescription")}
             className="w-full gap-2"
           >
             <DateInput
@@ -663,9 +658,7 @@ const QuestionForm: FC<Props> = ({
           </InputContainer>
           <InputContainer
             labelText={"Resolving Time"}
-            explanation={
-              "When you expect the resolution of this question to be known."
-            }
+            explanation={t("resolvingTimeDescription")}
             className="w-full gap-2"
           >
             <DateInput
@@ -680,9 +673,7 @@ const QuestionForm: FC<Props> = ({
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer
             labelText={t("cpRevealTime")}
-            explanation={
-              "Time when the Community Prediction will become visible."
-            }
+            explanation={t("cpRevealTimeDescription")}
             className="w-full gap-2"
           >
             <DateInput
