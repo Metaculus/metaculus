@@ -1,8 +1,8 @@
 import { FC } from "react";
 
-import TimeSeriesChart from "@/components/charts/time_series_chart";
+import TimeSeriesChart from "@/components/charts/time_series_chart/time_series_chart";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
-import { PostWithForecasts } from "@/types/post";
+import { GroupOfQuestionsPost, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   checkGroupOfQuestionsPostType,
@@ -11,7 +11,7 @@ import {
 
 import NumericForecastCard from "./numeric_forecast_card";
 import PercentageForecastCard from "./percentage_forecast_card";
-import PostCard from "../..";
+import GroupContinuousTile from "../../group_of_questions_tile/group_continuous_tile";
 
 type Props = {
   post: PostWithForecasts;
@@ -28,21 +28,25 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
         }
       />
     );
-  } else {
-    if (
-      isMultipleChoicePost(post) ||
-      checkGroupOfQuestionsPostType(post, QuestionType.Binary)
-    ) {
-      return <PercentageForecastCard post={post} />;
-    }
-    if (checkGroupOfQuestionsPostType(post, QuestionType.Numeric)) {
-      return <NumericForecastCard post={post} />;
-    }
-    if (checkGroupOfQuestionsPostType(post, QuestionType.Date)) {
-      // TODO: implement charts for date group
-      return <PostCard post={post} />;
-    }
   }
+  if (
+    isMultipleChoicePost(post) ||
+    checkGroupOfQuestionsPostType(post, QuestionType.Binary)
+  ) {
+    return <PercentageForecastCard post={post} />;
+  }
+  if (checkGroupOfQuestionsPostType(post, QuestionType.Numeric)) {
+    return <NumericForecastCard post={post} />;
+  }
+  if (checkGroupOfQuestionsPostType(post, QuestionType.Date)) {
+    // TODO: implement charts for date group
+    return (
+      <GroupContinuousTile
+        post={post as GroupOfQuestionsPost<QuestionWithNumericForecasts>}
+      />
+    );
+  }
+
   return null;
 };
 

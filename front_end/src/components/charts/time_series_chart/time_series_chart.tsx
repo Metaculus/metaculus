@@ -1,7 +1,10 @@
+import "./styles.scss";
+
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 import {
+  LineSegment,
   VictoryAxis,
   VictoryBar,
   VictoryChart,
@@ -29,7 +32,7 @@ import {
 } from "@/utils/charts";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
-import TimeSeriesLabel from "./primitives/time_series_label";
+import TimeSeriesLabel from "./time_series_label";
 
 type Props = {
   questions: QuestionWithNumericForecasts[];
@@ -46,11 +49,11 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
   const adjustedChartData =
     chartWidth < 350 ? chartData.slice(0, 12) : chartData;
   const shouldDisplayChart = !!chartWidth;
-  const shouldShowTickLabel = adjustLabelsForDisplay(
+  const tickLabelVisibilityMap = adjustLabelsForDisplay(
     adjustedChartData,
     chartWidth
   );
-  const shouldShowBarLabel = adjustLabelsForDisplay(
+  const barLabelVisibilityMap = adjustLabelsForDisplay(
     adjustedChartData,
     chartWidth,
     true
@@ -64,13 +67,13 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
           height={height}
           theme={chartTheme}
           padding={{
-            left: 15,
+            left: 0,
             top: 20,
-            right: 15,
+            right: 0,
             bottom: 25,
           }}
           domainPadding={{
-            x: chartWidth > 400 ? 60 : chartData.length > 3 ? 12 : 50,
+            x: chartWidth > 400 ? 80 : chartData.length > 3 ? 40 : 50,
             y: 20,
           }}
           containerComponent={
@@ -79,6 +82,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                 userSelect: "auto",
                 pointerEvents: "auto",
                 touchAction: "auto",
+                overflow: "visible",
               }}
             />
           }
@@ -108,7 +112,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                 strokeDasharray: "4, 4",
               },
             }}
-            gridComponent={<line />}
+            gridComponent={<LineSegment />}
             tickCount={5}
           />
           <VictoryGroup data={adjustedChartData}>
@@ -119,7 +123,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
               labelComponent={
                 <TimeSeriesLabel
                   isTickLabel={true}
-                  shouldShowLabel={shouldShowTickLabel}
+                  labelVisibilityMap={tickLabelVisibilityMap}
                 />
               }
             />
@@ -127,7 +131,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
               labelComponent={
                 <TimeSeriesLabel
                   isTickLabel={false}
-                  shouldShowLabel={shouldShowBarLabel}
+                  labelVisibilityMap={barLabelVisibilityMap}
                 />
               }
               style={{

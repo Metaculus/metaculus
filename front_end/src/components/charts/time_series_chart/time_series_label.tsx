@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 import { VictoryLabel } from "victory";
 
@@ -9,17 +10,20 @@ import { getTruncatedLabel } from "@/utils/charts";
 
 type Props = {
   isTickLabel?: boolean;
-  shouldShowLabel: boolean[];
+  labelVisibilityMap: boolean[];
 };
 
 const TimeSeriesLabel: FC<Props & any> = ({
   isTickLabel = false,
-  shouldShowLabel,
+  labelVisibilityMap,
   ...props
 }) => {
   const { datum, y, dy, scale, ...rest } = props;
+  const t = useTranslations();
   const { getThemeColor } = useAppTheme();
-  const shouldTrancateText = shouldShowLabel.some((value: boolean) => !value);
+  const shouldTrancateText = labelVisibilityMap.some(
+    (value: boolean) => !value
+  );
   const getLabelColor = (datum: any) => {
     if (datum.resolution) {
       return getThemeColor(METAC_COLORS.purple["700"]);
@@ -42,7 +46,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
           fill: ({ datum }: any) => getLabelColor(datum),
         }}
         text={({ datum, index }: any) =>
-          shouldShowLabel[index]
+          labelVisibilityMap[index]
             ? shouldTrancateText
               ? getTruncatedLabel(datum.x, 20)
               : datum.x
@@ -66,10 +70,10 @@ const TimeSeriesLabel: FC<Props & any> = ({
             fill: ({ datum }: any) => getLabelColor(datum),
           }}
           text={({ datum, index }: any) =>
-            shouldShowLabel[index]
+            labelVisibilityMap[index]
               ? datum.isClosed
-                ? `Closed`
-                : `Resolved`
+                ? t("closed")
+                : t("resolved")
               : ""
           }
         />
@@ -85,7 +89,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
           fill: ({ datum }: any) => getLabelColor(datum),
         }}
         text={({ datum, index }: any) =>
-          shouldShowLabel[index] ? `${datum.label}` : ""
+          labelVisibilityMap[index] ? `${datum.label}` : ""
         }
       />
     </g>
