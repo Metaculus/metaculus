@@ -24,13 +24,13 @@ import { Area, FanOption, Line } from "@/types/charts";
 import {
   ForecastAvailability,
   Quartiles,
-  Question,
   QuestionType,
   Scaling,
 } from "@/types/question";
 import {
   generateScale,
   getLeftPadding,
+  getResolutionPosition,
   getTickLabelFontSize,
   scaleInternalLocation,
   unscaleNominalLocation,
@@ -360,7 +360,10 @@ function buildChartData(options: FanOption[]) {
     if (option.resolved) {
       resolutionPoints.push({
         x: option.name,
-        y: getResolutionPosition(option.question, scaling),
+        y: getResolutionPosition({
+          question: option.question,
+          scaling,
+        }),
         resolved: true,
       });
     }
@@ -530,28 +533,6 @@ function adjustLabelsForDisplay(
   return options.map((option, index) =>
     index % step === 0 ? option.name : ""
   );
-}
-
-function getResolutionPosition(question: Question, scaling: Scaling) {
-  const resolution = question.resolution;
-  if (isNil(resolution)) {
-    // fallback, usually we don't expect this, as function will be called only for resolved questions
-    return 0;
-  }
-
-  if (
-    ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
-      resolution as string
-    )
-  ) {
-    return 0;
-  } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
-    return 1;
-  } else {
-    return question.type === QuestionType.Numeric
-      ? unscaleNominalLocation(Number(resolution), scaling)
-      : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
-  }
 }
 
 export default FanChart;

@@ -1378,6 +1378,39 @@ export function getResolutionPoint({
   }
 }
 
+export function getResolutionPosition({
+  question,
+  scaling,
+  adjustBinaryPoint = false,
+}: {
+  question: Question;
+  scaling: Scaling;
+  adjustBinaryPoint?: boolean;
+}) {
+  const resolution = question.resolution;
+  if (isNil(resolution)) {
+    // fallback, usually we don't expect this, as function will be called only for resolved questions
+    return 0;
+  }
+  if (adjustBinaryPoint && ["no", "yes"].includes(resolution as string)) {
+    return 0;
+  }
+
+  if (
+    ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
+      resolution as string
+    )
+  ) {
+    return 0;
+  } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
+    return 1;
+  } else {
+    return question.type === QuestionType.Numeric
+      ? unscaleNominalLocation(Number(resolution), scaling)
+      : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
+  }
+}
+
 export function getCursorForecast(
   cursorTimestamp: number | null | undefined,
   aggregation: AggregateForecastHistory
