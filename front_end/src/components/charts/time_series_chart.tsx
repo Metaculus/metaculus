@@ -1,4 +1,5 @@
 import { isNil } from "lodash";
+import { useLocale } from "next-intl";
 import { FC } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryGroup } from "victory";
 
@@ -17,6 +18,8 @@ import {
   scaleInternalLocation,
   unscaleNominalLocation,
   getResolutionPosition,
+  calculateCharWidth,
+  getTruncatedLabel,
 } from "@/utils/charts";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
@@ -29,11 +32,23 @@ type Props = {
 
 const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
   const { theme, getThemeColor } = useAppTheme();
+  const locale = useLocale();
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  const chartData = buildChartData(questions);
+  const chartData = buildChartData(questions, locale);
+  const adjustedChartData =
+    chartWidth < 350 ? chartData.slice(0, 12) : chartData;
   const shouldDisplayChart = !!chartWidth;
+  const shouldShowTickLabel = adjustLabelsForDisplay(
+    adjustedChartData,
+    chartWidth
+  );
+  const shouldShowBarLabel = adjustLabelsForDisplay(
+    adjustedChartData,
+    chartWidth,
+    true
+  );
 
   return (
     <div ref={chartContainerRef} className="relative w-full" style={{ height }}>
@@ -53,7 +68,6 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
             y: 20,
           }}
         >
-          {" "}
           <VictoryAxis
             style={{
               axis: {
@@ -82,25 +96,23 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
             gridComponent={<line />}
             tickCount={5}
           />
-          <VictoryGroup data={chartData}>
+          <VictoryGroup data={adjustedChartData}>
             <VictoryBar
               style={{
                 data: { fill: "none" },
               }}
-              labels={({ datum }) => `${datum.x}`}
               labelComponent={
                 <TimeSeriesLabel
                   isTickLabel={true}
-                  getThemeColor={getThemeColor}
+                  shouldShowLabel={shouldShowTickLabel}
                 />
               }
             />
             <VictoryBar
-              labels={({ datum }) => `${datum.y}`}
               labelComponent={
                 <TimeSeriesLabel
                   isTickLabel={false}
-                  getThemeColor={getThemeColor}
+                  shouldShowLabel={shouldShowBarLabel}
                 />
               }
               style={{
@@ -133,7 +145,10 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
   );
 };
 
-function buildChartData(questions: QuestionWithNumericForecasts[]): {
+function buildChartData(
+  questions: QuestionWithNumericForecasts[],
+  locale: string
+): {
   x: string;
   y: number;
   label: string;
@@ -186,7 +201,7 @@ function buildChartData(questions: QuestionWithNumericForecasts[]): {
         ? formatResolution({
             resolution: question.resolution,
             questionType: question.type,
-            locale: "en",
+            locale: locale,
             scaling: question.scaling,
             shortBounds: true,
           })
@@ -239,6 +254,47 @@ function getOptionPoint(
     scaleInternalLocation(value, optionScaling),
     questionScaling
   );
+}
+
+function adjustLabelsForDisplay(
+  datum: Array<{ x: string; label: string }>,
+  chartWidth: number,
+  isBarLabel?: boolean
+) {
+  const labelMargin = isBarLabel ? 0 : 2;
+  const charWidth = calculateCharWidth(isBarLabel ? 8 : 9);
+
+  const labels = [
+    ...datum.map((item) =>
+      getTruncatedLabel(isBarLabel ? item.label : item.x, 20)
+    ),
+    ...(isBarLabel ? ["Resolved", "Closed"] : []),
+  ];
+
+  if (!charWidth) {
+    return labels;
+  }
+
+  const maxLabelLength = Math.max(...labels.map((label) => label.length));
+  const maxLabelWidth = maxLabelLength * charWidth + labelMargin;
+  const chartDomainPadding = chartWidth > 400 ? 60 : 10;
+  let availableSpacePerLabel =
+    (chartWidth - chartDomainPadding) / labels.length;
+
+  if (maxLabelWidth < availableSpacePerLabel) {
+    return labels;
+  }
+
+  let step = 1;
+  let visibleLabelsCount = labels.length;
+
+  while (maxLabelWidth >= availableSpacePerLabel && step < labels.length) {
+    visibleLabelsCount = Math.ceil(labels.length / step);
+    availableSpacePerLabel = chartWidth / visibleLabelsCount;
+    step++;
+  }
+
+  return datum.map((_, index) => index % step === 0);
 }
 
 export default TimeSeriesChart;

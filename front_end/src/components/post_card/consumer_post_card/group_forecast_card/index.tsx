@@ -34,9 +34,11 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
       checkGroupOfQuestionsPostType(post, QuestionType.Binary)
     ) {
       return <PercentageForecastCard post={post} />;
-    } else if (checkGroupOfQuestionsPostType(post, QuestionType.Numeric)) {
+    }
+    if (checkGroupOfQuestionsPostType(post, QuestionType.Numeric)) {
       return <NumericForecastCard post={post} />;
-    } else if (checkGroupOfQuestionsPostType(post, QuestionType.Date)) {
+    }
+    if (checkGroupOfQuestionsPostType(post, QuestionType.Date)) {
       // TODO: implement charts for date group
       return <PostCard post={post} />;
     }

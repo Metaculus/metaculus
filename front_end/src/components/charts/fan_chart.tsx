@@ -28,6 +28,7 @@ import {
   Scaling,
 } from "@/types/question";
 import {
+  calculateCharWidth,
   generateScale,
   getLeftPadding,
   getResolutionPosition,
@@ -465,27 +466,6 @@ function getOptionGraphData(
       resolved: false,
     },
   };
-}
-
-function calculateCharWidth(fontSize: number): number {
-  if (typeof document === "undefined") {
-    return 0;
-  }
-
-  const element = document.createElement("span");
-  element.style.visibility = "hidden";
-  element.style.position = "absolute";
-  element.style.whiteSpace = "nowrap";
-  element.style.fontSize = `${fontSize}px`;
-  const sampleText =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  element.textContent = sampleText;
-
-  document.body.appendChild(element);
-  const charWidth = element.offsetWidth / sampleText.length;
-  document.body.removeChild(element);
-
-  return charWidth;
 }
 
 function adjustLabelsForDisplay(

@@ -1,25 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 import { FC } from "react";
 import { VictoryLabel } from "victory";
 
 import { METAC_COLORS } from "@/constants/colors";
+import useAppTheme from "@/hooks/use_app_theme";
+import { getTruncatedLabel } from "@/utils/charts";
 
 type Props = {
-  getThemeColor: (color: string) => string;
   isTickLabel?: boolean;
+  shouldShowLabel: boolean[];
 };
 
 const TimeSeriesLabel: FC<Props & any> = ({
   isTickLabel = false,
-  getThemeColor,
+  shouldShowLabel,
   ...props
 }) => {
   const { datum, y, dy, scale, ...rest } = props;
-
-  const truncateText = (text: string, maxLength = 20) => {
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + "...";
-  };
+  const { getThemeColor } = useAppTheme();
+  const shouldTrancateText = shouldShowLabel.some((value: boolean) => !value);
   const getLabelColor = (datum: any) => {
     if (datum.resolution) {
       return getThemeColor(METAC_COLORS.purple["700"]);
@@ -41,7 +41,13 @@ const TimeSeriesLabel: FC<Props & any> = ({
           fontSize: 14,
           fill: ({ datum }: any) => getLabelColor(datum),
         }}
-        text={({ datum }: any) => truncateText(datum.x)}
+        text={({ datum, index }: any) =>
+          shouldShowLabel[index]
+            ? shouldTrancateText
+              ? getTruncatedLabel(datum.x, 20)
+              : datum.x
+            : ""
+        }
       />
     );
   }
@@ -59,7 +65,13 @@ const TimeSeriesLabel: FC<Props & any> = ({
             fontWeight: 500,
             fill: ({ datum }: any) => getLabelColor(datum),
           }}
-          text={({ datum }: any) => (datum.isClosed ? `Closed` : `Resolved`)}
+          text={({ datum, index }: any) =>
+            shouldShowLabel[index]
+              ? datum.isClosed
+                ? `Closed`
+                : `Resolved`
+              : ""
+          }
         />
       )}
       <VictoryLabel
@@ -72,7 +84,9 @@ const TimeSeriesLabel: FC<Props & any> = ({
           fontWeight: 700,
           fill: ({ datum }: any) => getLabelColor(datum),
         }}
-        text={({ datum }: any) => `${datum.label}`}
+        text={({ datum, index }: any) =>
+          shouldShowLabel[index] ? `${datum.label}` : ""
+        }
       />
     </g>
   );
