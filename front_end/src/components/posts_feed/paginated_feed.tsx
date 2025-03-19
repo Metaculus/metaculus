@@ -17,12 +17,8 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, NotebookPost } from "@/types/post";
-import { QuestionType } from "@/types/question";
 import { logError } from "@/utils/errors";
-import {
-  checkGroupOfQuestionsPostType,
-  isQuestionPost,
-} from "@/utils/questions";
+import { isGroupOfQuestionsPost, isQuestionPost } from "@/utils/questions";
 
 import { SCROLL_CACHE_KEY } from "./constants";
 import EmptyCommunityFeed from "./empty_community_feed";
@@ -143,15 +139,7 @@ const PaginatedPostsFeed: FC<Props> = ({
     // PS: eventually we will render PostCard here only for conditional questions
     if (
       isConsumerViewEnabled &&
-      ((isQuestionPost(post) &&
-        [
-          QuestionType.Numeric,
-          QuestionType.Date,
-          QuestionType.Binary,
-          QuestionType.MultipleChoice,
-        ].includes(post.question.type)) ||
-        checkGroupOfQuestionsPostType(post, QuestionType.Binary) ||
-        checkGroupOfQuestionsPostType(post, QuestionType.Numeric))
+      (isQuestionPost(post) || isGroupOfQuestionsPost(post))
     ) {
       return <ConsumerPostCard post={post} />;
     }

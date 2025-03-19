@@ -30,6 +30,7 @@ import {
   Scaling,
 } from "@/types/question";
 import {
+  getDisplayValue,
   getQuestionDateFormatString,
   scaleInternalLocation,
   unscaleNominalLocation,
@@ -46,7 +47,7 @@ export const QUESTION_UNIT_COMPACT_LENGTH = 3;
 export function isMultipleChoicePost(post: PostWithForecasts) {
   return post.question?.type === QuestionType.MultipleChoice;
 }
-// TODO: remove this function when we will have consumer view for all group questions
+
 export function checkGroupOfQuestionsPostType(
   post: PostWithForecasts,
   type: QuestionType
@@ -193,12 +194,14 @@ export function formatResolution({
   locale,
   scaling,
   unit,
+  shortBounds = false,
 }: {
   resolution: number | string | null | undefined;
   questionType: QuestionType;
   locale: string;
   scaling?: Scaling;
   unit?: string;
+  shortBounds?: boolean;
 }) {
   if (resolution === null || resolution === undefined) {
     return "-";
@@ -215,9 +218,29 @@ export function formatResolution({
   }
 
   if (resolution === "below_lower_bound") {
+    if (shortBounds && scaling) {
+      return (
+        "<" +
+        getDisplayValue({
+          value: 0,
+          questionType,
+          scaling,
+        })
+      );
+    }
     return "Below lower bound";
   }
   if (resolution === "above_upper_bound") {
+    if (shortBounds && scaling) {
+      return (
+        ">" +
+        getDisplayValue({
+          value: 1,
+          questionType,
+          scaling,
+        })
+      );
+    }
     return "Above upper bound";
   }
 
