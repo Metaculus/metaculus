@@ -74,6 +74,7 @@ class TestPostCreate:
                 "projects": {},
                 "default_project": get_site_main_project().pk,
                 "group_of_questions": {
+                    "subquestions_order": "MANUAL",
                     "questions": [
                         {
                             "title": "Question #1",
@@ -84,6 +85,7 @@ class TestPostCreate:
                             "open_time": "2024-04-01T00:00:00Z",
                             "scheduled_close_time": "2024-05-01T00:00:00Z",
                             "scheduled_resolve_time": "2024-05-11T00:00:00Z",
+                            "group_rank": 0,
                         },
                         {
                             "title": "Question #2",
@@ -94,6 +96,7 @@ class TestPostCreate:
                             "open_time": "2024-04-01T00:00:00Z",
                             "scheduled_close_time": "2024-05-05T00:00:00Z",
                             "scheduled_resolve_time": "2024-05-10T00:00:00Z",
+                            "group_rank": 1,
                         },
                     ]
                 },
@@ -122,7 +125,7 @@ class TestPostCreate:
             scheduled_resolve_time=timezone.make_aware(datetime(2024, 5, 2)),
         )
         factory_post(
-            author=user1, question=question, url_title_original="Condition URL Title"
+            author=user1, question=question, short_title_original="Condition URL Title"
         )
 
         question_numeric = create_question(
@@ -135,7 +138,7 @@ class TestPostCreate:
         factory_post(
             author=user1,
             question=question_numeric,
-            url_title_original="Child URL Title",
+            short_title_original="Child URL Title",
         )
 
         response = user1_client.post(
@@ -154,7 +157,7 @@ class TestPostCreate:
         assert response.status_code == status.HTTP_201_CREATED
 
         assert response.data["title"] == "Condition Question → Child Question"
-        assert response.data["url_title"] == "Conditional Child URL Title"
+        assert response.data["short_title"] == "Conditional Child URL Title"
         assert response.data["author_id"] == user1.id
         assert (
             response.data["conditional"]["question_yes"]["title"]
@@ -225,7 +228,7 @@ class TestPostUpdate:
         data = {
             "categories": [category_updated.pk],
             "title": "Will SpaceX land people on Mars before 2030?",
-            "url_title": "SpaceX Lands People on Mars by 2030",
+            "short_title": "SpaceX Lands People on Mars by 2030",
         }
         response = user1_client.put(
             reverse("post-update", kwargs={"pk": post.pk}), data, format="json"

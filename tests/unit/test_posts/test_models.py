@@ -6,6 +6,7 @@ from django.utils import timezone
 
 
 from posts.models import Post
+from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from tests.unit.fixtures import *  # noqa
@@ -92,6 +93,35 @@ class TestPostPermissions:
 
         data = Post.objects.annotate_user_permission(user=user2).first()
         assert data.user_permission == ObjectPermission.ADMIN
+
+    def test_annotate_user_permission__superuser_personal_projects(
+        self, question_binary, user1, user_admin
+    ):
+        default_project = factory_project(
+            default_permission=None,
+            created_by=user1,
+            type=Project.ProjectTypes.PERSONAL_PROJECT,
+        )
+        factory_post(
+            author=user1,
+            question=question_binary,
+            default_project=default_project,
+        )
+
+        data = Post.objects.annotate_user_permission(user=user1).first()
+        assert data.user_permission == ObjectPermission.ADMIN
+
+        assert not Post.objects.annotate_user_permission(user=user_admin)
+
+        # Invite admin user
+        ProjectUserPermission.objects.create(
+            user=user_admin,
+            project=default_project,
+            permission=ObjectPermission.FORECASTER,
+        )
+
+        data = Post.objects.annotate_user_permission(user=user_admin).first()
+        assert data.user_permission == ObjectPermission.FORECASTER
 
     def test_filter_permission(self, user1, user2):
         user3 = factory_user()

@@ -56,12 +56,15 @@ class PostReadSerializer(serializers.ModelSerializer):
     coauthors = serializers.SerializerMethodField()
     nr_forecasters = serializers.IntegerField(source="forecasters_count")
     slug = serializers.SerializerMethodField()
+    url_title = serializers.CharField(source="short_title")
 
     class Meta:
         model = Post
         fields = (
             "id",
             "title",
+            "short_title",
+            # Backward compatibility
             "url_title",
             "slug",
             "author_id",
@@ -123,7 +126,7 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
 
 class PostWriteSerializer(serializers.ModelSerializer):
     title = serializers.CharField(required=False)
-    url_title = serializers.CharField(required=False)
+    short_title = serializers.CharField(required=False)
     default_project = serializers.IntegerField(required=True)
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
@@ -135,7 +138,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             "title",
-            "url_title",
+            "short_title",
             "question",
             "conditional",
             "group_of_questions",
@@ -352,7 +355,6 @@ def serialize_post(
     if post.question:
         serialized_data["question"] = serialize_question(
             post.question,
-            with_cp=with_cp,
             current_user=current_user,
             post=post,
             aggregate_forecasts=(

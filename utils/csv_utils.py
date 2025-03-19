@@ -243,7 +243,7 @@ def export_data_for_questions(
                 "https://www.metaculus.com/questions/"
                 + str(post.id)
                 + "/"
-                + str(post.url_title.lower().replace(" ", "-"))
+                + str(post.short_title.lower().replace(" ", "-"))
                 + "/",
                 question.title,
                 post.id,
@@ -346,54 +346,75 @@ def export_data_for_questions(
     # comment_data csv file
     comment_output = io.StringIO()
     comment_writer = csv.writer(comment_output)
-    comment_writer.writerow(
+    headers = ["Post ID"]
+    if anonymized:
+        headers.extend(["Author (Anonymized)"])
+    else:
+        headers.extend(["Author ID", "Author Username"])
+    headers.extend(
         [
-            "Post ID",
-            "Author ID",
-            "Author Username",
             "Parent Comment ID",
             "Root Comment ID",
             "Created At",
             "Comment Text",
         ]
     )
+    comment_writer.writerow(headers)
     for comment in comments or []:
-        comment_writer.writerow(
+        row = [comment.on_post_id]
+        if anonymized:
+            row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
+        else:
+            row.extend([forecast.author_id, forecast.author.username])
+        row.extend(
             [
-                comment.on_post_id,
-                comment.author_id,
-                comment.author.username,
                 comment.parent_id,
                 comment.root_id,
                 comment.created_at,
                 comment.text,
             ]
         )
+        comment_writer.writerow(row)
 
     # score_data csv file
     score_output = io.StringIO()
     score_writer = csv.writer(score_output)
-    score_writer.writerow(
+    headers = ["Question ID"]
+    if anonymized:
+        headers.extend(["User (Anonymized)"])
+    else:
+        headers.extend(["User ID", "User Username"])
+    headers.extend(
         [
-            "Question ID",
-            "User ID",
-            "User Username",
             "Score Type",
             "Score",
             "Coverage",
         ]
     )
+    score_writer.writerow(headers)
     for score in scores or []:
-        score_writer.writerow(
+        row = [score.question_id]
+        if anonymized:
+            row.append(
+                hashlib.sha256(str(score.user_id).encode()).hexdigest()
+                if score.user
+                else score.aggregation_method
+            )
+        else:
+            row.extend(
+                [
+                    score.user_id,
+                    score.user.username if score.user else score.aggregation_method,
+                ]
+            )
+        row.extend(
             [
-                score.question_id,
-                score.user_id,
-                score.user.username if score.user else score.aggregation_method,
                 score.score_type,
                 score.score,
                 score.coverage,
             ]
         )
+        score_writer.writerow(row)
 
     # create a zip file with both csv files
     zip_buffer = io.BytesIO()

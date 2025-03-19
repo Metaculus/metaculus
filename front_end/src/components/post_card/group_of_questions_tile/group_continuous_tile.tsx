@@ -1,4 +1,3 @@
-import { differenceInMilliseconds } from "date-fns";
 import { useLocale } from "next-intl";
 import { FC, useMemo } from "react";
 
@@ -49,22 +48,17 @@ const GroupContinuousTile: FC<Props> = ({ post, hideCP }) => {
   );
   const forecastAvailability = getGroupForecastAvailability(questions);
 
+  const sortedQuestions = sortGroupPredictionOptions(
+    questions,
+    post.group_of_questions
+  );
+
   switch (graph_type) {
     case GroupOfQuestionsGraphType.FanGraph: {
-      const sortedFanGraphQuestions = [...questions].sort((a, b) =>
-        differenceInMilliseconds(
-          new Date(b.scheduled_resolve_time),
-          new Date(a.scheduled_resolve_time)
-        )
-      );
-      const choices = generateChoiceItemsFromGroupQuestions(
-        sortedFanGraphQuestions,
-        {
-          activeCount: VISIBLE_CHOICES_COUNT,
-          locale,
-          preserveOrder: true,
-        }
-      );
+      const choices = generateChoiceItemsFromGroupQuestions(sortedQuestions, {
+        activeCount: VISIBLE_CHOICES_COUNT,
+        locale,
+      });
 
       return (
         <FanGraphMultipleChoiceTile
@@ -80,11 +74,10 @@ const GroupContinuousTile: FC<Props> = ({ post, hideCP }) => {
       );
     }
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
-      const sortedQuestions = sortGroupPredictionOptions(questions);
       const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
         withUserTimestamps: !!forecastAvailability.cpRevealsOn,
       });
-      const choices = generateChoiceItemsFromGroupQuestions(questions, {
+      const choices = generateChoiceItemsFromGroupQuestions(sortedQuestions, {
         activeCount: VISIBLE_CHOICES_COUNT,
         locale,
       });

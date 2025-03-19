@@ -14,6 +14,7 @@ export type ChoiceItem = {
   resolution: Resolution | null;
   displayedResolution?: Resolution | null;
   closeTime?: number; // group only
+  unit?: string; // group only
   rangeMin?: number | null; // continuous group only
   rangeMax?: number | null; // continuous group only
   scaling?: Scaling; // continuous group only

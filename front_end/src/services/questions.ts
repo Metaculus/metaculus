@@ -1,10 +1,14 @@
-import { DistributionSlider, ForecastData } from "@/types/question";
+import {
+  DistributionQuantile,
+  DistributionSlider,
+  ForecastData,
+} from "@/types/question";
 import { get, post } from "@/utils/fetch";
 
 export type ForecastPayload = {
   questionId: number;
   forecastData: ForecastData;
-  distributionInput?: DistributionSlider | null;
+  distributionInput?: DistributionSlider | DistributionQuantile | null;
 };
 export type WithdrawalPayload = {
   question: number;

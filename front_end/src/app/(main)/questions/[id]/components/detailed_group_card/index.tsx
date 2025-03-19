@@ -66,11 +66,12 @@ const DetailedGroupCard: FC<Props> = ({ post, preselectedQuestionId }) => {
     return null;
   }
 
+  const sortedQuestions = sortGroupPredictionOptions(
+    questions as QuestionWithNumericForecasts[],
+    post.group_of_questions
+  );
   switch (graph_type) {
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
-      const sortedQuestions = sortGroupPredictionOptions(
-        questions as QuestionWithNumericForecasts[]
-      );
       const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
         withUserTimestamps: !!forecastAvailability.cpRevealsOn,
       });
@@ -103,7 +104,7 @@ const DetailedGroupCard: FC<Props> = ({ post, preselectedQuestionId }) => {
       return (
         <>
           <FanGraphGroupChart
-            questions={questions as QuestionWithNumericForecasts[]}
+            questions={sortedQuestions as QuestionWithNumericForecasts[]}
             withLabel
             hideCP={hideCP}
             forecastAvailability={forecastAvailability}
