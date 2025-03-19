@@ -129,7 +129,7 @@ export type DistributionQuantile = {
 };
 
 export type UserForecast = Forecast & {
-  distribution_input: DistributionSlider | DistributionQuantile;
+  distribution_input: DistributionSlider | DistributionQuantile | null;
 };
 
 export type UserForecastHistory = {

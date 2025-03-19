@@ -80,7 +80,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   const t = useTranslations();
   const [forecastInputMode, setForecastInputMode] =
     useState<ContinuousForecastInputType>(
-      previousForecast?.distribution_input.type ===
+      previousForecast?.distribution_input?.type ===
         ContinuousForecastInputType.Quantile
         ? ContinuousForecastInputType.Quantile
         : ContinuousForecastInputType.Slider
@@ -112,7 +112,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   // Update states of forecast maker after new forecast is made
   useEffect(() => {
     setForecastInputMode(
-      activeForecast?.distribution_input.type ===
+      activeForecast?.distribution_input?.type ===
         ContinuousForecastInputType.Quantile
         ? ContinuousForecastInputType.Quantile
         : ContinuousForecastInputType.Slider
@@ -133,7 +133,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     );
     setIsDirty(
       activeForecast
-        ? activeForecast.distribution_input.type !==
+        ? activeForecast.distribution_input?.type !==
             ContinuousForecastInputType.Slider
         : false
     );
@@ -283,7 +283,7 @@ const ForecastMakerContinuous: FC<Props> = ({
 
   const handleDiscard = () => {
     setForecastInputMode(
-      (prev) => activeForecast?.distribution_input.type ?? prev
+      (prev) => activeForecast?.distribution_input?.type ?? prev
     );
     setSliderDistributionComponents(
       getInitialSliderDistributionComponents(
@@ -443,7 +443,7 @@ const ForecastMakerContinuous: FC<Props> = ({
           setForecastInputMode(mode);
           if (
             activeForecast &&
-            activeForecast.distribution_input.type !==
+            activeForecast.distribution_input?.type !==
               ContinuousForecastInputType.Slider
           ) {
             setIsDirty(true);

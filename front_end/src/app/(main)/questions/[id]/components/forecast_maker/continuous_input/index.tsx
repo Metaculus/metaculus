@@ -83,7 +83,7 @@ const ContinuousInput: FC<Props> = ({
     if (
       forecastInputMode === ContinuousForecastInputType.Quantile &&
       (isDirty ||
-        (previousForecast?.distribution_input.type ===
+        (previousForecast?.distribution_input?.type ===
           ContinuousForecastInputType.Slider &&
           isNil(previousForecast.end_time)))
     ) {
