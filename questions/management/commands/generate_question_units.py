@@ -1,36 +1,30 @@
 import json
 import logging
-import time
 
 from django.core.management.base import BaseCommand
 
 from posts.models import Post
-from questions.models import Question
+from questions.models import Question, Conditional
 from utils.openai import get_openai_client
 
 logger = logging.getLogger(__name__)
 
 
-# TODO: take into account Conditional Questions! (exclude from initial QuerySet and programmatically backfill!)
-
-
 def generate_prompt():
-    return """Generate units for numeric questions based on their title, description, and option parameter.
-Given a JSON list of question objects, create concise unit values and return as a JSON object 
-where each key is the QuestionID and each value is the derived unit. Consider any "option" parameter provided.
+    return """Generate concise and context-appropriate units for numeric questions based on their title, resolution criteria, and option.
 
-- Analyze the title, description, and option of each question to determine an appropriate unit.
-- Ensure the unit is concise and relevant to the context.
+Given a JSON list of question objects, create unit values that are concise and appropriate for display next to the Prediction value on the site and on prediction chart axis labels. Return results as a JSON object with each key as the QuestionID and the value as the derived unit. Consider any "option" parameter provided.
+
+- Analyze the title, resolution criteria, and option of each question to determine an appropriate unit.
+- Ensure the unit is concise, relevant to the context, and suitable for display on the site and in prediction charts.
 - If a unit cannot be determined, return `null` for that question.
 
 # Steps
 
 1. Parse the input JSON list of question objects.
-2. For each question, examine the title, description, and option 
-   to identify any keywords or phrases that suggest a unit.
-3. Reason through the context provided by the title, description, and option to determine the most appropriate unit.
-4. Regularly use standard unit abbreviations (e.g., "kg" for kilograms, "$" for dollars) 
-   unless the description indicates a specific alternative.
+2. For each question, examine the title, resolution criteria, and option to identify any keywords or phrases that suggest a unit.
+3. Reason through the context provided by the title, resolution criteria, and option to determine the most appropriate unit.
+4. Regularly use standard unit abbreviations (e.g., "kg" for kilograms, "$" for dollars) unless the description indicates a specific alternative.
 5. Construct a JSON object with each question's ID as the key and the derived unit as the value.
 6. For unclear or unitless questions, set the value to `null`.
 
@@ -50,10 +44,10 @@ The result should be returned as a JSON object with the format:
 **Input:**
 ```json
 [
-{"id": 150, "title": "What is the weight of the package?", "description": "Enter the weight in kilograms or pounds."},
-{"id": 151, "title": "How much will the item cost?", "description": "Enter the cost in dollars."},
-{"id": 160, "title": "What is the age of the building?", "description": "Enter the age with no units specified."},
-{"id": 200, "title": "What will be the GDP for those countries?", "description": "...", "option": "US"}
+{"id": 150, "title": "What is the weight of the package?", "resolution_criteria": "Enter the weight in kilograms or pounds."},
+{"id": 151, "title": "How much will the item cost?", "resolution_criteria": "Enter the cost in dollars."},
+{"id": 160, "title": "What is the age of the building?", "resolution_criteria": "Enter the age with no units specified."},
+{"id": 200, "title": "What will be the GDP for those countries?", "resolution_criteria": "...", "option": "US"}
 ]
 ```
 
@@ -69,11 +63,10 @@ The result should be returned as a JSON object with the format:
 
 # Notes
 
-- Ensure the units are appropriate and common for the given context, utilizing contextual clues 
-  from the question's title, description, and option.
+- Ensure the units are appropriate and common for the given context, utilizing contextual clues from the question's title, resolution criteria, and option.
 - Where ambiguity exists, prioritize clarity and simplicity when selecting a unit.
-- Consider common fallbacks if a direct indicator is missing, but avoid assumptions 
-  that are not supported by the provided text."""
+- Consider common fallbacks if a direct indicator is missing, but avoid assumptions that are not supported by the provided text.
+- Please note: generated unit will be visible on the question page on our site and on prediction chart axis labels next to the Prediction value, so it should be concise and appropriate for the given situation."""
 
 
 def generate_question_data(question):
@@ -81,27 +74,25 @@ def generate_question_data(question):
         return {
             "id": question.id,
             "title": question.get_post().title,
-            "description": question.group.description,
+            "resolution_criteria": question.group.resolution_criteria,
             "option": question.label,
         }
 
     return {
         "id": question.id,
         "title": question.title,
-        "description": question.description,
+        "resolution_criteria": question.resolution_criteria,
     }
 
 
 def generate_units(questions: list[Question]):
+    question_map = {q.id: q for q in questions}
     question_contents = [generate_question_data(q) for q in questions]
-
-    if not question_contents:
-        return {}
 
     client = get_openai_client()
 
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4.5-preview",
         messages=[
             {"role": "system", "content": generate_prompt()},
             {"role": "user", "content": json.dumps(question_contents, indent=2)},
@@ -111,46 +102,70 @@ def generate_units(questions: list[Question]):
 
     units_map = json.loads(response.choices[0].message.content)
 
-    print(units_map)
+    # TODO: remove
+    for q_id, unit in units_map.items():
+        question = question_map[int(q_id)]
+        print(
+            f"[{unit}] http://localhost:3000/questions/{question.get_post_id()} | {question.title}"
+        )
 
-    return {int(question_id): unit for question_id, unit in units_map.items()}
+    return {
+        question_map[int(question_id)]: unit for question_id, unit in units_map.items()
+    }
 
 
 class Command(BaseCommand):
     chunk_size = 10
     help = "Generate question units for all questions"
 
+    @classmethod
+    def sync_conditional_units(cls, questions: list[Question]):
+        conditionals = Conditional.objects.filter(
+            condition_child__in=questions
+        ).select_related("condition_child", "question_yes", "question_no")
+
+        to_update = []
+
+        for conditional in conditionals:
+            for c_question in (conditional.question_yes, conditional.question_no):
+                if not c_question.unit:
+                    c_question.unit = conditional.condition_child.unit
+                    to_update.append(c_question)
+
+        Question.objects.bulk_update(to_update, fields=["unit"], batch_size=100)
+
     def handle(self, *args, **options):
-        # TODO: exclude draft, deleted
-        # TODO: exclude conditionals
-        qs = Question.objects.filter(
-            type=Question.QuestionType.NUMERIC,
-            unit="",
-            conditional_yes__isnull=True,
-            conditional_no__isnull=True,
-            related_posts__post__curation_status__in=[Post.CurationStatus.APPROVED, Post.CurationStatus.PENDING]
-        ).select_related("group")
+        qs = (
+            Question.objects.filter(
+                type=Question.QuestionType.NUMERIC,
+                unit="",
+                conditional_yes__isnull=True,
+                conditional_no__isnull=True,
+                related_posts__post__curation_status__in=[
+                    Post.CurationStatus.APPROVED,
+                    Post.CurationStatus.PENDING,
+                ],
+            )
+            .select_related("group")
+            .order_by("-id")
+        )
         total_questions = qs.count()
 
-        tm = time.time()
         idx = 0
-
-        units_mapping = {}
 
         while idx <= total_questions:
             chunk = qs.all()[idx : idx + self.chunk_size]
             idx += self.chunk_size
 
-            units = generate_units(chunk)
+            if not len(chunk):
+                continue
 
-            for question_id, unit in units.items():
-                if question_id in units_mapping:
-                    raise ValueError("Duplicate question id: {}".format(question_id))
+            units_mapped = generate_units(chunk)
 
-            units_mapping.update(units)
+            for question, unit in units_mapped.items():
+                question.unit = unit or ""
+
+            Question.objects.bulk_update(list(units_mapped.keys()), fields=["unit"])
+            self.sync_conditional_units(list(units_mapped.keys()))
 
             print(f"Processed {idx}/{total_questions} questions")
-
-        # TODO:
-        with open("output.json", "w") as f:
-            json.dump(units_mapping, f, indent=2)
