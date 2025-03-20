@@ -330,16 +330,62 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
 
-          {!!activeForecast && (
-            <Button
-              variant="secondary"
-              type="submit"
-              disabled={withdrawalIsPending}
-              onClick={withdraw}
-            >
-              {t("withdraw")}
-            </Button>
-          )}
+          {forecastInputMode === ContinuousForecastInputType.Slider &&
+            (isDirty ? (
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={
+                  !isDirty &&
+                  !Object.values(quantileDistributionComponents ?? []).some(
+                    (value) => value?.isDirty === true
+                  )
+                }
+                onClick={handleDiscard}
+              >
+                {t("discard")}
+              </Button>
+            ) : (
+              !!activeForecast && (
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )
+            ))}
+          {forecastInputMode === ContinuousForecastInputType.Quantile &&
+            (Object.values(quantileDistributionComponents ?? []).some(
+              (value) => value?.isDirty === true
+            ) ? (
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={
+                  !isDirty &&
+                  !Object.values(quantileDistributionComponents ?? []).some(
+                    (value) => value?.isDirty === true
+                  )
+                }
+                onClick={handleDiscard}
+              >
+                {t("discard")}
+              </Button>
+            ) : (
+              !!activeForecast && (
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )
+            ))}
 
           {forecastInputMode === ContinuousForecastInputType.Slider ? (
             <PredictButton
@@ -365,41 +411,6 @@ const ForecastMakerContinuous: FC<Props> = ({
               }
             />
           )}
-
-          {forecastInputMode === ContinuousForecastInputType.Slider &&
-            isDirty && (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={
-                  !isDirty &&
-                  !Object.values(quantileDistributionComponents ?? []).some(
-                    (value) => value?.isDirty === true
-                  )
-                }
-                onClick={handleDiscard}
-              >
-                {t("discard")}
-              </Button>
-            )}
-          {forecastInputMode === ContinuousForecastInputType.Quantile &&
-            Object.values(quantileDistributionComponents ?? []).some(
-              (value) => value?.isDirty === true
-            ) && (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={
-                  !isDirty &&
-                  !Object.values(quantileDistributionComponents ?? []).some(
-                    (value) => value?.isDirty === true
-                  )
-                }
-                onClick={handleDiscard}
-              >
-                {t("discard")}
-              </Button>
-            )}
         </div>
 
         <FormError
