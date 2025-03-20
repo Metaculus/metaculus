@@ -105,7 +105,15 @@ class TestResolveConditionalQuestion:
             author=user1,
         )
         approve_post(
-            post, make_aware(datetime(2024, 1, 1)), make_aware(datetime(2024, 1, 1))
+            post,
+            post.published_at or make_aware(datetime(2024, 1, 1)),
+            post.conditional.question_yes.open_time or make_aware(datetime(2024, 1, 1)),
+            post.conditional.question_yes.cp_reveal_time
+            or make_aware(datetime(2024, 1, 1)),
+            post.conditional.question_yes.scheduled_close_time
+            or make_aware(datetime(2024, 1, 1)),
+            post.conditional.question_yes.scheduled_resolve_time
+            or make_aware(datetime(2024, 1, 1)),
         )
         post.update_pseudo_materialized_fields()
 
