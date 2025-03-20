@@ -30,6 +30,7 @@ type Props = {
   dataset: {
     cdf: number[];
     pmf: number[];
+    componentCdfs?: number[][];
   };
   userCdf: number[] | undefined;
   userPreviousCdf: number[] | undefined;

@@ -31,7 +31,7 @@ import {
   getClosestYValue,
   interpolateYValue,
 } from "@/utils/charts";
-import { computeQuartilesFromCDF } from "@/utils/math";
+import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
 
@@ -41,11 +41,13 @@ const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   community_closed: "gray",
   user: "orange",
   user_previous: "orange",
+  user_components: "orange",
 };
 
 export type ContinuousAreaGraphInput = Array<{
   pmf: number[];
   cdf: number[];
+  componentCdfs?: number[][] | null;
   type: ContinuousAreaType;
 }>;
 
@@ -101,18 +103,31 @@ const ContinuousAreaChart: FC<Props> = ({
       ? [...data].filter((el) => el.type === "user")
       : data;
 
-    return parsedData.reduce<NumericPredictionGraph[]>(
-      (acc, el) => [
-        ...acc,
+    const chartData: NumericPredictionGraph[] = [];
+    for (const datum of parsedData) {
+      const { pmf, cdf, componentCdfs } = datum;
+      chartData.push(
         generateNumericAreaGraph({
-          pmf: el.pmf,
-          cdf: el.cdf,
+          pmf,
+          cdf,
           graphType,
-          type: el.type,
-        }),
-      ],
-      []
-    );
+          type: datum.type,
+        })
+      );
+      if (componentCdfs) {
+        for (const componentCdf of componentCdfs) {
+          chartData.push(
+            generateNumericAreaGraph({
+              pmf: cdfToPmf(componentCdf),
+              cdf: componentCdf,
+              graphType,
+              type: "user_components",
+            })
+          );
+        }
+      }
+    }
+    return chartData;
   }, [data, graphType, hideCP]);
 
   const { xDomain, yDomain } = useMemo<{
@@ -237,6 +252,7 @@ const ContinuousAreaChart: FC<Props> = ({
                 user: 0,
                 user_previous: 0,
                 community_closed: 0,
+                user_components: 0,
               },
             }
           );
@@ -269,22 +285,24 @@ const ContinuousAreaChart: FC<Props> = ({
       }}
       cursorLabelComponent={
         <LineCursorPoints
-          chartData={charts.map((chart) => ({
-            line: chart.graphLine,
-            color: (() => {
-              switch (chart.color) {
-                case "orange":
-                  return getThemeColor(
-                    METAC_COLORS.orange[chart.type === "user" ? "800" : "500"]
-                  );
-                case "gray":
-                  return getThemeColor(METAC_COLORS.gray["500"]);
-                default:
-                  return getThemeColor(METAC_COLORS.olive["700"]);
-              }
-            })(),
-            type: chart.type,
-          }))}
+          chartData={charts
+            .filter((chart) => chart.type !== "user_components")
+            .map((chart) => ({
+              line: chart.graphLine,
+              color: (() => {
+                switch (chart.color) {
+                  case "orange":
+                    return getThemeColor(
+                      METAC_COLORS.orange[chart.type === "user" ? "800" : "500"]
+                    );
+                  case "gray":
+                    return getThemeColor(METAC_COLORS.gray["500"]);
+                  default:
+                    return getThemeColor(METAC_COLORS.olive["700"]);
+                }
+              })(),
+              type: chart.type,
+            }))}
           yDomain={yDomain}
           chartHeight={height}
           paddingTop={paddingTop}
@@ -315,6 +333,7 @@ const ContinuousAreaChart: FC<Props> = ({
               user: 0,
               user_previous: 0,
               community_closed: 0,
+              user_components: 0,
             },
           }
         );
@@ -352,33 +371,35 @@ const ContinuousAreaChart: FC<Props> = ({
             )
           }
         >
-          {charts.map((chart, index) => (
-            <VictoryArea
-              key={`area-${index}`}
-              data={chart.graphLine}
-              style={{
-                data: {
-                  fill: (() => {
-                    switch (chart.color) {
-                      case "orange":
-                        return getThemeColor(
-                          METAC_COLORS.orange[
-                            chart.type === "user" ? "700" : "400"
-                          ]
-                        );
-                      case "green":
-                        return getThemeColor(METAC_COLORS.olive["500"]);
-                      case "gray":
-                        return getThemeColor(METAC_COLORS.gray["500"]);
-                      default:
-                        return undefined;
-                    }
-                  })(),
-                  opacity: chart.type === "user_previous" ? 0.1 : 0.3,
-                },
-              }}
-            />
-          ))}
+          {charts
+            .filter((chart) => chart.type !== "user_components")
+            .map((chart, index) => (
+              <VictoryArea
+                key={`area-${index}`}
+                data={chart.graphLine}
+                style={{
+                  data: {
+                    fill: (() => {
+                      switch (chart.color) {
+                        case "orange":
+                          return getThemeColor(
+                            METAC_COLORS.orange[
+                              chart.type === "user" ? "700" : "400"
+                            ]
+                          );
+                        case "green":
+                          return getThemeColor(METAC_COLORS.olive["500"]);
+                        case "gray":
+                          return getThemeColor(METAC_COLORS.gray["500"]);
+                        default:
+                          return undefined;
+                      }
+                    })(),
+                    opacity: chart.type === "user_previous" ? 0.1 : 0.3,
+                  },
+                }}
+              />
+            ))}
           {charts.map((chart, index) => (
             <VictoryLine
               key={`line-${index}`}
@@ -390,7 +411,11 @@ const ContinuousAreaChart: FC<Props> = ({
                       case "orange":
                         return getThemeColor(
                           METAC_COLORS.orange[
-                            chart.type === "user" ? "800" : "500"
+                            chart.type === "user"
+                              ? "800"
+                              : chart.type === "user_components"
+                                ? "500"
+                                : "200"
                           ]
                         );
                       case "green":
@@ -547,6 +572,16 @@ function generateNumericAreaGraph(data: {
       }
       graph.push({ x: (index - 0.5) / (pmf.length - 2), y: value });
     });
+  }
+
+  if (type === "user_components") {
+    return {
+      graphLine: graph,
+      verticalLines: [],
+      color: CHART_COLOR_MAP[type],
+      type,
+      graphType,
+    };
   }
 
   const verticalLines: Line = [];

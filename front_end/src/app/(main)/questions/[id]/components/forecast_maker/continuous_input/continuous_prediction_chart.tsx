@@ -21,6 +21,7 @@ type Props = {
   dataset: {
     cdf: number[];
     pmf: number[];
+    componentCdfs?: number[][] | null;
   };
   graphType: ContinuousAreaGraphType;
   readOnly?: boolean;
@@ -109,6 +110,7 @@ const ContinuousPredictionChart: FC<Props> = ({
       charts.push({
         pmf: dataset.pmf,
         cdf: dataset.cdf,
+        componentCdfs: dataset.componentCdfs,
         type: "user",
       });
     }
@@ -117,8 +119,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   }, [
     question.aggregations.recency_weighted.latest,
     question.status,
-    dataset.cdf,
-    dataset.pmf,
+    dataset,
     readOnly,
     showCP,
     question.my_forecasts?.latest,
