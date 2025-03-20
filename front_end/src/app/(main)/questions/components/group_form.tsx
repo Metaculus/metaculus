@@ -262,10 +262,11 @@ const GroupForm: React.FC<Props> = ({
   };
 
   const [subQuestions, setSubQuestions] = useState<any[]>(() => {
-    const initialSubQuestions = sortGroupPredictionOptions(
-      post?.group_of_questions?.questions as QuestionWithNumericForecasts[],
-      post?.group_of_questions
-    );
+    const initialSubQuestions = post?.group_of_questions?.questions
+      ? sortGroupPredictionOptions(
+          post?.group_of_questions?.questions as QuestionWithNumericForecasts[]
+        )
+      : [];
 
     return initialSubQuestions.map((x, idx) => {
       return {
