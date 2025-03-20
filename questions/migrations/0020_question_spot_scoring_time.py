@@ -3,6 +3,13 @@
 from django.db import migrations, models
 
 
+def migrate(apps, schema_editor):
+    Question = apps.get_model("questions", "Question")
+    Question.objects.filter(spot_scoring_time__isnull=True).update(
+        spot_scoring_time=models.F("cp_reveal_time")
+    )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -19,4 +26,5 @@ class Migration(migrations.Migration):
                 null=True,
             ),
         ),
+        migrations.RunPython(migrate, migrations.RunPython.noop),
     ]
