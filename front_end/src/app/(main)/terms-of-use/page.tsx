@@ -107,6 +107,9 @@ export default async function TermsOfUse() {
         has the right to terminate your account for any reason at our sole
         discretion without notice and without liability.
       </p>
+      <p className="mb-4">
+        Competitions on Metaculus are skills-based, designed to evaluate participants' forecasting and reasoning skills. No purchase, fee, or payment is required to participate. All entries are judged by an algorithm, described at <a href="https://www.metaculus.com/help/scores-faq/#proper-scoring" className="text-blue-600 hover:underline">https://www.metaculus.com/help/scores-faq/#proper-scoring</a>, that applies objective criteria.
+      </p>
 
       <h2
         className="mb-4 mt-8 scroll-mt-nav text-2xl font-bold"
