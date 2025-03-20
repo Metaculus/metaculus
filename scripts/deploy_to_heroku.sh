@@ -22,7 +22,8 @@ wait_and_fail_if_release_failed() {
 
 
 for target in release dramatiq_worker django_cron web; do
-    docker build --platform linux/amd64 . -t registry.heroku.com/$HEROKU_APP/$target --target $target --push
+    docker build --platform linux/amd64 . -t registry.heroku.com/$HEROKU_APP/$target --target $target
+    docker push registry.heroku.com/$HEROKU_APP/$target
 done
 
 # Release them all
