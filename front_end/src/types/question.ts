@@ -129,7 +129,7 @@ export type DistributionQuantile = {
 };
 
 export type UserForecast = Forecast & {
-  distribution_input: DistributionSlider | DistributionQuantile;
+  distribution_input: DistributionSlider | DistributionQuantile | null;
 };
 
 export type UserForecastHistory = {
@@ -204,6 +204,7 @@ export type Question = {
   // Multiple-choice only
   options?: string[];
   group_variable?: string;
+  group_rank?: number;
   // Other
   scaling: Scaling;
   possibilities: {
@@ -223,6 +224,7 @@ export type Question = {
   fine_print: string | null;
   resolution_criteria: string | null;
   label: string;
+  unit: string;
   nr_forecasters: number;
   author_username: string;
   post_id: number;
@@ -295,8 +297,9 @@ export type AggregationQuestion = {
   scheduled_close_time: string;
   scheduled_resolve_time: string;
   title: string;
-  url_title: string;
+  short_title: string;
   type: QuestionType;
+  unit?: string;
 };
 
 export enum CurveQuestionLabels {

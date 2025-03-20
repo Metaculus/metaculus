@@ -32,6 +32,13 @@
   "reply": "Responder",
   "cancel": "Cancelar",
   "edit": "Editar",
+  "resolvingTime": "Tempo de resolução",
+  "postPublishTime": "Hora de publicação posterior",
+  "advancedOptionsDescription": "Estas opções não são obrigatórias. Os moderadores geralmente as preencherão no momento da aprovação.",
+  "publishTimeDescription": "Hora em que esta questão ficará visível ao público.",
+  "closingTimeDescription": "Quando esta questão será fechada para previsões.",
+  "resolvingTimeDescription": "Quando você espera que a resolução desta questão seja conhecida.",
+  "cpRevealTimeDescription": "Hora em que a Previsão da Comunidade ficará visível.",
   "report": "Denunciar",
   "delete": "Excluir",
   "copyLink": "Copiar Link",
@@ -1145,5 +1152,13 @@
   "q2InRangeProbBelowError": "Quando seu percentil 50 está dentro do intervalo, a probabilidade abaixo do intervalo deve ser ≤ 50%",
   "q2InRangeProbAboveError": "Quando seu percentil 50 está dentro do intervalo, a probabilidade acima do intervalo deve ser ≤ 50%",
   "q3InRangeProbBelowError": "Quando seu percentil 75 está dentro do intervalo, a probabilidade abaixo do intervalo deve ser ≤ 75%",
-  "q3InRangeProbAboveError": "Quando seu percentil 75 está dentro do intervalo, a probabilidade acima do intervalo deve ser ≤ 25%"
+  "q3InRangeProbAboveError": "Quando seu percentil 75 está dentro do intervalo, a probabilidade acima do intervalo deve ser ≤ 25%",
+  "questionUnit": "Unidade de Pergunta",
+  "subquestionUnit": "Unidade de Subquestão",
+  "questionUnitDescription": "A unidade é exibida junto com a mediana e em vários outros lugares. Exemplos: “$”, “Casos”, “Pessoas”.",
+  "manualSubquestionOrder": "Manual (Clique nas setas para reordenar)",
+  "cpAscendingSubquestionOrder": "Previsão da Comunidade (Ascendente)",
+  "cpDescendingSubquestionOrder": "Previsão da Comunidade (Descendente)",
+  "groupSorting": "Ordenação do grupo",
+  "groupSortingDescription": "A ordem das subperguntas no grupo"
 }

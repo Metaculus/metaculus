@@ -1,21 +1,21 @@
 import * as d3 from "d3";
 import {
-  format,
   differenceInMilliseconds,
+  format,
   fromUnixTime,
   getUnixTime,
   subDays,
   subMonths,
 } from "date-fns";
-import { findLastIndex, isNil, uniq, range } from "lodash";
+import { findLastIndex, isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
   ContinuousAreaType,
-  FanOption,
   ContinuousForecastInputType,
+  FanOption,
   Line,
   Scale,
   TimelineChartZoomOption,
@@ -23,23 +23,25 @@ import {
 import { ChoiceItem } from "@/types/choices";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
-  QuestionType,
-  QuestionWithNumericForecasts,
-  Question,
-  QuestionWithMultipleChoiceForecasts,
-  UserForecastHistory,
-  Scaling,
   AggregateForecast,
-  QuestionWithForecasts,
   AggregateForecastHistory,
   Bounds,
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithMultipleChoiceForecasts,
+  QuestionWithNumericForecasts,
+  Scaling,
   UserForecast,
+  UserForecastHistory,
 } from "@/types/question";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 import {
   formatMultipleChoiceResolution,
   formatResolution,
+  formatValueUnit,
+  isUnitCompact,
   isUnsuccessfullyResolved,
 } from "@/utils/questions";
 
@@ -49,8 +51,8 @@ import {
   getForecastDateDisplayValue,
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
-  getSliderNumericForecastDataset,
   getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
   populateQuantileComponents,
 } from "./forecasts";
 
@@ -108,6 +110,7 @@ type GenerateYDomainParams = {
   isChartEmpty: boolean;
   zoomDomainPadding?: number;
 };
+
 export function generateYDomain({
   zoom,
   isChartEmpty,
@@ -306,6 +309,7 @@ export function displayValue({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   truncation,
   dateFormatString,
+  unit,
 }: {
   value: number | null;
   questionType: QuestionType;
@@ -313,6 +317,7 @@ export function displayValue({
   scaling?: Scaling;
   truncation?: number;
   dateFormatString?: string;
+  unit?: string;
 }): string {
   if (value === null) {
     return "...";
@@ -323,7 +328,7 @@ export function displayValue({
     return format(fromUnixTime(value), dateFormatString ?? dateFormat);
   } else if (questionType === QuestionType.Numeric) {
     // TODO add truncation to abbreviatedNumber
-    return abbreviatedNumber(value, precision);
+    return formatValueUnit(abbreviatedNumber(value, precision), unit);
   } else {
     return `${Math.round(value * 1000) / 10}%`;
   }
@@ -343,6 +348,7 @@ export function getDisplayValue({
   truncation,
   range,
   dateFormatString,
+  unit,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -351,6 +357,7 @@ export function getDisplayValue({
   truncation?: number;
   range?: number[];
   dateFormatString?: string;
+  unit?: string;
 }): string {
   if (value === undefined || value === null) {
     return "...";
@@ -363,6 +370,7 @@ export function getDisplayValue({
     truncation,
     scaling,
     dateFormatString,
+    unit,
   });
   if (range) {
     const lowerX = range[0];
@@ -402,6 +410,7 @@ export function getTableDisplayValue({
   truncation,
   range,
   forecastInputMode = ContinuousForecastInputType.Slider,
+  unit,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -410,6 +419,7 @@ export function getTableDisplayValue({
   truncation?: number;
   range?: number[];
   forecastInputMode?: ContinuousForecastInputType;
+  unit?: string;
 }) {
   if (isNil(value)) {
     return "...";
@@ -425,7 +435,7 @@ export function getTableDisplayValue({
     });
   }
 
-  return getDisplayValue({
+  const formatted_value = getDisplayValue({
     value,
     questionType,
     scaling,
@@ -433,6 +443,10 @@ export function getTableDisplayValue({
     truncation,
     range,
   });
+
+  return isUnitCompact(unit)
+    ? formatValueUnit(formatted_value, unit)
+    : formatted_value;
 }
 
 export function getQuestionDateFormatString(scaling: Scaling) {
@@ -489,12 +503,14 @@ export function getUserPredictionDisplayValue({
   questionType,
   scaling,
   showRange,
+  unit,
 }: {
   myForecasts: UserForecastHistory;
   timestamp: number | null | undefined;
   questionType: Question | QuestionType;
   scaling?: Scaling;
   showRange?: boolean;
+  unit?: string;
 }): string {
   if (!timestamp) {
     return "...";
@@ -586,7 +602,10 @@ export function getUserPredictionDisplayValue({
 
     return displayCenter;
   } else if (questionType === QuestionType.Numeric) {
-    const displayCenter = abbreviatedNumber(scaledCenter);
+    const displayCenter = formatValueUnit(
+      abbreviatedNumber(scaledCenter),
+      unit
+    );
     if (showRange) {
       const displayLower = !isNil(scaledLower)
         ? abbreviatedNumber(scaledLower)
@@ -609,7 +628,7 @@ type GenerateScaleParams = {
   domain?: Tuple<number>;
   zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
-  displayLabel?: string;
+  unit?: string;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
 };
@@ -626,7 +645,7 @@ type GenerateScaleParams = {
  *  but for dates can be the min and max unix timestamps
  * @param scaling the Scaling related to the data, defaults to null
  *  which in turn is the same as a linear scaling along the given domain
- * @param displayLabel this is the label that will be appended to the
+ * @param unit this is the label that will be appended to the
  *  formatted tick values, defaults to an empty string
  * @param cursorDisplayLabel specifies the label to appear on the cursor
  *  state, which defaults to the displayLabel
@@ -640,7 +659,7 @@ export function generateScale({
   domain = [0, 1],
   zoomedDomain = [0, 1],
   scaling = null,
-  displayLabel = "",
+  unit,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -682,48 +701,144 @@ export function generateScale({
   }
   const tickCount = (maxLabelCount - 1) * 5 + 1;
 
-  const tickInterval = zoomedDomainMax / (tickCount - 1);
-  const labeledTickInterval = zoomedDomainMax / (maxLabelCount - 1);
+  // TODO: this does not support choosing values intelligently in
+  // real scaling. The y-axis is always a domain of 0-1 with
+  // linear scaling as that is the native format for the
+  // forecast data. To get this to intelligently choose ticks and
+  // labels, this operation will have to be done in the real
+  // scaling first, then transformed back into the domain scale.
+  const zoomedRange = zoomedDomainMax - zoomedDomainMin;
+  let minorRes: number;
+  let majorRes: number;
+  if (zoomedRange > 0.7) {
+    minorRes = 0.05; // only tick on multiples of 0.05
+    majorRes = 0.25; // only label on multiples of 0.25
+  } else if (zoomedRange > 0.5) {
+    minorRes = 0.025; // only tick on multiples of 0.025
+    majorRes = 0.1; // only label on multiples of 0.10
+  } else if (zoomedRange > 0.1) {
+    minorRes = 0.01; // only tick on multiples of 0.01
+    majorRes = 0.05; // only label on multiples of 0.05
+  } else if (zoomedRange > 0.05) {
+    minorRes = 0.005; // only tick on multiples of 0.005
+    majorRes = 0.025; // only label on multiples of 0.025
+  } else {
+    minorRes = 0.0025; // only tick on multiples of 0.0025
+    majorRes = 0.01; // only label on multiples of 0.01
+  }
+
+  const minorTickInterval =
+    Math.round(zoomedRange / (tickCount - 1) / minorRes) * minorRes;
+  const tickStart = Math.round(zoomedDomainMin / minorRes) * minorRes;
+  const tickEnd =
+    Math.round((zoomedDomainMax + minorTickInterval / 100) / minorRes) *
+    minorRes *
+    1.001;
+  const minorTicks: number[] = range(tickStart, tickEnd, minorTickInterval).map(
+    (x) => Math.round(x * 1000) / 1000
+  );
+
+  const majorTickStart = Math.round(zoomedDomainMin / majorRes) * majorRes;
+  const majorTickInterval =
+    Math.round(zoomedRange / (maxLabelCount - 1) / majorRes) * majorRes;
   const majorTicks: number[] = range(
-    zoomedDomainMin,
-    zoomedDomainMax + tickInterval / 100,
-    labeledTickInterval
-  ).map((x) => Math.round(x * 1000) / 1000);
-  const allTicks: number[] = range(
-    zoomedDomainMin,
-    zoomedDomainMax + tickInterval / 100,
-    tickInterval
+    majorTickStart,
+    tickEnd,
+    majorTickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
 
-  return {
-    ticks: allTicks,
-    tickFormat: (x) => {
-      if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
-        const unscaled = unscaleNominalLocation(x, domainScaling);
+  // // Debugging - do not remove
+  // console.log(
+  //   "\n displayType:",
+  //   displayType,
+  //   "\n axisLength:",
+  //   axisLength,
+  //   "\n domain:",
+  //   domain,
+  //   "\n zoomedDomain:",
+  //   zoomedDomain,
+  //   "\n zoomedRange:",
+  //   zoomedRange,
+  //   "\n scaling:",
+  //   scaling,
+  //   "\n unit:",
+  //   unit,
+  //   "\n maxLabelCount:",
+  //   maxLabelCount,
+  //   "\n tickCount:",
+  //   tickCount,
+  //   "\n domainScaling:",
+  //   domainScaling,
+  //   "\n rangeScaling:",
+  //   rangeScaling,
+  //   "\n minorRes:",
+  //   minorRes,
+  //   "\n majorRes:",
+  //   majorRes,
+  //   "\n tickStart:",
+  //   tickStart,
+  //   "\n tickEnd:",
+  //   tickEnd,
+  //   "\n minorTickInterval:",
+  //   minorTickInterval,
+  //   "\n minorTicks:",
+  //   minorTicks,
+  //   "\n majorTickInterval:",
+  //   majorTickInterval,
+  //   "\n majorTicks:",
+  //   majorTicks
+  // );
 
-        return (
-          getDisplayValue({
-            value: unscaled,
-            questionType: displayType as QuestionType,
-            scaling: rangeScaling,
-            precision: 3,
-            dateFormatString: "dd MMM yyyy",
-          }) + displayLabel
-        );
-      }
-      return "";
-    },
-    cursorFormat: (x) => {
+  const conditionallyShowUnit = (value: string, idx?: number): string => {
+    if (!unit) return value;
+
+    // Include unit if it's within the length limit
+    if (isUnitCompact(unit)) return formatValueUnit(value, unit);
+
+    // Include unit only for the first and last tick in horizontal mode
+    if (
+      direction === "horizontal" &&
+      (idx === 0 || idx === minorTicks.length - 1)
+    ) {
+      return formatValueUnit(value, unit);
+    }
+
+    return value;
+  };
+
+  function tickFormat(x: number, idx?: number) {
+    if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
       const unscaled = unscaleNominalLocation(x, domainScaling);
-      return (
+      return conditionallyShowUnit(
         getDisplayValue({
           value: unscaled,
           questionType: displayType as QuestionType,
           scaling: rangeScaling,
-          precision: 6,
-        }) + displayLabel
+          precision: 3,
+        }),
+        idx
       );
-    },
+    }
+    return "";
+  }
+
+  function cursorFormat(x: number, idx?: number) {
+    const unscaled = unscaleNominalLocation(x, domainScaling);
+    return conditionallyShowUnit(
+      getDisplayValue({
+        value: unscaled,
+        questionType: displayType as QuestionType,
+        scaling: rangeScaling,
+        precision: 6,
+      }),
+      idx
+    );
+  }
+
+  return {
+    ticks: minorTicks,
+    tickFormat: tickFormat,
+    cursorFormat: cursorFormat,
   };
 }
 
@@ -863,45 +978,18 @@ export function generateChoiceItemsFromGroupQuestions(
     activeCount?: number;
     preselectedQuestionId?: number;
     locale?: string;
-    preserveOrder?: boolean;
   }
 ): ChoiceItem[] {
   if (questions.length == 0) {
     return [];
   }
-  const { activeCount, preselectedQuestionId, locale, preserveOrder } =
-    config ?? {};
+  const { activeCount, preselectedQuestionId, locale } = config ?? {};
 
-  const latests: (AggregateForecast | undefined)[] = questions.map(
-    (question) => question.aggregations.recency_weighted.latest
-  );
-  const choiceOrdering: number[] = latests.map((_, i) => i);
-  if (!preserveOrder) {
-    choiceOrdering.sort((a, b) => {
-      const aCenter = latests[a]?.centers?.[0] ?? 0;
-      const bCenter = latests[b]?.centers?.[0] ?? 0;
-      const aValueScaled = scaleInternalLocation(aCenter, {
-        range_min: questions[a]?.scaling?.range_min ?? 0,
-        range_max: questions[a]?.scaling?.range_max ?? 1,
-        zero_point: questions[a]?.scaling?.zero_point ?? null,
-      });
-      const bValueScaled = scaleInternalLocation(bCenter, {
-        range_min: questions[b]?.scaling?.range_min ?? 0,
-        range_max: questions[b]?.scaling?.range_max ?? 1,
-        zero_point: questions[b]?.scaling?.zero_point ?? null,
-      });
-      return bValueScaled - aValueScaled;
-    });
-  }
   const preselectedQuestionLabel = preselectedQuestionId
     ? questions.find((q) => q.id === preselectedQuestionId)?.label
     : undefined;
 
-  const choiceItems: ChoiceItem[] = choiceOrdering.map((order, index) => {
-    // that's okay to do no-non-null-assertion, as choiceOrdering is generated based on questions array
-    // so we don't expect that it will have a different length
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const question = questions[order]!;
+  const choiceItems: ChoiceItem[] = questions.map((question, index) => {
     const label = question.label;
     const userHistory = question.my_forecasts?.history;
 
@@ -999,9 +1087,11 @@ export function generateChoiceItemsFromGroupQuestions(
             questionType: question.type,
             locale: locale ?? "en",
             scaling: question.scaling,
+            unit: question.unit,
           })
         : null,
       closeTime,
+      unit: question.unit,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,
@@ -1059,12 +1149,10 @@ export function getFanOptionsFromContinuousGroup(
         communityCdf:
           q.aggregations.recency_weighted.latest?.forecast_values ?? [],
         userCdf: userCdf,
-        resolvedAt: new Date(q.scheduled_resolve_time),
         resolved: q.resolution !== null,
         question: q,
       };
     })
-    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
     .map(({ name, communityCdf, resolved, question, userCdf }) => ({
       name,
       communityQuartiles: communityCdf.length
@@ -1081,40 +1169,37 @@ export function getFanOptionsFromContinuousGroup(
 export function getFanOptionsFromBinaryGroup(
   questions: QuestionWithNumericForecasts[]
 ): FanOption[] {
-  return questions
-    .map((q) => {
-      const aggregation = q.aggregations.recency_weighted.latest;
-      const resolved = q.resolution !== null;
+  return questions.map((q) => {
+    const aggregation = q.aggregations.recency_weighted.latest;
+    const resolved = q.resolution !== null;
 
-      const latest = q.my_forecasts?.latest;
-      const userForecast = extractPrevBinaryForecastValue(
-        latest && !latest.end_time ? latest.forecast_values[1] : null
-      );
+    const latest = q.my_forecasts?.latest;
+    const userForecast = extractPrevBinaryForecastValue(
+      latest && !latest.end_time ? latest.forecast_values[1] : null
+    );
 
-      return {
-        name: q.label,
-        communityQuartiles: !!aggregation
-          ? {
-              median: aggregation.centers?.[0] ?? 0,
-              lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
-              upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
-            }
-          : null,
-        communityBounds: null,
-        userQuartiles: userForecast
-          ? {
-              lower25: userForecast / 100,
-              median: userForecast / 100,
-              upper75: userForecast / 100,
-            }
-          : null,
-        userBounds: null,
-        resolved,
-        question: q,
-        resolvedAt: new Date(q.scheduled_resolve_time),
-      };
-    })
-    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
+    return {
+      name: q.label,
+      communityQuartiles: !!aggregation
+        ? {
+            median: aggregation.centers?.[0] ?? 0,
+            lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
+            upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
+          }
+        : null,
+      communityBounds: null,
+      userQuartiles: userForecast
+        ? {
+            lower25: userForecast / 100,
+            median: userForecast / 100,
+            upper75: userForecast / 100,
+          }
+        : null,
+      userBounds: null,
+      resolved,
+      question: q,
+    };
+  });
 }
 
 export function getQuestionTimestamps(
@@ -1338,6 +1423,39 @@ export function getResolutionPoint({
   }
 }
 
+export function getResolutionPosition({
+  question,
+  scaling,
+  adjustBinaryPoint = false,
+}: {
+  question: Question;
+  scaling: Scaling;
+  adjustBinaryPoint?: boolean;
+}) {
+  const resolution = question.resolution;
+  if (isNil(resolution)) {
+    // fallback, usually we don't expect this, as function will be called only for resolved questions
+    return 0;
+  }
+  if (adjustBinaryPoint && ["no", "yes"].includes(resolution as string)) {
+    return 0;
+  }
+
+  if (
+    ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
+      resolution as string
+    )
+  ) {
+    return 0;
+  } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
+    return 1;
+  } else {
+    return question.type === QuestionType.Numeric
+      ? unscaleNominalLocation(Number(resolution), scaling)
+      : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
+  }
+}
+
 export function getCursorForecast(
   cursorTimestamp: number | null | undefined,
   aggregation: AggregateForecastHistory
@@ -1411,4 +1529,32 @@ export function getContinuousAreaChartData(
   }
 
   return chartData;
+}
+
+export function calculateCharWidth(fontSize: number): number {
+  if (typeof document === "undefined") {
+    return 0;
+  }
+
+  const element = document.createElement("span");
+  element.style.visibility = "hidden";
+  element.style.position = "absolute";
+  element.style.whiteSpace = "nowrap";
+  element.style.fontSize = `${fontSize}px`;
+  const sampleText =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  element.textContent = sampleText;
+
+  document.body.appendChild(element);
+  const charWidth = element.offsetWidth / sampleText.length;
+  document.body.removeChild(element);
+
+  return charWidth;
+}
+
+export function getTruncatedLabel(label: string, maxLength: number): string {
+  if (label.length <= maxLength) {
+    return label;
+  }
+  return label.slice(0, maxLength).trim() + "...";
 }

@@ -30,6 +30,7 @@ type AccordionItemProps = {
   showCP?: boolean;
   subQuestionId?: number | null;
   type: QuestionStatus.OPEN | QuestionStatus.CLOSED | QuestionStatus.RESOLVED;
+  unit?: string;
 };
 
 const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
@@ -38,6 +39,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   children,
   subQuestionId,
   type,
+  unit,
 }) => {
   const locale = useLocale();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,6 +56,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     questionType: question.type,
     locale,
     scaling: question.scaling,
+    unit,
   });
 
   const showUserPrediction = hasUserForecast || isDirty;
@@ -83,6 +86,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     value: showCP ? option.communityQuartiles?.median : undefined,
     questionType: option.question.type,
     scaling: option.question.scaling,
+    unit,
   });
   const userMedian = showUserPrediction
     ? forecastInputMode === ContinuousForecastInputType.Quantile
@@ -92,11 +96,13 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
               ?.value ?? null,
           questionType: option.question.type,
           scaling: option.question.scaling,
+          unit,
         })
       : getDisplayValue({
           value: option.userQuartiles?.median,
           questionType: option.question.type,
           scaling: option.question.scaling,
+          unit,
         })
     : undefined;
 

@@ -26,6 +26,7 @@ import {
   computeQuartilesFromCDF,
 } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { formatValueUnit } from "@/utils/questions";
 
 import { getQuestionDateFormatString, scaleInternalLocation } from "./charts";
 
@@ -52,11 +53,12 @@ export function getForecastDateDisplayValue(value: number, scaling?: Scaling) {
 export function formatPrediction(
   prediction: number,
   questionType: QuestionType,
-  scaling?: Scaling
+  scaling?: Scaling,
+  unit?: string | undefined
 ) {
   switch (questionType) {
     case QuestionType.Numeric:
-      return getForecastNumericDisplayValue(prediction);
+      return formatValueUnit(getForecastNumericDisplayValue(prediction), unit);
     case QuestionType.Binary:
       return getForecastPctDisplayValue(prediction);
     case QuestionType.Date:
@@ -130,6 +132,7 @@ export function getSliderNumericForecastDataset(
   return {
     cdf: cdf,
     pmf: cdfToPmf(cdf),
+    componentCdfs: componentCdfs,
   };
 }
 
@@ -499,7 +502,7 @@ export function getInitialQuantileDistributionComponents(
   question: QuestionWithNumericForecasts
 ): DistributionQuantileComponent {
   return activeForecast && activeForecastValues
-    ? activeForecast.distribution_input.type ===
+    ? activeForecast.distribution_input?.type ===
       ContinuousForecastInputType.Quantile
       ? populateQuantileComponents(
           activeForecastValues.components as DistributionQuantileComponent
@@ -544,7 +547,7 @@ export function getInitialSliderDistributionComponents(
 ) {
   return !activeForecast ||
     !activeForecastValues ||
-    activeForecast.distribution_input.type ===
+    activeForecast.distribution_input?.type ===
       ContinuousForecastInputType.Slider
     ? getNormalizedContinuousForecast(
         activeForecastValues?.components as DistributionSliderComponent[]

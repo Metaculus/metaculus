@@ -50,8 +50,11 @@ export type PostsParams = PaginationParams & {
 };
 
 export type ApprovePostParams = {
+  published_at: string;
   open_time: string;
   cp_reveal_time: string;
+  scheduled_close_time: string;
+  scheduled_resolve_time: string;
 };
 
 class PostsApi {

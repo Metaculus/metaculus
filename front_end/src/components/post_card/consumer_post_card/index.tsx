@@ -34,7 +34,7 @@ const ConsumerPostCard: FC<Props> = ({ post }) => {
     <Link
       href={getPostLink(post)}
       className={
-        "flex flex-col items-center rounded border border-blue-400 bg-gray-0 p-6 no-underline @container dark:border-blue-400-dark dark:bg-gray-0-dark"
+        "flex flex-col items-center overflow-hidden rounded border border-blue-400 bg-gray-0 p-6 no-underline @container dark:border-blue-400-dark dark:bg-gray-0-dark"
       }
     >
       <div

@@ -51,6 +51,7 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
         resolution: question.resolution,
         questionType: question.type,
         locale,
+        unit: question.unit,
       });
       const successfullResolution = isSuccessfullyResolved(question.resolution);
       return (
@@ -67,7 +68,7 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
         <QuestionForecastChip
           question={question as QuestionWithNumericForecasts}
         />
-        <CPWeeklyMovement question={question} />
+        <CPWeeklyMovement question={question} displayUnit={false} />
       </div>
     );
   }

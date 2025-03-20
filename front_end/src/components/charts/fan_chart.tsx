@@ -24,13 +24,14 @@ import { Area, FanOption, Line } from "@/types/charts";
 import {
   ForecastAvailability,
   Quartiles,
-  Question,
   QuestionType,
   Scaling,
 } from "@/types/question";
 import {
+  calculateCharWidth,
   generateScale,
   getLeftPadding,
+  getResolutionPosition,
   getTickLabelFontSize,
   scaleInternalLocation,
   unscaleNominalLocation,
@@ -360,7 +361,10 @@ function buildChartData(options: FanOption[]) {
     if (option.resolved) {
       resolutionPoints.push({
         x: option.name,
-        y: getResolutionPosition(option.question, scaling),
+        y: getResolutionPosition({
+          question: option.question,
+          scaling,
+        }),
         resolved: true,
       });
     }
@@ -464,27 +468,6 @@ function getOptionGraphData(
   };
 }
 
-function calculateCharWidth(fontSize: number): number {
-  if (typeof document === "undefined") {
-    return 0;
-  }
-
-  const element = document.createElement("span");
-  element.style.visibility = "hidden";
-  element.style.position = "absolute";
-  element.style.whiteSpace = "nowrap";
-  element.style.fontSize = `${fontSize}px`;
-  const sampleText =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  element.textContent = sampleText;
-
-  document.body.appendChild(element);
-  const charWidth = element.offsetWidth / sampleText.length;
-  document.body.removeChild(element);
-
-  return charWidth;
-}
-
 function adjustLabelsForDisplay(
   options: FanOption[],
   chartWidth: number,
@@ -530,28 +513,6 @@ function adjustLabelsForDisplay(
   return options.map((option, index) =>
     index % step === 0 ? option.name : ""
   );
-}
-
-function getResolutionPosition(question: Question, scaling: Scaling) {
-  const resolution = question.resolution;
-  if (isNil(resolution)) {
-    // fallback, usually we don't expect this, as function will be called only for resolved questions
-    return 0;
-  }
-
-  if (
-    ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
-      resolution as string
-    )
-  ) {
-    return 0;
-  } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
-    return 1;
-  } else {
-    return question.type === QuestionType.Numeric
-      ? unscaleNominalLocation(Number(resolution), scaling)
-      : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
-  }
 }
 
 export default FanChart;

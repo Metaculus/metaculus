@@ -91,6 +91,12 @@ export type PostConditional<QT> = {
   question_no: QT;
 };
 
+export enum PostGroupOfQuestionsSubquestionsOrder {
+  MANUAL = "MANUAL",
+  CP_ASC = "CP_ASC",
+  CP_DESC = "CP_DESC",
+}
+
 export type PostGroupOfQuestions<QT> = {
   id: number;
   description: string;
@@ -99,6 +105,7 @@ export type PostGroupOfQuestions<QT> = {
   group_variable: string;
   graph_type: string;
   questions: QT[];
+  subquestions_order?: PostGroupOfQuestionsSubquestionsOrder;
 };
 
 export type Notebook = {
@@ -123,7 +130,7 @@ export type Post<QT = Question> = {
     index?: Tournament[];
   };
   title: string;
-  url_title: string;
+  short_title: string;
   slug: string;
   created_at: string;
   updated_at: string;

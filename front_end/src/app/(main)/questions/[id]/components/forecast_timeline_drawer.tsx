@@ -37,7 +37,8 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
 
   const forecastAvailability = getGroupForecastAvailability(questions);
   const sortedQuestions = sortGroupPredictionOptions(
-    questions as QuestionWithNumericForecasts[]
+    questions as QuestionWithNumericForecasts[],
+    post.group_of_questions
   );
   const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
     withUserTimestamps: !!forecastAvailability.cpRevealsOn,

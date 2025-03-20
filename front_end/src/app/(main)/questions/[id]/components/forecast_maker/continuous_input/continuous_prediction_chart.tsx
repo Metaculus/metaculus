@@ -13,6 +13,7 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
+import { formatValueUnit } from "@/utils/questions";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -20,6 +21,7 @@ type Props = {
   dataset: {
     cdf: number[];
     pmf: number[];
+    componentCdfs?: number[][] | null;
   };
   graphType: ContinuousAreaGraphType;
   readOnly?: boolean;
@@ -108,6 +110,7 @@ const ContinuousPredictionChart: FC<Props> = ({
       charts.push({
         pmf: dataset.pmf,
         cdf: dataset.cdf,
+        componentCdfs: dataset.componentCdfs,
         type: "user",
       });
     }
@@ -116,8 +119,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   }, [
     question.aggregations.recency_weighted.latest,
     question.status,
-    dataset.cdf,
-    dataset.pmf,
+    dataset,
     readOnly,
     showCP,
     question.my_forecasts?.latest,
@@ -135,6 +137,7 @@ const ContinuousPredictionChart: FC<Props> = ({
         data={data}
         onCursorChange={handleCursorChange}
         resolution={question.resolution}
+        unit={question.unit}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (
@@ -142,9 +145,9 @@ const ContinuousPredictionChart: FC<Props> = ({
             <span>
               {graphType === "pmf" ? "P(x = " : "P(x < "}
               <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                {cursorDisplayData.xLabel}
+                {formatValueUnit(cursorDisplayData.xLabel, question.unit)}
               </span>
-              {" ):"}
+              {"):"}
             </span>
             {cursorDisplayData.yUserLabel !== null && (
               <span>

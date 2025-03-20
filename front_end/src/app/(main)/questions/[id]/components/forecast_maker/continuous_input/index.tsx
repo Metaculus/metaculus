@@ -30,6 +30,7 @@ type Props = {
   dataset: {
     cdf: number[];
     pmf: number[];
+    componentCdfs?: number[][];
   };
   userCdf: number[] | undefined;
   userPreviousCdf: number[] | undefined;
@@ -83,7 +84,7 @@ const ContinuousInput: FC<Props> = ({
     if (
       forecastInputMode === ContinuousForecastInputType.Quantile &&
       (isDirty ||
-        (previousForecast?.distribution_input.type ===
+        (previousForecast?.distribution_input?.type ===
           ContinuousForecastInputType.Slider &&
           isNil(previousForecast.end_time)))
     ) {
