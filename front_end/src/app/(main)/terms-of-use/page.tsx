@@ -108,7 +108,17 @@ export default async function TermsOfUse() {
         discretion without notice and without liability.
       </p>
       <p className="mb-4">
-        Competitions on Metaculus are skills-based, designed to evaluate participants' forecasting and reasoning skills. No purchase, fee, or payment is required to participate. All entries are judged by an algorithm, described at <a href="https://www.metaculus.com/help/scores-faq/#proper-scoring" className="text-blue-600 hover:underline">https://www.metaculus.com/help/scores-faq/#proper-scoring</a>, that applies objective criteria.
+        Competitions on Metaculus are skills-based, designed to evaluate
+        participants&apos; forecasting and reasoning skills. No purchase, fee,
+        or payment is required to participate. All entries are judged by an
+        algorithm, described at{" "}
+        <a
+          href="https://www.metaculus.com/help/scores-faq/#proper-scoring"
+          className="text-blue-600 hover:underline"
+        >
+          https://www.metaculus.com/help/scores-faq/#proper-scoring
+        </a>
+        , that applies objective criteria.
       </p>
 
       <h2
