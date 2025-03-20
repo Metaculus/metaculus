@@ -523,12 +523,7 @@ export function sortGroupPredictionOptions<QT>(
       range_max: b.scaling?.range_max ?? 1,
       zero_point: b.scaling?.zero_point ?? null,
     });
-    // TODO: remove when BE fixes will be deployed
-    if (group?.graph_type === GroupOfQuestionsGraphType.FanGraph) {
-      return 0;
-    }
-    return bValueScaled - aValueScaled;
-    // end of TODO
+
     const aResTime = new Date(a.scheduled_resolve_time).getTime();
     const bResTime = new Date(b.scheduled_resolve_time).getTime();
 
