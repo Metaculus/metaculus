@@ -52,13 +52,15 @@ logger = logging.getLogger(__name__)
 def score_question(
     question: Question,
     resolution: str,
-    spot_forecast_time: float | None = None,
+    spot_scoring_time: float | None = None,
     score_types: list[str] | None = None,
 ):
     resolution_bucket = string_location_to_bucket_index(resolution, question)
-    spot_forecast_time = spot_forecast_time or (
-        question.cp_reveal_time.timestamp() if question.cp_reveal_time else None
-    )
+    if not spot_scoring_time:
+        if question.spot_scoring_time:
+            spot_scoring_time = question.spot_scoring_time.timestamp()
+        elif question.cp_reveal_time:
+            spot_scoring_time = question.cp_reveal_time.timestamp()
     score_types = score_types or [
         c[0] for c in Score.ScoreTypes.choices if c[0] != Score.ScoreTypes.MANUAL
     ]
@@ -74,7 +76,7 @@ def score_question(
         question,
         resolution_bucket,
         score_types,
-        spot_forecast_time,
+        spot_scoring_time,
     )
 
     for new_score in new_scores:

@@ -135,7 +135,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
         textAlign="left"
       >
         {isPending ? (
-          <LoadingSpinner size="lg" className="h-[32px] w-[32px]" />
+          <LoadingSpinner size="lg" className="size-[26px]" />
         ) : (
           button
         )}
@@ -193,6 +193,17 @@ const GroupQuestionInfo = ({ question }: { question: Question }) => {
             <LocalDaytime date={question.scheduled_resolve_time} />
           </span>
         </div>
+
+        {!!question.spot_scoring_time && (
+          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+            <span className="w-min text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+              {t("spotScoingTime")}:
+            </span>
+            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+              <LocalDaytime date={question.spot_scoring_time} />
+            </span>
+          </div>
+        )}
 
         <QuestionWeightInfo questionWeight={question.question_weight} />
         <IncludeBotsInfo

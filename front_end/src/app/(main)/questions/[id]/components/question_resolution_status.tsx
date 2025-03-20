@@ -23,7 +23,6 @@ const QuestionResolutionStatus: FC<Props> = ({ post }) => {
       return (
         <PredictionChip
           question={question}
-          prediction={latest_cp.centers[0]}
           status={post.status}
           className="items-end"
         />
@@ -32,7 +31,6 @@ const QuestionResolutionStatus: FC<Props> = ({ post }) => {
       return (
         <PredictionChip
           question={question}
-          prediction={latest_cp.centers[1]}
           status={post.status}
           className="items-end"
         />

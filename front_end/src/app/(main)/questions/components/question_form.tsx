@@ -19,7 +19,6 @@ import {
   FormErrorMessage,
   Input,
   MarkdownEditorField,
-  Textarea,
 } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -45,10 +44,11 @@ const MIN_OPTIONS_AMOUNT = 2;
 
 type PostCreationData = {
   title: string;
-  url_title: string;
+  short_title: string;
   categories: number[];
   question: any;
   default_project: number;
+  published_at: string;
 };
 
 const createQuestionSchemas = (
@@ -65,7 +65,7 @@ const createQuestionSchemas = (
       .max(200, {
         message: t("errorMaxLength", { field: "String", maxLength: 200 }),
       }),
-    url_title: z
+    short_title: z
       .string()
       .min(4, {
         message: t("errorMinLength", { field: "String", minLength: 4 }),
@@ -78,7 +78,70 @@ const createQuestionSchemas = (
     }),
     resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
     fine_print: z.string().optional(),
+    published_at: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional()
+      .refine(
+        (value) => {
+          if (!post) {
+            return true;
+          }
+
+          if (post.status !== PostStatus.APPROVED) {
+            return true;
+          }
+
+          return !!value;
+        },
+        {
+          message: t("errorRequired"),
+        }
+      ),
     open_time: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional()
+      .refine(
+        (value) => {
+          if (!post) {
+            return true;
+          }
+
+          if (post.status !== PostStatus.APPROVED) {
+            return true;
+          }
+
+          return !!value;
+        },
+        {
+          message: t("errorRequired"),
+        }
+      ),
+    scheduled_close_time: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional()
+      .refine(
+        (value) => {
+          if (!post) {
+            return true;
+          }
+
+          if (post.status !== PostStatus.APPROVED) {
+            return true;
+          }
+
+          return !!value;
+        },
+        {
+          message: t("errorRequired"),
+        }
+      ),
+    scheduled_resolve_time: z
       .string()
       .datetime({ offset: true })
       .nullable()
@@ -120,8 +183,6 @@ const createQuestionSchemas = (
           message: t("errorRequired"),
         }
       ),
-    scheduled_close_time: z.string().datetime({ offset: true }),
-    scheduled_resolve_time: z.string().datetime({ offset: true }),
     default_project: z.nullable(z.union([z.number(), z.string()])),
   });
 
@@ -141,6 +202,9 @@ const createQuestionSchemas = (
 
   const numericQuestionSchema = continuousQuestionSchema.merge(
     z.object({
+      unit: z.string().max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 20 }),
+      }),
       max: z.number().optional(),
       min: z.number().optional(),
     })
@@ -260,9 +324,10 @@ const QuestionForm: FC<Props> = ({
 
     const post_data: PostCreationData = {
       title: data["title"],
-      url_title: data["url_title"],
+      short_title: data["short_title"],
       default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
+      published_at: data["published_at"],
       question: data,
     };
 
@@ -319,9 +384,6 @@ const QuestionForm: FC<Props> = ({
     form.setValue("type", questionType);
   }
 
-  const isEditingActivePost =
-    mode == "edit" && post?.curation_status == PostStatus.APPROVED;
-
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
@@ -359,16 +421,6 @@ const QuestionForm: FC<Props> = ({
       >
         <PostDjangoAdminLink post={post} />
 
-        {!community_id && defaultProject.type !== TournamentType.Community && (
-          <ProjectPickerInput
-            tournaments={tournaments}
-            siteMain={siteMain}
-            currentProject={defaultProject}
-            onChange={(project) => {
-              form.setValue("default_project", project.id);
-            }}
-          />
-        )}
         <FormError
           errors={form.formState.errors}
           className="text-red-500 dark:text-red-500-dark"
@@ -378,11 +430,11 @@ const QuestionForm: FC<Props> = ({
           labelText={t("longTitle")}
           explanation={t("longTitleExplanation")}
         >
-          <Textarea
+          <Input
             {...form.register("title")}
             errors={form.formState.errors.title}
             defaultValue={post?.title}
-            className="min-h-32 w-full rounded border border-gray-500 p-5 text-xl font-normal dark:border-gray-500-dark dark:bg-blue-50-dark"
+            className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
         <InputContainer
@@ -390,12 +442,25 @@ const QuestionForm: FC<Props> = ({
           explanation={t("shortTitleExplanation")}
         >
           <Input
-            {...form.register("url_title")}
-            errors={form.formState.errors.url_title}
-            defaultValue={post?.url_title}
+            {...form.register("short_title")}
+            errors={form.formState.errors.short_title}
+            defaultValue={post?.short_title}
             className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
+        {questionType === "numeric" && (
+          <InputContainer
+            labelText={t("questionUnit")}
+            explanation={t("questionUnitDescription")}
+          >
+            <Input
+              {...form.register("unit")}
+              errors={form.formState.errors.unit}
+              defaultValue={post?.question?.unit}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+        )}
         <InputContainer
           labelText={t("backgroundInformation")}
           explanation={t.rich("backgroundInfoExplanation", {
@@ -411,54 +476,33 @@ const QuestionForm: FC<Props> = ({
             errors={form.formState.errors.description}
           />
         </InputContainer>
-        <div className="flex w-full flex-col gap-4 md:flex-row">
-          <InputContainer labelText={t("closingDate")} className="w-full gap-2">
-            <DateInput
-              control={form.control}
-              name="scheduled_close_time"
-              defaultValue={post?.question?.scheduled_close_time}
-              errors={form.formState.errors.scheduled_close_time}
-              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-            />
-          </InputContainer>
-          <InputContainer
-            labelText={t("resolvingDate")}
-            className="w-full gap-2"
-          >
-            <DateInput
-              control={form.control}
-              name="scheduled_resolve_time"
-              defaultValue={post?.question?.scheduled_resolve_time}
-              errors={form.formState.errors.scheduled_resolve_time}
-              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-            />
-          </InputContainer>
-        </div>
-        {isEditingActivePost && (
-          <div className="flex w-full flex-col gap-4 md:flex-row">
-            <InputContainer labelText={t("openTime")} className="w-full gap-2">
-              <DateInput
-                control={form.control}
-                name="open_time"
-                defaultValue={post?.question?.open_time}
-                errors={form.formState.errors.open_time}
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              />
-            </InputContainer>
-            <InputContainer
-              labelText={t("cpRevealTime")}
-              className="w-full gap-2"
-            >
-              <DateInput
-                control={form.control}
-                name="cp_reveal_time"
-                defaultValue={post?.question?.cp_reveal_time}
-                errors={form.formState.errors.cp_reveal_time}
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              />
-            </InputContainer>
-          </div>
-        )}
+        <InputContainer
+          labelText={t("resolutionCriteria")}
+          explanation={t.rich("resolutionCriteriaExplanation", {
+            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
+          })}
+          isNativeFormControl={false}
+        >
+          <MarkdownEditorField
+            control={form.control}
+            name={"resolution_criteria"}
+            defaultValue={post?.question?.resolution_criteria}
+            errors={form.formState.errors.resolution_criteria}
+          />
+        </InputContainer>
+        <InputContainer
+          labelText={t("finePrint")}
+          explanation={t("finePrintDescription")}
+          isNativeFormControl={false}
+        >
+          <MarkdownEditorField
+            control={form.control}
+            name={"fine_print"}
+            defaultValue={post?.question?.fine_print}
+            errors={form.formState.errors.fine_print}
+          />
+        </InputContainer>
+
         {(questionType === QuestionType.Date ||
           questionType === QuestionType.Numeric) && (
           <NumericQuestionInput
@@ -488,15 +532,6 @@ const QuestionForm: FC<Props> = ({
           />
         )}
 
-        <InputContainer labelText={t("categories")}>
-          <CategoryPicker
-            allCategories={allCategories}
-            categories={categoriesList}
-            onChange={(categories) => {
-              setCategoriesList(categories);
-            }}
-          />
-        </InputContainer>
         {questionType === "multiple_choice" && (
           <>
             <InputContainer
@@ -572,32 +607,103 @@ const QuestionForm: FC<Props> = ({
             </div>
           </>
         )}
-        <InputContainer
-          labelText={t("resolutionCriteria")}
-          explanation={t.rich("resolutionCriteriaExplanation", {
-            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
-          })}
-          isNativeFormControl={false}
-        >
-          <MarkdownEditorField
-            control={form.control}
-            name={"resolution_criteria"}
-            defaultValue={post?.question?.resolution_criteria}
-            errors={form.formState.errors.resolution_criteria}
+
+        <hr className="my-4" />
+        <h2 className="text-lg font-semibold">{"Advanced Options"}</h2>
+        <div className="text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
+          {t("advancedOptionsDescription")}
+        </div>
+
+        <div className="flex w-full flex-col gap-4 md:flex-row">
+          <InputContainer
+            labelText={t("openTime")}
+            explanation={"When this question will be open for predictions."}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control}
+              name="open_time"
+              defaultValue={post?.question?.open_time}
+              errors={form.formState.errors.open_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+          <InputContainer
+            labelText={"Publish Time"}
+            explanation={t("publishTimeDescription")}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control}
+              name="published_at"
+              defaultValue={post?.published_at}
+              errors={form.formState.errors.published_at}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+        </div>
+        <div className="flex w-full flex-col gap-4 md:flex-row">
+          <InputContainer
+            labelText={"Closing Time"}
+            explanation={t("closingTimeDescription")}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control}
+              name="scheduled_close_time"
+              defaultValue={post?.question?.scheduled_close_time}
+              errors={form.formState.errors.scheduled_close_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+          <InputContainer
+            labelText={"Resolving Time"}
+            explanation={t("resolvingTimeDescription")}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control}
+              name="scheduled_resolve_time"
+              defaultValue={post?.question?.scheduled_resolve_time}
+              errors={form.formState.errors.scheduled_resolve_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+        </div>
+        <div className="flex w-full flex-col gap-4 md:flex-row">
+          <InputContainer
+            labelText={t("cpRevealTime")}
+            explanation={t("cpRevealTimeDescription")}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control}
+              name="cp_reveal_time"
+              defaultValue={post?.question?.cp_reveal_time}
+              errors={form.formState.errors.cp_reveal_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+        </div>
+        <InputContainer labelText={t("categories")}>
+          <CategoryPicker
+            allCategories={allCategories}
+            categories={categoriesList}
+            onChange={(categories) => {
+              setCategoriesList(categories);
+            }}
           />
         </InputContainer>
-        <InputContainer
-          labelText={t("finePrint")}
-          explanation={t("finePrintDescription")}
-          isNativeFormControl={false}
-        >
-          <MarkdownEditorField
-            control={form.control}
-            name={"fine_print"}
-            defaultValue={post?.question?.fine_print}
-            errors={form.formState.errors.fine_print}
+        {!community_id && defaultProject.type !== TournamentType.Community && (
+          <ProjectPickerInput
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              form.setValue("default_project", project.id);
+            }}
           />
-        </InputContainer>
+        )}
 
         <div className="flex-col">
           <div className="-mt-2 min-h-[32px] flex-col">

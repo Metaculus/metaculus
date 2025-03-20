@@ -2,7 +2,6 @@ import json  # Add this import at the top
 
 from rest_framework.reverse import reverse
 
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_questions.conftest import *  # noqa
 
 

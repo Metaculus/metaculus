@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Iterable
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 
 from django.db import transaction
 from django.db.models import Q, Count, Sum, Value, Case, When, QuerySet
@@ -127,7 +127,8 @@ def create_post(
     group_of_questions: dict = None,
     notebook: dict = None,
     author: User = None,
-    url_title: str = None,
+    short_title: str = None,
+    published_at: datetime = None,
 ) -> Post:
     site_main = get_site_main_project()
 
@@ -137,9 +138,10 @@ def create_post(
     with transaction.atomic():
         obj = Post(
             title=title or "",
-            url_title=url_title or title or "",
+            short_title=short_title or title or "",
             author=author,
             curation_status=Post.CurationStatus.DRAFT,
+            published_at=published_at,
         )
 
         # Adding questions
@@ -147,9 +149,9 @@ def create_post(
             obj.question = create_question(**question)
         elif conditional:
             obj.conditional = create_conditional(**conditional)
-            # Populate title and url_title from condition child
+            # Populate title and short_title from condition child
             obj.title = obj.conditional.get_title()
-            obj.url_title = f"Conditional {obj.conditional.condition_child.get_post().get_url_title()}"
+            obj.short_title = f"Conditional {obj.conditional.condition_child.get_post().get_short_title()}"
         elif group_of_questions:
             obj.group_of_questions = create_group_of_questions(**group_of_questions)
         elif notebook:
@@ -242,7 +244,7 @@ def update_post(
     # Updating non-side effect fields
     post, _ = model_update(
         instance=post,
-        fields=["title", "url_title", "default_project"],
+        fields=["title", "short_title", "default_project"],
         data=kwargs,
     )
 
@@ -480,19 +482,37 @@ def compute_hotness(qs: QuerySet[Post]):
 
 
 @transaction.atomic
-def approve_post(post: Post, open_time: date, cp_reveal_time: date):
+def approve_post(
+    post: Post,
+    published_at: date,
+    open_time: date,
+    cp_reveal_time: date,
+    scheduled_close_time: date,
+    scheduled_resolve_time: date,
+):
     if post.curation_status == Post.CurationStatus.APPROVED:
         raise ValidationError("Post is already approved")
 
     post.update_curation_status(Post.CurationStatus.APPROVED)
+    post.published_at = published_at
     questions = post.get_questions()
 
     for question in questions:
         question.open_time = open_time
         question.cp_reveal_time = cp_reveal_time
+        question.scheduled_close_time = scheduled_close_time
+        question.scheduled_resolve_time = scheduled_resolve_time
 
     post.save()
-    Question.objects.bulk_update(questions, fields=["open_time", "cp_reveal_time"])
+    Question.objects.bulk_update(
+        questions,
+        fields=[
+            "open_time",
+            "cp_reveal_time",
+            "scheduled_close_time",
+            "scheduled_resolve_time",
+        ],
+    )
     post.update_pseudo_materialized_fields()
 
 

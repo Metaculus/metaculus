@@ -8,7 +8,6 @@ from comments.utils import (
 )
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_posts.factories import factory_post

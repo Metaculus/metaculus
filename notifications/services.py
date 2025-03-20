@@ -19,7 +19,7 @@ from questions.utils import get_question_group_title
 from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
-from utils.formatters import abbreviated_number
+from utils.formatters import abbreviated_number, format_value_unit
 from utils.frontend import build_post_comment_url
 
 logger = logging.getLogger(__name__)
@@ -70,6 +70,7 @@ class NotificationQuestionParams:
     title: str
     type: str
     label: str = ""
+    unit: str = None
 
     @classmethod
     def from_question(cls, question: Question):
@@ -78,6 +79,7 @@ class NotificationQuestionParams:
             title=question.title,
             type=question.type,
             label=question.label,
+            unit=question.unit,
         )
 
 
@@ -171,7 +173,7 @@ class CPChangeData:
             )
 
         if self.question.type == "numeric":
-            return abbreviated_number(value)
+            return format_value_unit(abbreviated_number(value), self.question.unit)
 
         return value
 
@@ -580,6 +582,9 @@ class NotificationPredictedQuestionResolved(
 
         def format_baseline_score(self):
             return round(self.baseline_score, 1)
+
+        def format_resolution(self):
+            return format_value_unit(self.resolution, self.question.unit)
 
     @classmethod
     def generate_subject_group(cls, recipient: User):

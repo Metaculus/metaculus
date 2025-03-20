@@ -95,6 +95,17 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
           </span>
         </div>
 
+        {!!postData.question?.spot_scoring_time && (
+          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+              {t("spotScoingTime")}:
+            </span>
+            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+              {<LocalDaytime date={postData.question?.spot_scoring_time} />}
+            </span>
+          </div>
+        )}
+
         <QuestionWeightInfo
           questionWeight={postData.question?.question_weight}
         />

@@ -7,7 +7,6 @@ from unittest.mock import Mock
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
-from tests.unit.fixtures import *  # noqa
 from rest_framework.response import Response
 from django.utils import timezone
 from users.models import User

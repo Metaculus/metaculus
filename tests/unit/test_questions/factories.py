@@ -1,6 +1,6 @@
 from django_dynamic_fixture import G
 
-from questions.models import Question, Conditional, Forecast
+from questions.models import Question, Conditional, Forecast, GroupOfQuestions
 from users.models import User
 from utils.dtypes import setdefaults_not_null
 
@@ -11,6 +11,25 @@ def create_question(*, question_type: Question.QuestionType, **kwargs) -> Questi
     """
 
     return G(Question, **setdefaults_not_null(kwargs, type=question_type))
+
+
+def factory_group_of_questions(
+    *, questions: list[Question] = None, **kwargs
+) -> GroupOfQuestions:
+    group_of_questions = G(
+        GroupOfQuestions,
+        **setdefaults_not_null(
+            kwargs,
+        )
+    )
+
+    questions = questions or []
+    for question in questions:
+        question.group = group_of_questions
+
+    Question.objects.bulk_update(questions, ["group"])
+
+    return group_of_questions
 
 
 def create_conditional(
