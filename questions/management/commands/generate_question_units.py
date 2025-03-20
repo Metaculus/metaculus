@@ -1,7 +1,9 @@
 import json
 import logging
 
-from django.core.management.base import BaseCommand
+from dateutil.parser import parse as date_parse
+from django.core.management.base import BaseCommand, CommandParser
+from django.utils.timezone import make_aware
 
 from posts.models import Post
 from questions.models import Question, Conditional
@@ -111,6 +113,12 @@ class Command(BaseCommand):
     chunk_size = 10
     help = "Generate question units for all questions"
 
+    def add_arguments(self, parser: CommandParser) -> None:
+        parser.add_argument(
+            "min_created_date",
+            help="Generate units for questions created after this date",
+        )
+
     @classmethod
     def sync_conditional_units(cls, questions: list[Question]):
         conditionals = Conditional.objects.filter(
@@ -128,6 +136,8 @@ class Command(BaseCommand):
         Question.objects.bulk_update(to_update, fields=["unit"], batch_size=100)
 
     def handle(self, *args, **options):
+        min_created_date = make_aware(date_parse(options["min_created_date"]))
+
         qs = (
             Question.objects.filter(
                 type=Question.QuestionType.NUMERIC,
@@ -138,6 +148,7 @@ class Command(BaseCommand):
                     Post.CurationStatus.APPROVED,
                     Post.CurationStatus.PENDING,
                 ],
+                created_at__gt=min_created_date,
             )
             .select_related("group")
             .order_by("-id")
@@ -147,7 +158,7 @@ class Command(BaseCommand):
         idx = 0
 
         while idx <= total_questions:
-            chunk = qs.all()[idx : idx + self.chunk_size]
+            chunk = qs.all()[idx: idx + self.chunk_size]
             idx += self.chunk_size
 
             if not len(chunk):
