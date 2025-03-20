@@ -1,14 +1,22 @@
 "use client";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { differenceInMilliseconds } from "date-fns";
+import { isNil } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import React, {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
+import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import {
   Post,
@@ -17,21 +25,31 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import {
-  DistributionSliderComponent,
+  DistributionQuantile,
+  DistributionSlider,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import {
+  clearQuantileComponents,
   extractPrevNumericForecastValue,
+  getInitialQuantileDistributionComponents,
+  getInitialSliderDistributionComponents,
   getNormalizedContinuousForecast,
-  getNumericForecastDataset,
+  getQuantileNumericForecastDataset,
+  getQuantilesDistributionFromSlider,
+  getSliderDistributionFromQuantiles,
+  getSliderNumericForecastDataset,
   getUserContinuousQuartiles,
+  isAllQuantileComponentsDirty,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
-import GroupForecastAccordion from "../continuous_group_accordion/group_forecast_accordion";
-import { ConditionalTableOption } from "../group_forecast_table";
+import GroupForecastAccordion, {
+  ContinuousGroupOption,
+} from "../continuous_group_accordion/group_forecast_accordion";
+import { validateUserQuantileData } from "../helpers";
 import PredictButton from "../predict_button";
 
 type Props = {
@@ -58,22 +76,43 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const prevForecastValuesMap = useMemo(
     () =>
       questions.reduce<
-        Record<number, DistributionSliderComponent[] | undefined>
+        Record<number, DistributionSlider | DistributionQuantile | undefined>
       >((acc, question) => {
         const latest = question.my_forecasts?.latest;
         return {
           ...acc,
           [question.id]: extractPrevNumericForecastValue(
             latest && !latest.end_time ? latest.distribution_input : undefined
-          )?.components,
+          ),
         };
       }, {}),
     [questions]
   );
-
-  const [groupOptions, setGroupOptions] = useState<ConditionalTableOption[]>(
+  const [groupOptions, setGroupOptions] = useState<ContinuousGroupOption[]>(
     generateGroupOptions(questions, prevForecastValuesMap, permission, post)
   );
+
+  // ensure options have the latest forecast data
+  useEffect(() => {
+    const newGroupOptions = generateGroupOptions(
+      questions,
+      prevForecastValuesMap,
+      permission,
+      post
+    );
+    setGroupOptions((prev) =>
+      prev.map((o) => {
+        const newOption = newGroupOptions.find((q) => q.id === o.question.id);
+        return {
+          ...o,
+          resolution: newOption?.resolution ?? o.resolution,
+          menu: newOption?.menu ?? o.menu,
+          question: newOption?.question ?? o.question,
+        };
+      })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
@@ -81,26 +120,37 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     () =>
       groupOptions.filter(
         (option) =>
-          option.userForecast !== null &&
-          option.question.status === QuestionStatus.OPEN
+          option.question.status === QuestionStatus.OPEN &&
+          (option.isDirty || option.hasUserForecast)
       ),
     [groupOptions]
   );
 
   const handleChange = useCallback(
-    (optionId: number, components: DistributionSliderComponent[]) => {
+    (
+      optionId: number,
+      distribution: DistributionSlider | DistributionQuantile
+    ) => {
+      const { components, type: forecastInputMode } = distribution;
       setGroupOptions((prev) =>
         prev.map((option) => {
           if (option.id === optionId) {
             return {
               ...option,
-              userQuartiles: getUserContinuousQuartiles(
-                components,
-                option.question.open_lower_bound,
-                option.question.open_upper_bound
-              ),
-              userForecast: components,
-              isDirty: true,
+              forecastInputMode: forecastInputMode,
+              ...(forecastInputMode === ContinuousForecastInputType.Slider
+                ? {
+                    userSliderForecast: components,
+                    userQuartiles: getUserContinuousQuartiles(
+                      components,
+                      option.question
+                    ),
+                  }
+                : { userQuantileForecast: components }),
+              isDirty:
+                forecastInputMode === ContinuousForecastInputType.Slider
+                  ? true
+                  : isAllQuantileComponentsDirty(components),
             };
           }
 
@@ -111,20 +161,42 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     []
   );
 
-  const handleAddComponent = useCallback((optionId: number) => {
+  const handleForecastInputModeChange = useCallback(
+    (optionId: number, mode: ContinuousForecastInputType) => {
+      setGroupOptions((prev) =>
+        prev.map((prevChoice) => {
+          if (prevChoice.id === optionId) {
+            return {
+              ...prevChoice,
+              forecastInputMode: mode,
+              isDirty: prevChoice.isDirty,
+            };
+          }
+
+          return prevChoice;
+        })
+      );
+    },
+    []
+  );
+
+  const handleAddComponent = useCallback((option: ContinuousGroupOption) => {
     setGroupOptions((prev) =>
       prev.map((prevChoice) => {
-        if (prevChoice.id === optionId) {
+        if (prevChoice.id === option.id) {
           const newUserForecast = [
-            ...getNormalizedContinuousForecast(prevChoice.userForecast),
+            ...getNormalizedContinuousForecast(prevChoice.userSliderForecast),
             { left: 0.4, center: 0.5, right: 0.6, weight: 1 },
           ];
-          const newUserQuartiles = getUserContinuousQuartiles(newUserForecast);
+          const newUserQuartiles = getUserContinuousQuartiles(
+            newUserForecast,
+            option.question
+          );
 
           return {
             ...prevChoice,
             userQuartiles: newUserQuartiles,
-            userForecast: newUserForecast,
+            userSliderForecast: newUserForecast,
             isDirty: true,
           };
         }
@@ -135,23 +207,33 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   }, []);
 
   const handleResetForecasts = useCallback(
-    (questionId?: number) => {
+    (option?: ContinuousGroupOption) => {
       setGroupOptions((prev) =>
         prev.map((prevOption) => {
           if (
-            (questionId && prevOption.id === questionId) ||
-            (!questionId && !prevOption.resolution)
+            (option && prevOption.id === option.id) ||
+            (!option && !prevOption.resolution)
           ) {
             const prevForecast = prevForecastValuesMap[prevOption.id];
-
+            const userSliderForecast = getInitialSliderDistributionComponents(
+              prevOption.question.my_forecasts?.latest,
+              prevForecast,
+              prevOption.question
+            );
             return {
               ...prevOption,
+              forecastInputMode:
+                prevForecast?.type ?? prevOption.forecastInputMode,
               userQuartiles: getUserContinuousQuartiles(
-                prevForecast,
-                prevOption.question.open_lower_bound,
-                prevOption.question.open_upper_bound
+                userSliderForecast,
+                prevOption.question
               ),
-              userForecast: getSliderValue(prevForecast),
+              userSliderForecast,
+              userQuantileForecast: getInitialQuantileDistributionComponents(
+                prevOption.question.my_forecasts?.latest,
+                prevForecast,
+                prevOption.question
+              ),
               isDirty: false,
             };
           }
@@ -176,27 +258,49 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         {
           questionId: optionToSubmit.question.id,
           forecastData: {
-            continuousCdf: getNumericForecastDataset(
-              getNormalizedContinuousForecast(optionToSubmit.userForecast),
-              optionToSubmit.question.open_lower_bound,
-              optionToSubmit.question.open_upper_bound
-            ).cdf,
+            continuousCdf:
+              optionToSubmit.forecastInputMode ===
+              ContinuousForecastInputType.Quantile
+                ? getQuantileNumericForecastDataset(
+                    optionToSubmit.userQuantileForecast,
+                    optionToSubmit.question
+                  ).cdf
+                : getSliderNumericForecastDataset(
+                    getNormalizedContinuousForecast(
+                      optionToSubmit.userSliderForecast
+                    ),
+                    optionToSubmit.question.open_lower_bound,
+                    optionToSubmit.question.open_upper_bound
+                  ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
           },
-          distributionInput: {
-            type: "slider",
-            components: getNormalizedContinuousForecast(
-              optionToSubmit.userForecast
-            ),
-          },
+          distributionInput:
+            optionToSubmit.forecastInputMode ===
+            ContinuousForecastInputType.Slider
+              ? {
+                  type: ContinuousForecastInputType.Slider,
+                  components: getNormalizedContinuousForecast(
+                    optionToSubmit.userSliderForecast
+                  ),
+                }
+              : {
+                  type: ContinuousForecastInputType.Quantile,
+                  components: clearQuantileComponents(
+                    optionToSubmit.userQuantileForecast
+                  ),
+                },
         },
       ]);
 
+      // update inactive forecast tab with new forecast data
       setGroupOptions((prev) =>
-        prev.map((opt) =>
-          opt.id === questionId ? { ...opt, isDirty: false } : opt
-        )
+        prev.map((opt) => {
+          if (opt.id === questionId) {
+            return updateGroupOptions(opt);
+          }
+          return opt;
+        })
       );
       setIsSubmitting(false);
       return response;
@@ -212,26 +316,66 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     }
 
     setIsSubmitting(true);
+    // validate table forecast before submission
+    for (const option of questionsToSubmit) {
+      if (option.forecastInputMode === ContinuousForecastInputType.Quantile) {
+        const subquestionErrors = validateUserQuantileData({
+          question: option.question,
+          components: option.userQuantileForecast,
+          cdf: getQuantileNumericForecastDataset(
+            option.userQuantileForecast,
+            option.question
+          ).cdf,
+          t,
+        });
+        if (subquestionErrors.length) {
+          setSubmitError(new Error(subquestionErrors[0]));
+          setIsSubmitting(false);
+          return;
+        }
+      }
+    }
+
     const response = await createForecasts(
       postId,
-      questionsToSubmit.map(({ question, userForecast }) => {
-        return {
-          questionId: question.id,
-          forecastData: {
-            continuousCdf: getNumericForecastDataset(
-              getNormalizedContinuousForecast(userForecast),
-              question.open_lower_bound,
-              question.open_upper_bound
-            ).cdf,
-            probabilityYesPerCategory: null,
-            probabilityYes: null,
-          },
-          distributionInput: {
-            type: "slider",
-            components: getNormalizedContinuousForecast(userForecast),
-          },
-        };
-      })
+      questionsToSubmit.map(
+        ({
+          question,
+          userSliderForecast,
+          userQuantileForecast,
+          forecastInputMode,
+        }) => {
+          return {
+            questionId: question.id,
+            forecastData: {
+              continuousCdf:
+                forecastInputMode === ContinuousForecastInputType.Quantile
+                  ? getQuantileNumericForecastDataset(
+                      userQuantileForecast,
+                      question
+                    ).cdf
+                  : getSliderNumericForecastDataset(
+                      getNormalizedContinuousForecast(userSliderForecast),
+                      question.open_lower_bound,
+                      question.open_upper_bound
+                    ).cdf,
+              probabilityYesPerCategory: null,
+              probabilityYes: null,
+            },
+            distributionInput:
+              forecastInputMode === ContinuousForecastInputType.Slider
+                ? {
+                    type: forecastInputMode,
+                    components:
+                      getNormalizedContinuousForecast(userSliderForecast),
+                  }
+                : {
+                    type: ContinuousForecastInputType.Quantile,
+                    components: clearQuantileComponents(userQuantileForecast),
+                  },
+          };
+        }
+      )
     );
 
     if (response && "errors" in response && !!response.errors) {
@@ -239,11 +383,17 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       setIsSubmitting(false);
       return;
     }
+
+    // update inactive forecast tab with new forecast data
     setGroupOptions((prev) =>
-      prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
+      prev.map((prevQuestion) => {
+        return questionsToSubmit.some((q) => q.id === prevQuestion.id)
+          ? updateGroupOptions(prevQuestion)
+          : prevQuestion;
+      })
     );
     setIsSubmitting(false);
-  }, [postId, questionsToSubmit]);
+  }, [postId, questionsToSubmit, t]);
 
   return (
     <>
@@ -262,15 +412,16 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         handleAddComponent={handleAddComponent}
         handleResetForecasts={handleResetForecasts}
         handlePredictSubmit={handleSingleQuestionSubmit}
+        handleForecastInputModeChange={handleForecastInputModeChange}
       />
-      {!!questionsToSubmit.some((opt) => opt.isDirty) && (
+      {questionsToSubmit.some((opt) => opt.isDirty) && (
         <div className="mb-2 mt-4 flex justify-center gap-3">
           <Button
             variant="secondary"
             type="reset"
             onClick={() => handleResetForecasts()}
           >
-            {t("discardChangesButton")}
+            {t("discardAllChangesButton")}
           </Button>
 
           <PredictButton
@@ -278,6 +429,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             isDirty={true}
             hasUserForecast={true}
             isPending={isSubmitting}
+            predictLabel={t("saveAllChanges")}
           />
         </div>
       )}
@@ -295,62 +447,91 @@ function generateGroupOptions(
   questions: QuestionWithNumericForecasts[],
   prevForecastValuesMap: Record<
     number,
-    DistributionSliderComponent[] | undefined
+    DistributionSlider | DistributionQuantile | undefined
   >,
   permission?: ProjectPermissions,
   post?: Post
-): ConditionalTableOption[] {
-  return [...questions]
-    .sort((a, b) =>
-      differenceInMilliseconds(
-        new Date(a.scheduled_resolve_time),
-        new Date(b.scheduled_resolve_time)
-      )
-    )
-    .map((q) => {
-      const prevForecast = prevForecastValuesMap[q.id];
-
-      return {
-        id: q.id,
-        name: q.label,
-        question: q,
-        userQuartiles: getUserContinuousQuartiles(
-          prevForecast,
-          q.open_lower_bound,
-          q.open_upper_bound
-        ),
-        userForecast: getSliderValue(prevForecast),
-        communityQuartiles: q.aggregations.recency_weighted.latest
-          ? computeQuartilesFromCDF(
-              q.aggregations.recency_weighted.latest.forecast_values
-            )
-          : null,
-        resolution: q.resolution,
-        isDirty: false,
-        menu: (
-          <ForecastMakerGroupControls
-            question={q}
-            permission={permission}
-            button={
-              <Button
-                className="size-[26px] border border-blue-400 dark:border-blue-400-dark"
-                variant="link"
-              >
-                <FontAwesomeIcon
-                  className="text-blue-700 dark:text-blue-700-dark"
-                  icon={faEllipsis}
-                ></FontAwesomeIcon>
-              </Button>
-            }
-            post={post}
-          />
-        ),
-      };
-    });
+): ContinuousGroupOption[] {
+  return [...questions].map((q) => {
+    const prevForecast = prevForecastValuesMap[q.id];
+    const userSliderForecast = getInitialSliderDistributionComponents(
+      q.my_forecasts?.latest,
+      prevForecast,
+      q
+    );
+    return {
+      id: q.id,
+      name: q.label,
+      question: q,
+      userQuartiles: getUserContinuousQuartiles(userSliderForecast, q),
+      userSliderForecast,
+      userQuantileForecast: getInitialQuantileDistributionComponents(
+        q.my_forecasts?.latest,
+        prevForecast,
+        q
+      ),
+      forecastInputMode:
+        prevForecast?.type ?? ContinuousForecastInputType.Slider,
+      communityQuartiles: q.aggregations.recency_weighted.latest
+        ? computeQuartilesFromCDF(
+            q.aggregations.recency_weighted.latest.forecast_values
+          )
+        : null,
+      resolution: q.resolution,
+      isDirty: false,
+      hasUserForecast: !isNil(prevForecast),
+      menu: (
+        <ForecastMakerGroupControls
+          question={q}
+          permission={permission}
+          button={
+            <Button
+              className="size-[26px] border border-blue-400 dark:border-blue-400-dark"
+              variant="link"
+            >
+              <FontAwesomeIcon
+                className="text-blue-700 dark:text-blue-700-dark"
+                icon={faEllipsis}
+              ></FontAwesomeIcon>
+            </Button>
+          }
+          post={post}
+        />
+      ),
+    };
+  });
 }
 
-function getSliderValue(components?: DistributionSliderComponent[]) {
-  return components ?? null;
+function updateGroupOptions(groupOption: ContinuousGroupOption) {
+  const userSliderForecast =
+    groupOption.forecastInputMode === ContinuousForecastInputType.Slider
+      ? groupOption.userSliderForecast
+      : getSliderDistributionFromQuantiles(
+          groupOption.userQuantileForecast,
+          groupOption.question
+        );
+  const userQuantileForecast =
+    groupOption.forecastInputMode === ContinuousForecastInputType.Quantile
+      ? groupOption.userQuantileForecast.map((q) => ({
+          ...q,
+          isDirty: false,
+        }))
+      : getQuantilesDistributionFromSlider(
+          groupOption.userSliderForecast,
+          groupOption.question
+        );
+  const userQuartiles = getUserContinuousQuartiles(
+    userSliderForecast,
+    groupOption.question
+  );
+  return {
+    ...groupOption,
+    userSliderForecast,
+    userQuantileForecast,
+    userQuartiles,
+    isDirty: false,
+    hasUserForecast: true,
+  };
 }
 
 export default ForecastMakerGroupContinuous;

@@ -13,7 +13,10 @@ import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
-  getNumericForecastDataset,
+  getSliderNumericForecastDataset,
+  getQuantileNumericForecastDataset,
+  isQuantileForecast,
+  isSliderForecast,
 } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
 import { getQuestionForecastAvailability } from "@/utils/questions";
@@ -102,7 +105,6 @@ const ConditionalChart: FC<Props> = ({
             <PredictionChip
               question={question}
               status={PostStatus.RESOLVED}
-              prediction={pctCandidate}
               size="compact"
             />
           )}
@@ -130,7 +132,12 @@ const ConditionalChart: FC<Props> = ({
           })
         : "";
 
-      const continuousAreaChartData =
+      const continuousAreaChartData: {
+        pmf: number[];
+        cdf: number[];
+        componentCdfs?: number[][] | null;
+        type: ContinuousAreaType;
+      }[] =
         aggregateLatest && !aggregateLatest.end_time
           ? [
               {
@@ -145,18 +152,31 @@ const ConditionalChart: FC<Props> = ({
           ? userLatest.distribution_input
           : null;
       const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
-      const dataset = prevForecastValue?.components
-        ? getNumericForecastDataset(
-            prevForecastValue.components,
-            question.open_lower_bound,
-            question.open_upper_bound
-          )
-        : null;
+      let dataset: {
+        cdf: number[];
+        pmf: number[];
+        componentCdfs?: number[][] | null;
+        error?: string;
+      } | null = null;
+      if (isSliderForecast(prevForecastValue)) {
+        dataset = getSliderNumericForecastDataset(
+          prevForecastValue.components,
+          question.open_lower_bound,
+          question.open_upper_bound
+        );
+      }
+      if (isQuantileForecast(prevForecastValue)) {
+        dataset = getQuantileNumericForecastDataset(
+          prevForecastValue.components,
+          question
+        );
+      }
 
       if (!!dataset) {
         continuousAreaChartData.push({
           pmf: dataset.pmf,
           cdf: dataset.cdf,
+          componentCdfs: dataset.componentCdfs,
           type: "user" as ContinuousAreaType,
         });
       }
@@ -186,7 +206,6 @@ const ConditionalChart: FC<Props> = ({
             <PredictionChip
               question={question}
               status={PostStatus.RESOLVED}
-              prediction={prediction}
               size="compact"
             />
           )}

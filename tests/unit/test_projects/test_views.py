@@ -3,7 +3,6 @@ from rest_framework.reverse import reverse
 
 from projects.permissions import ObjectPermission
 from projects.services.common import get_project_permission_for_user
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_users.factories import factory_user
 

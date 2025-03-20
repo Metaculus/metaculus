@@ -10,49 +10,57 @@ import { PostStatus } from "@/types/post";
 import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
-import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
+import {
+  formatResolution,
+  formatValueUnit,
+  isUnsuccessfullyResolved,
+} from "@/utils/questions";
 
 type Size = "compact" | "large";
 
 type Props = {
   question: QuestionWithForecasts;
   status: PostStatus;
-  prediction?: number;
+  predictionOverride?: number; // override displayed CP (e.g. for graph cursor), otherwise the latest CP is used
   size?: Size;
   className?: string;
   chipClassName?: string;
-  unresovledChipStyle?: CSSProperties;
+  unresolvedChipStyle?: CSSProperties;
   showUserForecast?: boolean;
   onReaffirm?: (userForecast: UserForecast) => void;
   canPredict?: boolean;
   hideCP?: boolean;
-  compact?: boolean;
+  showWeeklyMovement?: boolean;
+  enforceCPDisplay?: boolean; // ensure CP is shown even on closed and resolved questions
 };
 
 const PredictionChip: FC<Props> = ({
   question,
   status,
-  prediction,
+  predictionOverride,
   className,
   chipClassName,
-  unresovledChipStyle,
+  unresolvedChipStyle,
   size,
   showUserForecast,
   onReaffirm,
   canPredict = false,
   hideCP,
-  compact,
+  showWeeklyMovement = false,
+  enforceCPDisplay = false,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
 
-  const { resolution, nr_forecasters } = question;
+  const { resolution } = question;
 
-  const formattedResolution = formatResolution(
+  const formattedResolution = formatResolution({
     resolution,
-    question.type,
-    locale
-  );
+    questionType: question.type,
+    locale,
+    scaling: question.scaling,
+    unit: question.unit,
+  });
 
   const renderUserForecast = () => {
     const latest = question.my_forecasts?.latest;
@@ -83,11 +91,43 @@ const PredictionChip: FC<Props> = ({
     return null;
   };
 
+  const renderCommunityForecast = (showWeeklyMovement = false) => {
+    if (!communityPredictionDisplayValue) {
+      return null;
+    }
+
+    return (
+      <>
+        <Chip
+          size={size}
+          className={cn(
+            "bg-olive-700 dark:bg-olive-700-dark",
+            {
+              "mt-2":
+                status === PostStatus.CLOSED || status === PostStatus.RESOLVED,
+            },
+            chipClassName
+          )}
+          style={unresolvedChipStyle}
+        >
+          <FontAwesomeIcon icon={faUserGroup} size="xs" />
+          {formatValueUnit(communityPredictionDisplayValue, question.unit)}
+        </Chip>
+        {showWeeklyMovement && (
+          <CPWeeklyMovement
+            question={question}
+            className="my-1 max-w-[100px]"
+          />
+        )}
+      </>
+    );
+  };
+
   const latest = question.aggregations.recency_weighted.latest;
   let communityPredictionDisplayValue: string | null = null;
-  if (prediction) {
+  if (predictionOverride) {
     communityPredictionDisplayValue = getDisplayValue({
-      value: prediction,
+      value: predictionOverride,
       questionType: question.type,
       scaling: question.scaling,
     });
@@ -128,31 +168,8 @@ const PredictionChip: FC<Props> = ({
           >
             {formattedResolution}
           </Chip>
-          {!!communityPredictionDisplayValue && (
-            <Chip
-              size={size}
-              className={cn(
-                "bg-olive-700 dark:bg-olive-700-dark",
-                chipClassName,
-                "mt-2"
-              )}
-              style={unresovledChipStyle}
-            >
-              <FontAwesomeIcon icon={faUserGroup} size="xs" />
-              {communityPredictionDisplayValue}
-            </Chip>
-          )}
-          {!!nr_forecasters && (
-            <p>
-              {nr_forecasters} {t("forecasters")}
-            </p>
-          )}
+          {enforceCPDisplay && renderCommunityForecast()}
           {renderUserForecast()}
-          {size !== "compact" && !!nr_forecasters && (
-            <p>
-              {nr_forecasters} {t("forecasters")}
-            </p>
-          )}
         </span>
       );
     case PostStatus.CLOSED:
@@ -164,29 +181,11 @@ const PredictionChip: FC<Props> = ({
               "bg-purple-800 dark:bg-purple-800-dark",
               chipClassName
             )}
-            style={unresovledChipStyle}
+            style={unresolvedChipStyle}
           >
             {t("Closed")}
           </Chip>
-          {!!communityPredictionDisplayValue && (
-            <Chip
-              size={size}
-              className={cn(
-                "bg-olive-700 dark:bg-olive-700-dark",
-                chipClassName,
-                "mt-2"
-              )}
-              style={unresovledChipStyle}
-            >
-              <FontAwesomeIcon icon={faUserGroup} size="xs" />
-              {communityPredictionDisplayValue}
-            </Chip>
-          )}
-          {!!nr_forecasters && (
-            <p>
-              {nr_forecasters} {t("forecasters")}
-            </p>
-          )}
+          {enforceCPDisplay && renderCommunityForecast()}
           {renderUserForecast()}
         </span>
       );
@@ -201,32 +200,7 @@ const PredictionChip: FC<Props> = ({
 
       return (
         <span className={cn("inline-flex flex-col", className)}>
-          {!!communityPredictionDisplayValue && (
-            <>
-              <Chip
-                size={size}
-                className={cn(
-                  "bg-olive-700 dark:bg-olive-700-dark",
-                  chipClassName
-                )}
-                style={unresovledChipStyle}
-              >
-                <FontAwesomeIcon icon={faUserGroup} size="xs" />
-                {communityPredictionDisplayValue}
-              </Chip>
-              {!compact && (
-                <CPWeeklyMovement
-                  question={question}
-                  className="my-1 max-w-[100px]"
-                />
-              )}
-            </>
-          )}
-          {!!nr_forecasters && (
-            <p>
-              {nr_forecasters} {t("forecasters")}
-            </p>
-          )}
+          {renderCommunityForecast(showWeeklyMovement)}
           {renderUserForecast()}
         </span>
       );

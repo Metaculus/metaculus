@@ -6,7 +6,6 @@ from notifications.services import (
     CPChangeData,
     NotificationQuestionParams,
 )
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_notifications.factories import factory_notification
 from tests.unit.test_posts.factories import factory_post
