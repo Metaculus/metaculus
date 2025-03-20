@@ -645,7 +645,7 @@ type GenerateScaleParams = {
  *  but for dates can be the min and max unix timestamps
  * @param scaling the Scaling related to the data, defaults to null
  *  which in turn is the same as a linear scaling along the given domain
- * @param displayLabel this is the label that will be appended to the
+ * @param unit this is the label that will be appended to the
  *  formatted tick values, defaults to an empty string
  * @param cursorDisplayLabel specifies the label to appear on the cursor
  *  state, which defaults to the displayLabel
