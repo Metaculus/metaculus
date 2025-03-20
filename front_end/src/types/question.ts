@@ -195,6 +195,7 @@ export type Question = {
   updated_at: string;
   open_time?: string;
   cp_reveal_time?: string;
+  spot_scoring_time?: string;
   scheduled_resolve_time: string;
   actual_resolve_time?: string;
   resolution_set_time?: string;

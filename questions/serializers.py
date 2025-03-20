@@ -29,6 +29,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     scaling = serializers.SerializerMethodField()
     actual_close_time = serializers.SerializerMethodField()
     resolution = serializers.SerializerMethodField()
+    spot_scoring_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -39,6 +40,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "created_at",
             "open_time",
             "cp_reveal_time",
+            "spot_scoring_time",
             "scheduled_resolve_time",
             "actual_resolve_time",
             "resolution_set_time",
@@ -71,6 +73,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             "range_min": question.range_min,
             "zero_point": question.zero_point,
         }
+
+    def get_spot_scoring_time(self, question: Question):
+        return question.spot_scoring_time or question.scheduled_close_time
 
     def get_actual_close_time(self, question: Question):
         if question.actual_close_time:

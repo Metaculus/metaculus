@@ -124,6 +124,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         blank=True,
         help_text="""Time when the community prediction is revealed.""",
     )
+    spot_scoring_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Time when spot scores are evaluated.
+        If not set, defaults to spot_scoring time.""",
+    )
 
     # continuous range fields
     range_max = models.FloatField(null=True, blank=True)
@@ -284,7 +290,7 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
         max_length=12,
         choices=GroupOfQuestionsSubquestionsOrder.choices,
         null=True,
-        default=None
+        default=None,
     )
 
     def __str__(self):
