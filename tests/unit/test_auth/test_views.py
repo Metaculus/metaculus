@@ -2,7 +2,6 @@ from django.conf import settings
 from rest_framework.reverse import reverse
 
 from authentication.services import SignupInviteService
-from tests.unit.fixtures import *  # noqa
 from users.models import User
 
 

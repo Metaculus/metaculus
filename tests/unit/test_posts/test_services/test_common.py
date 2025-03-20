@@ -12,7 +12,6 @@ from questions.services import (
     get_aggregated_forecasts_for_questions,
 )
 from questions.tasks import run_build_question_forecasts
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import (

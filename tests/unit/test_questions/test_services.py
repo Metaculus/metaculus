@@ -4,15 +4,15 @@ import freezegun
 import pytest  # noqa
 from django.utils.timezone import make_aware
 
-from posts.services.common import create_post, approve_post
 from posts.jobs import job_close_question
 from posts.models import Post
+from posts.services.common import create_post, approve_post
 from questions.constants import QuestionStatus, ResolutionType
 from questions.models import Question
 from questions.services import resolve_question, unresolve_question
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_question
+from users.models import User
 
 
 @freezegun.freeze_time("2024-1-1")
@@ -121,7 +121,7 @@ class TestResolveConditionalQuestion:
 
     def test_case_1_parent_open_child_open(
         self,
-        user1: User,  # noqa
+        user1: User,
         post_parent_open: Post,
         post_child_open: Post,
     ):
