@@ -102,13 +102,6 @@ def generate_units(questions: list[Question]):
 
     units_map = json.loads(response.choices[0].message.content)
 
-    # TODO: remove
-    for q_id, unit in units_map.items():
-        question = question_map[int(q_id)]
-        print(
-            f"[{unit}] http://localhost:3000/questions/{question.get_post_id()} | {question.title}"
-        )
-
     return {
         question_map[int(question_id)]: unit for question_id, unit in units_map.items()
     }
