@@ -821,13 +821,15 @@ def get_aggregated_forecasts_for_questions(
                 and q.group.graph_type
                 != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
             ):
-                grouped[q.group_id].append(q)
+                grouped[q.group].append(q)
 
-        def sorting_key(q: Question):
+        def rank_sorting_key(q: Question):
+            return q.group_rank
+
+        def cp_sorting_key(q: Question):
             """
             Extracts question aggregation forecast value
             """
-
             agg = recently_weighted.get(q)
             if not agg or len(agg.forecast_values) < 2:
                 return 0
@@ -841,8 +843,21 @@ def get_aggregated_forecasts_for_questions(
 
         cutoff_excluded = {
             q
-            for qs in grouped.values()
-            for q in sorted(qs, key=sorting_key, reverse=True)[group_cutoff:]
+            for group, qs in grouped.items()
+            for q in sorted(
+                qs,
+                key=(
+                    rank_sorting_key
+                    if group.subquestions_order
+                    == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.MANUAL
+                    else cp_sorting_key
+                ),
+                reverse=group.subquestions_order
+                in [
+                    GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC,
+                    None,  # if sort order is not set, then sort CP descending, hence reverse here
+                ],
+            )[group_cutoff:]
         }
         questions_to_fetch = questions_to_fetch - cutoff_excluded
 

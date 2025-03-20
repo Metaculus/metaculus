@@ -527,9 +527,9 @@ export function sortGroupPredictionOptions<QT>(
     const aResTime = new Date(a.scheduled_resolve_time).getTime();
     const bResTime = new Date(b.scheduled_resolve_time).getTime();
 
-    // Default sorting if no order is specified
+    // Default sorting to CP descending if no order is specified
     if (!group?.subquestions_order) {
-      return aResTime - bResTime;
+      return bValueScaled - aValueScaled;
     }
 
     let subquestions_order = group?.subquestions_order;
