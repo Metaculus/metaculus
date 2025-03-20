@@ -809,7 +809,7 @@ def get_aggregated_forecasts_for_questions(
 
     if group_cutoff is not None:
         recently_weighted = get_recency_weighted_for_questions(questions)
-        aggregated_forecasts.update(recently_weighted.values())
+        aggregated_forecasts.update([x for x in recently_weighted.values() if x])
 
         grouped = defaultdict(list)
         for q in questions:
