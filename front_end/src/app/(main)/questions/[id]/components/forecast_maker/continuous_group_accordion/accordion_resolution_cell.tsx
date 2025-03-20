@@ -12,6 +12,7 @@ type Props = {
   userMedian: string | undefined;
   resolution: Resolution | null;
   type: QuestionStatus.OPEN | QuestionStatus.CLOSED | QuestionStatus.RESOLVED;
+  unit?: string;
 };
 
 const AccordionResolutionCell: FC<Props> = ({

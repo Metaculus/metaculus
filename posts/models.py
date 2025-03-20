@@ -41,6 +41,7 @@ class PostQuerySet(models.QuerySet):
             "question",
             "conditional__question_yes",
             "conditional__question_no",
+            "conditional__condition_child",
             "group_of_questions__questions",
         ]
 
@@ -231,33 +232,41 @@ class PostQuerySet(models.QuerySet):
         user_id = user.id if user else None
         site_main_project = get_site_main_project()
 
-        # Superusers automatically get admin permission for all posts
-        if user and user.is_superuser:
-            qs = self.annotate(
-                _user_permission=models.Value(ObjectPermission.ADMIN)
-            )
-        else:
-            # Annotate with user-specific permission or project's default permission
-            qs = self.annotate(
-                _user_permission_override=FilteredRelation(
-                    "default_project__projectuserpermission",
-                    condition=Q(default_project__projectuserpermission__user_id=user_id),
+        # Annotate with user-specific permission or project's default permission
+        qs = self.annotate(
+            _user_permission_override=FilteredRelation(
+                "default_project__projectuserpermission",
+                condition=Q(default_project__projectuserpermission__user_id=user_id),
+            ),
+            _user_permission=models.Case(
+                # Superusers automatically get admin permission for all posts except personal projects
+                *(
+                    [
+                        models.When(
+                            ~Q(
+                                default_project__type=Project.ProjectTypes.PERSONAL_PROJECT
+                            ),
+                            then=models.Value(ObjectPermission.ADMIN),
+                        )
+                    ]
+                    if user and user.is_superuser
+                    else []
                 ),
-                _user_permission=models.Case(
-                    models.When(
-                        Q(
-                            default_project__created_by_id__isnull=False,
-                            default_project__created_by_id=user_id,
-                        ),
-                        then=models.Value(ObjectPermission.ADMIN),
+                # Otherwise, proceed on permissions lookup
+                models.When(
+                    Q(
+                        default_project__created_by_id__isnull=False,
+                        default_project__created_by_id=user_id,
                     ),
-                    default=Coalesce(
-                        F("_user_permission_override__permission"),
-                        F("default_project__default_permission"),
-                    ),
-                    output_field=models.CharField(),
+                    then=models.Value(ObjectPermission.ADMIN),
                 ),
-            )
+                default=Coalesce(
+                    F("_user_permission_override__permission"),
+                    F("default_project__default_permission"),
+                ),
+                output_field=models.CharField(),
+            ),
+        )
 
         # Exclude posts user doesn't have access to
         qs = qs.filter(
@@ -466,7 +475,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     curation_status_updated_at = models.DateTimeField(null=True, blank=True)
 
     title = models.CharField(max_length=2000, blank=True)
-    url_title = models.CharField(max_length=2000, default="", blank=True)
+
+    short_title = models.CharField(max_length=2000, default="", blank=True)
     author = models.ForeignKey(
         User, models.CASCADE, related_name="posts"
     )  # are we sure we want this?
@@ -735,8 +745,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     def get_comment_count(self) -> int:
         return self.comments.filter(is_private=False).count()
 
-    def get_url_title(self):
-        return self.url_title or self.title
+    def get_short_title(self):
+        return self.short_title or self.title
 
     def clean_fields(self, exclude=None):
         """

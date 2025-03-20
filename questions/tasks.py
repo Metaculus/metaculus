@@ -90,6 +90,9 @@ def resolve_question_and_send_notifications(question_id: int):
 
     update_leaderboards_for_question(question)
 
+    # Rebuild question aggregations
+    build_question_forecasts(question)
+
     # Send notifications
     for score in scores:
         if score.user not in user_notification_params:

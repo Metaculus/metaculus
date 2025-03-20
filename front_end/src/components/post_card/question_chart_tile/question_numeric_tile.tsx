@@ -46,8 +46,6 @@ const QuestionNumericTile: FC<Props> = ({
   const { onReaffirm } = useCardReaffirmContext();
 
   const latest = question.aggregations.recency_weighted.latest;
-  const prediction = latest?.centers?.[0];
-
   const continuousAreaChartData = getContinuousAreaChartData(
     latest,
     question.my_forecasts?.latest
@@ -117,12 +115,13 @@ const QuestionNumericTile: FC<Props> = ({
       <div className="mr-3 inline-flex flex-col justify-center gap-0.5 text-xs font-semibold text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
         <PredictionChip
           question={question}
-          prediction={prediction}
           status={curationStatus as PostStatus}
           showUserForecast
           hideCP={hideCP}
           onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
           canPredict={canPredict}
+          showWeeklyMovement
+          enforceCPDisplay
         />
 
         <ForecastersCounter forecasters={forecasters} className="p-1" />

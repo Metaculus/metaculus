@@ -42,7 +42,7 @@ const createNotebookSchema = (t: ReturnType<typeof useTranslations>) => {
       .max(200, {
         message: t("errorMaxLength", { field: "String", maxLength: 200 }),
       }),
-    url_title: z
+    short_title: z
       .string()
       .min(4, {
         message: t("errorMinLength", { field: "String", minLength: 4 }),
@@ -120,7 +120,7 @@ const NotebookForm: React.FC<Props> = ({
     setError(undefined);
     const post_data = {
       title: data["title"],
-      url_title: data["url_title"],
+      short_title: data["short_title"],
       default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
       notebook: {
@@ -200,9 +200,9 @@ const NotebookForm: React.FC<Props> = ({
         </InputContainer>
         <InputContainer labelText={t("shortTitle")}>
           <Input
-            {...form.register("url_title")}
-            errors={form.formState.errors.url_title}
-            defaultValue={post?.url_title}
+            {...form.register("short_title")}
+            errors={form.formState.errors.short_title}
+            defaultValue={post?.short_title}
             className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>

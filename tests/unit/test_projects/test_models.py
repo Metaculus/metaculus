@@ -3,7 +3,6 @@ from django.contrib.auth.models import AnonymousUser
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_users.factories import factory_user

@@ -150,50 +150,88 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       (option) => option.id !== activeTableOption
     );
 
-    if (
-      !inactiveOption ||
-      (inactiveOption.value === null && inactiveOption.quantileValue === null)
-    ) {
-      return null;
+    if (inactiveOption?.value ?? inactiveOption?.quantileValue) {
+      // Copy forecast from inactive option if there is a prediction
+      return {
+        label: t("copyFromBranch", {
+          branch: inactiveOption.name.toUpperCase(),
+        }),
+        fromQuestionId: inactiveOption.id,
+        toQuestionId: activeTableOption,
+      };
     }
 
-    return {
-      label: t("copyFromBranch", { branch: inactiveOption.name.toUpperCase() }),
-      fromQuestionId: inactiveOption.id,
-      toQuestionId: activeTableOption,
-    };
-  }, [activeTableOption, questionOptions, t]);
+    if (!!condition_child.my_forecasts?.latest) {
+      // Copy forecast from child question if there is a prediction
+      return {
+        label: "Copy from Child",
+        fromQuestionId: condition_child.id,
+        toQuestionId: activeTableOption,
+      };
+    }
+    return null;
+  }, [activeTableOption, questionOptions, condition_child, t]);
 
   const copyForecast = useCallback(
     (fromQuestionId: number, toQuestionId: number) => {
       setQuestionOptions((prev) =>
         prev.map((prevChoice) => {
           if (prevChoice.id === toQuestionId) {
-            const fromChoiceOption = prev.find(
+            const fromChoice = prev.find(
               (prevChoice) => prevChoice.id === fromQuestionId
             );
-
-            return {
-              ...prevChoice,
-              value: fromChoiceOption?.value ?? prevChoice.value,
-              quantileValue:
-                fromChoiceOption?.quantileValue ?? prevChoice.quantileValue,
-              quantileForecast:
-                fromChoiceOption?.quantileForecast.map((q) => ({
+            if (fromChoice?.value) {
+              return {
+                ...prevChoice,
+                value: fromChoice.value,
+                quantileValue: fromChoice.quantileValue,
+                quantileForecast: fromChoice.quantileForecast.map((q) => ({
                   ...q,
                   isDirty: true,
-                })) ?? prevChoice.quantileForecast,
-              sliderForecast:
-                fromChoiceOption?.sliderForecast ?? prevChoice.sliderForecast,
-              isDirty: true,
-            };
+                })),
+                sliderForecast: fromChoice.sliderForecast,
+                forecastInputMode: fromChoice.forecastInputMode,
+                isDirty: true,
+              };
+            }
+
+            const latest = condition_child.my_forecasts?.latest;
+            if (latest?.distribution_input?.components) {
+              const updatedForecast = {
+                ...prevChoice,
+                value: latest.centers?.at(0) ?? null,
+                quantileValue: null,
+                quantileForecast:
+                  latest.distribution_input.type === "quantile"
+                    ? latest.distribution_input.components
+                    : getQuantilesDistributionFromSlider(
+                        latest.distribution_input.components,
+                        condition_child as QuestionWithNumericForecasts
+                      ),
+                sliderForecast:
+                  latest.distribution_input.type === "slider"
+                    ? latest.distribution_input.components
+                    : getSliderDistributionFromQuantiles(
+                        latest.distribution_input.components,
+                        condition_child
+                      ),
+                isDirty: true,
+                forecastInputMode:
+                  latest.distribution_input.type === "slider"
+                    ? ContinuousForecastInputType.Slider
+                    : ContinuousForecastInputType.Quantile,
+              };
+              return updatedForecast;
+            }
+
+            return prevChoice;
           }
 
           return prevChoice;
         })
       );
     },
-    []
+    [condition_child]
   );
 
   const handleChange = useCallback(

@@ -132,6 +132,7 @@ export function getSliderNumericForecastDataset(
   return {
     cdf: cdf,
     pmf: cdfToPmf(cdf),
+    componentCdfs: componentCdfs,
   };
 }
 
@@ -501,7 +502,7 @@ export function getInitialQuantileDistributionComponents(
   question: QuestionWithNumericForecasts
 ): DistributionQuantileComponent {
   return activeForecast && activeForecastValues
-    ? activeForecast.distribution_input.type ===
+    ? activeForecast.distribution_input?.type ===
       ContinuousForecastInputType.Quantile
       ? populateQuantileComponents(
           activeForecastValues.components as DistributionQuantileComponent
@@ -546,7 +547,7 @@ export function getInitialSliderDistributionComponents(
 ) {
   return !activeForecast ||
     !activeForecastValues ||
-    activeForecast.distribution_input.type ===
+    activeForecast.distribution_input?.type ===
       ContinuousForecastInputType.Slider
     ? getNormalizedContinuousForecast(
         activeForecastValues?.components as DistributionSliderComponent[]

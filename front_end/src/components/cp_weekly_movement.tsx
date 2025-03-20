@@ -14,12 +14,14 @@ type Props = {
   question: QuestionWithForecasts;
   className?: string;
   checkDelta?: boolean;
+  displayUnit?: boolean;
 };
 
 const CPWeeklyMovement: FC<Props> = ({
   question,
   className,
   checkDelta = true,
+  displayUnit = true,
 }) => {
   const t = useTranslations();
   const weeklyMovement = getQuestionWeeklyMovement(question, checkDelta);
@@ -39,7 +41,10 @@ const CPWeeklyMovement: FC<Props> = ({
     <WeeklyMovement
       weeklyMovement={weeklyMovement}
       message={t("weeklyMovementChange", {
-        value: formatValueUnit(message, question.unit),
+        value: formatValueUnit(
+          message,
+          displayUnit ? question.unit : undefined
+        ),
       })}
       className={cn("text-xs", className)}
       iconClassName="text-sm"

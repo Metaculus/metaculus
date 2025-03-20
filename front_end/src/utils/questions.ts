@@ -6,12 +6,15 @@ import strip from "strip-markdown";
 
 import { ContinuousGroupOption } from "@/app/(main)/questions/[id]/components/forecast_maker/continuous_group_accordion/group_forecast_accordion";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
+import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { UserChoiceItem } from "@/types/choices";
 import {
   ConditionalPost,
   GroupOfQuestionsPost,
   NotebookPost,
   Post,
+  PostGroupOfQuestions,
+  PostGroupOfQuestionsSubquestionsOrder,
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
@@ -30,6 +33,7 @@ import {
   Scaling,
 } from "@/types/question";
 import {
+  getDisplayValue,
   getQuestionDateFormatString,
   scaleInternalLocation,
   unscaleNominalLocation,
@@ -40,11 +44,13 @@ import { formatDate } from "./date_formatters";
 
 export const ANNULED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
+// Max length of a unit to be treated as compact
+export const QUESTION_UNIT_COMPACT_LENGTH = 3;
 
 export function isMultipleChoicePost(post: PostWithForecasts) {
   return post.question?.type === QuestionType.MultipleChoice;
 }
-// TODO: remove this function when we will have consumer view for all group questions
+
 export function checkGroupOfQuestionsPostType(
   post: PostWithForecasts,
   type: QuestionType
@@ -191,12 +197,14 @@ export function formatResolution({
   locale,
   scaling,
   unit,
+  shortBounds = false,
 }: {
   resolution: number | string | null | undefined;
   questionType: QuestionType;
   locale: string;
   scaling?: Scaling;
   unit?: string;
+  shortBounds?: boolean;
 }) {
   if (resolution === null || resolution === undefined) {
     return "-";
@@ -213,9 +221,29 @@ export function formatResolution({
   }
 
   if (resolution === "below_lower_bound") {
+    if (shortBounds && scaling) {
+      return (
+        "<" +
+        getDisplayValue({
+          value: 0,
+          questionType,
+          scaling,
+        })
+      );
+    }
     return "Below lower bound";
   }
   if (resolution === "above_upper_bound") {
+    if (shortBounds && scaling) {
+      return (
+        ">" +
+        getDisplayValue({
+          value: 1,
+          questionType,
+          scaling,
+        })
+      );
+    }
     return "Above upper bound";
   }
 
@@ -478,13 +506,47 @@ export const generateUserForecasts = (
   });
 };
 
-export function sortGroupPredictionOptions(
-  questions: QuestionWithNumericForecasts[]
+export function sortGroupPredictionOptions<QT>(
+  questions: QuestionWithNumericForecasts[],
+  group?: PostGroupOfQuestions<QT>
 ) {
   return [...questions].sort((a, b) => {
     const aMean = a.aggregations.recency_weighted.latest?.centers?.[0] ?? 0;
     const bMean = b.aggregations.recency_weighted.latest?.centers?.[0] ?? 0;
-    return bMean - aMean;
+    const aValueScaled = scaleInternalLocation(aMean, {
+      range_min: a.scaling?.range_min ?? 0,
+      range_max: a.scaling?.range_max ?? 1,
+      zero_point: a.scaling?.zero_point ?? null,
+    });
+    const bValueScaled = scaleInternalLocation(bMean, {
+      range_min: b.scaling?.range_min ?? 0,
+      range_max: b.scaling?.range_max ?? 1,
+      zero_point: b.scaling?.zero_point ?? null,
+    });
+
+    const aResTime = new Date(a.scheduled_resolve_time).getTime();
+    const bResTime = new Date(b.scheduled_resolve_time).getTime();
+
+    // Default sorting to CP descending if no order is specified
+    if (!group?.subquestions_order) {
+      return bValueScaled - aValueScaled;
+    }
+
+    let subquestions_order = group?.subquestions_order;
+
+    // If this is a FanGraph, always sort manually
+    if (group?.graph_type === GroupOfQuestionsGraphType.FanGraph) {
+      subquestions_order = PostGroupOfQuestionsSubquestionsOrder.MANUAL;
+    }
+
+    switch (subquestions_order) {
+      case PostGroupOfQuestionsSubquestionsOrder.CP_ASC:
+        return aValueScaled - bValueScaled;
+      case PostGroupOfQuestionsSubquestionsOrder.CP_DESC:
+        return bValueScaled - aValueScaled;
+      default:
+        return (a.group_rank ?? aResTime) - (b.group_rank ?? bResTime);
+    }
   });
 }
 
@@ -643,3 +705,6 @@ export const formatValueUnit = (value: string, unit?: string) => {
 
   return unit === "%" ? `${value}%` : `${value} ${unit}`;
 };
+
+export const isUnitCompact = (unit?: string) =>
+  unit && unit.length <= QUESTION_UNIT_COMPACT_LENGTH;

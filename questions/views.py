@@ -44,8 +44,8 @@ def question_detail_api_view(request, pk: int):
     return Response(
         serialize_question(
             question,
-            with_cp=with_cp,
             post=question.get_post(),
+            aggregate_forecasts=question.aggregate_forecasts.all() if with_cp else None,
             current_user=request.user,
             minimize=minimize,
         )

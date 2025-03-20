@@ -10,7 +10,6 @@ from posts.services.subscriptions import (
     create_subscription_specific_time,
     notify_date,
 )
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 

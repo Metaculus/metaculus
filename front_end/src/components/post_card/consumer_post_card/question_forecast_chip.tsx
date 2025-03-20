@@ -29,6 +29,7 @@ const QuestionForecastChip: FC<Props> = ({ question }) => {
   return (
     <ContinuousCPBar
       communityPredictionDisplayValue={communityPredictionDisplayValue}
+      unit={question.unit}
       isClosed={isClosed}
     />
   );
