@@ -3,7 +3,7 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { usePostHog } from "posthog-js/react";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, Fragment, useEffect, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
@@ -44,23 +44,9 @@ const PaginatedPostsFeed: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const pathname = usePathname();
-  const posthog = usePostHog();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-  const [isConsumerViewEnabled, setIsConsumerViewEnabled] = useState<
-    boolean | null | undefined
-  >(null);
+  const isConsumerViewEnabled = useFeatureFlagEnabled("consumerView");
 
-  useEffect(() => {
-    posthog.onFeatureFlags(() => {
-      // workaround for posthog not being ready on first load
-      // as it need some time to analize the user properties
-      setTimeout(() => {
-        const isFlagEnabled = posthog.isFeatureEnabled("consumerView");
-        setIsConsumerViewEnabled(isFlagEnabled);
-      }, 500);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
     ? Number(params.get(POST_PAGE_FILTER))
@@ -159,12 +145,6 @@ const PaginatedPostsFeed: FC<Props> = ({
     }
     return <PostCard post={post} />;
   };
-  // TODO: adjust after we change feature flag config
-  if (isConsumerViewEnabled === null) {
-    return (
-      <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
-    );
-  }
 
   return (
     <>

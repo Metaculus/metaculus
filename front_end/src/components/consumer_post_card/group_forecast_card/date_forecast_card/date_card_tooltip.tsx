@@ -22,7 +22,7 @@ const DateForecastCardTooltip: FC<Props> = ({ points }) => {
           <span
             className="line-clamp-2 block h-3 w-3 shrink-0 rounded-full"
             style={{ backgroundColor: getThemeColor(point.color) }}
-          ></span>
+          />
           {point.label}
         </div>
       ))}

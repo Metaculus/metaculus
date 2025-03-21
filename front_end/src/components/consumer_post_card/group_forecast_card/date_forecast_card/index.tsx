@@ -27,10 +27,14 @@ import {
   generateChoiceItemsFromGroupQuestions,
   getContinuousGroupScaling,
   getDisplayValue,
+  getResolutionPoint,
   scaleInternalLocation,
   unscaleNominalLocation,
 } from "@/utils/charts";
-import { sortGroupPredictionOptions } from "@/utils/questions";
+import {
+  isUnsuccessfullyResolved,
+  sortGroupPredictionOptions,
+} from "@/utils/questions";
 
 import DateForecastCardTooltip from "./date_card_tooltip";
 import PredictionSymbol from "./prediction_symbol";
@@ -43,6 +47,7 @@ type Props = {
 
 const TICK_LABEL_INDEXES = [0, 4, 8];
 const SMALL_CHART_WIDTH = 400;
+const TICKS_ARRAY = Array.from({ length: 9 }, (_, i) => 0.04 + (i * 0.92) / 8);
 
 const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
   const { questions } = questionsGroup;
@@ -73,7 +78,7 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
       return [...prev, { label, color }];
     });
   };
-  const ticksArray = Array.from({ length: 9 }, (_, i) => 0.04 + (i * 0.92) / 8);
+
   return (
     <>
       <div ref={chartContainerRef} className="DateForecastCard relative w-full">
@@ -109,7 +114,7 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
                   ? formatTickLabel(tick, adjustedScaling, index)
                   : ""
               }
-              tickValues={ticksArray}
+              tickValues={TICKS_ARRAY}
               style={{
                 ticks: {
                   stroke: "transparent",
@@ -133,7 +138,7 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
                 tickFormat={(tick, index) =>
                   formatTickLabel(tick, adjustedScaling, index)
                 }
-                tickValues={ticksArray}
+                tickValues={TICKS_ARRAY}
                 orientation="top"
                 style={{
                   ticks: { stroke: "transparent" },
@@ -144,6 +149,7 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
                     fontSize: 11,
                   },
                 }}
+                offsetY={15}
               />
             )}
             <VictoryScatter
@@ -185,27 +191,67 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
 
 function generateChartData(choices: ChoiceItem[], originalScaling: Scaling) {
   const choicesCP = choices
-    .filter((choice) => isNil(choice.resolution))
     .map((choice) => {
       const latest =
         choice.aggregationValues[choice.aggregationValues.length - 1];
-      if (!latest || !choice.scaling) {
+      if (
+        !latest ||
+        !choice.scaling ||
+        isUnsuccessfullyResolved(choice.resolution)
+      ) {
         return null;
+      }
+      let resolutionTimestampPoint = null;
+      if (choice.resolution) {
+        switch (choice.resolution) {
+          case "below_lower_bound":
+            resolutionTimestampPoint = 0;
+            break;
+          case "above_upper_bound":
+            resolutionTimestampPoint = 1;
+            break;
+          default:
+            resolutionTimestampPoint =
+              getResolutionPoint({
+                questionType: QuestionType.Date,
+                resolution: choice.resolution,
+                resolveTime: Date.now(),
+                scaling: choice.scaling,
+              })?.[0]?.y ?? null;
+            break;
+        }
       }
       return {
         id: choice.id,
         cp: scaleInternalLocation(latest, choice.scaling),
+        resolution: !isNil(resolutionTimestampPoint)
+          ? scaleInternalLocation(resolutionTimestampPoint, choice.scaling)
+          : null,
       };
     })
-    .filter((cp) => !isNil(cp)) as { id: number; cp: number }[];
+    .filter((choice) => !isNil(choice)) as {
+    id: number;
+    cp: number;
+    resolution: number | null;
+  }[];
   if (!choicesCP.length) {
     return {
       adjustedScaling: originalScaling,
       points: [],
     };
   }
-  const minCP = Math.min(...choicesCP.map((choice) => choice.cp));
-  const maxCP = Math.max(...choicesCP.map((choice) => choice.cp));
+
+  const resolutionsArray = choicesCP
+    .filter((choice) => !isNil(choice.resolution))
+    .map((choice) => choice.resolution) as number[];
+  const minCP = Math.min(
+    ...choicesCP.map((choice) => choice.cp),
+    ...resolutionsArray
+  );
+  const maxCP = Math.max(
+    ...choicesCP.map((choice) => choice.cp),
+    ...resolutionsArray
+  );
 
   // add buffer to the domain bounds
   const rangePadding = (maxCP - minCP) * 0.1;
@@ -217,7 +263,10 @@ function generateChartData(choices: ChoiceItem[], originalScaling: Scaling) {
   const points = choicesCP.map((choice) => {
     return {
       id: choice.id,
-      x: unscaleNominalLocation(choice.cp, scaling),
+      x: isNil(choice.resolution)
+        ? unscaleNominalLocation(choice.cp, scaling)
+        : unscaleNominalLocation(choice.resolution, scaling),
+      symbol: isNil(choice.resolution) ? "circle" : "diamond",
     };
   });
 
@@ -235,6 +284,8 @@ function generateChartData(choices: ChoiceItem[], originalScaling: Scaling) {
           calculateTextWidth(12, pointData?.choice ?? ""),
           100
         ),
+        resolution: pointData?.resolution,
+        symbol: point.symbol,
       };
     }),
   };
