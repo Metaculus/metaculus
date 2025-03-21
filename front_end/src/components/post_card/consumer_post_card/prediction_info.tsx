@@ -39,7 +39,7 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
     return null;
   }
 
-  // TODO: implement view for date group questions and time series
+  // TODO: implement view for date group questions
   if (isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) {
     return <GroupForecastCard post={post} />;
   }
