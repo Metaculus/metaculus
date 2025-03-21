@@ -562,28 +562,28 @@ const GroupForm: React.FC<Props> = ({
                     value={subQuestion?.label}
                   />
                 </InputContainer>
-                {subtype === QuestionType.Numeric && (
-                  <InputContainer
-                    labelText={t("subquestionUnit")}
-                    explanation={t("questionUnitDescription")}
-                  >
-                    <Input
-                      onChange={(e) => {
-                        setSubQuestions(
-                          subQuestions.map((subQuestion, iter_index) => {
-                            if (index === iter_index)
-                              subQuestion.unit = e.target.value;
-                            return subQuestion;
-                          })
-                        );
-                      }}
-                      className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                      value={subQuestion?.unit}
-                    />
-                  </InputContainer>
-                )}
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4">
+                    {subtype === QuestionType.Numeric && (
+                      <InputContainer
+                        labelText={t("subquestionUnit")}
+                        explanation={t("questionUnitDescription")}
+                      >
+                        <Input
+                          onChange={(e) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index)
+                                  subQuestion.unit = e.target.value;
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          value={subQuestion?.unit}
+                        />
+                      </InputContainer>
+                    )}
                     <div className="flex flex-col gap-4 md:flex-row">
                       <InputContainer
                         labelText={t("closingDate")}
