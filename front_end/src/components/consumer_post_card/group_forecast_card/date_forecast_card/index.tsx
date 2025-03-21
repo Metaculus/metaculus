@@ -57,7 +57,7 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
   });
   const scaling = getContinuousGroupScaling(questions);
   const shouldDisplayChart = !!chartWidth;
-
+  const isBigChartView = chartWidth > SMALL_CHART_WIDTH;
   const { adjustedScaling, points } = generateChartData(choices, scaling);
   const [labelOverlap, setLabelOverlap] = useState<
     {
@@ -84,9 +84,9 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
             theme={chartTheme}
             padding={{
               left: 0,
-              top: 0,
+              top: isBigChartView ? 5 : 20,
               right: 0,
-              bottom: 25,
+              bottom: isBigChartView ? 20 : 5,
             }}
             domain={{ x: [0, 1], y: [0, 1] }}
             domainPadding={{
@@ -105,7 +105,9 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
           >
             <VictoryAxis
               tickFormat={(tick, index) =>
-                formatTickLabel(tick, adjustedScaling, index)
+                isBigChartView
+                  ? formatTickLabel(tick, adjustedScaling, index)
+                  : ""
               }
               tickValues={ticksArray}
               style={{
@@ -125,6 +127,25 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
                 },
               }}
             />
+            {/* add only a tick labels on top of the chart */}
+            {!isBigChartView && (
+              <VictoryAxis
+                tickFormat={(tick, index) =>
+                  formatTickLabel(tick, adjustedScaling, index)
+                }
+                tickValues={ticksArray}
+                orientation="top"
+                style={{
+                  ticks: { stroke: "transparent" },
+                  grid: { stroke: "transparent" },
+                  axis: { stroke: "transparent" },
+                  tickLabels: {
+                    fill: () => getThemeColor(METAC_COLORS.gray["500"]),
+                    fontSize: 11,
+                  },
+                }}
+              />
+            )}
             <VictoryScatter
               data={points}
               size={8}
@@ -137,7 +158,7 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
                   maxWidth: 100,
                   fontSize: 14,
                   fill: () =>
-                    chartWidth < SMALL_CHART_WIDTH
+                    !isBigChartView
                       ? "transparent"
                       : getThemeColor(METAC_COLORS.blue["800"]),
                 },
@@ -152,10 +173,10 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
           </VictoryChart>
         )}
       </div>
-      {chartWidth && chartWidth < SMALL_CHART_WIDTH && (
+      {chartWidth && !isBigChartView && (
         <DateForecastCardTooltip points={points} />
       )}
-      {labelOverlap.length > 0 && chartWidth >= SMALL_CHART_WIDTH && (
+      {labelOverlap.length > 0 && isBigChartView && (
         <DateForecastCardTooltip points={labelOverlap} />
       )}
     </>
@@ -207,7 +228,7 @@ function generateChartData(choices: ChoiceItem[], originalScaling: Scaling) {
       const pointData = choices.find((choice) => choice.id === point.id);
       return {
         x: point.x,
-        y: 0.4,
+        y: 0.35,
         label: pointData?.choice ?? "",
         color: pointData?.color ?? (METAC_COLORS.gray["400"] as ThemeColor),
         labelWidth: Math.min(
