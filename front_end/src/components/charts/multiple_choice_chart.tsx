@@ -494,7 +494,7 @@ function buildChartData({
             symbol: "circle",
           });
         } else {
-          // we have a null vlalue while previous was real
+          // we have a null value while previous was real
           const lastScatterItem = scatter.at(-1);
           if (!isNil(lastScatterItem)) {
             scatter.push({

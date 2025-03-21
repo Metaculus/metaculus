@@ -29,6 +29,7 @@ import {
   getResolutionPosition,
   calculateCharWidth,
   getTruncatedLabel,
+  getContinuousGroupScaling,
 } from "@/utils/charts";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
@@ -172,36 +173,7 @@ function buildChartData(
   y: number;
   label: string;
 }[] {
-  const rangeMaxValues: number[] = [];
-  const rangeMinValues: number[] = [];
-  const zeroPoints: number[] = [];
-  for (const question of questions) {
-    if (!isNil(question.scaling.range_max)) {
-      rangeMaxValues.push(question.scaling.range_max);
-    }
-    if (!isNil(question.scaling.range_min)) {
-      rangeMinValues.push(question.scaling.range_min);
-    }
-    if (question.scaling.zero_point !== null) {
-      zeroPoints.push(question.scaling.zero_point);
-    }
-  }
-  const scaling: Scaling = {
-    range_max: rangeMaxValues.length > 0 ? Math.max(...rangeMaxValues) : null,
-    range_min: rangeMinValues.length > 0 ? Math.min(...rangeMinValues) : null,
-    zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
-  };
-  // ignore the log scaling if we have mixes of log and linear scaled options
-  if (
-    scaling.zero_point !== null &&
-    !isNil(scaling.range_min) &&
-    !isNil(scaling.range_max) &&
-    scaling.range_min <= scaling.zero_point &&
-    scaling.zero_point <= scaling.range_max
-  ) {
-    scaling.zero_point = null;
-  }
-
+  const scaling = getContinuousGroupScaling(questions);
   return [...questions]
     .filter(
       (question) =>
