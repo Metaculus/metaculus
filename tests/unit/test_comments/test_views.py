@@ -3,7 +3,6 @@ from django.urls import reverse
 
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project

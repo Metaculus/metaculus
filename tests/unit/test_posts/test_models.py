@@ -9,7 +9,6 @@ from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post, factory_post_snapshot
 from tests.unit.test_projects.factories import factory_project

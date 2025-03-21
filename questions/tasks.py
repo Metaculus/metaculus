@@ -51,15 +51,15 @@ def resolve_question_and_send_notifications(question_id: int):
         Score.ScoreTypes.PEER,
         Score.ScoreTypes.RELATIVE_LEGACY,
     ]
-    spot_forecast_time = question.cp_reveal_time
-    if spot_forecast_time:
+    spot_scoring_time = question.spot_scoring_time or question.cp_reveal_time
+    if spot_scoring_time:
         score_types.append(Score.ScoreTypes.SPOT_PEER)
         score_types.append(Score.ScoreTypes.SPOT_BASELINE)
     score_question(
         question,
         question.resolution,
-        spot_forecast_time=(
-            spot_forecast_time.timestamp() if spot_forecast_time else None
+        spot_scoring_time=(
+            spot_scoring_time.timestamp() if spot_scoring_time else None
         ),
         score_types=score_types,
     )
@@ -89,6 +89,9 @@ def resolve_question_and_send_notifications(question_id: int):
     from questions.services import update_leaderboards_for_question
 
     update_leaderboards_for_question(question)
+
+    # Rebuild question aggregations
+    build_question_forecasts(question)
 
     # Send notifications
     for score in scores:

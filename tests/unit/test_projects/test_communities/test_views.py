@@ -2,7 +2,6 @@ from rest_framework.reverse import reverse
 
 from projects.models import ProjectUserPermission
 from projects.permissions import ObjectPermission
-from tests.unit.fixtures import *  # noqa
 from .fixtures import *  # noqa
 
 

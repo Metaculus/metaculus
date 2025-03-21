@@ -132,7 +132,12 @@ const ConditionalChart: FC<Props> = ({
           })
         : "";
 
-      const continuousAreaChartData =
+      const continuousAreaChartData: {
+        pmf: number[];
+        cdf: number[];
+        componentCdfs?: number[][] | null;
+        type: ContinuousAreaType;
+      }[] =
         aggregateLatest && !aggregateLatest.end_time
           ? [
               {
@@ -147,7 +152,12 @@ const ConditionalChart: FC<Props> = ({
           ? userLatest.distribution_input
           : null;
       const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
-      let dataset: { cdf: number[]; pmf: number[] } | null = null;
+      let dataset: {
+        cdf: number[];
+        pmf: number[];
+        componentCdfs?: number[][] | null;
+        error?: string;
+      } | null = null;
       if (isSliderForecast(prevForecastValue)) {
         dataset = getSliderNumericForecastDataset(
           prevForecastValue.components,
@@ -166,6 +176,7 @@ const ConditionalChart: FC<Props> = ({
         continuousAreaChartData.push({
           pmf: dataset.pmf,
           cdf: dataset.cdf,
+          componentCdfs: dataset.componentCdfs,
           type: "user" as ContinuousAreaType,
         });
       }
