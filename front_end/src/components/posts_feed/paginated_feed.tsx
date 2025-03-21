@@ -8,6 +8,7 @@ import { FC, Fragment, useEffect, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
 import { useContentTranslatedBannerProvider } from "@/app/providers";
+import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
@@ -24,7 +25,6 @@ import { SCROLL_CACHE_KEY } from "./constants";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import InReviewBox from "./in_review_box";
-import ConsumerPostCard from "../post_card/consumer_post_card";
 import { FormErrorMessage } from "../ui/form_field";
 
 export type PostsFeedType = "posts" | "news";
