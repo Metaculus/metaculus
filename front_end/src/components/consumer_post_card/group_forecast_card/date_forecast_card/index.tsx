@@ -2,7 +2,7 @@ import "./styles.scss";
 
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
-import { FC } from "react";
+import { FC, useState } from "react";
 import {
   VictoryAxis,
   VictoryChart,
@@ -15,6 +15,7 @@ import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { ChoiceItem } from "@/types/choices";
+import { PostGroupOfQuestions } from "@/types/post";
 import {
   QuestionType,
   QuestionWithNumericForecasts,
@@ -22,44 +23,56 @@ import {
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
+  calculateTextWidth,
   generateChoiceItemsFromGroupQuestions,
   getContinuousGroupScaling,
   getDisplayValue,
   scaleInternalLocation,
   unscaleNominalLocation,
 } from "@/utils/charts";
+import { sortGroupPredictionOptions } from "@/utils/questions";
 
 import DateForecastCardTooltip from "./date_card_tooltip";
 import PredictionSymbol from "./prediction_symbol";
 import ScatterLabel from "./scatter_label";
 
 type Props = {
-  questions: QuestionWithNumericForecasts[];
-  postId: number;
+  questionsGroup: PostGroupOfQuestions<QuestionWithNumericForecasts>;
   height?: number;
 };
 
 const TICK_LABEL_INDEXES = [0, 4, 8];
 const SMALL_CHART_WIDTH = 400;
 
-const DateForecastCard: FC<Props> = ({ questions, height = 100, postId }) => {
+const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
+  const { questions } = questionsGroup;
   const locale = useLocale();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
-  const choices = generateChoiceItemsFromGroupQuestions(questions, {
+  const sortedQuestions = sortGroupPredictionOptions(questions, questionsGroup);
+  const choices = generateChoiceItemsFromGroupQuestions(sortedQuestions, {
     locale,
   });
   const scaling = getContinuousGroupScaling(questions);
   const shouldDisplayChart = !!chartWidth;
 
-  const { adjustedScaling, points } = generateChartData(
-    choices,
-    postId,
-    scaling
-  );
-
+  const { adjustedScaling, points } = generateChartData(choices, scaling);
+  const [labelOverlap, setLabelOverlap] = useState<
+    {
+      label: string;
+      color: ThemeColor;
+    }[]
+  >([]);
+  const onLabelOverlap = (label: string, color: ThemeColor) => {
+    setLabelOverlap((prev) => {
+      if (prev.some((item) => item.label === label)) {
+        return prev;
+      }
+      return [...prev, { label, color }];
+    });
+  };
   const ticksArray = Array.from({ length: 9 }, (_, i) => 0.04 + (i * 0.92) / 8);
   return (
     <>
@@ -67,7 +80,7 @@ const DateForecastCard: FC<Props> = ({ questions, height = 100, postId }) => {
         {shouldDisplayChart && (
           <VictoryChart
             width={chartWidth}
-            height={chartWidth > 400 ? height : 80}
+            height={height}
             theme={chartTheme}
             padding={{
               left: 0,
@@ -94,7 +107,6 @@ const DateForecastCard: FC<Props> = ({ questions, height = 100, postId }) => {
               tickFormat={(tick, index) =>
                 formatTickLabel(tick, adjustedScaling, index)
               }
-              // tickLabelComponent={<TickLabel />}
               tickValues={ticksArray}
               style={{
                 ticks: {
@@ -116,7 +128,7 @@ const DateForecastCard: FC<Props> = ({ questions, height = 100, postId }) => {
             <VictoryScatter
               data={points}
               size={8}
-              dataComponent={<PredictionSymbol chartWidth={chartWidth} />}
+              dataComponent={<PredictionSymbol />}
               style={{
                 data: {
                   stroke: ({ datum }) => getThemeColor(datum.color),
@@ -130,7 +142,12 @@ const DateForecastCard: FC<Props> = ({ questions, height = 100, postId }) => {
                       : getThemeColor(METAC_COLORS.blue["800"]),
                 },
               }}
-              labelComponent={<ScatterLabel chartWidth={chartWidth} />}
+              labelComponent={
+                <ScatterLabel
+                  chartWidth={chartWidth}
+                  onLabelOverlap={onLabelOverlap}
+                />
+              }
             />
           </VictoryChart>
         )}
@@ -138,15 +155,14 @@ const DateForecastCard: FC<Props> = ({ questions, height = 100, postId }) => {
       {chartWidth && chartWidth < SMALL_CHART_WIDTH && (
         <DateForecastCardTooltip points={points} />
       )}
+      {labelOverlap.length > 0 && chartWidth >= SMALL_CHART_WIDTH && (
+        <DateForecastCardTooltip points={labelOverlap} />
+      )}
     </>
   );
 };
 
-function generateChartData(
-  choices: ChoiceItem[],
-  postId: number,
-  originalScaling: Scaling
-) {
+function generateChartData(choices: ChoiceItem[], originalScaling: Scaling) {
   const choicesCP = choices
     .filter((choice) => isNil(choice.resolution))
     .map((choice) => {
@@ -194,6 +210,10 @@ function generateChartData(
         y: 0.4,
         label: pointData?.choice ?? "",
         color: pointData?.color ?? (METAC_COLORS.gray["400"] as ThemeColor),
+        labelWidth: Math.min(
+          calculateTextWidth(12, pointData?.choice ?? ""),
+          100
+        ),
       };
     }),
   };

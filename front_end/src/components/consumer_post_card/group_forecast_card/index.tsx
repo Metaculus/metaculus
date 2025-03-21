@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import TimeSeriesChart from "@/components/charts/time_series_chart/time_series_chart";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
-import { PostWithForecasts } from "@/types/post";
+import { PostGroupOfQuestions, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   checkGroupOfQuestionsPostType,
@@ -42,12 +42,10 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
     post.group_of_questions &&
     checkGroupOfQuestionsPostType(post, QuestionType.Date)
   ) {
-    // TODO: implement charts for date group
     return (
       <DateForecastCard
-        postId={post.id}
-        questions={
-          post.group_of_questions.questions as QuestionWithNumericForecasts[]
+        questionsGroup={
+          post.group_of_questions as PostGroupOfQuestions<QuestionWithNumericForecasts>
         }
       />
     );
