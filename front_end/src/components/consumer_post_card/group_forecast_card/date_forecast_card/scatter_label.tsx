@@ -56,12 +56,9 @@ const ScatterLabel: FC<Props> = ({ chartWidth, ...props }) => {
       height={40}
     >
       <div
-        className="line-clamp-2 text-center"
+        className="line-clamp-2 max-w-[100px] overflow-hidden text-center text-xs"
         style={{
-          fontSize: "12px",
           color: getThemeColor(METAC_COLORS.blue["800"]),
-          maxWidth: "100px",
-          overflow: "hidden",
         }}
       >
         {(label as string) ?? ""}

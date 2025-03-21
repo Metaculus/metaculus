@@ -70,7 +70,7 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
         <CPWeeklyMovement
           question={question}
           displayUnit={false}
-          isConsumerView
+          presentation="consumerView"
         />
       </div>
     );
