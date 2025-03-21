@@ -12,7 +12,7 @@ import {
 
 import NumericForecastCard from "./numeric_forecast_card";
 import PercentageForecastCard from "./percentage_forecast_card";
-import GroupContinuousTile from "../../group_of_questions_tile/group_continuous_tile";
+import GroupContinuousTile from "../../post_card/group_of_questions_tile/group_continuous_tile";
 
 type Props = {
   post: PostWithForecasts;
