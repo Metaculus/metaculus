@@ -60,7 +60,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
   );
 
   return (
-    <div ref={chartContainerRef} className="relative w-full">
+    <div ref={chartContainerRef} className="TimeSeriesChart relative w-full">
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
