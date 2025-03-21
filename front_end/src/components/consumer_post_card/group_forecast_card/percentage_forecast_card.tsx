@@ -15,6 +15,7 @@ import {
 import {
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
+  sortGroupPredictionOptions,
 } from "@/utils/questions";
 
 import ForecastCardWrapper from "./forecast_card_wrapper";
@@ -80,13 +81,14 @@ function generateChoiceItems(
     );
   }
   if (isGroupOfQuestionsPost(post)) {
-    return generateChoiceItemsFromGroupQuestions(
+    const sortedGroupQuestions = sortGroupPredictionOptions(
       post.group_of_questions?.questions as QuestionWithNumericForecasts[],
-      {
-        activeCount: visibleChoicesCount,
-        locale,
-      }
+      post.group_of_questions
     );
+    return generateChoiceItemsFromGroupQuestions(sortedGroupQuestions, {
+      activeCount: visibleChoicesCount,
+      locale,
+    });
   }
   return [];
 }

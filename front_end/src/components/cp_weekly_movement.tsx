@@ -15,6 +15,7 @@ type Props = {
   className?: string;
   checkDelta?: boolean;
   displayUnit?: boolean;
+  presentation?: "forecasterView" | "consumerView";
 };
 
 const CPWeeklyMovement: FC<Props> = ({
@@ -22,6 +23,7 @@ const CPWeeklyMovement: FC<Props> = ({
   className,
   checkDelta = true,
   displayUnit = true,
+  presentation = "forecasterView",
 }) => {
   const t = useTranslations();
   const weeklyMovement = getQuestionWeeklyMovement(question, checkDelta);
@@ -32,10 +34,16 @@ const CPWeeklyMovement: FC<Props> = ({
     return null;
   }
 
-  const message = `${displayValue({
-    value: Math.abs(weeklyMovement),
-    questionType: question.type,
-  })}${percentagePoints}`.replace("%", "");
+  const message =
+    presentation === "consumerView"
+      ? displayValue({
+          value: Math.abs(weeklyMovement),
+          questionType: question.type,
+        })
+      : `${displayValue({
+          value: Math.abs(weeklyMovement),
+          questionType: question.type,
+        })}${percentagePoints}`.replace("%", "");
 
   return (
     <WeeklyMovement
@@ -47,7 +55,7 @@ const CPWeeklyMovement: FC<Props> = ({
         ),
       })}
       className={cn("text-xs", className)}
-      iconClassName="text-sm"
+      iconClassName="text-xs"
     />
   );
 };

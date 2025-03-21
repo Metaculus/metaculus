@@ -1,4 +1,4 @@
-import { faCaretUp, faCaretDown } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUp, faArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
@@ -39,7 +39,7 @@ const WeeklyMovement: FC<Props> = ({
               "mr-1",
               iconClassName
             )}
-            icon={isNegative ? faCaretDown : faCaretUp}
+            icon={isNegative ? faArrowDown : faArrowUp}
           />
         )}
         {message}
