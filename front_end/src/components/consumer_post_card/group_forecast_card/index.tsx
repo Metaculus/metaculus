@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import TimeSeriesChart from "@/components/charts/time_series_chart/time_series_chart";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
-import { GroupOfQuestionsPost, PostWithForecasts } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   checkGroupOfQuestionsPostType,
@@ -10,9 +10,9 @@ import {
   sortGroupPredictionOptions,
 } from "@/utils/questions";
 
+import DateForecastCard from "./date_forecast_card";
 import NumericForecastCard from "./numeric_forecast_card";
 import PercentageForecastCard from "./percentage_forecast_card";
-import GroupContinuousTile from "../../post_card/group_of_questions_tile/group_continuous_tile";
 
 type Props = {
   post: PostWithForecasts;
@@ -38,11 +38,17 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
   if (checkGroupOfQuestionsPostType(post, QuestionType.Numeric)) {
     return <NumericForecastCard post={post} />;
   }
-  if (checkGroupOfQuestionsPostType(post, QuestionType.Date)) {
+  if (
+    post.group_of_questions &&
+    checkGroupOfQuestionsPostType(post, QuestionType.Date)
+  ) {
     // TODO: implement charts for date group
     return (
-      <GroupContinuousTile
-        post={post as GroupOfQuestionsPost<QuestionWithNumericForecasts>}
+      <DateForecastCard
+        postId={post.id}
+        questions={
+          post.group_of_questions.questions as QuestionWithNumericForecasts[]
+        }
       />
     );
   }
