@@ -1,12 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { PointProps } from "victory";
 
 import useAppTheme from "@/hooks/use_app_theme";
 
-const PredictionSymbol: React.FC<PointProps & { chartWidth: number }> = (
-  props
-) => {
+const MINIMUM_DISTANCE = 5;
+const PredictionSymbol: React.FC<PointProps> = (props) => {
   const { getThemeColor } = useAppTheme();
-  const { x, y, datum, size, style, scale, chartWidth } = props;
+  const { x, y, datum, size, scale, data } = props;
   if (
     typeof x !== "number" ||
     typeof y !== "number" ||
@@ -14,16 +14,28 @@ const PredictionSymbol: React.FC<PointProps & { chartWidth: number }> = (
   ) {
     return null;
   }
-  const stroke = style.stroke;
-  const adjustedY = chartWidth < 400 ? y - 10 : y;
+  // adjust the y position if CP is overlapping with other symbols
+  const scaledX = scale.x(datum.x);
+  const symbolIndex = data.findIndex((item: any) => item.label === datum.label);
+  let numberOfOverlaps = 0;
+  data.forEach((item: any, index: number) => {
+    if (index <= symbolIndex) {
+      return;
+    }
+    const scaledItemX = scale.x(item.x);
+    const distance = Math.abs(scaledX - scaledItemX);
+    if (distance < MINIMUM_DISTANCE) {
+      numberOfOverlaps++;
+    }
+  });
 
+  const adjustedY = y - 17 * numberOfOverlaps;
   return (
     <g>
       <circle
         cx={x}
         cy={adjustedY}
         r={size}
-        stroke={stroke}
         fill={getThemeColor(datum.color)}
         strokeWidth={2}
       />
