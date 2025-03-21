@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -40,6 +39,7 @@ from users.services.spam_detection import (
     check_new_comment_for_spam,
     send_deactivation_email,
 )
+from utils.paginator import LimitOffsetPagination
 
 
 class RootCommentsPagination(LimitOffsetPagination):
