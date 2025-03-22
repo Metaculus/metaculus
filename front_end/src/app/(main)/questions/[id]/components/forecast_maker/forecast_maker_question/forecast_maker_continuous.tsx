@@ -332,17 +332,7 @@ const ForecastMakerContinuous: FC<Props> = ({
 
           {forecastInputMode === ContinuousForecastInputType.Slider &&
             (isDirty ? (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={
-                  !isDirty &&
-                  !Object.values(quantileDistributionComponents ?? []).some(
-                    (value) => value?.isDirty === true
-                  )
-                }
-                onClick={handleDiscard}
-              >
+              <Button variant="secondary" type="submit" onClick={handleDiscard}>
                 {t("discard")}
               </Button>
             ) : (
@@ -361,17 +351,7 @@ const ForecastMakerContinuous: FC<Props> = ({
             (Object.values(quantileDistributionComponents ?? []).some(
               (value) => value?.isDirty === true
             ) ? (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={
-                  !isDirty &&
-                  !Object.values(quantileDistributionComponents ?? []).some(
-                    (value) => value?.isDirty === true
-                  )
-                }
-                onClick={handleDiscard}
-              >
+              <Button variant="secondary" type="submit" onClick={handleDiscard}>
                 {t("discard")}
               </Button>
             ) : (
