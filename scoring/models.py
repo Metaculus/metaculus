@@ -228,9 +228,6 @@ class Leaderboard(TimeStampedModel):
         """,
     )
 
-    # Feature Flag: leaderboard simplified view
-    simplified_view = models.BooleanField(default=False)
-
     def __str__(self):
         if self.name:
             return f"Leaderboard {self.name}"

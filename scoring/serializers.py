@@ -46,9 +46,7 @@ class LeaderboardSerializer(serializers.Serializer):
     start_time = serializers.DateTimeField()
     end_time = serializers.DateTimeField()
     finalize_time = serializers.DateTimeField()
-    simplified_view = (
-        serializers.BooleanField()
-    )  # Feature Flag: leaderboard simplified view
+    prize_pool = serializers.SerializerMethodField()
 
     class Meta:
         model = Leaderboard
@@ -62,8 +60,14 @@ class LeaderboardSerializer(serializers.Serializer):
             "start_time",
             "end_time",
             "finalize_time",
-            "simplified_view",
+            "prize_pool",
         ]
+
+    def get_prize_pool(self, obj: Leaderboard):
+        if obj.prize_pool is not None:
+            return obj.prize_pool
+        if obj.project:
+            return obj.project.prize_pool
 
 
 class ContributionSerializer(serializers.Serializer):
