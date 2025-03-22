@@ -344,15 +344,15 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                 >
                   {copyForecastButton?.label ?? "Copy from Child"}
                 </Button>
-                <Button
-                  variant="secondary"
-                  type="reset"
-                  onClick={resetForecasts}
-                  disabled={!isPickerDirty}
-                >
-                  {t("discardChangesButton")}
-                </Button>
-                {(!!prevYesForecastValue || !!prevNoForecastValue) && (
+                {!!isPickerDirty ? (
+                  <Button
+                    variant="secondary"
+                    type="reset"
+                    onClick={resetForecasts}
+                  >
+                    {t("discardChangesButton")}
+                  </Button>
+                ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
                   <Button
                     variant="secondary"
                     type="submit"
@@ -361,7 +361,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                   >
                     {t("withdraw")}
                   </Button>
-                )}
+                ) : null}
               </>
             )}
 

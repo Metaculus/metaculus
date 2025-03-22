@@ -319,23 +319,21 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                 {t("rescalePrediction")}
               </Button>
             </div>
-            <Button
-              variant="secondary"
-              type="reset"
-              onClick={resetForecasts}
-              disabled={!isDirty}
-            >
-              {t("discardChangesButton")}
-            </Button>
-            {activeUserForecast && (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={withdrawalIsPending}
-                onClick={withdraw}
-              >
-                {t("withdraw")}
+            {isDirty ? (
+              <Button variant="secondary" type="reset" onClick={resetForecasts}>
+                {t("discardChangesButton")}
               </Button>
+            ) : (
+              !!activeUserForecast && (
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )
             )}
             <PredictButton
               onSubmit={submit}
