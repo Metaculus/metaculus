@@ -330,42 +330,27 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
 
-          {forecastInputMode === ContinuousForecastInputType.Slider &&
-            (isDirty ? (
-              <Button variant="secondary" type="submit" onClick={handleDiscard}>
-                {t("discard")}
-              </Button>
-            ) : (
-              !!activeForecast && (
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
-                >
-                  {t("withdraw")}
-                </Button>
-              )
-            ))}
-          {forecastInputMode === ContinuousForecastInputType.Quantile &&
-            (Object.values(quantileDistributionComponents ?? []).some(
+          {(forecastInputMode === ContinuousForecastInputType.Slider &&
+            isDirty) ||
+          (forecastInputMode === ContinuousForecastInputType.Quantile &&
+            Object.values(quantileDistributionComponents ?? []).some(
               (value) => value?.isDirty === true
-            ) ? (
-              <Button variant="secondary" type="submit" onClick={handleDiscard}>
-                {t("discard")}
+            )) ? (
+            <Button variant="secondary" type="submit" onClick={handleDiscard}>
+              {t("discard")}
+            </Button>
+          ) : (
+            !!activeForecast && (
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={withdrawalIsPending}
+                onClick={withdraw}
+              >
+                {t("withdraw")}
               </Button>
-            ) : (
-              !!activeForecast && (
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
-                >
-                  {t("withdraw")}
-                </Button>
-              )
-            ))}
+            )
+          )}
 
           {forecastInputMode === ContinuousForecastInputType.Slider ? (
             <PredictButton

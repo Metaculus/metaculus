@@ -651,49 +651,32 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                     {t("addComponentButton")}
                   </Button>
                 )}
-              {activeOptionData?.forecastInputMode ===
+              {(activeOptionData?.forecastInputMode ===
                 ContinuousForecastInputType.Slider &&
-                (isPickerDirty ? (
-                  <Button
-                    variant="secondary"
-                    type="reset"
-                    onClick={handleResetForecasts}
-                  >
-                    {t("discardChangesButton")}
-                  </Button>
-                ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
-                  <Button
-                    variant="secondary"
-                    type="submit"
-                    disabled={withdrawalIsPending}
-                    onClick={withdraw}
-                  >
-                    {t("withdraw")}
-                  </Button>
-                ) : null)}
-              {activeOptionData?.forecastInputMode ===
+                isPickerDirty) ||
+              (activeOptionData?.forecastInputMode ===
                 ContinuousForecastInputType.Quantile &&
                 (activeOptionData?.isDirty ||
-                (activeOptionData?.quantileForecast ?? []).some(
-                  (value) => value?.isDirty === true
-                ) ? (
-                  <Button
-                    variant="secondary"
-                    type="reset"
-                    onClick={handleResetForecasts}
-                  >
-                    {t("discardChangesButton")}
-                  </Button>
-                ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
-                  <Button
-                    variant="secondary"
-                    type="submit"
-                    disabled={withdrawalIsPending}
-                    onClick={withdraw}
-                  >
-                    {t("withdraw")}
-                  </Button>
-                ) : null)}
+                  (activeOptionData?.quantileForecast ?? []).some(
+                    (value) => value?.isDirty === true
+                  ))) ? (
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={handleResetForecasts}
+                >
+                  {t("discardChangesButton")}
+                </Button>
+              ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              ) : null}
             </>
           )}
 
