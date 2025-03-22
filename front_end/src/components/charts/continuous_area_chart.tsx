@@ -5,6 +5,7 @@ import {
   Tuple,
   VictoryArea,
   VictoryAxis,
+  VictoryBar,
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
@@ -25,10 +26,15 @@ import {
   Line,
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
-import { QuestionType, Scaling } from "@/types/question";
+import {
+  DefaultInboundOutcomeCount,
+  QuestionType,
+  Scaling,
+} from "@/types/question";
 import {
   generateScale,
   getClosestYValue,
+  getClosestXValue,
   interpolateYValue,
 } from "@/utils/charts";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
@@ -70,6 +76,7 @@ type Props = {
   hideCP?: boolean;
   hideLabels?: boolean;
   unit?: string;
+  inboundOutcomeCount: number | null;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -85,7 +92,12 @@ const ContinuousAreaChart: FC<Props> = ({
   hideCP,
   hideLabels = false,
   unit,
+  inboundOutcomeCount,
 }) => {
+  // if the size of the dataset is not default, we display the chart as a bar graph
+  const smooth =
+    (inboundOutcomeCount ?? DefaultInboundOutcomeCount) ===
+    DefaultInboundOutcomeCount;
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
@@ -112,6 +124,7 @@ const ContinuousAreaChart: FC<Props> = ({
           cdf,
           graphType,
           type: datum.type,
+          smooth: smooth,
         })
       );
       if (componentCdfs) {
@@ -122,13 +135,14 @@ const ContinuousAreaChart: FC<Props> = ({
               cdf: componentCdf,
               graphType,
               type: "user_components",
+              smooth: smooth,
             })
           );
         }
       }
     }
     return chartData;
-  }, [data, graphType, hideCP]);
+  }, [data, graphType, hideCP, smooth]);
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
@@ -307,6 +321,7 @@ const ContinuousAreaChart: FC<Props> = ({
           chartHeight={height}
           paddingTop={paddingTop}
           paddingBottom={BOTTOM_PADDING}
+          smooth={smooth}
         />
       }
       onCursorChange={(props: { x: number } | null) => {
@@ -319,7 +334,13 @@ const ContinuousAreaChart: FC<Props> = ({
           (acc, el) => {
             if (el.graphType === "pmf") {
               // if graph is a pmf, we need to find the closest y value
-              acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
+              const closestYValue = getClosestYValue(props?.x, el.graphLine);
+              if (smooth) {
+                acc.yData[el.type] = closestYValue;
+              } else {
+                acc.x = getClosestXValue(props?.x, el.graphLine);
+                acc.yData[el.type] = closestYValue / (el.graphLine.length + 1);
+              }
               return acc;
             }
             // if graph is a cdf, we need to interpolate the y value
@@ -373,64 +394,99 @@ const ContinuousAreaChart: FC<Props> = ({
         >
           {charts
             .filter((chart) => chart.type !== "user_components")
-            .map((chart, index) => (
-              <VictoryArea
-                key={`area-${index}`}
-                data={chart.graphLine}
-                style={{
-                  data: {
-                    fill: (() => {
-                      switch (chart.color) {
-                        case "orange":
-                          return getThemeColor(
-                            METAC_COLORS.orange[
-                              chart.type === "user" ? "700" : "400"
-                            ]
-                          );
-                        case "green":
-                          return getThemeColor(METAC_COLORS.olive["500"]);
-                        case "gray":
-                          return getThemeColor(METAC_COLORS.gray["500"]);
-                        default:
-                          return undefined;
-                      }
-                    })(),
-                    opacity: chart.type === "user_previous" ? 0.1 : 0.3,
-                  },
-                }}
-              />
-            ))}
-          {charts.map((chart, index) => (
-            <VictoryLine
-              key={`line-${index}`}
-              data={chart.graphLine}
-              style={{
-                data: {
-                  stroke: (() => {
-                    switch (chart.color) {
-                      case "orange":
-                        return getThemeColor(
-                          METAC_COLORS.orange[
-                            chart.type === "user"
-                              ? "800"
-                              : chart.type === "user_components"
-                                ? "500"
-                                : "200"
-                          ]
-                        );
-                      case "green":
-                        return getThemeColor(METAC_COLORS.olive["500"]);
-                      case "gray":
-                        return getThemeColor(METAC_COLORS.gray["500"]);
-                      default:
-                        return undefined;
-                    }
-                  })(),
-                  strokeDasharray: chart.color === "orange" ? "2,2" : undefined,
-                },
-              }}
-            />
-          ))}
+            .map((chart, index) => {
+              if (smooth) {
+                return (
+                  <VictoryArea
+                    key={`area-${index}`}
+                    data={chart.graphLine}
+                    style={{
+                      data: {
+                        fill: (() => {
+                          switch (chart.color) {
+                            case "orange":
+                              return getThemeColor(
+                                METAC_COLORS.orange[
+                                  chart.type === "user" ? "700" : "400"
+                                ]
+                              );
+                            case "green":
+                              return getThemeColor(METAC_COLORS.olive["500"]);
+                            case "gray":
+                              return getThemeColor(METAC_COLORS.gray["500"]);
+                            default:
+                              return undefined;
+                          }
+                        })(),
+                        opacity: chart.type === "user_previous" ? 0.1 : 0.3,
+                      },
+                    }}
+                  />
+                );
+              }
+              return (
+                <VictoryBar
+                  key={`bar-${index}`}
+                  data={chart.graphLine}
+                  style={{
+                    data: {
+                      fill: (() => {
+                        switch (chart.color) {
+                          case "orange":
+                            return getThemeColor(
+                              METAC_COLORS.orange[
+                                chart.type === "user" ? "700" : "400"
+                              ]
+                            );
+                          case "green":
+                            return getThemeColor(METAC_COLORS.olive["500"]);
+                          case "gray":
+                            return getThemeColor(METAC_COLORS.gray["500"]);
+                          default:
+                            return undefined;
+                        }
+                      })(),
+                      opacity: chart.type === "user_previous" ? 0.1 : 0.3,
+                    },
+                  }}
+                  barWidth={(chartWidth - 30) / (chart.graphLine.length + 0.0)}
+                />
+              );
+            })}
+          {smooth
+            ? charts.map((chart, index) => (
+                <VictoryLine
+                  key={`line-${index}`}
+                  data={chart.graphLine}
+                  style={{
+                    data: {
+                      stroke: (() => {
+                        switch (chart.color) {
+                          case "orange":
+                            return getThemeColor(
+                              METAC_COLORS.orange[
+                                chart.type === "user"
+                                  ? "800"
+                                  : chart.type === "user_components"
+                                    ? "500"
+                                    : "200"
+                              ]
+                            );
+                          case "green":
+                            return getThemeColor(METAC_COLORS.olive["500"]);
+                          case "gray":
+                            return getThemeColor(METAC_COLORS.gray["500"]);
+                          default:
+                            return undefined;
+                        }
+                      })(),
+                      strokeDasharray:
+                        chart.color === "orange" ? "2,2" : undefined,
+                    },
+                  }}
+                />
+              ))
+            : null}
           {resolutionPoint && !isNil(resolutionPoint[0]) && (
             <VictoryScatter
               data={[
@@ -529,6 +585,7 @@ const ContinuousAreaChart: FC<Props> = ({
               yDomain={yDomain}
               paddingBottom={BOTTOM_PADDING}
               paddingTop={paddingTop}
+              smooth={smooth}
             />
           )}
         </VictoryChart>
@@ -550,8 +607,9 @@ function generateNumericAreaGraph(data: {
   cdf: number[];
   graphType: ContinuousAreaGraphType;
   type: ContinuousAreaType;
+  smooth: boolean;
 }): NumericPredictionGraph {
-  const { pmf, cdf, graphType, type } = data;
+  const { pmf, cdf, graphType, type, smooth } = data;
 
   const graph: Line = [];
   if (graphType === "cdf") {
@@ -561,11 +619,17 @@ function generateNumericAreaGraph(data: {
   } else {
     pmf.forEach((value, index) => {
       if (index === 0) {
+        if (!smooth) {
+          return;
+        }
         // add a point at the beginning to extend pmf to the edge
         graph.push({ x: -1e-10, y: pmf[1] ?? null });
         return;
       }
       if (index === pmf.length - 1) {
+        if (!smooth) {
+          return;
+        }
         // add a point at the end to extend pmf to the edge
         graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] ?? null });
         return;
@@ -588,16 +652,26 @@ function generateNumericAreaGraph(data: {
   const quantiles = computeQuartilesFromCDF(cdf);
   verticalLines.push(
     {
-      x: quantiles.lower25,
-      y: interpolateYValue(quantiles.lower25, graph),
+      x: smooth
+        ? quantiles.lower25
+        : getClosestXValue(quantiles.lower25, graph),
+      y: smooth
+        ? interpolateYValue(quantiles.lower25, graph)
+        : getClosestYValue(quantiles.lower25, graph),
     },
     {
-      x: quantiles.median,
-      y: interpolateYValue(quantiles.median, graph),
+      x: smooth ? quantiles.median : getClosestXValue(quantiles.median, graph),
+      y: smooth
+        ? interpolateYValue(quantiles.median, graph)
+        : getClosestYValue(quantiles.median, graph),
     },
     {
-      x: quantiles.upper75,
-      y: interpolateYValue(quantiles.upper75, graph),
+      x: smooth
+        ? quantiles.upper75
+        : getClosestXValue(quantiles.upper75, graph),
+      y: smooth
+        ? interpolateYValue(quantiles.upper75, graph)
+        : getClosestYValue(quantiles.upper75, graph),
     }
   );
 

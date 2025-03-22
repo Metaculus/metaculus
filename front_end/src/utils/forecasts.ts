@@ -19,6 +19,7 @@ import {
   Scaling,
   QuestionWithNumericForecasts,
   UserForecast,
+  DefaultInboundOutcomeCount,
 } from "@/types/question";
 import {
   cdfFromSliders,
@@ -89,7 +90,8 @@ export function extractPrevNumericForecastValue(
 export function getSliderNumericForecastDataset(
   components: DistributionSliderComponent[],
   lowerOpen: boolean,
-  upperOpen: boolean
+  upperOpen: boolean,
+  inboundOutcomeCount: number
 ) {
   const weights = components.map(({ weight }) => weight);
   const normalizedWeights = weights.map(
@@ -104,7 +106,8 @@ export function getSliderNumericForecastDataset(
           component.center,
           component.right,
           lowerOpen,
-          upperOpen
+          upperOpen,
+          inboundOutcomeCount
         ),
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         normalizedWeights[index]!
@@ -242,9 +245,10 @@ export function generateQuantileContinuousCdf({
   scaledQuantiles.sort((a, b) => a.value - b.value);
 
   const cdfEvalLocs: number[] = [];
-  // TODO: set up for arbitrary cdf size
-  for (let i = 0; i < 201; i++) {
-    cdfEvalLocs.push(i / 200);
+  const inBoundOutcomeCount =
+    question.inbound_outcome_count || DefaultInboundOutcomeCount;
+  for (let i = 0; i < inBoundOutcomeCount + 1; i++) {
+    cdfEvalLocs.push(i / inBoundOutcomeCount);
   }
 
   const hydratedQuantiles = hydrateQuantiles(scaledQuantiles, cdfEvalLocs);
@@ -284,11 +288,11 @@ export function generateQuantileContinuousCdf({
     }
   }
 
-  const cdf = [];
-  for (let i = 0; i < 201; i++) {
-    const cdfValue = getCdfAt(i / 200);
+  const cdf: number[] = [];
+  cdfEvalLocs.forEach((location) => {
+    const cdfValue = getCdfAt(location);
     !isNil(cdfValue) ? cdf.push(cdfValue) : undefined;
-  }
+  });
 
   return cdf;
 }

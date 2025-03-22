@@ -147,6 +147,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                       scaling={question.scaling}
                       questionType={question.type}
                       resolution={question.resolution}
+                      inboundOutcomeCount={question.inbound_outcome_count}
                     />
                   )}
                 </div>
