@@ -395,7 +395,7 @@ const ContinuousAreaChart: FC<Props> = ({
           {charts
             .filter((chart) => chart.type !== "user_components")
             .map((chart, index) => {
-              if (smooth) {
+              if (smooth || chart.graphType === "cdf") {
                 return (
                   <VictoryArea
                     key={`area-${index}`}

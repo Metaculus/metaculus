@@ -197,7 +197,7 @@ const createQuestionSchemas = (
       }),
       open_upper_bound: z.boolean().default(true),
       open_lower_bound: z.boolean().default(true),
-      default_outcome_count: z.number().default(DefaultInboundOutcomeCount),
+      inbound_outcome_count: z.number().default(DefaultInboundOutcomeCount),
     })
   );
 
