@@ -1,6 +1,10 @@
 import * as math from "mathjs";
 
-import { ExtendedQuartiles, Quartiles } from "@/types/question";
+import {
+  DefaultInboundOutcomeCount,
+  ExtendedQuartiles,
+  Quartiles,
+} from "@/types/question";
 
 export function almostEqual(a: number, b: number, eps = 1e-12) {
   return b == 0 ? a == 0 : Math.abs((a - b) / b) < eps;
@@ -83,10 +87,11 @@ export function cdfFromSliders(
   center: number,
   right: number,
   lowerOpen: boolean,
-  upperOpen: boolean
+  upperOpen: boolean,
+  inboundOutcomeCount: number = DefaultInboundOutcomeCount
 ) {
   const params = logisticDistributionParamsFromSliders(left, center, right);
-  const step = 1 / 200;
+  const step = 1 / inboundOutcomeCount;
   const xArr = Array.from(
     { length: Math.floor(1 / step) + 1 },
     (_, i) => i * step
