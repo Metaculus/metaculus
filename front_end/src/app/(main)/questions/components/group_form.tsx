@@ -75,7 +75,14 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
       .max(200, {
         message: t("errorMaxLength", { field: "String", maxLength: 200 }),
       }),
-    short_title: z.string().min(1, { message: t("errorRequired") }),
+    short_title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(80, {
+        message: t("errorMaxLength", { field: "String", maxLength: 80 }),
+      }),
     group_variable: z.string().max(200, {
       message: t("errorMaxLength", { field: "String", maxLength: 200 }),
     }),
