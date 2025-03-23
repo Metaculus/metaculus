@@ -207,16 +207,16 @@ const createQuestionSchemas = (
       unit: z.string().max(200, {
         message: t("errorMaxLength", { field: "String", maxLength: 20 }),
       }),
-      range_max: z.number().optional(),
-      range_min: z.number().optional(),
+      max: z.number().optional(),
+      min: z.number().optional(),
     })
   );
   const discreteQuestionSchema = numericQuestionSchema;
 
   const dateQuestionSchema = continuousQuestionSchema.merge(
     z.object({
-      range_max: z.date().optional(),
-      range_min: z.date().optional(),
+      max: z.date().optional(),
+      min: z.date().optional(),
     })
   );
 
@@ -513,10 +513,12 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
 
-        {(questionType === QuestionType.Date ||
-          questionType === QuestionType.Numeric) && (
+        {(questionType === QuestionType.Numeric ||
+          questionType === QuestionType.Date ||
+          questionType === QuestionType.Discrete) && (
           <NumericQuestionInput
             questionType={questionType}
+            // TODO: smart range_min / max for discrete
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}
             defaultZeroPoint={post?.question?.scaling.zero_point}
