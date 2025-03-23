@@ -5,6 +5,7 @@ import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useRouter } from "next/navigation";
 import React, { FC, PropsWithChildren, useState } from "react";
+import Link from "next/link";
 
 import BaseModal from "@/components/base_modal";
 import { CurrentUser } from "@/types/users";
@@ -19,7 +20,7 @@ import {
 } from "./registration-forms";
 import { CAMPAIGN_KEY } from "../constants";
 
-const HeadingText: FC<{ heading: string; subheading: string }> = ({
+const HeadingText: FC<{ heading: string; subheading: React.ReactNode }> = ({
   heading,
   subheading,
 }) => {
@@ -40,13 +41,19 @@ const NotLoggedInFragmentBeforeRegister: FC<{
 }> = ({ onSignupClicked }) => (
   <>
     <HeadingText
-      heading={"Join the Tournament"}
-      subheading={`Log in if you already have a Metaculus account. If you’re new, you can
-    create an account and register for the contest in one step.`}
-    />
-    <ChoicesButtons
-      className="flex flex-col items-center gap-3"
-      onSignupClicked={onSignupClicked}
+      heading={"Registrations are closed"}
+      subheading={
+        <>
+          Check out the{" "}
+          <Link
+            href="/tournament/bridgewater/"
+            className="underline hover:text-blue-600"
+          >
+            tournament page
+          </Link>{" "}
+          to see the tournament questions.
+        </>
+      }
     />
   </>
 );
@@ -57,20 +64,20 @@ const LoggedInNotRegisteredFragment: FC<{
 }> = ({ currentUser, onRegisterClicked }) => (
   <>
     <HeadingText
-      heading={"Join the Contest"}
-      subheading={"Complete your registration to join the contest"}
+      heading={"Registrations are closed"}
+      subheading={
+        <>
+          Check out the{" "}
+          <Link
+            href="/tournament/bridgewater/"
+            className="underline hover:text-blue-600"
+          >
+            tournament page
+          </Link>{" "}
+          to see the tournament questions.
+        </>
+      }
     />
-
-    <p className="my-0 text-xs font-normal text-blue-400 dark:text-blue-400-dark dark:text-gray-0-dark">
-      logged in as{" "}
-      <span className="font-bold text-gray-100 dark:text-gray-100-dark">
-        {formatUsername(currentUser)}
-      </span>
-    </p>
-
-    <BWRegisterButton onClick={onRegisterClicked}>
-      Register for the Contest
-    </BWRegisterButton>
   </>
 );
 
@@ -107,9 +114,9 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
   return (
     <>
       <HeadingText
-        heading={"You’re all set!"}
+        heading={"You're all set!"}
         subheading={
-          "Your registration is confirmed. Here’s your leaderboard eligibility:"
+          "Your registration is confirmed. Here's your leaderboard eligibility:"
         }
       />
 
@@ -150,9 +157,9 @@ const SignupCompleteFragment: FC<{ email: string }> = ({ email }) => (
       Check your inbox!
     </h2>
     <p className="mb-0 mt-5 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:text-lg ">
-      To complete your registration, confirm your email address. We’ve sent a
+      To complete your registration, confirm your email address. We've sent a
       confirmation link to your inbox <span className="italic">({email})</span>.
-      Once confirmed, you’ll be ready to join the competition.
+      Once confirmed, you'll be ready to join the competition.
     </p>
   </div>
 );
