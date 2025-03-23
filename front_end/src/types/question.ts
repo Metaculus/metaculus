@@ -234,7 +234,11 @@ export type Question = {
 };
 
 export type QuestionWithNumericForecasts = Question & {
-  type: QuestionType.Numeric | QuestionType.Date | QuestionType.Binary;
+  type:
+    | QuestionType.Binary
+    | QuestionType.Numeric
+    | QuestionType.Date
+    | QuestionType.Discrete;
   forecasts: NumericForecast;
   open_lower_bound?: boolean;
   open_upper_bound?: boolean;
