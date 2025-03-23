@@ -167,6 +167,7 @@ const QuestionNumericTile: FC<Props> = ({
             resolution={question.resolution}
             hideCP={hideCP}
             unit={question.unit}
+            inboundOutcomeCount={question.inbound_outcome_count}
           />
         )}
 

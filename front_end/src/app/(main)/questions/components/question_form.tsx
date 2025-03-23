@@ -31,7 +31,7 @@ import {
   TournamentPreview,
   TournamentType,
 } from "@/types/projects";
-import { QuestionType } from "@/types/question";
+import { DefaultInboundOutcomeCount, QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions";
@@ -198,6 +198,7 @@ const createQuestionSchemas = (
       }),
       open_upper_bound: z.boolean().default(true),
       open_lower_bound: z.boolean().default(true),
+      inbound_outcome_count: z.number().default(DefaultInboundOutcomeCount),
     })
   );
 
@@ -510,17 +511,19 @@ const QuestionForm: FC<Props> = ({
             questionType={questionType}
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}
+            defaultZeroPoint={post?.question?.scaling.zero_point}
             defaultOpenLowerBound={post?.question?.open_lower_bound}
             defaultOpenUpperBound={post?.question?.open_upper_bound}
-            defaultZeroPoint={post?.question?.scaling.zero_point}
+            defaultInboundOutcomeCount={post?.question?.inbound_outcome_count}
             hasForecasts={hasForecasts && mode !== "create"}
             control={form}
             onChange={({
-              min: rangeMin,
-              max: rangeMax,
+              range_min: rangeMin,
+              range_max: rangeMax,
+              zero_point: zeroPoint,
               open_upper_bound: openUpperBound,
               open_lower_bound: openLowerBound,
-              zero_point: zeroPoint,
+              inbound_outcome_count: inboundOutcomeCount,
             }) => {
               form.setValue("scaling", {
                 range_min: rangeMin,
@@ -529,6 +532,7 @@ const QuestionForm: FC<Props> = ({
               });
               form.setValue("open_lower_bound", openLowerBound);
               form.setValue("open_upper_bound", openUpperBound);
+              form.setValue("inbound_outcome_count", inboundOutcomeCount);
             }}
           />
         )}

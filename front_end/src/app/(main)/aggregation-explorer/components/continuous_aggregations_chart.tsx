@@ -107,6 +107,7 @@ const ContinuousAggregationChart: FC<Props> = ({
         data={data}
         onCursorChange={handleCursorChange}
         resolution={null}
+        inboundOutcomeCount={questionData.inbound_outcome_count}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (

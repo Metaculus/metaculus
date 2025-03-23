@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from posts.models import Post
     from scoring.models import Score, ArchivedScore
 
-CDF_SIZE = 201
+DEFAULT_INBOUND_OUTCOME_COUNT = 200
 
 
 class QuestionQuerySet(QuerySet):
@@ -132,11 +132,42 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     )
 
     # continuous range fields
-    range_max = models.FloatField(null=True, blank=True)
-    range_min = models.FloatField(null=True, blank=True)
-    zero_point = models.FloatField(null=True, blank=True)
-    open_upper_bound = models.BooleanField(null=True, blank=True)
-    open_lower_bound = models.BooleanField(null=True, blank=True)
+    range_min = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        Minimum inbound value.""",
+    )
+    range_max = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        Maximum inbound value.""",
+    )
+    zero_point = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        If logaritmically scaled, the value of the zero point.""",
+    )
+    open_upper_bound = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        If there can be a resolution above the range_max.""",
+    )
+    open_lower_bound = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        If there can be a resolution below the range_min.""",
+    )
+    inbound_outcome_count = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        Number of possible outcomes NOT including out of bounds values.""",
+    )
 
     # list of multiple choice option labels
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
@@ -326,7 +357,7 @@ class Forecast(models.Model):
     continuous_cdf = ArrayField(
         models.FloatField(),
         null=True,
-        size=CDF_SIZE,
+        max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1,
     )
     # binary prediction
     probability_yes = models.FloatField(null=True)
@@ -413,7 +444,9 @@ class AggregateForecast(models.Model):
     method = models.CharField(max_length=200, choices=AggregationMethod.choices)
     start_time = models.DateTimeField(db_index=True)
     end_time = models.DateTimeField(null=True, db_index=True)
-    forecast_values = ArrayField(models.FloatField(), max_length=CDF_SIZE)
+    forecast_values = ArrayField(
+        models.FloatField(), max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1
+    )
     forecaster_count = models.IntegerField(null=True)
     interval_lower_bounds = ArrayField(models.FloatField(), null=True)
     centers = ArrayField(models.FloatField(), null=True)
@@ -440,11 +473,11 @@ class AggregateForecast(models.Model):
         )
 
     def get_cdf(self) -> list[float] | None:
-        if len(self.forecast_values) == CDF_SIZE:
+        if len(self.forecast_values) == DEFAULT_INBOUND_OUTCOME_COUNT + 1:
             return self.forecast_values
 
     def get_pmf(self) -> list[float]:
-        if len(self.forecast_values) == CDF_SIZE:
+        if len(self.forecast_values) == DEFAULT_INBOUND_OUTCOME_COUNT + 1:
             cdf = self.forecast_values
             pmf = [cdf[0]]
             for i in range(1, len(cdf)):

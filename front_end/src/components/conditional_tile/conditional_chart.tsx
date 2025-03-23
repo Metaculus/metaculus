@@ -200,6 +200,7 @@ const ConditionalChart: FC<Props> = ({
               questionType={question.type}
               resolution={question.resolution}
               hideCP={hideCP}
+              inboundOutcomeCount={question.inbound_outcome_count}
             />
           </div>
           {resolved && (
