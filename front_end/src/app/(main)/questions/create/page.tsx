@@ -112,6 +112,13 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
             questionExample={`"${t("binaryQuestionExample")}"`}
           />
           <QuestionTypePicker
+            url={createHref("/questions/create/question", {
+              type: "multiple_choice",
+            })}
+            questionType={t("multipleChoice")}
+            questionExample={`"${t("multipleChoiceExample")}"`}
+          />
+          <QuestionTypePicker
             url={createHref("/questions/create/question", { type: "numeric" })}
             questionType={t("numericRange")}
             questionExample={`"${t("numericRangeExample")}"`}
@@ -122,11 +129,9 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
             questionExample={`"${t("dateRangeExample")}"`}
           />
           <QuestionTypePicker
-            url={createHref("/questions/create/question", {
-              type: "multiple_choice",
-            })}
-            questionType={t("multipleChoice")}
-            questionExample={`"${t("multipleChoiceExample")}"`}
+            url={createHref("/questions/create/question", { type: "discrete" })}
+            questionType={t("discrete")}
+            questionExample={`"${t("discreteExample")}"`}
           />
         </div>
 
@@ -146,6 +151,11 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
             url={createHref("/questions/create/group", { subtype: "date" })}
             questionType={t("dateGroup")}
             questionExample={`"${t("dateGroupExample")}"`}
+          />
+          <QuestionTypePicker
+            url={createHref("/questions/create/group", { subtype: "discrete" })}
+            questionType={t("discreteGroup")}
+            questionExample={`"${t("discreteGroupExample")}"`}
           />
           <QuestionTypePicker
             url={createHref("/questions/create/conditional")}
