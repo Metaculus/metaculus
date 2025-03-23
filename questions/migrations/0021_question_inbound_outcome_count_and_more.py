@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
             name="range_max",
             field=models.FloatField(
                 blank=True,
-                help_text="For Continuous only.\n        Maximum inbound value. For Discrete, this is 1/2 a unit's width below the\n        displayed upper bound.",
+                help_text="For Continuous only.\n        Maximum inbound value. For Discrete, this is 1/2 a unit's width above the\n        displayed upper bound.",
                 null=True,
             ),
         ),

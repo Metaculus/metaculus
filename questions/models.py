@@ -144,7 +144,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="""For Continuous only.
-        Maximum inbound value. For Discrete, this is 1/2 a unit's width below the
+        Maximum inbound value. For Discrete, this is 1/2 a unit's width above the
         displayed upper bound.""",
     )
     zero_point = models.FloatField(
