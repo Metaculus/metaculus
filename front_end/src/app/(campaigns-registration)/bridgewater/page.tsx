@@ -19,8 +19,8 @@ export const metadata = {
 const buttonLinks = [
   {
     icon: faTrophy,
-    text: "Tournament Page",
-    url: "/tournament/bridgewater/",
+    text: "Leaderboards",
+    url: "/bridgewater/leaderboards/",
   },
   {
     icon: faQuestionCircle,
@@ -71,7 +71,6 @@ const UtilLinks: FC<{ className?: string }> = ({ className }) => {
       {" "}
       {buttonLinks.map((button) => (
         <a
-          target="_blank"
           key={button.text}
           href={button.url}
           className="flex grow flex-col items-center justify-between gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 lg:p-5  xl:items-start min-[1920px]:gap-6"
@@ -108,14 +107,6 @@ export default async function Page() {
           </div>
 
           <div className="min-h-[147px] w-full shrink-0 rounded bg-[url('https://metaculus-media.s3.amazonaws.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp')] bg-cover bg-center lg:min-h-[178px] xl:min-h-[244px] min-[1920px]:min-h-[344px]"></div>
-
-          <div className="flex flex w-full flex-col items-center items-center justify-center justify-center gap-2 text-balance rounded-md bg-purple-200 p-3 text-center text-base text-purple-800 dark:bg-purple-200-dark dark:text-purple-800-dark md:flex-row md:gap-4 md:p-6 md:text-xl">
-            <FontAwesomeIcon
-              icon={faTrophy}
-              className="text-lg md:text-lg min-[1920px]:text-xl"
-            />{" "}
-            Last day to register is March 24!
-          </div>
           <div className="flex w-full grow flex-wrap gap-3 xl:flex-nowrap">
             <DescriptionParagraphs className="w-full" />
 
