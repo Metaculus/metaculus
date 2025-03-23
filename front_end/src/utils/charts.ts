@@ -1047,12 +1047,12 @@ export function generateChoiceItemsFromGroupQuestions(
         );
       });
       if (question.type === QuestionType.Binary) {
-        userValues.push(userForecast?.forecast_values[1] || null);
+        userValues.push(userForecast?.forecast_values[1] ?? null);
       } else {
         // continuous
-        userValues.push(userForecast?.centers?.[0] || null);
-        userMinValues.push(userForecast?.interval_lower_bounds?.[0] || null);
-        userMaxValues.push(userForecast?.interval_upper_bounds?.[0] || null);
+        userValues.push(userForecast?.centers?.[0] ?? null);
+        userMinValues.push(userForecast?.interval_lower_bounds?.[0] ?? null);
+        userMaxValues.push(userForecast?.interval_upper_bounds?.[0] ?? null);
       }
     });
     sortedAggregationTimestamps.forEach((timestamp) => {
@@ -1062,15 +1062,15 @@ export function generateChoiceItemsFromGroupQuestions(
           (forecast.end_time === null || forecast.end_time >= timestamp)
         );
       });
-      aggregationValues.push(aggregationForecast?.centers?.[0] || null);
+      aggregationValues.push(aggregationForecast?.centers?.[0] ?? null);
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds?.[0] || null
+        aggregationForecast?.interval_lower_bounds?.[0] ?? null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds?.[0] || null
+        aggregationForecast?.interval_upper_bounds?.[0] ?? null
       );
       aggregationForecasterCounts.push(
-        aggregationForecast?.forecaster_count || 0
+        aggregationForecast?.forecaster_count ?? 0
       );
     });
 
