@@ -32,7 +32,10 @@ const NotLoggedInFragmentBeforeRegister: FC = () => (
       subheading={
         <>
           Check out the{" "}
-          <Link href="/tournament/bridgewater/" className="underline hover:text-blue-600">
+          <Link
+            href="/tournament/bridgewater/"
+            className="underline hover:text-blue-600"
+          >
             tournament page
           </Link>{" "}
           to see the tournament questions.
@@ -51,7 +54,10 @@ const LoggedInNotRegisteredFragment: FC<{
       subheading={
         <>
           Check out the{" "}
-          <Link href="/tournament/bridgewater/" className="underline hover:text-blue-600">
+          <Link
+            href="/tournament/bridgewater/"
+            className="underline hover:text-blue-600"
+          >
             tournament page
           </Link>{" "}
           to see the tournament questions.
