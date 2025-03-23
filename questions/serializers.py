@@ -287,7 +287,11 @@ class ForecastSerializer(serializers.ModelSerializer):
 
     def get_quartiles(self, forecast: Forecast):
         question = forecast.question
-        if question.type in [Question.QuestionType.DATE, Question.QuestionType.NUMERIC]:
+        if question.type in [
+            Question.QuestionType.DATE,
+            Question.QuestionType.NUMERIC,
+            Question.QuestionType.DISCRETE,
+        ]:
             return get_scaled_quartiles_from_cdf(forecast.continuous_cdf, question)
 
     def get_scaling(self, forecast: Forecast):
@@ -856,7 +860,7 @@ def validate_question_resolution(question: Question, resolution: str) -> str:
             )
         return resolution
 
-    if question.type == Question.QuestionType.NUMERIC:
+    if question.type in [Question.QuestionType.NUMERIC, Question.QuestionType.DISCRETE]:
         resolution = serializers.FloatField().run_validation(resolution)
         range_min = question.range_min
         range_max = question.range_max

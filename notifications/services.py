@@ -145,7 +145,7 @@ class CPChangeData:
         if self.question.type in ("multiple_choice", "binary"):
             return f"{round(value * 100, 2)}%"
 
-        if self.question.type == "date":
+        if self.question.type == Question.QuestionType.DATE:
             if change:
                 # value is a timedelta in seconds
                 difference = timedelta(seconds=value)
@@ -172,7 +172,10 @@ class CPChangeData:
                 "%Y-%m-%d"
             )
 
-        if self.question.type == "numeric":
+        if self.question.type in [
+            Question.QuestionType.NUMERIC,
+            Question.QuestionType.DISCRETE,
+        ]:
             return format_value_unit(abbreviated_number(value), self.question.unit)
 
         return value
@@ -400,7 +403,7 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
             serialized_notifications.append(
                 {
                     **params,
-                    "comments": preview_comments[:cls.comments_to_display],
+                    "comments": preview_comments[: cls.comments_to_display],
                     "comments_count": comments_count,
                     "read_more_count": read_more_count if read_more_count > 0 else 0,
                 }

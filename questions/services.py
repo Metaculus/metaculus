@@ -125,7 +125,11 @@ def build_question_forecasts_for_user(
             forecasts_data["medians"].append(0)
         elif question.type == "binary":
             forecasts_data["medians"].append(forecast.probability_yes)
-        elif question.type in ["numeric", "date"]:
+        elif question.type in [
+            Question.QuestionType.NUMERIC,
+            Question.QuestionType.DATE,
+            Question.QuestionType.DISCRETE,
+        ]:
             forecasts_data["medians"].append(
                 percent_point_function(forecast.continuous_cdf, 50)
             )
@@ -662,7 +666,14 @@ def create_forecast(
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
         distribution_input=(
-            distribution_input if question.type in ["date", "numeric"] else None
+            distribution_input
+            if question.type
+            in [
+                Question.QuestionType.NUMERIC,
+                Question.QuestionType.DATE,
+                Question.QuestionType.DISCRETE,
+            ]
+            else None
         ),
         post=post,
         **kwargs,
@@ -835,7 +846,11 @@ def get_aggregated_forecasts_for_questions(
                 return 0
             if q.type == "binary":
                 return agg.forecast_values[1]
-            if q.type in ("numeric", "date"):
+            if q.type in [
+                Question.QuestionType.NUMERIC,
+                Question.QuestionType.DATE,
+                Question.QuestionType.DISCRETE,
+            ]:
                 return unscaled_location_to_scaled_location(agg.centers[0], q)
             if q.type == "multiple_choice":
                 return max(agg.forecast_values)

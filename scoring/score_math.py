@@ -198,7 +198,11 @@ def evaluate_forecasts_peer_accuracy(
                     * (gm.num_forecasters / (gm.num_forecasters - 1))
                     * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
                 )
-                if question_type in ["numeric", "date"]:
+                if question_type in [
+                    Question.QuestionType.NUMERIC,
+                    Question.QuestionType.DATE,
+                    Question.QuestionType.DISCRETE,
+                ]:
                     score /= 2
                 interval_scores.append(score)
             else:
@@ -256,7 +260,11 @@ def evaluate_forecasts_peer_spot_forecast(
                 * (gm.num_forecasters / (gm.num_forecasters - 1))
                 * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
             )
-            if question_type in ["numeric", "date"]:
+            if question_type in [
+                Question.QuestionType.NUMERIC,
+                Question.QuestionType.DATE,
+                Question.QuestionType.DISCRETE,
+            ]:
                 forecast_score /= 2
             forecast_scores.append(ForecastScore(forecast_score, 1.0))
         else:

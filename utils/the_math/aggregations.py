@@ -122,7 +122,12 @@ def calculate_aggregation_entry(
 ) -> AggregateForecast:
     weights = np.array(weights) if weights is not None else None
     if (
-        question_type in ["date", "numeric"]
+        question_type
+        in [
+            Question.QuestionType.NUMERIC,
+            Question.QuestionType.DATE,
+            Question.QuestionType.DISCRETE,
+        ]
         or method == AggregationMethod.SINGLE_AGGREGATION
     ):
         aggregation = AggregateForecast(
