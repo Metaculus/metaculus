@@ -192,7 +192,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
         now = timezone.now()
 
-        if not self.open_time or self.open_time > now:
+        if not self.scheduled_close_time or not self.open_time or self.open_time > now:
             return QuestionStatus.UPCOMING
 
         if self.resolution or (
