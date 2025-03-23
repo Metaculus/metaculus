@@ -2,11 +2,14 @@ import { QuestionStatus, Resolution } from "@/types/post";
 
 import { ContinuousForecastInputType } from "./charts";
 
+export const DefaultInboundOutcomeCount = 200;
+
 export enum QuestionType {
-  Numeric = "numeric",
-  Date = "date",
   Binary = "binary",
   MultipleChoice = "multiple_choice",
+  Numeric = "numeric",
+  Date = "date",
+  Discrete = "discrete",
 }
 
 export type QuestionLinearGraphType = "binary" | "continuous";
@@ -206,19 +209,13 @@ export type Question = {
   options?: string[];
   group_variable?: string;
   group_rank?: number;
-  // Other
+  // Continuous only
   scaling: Scaling;
-  possibilities: {
-    format?: string;
-    high?: string;
-    low?: string;
-    type?: string;
-    scale?: {
-      max: number;
-      min: number;
-      deriv_ratio: number;
-    };
-  }; // TODO: update type
+  open_lower_bound: boolean | null;
+  open_upper_bound: boolean | null;
+  // Discrete only
+  inbound_outcome_count: number | null;
+  // Other
   resolution: Resolution | null;
   include_bots_in_aggregates: boolean;
   question_weight: number;
@@ -232,8 +229,6 @@ export type Question = {
   display_divergences?: number[][];
   aggregations: Aggregations;
   my_forecasts?: UserForecastHistory;
-  open_lower_bound: boolean | null;
-  open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
 };
@@ -275,26 +270,16 @@ export type AggregationQuestion = {
   fine_print: string;
   id: number;
   label: string | null;
+  scaling: Scaling;
   open_lower_bound: boolean | null;
-  open_time: string;
   open_upper_bound: boolean | null;
+  inbound_outcome_count: number | null;
+  open_time: string;
   options: string[] | null;
-  possibilities: {
-    format?: string;
-    high?: string;
-    low?: string;
-    type?: string;
-    scale?: {
-      max: number;
-      min: number;
-      deriv_ratio: number;
-    };
-  };
   post_id: number;
   resolution: string | null;
   resolution_criteria: string;
   resolution_set_time: string | null;
-  scaling: Scaling;
   scheduled_close_time: string;
   scheduled_resolve_time: string;
   title: string;
