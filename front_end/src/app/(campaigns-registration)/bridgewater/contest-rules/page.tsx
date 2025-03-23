@@ -14,13 +14,12 @@ export default function ContestRules() {
     <>
       <GlobalHeader />
       <div className="mx-auto mt-12 flex w-full justify-center pb-0 pt-10">
-        {" "}
         <Button
           variant="secondary"
           className="cursor-pointer"
-          href={`/bridgewater`}
+          href="/tournament/bridgewater/"
         >
-          Register for the Tournament
+          View Tournament Page
         </Button>
       </div>
 

@@ -3,22 +3,11 @@
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useRouter } from "next/navigation";
-import React, { FC, PropsWithChildren, useState } from "react";
+import React, { FC, PropsWithChildren } from "react";
 import Link from "next/link";
 
-import BaseModal from "@/components/base_modal";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/cn";
-import { formatUsername } from "@/utils/users";
-
-import { BWRegisterButton, ChoicesButtons } from "./hero-section";
-import { fbPixelTrackEvent, lnkdTrack } from "./pixel-apis";
-import {
-  RegistrationAndSignupForm,
-  RegistrationForm,
-} from "./registration-forms";
-import { CAMPAIGN_KEY } from "../constants";
 
 const HeadingText: FC<{ heading: string; subheading: React.ReactNode }> = ({
   heading,
@@ -36,19 +25,14 @@ const HeadingText: FC<{ heading: string; subheading: React.ReactNode }> = ({
   );
 };
 
-const NotLoggedInFragmentBeforeRegister: FC<{
-  onSignupClicked: () => void;
-}> = ({ onSignupClicked }) => (
+const NotLoggedInFragmentBeforeRegister: FC = () => (
   <>
     <HeadingText
       heading={"Registrations are closed"}
       subheading={
         <>
           Check out the{" "}
-          <Link
-            href="/tournament/bridgewater/"
-            className="underline hover:text-blue-600"
-          >
+          <Link href="/tournament/bridgewater/" className="underline hover:text-blue-600">
             tournament page
           </Link>{" "}
           to see the tournament questions.
@@ -60,18 +44,14 @@ const NotLoggedInFragmentBeforeRegister: FC<{
 
 const LoggedInNotRegisteredFragment: FC<{
   currentUser: CurrentUser;
-  onRegisterClicked: () => void;
-}> = ({ currentUser, onRegisterClicked }) => (
+}> = ({ currentUser }) => (
   <>
     <HeadingText
       heading={"Registrations are closed"}
       subheading={
         <>
           Check out the{" "}
-          <Link
-            href="/tournament/bridgewater/"
-            className="underline hover:text-blue-600"
-          >
+          <Link href="/tournament/bridgewater/" className="underline hover:text-blue-600">
             tournament page
           </Link>{" "}
           to see the tournament questions.
@@ -151,19 +131,6 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
   );
 };
 
-const SignupCompleteFragment: FC<{ email: string }> = ({ email }) => (
-  <div>
-    <h2 className="my-0 text-base text-gray-0 dark:text-gray-0-dark xs:text-lg sm:text-lg md:text-2xl  xl:text-3xl">
-      Check your inbox!
-    </h2>
-    <p className="mb-0 mt-5 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:text-lg ">
-      To complete your registration, confirm your email address. We've sent a
-      confirmation link to your inbox <span className="italic">({email})</span>.
-      Once confirmed, you'll be ready to join the competition.
-    </p>
-  </div>
-);
-
 interface RegisterAndStatusProps {
   className?: string;
   currentUser: CurrentUser | null;
@@ -173,15 +140,8 @@ export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
   className,
   currentUser,
 }) => {
-  const [registerDialogVisible, setRegisterDialogVisible] = useState(false);
-  const [signupDialogVisible, setSignupDialogVisible] = useState(false);
-
-  const router = useRouter();
-  const [signupCompleteEmail, setSignupCompleteEmail] = useState<string | null>(
-    null
-  );
   const campaigns = currentUser?.registered_campaigns.filter(
-    ({ key }) => key == CAMPAIGN_KEY
+    ({ key }) => key == "bridgewater"
   );
 
   const registered = campaigns && campaigns.length > 0;
@@ -189,78 +149,24 @@ export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
     registered && (campaigns[0]?.details as { undergrad: boolean });
 
   return (
-    <>
-      <div
-        id="registration"
-        className={cn(
-          "flex flex-col items-center justify-center gap-5 rounded bg-blue-700 px-6 py-7 pb-8 text-center font-medium dark:bg-blue-700-dark md:px-8 md:py-10 md:pb-12",
-          className
-        )}
-      >
-        {!currentUser && !signupCompleteEmail && (
-          <NotLoggedInFragmentBeforeRegister
-            onSignupClicked={() => {
-              setSignupDialogVisible(true);
-            }}
-          />
-        )}
+    <div
+      id="registration"
+      className={cn(
+        "flex flex-col items-center justify-center gap-5 rounded bg-blue-700 px-6 py-7 pb-8 text-center font-medium dark:bg-blue-700-dark md:px-8 md:py-10 md:pb-12",
+        className
+      )}
+    >
+      {!currentUser && <NotLoggedInFragmentBeforeRegister />}
 
-        {!currentUser && signupCompleteEmail && (
-          <SignupCompleteFragment email={signupCompleteEmail} />
-        )}
+      {currentUser && !registered && (
+        <LoggedInNotRegisteredFragment currentUser={currentUser} />
+      )}
 
-        {currentUser && !registered && (
-          <LoggedInNotRegisteredFragment
-            currentUser={currentUser}
-            onRegisterClicked={() => {
-              setRegisterDialogVisible(true);
-            }}
-          />
-        )}
-
-        {registered && (
-          <LoggedInAndRegisteredFragment
-            eligibleBoth={campaignDetails ? campaignDetails.undergrad : false}
-          />
-        )}
-      </div>
-      <BaseModal
-        isOpen={signupDialogVisible}
-        onClose={() => {
-          setSignupDialogVisible(false);
-        }}
-      >
-        <div className="max-w-[596px]">
-          <RegistrationAndSignupForm
-            onSuccess={(email) => {
-              setSignupCompleteEmail(email);
-              fbPixelTrackEvent("CompleteRegistration");
-              lnkdTrack();
-              setSignupDialogVisible(false);
-            }}
-            campaignKey={CAMPAIGN_KEY}
-          />
-        </div>
-      </BaseModal>
-
-      <BaseModal
-        isOpen={registerDialogVisible}
-        onClose={() => {
-          setRegisterDialogVisible(false);
-        }}
-      >
-        <div className="max-w-[457px]">
-          <RegistrationForm
-            onSuccess={() => {
-              router.refresh();
-              fbPixelTrackEvent("CompleteRegistration");
-              lnkdTrack();
-              setRegisterDialogVisible(false);
-            }}
-            campaignKey={CAMPAIGN_KEY}
-          />
-        </div>
-      </BaseModal>
-    </>
+      {registered && (
+        <LoggedInAndRegisteredFragment
+          eligibleBoth={campaignDetails ? campaignDetails.undergrad : false}
+        />
+      )}
+    </div>
   );
 };
