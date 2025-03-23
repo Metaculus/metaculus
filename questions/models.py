@@ -129,7 +129,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="""Time when spot scores are evaluated.
-        If not set, defaults to spot_scoring time.""",
+        If not set, defaults to cp reveal time.""",
     )
 
     # continuous range fields
@@ -137,18 +137,20 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="""For Continuous only.
-        Minimum inbound value.""",
+        Minimum inbound value. For Discrete, this is 1/2 a unit's width below the
+        displayed lower bound.""",
     )
     range_max = models.FloatField(
         null=True,
         blank=True,
         help_text="""For Continuous only.
-        Maximum inbound value.""",
+        Maximum inbound value. For Discrete, this is 1/2 a unit's width below the
+        displayed upper bound.""",
     )
     zero_point = models.FloatField(
         null=True,
         blank=True,
-        help_text="""For Continuous only.
+        help_text="""For Continuous only. NOT for Discrete.
         If logaritmically scaled, the value of the zero point.""",
     )
     open_upper_bound = models.BooleanField(
@@ -166,7 +168,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     inbound_outcome_count = models.IntegerField(
         null=True,
         blank=True,
-        help_text="""For Continuous only. Optional unless Discrete.
+        help_text="""For Discrete only.
         Number of possible outcomes NOT including out of bounds values.""",
     )
     unit = models.CharField(max_length=25, blank=True)
