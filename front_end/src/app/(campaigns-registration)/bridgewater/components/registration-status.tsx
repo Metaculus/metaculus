@@ -3,8 +3,8 @@
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { FC, PropsWithChildren } from "react";
 import Link from "next/link";
+import React, { FC, PropsWithChildren } from "react";
 
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/cn";
@@ -45,9 +45,7 @@ const NotLoggedInFragmentBeforeRegister: FC = () => (
   </>
 );
 
-const LoggedInNotRegisteredFragment: FC<{
-  currentUser: CurrentUser;
-}> = ({ currentUser }) => (
+const LoggedInNotRegisteredFragment: FC = () => (
   <>
     <HeadingText
       heading={"Registrations are closed"}
@@ -164,9 +162,7 @@ export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
     >
       {!currentUser && <NotLoggedInFragmentBeforeRegister />}
 
-      {currentUser && !registered && (
-        <LoggedInNotRegisteredFragment currentUser={currentUser} />
-      )}
+      {currentUser && !registered && <LoggedInNotRegisteredFragment />}
 
       {registered && (
         <LoggedInAndRegisteredFragment
