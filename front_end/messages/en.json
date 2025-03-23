@@ -814,6 +814,7 @@
   "multipleChoiceDescription": "Multiple choice questions are generally of the form \"Which of the following will happen?\".  These questions list many options, only one of which can resolve as true.",
   "dateRangeDescription": "A date question asks when something will happen, given a specific time window.",
   "numericRangeDescription": "A numeric question asks about a quantity or number which will be known at a future date.",
+  "discreteDescription": "A discrete question asks about an outcome from an distinct and ordered set of values.",
   "viewInDjangoAdmin": "View in django admin",
   "pinComment": "Pin",
   "pinned": "Pinned",
