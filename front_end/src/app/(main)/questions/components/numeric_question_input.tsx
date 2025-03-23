@@ -211,6 +211,7 @@ const NumericQuestionInput: React.FC<{
       open_upper_bound: openUpperBound,
       inbound_outcome_count: inboundOutcomeCount,
     });
+    console.log({ mn, mx, inboundOutcomeCount });
     setQuestion((prevQuestion) => ({
       ...prevQuestion,
       scaling: {
@@ -238,7 +239,7 @@ const NumericQuestionInput: React.FC<{
     0.6,
     0.67,
     openLowerBound,
-    openUpperBound
+    openUpperBound,
     inboundOutcomeCount
   );
 
