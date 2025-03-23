@@ -11,6 +11,7 @@ from posts.models import Post
 from questions.constants import ResolutionType
 from questions.models import Forecast
 from questions.models import (
+    DEFAULT_INBOUND_OUTCOME_COUNT,
     Question,
     Conditional,
     GroupOfQuestions,
@@ -63,6 +64,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "unit",
             "open_upper_bound",
             "open_lower_bound",
+            "inbound_outcome_count",
             "scaling",
             "group_rank",
         )
@@ -117,6 +119,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "zero_point",
             "open_upper_bound",
             "open_lower_bound",
+            "inbound_outcome_count",
             "options",
             "group_variable",
             "label",
@@ -515,15 +518,24 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             ],
             10,
         )
-        if len(continuous_cdf) != 201:
-            errors += "continuous_cdf must have 201 values.\n"
-        min_diff = 0.01 / 200  # 0.00005
+        if len(continuous_cdf) != question.inbound_outcome_count + 1:
+            errors += (
+                f"continuous_cdf for question {question.id} must "
+                f"have {question.inbound_outcome_count + 1} values.\n"
+            )
+        min_diff = np.round(
+            0.01 / question.inbound_outcome_count, 10
+        )  # 0.00005 by default
         if not all(inbound_pmf >= min_diff):
             errors += (
                 "continuous_cdf must be increasing by at least "
                 f"{min_diff} at every step.\n"
             )
-        max_diff = 0.59  # derived empirically from slider positions
+        # max diff for default CDF is derived empirically from slider positions
+        # TODO: make this lower and scale with inbound_outcome_count
+        max_diff = (
+            0.59 if len(continuous_cdf) == DEFAULT_INBOUND_OUTCOME_COUNT + 1 else 1
+        )
         if not all(inbound_pmf <= max_diff):
             errors += (
                 "continuous_cdf must be increasing by no more than "

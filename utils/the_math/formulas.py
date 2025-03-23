@@ -121,10 +121,10 @@ def unscaled_location_to_bucket_index(
     if unscaled_location < 0:
         return 0
     if unscaled_location > 1:
-        return 201
+        return question.inbound_outcome_count + 1
     if unscaled_location == 1:
-        return 200
-    return max(int(unscaled_location * 200 + 1 - 1e-10), 1)
+        return question.inbound_outcome_count
+    return max(int(unscaled_location * question.inbound_outcome_count + 1 - 1e-10), 1)
 
 
 def unscaled_location_to_string_location(
@@ -142,9 +142,9 @@ def bucket_index_to_unscaled_location(bucket_index: int, question: "Question") -
     # continuous
     if bucket_index <= 0:
         return -1
-    if bucket_index >= 201:
+    if bucket_index >= question.inbound_outcome_count + 1:
         return 2
-    return bucket_index / 200 - 1 / 400
+    return (bucket_index - 1 / 2) / (question.inbound_outcome_count + 1)
 
 
 def string_location_to_unscaled_location(
