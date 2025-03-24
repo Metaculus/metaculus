@@ -242,7 +242,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
   return (
     <form
       action={formAction}
-      className=" rounded  bg-blue-300 p-4 dark:bg-blue-300-dark md:p-6"
+      className="rounded bg-blue-300 p-4 dark:bg-blue-300-dark md:p-6"
     >
       <div className="mb-6 flex flex-col gap-2  md:mb-8">
         <h1 className="mt-0 inline text-3xl md:text-4xl">
