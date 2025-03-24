@@ -75,7 +75,14 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
       .max(200, {
         message: t("errorMaxLength", { field: "String", maxLength: 200 }),
       }),
-    short_title: z.string().min(1, { message: t("errorRequired") }),
+    short_title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(80, {
+        message: t("errorMaxLength", { field: "String", maxLength: 80 }),
+      }),
     group_variable: z.string().max(200, {
       message: t("errorMaxLength", { field: "String", maxLength: 200 }),
     }),
@@ -562,28 +569,28 @@ const GroupForm: React.FC<Props> = ({
                     value={subQuestion?.label}
                   />
                 </InputContainer>
-                {subtype === QuestionType.Numeric && (
-                  <InputContainer
-                    labelText={t("subquestionUnit")}
-                    explanation={t("questionUnitDescription")}
-                  >
-                    <Input
-                      onChange={(e) => {
-                        setSubQuestions(
-                          subQuestions.map((subQuestion, iter_index) => {
-                            if (index === iter_index)
-                              subQuestion.unit = e.target.value;
-                            return subQuestion;
-                          })
-                        );
-                      }}
-                      className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                      value={subQuestion?.unit}
-                    />
-                  </InputContainer>
-                )}
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4">
+                    {subtype === QuestionType.Numeric && (
+                      <InputContainer
+                        labelText={t("subquestionUnit")}
+                        explanation={t("questionUnitDescription")}
+                      >
+                        <Input
+                          onChange={(e) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index)
+                                  subQuestion.unit = e.target.value;
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          value={subQuestion?.unit}
+                        />
+                      </InputContainer>
+                    )}
                     <div className="flex flex-col gap-4 md:flex-row">
                       <InputContainer
                         labelText={t("closingDate")}
