@@ -196,8 +196,8 @@ const NumericQuestionInput: React.FC<{
     }
     if (!isMounted.current) {
       onChange({
-        range_min: min as number,
-        range_max: max as number,
+        range_min: mn as number,
+        range_max: mx as number,
         zero_point: zeroPoint,
         open_lower_bound: openLowerBound,
         open_upper_bound: openUpperBound,
@@ -212,8 +212,8 @@ const NumericQuestionInput: React.FC<{
       return;
     }
     onChange({
-      range_min: min as number,
-      range_max: max as number,
+      range_min: mn as number,
+      range_max: mx as number,
       zero_point: zeroPoint,
       open_lower_bound: openLowerBound,
       open_upper_bound: openUpperBound,
@@ -250,7 +250,6 @@ const NumericQuestionInput: React.FC<{
     inboundOutcomeCount
   );
 
-  console.log(question.scaling);
   return (
     <div>
       {errors.length > 0 && isMounted.current && (
