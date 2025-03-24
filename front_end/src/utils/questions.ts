@@ -51,15 +51,6 @@ export function isMultipleChoicePost(post: PostWithForecasts) {
   return post.question?.type === QuestionType.MultipleChoice;
 }
 
-export function checkGroupOfQuestionsPostType(
-  post: PostWithForecasts,
-  type: QuestionType
-) {
-  return (
-    isGroupOfQuestionsPost(post) &&
-    post.group_of_questions.questions[0]?.type === type
-  );
-}
 export function isQuestionPost<QT>(post: Post<QT>): post is QuestionPost<QT> {
   return !isNil(post.question);
 }
