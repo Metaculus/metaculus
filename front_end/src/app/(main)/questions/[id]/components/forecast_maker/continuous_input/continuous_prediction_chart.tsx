@@ -151,7 +151,6 @@ const ContinuousPredictionChart: FC<Props> = ({
         onCursorChange={handleCursorChange}
         resolution={question.resolution}
         unit={question.unit}
-        inboundOutcomeCount={question.inbound_outcome_count}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (

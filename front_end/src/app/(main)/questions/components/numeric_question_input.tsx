@@ -178,13 +178,21 @@ const NumericQuestionInput: React.FC<{
   useEffect(() => {
     let mn: number = min as number;
     let mx: number = max as number;
-    if (questionType === QuestionType.Discrete) {
+    if (questionType === QuestionType.Discrete && inboundOutcomeCount > 1) {
       mn =
-        (min as number) -
-        (0.5 * ((max as number) - (min as number) + 1)) / inboundOutcomeCount;
+        Math.round(
+          1e7 *
+            ((min as number) -
+              (0.5 * ((max as number) - (min as number))) /
+                (inboundOutcomeCount - 1))
+        ) / 1e7;
       mx =
-        (max as number) +
-        (0.5 * ((max as number) - (min as number) + 1)) / inboundOutcomeCount;
+        Math.round(
+          1e7 *
+            ((max as number) +
+              (0.5 * ((max as number) - (min as number))) /
+                (inboundOutcomeCount - 1))
+        ) / 1e7;
     }
     if (!isMounted.current) {
       onChange({
@@ -211,7 +219,6 @@ const NumericQuestionInput: React.FC<{
       open_upper_bound: openUpperBound,
       inbound_outcome_count: inboundOutcomeCount,
     });
-    console.log({ mn, mx, inboundOutcomeCount });
     setQuestion((prevQuestion) => ({
       ...prevQuestion,
       scaling: {
@@ -243,6 +250,7 @@ const NumericQuestionInput: React.FC<{
     inboundOutcomeCount
   );
 
+  console.log(question.scaling);
   return (
     <div>
       {errors.length > 0 && isMounted.current && (
@@ -433,24 +441,29 @@ const NumericQuestionInput: React.FC<{
               readOnly={hasForecasts}
               disabled={hasForecasts}
               type="number"
-              min={2}
-              max={200}
+              min={1}
+              max={9999}
               value={inboundOutcomeCount}
               onChange={(e) => {
                 const value = Number(e.target.value);
-                if (value >= 2 && value <= 200) {
+                if (value >= 1 && value <= 9999) {
                   setInboundOutcomeCount(value);
                 }
               }}
             />
+            {inboundOutcomeCount &&
+              !isNil(question.scaling.range_max) &&
+              !isNil(question.scaling.range_min) && (
+                <span className="ml-2 text-sm font-medium text-gray-500 dark:text-gray-500-dark">
+                  Note: outcome bins have size{" "}
+                  {Math.round(
+                    ((question.scaling.range_max - question.scaling.range_min) /
+                      inboundOutcomeCount) *
+                      1000
+                  ) / 1000}
+                </span>
+              )}
             <br />
-            <span className="ml-2">
-              For example, if the possible outcomes are the integers 10 though
-              50 inclusive, choose Inbound Outcome Count to 41 (50 - 10 + 1 =
-              41). To verify that the settings are correct, hover over the graph
-              below and ensure the displayed x values in the tooltip below are
-              the discrete values you&apos;re looking for.
-            </span>
           </div>
         )}
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
