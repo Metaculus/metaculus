@@ -330,7 +330,10 @@ export function displayValue({
       valueTimestamp: value,
     });
     return format(fromUnixTime(value), dateFormatString ?? dateFormat);
-  } else if (questionType === QuestionType.Numeric) {
+  } else if (
+    questionType === QuestionType.Numeric ||
+    questionType === QuestionType.Discrete
+  ) {
     // TODO add truncation to abbreviatedNumber
     return formatValueUnit(abbreviatedNumber(value, precision), unit);
   } else {
@@ -1328,13 +1331,30 @@ export const getClosestYValue = (xValue: number, line: Line) => {
   const i = findLastIndex(line, (point) => point.x <= xValue);
   const p1 = line[i];
   const p2 = line[i + 1];
-
-  if (!p1 || !p2) return 0;
-
-  if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
-    return p1.y;
+  if (!!p1?.y && !!p2?.y) {
+    if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
+      return p1.y;
+    }
+    return p2.y;
   }
-  return p2.y;
+  if (!!p1?.y) return p1.y;
+  if (!!p2?.y) return p2.y;
+  return 0;
+};
+
+export const getClosestXValue = (xValue: number, line: Line) => {
+  const i = findLastIndex(line, (point) => point.x <= xValue);
+  const p1 = line[i];
+  const p2 = line[i + 1];
+  if (!!p1 && !!p2) {
+    if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
+      return p1.x;
+    }
+    return p2.x;
+  }
+  if (p1) return p1.x;
+  if (p2) return p2.x;
+  return 0;
 };
 
 export const interpolateYValue = (xValue: number, line: Line) => {
