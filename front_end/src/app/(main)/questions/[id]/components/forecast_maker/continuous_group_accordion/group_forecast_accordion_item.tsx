@@ -10,7 +10,7 @@ import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { Quantile } from "@/types/question";
+import { DefaultInboundOutcomeCount, Quantile } from "@/types/question";
 import {
   displayValue,
   getContinuousAreaChartData,
@@ -73,7 +73,8 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
       ? getSliderNumericForecastDataset(
           option.userSliderForecast,
           question.open_lower_bound,
-          question.open_upper_bound
+          question.open_upper_bound,
+          question.inbound_outcome_count ?? DefaultInboundOutcomeCount
         )
       : getQuantileNumericForecastDataset(
           option.userQuantileForecast,

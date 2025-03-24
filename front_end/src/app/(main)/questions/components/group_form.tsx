@@ -710,21 +710,25 @@ const GroupForm: React.FC<Props> = ({
                       </div>
                     )}
                     {(subtype === QuestionType.Date ||
-                      subtype === QuestionType.Numeric) && (
+                      subtype === QuestionType.Numeric ||
+                      subtype === QuestionType.Discrete) && (
                       <NumericQuestionInput
                         questionType={subtype}
                         defaultMin={subQuestion.scaling.range_min}
                         defaultMax={subQuestion.scaling.range_max}
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
+                        defaultInboundOutcomeCount={
+                          subQuestion.inbound_outcome_count
+                        }
                         defaultZeroPoint={subQuestion.scaling.zero_point}
                         hasForecasts={
                           subQuestion.has_forecasts && mode !== "create"
                         }
                         chartWidth={720}
                         onChange={({
-                          min: range_min,
-                          max: range_max,
+                          range_min: range_min,
+                          range_max: range_max,
                           open_lower_bound,
                           open_upper_bound,
                           zero_point,
