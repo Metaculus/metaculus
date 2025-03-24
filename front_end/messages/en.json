@@ -88,8 +88,10 @@
   "cdfLabel": "Cumulative Probability",
   "pdf": "PDF",
   "cdf": "CDF",
-  "recencyWeighted": "Recency weighted",
+  "recentlyWeighted": "Recency weighted",
   "unweighted": "Unweighted",
+  "geometricMean": "Geometric Mean",
+  "singleAggregation": "Single Aggregation",
   "metaculus": "Metaculus",
   "community": "community",
   "communityPrediction": "Community Prediction",
@@ -1160,5 +1162,15 @@
   "cpAscendingSubquestionOrder": "Community Prediction (Ascending)",
   "cpDescendingSubquestionOrder": "Community Prediction (Descending)",
   "groupSorting": "Group sorting",
-  "groupSortingDescription": "The order of the subquestions in the group"
+  "groupSortingDescription": "The order of the subquestions in the group",
+  "summarizeAggregations": "Summarize aggregations",
+  "questionData": "Question data",
+  "commentData": "Comment data",
+  "scoreData": "Score data",
+  "includeUserData": "Include user data",
+  "aggregationMethods": "Aggregation methods",
+  "configuration": "Configuration",
+  "loginConfigurationMessage": "Log in to select different options",
+  "downloadData": "Download data",
+  "emailData": "Email me this data"
 }

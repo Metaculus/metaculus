@@ -67,7 +67,7 @@
   "cdfLabel": "累積概率",
   "pdf": "PDF",
   "cdf": "CDF",
-  "recencyWeighted": "最近加權",
+  "recentlyWeighted": "最近加權",
   "unweighted": "未加權",
   "metaculus": "Metaculus",
   "community": "區",
@@ -1164,5 +1164,17 @@
   "cpAscendingSubquestionOrder": "社区预测（升序）",
   "cpDescendingSubquestionOrder": "社区预测（降序）",
   "groupSorting": "分组排序",
-  "groupSortingDescription": "分组中子问题的顺序"
+  "groupSortingDescription": "分组中子问题的顺序",
+  "geometricMean": "几何平均",
+  "singleAggregation": "单一汇总",
+  "summarizeAggregations": "汇总分析",
+  "questionData": "问题数据",
+  "commentData": "评论数据",
+  "scoreData": "评分数据",
+  "includeUserData": "包含用户数据",
+  "aggregationMethods": "汇总方法",
+  "configuration": "配置",
+  "loginConfigurationMessage": "登录以选择不同的选项",
+  "downloadData": "下载数据",
+  "emailData": "将此数据发送到我的电子邮件"
 }

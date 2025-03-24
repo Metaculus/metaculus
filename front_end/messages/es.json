@@ -69,7 +69,7 @@
   "cdfLabel": "Probabilidad Acumulada",
   "pdf": "PDF",
   "cdf": "CDF",
-  "recencyWeighted": "Peso reciente",
+  "recentlyWeighted": "Peso reciente",
   "unweighted": "Sin peso",
   "metaculus": "Metaculus",
   "community": "comunidad",
@@ -1162,5 +1162,17 @@
   "cpAscendingSubquestionOrder": "Predicción de la Comunidad (Ascendente)",
   "cpDescendingSubquestionOrder": "Predicción de la Comunidad (Descendente)",
   "groupSorting": "Ordenación por grupos",
-  "groupSortingDescription": "El orden de las subpreguntas en el grupo"
+  "groupSortingDescription": "El orden de las subpreguntas en el grupo",
+  "geometricMean": "Promedio Geométrico",
+  "singleAggregation": "Agregación Única",
+  "summarizeAggregations": "Resumir agregaciones",
+  "questionData": "Datos de la pregunta",
+  "commentData": "Datos del comentario",
+  "scoreData": "Datos de la puntuación",
+  "includeUserData": "Incluir datos del usuario",
+  "aggregationMethods": "Métodos de agregación",
+  "configuration": "Configuración",
+  "loginConfigurationMessage": "Inicia sesión para seleccionar diferentes opciones",
+  "downloadData": "Descargar datos",
+  "emailData": "Envíame este dato por correo electrónico"
 }

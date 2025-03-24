@@ -69,7 +69,7 @@
   "cdfLabel": "Kumulativní pravděpodobnost",
   "pdf": "PDF",
   "cdf": "CDF",
-  "recencyWeighted": "Váženo o nedávnost",
+  "recentlyWeighted": "Váženo o nedávnost",
   "unweighted": "Neváženo",
   "metaculus": "Metaculus",
   "community": "komunita",
@@ -1162,5 +1162,17 @@
   "cpAscendingSubquestionOrder": "Předpověď komunity (Vzestupně)",
   "cpDescendingSubquestionOrder": "Předpověď komunity (Sestupně)",
   "groupSorting": "Třídění skupin",
-  "groupSortingDescription": "Pořadí podotázek ve skupině"
+  "groupSortingDescription": "Pořadí podotázek ve skupině",
+  "geometricMean": "Geometrický průměr",
+  "singleAggregation": "Jednotlivá agregace",
+  "summarizeAggregations": "Shrnout agregace",
+  "questionData": "Data o otázkách",
+  "commentData": "Data o komentářích",
+  "scoreData": "Data o skóre",
+  "includeUserData": "Zahrnout uživatelská data",
+  "aggregationMethods": "Metody agregace",
+  "configuration": "Konfigurace",
+  "loginConfigurationMessage": "Přihlaste se pro výběr jiných možností",
+  "downloadData": "Stáhnout data",
+  "emailData": "Pošlete mi tato data e-mailem"
 }

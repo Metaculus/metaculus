@@ -46,12 +46,12 @@ export enum AggregationMethod {
   metaculus_prediction = "metaculus_prediction",
 }
 
-export const aggregationMethodsArray = [
-  AggregationMethod.recency_weighted,
-  AggregationMethod.unweighted,
-  AggregationMethod.single_aggregation,
-  AggregationMethod.metaculus_prediction,
-];
+export enum DownloadAggregationMethod {
+  recency_weighted = AggregationMethod.recency_weighted,
+  unweighted = AggregationMethod.unweighted,
+  single_aggregation = AggregationMethod.single_aggregation,
+  geometric_mean = "geometric_mean",
+}
 
 export type Bounds = {
   belowLower: number;
