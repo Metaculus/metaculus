@@ -308,11 +308,13 @@ const ContinuousAreaChart: FC<Props> = ({
                 }
               })(),
               type: chart.type,
+              graphType: chart.graphType,
             }))}
           yDomain={yDomain}
           chartHeight={height}
           paddingTop={paddingTop}
           paddingBottom={BOTTOM_PADDING}
+          discrete={discrete}
         />
       }
       onCursorChange={(props: { x: number } | null) => {
@@ -325,7 +327,13 @@ const ContinuousAreaChart: FC<Props> = ({
           (acc, el) => {
             if (el.graphType === "pmf") {
               // if graph is a pmf, we need to find the closest y value
-              acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
+              const closestYValue = getClosestYValue(props?.x, el.graphLine);
+              if (!discrete) {
+                acc.yData[el.type] = closestYValue;
+              } else {
+                acc.x = getClosestXValue(props?.x, el.graphLine);
+                acc.yData[el.type] = closestYValue / (el.graphLine.length + 1);
+              }
               return acc;
             }
             // if graph is a cdf, we need to interpolate the y value
@@ -565,6 +573,7 @@ const ContinuousAreaChart: FC<Props> = ({
                     : METAC_COLORS.olive["700"]
                 ),
                 type: chart.type,
+                graphType: chart.graphType,
               }))}
               chartHeight={height}
               yDomain={yDomain}
@@ -635,32 +644,37 @@ function generateNumericAreaGraph(data: {
 
   const verticalLines: Line = [];
   const quantiles = computeQuartilesFromCDF(cdf);
-  verticalLines.push(
-    {
-      x: discrete
-        ? getClosestXValue(quantiles.lower25, graph)
-        : quantiles.lower25,
-      y: discrete
-        ? getClosestYValue(quantiles.lower25, graph)
-        : interpolateYValue(quantiles.lower25, graph),
-    },
-    {
-      x: discrete
-        ? getClosestXValue(quantiles.median, graph)
-        : quantiles.median,
-      y: discrete
-        ? getClosestYValue(quantiles.median, graph)
-        : interpolateYValue(quantiles.median, graph),
-    },
-    {
-      x: discrete
-        ? getClosestXValue(quantiles.upper75, graph)
-        : quantiles.upper75,
-      y: discrete
-        ? getClosestYValue(quantiles.upper75, graph)
-        : interpolateYValue(quantiles.upper75, graph),
-    }
-  );
+  if (discrete) {
+    verticalLines.push(
+      {
+        x: getClosestXValue(quantiles.lower25, graph),
+        y: getClosestYValue(quantiles.lower25, graph),
+      },
+      {
+        x: getClosestXValue(quantiles.median, graph),
+        y: getClosestYValue(quantiles.median, graph),
+      },
+      {
+        x: getClosestXValue(quantiles.upper75, graph),
+        y: getClosestYValue(quantiles.upper75, graph),
+      }
+    );
+  } else {
+    verticalLines.push(
+      {
+        x: quantiles.lower25,
+        y: interpolateYValue(quantiles.lower25, graph),
+      },
+      {
+        x: quantiles.median,
+        y: interpolateYValue(quantiles.median, graph),
+      },
+      {
+        x: quantiles.upper75,
+        y: interpolateYValue(quantiles.upper75, graph),
+      }
+    );
+  }
 
   return {
     graphLine: graph,
