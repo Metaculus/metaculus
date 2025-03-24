@@ -26,6 +26,7 @@ import {
   AggregateForecast,
   AggregateForecastHistory,
   Bounds,
+  DefaultInboundOutcomeCount,
   Question,
   QuestionType,
   QuestionWithForecasts,
@@ -1197,7 +1198,8 @@ export function getFanOptionsFromContinuousGroup(
           ? (userCdf = getSliderNumericForecastDataset(
               userForecast.components,
               q.open_lower_bound,
-              q.open_upper_bound
+              q.open_upper_bound,
+              q.inbound_outcome_count ?? DefaultInboundOutcomeCount
             ).cdf)
           : (userCdf = getQuantileNumericForecastDataset(
               populateQuantileComponents(userForecast.components),
