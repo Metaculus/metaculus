@@ -12,6 +12,7 @@ type Props<T> = {
     type: T;
     line: Line;
     color: string;
+    graphType: "pmf" | "cdf";
   }>;
   chartHeight: number;
   paddingBottom?: number;
@@ -35,10 +36,11 @@ const LineCursorPoints = <T extends string>({
 
   return (
     <>
-      {chartData.map(({ line, color }, index) => {
-        const yValue = discrete
-          ? getClosestYValue(datum.x, line)
-          : interpolateYValue(datum.x, line);
+      {chartData.map(({ line, color, graphType }, index) => {
+        const yValue =
+          graphType === "pmf" && discrete
+            ? getClosestYValue(datum.x, line)
+            : interpolateYValue(datum.x, line);
 
         // adjust the scaledY using the visible graph area
         // the graph is visually stretched from top due to padding, so we need to add the top padding after scaling
