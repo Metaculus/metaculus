@@ -195,7 +195,7 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
     <>
       <div
         className={cn(
-          "relative overflow-y-scroll rounded border border-gray-500 dark:border-gray-500-dark",
+          "relative max-h-[80vh] overflow-y-scroll rounded border border-gray-500 dark:border-gray-500-dark",
           className
         )}
       >
@@ -218,7 +218,7 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
           markdown={field.value ?? ""}
           onChange={field.onChange}
           onBlur={field.onBlur}
-          className="w-full"
+          className="markdown-editor-form w-full"
         />
       </div>
       {errors && (
