@@ -1,6 +1,7 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Disclosure, DisclosurePanel } from "@headlessui/react";
+import { isNil } from "lodash";
 import { useLocale } from "next-intl";
 import { FC, PropsWithChildren, useState } from "react";
 
@@ -132,7 +133,9 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                   resolution={resolution}
                   median={median}
                   userMedian={
-                    option.userQuartiles?.median ? userMedian : undefined
+                    !isNil(option.userQuartiles?.median)
+                      ? userMedian
+                      : undefined
                   }
                   type={type}
                 />
