@@ -145,13 +145,23 @@ export function generateYDomain({
   if (isNil(minValue) || isNil(maxValue)) {
     return fallback;
   }
+  let zoomedYDomain: Tuple<number> = [0, 1];
+  const distanceToZero = Math.abs(minValue - zoomDomainPadding);
+  const distanceToOne = Math.abs(1 - (maxValue + zoomDomainPadding));
+
+  if (distanceToZero === distanceToOne) {
+    zoomedYDomain = [0, 1];
+  } else {
+    // Include the closer bound
+    zoomedYDomain =
+      distanceToZero < distanceToOne
+        ? [0, Math.min(1, maxValue + zoomDomainPadding)]
+        : [Math.max(0, minValue - zoomDomainPadding), 1];
+  }
 
   return {
     originalYDomain,
-    zoomedYDomain: [
-      Math.max(0, minValue - zoomDomainPadding),
-      Math.min(1, maxValue + zoomDomainPadding),
-    ],
+    zoomedYDomain,
   };
 }
 
