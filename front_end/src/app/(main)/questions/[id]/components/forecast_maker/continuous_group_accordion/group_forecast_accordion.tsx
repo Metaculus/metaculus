@@ -78,28 +78,32 @@ const GroupForecastAccordion: FC<Props> = ({
   const { user } = useAuth();
   const showCP = !user || !hideCP;
 
-  const { resolvedOptions, closedOptions, activeOptions } = useMemo(
-    () => ({
-      resolvedOptions: options.filter(
-        (option) =>
-          option.question.status &&
-          [QuestionStatus.RESOLVED].includes(option.question.status)
-      ),
-      closedOptions: options.filter(
-        (option) =>
-          option.question.status &&
-          [QuestionStatus.CLOSED].includes(option.question.status)
-      ),
-      activeOptions: options.filter(
-        (option) =>
-          !option.question.status ||
-          ![QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
-            option.question.status
-          )
-      ),
-    }),
-    [options]
-  );
+  const { resolvedOptions, closedOptions, activeOptions, openOptions } =
+    useMemo(
+      () => ({
+        resolvedOptions: options.filter(
+          (option) =>
+            option.question.status &&
+            [QuestionStatus.RESOLVED].includes(option.question.status)
+        ),
+        closedOptions: options.filter(
+          (option) =>
+            option.question.status &&
+            [QuestionStatus.CLOSED].includes(option.question.status)
+        ),
+        activeOptions: options.filter(
+          (option) =>
+            !option.question.status ||
+            ![QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
+              option.question.status
+            )
+        ),
+        openOptions: options.filter(
+          (option) => option.question.status === QuestionStatus.OPEN
+        ),
+      }),
+      [options]
+    );
 
   const homogeneousUnit = useMemo(() => {
     const units = Array.from(new Set(options.map((obj) => obj.question.unit)));
@@ -147,11 +151,14 @@ const GroupForecastAccordion: FC<Props> = ({
             <ContinuousInputWrapper
               option={option}
               copyMenu={
-                <ForecastMakerGroupCopyMenu
-                  option={option}
-                  options={options}
-                  handleCopy={handleCopy}
-                />
+                openOptions.length > 1 &&
+                option.question.status === QuestionStatus.OPEN ? (
+                  <ForecastMakerGroupCopyMenu
+                    option={option}
+                    options={openOptions}
+                    handleCopy={handleCopy}
+                  />
+                ) : undefined
               }
               canPredict={canPredict}
               isPending={isPending}
