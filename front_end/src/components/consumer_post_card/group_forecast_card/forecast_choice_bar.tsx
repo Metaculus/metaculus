@@ -4,6 +4,7 @@ import { FC } from "react";
 
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
+import useMounted from "@/hooks/use_mounted";
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
 import cn from "@/utils/cn";
@@ -35,6 +36,8 @@ const ForecastChoiceBar: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
+  const mounted = useMounted();
+
   const isResolutionSuccessful = isSuccessfullyResolved(resolution);
   return (
     <div
@@ -67,15 +70,24 @@ const ForecastChoiceBar: FC<Props> = ({
               return "transparent";
             } else if (isClosed) {
               return addOpacityToHex(
-                getThemeColor(METAC_COLORS.gray["500"]),
+                mounted
+                  ? getThemeColor(METAC_COLORS.gray["500"])
+                  : METAC_COLORS.gray["500"].DEFAULT,
                 0.5
               );
             }
-            return addOpacityToHex(getThemeColor(color), 0.3);
+            return addOpacityToHex(
+              mounted ? getThemeColor(color) : color.DEFAULT,
+              0.3
+            );
           })(),
           borderColor: isClosed
-            ? getThemeColor(METAC_COLORS.gray["500"])
-            : getThemeColor(color),
+            ? mounted
+              ? getThemeColor(METAC_COLORS.gray["500"])
+              : METAC_COLORS.gray["500"].DEFAULT
+            : mounted
+              ? getThemeColor(color)
+              : color.DEFAULT,
         }}
       ></div>
     </div>

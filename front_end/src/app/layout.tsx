@@ -3,7 +3,6 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import "./globals.css";
-import dynamic from "next/dynamic";
 import localFont from "next/font/local";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
@@ -25,13 +24,6 @@ import ProfileApi from "@/services/profile";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
-
-const PostHogPageView = dynamic(
-  () => import("@/components/posthog_page_view"),
-  {
-    ssr: false,
-  }
-);
 
 config.autoAddCss = false;
 
@@ -176,9 +168,8 @@ export default async function RootLayout({
             `}
         </Script>
       </head>
-      <CSPostHogProvider>
-        <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
-          <PostHogPageView />
+      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
+        <CSPostHogProvider>
           <AppThemeProvided>
             <NextIntlClientProvider messages={messages}>
               <AuthProvider user={user}>
@@ -202,11 +193,11 @@ export default async function RootLayout({
               </AuthProvider>
             </NextIntlClientProvider>
           </AppThemeProvided>
-        </body>
-        {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
-          <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />
-        )}
-      </CSPostHogProvider>
+        </CSPostHogProvider>
+      </body>
+      {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
+        <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />
+      )}
       <ChunkRetryScript />
     </html>
   );

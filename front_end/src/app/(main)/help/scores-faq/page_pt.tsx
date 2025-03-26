@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -13,8 +15,8 @@ export default function ScoresFAQ() {
         <h1>Perguntas frequentes sobre as pontuações</h1>
         <p>
           Abaixo estão Perguntas Frequentes (e respostas!) sobre pontuações. O
-          FAQ geral é <a href="/faq/">aqui e aqui</a>, e as medalhas FAQ é
-          <a href="/help/medals-faq/">aqui e aqui</a>( , . e
+          FAQ geral é <Link href="/faq/">aqui e aqui</Link>, e as medalhas FAQ é
+          <Link href="/help/medals-faq/">aqui e aqui</Link>( , . e
         </p>
         <div className="table-of-contents">
           <ul className="space-y-2">
@@ -217,8 +219,10 @@ export default function ScoresFAQ() {
           é melhor quando você prevê a probabilidade verdadeira. A pontuação do
           log, que sustenta todas as pontuações do Metaculus, é uma pontuação
           adequada (veja
-          <a href="/help/scores-faq/#log-score">Qual é a pontuação de log?</a>)
-          Em que o es., . Podemos comparar as pontuações que você obtém no
+          <Link href="/help/scores-faq/#log-score">
+            Qual é a pontuação de log?
+          </Link>
+          ) Em que o es., . Podemos comparar as pontuações que você obtém no
           exemplo anterior:
         </p>
         <div className="overflow-x-auto">
@@ -382,16 +386,16 @@ export default function ScoresFAQ() {
           Isso significa que a pontuação de log é sempre negativa (para
           perguntas binárias e de múltipla escolha). Isso se mostrou pouco
           intuitivo, o que é uma das razões pelas quais o Metaculus usa o
-          <a href="/help/scores-faq/#baseline-score">Linha de base</a>E a
-          <a href="/help/scores-faq/#peer-score">Peer em</a>
+          <Link href="/help/scores-faq/#baseline-score">Linha de base</Link>E a
+          <Link href="/help/scores-faq/#peer-score">Peer em</Link>
           As pontuações, que são baseadas na pontuação de log, mas podem ser
           positivas.
         </p>
         <p>
           A pontuação do log é adequada (ver
-          <a href="/help/scores-faq/#proper-scoring">
+          <Link href="/help/scores-faq/#proper-scoring">
             O que é uma regra de pontuação adequada?
-          </a>
+          </Link>
           ) do que se ala (, a e o da .) Isso significa que para maximizar sua
           pontuação
           <b>Você deve prever suas crenças verdadeiras</b>
@@ -577,7 +581,7 @@ export default function ScoresFAQ() {
         </p>
         <p>
           A pontuação de linha de base é derivada do
-          <a href="/help/scores-faq/#log-score">pontuação de log</a>,
+          <Link href="/help/scores-faq/#log-score">pontuação de log</Link>,
           redimensionou de modo que:
         </p>
         <ul className="list-disc pl-5">
@@ -665,10 +669,10 @@ export default function ScoresFAQ() {
           Observe que o acima descreve a pontuação de linha de base em um único
           ponto no tempo. As pontuações do Metaculus são médias de tempo ao
           longo da vida da questão, veja
-          <a href="/help/scores-faq/#time-averaging">
+          <Link href="/help/scores-faq/#time-averaging">
             Todas as minhas previsões em uma pergunta contam para a minha
             pontuação?
-          </a>
+          </Link>
           ( , . e
         </p>
         <p>
@@ -711,7 +715,7 @@ export default function ScoresFAQ() {
         </p>
         <p>
           A pontuação dos pares é derivada do
-          <a href="/help/scores-faq/#log-score">pontuação de log</a>: é a
+          <Link href="/help/scores-faq/#log-score">pontuação de log</Link>: é a
           diferença média entre a pontuação do log de uma previsão e as
           pontuações de log de todas as outras previsões sobre essa questão.
           Como o escore da linha de base, a pontuação de pares é multiplicada
@@ -724,7 +728,9 @@ export default function ScoresFAQ() {
           com todos os outros: quando você adiciona todas as pontuações, todas
           as diferenças cancelam e o resultado é 0. Aqui está um exemplo rápido:
           imagine a
-          <a href="/help/scores-faq/#continuous-log-score">Pergunta contínua</a>
+          <Link href="/help/scores-faq/#continuous-log-score">
+            Pergunta contínua
+          </Link>
           , com três analistas tendo previsto:
         </p>
         <div className="overflow-x-auto overflow-y-hidden">
@@ -1366,10 +1372,10 @@ export default function ScoresFAQ() {
           Observe que o acima descreve a pontuação de pares em um único ponto no
           tempo. As pontuações do Metaculus são médias de tempo ao longo da vida
           da questão, veja
-          <a href="/help/scores-faq/#time-averaging">
+          <Link href="/help/scores-faq/#time-averaging">
             Todas as minhas previsões em uma pergunta contam para a minha
             pontuação?
-          </a>
+          </Link>
           ( , . e
         </p>
         <p>
@@ -1406,21 +1412,22 @@ export default function ScoresFAQ() {
           Por que a pontuação de pares da previsão comunitária é positiva?
         </h2>
         <p>
-          O que é <a href="/help/scores-faq/#peer-score">Pontuação de pares</a>
+          O que é{" "}
+          <Link href="/help/scores-faq/#peer-score">Pontuação de pares</Link>
           medidas sobre se um previsor era, em média, melhor do que outros
           analistas. É a diferença entre o previstonte
-          <a href="/help/scores-faq/#log-score">pontuação de log</a>e a média de
-          todos os outros pontuações de registro dos meteorologistas. Se você
-          tem uma pontuação positiva de Peer, isso significa que sua pontuação
-          de registro foi melhor do que a média de todas as pontuações de
-          registro de outros meteorologistas.
+          <Link href="/help/scores-faq/#log-score">pontuação de log</Link>e a
+          média de todos os outros pontuações de registro dos meteorologistas.
+          Se você tem uma pontuação positiva de Peer, isso significa que sua
+          pontuação de registro foi melhor do que a média de todas as pontuações
+          de registro de outros meteorologistas.
         </p>
         <p>
-          A <a href="/faq/#community-prediction">previsão comunitária</a>é uma
-          mediana ponderada pelo tempo de todos os previsores sobre a questão.
-          Como a maioria dos agregados, é melhor do que a maioria dos analistas
-          que alimenta: é menos ruidoso, menos tendencioso e atualiza com mais
-          frequência.
+          A <Link href="/faq/#community-prediction">previsão comunitária</Link>é
+          uma mediana ponderada pelo tempo de todos os previsores sobre a
+          questão. Como a maioria dos agregados, é melhor do que a maioria dos
+          analistas que alimenta: é menos ruidoso, menos tendencioso e atualiza
+          com mais frequência.
         </p>
         <p>
           Uma vez que a previsão comunitária é melhor do que a maioria dos
@@ -1555,9 +1562,9 @@ export default function ScoresFAQ() {
           como 0 entre a data de resolução e a data de fechamento agendada e
           ainda contam na média. Isso garante o alinhamento dos incentivos,
           conforme explicado na seção
-          <a href="/help/scores-faq/#score-truncation">
+          <Link href="/help/scores-faq/#score-truncation">
             Por que eu tive uma pequena pontuação quando eu estava certo?
-          </a>
+          </Link>
           Abaixo.
         </p>
         {/* <hr> */}
@@ -1566,9 +1573,9 @@ export default function ScoresFAQ() {
         </h2>
         <p>
           Metaculus usa pontuações adequadas (veja
-          <a href="/help/scores-faq/#proper-scoring">
+          <Link href="/help/scores-faq/#proper-scoring">
             O que é uma regra de pontuação adequada?
-          </a>
+          </Link>
           ), então você não pode obter uma pontuação melhor (em média) fazendo
           previsões mais extremas do que suas crenças. Em qualquer dúvida, se
           você quiser maximizar sua pontuação esperada, você deve prever
@@ -1929,8 +1936,8 @@ export default function ScoresFAQ() {
         <p>
           A partir do final de 2023, a pontuação em Relative está em processo de
           ser substituída pela{" "}
-          <a href="/help/scores-faq/#peer-score">pontuação Peer</a>, mas ainda é
-          usada para muitos torneios abertos.
+          <Link href="/help/scores-faq/#peer-score">pontuação Peer</Link>, mas
+          ainda é usada para muitos torneios abertos.
         </p>
         <h3 className="scroll-mt-nav" id="coverage">
           Qual é a cobertura?
@@ -1956,7 +1963,7 @@ export default function ScoresFAQ() {
         </p>
         <p>
           Você ainda pode encontrar os rankings com base em pontos
-          <a href="/legacy-points-rankings/">aqui e aqui</a>( , . e
+          <Link href="/legacy-points-rankings/">aqui e aqui</Link>( , . e
         </p>
         <p>
           Eles são uma pontuação adequada, com base na pontuação de log. Eles
@@ -2002,7 +2009,7 @@ export default function ScoresFAQ() {
         <p>
           Este método de pontuação foi introduzido em março de 2024. É baseado
           no
-          <a href="/help/scores-faq/#peer-score">Pontuações dos pares</a>
+          <Link href="/help/scores-faq/#peer-score">Pontuações dos pares</Link>
           descrito acima.
         </p>
         <p>

@@ -218,7 +218,7 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
       {chartWidth && !isBigChartView && (
         <DateForecastCardTooltip points={points} />
       )}
-      {labelOverlap.length > 0 && isBigChartView && (
+      {chartWidth && labelOverlap.length > 0 && isBigChartView && (
         <DateForecastCardTooltip points={labelOverlap} />
       )}
     </>

@@ -1,6 +1,6 @@
 "use client";
 import parse, { domToReact } from "html-react-parser";
-import { FC, ReactNode, useRef } from "react";
+import { FC, Fragment, ReactNode, useRef } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
 import cn from "@/utils/cn";
@@ -15,7 +15,7 @@ type Props = {
 const HtmlContent: FC<Props> = ({ content, className }) => {
   const toggleKey = useRef<string | null>(null);
 
-  const transform = (node: any) => {
+  const transform = (node: any, index: number) => {
     if (!node.attribs) return undefined;
 
     if (node.attribs["toggle-details"]) {
@@ -49,7 +49,13 @@ const HtmlContent: FC<Props> = ({ content, className }) => {
 
       return (
         <div className="my-2.5">
-          <SectionToggle title={title}>{contentNodes}</SectionToggle>
+          <SectionToggle key={`section-toggle-${index}`} title={title}>
+            {contentNodes.map((node, nodeIndex) => (
+              <Fragment key={`section-${index}-node-${nodeIndex}`}>
+                {node}
+              </Fragment>
+            ))}
+          </SectionToggle>
         </div>
       );
     }

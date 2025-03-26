@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -18,9 +19,9 @@ const PostDjangoAdminLink: FC<Props> = ({ post }) => {
   }
 
   return (
-    <a href={`/admin/posts/post/${post.id}/change`} target="_blank">
+    <Link href={`/admin/posts/post/${post.id}/change`} target="_blank">
       {t("viewInDjangoAdmin")}
-    </a>
+    </Link>
   );
 };
 

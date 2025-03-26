@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { FC, useState } from "react";
 
@@ -77,7 +76,7 @@ const PaginatedCommunitiesFeed: FC<Props> = ({
         <p>
           {t.rich("introducingCommunitiesContact", {
             contact: (chunks) => (
-              <Link href="mailto:christian@metaculus.com">{chunks}</Link>
+              <a href="mailto:christian@metaculus.com">{chunks}</a>
             ),
           })}
         </p>

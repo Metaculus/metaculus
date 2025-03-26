@@ -20,6 +20,7 @@ const LocalDaytime: FC<Props> = ({ date }) => {
   const localValue = date ? formatDate(locale, new Date(date)) : "";
 
   return (
+    // @ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304
     <relative-time
       datetime={date}
       format="relative"
@@ -30,6 +31,7 @@ const LocalDaytime: FC<Props> = ({ date }) => {
       title=""
     >
       {localValue}
+      {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
     </relative-time>
   );
 };

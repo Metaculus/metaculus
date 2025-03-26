@@ -4,11 +4,10 @@ import { SearchParams } from "@/types/navigation";
 
 import Explorer from "./components/explorer";
 
-export default async function AggregationExplorer({
-  searchParams,
-}: {
-  searchParams: SearchParams;
+export default async function AggregationExplorer(props: {
+  searchParams: Promise<SearchParams>;
 }) {
+  const searchParams = await props.searchParams;
   const t = await getTranslations();
   return (
     <main className="mx-auto mt-4 min-h-min w-full max-w-5xl flex-auto px-0 sm:px-2 md:px-3">

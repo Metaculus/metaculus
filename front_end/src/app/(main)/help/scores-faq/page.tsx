@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getLocale } from "next-intl/server";
 
 import KatexRenderer from "@/components/katex_renderer";
@@ -27,8 +28,8 @@ export default async function ScoresFAQ() {
       <h1>Scores FAQ</h1>
       <p>
         Below are Frequently Asked Questions (and answers!) about scores. The
-        general FAQ is <a href="/faq/">here</a>, and the medals FAQ is{" "}
-        <a href="/help/medals-faq/">here</a>.
+        general FAQ is <Link href="/faq/">here</Link>, and the medals FAQ is{" "}
+        <Link href="/help/medals-faq/">here</Link>.
       </p>
 
       <div className="table-of-contents">
@@ -232,8 +233,8 @@ export default async function ScoresFAQ() {
         Proper scoring rules do not have this problem: your score is best when
         you predict the true probability. The log score, which underpins all
         Metaculus scores, is a proper score (see{" "}
-        <a href="/help/scores-faq/#log-score">What is the log score?</a>). We
-        can compare the scores you get in the previous example:
+        <Link href="/help/scores-faq/#log-score">What is the log score?</Link>).
+        We can compare the scores you get in the previous example:
       </p>
 
       <div className="overflow-x-auto">
@@ -332,15 +333,15 @@ export default async function ScoresFAQ() {
         This means that the log score is always negative (for Binary and
         Multiple Choice questions). This has proved unintuitive, which is one
         reason why Metaculus uses the{" "}
-        <a href="/help/scores-faq/#baseline-score">Baseline</a> and{" "}
-        <a href="/help/scores-faq/#peer-score">Peer</a> scores, which are based
-        on the log score but can be positive.
+        <Link href="/help/scores-faq/#baseline-score">Baseline</Link> and{" "}
+        <Link href="/help/scores-faq/#peer-score">Peer</Link> scores, which are
+        based on the log score but can be positive.
       </p>
       <p>
         The log score is proper (see{" "}
-        <a href="/help/scores-faq/#proper-scoring">
+        <Link href="/help/scores-faq/#proper-scoring">
           What is a proper scoring rule?
-        </a>
+        </Link>
         ). This means that to maximize your score{" "}
         <b>you should predict your true beliefs</b> (see{" "}
         <a href="#extremizing">
@@ -461,7 +462,8 @@ export default async function ScoresFAQ() {
       </p>
       <p>
         The Baseline score is derived from the{" "}
-        <a href="/help/scores-faq/#log-score">log score</a>, rescaled so that:
+        <Link href="/help/scores-faq/#log-score">log score</Link>, rescaled so
+        that:
       </p>
       <ul className="list-disc pl-5">
         <li>
@@ -542,9 +544,9 @@ export default async function ScoresFAQ() {
         Note that the above describes the Baseline score at a single point in
         time. Metaculus scores are time-averaged over the lifetime of the
         question, see{" "}
-        <a href="/help/scores-faq/#time-averaging">
+        <Link href="/help/scores-faq/#time-averaging">
           Do all my predictions on a question count toward my score?
-        </a>
+        </Link>
         .
       </p>
       <p>You can expand the section below for more details and maths.</p>
@@ -560,10 +562,10 @@ export default async function ScoresFAQ() {
       </p>
       <p>
         The Peer score is derived from the{" "}
-        <a href="/help/scores-faq/#log-score">log score</a>: it is the average
-        difference between a prediction&apos;s log score, and the log scores of
-        all other predictions on that question. Like the Baseline score, the
-        Peer score is multiplied by 100.
+        <Link href="/help/scores-faq/#log-score">log score</Link>: it is the
+        average difference between a prediction&apos;s log score, and the log
+        scores of all other predictions on that question. Like the Baseline
+        score, the Peer score is multiplied by 100.
       </p>
       <p>
         One interesting property of the Peer score is that, on any given
@@ -571,7 +573,9 @@ export default async function ScoresFAQ() {
         This is because each forecaster&apos;s score is their average difference
         with every other: when you add all the scores, all the differences
         cancel out and the result is 0. Here&apos;s a quick example: imagine a{" "}
-        <a href="/help/scores-faq/#continuous-log-score">continuous question</a>
+        <Link href="/help/scores-faq/#continuous-log-score">
+          continuous question
+        </Link>
         , with three forecasters having predicted:
       </p>
       <div className="overflow-x-auto overflow-y-hidden">
@@ -723,9 +727,9 @@ export default async function ScoresFAQ() {
         Note that the above describes the Peer score at a single point in time.
         Metaculus scores are time-averaged over the lifetime of the question,
         see{" "}
-        <a href="/help/scores-faq/#time-averaging">
+        <Link href="/help/scores-faq/#time-averaging">
           Do all my predictions on a question count toward my score?
-        </a>
+        </Link>
         .
       </p>
       <p>You can expand the section below for more details and maths.</p>
@@ -736,17 +740,17 @@ export default async function ScoresFAQ() {
         Why is the Peer score of the Community Prediction positive?
       </h2>
       <p>
-        The <a href="/help/scores-faq/#peer-score">Peer score</a> measures
+        The <Link href="/help/scores-faq/#peer-score">Peer score</Link> measures
         whether a forecaster was on average better than other forecasters. It is
         the difference between the forecaster&apos;s{" "}
-        <a href="/help/scores-faq/#log-score">log score</a> and the average of
-        all other forecasters&apos; log scores. If you have a positive Peer
-        score, it means your log score was better than the average of all other
-        forecasters&apos; log scores.
+        <Link href="/help/scores-faq/#log-score">log score</Link> and the
+        average of all other forecasters&apos; log scores. If you have a
+        positive Peer score, it means your log score was better than the average
+        of all other forecasters&apos; log scores.
       </p>
       <p>
-        The <a href="/faq/#community-prediction">Community Prediction</a> is a
-        time-weighted median of all forecasters on the question. Like most
+        The <Link href="/faq/#community-prediction">Community Prediction</Link>{" "}
+        is a time-weighted median of all forecasters on the question. Like most
         aggregates, it is better than most of the forecasters it feeds on: it is
         less noisy, less biased, and updates more often.
       </p>
@@ -840,9 +844,9 @@ export default async function ScoresFAQ() {
         set to 0 between the resolution date and scheduled close date, and still
         count in the average. This ensures alignment of incentives, as explained
         in the section{" "}
-        <a href="/help/scores-faq/#score-truncation">
+        <Link href="/help/scores-faq/#score-truncation">
           Why did I get a small score when I was right?
-        </a>{" "}
+        </Link>{" "}
         below.
       </p>
 
@@ -852,9 +856,9 @@ export default async function ScoresFAQ() {
       </h2>
       <p>
         Metaculus uses proper scores (see{" "}
-        <a href="/help/scores-faq/#proper-scoring">
+        <Link href="/help/scores-faq/#proper-scoring">
           What is a proper scoring rule?
-        </a>
+        </Link>
         ), so you cannot get a better score (on average) by making predictions
         more extreme than your beliefs. On any question, if you want to maximize
         your expected score, you should predict exactly what you believe.
@@ -1009,8 +1013,8 @@ export default async function ScoresFAQ() {
       </p>
       <p>
         As of late 2023, the Relative score is in the process of being replaced
-        by the <a href="/help/scores-faq/#peer-score">Peer score</a>, but it is
-        still used for many open tournaments.
+        by the <Link href="/help/scores-faq/#peer-score">Peer score</Link>, but
+        it is still used for many open tournaments.
       </p>
 
       <h3 className="scroll-mt-nav" id="coverage">
@@ -1038,7 +1042,7 @@ export default async function ScoresFAQ() {
       </p>
       <p>
         You can still find the rankings based on points{" "}
-        <a href="/legacy-points-rankings/">here</a>.
+        <Link href="/legacy-points-rankings/">here</Link>.
       </p>
       <p>
         They are a proper score, based on the log score. They are a mixture of a
@@ -1059,7 +1063,8 @@ export default async function ScoresFAQ() {
       </h2>
       <p>
         This scoring method was introduced in March 2024. It is based on the{" "}
-        <a href="/help/scores-faq/#peer-score">Peer scores</a> described above.
+        <Link href="/help/scores-faq/#peer-score">Peer scores</Link> described
+        above.
       </p>
       <p>
         Your rank in the tournament is determined by the sum of your Peer scores

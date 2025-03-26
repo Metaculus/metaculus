@@ -1,6 +1,7 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
+import type { JSX } from "react";
 
 import cn from "@/utils/cn";
 

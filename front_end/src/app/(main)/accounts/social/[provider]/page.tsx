@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, use } from "react";
 
 import { exchangeSocialOauthCode } from "@/app/(main)/accounts/social/[provider]/actions";
 import GlobalErrorBoundary from "@/components/global_error_boundary";
@@ -9,13 +9,15 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SocialProviderType } from "@/types/auth";
 import { SearchParams } from "@/types/navigation";
 
-export default function SocialAuth({
-  params: { provider },
-  searchParams,
-}: {
-  params: { provider: SocialProviderType };
-  searchParams: SearchParams;
+export default function SocialAuth(props: {
+  params: Promise<{ provider: SocialProviderType }>;
+  searchParams: Promise<SearchParams>;
 }) {
+  const searchParams = use(props.searchParams);
+  const params = use(props.params);
+
+  const { provider } = params;
+
   const [error, setError] = useState();
   const router = useRouter();
 

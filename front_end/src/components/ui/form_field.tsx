@@ -9,6 +9,7 @@ import {
   PathValue,
   useController,
 } from "react-hook-form";
+import { mergeRefs } from "react-merge-refs";
 
 import MarkdownEditor from "@/components/markdown_editor";
 import DatetimeUtc from "@/components/ui/datetime_utc";
@@ -128,13 +129,13 @@ type DateInputProps<T extends FieldValues = FieldValues> = {
   className?: string;
 };
 export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
-  ({ control, name, errors, defaultValue, className }) => {
+  ({ control, name, errors, defaultValue, className }, ref) => {
     const { field } = useController({ control, name, defaultValue });
 
     return (
       <>
         <DatetimeUtc
-          ref={field.ref}
+          ref={mergeRefs([field.ref, ref])}
           className={className}
           name={field.name}
           defaultValue={field.value}

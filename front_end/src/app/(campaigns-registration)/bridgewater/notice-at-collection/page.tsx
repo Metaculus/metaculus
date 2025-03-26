@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import Button from "@/components/ui/button";
 
 import GlobalHeader from "../../../(main)/components/headers/global_header";
@@ -61,12 +63,12 @@ export default function NoticeAtCollection() {
 
           <p>
             To view our full privacy policy, visit{" "}
-            <a
+            <Link
               href="/privacy-policy/"
               className="text-blue-600 hover:underline"
             >
               here
-            </a>
+            </Link>
             .
           </p>
 

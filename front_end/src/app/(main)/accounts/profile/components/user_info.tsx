@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { FC, useEffect, useState, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 
 import { LogOut } from "@/app/(main)/accounts/actions";
@@ -100,7 +100,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
   const { register, control } = useForm<UpdateProfileSchema>({
     resolver: zodResolver(updateProfileSchema),
   });
-  const [state, formAction] = useFormState<UpdateProfileState, FormData>(
+  const [state, formAction] = useActionState<UpdateProfileState, FormData>(
     updateProfileFormAction,
     null
   );
@@ -136,7 +136,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
 
   let stats: {
     heading: string;
-    val: string | number | undefined | React.ReactElement;
+    val: string | number | undefined | React.ReactElement<any>;
   }[] = [
     { heading: t("predictions"), val: profile.forecasts_count },
     { heading: t("comments"), val: profile.comments_count },
