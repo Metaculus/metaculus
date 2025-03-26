@@ -1162,5 +1162,11 @@
   "cpAscendingSubquestionOrder": "Předpověď komunity (Vzestupně)",
   "cpDescendingSubquestionOrder": "Předpověď komunity (Sestupně)",
   "groupSorting": "Třídění skupin",
-  "groupSortingDescription": "Pořadí podotázek ve skupině"
+  "groupSortingDescription": "Pořadí podotázek ve skupině",
+  "spotScoingTime": "Čas bodového hodnocení",
+  "forecastCopyToAll": "Kopírovat do všech",
+  "forecastCopyTo": "Kopírovat do…",
+  "forecastCopyToRich": "Kopírovat do <label></label>",
+  "forecastCopyFrom": "Kopírovat z…",
+  "forecastCopyFromRich": "Kopírovat z <label></label>"
 }

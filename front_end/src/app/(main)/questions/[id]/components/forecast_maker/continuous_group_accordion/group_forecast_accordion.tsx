@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo } from "react";
 
+import ForecastMakerGroupCopyMenu from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_maker_group/forecast_maker_group_copy_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
@@ -56,6 +57,7 @@ type Props = {
     optionId: number,
     mode: ContinuousForecastInputType
   ) => void;
+  handleCopy: (fromOptionId: number, toOptionId: number) => void;
 };
 
 const GroupForecastAccordion: FC<Props> = ({
@@ -69,6 +71,7 @@ const GroupForecastAccordion: FC<Props> = ({
   handleResetForecasts,
   handlePredictSubmit,
   handleForecastInputModeChange,
+  handleCopy,
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
@@ -143,6 +146,13 @@ const GroupForecastAccordion: FC<Props> = ({
           >
             <ContinuousInputWrapper
               option={option}
+              copyMenu={
+                <ForecastMakerGroupCopyMenu
+                  option={option}
+                  options={options}
+                  handleCopy={handleCopy}
+                />
+              }
               canPredict={canPredict}
               isPending={isPending}
               handleChange={handleChange}

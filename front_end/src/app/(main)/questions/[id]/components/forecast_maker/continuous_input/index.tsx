@@ -49,6 +49,7 @@ type Props = {
   disabled?: boolean;
   predictionMessage?: ReactNode;
   menu?: ReactNode;
+  copyMenu?: ReactNode;
 };
 
 const ContinuousInput: FC<Props> = ({
@@ -71,6 +72,7 @@ const ContinuousInput: FC<Props> = ({
   disabled,
   predictionMessage,
   menu,
+  copyMenu,
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
@@ -119,6 +121,7 @@ const ContinuousInput: FC<Props> = ({
       onOverlayPreviousForecastChange={onOverlayPreviousForecastChange}
       previousForecast={previousForecast}
       menu={menu}
+      copyMenu={copyMenu}
       disabled={disabled}
     >
       {(sliderGraphType, tableGraphType) => (

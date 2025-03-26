@@ -1,7 +1,7 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuItem, MenuItems, MenuButton } from "@headlessui/react";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 
 import cn from "@/utils/cn";
 
@@ -22,6 +22,7 @@ interface DropdownMenuProps extends React.PropsWithChildren {
   textAlign?: "left" | "right";
   itemClassName?: string;
   className?: string;
+  onClose?: () => void;
 }
 
 const defaultButton = (
@@ -35,15 +36,23 @@ const defaultButton = (
   </Button>
 );
 
-export default function DropdownMenu({
+function InnerMenuContent({
+  open,
   items,
   children = defaultButton,
   textAlign = "right",
   itemClassName,
   className,
-}: DropdownMenuProps) {
+  onClose,
+}: DropdownMenuProps & { open: boolean }) {
+  useEffect(() => {
+    if (!open && onClose) {
+      onClose();
+    }
+  }, [open, onClose]);
+
   return (
-    <Menu as="div" className="relative text-gray-900 dark:text-gray-900-dark">
+    <>
       <MenuButton as={Fragment}>{children}</MenuButton>
       <MenuItems
         as="div"
@@ -91,6 +100,32 @@ export default function DropdownMenu({
             </MenuItem>
           ))}
       </MenuItems>
+    </>
+  );
+}
+
+export default function DropdownMenu({
+  items,
+  children = defaultButton,
+  textAlign = "right",
+  itemClassName,
+  className,
+  onClose,
+}: DropdownMenuProps) {
+  return (
+    <Menu as="div" className="relative text-gray-900 dark:text-gray-900-dark">
+      {({ open }) => (
+        <InnerMenuContent
+          open={open}
+          items={items}
+          textAlign={textAlign}
+          itemClassName={itemClassName}
+          className={className}
+          onClose={onClose}
+        >
+          {children}
+        </InnerMenuContent>
+      )}
     </Menu>
   );
 }

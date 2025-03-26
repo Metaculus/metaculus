@@ -1162,5 +1162,11 @@
   "cpAscendingSubquestionOrder": "Predicción de la Comunidad (Ascendente)",
   "cpDescendingSubquestionOrder": "Predicción de la Comunidad (Descendente)",
   "groupSorting": "Ordenación por grupos",
-  "groupSortingDescription": "El orden de las subpreguntas en el grupo"
+  "groupSortingDescription": "El orden de las subpreguntas en el grupo",
+  "spotScoingTime": "Tiempo de Evaluación Inmediata",
+  "forecastCopyToAll": "Copiar a todos",
+  "forecastCopyTo": "Copiar a…",
+  "forecastCopyToRich": "Copiar a <label></label>",
+  "forecastCopyFrom": "Copiar de…",
+  "forecastCopyFromRich": "Copiar de <label></label>"
 }

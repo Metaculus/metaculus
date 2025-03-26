@@ -58,6 +58,7 @@ type Props = {
     | undefined
   >;
   setForecastInputMode: (mode: ContinuousForecastInputType) => void;
+  copyMenu?: ReactNode;
 };
 
 const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
@@ -69,6 +70,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   handleResetForecasts,
   handlePredictSubmit,
   setForecastInputMode,
+  copyMenu,
 }) => {
   const { user } = useAuth();
   const t = useTranslations();
@@ -283,6 +285,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             predictionMessage ? t(predictionMessage) : undefined
           }
           menu={option.menu}
+          copyMenu={copyMenu}
         />
       </div>
 
