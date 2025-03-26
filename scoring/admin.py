@@ -2,15 +2,9 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
 
 from projects.models import Project
-from scoring.models import (
-    UserWeight,
-    Leaderboard,
-    LeaderboardEntry,
-    Score,
-    MedalExclusionRecord,
-    ArchivedScore,
-    LeaderboardsRanksEntry,
-)
+from scoring.models import (ArchivedScore, Leaderboard, LeaderboardEntry,
+                            LeaderboardsRanksEntry, MedalExclusionRecord,
+                            Score, UserWeight)
 from scoring.utils import update_project_leaderboard
 
 

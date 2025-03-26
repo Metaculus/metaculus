@@ -323,7 +323,7 @@ def evaluate_question(
     question: Question,
     resolution_bucket: int | None,
     score_types: list[Score.ScoreTypes],
-    spot_forecast_timestamp: float | None = None,
+    spot_forecast_timestamp: float,
 ) -> list[Score]:
     if resolution_bucket is None:
         return []

@@ -1,28 +1,15 @@
 import csv
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from io import StringIO
-import logging
 
 import numpy as np
 from django.db import transaction
-from django.db.models import (
-    QuerySet,
-    Q,
-    Sum,
-    IntegerField,
-    FloatField,
-    OuterRef,
-    Exists,
-    When,
-    Value,
-    ExpressionWrapper,
-    F,
-    Case,
-    Count,
-    Func,
-)
+from django.db.models import (Case, Count, Exists, ExpressionWrapper, F,
+                              FloatField, Func, IntegerField, OuterRef, Q,
+                              QuerySet, Sum, Value, When)
 from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
@@ -30,16 +17,11 @@ from sql_util.aggregates import SubqueryAggregate
 from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
-from questions.models import Question, Forecast, QuestionPost
+from questions.models import Forecast, Question, QuestionPost
 from questions.types import AggregationMethod
-from scoring.models import (
-    ArchivedScore,
-    Score,
-    LeaderboardEntry,
-    Leaderboard,
-    MedalExclusionRecord,
-    LeaderboardsRanksEntry,
-)
+from scoring.models import (ArchivedScore, Leaderboard, LeaderboardEntry,
+                            LeaderboardsRanksEntry, MedalExclusionRecord,
+                            Score)
 from scoring.score_math import evaluate_question
 from users.models import User
 from utils.dtypes import generate_map_from_list
@@ -51,16 +33,19 @@ logger = logging.getLogger(__name__)
 
 def score_question(
     question: Question,
-    resolution: str,
-    spot_scoring_time: float | None = None,
-    score_types: list[str] | None = None,
-):
+    resolution: str | None,
+    override_spot_scoring_time: float | None = None,
+    score_types: list[Score.ScoreTypes] | None = None,
+) -> None:
     resolution_bucket = string_location_to_bucket_index(resolution, question)
-    if not spot_scoring_time:
+    if not override_spot_scoring_time:
         if question.spot_scoring_time:
             spot_scoring_time = question.spot_scoring_time.timestamp()
         elif question.cp_reveal_time:
             spot_scoring_time = question.cp_reveal_time.timestamp()
+    else:
+        spot_scoring_time = override_spot_scoring_time
+
     score_types = score_types or [
         c[0] for c in Score.ScoreTypes.choices if c[0] != Score.ScoreTypes.MANUAL
     ]
