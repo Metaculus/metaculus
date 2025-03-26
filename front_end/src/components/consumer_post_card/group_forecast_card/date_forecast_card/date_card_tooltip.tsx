@@ -7,14 +7,17 @@ type Props = {
   points: {
     label: string;
     color: ThemeColor;
+    x: number;
   }[];
 };
 
 const DateForecastCardTooltip: FC<Props> = ({ points }) => {
   const { getThemeColor } = useAppTheme();
+  const sortedPoints = [...points].sort((a, b) => a.x - b.x);
+
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
-      {points.map((point) => (
+      {sortedPoints.map((point) => (
         <div
           key={point.label}
           className="flex items-center gap-1 text-center text-sm"

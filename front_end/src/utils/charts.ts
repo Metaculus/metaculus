@@ -1438,7 +1438,7 @@ export function getResolutionPosition({
     return 0;
   }
   if (adjustBinaryPoint && ["no", "yes"].includes(resolution as string)) {
-    return 0;
+    return 0.4;
   }
 
   if (

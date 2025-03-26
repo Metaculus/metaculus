@@ -24,12 +24,16 @@ const TimeSeriesLabel: FC<Props & any> = ({
   const shouldTrancateText = labelVisibilityMap.some(
     (value: boolean) => !value
   );
-  const getLabelColor = (datum: any) => {
+  const getLabelColor = (datum: any, isChipText?: boolean) => {
     if (datum.resolution) {
-      return getThemeColor(METAC_COLORS.purple["700"]);
+      return getThemeColor(
+        isChipText ? METAC_COLORS.purple["600"] : METAC_COLORS.purple["700"]
+      );
     }
     if (datum.isClosed) {
-      return getThemeColor(METAC_COLORS.gray["700"]);
+      return getThemeColor(
+        isChipText ? METAC_COLORS.gray["500"] : METAC_COLORS.gray["700"]
+      );
     }
     return getThemeColor(METAC_COLORS.blue["700"]);
   };
@@ -43,6 +47,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
         {...rest}
         style={{
           fontSize: 14,
+          fontFamily: "var(--font-inter-variable)",
           fill: ({ datum }: any) => getLabelColor(datum),
         }}
         text={({ datum, index }: any) =>
@@ -62,18 +67,20 @@ const TimeSeriesLabel: FC<Props & any> = ({
         <VictoryLabel
           datum={datum}
           y={scale.y(datum.y)}
-          dy={-20}
+          dy={["no", "yes"].includes(datum.resolution as string) ? -26 : -23}
           {...rest}
           style={{
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 500,
-            fill: ({ datum }: any) => getLabelColor(datum),
+            lineHeight: "16px",
+            fontFamily: "var(--font-inter-variable)",
+            fill: ({ datum }: any) => getLabelColor(datum, true),
           }}
           text={({ datum, index }: any) =>
             labelVisibilityMap[index]
               ? datum.isClosed
-                ? t("closed")
-                : t("resolved")
+                ? t("closed").toUpperCase()
+                : t("resolved").toUpperCase()
               : ""
           }
         />
@@ -81,11 +88,13 @@ const TimeSeriesLabel: FC<Props & any> = ({
       <VictoryLabel
         datum={datum}
         y={scale.y(datum.y)}
-        dy={-5}
+        dy={["no", "yes"].includes(datum.resolution as string) ? -8 : -5}
         {...rest}
+        className="font-inter"
         style={{
           fontSize: 16,
           fontWeight: 700,
+          fontFamily: "var(--font-inter-variable)",
           fill: ({ datum }: any) => getLabelColor(datum),
         }}
         text={({ datum, index }: any) =>

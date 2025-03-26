@@ -10,7 +10,7 @@ import { ThemeColor } from "@/types/theme";
 type Props = VictoryLabelProps & {
   chartWidth: number;
   scale?: { x: (x: number) => number; y: (y: number) => number };
-  onLabelOverlap: (label: string, color: ThemeColor) => void;
+  onLabelOverlap: (label: string, color: ThemeColor, x: number) => void;
 };
 
 const SMALL_CHART_WIDTH = 400;
@@ -36,7 +36,7 @@ const ScatterLabel: FC<Props> = ({ chartWidth, ...props }) => {
       const allowedDistance = datum?.labelWidth / 2 + item.labelWidth / 2;
       if (Math.abs(scaledX - scaledItemX) <= allowedDistance) {
         setIsOverlapping(true);
-        onLabelOverlap(label, datum?.color);
+        onLabelOverlap(label, datum?.color, x);
         break;
       }
     }
