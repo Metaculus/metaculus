@@ -82,7 +82,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     );
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
-  const forecastInputMode = option.forecastInputMode;
+  const { forecastInputMode, isDirty, userQuantileForecast } = option;
 
   const forecast = useMemo(
     () =>
@@ -202,7 +202,11 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
                 variant="secondary"
                 type="reset"
                 onClick={() => handleResetForecasts(option)}
-                disabled={!option.isDirty}
+                disabled={
+                  forecastInputMode === ContinuousForecastInputType.Slider
+                    ? !isDirty
+                    : !userQuantileForecast.some((q) => q.isDirty)
+                }
               >
                 {t("discardChangesButton")}
               </Button>
