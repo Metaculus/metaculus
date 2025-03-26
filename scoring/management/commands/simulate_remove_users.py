@@ -44,7 +44,10 @@ class Command(BaseCommand):
                 )
                 return
 
-            if leaderboard.project and leaderboard.project.type == Project.ProjectTypes.SITE_MAIN:
+            if (
+                leaderboard.project
+                and leaderboard.project.type == Project.ProjectTypes.SITE_MAIN
+            ):
                 if not leaderboard.start_time or not leaderboard.end_time:
                     self.stdout.write(
                         self.style.ERROR(
@@ -103,8 +106,6 @@ def simulate_leaderboard_without_users(
         raise
 
     return updated_leaderboard_json
-
-
 
 
 def _move_leaderboard_forecasts_by_num_days(
@@ -171,6 +172,7 @@ def _get_leaderboard_representation(leaderboard: Leaderboard) -> list[dict[str, 
         }
         for entry in entries
     ]
+
 
 def _display_leaderboard(leaderboard: list[dict[str, Any]] | Leaderboard) -> None:
     if isinstance(leaderboard, Leaderboard):
