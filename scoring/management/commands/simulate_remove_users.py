@@ -119,19 +119,12 @@ def _move_leaderboard_forecasts_by_num_days(
 ) -> None:
     try:
         project = leaderboard.project
-
-        # Get all posts in this project
         posts = Post.objects.filter(
             Q(default_project=project) | Q(projects=project)
         ).distinct()
-
-        # Get all questions from these posts
         questions = Question.objects.filter(related_posts__post__in=posts).distinct()
-
-        # Get all forecasts for these questions by these users
         forecasts = Forecast.objects.filter(question__in=questions, author__in=users)
 
-        # Update each forecast's timestamp
         count = 0
         for forecast in forecasts:
             days_to_add = num_days
@@ -141,9 +134,8 @@ def _move_leaderboard_forecasts_by_num_days(
             forecast.save()
             count += 1
 
-        print(f"Updated {count} forecasts")
+        print(f"Updated {count} forecasts into the future")
 
-        # Rescore the affected questions
         for question in questions:
             resolution = question.resolution
             if not resolution or resolution in ["ambiguous", "annulled"]:
@@ -154,7 +146,6 @@ def _move_leaderboard_forecasts_by_num_days(
             )
         print(f"Rescored {len(questions)} questions")
 
-        # Force update the leaderboard
         print("Force updating leaderboard...")
         update_project_leaderboard(
             project=project, leaderboard=leaderboard, force_update=True

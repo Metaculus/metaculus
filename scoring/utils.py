@@ -43,6 +43,8 @@ def score_question(
             spot_scoring_time = question.spot_scoring_time.timestamp()
         elif question.cp_reveal_time:
             spot_scoring_time = question.cp_reveal_time.timestamp()
+        else:
+            spot_scoring_time = None
     else:
         spot_scoring_time = override_spot_scoring_time
 

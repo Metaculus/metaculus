@@ -323,7 +323,7 @@ def evaluate_question(
     question: Question,
     resolution_bucket: int | None,
     score_types: list[Score.ScoreTypes],
-    spot_forecast_timestamp: float,
+    spot_forecast_timestamp: float | None = None,
 ) -> list[Score]:
     if resolution_bucket is None:
         return []
@@ -374,6 +374,7 @@ def evaluate_question(
                     open_bounds_count,
                 )
             case ScoreTypes.SPOT_BASELINE:
+                assert spot_forecast_timestamp is not None, "Spot forecast timestamp is required for spot baseline scoring"
                 open_bounds_count = bool(question.open_upper_bound) + bool(
                     question.open_lower_bound
                 )
@@ -413,6 +414,7 @@ def evaluate_question(
                     geometric_means=geometric_means,
                 )
             case ScoreTypes.SPOT_PEER:
+                assert spot_forecast_timestamp is not None, "Spot forecast timestamp is required for spot peer scoring"
                 user_scores = evaluate_forecasts_peer_spot_forecast(
                     user_forecasts,
                     user_forecasts,
