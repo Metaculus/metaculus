@@ -7,6 +7,7 @@ from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
 
 from users.models import User, UserCampaignRegistration, UserSpamActivity
 from users.services.spam_detection import (
+    CONFIDENCE_THRESHOLD,
     check_profile_data_for_spam,
     send_deactivation_email,
 )
@@ -243,7 +244,15 @@ class UserCampaignRegistrationAdmin(admin.ModelAdmin):
 
 @admin.register(UserSpamActivity)
 class UserSpamActivityAdmin(admin.ModelAdmin):
-    list_display = ["user", "content_type", "content_id", "confidence", "reason"]
+    list_display = [
+        "user",
+        "content_type",
+        "content_link",
+        "confidence",
+        "confidence_value",
+        "reason",
+        "content_id",
+    ]
     readonly_fields = [
         "user",
         "content_type",
@@ -251,5 +260,23 @@ class UserSpamActivityAdmin(admin.ModelAdmin):
         "confidence",
         "reason",
         "text",
+        "confidence_value",
+        "content_link",
     ]
     search_fields = ["user__username", "user__email"]
+
+    def content_link(self, obj):
+        url_prefix = (
+            "/admin/comments/comment/"
+            if obj.content_type == UserSpamActivity.SpamContentType.COMMENT
+            else "/admin/posts/post/"
+        )
+
+        url = f"{url_prefix}{obj.content_id}/change/"
+        return format_html('<a href="{}">View</a>', url)
+    content_link.short_description = "Content link"
+
+    def confidence_value(self, obj):
+        return f"{'high (action taken)' if obj.confidence > CONFIDENCE_THRESHOLD else 'low (suspicious)'}"
+    confidence_value.admin_order_field = "confidence"
+    confidence_value.short_description = "Confidence"

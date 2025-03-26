@@ -14,6 +14,7 @@ from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User, UserSpamActivity
 from users.services.spam_detection import (
+    CONFIDENCE_THRESHOLD,
     send_repeated_spam_to_admins_email,
     should_check_for_user_spam,
     send_suspected_spam_to_admins_email,
@@ -66,7 +67,6 @@ def get_comment_permission_for_user(
 
 
 def check_and_handle_comment_spam(author: User, comment: Comment) -> bool:
-    CONFIDENCE_THRESHOLD = 0.9
 
     private_note = comment.is_private
     private_post = comment.on_post.is_private() if comment.on_post else None
