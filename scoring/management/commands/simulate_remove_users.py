@@ -4,10 +4,8 @@ from typing import Any
 
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import transaction
-from django.db.models import Q
-
-from posts.models import Post
-from questions.models import Forecast, Question
+from projects.models import Project
+from questions.models import Forecast
 from scoring.models import Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
@@ -46,14 +44,23 @@ class Command(BaseCommand):
                 )
                 return
 
+            if leaderboard.project and leaderboard.project.type == Project.ProjectTypes.SITE_MAIN:
+                if not leaderboard.start_time or not leaderboard.end_time:
+                    self.stdout.write(
+                        self.style.ERROR(
+                            "Global leaderboards must have start_time and end_time set"
+                        )
+                    )
+                    return
+
             self.stdout.write("Original leaderboard:")
-            display_leaderboard(leaderboard)
+            _display_leaderboard(leaderboard)
 
             self.stdout.write("\nSimulating leaderboard without specified users...")
             updated_leaderboard = simulate_leaderboard_without_users(leaderboard, users)
 
             self.stdout.write("\nSimulated leaderboard:")
-            display_leaderboard(updated_leaderboard)
+            _display_leaderboard(updated_leaderboard)
 
             if options["output"]:
                 file_path_to_save_to = options["output"]
@@ -98,18 +105,6 @@ def simulate_leaderboard_without_users(
     return updated_leaderboard_json
 
 
-def display_leaderboard(leaderboard: list[dict[str, Any]] | Leaderboard) -> None:
-    if isinstance(leaderboard, Leaderboard):
-        leaderboard_json = _get_leaderboard_representation(leaderboard)
-    else:
-        leaderboard_json = leaderboard
-
-    print("Rank | Username | Score | Take | Prize")
-    print("-" * 50)
-    for entry in leaderboard_json:
-        print(
-            f"{entry['rank']:4d} | {entry['username']:20s} | {entry['score']:6.2f} | {entry['take']:6.2f} | {entry['prize']:6.2f}%"
-        )
 
 
 def _move_leaderboard_forecasts_by_num_days(
@@ -118,11 +113,7 @@ def _move_leaderboard_forecasts_by_num_days(
     num_days: int,
 ) -> None:
     try:
-        project = leaderboard.project
-        posts = Post.objects.filter(
-            Q(default_project=project) | Q(projects=project)
-        ).distinct()
-        questions = Question.objects.filter(related_posts__post__in=posts).distinct()
+        questions = leaderboard.get_questions()
         forecasts = Forecast.objects.filter(question__in=questions, author__in=users)
 
         count = 0
@@ -148,7 +139,7 @@ def _move_leaderboard_forecasts_by_num_days(
 
         print("Force updating leaderboard...")
         update_project_leaderboard(
-            project=project, leaderboard=leaderboard, force_update=True
+            project=leaderboard.project, leaderboard=leaderboard, force_update=True
         )
         print("Leaderboard updated successfully")
 
@@ -180,3 +171,16 @@ def _get_leaderboard_representation(leaderboard: Leaderboard) -> list[dict[str, 
         }
         for entry in entries
     ]
+
+def _display_leaderboard(leaderboard: list[dict[str, Any]] | Leaderboard) -> None:
+    if isinstance(leaderboard, Leaderboard):
+        leaderboard_json = _get_leaderboard_representation(leaderboard)
+    else:
+        leaderboard_json = leaderboard
+
+    print("Rank | Username | Score | Take | Prize")
+    print("-" * 50)
+    for entry in leaderboard_json:
+        print(
+            f"{entry['rank']:4d} | {entry['username']:20s} | {entry['score']:6.2f} | {entry['take']:6.2f} | {entry['prize']:6.2f}%"
+        )
