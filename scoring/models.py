@@ -460,8 +460,17 @@ def populate_medal_exclusion_records():
             "exclusion_type": "staff",
         },
     ]
+
+    # Filter only existing users
+    user_ids = list(
+        User.objects.filter(id__in=[x["user_id"] for x in exclusions]).values_list(
+            "id", flat=True
+        )
+    )
+
     for exclusion in exclusions:
-        MedalExclusionRecord.objects.get_or_create(**exclusion)
+        if exclusion["user_id"] in user_ids:
+            MedalExclusionRecord.objects.get_or_create(**exclusion)
 
 
 def global_leaderboard_dates() -> list[tuple[datetime, datetime]]:

@@ -6,7 +6,8 @@ from posts.models import PostSubscription, Post
 from projects.models import ProjectSubscription, Project
 from questions.models import Question
 from users.models import User
-from ..utils import paginated_query
+
+from ..utils import paginated_query, filter_for_existing_users
 
 
 def migrate_specific_time(old_reminder: dict) -> PostSubscription:
@@ -247,7 +248,9 @@ def migrate_tournament_subscriptions():
     project_ids = Project.objects.values_list("id", flat=True)
 
     for idx, old_subscription in enumerate(
-        paginated_query("SELECT * FROM metac_project_userprojectfollow")
+        filter_for_existing_users(
+            paginated_query("SELECT * FROM metac_project_userprojectfollow")
+        )
     ):
         project_id = old_subscription["project_id"]
 

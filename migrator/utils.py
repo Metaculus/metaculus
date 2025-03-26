@@ -5,8 +5,8 @@ from io import StringIO
 from django.apps import apps
 from django.core.management import call_command
 from django.db import connections, connection
-
 from utils.db import paginate_cursor
+from users.models import User
 
 
 @contextlib.contextmanager
@@ -107,3 +107,11 @@ def cleanup_markdown(md):
     md = re.sub(r"(<(img|br)[^>]*)(?<!/)>", r"\1 />", md)
 
     return md
+
+
+def filter_for_existing_users(query_generator, user_id_field="user_id"):
+    user_ids = list(User.objects.values_list("id", flat=True))
+
+    for obj in query_generator:
+        if obj.get(user_id_field) in user_ids:
+            yield obj

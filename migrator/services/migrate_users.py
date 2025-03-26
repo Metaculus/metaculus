@@ -1,8 +1,7 @@
-from social_django.models import Association, Code, Nonce, Partial, UserSocialAuth
-from rest_framework.authtoken.models import Token
 from django.utils import timezone
-
-from migrator.utils import paginated_query
+from migrator.utils import paginated_query, filter_for_existing_users
+from rest_framework.authtoken.models import Token
+from social_django.models import Association, Code, Nonce, Partial, UserSocialAuth
 from users.models import User
 
 
@@ -37,20 +36,31 @@ def create_user(user_obj: dict) -> User:
 
 
 def migrate_social_auth():
-    social_auth_models = [UserSocialAuth, Partial, Nonce, Code, Association]
-
-    for model in social_auth_models:
-        model.objects.bulk_create(
-            [
-                model(**data)
-                for data in paginated_query(f"SELECT * FROM {model._meta.db_table}")
-            ]
-        )
+    UserSocialAuth.objects.bulk_create(
+        [
+            UserSocialAuth(**obj)
+            for obj in filter_for_existing_users(
+                paginated_query(f"SELECT * FROM social_auth_usersocialauth")
+            )
+        ]
+    )
 
     print("Migrated DjangoSocial tables")
 
 
-def migrate_users():
+def migrate_users(site_ids: list = None):
+    allowed_users = None
+
+    if site_ids:
+        allowed_users = list(
+            paginated_query(
+                "SELECT user_id FROM metac_account_usersitedata " "WHERE site_id in %s",
+                [tuple(site_ids)],
+                only_columns="user_id",
+                flat=True,
+            )
+        )
+
     start = timezone.now()
     users = []
     for i, user_obj in enumerate(
@@ -61,6 +71,9 @@ def migrate_users():
         ),
         1,
     ):
+        if allowed_users is not None and user_obj["id"] not in allowed_users:
+            continue
+
         print(
             f"\033[Kmigrating users: {i}. "
             f"dur:{str(timezone.now() - start).split('.')[0]} ",
@@ -85,6 +98,9 @@ def migrate_users():
     start = timezone.now()
     tokens = []
     for i, token_obj in enumerate(paginated_query("SELECT * FROM authtoken_token"), 1):
+        if allowed_users is not None and token_obj["user_id"] not in allowed_users:
+            continue
+
         tokens.append(Token(**token_obj))
         print(
             f"\033[Kmigrating tokens: {i}. "

@@ -2,12 +2,11 @@ import itertools
 import json
 
 from django.db import IntegrityError
-
 from migrator.utils import paginated_query, reset_sequence
 from posts.models import Post
-from scoring.models import Leaderboard
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from scoring.models import Leaderboard
 
 
 def normalize_slug(slug: str):
@@ -355,3 +354,11 @@ def migrate_projects(site_ids: list[int] = None):
         q_p_m2m_cls.objects.bulk_create(m2m_objects, ignore_conflicts=True)
 
     migrate_topics(post_ids, q_p_m2m_cls)
+
+
+def cleanup_unused_projects():
+    """
+    Drop projects without relations
+    """
+
+    Project.objects.filter(default_posts__isnull=True, posts__isnull=True).delete()

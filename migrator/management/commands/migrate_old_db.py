@@ -20,7 +20,7 @@ from migrator.services.migrate_mailgun_notification_preferences import (
     migrate_mailgun_notification_preferences,
 )
 from migrator.services.migrate_permissions import migrate_permissions
-from migrator.services.migrate_projects import migrate_projects
+from migrator.services.migrate_projects import migrate_projects, cleanup_unused_projects
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_scoring import migrate_archived_scores, score_questions
 from migrator.services.migrate_subscriptions import migrate_subscriptions
@@ -79,7 +79,7 @@ class Command(BaseCommand):
         call_command("migrate")
 
         # main model migration
-        migrate_users()
+        migrate_users(site_ids=site_ids)
         task_start = print_duration("Migrated users", task_start, start)
         migrate_fab_credits()
         task_start = print_duration("Migrated fab credits", task_start, start)
@@ -123,6 +123,9 @@ class Command(BaseCommand):
         task_start = print_duration("Populated global leaderboards", task_start, start)
         populate_project_leaderboards()
         task_start = print_duration("Populated project leaderboards", task_start, start)
+
+        # Cleanup
+        cleanup_unused_projects()
 
         # stats on questions
         post_migrate_calculate_divergence()
