@@ -17,6 +17,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
+CONFIDENCE_THRESHOLD = 0.9
 
 def should_check_for_user_spam(user: User) -> bool:
     comments_count = Comment.objects.filter(author=user).count()
