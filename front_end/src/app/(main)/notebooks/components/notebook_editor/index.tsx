@@ -3,6 +3,7 @@
 import "./editor.css";
 
 import { Field, Input, Label } from "@headlessui/react";
+import { ApiError } from "next/dist/server/api-utils";
 import { useLocale, useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
 
@@ -24,6 +25,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
 }) => {
   const t = useTranslations();
   const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [title, setTitle] = useState(postData.title);
   const [markdown, setMarkdown] = useState(postData.notebook.markdown);
@@ -35,9 +37,15 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
     (postData.user_permission === ProjectPermissions.CREATOR &&
       postData.curation_status !== PostStatus.APPROVED);
 
-  const toggleEditMode = () => {
+  const toggleEditMode = async () => {
     if (isEditing) {
-      void updateNotebook(postData.id, markdown, title);
+      try {
+        setError(null);
+        await updateNotebook(postData.id, markdown, title);
+      } catch (error) {
+        const errorData = error as ApiError;
+        setError(errorData.message);
+      }
     }
 
     setIsEditing((prev) => !prev);
@@ -63,6 +71,10 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
           </Button>
         )}
       </div>
+
+      {error && (
+        <div className="text-red-500 dark:text-red-500-dark">{error}</div>
+      )}
 
       {isEditing && (
         <div className="flex flex-col">

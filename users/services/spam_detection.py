@@ -1,23 +1,24 @@
 import asyncio
-import textwrap
-from typing import cast
 import logging
+import textwrap
+import time
+from datetime import timedelta
+from typing import cast
 
 from django.conf import settings
 from django.utils import timezone
 
 from comments.models import Comment
-from posts.models import Post
-from users.serializers import UserUpdateProfileSerializer
-from users.models import User
-from utils.email import send_email_with_template
-from utils.openai import generate_text_async
 from misc.tasks import send_email_async
-import time
+from posts.models import Post
+from users.models import User, UserSpamActivity
+from users.serializers import UserUpdateProfileSerializer
+from utils.email import send_email_with_template
+from utils.openai import generate_text_async, run_spam_analysis
 
 logger = logging.getLogger(__name__)
-
 CONFIDENCE_THRESHOLD = 0.9
+
 
 def should_check_for_user_spam(user: User) -> bool:
     comments_count = Comment.objects.filter(author=user).count()
@@ -25,6 +26,76 @@ def should_check_for_user_spam(user: User) -> bool:
 
     # Check for spam if the user has posted less than X posts or comments
     return comments_count + posts_count <= 20
+
+
+def check_and_handle_content_spam(
+    author: User,
+    content_text: str,
+    content_id: int,
+    content_type: str,
+    content_url: str,
+    admin_emails: list[str],
+) -> bool:
+    if (
+        not settings.CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS
+        or not should_check_for_user_spam(author)
+    ):
+        return False
+
+    result = run_spam_analysis(content_text, content_type)
+
+    # TODO: Remove this once we gain some confidence it the level of false positives is acceptable
+    logging.info(f"Spam analysis result {result} from content {content_text}")
+
+    if not result.is_spam:
+        return False
+
+    UserSpamActivity.objects.create(
+        user=author,
+        reason=result.reason,
+        confidence=result.confidence,
+        content_type=content_type,
+        content_id=content_id,
+        text=content_text,
+    )
+
+    # High confidence spam
+    if result.confidence > CONFIDENCE_THRESHOLD:
+        # Deactivate user if they have 10 or more spam entries
+        total_spam_count = UserSpamActivity.objects.filter(
+            user=author, confidence__gte=CONFIDENCE_THRESHOLD
+        ).count()
+        if total_spam_count > 10:
+            author.is_active = False
+            author.is_spam = True
+            author.save(update_fields=["is_active", "is_spam"])
+            send_deactivation_email(author.email)
+
+        # Send an email to admins if the user has 2 or more spam entries within 2 weeks
+        spam_count = UserSpamActivity.objects.filter(
+            user=author,
+            created_at__gte=timezone.now() - timedelta(days=14),
+        ).count()
+        if spam_count >= 2:
+            send_repeated_spam_to_admins_email(
+                admin_emails,
+                author=author,
+                content_type=content_type,
+                content_url=content_url,
+                content_text=content_text,
+            )
+        return True
+
+    # Low confidence spam
+    send_suspected_spam_to_admins_email(
+        admin_emails,
+        author=author,
+        content_type=content_type,
+        content_url=content_url,
+        content_text=content_text,
+    )
+
+    return False
 
 
 def check_profile_data_for_spam(user: User, **args):
