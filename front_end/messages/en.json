@@ -1164,7 +1164,7 @@
   "today": "Today",
   "forecastCopyToAll": "Copy to all",
   "forecastCopyTo": "Copy to…",
-  "forecastCopyToRich": "Copy to <label></label>",
+  "forecastCopyToRich": "<label>Copy to</label> {title}",
   "forecastCopyFrom": "Copy from…",
-  "forecastCopyFromRich": "Copy from <label></label>"
+  "forecastCopyFromRich": "<label>Copy from</label> {title}"
 }

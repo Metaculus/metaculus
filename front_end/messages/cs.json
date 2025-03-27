@@ -1167,7 +1167,7 @@
   "spotScoingTime": "Čas bodového hodnocení",
   "forecastCopyToAll": "Kopírovat do všech",
   "forecastCopyTo": "Kopírovat do…",
-  "forecastCopyToRich": "Kopírovat do <label></label>",
   "forecastCopyFrom": "Kopírovat z…",
-  "forecastCopyFromRich": "Kopírovat z <label></label>"
+  "forecastCopyToRich": "<label>Kopírovat do</label> {title}",
+  "forecastCopyFromRich": "<label>Kopírovat z</label> {title}"
 }

@@ -1169,7 +1169,7 @@
   "spotScoingTime": "分数打点时间",
   "forecastCopyToAll": "复制到所有",
   "forecastCopyTo": "复制到…",
-  "forecastCopyToRich": "复制到<label></label>",
   "forecastCopyFrom": "从…复制",
-  "forecastCopyFromRich": "从<label></label>复制"
+  "forecastCopyToRich": "<label>复制到</label> {title}",
+  "forecastCopyFromRich": "<label>复制自</label> {title}"
 }

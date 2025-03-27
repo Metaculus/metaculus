@@ -32,12 +32,10 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
     });
   }, [handleCopy, options, option.id]);
 
-  // Menu mode: "main" for the primary menu, or "copyTo" when listing options to copy to.
   const [menuMode, setMenuMode] = useState<"main" | "copyTo" | "copyFrom">(
     "main"
   );
 
-  // Compute the menu items based on the current mode
   const menuItems: MenuItemProps[] = useMemo(() => {
     if (menuMode === "main") {
       return [
@@ -71,14 +69,17 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
           element: (
             <button
               className={cn(
-                "w-full self-stretch whitespace-nowrap p-2 text-left hover:bg-gray-200 hover:dark:bg-gray-200-dark"
+                "w-full self-stretch whitespace-nowrap p-2 text-right hover:bg-gray-200 hover:dark:bg-gray-200-dark"
               )}
               onClick={() => {
                 handleCopy(option.id, targetOption.id);
               }}
             >
               {t.rich("forecastCopyToRich", {
-                label: () => <span>{targetOption.name}</span>,
+                label: (element) => (
+                  <span className="opacity-50">{element}</span>
+                ),
+                title: targetOption.name,
               })}
             </button>
           ),
@@ -91,14 +92,17 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
           element: (
             <button
               className={cn(
-                "w-full self-stretch whitespace-nowrap p-2 text-left hover:bg-gray-200 hover:dark:bg-gray-200-dark"
+                "w-full self-stretch whitespace-nowrap p-2 text-right hover:bg-gray-200 hover:dark:bg-gray-200-dark"
               )}
               onClick={() => {
                 handleCopy(targetOption.id, option.id);
               }}
             >
               {t.rich("forecastCopyFromRich", {
-                label: () => <span>{targetOption.name}</span>,
+                label: (element) => (
+                  <span className="opacity-50">{element}</span>
+                ),
+                title: targetOption.name,
               })}
             </button>
           ),
@@ -111,8 +115,9 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
   return (
     <DropdownMenu
       items={menuItems}
-      textAlign="left"
+      textAlign="right"
       onClose={() => setMenuMode("main")}
+      className="text-blue-800 dark:text-blue-800-dark"
     >
       <Button
         className="size-[26px] border border-blue-400 dark:border-blue-400-dark"

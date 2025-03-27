@@ -1165,7 +1165,7 @@
   "spotScoingTime": "Tempo de Pontuação do Spot",
   "forecastCopyToAll": "Copiar para todos",
   "forecastCopyTo": "Copiar para…",
-  "forecastCopyToRich": "Copiar para <label></label>",
   "forecastCopyFrom": "Copiar de…",
-  "forecastCopyFromRich": "Copiar de <label></label>"
+  "forecastCopyToRich": "<label>Copiar para</label> {title}",
+  "forecastCopyFromRich": "<label>Copiar de</label> {title}"
 }

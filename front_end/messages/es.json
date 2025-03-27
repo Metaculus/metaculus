@@ -1167,7 +1167,7 @@
   "spotScoingTime": "Tiempo de Evaluación Inmediata",
   "forecastCopyToAll": "Copiar a todos",
   "forecastCopyTo": "Copiar a…",
-  "forecastCopyToRich": "Copiar a <label></label>",
   "forecastCopyFrom": "Copiar de…",
-  "forecastCopyFromRich": "Copiar de <label></label>"
+  "forecastCopyToRich": "<label>Copiar a</label> {title}",
+  "forecastCopyFromRich": "<label>Copiar desde</label> {title}"
 }
