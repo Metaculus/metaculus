@@ -21,7 +21,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   const questionTitle = getQuestionTitle(postData);
   return {
-    title: questionTitle,
+    title: postData.short_title ?? questionTitle,
     description: null,
     openGraph: {
       type: "article",
