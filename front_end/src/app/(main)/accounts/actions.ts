@@ -53,7 +53,7 @@ export default async function loginAction(
     };
   }
 
-  setServerSession(response.token);
+  await setServerSession(response.token);
 
   const { PUBLIC_LANDING_PAGE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
     getPublicSettings();
@@ -75,7 +75,7 @@ export type SignUpActionState =
 export async function signUpAction(
   validatedSignupData: SignUpSchema & { redirectUrl?: string }
 ): Promise<SignUpActionState> {
-  const headersList = headers();
+  const headersList = await headers();
 
   const ipAddress =
     headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");
@@ -104,7 +104,7 @@ export async function signUpAction(
     const signUpActionState: SignUpActionState = { ...response };
 
     if (response.is_active && response.token) {
-      setServerSession(response.token);
+      await setServerSession(response.token);
 
       revalidatePath("/");
 
@@ -130,7 +130,7 @@ export async function signUpAction(
 }
 
 export async function LogOut() {
-  deleteServerSession();
+  await deleteServerSession();
   return redirect("/");
 }
 

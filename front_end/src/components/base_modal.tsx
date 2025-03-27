@@ -13,7 +13,7 @@ type Props = {
   onClose?: (isOpen: boolean) => void;
   className?: string;
   isImmersive?: boolean;
-  modalContentRef?: React.RefObject<HTMLDivElement>;
+  modalContentRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 const BaseModal: FC<PropsWithChildren<Props>> = ({

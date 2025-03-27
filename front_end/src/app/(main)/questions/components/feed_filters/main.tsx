@@ -1,7 +1,8 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
+import { fetchProjectFilters } from "@/app/(main)/questions/actions";
 import {
   getFilterSectionParticipation,
   getFilterSectionPostStatus,
@@ -20,20 +21,38 @@ import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { TournamentPreview } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
+
 type Props = {
   following?: boolean;
-  tournaments?: TournamentPreview[];
+  withProjectFilters?: boolean;
   panelClassname?: string;
 };
 
 const MainFeedFilters: FC<Props> = ({
   following,
-  tournaments,
+  withProjectFilters = false,
   panelClassname,
 }) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
+
+  const [projectFilters, setProjectFilters] = useState<
+    TournamentPreview[] | undefined
+  >();
+
+  useEffect(() => {
+    const loadProjectFilters = async () => {
+      const filters = await fetchProjectFilters();
+      if (filters) {
+        setProjectFilters(filters);
+      }
+    };
+
+    if (withProjectFilters) {
+      void loadProjectFilters();
+    }
+  }, [withProjectFilters]);
 
   const filters = useMemo(() => {
     const filters = [
@@ -55,12 +74,14 @@ const MainFeedFilters: FC<Props> = ({
     ];
     if (user) {
       filters.push(getFilterSectionParticipation({ t, params, user }));
-      if (user.is_superuser && tournaments) {
-        filters.push(getFilterSectionProjects({ t, params, tournaments }));
+      if (user.is_superuser && projectFilters) {
+        filters.push(
+          getFilterSectionProjects({ t, params, projects: projectFilters })
+        );
       }
     }
     return filters;
-  }, [params, t, user, tournaments]);
+  }, [params, t, user, projectFilters]);
 
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [

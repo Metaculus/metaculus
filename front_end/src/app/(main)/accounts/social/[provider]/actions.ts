@@ -17,6 +17,6 @@ export async function exchangeSocialOauthCode(
   );
 
   if (response?.token) {
-    setServerSession(response.token);
+    await setServerSession(response.token);
   }
 }

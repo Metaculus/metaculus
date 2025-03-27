@@ -28,7 +28,7 @@ export const useDebouncedCallback = <T>(
   wait: number,
   options?: DebounceOptions
 ) => {
-  const timeout = useRef<Timer>();
+  const timeout = useRef<Timer | undefined>(undefined);
   const funcRef = useRef(func);
   const argRef = useRef<T | null>(null);
 

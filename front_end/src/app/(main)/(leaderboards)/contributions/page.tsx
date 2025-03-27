@@ -7,11 +7,10 @@ import { CONTRIBUTIONS_USER_FILTER } from "./search_params";
 import { getContributionParams } from "../contributions/helpers/filters";
 import { SCORING_CATEGORY_FILTER } from "../search_params";
 
-export default async function Contributions({
-  searchParams,
-}: {
-  searchParams: SearchParams;
+export default async function Contributions(props: {
+  searchParams: Promise<SearchParams>;
 }) {
+  const searchParams = await props.searchParams;
   const params = getContributionParams(searchParams);
   invariant(params.userId, "User ID is required");
   const remainingSearchParams = new URLSearchParams(

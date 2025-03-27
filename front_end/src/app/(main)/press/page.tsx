@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getLocale } from "next-intl/server";
 
 import DisclosureSection from "./components/DisclosureSection";
@@ -122,8 +123,8 @@ export default async function PressPage() {
           <p>
             Metaculus users&apos; individual forecasts are shown on their
             profile track records, and are rigorously evaluated. Our{" "}
-            <a href="/questions/track-record">own track record</a> is public and
-            robust.
+            <Link href="/questions/track-record">own track record</Link> is
+            public and robust.
           </p>
           <h2>Download Assets</h2>
           <p>

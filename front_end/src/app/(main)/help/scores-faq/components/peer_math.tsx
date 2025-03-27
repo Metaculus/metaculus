@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
 import KatexRenderer from "@/components/katex_renderer";
@@ -11,8 +12,8 @@ const PeerMath = () => {
     <StyledDisclosure question="Peer score math">
       <p>
         The Peer scores are built on{" "}
-        <a href="/help/scores-faq/#log-score">log scores</a>, with the general
-        form:
+        <Link href="/help/scores-faq/#log-score">log scores</Link>, with the
+        general form:
       </p>
       <KatexRenderer
         equation="\text{Peer score} = 100 \times \frac{1}{N} \sum_{i = 1}^N \operatorname{log\ score}(p) - \operatorname{log\ score}(p_i)"

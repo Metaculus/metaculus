@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
 import StyledDisclosure from "../../components/styled_disclosure";
@@ -68,17 +69,20 @@ const DisclosureSection = () => {
           working to improve human reasoning and coordination on topics of
           global importance. As a Public Benefit Corporation, Metaculus provides
           decision support based on these forecasts to a variety of institutions
-          (<a href="/about">learn more</a>).
+          (<Link href="/about">learn more</Link>).
         </p>
         <p>
           Metaculus features questions on a wide range of topics, with a
           particular focus on{" "}
-          <a href="/questions/?topic=ai">artificial intelligence</a>,{" "}
-          <a href="/questions/?categories=health-pandemics">biosecurity</a>,{" "}
-          <a href="/questions/?categories=environment-climate">
+          <Link href="/questions/?topic=ai">artificial intelligence</Link>,{" "}
+          <Link href="/questions/?categories=health-pandemics">
+            biosecurity
+          </Link>
+          ,{" "}
+          <Link href="/questions/?categories=environment-climate">
             climate change
-          </a>
-          , and <a href="/questions/?categories=nuclear">nuclear risk</a>.
+          </Link>
+          , and <Link href="/questions/?categories=nuclear">nuclear risk</Link>.
         </p>
       </StyledDisclosure>
       <StyledDisclosure question="So, is Metaculus a “prediction market”?">
@@ -120,7 +124,7 @@ const DisclosureSection = () => {
           And critically, the research, methods, and reasoning that Metaculus
           forecasters produce are themselves valuable, as seen both in question
           comments as well as in the{" "}
-          <a href="/project/journal">Metaculus Journal</a>.
+          <Link href="/project/journal">Metaculus Journal</Link>.
         </p>
       </StyledDisclosure>
       <StyledDisclosure question="How can forecasts help with your reporting?">
@@ -188,12 +192,12 @@ const DisclosureSection = () => {
                     window.metacData.press_page.referenced_questions[0],
                   )}
                 /> */}
-              <a
+              <Link
                 href="/questions/7792/100-deaths-in-chinataiwan-conflict-by-2026/"
                 className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
               >
                 9%
-              </a>
+              </Link>
               , not least because war between great powers is rare and because
               war between nuclear-armed great powers is unprecedented. Forecasts
               can provide an outside perspective on highly charged issues and
@@ -214,15 +218,15 @@ const DisclosureSection = () => {
               lead to a more utopian or a more dystopian future?”) are
               impossible to answer at this point. We can, however, provide
               forecasts on{" "}
-              <a href="/questions/?topic=ai">more targeted questions</a> on AI
-              safety, the regulation of AI, technical progress on AI, and the
-              business of AI—all of which can help us better understand which
-              direction we are headed in and how fast. Forecasting questions
-              serve as clues as to what developments we should be paying
-              particular attention to. And a{" "}
-              <a href="/notebooks/16708/exploring-metaculuss-ai-track-record/">
+              <Link href="/questions/?topic=ai">more targeted questions</Link>{" "}
+              on AI safety, the regulation of AI, technical progress on AI, and
+              the business of AI—all of which can help us better understand
+              which direction we are headed in and how fast. Forecasting
+              questions serve as clues as to what developments we should be
+              paying particular attention to. And a{" "}
+              <Link href="/notebooks/16708/exploring-metaculuss-ai-track-record/">
                 thorough analysis
-              </a>{" "}
+              </Link>{" "}
               of our track record on AI-related questions showed that Metaculus
               predictions offer clear and useful insights into the future of the
               field and its impacts.
@@ -238,12 +242,12 @@ const DisclosureSection = () => {
                     window.metacData.press_page.referenced_questions[1],
                   )}
                 /> */}
-              <a
+              <Link
                 href="/questions/5121/date-of-artificial-general-intelligence/"
                 className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
               >
                 Apr 29, 2033
-              </a>
+              </Link>
               —was used by{" "}
               <a
                 target="_blank"

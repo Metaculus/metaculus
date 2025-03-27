@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { FC, Fragment, Suspense } from "react";
 
 import { SearchParams } from "@/types/navigation";
@@ -21,12 +21,12 @@ export const metadata = {
     "Explore the top forecasters on Metaculus and see how users rank by prediction accuracy and community participation.",
 };
 
-export default function GlobalLeaderboards({
-  searchParams,
-}: {
-  searchParams: SearchParams;
+export default async function GlobalLeaderboards(props: {
+  searchParams: Promise<SearchParams>;
 }) {
-  const t = useTranslations();
+  const searchParams = await props.searchParams;
+
+  const t = await getTranslations();
   const filters = extractLeaderboardFiltersFromParams(searchParams, t);
   const { year, duration } = filters;
 

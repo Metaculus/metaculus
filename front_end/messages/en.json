@@ -1161,6 +1161,7 @@
   "cpDescendingSubquestionOrder": "Community Prediction (Descending)",
   "groupSorting": "Group sorting",
   "groupSortingDescription": "The order of the subquestions in the group",
+  "today": "Today",
   "forecastCopyToAll": "Copy to all",
   "forecastCopyTo": "Copy to…",
   "forecastCopyToRich": "Copy to <label></label>",

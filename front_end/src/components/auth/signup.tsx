@@ -45,7 +45,7 @@ export const SignupForm: FC<{
     // Treat as validated if project is not configured with Turnstile key
     useState(!PUBLIC_TURNSTILE_SITE_KEY);
   const { setCurrentModal } = useModal();
-  const turnstileRef = useRef<TurnstileInstance | undefined>();
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
 
   const methods = useForm<SignUpSchema>({
     resolver: zodResolver(generateSignUpSchema(PUBLIC_TURNSTILE_SITE_KEY)),

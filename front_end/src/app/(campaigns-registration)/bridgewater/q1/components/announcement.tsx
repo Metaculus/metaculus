@@ -1,5 +1,6 @@
 import { faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 
 declare global {
   interface Window {
@@ -23,12 +24,12 @@ function Announcement() {
           />
           Congratulations to the winners! Below are the top 10 forecasters for
           each competition. See the full rankings on the{" "}
-          <a
+          <Link
             className="text-purple-700 hover:text-purple-800 dark:text-purple-700-dark dark:hover:text-purple-800-dark"
             href="/tournament/bridgewater/"
           >
             contest page.
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
@@ -85,8 +87,10 @@ export default function PrivacyPolicy() {
         If you are located in the European Economic Area (&quot;<b>EEA&quot;</b>
         ) or the United Kingdom (&quot;<b>U.K.</b>&quot;), this entire Privacy
         Policy applies to you. However, please see our{" "}
-        <a href="/privacy-policy/eea-and-uk/">EEA and UK Privacy Addendum</a>,
-        which provides more information about which rights you have regarding
+        <Link href="/privacy-policy/eea-and-uk/">
+          EEA and UK Privacy Addendum
+        </Link>
+        , which provides more information about which rights you have regarding
         the processing of your personal data.
       </p>
 
@@ -99,7 +103,9 @@ export default function PrivacyPolicy() {
         with changing regulations or internal data privacy procedures. In the
         event of an update, the revised policy statement will be posted
         at:&nbsp;
-        <a href="/privacy-policy/">https://www.metaculus.com/privacy-policy/</a>
+        <Link href="/privacy-policy/">
+          https://www.metaculus.com/privacy-policy/
+        </Link>
         . Your continued use of the Service following the posting of changes
         will mean that you accept and agree to the revised Privacy Policy.
       </p>
@@ -958,7 +964,7 @@ export default function PrivacyPolicy() {
           have provided to us infringes on their rights; upon request of an
           academic institution connected to an investigation into academic
           integrity; to enforce or apply our 
-          <a href="/terms-of-use/">Terms of Use</a> and other agreements
+          <Link href="/terms-of-use/">Terms of Use</Link> and other agreements
           applicable to the Service, including for billing and collection
           purposes; or if we believe disclosure is necessary or appropriate to
           protect the personal safety, rights, property or security of any

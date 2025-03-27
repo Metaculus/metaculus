@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import Button from "@/components/ui/button";
 
 import GlobalHeader from "../../../(main)/components/headers/global_header";
@@ -214,12 +216,12 @@ export default function ContestRules() {
             <p className="ml-6">
               Metaculus takes the privacy of its users very seriously. For the
               current Metaculus Privacy Policy, please{" "}
-              <a
+              <Link
                 href="/privacy-policy/"
                 className="text-blue-600 hover:underline"
               >
                 click here
-              </a>
+              </Link>
               .
             </p>
             <p className="ml-6">

@@ -81,10 +81,10 @@ const PostStatusIcon: FC<Props> = ({
           <text
             x="0"
             y="4"
-            font-size="14"
-            font-weight="bold"
+            fontSize="14"
+            fontWeight="bold"
             fill="currentColor"
-            text-anchor="middle"
+            textAnchor="middle"
           >
             ?
           </text>

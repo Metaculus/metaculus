@@ -2,8 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
-import { useFormState } from "react-dom";
+import { FC, useActionState } from "react";
 import { useForm } from "react-hook-form";
 
 import {
@@ -27,7 +26,7 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
   const { register } = useForm<PasswordResetConfirmSchema>({
     resolver: zodResolver(passwordResetConfirmSchema),
   });
-  const [state, formAction] = useFormState<
+  const [state, formAction] = useActionState<
     PasswordResetConfirmActionState,
     FormData
   >(passwordResetConfirmAction, null);

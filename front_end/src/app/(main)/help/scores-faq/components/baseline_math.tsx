@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
 import KatexRenderer from "@/components/katex_renderer";
@@ -11,8 +12,8 @@ const BaselineMath = () => {
     <StyledDisclosure question="Baseline score math">
       <p>
         The Baseline scores are rescaled{" "}
-        <a href="/help/scores-faq/#log-score">log scores</a>, with the general
-        form:
+        <Link href="/help/scores-faq/#log-score">log scores</Link>, with the
+        general form:
       </p>
       <KatexRenderer
         equation="\text{Baseline score} = 100 \times

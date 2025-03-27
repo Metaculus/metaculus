@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -32,7 +34,9 @@ export default function EEAandUK() {
 
       <p className={styles.paragraph}>
         As explained in our privacy policy located at{" "}
-        <a href="/privacy-policy/">https://www.metaculus.com/privacy-policy/</a>{" "}
+        <Link href="/privacy-policy/">
+          https://www.metaculus.com/privacy-policy/
+        </Link>{" "}
         (the &quot;<b>Policy</b>&quot;), which informs you about the categories
         of personal data we collect when you visit the{" "}
         <a href="https://www.metaculus.com">https://www.metaculus.com</a> (the

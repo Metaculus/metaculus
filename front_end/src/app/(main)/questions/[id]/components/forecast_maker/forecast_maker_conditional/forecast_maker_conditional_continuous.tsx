@@ -112,7 +112,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   }, [conditional, t]);
 
   const [activeTableOption, setActiveTableOption] = useState(
-    questionOptions.at(0)?.id ?? null
+    questionOptions.at(0)?.question.resolution === "annulled"
+      ? questionOptions.at(1)?.id ?? null
+      : questionOptions.at(0)?.id ?? null
   );
   const activeQuestion = useMemo(
     () => [question_yes, question_no].find((q) => q.id === activeTableOption),
