@@ -608,6 +608,43 @@ const QuestionForm: FC<Props> = ({
             </div>
           </>
         )}
+        <div className="flex w-full flex-col gap-4 md:flex-row">
+          <InputContainer
+            labelText={"Closing Time"}
+            explanation={t("closingTimeDescription")}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control}
+              name="scheduled_close_time"
+              defaultValue={post?.question?.scheduled_close_time}
+              errors={form.formState.errors.scheduled_close_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+          <InputContainer
+            labelText={"Resolving Time"}
+            explanation={t("resolvingTimeDescription")}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control}
+              name="scheduled_resolve_time"
+              defaultValue={post?.question?.scheduled_resolve_time}
+              errors={form.formState.errors.scheduled_resolve_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+        </div>
+        <InputContainer labelText={t("categories")}>
+          <CategoryPicker
+            allCategories={allCategories}
+            categories={categoriesList}
+            onChange={(categories) => {
+              setCategoriesList(categories);
+            }}
+          />
+        </InputContainer>
 
         <SectionToggle title="Advanced Options" defaultOpen={false}>
           <div className="mb-4 text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
@@ -642,34 +679,7 @@ const QuestionForm: FC<Props> = ({
               />
             </InputContainer>
           </div>
-          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
-            <InputContainer
-              labelText={"Closing Time"}
-              explanation={t("closingTimeDescription")}
-              className="w-full gap-2"
-            >
-              <DateInput
-                control={form.control}
-                name="scheduled_close_time"
-                defaultValue={post?.question?.scheduled_close_time}
-                errors={form.formState.errors.scheduled_close_time}
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              />
-            </InputContainer>
-            <InputContainer
-              labelText={"Resolving Time"}
-              explanation={t("resolvingTimeDescription")}
-              className="w-full gap-2"
-            >
-              <DateInput
-                control={form.control}
-                name="scheduled_resolve_time"
-                defaultValue={post?.question?.scheduled_resolve_time}
-                errors={form.formState.errors.scheduled_resolve_time}
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              />
-            </InputContainer>
-          </div>
+
           <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
             <InputContainer
               labelText={t("cpRevealTime")}
@@ -685,15 +695,6 @@ const QuestionForm: FC<Props> = ({
               />
             </InputContainer>
           </div>
-          <InputContainer labelText={t("categories")}>
-            <CategoryPicker
-              allCategories={allCategories}
-              categories={categoriesList}
-              onChange={(categories) => {
-                setCategoriesList(categories);
-              }}
-            />
-          </InputContainer>
           {!community_id &&
             defaultProject.type !== TournamentType.Community && (
               <ProjectPickerInput

@@ -65,11 +65,9 @@ export const Hero = () => {
         <br />
         Forecasting Contest <br />
         <p className="text-sm font-light leading-normal text-blue-800 dark:text-blue-800-dark sm:text-sm md:text-lg lg:text-xl min-[1920px]:text-2xl min-[1920px]:leading-normal ">
-          <span className="font-semibold">
-            Now open to participants worldwide:
-          </span>{" "}
-          Register to forecast, explore opportunities with Bridgewater
-          Associates, and compete for $25,000 in prizes!
+          <span className="font-semibold">Registrations are now closed.</span>{" "}
+          Thank you to all who joined to forecast and compete for $25,000 in
+          prizes!
         </p>
       </h1>
     </div>

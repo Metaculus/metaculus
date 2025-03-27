@@ -16,6 +16,7 @@ const UpcomingCP: FC<Props> = ({ cpRevealsOn }) => {
       <span className="text-xs font-normal leading-4 text-purple-700 dark:text-purple-700-dark">
         {t("forecastRevealed")}{" "}
       </span>
+      {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
       <relative-time
         datetime={cpRevealsOn}
         lang={locale}
@@ -24,6 +25,7 @@ const UpcomingCP: FC<Props> = ({ cpRevealsOn }) => {
         {intlFormatDistance(cpRevealsOn, new Date(), {
           locale,
         })}
+        {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
       </relative-time>
     </div>
   );

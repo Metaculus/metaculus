@@ -133,13 +133,11 @@ export function generateYDomain({
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
     .filter((value) => !isNil(value));
-  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
   const minValue = min.length ? Math.min(...min) : null;
   const max = maxValues
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
     .filter((value) => !isNil(value));
-  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
   const maxValue = max.length ? Math.max(...max) : null;
 
   if (isNil(minValue) || isNil(maxValue)) {
@@ -1438,7 +1436,7 @@ export function getResolutionPosition({
     return 0;
   }
   if (adjustBinaryPoint && ["no", "yes"].includes(resolution as string)) {
-    return 0;
+    return 0.4;
   }
 
   if (
@@ -1530,8 +1528,25 @@ export function getContinuousAreaChartData(
 
   return chartData;
 }
+export function calculateTextWidth(fontSize: number, text: string): number {
+  if (typeof document === "undefined") {
+    return 0;
+  }
+  const element = document.createElement("span");
+  element.style.visibility = "hidden";
+  element.style.position = "absolute";
+  element.style.whiteSpace = "nowrap";
+  element.style.fontSize = `${fontSize}px`;
+  element.textContent = text;
 
-export function calculateCharWidth(fontSize: number): number {
+  document.body.appendChild(element);
+  const textWidth = element.offsetWidth;
+  document.body.removeChild(element);
+
+  return textWidth;
+}
+
+export function calculateCharWidth(fontSize: number, text?: string): number {
   if (typeof document === "undefined") {
     return 0;
   }
@@ -1543,7 +1558,7 @@ export function calculateCharWidth(fontSize: number): number {
   element.style.fontSize = `${fontSize}px`;
   const sampleText =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  element.textContent = sampleText;
+  element.textContent = text ?? sampleText;
 
   document.body.appendChild(element);
   const charWidth = element.offsetWidth / sampleText.length;

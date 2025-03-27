@@ -253,13 +253,13 @@ export function getFilterSectionUsername({
 export function getFilterSectionProjects({
   t,
   params,
-  tournaments,
+  projects,
 }: {
   t: ReturnType<typeof useTranslations>;
   params: URLSearchParams;
-  tournaments: TournamentPreview[];
+  projects: TournamentPreview[];
 }): FilterSection {
-  const options = tournaments.map((project) => ({
+  const options = projects.map((project) => ({
     label: project.name,
     value: project.id.toString(),
     active: params.getAll(POST_PROJECT_FILTER).includes(project.id.toString()),

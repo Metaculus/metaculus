@@ -3,8 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
-import NotebookPage from "@/app/(main)/notebooks/[id]/[[...slug]]/page";
-import QuestionPage from "@/app/(main)/questions/[id]/[[...slug]]/page";
+import IndividualNotebookPage from "@/app/(main)/notebooks/[id]/[[...slug]]/page_compotent";
+import IndividualQuestionPage from "@/app/(main)/questions/[id]/[[...slug]]/page_component";
 import { defaultDescription } from "@/constants/metadata";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
@@ -12,11 +12,12 @@ import { TournamentType } from "@/types/projects";
 import { getQuestionTitle } from "@/utils/questions";
 
 type Props = {
-  params: { id: number; slug: string[]; postSlug: string[] };
-  searchParams: SearchParams;
+  params: Promise<{ id: number; slug: string[]; postSlug: string[] }>;
+  searchParams: Promise<SearchParams>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const postData = await PostsApi.getPost(params.id);
 
   if (!postData) {
@@ -58,7 +59,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-async function CommunityPost({ params, searchParams }: Props) {
+async function CommunityPost(props: Props) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const postData = await PostsApi.getPost(params.id);
 
   if (!postData) {
@@ -73,11 +76,15 @@ async function CommunityPost({ params, searchParams }: Props) {
   }
 
   if (postData.notebook) {
-    return <NotebookPage params={{ id: params.id, slug: params.postSlug }} />;
+    return (
+      <IndividualNotebookPage
+        params={{ id: params.id, slug: params.postSlug }}
+      />
+    );
   }
 
   return (
-    <QuestionPage
+    <IndividualQuestionPage
       params={{ id: params.id, slug: params.postSlug }}
       searchParams={searchParams}
     />

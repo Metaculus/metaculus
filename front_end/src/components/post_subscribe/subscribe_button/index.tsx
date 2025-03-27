@@ -86,7 +86,7 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
         >
           <FontAwesomeIcon
             icon={faBell}
-            className="text-yellow-600 dark:text-yellow-400"
+            className="text-gray-900 dark:text-gray-900-dark"
           />
           {!mini && t("followButton")}
         </Button>

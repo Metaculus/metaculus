@@ -60,7 +60,7 @@ const ConsumerPostCard: FC<Props> = ({ post }) => {
           {[PostStatus.PENDING_RESOLUTION, PostStatus.CLOSED].includes(
             post.status
           ) && (
-            <p className="m-0 text-center text-xs font-normal leading-4 text-gray-1000 text-opacity-50 @[500px]:whitespace-nowrap @[500px]:text-left dark:text-gray-1000-dark dark:text-opacity-50">
+            <p className="m-0 text-center text-xs font-normal leading-4 text-gray-1000 text-opacity-50 @[500px]:text-left dark:text-gray-1000-dark dark:text-opacity-50">
               {isGroupOrMCPost ? (
                 <RichText>
                   {(tags) =>
