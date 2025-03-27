@@ -2,6 +2,7 @@ import "./styles.scss";
 
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 import {
   VictoryAxis,
@@ -52,6 +53,7 @@ const TICKS_ARRAY = Array.from({ length: 9 }, (_, i) => 0.04 + (i * 0.92) / 8);
 const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
   const { questions } = questionsGroup;
   const locale = useLocale();
+  const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const { ref: chartContainerRef, width: chartWidth } =
@@ -63,21 +65,29 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
   const scaling = getContinuousGroupScaling(questions);
   const shouldDisplayChart = !!chartWidth;
   const isBigChartView = chartWidth > SMALL_CHART_WIDTH;
-  const { adjustedScaling, points } = generateChartData(choices, scaling);
+  const { adjustedScaling, points, todayLine } = generateChartData(
+    choices,
+    scaling
+  );
   const [labelOverlap, setLabelOverlap] = useState<
     {
       label: string;
       color: ThemeColor;
+      x: number;
     }[]
   >([]);
-  const onLabelOverlap = (label: string, color: ThemeColor) => {
+  const onLabelOverlap = (label: string, color: ThemeColor, x: number) => {
     setLabelOverlap((prev) => {
       if (prev.some((item) => item.label === label)) {
         return prev;
       }
-      return [...prev, { label, color }];
+      return [...prev, { label, color, x }];
     });
   };
+
+  if (points.length === 0) {
+    return null;
+  }
 
   return (
     <>
@@ -109,11 +119,17 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
             }
           >
             <VictoryAxis
-              tickFormat={(tick, index) =>
-                isBigChartView
-                  ? formatTickLabel(tick, adjustedScaling, index)
-                  : ""
-              }
+              tickFormat={(tick, index) => {
+                if (!isBigChartView) {
+                  return "";
+                }
+                if (!isNil(todayLine)) {
+                  return tick < todayLine - 0.1 || tick > todayLine + 0.1
+                    ? formatTickLabel(tick, adjustedScaling, index)
+                    : "";
+                }
+                return formatTickLabel(tick, adjustedScaling, index);
+              }}
               tickValues={TICKS_ARRAY}
               style={{
                 ticks: {
@@ -128,7 +144,7 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
                 },
                 tickLabels: {
                   fill: () => getThemeColor(METAC_COLORS.gray["500"]),
-                  fontSize: 11,
+                  fontSize: 14,
                 },
               }}
             />
@@ -146,12 +162,13 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
                   axis: { stroke: "transparent" },
                   tickLabels: {
                     fill: () => getThemeColor(METAC_COLORS.gray["500"]),
-                    fontSize: 11,
+                    fontSize: 14,
                   },
                 }}
                 offsetY={15}
               />
             )}
+
             <VictoryScatter
               data={points}
               size={8}
@@ -176,13 +193,32 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
                 />
               }
             />
+            {/* Today line */}
+            {todayLine && (
+              <VictoryAxis
+                tickFormat={() => t("today")}
+                tickValues={[todayLine]}
+                orientation="bottom"
+                style={{
+                  ticks: { stroke: "transparent" },
+                  grid: {
+                    stroke: getThemeColor(METAC_COLORS.purple["700"]),
+                  },
+                  axis: { stroke: "transparent" },
+                  tickLabels: {
+                    fill: () => getThemeColor(METAC_COLORS.purple["700"]),
+                    fontSize: 14,
+                  },
+                }}
+              />
+            )}
           </VictoryChart>
         )}
       </div>
       {chartWidth && !isBigChartView && (
         <DateForecastCardTooltip points={points} />
       )}
-      {labelOverlap.length > 0 && isBigChartView && (
+      {chartWidth && labelOverlap.length > 0 && isBigChartView && (
         <DateForecastCardTooltip points={labelOverlap} />
       )}
     </>
@@ -270,8 +306,16 @@ function generateChartData(choices: ChoiceItem[], originalScaling: Scaling) {
     };
   });
 
+  const nowTimestamp = Date.now() / 1000;
+
+  let todayPoint = null;
+  if (nowTimestamp <= scaling.range_max && nowTimestamp >= scaling.range_min) {
+    todayPoint = unscaleNominalLocation(nowTimestamp, scaling);
+  }
+
   return {
     adjustedScaling: scaling,
+    todayLine: todayPoint,
     points: points.map((point) => {
       // this should always return an object
       const pointData = choices.find((choice) => choice.id === point.id);

@@ -7,7 +7,7 @@ import { get, patch, post } from "@/utils/fetch";
 
 class ProfileApi {
   static async getMyProfile(): Promise<CurrentUser | null> {
-    const token = getServerSession();
+    const token = await getServerSession();
 
     if (!token) {
       return null;

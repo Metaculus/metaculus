@@ -33,7 +33,7 @@ const ContributionsHero: FC<Props> = ({ year, duration, category, userId }) => {
     <section className="flex flex-col items-center gap-3.5 self-stretch py-3 sm:gap-7 sm:p-8">
       <div className="flex flex-col gap-4">
         <nav className="flex items-center justify-center gap-2.5 text-base font-medium leading-5">
-          <a href="/leaderboard/">{t("leaderboards")}</a>
+          <Link href="/leaderboard/">{t("leaderboards")}</Link>
           <FontAwesomeIcon
             icon={faChevronRight}
             className="h-4 w-2.5 text-gray-400 dark:text-gray-400-dark"

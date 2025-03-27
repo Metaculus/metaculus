@@ -7,8 +7,12 @@
   --baseBorder: theme("colors.gray.500.DEFAULT");
 }
 
+.markdown-editor-form .mdxeditor-toolbar {
+  @apply sticky top-0 z-10;
+}
+
 .mdxeditor-toolbar {
-  @apply sticky flex-wrap top-12;
+  @apply sticky top-12 flex-wrap;
   & [class*="toolbarTitleMode"] {
     display: none; /* We render our custom source mode title instead */
   }
@@ -41,7 +45,7 @@
   @apply max-h-[300px];
 }
 
-[data-editor-block-type="image"] > :last-child {
+[data-editor-block-type="image"] > :last-child:not(:only-child) {
   @apply hidden;
 }
 

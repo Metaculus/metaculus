@@ -1172,5 +1172,6 @@
   "configuration": "Configuration",
   "loginConfigurationMessage": "Log in to select different options",
   "downloadData": "Download data",
-  "emailData": "Email me this data"
+  "emailData": "Email me this data",
+  "today": "Today"
 }

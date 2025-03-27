@@ -1,6 +1,6 @@
 "use client";
 
-import posthog from "posthog-js";
+import { usePostHog } from "posthog-js/react";
 import {
   createContext,
   FC,
@@ -24,11 +24,10 @@ const AuthProvider: FC<
   }>
 > = ({ user: initialUser, children }) => {
   const [user, setUser] = useState<CurrentUser | null>(initialUser);
-
+  const posthog = usePostHog();
   useEffect(() => {
     if (initialUser) {
       const { id, username, is_superuser, is_staff } = initialUser;
-
       posthog.identify(id.toString(), {
         username,
         is_superuser,
@@ -39,7 +38,7 @@ const AuthProvider: FC<
     }
 
     setUser(initialUser);
-  }, [initialUser]);
+  }, [initialUser, posthog]);
 
   return (
     <AuthContext.Provider value={{ user, setUser }}>

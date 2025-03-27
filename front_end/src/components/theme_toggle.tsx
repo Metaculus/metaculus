@@ -1,12 +1,12 @@
 "use client";
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 
 import useAppTheme from "@/hooks/use_app_theme";
+import useMounted from "@/hooks/use_mounted";
 import cn from "@/utils/cn";
 
 const ThemeToggle: FC = () => {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   const { theme, setTheme } = useAppTheme();
 

@@ -524,6 +524,12 @@ components:
         label:
           type: string
           nullable: true
+        unit:
+          type: string
+          nullable: false
+          required: false
+          example: "$"
+          default: ""
         scaling:
           $ref: '#/components/schemas/QuestionScaling'
 
@@ -1223,6 +1229,7 @@ paths:
                           label: null
                           open_upper_bound: true
                           open_lower_bound: true
+                          unit: "people"
                           scaling:
                             range_max: 100000000.0
                             range_min: 200.0
@@ -1359,6 +1366,7 @@ paths:
                           label: null
                           open_upper_bound: null
                           open_lower_bound: null
+                          unit: ""
                           scaling:
                             range_max: null
                             range_min: null
@@ -1422,6 +1430,7 @@ paths:
                           label: null
                           open_upper_bound: null
                           open_lower_bound: null
+                          unit: ""
                           scaling: { }
                           post_id: 20772
                           aggregations: { }
@@ -1480,6 +1489,7 @@ paths:
                             label: null
                             open_upper_bound: null
                             open_lower_bound: null
+                            unit: ""
                             scaling:
                               range_max: null
                               range_min: null
@@ -1508,6 +1518,7 @@ paths:
                             label: null
                             open_upper_bound: null
                             open_lower_bound: null
+                            unit: ""
                             scaling:
                               range_max: null
                               range_min: null
@@ -1536,6 +1547,7 @@ paths:
                             label: null
                             open_upper_bound: null
                             open_lower_bound: null
+                            unit: ""
                             scaling:
                               range_max: null
                               range_min: null
@@ -1564,6 +1576,7 @@ paths:
                             label: null
                             open_upper_bound: null
                             open_lower_bound: null
+                            unit: ""
                             scaling:
                               range_max: null
                               range_min: null
@@ -1630,6 +1643,7 @@ paths:
                               label: null
                               open_upper_bound: null
                               open_lower_bound: null
+                              unit: ""
                               scaling:
                                 range_max: null
                                 range_min: null
@@ -1657,6 +1671,7 @@ paths:
                               label: null
                               open_upper_bound: null
                               open_lower_bound: null
+                              unit: ""
                               scaling:
                                 range_max: null
                                 range_min: null

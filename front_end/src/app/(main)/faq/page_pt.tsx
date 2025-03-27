@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import PageWrapper from "../components/pagewrapper";
 
@@ -372,9 +373,9 @@ export default function FAQ() {
           <a href="https://en.wikipedia.org/wiki/Median">mediana</a>
           das previsões de usuários ponderadas pela atualidade.
           Surpreendentemente, a previsão comunitária é muitas vezes{""}
-          <a href="/questions/track-record/">
+          <Link href="/questions/track-record/">
             melhor do que qualquer preditor individual!
-          </a>
+          </Link>
           Este princípio é conhecido como{""}
           <a href="https://en.wikipedia.org/wiki/Wisdom_of_the_crowd">
             a sabedoria da multidão,
@@ -467,14 +468,14 @@ export default function FAQ() {
           uma organização sem fins lucrativos, ou outra organização que procura
           usar a previsão para apoiar a tomada de decisões efetiva. Você pode
           encontrar torneios atuais e arquivados em nossa{""}
-          <a href="/tournaments/">página Torneios</a>.
+          <Link href="/tournaments/">página Torneios</Link>.
         </p>
         <p>
           Os torneios são o lugar perfeito para provar suas habilidades de
           previsão, ao mesmo tempo em que ajudam a melhorar nossa capacidade de
           tomada de decisão coletiva. Prêmios em dinheiro e{""}
-          <a href="/help/medals-faq/">medalhas</a>
-          são <a href="/help/medals-faq/">concedidos</a>
+          <Link href="/help/medals-faq/">medalhas</Link>
+          são <Link href="/help/medals-faq/">concedidos</Link>
           aos analistas mais precisos e, às vezes, para outras contribuições
           valiosas (como comentários). Siga um Torneio (com o botão Seguir) para
           nunca perder novas perguntas.
@@ -485,9 +486,9 @@ export default function FAQ() {
           classificações atuais. Um quadro de pontuação pessoal (&Quot;Minha
           Pontuação&Quot;) também aparecerá, detalhando seu desempenho para cada
           pergunta (veja{""}
-          <a href="/help/scores-faq/#tournament-scores">
+          <Link href="/help/scores-faq/#tournament-scores">
             Como os torneios são marcados?
-          </a>
+          </Link>
           ).
         </p>
         <p>
@@ -504,7 +505,7 @@ export default function FAQ() {
           facilitar doações para várias organizações sem fins lucrativos,
           organizações de regratizações e fundos. Você pode encontrar a lista de
           organizações que facilitamos os pagamentos{""}
-          <a href="/questions/11556/donating-tournament-prizes/">aqui</a>.
+          <Link href="/questions/11556/donating-tournament-prizes/">aqui</Link>.
         </p>
         <h4 className="text-lg font-semibold">Série de perguntas</h4>
         <p>
@@ -519,7 +520,7 @@ export default function FAQ() {
         </p>
         <p>
           Você pode encontrar todas as séries de perguntas em uma seção especial
-          da <a href="/tournaments/">página de torneios</a>.
+          da <Link href="/tournaments/">página de torneios</Link>.
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="predmarket">
           Metaculus é um mercado de previsão?
@@ -666,19 +667,19 @@ export default function FAQ() {
         <p>
           Em contraste, as perguntas do Metaculus são projetadas para serem
           objetivamente resolúveis (como em{""}
-          <a href="/questions/9942/brent-oil-to-breach-140-before-may">
+          <Link href="/questions/9942/brent-oil-to-breach-140-before-may">
             Will Brent Crude Oil top $ 140 / barril antes de maio de 2022?
-          </a>
+          </Link>
           ), e os meteorologistas não são solicitados por suas preferências, mas
           por suas previsões. Ao contrário de uma pesquisa, sobre muitas
           previsões, os participantes acumulam um histórico indicando sua
           precisão de previsão. Estes registros são incorporados na{""}
-          <a href="/faq/#metaculus-prediction">Previsão do Metaculus</a>. A
-          precisão do histórico do Metaculus em si é rastreada{""}
-          <a href="/questions/track-record/">aqui</a>.
+          <Link href="/faq/#metaculus-prediction">Previsão do Metaculus</Link>.
+          A precisão do histórico do Metaculus em si é rastreada{""}
+          <Link href="/questions/track-record/">aqui</Link>.
         </p>
         <h2
-          className="scroll-mt-nav scroll-mt-nav text-2xl font-bold"
+          className="scroll-mt-nav text-2xl font-bold"
           id="metaculus-questions"
         >
           Perguntas do Metaculus
@@ -692,10 +693,10 @@ export default function FAQ() {
           os Estados Unidos entrarão em colapso?&quot; é uma questão pobre e
           ambígua;{""}
           <q>
-            <a href="/questions/8579/us-freedom-in-the-world-score-in-2050/">
+            <Link href="/questions/8579/us-freedom-in-the-world-score-in-2050/">
               Qual será a pontuação dos EUA no Relatório Mundial da Liberdade
               para 2050?
-            </a>
+            </Link>
           </q>
           Eles geralmente assumem a forma{""}
           <q>Será que X acontecerá por (data) Y?</q>
@@ -745,19 +746,23 @@ export default function FAQ() {
           analisadas por um grupo de moderadores nomeados pelo Metaculus. Os
           moderadores selecionarão as melhores perguntas enviadas e ajudarão a
           editar a questão para serem claras, bem de origem e{""}
-          <a href="/question-writing/">alinhadas com nosso estilo de escrita</a>
+          <Link href="/question-writing/">
+            alinhadas com nosso estilo de escrita
+          </Link>
           .
         </p>
         <p>
           O Metaculus organiza questões sobre{""}
-          <a href="/questions/categories/">muitos tópicos</a>, mas nossas
+          <Link href="/questions/categories/">muitos tópicos</Link>, mas nossas
           principais áreas de foco são Ciência,{""}
-          <a href="/questions/?categories=technology">Tecnologia</a>,{""}
-          <a href="/questions/?tags=effective-altruism">Altruísmo Eficaz</a>,
-          {""}
-          <a href="/questions/?topic=ai">Inteligência Artificial</a>,{""}
-          <a href="/questions/?topic=biosecurity">Saúde</a>e{""}
-          <a href="/questions/?categories=geopolitics">Geopolítica</a>.
+          <Link href="/questions/?categories=technology">Tecnologia</Link>,{""}
+          <Link href="/questions/?tags=effective-altruism">
+            Altruísmo Eficaz
+          </Link>
+          ,{""}
+          <Link href="/questions/?topic=ai">Inteligência Artificial</Link>,{""}
+          <Link href="/questions/?topic=biosecurity">Saúde</Link>e{""}
+          <Link href="/questions/?categories=geopolitics">Geopolítica</Link>.
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="whoedits">
           Quem pode editar as perguntas?
@@ -793,17 +798,17 @@ export default function FAQ() {
             Se você tem uma ideia básica para uma pergunta, mas não tem tempo /
             energia para elaborar os detalhes, você pode enviá-lo, discuti-lo em
             nosso{""}
-            <a href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
+            <Link href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
               tópico
-            </a>
+            </Link>
             de{""}
-            <a href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
+            <Link href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
               ideia
-            </a>
+            </Link>
             de{""}
-            <a href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
+            <Link href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
               pergunta
-            </a>
+            </Link>
             ou em nosso{""}
             <a href="https://discord.gg/v2Bf5tppeT">canal Discord</a>.
           </li>
@@ -815,14 +820,18 @@ export default function FAQ() {
           </li>
           <li>
             O Metaculus organiza questões sobre{""}
-            <a href="/questions/categories/">muitos tópicos</a>, mas nossas
-            principais áreas de foco são Ciência,{""}
-            <a href="/questions/?categories=technology">Tecnologia</a>,{""}
-            <a href="/questions/?tags=effective-altruism">Altruísmo Eficaz</a>,
+            <Link href="/questions/categories/">muitos tópicos</Link>, mas
+            nossas principais áreas de foco são Ciência,{""}
+            <Link href="/questions/?categories=technology">Tecnologia</Link>,
             {""}
-            <a href="/questions/?topic=ai">Inteligência Artificial</a>,{""}
-            <a href="/questions/?topic=biosecurity">Saúde</a>e{""}
-            <a href="/questions/?categories=geopolitics">Geopolítica</a>.
+            <Link href="/questions/?tags=effective-altruism">
+              Altruísmo Eficaz
+            </Link>
+            ,{""}
+            <Link href="/questions/?topic=ai">Inteligência Artificial</Link>,
+            {""}
+            <Link href="/questions/?topic=biosecurity">Saúde</Link>e{""}
+            <Link href="/questions/?categories=geopolitics">Geopolítica</Link>.
             Perguntas sobre outros tópicos, especialmente que exigem muito
             esforço de moderador para serem lançadas, receberão menor prioridade
             e podem ser adiadas até mais tarde.
@@ -850,15 +859,17 @@ export default function FAQ() {
           aprovar perguntas suficientes para que cada um deles possa receber a
           atenção que merece de nossos meteorologistas. Metaculus prioriza
           questões sobre Ciência,{""}
-          <a href="/questions/?categories=technology">Tecnologia</a>,{""}
-          <a href="/questions/?tags=effective-altruism">Altruísmo Eficaz</a>,
-          {""}
-          <a href="/questions/?topic=ai">Inteligência Artificial</a>,{""}
-          <a href="/questions/?topic=biosecurity">Saúde</a>e{""}
-          <a href="/questions/?categories=geopolitics">Geopolítica</a>. Se a sua
-          pergunta se enquadra em uma dessas categorias, ou é de outra forma
-          muito urgente ou importante, você pode nos marcar com os moderadores
-          para chamar nossa atenção.
+          <Link href="/questions/?categories=technology">Tecnologia</Link>,{""}
+          <Link href="/questions/?tags=effective-altruism">
+            Altruísmo Eficaz
+          </Link>
+          ,{""}
+          <Link href="/questions/?topic=ai">Inteligência Artificial</Link>,{""}
+          <Link href="/questions/?topic=biosecurity">Saúde</Link>e{""}
+          <Link href="/questions/?categories=geopolitics">Geopolítica</Link>. Se
+          a sua pergunta se enquadra em uma dessas categorias, ou é de outra
+          forma muito urgente ou importante, você pode nos marcar com os
+          moderadores para chamar nossa atenção.
         </p>
         <h3
           className="scroll-mt-nav text-xl font-semibold"
@@ -882,9 +893,9 @@ export default function FAQ() {
         <p>
           As questões privadas estão descontinuadas, não é mais possível criar
           novas. Se você tinha questões privadas, ainda pode encontrá-las indo
-          para a <a href="/questions/">Página Inicial do Feed</a>, selecionando
-          &quot;Minhas questões e posts&quot; na barra lateral e usando o filtro
-          especial &quot;Pessoal&quot;.
+          para a <Link href="/questions/">Página Inicial do Feed</Link>,
+          selecionando &quot;Minhas questões e posts&quot; na barra lateral e
+          usando o filtro especial &quot;Pessoal&quot;.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="comments">
@@ -892,15 +903,15 @@ export default function FAQ() {
         </h3>
         <p>
           Temos um conjunto completo de{""}
-          <a href="/help/guidelines/">diretrizes</a>
-          de <a href="/help/guidelines/">etiqueta comunitária</a>, mas em
+          <Link href="/help/guidelines/">diretrizes</Link>
+          de <Link href="/help/guidelines/">etiqueta comunitária</Link>, mas em
           resumo:
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>Os usuários são bem-vindos comentar sobre qualquer pergunta.</li>
           <li>
             Comentários e perguntas podem usar{""}
-            <a href="/help/markdown/">a formatação de markdown</a>
+            <Link href="/help/markdown/">a formatação de markdown</Link>
           </li>
           <li>
             O Metaculus visa um alto nível de discurso. Os comentários devem ser
@@ -910,7 +921,7 @@ export default function FAQ() {
             ofensivos, depreciativos ou assediadores não são tolerados, bem como
             aqueles que são explicitamente publicidade comercial ou aqueles que
             são de alguma forma ilegais. Veja os{""}
-            <a href="/terms-of-use/">termos de uso do</a>
+            <Link href="/terms-of-use/">termos de uso do</Link>
             Metaculus para mais
           </li>
           <li>
@@ -921,8 +932,8 @@ export default function FAQ() {
           <li>
             Você está convidado a apoiar os comentários que contêm informações
             relevantes para a pergunta e pode relatar comentários que não
-            defendem nossas <a href="/help/guidelines/">diretrizes</a>
-            de <a href="/help/guidelines/">etiqueta</a>.
+            defendem nossas <Link href="/help/guidelines/">diretrizes</Link>
+            de <Link href="/help/guidelines/">etiqueta</Link>.
           </li>
           <li>
             Se um comentário for spam, inapropriado/ofensivo ou quebrar nossas
@@ -979,10 +990,10 @@ export default function FAQ() {
           <strong>ambíguos</strong>
           ). Perguntas binárias são apropriadas quando um evento pode ocorrer ou
           não ocorrer. Por exemplo, a questão{""}
-          <a href="/questions/6296/us-unemployment-above-5-through-nov-2021/">
+          <Link href="/questions/6296/us-unemployment-above-5-through-nov-2021/">
             &quot;A taxa de desemprego dos EUA permanecerá acima de 5% até
             novembro de 2021?&quot;
-          </a>
+          </Link>
           resolvido como <strong>Não</strong>
           porque a taxa de desemprego caiu abaixo de 5% antes do tempo
           especificado.
@@ -1014,21 +1025,21 @@ export default function FAQ() {
         <p>
           Perguntas de alcance numérico podem ser resolvidas como um valor
           numérico. Por exemplo, a pergunta{""}
-          <a href="/questions/7346/initial-jobless-claims-july-2021/">
+          <Link href="/questions/7346/initial-jobless-claims-july-2021/">
             &quot;O que será a média de 4 semanas de reclamações iniciais de
             desemprego (em milhares) arquivadas em julho de 2021?&quot;
-          </a>
+          </Link>
           resolvida como <strong>395</strong>, porque a fonte subjacente relatou
           395 mil pedidos iniciais de desemprego para julho de 2021.
         </p>
         <p>
           As perguntas também podem resolver fora do intervalo numérico. Por
           exemplo, a questão{""}
-          <a href="/questions/6645/highest-us-core-cpi-growth-in-2021/">
+          <Link href="/questions/6645/highest-us-core-cpi-growth-in-2021/">
             “O que será o mais alto nível de crescimento anualizado do IPC dos
             EUA, em 2021, de acordo com os EUA. Os dados do Bureau of Labor
             Statistics foram
-          </a>
+          </Link>
           resolvidos como <strong>6,5</strong>
           porque a fonte subjacente relatou um crescimento de CPI de núcleo
           anualizado de 6,5% nos EUA, e 6,5 foi o limite superior.
@@ -1037,10 +1048,10 @@ export default function FAQ() {
         <p>
           Perguntas de intervalo de data podem ser resolvidas como uma
           determinada data. Por exemplo, a pergunta{""}
-          <a href="/questions/8723/date-of-next-who-pheic-declaration/">
+          <Link href="/questions/8723/date-of-next-who-pheic-declaration/">
             “Quando a próxima Emergência de Saúde Pública da Preocupação
             Internacional será declarada pela OMS?”
-          </a>
+          </Link>
           resolvida como <strong>23 de julho de 2022</strong>, porque uma
           Emergência de Saúde Pública de Preocupação Internacional foi declarada
           nessa data.
@@ -1048,9 +1059,9 @@ export default function FAQ() {
         <p>
           As perguntas também podem ser resolvidas fora do intervalo de datas.
           Por exemplo, a pergunta{""}
-          <a href="/questions/6947/first-super-heavy-flight/">
+          <Link href="/questions/6947/first-super-heavy-flight/">
             “Quando um SpaceX Super Heavy Booster voará?”
-          </a>
+          </Link>
           resolvido como 29 <strong>de março de 2022</strong>
           porque um propulsor Super Heavy da SpaceX não foi lançado antes de 29
           de março de 2022, que era o limite superior.
@@ -1122,21 +1133,21 @@ export default function FAQ() {
         </p>
         <p>
           O feedback dos grupos de perguntas pode ser fornecido no{""}
-          <a href="/questions/9861/2022-3-9-update-forecast-question-groups/">
+          <Link href="/questions/9861/2022-3-9-update-forecast-question-groups/">
             post
-          </a>
+          </Link>
           de{""}
-          <a href="/questions/9861/2022-3-9-update-forecast-question-groups/">
+          <Link href="/questions/9861/2022-3-9-update-forecast-question-groups/">
             discussão
-          </a>
+          </Link>
           do{""}
-          <a href="/questions/9861/2022-3-9-update-forecast-question-groups/">
+          <Link href="/questions/9861/2022-3-9-update-forecast-question-groups/">
             grupo
-          </a>
+          </Link>
           de{""}
-          <a href="/questions/9861/2022-3-9-update-forecast-question-groups/">
+          <Link href="/questions/9861/2022-3-9-update-forecast-question-groups/">
             perguntas
-          </a>
+          </Link>
           .
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="conditionals">
@@ -1144,15 +1155,15 @@ export default function FAQ() {
         </h3>
         <p>
           Um Pai Condicional é um tipo especial de{""}
-          <a href="/faq/#question-groups">Grupo</a>
-          de <a href="/faq/#question-groups">Perguntas</a>
+          <Link href="/faq/#question-groups">Grupo</Link>
+          de <Link href="/faq/#question-groups">Perguntas</Link>
           que provoca{""}
           <a href="https://en.wikipedia.org/wiki/Conditional_probability">
             probabilidades condicionais
           </a>
           . Cada Pair Condicional senta-se entre uma pergunta dos pais e uma
           pergunta da criança. Tanto o Pai quanto o Filho devem existir questões
-          metaculus <a href="/faq/#question-types">binárias</a>.
+          metaculus <Link href="/faq/#question-types">binárias</Link>.
         </p>
         <p>
           Os Pairs Condicionais fazem duas Perguntas Condicionais (ou
@@ -1188,7 +1199,8 @@ export default function FAQ() {
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
             Quando o pai resolve Sim, o condicional &quot;se não&quot; é{""}
-            <a href="/faq/#ambiguous-annulled">anulado</a>. (E vice-versa.)
+            <Link href="/faq/#ambiguous-annulled">anulado</Link>. (E
+            vice-versa.)
           </li>
           <li>
             Quando a criança se resolve, o condicional que não foi anulado
@@ -1242,7 +1254,7 @@ export default function FAQ() {
         </h4>
         <p>
           Você pode criar e enviar pares condicionais como qualquer outro tipo
-          de pergunta. Na <a href="/questions/create/">&quot;Criar uma</a>
+          de pergunta. Na <Link href="/questions/create/">&quot;Criar uma</Link>
           pergunta &quot;página, selecione Tipo de pergunta &quot;par
           condicionado&quot; e selecione Perguntas de pais e filhos.
         </p>
@@ -1267,10 +1279,10 @@ export default function FAQ() {
           As perguntas sobre Metaculus são classificadas por atividade por
           padrão. Perguntas mais recentes, perguntas com novos comentários,
           perguntas recentemente votadas e perguntas com muitas novas previsões
-          aparecerão no topo da <a href="/questions/">página inicial</a>
-          do <a href="/questions/">Metaculus</a>. No entanto, existem várias
-          maneiras adicionais de encontrar questões de interesse e personalizar
-          a maneira como você interage com o Metaculus.
+          aparecerão no topo da <Link href="/questions/">página inicial</Link>
+          do <Link href="/questions/">Metaculus</Link>. No entanto, existem
+          várias maneiras adicionais de encontrar questões de interesse e
+          personalizar a maneira como você interage com o Metaculus.
         </p>
         <h4 className="scroll-mt-nav text-lg font-semibold" id="search-bar">
           Barra de pesquisa
@@ -1293,7 +1305,7 @@ export default function FAQ() {
           mostrado uma opção para encomendar por &quot;Soonest Resolve&quot;.
         </p>
         <h2
-          className="scroll-mt-nav scroll-mt-nav text-2xl font-bold"
+          className="scroll-mt-nav text-2xl font-bold"
           id="question-resolution"
         >
           Resolução de perguntas
@@ -1364,7 +1376,7 @@ export default function FAQ() {
             que ocorrerá em um momento desconhecido, mas o resultado
             provavelmente será independente desse tempo, então deve ser
             especificado que a questão{""}
-            <a href="/faq/#retroactive-closure">fecha retroativamente</a>
+            <Link href="/faq/#retroactive-closure">fecha retroativamente</Link>
             algum tempo apropriado antes do início do processo. (Exemplo:
             sucesso de um lançamento de foguete ocorrendo em um momento
             desconhecido)
@@ -1381,9 +1393,9 @@ export default function FAQ() {
           deve fechar entre 1/2 a 2/3 do caminho entre o tempo de abertura e o
           tempo de resolução. Isso foi necessário devido ao sistema de pontuação
           na época, mas foi substituído pelas diretrizes acima devido a uma{""}
-          <a href="/questions/10801/discontinuing-the-final-forecast-bonus/">
+          <Link href="/questions/10801/discontinuing-the-final-forecast-bonus/">
             atualização do sistema de pontuação
-          </a>
+          </Link>
           .
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="timezone">
@@ -1401,15 +1413,15 @@ export default function FAQ() {
           especificado no texto será usado.
         </p>
         <p>
-          Para perguntas do <a href="/faq/#question-types">intervalo</a>
-          de <a href="/faq/#question-types">datas</a>, as datas na interface
-          estão em UTC. Normalmente, a hora do dia faz pouca diferença, pois um
-          dia é minúsculo em comparação com a faixa completa, mas ocasionalmente
-          para perguntas de curto prazo, a hora do dia pode afetar materialmente
-          as pontuações. Se não estiver claro qual ponto em um período
-          especificado uma questão de intervalo de data será resolvida, ela será
-          resolvida como o{""}
-          <a href="/faq/#whenresolve">ponto médio desse período</a>. Por
+          Para perguntas do <Link href="/faq/#question-types">intervalo</Link>
+          de <Link href="/faq/#question-types">datas</Link>, as datas na
+          interface estão em UTC. Normalmente, a hora do dia faz pouca
+          diferença, pois um dia é minúsculo em comparação com a faixa completa,
+          mas ocasionalmente para perguntas de curto prazo, a hora do dia pode
+          afetar materialmente as pontuações. Se não estiver claro qual ponto em
+          um período especificado uma questão de intervalo de data será
+          resolvida, ela será resolvida como o{""}
+          <Link href="/faq/#whenresolve">ponto médio desse período</Link>. Por
           exemplo, se uma pergunta diz que vai resolver como um determinado dia,
           mas não a que hora do dia, ele vai resolver como meio-dia UTC naquele
           dia.
@@ -1421,10 +1433,10 @@ export default function FAQ() {
           Somente os administradores do Metaculus podem resolver perguntas.
           Perguntas binárias podem resolver <strong>Sim</strong>,{""}
           <strong>Não</strong>,{""}
-          <a href="/faq/#ambiguous-annulled">Imbíguo ou Anugado</a>. As
+          <Link href="/faq/#ambiguous-annulled">Imbíguo ou Anugado</Link>. As
           perguntas de intervalo podem resolver um valor específico, um valor
           fora dos limites,{""}
-          <a href="/faq/#ambiguous-annulled">ambíguo ou anulado</a>.
+          <Link href="/faq/#ambiguous-annulled">ambíguo ou anulado</Link>.
         </p>
         <h3
           className="scroll-mt-nav text-xl font-semibold"
@@ -1445,7 +1457,7 @@ export default function FAQ() {
           Da mesma forma, quando um condicional acaba por ser baseado em um
           resultado que não ocorreu, é anulado. Por exemplo, quando um pai do
           {""}
-          <a href="/faq/#conditionals">Par Condicional</a>
+          <Link href="/faq/#conditionals">Par Condicional</Link>
           resolve Sim, o <q>se não</q>
           Condicional é Anular.
         </p>
@@ -1622,14 +1634,14 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="/questions/9459/russian-troops-in-kiev-in-2022/">
+            <Link href="/questions/9459/russian-troops-in-kiev-in-2022/">
               <strong>
                 <em>
                   Tropas russas entrarão em Kiev, Ucrânia antes de 31 de
                   dezembro de 2022?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Esta pergunta foi feita se pelo menos 100 soldados russos
@@ -1641,9 +1653,9 @@ export default function FAQ() {
                 ambígua. Além da falta de um consenso claro, esta questão é
                 também um exemplo de resultados desequilibrados e a necessidade
                 de preservar os incentivos.{""}
-                <a href="/questions/9459/russian-troops-in-kiev-in-2022/#comment-93915">
+                <Link href="/questions/9459/russian-troops-in-kiev-in-2022/#comment-93915">
                   Como um administrador explica aqui
-                </a>
+                </Link>
                 , devido à incerteza em torno dos eventos em fevereiro, a
                 questão não poderia permanecer aberta para ver se um evento de
                 qualificação aconteceria antes do final de 2022. Isso ocorre
@@ -1655,7 +1667,7 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a
+            <Link
               href="/questions/10134/average-ransomware-kit-cost-in-2022/"
               target="_blank"
               rel="noopener"
@@ -1665,13 +1677,13 @@ export default function FAQ() {
                   Qual será o custo médio de um kit de ransomware em 2022?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Esta questão baseou-se em dados publicados num relatório da
                 Microsoft, no entanto, o relatório da Microsoft para o ano em
                 questão já não continha os dados relevantes. É{""}
-                <a href="/faq/#ressrc">a política do Metaculus</a>
+                <Link href="/faq/#ressrc">a política do Metaculus</Link>
                 que, por padrão, se uma fonte de resolução não estiver
                 disponível, o Metaculus pode usar uma fonte funcionalmente
                 equivalente em seu lugar, a menos que especificado de outra
@@ -1725,14 +1737,14 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="/questions/12433/substacks-google-trends-at-end-of-2022/">
+            <Link href="/questions/12433/substacks-google-trends-at-end-of-2022/">
               <strong>
                 <em>
                   O que o índice Google Trends da Substack será no final de
                   2022?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Essa questão não especificou claramente como as tendências do
@@ -1740,26 +1752,26 @@ export default function FAQ() {
                 de 2022, porque o valor do índice depende do intervalo de datas
                 especificado no Google Trends. Um administrador forneceu mais
                 detalhes neste{""}
-                <a href="/questions/12433/substacks-google-trends-at-end-of-2022/#comment-112592">
+                <Link href="/questions/12433/substacks-google-trends-at-end-of-2022/#comment-112592">
                   comentário
-                </a>
+                </Link>
                 .
               </li>
             </ul>
           </li>
           <li>
-            <a href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/">
+            <Link href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/">
               <strong>
                 <em>Quando um reator de fusão vai atingir a ignição?</em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Esta questão não definiu claramente o que se entende por
                 “ignição”. Como um administrador descrito neste{""}
-                <a href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/#comment-110164">
+                <Link href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/#comment-110164">
                   comentário
-                </a>
+                </Link>
                 , a definição de ignição pode variar dependendo dos
                 pesquisadores que a utilizam e do método de fusão, bem como do
                 quadro de referência para o que conta como entrada e saída de
@@ -1768,14 +1780,14 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="/questions/12532/russia-general-mobilization-before-2023/">
+            <Link href="/questions/12532/russia-general-mobilization-before-2023/">
               <strong>
                 <em>
                   A Rússia ordenará uma mobilização geral até 1o de janeiro de
                   2023?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Esta pergunta feita sobre a Rússia ordenar uma mobilização
@@ -1786,9 +1798,9 @@ export default function FAQ() {
                 de resolução diferiam do entendimento comum de uma “mobilização
                 geral” e não explicaram adequadamente a mobilização parcial real
                 que acabou sendo ordenada, como{""}
-                <a href="/questions/12532/russia-general-mobilization-before-2023/">
+                <Link href="/questions/12532/russia-general-mobilization-before-2023/">
                   explicado por um administrador aqui
-                </a>
+                </Link>
                 .
               </li>
             </ul>
@@ -1817,14 +1829,14 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="/questions/10444/cause-of-flight-5735-crash/">
+            <Link href="/questions/10444/cause-of-flight-5735-crash/">
               <strong>
                 <em>
                   Será que um problema técnico será identificado como a causa do
                   acidente do voo 5735 da China Eastern Airlines?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Esta questão baseou-se nas conclusões de um futuro relatório do
@@ -1835,15 +1847,15 @@ export default function FAQ() {
                 No. Uma vez que isso não foi especificado e a suposição de um
                 futuro relatório do NTSB foi violada, a questão foi oununciada,
                 como{""}
-                <a href="/questions/10444/cause-of-flight-5735-crash/">
+                <Link href="/questions/10444/cause-of-flight-5735-crash/">
                   explicado por um administrador aqui
-                </a>
+                </Link>
                 .
               </li>
             </ul>
           </li>
           <li>
-            <a href="/questions/6249/november-2021-production-of-semiconductors/">
+            <Link href="/questions/6249/november-2021-production-of-semiconductors/">
               <strong>
                 <em>
                   Qual será o índice de produção industrial do Federal Reserve
@@ -1851,7 +1863,7 @@ export default function FAQ() {
                   impresso e produtos relacionados?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Esta questão não forneceu uma descrição de como deve ser
@@ -1865,14 +1877,14 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="/questions/10048/russia-to-return-to-nuclear-level-1/">
+            <Link href="/questions/10048/russia-to-return-to-nuclear-level-1/">
               <strong>
                 <em>
                   Quando a escala de prontidão nuclear da Rússia retornará ao
                   Nível 1?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 A reportagem da mídia sobre o nível de prontidão nuclear da
@@ -1881,22 +1893,22 @@ export default function FAQ() {
                 investigação mais completa descobriu que a prontidão nuclear da
                 Rússia provavelmente não mudou. Isso violou a suposição da
                 questão que levou à questão de ser anulada, como{""}
-                <a href="/questions/10048/russia-to-return-to-nuclear-level-1/#comment-100275">
+                <Link href="/questions/10048/russia-to-return-to-nuclear-level-1/#comment-100275">
                   explicado por um administrador aqui
-                </a>
+                </Link>
                 .
               </li>
             </ul>
           </li>
           <li>
-            <a href="/questions/9000/us-social-cost-of-carbon-in-2022/">
+            <Link href="/questions/9000/us-social-cost-of-carbon-in-2022/">
               <strong>
                 <em>
                   Qual será o custo social da administração de Biden de 1
                   tonelada de CO2 em 2022?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Esta questão especificava que resolveria de acordo com um
@@ -1936,14 +1948,14 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="/questions/6047/1m-lost-in-prediction-market/">
+            <Link href="/questions/6047/1m-lost-in-prediction-market/">
               <strong>
                 <em>
                   Algum mercado de previsão fará com que os usuários percam pelo
                   menos US $ 1 milhão antes de 2023?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Essa pergunta pergunta pergunta se certos incidentes como
@@ -1987,14 +1999,14 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="/questions/13521/any-ftx-depositor-to-get-anything-out-by-2023/">
+            <Link href="/questions/13521/any-ftx-depositor-to-get-anything-out-by-2023/">
               <strong>
                 <em>
                   Algum depositante restante do FTX retirará qualquer quantidade
                   de ativos negociáveis da FTX antes de 2023?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Esta pergunta se um depositante FTX retiraria os ativos onde a
@@ -2011,10 +2023,7 @@ export default function FAQ() {
           </li>
         </ul>
         <div>
-          <h3
-            id="allres"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
-          >
+          <h3 id="allres" className="mb-4 scroll-mt-nav text-2xl font-semibold">
             Todas as perguntas são resolvidas?
           </h3>
           <p>Atualmente, todas as perguntas serão resolvidas.</p>
@@ -2022,7 +2031,7 @@ export default function FAQ() {
         <div>
           <h3
             id="whenresolve"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             Quando uma pergunta será resolvida?
           </h3>
@@ -2039,9 +2048,9 @@ export default function FAQ() {
           <p>
             Para perguntas que perguntam quando algo acontecerá (como{""}
             <q>
-              <a href="/questions/3515/when-will-the-first-humans-land-successfully-on-mars/">
+              <Link href="/questions/3515/when-will-the-first-humans-land-successfully-on-mars/">
                 Quando os primeiros humanos pousarão com sucesso em Marte?
-              </a>
+              </Link>
             </q>
             ), Os meteorologistas são solicitados a prever a data / hora em que
             os critérios foram satisfeitos (embora a questão possa ser decidida
@@ -2060,7 +2069,7 @@ export default function FAQ() {
         <div>
           <h3
             id="resolvebackground"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             O material de fundo é usado para resolução de perguntas?
           </h3>
@@ -2087,7 +2096,7 @@ export default function FAQ() {
         <div>
           <h3
             id="unclearresolve"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             O que acontece se os critérios de resolução de uma pergunta não
             forem claros ou subótimos?
@@ -2133,7 +2142,7 @@ export default function FAQ() {
         <div>
           <h3
             id="reresolve"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             Perguntas podem ser resolvidas?
           </h3>
@@ -2154,7 +2163,7 @@ export default function FAQ() {
         <div>
           <h3
             id="whatifres"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             O que acontece se uma pergunta for resolvida no mundo real antes do
             horário próximo?
@@ -2179,7 +2188,7 @@ export default function FAQ() {
         <div>
           <h3
             id="retroactive-closure"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             Quando uma pergunta deve especificar o fechamento retroativo?
           </h3>
@@ -2225,10 +2234,10 @@ export default function FAQ() {
               Anteriormente, algumas perguntas sobre o Metaculus foram aprovadas
               com cláusulas de fechamento retroativas inapropriadas. Por
               exemplo, a pergunta{""}
-              <a href="/questions/6662/date-earth-functional-satellites-exceed-5000/">
+              <Link href="/questions/6662/date-earth-functional-satellites-exceed-5000/">
                 &quot;Quando o número de satélites artificiais funcionais em
                 órbita excederá 5.000?&quot;
-              </a>
+              </Link>
               especifica o fechamento retroativo até a data em que o satélite
               5.001 é lançado.{""}
               <strong>
@@ -2246,9 +2255,11 @@ export default function FAQ() {
             da data de fechamento originalmente agendada. Mas, para obter as
             melhores previsões, é importante seguir as regras de pontuação
             adequadas. Para mais informações sobre truncamento{""}
-            <a href="/help/scores-faq/#score-truncation">de</a>
+            <Link href="/help/scores-faq/#score-truncation">de</Link>
             pontos
-            <a href="/help/scores-faq/#score-truncation">, esta seção do FAQ</a>
+            <Link href="/help/scores-faq/#score-truncation">
+              , esta seção do FAQ
+            </Link>
             .
           </p>
           <p>
@@ -2261,7 +2272,7 @@ export default function FAQ() {
         <div>
           <h3
             id="whatifres2"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             O que acontece se os critérios de resolução de uma pergunta forem
             cumpridos antes do horário de abertura?
@@ -2280,10 +2291,10 @@ export default function FAQ() {
             <em>próxima</em>
             detonação após as detonações em 1945. Em outras questões como{""}
             <q>
-              <a href="/questions/8946/facebook-uses-explainable-news-feed-by-2026/)">
+              <Link href="/questions/8946/facebook-uses-explainable-news-feed-by-2026/)">
                 Will, o Facebook implementa um recurso para explicar as
                 recomendações
-              </a>
+              </Link>
             </q>
             do <q></q>
             de <q></q>, estamos perguntando sobre a <em>primeira</em>
@@ -3038,8 +3049,8 @@ M834 80h400000v40h-400000z"
             </li>
             <ul className="ml-5 list-disc">
               <li>
-                Para <a href="/faq/#question-types">questões binárias</a>, a
-                previsão comunitária é uma{""}
+                Para <Link href="/faq/#question-types">questões binárias</Link>,
+                a previsão comunitária é uma{""}
                 <a href="https://en.wikipedia.org/wiki/Weighted_median">
                   mediana ponderada
                 </a>
@@ -3047,8 +3058,10 @@ M834 80h400000v40h-400000z"
               </li>
               <li>
                 Para{""}
-                <a href="/faq/#question-types">questões de múltipla escolha</a>,
-                a previsão comunitária é uma{""}
+                <Link href="/faq/#question-types">
+                  questões de múltipla escolha
+                </Link>
+                , a previsão comunitária é uma{""}
                 <a href="https://en.wikipedia.org/wiki/Weighted_median">
                   mediana ponderada
                 </a>
@@ -3073,7 +3086,9 @@ M834 80h400000v40h-400000z"
               </li>
               <li>
                 Para{""}
-                <a href="/faq/#question-types">as perguntas numéricas e data</a>
+                <Link href="/faq/#question-types">
+                  as perguntas numéricas e data
+                </Link>
                 , a previsão comunitária é uma{""}
                 <a href="https://en.wikipedia.org/wiki/Mixture_distribution">
                   média ponderada
@@ -3178,9 +3193,9 @@ M834 80h400000v40h-400000z"
           </h3>
           <p>
             A previsão do Metaculus só pode ser visualizada no{""}
-            <a href="/aggregation-explorer/">Explorador de Agregação</a>. Está
-            obsocada desde novembro de 2024, mas mostra um registro da melhor
-            estimativa do sistema Metaculus sobre como uma questão será
+            <Link href="/aggregation-explorer/">Explorador de Agregação</Link>.
+            Está obsocada desde novembro de 2024, mas mostra um registro da
+            melhor estimativa do sistema Metaculus sobre como uma questão será
             resolvida. É baseado em previsões de membros da comunidade, mas ao
             contrário da previsão da comunidade, não é uma média simples ou
             mediana. Em vez disso, a Previsão do Metaculus usa um modelo
@@ -3218,8 +3233,9 @@ M834 80h400000v40h-400000z"
             O que são previsões de figura pública?
           </h3>
           <p>
-            As páginas de <a href="/organization/public-figures/">previsão</a>
-            de <a href="/organization/public-figures/">figuras</a>
+            As páginas de{" "}
+            <Link href="/organization/public-figures/">previsão</Link>
+            de <Link href="/organization/public-figures/">figuras</Link>
             públicas são dedicadas a coletar e preservar previsões importantes
             feitas por figuras públicas proeminentes e colocá-las em conversa
             com as previsões da comunidade Metaculus. Cada figura apresenta uma
@@ -3282,21 +3298,21 @@ M834 80h400000v40h-400000z"
           <p>
             Se a Figura Pública ainda não tiver uma página dedicada, você pode
             solicitar que seja criada comentando o post{""}
-            <a
+            <Link
               href="/questions/8198/public-figure-predictions/"
               target="_blank"
               rel="noopener"
             >
               de
-            </a>
+            </Link>
             discussão{""}
-            <a
+            <Link
               href="/questions/8198/public-figure-predictions/"
               target="_blank"
               rel="noopener"
             >
               Public Figures Predictions
-            </a>
+            </Link>
             . Tag - Cristão para um processo de moderação mais rápido.
           </p>
         </div>
@@ -3309,33 +3325,33 @@ M834 80h400000v40h-400000z"
             Dependendo do nível de especificidade e clareza da previsão da
             figura pública, uma questão de Metaculus vinculada pode resolver de
             acordo com os mesmos critérios exatos da previsão. Por exemplo,{""}
-            <a
+            <Link
               href="/questions/8225/public-figure-prediction-by-joe-biden/"
               target="_blank"
               rel="noopener"
             >
               Joe Biden expressou que planeja concorrer à reeleição
-            </a>
+            </Link>
             .{""}
-            <a
+            <Link
               href="/questions/6438/will-joe-biden-run-for-reelection/"
               target="_blank"
               rel="noopener"
             >
               Esta pergunta do Metaculus pergunta diretamente se ele vai correr
-            </a>
+            </Link>
             .{""}
           </p>
           <p>
             Perguntas vinculadas não são necessárias, no entanto, para
             corresponder diretamente à previsão da figura pública, e{""}
-            <a
+            <Link
               href="/questions/5712/biden-2024-re-nomination/"
               target="_blank"
               rel="noopener"
             >
               essa questão sobre se Biden será o candidato democrata em 2024
-            </a>
+            </Link>
             é claramente relevante para a reivindicação de figuras públicas,
             mesmo que esteja mais longe da alegação do que perguntar se Biden
             concorrerá. Perguntas vinculadas relevantes lançam luz, criam
@@ -3346,14 +3362,14 @@ M834 80h400000v40h-400000z"
           </p>
           <p>
             Por outro lado, essa questão sobre se o{""}
-            <a
+            <Link
               href="/questions/8523/irs-designates-crypto-miners-brokers-by-2025/"
               target="_blank"
               rel="noopener"
             >
               IRS designa os mineradores de criptomoedas como “corretores” até
               2025
-            </a>
+            </Link>
             segue a Lei de Investimento e Empregos de Infraestrutura de Biden,
             mas além da conexão Biden, não satisfaz os critérios acima para uma
             questão vinculada relevante.
@@ -3460,7 +3476,7 @@ M834 80h400000v40h-400000z"
           </p>
           <p>
             Saiba mais nas{""}
-            <a href="/help/scores-faq/">Pontuações dedicadas FAQ</a>.
+            <Link href="/help/scores-faq/">Pontuações dedicadas FAQ</Link>.
           </p>
           <h3
             id="whatmedals"
@@ -3478,9 +3494,9 @@ M834 80h400000v40h-400000z"
             concedidas para o desempenho do torneio.
           </p>
           <p>
-            Saiba mais no <a href="/help/medals-faq/">FAQ</a>
-            de <a href="/help/medals-faq/">Medalhas</a>
-            dedicado<a href="/help/medals-faq/">.</a>
+            Saiba mais no <Link href="/help/medals-faq/">FAQ</Link>
+            de <Link href="/help/medals-faq/">Medalhas</Link>
+            dedicado<Link href="/help/medals-faq/">.</Link>
           </p>
         </div>
         {/* <hr> */}
@@ -3499,7 +3515,7 @@ M834 80h400000v40h-400000z"
             O que é o Metaculus Journal?
           </h3>
           <p>
-            O <a href="/project/journal/">Metaculus Journal</a>
+            O <Link href="/project/journal/">Metaculus Journal</Link>
             publica ensaios educacionais longos e educacionais sobre temas
             críticos como ciência e tecnologia emergentes, saúde global,
             biossegurança, economia e econometria, ciência ambiental e
@@ -3558,7 +3574,7 @@ M834 80h400000v40h-400000z"
           </h3>
           <p>
             Para certos projetos, o Metaculus emprega{""}
-            <a href="/pro-forecasters/">Pro Forecasters</a>
+            <Link href="/pro-forecasters/">Pro Forecasters</Link>
             que demonstraram excelente capacidade de previsão e que têm um
             histórico de descrever claramente suas justificativas. Prós preveem
             conjuntos de perguntas privados e públicos para produzir previsões
@@ -3626,7 +3642,7 @@ M834 80h400000v40h-400000z"
             Metaculus pode – embora isso, felizmente, ocorra muito raramente –
             emitir as suspensões temporárias de uma conta. Isso ocorre quando um
             usuário agiu de uma maneira que consideramos inadequada, como quando
-            nossos <a href="/terms-of-use/">termos de uso</a>
+            nossos <Link href="/terms-of-use/">termos de uso</Link>
             são violados. Neste ponto, o usuário receberá um aviso sobre a
             suspensão e será informado de que continuar esse comportamento é
             inaceitável. As suspensões temporárias servem como um aviso aos

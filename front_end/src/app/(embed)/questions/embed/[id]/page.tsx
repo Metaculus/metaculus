@@ -14,13 +14,12 @@ import { SearchParams } from "@/types/navigation";
 import "./styles.scss";
 import { getEmbedTheme } from "../../helpers/embed_theme";
 
-export default async function GenerateQuestionPreview({
-  params,
-  searchParams,
-}: {
-  params: { id: number };
-  searchParams: SearchParams;
+export default async function GenerateQuestionPreview(props: {
+  params: Promise<{ id: number }>;
+  searchParams: Promise<SearchParams>;
 }) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const t = await getTranslations();
   const post = await PostsApi.getPostAnonymous(params.id);
   if (!post) {

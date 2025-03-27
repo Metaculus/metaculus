@@ -34,7 +34,6 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import Select from "@/components/ui/select";
-import { GroupOfQuestionsGraphType } from "@/types/charts";
 import {
   Category,
   Post,
@@ -271,7 +270,8 @@ const GroupForm: React.FC<Props> = ({
   const [subQuestions, setSubQuestions] = useState<any[]>(() => {
     const initialSubQuestions = post?.group_of_questions?.questions
       ? sortGroupPredictionOptions(
-          post?.group_of_questions?.questions as QuestionWithNumericForecasts[]
+          post?.group_of_questions?.questions as QuestionWithNumericForecasts[],
+          post?.group_of_questions
         )
       : [];
 
@@ -505,37 +505,33 @@ const GroupForm: React.FC<Props> = ({
         </InputContainer>
         <div className="flex flex-col gap-4 rounded border bg-gray-200 p-4 dark:bg-gray-200-dark">
           <h4 className="m-0 capitalize">{t("subquestions")}</h4>
-          {post?.group_of_questions?.graph_type !==
-            GroupOfQuestionsGraphType.FanGraph && (
-            <InputContainer
-              labelText={t("groupSorting")}
-              explanation={t("groupSortingDescription")}
-            >
-              <Select
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                options={[
-                  {
-                    value: PostGroupOfQuestionsSubquestionsOrder.MANUAL,
-                    label: t("manualSubquestionOrder"),
-                  },
-                  {
-                    value: PostGroupOfQuestionsSubquestionsOrder.CP_ASC,
-                    label: t("cpAscendingSubquestionOrder"),
-                  },
-                  {
-                    value: PostGroupOfQuestionsSubquestionsOrder.CP_DESC,
-                    label: t("cpDescendingSubquestionOrder"),
-                  },
-                ]}
-                {...form.register("subquestions_order")}
-                defaultValue={
-                  post?.group_of_questions?.subquestions_order ??
-                  PostGroupOfQuestionsSubquestionsOrder.MANUAL
-                }
-              />
-            </InputContainer>
-          )}
-
+          <InputContainer
+            labelText={t("groupSorting")}
+            explanation={t("groupSortingDescription")}
+          >
+            <Select
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              options={[
+                {
+                  value: PostGroupOfQuestionsSubquestionsOrder.MANUAL,
+                  label: t("manualSubquestionOrder"),
+                },
+                {
+                  value: PostGroupOfQuestionsSubquestionsOrder.CP_ASC,
+                  label: t("cpAscendingSubquestionOrder"),
+                },
+                {
+                  value: PostGroupOfQuestionsSubquestionsOrder.CP_DESC,
+                  label: t("cpDescendingSubquestionOrder"),
+                },
+              ]}
+              {...form.register("subquestions_order")}
+              defaultValue={
+                post?.group_of_questions?.subquestions_order ??
+                PostGroupOfQuestionsSubquestionsOrder.MANUAL
+              }
+            />
+          </InputContainer>
           {subQuestions.map((subQuestion, index) => {
             return (
               <div

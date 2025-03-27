@@ -1174,5 +1174,6 @@
   "configuration": "Konfigurace",
   "loginConfigurationMessage": "Přihlaste se pro výběr jiných možností",
   "downloadData": "Stáhnout data",
-  "emailData": "Pošlete mi tato data e-mailem"
+  "emailData": "Pošlete mi tato data e-mailem",
+  "today": "Dnes"
 }

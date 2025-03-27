@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import Button from "@/components/ui/button";
 
 import GlobalHeader from "../../../(main)/components/headers/global_header";
@@ -14,13 +16,12 @@ export default function NoticeAtCollection() {
     <>
       <GlobalHeader />
       <div className="mx-auto mt-12 flex w-full justify-center pb-0 pt-10">
-        {" "}
         <Button
           variant="secondary"
           className="cursor-pointer"
-          href={`/bridgewater`}
+          href="/tournament/bridgewater/"
         >
-          Register for the Tournament
+          View Tournament Page
         </Button>
       </div>
       <PageWrapper>
@@ -62,12 +63,12 @@ export default function NoticeAtCollection() {
 
           <p>
             To view our full privacy policy, visit{" "}
-            <a
+            <Link
               href="/privacy-policy/"
               className="text-blue-600 hover:underline"
             >
               here
-            </a>
+            </Link>
             .
           </p>
 

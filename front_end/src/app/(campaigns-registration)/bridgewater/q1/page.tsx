@@ -1,5 +1,6 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 
 import Announcement from "./components/announcement";
 import Dates from "./components/dates";
@@ -25,6 +26,7 @@ export default function BridgewaterTournamentPage() {
             <img
               className="w-full object-cover"
               src="https://metaculus-media.s3.amazonaws.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp"
+              alt=""
             />
           </div>
         </div>
@@ -39,7 +41,7 @@ export default function BridgewaterTournamentPage() {
       <div className="my-3 flex w-full flex-col-reverse gap-3 lg:flex-row-reverse">
         <div className="flex w-full gap-3 lg:w-1/4">
           <div className="flex size-full flex-row gap-3 lg:flex-col">
-            <a
+            <Link
               href="/tournament/bridgewater/"
               className="flex size-full h-auto flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:h-full md:p-5 lg:justify-center min-[1920px]:gap-6 min-[1920px]:p-8"
             >
@@ -50,7 +52,7 @@ export default function BridgewaterTournamentPage() {
               <span className="block self-center text-center text-base no-underline md:text-xl lg:self-start lg:text-left min-[1920px]:text-3xl">
                 View Contest Page
               </span>
-            </a>
+            </Link>
           </div>
         </div>
         <div className="flex size-full flex-col gap-3 md:flex-row">

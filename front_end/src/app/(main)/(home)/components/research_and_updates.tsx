@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
-import imagePlaceholder from "@/app/assets/images/tournament.webp";
+import imagePlaceholder from "@/app/assets/images/tournament.png";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { NotebookPost } from "@/types/post";
 import { getPostLink } from "@/utils/navigation";

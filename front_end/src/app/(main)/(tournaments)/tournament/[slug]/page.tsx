@@ -1,6 +1,5 @@
 import { isNil } from "lodash";
 import { Metadata } from "next";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
@@ -13,6 +12,7 @@ import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/com
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { defaultDescription } from "@/constants/metadata";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
@@ -23,16 +23,17 @@ import { formatDate } from "@/utils/date_formatters";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import HeaderBlockNav from "../components/header_block_navigation";
+import ProjectMembers from "../components/members";
 import TournamentFeed from "../components/tournament_feed";
 import TournamentTimeline from "../components/tournament_timeline";
 
-const LazyProjectMembers = dynamic(() => import("../components/members"), {
-  ssr: false,
-});
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<SearchParams>;
+};
 
-type Props = { params: { slug: string }; searchParams: SearchParams };
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const tournament = await ProjectsApi.getTournament(params.slug);
 
   if (!tournament) {
@@ -57,7 +58,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function TournamentSlug({ params }: Props) {
+export default async function TournamentSlug(props: Props) {
+  const params = await props.params;
   const tournament = await ProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
@@ -213,7 +215,11 @@ export default async function TournamentSlug({ params }: Props) {
       {!PUBLIC_MINIMAL_UI &&
         [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
           tournament.user_permission
-        ) && <LazyProjectMembers project={tournament} />}
+        ) && (
+          <Suspense fallback={<LoadingIndicator />}>
+            <ProjectMembers project={tournament} />
+          </Suspense>
+        )}
     </main>
   );
 }

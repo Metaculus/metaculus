@@ -1176,5 +1176,6 @@
   "configuration": "配置",
   "loginConfigurationMessage": "登录以选择不同的选项",
   "downloadData": "下载数据",
-  "emailData": "将此数据发送到我的电子邮件"
+  "emailData": "将此数据发送到我的电子邮件",
+  "today": "今天"
 }

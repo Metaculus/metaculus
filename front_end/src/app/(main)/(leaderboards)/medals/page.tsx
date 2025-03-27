@@ -12,11 +12,11 @@ import { formatUsername } from "@/utils/users";
 
 import { MEDALS_PATH_FILTER, MEDALS_USER_FILTER } from "./search_params";
 
-export default async function Medals({
-  searchParams,
-}: {
-  searchParams: SearchParams;
+export default async function Medals(props: {
+  searchParams: Promise<SearchParams>;
 }) {
+  const searchParams = await props.searchParams;
+
   let userId: number | null;
   if (
     searchParams[MEDALS_USER_FILTER] &&
