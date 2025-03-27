@@ -2,7 +2,7 @@ from typing import Iterable
 
 from django.db.models import Q
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
@@ -52,6 +52,13 @@ def get_posts_feed(
     """
     Applies filtering on the Questions QuerySet
     """
+
+    # Ensure we could only filter by current user
+    if forecaster_id and (not user or forecaster_id != user.id):
+        raise PermissionDenied()
+
+    if not_forecaster_id and (not user or not_forecaster_id != user.id):
+        raise PermissionDenied()
 
     if qs is None:
         qs = Post.objects.all()

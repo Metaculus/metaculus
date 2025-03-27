@@ -3,8 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useTransition } from "react";
-import { useFormState } from "react-dom";
+import { FC, useEffect, useTransition, useActionState } from "react";
 import { useForm } from "react-hook-form";
 
 import { LoginActionState } from "@/app/(main)/accounts/actions";
@@ -39,7 +38,7 @@ const SignInModal: FC<SignInModalType> = ({
     resolver: zodResolver(signInSchema),
   });
   const username = watch("login");
-  const [state, formAction] = useFormState<LoginActionState, FormData>(
+  const [state, formAction] = useActionState<LoginActionState, FormData>(
     loginAction,
     null
   );

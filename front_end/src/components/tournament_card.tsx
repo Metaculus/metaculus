@@ -8,7 +8,7 @@ import Link, { LinkProps } from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
-import tournamentPlaceholder from "@/app/assets/images/tournament.webp";
+import tournamentPlaceholder from "@/app/assets/images/tournament.png";
 import { formatDate } from "@/utils/date_formatters";
 
 type Props = {

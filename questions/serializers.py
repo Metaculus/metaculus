@@ -29,6 +29,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     scaling = serializers.SerializerMethodField()
     actual_close_time = serializers.SerializerMethodField()
     resolution = serializers.SerializerMethodField()
+    spot_scoring_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -39,6 +40,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "created_at",
             "open_time",
             "cp_reveal_time",
+            "spot_scoring_time",
             "scheduled_resolve_time",
             "actual_resolve_time",
             "resolution_set_time",
@@ -72,6 +74,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             "zero_point": question.zero_point,
         }
 
+    def get_spot_scoring_time(self, question: Question):
+        return question.spot_scoring_time or question.scheduled_close_time
+
     def get_actual_close_time(self, question: Question):
         if question.actual_close_time:
             return question.actual_close_time
@@ -92,8 +97,10 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
-    scheduled_resolve_time = serializers.DateTimeField(required=True)
-    scheduled_close_time = serializers.DateTimeField(required=True)
+    open_time = serializers.DateTimeField(required=False, allow_null=True)
+    cp_reveal_time = serializers.DateTimeField(required=False, allow_null=True)
+    scheduled_close_time = serializers.DateTimeField(required=False, allow_null=True)
+    scheduled_resolve_time = serializers.DateTimeField(required=False, allow_null=True)
 
     class Meta:
         model = Question
@@ -113,28 +120,50 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "options",
             "group_variable",
             "label",
-            "unit",
-            "scheduled_resolve_time",
-            "scheduled_close_time",
             "resolution_criteria",
+            "open_time",
+            "cp_reveal_time",
+            "scheduled_close_time",
+            "scheduled_resolve_time",
+            "unit",
             "fine_print",
             "group_rank",
         )
 
     def validate(self, data: dict):
         # TODO: add validation for continuous question bounds
+        errors = []
 
-        scheduled_resolve_time = data.get("scheduled_resolve_time")
+        published_at = data.get("published_at")
+        open_time = data.get("open_time")
+        cp_reveal_time = data.get("cp_reveal_time")
         scheduled_close_time = data.get("scheduled_close_time")
+        scheduled_resolve_time = data.get("scheduled_resolve_time")
 
-        if (
-            scheduled_resolve_time
-            and scheduled_resolve_time
-            and scheduled_close_time > scheduled_resolve_time
-        ):
-            raise ValidationError(
-                "Question resolve time must be later than the close time"
-            )
+        if published_at:
+            if open_time and published_at > open_time:
+                errors.append("Publish Time must not be after Open Time")
+            if cp_reveal_time and published_at > cp_reveal_time:
+                errors.append("Publish Time must not be after CP Reveal Time")
+            if scheduled_close_time and published_at > scheduled_close_time:
+                errors.append("Publish Time must not be after Closing Time")
+            if scheduled_resolve_time and published_at > scheduled_resolve_time:
+                errors.append("Publish Time must not be after Resolving Time")
+        if open_time:
+            if scheduled_close_time and open_time >= scheduled_close_time:
+                errors.append("Open Time must be before Closing Time")
+            if scheduled_resolve_time and open_time >= scheduled_resolve_time:
+                errors.append("Open Time must be before Resolving Time")
+        if cp_reveal_time:
+            if scheduled_close_time and cp_reveal_time > scheduled_close_time:
+                errors.append("CP Reveal Time must not be after Closing Time")
+            if scheduled_resolve_time and cp_reveal_time > scheduled_resolve_time:
+                errors.append("CP Reveal Time must not be after Resolving Time")
+        if scheduled_close_time:
+            if scheduled_resolve_time and scheduled_close_time > scheduled_resolve_time:
+                errors.append("Closing Time must not be after Resolving Time")
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return data
 
@@ -861,5 +890,8 @@ class OldForecastWriteSerializer(serializers.Serializer):
 
 
 class QuestionApproveSerializer(serializers.Serializer):
+    published_at = serializers.DateTimeField(required=True)
     open_time = serializers.DateTimeField(required=True)
     cp_reveal_time = serializers.DateTimeField(required=True)
+    scheduled_close_time = serializers.DateTimeField(required=True)
+    scheduled_resolve_time = serializers.DateTimeField(required=True)

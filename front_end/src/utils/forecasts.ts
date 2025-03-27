@@ -132,6 +132,7 @@ export function getSliderNumericForecastDataset(
   return {
     cdf: cdf,
     pmf: cdfToPmf(cdf),
+    componentCdfs: componentCdfs,
   };
 }
 

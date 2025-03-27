@@ -18,14 +18,13 @@ import CommunityFilters from "./components/community_filters";
 import CommunityManagement from "./components/community_management";
 
 type Props = {
-  params: { slug: string };
-  searchParams: SearchParams;
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<SearchParams>;
 };
 
-export default async function CommunityManagementSettings({
-  params,
-  searchParams,
-}: Props) {
+export default async function CommunityManagementSettings(props: Props) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const { slug } = params;
   const t = await getTranslations();
   const community = await ProjectsApi.getCommunity(slug);

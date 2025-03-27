@@ -15,8 +15,10 @@ const CPRevealTime: FC<Props> = ({ cpRevealTime, className }) => {
   return (
     <span className={className}>
       {t("cpRevealed")}{" "}
+      {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
       <relative-time datetime={cpRevealTime} lang={locale}>
         {intlFormatDistance(cpRevealTime, new Date(), { locale })}
+        {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
       </relative-time>
     </span>
   );

@@ -8,7 +8,7 @@ type Props = {
   unit?: string;
   isClosed: boolean;
 };
-// TODO: adjust for numeric questions when units will be implemented
+
 const ContinuousCPBar: FC<Props> = ({
   communityPredictionDisplayValue,
   unit,

@@ -133,13 +133,11 @@ export function generateYDomain({
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
     .filter((value) => !isNil(value));
-  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
   const minValue = min.length ? Math.min(...min) : null;
   const max = maxValues
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
     .filter((value) => !isNil(value));
-  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
   const maxValue = max.length ? Math.max(...max) : null;
 
   if (isNil(minValue) || isNil(maxValue)) {
@@ -701,18 +699,93 @@ export function generateScale({
   }
   const tickCount = (maxLabelCount - 1) * 5 + 1;
 
-  const tickInterval = zoomedDomainMax / (tickCount - 1);
-  const labeledTickInterval = zoomedDomainMax / (maxLabelCount - 1);
+  // TODO: this does not support choosing values intelligently in
+  // real scaling. The y-axis is always a domain of 0-1 with
+  // linear scaling as that is the native format for the
+  // forecast data. To get this to intelligently choose ticks and
+  // labels, this operation will have to be done in the real
+  // scaling first, then transformed back into the domain scale.
+  const zoomedRange = zoomedDomainMax - zoomedDomainMin;
+  let minorRes: number;
+  let majorRes: number;
+  if (zoomedRange > 0.7) {
+    minorRes = 0.05; // only tick on multiples of 0.05
+    majorRes = 0.25; // only label on multiples of 0.25
+  } else if (zoomedRange > 0.5) {
+    minorRes = 0.025; // only tick on multiples of 0.025
+    majorRes = 0.1; // only label on multiples of 0.10
+  } else if (zoomedRange > 0.1) {
+    minorRes = 0.01; // only tick on multiples of 0.01
+    majorRes = 0.05; // only label on multiples of 0.05
+  } else if (zoomedRange > 0.05) {
+    minorRes = 0.005; // only tick on multiples of 0.005
+    majorRes = 0.025; // only label on multiples of 0.025
+  } else {
+    minorRes = 0.0025; // only tick on multiples of 0.0025
+    majorRes = 0.01; // only label on multiples of 0.01
+  }
+
+  const minorTickInterval =
+    Math.round(zoomedRange / (tickCount - 1) / minorRes) * minorRes;
+  const tickStart = Math.round(zoomedDomainMin / minorRes) * minorRes;
+  const tickEnd =
+    Math.round((zoomedDomainMax + minorTickInterval / 100) / minorRes) *
+    minorRes *
+    1.001;
+  const minorTicks: number[] = range(tickStart, tickEnd, minorTickInterval).map(
+    (x) => Math.round(x * 1000) / 1000
+  );
+
+  const majorTickStart = Math.round(zoomedDomainMin / majorRes) * majorRes;
+  const majorTickInterval =
+    Math.round(zoomedRange / (maxLabelCount - 1) / majorRes) * majorRes;
   const majorTicks: number[] = range(
-    zoomedDomainMin,
-    zoomedDomainMax + tickInterval / 100,
-    labeledTickInterval
+    majorTickStart,
+    tickEnd,
+    majorTickInterval
   ).map((x) => Math.round(x * 1000) / 1000);
-  const allTicks: number[] = range(
-    zoomedDomainMin,
-    zoomedDomainMax + tickInterval / 100,
-    tickInterval
-  ).map((x) => Math.round(x * 1000) / 1000);
+
+  // // Debugging - do not remove
+  // console.log(
+  //   "\n displayType:",
+  //   displayType,
+  //   "\n axisLength:",
+  //   axisLength,
+  //   "\n domain:",
+  //   domain,
+  //   "\n zoomedDomain:",
+  //   zoomedDomain,
+  //   "\n zoomedRange:",
+  //   zoomedRange,
+  //   "\n scaling:",
+  //   scaling,
+  //   "\n unit:",
+  //   unit,
+  //   "\n maxLabelCount:",
+  //   maxLabelCount,
+  //   "\n tickCount:",
+  //   tickCount,
+  //   "\n domainScaling:",
+  //   domainScaling,
+  //   "\n rangeScaling:",
+  //   rangeScaling,
+  //   "\n minorRes:",
+  //   minorRes,
+  //   "\n majorRes:",
+  //   majorRes,
+  //   "\n tickStart:",
+  //   tickStart,
+  //   "\n tickEnd:",
+  //   tickEnd,
+  //   "\n minorTickInterval:",
+  //   minorTickInterval,
+  //   "\n minorTicks:",
+  //   minorTicks,
+  //   "\n majorTickInterval:",
+  //   majorTickInterval,
+  //   "\n majorTicks:",
+  //   majorTicks
+  // );
 
   const conditionallyShowUnit = (value: string, idx?: number): string => {
     if (!unit) return value;
@@ -723,7 +796,7 @@ export function generateScale({
     // Include unit only for the first and last tick in horizontal mode
     if (
       direction === "horizontal" &&
-      (idx === 0 || idx === allTicks.length - 1)
+      (idx === 0 || idx === minorTicks.length - 1)
     ) {
       return formatValueUnit(value, unit);
     }
@@ -731,37 +804,39 @@ export function generateScale({
     return value;
   };
 
-  return {
-    ticks: allTicks,
-    tickFormat: (x, idx) => {
-      if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
-        const unscaled = unscaleNominalLocation(x, domainScaling);
-
-        return conditionallyShowUnit(
-          getDisplayValue({
-            value: unscaled,
-            questionType: displayType as QuestionType,
-            scaling: rangeScaling,
-            precision: 3,
-            dateFormatString: "dd MMM yyyy",
-          }),
-          idx
-        );
-      }
-      return "";
-    },
-    cursorFormat: (x) => {
+  function tickFormat(x: number, idx?: number) {
+    if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
       const unscaled = unscaleNominalLocation(x, domainScaling);
-      return formatValueUnit(
+      return conditionallyShowUnit(
         getDisplayValue({
           value: unscaled,
           questionType: displayType as QuestionType,
           scaling: rangeScaling,
-          precision: 6,
+          precision: 3,
         }),
-        unit
+        idx
       );
-    },
+    }
+    return "";
+  }
+
+  function cursorFormat(x: number, idx?: number) {
+    const unscaled = unscaleNominalLocation(x, domainScaling);
+    return conditionallyShowUnit(
+      getDisplayValue({
+        value: unscaled,
+        questionType: displayType as QuestionType,
+        scaling: rangeScaling,
+        precision: 6,
+      }),
+      idx
+    );
+  }
+
+  return {
+    ticks: minorTicks,
+    tickFormat: tickFormat,
+    cursorFormat: cursorFormat,
   };
 }
 
@@ -970,12 +1045,12 @@ export function generateChoiceItemsFromGroupQuestions(
         );
       });
       if (question.type === QuestionType.Binary) {
-        userValues.push(userForecast?.forecast_values[1] || null);
+        userValues.push(userForecast?.forecast_values[1] ?? null);
       } else {
         // continuous
-        userValues.push(userForecast?.centers?.[0] || null);
-        userMinValues.push(userForecast?.interval_lower_bounds?.[0] || null);
-        userMaxValues.push(userForecast?.interval_upper_bounds?.[0] || null);
+        userValues.push(userForecast?.centers?.[0] ?? null);
+        userMinValues.push(userForecast?.interval_lower_bounds?.[0] ?? null);
+        userMaxValues.push(userForecast?.interval_upper_bounds?.[0] ?? null);
       }
     });
     sortedAggregationTimestamps.forEach((timestamp) => {
@@ -985,15 +1060,15 @@ export function generateChoiceItemsFromGroupQuestions(
           (forecast.end_time === null || forecast.end_time >= timestamp)
         );
       });
-      aggregationValues.push(aggregationForecast?.centers?.[0] || null);
+      aggregationValues.push(aggregationForecast?.centers?.[0] ?? null);
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds?.[0] || null
+        aggregationForecast?.interval_lower_bounds?.[0] ?? null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds?.[0] || null
+        aggregationForecast?.interval_upper_bounds?.[0] ?? null
       );
       aggregationForecasterCounts.push(
-        aggregationForecast?.forecaster_count || 0
+        aggregationForecast?.forecaster_count ?? 0
       );
     });
 
@@ -1361,7 +1436,7 @@ export function getResolutionPosition({
     return 0;
   }
   if (adjustBinaryPoint && ["no", "yes"].includes(resolution as string)) {
-    return 0;
+    return 0.4;
   }
 
   if (
@@ -1453,8 +1528,25 @@ export function getContinuousAreaChartData(
 
   return chartData;
 }
+export function calculateTextWidth(fontSize: number, text: string): number {
+  if (typeof document === "undefined") {
+    return 0;
+  }
+  const element = document.createElement("span");
+  element.style.visibility = "hidden";
+  element.style.position = "absolute";
+  element.style.whiteSpace = "nowrap";
+  element.style.fontSize = `${fontSize}px`;
+  element.textContent = text;
 
-export function calculateCharWidth(fontSize: number): number {
+  document.body.appendChild(element);
+  const textWidth = element.offsetWidth;
+  document.body.removeChild(element);
+
+  return textWidth;
+}
+
+export function calculateCharWidth(fontSize: number, text?: string): number {
   if (typeof document === "undefined") {
     return 0;
   }
@@ -1466,7 +1558,7 @@ export function calculateCharWidth(fontSize: number): number {
   element.style.fontSize = `${fontSize}px`;
   const sampleText =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  element.textContent = sampleText;
+  element.textContent = text ?? sampleText;
 
   document.body.appendChild(element);
   const charWidth = element.offsetWidth / sampleText.length;

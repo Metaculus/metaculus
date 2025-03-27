@@ -108,6 +108,13 @@
   "showMoreQuestions": "顯示更多問題",
   "showReplyWithCount": "顯示 {count} 筆回复",
   "hideReplyWithCount": "隱藏 {count} 條回复",
+  "resolvingTime": "解决时间",
+  "postPublishTime": "发布时间",
+  "advancedOptionsDescription": "这些选项不是必需的。版主通常会在批准时填写这些内容。",
+  "publishTimeDescription": "此问题向公众公开的时间。",
+  "closingTimeDescription": "此问题何时关闭预测。",
+  "resolvingTimeDescription": "您预计何时可以知道此问题的答案。",
+  "cpRevealTimeDescription": "社区预测何时可见。",
   "now": "現在",
   "weight": "權重",
   "recent": "最近的",
@@ -1157,5 +1164,6 @@
   "cpAscendingSubquestionOrder": "社区预测（升序）",
   "cpDescendingSubquestionOrder": "社区预测（降序）",
   "groupSorting": "分组排序",
-  "groupSortingDescription": "分组中子问题的顺序"
+  "groupSortingDescription": "分组中子问题的顺序",
+  "today": "今天"
 }

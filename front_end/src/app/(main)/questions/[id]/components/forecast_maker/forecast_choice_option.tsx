@@ -15,6 +15,7 @@ import ChoiceIcon from "@/components/choice_icon";
 import ResolutionIcon from "@/components/icons/resolution";
 import Slider from "@/components/sliders/slider";
 import useAppTheme from "@/hooks/use_app_theme";
+import useMounted from "@/hooks/use_mounted";
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
 import cn from "@/utils/cn";
@@ -218,6 +219,7 @@ const MarkArrow: FC<{
   color: ThemeColor;
 }> = ({ color }) => {
   const { getThemeColor } = useAppTheme();
+  const mounted = useMounted();
 
   return (
     <svg
@@ -229,7 +231,7 @@ const MarkArrow: FC<{
     >
       <path
         d="M5.99984 8L11.9998 0H-0.000158574L5.99984 8Z"
-        fill={getThemeColor(color)}
+        fill={mounted ? getThemeColor(color) : color.DEFAULT}
       />
     </svg>
   );

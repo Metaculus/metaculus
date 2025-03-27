@@ -407,11 +407,14 @@ def minimize_history(
 def get_user_forecast_history(
     forecasts: list[Forecast],
     minimize: bool = False,
+    cutoff: datetime | None = None,
 ) -> list[ForecastSet]:
     timesteps = set()
     for forecast in forecasts:
         timesteps.add(forecast.start_time)
         if forecast.end_time:
+            if cutoff and forecast.end_time > cutoff:
+                continue
             timesteps.add(forecast.end_time)
 
     timesteps = sorted(timesteps)
@@ -489,13 +492,17 @@ def get_aggregation_history(
         .order_by("start_time")
         .select_related("author")
     )
+    if question.actual_close_time:
+        forecasts = forecasts.filter(start_time__lte=question.actual_close_time)
 
     if user_ids:
         forecasts = forecasts.filter(author_id__in=user_ids)
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
 
-    forecast_history = get_user_forecast_history(forecasts, minimize)
+    forecast_history = get_user_forecast_history(
+        forecasts, minimize, cutoff=question.actual_close_time
+    )
 
     for method in aggregation_methods:
         aggregation_history: list[AggregateForecast] = []

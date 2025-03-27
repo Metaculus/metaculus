@@ -3,6 +3,7 @@ import { FC } from "react";
 
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
+import useMounted from "@/hooks/use_mounted";
 import { ThemeColor } from "@/types/theme";
 import cn from "@/utils/cn";
 
@@ -16,11 +17,12 @@ const ChoiceIcon: FC<Props> = ({
   className,
 }) => {
   const { getThemeColor } = useAppTheme();
+  const mounted = useMounted();
 
   return (
     <div
       className={cn("size-4 rounded-sm", className)}
-      style={{ background: getThemeColor(color) }}
+      style={{ background: mounted ? getThemeColor(color) : color.DEFAULT }}
     />
   );
 };

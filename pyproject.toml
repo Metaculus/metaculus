@@ -26,7 +26,7 @@ scipy = "^1.13.1"
 django-dynamic-fixture = "^4.0.1"
 django-admin-autocomplete-filter = "^0.7.1"
 html2text = "^2024.2.26"
-gunicorn = "^22.0.0"
+gunicorn = "^23.0.0"
 django-storages = {extras = ["s3"], version = "^1.14.3"}
 pillow = "^10.3.0"
 django-imagekit = "^5.0.0"

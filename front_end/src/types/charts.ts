@@ -53,7 +53,8 @@ export type ContinuousAreaType =
   | "community"
   | "community_closed"
   | "user"
-  | "user_previous";
+  | "user_previous"
+  | "user_components";
 
 export type ContinuousAreaHoverState = {
   x: number;

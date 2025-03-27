@@ -52,6 +52,7 @@
   "pending": "pending",
   "resolves": "Resolves",
   "resolved": "Resolved",
+  "spotScoingTime": "Spot Scoring Time",
   "scheduledResolution": "Scheduled resolution",
   "scheduledCloseTime": "scheduled close time",
   "forDiscussion": "for discussion",
@@ -472,6 +473,7 @@
   "mostPredictions": "Most Predictions",
   "closingSoon": "Closing Soon",
   "closingTime": "Closing Time",
+  "resolvingTime": "Resolving Time",
   "bestScores": "Best Scores",
   "worstScores": "Worst Scores",
   "resolvingSoon": "Resolving Soon",
@@ -617,6 +619,7 @@
   "contentBuried": "Content buried! value {score} activity. Total boost score for the week: {score_total}",
   "downloadQuestionDataError": "Error downloading Question data",
   "cpRevealTime": "CP Reveal Time",
+  "postPublishTime": "Post Publish Time",
   "openTime": "Open Time",
   "Question": "Question",
   "editOpenAndCpRevealTimes": "Edit Open & CP Reveal Times",
@@ -647,6 +650,11 @@
   "questionUnit": "Question Unit",
   "subquestionUnit": "Subquestion Unit",
   "questionUnitDescription": "Unit is displayed alongside median and in various other places. Examples: “$”, “Cases”, “People”.",
+  "advancedOptionsDescription": "These options are not required. Moderators will generally fill these out at the time of approval.",
+  "publishTimeDescription": "Time this question will become visible to the public.",
+  "closingTimeDescription": "When this question will be closed for predictions.",
+  "resolvingTimeDescription": "When you expect the resolution of this question to be known.",
+  "cpRevealTimeDescription": "Time when the Community Prediction will become visible.",
   "showFullForecast": "...show full forecast",
   "closeFullForecast": "close full forecast",
   "noComments": "no comments",
@@ -1152,5 +1160,6 @@
   "cpAscendingSubquestionOrder": "Community Prediction (Ascending)",
   "cpDescendingSubquestionOrder": "Community Prediction (Descending)",
   "groupSorting": "Group sorting",
-  "groupSortingDescription": "The order of the subquestions in the group"
+  "groupSortingDescription": "The order of the subquestions in the group",
+  "today": "Today"
 }

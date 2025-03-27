@@ -77,23 +77,59 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     fine_print = models.TextField(blank=True)
 
     # time fields
-    open_time = models.DateTimeField(db_index=True, null=True, blank=True)
+    open_time = models.DateTimeField(
+        db_index=True,
+        null=True,
+        blank=True,
+        help_text="""Time when this question opens for forecasting.
+        Defines the beginning of the forecasting period used in scoring. Do not change
+        after forecasts have been made.""",
+    )
     scheduled_close_time = models.DateTimeField(
         db_index=True,
-        null=False,
-        blank=False,
-        default=timezone.make_aware(timezone.now().max),
+        null=True,
+        blank=True,
+        help_text="""Time when this question closes for forecasting.
+        Defines the end of the forecasting period used in scoring. Do not change
+        after forecasts have been made.""",
     )
     scheduled_resolve_time = models.DateTimeField(
         db_index=True,
-        null=False,
-        blank=False,
-        default=timezone.make_aware(timezone.now().max),
+        null=True,
+        blank=True,
+        help_text="""Time when it is predicted that the resolution will become known.""",
     )
-    actual_resolve_time = models.DateTimeField(db_index=True, null=True, blank=True)
-    resolution_set_time = models.DateTimeField(db_index=True, null=True, blank=True)
-    actual_close_time = models.DateTimeField(db_index=True, null=True, blank=True)
-    cp_reveal_time = models.DateTimeField(null=True, blank=True)
+    actual_resolve_time = models.DateTimeField(
+        db_index=True,
+        null=True,
+        blank=True,
+        help_text="""Time when the resolution actually became known.""",
+    )
+    resolution_set_time = models.DateTimeField(
+        db_index=True,
+        null=True,
+        blank=True,
+        help_text="""Time when the resolution was set.""",
+    )
+    actual_close_time = models.DateTimeField(
+        db_index=True,
+        null=True,
+        blank=True,
+        help_text="""Time when the question actually closed.
+        This is the minimum of scheduled_close_time and actual_resolve_time once
+        the resolution is known.""",
+    )
+    cp_reveal_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Time when the community prediction is revealed.""",
+    )
+    spot_scoring_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="""Time when spot scores are evaluated.
+        If not set, defaults to spot_scoring time.""",
+    )
 
     # continuous range fields
     range_max = models.FloatField(null=True, blank=True)
@@ -156,7 +192,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
         now = timezone.now()
 
-        if not self.open_time or self.open_time > now:
+        if not self.scheduled_close_time or not self.open_time or self.open_time > now:
             return QuestionStatus.UPCOMING
 
         if self.resolution or (
@@ -193,7 +229,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
                 continue
             if forecast_horizon_end > gl_end + timedelta(days=3):
                 continue
-            if (self.resolution_set_time or self.scheduled_resolve_time) > gl_end + timedelta(days=100):
+            if (
+                self.resolution_set_time or self.scheduled_resolve_time
+            ) > gl_end + timedelta(days=100):
                 # we allow for a 100 day buffer after the global leaderboard closes
                 # for questions to be resolved
                 continue
@@ -252,7 +290,7 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
         max_length=12,
         choices=GroupOfQuestionsSubquestionsOrder.choices,
         null=True,
-        default=None
+        default=None,
     )
 
     def __str__(self):

@@ -2,7 +2,6 @@ import pytest
 from datetime import datetime, timezone as dt_timezone
 
 from questions.models import Question
-from tests.unit.fixtures import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_conditional, create_question
 

@@ -743,7 +743,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         return self.votes.aggregate(Sum("direction")).get("direction__sum") or 0
 
     def get_comment_count(self) -> int:
-        return self.comments.filter(is_private=False).count()
+        return self.comments.filter(is_private=False, is_soft_deleted=False).count()
 
     def get_short_title(self):
         return self.short_title or self.title
