@@ -653,23 +653,23 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                     {t("addComponentButton")}
                   </Button>
                 )}
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={handleResetForecasts}
-                disabled={
-                  activeOptionData?.forecastInputMode ===
-                  ContinuousForecastInputType.Slider
-                    ? !isPickerDirty
-                    : !activeOptionData?.isDirty &&
-                      !(activeOptionData?.quantileForecast ?? []).some(
-                        (value) => value?.isDirty === true
-                      )
-                }
-              >
-                {t("discardChangesButton")}
-              </Button>
-              {(!!prevYesForecastValue || !!prevNoForecastValue) && (
+              {(activeOptionData?.forecastInputMode ===
+                ContinuousForecastInputType.Slider &&
+                isPickerDirty) ||
+              (activeOptionData?.forecastInputMode ===
+                ContinuousForecastInputType.Quantile &&
+                (activeOptionData?.isDirty ||
+                  (activeOptionData?.quantileForecast ?? []).some(
+                    (value) => value?.isDirty === true
+                  ))) ? (
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={handleResetForecasts}
+                >
+                  {t("discardChangesButton")}
+                </Button>
+              ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
                 <Button
                   variant="secondary"
                   type="submit"
@@ -678,7 +678,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 >
                   {t("withdraw")}
                 </Button>
-              )}
+              ) : null}
             </>
           )}
 
