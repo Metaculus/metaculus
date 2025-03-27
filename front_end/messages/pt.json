@@ -1160,5 +1160,6 @@
   "cpAscendingSubquestionOrder": "Previsão da Comunidade (Ascendente)",
   "cpDescendingSubquestionOrder": "Previsão da Comunidade (Descendente)",
   "groupSorting": "Ordenação do grupo",
-  "groupSortingDescription": "A ordem das subperguntas no grupo"
+  "groupSortingDescription": "A ordem das subperguntas no grupo",
+  "today": "Hoje"
 }

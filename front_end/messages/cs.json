@@ -1162,5 +1162,6 @@
   "cpAscendingSubquestionOrder": "Předpověď komunity (Vzestupně)",
   "cpDescendingSubquestionOrder": "Předpověď komunity (Sestupně)",
   "groupSorting": "Třídění skupin",
-  "groupSortingDescription": "Pořadí podotázek ve skupině"
+  "groupSortingDescription": "Pořadí podotázek ve skupině",
+  "today": "Dnes"
 }
