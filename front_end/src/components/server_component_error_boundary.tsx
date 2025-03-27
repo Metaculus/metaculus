@@ -18,13 +18,17 @@ const WithServerComponentErrorBoundary = <P extends Record<string, any>>(
         throw error;
       }
 
+      if (
+        error.digest === "NEXT_NOT_FOUND" ||
+        error.digest === "NEXT_HTTP_ERROR_FALLBACK;404" ||
+        error.digest === "NEXT_REDIRECT"
+      ) {
+        return null;
+      }
+
       logError(error);
       if (error instanceof Error) {
         const { message, digest } = error as Error & { digest?: string };
-
-        if (message === "NEXT_NOT_FOUND" || message === "NEXT_REDIRECT") {
-          return null;
-        }
 
         return (
           <div className="flex h-[50vh] w-full flex-col items-center justify-center">

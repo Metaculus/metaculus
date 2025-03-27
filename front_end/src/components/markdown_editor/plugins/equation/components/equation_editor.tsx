@@ -1,4 +1,4 @@
-import { FC, Ref, RefObject } from "react";
+import { FC, Ref, RefObject, type JSX } from "react";
 import { ChangeEvent, forwardRef } from "react";
 
 import ResizableTextArea from "@/components/ui/resizable_text_area";
@@ -31,14 +31,14 @@ function EquationEditor(
           value={equation}
           onChange={onChange}
           autoFocus={true}
-          ref={forwardedRef as RefObject<HTMLInputElement>}
+          ref={forwardedRef as RefObject<HTMLInputElement | null>}
         />
       ) : (
         <ResizableTextArea
           className="m-0 w-full border-none bg-inherit p-0 text-purple-700 outline-0 dark:text-purple-700-dark"
           value={equation}
           onChange={onChange}
-          ref={forwardedRef as RefObject<HTMLTextAreaElement>}
+          ref={forwardedRef as RefObject<HTMLTextAreaElement | null>}
         />
       )}
       <DollarSign isInline={inline} type="end" />

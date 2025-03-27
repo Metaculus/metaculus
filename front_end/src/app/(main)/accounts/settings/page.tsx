@@ -11,7 +11,7 @@ import { getServerSession } from "@/services/session";
 
 export default async function Settings() {
   const currentUser = await ProfileApi.getMyProfile();
-  const token = getServerSession();
+  const token = await getServerSession();
   const posts = await PostsApi.getAllSubscriptions();
 
   if (!token || !currentUser) return redirect("/");

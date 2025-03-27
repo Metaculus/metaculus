@@ -74,7 +74,7 @@ const ComboboxFilter: FC<Props> = ({
   };
 
   const comboboxChildren = (
-    <>
+    <div className="w-full">
       <div className="relative w-full">
         <ComboboxInput
           className="h-8 w-full rounded border border-gray-700 bg-gray-0 px-2 py-1 dark:border-gray-700-dark dark:bg-gray-0-dark"
@@ -112,13 +112,13 @@ const ComboboxFilter: FC<Props> = ({
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 
   return (
     <div className="relative flex w-full flex-wrap gap-2 text-gray-900 dark:text-gray-900-dark">
-      {/* 
-        Have to do this workaround because of issue with props 
+      {/*
+        Have to do this workaround because of issue with props
         https://github.com/tailwindlabs/headlessui/issues/2438
       */}
       {multiple ? (

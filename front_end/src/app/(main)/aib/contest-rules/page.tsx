@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -185,7 +187,7 @@ export default function ContestRules() {
         <p>
           <b>What about my privacy?</b> Metaculus takes the privacy of its users
           very seriously. For the current Metaculus Privacy Policy, please{" "}
-          <a href="/privacy-policy/">click here.</a>
+          <Link href="/privacy-policy/">click here.</Link>
         </p>
 
         <p>

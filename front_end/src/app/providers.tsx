@@ -12,12 +12,13 @@ import {
 } from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
+import SuspendedPostHogPageView from "@/components/posthog_page_view";
 import { getPublicSetting } from "@/components/public_settings_script";
 
 export function CSPostHogProvider({ children }: { children: ReactNode }) {
   const PUBLIC_POSTHOG_KEY = getPublicSetting("PUBLIC_POSTHOG_KEY");
   const PUBLIC_POSTHOG_BASE_URL = getPublicSetting("PUBLIC_POSTHOG_BASE_URL");
-
+  const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     if (PUBLIC_POSTHOG_KEY) {
       posthog.init(PUBLIC_POSTHOG_KEY, {
@@ -31,11 +32,29 @@ export function CSPostHogProvider({ children }: { children: ReactNode }) {
           getAnalyticsCookieConsentGiven() === "yes"
             ? "localStorage+cookie"
             : "memory",
+        loaded: () => {
+          setIsMounted(true);
+        },
+        on_request_error: () => {
+          setIsMounted(true);
+        },
       });
+    } else {
+      setIsMounted(true);
     }
   }, []);
 
-  return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
+  // Fix posthog usage before the initialization is complete
+  if (!isMounted) {
+    return null;
+  }
+
+  return (
+    <PostHogProvider client={posthog}>
+      <SuspendedPostHogPageView />
+      {children}
+    </PostHogProvider>
+  );
 }
 
 interface TranslationsBannerContextProps {

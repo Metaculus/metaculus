@@ -114,9 +114,9 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
 
       <p className="mb-0 mt-0 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:mt-1 md:text-lg ">
         Ready to get started? Go to the{" "}
-        <a target="_blank" href="/tournament/bridgewater/">
+        <Link target="_blank" href="/tournament/bridgewater/">
           Tournament page
-        </a>{" "}
+        </Link>{" "}
         to start forecasting!
       </p>
 
@@ -125,9 +125,9 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
         <p className="my-0 text-left">
           Displayed prize-pool eligibility is based solely on your undergraduate
           status. For full eligibility details see the{" "}
-          <a target="_blank" href="contest-rules">
+          <Link target="_blank" href="/bridgewater/contest-rules">
             contest rules
-          </a>
+          </Link>
           .
         </p>
       </div>

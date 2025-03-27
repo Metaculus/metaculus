@@ -20,11 +20,12 @@ import ShowActiveCommunityProvider from "../components/community_context";
 import CommunityInfo from "../components/community_info";
 
 type Props = {
-  params: { slug: string };
-  searchParams: SearchParams;
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<SearchParams>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const community = await ProjectsApi.getCommunity(params.slug);
 
   if (!community) {
@@ -49,10 +50,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function IndividualCommunity({
-  params,
-  searchParams,
-}: Props) {
+export default async function IndividualCommunity(props: Props) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const { slug } = params;
   const currentUser = await ProfileApi.getMyProfile();
   const community = await ProjectsApi.getCommunity(slug);
