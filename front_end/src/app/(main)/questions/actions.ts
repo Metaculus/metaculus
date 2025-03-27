@@ -14,6 +14,7 @@ import CommentsApi, {
 } from "@/services/comments";
 import PostsApi, { ApprovePostParams, PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
+import ProjectsApi from "@/services/projects";
 import QuestionsApi, {
   ForecastPayload,
   WithdrawalPayload,
@@ -64,6 +65,19 @@ export async function fetchEmbedPosts(search: string) {
   });
 
   return response.results;
+}
+
+export async function fetchProjectFilters() {
+  const user = await ProfileApi.getMyProfile();
+  if (!user?.is_superuser) {
+    return null;
+  }
+
+  const [tournaments, siteMain] = await Promise.all([
+    ProjectsApi.getTournaments(),
+    ProjectsApi.getSiteMain(),
+  ]);
+  return [siteMain, ...tournaments];
 }
 
 export async function votePost(postId: number, direction: VoteDirection) {

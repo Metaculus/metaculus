@@ -112,7 +112,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   }, [conditional, t]);
 
   const [activeTableOption, setActiveTableOption] = useState(
-    questionOptions.at(0)?.id ?? null
+    questionOptions.at(0)?.question.resolution === "annulled"
+      ? questionOptions.at(1)?.id ?? null
+      : questionOptions.at(0)?.id ?? null
   );
   const activeQuestion = useMemo(
     () => [question_yes, question_no].find((q) => q.id === activeTableOption),
@@ -741,7 +743,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         value={activeTableOption}
         onChange={setActiveTableOption}
         formatForecastValue={(value, forecastInputMode) => {
-          if (activeOptionData && value) {
+          if (activeOptionData && !isNil(value)) {
             return getTableDisplayValue({
               value,
               questionType: activeOptionData.question.type,

@@ -98,8 +98,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       communitiesForecast: prevNoAggregationValue,
     },
   ]);
+
   const [activeTableOption, setActiveTableOption] = useState(
-    questionOptions.at(0)?.id ?? null
+    question_yes.resolution === "annulled" ? questionNoId : questionYesId
   );
   const activeQuestion = useMemo(
     () => [question_yes, question_no].find((q) => q.id === activeTableOption),

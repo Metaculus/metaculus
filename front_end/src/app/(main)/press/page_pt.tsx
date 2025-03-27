@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
@@ -29,7 +31,7 @@ export default function PressPage() {
                     focusable="false"
                     data-prefix="fas"
                     data-icon="chevron-down"
-                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-700 text-blue-800 transition-transform dark:text-blue-400"
+                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-800 transition-transform dark:text-blue-400"
                     role="img"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
@@ -123,7 +125,7 @@ export default function PressPage() {
                     focusable="false"
                     data-prefix="fas"
                     data-icon="chevron-down"
-                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-700 text-blue-800 transition-transform dark:text-blue-400"
+                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-800 transition-transform dark:text-blue-400"
                     role="img"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
@@ -148,21 +150,27 @@ export default function PressPage() {
                     global. Como uma Corporação de Benefícios Públicos, a
                     Metaculus fornece apoio à decisão com base nessas previsões
                     para uma variedade de instituições (
-                    <a href="/about">saiba mais</a>
+                    <Link href="/about">saiba mais</Link>
                     ).
                   </p>
                   <p>
                     O Metaculus apresenta questões sobre uma ampla gama de
                     tópicos, com um foco particular em{" "}
-                    <a href="/questions/?topic=ai">inteligência artificial</a>,{" "}
-                    <a href="/questions/?categories=health-pandemics">
-                      biossegurança
-                    </a>
+                    <Link href="/questions/?topic=ai">
+                      inteligência artificial
+                    </Link>
                     ,{" "}
-                    <a href="/questions/?categories=environment-climate">
+                    <Link href="/questions/?categories=health-pandemics">
+                      biossegurança
+                    </Link>
+                    ,{" "}
+                    <Link href="/questions/?categories=environment-climate">
                       mudanças climáticas
-                    </a>
-                    e <a href="/questions/?categories=nuclear">risco nuclear</a>
+                    </Link>
+                    e{" "}
+                    <Link href="/questions/?categories=nuclear">
+                      risco nuclear
+                    </Link>
                     .
                   </p>
                 </div>
@@ -182,7 +190,7 @@ export default function PressPage() {
                     focusable="false"
                     data-prefix="fas"
                     data-icon="chevron-down"
-                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-700 text-blue-800 transition-transform dark:text-blue-400"
+                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-800 transition-transform dark:text-blue-400"
                     role="img"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
@@ -249,7 +257,8 @@ export default function PressPage() {
                     E, criticamente, a pesquisa, os métodos e o raciocínio que
                     os meteorologistas do Metaculus produzem são eles próprios
                     valiosos, como visto tanto em comentários de perguntas
-                    quanto no <a href="/project/journal">Metaculus Journal</a>.
+                    quanto no{" "}
+                    <Link href="/project/journal">Metaculus Journal</Link>.
                   </p>
                 </div>
               </div>
@@ -268,7 +277,7 @@ export default function PressPage() {
                     focusable="false"
                     data-prefix="fas"
                     data-icon="chevron-down"
-                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-700 text-blue-800 transition-transform dark:text-blue-400"
+                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-800 transition-transform dark:text-blue-400"
                     role="img"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
@@ -354,12 +363,12 @@ export default function PressPage() {
                         2025, levando à guerra com os Estados Unidos. Por outro
                         lado, a previsão do Metaculus para o mesmo período de
                         tempo é de{" "}
-                        <a
+                        <Link
                           href="/questions/7792/100-deaths-in-chinataiwan-conflict-by-2026/"
                           className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
                         >
                           9%
-                        </a>
+                        </Link>
                         , até porque a guerra entre grandes potências é rara e
                         porque a guerra entre grandes potências nucleares é sem
                         precedentes. As previsões podem fornecer uma perspectiva
@@ -384,19 +393,19 @@ export default function PressPage() {
                         mais utópico ou mais distópico?”) é impossível responder
                         neste momento. Podemos, no entanto, fornecer previsões
                         sobre{" "}
-                        <a href="/questions/?topic=ai">
+                        <Link href="/questions/?topic=ai">
                           questões mais direcionadas
-                        </a>
-                        sobre <a href="/questions/?topic=ai">segurança</a>
+                        </Link>
+                        sobre <Link href="/questions/?topic=ai">segurança</Link>
                         da IA, a regulamentação da IA, o progresso técnico em IA
                         e o negócio de IA – todos os quais podem nos ajudar a
                         entender melhor em qual direção estamos indo e com que
                         rapidez. As questões prevetivas servem como pistas sobre
                         quais desenvolvimentos devemos prestar especial atenção.
                         E uma{" "}
-                        <a href="/notebooks/16708/exploring-metaculuss-ai-track-record/">
+                        <Link href="/notebooks/16708/exploring-metaculuss-ai-track-record/">
                           análise completa
-                        </a>
+                        </Link>
                         do nosso histórico sobre questões relacionadas à IA
                         mostrou que as previsões do Metaculus oferecem insights
                         claros e úteis sobre o futuro do campo e seus impactos.
@@ -407,12 +416,12 @@ export default function PressPage() {
                         futuro. Por exemplo, a redução drástica na data prevista
                         de chegada da IA transformadora – desde o início da
                         década de 2040 até a distribuição atual, centrada em 29{" "}
-                        <a
+                        <Link
                           href="/questions/5121/date-of-artificial-general-intelligence/"
                           className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
                         >
                           de abril de 2033
-                        </a>
+                        </Link>
                         – foi usada pela{" "}
                         <a
                           target="_blank"
@@ -460,7 +469,7 @@ export default function PressPage() {
                     focusable="false"
                     data-prefix="fas"
                     data-icon="chevron-down"
-                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-700 text-blue-800 transition-transform dark:text-blue-400"
+                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-800 transition-transform dark:text-blue-400"
                     role="img"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
@@ -483,9 +492,9 @@ export default function PressPage() {
                   </h4>
                   <p>
                     Basta colar o link para o URL da pergunta Metaculus, como{" "}
-                    <a href="/questions/17096/us-tracks-training-runs-by-2026/">
+                    <Link href="/questions/17096/us-tracks-training-runs-by-2026/">
                       www.metaculus.com/questions/17096/us-tracks-training-runs-by-2026
-                    </a>
+                    </Link>
                     , e a imagem de visualização com o gráfico aparecerá
                     automaticamente.
                   </p>
@@ -501,9 +510,9 @@ export default function PressPage() {
                     Se você preferir ter uma imagem estática em vez de uma
                     incorporação com a qual os usuários possam interagir,
                     navegue até o URL da incorporação, por exemplo,{" "}
-                    <a href="/questions/embed/17096/">
+                    <Link href="/questions/embed/17096/">
                       www.metaculus.com/questions/embed/17096/
-                    </a>
+                    </Link>
                     . Em seguida, salve a imagem, geralmente através do botão
                     direito do mouse + &quot;salvar imagem como&quot;, e
                     carregue-a para o seu site preferido.
@@ -526,7 +535,7 @@ export default function PressPage() {
                     focusable="false"
                     data-prefix="fas"
                     data-icon="chevron-down"
-                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-700 text-blue-800 transition-transform dark:text-blue-400"
+                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-800 transition-transform dark:text-blue-400"
                     role="img"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
@@ -548,12 +557,12 @@ export default function PressPage() {
                     Por meio da API:
                   </h4>
                   <p>
-                    Veja a <a href="/api">documentação completa da API</a>. Você
-                    também pode ver os dados brutos de perguntas em seu
+                    Veja a <Link href="/api">documentação completa da API</Link>
+                    . Você também pode ver os dados brutos de perguntas em seu
                     navegador, como{" "}
-                    <a href="/api2/questions/17096/">
+                    <Link href="/api2/questions/17096/">
                       www.metaculus.com/api2/questions/17096/
-                    </a>
+                    </Link>
                     .
                   </p>
                   <h4 className="text-metac-blue-800 dark:text-metac-blue-800-dark text-xl font-bold">
@@ -588,7 +597,7 @@ export default function PressPage() {
                     focusable="false"
                     data-prefix="fas"
                     data-icon="chevron-down"
-                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-700 text-blue-800 transition-transform dark:text-blue-400"
+                    className="svg-inline--fa fa-chevron-down fa-sm rotate-180 text-blue-800 transition-transform dark:text-blue-400"
                     role="img"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
@@ -608,9 +617,10 @@ export default function PressPage() {
                 >
                   <p>
                     Há milhares de questões do Metaculus. Você pode pesquisar{" "}
-                    <a href="/questions">no feed principal</a>
+                    <Link href="/questions">no feed principal</Link>
                     por tópico ou palavra-chave. Nossas perguntas de IA podem
-                    ser encontradas <a href="/questions/?topic=ai">aqui</a>.
+                    ser encontradas{" "}
+                    <Link href="/questions/?topic=ai">aqui</Link>.
                   </p>
                   <p>
                     Se você não consegue encontrar o que está procurando, ou
@@ -776,8 +786,8 @@ export default function PressPage() {
             <p>
               As previsões individuais dos usuários do Metaculus são mostradas
               em seus registros de perfil e são rigorosamente avaliadas. O nosso{" "}
-              <a href="/questions/track-record">próprio histórico</a>É público e
-              robusto.
+              <Link href="/questions/track-record">próprio histórico</Link>É
+              público e robusto.
             </p>
             <h2>Baixar os ativos</h2>
             <p>

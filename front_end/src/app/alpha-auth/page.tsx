@@ -1,8 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FC } from "react";
-import { useFormState } from "react-dom";
+import { FC, useActionState } from "react";
 import { useForm } from "react-hook-form";
 
 import alphaLoginAction, {
@@ -16,7 +15,7 @@ const DevLogin: FC = () => {
   const { register } = useForm<DevLoginSchema>({
     resolver: zodResolver(devLoginSchema),
   });
-  const [state, formAction] = useFormState<AlphaLoginActionState, FormData>(
+  const [state, formAction] = useActionState<AlphaLoginActionState, FormData>(
     alphaLoginAction,
     null
   );

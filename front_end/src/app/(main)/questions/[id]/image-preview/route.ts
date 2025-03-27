@@ -9,8 +9,9 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   const { id } = params;
   const width = 1200;
   const height = 630;

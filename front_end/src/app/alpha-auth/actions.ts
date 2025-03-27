@@ -34,7 +34,7 @@ export default async function alphaLoginAction(
     };
   }
 
-  setAlphaTokenSession(validatedFields.data.token);
+  await setAlphaTokenSession(validatedFields.data.token);
 
   return redirect("/");
 }

@@ -433,7 +433,6 @@ function buildChartData({
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
     : !!closeTimes.length && closeTimes.length === choiceItems.length
       ? Math.min(
-          // @ts-expect-error we manually filter out undefined values, this is fixed on more recent typescript versions
           Math.max(...closeTimes.map((t) => t / 1000)),
           Date.now() / 1000
         )
@@ -494,7 +493,7 @@ function buildChartData({
             symbol: "circle",
           });
         } else {
-          // we have a null vlalue while previous was real
+          // we have a null value while previous was real
           const lastScatterItem = scatter.at(-1);
           if (!isNil(lastScatterItem)) {
             scatter.push({

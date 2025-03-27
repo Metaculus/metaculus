@@ -14,7 +14,7 @@ export type MenuItemProps = {
   link?: string;
   openNewTab?: boolean;
   hidden?: boolean;
-  element?: React.ReactElement;
+  element?: React.ReactElement<any>;
 };
 
 interface DropdownMenuProps extends React.PropsWithChildren {

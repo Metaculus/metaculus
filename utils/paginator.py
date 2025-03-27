@@ -1,5 +1,10 @@
-from rest_framework.pagination import LimitOffsetPagination
+from django.conf import settings
+from rest_framework.pagination import LimitOffsetPagination as _LimitOffsetPagination
 from rest_framework.response import Response
+
+
+class LimitOffsetPagination(_LimitOffsetPagination):
+    max_limit = settings.REST_FRAMEWORK["MAX_LIMIT"]
 
 
 class CountlessLimitOffsetPagination(LimitOffsetPagination):

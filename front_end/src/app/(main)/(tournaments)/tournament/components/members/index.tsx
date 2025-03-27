@@ -1,5 +1,3 @@
-"use server";
-
 import ProjectsApi from "@/services/projects";
 import { Tournament } from "@/types/projects";
 

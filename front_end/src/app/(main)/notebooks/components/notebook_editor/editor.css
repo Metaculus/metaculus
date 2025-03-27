@@ -1,0 +1,3 @@
+.mdxeditor-toolbar {
+    @apply max-md:top-28 !important; /*override sticky position to display it under mobile navbar*/
+}

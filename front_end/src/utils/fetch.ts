@@ -124,9 +124,9 @@ const appFetch = async <T>(
 
   const authToken =
     passAuthHeader || PUBLIC_AUTHENTICATION_REQUIRED
-      ? getServerSession()
+      ? await getServerSession()
       : null;
-  const alphaToken = getAlphaTokenSession();
+  const alphaToken = await getAlphaTokenSession();
   const locale = includeLocale ? await getLocale() : "en";
 
   // Default values are configured in the next.config.mjs

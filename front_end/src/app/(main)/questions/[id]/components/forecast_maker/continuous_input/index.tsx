@@ -1,6 +1,6 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useEffect } from "react";
+import React, { FC, ReactNode, useEffect, useRef } from "react";
 
 import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import ContinuousTable from "@/app/(main)/questions/[id]/components/forecast_maker/continuous_table";
@@ -76,11 +76,15 @@ const ContinuousInput: FC<Props> = ({
   const { hideCP } = useHideCP();
   const t = useTranslations();
   const previousForecast = question.my_forecasts?.latest;
-
+  const isMounted = useRef(false);
   const withCommunityQuartiles = !user || !hideCP;
 
   // populate forecast data from another tab
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     if (
       forecastInputMode === ContinuousForecastInputType.Quantile &&
       (isDirty ||
