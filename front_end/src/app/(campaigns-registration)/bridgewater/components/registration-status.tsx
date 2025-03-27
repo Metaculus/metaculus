@@ -145,7 +145,7 @@ export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
   currentUser,
 }) => {
   const campaigns = currentUser?.registered_campaigns.filter(
-    ({ key }) => key == "bridgewater"
+    ({ key }) => key == "bw_q4_2024"
   );
 
   const registered = campaigns && campaigns.length > 0;
