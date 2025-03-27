@@ -45,7 +45,7 @@
   @apply max-h-[300px];
 }
 
-[data-editor-block-type="image"] > :last-child {
+[data-editor-block-type="image"] > :last-child:not(:only-child) {
   @apply hidden;
 }
 
