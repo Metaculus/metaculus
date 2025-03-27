@@ -232,7 +232,7 @@ REST_SOCIAL_VERBOSE_ERRORS = True
 # Email configuration
 # https://anymail.dev/
 MAILGUN_API_KEY = os.environ.get("MAILGUN_API_KEY")
-MAILGUN_SUBDOMAIN = os.environ.get("MAILGUN_SUBDOMAIN", "mg2.metaculus.com")
+MAILGUN_DOMAIN = os.environ.get("MAILGUN_DOMAIN", "mg2.metaculus.com")
 ANYMAIL = {
     "MAILGUN_API_KEY": MAILGUN_API_KEY,
     "SEND_DEFAULTS": {
@@ -245,14 +245,14 @@ ANYMAIL = {
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
-    "EMAIL_HOST_USER", f"Metaculus Accounts <accounts@{MAILGUN_SUBDOMAIN}>"
+    "EMAIL_HOST_USER", f"Metaculus Accounts <accounts@{MAILGUN_DOMAIN}>"
 )
 EMAIL_NOTIFICATIONS_USER = os.environ.get(
     "EMAIL_NOTIFICATIONS_USER",
-    f"Metaculus Notifications <notifications@{MAILGUN_SUBDOMAIN}>",
+    f"Metaculus Notifications <notifications@{MAILGUN_DOMAIN}>",
 )
 EMAIL_SENDER_NO_REPLY = os.environ.get(
-    "EMAIL_SENDER_NO_REPLY", f"Metaculus NoReply <no-reply@{MAILGUN_SUBDOMAIN}>"
+    "EMAIL_SENDER_NO_REPLY", f"Metaculus NoReply <no-reply@{MAILGUN_DOMAIN}>"
 )
 EMAIL_FEEDBACK = os.environ.get("EMAIL_FEEDBACK", "feedback@metaculus.com")
 # TODO: reconsider after release
