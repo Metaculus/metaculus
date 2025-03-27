@@ -299,6 +299,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
                 questionType: option.question.type,
                 locale,
                 scaling: option.question.scaling,
+                actual_resolve_time:
+                  option.question.actual_resolve_time ?? null,
               })}
             </strong>
           </p>

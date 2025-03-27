@@ -204,6 +204,7 @@ function buildChartData(
             locale: locale,
             scaling: question.scaling,
             shortBounds: true,
+            actual_resolve_time: null,
           })
         : null;
 
@@ -228,6 +229,7 @@ function buildChartData(
                 0,
               questionType: question.type,
               scaling: question.scaling,
+              actual_resolve_time: null,
             }),
         isClosed: question.status === QuestionStatus.CLOSED,
         resolution: question.resolution,

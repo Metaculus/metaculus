@@ -60,6 +60,7 @@ const PredictionChip: FC<Props> = ({
     locale,
     scaling: question.scaling,
     unit: question.unit,
+    actual_resolve_time: question.actual_resolve_time ?? null,
   });
 
   const renderUserForecast = () => {
@@ -70,6 +71,7 @@ const PredictionChip: FC<Props> = ({
         value: latest.centers ? latest.centers[0] : latest.forecast_values[1],
         questionType: question.type,
         scaling: question.scaling,
+        actual_resolve_time: question.actual_resolve_time ?? null,
       });
 
       return (
@@ -130,12 +132,14 @@ const PredictionChip: FC<Props> = ({
       value: predictionOverride,
       questionType: question.type,
       scaling: question.scaling,
+      actual_resolve_time: question.actual_resolve_time ?? null,
     });
   } else if (latest && !latest.end_time) {
     communityPredictionDisplayValue = getDisplayValue({
       value: latest.centers?.[0],
       questionType: question.type,
       scaling: question.scaling,
+      actual_resolve_time: question.actual_resolve_time ?? null,
     });
   }
 

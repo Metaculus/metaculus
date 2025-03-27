@@ -344,6 +344,7 @@ function formatTickLabel(tick: number, scaling: Scaling, index: number) {
     questionType: QuestionType.Date,
     scaling,
     precision: 3,
+    actual_resolve_time: null,
   });
 }
 export default DateForecastCard;
