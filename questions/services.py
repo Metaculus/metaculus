@@ -824,7 +824,7 @@ def get_aggregated_forecasts_for_questions(
                 grouped[q.group].append(q)
 
         def rank_sorting_key(q: Question):
-            return q.group_rank
+            return q.group_rank or 0
 
         def cp_sorting_key(q: Question):
             """

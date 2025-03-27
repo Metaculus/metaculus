@@ -253,7 +253,9 @@ const InitializedMarkdownEditor: FC<
       onError={(err) => {
         logErrorWithScope(err.error, err.source);
         if (mode === "read") {
-          setErrorMarkdown(markdown);
+          requestAnimationFrame(() => {
+            setErrorMarkdown(markdown);
+          });
         }
       }}
       readOnly={mode === "read"}

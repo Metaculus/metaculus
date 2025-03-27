@@ -255,7 +255,7 @@ Bounty payouts:
 - Vulnerabilities that are hard to exploit, but broad in scope—or that are limited in scope, but easy to exploit: $400
 - Vulnerabilities that are easy to exploit and broad in scope: $2000
 
-Please email all such vulnerabilities to: engineering@metaculus.com with the subject `Security Vulnerability`
+Please email all such vulnerabilities to: `support [at] metaculus [.com]` with the subject `Security Vulnerability`
 
 Note: This bug bounty system begins September 10th, 2024. Before that point we will still award $100 for security vulnerabilities, but we expect an internal audit to catch most of these.
 

@@ -16,11 +16,10 @@ export const metadata = {
     "Latest updates in forecasting, featuring expert insights, community highlights, and platform developments.",
 };
 
-export default async function NewsFeed({
-  searchParams,
-}: {
-  searchParams: SearchParams;
+export default async function NewsFeed(props: {
+  searchParams: Promise<SearchParams>;
 }) {
+  const searchParams = await props.searchParams;
   const t = await getTranslations();
   const newsCategories = await ProjectsApi.getNewsCategories();
   const filters = {

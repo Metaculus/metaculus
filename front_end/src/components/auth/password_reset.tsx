@@ -2,8 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useTransition } from "react";
-import { useFormState } from "react-dom";
+import { FC, useEffect, useTransition, useActionState } from "react";
 import { useForm } from "react-hook-form";
 
 import {
@@ -53,7 +52,7 @@ const ResetPasswordModal: FC<SignInModalType> = ({
   const { register } = useForm<PasswordResetRequestSchema>({
     resolver: zodResolver(passwordResetRequestSchema),
   });
-  const [state, formAction] = useFormState<
+  const [state, formAction] = useActionState<
     PasswordResetRequestActionState,
     FormData
   >(passwordResetRequestAction, null);

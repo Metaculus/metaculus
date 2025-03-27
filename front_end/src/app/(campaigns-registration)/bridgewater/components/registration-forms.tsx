@@ -221,7 +221,7 @@ export const RegistrationAndSignupForm: FC<
 > = ({ onSuccess, campaignKey, addToProject }) => {
   const t = useTranslations();
   const [isTurnstileValidated, setIsTurnstileValidate] = useState(false);
-  const turnstileRef = useRef<TurnstileInstance | undefined>();
+  const turnstileRef = useRef<TurnstileInstance>(undefined);
   const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const methods = useForm<SignUpSchema & TournamentRegistrationSchema>({
     resolver: zodResolver(
@@ -355,21 +355,21 @@ export const RegistrationAndSignupForm: FC<
           >
             <span>
               I have read and agree to the{" "}
-              <a
+              <Link
                 href="/bridgewater/notice-at-collection/"
                 onClick={(e) => e.stopPropagation()}
                 target="_blank"
               >
                 Notice at Collection
-              </a>
+              </Link>
               {" and the "}
-              <a
+              <Link
                 href="/bridgewater/contest-rules/"
                 onClick={(e) => e.stopPropagation()}
                 target="_blank"
               >
                 Official Competition Rules
-              </a>
+              </Link>
               {", "}
               agree to share my information with Bridgewater Associates, and I
               agree to be contacted by the Bridgewater recruitment team.
@@ -499,21 +499,21 @@ export const RegistrationForm: FC<
         >
           <span>
             I have read and agree to the{" "}
-            <a
+            <Link
               href="/bridgewater/notice-at-collection/"
               onClick={(e) => e.stopPropagation()}
               target="_blank"
             >
               Notice at Collection
-            </a>
+            </Link>
             {" and the "}
-            <a
+            <Link
               href="/bridgewater/contest-rules/"
               onClick={(e) => e.stopPropagation()}
               target="_blank"
             >
               Official Competition Rules
-            </a>
+            </Link>
             {", "}
             agree to share my information with Bridgewater Associates, and I
             agree to be contacted by the Bridgewater recruitment team.

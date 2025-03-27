@@ -25,11 +25,12 @@ import SoftDeleteButton from "../components/soft_delete_button";
 import TrackRecord from "../components/track_record";
 
 type Props = {
-  params: { id: number };
-  searchParams: SearchParams;
+  params: Promise<{ id: number }>;
+  searchParams: Promise<SearchParams>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const profile = await ProfileApi.getProfileById(params.id);
 
   if (!profile) {
@@ -43,7 +44,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function Profile({ params: { id }, searchParams }: Props) {
+export default async function Profile(props: Props) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+
+  const { id } = params;
+
   const currentUser = await ProfileApi.getMyProfile();
   const isCurrentUser = currentUser?.id === +id;
 

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import React from "react";
 
@@ -20,9 +21,10 @@ export const metadata = {
   description: "Post your own forecasting questions on Metaculus.",
 };
 
-const Creator: React.FC<{ searchParams: SearchParams }> = async ({
-  searchParams,
-}) => {
+const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
+  props
+) => {
+  const searchParams = await props.searchParams;
   const t = await getTranslations();
   const createHref = (
     path: string,
@@ -62,17 +64,17 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
               <p>
                 {t.rich("createQuestionDescription1", {
                   link1: (chunks) => (
-                    <a href="/question-writing" className={linkClassName}>
+                    <Link href="/question-writing" className={linkClassName}>
                       {chunks}
-                    </a>
+                    </Link>
                   ),
                   link2: (chunks) => (
-                    <a
+                    <Link
                       href="/questions/956/suggest-questions-to-launch/"
                       className={linkClassName}
                     >
                       {chunks}
-                    </a>
+                    </Link>
                   ),
                 })}
               </p>

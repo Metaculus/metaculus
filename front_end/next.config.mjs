@@ -13,7 +13,10 @@ const nextConfig = {
     // Do not add anything here. Buildtime environment variables are deprecated
   },
   experimental: {
-    instrumentationHook: true,
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
   },
   images: {
     remotePatterns: [

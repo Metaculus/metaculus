@@ -133,13 +133,11 @@ export function generateYDomain({
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
     .filter((value) => !isNil(value));
-  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
   const minValue = min.length ? Math.min(...min) : null;
   const max = maxValues
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
     .filter((value) => !isNil(value));
-  // @ts-expect-error we manually check, that values are not nullable, this should be fixed on later ts versions
   const maxValue = max.length ? Math.max(...max) : null;
 
   if (isNil(minValue) || isNil(maxValue)) {
@@ -1047,12 +1045,12 @@ export function generateChoiceItemsFromGroupQuestions(
         );
       });
       if (question.type === QuestionType.Binary) {
-        userValues.push(userForecast?.forecast_values[1] || null);
+        userValues.push(userForecast?.forecast_values[1] ?? null);
       } else {
         // continuous
-        userValues.push(userForecast?.centers?.[0] || null);
-        userMinValues.push(userForecast?.interval_lower_bounds?.[0] || null);
-        userMaxValues.push(userForecast?.interval_upper_bounds?.[0] || null);
+        userValues.push(userForecast?.centers?.[0] ?? null);
+        userMinValues.push(userForecast?.interval_lower_bounds?.[0] ?? null);
+        userMaxValues.push(userForecast?.interval_upper_bounds?.[0] ?? null);
       }
     });
     sortedAggregationTimestamps.forEach((timestamp) => {
@@ -1062,15 +1060,15 @@ export function generateChoiceItemsFromGroupQuestions(
           (forecast.end_time === null || forecast.end_time >= timestamp)
         );
       });
-      aggregationValues.push(aggregationForecast?.centers?.[0] || null);
+      aggregationValues.push(aggregationForecast?.centers?.[0] ?? null);
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds?.[0] || null
+        aggregationForecast?.interval_lower_bounds?.[0] ?? null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds?.[0] || null
+        aggregationForecast?.interval_upper_bounds?.[0] ?? null
       );
       aggregationForecasterCounts.push(
-        aggregationForecast?.forecaster_count || 0
+        aggregationForecast?.forecaster_count ?? 0
       );
     });
 
@@ -1438,7 +1436,7 @@ export function getResolutionPosition({
     return 0;
   }
   if (adjustBinaryPoint && ["no", "yes"].includes(resolution as string)) {
-    return 0;
+    return 0.4;
   }
 
   if (
@@ -1530,8 +1528,25 @@ export function getContinuousAreaChartData(
 
   return chartData;
 }
+export function calculateTextWidth(fontSize: number, text: string): number {
+  if (typeof document === "undefined") {
+    return 0;
+  }
+  const element = document.createElement("span");
+  element.style.visibility = "hidden";
+  element.style.position = "absolute";
+  element.style.whiteSpace = "nowrap";
+  element.style.fontSize = `${fontSize}px`;
+  element.textContent = text;
 
-export function calculateCharWidth(fontSize: number): number {
+  document.body.appendChild(element);
+  const textWidth = element.offsetWidth;
+  document.body.removeChild(element);
+
+  return textWidth;
+}
+
+export function calculateCharWidth(fontSize: number, text?: string): number {
   if (typeof document === "undefined") {
     return 0;
   }
@@ -1543,7 +1558,7 @@ export function calculateCharWidth(fontSize: number): number {
   element.style.fontSize = `${fontSize}px`;
   const sampleText =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  element.textContent = sampleText;
+  element.textContent = text ?? sampleText;
 
   document.body.appendChild(element);
   const charWidth = element.offsetWidth / sampleText.length;

@@ -5,10 +5,8 @@ import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POST_COMMUNITIES_FILTER } from "@/constants/posts_feed";
-import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { TournamentPreview } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 
 import FeedFilters from "./components/feed_filters";
@@ -21,12 +19,10 @@ export const metadata = {
     "Explore a diverse range of forecasting questions on Metaculus, covering global issues, scientific breakthroughs, and future events.",
 };
 
-export default async function Questions({
-  searchParams,
-}: {
-  searchParams: SearchParams;
+export default async function Questions(props: {
+  searchParams: Promise<SearchParams>;
 }) {
-  const user = await ProfileApi.getMyProfile();
+  const searchParams = await props.searchParams;
   const isCommunityFeed = searchParams[POST_COMMUNITIES_FILTER];
   const filters = generateFiltersFromSearchParams(searchParams, {
     // Default Feed ordering should be hotness
@@ -34,13 +30,6 @@ export default async function Questions({
     defaultForMainFeed: true,
   });
   const topics = await ProjectsApi.getTopics();
-  const tournament = [] as TournamentPreview[];
-  if (user?.is_superuser) {
-    const tournamentResponse = await ProjectsApi.getTournaments();
-    const siteMain = await ProjectsApi.getSiteMain();
-    tournament.push(siteMain);
-    tournament.push(...tournamentResponse);
-  }
 
   return (
     <>
@@ -61,7 +50,7 @@ export default async function Questions({
             ) : (
               <>
                 <div id="existing-search">
-                  <FeedFilters tournaments={tournament} />
+                  <FeedFilters withProjectFilters />
                 </div>
                 <Suspense
                   key={JSON.stringify(searchParams)}

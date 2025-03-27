@@ -1164,5 +1164,6 @@
   "cpAscendingSubquestionOrder": "社区预测（升序）",
   "cpDescendingSubquestionOrder": "社区预测（降序）",
   "groupSorting": "分组排序",
-  "groupSortingDescription": "分组中子问题的顺序"
+  "groupSortingDescription": "分组中子问题的顺序",
+  "today": "今天"
 }

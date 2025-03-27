@@ -13,13 +13,15 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const serverSession = await getServerSession();
+
   const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
   // if authentication is required, check for token
   if (PUBLIC_AUTHENTICATION_REQUIRED) {
     if (
       !request.nextUrl.pathname.startsWith("/not-found/") &&
       !request.nextUrl.pathname.startsWith("/accounts/") &&
-      !getServerSession()
+      !serverSession
     ) {
       // return a not found page
       return NextResponse.rewrite(new URL("/not-found/", request.url));
@@ -28,7 +30,6 @@ export async function middleware(request: NextRequest) {
 
   let deleteCookieToken = false;
 
-  const serverSession = getServerSession();
   if (serverSession) {
     // Verify auth token
     try {
@@ -52,12 +53,15 @@ export async function middleware(request: NextRequest) {
     const alphaAccessToken = await getAlphaAccessToken();
     const alphaAuthUrl = "/alpha-auth";
 
-    if (
-      alphaAccessToken &&
-      getAlphaTokenSession() !== alphaAccessToken &&
-      !pathname.startsWith(alphaAuthUrl)
-    ) {
-      return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
+    if (alphaAccessToken) {
+      const alphaTokenSession = await getAlphaTokenSession();
+
+      if (
+        alphaTokenSession !== alphaAccessToken &&
+        !pathname.startsWith(alphaAuthUrl)
+      ) {
+        return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
+      }
     }
   }
 

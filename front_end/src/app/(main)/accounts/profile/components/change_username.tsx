@@ -2,8 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
-import { useFormState } from "react-dom";
+import { FC, useEffect, useState, useActionState } from "react";
 import { useForm } from "react-hook-form";
 
 import changeUsernameAction, {
@@ -49,7 +48,7 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
   const { register } = useForm<ChangeUsernameSchema>({
     resolver: zodResolver(changeUsernameSchema),
   });
-  const [state, formAction] = useFormState<ChangeUsernameState, FormData>(
+  const [state, formAction] = useActionState<ChangeUsernameState, FormData>(
     changeUsernameAction,
     null
   );

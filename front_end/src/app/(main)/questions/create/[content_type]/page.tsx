@@ -16,17 +16,19 @@ import ConditionalForm from "../../components/conditional_form";
 import NotebookForm from "../../components/notebook_form";
 
 type Props = {
-  params: { content_type: string };
-  searchParams: SearchParams;
+  params: Promise<{ content_type: string }>;
+  searchParams: Promise<SearchParams>;
 };
 
 const numberOrUndefined = (value: string | string[] | undefined) =>
   isNil(value) ? undefined : Number(value);
 
-export default async function QuestionCreator({
-  params: { content_type },
-  searchParams,
-}: Props) {
+export default async function QuestionCreator(props: Props) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+
+  const { content_type } = params;
+
   invariant(content_type, "Question type is required");
   const post_id = numberOrUndefined(searchParams["post_id"]);
   const post = isNil(post_id)

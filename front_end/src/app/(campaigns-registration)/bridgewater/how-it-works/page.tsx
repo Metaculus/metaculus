@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 
 import Button from "@/components/ui/button";
 
@@ -71,12 +70,12 @@ export default function HowItWorks() {
 
         <p className="mb-4">
           Practice forecasting with our{" "}
-          <Link
+          <a
             href="https://www.metaculus.com/project/bridgewater-warmup/"
             className="text-blue-600 hover:underline"
           >
             warmup questions
-          </Link>{" "}
+          </a>{" "}
           before the contest begins February 3rd. Warmup questions won&apos;t
           affect your contest ranking.
         </p>
@@ -185,33 +184,33 @@ export default function HowItWorks() {
 
         <ul className="mb-8 list-inside list-disc space-y-2">
           <li>
-            <Link href="#how-to" className="text-blue-600 hover:underline">
+            <a href="#how-to" className="text-blue-600 hover:underline">
               How to forecast on Metaculus
-            </Link>
+            </a>
           </li>
           <li>
-            <Link
+            <a
               href="https://www.metaculus.com/help/scores-faq/#tournament-scores/"
               className="text-blue-600 hover:underline"
             >
               How prize is distributed in Metaculus tournaments
-            </Link>
+            </a>
           </li>
           <li>
-            <Link
+            <a
               href="https://www.metaculus.com/help/prediction-resources/"
               className="text-blue-600 hover:underline"
             >
               Prediction Resources
-            </Link>
+            </a>
           </li>
           <li>
-            <Link
+            <a
               href="https://www.metaculus.com/project/bridgewater-warmup/"
               className="text-blue-600 hover:underline"
             >
               Warmup with Practice Questions
-            </Link>
+            </a>
           </li>
         </ul>
 
@@ -228,12 +227,12 @@ export default function HowItWorks() {
           forecasting and modeling future events and trends. We hope this
           partnership reaches more people who see the power of using data and
           research to comprehend the world around us.{" "}
-          <Link
+          <a
             href="https://www.metaculus.com/bridgewater"
             className="text-blue-600 hover:underline"
           >
             Join now
-          </Link>{" "}
+          </a>{" "}
           to showcase your skills and take part in this exciting tournament!
         </p>
         <hr className="my-8 border-t-2 border-gray-300 dark:border-gray-700" />

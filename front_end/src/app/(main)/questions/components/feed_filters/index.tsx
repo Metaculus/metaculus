@@ -5,13 +5,12 @@ import MainFeedFilters from "@/app/(main)/questions/components/feed_filters/main
 import MyQuestionsAndPostsFilters from "@/app/(main)/questions/components/feed_filters/my_questions_and_posts";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import { FeedType } from "@/constants/posts_feed";
-import { TournamentPreview } from "@/types/projects";
 
 import MyPredictionsFilters from "./my_predictions";
 
-type Props = { tournaments?: TournamentPreview[] };
+type Props = { withProjectFilters?: boolean };
 
-const FeedFilters: FC<Props> = ({ tournaments }) => {
+const FeedFilters: FC<Props> = ({ withProjectFilters }) => {
   const { currentFeed } = useFeed();
   const panelClassname = "sm:w-[370px] md:w-[500px]";
 
@@ -25,7 +24,7 @@ const FeedFilters: FC<Props> = ({ tournaments }) => {
     default:
       return (
         <MainFeedFilters
-          tournaments={tournaments}
+          withProjectFilters={withProjectFilters}
           panelClassname={panelClassname}
         />
       );
