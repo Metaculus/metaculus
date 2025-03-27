@@ -16,12 +16,14 @@ type Props = {
   options: ContinuousGroupOption[];
   post?: Post;
   handleCopy: (fromOptionId: number, toOptionId: number) => void;
+  setForcedOpenId: (optionId: number) => void;
 };
 
 const ForecastMakerGroupCopyMenu: FC<Props> = ({
   option,
   options,
   handleCopy,
+  setForcedOpenId,
 }) => {
   const t = useTranslations();
 
@@ -38,17 +40,20 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
     (targetOption: ContinuousGroupOption) => {
       handleCopy(option.id, targetOption.id);
 
-      console.log("YEA", {
-        from_name: option.name,
-        to_name: targetOption.name,
-      });
-
       toast(
         t.rich("forecastCopyToToastMessage", {
           from_name: option.name,
           to_name: targetOption.name,
         })
       );
+
+      setForcedOpenId(targetOption.id);
+
+      setTimeout(() => {
+        document
+          .getElementById(`group-option-${targetOption.id}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
     },
     [handleCopy, option.id, option.name, t]
   );
