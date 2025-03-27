@@ -1170,6 +1170,9 @@
   "forecastCopyToAll": "复制到所有",
   "forecastCopyTo": "复制到…",
   "forecastCopyFrom": "从…复制",
-  "forecastCopyToRich": "<label>复制到</label> {title}",
-  "forecastCopyFromRich": "<label>复制自</label> {title}"
+  "forecastCopyToRich": "<label>复制到</label> {name}",
+  "forecastCopyFromRich": "<label>复制自</label> {name}",
+  "forecastCopyToAllToastMessage": "分布已复制到所有其他问题",
+  "forecastCopyFromToastMessage": "分布已从“{name}”复制",
+  "forecastCopyToToastMessage": "分布已从“{from_name}”复制到“{to_name}”"
 }

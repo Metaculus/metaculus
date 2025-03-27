@@ -1166,6 +1166,9 @@
   "forecastCopyToAll": "Copiar para todos",
   "forecastCopyTo": "Copiar para…",
   "forecastCopyFrom": "Copiar de…",
-  "forecastCopyToRich": "<label>Copiar para</label> {title}",
-  "forecastCopyFromRich": "<label>Copiar de</label> {title}"
+  "forecastCopyToRich": "<label>Copiar para</label> {name}",
+  "forecastCopyFromRich": "<label>Copiar de</label> {name}",
+  "forecastCopyToAllToastMessage": "Distribuição copiada para todas as outras perguntas",
+  "forecastCopyFromToastMessage": "Distribuição copiada de ''{name}''",
+  "forecastCopyToToastMessage": "Distribuição copiada de ''{from_name}'' para ''{to_name}''"
 }

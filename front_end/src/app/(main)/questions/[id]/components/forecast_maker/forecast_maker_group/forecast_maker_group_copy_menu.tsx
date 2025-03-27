@@ -2,12 +2,14 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
-import { ContinuousGroupOption } from "@/app/(main)/questions/[id]/components/forecast_maker/continuous_group_accordion/group_forecast_accordion";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { Post } from "@/types/post";
 import cn from "@/utils/cn";
+
+import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
 
 type Props = {
   option: ContinuousGroupOption;
@@ -23,14 +25,45 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  // Callback to copy the current option to all others
   const handleCopyToAll = useCallback(() => {
     options.forEach((toOption) => {
       if (toOption.id !== option.id) {
         handleCopy(option.id, toOption.id);
       }
     });
-  }, [handleCopy, options, option.id]);
+    toast(t("forecastCopyToAllToastMessage"));
+  }, [options, t, option.id, handleCopy]);
+
+  const handleCopyTo = useCallback(
+    (targetOption: ContinuousGroupOption) => {
+      handleCopy(option.id, targetOption.id);
+
+      console.log("YEA", {
+        from_name: option.name,
+        to_name: targetOption.name,
+      });
+
+      toast(
+        t.rich("forecastCopyToToastMessage", {
+          from_name: option.name,
+          to_name: targetOption.name,
+        })
+      );
+    },
+    [handleCopy, option.id, option.name, t]
+  );
+
+  const handleCopyFrom = useCallback(
+    (targetOption: ContinuousGroupOption) => {
+      handleCopy(targetOption.id, option.id);
+      toast(
+        t.rich("forecastCopyFromToastMessage", {
+          name: targetOption.name,
+        })
+      );
+    },
+    [handleCopy, option.id, t]
+  );
 
   const [menuMode, setMenuMode] = useState<"main" | "copyTo" | "copyFrom">(
     "main"
@@ -71,15 +104,13 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
               className={cn(
                 "w-full self-stretch whitespace-nowrap p-2 text-right hover:bg-gray-200 hover:dark:bg-gray-200-dark"
               )}
-              onClick={() => {
-                handleCopy(option.id, targetOption.id);
-              }}
+              onClick={() => handleCopyTo(targetOption)}
             >
               {t.rich("forecastCopyToRich", {
                 label: (element) => (
                   <span className="opacity-50">{element}</span>
                 ),
-                title: targetOption.name,
+                name: targetOption.name,
               })}
             </button>
           ),
@@ -94,15 +125,13 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
               className={cn(
                 "w-full self-stretch whitespace-nowrap p-2 text-right hover:bg-gray-200 hover:dark:bg-gray-200-dark"
               )}
-              onClick={() => {
-                handleCopy(targetOption.id, option.id);
-              }}
+              onClick={() => handleCopyFrom(targetOption)}
             >
               {t.rich("forecastCopyFromRich", {
                 label: (element) => (
                   <span className="opacity-50">{element}</span>
                 ),
-                title: targetOption.name,
+                name: targetOption.name,
               })}
             </button>
           ),
@@ -110,7 +139,15 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
     } else {
       return [];
     }
-  }, [menuMode, options, option.id, t, handleCopyToAll, handleCopy]);
+  }, [
+    menuMode,
+    t,
+    handleCopyToAll,
+    options,
+    option.id,
+    handleCopyTo,
+    handleCopyFrom,
+  ]);
 
   return (
     <DropdownMenu
