@@ -852,7 +852,7 @@ class PostUserSnapshot(models.Model):
             user=user,
             post=post,
             defaults={
-                "comments_count": post.comment_count,
+                "comments_count": post.get_comment_count(),
                 "viewed_at": timezone.now(),
             },
         )
