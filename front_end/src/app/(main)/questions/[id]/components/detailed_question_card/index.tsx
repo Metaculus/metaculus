@@ -37,6 +37,7 @@ const DetailedQuestionCard: FC<Props> = ({ post }) => {
   switch (question.type) {
     case QuestionType.Numeric:
     case QuestionType.Date:
+    case QuestionType.Discrete:
     case QuestionType.Binary:
       return (
         <DetailsQuestionCardErrorBoundary>

@@ -83,7 +83,8 @@ const QuestionNumericTile: FC<Props> = ({
           break;
         }
         case QuestionType.Numeric:
-        case QuestionType.Date: {
+        case QuestionType.Date:
+        case QuestionType.Discrete: {
           const activeForecast = isNil(userForecast.end_time)
             ? userForecast
             : undefined;

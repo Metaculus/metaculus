@@ -605,8 +605,9 @@ export function getResolutionData({
         },
       ];
     }
-    case QuestionType.Numeric: {
-      // format data for numerical question
+    case QuestionType.Numeric:
+    case QuestionType.Discrete: {
+      // format data for numerical/discrete question
       const unscaledResolution = unscaleNominalLocation(
         Number(resolution),
         scaling

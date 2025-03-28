@@ -20,6 +20,7 @@ const QuestionResolutionStatus: FC<Props> = ({ post }) => {
   switch (question.type) {
     case QuestionType.Numeric:
     case QuestionType.Date:
+    case QuestionType.Discrete:
       return (
         <PredictionChip
           question={question}

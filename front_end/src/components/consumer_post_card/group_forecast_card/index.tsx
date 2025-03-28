@@ -39,7 +39,10 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
   ) {
     return <PercentageForecastCard post={post} />;
   }
-  if (checkGroupOfQuestionsPostType(post, QuestionType.Numeric)) {
+  if (
+    checkGroupOfQuestionsPostType(post, QuestionType.Numeric) ||
+    checkGroupOfQuestionsPostType(post, QuestionType.Discrete)
+  ) {
     return <NumericForecastCard post={post} />;
   }
   if (

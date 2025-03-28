@@ -173,7 +173,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               variant="tertiary"
             />
           )}
-          {question.type === QuestionType.Numeric &&
+          {(question.type === QuestionType.Numeric ||
+            question.type === QuestionType.Discrete) &&
             resolutionType === "unambiguous" &&
             unambiguousType === "knownValue" && (
               <Input

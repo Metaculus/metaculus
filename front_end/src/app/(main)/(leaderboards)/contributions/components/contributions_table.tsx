@@ -123,6 +123,7 @@ const ContributionsTable: FC<Props> = ({
         return t("binary");
       case QuestionType.Numeric:
       case QuestionType.Date:
+      case QuestionType.Discrete:
         return t("continuous");
       case QuestionType.MultipleChoice:
         return t("multipleChoice");
