@@ -60,14 +60,18 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       { value: ANNULED_RESOLUTION, label: "Annulled" },
     ];
 
-    if (["date", "numeric"].includes(question.type)) {
+    if (
+      [QuestionType.Numeric, QuestionType.Date, QuestionType.Discrete].includes(
+        question.type
+      )
+    ) {
       return [
         ...baseQuestionOptions,
         { value: "unambiguous", label: "Unambiguous" },
       ];
     }
 
-    if (question.type === "binary") {
+    if (question.type === QuestionType.Binary) {
       return [
         ...baseQuestionOptions,
         { value: "yes", label: "Yes" },

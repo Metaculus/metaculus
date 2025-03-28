@@ -46,7 +46,11 @@ import {
   TournamentPreview,
   TournamentType,
 } from "@/types/projects";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  DefaultInboundOutcomeCount,
+  QuestionType,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { sortGroupPredictionOptions } from "@/utils/questions";
@@ -201,6 +205,22 @@ const GroupForm: React.FC<Props> = ({
           open_lower_bound: x.open_lower_bound,
           open_upper_bound: x.open_upper_bound,
         };
+      } else if (subtype === QuestionType.Discrete) {
+        if (x.scaling.range_max == null || x.scaling.range_min == null) {
+          setError(
+            "Please enter a range_max and range_min value for discrete questions"
+          );
+          break_out = true;
+          return;
+        }
+        return {
+          ...subquestionData,
+          unit: x.unit,
+          scaling: x.scaling,
+          open_lower_bound: x.open_lower_bound,
+          open_upper_bound: x.open_upper_bound,
+          inbound_outcome_count: x.inbound_outcome_count,
+        };
       } else if (subtype === QuestionType.Date) {
         if (x.scaling.range_max === null || x.scaling.range_min === null) {
           setError(
@@ -325,6 +345,10 @@ const GroupForm: React.FC<Props> = ({
     date: {
       title: t("dateQuestionGroup"),
       description: t("dateQuestionGroupDescription"),
+    },
+    discrete: {
+      title: t("discreteQuestionGroup"),
+      description: t("discreteQuestionGroupDescription"),
     },
   };
 
@@ -852,11 +876,11 @@ const GroupForm: React.FC<Props> = ({
                     },
                   ]);
                 } else {
-                  if (subtype === "numeric") {
+                  if (subtype === QuestionType.Numeric) {
                     setSubQuestions([
                       ...subQuestions,
                       {
-                        type: "numeric",
+                        type: QuestionType.Numeric,
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
@@ -871,11 +895,31 @@ const GroupForm: React.FC<Props> = ({
                         open_upper_bound: null,
                       },
                     ]);
-                  } else if (subtype === "date") {
+                  } else if (subtype === QuestionType.Discrete) {
                     setSubQuestions([
                       ...subQuestions,
                       {
-                        type: "date",
+                        type: QuestionType.Discrete,
+                        label: "",
+                        scheduled_close_time:
+                          form.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          form.getValues().scheduled_resolve_time,
+                        scaling: {
+                          range_min: null,
+                          range_max: null,
+                          zero_point: null,
+                        },
+                        open_lower_bound: null,
+                        open_upper_bound: null,
+                        inbound_outcome_count: DefaultInboundOutcomeCount,
+                      },
+                    ]);
+                  } else if (subtype === QuestionType.Date) {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: QuestionType.Date,
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,

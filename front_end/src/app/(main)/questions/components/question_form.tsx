@@ -57,7 +57,13 @@ const createQuestionSchemas = (
   post: PostWithForecasts | null
 ) => {
   const baseQuestionSchema = z.object({
-    type: z.enum(["binary", "multiple_choice", "date", "numeric", "discrete"]),
+    type: z.enum([
+      QuestionType.Binary,
+      QuestionType.MultipleChoice,
+      QuestionType.Date,
+      QuestionType.Numeric,
+      QuestionType.Discrete,
+    ]),
     title: z
       .string()
       .min(4, {
@@ -370,15 +376,15 @@ const QuestionForm: FC<Props> = ({
   const schemas = createQuestionSchemas(t, post);
   const getFormSchema = (type: string) => {
     switch (type) {
-      case "binary":
+      case QuestionType.Binary:
         return schemas.binaryQuestionSchema;
-      case "multiple_choice":
+      case QuestionType.MultipleChoice:
         return schemas.multipleChoiceQuestionSchema;
-      case "numeric":
+      case QuestionType.Numeric:
         return schemas.numericQuestionSchema;
-      case "date":
+      case QuestionType.Date:
         return schemas.dateQuestionSchema;
-      case "discrete":
+      case QuestionType.Discrete:
         return schemas.discreteQuestionSchema;
       default:
         throw new Error("Invalid question type");
@@ -458,7 +464,8 @@ const QuestionForm: FC<Props> = ({
             className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
-        {(questionType === "numeric" || questionType === "discrete") && (
+        {(questionType === QuestionType.Numeric ||
+          questionType === QuestionType.Discrete) && (
           <InputContainer
             labelText={t("questionUnit")}
             explanation={t("questionUnitDescription")}
