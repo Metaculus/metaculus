@@ -5,7 +5,12 @@ import numpy as np
 from django.db.models import Prefetch
 from scipy.stats.mstats import gmean
 
-from questions.models import AggregateForecast, Forecast, Question
+from questions.models import (
+    QUESTION_CONTINUOUS_TYPES,
+    AggregateForecast,
+    Forecast,
+    Question,
+)
 from questions.types import AggregationMethod
 from scoring.models import Score
 from users.models import User
@@ -198,11 +203,7 @@ def evaluate_forecasts_peer_accuracy(
                     * (gm.num_forecasters / (gm.num_forecasters - 1))
                     * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
                 )
-                if question_type in [
-                    Question.QuestionType.NUMERIC,
-                    Question.QuestionType.DATE,
-                    Question.QuestionType.DISCRETE,
-                ]:
+                if question_type in QUESTION_CONTINUOUS_TYPES:
                     score /= 2
                 interval_scores.append(score)
             else:
@@ -260,11 +261,7 @@ def evaluate_forecasts_peer_spot_forecast(
                 * (gm.num_forecasters / (gm.num_forecasters - 1))
                 * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
             )
-            if question_type in [
-                Question.QuestionType.NUMERIC,
-                Question.QuestionType.DATE,
-                Question.QuestionType.DISCRETE,
-            ]:
+            if question_type in QUESTION_CONTINUOUS_TYPES:
                 forecast_score /= 2
             forecast_scores.append(ForecastScore(forecast_score, 1.0))
         else:

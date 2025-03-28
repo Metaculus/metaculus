@@ -12,6 +12,7 @@ from questions.constants import ResolutionType
 from questions.models import Forecast
 from questions.models import (
     DEFAULT_INBOUND_OUTCOME_COUNT,
+    QUESTION_CONTINUOUS_TYPES,
     Question,
     Conditional,
     GroupOfQuestions,
@@ -290,11 +291,7 @@ class ForecastSerializer(serializers.ModelSerializer):
 
     def get_quartiles(self, forecast: Forecast):
         question = forecast.question
-        if question.type in [
-            Question.QuestionType.DATE,
-            Question.QuestionType.NUMERIC,
-            Question.QuestionType.DISCRETE,
-        ]:
+        if question.type in QUESTION_CONTINUOUS_TYPES:
             return get_scaled_quartiles_from_cdf(forecast.continuous_cdf, question)
 
     def get_scaling(self, forecast: Forecast):

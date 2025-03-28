@@ -277,6 +277,13 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         return None
 
 
+QUESTION_CONTINUOUS_TYPES = [
+    Question.QuestionType.NUMERIC,
+    Question.QuestionType.DATE,
+    Question.QuestionType.DISCRETE,
+]
+
+
 class Conditional(TimeStampedModel):
     condition = models.ForeignKey(
         Question, related_name="conditional_conditions", on_delete=models.PROTECT

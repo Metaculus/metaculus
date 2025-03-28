@@ -16,6 +16,7 @@ from posts.tasks import run_on_post_forecast
 from projects.models import Project
 from questions.constants import ResolutionType
 from questions.models import (
+    QUESTION_CONTINUOUS_TYPES,
     Question,
     GroupOfQuestions,
     Conditional,
@@ -125,11 +126,7 @@ def build_question_forecasts_for_user(
             forecasts_data["medians"].append(0)
         elif question.type == "binary":
             forecasts_data["medians"].append(forecast.probability_yes)
-        elif question.type in [
-            Question.QuestionType.NUMERIC,
-            Question.QuestionType.DATE,
-            Question.QuestionType.DISCRETE,
-        ]:
+        elif question.type in QUESTION_CONTINUOUS_TYPES:
             forecasts_data["medians"].append(
                 percent_point_function(forecast.continuous_cdf, 50)
             )
@@ -666,14 +663,7 @@ def create_forecast(
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
         distribution_input=(
-            distribution_input
-            if question.type
-            in [
-                Question.QuestionType.NUMERIC,
-                Question.QuestionType.DATE,
-                Question.QuestionType.DISCRETE,
-            ]
-            else None
+            distribution_input if question.type in QUESTION_CONTINUOUS_TYPES else None
         ),
         post=post,
         **kwargs,
@@ -846,11 +836,7 @@ def get_aggregated_forecasts_for_questions(
                 return 0
             if q.type == "binary":
                 return agg.forecast_values[1]
-            if q.type in [
-                Question.QuestionType.NUMERIC,
-                Question.QuestionType.DATE,
-                Question.QuestionType.DISCRETE,
-            ]:
+            if q.type in QUESTION_CONTINUOUS_TYPES:
                 return unscaled_location_to_scaled_location(agg.centers[0], q)
             if q.type == "multiple_choice":
                 return max(agg.forecast_values)
