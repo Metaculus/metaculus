@@ -222,8 +222,8 @@ export function formatResolution({
           questionType,
           scaling,
           actual_resolve_time,
-        }) +
-        (unit ? ` ${unit}` : "")
+          unit,
+        })
       );
     }
     return "Below lower bound";
@@ -237,8 +237,8 @@ export function formatResolution({
           questionType,
           scaling,
           actual_resolve_time,
-        }) +
-        (unit ? ` ${unit}` : "")
+          unit,
+        })
       );
     }
     return "Above upper bound";
