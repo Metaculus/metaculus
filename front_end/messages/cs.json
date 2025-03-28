@@ -69,7 +69,7 @@
   "cdfLabel": "Kumulativní pravděpodobnost",
   "pdf": "PDF",
   "cdf": "CDF",
-  "recentlyWeighted": "Váženo o nedávnost",
+  "recencyWeighted": "Váženo o nedávnost",
   "unweighted": "Neváženo",
   "metaculus": "Metaculus",
   "community": "komunita",

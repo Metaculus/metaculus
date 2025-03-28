@@ -67,7 +67,7 @@
   "cdfLabel": "累積概率",
   "pdf": "PDF",
   "cdf": "CDF",
-  "recentlyWeighted": "最近加權",
+  "recencyWeighted": "最近加權",
   "unweighted": "未加權",
   "metaculus": "Metaculus",
   "community": "區",

@@ -88,7 +88,7 @@
   "cdfLabel": "Cumulative Probability",
   "pdf": "PDF",
   "cdf": "CDF",
-  "recentlyWeighted": "Recency weighted",
+  "recencyWeighted": "Recency weighted",
   "unweighted": "Unweighted",
   "geometricMean": "Geometric Mean",
   "singleAggregation": "Single Aggregation",

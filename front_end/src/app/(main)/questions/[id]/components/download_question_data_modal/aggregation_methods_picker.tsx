@@ -86,7 +86,7 @@ const useAggregationMethodOptions =
     const options: SelectOption<DownloadAggregationMethod>[] = [
       {
         value: DownloadAggregationMethod.recency_weighted,
-        label: t("recentlyWeighted"),
+        label: t("recencyWeighted"),
       },
       {
         value: DownloadAggregationMethod.unweighted,

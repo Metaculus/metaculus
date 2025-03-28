@@ -69,7 +69,7 @@
   "cdfLabel": "Probabilidad Acumulada",
   "pdf": "PDF",
   "cdf": "CDF",
-  "recentlyWeighted": "Peso reciente",
+  "recencyWeighted": "Peso reciente",
   "unweighted": "Sin peso",
   "metaculus": "Metaculus",
   "community": "comunidad",

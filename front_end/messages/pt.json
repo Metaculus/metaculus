@@ -86,7 +86,7 @@
   "cdfLabel": "Probabilidade Cumulativa",
   "pdf": "PDF",
   "cdf": "CDF",
-  "recentlyWeighted": "Ponderado por Recência",
+  "recencyWeighted": "Ponderado por Recência",
   "unweighted": "Não Ponderado",
   "metaculus": "Metaculus",
   "community": "comunidade",
