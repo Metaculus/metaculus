@@ -144,7 +144,7 @@ def unpin_comment(comment: Comment):
 
 
 @transaction.atomic
-def delete_comment(comment: Comment):
+def soft_delete_comment(comment: Comment):
     if not comment.child_comments.exists():
         # If the comment has a thread, we don't fully delete it — it's still shown as "deleted"
         # and doesn’t impact the global unread counter.
