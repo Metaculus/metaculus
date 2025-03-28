@@ -209,6 +209,5 @@ def email_data_view(request: Request):
         raise ValidationError("User must be authenticated")
 
     validated_task_params = validate_data_request(request)
-    email_data_task(**validated_task_params)
-    # email_data_task.send(**validated_task_params)
-    return Response({"message": "Email sent"})
+    email_data_task.send(**validated_task_params)
+    return Response({"message": "Email scheduled to be sent"}, status=200)

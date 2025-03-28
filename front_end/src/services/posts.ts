@@ -241,7 +241,9 @@ class PostsApi {
     return await get<Blob>(`/posts/${postId}/download-data/`);
   }
 
-  static async emailData(params: DataParams): Promise<Blob> {
+  static async emailData(params: DataParams): Promise<{
+    message: string;
+  }> {
     return await post(`/data/email/`, params);
   }
 

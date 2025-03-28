@@ -69,7 +69,7 @@ const DownloadQuestionDataModal: FC<Props> = ({ isOpen, onClose, post }) => {
   const isPending = pendingSubmission !== null;
 
   const handleValidatedSubmit = async (
-    _data: FormValues,
+    data: FormValues,
     type: SubmissionType
   ) => {
     setPendingSubmission(type);
@@ -78,11 +78,10 @@ const DownloadQuestionDataModal: FC<Props> = ({ isOpen, onClose, post }) => {
       try {
         const params: DataParams = {
           post_id: post.id,
-          ..._data,
+          ...data,
         };
-        // TODO: deal with response properly
-        await emailData(params);
-        toast.success("success");
+        const response = await emailData(params);
+        toast.success(response.message);
       } catch (error) {
         toast.error(t("downloadQuestionDataError") + error);
       } finally {

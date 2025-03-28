@@ -77,6 +77,7 @@ def email_all_data_for_questions_task(
         email.send()
 
 
+@dramatiq.actor
 def email_data_task(
     user_id: int,
     user_email: str,
