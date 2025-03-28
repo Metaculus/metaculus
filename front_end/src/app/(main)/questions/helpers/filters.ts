@@ -46,6 +46,7 @@ import cn from "@/utils/cn";
 const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
   [QuestionType.Numeric]: "Numeric",
   [QuestionType.Date]: "Date",
+  [QuestionType.Discrete]: "Discrete",
   [QuestionType.MultipleChoice]: "Multiple Choice",
   [QuestionType.Binary]: "Binary",
   [PostForecastType.Conditional]: "Conditional",

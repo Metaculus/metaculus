@@ -64,6 +64,8 @@ export function getContinuousChartTypeFromQuestion(
       return QuestionType.Numeric;
     case QuestionType.Date:
       return QuestionType.Date;
+    case QuestionType.Discrete:
+      return QuestionType.Discrete;
     case QuestionType.Binary:
       return QuestionType.Binary;
     default:
@@ -526,6 +528,7 @@ export function getChoiceOptionValue({
   });
   switch (questionType) {
     case QuestionType.Numeric:
+    case QuestionType.Discrete:
       return getForecastNumericDisplayValue(scaledValue);
     case QuestionType.Date:
       return getForecastDateDisplayValue(
@@ -648,7 +651,10 @@ export function getUserPredictionDisplayValue({
     }
 
     return displayCenter;
-  } else if (questionType === QuestionType.Numeric) {
+  } else if (
+    questionType === QuestionType.Numeric ||
+    questionType === QuestionType.Discrete
+  ) {
     const displayCenter = formatValueUnit(
       abbreviatedNumber(scaledCenter),
       unit
@@ -1460,7 +1466,8 @@ export function getResolutionPoint({
         },
       ];
     }
-    case QuestionType.Numeric: {
+    case QuestionType.Numeric:
+    case QuestionType.Discrete: {
       // format data for numerical question
       const unscaledResolution = unscaleNominalLocation(
         Number(resolution),
@@ -1522,7 +1529,8 @@ export function getResolutionPosition({
   } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
     return 1;
   } else {
-    return question.type === QuestionType.Numeric
+    return question.type === QuestionType.Numeric ||
+      question.type === QuestionType.Discrete
       ? unscaleNominalLocation(Number(resolution), scaling)
       : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
   }

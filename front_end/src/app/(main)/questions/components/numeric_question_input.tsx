@@ -150,7 +150,8 @@ const NumericQuestionInput: React.FC<{
 
     if (zeroPoint !== undefined && zeroPoint !== null) {
       if ((min ? min : 0) <= zeroPoint && zeroPoint <= (max ? max : 0)) {
-        questionType == QuestionType.Numeric
+        questionType == QuestionType.Numeric ||
+        questionType == QuestionType.Discrete
           ? current_errors.push(
               `Zero point (${zeroPoint}) should not be between min (${min}) and max (${max})`
             )

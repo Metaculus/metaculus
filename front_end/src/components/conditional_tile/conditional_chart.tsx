@@ -112,7 +112,8 @@ const ConditionalChart: FC<Props> = ({
       );
     }
     case QuestionType.Numeric:
-    case QuestionType.Date: {
+    case QuestionType.Date:
+    case QuestionType.Discrete: {
       if (aggregate.history.length === 0) {
         return <div className="text-center text-xs">No data yet</div>;
       }

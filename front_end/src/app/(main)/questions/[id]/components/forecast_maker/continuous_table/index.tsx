@@ -359,7 +359,8 @@ const ContinuousTable: FC<Props> = ({
                     <Td>
                       <ContinuousTableInput
                         type={
-                          question.type === QuestionType.Numeric
+                          question.type === QuestionType.Numeric ||
+                          question.type === QuestionType.Discrete
                             ? "number"
                             : "date"
                         }
@@ -381,7 +382,8 @@ const ContinuousTable: FC<Props> = ({
                     <Td>
                       <ContinuousTableInput
                         type={
-                          question.type === QuestionType.Numeric
+                          question.type === QuestionType.Numeric ||
+                          question.type === QuestionType.Discrete
                             ? "number"
                             : "date"
                         }
@@ -403,7 +405,8 @@ const ContinuousTable: FC<Props> = ({
                     <Td>
                       <ContinuousTableInput
                         type={
-                          question.type === QuestionType.Numeric
+                          question.type === QuestionType.Numeric ||
+                          question.type === QuestionType.Discrete
                             ? "number"
                             : "date"
                         }
@@ -627,7 +630,10 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 <ContinuousTableInput
                   type={
-                    question.type === QuestionType.Numeric ? "number" : "date"
+                    question.type === QuestionType.Numeric ||
+                    question.type === QuestionType.Discrete
+                      ? "number"
+                      : "date"
                   }
                   quantileValue={quantileComponents?.[1]}
                   error={
@@ -694,7 +700,10 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 <ContinuousTableInput
                   type={
-                    question.type === QuestionType.Numeric ? "number" : "date"
+                    question.type === QuestionType.Numeric ||
+                    question.type === QuestionType.Discrete
+                      ? "number"
+                      : "date"
                   }
                   quantileValue={quantileComponents?.[2]}
                   error={
@@ -761,7 +770,10 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 <ContinuousTableInput
                   type={
-                    question.type === QuestionType.Numeric ? "number" : "date"
+                    question.type === QuestionType.Numeric ||
+                    question.type === QuestionType.Discrete
+                      ? "number"
+                      : "date"
                   }
                   quantileValue={quantileComponents?.[3]}
                   error={
