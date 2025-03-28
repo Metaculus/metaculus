@@ -23,6 +23,8 @@ def export_specific_data_for_questions(
     include_bots: bool = False,
     minimize: bool = True,
 ) -> bytes:
+    # TODO: deprecate this - supersceded by export_data_for_questions
+
     # This method only returns a specific user's own data and public data - typically
     # only called by a view. Respects cp_reveal_time.
 
@@ -113,6 +115,8 @@ def export_all_data_for_questions(
     minimize: bool = True,
     anonymized: bool = False,
 ) -> bytes:
+    # TODO: deprecate this - supersceded by export_data_for_questions
+
     # This method returns all data including private and should only be called by
     # admin panel or a view called by staff or whitelisted user.
     # Does not respect cp_reveal_time.

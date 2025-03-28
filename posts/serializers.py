@@ -716,6 +716,11 @@ class DataGetRequestSerializer(serializers.Serializer):
 
 
 class DataPostRequestSerializer(DataGetRequestSerializer):
+    # For some reason, our POST and GET frontend methods provide
+    # different data types for list params. Thus, we need to handle the POST
+    # request serialization differently. Without changing the front end, the
+    # alternative is to pre-process list fields in the view for GET
+    # requests (POST requests have a pretty good format), which is not ideal.
     aggregation_methods = serializers.ListField(
         child=serializers.CharField(), required=False
     )

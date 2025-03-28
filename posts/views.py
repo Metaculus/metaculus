@@ -565,6 +565,8 @@ def post_related_articles_api_view(request: Request, pk):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def download_data(request, post_id: int):
+    # TODO: move this to a /data/download/ endpoint
+    # like /data/email/ which accepts post_id as a param instead
     post = get_object_or_404(Post, pk=post_id)
     user: User = request.user
 
