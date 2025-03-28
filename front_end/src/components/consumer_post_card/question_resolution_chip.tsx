@@ -6,11 +6,13 @@ import cn from "@/utils/cn";
 type Props = {
   formatedResolution: string;
   successfullResolution: boolean;
+  unit?: string;
 };
 
 const QuestionResolutionChip: FC<Props> = ({
   formatedResolution,
   successfullResolution,
+  unit,
 }) => {
   const t = useTranslations();
   return (
@@ -25,18 +27,21 @@ const QuestionResolutionChip: FC<Props> = ({
       >
         {successfullResolution && (
           <span className="text-xs font-medium uppercase leading-4 text-purple-600 dark:text-purple-600-dark">
-            {t("resolved")}
+            {t("result")}
           </span>
         )}
         <span
           className={cn(
-            "text-base font-medium leading-6 text-purple-800 dark:text-purple-800-dark",
+            "text-base font-bold leading-6 text-purple-800 dark:text-purple-800-dark",
             {
               "text-gray-700 dark:text-gray-700-dark": !successfullResolution,
             }
           )}
         >
-          {formatedResolution}
+          <span>
+            {unit ? formatedResolution.replace(unit, "") : formatedResolution}
+          </span>
+          {unit && <span className="font-normal">{unit}</span>}
         </span>
       </div>
     </div>

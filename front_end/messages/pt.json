@@ -1170,5 +1170,6 @@
   "forecastCopyFromRich": "<label>Copiar de</label> {name}",
   "forecastCopyToAllToastMessage": "Distribuição copiada para todas as outras perguntas",
   "forecastCopyFromToastMessage": "Distribuição copiada de ''{name}''",
-  "forecastCopyToToastMessage": "Distribuição copiada de ''{from_name}'' para ''{to_name}''"
+  "forecastCopyToToastMessage": "Distribuição copiada de ''{from_name}'' para ''{to_name}''",
+  "result": "resultado"
 }
