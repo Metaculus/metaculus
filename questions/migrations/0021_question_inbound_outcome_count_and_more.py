@@ -16,7 +16,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(migrations.RunPython.noop, reverse_migrate),
         migrations.AddField(
             model_name="question",
             name="inbound_outcome_count",
@@ -101,4 +100,5 @@ class Migration(migrations.Migration):
                 null=True,
             ),
         ),
+        migrations.RunPython(migrations.RunPython.noop, reverse_migrate),
     ]
