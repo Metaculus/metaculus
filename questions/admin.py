@@ -129,13 +129,13 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         for question in queryset:
             if question.resolution in ["", None, "ambiguous", "annulled"]:
                 continue
-            spot_forecast_time = (
+            spot_scoring_time = (
                 question.cp_reveal_time.timestamp() if question.cp_reveal_time else None
             )
             score_question(
                 question=question,
                 resolution=question.resolution,
-                spot_forecast_time=spot_forecast_time,
+                spot_scoring_time=spot_scoring_time,
             )
 
     trigger_scoring.short_description = "Trigger Scoring (does nothing if not resolved)"

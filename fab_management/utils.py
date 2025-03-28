@@ -89,7 +89,7 @@ def get_timestamp(row_values, field_name, default_time="00:00:00"):
 
 def get_type(row_values):
     value_str = row_values["type"]
-    if value_str not in ["binary", "numeric", "multiple_choice"]:
+    if value_str not in ["binary", "numeric", "discrete", "multiple_choice"]:
         raise ValueError("Unknown value for the question type")
     return value_str
 
@@ -252,7 +252,7 @@ def submit_questions(
                 question_fields = list(common_fields)
                 author = get_author(row_values)
 
-                if question_type == "numeric":
+                if question_type == "numeric" or question_type == "discrete":
                     question_fields += numeric_q_fields
 
                 if question_type == "multiple_choice":
@@ -267,7 +267,10 @@ def submit_questions(
                                 f"Error on row {row_idx}, col '{field_name}': question has no parent, but '.p' was used for field"
                             )
                             continue
-                        val = getattr(parent_post.question or parent_post.group_of_questions, field_name)
+                        val = getattr(
+                            parent_post.question or parent_post.group_of_questions,
+                            field_name,
+                        )
                     elif callable(field_get_value_fn):
                         val = field_get_value_fn(row_values)
 

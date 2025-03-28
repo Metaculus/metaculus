@@ -8,6 +8,7 @@ import ChoiceIcon from "@/components/choice_icon";
 import Button from "@/components/ui/button";
 import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ForecastType } from "@/types/comment";
+import { QuestionType } from "@/types/question";
 import { getQuestionDateFormatString } from "@/utils/charts";
 import cn from "@/utils/cn";
 import { formatDate } from "@/utils/date_formatters";
@@ -97,7 +98,7 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
   const probAbove =
     Math.round((1 - (forecast.continuous_cdf.at(-1) || 0)) * 1000) / 10;
   const dateFormatString =
-    forecast.question_type === "date"
+    forecast.question_type === QuestionType.Date
       ? getQuestionDateFormatString({
           scaling: forecast.scaling,
           actual_resolve_time: null,
@@ -105,7 +106,7 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
         })
       : "";
   const valueText: string[] =
-    forecast.question_type === "numeric"
+    forecast.question_type === QuestionType.Numeric || QuestionType.Discrete
       ? [
           abbreviatedNumber(range_min),
           abbreviatedNumber(forecast.quartiles[0]),
@@ -128,14 +129,20 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
     text =
       probBelow +
       "% " +
-      (forecast.question_type === "numeric" ? "below " : "before ") +
+      (forecast.question_type === QuestionType.Numeric ||
+      forecast.question_type === QuestionType.Discrete
+        ? "below "
+        : "before ") +
       valueText[0];
   }
   if (q1 === "below" && q2 === "below" && q3 === "inRange") {
     text =
       probBelow +
       "% " +
-      (forecast.question_type === "numeric" ? "below " : "before ") +
+      (forecast.question_type === QuestionType.Numeric ||
+      forecast.question_type === QuestionType.Discrete
+        ? "below "
+        : "before ") +
       valueText[0] +
       " (upper 75%=" +
       valueText[3] +
@@ -147,7 +154,10 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
       " (" +
       probBelow +
       "% " +
-      (forecast.question_type === "numeric" ? "below " : "before ") +
+      (forecast.question_type === QuestionType.Numeric ||
+      forecast.question_type === QuestionType.Discrete
+        ? "below "
+        : "before ") +
       valueText[0] +
       ")";
   }
@@ -160,7 +170,10 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
       " (" +
       probAbove +
       "% " +
-      (forecast.question_type === "numeric" ? "above " : "after ") +
+      (forecast.question_type === QuestionType.Numeric ||
+      forecast.question_type === QuestionType.Discrete
+        ? "above "
+        : "after ") +
       valueText[4] +
       ")";
   }
@@ -168,7 +181,10 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
     text =
       probAbove +
       "% " +
-      (forecast.question_type === "numeric" ? "above " : "after ") +
+      (forecast.question_type === QuestionType.Numeric ||
+      forecast.question_type === QuestionType.Discrete
+        ? "above "
+        : "after ") +
       valueText[4] +
       " (lower 25%=" +
       valueText[1] +
@@ -178,7 +194,10 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
     text =
       probAbove +
       "% " +
-      (forecast.question_type === "numeric" ? "above " : "after ") +
+      (forecast.question_type === QuestionType.Numeric ||
+      forecast.question_type === QuestionType.Discrete
+        ? "above "
+        : "after ") +
       valueText[4];
   }
   if (q1 === "below" && q2 === "inRange" && q3 === "above") {

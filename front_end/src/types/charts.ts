@@ -1,6 +1,7 @@
 import {
   Bounds,
   Quartiles,
+  QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 
@@ -30,7 +31,10 @@ export type Line<X = number, Y = number | null> = Array<{
 }>;
 export type Area<X = number, Y = number | null> = Array<{ x: X; y: Y; y0?: Y }>;
 
-export type NumericChartType = "date" | "numeric" | "binary";
+export type NumericChartType =
+  | QuestionType.Numeric
+  | QuestionType.Date
+  | QuestionType.Discrete;
 
 export type FanOption = {
   name: string;

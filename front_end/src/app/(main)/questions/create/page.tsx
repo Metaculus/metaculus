@@ -9,6 +9,7 @@ import QuestionRepost from "@/app/(main)/questions/components/question_repost";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import QuestionTypePicker from "../components/question_type_picker";
@@ -107,29 +108,37 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
         </h2>
         <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
           <QuestionTypePicker
-            url={createHref("/questions/create/question", { type: "binary" })}
+            url={createHref("/questions/create/question", {
+              type: QuestionType.Binary,
+            })}
             questionType={t("binaryQuestion")}
             questionExample={`"${t("binaryQuestionExample")}"`}
           />
           <QuestionTypePicker
             url={createHref("/questions/create/question", {
-              type: "multiple_choice",
+              type: QuestionType.MultipleChoice,
             })}
             questionType={t("multipleChoice")}
             questionExample={`"${t("multipleChoiceExample")}"`}
           />
           <QuestionTypePicker
-            url={createHref("/questions/create/question", { type: "numeric" })}
+            url={createHref("/questions/create/question", {
+              type: QuestionType.Numeric,
+            })}
             questionType={t("numericRange")}
             questionExample={`"${t("numericRangeExample")}"`}
           />
           <QuestionTypePicker
-            url={createHref("/questions/create/question", { type: "date" })}
+            url={createHref("/questions/create/question", {
+              type: QuestionType.Date,
+            })}
             questionType={t("dateRange")}
             questionExample={`"${t("dateRangeExample")}"`}
           />
           <QuestionTypePicker
-            url={createHref("/questions/create/question", { type: "discrete" })}
+            url={createHref("/questions/create/question", {
+              type: QuestionType.Discrete,
+            })}
             questionType={t("discrete")}
             questionExample={`"${t("discreteExample")}"`}
           />
@@ -138,25 +147,33 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
         <h2 className="text-lg font-light capitalize">{t("questionGroup")}</h2>
         <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
           <QuestionTypePicker
-            url={createHref("/questions/create/group", { subtype: "binary" })}
+            url={createHref("/questions/create/group", {
+              subtype: QuestionType.Binary,
+            })}
             questionType={t("binaryGroup")}
             questionExample={`"${t("binaryGroupExample")}"`}
           />
           <QuestionTypePicker
-            url={createHref("/questions/create/group", { subtype: "numeric" })}
+            url={createHref("/questions/create/group", {
+              subtype: QuestionType.Numeric,
+            })}
             questionType={t("numericGroup")}
             questionExample={`"${t("numericGroupExample")}"`}
           />
           <QuestionTypePicker
-            url={createHref("/questions/create/group", { subtype: "date" })}
+            url={createHref("/questions/create/group", {
+              subtype: QuestionType.Date,
+            })}
             questionType={t("dateGroup")}
             questionExample={`"${t("dateGroupExample")}"`}
           />
-          {/* <QuestionTypePicker
-            url={createHref("/questions/create/group", { subtype: "discrete" })}
+          <QuestionTypePicker
+            url={createHref("/questions/create/group", {
+              subtype: QuestionType.Discrete,
+            })}
             questionType={t("discreteGroup")}
             questionExample={`"${t("discreteGroupExample")}"`}
-          /> */}
+          />
           <QuestionTypePicker
             url={createHref("/questions/create/conditional")}
             questionType={t("conditionalPair")}
