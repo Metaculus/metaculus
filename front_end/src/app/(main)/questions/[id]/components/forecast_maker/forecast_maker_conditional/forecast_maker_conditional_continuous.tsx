@@ -749,6 +749,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               questionType: activeOptionData.question.type,
               scaling: activeOptionData.question.scaling,
               forecastInputMode: forecastInputMode,
+              actual_resolve_time:
+                activeOptionData.question.actual_resolve_time ?? null,
             });
           } else {
             return "-";

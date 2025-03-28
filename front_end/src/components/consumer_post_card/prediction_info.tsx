@@ -51,6 +51,7 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
         questionType: question.type,
         locale,
         unit: question.unit,
+        actual_resolve_time: question.actual_resolve_time ?? null,
       });
       const successfullResolution = isSuccessfullyResolved(question.resolution);
       return (

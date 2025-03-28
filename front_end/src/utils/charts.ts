@@ -302,6 +302,7 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
 export function displayValue({
   value,
   questionType,
+  actual_resolve_time,
   precision,
   scaling,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -311,6 +312,7 @@ export function displayValue({
 }: {
   value: number | null;
   questionType: QuestionType;
+  actual_resolve_time: string | null;
   precision?: number;
   scaling?: Scaling;
   truncation?: number;
@@ -322,7 +324,11 @@ export function displayValue({
   }
   precision = precision ?? 3;
   if (questionType === QuestionType.Date && scaling) {
-    const dateFormat = getQuestionDateFormatString(scaling);
+    const dateFormat = getQuestionDateFormatString({
+      scaling,
+      actual_resolve_time,
+      valueTimestamp: value,
+    });
     return format(fromUnixTime(value), dateFormatString ?? dateFormat);
   } else if (questionType === QuestionType.Numeric) {
     // TODO add truncation to abbreviatedNumber
@@ -342,6 +348,7 @@ export function getDisplayValue({
   value,
   questionType,
   scaling,
+  actual_resolve_time,
   precision,
   truncation,
   range,
@@ -351,6 +358,7 @@ export function getDisplayValue({
   value: number | null | undefined;
   questionType: QuestionType;
   scaling: Scaling;
+  actual_resolve_time: string | null;
   precision?: number;
   truncation?: number;
   range?: number[];
@@ -367,6 +375,7 @@ export function getDisplayValue({
     precision,
     truncation,
     scaling,
+    actual_resolve_time,
     dateFormatString,
     unit,
   });
@@ -382,6 +391,7 @@ export function getDisplayValue({
       value: scaledLower,
       questionType,
       precision,
+      actual_resolve_time,
       scaling,
       truncation,
       dateFormatString,
@@ -391,6 +401,7 @@ export function getDisplayValue({
       value: scaledUpper,
       questionType,
       precision,
+      actual_resolve_time,
       scaling,
       truncation,
       dateFormatString,
@@ -403,6 +414,7 @@ export function getDisplayValue({
 export function getTableDisplayValue({
   value,
   questionType,
+  actual_resolve_time,
   scaling,
   precision,
   truncation,
@@ -412,6 +424,7 @@ export function getTableDisplayValue({
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
+  actual_resolve_time: string | null;
   scaling: Scaling;
   precision?: number;
   truncation?: number;
@@ -428,6 +441,7 @@ export function getTableDisplayValue({
       value,
       questionType,
       scaling,
+      actual_resolve_time,
       precision,
       truncation,
     });
@@ -437,6 +451,7 @@ export function getTableDisplayValue({
     value,
     questionType,
     scaling,
+    actual_resolve_time,
     precision,
     truncation,
     range,
@@ -447,14 +462,30 @@ export function getTableDisplayValue({
     : formatted_value;
 }
 
-export function getQuestionDateFormatString(scaling: Scaling) {
+export function getQuestionDateFormatString({
+  scaling,
+  actual_resolve_time,
+  valueTimestamp,
+}: {
+  scaling: Scaling;
+  actual_resolve_time: string | null;
+  valueTimestamp: number;
+}) {
   const { range_min, range_max } = scaling;
   let dateFormat = "dd MMM yyyy HH:mm";
   if (!isNil(range_min) && !isNil(range_max)) {
-    const diffInSeconds = range_max - range_min;
+    const scaleDiffInSeconds = range_max - range_min;
     const oneWeek = 7 * 24 * 60 * 60;
     const oneYear = 365.25 * 24 * 60 * 60;
-
+    const ref =
+      Math.min(
+        Date.now(),
+        actual_resolve_time
+          ? new Date(actual_resolve_time).getTime()
+          : Date.now()
+      ) / 1000;
+    const refDiffInSeconds = Math.abs(ref - valueTimestamp);
+    const diffInSeconds = Math.min(scaleDiffInSeconds, refDiffInSeconds);
     if (diffInSeconds < oneWeek) {
       dateFormat = "dd MMM yyyy HH:mm";
     } else if (diffInSeconds < 5 * oneYear) {
@@ -468,11 +499,17 @@ export function getQuestionDateFormatString(scaling: Scaling) {
   return dateFormat;
 }
 
-export function getChoiceOptionValue(
-  value: number | null,
-  questionType?: QuestionType,
-  scaling?: Scaling
-) {
+export function getChoiceOptionValue({
+  value,
+  questionType,
+  scaling,
+  actual_resolve_time,
+}: {
+  value: number | null;
+  questionType?: QuestionType;
+  scaling?: Scaling;
+  actual_resolve_time?: string | null;
+}) {
   if (isNil(value)) {
     return `?`;
   }
@@ -488,7 +525,11 @@ export function getChoiceOptionValue(
     case QuestionType.Numeric:
       return getForecastNumericDisplayValue(scaledValue);
     case QuestionType.Date:
-      return getForecastDateDisplayValue(scaledValue, scaling);
+      return getForecastDateDisplayValue(
+        scaledValue,
+        scaling,
+        actual_resolve_time
+      );
     case QuestionType.Binary:
     default:
       return getForecastPctDisplayValue(value);
@@ -500,6 +541,7 @@ export function getUserPredictionDisplayValue({
   timestamp,
   questionType,
   scaling,
+  actual_resolve_time,
   showRange,
   unit,
 }: {
@@ -507,6 +549,7 @@ export function getUserPredictionDisplayValue({
   timestamp: number | null | undefined;
   questionType: Question | QuestionType;
   scaling?: Scaling;
+  actual_resolve_time: string | null;
   showRange?: boolean;
   unit?: string;
 }): string {
@@ -571,6 +614,7 @@ export function getUserPredictionDisplayValue({
       value: center,
       questionType,
       scaling: scaling ?? { range_min: 0, range_max: 1, zero_point: null },
+      actual_resolve_time,
     });
     if (showRange) {
       const displayLower = !isNil(lower)
@@ -582,6 +626,7 @@ export function getUserPredictionDisplayValue({
               range_max: 1,
               zero_point: null,
             },
+            actual_resolve_time,
           })
         : "...";
       const displayUpper = !isNil(upper)
@@ -593,6 +638,7 @@ export function getUserPredictionDisplayValue({
               range_max: 1,
               zero_point: null,
             },
+            actual_resolve_time,
           })
         : "...";
       return `${displayCenter}\n(${displayLower} - ${displayUpper})`;
@@ -813,6 +859,7 @@ export function generateScale({
           questionType: displayType as QuestionType,
           scaling: rangeScaling,
           precision: 3,
+          actual_resolve_time: null,
         }),
         idx
       );
@@ -828,6 +875,7 @@ export function generateScale({
         questionType: displayType as QuestionType,
         scaling: rangeScaling,
         precision: 6,
+        actual_resolve_time: null,
       }),
       idx
     );
@@ -944,6 +992,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       aggregationForecasterCounts: aggregationForecasterCounts,
       userTimestamps: sortedUserTimestamps,
       userValues: userValues,
+      actual_resolve_time: question.actual_resolve_time ?? null,
     };
   });
   // reorder choice items
@@ -1086,9 +1135,11 @@ export function generateChoiceItemsFromGroupQuestions(
             locale: locale ?? "en",
             scaling: question.scaling,
             unit: question.unit,
+            actual_resolve_time: question.actual_resolve_time ?? null,
           })
         : null,
       closeTime,
+      actual_resolve_time: question.actual_resolve_time ?? null,
       unit: question.unit,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,

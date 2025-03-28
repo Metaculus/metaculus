@@ -114,6 +114,7 @@ const QuestionResolutionText = ({
     locale,
     scaling: question.scaling,
     unit: question.unit,
+    actual_resolve_time: question.actual_resolve_time ?? null,
   });
 
   return (

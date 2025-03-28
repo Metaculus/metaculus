@@ -231,6 +231,7 @@ const AggregationsTab: FC<Props> = ({
                       cursorData?.interval_upper_bound as number,
                     ]
                   : [],
+                actual_resolve_time: aggregationData.actual_resolve_time,
               })}
               variant="prediction"
             />

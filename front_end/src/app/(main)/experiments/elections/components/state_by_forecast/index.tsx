@@ -224,6 +224,7 @@ function getDemocratRepublicanPrediction({
           value: rawDemocratPrediction,
           questionType: demQuestion.type,
           scaling: demQuestion.scaling,
+          actual_resolve_time: demQuestion.actual_resolve_time ?? null,
         })
       : null,
     republicanPrediction: rawRepublicanPrediction
@@ -231,6 +232,7 @@ function getDemocratRepublicanPrediction({
           value: rawRepublicanPrediction,
           questionType: repQuestion.type,
           scaling: repQuestion.scaling,
+          actual_resolve_time: repQuestion.actual_resolve_time ?? null,
         })
       : null,
   };
