@@ -27,6 +27,7 @@ from comments.services.common import (
     create_comment,
     pin_comment,
     unpin_comment,
+    delete_comment,
 )
 from comments.services.common import update_comment
 from comments.services.feed import get_comments_feed
@@ -116,8 +117,7 @@ def comments_list_api_view(request: Request):
 def comment_delete_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
-    comment.is_soft_deleted = True
-    comment.save()
+    delete_comment(comment)
 
     return Response({}, status=status.HTTP_200_OK)
 

@@ -1,6 +1,7 @@
 import difflib
 
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -140,3 +141,18 @@ def unpin_comment(comment: Comment):
     comment.save(update_fields=["is_pinned"])
 
     return comment
+
+
+@transaction.atomic
+def delete_comment(comment: Comment):
+    if not comment.child_comments.exists():
+        # If the comment has a thread, we don't fully delete it — it's still shown as "deleted"
+        # and doesn’t impact the global unread counter.
+        # But if it’s a standalone comment, deletion does affect each user’s unread count,
+        # so we need to recalculate it.
+        comment.on_post.snapshots.filter(viewed_at__gte=comment.created_at).update(
+            comments_count=F("comments_count") - 1
+        )
+
+    comment.is_soft_deleted = True
+    comment.save(update_fields=["is_soft_deleted"])
