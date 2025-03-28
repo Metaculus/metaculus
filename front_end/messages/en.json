@@ -1174,5 +1174,13 @@
   "loginConfigurationMessage": "Log in to select different options",
   "downloadData": "Download data",
   "emailData": "Email me this data",
-  "today": "Today"
+  "today": "Today",
+  "forecastCopyToAll": "Copy to all",
+  "forecastCopyTo": "Copy to…",
+  "forecastCopyToRich": "<label>Copy to</label> {name}",
+  "forecastCopyFrom": "Copy from…",
+  "forecastCopyFromRich": "<label>Copy from</label> {name}",
+  "forecastCopyToAllToastMessage": "Distribution copied to all other questions",
+  "forecastCopyFromToastMessage": "Distribution copied from ''{name}''",
+  "forecastCopyToToastMessage": "Distribution copied from ''{from_name}'' to ''{to_name}''"
 }

@@ -88,16 +88,18 @@ const DownloadQuestionDataModal: FC<Props> = ({ isOpen, onClose, post }) => {
       } finally {
         setPendingSubmission(null);
       }
-    }
-    try {
-      const base64 = await getPostZipData(post.id);
-      const blob = base64ToBlob(base64);
-      const filename = `${post.short_title.replaceAll(" ", "_")}.zip`;
-      saveAs(blob, filename);
-    } catch (error) {
-      toast.error(t("downloadQuestionDataError") + error);
-    } finally {
-      setPendingSubmission(null);
+    } else {
+      // type === "download"
+      try {
+        const base64 = await getPostZipData(post.id);
+        const blob = base64ToBlob(base64);
+        const filename = `${post.short_title.replaceAll(" ", "_")}.zip`;
+        saveAs(blob, filename);
+      } catch (error) {
+        toast.error(t("downloadQuestionDataError") + error);
+      } finally {
+        setPendingSubmission(null);
+      }
     }
   };
 

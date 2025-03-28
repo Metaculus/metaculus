@@ -22,6 +22,7 @@ export type ContinuousInputContainerProps = {
   onOverlayPreviousForecastChange: (value: boolean) => void;
   previousForecast?: UserForecast;
   menu?: ReactNode;
+  copyMenu?: ReactNode;
   children?: (
     sliderGraphType: ContinuousAreaGraphType,
     tableGraphType: ContinuousAreaGraphType
@@ -36,6 +37,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   previousForecast,
   onOverlayPreviousForecastChange,
   menu,
+  copyMenu,
   children,
   disabled,
 }) => {
@@ -110,11 +112,18 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
                 className="text-gray-500 hover:text-blue-800 dark:text-gray-500-dark dark:hover:text-blue-800-dark"
               />
             </Tooltip>
-            {menu && (
-              <div className="-mr-2 size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
-                {menu}
-              </div>
-            )}
+            <div className="flex gap-3">
+              {copyMenu && (
+                <div className="-mr-2 size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
+                  {copyMenu}
+                </div>
+              )}
+              {menu && (
+                <div className="-mr-2 size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
+                  {menu}
+                </div>
+              )}
+            </div>
           </div>
           {!!previousForecast && (
             <div className="ml-auto mr-auto mt-1 flex items-center md:-mr-1">

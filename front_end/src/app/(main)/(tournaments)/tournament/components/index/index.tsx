@@ -83,13 +83,13 @@ function calculateIndex(posts: ProjectIndexWeights[]): {
       let postValue = 0;
       let postValueWeekAgo = 0;
       const cp = latestAggregation.centers?.at(-1);
-      const weekAgoCP =
-        historyAggregation.find(
-          (el) =>
-            el.end_time &&
-            fromUnixTime(el.end_time) >=
-              fromUnixTime(weekAgoDate.getTime() / 1000)
-        )?.centers?.[0] ?? null;
+      const weekAgoAggregation = historyAggregation.find(
+        (el) =>
+          el.end_time &&
+          fromUnixTime(el.end_time) >=
+            fromUnixTime(weekAgoDate.getTime() / 1000)
+      );
+      const weekAgoCP = weekAgoAggregation?.centers?.[0] ?? null;
 
       switch (question.type) {
         case QuestionType.Binary: {
@@ -113,21 +113,20 @@ function calculateIndex(posts: ProjectIndexWeights[]): {
           break;
         }
         case QuestionType.Numeric: {
-          const scaling = question.scaling;
-          const min = scaling.range_min;
-          const max = scaling.range_max;
-          if (isNil(min) || isNil(max)) {
+          const cdfPoints = latestAggregation.forecast_values;
+          if (!cdfPoints.length) {
             break;
           }
-
-          if (isNil(cp)) {
-            break;
-          }
-          const median = scaleInternalLocation(cp, scaling);
-          postValue = (2 * median - max - min) / (max - min);
-
-          const medianWeekAgo = scaleInternalLocation(weekAgoCP ?? cp, scaling);
-          postValueWeekAgo = (2 * medianWeekAgo - max - min) / (max - min);
+          postValue = cdfPoints.reduce(
+            (sum, cdfPoint) => sum + (1 - cdfPoint) / cdfPoints.length,
+            0
+          );
+          const cdfPointsWeekAgo =
+            weekAgoAggregation?.forecast_values ?? cdfPoints;
+          postValueWeekAgo = cdfPointsWeekAgo.reduce(
+            (sum, cdfPoint) => sum + (1 - cdfPoint) / cdfPoints.length,
+            0
+          );
           break;
         }
       }

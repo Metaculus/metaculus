@@ -129,6 +129,7 @@ const ConditionalChart: FC<Props> = ({
             value: prediction,
             questionType: question.type,
             scaling: question.scaling,
+            actual_resolve_time: question.actual_resolve_time ?? null,
           })
         : "";
 
