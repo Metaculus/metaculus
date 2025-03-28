@@ -574,9 +574,6 @@ def unresolve_question(question: Question):
     score_question(
         question,
         None,  # None is the equivalent of unsetting scores
-        spot_scoring_time=(
-            spot_scoring_time.timestamp() if spot_scoring_time else None
-        ),
         score_types=score_types,
     )
 
