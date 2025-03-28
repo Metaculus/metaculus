@@ -1172,5 +1172,6 @@
   "forecastCopyFromRich": "<label>Kopírovat z</label> {name}",
   "forecastCopyToAllToastMessage": "Distribuce zkopírována do všech ostatních otázek",
   "forecastCopyFromToastMessage": "Distribuce zkopírována z ''{name}''",
-  "forecastCopyToToastMessage": "Distribuce zkopírována z ''{from_name}'' do ''{to_name}''"
+  "forecastCopyToToastMessage": "Distribuce zkopírována z ''{from_name}'' do ''{to_name}''",
+  "result": "výsledek"
 }
