@@ -40,11 +40,14 @@ const PercentageForecastCard: FC<Props> = ({ post }) => {
   return (
     <ForecastCardWrapper otherItemsCount={otherItemsCount}>
       {visibleChoices.map((choice) => {
-        const choiceValue = getChoiceOptionValue(
-          choice.aggregationValues[choice.aggregationValues.length - 1] ?? null,
-          QuestionType.Binary,
-          choice.scaling
-        );
+        const choiceValue = getChoiceOptionValue({
+          value:
+            choice.aggregationValues[choice.aggregationValues.length - 1] ??
+            null,
+          questionType: QuestionType.Binary,
+          scaling: choice.scaling,
+          actual_resolve_time: choice.actual_resolve_time ?? null,
+        });
         const isChoiceClosed = choice.closeTime
           ? choice.closeTime < Date.now()
           : false;

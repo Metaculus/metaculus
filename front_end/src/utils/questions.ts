@@ -186,6 +186,7 @@ export function formatResolution({
   resolution,
   questionType,
   locale,
+  actual_resolve_time,
   scaling,
   unit,
   shortBounds = false,
@@ -193,6 +194,7 @@ export function formatResolution({
   resolution: number | string | null | undefined;
   questionType: QuestionType;
   locale: string;
+  actual_resolve_time: string | null;
   scaling?: Scaling;
   unit?: string;
   shortBounds?: boolean;
@@ -219,6 +221,8 @@ export function formatResolution({
           value: 0,
           questionType,
           scaling,
+          actual_resolve_time,
+          unit,
         })
       );
     }
@@ -232,6 +236,8 @@ export function formatResolution({
           value: 1,
           questionType,
           scaling,
+          actual_resolve_time,
+          unit,
         })
       );
     }
@@ -243,7 +249,14 @@ export function formatResolution({
       const date = new Date(Number(resolution));
       if (isValid(date)) {
         return scaling
-          ? format(date, getQuestionDateFormatString(scaling))
+          ? format(
+              date,
+              getQuestionDateFormatString({
+                scaling,
+                actual_resolve_time,
+                valueTimestamp: date.getTime() / 1000,
+              })
+            )
           : formatDate(locale, date);
       }
       return resolution;
@@ -252,7 +265,14 @@ export function formatResolution({
     const date = new Date(resolution);
     if (isValid(date)) {
       return scaling
-        ? format(date, getQuestionDateFormatString(scaling))
+        ? format(
+            date,
+            getQuestionDateFormatString({
+              scaling,
+              actual_resolve_time,
+              valueTimestamp: date.getTime() / 1000,
+            })
+          )
         : formatDate(locale, date);
     }
     return resolution;

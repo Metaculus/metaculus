@@ -161,6 +161,31 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     []
   );
 
+  const handleCopy = useCallback(
+    (fromOptionId: number, toOptionId: number) => {
+      const fromOption = groupOptions.find((obj) => obj.id === fromOptionId);
+
+      if (!fromOption) return;
+
+      const { userSliderForecast, userQuantileForecast, forecastInputMode } =
+        fromOption;
+
+      handleChange(
+        toOptionId,
+        forecastInputMode === ContinuousForecastInputType.Slider
+          ? {
+              type: ContinuousForecastInputType.Slider,
+              components: userSliderForecast,
+            }
+          : {
+              type: ContinuousForecastInputType.Quantile,
+              components: userQuantileForecast,
+            }
+      );
+    },
+    [groupOptions, handleChange]
+  );
+
   const handleForecastInputModeChange = useCallback(
     (optionId: number, mode: ContinuousForecastInputType) => {
       setGroupOptions((prev) =>
@@ -413,6 +438,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         handleResetForecasts={handleResetForecasts}
         handlePredictSubmit={handleSingleQuestionSubmit}
         handleForecastInputModeChange={handleForecastInputModeChange}
+        handleCopy={handleCopy}
       />
       {questionsToSubmit.some((opt) => opt.isDirty) && (
         <div className="mb-2 mt-4 flex justify-center gap-3">

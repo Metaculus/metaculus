@@ -37,6 +37,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
   const choices = generateChoiceItemsFromGroupQuestions(sortedQuestions, {
     activeCount: visibleChoicesCount,
     locale,
+    shortBounds: true,
   });
   // Move resolved/annulled choices to the start
   const sortedChoices = [...choices].sort((a, b) => {
@@ -78,15 +79,18 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
           color,
           displayedResolution,
           choice,
+          actual_resolve_time,
+          unit,
         }) => {
           const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
           const rawChoiceValue =
             aggregationValues[aggregationValues.length - 1] ?? null;
-          const formattedChoiceValue = getChoiceOptionValue(
-            rawChoiceValue,
-            QuestionType.Numeric,
-            scaling
-          );
+          const formattedChoiceValue = getChoiceOptionValue({
+            value: rawChoiceValue,
+            questionType: QuestionType.Numeric,
+            scaling,
+            actual_resolve_time: actual_resolve_time ?? null,
+          });
           const scaledChoiceValue = scaleInternalLocation(rawChoiceValue ?? 0, {
             range_min: scaling?.range_min ?? 0,
             range_max: scaling?.range_max ?? 1,
@@ -110,6 +114,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
               resolution={resolution}
               progress={relativeWidth}
               color={color}
+              unit={unit}
             />
           );
         }

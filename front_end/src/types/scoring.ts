@@ -98,7 +98,7 @@ type BaseLeaderboardDetails = {
   start_time: string;
   end_time: string | null;
   finalize_time: string;
-  simplified_view: boolean; // Feature Flag: leaderboard simplified view
+  prize_pool: number | null;
 };
 
 export type LeaderboardDetails = BaseLeaderboardDetails & {

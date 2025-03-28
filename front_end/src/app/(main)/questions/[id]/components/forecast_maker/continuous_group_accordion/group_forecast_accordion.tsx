@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useMemo } from "react";
+import { FC, ReactNode, useMemo, useState } from "react";
 
+import ForecastMakerGroupCopyMenu from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_maker_group/forecast_maker_group_copy_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
@@ -56,6 +57,7 @@ type Props = {
     optionId: number,
     mode: ContinuousForecastInputType
   ) => void;
+  handleCopy: (fromOptionId: number, toOptionId: number) => void;
 };
 
 const GroupForecastAccordion: FC<Props> = ({
@@ -69,34 +71,40 @@ const GroupForecastAccordion: FC<Props> = ({
   handleResetForecasts,
   handlePredictSubmit,
   handleForecastInputModeChange,
+  handleCopy,
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
   const { user } = useAuth();
   const showCP = !user || !hideCP;
+  const [forcedOpenId, setForcedOpenId] = useState<number>();
 
-  const { resolvedOptions, closedOptions, activeOptions } = useMemo(
-    () => ({
-      resolvedOptions: options.filter(
-        (option) =>
-          option.question.status &&
-          [QuestionStatus.RESOLVED].includes(option.question.status)
-      ),
-      closedOptions: options.filter(
-        (option) =>
-          option.question.status &&
-          [QuestionStatus.CLOSED].includes(option.question.status)
-      ),
-      activeOptions: options.filter(
-        (option) =>
-          !option.question.status ||
-          ![QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
-            option.question.status
-          )
-      ),
-    }),
-    [options]
-  );
+  const { resolvedOptions, closedOptions, activeOptions, openOptions } =
+    useMemo(
+      () => ({
+        resolvedOptions: options.filter(
+          (option) =>
+            option.question.status &&
+            [QuestionStatus.RESOLVED].includes(option.question.status)
+        ),
+        closedOptions: options.filter(
+          (option) =>
+            option.question.status &&
+            [QuestionStatus.CLOSED].includes(option.question.status)
+        ),
+        activeOptions: options.filter(
+          (option) =>
+            !option.question.status ||
+            ![QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
+              option.question.status
+            )
+        ),
+        openOptions: options.filter(
+          (option) => option.question.status === QuestionStatus.OPEN
+        ),
+      }),
+      [options]
+    );
 
   const homogeneousUnit = useMemo(() => {
     const units = Array.from(new Set(options.map((obj) => obj.question.unit)));
@@ -133,6 +141,7 @@ const GroupForecastAccordion: FC<Props> = ({
             option={option}
             showCP={showCP}
             key={option.id}
+            forcedOpenId={forcedOpenId}
             subQuestionId={subQuestionId}
             type={QuestionStatus.OPEN}
             unit={
@@ -143,6 +152,17 @@ const GroupForecastAccordion: FC<Props> = ({
           >
             <ContinuousInputWrapper
               option={option}
+              copyMenu={
+                openOptions.length > 1 &&
+                option.question.status === QuestionStatus.OPEN ? (
+                  <ForecastMakerGroupCopyMenu
+                    option={option}
+                    options={openOptions}
+                    handleCopy={handleCopy}
+                    setForcedOpenId={setForcedOpenId}
+                  />
+                ) : undefined
+              }
               canPredict={canPredict}
               isPending={isPending}
               handleChange={handleChange}

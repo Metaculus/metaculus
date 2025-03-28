@@ -250,6 +250,7 @@ function getTableData(questions: ProjectIndexWeights[]): TableItem[] {
       value: cpRawValue,
       questionType: question.type,
       scaling: question.scaling,
+      actual_resolve_time: question.actual_resolve_time ?? null,
     });
 
     data.push({

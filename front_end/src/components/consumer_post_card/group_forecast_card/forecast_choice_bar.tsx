@@ -20,6 +20,7 @@ type Props = {
   progress: number;
   color: ThemeColor;
   isBordered?: boolean;
+  unit?: string;
 };
 
 const WIDTH_ADJUSTMENT = 2;
@@ -33,6 +34,7 @@ const ForecastChoiceBar: FC<Props> = ({
   resolution,
   color,
   isBordered = false,
+  unit,
 }) => {
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
@@ -54,9 +56,23 @@ const ForecastChoiceBar: FC<Props> = ({
     >
       <span className="z-10 line-clamp-1 max-w-[85%]">{choiceLabel}</span>
       <span className="z-10 text-nowrap">
-        {displayedResolution
-          ? `${isResolutionSuccessful ? t("resolved") : ""} ${displayedResolution}`
-          : choiceValue}
+        {displayedResolution ? (
+          <>
+            {isResolutionSuccessful ? (
+              <span className="font-medium capitalize text-purple-600 dark:text-purple-600-dark">
+                {t("result")}:{" "}
+              </span>
+            ) : null}
+            <span className="font-bold">
+              {unit
+                ? String(displayedResolution).replace(unit, "")
+                : displayedResolution}
+              {unit && <span className="font-normal">{unit}</span>}
+            </span>
+          </>
+        ) : (
+          choiceValue
+        )}
       </span>
 
       <div

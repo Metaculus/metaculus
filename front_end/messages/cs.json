@@ -1163,5 +1163,15 @@
   "cpDescendingSubquestionOrder": "Předpověď komunity (Sestupně)",
   "groupSorting": "Třídění skupin",
   "groupSortingDescription": "Pořadí podotázek ve skupině",
-  "today": "Dnes"
+  "today": "Dnes",
+  "spotScoingTime": "Čas bodového hodnocení",
+  "forecastCopyToAll": "Kopírovat do všech",
+  "forecastCopyTo": "Kopírovat do…",
+  "forecastCopyFrom": "Kopírovat z…",
+  "forecastCopyToRich": "<label>Kopírovat do</label> {name}",
+  "forecastCopyFromRich": "<label>Kopírovat z</label> {name}",
+  "forecastCopyToAllToastMessage": "Distribuce zkopírována do všech ostatních otázek",
+  "forecastCopyFromToastMessage": "Distribuce zkopírována z ''{name}''",
+  "forecastCopyToToastMessage": "Distribuce zkopírována z ''{from_name}'' do ''{to_name}''",
+  "result": "výsledek"
 }

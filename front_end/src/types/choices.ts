@@ -25,6 +25,7 @@ export type ChoiceItem = {
   aggregationForecasterCounts: number[];
   userTimestamps: number[];
   userValues: (number | null)[];
+  actual_resolve_time?: string | null;
   userMinValues?: (number | null)[]; // continuous group only
   userMaxValues?: (number | null)[]; // continuous group only
 };
