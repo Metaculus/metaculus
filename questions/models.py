@@ -132,7 +132,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         If not set, defaults to cp reveal time.""",
     )
 
-    # continuous range fields
+    # continuous fields
     range_min = models.FloatField(
         null=True,
         blank=True,
@@ -175,12 +175,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # list of multiple choice option labels
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
-    group_variable = models.CharField(blank=True, null=False)
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
     # Group
+    group_variable = models.CharField(blank=True, null=False)
     label = models.TextField(blank=True, null=False)
     group: "GroupOfQuestions" = models.ForeignKey(
         "GroupOfQuestions",
@@ -198,6 +198,26 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         # Ensure resolution is always null or non-empty string
         if self.resolution is not None and self.resolution.strip() == "":
             self.resolution = None
+
+        # Some simple field enforcement
+        if self.type not in [
+            self.QuestionType.DATE,
+            self.QuestionType.NUMERIC,
+            self.QuestionType.DISCRETE,
+        ]:
+            self.range_min = None
+            self.range_max = None
+            self.open_upper_bound = False
+            self.open_lower_bound = False
+            self.inbound_outcome_count = None
+            self.unit = ""
+        if self.type not in [
+            self.QuestionType.DATE,
+            self.QuestionType.NUMERIC,
+        ]:
+            self.zero_point = None
+        if self.type != self.QuestionType.MULTIPLE_CHOICE:
+            self.options = None
 
         return super().save(**kwargs)
 
