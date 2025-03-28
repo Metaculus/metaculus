@@ -243,7 +243,8 @@ ANYMAIL = {
         "merge_data": {},
     },
 }
-EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "anymail.backends.mailgun.EmailBackend")
+
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", f"Metaculus Accounts <accounts@{MAILGUN_DOMAIN}>"
 )
@@ -518,4 +519,8 @@ GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
 
 CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(
     "CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR", None
+)
+
+CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS = (
+    os.environ.get("CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS", "false").lower() == "true"
 )

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { FC, PropsWithChildren, Suspense } from "react";
@@ -96,6 +97,15 @@ export default async function Profile(props: Props) {
             <ProfileChip variant={profile.is_spam ? "danger" : "success"}>
               {profile.is_spam ? "Spam" : "Not Spam"}
             </ProfileChip>
+            {profile.spam_count && currentUser?.is_staff ? (
+              <Link
+                href={`/admin/users/userspamactivity/?q=${profile.username}`}
+              >
+                <ProfileChip variant="danger">
+                  {profile.spam_count} spam warnings
+                </ProfileChip>
+              </Link>
+            ) : null}
           </div>
         </div>
       )}
