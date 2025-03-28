@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Disclosure, DisclosurePanel } from "@headlessui/react";
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
-import { FC, PropsWithChildren, useState } from "react";
+import { FC, PropsWithChildren, useEffect, useState } from "react";
 
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
@@ -34,6 +34,7 @@ type AccordionItemProps = {
   subQuestionId?: number | null;
   type: QuestionStatus.OPEN | QuestionStatus.CLOSED | QuestionStatus.RESOLVED;
   unit?: string;
+  forcedOpenId?: number;
 };
 
 const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
@@ -43,6 +44,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   subQuestionId,
   type,
   unit,
+  forcedOpenId,
 }) => {
   const locale = useLocale();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -117,9 +119,28 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     setIsModalOpen((prev) => !prev);
   };
 
+  const isForceOpen = forcedOpenId === option.id;
+
+  useEffect(() => {
+    if (!isForceOpen) {
+      setIsModalOpen(false);
+    } else if (!isLargeScreen) {
+      setIsModalOpen(true);
+    }
+    // We intentionally keep only forcedOpenId in the dependencies,
+    // because this effect should re-trigger only when forcedOpenId changes — not other params.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forcedOpenId]);
+
   return (
     <>
-      <Disclosure as="div" defaultOpen={subQuestionId === option.id}>
+      <Disclosure
+        as="div"
+        defaultOpen={subQuestionId === option.id || forcedOpenId === option.id}
+        id={`group-option-${option.id}`}
+        // Change the key so that when forceOpen toggles, Disclosure re-mounts
+        key={`${option.id}-${forcedOpenId === option.id ? "open" : "closed"}`}
+      >
         {({ open }) => (
           <div>
             <AccordionOpenButton

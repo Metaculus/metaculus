@@ -1161,5 +1161,13 @@
   "cpDescendingSubquestionOrder": "Community Prediction (Descending)",
   "groupSorting": "Group sorting",
   "groupSortingDescription": "The order of the subquestions in the group",
-  "today": "Today"
+  "today": "Today",
+  "forecastCopyToAll": "Copy to all",
+  "forecastCopyTo": "Copy to…",
+  "forecastCopyToRich": "<label>Copy to</label> {name}",
+  "forecastCopyFrom": "Copy from…",
+  "forecastCopyFromRich": "<label>Copy from</label> {name}",
+  "forecastCopyToAllToastMessage": "Distribution copied to all other questions",
+  "forecastCopyFromToastMessage": "Distribution copied from ''{name}''",
+  "forecastCopyToToastMessage": "Distribution copied from ''{from_name}'' to ''{to_name}''"
 }
