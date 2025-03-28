@@ -125,6 +125,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     }
     // We intentionally keep only forcedOpenId in the dependencies,
     // because this effect should re-trigger only when forcedOpenId changes — not other params.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forcedOpenId]);
 
   return (
