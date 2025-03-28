@@ -42,6 +42,7 @@ def email_all_data_for_questions_task(
     include_scores: bool = True,
     **kwargs,
 ):
+    # TODO: deprecate this, use email_data_task instead
     try:
         from utils.csv_utils import export_all_data_for_questions
         from questions.models import Question
