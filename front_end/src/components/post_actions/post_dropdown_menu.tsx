@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
 import toast from "react-hot-toast";
 
-import DownloadQuestionDataModal from "@/app/(main)/questions/[id]/components/download_question_data_modal";
+import DataRequestModal from "@/app/(main)/questions/[id]/components/download_question_data_modal";
 import PostDestructiveActionModal, {
   PostDestructiveActionModalProps,
 } from "@/app/(main)/questions/[id]/components/post_destructive_action_modal";
@@ -147,7 +147,7 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
           router.refresh();
         }}
       />
-      <DownloadQuestionDataModal
+      <DataRequestModal
         isOpen={isDownloadModalOpen}
         onClose={closeDownloadModal}
         post={post}

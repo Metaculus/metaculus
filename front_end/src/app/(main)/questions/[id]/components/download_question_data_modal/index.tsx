@@ -41,7 +41,9 @@ type Props = {
   post: Post;
 };
 
-const DownloadQuestionDataModal: FC<Props> = ({ isOpen, onClose, post }) => {
+// TODO: make this modal more generic so it
+// isn't married to post-level requests.
+const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const isLoggedOut = !user;
@@ -221,4 +223,4 @@ const Section: FC<PropsWithChildren<{ title: string; subtitle?: string }>> = ({
   </div>
 );
 
-export default DownloadQuestionDataModal;
+export default DataRequestModal;
