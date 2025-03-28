@@ -353,6 +353,7 @@ STORAGES = {
         )
     },
 }
+MAX_UPLOAD_SIZE = 3 * 1024 * 1024  # 3 mb
 
 ITN_DB_MACHINE_SSH_ADDR = os.environ.get("ITN_DB_MACHINE_SSH_ADDR")
 ITN_DB_MACHINE_SSH_USER = os.environ.get("ITN_DB_MACHINE_SSH_USER")
