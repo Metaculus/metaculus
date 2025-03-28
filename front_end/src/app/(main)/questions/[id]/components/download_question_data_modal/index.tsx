@@ -7,12 +7,13 @@ import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
-import { getPostZipData } from "@/app/(main)/questions/actions";
+import { emailData, getPostZipData } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { CheckboxField } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useAuth } from "@/contexts/auth_context";
+import { DataParams } from "@/services/posts";
 import { Post } from "@/types/post";
 import { DownloadAggregationMethod } from "@/types/question";
 import { base64ToBlob } from "@/utils/files";
@@ -22,14 +23,15 @@ import AggregationMethodsPicker from "./aggregation_methods_picker";
 type SubmissionType = "download" | "email";
 
 const schema = z.object({
-  aggregationMethods: z
+  aggregation_methods: z
     .array(z.nativeEnum(DownloadAggregationMethod))
     .nonempty(),
-  summarizeAggregations: z.boolean(),
-  includeQuestionData: z.boolean(),
-  includeCommentsData: z.boolean(),
-  includeScoreData: z.boolean(),
-  includeUserData: z.boolean(),
+  minimize: z.boolean(),
+  include_comments: z.boolean(),
+  include_scores: z.boolean(),
+  include_user_data: z.boolean(),
+  include_bots: z.boolean().nullable(),
+  anonymized: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -52,12 +54,13 @@ const DownloadQuestionDataModal: FC<Props> = ({ isOpen, onClose, post }) => {
     mode: "all",
     resolver: zodResolver(schema),
     defaultValues: {
-      aggregationMethods: [DownloadAggregationMethod.recency_weighted],
-      summarizeAggregations: true,
-      includeQuestionData: true,
-      includeCommentsData: false,
-      includeScoreData: false,
-      includeUserData: false,
+      aggregation_methods: [DownloadAggregationMethod.recency_weighted],
+      minimize: true,
+      include_comments: false,
+      include_scores: false,
+      include_user_data: true,
+      include_bots: null,
+      anonymized: false,
     },
   });
 
@@ -70,6 +73,22 @@ const DownloadQuestionDataModal: FC<Props> = ({ isOpen, onClose, post }) => {
     type: SubmissionType
   ) => {
     setPendingSubmission(type);
+
+    if (type === "email") {
+      try {
+        const params: DataParams = {
+          post_id: post.id,
+          ..._data,
+        };
+        const response = await emailData(params);
+        console.log({ response });
+      } catch (error) {
+        toast.error("EMAY DON' WOR: " + error);
+      } finally {
+        setPendingSubmission(null);
+      }
+      return;
+    }
 
     // TODO: Implement email functionality and handle request params
     try {
@@ -90,13 +109,13 @@ const DownloadQuestionDataModal: FC<Props> = ({ isOpen, onClose, post }) => {
         <Section title={t("aggregationMethods")}>
           <Controller
             control={control}
-            name={"aggregationMethods"}
+            name={"aggregation_methods"}
             render={({ field: { value, onChange } }) => (
               <AggregationMethodsPicker
                 methods={value}
                 onChange={onChange}
                 disabled={isLoggedOut}
-                errors={errors.aggregationMethods}
+                errors={errors.aggregation_methods}
               />
             )}
           />
@@ -107,39 +126,52 @@ const DownloadQuestionDataModal: FC<Props> = ({ isOpen, onClose, post }) => {
         >
           <CheckboxField
             control={control}
-            name="summarizeAggregations"
+            name="minimize"
             label={t("summarizeAggregations")}
-            errors={errors.summarizeAggregations}
+            errors={errors.minimize}
             disabled={isLoggedOut}
           />
           <CheckboxField
             control={control}
-            name="includeQuestionData"
-            label={t("questionData")}
-            errors={errors.includeQuestionData}
-            disabled={isLoggedOut}
-          />
-          <CheckboxField
-            control={control}
-            name="includeCommentsData"
-            label={t("commentData")}
-            errors={errors.includeCommentsData}
-            disabled={isLoggedOut}
-          />
-          <CheckboxField
-            control={control}
-            name="includeScoreData"
+            name="include_scores"
             label={t("scoreData")}
-            errors={errors.includeScoreData}
+            errors={errors.include_scores}
             disabled={isLoggedOut}
           />
-          {!!user?.is_superuser && (
+          <CheckboxField
+            control={control}
+            name="include_user_data"
+            label={t("includeUserData")}
+            errors={errors.include_user_data}
+          />
+          {!!control._getWatch("include_user_data") ? (
             <CheckboxField
               control={control}
-              name="includeUserData"
-              label={t("includeUserData")}
-              errors={errors.includeUserData}
+              name="include_comments"
+              label={t("commentData")}
+              errors={errors.include_comments}
+              disabled={isLoggedOut}
             />
+          ) : null}
+          {!!user?.is_superuser && (
+            <>
+              {!!control._getWatch("include_user_data") ? (
+                <CheckboxField
+                  control={control}
+                  name="include_bots"
+                  label={t("includeBots")}
+                  errors={errors.include_bots}
+                />
+              ) : null}
+              {!!control._getWatch("include_user_data") ? (
+                <CheckboxField
+                  control={control}
+                  name="anonymized"
+                  label={t("anonymize")}
+                  errors={errors.anonymized}
+                />
+              ) : null}
+            </>
           )}
         </Section>
 

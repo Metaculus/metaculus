@@ -20,7 +20,7 @@ from posts.models import (
     PostActivityBoost,
 )
 from posts.serializers import (
-    DownloadDataSerializer,
+    DataGetSerializer,
     PostFilterSerializer,
     OldQuestionFilterSerializer,
     PostWriteSerializer,
@@ -589,11 +589,12 @@ def download_data(request, post_id: int):
         "is_whitelisted": is_whitelisted,
     }
 
-    serializer = DownloadDataSerializer(
+    serializer = DataGetSerializer(
         data=request.query_params, context=serializer_context
     )
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
+
     sub_question = params.get("sub_question")
     aggregation_methods = params.get("aggregation_methods")
     user_ids = params.get("user_ids")

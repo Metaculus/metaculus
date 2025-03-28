@@ -1,19 +1,23 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.request import Request
 
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 from misc.models import WhitelistUser
 from posts.models import Post
-from posts.serializers import DownloadDataSerializer
+from posts.serializers import DataGetSerializer, DataPostSerializer
 from posts.services.common import get_post_permission_for_user
+from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import serialize_question
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
+from utils.tasks import email_data_task
 
 
 @api_view(["GET"])
@@ -59,7 +63,7 @@ def aggregation_explorer_api_view(request):
         "is_whitelisted": is_whitelisted,
     }
 
-    serializer = DownloadDataSerializer(
+    serializer = DataGetSerializer(
         data=request.query_params, context=serializer_context
     )
     serializer.is_valid(raise_exception=True)
@@ -93,3 +97,116 @@ def aggregation_explorer_api_view(request):
         full_forecast_values=True,
     )
     return Response(data)
+
+
+def validate_data_request(request: Request):
+    user: User = request.user
+
+    question: Question | None = None
+    post: Post | None = None
+    project: Project | None = None
+
+    if question_id := request.data.get("question_id"):
+        question = get_object_or_404(Question, id=question_id)
+    elif sub_question := request.data.get("sub_question"):
+        question = get_object_or_404(Question, id=sub_question)
+    if post_id := request.data.get("post_id"):
+        post = get_object_or_404(Post, id=post_id)
+    elif question:
+        post = question.get_post()
+    if project_id := request.data.get("project_id"):
+        project = get_object_or_404(Project, id=project_id)
+    elif post:
+        project = post.default_project
+
+    # Context for the serializer
+    is_staff = user.is_authenticated and user.is_staff
+    is_whitelisted = (
+        user.is_authenticated
+        and WhitelistUser.objects.filter(
+            (
+                (Q(post=post) if post else Q())
+                | (Q(project=project) if project else Q())
+            ),
+            user=user,
+        ).exists()
+    )
+    serializer_context = {
+        "user": user if user.is_authenticated else None,
+        "is_staff": is_staff,
+        "is_whitelisted": is_whitelisted,
+    }
+
+    serializer = DataPostSerializer(data=request.data, context=serializer_context)
+    serializer.is_valid(raise_exception=True)
+    params = serializer.validated_data
+
+    aggregation_methods = params.get("aggregation_methods")
+    minimize = params.get("minimize")
+    include_comments = params.get("include_comments", False)
+    include_scores = params.get("include_scores", True)
+    include_user_data = params.get("include_user_data", False)
+
+    user_ids = params.get("user_ids")
+    include_bots = params.get("include_bots")
+    if is_staff:
+        anonymized = params.get("anonymized", False)
+    elif is_whitelisted:
+        anonymized = True
+    else:
+        anonymized = False
+
+    # get all questions
+    questions = []
+    if question:
+        questions = [question]
+    elif post:
+        questions = list(post.get_questions())
+    elif project:
+        questions = list(
+            Question.objects.filter(
+                Q(related_posts__post__default_project=project)
+                | Q(related_posts__post__projects=project)
+            ).distinct()
+        )
+    if not questions:
+        raise NotFound("No questions found")
+
+    filename = "metaculus_data"
+    if post:
+        filename = post.short_title or post.title
+    elif project:
+        filename = project.slug or project.name
+    for char in [" ", "-", "/", ":", ",", "."]:
+        filename = filename.replace(char, "_")
+    filename += ".zip"
+
+    return {
+        "user_id": user.id if user.is_authenticated else None,
+        "user_email": user.email if user.is_authenticated else None,
+        "is_staff": is_staff,
+        "is_whitelisted": is_whitelisted,
+        "filename": filename,
+        "question_ids": [q.id for q in questions],
+        "aggregation_methods": aggregation_methods,
+        "minimize": minimize,
+        "include_scores": include_scores,
+        "include_user_data": include_user_data,
+        "include_comments": include_comments,
+        "user_ids": user_ids,
+        "include_bots": include_bots,
+        "anonymized": anonymized,
+    }
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def email_data_view(request: Request):
+    user: User = request.user
+    if not user.is_authenticated:
+        raise ValidationError("User must be authenticated")
+
+    validated_task_params = validate_data_request(request)
+    email_data_task(**validated_task_params)
+    # email_data_task.send(**validated_task_params)
+    return Response({"message": "Email sent"})

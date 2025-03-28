@@ -618,16 +618,18 @@ class PostRelatedArticleSerializer(serializers.ModelSerializer):
         fields = ("id", "title", "url", "favicon_url", "created_at", "media_label")
 
 
-class DownloadDataSerializer(serializers.Serializer):
+class DataGetSerializer(serializers.Serializer):
     question_id = serializers.IntegerField(required=False)
     post_id = serializers.IntegerField(required=False)
+    project_id = serializers.IntegerField(required=False)
     sub_question = serializers.IntegerField(required=False)
     aggregation_methods = serializers.CharField(required=False)
-    user_ids = serializers.CharField(required=False, allow_null=True)
+    minimize = serializers.BooleanField(required=False, default=True)
     include_comments = serializers.BooleanField(required=False, default=False)
     include_scores = serializers.BooleanField(required=False, default=True)
+    include_user_data = serializers.BooleanField(required=False, allow_null=True)
+    user_ids = serializers.CharField(required=False, allow_null=True)
     include_bots = serializers.BooleanField(required=False, allow_null=True)
-    minimize = serializers.BooleanField(required=False, default=True)
     anonymized = serializers.BooleanField(required=False)
 
     def validate_aggregation_methods(self, value: str | None):
@@ -680,13 +682,16 @@ class DownloadDataSerializer(serializers.Serializer):
         allowed_fields = {
             "post_id",
             "question_id",
+            "project_id",
             "sub_question",
             "aggregation_methods",
-            "user_ids",
+            "minimize",
             "include_comments",
             "include_scores",
+            "include_user_data",
+            "user_ids",
             "include_bots",
-            "minimize",
+            "anonymized",
         }
         input_fields = set(self.initial_data.keys())
         unexpected_fields = input_fields - allowed_fields
@@ -708,3 +713,42 @@ class DownloadDataSerializer(serializers.Serializer):
             )
 
         return attrs
+
+
+class DataPostSerializer(DataGetSerializer):
+    aggregation_methods = serializers.ListField(
+        child=serializers.CharField(), required=False
+    )
+    user_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, allow_null=True
+    )
+
+    def validate_aggregation_methods(self, methods: str | None):
+        if methods is None:
+            return
+        user: User = self.context.get("user")
+        invalid_methods = [
+            method for method in methods if method not in AggregationMethod.values
+        ]
+        if invalid_methods:
+            raise serializers.ValidationError(
+                f"Invalid aggregation method(s): {', '.join(invalid_methods)}"
+            )
+        if not user.is_staff:
+            methods = [
+                method
+                for method in methods
+                if method != AggregationMethod.SINGLE_AGGREGATION
+            ]
+        return methods
+
+    def validate_user_ids(self, user_ids: list[int]):
+        if not user_ids:
+            return user_ids
+        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
+            raise serializers.ValidationError(
+                "Current user cannot view user-specific data. "
+                "Please remove user_ids parameter."
+            )
+        uids = [int(user_id) for user_id in user_ids]
+        return uids

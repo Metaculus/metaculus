@@ -12,7 +12,11 @@ import CommentsApi, {
   ToggleCMMCommentParams,
   VoteParams,
 } from "@/services/comments";
-import PostsApi, { ApprovePostParams, PostsParams } from "@/services/posts";
+import PostsApi, {
+  ApprovePostParams,
+  DataParams,
+  PostsParams,
+} from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import QuestionsApi, {
@@ -391,4 +395,8 @@ export async function getPostZipData(postId: number) {
   const base64String = Buffer.from(arrayBuffer).toString("base64");
 
   return `data:application/octet-stream;base64,${base64String}`;
+}
+
+export async function emailData(params: DataParams) {
+  return await PostsApi.emailData(params);
 }

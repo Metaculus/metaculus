@@ -9,7 +9,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from misc.models import WhitelistUser
-from posts.serializers import DownloadDataSerializer
+from posts.serializers import DataGetSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
@@ -302,7 +302,7 @@ def download_data(request, project_id: int):
         "is_whitelisted": is_whitelisted,
     }
 
-    serializer = DownloadDataSerializer(
+    serializer = DataGetSerializer(
         data=request.query_params, context=serializer_context
     )
     serializer.is_valid(raise_exception=True)

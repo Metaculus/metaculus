@@ -94,7 +94,7 @@ def export_specific_data_for_questions(
         all_scores = scores.union(archived_scores)
     else:
         all_scores = None
-    return export_data_for_questions(
+    return generate_data(
         questions=questions,
         user_forecasts=user_forecasts,
         aggregate_forecasts=aggregate_forecasts,
@@ -176,7 +176,7 @@ def export_all_data_for_questions(
     else:
         all_scores = None
 
-    return export_data_for_questions(
+    return generate_data(
         questions=questions,
         user_forecasts=user_forecasts,
         aggregate_forecasts=aggregate_forecasts,
@@ -187,6 +187,100 @@ def export_all_data_for_questions(
 
 
 def export_data_for_questions(
+    user: User | None,
+    is_staff: bool,
+    is_whitelisted: bool,
+    questions: QuerySet[Question],
+    aggregation_methods: list[str] | None,
+    minimize: bool,
+    include_scores: bool,
+    include_user_data: bool,
+    include_comments: bool,
+    user_ids: list[int] | None,
+    include_bots: bool | None,
+    anonymized: bool,
+) -> bytes:
+    if not include_user_data:
+        user_forecasts = Forecast.objects.none()
+    else:
+        user_forecasts = Forecast.objects.filter(question__in=questions).order_by(
+            "question_id", "start_time"
+        )
+    if user_ids:
+        user_forecasts = user_forecasts.filter(author_id__in=user_ids)
+    if not (is_whitelisted or is_staff):
+        user_forecasts = user_forecasts.filter(author=user)
+
+    if not aggregation_methods or (
+        aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED] and minimize is True
+    ):
+        aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
+            AggregateForecast.objects.filter(question__in=questions)
+        ).order_by("question_id", "start_time")
+    else:
+        aggregate_forecasts = []
+        for question in questions:
+            aggregation_dict = get_aggregation_history(
+                question,
+                aggregation_methods,
+                user_ids=user_ids,
+                minimize=minimize,
+                include_stats=True,
+                include_bots=(
+                    include_bots
+                    if include_bots is not None
+                    else question.include_bots_in_aggregates
+                ),
+                histogram=True,
+            )
+            for values in aggregation_dict.values():
+                aggregate_forecasts.extend(values)
+
+    if include_user_data and include_comments:
+        comments = Comment.objects.filter(
+            is_private=False,
+            is_soft_deleted=False,
+            on_post__in=questions.values_list("related_posts__post", flat=True),
+        ).order_by("created_at")
+    else:
+        comments = None
+
+    if include_scores:
+        scores = Score.objects.filter(question__in=questions)
+        archived_scores = ArchivedScore.objects.filter(question__in=questions)
+        if not include_user_data:
+            # don't include user-specific scores
+            scores = scores.filter(user__isnull=True)
+            archived_scores = archived_scores.filter(user__isnull=True)
+        elif user_ids:
+            # only include user-specific scores for the given user_ids
+            scores = scores.filter(Q(user_id__in=user_ids) | Q(user__isnull=True))
+            archived_scores = archived_scores.filter(
+                Q(user_id__in=user_ids) | Q(user__isnull=True)
+            )
+        elif not (is_whitelisted or is_staff):
+            # only include user-specific scores for the logged-in user
+            scores = scores.filter(
+                Q(user__isnull=True) | (Q(user=user) if user else Q())
+            )
+            archived_scores = archived_scores.filter(
+                Q(user__isnull=True) | (Q(user=user) if user else Q())
+            )
+        all_scores = scores.union(archived_scores)
+    else:
+        all_scores = None
+
+    return generate_data(
+        questions=questions,
+        user_forecasts=user_forecasts,
+        aggregate_forecasts=aggregate_forecasts,
+        comments=comments,
+        scores=all_scores,
+        anonymized=anonymized,
+    )
+
+
+def generate_data(
     questions: QuerySet[Question],
     user_forecasts: QuerySet[Forecast] | list[Forecast] | None = None,
     aggregate_forecasts: (
@@ -201,6 +295,7 @@ def export_data_for_questions(
     #     forecast_data - Always (populated by user_forecasts and aggregate_forecasts)
     #     comment_data - only if comments given
     #     score_data - only if scores given
+    username_dict = dict(User.objects.values_list("id", "username"))
 
     questions = questions.prefetch_related(
         "related_posts__post", "related_posts__post__default_project"
@@ -296,11 +391,11 @@ def export_data_for_questions(
     forecast_writer.writerow(headers)
 
     for forecast in user_forecasts or []:
-        row = [forecast.question.id]
+        row = [forecast.question_id]
         if anonymized:
             row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
         else:
-            row.extend([forecast.author_id, forecast.author.username])
+            row.extend([forecast.author_id, username_dict[forecast.author_id]])
         row.extend(
             [
                 forecast.start_time,
@@ -326,7 +421,7 @@ def export_data_for_questions(
                 probability_yes = None
                 probability_yes_per_category = None
                 continuous_cdf = aggregate_forecast.forecast_values
-        row = [aggregate_forecast.question.id]
+        row = [aggregate_forecast.question_id]
         if anonymized:
             row.append(aggregate_forecast.method)
         else:
@@ -365,7 +460,7 @@ def export_data_for_questions(
         if anonymized:
             row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
         else:
-            row.extend([forecast.author_id, forecast.author.username])
+            row.extend([forecast.author_id, username_dict[forecast.author_id]])
         row.extend(
             [
                 comment.parent_id,
@@ -397,14 +492,18 @@ def export_data_for_questions(
         if anonymized:
             row.append(
                 hashlib.sha256(str(score.user_id).encode()).hexdigest()
-                if score.user
+                if score.user_id
                 else score.aggregation_method
             )
         else:
             row.extend(
                 [
                     score.user_id,
-                    score.user.username if score.user else score.aggregation_method,
+                    (
+                        username_dict[score.user_id]
+                        if score.user_id
+                        else score.aggregation_method
+                    ),
                 ]
             )
         row.extend(

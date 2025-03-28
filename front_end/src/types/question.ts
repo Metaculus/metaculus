@@ -50,6 +50,7 @@ export enum DownloadAggregationMethod {
   recency_weighted = AggregationMethod.recency_weighted,
   unweighted = AggregationMethod.unweighted,
   single_aggregation = AggregationMethod.single_aggregation,
+  metaculus_prediction = AggregationMethod.metaculus_prediction,
   geometric_mean = "geometric_mean",
 }
 

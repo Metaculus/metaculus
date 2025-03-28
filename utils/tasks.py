@@ -74,3 +74,64 @@ def email_all_data_for_questions_task(
             to=[email_address],
         )
         email.send()
+
+
+def email_data_task(
+    user_id: int,
+    user_email: str,
+    is_staff: bool,
+    is_whitelisted: bool,
+    filename: str,
+    question_ids: list[int],
+    aggregation_methods: list[str],
+    minimize: bool,
+    include_scores: bool,
+    include_user_data: bool,
+    include_comments: bool,
+    user_ids: list[int] | None,
+    include_bots: bool | None,
+    anonymized: bool,
+):
+    try:
+        from utils.csv_utils import export_data_for_questions
+        from questions.models import Question
+        from users.models import User
+
+        questions = Question.objects.filter(id__in=question_ids)
+        user = User.objects.get(id=user_id)
+
+        data = export_data_for_questions(
+            user,
+            is_staff,
+            is_whitelisted,
+            questions,
+            aggregation_methods,
+            minimize,
+            include_scores,
+            include_user_data,
+            include_comments,
+            user_ids,
+            include_bots,
+            anonymized,
+        )
+
+        assert data is not None, "No data generated"
+
+        email = EmailMessage(
+            subject="Your Metaculus Data",
+            body="Attached is your Metaculus data.",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            to=[user_email],
+        )
+        email.attach(filename, data, "application/zip")
+        email.send()
+
+    except Exception as e:
+        email = EmailMessage(
+            subject="Error generating Metaculus data",
+            body="Error generating Metaculus data. Please contact an adminstrator "
+            f"for assistance.\nError: {e}",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            to=[user_email],
+        )
+        email.send()

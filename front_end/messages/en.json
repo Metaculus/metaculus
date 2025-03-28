@@ -1166,6 +1166,7 @@
   "summarizeAggregations": "Summarize aggregations",
   "questionData": "Question data",
   "commentData": "Comment data",
+  "anonymize": "Anonymize",
   "scoreData": "Score data",
   "includeUserData": "Include user data",
   "aggregationMethods": "Aggregation methods",

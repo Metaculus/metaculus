@@ -57,6 +57,20 @@ export type ApprovePostParams = {
   scheduled_resolve_time: string;
 };
 
+export type DataParams = {
+  post_id?: number;
+  question_id?: number;
+  sub_question?: number;
+  aggregation_methods?: string[];
+  minimize?: boolean;
+  user_ids?: number[];
+  include_comments?: boolean;
+  include_scores?: boolean;
+  include_bots?: boolean | null;
+  include_user_data?: boolean;
+  anonymized?: boolean;
+};
+
 class PostsApi {
   static async getPost(id: number, with_cp = true): Promise<PostWithForecasts> {
     return await get<PostWithForecasts>(
@@ -239,6 +253,10 @@ class PostsApi {
 
   static async getPostZipData(postId: number): Promise<Blob> {
     return await get<Blob>(`/posts/${postId}/download-data/`);
+  }
+
+  static async emailData(params: DataParams): Promise<Blob> {
+    return await post(`/data/email/`, params);
   }
 
   static async getAggregationsPostZipData(

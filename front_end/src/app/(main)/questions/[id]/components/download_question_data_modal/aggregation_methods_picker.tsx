@@ -92,16 +92,21 @@ const useAggregationMethodOptions =
         value: DownloadAggregationMethod.unweighted,
         label: t("unweighted"),
       },
-      {
-        value: DownloadAggregationMethod.geometric_mean,
-        label: t("geometricMean"),
-      },
+      // TODO: implement geo mean on back end
+      // {
+      //   value: DownloadAggregationMethod.geometric_mean,
+      //   label: t("geometricMean"),
+      // },
     ];
 
     if (user?.is_staff) {
       options.push({
         value: DownloadAggregationMethod.single_aggregation,
         label: t("singleAggregation"),
+      });
+      options.push({
+        value: DownloadAggregationMethod.metaculus_prediction,
+        label: t("metaculusPredictionLabel"),
       });
     }
 
