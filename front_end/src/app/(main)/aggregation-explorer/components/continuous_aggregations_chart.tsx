@@ -46,6 +46,7 @@ const ContinuousAggregationChart: FC<Props> = ({
       value: scaledValue,
       questionType: qType,
       precision: 5,
+      actual_resolve_time: null,
     });
     return {
       xLabel,

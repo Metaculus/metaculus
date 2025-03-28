@@ -155,6 +155,7 @@ function getForecastData(
           value: democratPrediction,
           questionType: democratQuestion.type,
           scaling: democratQuestion.scaling,
+          actual_resolve_time: democratQuestion.actual_resolve_time ?? null,
         })
       : undefined,
     republicanPrediction: republicanPrediction
@@ -162,6 +163,7 @@ function getForecastData(
           value: republicanPrediction,
           questionType: republicanQuestion.type,
           scaling: republicanQuestion.scaling,
+          actual_resolve_time: republicanQuestion.actual_resolve_time ?? null,
         })
       : undefined,
   };

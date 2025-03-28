@@ -115,6 +115,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             ]
           : [],
       unit: question.unit,
+      actual_resolve_time: question.actual_resolve_time ?? null,
     });
     return renderDisplayValue(displayValue);
   }, [
@@ -123,6 +124,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
     forecastAvailability,
     question.scaling,
     question.type,
+    question.actual_resolve_time,
+    question.unit,
     hideCP,
   ]);
 
@@ -137,6 +140,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       scaling: question.scaling,
       showRange: true,
       unit: question.unit,
+      actual_resolve_time: question.actual_resolve_time ?? null,
     });
     return renderDisplayValue(userDisplayValue);
   }, [
@@ -144,6 +148,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
     cursorData.timestamp,
     question.type,
     question.scaling,
+    question.actual_resolve_time,
+    question.unit,
   ]);
 
   const handleCursorChange = useCallback((value: number | null) => {

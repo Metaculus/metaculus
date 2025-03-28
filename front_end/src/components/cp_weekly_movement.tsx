@@ -39,10 +39,12 @@ const CPWeeklyMovement: FC<Props> = ({
       ? displayValue({
           value: Math.abs(weeklyMovement),
           questionType: question.type,
+          actual_resolve_time: null,
         })
       : `${displayValue({
           value: Math.abs(weeklyMovement),
           questionType: question.type,
+          actual_resolve_time: null,
         })}${percentagePoints}`.replace("%", "");
 
   return (

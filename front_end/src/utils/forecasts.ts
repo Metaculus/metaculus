@@ -43,10 +43,20 @@ export function getForecastNumericDisplayValue(value: number | string) {
   return abbreviatedNumber(value);
 }
 
-export function getForecastDateDisplayValue(value: number, scaling?: Scaling) {
+export function getForecastDateDisplayValue(
+  value: number,
+  scaling?: Scaling,
+  actual_resolve_time?: string | null
+) {
   return format(
     fromUnixTime(value),
-    scaling ? getQuestionDateFormatString(scaling) : "d MMM yyyy"
+    scaling
+      ? getQuestionDateFormatString({
+          scaling,
+          actual_resolve_time: actual_resolve_time ?? null,
+          valueTimestamp: value,
+        })
+      : "d MMM yyyy"
   );
 }
 

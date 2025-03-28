@@ -78,15 +78,17 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
           color,
           displayedResolution,
           choice,
+          actual_resolve_time,
         }) => {
           const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
           const rawChoiceValue =
             aggregationValues[aggregationValues.length - 1] ?? null;
-          const formattedChoiceValue = getChoiceOptionValue(
-            rawChoiceValue,
-            QuestionType.Numeric,
-            scaling
-          );
+          const formattedChoiceValue = getChoiceOptionValue({
+            value: rawChoiceValue,
+            questionType: QuestionType.Numeric,
+            scaling,
+            actual_resolve_time: actual_resolve_time ?? null,
+          });
           const scaledChoiceValue = scaleInternalLocation(rawChoiceValue ?? 0, {
             range_min: scaling?.range_min ?? 0,
             range_max: scaling?.range_max ?? 1,

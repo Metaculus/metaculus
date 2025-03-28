@@ -19,6 +19,7 @@ type Props = {
   scaling?: Scaling;
   hideIcon?: boolean;
   labelClassName?: string;
+  actual_resolve_time?: string | null;
 };
 
 const ChoiceOption: FC<Props> = ({
@@ -31,6 +32,7 @@ const ChoiceOption: FC<Props> = ({
   scaling,
   hideIcon,
   labelClassName,
+  actual_resolve_time,
 }) => {
   return (
     <div
@@ -54,11 +56,12 @@ const ChoiceOption: FC<Props> = ({
       </div>
       {isNil(resolution) ? (
         <div className="resize-label py-0.5 pr-1.5 text-right text-sm font-bold leading-4 text-gray-900 dark:text-gray-900-dark">
-          {getChoiceOptionValue(
-            values[values.length - 1] ?? null,
+          {getChoiceOptionValue({
+            value: values[values.length - 1] ?? null,
             questionType,
-            scaling
-          )}
+            scaling,
+            actual_resolve_time: actual_resolve_time ?? null,
+          })}
         </div>
       ) : (
         <div className="resize-label flex items-center whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">

@@ -54,6 +54,7 @@ const ContinuousPredictionChart: FC<Props> = ({
       questionType: question.type,
       scaling: question.scaling,
       precision: 5,
+      actual_resolve_time: question.actual_resolve_time ?? null,
     });
     return {
       xLabel,

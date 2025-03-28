@@ -98,7 +98,11 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
     Math.round((1 - (forecast.continuous_cdf.at(-1) || 0)) * 1000) / 10;
   const dateFormatString =
     forecast.question_type === "date"
-      ? getQuestionDateFormatString(forecast.scaling)
+      ? getQuestionDateFormatString({
+          scaling: forecast.scaling,
+          actual_resolve_time: null,
+          valueTimestamp: forecast.quartiles[0] * 1000,
+        })
       : "";
   const valueText: string[] =
     forecast.question_type === "numeric"

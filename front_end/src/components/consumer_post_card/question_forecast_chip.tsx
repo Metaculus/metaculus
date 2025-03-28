@@ -19,6 +19,7 @@ const QuestionForecastChip: FC<Props> = ({ question }) => {
         value: latest.centers?.[0],
         questionType: question.type,
         scaling: question.scaling,
+        actual_resolve_time: question.actual_resolve_time ?? null,
       })
     : null;
 

@@ -62,6 +62,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     locale,
     scaling: question.scaling,
     unit,
+    actual_resolve_time: question.actual_resolve_time ?? null,
   });
   const isLargeScreen = useBreakpoint("sm");
   const showUserPrediction = hasUserForecast || isDirty;
@@ -92,6 +93,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     questionType: option.question.type,
     scaling: option.question.scaling,
     unit,
+    actual_resolve_time: option.question.actual_resolve_time ?? null,
   });
   const userMedian = showUserPrediction
     ? forecastInputMode === ContinuousForecastInputType.Quantile
@@ -102,12 +104,14 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
           questionType: option.question.type,
           scaling: option.question.scaling,
           unit,
+          actual_resolve_time: option.question.actual_resolve_time ?? null,
         })
       : getDisplayValue({
           value: option.userQuartiles?.median,
           questionType: option.question.type,
           scaling: option.question.scaling,
           unit,
+          actual_resolve_time: option.question.actual_resolve_time ?? null,
         })
     : undefined;
 
