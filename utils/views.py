@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 
 from misc.models import WhitelistUser
 from posts.models import Post
-from posts.serializers import DataGetSerializer, DataPostSerializer
+from posts.serializers import DataGetRequestSerializer, DataPostRequestSerializer
 from posts.services.common import get_post_permission_for_user
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -63,7 +63,7 @@ def aggregation_explorer_api_view(request):
         "is_whitelisted": is_whitelisted,
     }
 
-    serializer = DataGetSerializer(
+    serializer = DataGetRequestSerializer(
         data=request.query_params, context=serializer_context
     )
     serializer.is_valid(raise_exception=True)
@@ -137,7 +137,9 @@ def validate_data_request(request: Request):
         "is_whitelisted": is_whitelisted,
     }
 
-    serializer = DataPostSerializer(data=request.data, context=serializer_context)
+    serializer = DataPostRequestSerializer(
+        data=request.data, context=serializer_context
+    )
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
 

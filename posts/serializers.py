@@ -618,7 +618,7 @@ class PostRelatedArticleSerializer(serializers.ModelSerializer):
         fields = ("id", "title", "url", "favicon_url", "created_at", "media_label")
 
 
-class DataGetSerializer(serializers.Serializer):
+class DataGetRequestSerializer(serializers.Serializer):
     question_id = serializers.IntegerField(required=False)
     post_id = serializers.IntegerField(required=False)
     project_id = serializers.IntegerField(required=False)
@@ -715,7 +715,7 @@ class DataGetSerializer(serializers.Serializer):
         return attrs
 
 
-class DataPostSerializer(DataGetSerializer):
+class DataPostRequestSerializer(DataGetRequestSerializer):
     aggregation_methods = serializers.ListField(
         child=serializers.CharField(), required=False
     )
