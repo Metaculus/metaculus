@@ -6,16 +6,18 @@ import { VictoryLabel } from "victory";
 
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
-import { getTruncatedLabel } from "@/utils/charts";
+import { calculateTextWidth } from "@/utils/charts";
 
 type Props = {
   isTickLabel?: boolean;
   labelVisibilityMap: boolean[];
+  widthPerLabel?: number;
 };
 
 const TimeSeriesLabel: FC<Props & any> = ({
   isTickLabel = false,
   labelVisibilityMap,
+  widthPerLabel,
   ...props
 }) => {
   const { datum, y, dy, scale, ...rest } = props;
@@ -27,7 +29,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
   const getLabelColor = (datum: any, isChipText?: boolean) => {
     if (datum.resolution) {
       return getThemeColor(
-        isChipText ? METAC_COLORS.purple["600"] : METAC_COLORS.purple["700"]
+        isChipText ? METAC_COLORS.purple["600"] : METAC_COLORS.purple["800"]
       );
     }
     if (datum.isClosed) {
@@ -37,26 +39,20 @@ const TimeSeriesLabel: FC<Props & any> = ({
     }
     return getThemeColor(METAC_COLORS.blue["700"]);
   };
-  if (isTickLabel) {
+  if (isTickLabel && widthPerLabel) {
+    const textLines = wrapText(datum.x, widthPerLabel);
     return (
       <VictoryLabel
         datum={datum}
-        className="max-w-[100px] truncate"
         y={scale.y(0)}
-        dy={20}
+        dy={textLines.length === 1 ? 20 : 30}
         {...rest}
         style={{
-          fontSize: 14,
+          fontSize: shouldTrancateText ? 12 : 14,
           fontFamily: "var(--font-inter-variable)",
           fill: ({ datum }: any) => getLabelColor(datum),
         }}
-        text={({ datum, index }: any) =>
-          labelVisibilityMap[index]
-            ? shouldTrancateText
-              ? getTruncatedLabel(datum.x, 20)
-              : datum.x
-            : ""
-        }
+        text={() => textLines.join("\n")}
       />
     );
   }
@@ -70,8 +66,8 @@ const TimeSeriesLabel: FC<Props & any> = ({
           dy={["no", "yes"].includes(datum.resolution as string) ? -26 : -23}
           {...rest}
           style={{
-            fontSize: 14,
-            fontWeight: 500,
+            fontSize: 12,
+            fontWeight: 400,
             lineHeight: "16px",
             fontFamily: "var(--font-inter-variable)",
             fill: ({ datum }: any) => getLabelColor(datum, true),
@@ -79,8 +75,8 @@ const TimeSeriesLabel: FC<Props & any> = ({
           text={({ datum, index }: any) =>
             labelVisibilityMap[index]
               ? datum.isClosed
-                ? t("closed").toUpperCase()
-                : t("resolved").toUpperCase()
+                ? t("pending").toUpperCase()
+                : t("result").toUpperCase()
               : ""
           }
         />
@@ -94,6 +90,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
         style={{
           fontSize: 16,
           fontWeight: 700,
+          lineHeight: "24px",
           fontFamily: "var(--font-inter-variable)",
           fill: ({ datum }: any) => getLabelColor(datum),
         }}
@@ -103,6 +100,82 @@ const TimeSeriesLabel: FC<Props & any> = ({
       />
     </g>
   );
+};
+
+const wrapText = (text: string, maxWidth: number) => {
+  if (!text?.trim()) {
+    return [];
+  }
+
+  const splitWord = (word: string): [string, string | null] => {
+    let firstPart = word;
+    while (
+      calculateTextWidth(14, firstPart + "...") > maxWidth &&
+      firstPart.length > 3
+    ) {
+      firstPart = firstPart.slice(0, -1);
+    }
+    const remainingPart =
+      firstPart.length < word.length ? word.slice(firstPart.length) : null;
+    return [firstPart, remainingPart];
+  };
+
+  const words = text.trim().split(/\s+/);
+  const lines: string[] = [];
+  if (!words[0]) return lines;
+
+  let currentLine = "";
+  const remainingWords = [...words];
+
+  while (remainingWords.length > 0) {
+    const word = remainingWords[0] as string;
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const width = calculateTextWidth(14, testLine);
+
+    if (width <= maxWidth) {
+      currentLine = testLine;
+      remainingWords.shift();
+      if (remainingWords.length === 0) {
+        lines.push(currentLine);
+      }
+    } else {
+      if (!currentLine) {
+        const [firstPart, remaining] = splitWord(word as string);
+        lines.push(firstPart);
+        remainingWords.shift();
+        if (remaining) {
+          remainingWords.unshift(remaining);
+        }
+        break;
+      } else {
+        lines.push(currentLine);
+        break;
+      }
+    }
+  }
+
+  if (lines.length < 2 && remainingWords.length > 0) {
+    currentLine = remainingWords[0] as string;
+    let i = 1;
+    while (i < remainingWords.length) {
+      const testLine = `${currentLine} ${remainingWords[i]}`;
+      const width = calculateTextWidth(14, testLine);
+
+      if (width <= maxWidth) {
+        currentLine = testLine;
+        i++;
+      } else {
+        currentLine += "...";
+        break;
+      }
+    }
+    if (i < remainingWords.length && !currentLine.includes("...")) {
+      currentLine += "...";
+    }
+    lines.push(currentLine);
+  }
+
+  return lines;
 };
 
 export default TimeSeriesLabel;

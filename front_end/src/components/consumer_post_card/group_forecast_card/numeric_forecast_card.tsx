@@ -37,6 +37,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
   const choices = generateChoiceItemsFromGroupQuestions(sortedQuestions, {
     activeCount: visibleChoicesCount,
     locale,
+    shortBounds: true,
   });
   // Move resolved/annulled choices to the start
   const sortedChoices = [...choices].sort((a, b) => {
@@ -79,6 +80,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
           displayedResolution,
           choice,
           actual_resolve_time,
+          unit,
         }) => {
           const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
           const rawChoiceValue =
@@ -112,6 +114,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
               resolution={resolution}
               progress={relativeWidth}
               color={color}
+              unit={unit}
             />
           );
         }

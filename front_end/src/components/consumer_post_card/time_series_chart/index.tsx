@@ -47,14 +47,12 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
     useContainerSize<HTMLDivElement>();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const chartData = buildChartData(questions, locale);
-  const adjustedChartData = adjustChartData(chartData, chartWidth);
+  const { adjustedChartData, yDomain } = adjustChartData(chartData, chartWidth);
   const shouldDisplayChart = !!chartWidth;
-  const tickLabelVisibilityMap = adjustLabelsForDisplay(
-    adjustedChartData,
-    chartWidth
-  );
+  const { labelVisibilityMap: tickLabelVisibilityMap, widthPerLabel } =
+    adjustLabelsForDisplay(adjustedChartData, chartWidth);
 
-  const barLabelVisibilityMap = adjustLabelsForDisplay(
+  const { labelVisibilityMap: barLabelVisibilityMap } = adjustLabelsForDisplay(
     adjustedChartData,
     chartWidth,
     true
@@ -81,6 +79,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
             x: chartWidth > 400 ? 80 : chartData.length > 3 ? 40 : 50,
             y: 20,
           }}
+          domain={yDomain ? { y: yDomain } : undefined}
           containerComponent={
             <VictoryContainer
               style={{
@@ -129,6 +128,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                 <TimeSeriesLabel
                   isTickLabel={true}
                   labelVisibilityMap={tickLabelVisibilityMap}
+                  widthPerLabel={widthPerLabel}
                 />
               }
             />
@@ -269,7 +269,7 @@ function adjustLabelsForDisplay(
   isBarLabel?: boolean
 ) {
   const labelMargin = 5;
-  const charWidth = calculateCharWidth(isBarLabel ? 14 : 12);
+  const charWidth = calculateCharWidth(isBarLabel ? 14 : 14);
 
   const labels = [
     ...datum.map((item) => {
@@ -287,7 +287,7 @@ function adjustLabelsForDisplay(
   ];
 
   if (!charWidth) {
-    return labels.map(() => true);
+    return { labelVisibilityMap: labels.map(() => true), widthPerLabel: 0 };
   }
   const chartDomainPadding = chartWidth > 400 ? 60 : 30;
   const availableWidth = chartWidth - chartDomainPadding;
@@ -297,38 +297,42 @@ function adjustLabelsForDisplay(
 
   const getLabelWidth = (label: string) =>
     label.length * charWidth + labelMargin;
-
-  return labels.reduce((visibleLabels, label, index) => {
-    if (index === 0) {
-      visibleLabels[index] = true;
-      return visibleLabels;
-    }
-
-    const currentLabelX = getLabelX(index);
-    const currentLabelWidth = getLabelWidth(label);
-
-    let lastVisibleIndex = -1;
-    for (let i = index - 1; i >= 0; i--) {
-      if (visibleLabels[i]) {
-        lastVisibleIndex = i;
-        break;
+  const widthPerLabel = availableWidth / labels.length;
+  return {
+    labelVisibilityMap: labels.reduce((visibleLabels, label, index) => {
+      if (index === 0) {
+        visibleLabels[index] = true;
+        return visibleLabels;
       }
-    }
 
-    if (lastVisibleIndex === -1) {
-      visibleLabels[index] = true;
+      const currentLabelX = getLabelX(index);
+      const currentLabelWidth = getLabelWidth(label);
+
+      let lastVisibleIndex = -1;
+      for (let i = index - 1; i >= 0; i--) {
+        if (visibleLabels[i]) {
+          lastVisibleIndex = i;
+          break;
+        }
+      }
+
+      if (lastVisibleIndex === -1) {
+        visibleLabels[index] = true;
+        return visibleLabels;
+      }
+
+      const prevLabelX = getLabelX(lastVisibleIndex);
+      const prevLabelWidth = getLabelWidth(labels[lastVisibleIndex] as string);
+
+      const overlap =
+        currentLabelX - currentLabelWidth / 2 <=
+        prevLabelX + prevLabelWidth / 2;
+
+      visibleLabels[index] = !overlap;
       return visibleLabels;
-    }
-
-    const prevLabelX = getLabelX(lastVisibleIndex);
-    const prevLabelWidth = getLabelWidth(labels[lastVisibleIndex] as string);
-
-    const overlap =
-      currentLabelX - currentLabelWidth / 2 <= prevLabelX + prevLabelWidth / 2;
-
-    visibleLabels[index] = !overlap;
-    return visibleLabels;
-  }, Array(labels.length).fill(false));
+    }, Array(labels.length).fill(false)),
+    widthPerLabel,
+  };
 }
 
 function adjustChartData(
@@ -353,7 +357,28 @@ function adjustChartData(
   } else {
     questionsToDisplay = 8;
   }
-  return chartData.slice(-questionsToDisplay);
+  const unresolvedPoints = [...chartData]
+    .map((datum) => {
+      if (["no", "yes"].includes(datum.resolution as string)) {
+        return null;
+      }
+      return datum.y;
+    })
+    .filter((y): y is number => !isNil(y));
+  const maxY = Math.max(
+    unresolvedPoints.length > 0 ? Math.max(...unresolvedPoints) : 1
+  );
+
+  return {
+    adjustedChartData: chartData.slice(-questionsToDisplay).map((datum) => {
+      if (["no", "yes"].includes(datum.resolution as string)) {
+        return { ...datum, y: maxY * 0.4 };
+      }
+      return datum;
+    }),
+    yDomain:
+      unresolvedPoints.length === 0 ? ([0, 1] as [number, number]) : undefined,
+  };
 }
 
 export default TimeSeriesChart;

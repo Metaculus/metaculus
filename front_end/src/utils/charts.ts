@@ -132,12 +132,12 @@ export function generateYDomain({
   const min = minValues
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
-    .filter((value) => !isNil(value));
+    .filter((value): value is number => !isNil(value));
   const minValue = min.length ? Math.min(...min) : null;
   const max = maxValues
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
-    .filter((value) => !isNil(value));
+    .filter((value): value is number => !isNil(value));
   const maxValue = max.length ? Math.max(...max) : null;
 
   if (isNil(minValue) || isNil(maxValue)) {
@@ -1025,12 +1025,14 @@ export function generateChoiceItemsFromGroupQuestions(
     activeCount?: number;
     preselectedQuestionId?: number;
     locale?: string;
+    shortBounds?: boolean;
   }
 ): ChoiceItem[] {
   if (questions.length == 0) {
     return [];
   }
-  const { activeCount, preselectedQuestionId, locale } = config ?? {};
+  const { activeCount, preselectedQuestionId, locale, shortBounds } =
+    config ?? {};
 
   const preselectedQuestionLabel = preselectedQuestionId
     ? questions.find((q) => q.id === preselectedQuestionId)?.label
@@ -1136,6 +1138,7 @@ export function generateChoiceItemsFromGroupQuestions(
             scaling: question.scaling,
             unit: question.unit,
             actual_resolve_time: question.actual_resolve_time ?? null,
+            shortBounds: shortBounds,
           })
         : null,
       closeTime,

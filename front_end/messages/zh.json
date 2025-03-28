@@ -1186,5 +1186,6 @@
   "forecastCopyFromRich": "<label>复制自</label> {name}",
   "forecastCopyToAllToastMessage": "分布已复制到所有其他问题",
   "forecastCopyFromToastMessage": "分布已从“{name}”复制",
-  "forecastCopyToToastMessage": "分布已从“{from_name}”复制到“{to_name}”"
+  "forecastCopyToToastMessage": "分布已从“{from_name}”复制到“{to_name}”",
+  "result": "结果"
 }

@@ -222,6 +222,7 @@ export function formatResolution({
           questionType,
           scaling,
           actual_resolve_time,
+          unit,
         })
       );
     }
@@ -236,6 +237,7 @@ export function formatResolution({
           questionType,
           scaling,
           actual_resolve_time,
+          unit,
         })
       );
     }
