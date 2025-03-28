@@ -43,6 +43,7 @@ type Props = {
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
+  className?: string;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -70,6 +71,7 @@ const MultiChoicesChartView: FC<Props> = ({
   chartHeight,
   chartTheme,
   embedMode = false,
+  className,
 }) => {
   const { user } = useAuth();
   const t = useTranslations();
@@ -146,6 +148,7 @@ const MultiChoicesChartView: FC<Props> = ({
     <div
       className={cn(
         "flex w-full flex-col",
+        className,
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
