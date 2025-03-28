@@ -2,6 +2,7 @@ import { isNil } from "lodash";
 import { MessageKeys, useTranslations } from "next-intl";
 
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantileComponent,
   Quantile,
   QuestionWithNumericForecasts,
@@ -243,7 +244,10 @@ export function validateUserQuantileData({
   }
 
   // Check CDF length
-  if (cdf.length !== 201) {
+  if (
+    cdf.length !==
+    (question.inbound_outcome_count || DefaultInboundOutcomeCount) + 1
+  ) {
     validationErrors.push(t("invalidCdfLengthError"));
     return validationErrors;
   }

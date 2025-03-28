@@ -26,6 +26,7 @@ import {
   AggregateForecast,
   AggregateForecastHistory,
   Bounds,
+  DefaultInboundOutcomeCount,
   Question,
   QuestionType,
   QuestionWithForecasts,
@@ -64,6 +65,8 @@ export function getContinuousChartTypeFromQuestion(
       return QuestionType.Numeric;
     case QuestionType.Date:
       return QuestionType.Date;
+    case QuestionType.Discrete:
+      return QuestionType.Discrete;
     case QuestionType.Binary:
       return QuestionType.Binary;
     default:
@@ -330,7 +333,10 @@ export function displayValue({
       valueTimestamp: value,
     });
     return format(fromUnixTime(value), dateFormatString ?? dateFormat);
-  } else if (questionType === QuestionType.Numeric) {
+  } else if (
+    questionType === QuestionType.Numeric ||
+    questionType === QuestionType.Discrete
+  ) {
     // TODO add truncation to abbreviatedNumber
     return formatValueUnit(abbreviatedNumber(value, precision), unit);
   } else {
@@ -523,6 +529,7 @@ export function getChoiceOptionValue({
   });
   switch (questionType) {
     case QuestionType.Numeric:
+    case QuestionType.Discrete:
       return getForecastNumericDisplayValue(scaledValue);
     case QuestionType.Date:
       return getForecastDateDisplayValue(
@@ -645,7 +652,10 @@ export function getUserPredictionDisplayValue({
     }
 
     return displayCenter;
-  } else if (questionType === QuestionType.Numeric) {
+  } else if (
+    questionType === QuestionType.Numeric ||
+    questionType === QuestionType.Discrete
+  ) {
     const displayCenter = formatValueUnit(
       abbreviatedNumber(scaledCenter),
       unit
@@ -1188,7 +1198,8 @@ export function getFanOptionsFromContinuousGroup(
           ? (userCdf = getSliderNumericForecastDataset(
               userForecast.components,
               q.open_lower_bound,
-              q.open_upper_bound
+              q.open_upper_bound,
+              q.inbound_outcome_count ?? DefaultInboundOutcomeCount
             ).cdf)
           : (userCdf = getQuantileNumericForecastDataset(
               populateQuantileComponents(userForecast.components),
@@ -1328,13 +1339,30 @@ export const getClosestYValue = (xValue: number, line: Line) => {
   const i = findLastIndex(line, (point) => point.x <= xValue);
   const p1 = line[i];
   const p2 = line[i + 1];
-
-  if (!p1 || !p2) return 0;
-
-  if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
-    return p1.y;
+  if (!!p1?.y && !!p2?.y) {
+    if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
+      return p1.y;
+    }
+    return p2.y;
   }
-  return p2.y;
+  if (!!p1?.y) return p1.y;
+  if (!!p2?.y) return p2.y;
+  return 0;
+};
+
+export const getClosestXValue = (xValue: number, line: Line) => {
+  const i = findLastIndex(line, (point) => point.x <= xValue);
+  const p1 = line[i];
+  const p2 = line[i + 1];
+  if (!!p1 && !!p2) {
+    if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
+      return p1.x;
+    }
+    return p2.x;
+  }
+  if (p1) return p1.x;
+  if (p2) return p2.x;
+  return 0;
 };
 
 export const interpolateYValue = (xValue: number, line: Line) => {
@@ -1440,7 +1468,8 @@ export function getResolutionPoint({
         },
       ];
     }
-    case QuestionType.Numeric: {
+    case QuestionType.Numeric:
+    case QuestionType.Discrete: {
       // format data for numerical question
       const unscaledResolution = unscaleNominalLocation(
         Number(resolution),
@@ -1502,7 +1531,8 @@ export function getResolutionPosition({
   } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
     return 1;
   } else {
-    return question.type === QuestionType.Numeric
+    return question.type === QuestionType.Numeric ||
+      question.type === QuestionType.Discrete
       ? unscaleNominalLocation(Number(resolution), scaling)
       : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
   }

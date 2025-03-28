@@ -226,6 +226,7 @@ def post_create_api_view(request):
     # TODO: move scaling handling
     qdatas = []
     qdata = request.data.get("question", None)
+    breakpoint()
     if qdata:
         qdatas.append(qdata)
     qdatas.extend(request.data.get("group_of_questions", {}).get("questions", []))
@@ -234,7 +235,6 @@ def post_create_api_view(request):
         qdata["range_min"] = scaling.get("range_min")
         qdata["range_max"] = scaling.get("range_max")
         qdata["zero_point"] = scaling.get("zero_point")
-
     serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)

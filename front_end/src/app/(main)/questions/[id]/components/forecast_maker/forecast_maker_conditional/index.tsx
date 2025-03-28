@@ -45,8 +45,9 @@ const ForecastMakerConditional: FC<Props> = ({
           projects={projects}
         />
       )}
-      {(question_yes.type === QuestionType.Date ||
-        question_yes.type === QuestionType.Numeric) && (
+      {(question_yes.type === QuestionType.Numeric ||
+        question_yes.type === QuestionType.Date ||
+        question_yes.type === QuestionType.Discrete) && (
         <ForecastMakerConditionalContinuous
           postId={postId}
           postTitle={postTitle}

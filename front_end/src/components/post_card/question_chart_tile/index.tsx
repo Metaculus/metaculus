@@ -64,6 +64,7 @@ const QuestionChartTile: FC<Props> = ({
   switch (question.type) {
     case QuestionType.Numeric:
     case QuestionType.Date:
+    case QuestionType.Discrete:
     case QuestionType.Binary:
       return (
         <QuestionNumericTile

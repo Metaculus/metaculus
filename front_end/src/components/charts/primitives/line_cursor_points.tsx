@@ -3,7 +3,7 @@ import React, { ComponentProps } from "react";
 import { Point, Tuple, VictoryLabel } from "victory";
 
 import { Line } from "@/types/charts";
-import { interpolateYValue } from "@/utils/charts";
+import { getClosestYValue, interpolateYValue } from "@/utils/charts";
 
 const SIZE = 4;
 
@@ -12,11 +12,13 @@ type Props<T> = {
     type: T;
     line: Line;
     color: string;
+    graphType: "pmf" | "cdf";
   }>;
   chartHeight: number;
   paddingBottom?: number;
   paddingTop?: number;
   yDomain: Tuple<number>;
+  discrete?: boolean;
 };
 const LineCursorPoints = <T extends string>({
   chartData,
@@ -26,6 +28,7 @@ const LineCursorPoints = <T extends string>({
   paddingTop = 0,
   x,
   datum,
+  discrete,
 }: ComponentProps<typeof VictoryLabel> & Props<T>) => {
   if (isNil(datum?.x) || isNil(datum?.y) || isNil(x)) {
     return null;
@@ -33,8 +36,11 @@ const LineCursorPoints = <T extends string>({
 
   return (
     <>
-      {chartData.map(({ line, color }, index) => {
-        const yValue = interpolateYValue(datum.x, line);
+      {chartData.map(({ line, color, graphType }, index) => {
+        const yValue =
+          graphType === "pmf" && discrete
+            ? getClosestYValue(datum.x, line)
+            : interpolateYValue(datum.x, line);
 
         // adjust the scaledY using the visible graph area
         // the graph is visually stretched from top due to padding, so we need to add the top padding after scaling
