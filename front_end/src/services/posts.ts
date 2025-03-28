@@ -13,7 +13,7 @@ import {
   NotebookPost,
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import { Require } from "@/types/utils";
+import { DataParams, Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put, del } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
@@ -55,20 +55,6 @@ export type ApprovePostParams = {
   cp_reveal_time: string;
   scheduled_close_time: string;
   scheduled_resolve_time: string;
-};
-
-export type DataParams = {
-  post_id?: number;
-  question_id?: number;
-  sub_question?: number;
-  aggregation_methods?: string[];
-  minimize?: boolean;
-  user_ids?: number[];
-  include_comments?: boolean;
-  include_scores?: boolean;
-  include_bots?: boolean | null;
-  include_user_data?: boolean;
-  anonymized?: boolean;
 };
 
 class PostsApi {

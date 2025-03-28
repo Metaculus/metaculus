@@ -12,11 +12,7 @@ import CommentsApi, {
   ToggleCMMCommentParams,
   VoteParams,
 } from "@/services/comments";
-import PostsApi, {
-  ApprovePostParams,
-  DataParams,
-  PostsParams,
-} from "@/services/posts";
+import PostsApi, { ApprovePostParams, PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import QuestionsApi, {
@@ -26,7 +22,7 @@ import QuestionsApi, {
 import { FetchError } from "@/types/fetch";
 import { PostSubscription, NotebookPost } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
-import { DeepPartial } from "@/types/utils";
+import { DataParams, DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
 
 export async function fetchMorePosts(

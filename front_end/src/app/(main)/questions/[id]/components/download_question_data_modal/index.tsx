@@ -13,9 +13,9 @@ import Button from "@/components/ui/button";
 import { CheckboxField } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useAuth } from "@/contexts/auth_context";
-import { DataParams } from "@/services/posts";
 import { Post } from "@/types/post";
 import { DownloadAggregationMethod } from "@/types/question";
+import { DataParams } from "@/types/utils";
 import { base64ToBlob } from "@/utils/files";
 
 import AggregationMethodsPicker from "./aggregation_methods_picker";
@@ -80,17 +80,15 @@ const DownloadQuestionDataModal: FC<Props> = ({ isOpen, onClose, post }) => {
           post_id: post.id,
           ..._data,
         };
-        const response = await emailData(params);
-        console.log({ response });
+        // TODO: deal with response properly
+        await emailData(params);
+        toast.success("success");
       } catch (error) {
-        toast.error("EMAY DON' WOR: " + error);
+        toast.error(t("downloadQuestionDataError") + error);
       } finally {
         setPendingSubmission(null);
       }
-      return;
     }
-
-    // TODO: Implement email functionality and handle request params
     try {
       const base64 = await getPostZipData(post.id);
       const blob = base64ToBlob(base64);
