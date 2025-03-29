@@ -515,7 +515,11 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             ],
             10,
         )
-        if len(continuous_cdf) != question.inbound_outcome_count + 1:
+        if len(continuous_cdf) != (
+            (question.inbound_outcome_count + 1)
+            if question.inbound_outcome_count
+            else DEFAULT_INBOUND_OUTCOME_COUNT
+        ):
             errors += (
                 f"continuous_cdf for question {question.id} must "
                 f"have {question.inbound_outcome_count + 1} values.\n"
