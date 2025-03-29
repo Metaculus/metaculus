@@ -332,6 +332,7 @@ def generate_data(
             "Resolution",
             "Resolution Known Time",
             "Include Bots in Aggregates",
+            "Question Weight",
         ]
     )
     for question in questions:
@@ -371,6 +372,7 @@ def generate_data(
                 question.resolution,
                 question.actual_resolve_time,
                 question.include_bots_in_aggregates,
+                question.question_weight,
             ]
         )
 

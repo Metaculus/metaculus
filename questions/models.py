@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from posts.models import Post
     from scoring.models import Score, ArchivedScore
 
-CDF_SIZE = 201
+DEFAULT_INBOUND_OUTCOME_COUNT = 200
 
 
 class QuestionQuerySet(QuerySet):
@@ -61,9 +61,10 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     # Common fields
     class QuestionType(models.TextChoices):
         BINARY = "binary"
+        MULTIPLE_CHOICE = "multiple_choice"
         NUMERIC = "numeric"
         DATE = "date"
-        MULTIPLE_CHOICE = "multiple_choice"
+        DISCRETE = "discrete"
 
     type = models.CharField(max_length=20, choices=QuestionType.choices)
     resolution = models.TextField(null=True, blank=True)
@@ -128,26 +129,58 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="""Time when spot scores are evaluated.
-        If not set, defaults to spot_scoring time.""",
+        If not set, defaults to cp reveal time.""",
     )
 
-    # continuous range fields
-    range_max = models.FloatField(null=True, blank=True)
-    range_min = models.FloatField(null=True, blank=True)
-    zero_point = models.FloatField(null=True, blank=True)
-    open_upper_bound = models.BooleanField(null=True, blank=True)
-    open_lower_bound = models.BooleanField(null=True, blank=True)
+    # continuous fields
+    range_min = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        Minimum inbound value. For Discrete, this is 1/2 a unit's width below the
+        displayed lower bound.""",
+    )
+    range_max = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        Maximum inbound value. For Discrete, this is 1/2 a unit's width above the
+        displayed upper bound.""",
+    )
+    zero_point = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only. NOT for Discrete.
+        If logaritmically scaled, the value of the zero point.""",
+    )
+    open_upper_bound = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        If there can be a resolution above the range_max.""",
+    )
+    open_lower_bound = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="""For Continuous only.
+        If there can be a resolution below the range_min.""",
+    )
+    inbound_outcome_count = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="""For Discrete only.
+        Number of possible outcomes NOT including out of bounds values.""",
+    )
+    unit = models.CharField(max_length=25, blank=True)
 
     # list of multiple choice option labels
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
-    group_variable = models.CharField(blank=True, null=False)
-
-    unit = models.CharField(max_length=25, blank=True)
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
     # Group
+    group_variable = models.CharField(blank=True, null=False)
     label = models.TextField(blank=True, null=False)
     group: "GroupOfQuestions" = models.ForeignKey(
         "GroupOfQuestions",
@@ -165,6 +198,27 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         # Ensure resolution is always null or non-empty string
         if self.resolution is not None and self.resolution.strip() == "":
             self.resolution = None
+
+        # Some simple field enforcement
+        if self.type not in [
+            self.QuestionType.DATE,
+            self.QuestionType.NUMERIC,
+            self.QuestionType.DISCRETE,
+        ]:
+            self.range_min = None
+            self.range_max = None
+            self.open_upper_bound = False
+            self.open_lower_bound = False
+            self.unit = ""
+        if self.type not in [
+            self.QuestionType.DATE,
+            self.QuestionType.NUMERIC,
+        ]:
+            self.zero_point = None
+        if self.type != self.QuestionType.DISCRETE:
+            self.inbound_outcome_count = None
+        if self.type != self.QuestionType.MULTIPLE_CHOICE:
+            self.options = None
 
         return super().save(**kwargs)
 
@@ -242,6 +296,13 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         if shortest_window[0]:
             return shortest_window
         return None
+
+
+QUESTION_CONTINUOUS_TYPES = [
+    Question.QuestionType.NUMERIC,
+    Question.QuestionType.DATE,
+    Question.QuestionType.DISCRETE,
+]
 
 
 class Conditional(TimeStampedModel):
@@ -326,7 +387,7 @@ class Forecast(models.Model):
     continuous_cdf = ArrayField(
         models.FloatField(),
         null=True,
-        size=CDF_SIZE,
+        max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1,
     )
     # binary prediction
     probability_yes = models.FloatField(null=True)
@@ -413,7 +474,9 @@ class AggregateForecast(models.Model):
     method = models.CharField(max_length=200, choices=AggregationMethod.choices)
     start_time = models.DateTimeField(db_index=True)
     end_time = models.DateTimeField(null=True, db_index=True)
-    forecast_values = ArrayField(models.FloatField(), max_length=CDF_SIZE)
+    forecast_values = ArrayField(
+        models.FloatField(), max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1
+    )
     forecaster_count = models.IntegerField(null=True)
     interval_lower_bounds = ArrayField(models.FloatField(), null=True)
     centers = ArrayField(models.FloatField(), null=True)
@@ -440,11 +503,11 @@ class AggregateForecast(models.Model):
         )
 
     def get_cdf(self) -> list[float] | None:
-        if len(self.forecast_values) == CDF_SIZE:
+        if len(self.forecast_values) == DEFAULT_INBOUND_OUTCOME_COUNT + 1:
             return self.forecast_values
 
     def get_pmf(self) -> list[float]:
-        if len(self.forecast_values) == CDF_SIZE:
+        if len(self.forecast_values) == DEFAULT_INBOUND_OUTCOME_COUNT + 1:
             cdf = self.forecast_values
             pmf = [cdf[0]]
             for i in range(1, len(cdf)):
