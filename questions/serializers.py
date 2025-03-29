@@ -515,17 +515,19 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             ],
             10,
         )
-        if len(continuous_cdf) != (
-            (question.inbound_outcome_count + 1)
+        inbound_outcome_count = (
+            question.inbound_outcome_count
             if question.inbound_outcome_count
             else DEFAULT_INBOUND_OUTCOME_COUNT
-        ):
+        )
+        if len(continuous_cdf) != (inbound_outcome_count + 1):
             errors += (
                 f"continuous_cdf for question {question.id} must "
-                f"have {question.inbound_outcome_count + 1} values.\n"
+                f"have {inbound_outcome_count + 1} values.\n"
             )
         min_diff = np.round(
-            0.01 / question.inbound_outcome_count, 10
+            0.01 / inbound_outcome_count,
+            10,
         )  # 0.00005 by default
         if not all(inbound_pmf >= min_diff):
             errors += (
