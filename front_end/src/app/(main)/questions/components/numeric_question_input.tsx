@@ -1,28 +1,19 @@
 import { format } from "date-fns";
 import { isNil } from "lodash";
-import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   DefaultInboundOutcomeCount,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { QuestionType } from "@/types/question";
-import { cdfFromSliders, cdfToPmf } from "@/utils/math";
 
-const ContinuousPredictionChart = dynamic(
-  () =>
-    import(
-      "../[id]/components/forecast_maker/continuous_input/continuous_prediction_chart"
-    ),
-  {
-    ssr: false,
-  }
-);
+import ForecastMakerContinuous from "../[id]/components/forecast_maker/forecast_maker_question/forecast_maker_continuous";
 
 const NumericQuestionInput: React.FC<{
   onChange: ({
@@ -51,9 +42,9 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound: boolean | undefined | null;
   defaultInboundOutcomeCount: number | undefined | null;
   hasForecasts: boolean;
-  chartWidth?: number;
   control?: UseFormReturn;
   index?: number;
+  unit?: string;
 }> = ({
   onChange,
   questionType,
@@ -64,13 +55,36 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound,
   defaultInboundOutcomeCount,
   hasForecasts,
-  chartWidth = 800,
   control,
   index,
+  unit,
 }) => {
   const [errors, setError] = useState<string[]>([]);
-  const [max, setMax] = useState(defaultMax);
-  const [min, setMin] = useState(defaultMin);
+  const [min, setMin] = useState(
+    questionType !== QuestionType.Discrete ||
+      isNil(defaultMin) ||
+      isNil(defaultMax) ||
+      isNil(defaultInboundOutcomeCount)
+      ? defaultMin
+      : Math.round(
+          1e7 *
+            (defaultMin +
+              0.5 * ((defaultMax - defaultMin) / defaultInboundOutcomeCount))
+        ) / 1e7
+  );
+  const [max, setMax] = useState(
+    questionType !== QuestionType.Discrete ||
+      isNil(defaultMin) ||
+      isNil(defaultMax) ||
+      isNil(defaultInboundOutcomeCount)
+      ? defaultMax
+      : Math.round(
+          1e7 *
+            (defaultMax -
+              0.5 * ((defaultMax - defaultMin) / defaultInboundOutcomeCount))
+        ) / 1e7
+  );
+
   const [openUpperBound, setOpenUpperBound] = useState(
     defaultOpenUpperBound === undefined || defaultOpenUpperBound === null
       ? false
@@ -89,7 +103,8 @@ const NumericQuestionInput: React.FC<{
       : defaultZeroPoint
   );
   const [inboundOutcomeCount, setInboundOutcomeCount] = useState(
-    defaultInboundOutcomeCount || DefaultInboundOutcomeCount
+    defaultInboundOutcomeCount ||
+      (questionType !== QuestionType.Discrete ? DefaultInboundOutcomeCount : 31)
   );
   const [question, setQuestion] = useState<QuestionWithNumericForecasts>({
     id: 1,
@@ -102,7 +117,7 @@ const NumericQuestionInput: React.FC<{
     fine_print: "",
     resolution_criteria: "",
     label: "",
-    unit: "",
+    unit: unit || "",
     nr_forecasters: 0,
     author_username: "",
     post_id: 0,
@@ -241,15 +256,6 @@ const NumericQuestionInput: React.FC<{
     zeroPoint,
     inboundOutcomeCount,
   ]);
-
-  const exampleCdf = cdfFromSliders(
-    0.4,
-    0.6,
-    0.67,
-    openLowerBound,
-    openUpperBound,
-    inboundOutcomeCount
-  );
 
   return (
     <div>
@@ -469,18 +475,13 @@ const NumericQuestionInput: React.FC<{
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <>
             Example input chart:
-            <ContinuousPredictionChart
-              key={`${question.scaling.range_min}-${question.scaling.range_max}-${question.scaling.zero_point}`}
-              dataset={{
-                cdf: exampleCdf,
-                pmf: cdfToPmf(exampleCdf),
-              }}
-              graphType={"pmf"}
+            <ForecastMakerContinuous
+              post={{ id: 1 } as PostWithForecasts}
               question={question}
-              readOnly={false}
-              height={100}
-              width={chartWidth}
-              showCP={false}
+              permission={ProjectPermissions.FORECASTER}
+              canPredict={true}
+              canResolve={false}
+              exampleOnly={true}
             />
           </>
         )}

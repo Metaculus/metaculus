@@ -47,6 +47,7 @@ type Props = {
   isDirty?: boolean;
   submitControls?: ReactNode;
   disabled?: boolean;
+  exampleOnly?: boolean;
   predictionMessage?: ReactNode;
   menu?: ReactNode;
   copyMenu?: ReactNode;
@@ -70,6 +71,7 @@ const ContinuousInput: FC<Props> = ({
   isDirty,
   submitControls,
   disabled,
+  exampleOnly,
   predictionMessage,
   menu,
   copyMenu,
@@ -122,7 +124,7 @@ const ContinuousInput: FC<Props> = ({
       previousForecast={previousForecast}
       menu={menu}
       copyMenu={copyMenu}
-      disabled={disabled}
+      disabled={disabled || exampleOnly}
     >
       {(sliderGraphType, tableGraphType) => (
         <>

@@ -533,6 +533,7 @@ const QuestionForm: FC<Props> = ({
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultInboundOutcomeCount={post?.question?.inbound_outcome_count}
             hasForecasts={hasForecasts && mode !== "create"}
+            unit={post?.question?.unit}
             control={form}
             onChange={({
               range_min: rangeMin,

@@ -226,7 +226,6 @@ def post_create_api_view(request):
     # TODO: move scaling handling
     qdatas = []
     qdata = request.data.get("question", None)
-    breakpoint()
     if qdata:
         qdatas.append(qdata)
     qdatas.extend(request.data.get("group_of_questions", {}).get("questions", []))
