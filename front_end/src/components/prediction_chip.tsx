@@ -159,7 +159,7 @@ const PredictionChip: FC<Props> = ({
           )}
         >
           <Label className="text-purple-900 dark:text-purple-900-dark">
-            {t("resolved")} :
+            {t("resolved")}:
           </Label>
           <Chip
             size={size}

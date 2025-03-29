@@ -157,9 +157,14 @@ def user_medals(
     if not user_id:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    entries_with_medals = LeaderboardEntry.objects.filter(
-        user_id=user_id, medal__isnull=False
-    ).select_related("leaderboard__project", "user")
+    entries_with_medals = (
+        LeaderboardEntry.objects.filter(
+            user_id=user_id,
+            medal__isnull=False,
+        )
+        .exclude(leaderboard__project__default_permission__isnull=True)
+        .select_related("leaderboard__project", "user")
+    )
 
     # Fetch counts of non-excluded entries for each leaderboard and create a mapping
     leaderboard_entries_mapping = {
