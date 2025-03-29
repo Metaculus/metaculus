@@ -460,7 +460,7 @@ def calculate_medals_points_at_time(at_time):
     relevant_entries_qs = LeaderboardEntry.objects.filter(
         Q(leaderboard__end_time__lte=at_time)
         | Q(leaderboard__project__close_date__lte=at_time)
-    )
+    ).exclude(leaderboard__project__default_permission__isnull=True)
 
     # Get the age, in yeaers, for each leaderboard, and use it to
     # exp-decay the points associated with each medal (older medals weigh less)
