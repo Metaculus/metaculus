@@ -222,6 +222,8 @@ export function formatResolution({
           questionType,
           scaling,
           actual_resolve_time,
+          unit,
+          precision: 10,
         })
       );
     }
@@ -236,6 +238,8 @@ export function formatResolution({
           questionType,
           scaling,
           actual_resolve_time,
+          unit,
+          precision: 10,
         })
       );
     }
@@ -277,7 +281,10 @@ export function formatResolution({
   }
 
   if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
-    return formatValueUnit(abbreviatedNumber(Number(resolution)), unit);
+    return formatValueUnit(
+      abbreviatedNumber(Number(resolution), 10, false),
+      unit
+    );
   }
 
   if (questionType === QuestionType.MultipleChoice) {
