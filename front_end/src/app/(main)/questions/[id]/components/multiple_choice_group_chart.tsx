@@ -49,6 +49,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
   withLegend?: boolean;
+  className?: string;
 };
 
 const MultipleChoiceGroupChart: FC<Props> = ({
@@ -69,6 +70,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
   chartTheme,
   embedMode,
   withLegend,
+  className,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -269,6 +271,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       isEmptyDomain={
         !!forecastAvailability?.isEmpty || !!forecastAvailability?.cpRevealsOn
       }
+      className={className}
     />
   );
 };
