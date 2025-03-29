@@ -22,10 +22,11 @@ const GlobalContributions: FC<Props> = async ({
 }) => {
   const contributionsDetails = await LeaderboardApi.getContributions({
     type: "global",
-    leaderboardType,
-    userId,
-    startTime,
-    endTime,
+    score_type: leaderboardType,
+    for_user: userId,
+    start_time: startTime,
+    end_time: endTime,
+    primary: false,
   });
   return (
     <div className="w-full overflow-y-scroll border border-gray-300 dark:border-gray-300-dark sm:overflow-y-hidden sm:border-none">
