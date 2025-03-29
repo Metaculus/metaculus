@@ -137,20 +137,18 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="""For Continuous only.
-        Minimum inbound value. For Discrete, this is 1/2 a unit's width below the
-        displayed lower bound.""",
+        Minimum inbound value.""",
     )
     range_max = models.FloatField(
         null=True,
         blank=True,
         help_text="""For Continuous only.
-        Maximum inbound value. For Discrete, this is 1/2 a unit's width above the
-        displayed upper bound.""",
+        Maximum inbound value.""",
     )
     zero_point = models.FloatField(
         null=True,
         blank=True,
-        help_text="""For Continuous only. NOT for Discrete.
+        help_text="""For Continuous only.
         If logaritmically scaled, the value of the zero point.""",
     )
     open_upper_bound = models.BooleanField(
@@ -168,7 +166,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     inbound_outcome_count = models.IntegerField(
         null=True,
         blank=True,
-        help_text="""For Discrete only.
+        help_text="""For Continuous only. Optional unless Discrete.
         Number of possible outcomes NOT including out of bounds values.""",
     )
     unit = models.CharField(max_length=25, blank=True)
