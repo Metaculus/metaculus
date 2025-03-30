@@ -16,7 +16,7 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
-import { QuestionStatus } from "@/types/post";
+import { QuestionStatus, Resolution } from "@/types/post";
 import {
   QuestionType,
   QuestionWithNumericForecasts,
@@ -29,6 +29,7 @@ import {
   getResolutionPosition,
   calculateCharWidth,
   getTruncatedLabel,
+  getContinuousGroupScaling,
 } from "@/utils/charts";
 import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
@@ -46,21 +47,23 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
     useContainerSize<HTMLDivElement>();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const chartData = buildChartData(questions, locale);
-  const adjustedChartData =
-    chartWidth < 350 ? chartData.slice(0, 12) : chartData;
+  const { adjustedChartData, yDomain } = adjustChartData(chartData, chartWidth);
   const shouldDisplayChart = !!chartWidth;
-  const tickLabelVisibilityMap = adjustLabelsForDisplay(
-    adjustedChartData,
-    chartWidth
-  );
-  const barLabelVisibilityMap = adjustLabelsForDisplay(
+  const { labelVisibilityMap: tickLabelVisibilityMap, widthPerLabel } =
+    adjustLabelsForDisplay(adjustedChartData, chartWidth);
+
+  const { labelVisibilityMap: barLabelVisibilityMap } = adjustLabelsForDisplay(
     adjustedChartData,
     chartWidth,
     true
   );
 
+  if (chartData.length === 0) {
+    return null;
+  }
+
   return (
-    <div ref={chartContainerRef} className="relative w-full">
+    <div ref={chartContainerRef} className="TimeSeriesChart relative w-full">
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
@@ -76,6 +79,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
             x: chartWidth > 400 ? 80 : chartData.length > 3 ? 40 : 50,
             y: 20,
           }}
+          domain={yDomain ? { y: yDomain } : undefined}
           containerComponent={
             <VictoryContainer
               style={{
@@ -124,6 +128,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                 <TimeSeriesLabel
                   isTickLabel={true}
                   labelVisibilityMap={tickLabelVisibilityMap}
+                  widthPerLabel={widthPerLabel}
                 />
               }
             />
@@ -143,17 +148,20 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                 data: {
                   fill: ({ datum }) =>
                     datum.resolution
-                      ? getThemeColor(METAC_COLORS.purple["500"])
+                      ? getThemeColor(
+                          ["no", "yes"].includes(datum.resolution as string)
+                            ? METAC_COLORS.purple["400"]
+                            : METAC_COLORS.purple["500"]
+                        )
                       : datum.isClosed
                         ? getThemeColor(METAC_COLORS.gray["500"])
                         : getThemeColor(METAC_COLORS.blue["400"]),
-                  display: ({ datum }) =>
-                    ["no", "yes"].includes(datum.resolution as string)
-                      ? "none"
-                      : "block",
+                  display: "block",
                   strokeLinejoin: "round",
-                  strokeWidth: 5,
-                  width: 16,
+                  strokeWidth: ({ datum }) =>
+                    ["no", "yes"].includes(datum.resolution as string) ? 0 : 5,
+                  width: ({ datum }) =>
+                    ["no", "yes"].includes(datum.resolution as string) ? 2 : 16,
                 },
               }}
             />
@@ -171,37 +179,10 @@ function buildChartData(
   x: string;
   y: number;
   label: string;
+  isClosed: boolean;
+  resolution: Resolution | null;
 }[] {
-  const rangeMaxValues: number[] = [];
-  const rangeMinValues: number[] = [];
-  const zeroPoints: number[] = [];
-  for (const question of questions) {
-    if (!isNil(question.scaling.range_max)) {
-      rangeMaxValues.push(question.scaling.range_max);
-    }
-    if (!isNil(question.scaling.range_min)) {
-      rangeMinValues.push(question.scaling.range_min);
-    }
-    if (question.scaling.zero_point !== null) {
-      zeroPoints.push(question.scaling.zero_point);
-    }
-  }
-  const scaling: Scaling = {
-    range_max: rangeMaxValues.length > 0 ? Math.max(...rangeMaxValues) : null,
-    range_min: rangeMinValues.length > 0 ? Math.min(...rangeMinValues) : null,
-    zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
-  };
-  // ignore the log scaling if we have mixes of log and linear scaled options
-  if (
-    scaling.zero_point !== null &&
-    !isNil(scaling.range_min) &&
-    !isNil(scaling.range_max) &&
-    scaling.range_min <= scaling.zero_point &&
-    scaling.zero_point <= scaling.range_max
-  ) {
-    scaling.zero_point = null;
-  }
-
+  const scaling = getContinuousGroupScaling(questions);
   return [...questions]
     .filter(
       (question) =>
@@ -223,6 +204,7 @@ function buildChartData(
             locale: locale,
             scaling: question.scaling,
             shortBounds: true,
+            actual_resolve_time: null,
           })
         : null;
 
@@ -247,6 +229,7 @@ function buildChartData(
                 0,
               questionType: question.type,
               scaling: question.scaling,
+              actual_resolve_time: null,
             }),
         isClosed: question.status === QuestionStatus.CLOSED,
         resolution: question.resolution,
@@ -276,47 +259,126 @@ function getOptionPoint(
 }
 
 function adjustLabelsForDisplay(
-  datum: Array<{ x: string; label: string }>,
+  datum: Array<{
+    x: string;
+    label: string;
+    isClosed: boolean;
+    resolution: Resolution | null;
+  }>,
   chartWidth: number,
   isBarLabel?: boolean
 ) {
-  const labelMargin = isBarLabel ? 0 : 5;
-  const charWidth = calculateCharWidth(isBarLabel ? 8 : 9);
+  const labelMargin = 5;
+  const charWidth = calculateCharWidth(isBarLabel ? 14 : 14);
 
   const labels = [
-    ...datum.map((item) =>
-      getTruncatedLabel(isBarLabel ? item.label : item.x, 20)
-    ),
-    ...(isBarLabel ? ["Resolved", "Closed"] : []),
+    ...datum.map((item) => {
+      let adjustedLabel = isBarLabel ? item.label : item.x;
+      if (isBarLabel) {
+        if (item.isClosed) {
+          adjustedLabel = "closed";
+        } else if (item.resolution) {
+          adjustedLabel = "resolved";
+        }
+      }
+
+      return getTruncatedLabel(adjustedLabel, 25);
+    }),
   ];
 
   if (!charWidth) {
-    return labels.map(() => true);
+    return { labelVisibilityMap: labels.map(() => true), widthPerLabel: 0 };
   }
-
-  const maxLabelLength = Math.max(...labels.map((label) => label.length));
-  const maxLabelWidth = maxLabelLength * charWidth + labelMargin;
   const chartDomainPadding = chartWidth > 400 ? 60 : 30;
-  let availableSpacePerLabel =
-    (chartWidth - chartDomainPadding) / labels.length;
+  const availableWidth = chartWidth - chartDomainPadding;
 
-  if (maxLabelWidth < availableSpacePerLabel) {
-    return labels.map(() => true);
+  const getLabelX = (index: number) =>
+    (index * availableWidth) / (labels.length - 1) + chartDomainPadding / 2;
+
+  const getLabelWidth = (label: string) =>
+    label.length * charWidth + labelMargin;
+  const widthPerLabel = availableWidth / labels.length;
+  return {
+    labelVisibilityMap: labels.reduce((visibleLabels, label, index) => {
+      if (index === 0) {
+        visibleLabels[index] = true;
+        return visibleLabels;
+      }
+
+      const currentLabelX = getLabelX(index);
+      const currentLabelWidth = getLabelWidth(label);
+
+      let lastVisibleIndex = -1;
+      for (let i = index - 1; i >= 0; i--) {
+        if (visibleLabels[i]) {
+          lastVisibleIndex = i;
+          break;
+        }
+      }
+
+      if (lastVisibleIndex === -1) {
+        visibleLabels[index] = true;
+        return visibleLabels;
+      }
+
+      const prevLabelX = getLabelX(lastVisibleIndex);
+      const prevLabelWidth = getLabelWidth(labels[lastVisibleIndex] as string);
+
+      const overlap =
+        currentLabelX - currentLabelWidth / 2 <=
+        prevLabelX + prevLabelWidth / 2;
+
+      visibleLabels[index] = !overlap;
+      return visibleLabels;
+    }, Array(labels.length).fill(false)),
+    widthPerLabel,
+  };
+}
+
+function adjustChartData(
+  chartData: {
+    x: string;
+    y: number;
+    label: string;
+    isClosed: boolean;
+    resolution: Resolution | null;
+  }[],
+  chartWidth: number
+) {
+  let questionsToDisplay = 8;
+  if (chartWidth < 374) {
+    questionsToDisplay = 4;
+  } else if (chartWidth < 448) {
+    questionsToDisplay = 5;
+  } else if (chartWidth < 576) {
+    questionsToDisplay = 6;
+  } else if (chartWidth < 660) {
+    questionsToDisplay = 7;
+  } else {
+    questionsToDisplay = 8;
   }
-
-  let step = 1;
-  let visibleLabelsCount = labels.length;
-
-  while (maxLabelWidth >= availableSpacePerLabel && step < labels.length) {
-    visibleLabelsCount = Math.ceil(labels.length / step);
-    availableSpacePerLabel = chartWidth / visibleLabelsCount;
-    step++;
-  }
-
-  return datum.map(
-    (_, index) =>
-      index % step === 0 || (datum.length === 3 && index === datum.length - 1)
+  const unresolvedPoints = [...chartData]
+    .map((datum) => {
+      if (["no", "yes"].includes(datum.resolution as string)) {
+        return null;
+      }
+      return datum.y;
+    })
+    .filter((y): y is number => !isNil(y));
+  const maxY = Math.max(
+    unresolvedPoints.length > 0 ? Math.max(...unresolvedPoints) : 1
   );
+
+  return {
+    adjustedChartData: chartData.slice(-questionsToDisplay).map((datum) => {
+      if (["no", "yes"].includes(datum.resolution as string)) {
+        return { ...datum, y: maxY * 0.4 };
+      }
+      return datum;
+    }),
+    yDomain:
+      unresolvedPoints.length === 0 ? ([0, 1] as [number, number]) : undefined,
+  };
 }
 
 export default TimeSeriesChart;

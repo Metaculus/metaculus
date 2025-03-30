@@ -1,6 +1,6 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useEffect } from "react";
+import React, { FC, ReactNode, useEffect, useRef } from "react";
 
 import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import ContinuousTable from "@/app/(main)/questions/[id]/components/forecast_maker/continuous_table";
@@ -49,6 +49,7 @@ type Props = {
   disabled?: boolean;
   predictionMessage?: ReactNode;
   menu?: ReactNode;
+  copyMenu?: ReactNode;
 };
 
 const ContinuousInput: FC<Props> = ({
@@ -71,16 +72,21 @@ const ContinuousInput: FC<Props> = ({
   disabled,
   predictionMessage,
   menu,
+  copyMenu,
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
   const t = useTranslations();
   const previousForecast = question.my_forecasts?.latest;
-
+  const isMounted = useRef(false);
   const withCommunityQuartiles = !user || !hideCP;
 
   // populate forecast data from another tab
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     if (
       forecastInputMode === ContinuousForecastInputType.Quantile &&
       (isDirty ||
@@ -115,6 +121,7 @@ const ContinuousInput: FC<Props> = ({
       onOverlayPreviousForecastChange={onOverlayPreviousForecastChange}
       previousForecast={previousForecast}
       menu={menu}
+      copyMenu={copyMenu}
       disabled={disabled}
     >
       {(sliderGraphType, tableGraphType) => (

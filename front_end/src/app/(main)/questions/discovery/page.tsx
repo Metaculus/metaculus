@@ -5,11 +5,10 @@ import { SearchParams } from "@/types/navigation";
 import CategoriesDiscovery from "./components/categories";
 import TagsDiscovery from "./components/tags_discovery";
 
-export default async function ProjectsDiscovery({
-  searchParams,
-}: {
-  searchParams: SearchParams;
+export default async function ProjectsDiscovery(props: {
+  searchParams: Promise<SearchParams>;
 }) {
+  const searchParams = await props.searchParams;
   const categories = await ProjectsApi.getCategories();
   const filters = getFilters(searchParams);
 

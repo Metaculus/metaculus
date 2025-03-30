@@ -13,15 +13,15 @@ import { LEADERBOARD_CATEGORIES } from "../../../leaderboard/filters";
 import ContributionsHero from "../../components/contributions_hero";
 import GlobalContributions from "../../components/global_contributions";
 import { getContributionParams } from "../../helpers/filters";
+
 type Props = {
-  params: { user: number; category: string };
-  searchParams: SearchParams;
+  params: Promise<{ user: number; category: string }>;
+  searchParams: Promise<SearchParams>;
 };
 
-export default async function Contributions({
-  params: routeParams,
-  searchParams,
-}: Props) {
+export default async function Contributions(props: Props) {
+  const searchParams = await props.searchParams;
+  const routeParams = await props.params;
   const category = LEADERBOARD_CATEGORIES.includes(
     routeParams.category as CategoryKey
   )

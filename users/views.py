@@ -9,7 +9,6 @@ from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -42,6 +41,7 @@ from users.services.spam_detection import (
     check_profile_update_for_spam,
     send_deactivation_email,
 )
+from utils.paginator import LimitOffsetPagination
 
 logger = logging.getLogger(__name__)
 

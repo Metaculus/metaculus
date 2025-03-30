@@ -7,9 +7,12 @@ import { getRequestConfig } from "next-intl/server";
 const locales = ["cs", "en", "es", "zh", "pt", "original"];
 const defaultLocale = "en";
 
-function getLocale(): string {
-  const acceptLang = headers().get("accept-language");
-  const cookieLocale = cookies().get("NEXT_LOCALE")?.value;
+async function getLocale(): Promise<string> {
+  const headersStore = await headers();
+  const acceptLang = headersStore.get("accept-language");
+
+  const cookieStore = await cookies();
+  const cookieLocale = cookieStore.get("NEXT_LOCALE")?.value;
 
   let options = [defaultLocale];
 
@@ -36,13 +39,13 @@ function getLocale(): string {
 }
 
 export default getRequestConfig(async () => {
-  const locale = getLocale();
+  const locale = await getLocale();
 
   return {
     locale,
     messages: {
-      ...(await import(`../messages/en.json`)).default,
-      ...(await import(`../messages/${locale}.json`)).default,
+      ...(await import(`../../messages/en.json`)).default,
+      ...(await import(`../../messages/${locale}.json`)).default,
     },
   };
 });

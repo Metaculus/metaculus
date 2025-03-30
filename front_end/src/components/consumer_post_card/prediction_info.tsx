@@ -39,7 +39,6 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
     return null;
   }
 
-  // TODO: implement view for date group questions and time series
   if (isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) {
     return <GroupForecastCard post={post} />;
   }
@@ -52,12 +51,15 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
         questionType: question.type,
         locale,
         unit: question.unit,
+        actual_resolve_time: question.actual_resolve_time ?? null,
+        shortBounds: true,
       });
       const successfullResolution = isSuccessfullyResolved(question.resolution);
       return (
         <QuestionResolutionChip
           formatedResolution={formatedResolution}
           successfullResolution={successfullResolution}
+          unit={question.unit}
         />
       );
     }
@@ -68,7 +70,11 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
         <QuestionForecastChip
           question={question as QuestionWithNumericForecasts}
         />
-        <CPWeeklyMovement question={question} displayUnit={false} />
+        <CPWeeklyMovement
+          question={question}
+          displayUnit={false}
+          presentation="consumerView"
+        />
       </div>
     );
   }

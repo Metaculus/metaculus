@@ -133,7 +133,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
     notebook = NotebookWriteSerializer(required=False)
     categories = serializers.ListField(child=serializers.IntegerField(), required=False)
-    published_at = serializers.DateTimeField(required=False)
+    published_at = serializers.DateTimeField(required=False, allow_null=True)
 
     class Meta:
         model = Post

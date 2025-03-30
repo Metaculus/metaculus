@@ -112,7 +112,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   }, [conditional, t]);
 
   const [activeTableOption, setActiveTableOption] = useState(
-    questionOptions.at(0)?.id ?? null
+    questionOptions.at(0)?.question.resolution === "annulled"
+      ? questionOptions.at(1)?.id ?? null
+      : questionOptions.at(0)?.id ?? null
   );
   const activeQuestion = useMemo(
     () => [question_yes, question_no].find((q) => q.id === activeTableOption),
@@ -651,23 +653,23 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                     {t("addComponentButton")}
                   </Button>
                 )}
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={handleResetForecasts}
-                disabled={
-                  activeOptionData?.forecastInputMode ===
-                  ContinuousForecastInputType.Slider
-                    ? !isPickerDirty
-                    : !activeOptionData?.isDirty &&
-                      !(activeOptionData?.quantileForecast ?? []).some(
-                        (value) => value?.isDirty === true
-                      )
-                }
-              >
-                {t("discardChangesButton")}
-              </Button>
-              {(!!prevYesForecastValue || !!prevNoForecastValue) && (
+              {(activeOptionData?.forecastInputMode ===
+                ContinuousForecastInputType.Slider &&
+                isPickerDirty) ||
+              (activeOptionData?.forecastInputMode ===
+                ContinuousForecastInputType.Quantile &&
+                (activeOptionData?.isDirty ||
+                  (activeOptionData?.quantileForecast ?? []).some(
+                    (value) => value?.isDirty === true
+                  ))) ? (
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={handleResetForecasts}
+                >
+                  {t("discardChangesButton")}
+                </Button>
+              ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
                 <Button
                   variant="secondary"
                   type="submit"
@@ -676,7 +678,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 >
                   {t("withdraw")}
                 </Button>
-              )}
+              ) : null}
             </>
           )}
 
@@ -741,12 +743,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         value={activeTableOption}
         onChange={setActiveTableOption}
         formatForecastValue={(value, forecastInputMode) => {
-          if (activeOptionData && value) {
+          if (activeOptionData && !isNil(value)) {
             return getTableDisplayValue({
               value,
               questionType: activeOptionData.question.type,
               scaling: activeOptionData.question.scaling,
               forecastInputMode: forecastInputMode,
+              actual_resolve_time:
+                activeOptionData.question.actual_resolve_time ?? null,
             });
           } else {
             return "-";

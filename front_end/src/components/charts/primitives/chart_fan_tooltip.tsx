@@ -135,6 +135,7 @@ const ChartFanTooltip: FC<Props> = ({
                       locale,
                       scaling: question.scaling,
                       unit: question.unit,
+                      actual_resolve_time: question.actual_resolve_time ?? null,
                     })}
                   </div>
                 </td>
@@ -202,6 +203,7 @@ const getPredictionLabel = ({
     value: value,
     questionType: question.type,
     scaling: question.scaling,
+    actual_resolve_time: question.actual_resolve_time ?? null,
   });
 };
 
@@ -288,6 +290,7 @@ function getTooltipItems({
         ),
         questionType: question.type,
         scaling: question.scaling,
+        actual_resolve_time: question.actual_resolve_time ?? null,
       })}`,
       valueElement: getBoundsLabel({
         t,
@@ -307,6 +310,7 @@ function getTooltipItems({
         ),
         questionType: question.type,
         scaling: question.scaling,
+        actual_resolve_time: question.actual_resolve_time ?? null,
       })}`,
       valueElement: getBoundsLabel({
         t,

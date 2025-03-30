@@ -1,10 +1,13 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Disclosure, DisclosurePanel } from "@headlessui/react";
+import { isNil } from "lodash";
 import { useLocale } from "next-intl";
-import { FC, PropsWithChildren, useState } from "react";
+import { FC, PropsWithChildren, useEffect, useState } from "react";
 
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
+import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
+import { useBreakpoint } from "@/hooks/tailwind";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
 import { Quantile } from "@/types/question";
@@ -31,6 +34,7 @@ type AccordionItemProps = {
   subQuestionId?: number | null;
   type: QuestionStatus.OPEN | QuestionStatus.CLOSED | QuestionStatus.RESOLVED;
   unit?: string;
+  forcedOpenId?: number;
 };
 
 const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
@@ -40,6 +44,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   subQuestionId,
   type,
   unit,
+  forcedOpenId,
 }) => {
   const locale = useLocale();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,8 +62,9 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     locale,
     scaling: question.scaling,
     unit,
+    actual_resolve_time: question.actual_resolve_time ?? null,
   });
-
+  const isLargeScreen = useBreakpoint("sm");
   const showUserPrediction = hasUserForecast || isDirty;
   const isResolvedOption = type === QuestionStatus.RESOLVED;
   const latest = question.aggregations.recency_weighted.latest;
@@ -87,6 +93,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     questionType: option.question.type,
     scaling: option.question.scaling,
     unit,
+    actual_resolve_time: option.question.actual_resolve_time ?? null,
   });
   const userMedian = showUserPrediction
     ? forecastInputMode === ContinuousForecastInputType.Quantile
@@ -97,12 +104,14 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
           questionType: option.question.type,
           scaling: option.question.scaling,
           unit,
+          actual_resolve_time: option.question.actual_resolve_time ?? null,
         })
       : getDisplayValue({
           value: option.userQuartiles?.median,
           questionType: option.question.type,
           scaling: option.question.scaling,
           unit,
+          actual_resolve_time: option.question.actual_resolve_time ?? null,
         })
     : undefined;
 
@@ -110,9 +119,28 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
     setIsModalOpen((prev) => !prev);
   };
 
+  const isForceOpen = forcedOpenId === option.id;
+
+  useEffect(() => {
+    if (!isForceOpen) {
+      setIsModalOpen(false);
+    } else if (!isLargeScreen) {
+      setIsModalOpen(true);
+    }
+    // We intentionally keep only forcedOpenId in the dependencies,
+    // because this effect should re-trigger only when forcedOpenId changes — not other params.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forcedOpenId]);
+
   return (
     <>
-      <Disclosure as="div" defaultOpen={subQuestionId === option.id}>
+      <Disclosure
+        as="div"
+        defaultOpen={subQuestionId === option.id || forcedOpenId === option.id}
+        id={`group-option-${option.id}`}
+        // Change the key so that when forceOpen toggles, Disclosure re-mounts
+        key={`${option.id}-${forcedOpenId === option.id ? "open" : "closed"}`}
+      >
         {({ open }) => (
           <div>
             <AccordionOpenButton
@@ -122,22 +150,27 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
               isDirty={!isResolvedOption && isDirty}
             >
               <div className="flex h-full shrink grow items-center overflow-hidden">
-                <span className="line-clamp-2 pl-4 pr-2 text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base">
-                  {title}
-                </span>
-              </div>
-              <div className="flex h-full min-w-[105px] max-w-[105px] shrink-0 grow-[3] items-center justify-center gap-0.5 sm:min-w-[420px] sm:max-w-[420px]">
-                <AccordionResolutionCell
-                  formatedResolution={formatedResolution}
-                  resolution={resolution}
-                  median={median}
-                  userMedian={
-                    option.userQuartiles?.median ? userMedian : undefined
-                  }
-                  type={type}
+                <TruncatedTextTooltip
+                  text={title}
+                  showTooltip={!open}
+                  className="line-clamp-2 pl-4 pr-2 text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base"
+                  tooltipClassName="text-center !border-blue-400 dark:!border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base p-2"
                 />
-                <div className="hidden h-full shrink-0 grow-0 items-center justify-center sm:block sm:w-[325px]">
-                  {!open && (
+              </div>
+              {(!open || !isLargeScreen) && (
+                <div className="flex h-full min-w-[105px] max-w-[105px] shrink-0 grow-[3] items-center justify-center gap-0.5 sm:min-w-[420px] sm:max-w-[420px]">
+                  <AccordionResolutionCell
+                    formatedResolution={formatedResolution}
+                    resolution={resolution}
+                    median={median}
+                    userMedian={
+                      !isNil(option.userQuartiles?.median)
+                        ? userMedian
+                        : undefined
+                    }
+                    type={type}
+                  />
+                  <div className="hidden h-full shrink-0 grow-0 items-center justify-center sm:block sm:w-[325px]">
                     <ContinuousAreaChart
                       data={continuousAreaChartData}
                       graphType="pmf"
@@ -148,9 +181,9 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                       questionType={question.type}
                       resolution={question.resolution}
                     />
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="flex h-full w-[43px] shrink-0 grow-0 items-center justify-center">
                 <div className="flex size-[26px] items-center justify-center rounded-full border border-blue-400 bg-blue-100 dark:border-blue-400-dark dark:bg-blue-100-dark">
                   <FontAwesomeIcon

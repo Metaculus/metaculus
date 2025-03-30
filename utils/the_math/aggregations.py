@@ -16,7 +16,12 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 from django.db.models import Q
 
-from questions.models import Question, Forecast, AggregateForecast
+from questions.models import (
+    QUESTION_CONTINUOUS_TYPES,
+    Question,
+    Forecast,
+    AggregateForecast,
+)
 from questions.types import AggregationMethod
 from scoring.reputation import (
     get_reputations_at_time,
@@ -122,7 +127,7 @@ def calculate_aggregation_entry(
 ) -> AggregateForecast:
     weights = np.array(weights) if weights is not None else None
     if (
-        question_type in ["date", "numeric"]
+        question_type in QUESTION_CONTINUOUS_TYPES
         or method == AggregationMethod.SINGLE_AGGREGATION
     ):
         aggregation = AggregateForecast(

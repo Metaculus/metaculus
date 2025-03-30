@@ -131,6 +131,7 @@ function parseAggregationData({
               locale: locale ?? "en",
               scaling: question.scaling,
               unit: question.unit,
+              actual_resolve_time: question.actual_resolve_time,
             })
           : null,
         closeTime: Math.min(
@@ -217,6 +218,7 @@ function parseAggregationData({
             locale: locale ?? "en",
             scaling: question.scaling,
             unit: question.unit,
+            actual_resolve_time: question.actual_resolve_time,
           })
         : null,
       closeTime: Math.min(

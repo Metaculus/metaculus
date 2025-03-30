@@ -45,6 +45,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
           resolution,
           displayedResolution,
           scaling,
+          actual_resolve_time,
         }) => (
           <ChoiceOption
             key={`choice-option-${choice}`}
@@ -57,6 +58,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
             scaling={scaling}
             hideIcon={hideChoiceIcon}
             labelClassName={optionLabelClassName}
+            actual_resolve_time={actual_resolve_time}
           />
         )
       )}

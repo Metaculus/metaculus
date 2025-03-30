@@ -51,15 +51,6 @@ export function isMultipleChoicePost(post: PostWithForecasts) {
   return post.question?.type === QuestionType.MultipleChoice;
 }
 
-export function checkGroupOfQuestionsPostType(
-  post: PostWithForecasts,
-  type: QuestionType
-) {
-  return (
-    isGroupOfQuestionsPost(post) &&
-    post.group_of_questions.questions[0]?.type === type
-  );
-}
 export function isQuestionPost<QT>(post: Post<QT>): post is QuestionPost<QT> {
   return !isNil(post.question);
 }
@@ -195,6 +186,7 @@ export function formatResolution({
   resolution,
   questionType,
   locale,
+  actual_resolve_time,
   scaling,
   unit,
   shortBounds = false,
@@ -202,6 +194,7 @@ export function formatResolution({
   resolution: number | string | null | undefined;
   questionType: QuestionType;
   locale: string;
+  actual_resolve_time: string | null;
   scaling?: Scaling;
   unit?: string;
   shortBounds?: boolean;
@@ -228,6 +221,9 @@ export function formatResolution({
           value: 0,
           questionType,
           scaling,
+          actual_resolve_time,
+          unit,
+          precision: 10,
         })
       );
     }
@@ -241,6 +237,9 @@ export function formatResolution({
           value: 1,
           questionType,
           scaling,
+          actual_resolve_time,
+          unit,
+          precision: 10,
         })
       );
     }
@@ -252,7 +251,14 @@ export function formatResolution({
       const date = new Date(Number(resolution));
       if (isValid(date)) {
         return scaling
-          ? format(date, getQuestionDateFormatString(scaling))
+          ? format(
+              date,
+              getQuestionDateFormatString({
+                scaling,
+                actual_resolve_time,
+                valueTimestamp: date.getTime() / 1000,
+              })
+            )
           : formatDate(locale, date);
       }
       return resolution;
@@ -261,14 +267,24 @@ export function formatResolution({
     const date = new Date(resolution);
     if (isValid(date)) {
       return scaling
-        ? format(date, getQuestionDateFormatString(scaling))
+        ? format(
+            date,
+            getQuestionDateFormatString({
+              scaling,
+              actual_resolve_time,
+              valueTimestamp: date.getTime() / 1000,
+            })
+          )
         : formatDate(locale, date);
     }
     return resolution;
   }
 
   if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
-    return formatValueUnit(abbreviatedNumber(Number(resolution)), unit);
+    return formatValueUnit(
+      abbreviatedNumber(Number(resolution), 10, false),
+      unit
+    );
   }
 
   if (questionType === QuestionType.MultipleChoice) {

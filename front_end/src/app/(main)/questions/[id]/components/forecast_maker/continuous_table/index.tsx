@@ -176,6 +176,7 @@ const ContinuousTable: FC<Props> = ({
                       scaling: question.scaling,
                       precision: 4,
                       unit: question.unit,
+                      actual_resolve_time: question.actual_resolve_time ?? null,
                     })}
                   </Td>
                 )}
@@ -197,6 +198,7 @@ const ContinuousTable: FC<Props> = ({
                       scaling: question.scaling,
                       precision: 4,
                       unit: question.unit,
+                      actual_resolve_time: question.actual_resolve_time ?? null,
                     })}
                   </Td>
                 )}
@@ -224,6 +226,7 @@ const ContinuousTable: FC<Props> = ({
                   scaling: question.scaling,
                   precision: 4,
                   unit: question.unit,
+                  actual_resolve_time: question.actual_resolve_time ?? null,
                 })}
               </Td>
               <Td className="tabular-nums tracking-tight">
@@ -234,6 +237,7 @@ const ContinuousTable: FC<Props> = ({
                   scaling: question.scaling,
                   precision: 4,
                   unit: question.unit,
+                  actual_resolve_time: question.actual_resolve_time ?? null,
                 })}
               </Td>
               <Td className="tabular-nums tracking-tight">
@@ -244,6 +248,7 @@ const ContinuousTable: FC<Props> = ({
                   scaling: question.scaling,
                   precision: 4,
                   unit: question.unit,
+                  actual_resolve_time: question.actual_resolve_time ?? null,
                 })}
               </Td>
               {question.open_upper_bound && (
@@ -275,6 +280,8 @@ const ContinuousTable: FC<Props> = ({
                         scaling: question.scaling,
                         precision: 4,
                         unit: question.unit,
+                        actual_resolve_time:
+                          question.actual_resolve_time ?? null,
                       })}
                     </Td>
                     <Td className="tabular-nums tracking-tight">
@@ -285,6 +292,8 @@ const ContinuousTable: FC<Props> = ({
                         scaling: question.scaling,
                         precision: 4,
                         unit: question.unit,
+                        actual_resolve_time:
+                          question.actual_resolve_time ?? null,
                       })}
                     </Td>
                     <Td className="tabular-nums tracking-tight">
@@ -295,6 +304,8 @@ const ContinuousTable: FC<Props> = ({
                         scaling: question.scaling,
                         precision: 4,
                         unit: question.unit,
+                        actual_resolve_time:
+                          question.actual_resolve_time ?? null,
                       })}
                     </Td>
                     {question.open_upper_bound && userBounds && (
@@ -475,6 +486,7 @@ const ContinuousTable: FC<Props> = ({
                     scaling: question.scaling,
                     precision: 4,
                     unit: question.unit,
+                    actual_resolve_time: question.actual_resolve_time ?? null,
                   })}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
@@ -485,6 +497,7 @@ const ContinuousTable: FC<Props> = ({
                     scaling: question.scaling,
                     precision: 4,
                     unit: question.unit,
+                    actual_resolve_time: question.actual_resolve_time ?? null,
                   })}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
@@ -495,6 +508,7 @@ const ContinuousTable: FC<Props> = ({
                     scaling: question.scaling,
                     precision: 4,
                     unit: question.unit,
+                    actual_resolve_time: question.actual_resolve_time ?? null,
                   })}
                 </Td>
                 {question.open_upper_bound && userPreviousBounds && (
@@ -538,6 +552,7 @@ const ContinuousTable: FC<Props> = ({
                   {displayValue({
                     value: question.scaling.range_min,
                     questionType: question.type,
+                    actual_resolve_time: null,
                   })}
                 </Td>
                 {withCommunityQuartiles && (
@@ -603,6 +618,7 @@ const ContinuousTable: FC<Props> = ({
                   scaling: question.scaling,
                   precision: 4,
                   unit: question.unit,
+                  actual_resolve_time: null,
                 })}
               </Td>
             )}
@@ -634,6 +650,7 @@ const ContinuousTable: FC<Props> = ({
                       scaling: question.scaling,
                       precision: 4,
                       unit: question.unit,
+                      actual_resolve_time: question.actual_resolve_time ?? null,
                     })}
                   </>
                 ) : (
@@ -650,6 +667,7 @@ const ContinuousTable: FC<Props> = ({
                   scaling: question.scaling,
                   precision: 4,
                   unit: question.unit,
+                  actual_resolve_time: question.actual_resolve_time ?? null,
                 })}
               </Td>
             )}
@@ -667,6 +685,7 @@ const ContinuousTable: FC<Props> = ({
                   scaling: question.scaling,
                   precision: 4,
                   unit: question.unit,
+                  actual_resolve_time: question.actual_resolve_time ?? null,
                 })}
               </Td>
             )}
@@ -698,6 +717,7 @@ const ContinuousTable: FC<Props> = ({
                       scaling: question.scaling,
                       precision: 4,
                       unit: question.unit,
+                      actual_resolve_time: question.actual_resolve_time ?? null,
                     })}
                   </>
                 ) : (
@@ -714,6 +734,7 @@ const ContinuousTable: FC<Props> = ({
                   scaling: question.scaling,
                   precision: 4,
                   unit: question.unit,
+                  actual_resolve_time: question.actual_resolve_time ?? null,
                 })}
               </Td>
             )}
@@ -731,6 +752,7 @@ const ContinuousTable: FC<Props> = ({
                   scaling: question.scaling,
                   precision: 4,
                   unit: question.unit,
+                  actual_resolve_time: question.actual_resolve_time ?? null,
                 })}
               </Td>
             )}
@@ -762,6 +784,7 @@ const ContinuousTable: FC<Props> = ({
                       scaling: question.scaling,
                       precision: 4,
                       unit: question.unit,
+                      actual_resolve_time: question.actual_resolve_time ?? null,
                     })}
                   </>
                 ) : (
@@ -778,6 +801,7 @@ const ContinuousTable: FC<Props> = ({
                   scaling: question.scaling,
                   precision: 4,
                   unit: question.unit,
+                  actual_resolve_time: question.actual_resolve_time ?? null,
                 })}
               </Td>
             )}
@@ -798,6 +822,7 @@ const ContinuousTable: FC<Props> = ({
                   {displayValue({
                     value: question.scaling.range_max,
                     questionType: question.type,
+                    actual_resolve_time: question.actual_resolve_time ?? null,
                   })}
                 </Td>
                 {withCommunityQuartiles && (

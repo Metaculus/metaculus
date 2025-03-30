@@ -167,6 +167,7 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "utils.exceptions.custom_exception_handler",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 20,
+    "MAX_LIMIT": 100,
 }
 
 # Password validation
@@ -231,7 +232,7 @@ REST_SOCIAL_VERBOSE_ERRORS = True
 # Email configuration
 # https://anymail.dev/
 MAILGUN_API_KEY = os.environ.get("MAILGUN_API_KEY")
-MAILGUN_SUBDOMAIN = os.environ.get("MAILGUN_SUBDOMAIN")
+MAILGUN_DOMAIN = os.environ.get("MAILGUN_DOMAIN", "mg2.metaculus.com")
 ANYMAIL = {
     "MAILGUN_API_KEY": MAILGUN_API_KEY,
     "SEND_DEFAULTS": {
@@ -244,14 +245,14 @@ ANYMAIL = {
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
-    "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg2.metaculus.com>"
+    "EMAIL_HOST_USER", f"Metaculus Accounts <accounts@{MAILGUN_DOMAIN}>"
 )
 EMAIL_NOTIFICATIONS_USER = os.environ.get(
     "EMAIL_NOTIFICATIONS_USER",
-    "Metaculus Notifications <notifications@mg2.metaculus.com>",
+    f"Metaculus Notifications <notifications@{MAILGUN_DOMAIN}>",
 )
 EMAIL_SENDER_NO_REPLY = os.environ.get(
-    "EMAIL_SENDER_NO_REPLY", "Metaculus NoReply <no-reply@mg2.metaculus.com>"
+    "EMAIL_SENDER_NO_REPLY", f"Metaculus NoReply <no-reply@{MAILGUN_DOMAIN}>"
 )
 EMAIL_FEEDBACK = os.environ.get("EMAIL_FEEDBACK", "feedback@metaculus.com")
 # TODO: reconsider after release
@@ -437,7 +438,7 @@ SHELL_PLUS_IMPORTS = [
 
 # Sentry config
 SENTRY_DNS = os.environ.get("SENTRY_DNS")
-SENTRY_SAMPLE_RATE = float(os.environ.get("SENTRY_SAMPLE_RATE", 0.25))
+SENTRY_SAMPLE_RATE = float(os.environ.get("SENTRY_SAMPLE_RATE", 0.15))
 
 
 def traces_sampler(sampling_context):

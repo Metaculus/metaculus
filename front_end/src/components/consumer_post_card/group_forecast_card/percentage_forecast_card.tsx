@@ -15,6 +15,7 @@ import {
 import {
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
+  sortGroupPredictionOptions,
 } from "@/utils/questions";
 
 import ForecastCardWrapper from "./forecast_card_wrapper";
@@ -39,11 +40,14 @@ const PercentageForecastCard: FC<Props> = ({ post }) => {
   return (
     <ForecastCardWrapper otherItemsCount={otherItemsCount}>
       {visibleChoices.map((choice) => {
-        const choiceValue = getChoiceOptionValue(
-          choice.aggregationValues[choice.aggregationValues.length - 1] ?? null,
-          QuestionType.Binary,
-          choice.scaling
-        );
+        const choiceValue = getChoiceOptionValue({
+          value:
+            choice.aggregationValues[choice.aggregationValues.length - 1] ??
+            null,
+          questionType: QuestionType.Binary,
+          scaling: choice.scaling,
+          actual_resolve_time: choice.actual_resolve_time ?? null,
+        });
         const isChoiceClosed = choice.closeTime
           ? choice.closeTime < Date.now()
           : false;
@@ -80,13 +84,14 @@ function generateChoiceItems(
     );
   }
   if (isGroupOfQuestionsPost(post)) {
-    return generateChoiceItemsFromGroupQuestions(
+    const sortedGroupQuestions = sortGroupPredictionOptions(
       post.group_of_questions?.questions as QuestionWithNumericForecasts[],
-      {
-        activeCount: visibleChoicesCount,
-        locale,
-      }
+      post.group_of_questions
     );
+    return generateChoiceItemsFromGroupQuestions(sortedGroupQuestions, {
+      activeCount: visibleChoicesCount,
+      locale,
+    });
   }
   return [];
 }

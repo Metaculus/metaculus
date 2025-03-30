@@ -23,6 +23,7 @@ import {
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
+import SectionToggle from "@/components/ui/section_toggle";
 import { ErrorResponse } from "@/types/fetch";
 import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
@@ -70,8 +71,8 @@ const createQuestionSchemas = (
       .min(4, {
         message: t("errorMinLength", { field: "String", minLength: 4 }),
       })
-      .max(60, {
-        message: t("errorMaxLength", { field: "String", maxLength: 60 }),
+      .max(80, {
+        message: t("errorMaxLength", { field: "String", maxLength: 80 }),
       }),
     description: z.string().min(4, {
       message: t("errorMinLength", { field: "String", minLength: 4 }),
@@ -607,41 +608,6 @@ const QuestionForm: FC<Props> = ({
             </div>
           </>
         )}
-
-        <hr className="my-4" />
-        <h2 className="text-lg font-semibold">{"Advanced Options"}</h2>
-        <div className="text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
-          {t("advancedOptionsDescription")}
-        </div>
-
-        <div className="flex w-full flex-col gap-4 md:flex-row">
-          <InputContainer
-            labelText={t("openTime")}
-            explanation={"When this question will be open for predictions."}
-            className="w-full gap-2"
-          >
-            <DateInput
-              control={form.control}
-              name="open_time"
-              defaultValue={post?.question?.open_time}
-              errors={form.formState.errors.open_time}
-              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-            />
-          </InputContainer>
-          <InputContainer
-            labelText={"Publish Time"}
-            explanation={t("publishTimeDescription")}
-            className="w-full gap-2"
-          >
-            <DateInput
-              control={form.control}
-              name="published_at"
-              defaultValue={post?.published_at}
-              errors={form.formState.errors.published_at}
-              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-            />
-          </InputContainer>
-        </div>
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer
             labelText={"Closing Time"}
@@ -670,21 +636,6 @@ const QuestionForm: FC<Props> = ({
             />
           </InputContainer>
         </div>
-        <div className="flex w-full flex-col gap-4 md:flex-row">
-          <InputContainer
-            labelText={t("cpRevealTime")}
-            explanation={t("cpRevealTimeDescription")}
-            className="w-full gap-2"
-          >
-            <DateInput
-              control={form.control}
-              name="cp_reveal_time"
-              defaultValue={post?.question?.cp_reveal_time}
-              errors={form.formState.errors.cp_reveal_time}
-              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-            />
-          </InputContainer>
-        </div>
         <InputContainer labelText={t("categories")}>
           <CategoryPicker
             allCategories={allCategories}
@@ -694,16 +645,68 @@ const QuestionForm: FC<Props> = ({
             }}
           />
         </InputContainer>
-        {!community_id && defaultProject.type !== TournamentType.Community && (
-          <ProjectPickerInput
-            tournaments={tournaments}
-            siteMain={siteMain}
-            currentProject={defaultProject}
-            onChange={(project) => {
-              form.setValue("default_project", project.id);
-            }}
-          />
-        )}
+
+        <SectionToggle title="Advanced Options" defaultOpen={false}>
+          <div className="mb-4 text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
+            {t("advancedOptionsDescription")}
+          </div>
+
+          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
+            <InputContainer
+              labelText={t("openTime")}
+              explanation={"When this question will be open for predictions."}
+              className="w-full gap-2"
+            >
+              <DateInput
+                control={form.control}
+                name="open_time"
+                defaultValue={post?.question?.open_time}
+                errors={form.formState.errors.open_time}
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              />
+            </InputContainer>
+            <InputContainer
+              labelText={"Publish Time"}
+              explanation={t("publishTimeDescription")}
+              className="w-full gap-2"
+            >
+              <DateInput
+                control={form.control}
+                name="published_at"
+                defaultValue={post?.published_at}
+                errors={form.formState.errors.published_at}
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              />
+            </InputContainer>
+          </div>
+
+          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
+            <InputContainer
+              labelText={t("cpRevealTime")}
+              explanation={t("cpRevealTimeDescription")}
+              className="w-full gap-2"
+            >
+              <DateInput
+                control={form.control}
+                name="cp_reveal_time"
+                defaultValue={post?.question?.cp_reveal_time}
+                errors={form.formState.errors.cp_reveal_time}
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              />
+            </InputContainer>
+          </div>
+          {!community_id &&
+            defaultProject.type !== TournamentType.Community && (
+              <ProjectPickerInput
+                tournaments={tournaments}
+                siteMain={siteMain}
+                currentProject={defaultProject}
+                onChange={(project) => {
+                  form.setValue("default_project", project.id);
+                }}
+              />
+            )}
+        </SectionToggle>
 
         <div className="flex-col">
           <div className="-mt-2 min-h-[32px] flex-col">

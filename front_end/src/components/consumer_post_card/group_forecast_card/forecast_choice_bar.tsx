@@ -4,6 +4,7 @@ import { FC } from "react";
 
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
+import useMounted from "@/hooks/use_mounted";
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
 import cn from "@/utils/cn";
@@ -19,6 +20,7 @@ type Props = {
   progress: number;
   color: ThemeColor;
   isBordered?: boolean;
+  unit?: string;
 };
 
 const WIDTH_ADJUSTMENT = 2;
@@ -32,9 +34,12 @@ const ForecastChoiceBar: FC<Props> = ({
   resolution,
   color,
   isBordered = false,
+  unit,
 }) => {
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
+  const mounted = useMounted();
+
   const isResolutionSuccessful = isSuccessfullyResolved(resolution);
   return (
     <div
@@ -51,9 +56,23 @@ const ForecastChoiceBar: FC<Props> = ({
     >
       <span className="z-10 line-clamp-1 max-w-[85%]">{choiceLabel}</span>
       <span className="z-10 text-nowrap">
-        {displayedResolution
-          ? `${isResolutionSuccessful ? t("resolved") : ""} ${displayedResolution}`
-          : choiceValue}
+        {displayedResolution ? (
+          <>
+            {isResolutionSuccessful ? (
+              <span className="font-medium capitalize text-purple-600 dark:text-purple-600-dark">
+                {t("result")}:{" "}
+              </span>
+            ) : null}
+            <span className="font-bold">
+              {unit
+                ? String(displayedResolution).replace(unit, "")
+                : displayedResolution}
+              {unit && <span className="font-normal">{unit}</span>}
+            </span>
+          </>
+        ) : (
+          choiceValue
+        )}
       </span>
 
       <div
@@ -67,15 +86,24 @@ const ForecastChoiceBar: FC<Props> = ({
               return "transparent";
             } else if (isClosed) {
               return addOpacityToHex(
-                getThemeColor(METAC_COLORS.gray["500"]),
+                mounted
+                  ? getThemeColor(METAC_COLORS.gray["500"])
+                  : METAC_COLORS.gray["500"].DEFAULT,
                 0.5
               );
             }
-            return addOpacityToHex(getThemeColor(color), 0.3);
+            return addOpacityToHex(
+              mounted ? getThemeColor(color) : color.DEFAULT,
+              0.3
+            );
           })(),
           borderColor: isClosed
-            ? getThemeColor(METAC_COLORS.gray["500"])
-            : getThemeColor(color),
+            ? mounted
+              ? getThemeColor(METAC_COLORS.gray["500"])
+              : METAC_COLORS.gray["500"].DEFAULT
+            : mounted
+              ? getThemeColor(color)
+              : color.DEFAULT,
         }}
       ></div>
     </div>

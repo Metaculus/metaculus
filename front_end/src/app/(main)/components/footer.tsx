@@ -3,6 +3,7 @@
 import { faTwitter, faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -17,21 +18,21 @@ const Footer: FC = () => {
       <div className="flex min-w-72 max-w-96 flex-1 justify-evenly px-4 pb-0 pt-4">
         <ul className="mr-3">
           <li className="my-2">
-            <a className="capitalize no-underline" href="/about/">
+            <Link className="capitalize no-underline" href="/about/">
               {t("about")}
-            </a>
+            </Link>
           </li>
           <li className="my-2">
-            <a className="no-underline" href="/api">
+            <Link className="no-underline" href="/api">
               {t("api")}
-            </a>
+            </Link>
           </li>
         </ul>
         <ul className="mr-3">
           <li className="my-2">
-            <a className="no-underline" href="/faq">
+            <Link className="no-underline" href="/faq">
               {t("faq")}
-            </a>
+            </Link>
           </li>
           <li className="my-2">
             <a
@@ -42,9 +43,9 @@ const Footer: FC = () => {
             </a>
           </li>
           <li className="my-2">
-            <a className="capitalize no-underline" href="/press">
+            <Link className="capitalize no-underline" href="/press">
               {t("forJournalists")}
-            </a>
+            </Link>
           </li>
         </ul>
         <ul className="mr-3">

@@ -58,6 +58,7 @@ type Props = {
     | undefined
   >;
   setForecastInputMode: (mode: ContinuousForecastInputType) => void;
+  copyMenu?: ReactNode;
 };
 
 const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
@@ -69,6 +70,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   handleResetForecasts,
   handlePredictSubmit,
   setForecastInputMode,
+  copyMenu,
 }) => {
   const { user } = useAuth();
   const t = useTranslations();
@@ -82,7 +84,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     );
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
-  const forecastInputMode = option.forecastInputMode;
+  const { forecastInputMode, isDirty, userQuantileForecast } = option;
 
   const forecast = useMemo(
     () =>
@@ -202,7 +204,11 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
                 variant="secondary"
                 type="reset"
                 onClick={() => handleResetForecasts(option)}
-                disabled={!option.isDirty}
+                disabled={
+                  forecastInputMode === ContinuousForecastInputType.Slider
+                    ? !isDirty
+                    : !userQuantileForecast.some((q) => q.isDirty)
+                }
               >
                 {t("discardChangesButton")}
               </Button>
@@ -279,6 +285,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             predictionMessage ? t(predictionMessage) : undefined
           }
           menu={option.menu}
+          copyMenu={copyMenu}
         />
       </div>
 
@@ -295,6 +302,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
                 questionType: option.question.type,
                 locale,
                 scaling: option.question.scaling,
+                actual_resolve_time:
+                  option.question.actual_resolve_time ?? null,
               })}
             </strong>
           </p>

@@ -98,8 +98,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       communitiesForecast: prevNoAggregationValue,
     },
   ]);
+
   const [activeTableOption, setActiveTableOption] = useState(
-    questionOptions.at(0)?.id ?? null
+    question_yes.resolution === "annulled" ? questionNoId : questionYesId
   );
   const activeQuestion = useMemo(
     () => [question_yes, question_no].find((q) => q.id === activeTableOption),
@@ -344,15 +345,15 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                 >
                   {copyForecastButton?.label ?? "Copy from Child"}
                 </Button>
-                <Button
-                  variant="secondary"
-                  type="reset"
-                  onClick={resetForecasts}
-                  disabled={!isPickerDirty}
-                >
-                  {t("discardChangesButton")}
-                </Button>
-                {(!!prevYesForecastValue || !!prevNoForecastValue) && (
+                {!!isPickerDirty ? (
+                  <Button
+                    variant="secondary"
+                    type="reset"
+                    onClick={resetForecasts}
+                  >
+                    {t("discardChangesButton")}
+                  </Button>
+                ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
                   <Button
                     variant="secondary"
                     type="submit"
@@ -361,7 +362,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                   >
                     {t("withdraw")}
                   </Button>
-                )}
+                ) : null}
               </>
             )}
 

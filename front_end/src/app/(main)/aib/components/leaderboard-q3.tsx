@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import MetaculusLogo from "../../about/components/MetacLogo";
 
 type LeaderboardEntry = {
@@ -34,7 +36,9 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
           {entry.isMetacBot && (
             <MetaculusLogo className="mr-2 size-5 rounded-sm bg-blue-700 text-gray-0 dark:bg-blue-700-dark dark:text-gray-0-dark" />
           )}
-          <a href={`/accounts/profile/${entry.userId}/`}>{entry.username}</a>
+          <Link href={`/accounts/profile/${entry.userId}/`}>
+            {entry.username}
+          </Link>
         </div>
       </td>
       <td className="text-right">

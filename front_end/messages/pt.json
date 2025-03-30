@@ -1160,5 +1160,16 @@
   "cpAscendingSubquestionOrder": "Previsão da Comunidade (Ascendente)",
   "cpDescendingSubquestionOrder": "Previsão da Comunidade (Descendente)",
   "groupSorting": "Ordenação do grupo",
-  "groupSortingDescription": "A ordem das subperguntas no grupo"
+  "groupSortingDescription": "A ordem das subperguntas no grupo",
+  "today": "Hoje",
+  "spotScoingTime": "Tempo de Pontuação do Spot",
+  "forecastCopyToAll": "Copiar para todos",
+  "forecastCopyTo": "Copiar para…",
+  "forecastCopyFrom": "Copiar de…",
+  "forecastCopyToRich": "<label>Copiar para</label> {name}",
+  "forecastCopyFromRich": "<label>Copiar de</label> {name}",
+  "forecastCopyToAllToastMessage": "Distribuição copiada para todas as outras perguntas",
+  "forecastCopyFromToastMessage": "Distribuição copiada de ''{name}''",
+  "forecastCopyToToastMessage": "Distribuição copiada de ''{from_name}'' para ''{to_name}''",
+  "result": "resultado"
 }

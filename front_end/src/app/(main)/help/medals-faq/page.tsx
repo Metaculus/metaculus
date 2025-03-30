@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import KatexRenderer from "@/components/katex_renderer";
 
 import PageWrapper from "../../components/pagewrapper";
@@ -14,8 +16,8 @@ export default function MedalsFAQ() {
       <h1>Medals FAQ</h1>
       <p>
         Below are Frequently Asked Questions (and answers!) about medals. The
-        general FAQ is <a href="/faq/">here</a>, and the scores FAQ is{" "}
-        <a href="/help/scores-faq/">here</a>.
+        general FAQ is <Link href="/faq/">here</Link>, and the scores FAQ is{" "}
+        <Link href="/help/scores-faq/">here</Link>.
       </p>
 
       <div className="table-of-contents">
@@ -77,7 +79,7 @@ export default function MedalsFAQ() {
 
       <p>
         Medals are awarded based on a user&apos;s placement in the{" "}
-        <a href="/leaderboard/">Leaderboards</a>. There are separate
+        <Link href="/leaderboard/">Leaderboards</Link>. There are separate
         leaderboards for each medal category (
         <a href="#peer-medals">Peer Accuracy</a>,{" "}
         <a href="#baseline-medals">Baseline Accuracy</a>,{" "}
@@ -85,8 +87,8 @@ export default function MedalsFAQ() {
         <a href="#question-writing-medals">Question Writing</a>), and each
         leaderboard is further separated into time periods. Medals are also
         awarded for placement in each{" "}
-        <a href="/help/scores-faq/#metaculus-tournaments">Tournament</a>&apos;s
-        leaderboard.
+        <Link href="/help/scores-faq/#metaculus-tournaments">Tournament</Link>
+        &apos;s leaderboard.
       </p>
 
       <p>
@@ -99,16 +101,16 @@ export default function MedalsFAQ() {
         comments, tournaments) counts for medals. If you are invited to a
         private tournament, your activity there will not count toward any medal.
         We have also decided the three Beginner Tournaments (
-        <a href="/tournament/Q42022-beginner-tournament/">1</a>,{" "}
-        <a href="/tournament/Q12023-beginner-tournament/">2</a>,{" "}
-        <a href="/tournament/beginner-tournament/">3</a>) would not award
+        <Link href="/tournament/Q42022-beginner-tournament/">1</Link>,{" "}
+        <Link href="/tournament/Q12023-beginner-tournament/">2</Link>,{" "}
+        <Link href="/tournament/beginner-tournament/">3</Link>) would not award
         medals, since that would be unfair to veteran forecasters who were
         actively discouraged from participating.
       </p>
 
       <p>
-        Medals appear in the <a href="/leaderboard/">Leaderboards</a> and in
-        user profiles.
+        Medals appear in the <Link href="/leaderboard/">Leaderboards</Link> and
+        in user profiles.
       </p>
 
       <hr />
@@ -121,8 +123,9 @@ export default function MedalsFAQ() {
       </p>
       <p>
         Users are ranked by the sum of their{" "}
-        <a href="/help/scores-faq/#baseline-score">Baseline scores</a> over all
-        questions in the <a href="#scores-time-periods">Time Period</a>.
+        <Link href="/help/scores-faq/#baseline-score">Baseline scores</Link>{" "}
+        over all questions in the <a href="#scores-time-periods">Time Period</a>
+        .
       </p>
 
       <hr />
@@ -135,8 +138,9 @@ export default function MedalsFAQ() {
       </p>
       <p>
         Forecasters are ranked by the sum of their{" "}
-        <a href="/help/scores-faq/#peer-score">Peer scores</a>, divided by the
-        sum of their <a href="/help/scores-faq/#coverage">Coverages</a> over all
+        <Link href="/help/scores-faq/#peer-score">Peer scores</Link>, divided by
+        the sum of their{" "}
+        <Link href="/help/scores-faq/#coverage">Coverages</Link> over all
         questions in the <a href="#scores-time-periods">Time Period</a>. This
         creates a weighted average, where each prediction is counted
         proportionally to how long it was standing.
@@ -152,9 +156,9 @@ export default function MedalsFAQ() {
         Before 2024, the Peer accuracy was slightly different. The forecaster
         score was the average of their Peer scores, not taking Coverage into
         account. This caused some incentives problems, see{" "}
-        <a href="/notebooks/20027/scores-and-medals-trade-offs-and-decisions/#update-july-2024-implementing-idea-4">
+        <Link href="/notebooks/20027/scores-and-medals-trade-offs-and-decisions/#update-july-2024-implementing-idea-4">
           here
-        </a>{" "}
+        </Link>{" "}
         for details. The initial handicap was also 40 instead of the current 30.
       </p>
 
@@ -169,11 +173,11 @@ export default function MedalsFAQ() {
       </p>
       <p>
         The three Beginner Tournaments (
-        <a href="/tournament/Q42022-beginner-tournament/">1</a>,{" "}
-        <a href="/tournament/Q12023-beginner-tournament/">2</a>,{" "}
-        <a href="/tournament/beginner-tournament/">3</a>) will not award medals,
-        since that would be unfair to veteran forecasters who were actively
-        discouraged from participating.
+        <Link href="/tournament/Q42022-beginner-tournament/">1</Link>,{" "}
+        <Link href="/tournament/Q12023-beginner-tournament/">2</Link>,{" "}
+        <Link href="/tournament/beginner-tournament/">3</Link>) will not award
+        medals, since that would be unfair to veteran forecasters who were
+        actively discouraged from participating.
       </p>
 
       <hr />
@@ -187,9 +191,9 @@ export default function MedalsFAQ() {
 
       <p>
         Users are ranked by the{" "}
-        <a href="/help/medals-faq/#h-indexes">h-index</a> of upvotes on their
-        comments made during the{" "}
-        <a href="/help/medals-faq/#writing-time-periods">Time Period</a>.
+        <Link href="/help/medals-faq/#h-indexes">h-index</Link> of upvotes on
+        their comments made during the{" "}
+        <Link href="/help/medals-faq/#writing-time-periods">Time Period</Link>.
       </p>
 
       <hr />
@@ -203,9 +207,9 @@ export default function MedalsFAQ() {
 
       <p>
         Users are ranked by the{" "}
-        <a href="/help/medals-faq/#h-indexes">h-index</a> of the number of
+        <Link href="/help/medals-faq/#h-indexes">h-index</Link> of the number of
         forecasters who predicted on their authored questions in the{" "}
-        <a href="/help/medals-faq/#writing-time-periods">Time Period</a>.
+        <Link href="/help/medals-faq/#writing-time-periods">Time Period</Link>.
         Because there are few questions but many forecasters, the number of
         forecasters is divided by 10 before being used in the h-index.
       </p>

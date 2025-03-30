@@ -14,7 +14,7 @@ export default function MedalsFAQ() {
         <p>
           Ao adicionar comentários ou sugerir perguntas, você pode aproveitar{" "}
           <a href="http://daringfireball.net/projects/markdown/">
-            Markdown (Tragress do
+            Markdown Tragress do
           </a>
           sintaxe para adicionar links, ênfase e cabeçalhos. Além disso, você
           pode adicionar equações matemáticas via{" "}

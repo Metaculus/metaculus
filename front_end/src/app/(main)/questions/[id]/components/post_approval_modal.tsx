@@ -33,14 +33,20 @@ const PostApprovalModal: FC<{
     published_at:
       post.published_at ??
       formatInTimeZone(new Date(), "UTC", "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-    open_time:
-      post.question?.open_time ??
-      post.published_at ??
-      formatInTimeZone(
-        addDays(new Date(), 1),
-        "UTC",
-        "yyyy-MM-dd'T'HH:mm:ss'Z'"
-      ),
+    open_time: post.question?.open_time
+      ? isAfter(new Date(post.question?.open_time), addDays(new Date(), 1))
+        ? post.question?.open_time
+        : formatInTimeZone(
+            addDays(new Date(), 1),
+            "UTC",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'"
+          )
+      : post.published_at ??
+        formatInTimeZone(
+          addDays(new Date(), 1),
+          "UTC",
+          "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        ),
     cp_reveal_time:
       post.question?.cp_reveal_time ??
       formatInTimeZone(
@@ -49,14 +55,14 @@ const PostApprovalModal: FC<{
         "yyyy-MM-dd'T'HH:mm:ss'Z'"
       ),
     scheduled_close_time:
-      post.question?.scheduled_close_time ??
+      post.scheduled_close_time ??
       formatInTimeZone(
         addDays(new Date(), 30),
         "UTC",
         "yyyy-MM-dd'T'HH:mm:ss'Z'"
       ),
     scheduled_resolve_time:
-      post.question?.scheduled_resolve_time ??
+      post.scheduled_resolve_time ??
       formatInTimeZone(
         addDays(new Date(), 30),
         "UTC",

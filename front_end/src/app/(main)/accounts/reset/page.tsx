@@ -7,12 +7,15 @@ import { getServerSession } from "@/services/session";
 import { FetchError } from "@/types/fetch";
 import { logError } from "@/utils/errors";
 
-export default async function ResetPassword({
-  searchParams: { user_id, token },
-}: {
-  searchParams: { user_id: number; token: string };
+export default async function ResetPassword(props: {
+  searchParams: Promise<{ user_id: number; token: string }>;
 }) {
-  if (getServerSession()) {
+  const searchParams = await props.searchParams;
+
+  const { user_id, token } = searchParams;
+
+  const serverSession = await getServerSession();
+  if (serverSession) {
     return redirect("/");
   }
 

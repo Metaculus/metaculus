@@ -1,6 +1,11 @@
 import { Button as HeadlessButton } from "@headlessui/react";
 import Link from "next/link";
-import { AnchorHTMLAttributes, ButtonHTMLAttributes, forwardRef } from "react";
+import {
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
+  forwardRef,
+  PropsWithChildren,
+} from "react";
 
 import cn from "@/utils/cn";
 
@@ -35,10 +40,9 @@ const Button = forwardRef<HTMLButtonElement, Props>(
     ref
   ) => {
     return (
-      <HeadlessButton
+      <Container
         ref={ref}
-        as={href ? Link : undefined}
-        href={href ?? ""}
+        href={href}
         className={cn(
           "inline-flex items-center justify-center rounded-full disabled:opacity-30",
           {
@@ -67,11 +71,33 @@ const Button = forwardRef<HTMLButtonElement, Props>(
         {...props}
       >
         {children}
-      </HeadlessButton>
+      </Container>
     );
   }
 );
 Button.displayName = "Button";
+
+type ContainerProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  AnchorHTMLAttributes<HTMLAnchorElement>;
+const Container = forwardRef<
+  HTMLButtonElement,
+  PropsWithChildren<ContainerProps>
+>(({ href, children, ...props }, ref) => {
+  if (href) {
+    return (
+      <HeadlessButton ref={ref} as={Link} href={href} {...props}>
+        {children}
+      </HeadlessButton>
+    );
+  }
+
+  return (
+    <HeadlessButton ref={ref} {...props}>
+      {children}
+    </HeadlessButton>
+  );
+});
+Container.displayName = "Container";
 
 function getPresentationTypeStyles(type: PresentationType, size: ButtonSize) {
   switch (type) {

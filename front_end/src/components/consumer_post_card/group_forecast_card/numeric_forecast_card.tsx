@@ -37,6 +37,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
   const choices = generateChoiceItemsFromGroupQuestions(sortedQuestions, {
     activeCount: visibleChoicesCount,
     locale,
+    shortBounds: true,
   });
   // Move resolved/annulled choices to the start
   const sortedChoices = [...choices].sort((a, b) => {
@@ -51,20 +52,20 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
   const isPostClosed = post.status === PostStatus.CLOSED;
   const visibleChoices = sortedChoices.slice(0, visibleChoicesCount);
   const otherItemsCount = sortedChoices.length - visibleChoices.length;
-  const maxScaledValue = Math.max(
-    ...sortedChoices
-      .filter((choice) => isNil(choice.resolution))
-      .map(({ aggregationValues, scaling }) =>
-        scaleInternalLocation(
-          aggregationValues[aggregationValues.length - 1] ?? 0,
-          {
-            range_min: scaling?.range_min ?? 0,
-            range_max: scaling?.range_max ?? 1,
-            zero_point: scaling?.zero_point ?? null,
-          }
-        )
+  const scaledValues = [...sortedChoices]
+    .filter((choice) => isNil(choice.resolution))
+    .map(({ aggregationValues, scaling }) =>
+      scaleInternalLocation(
+        aggregationValues[aggregationValues.length - 1] ?? 0,
+        {
+          range_min: scaling?.range_min ?? 0,
+          range_max: scaling?.range_max ?? 1,
+          zero_point: scaling?.zero_point ?? null,
+        }
       )
-  );
+    );
+  const maxScaledValue = Math.max(...scaledValues);
+  const minScaledValue = Math.min(...scaledValues);
 
   return (
     <ForecastCardWrapper otherItemsCount={otherItemsCount}>
@@ -78,15 +79,18 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
           color,
           displayedResolution,
           choice,
+          actual_resolve_time,
+          unit,
         }) => {
           const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
           const rawChoiceValue =
             aggregationValues[aggregationValues.length - 1] ?? null;
-          const formattedChoiceValue = getChoiceOptionValue(
-            rawChoiceValue,
-            QuestionType.Numeric,
-            scaling
-          );
+          const formattedChoiceValue = getChoiceOptionValue({
+            value: rawChoiceValue,
+            questionType: QuestionType.Numeric,
+            scaling,
+            actual_resolve_time: actual_resolve_time ?? null,
+          });
           const scaledChoiceValue = scaleInternalLocation(rawChoiceValue ?? 0, {
             range_min: scaling?.range_min ?? 0,
             range_max: scaling?.range_max ?? 1,
@@ -94,9 +98,11 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
           });
           const relativeWidth = !isNil(resolution)
             ? 100
-            : maxScaledValue > 0
-              ? ((scaledChoiceValue ?? 0) / maxScaledValue) * 100
-              : 0;
+            : calculateRelativeWidth({
+                scaledChoiceValue,
+                maxScaledValue,
+                minScaledValue,
+              });
 
           return (
             <ForecastChoiceBar
@@ -108,6 +114,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
               resolution={resolution}
               progress={relativeWidth}
               color={color}
+              unit={unit}
             />
           );
         }
@@ -116,4 +123,29 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
   );
 };
 
+function calculateRelativeWidth({
+  scaledChoiceValue,
+  maxScaledValue,
+  minScaledValue,
+}: {
+  scaledChoiceValue: number;
+  maxScaledValue: number;
+  minScaledValue: number;
+}) {
+  if (maxScaledValue === 0 && minScaledValue < 0) {
+    if (scaledChoiceValue === 0) {
+      return 100;
+    } else {
+      return (1 - scaledChoiceValue / minScaledValue) * 100;
+    }
+  }
+  if (minScaledValue < 0) {
+    const totalRange = maxScaledValue - minScaledValue;
+    return ((scaledChoiceValue - minScaledValue) / totalRange) * 100;
+  }
+
+  return maxScaledValue > 0
+    ? ((scaledChoiceValue ?? 0) / maxScaledValue) * 100
+    : 0;
+}
 export default NumericForecastCard;

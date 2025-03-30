@@ -372,12 +372,12 @@ export default async function FAQ() {
         <p>
           Second, Metaculus aggregates the forecasts into a community prediction
           based on the
-          <a href="https://en.wikipedia.org/wiki/Median"> median</a> of user
+          <a href="https://en.wikipedia.org/wiki/Median"> median</a>of user
           forecasts weighted by recency. Surprisingly, the Community Prediction
           is often{" "}
-          <a href="/questions/track-record/">
+          <Link href="/questions/track-record/">
             better than any individual predictor
-          </a>
+          </Link>
           ! This principle is known as{" "}
           <a href="https://en.wikipedia.org/wiki/Wisdom_of_the_crowd">
             the wisdom of the crowd,
@@ -477,13 +477,13 @@ export default async function FAQ() {
           nonprofit, government agency, or other organization seeking to use
           forecasting to support effective decision making. You can find current
           and archived tournaments in our{" "}
-          <a href="/tournaments/">Tournaments page</a>.
+          <Link href="/tournaments/">Tournaments page</Link>.
         </p>
         <p>
           Tournaments are the perfect place to prove your forecasting skills,
           while helping to improve our collective decision making ability. Cash
-          prizes and <a href="/help/medals-faq/">Medals</a> are awarded to the
-          most accurate forecasters, and sometimes for other valuable
+          prizes and <Link href="/help/medals-faq/">Medals</Link>are awarded to
+          the most accurate forecasters, and sometimes for other valuable
           contributions (like comments). Follow a Tournament (with the Follow
           button) to never miss new questions.
         </p>
@@ -492,9 +492,9 @@ export default async function FAQ() {
           the tournament page displaying current scores and rankings. A personal
           score board (&quot;My Score&quot;) will also appear, detailing your
           performance for each question (see{" "}
-          <a href="/help/scores-faq/#tournament-scores">
+          <Link href="/help/scores-faq/#tournament-scores">
             How are Tournaments Scored?
-          </a>
+          </Link>
           ).
         </p>
         <p>
@@ -512,7 +512,7 @@ export default async function FAQ() {
           facilitate donations to various non-profits, regranting organizations,
           and funds. You can find the list of organizations we facilitate
           payments to{" "}
-          <a href="/questions/11556/donating-tournament-prizes/">here</a>.
+          <Link href="/questions/11556/donating-tournament-prizes/">here</Link>.
         </p>
 
         <h4 className="text-lg font-semibold">Question Series</h4>
@@ -526,7 +526,7 @@ export default async function FAQ() {
         </p>
         <p>
           You can find all Question Series in a special section of the{" "}
-          <a href="/tournaments/">Tournaments page</a>.
+          <Link href="/tournaments/">Tournaments page</Link>.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="predmarket">
@@ -672,20 +672,20 @@ export default async function FAQ() {
         <p>
           In contrast, Metaculus questions are designed to be objectively
           resolvable (like in{" "}
-          <a href="/questions/9942/brent-oil-to-breach-140-before-may">
+          <Link href="/questions/9942/brent-oil-to-breach-140-before-may">
             Will Brent Crude Oil top $140/barrel before May 2022?
-          </a>
+          </Link>
           ), and forecasters are not asked for their preferences, but for their
           predictions. Unlike in a poll, over many predictions, participants
           accrue a track record indicating their forecasting accuracy. These
           track records are incorporated into the{" "}
-          <a href="/faq/#metaculus-prediction">Metaculus Prediction</a>. The
-          accuracy of the Metaculus track record itself is tracked{" "}
-          <a href="/questions/track-record/">here</a>.
+          <Link href="/faq/#metaculus-prediction">Metaculus Prediction</Link>.
+          The accuracy of the Metaculus track record itself is tracked{" "}
+          <Link href="/questions/track-record/">here</Link>.
         </p>
 
         <h2
-          className="scroll-mt-nav scroll-mt-nav text-2xl font-bold"
+          className="scroll-mt-nav text-2xl font-bold"
           id="metaculus-questions"
         >
           Metaculus Questions
@@ -699,10 +699,10 @@ export default async function FAQ() {
           which are well-defined and not a matter of opinion. &quot;When will
           the United States collapse?&quot; is a poor, ambiguous question;{" "}
           <q>
-            <a href="/questions/8579/us-freedom-in-the-world-score-in-2050/">
+            <Link href="/questions/8579/us-freedom-in-the-world-score-in-2050/">
               What will be the US&apos; score in the Freedom in the World Report
               for 2050?
-            </a>
+            </Link>
           </q>{" "}
           is more clear and definite. They generally take the form{" "}
           <q>Will (event) X happen by (date) Y?</q> or{" "}
@@ -753,18 +753,20 @@ export default async function FAQ() {
           of moderators appointed by Metaculus. Moderators will select the best
           questions submitted, and help to edit the question to be clear,
           well-sourced, and{" "}
-          <a href="/question-writing/">aligned with our writing style</a>.
+          <Link href="/question-writing/">aligned with our writing style</Link>.
         </p>
 
         <p>
           Metaculus hosts questions on{" "}
-          <a href="/questions/categories/">many topics</a>, but our primary
-          focus areas are Science,{" "}
-          <a href="/questions/?categories=technology">Technology</a>,{" "}
-          <a href="/questions/?tags=effective-altruism">Effective Altruism</a>,{" "}
-          <a href="/questions/?topic=ai">Artificial Intelligence</a>,{" "}
-          <a href="/questions/?topic=biosecurity">Health</a>, and{" "}
-          <a href="/questions/?categories=geopolitics">Geopolitics</a>.
+          <Link href="/questions/categories/">many topics</Link>, but our
+          primary focus areas are Science,{" "}
+          <Link href="/questions/?categories=technology">Technology</Link>,{" "}
+          <Link href="/questions/?tags=effective-altruism">
+            Effective Altruism
+          </Link>
+          , <Link href="/questions/?topic=ai">Artificial Intelligence</Link>,{" "}
+          <Link href="/questions/?topic=biosecurity">Health</Link>, and{" "}
+          <Link href="/questions/?categories=geopolitics">Geopolitics</Link>.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="whoedits">
@@ -800,9 +802,9 @@ export default async function FAQ() {
             If you have a basic idea for a question but don&apos;t have
             time/energy to work out the details, you&apos;re welcome to submit
             it, discuss it in our{" "}
-            <a href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
+            <Link href="/questions/956/discussion-topic-what-are-some-suggestions-for-questions-to-launch/">
               question idea thread
-            </a>
+            </Link>
             , or on our{" "}
             <a href="https://discord.gg/v2Bf5tppeT">Discord channel</a>.
           </li>
@@ -814,13 +816,15 @@ export default async function FAQ() {
           </li>
           <li>
             Metaculus hosts questions on{" "}
-            <a href="/questions/categories/">many topics</a>, but our primary
-            focus areas are Science,{" "}
-            <a href="/questions/?categories=technology">Technology</a>,{" "}
-            <a href="/questions/?tags=effective-altruism">Effective Altruism</a>
-            , <a href="/questions/?topic=ai">Artificial Intelligence</a>,{" "}
-            <a href="/questions/?topic=biosecurity">Health</a>, and{" "}
-            <a href="/questions/?categories=geopolitics">Geopolitics</a>.
+            <Link href="/questions/categories/">many topics</Link>, but our
+            primary focus areas are Science,{" "}
+            <Link href="/questions/?categories=technology">Technology</Link>,{" "}
+            <Link href="/questions/?tags=effective-altruism">
+              Effective Altruism
+            </Link>
+            , <Link href="/questions/?topic=ai">Artificial Intelligence</Link>,{" "}
+            <Link href="/questions/?topic=biosecurity">Health</Link>, and{" "}
+            <Link href="/questions/?categories=geopolitics">Geopolitics</Link>.
             Questions on other topics, especially that require a lot of
             moderator effort to get launched, will be given lower priority and
             may be deferred until a later time.
@@ -848,12 +852,15 @@ export default async function FAQ() {
           which are interesting and well-written. That said, we try to approve
           just enough questions that they each can get the attention they
           deserve from our forecasters. Metaculus prioritizes questions on
-          Science, <a href="/questions/?categories=technology">Technology</a>,{" "}
-          <a href="/questions/?tags=effective-altruism">Effective Altruism</a>,{" "}
-          <a href="/questions/?topic=ai">Artificial Intelligence</a>,{" "}
-          <a href="/questions/?topic=biosecurity">Health</a>, and{" "}
-          <a href="/questions/?categories=geopolitics">Geopolitics</a>. If your
-          question falls into one of these categories, or is otherwise very
+          Science,{" "}
+          <Link href="/questions/?categories=technology">Technology</Link>,{" "}
+          <Link href="/questions/?tags=effective-altruism">
+            Effective Altruism
+          </Link>
+          , <Link href="/questions/?topic=ai">Artificial Intelligence</Link>,{" "}
+          <Link href="/questions/?topic=biosecurity">Health</Link>, and{" "}
+          <Link href="/questions/?categories=geopolitics">Geopolitics</Link>. If
+          your question falls into one of these categories, or is otherwise very
           urgent or important, you can tag us with @moderators to get our
           attention.
         </p>
@@ -881,8 +888,8 @@ export default async function FAQ() {
         <p>
           Private questions are deprecated, it is no longer possible to create
           new ones. If you had private questions, you can still find them by
-          going to the <a href="/questions/">Feed Home</a>, selecting &quot;My
-          questions and posts&quot; in the sidebar, and using the
+          going to the <Link href="/questions/">Feed Home</Link>, selecting
+          &quot;My questions and posts&quot; in the sidebar, and using the
           &quot;Personal&quot; special filter.
         </p>
 
@@ -891,15 +898,15 @@ export default async function FAQ() {
         </h3>
         <p>
           We have a full set of{" "}
-          <a href="/help/guidelines/">community etiquette guidelines</a> but in
-          summary:
+          <Link href="/help/guidelines/">community etiquette guidelines</Link>
+          but in summary:
         </p>
 
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>Users are welcome comment on any question.</li>
           <li>
             Comments and questions can use{" "}
-            <a href="/help/markdown/">markdown formatting</a>
+            <Link href="/help/markdown/">markdown formatting</Link>
           </li>
           <li>
             Metaculus aims at a high level of discourse. Comments should be on
@@ -909,7 +916,7 @@ export default async function FAQ() {
             offensive, derogatory, or harassing are not tolerated, as well as
             those that are explicitly commercial advertising or those that are
             in some way unlawful. See the Metaculus{" "}
-            <a href="/terms-of-use/">terms of use</a> for more
+            <Link href="/terms-of-use/">terms of use</Link>for more
           </li>
           <li>
             You can ping other users using &quot;@username&quot;, which will
@@ -919,7 +926,8 @@ export default async function FAQ() {
           <li>
             You are invited to upvote comments which contain relevant
             information to the question, and you can report comments that fail
-            to uphold our <a href="/help/guidelines/">etiquette guidelines</a>.
+            to uphold our{" "}
+            <Link href="/help/guidelines/">etiquette guidelines</Link>.
           </li>
           <li>
             If a comment is spam, inappropriate/offensive, or flagrantly breaks
@@ -975,9 +983,9 @@ export default async function FAQ() {
           resolve as <strong>Ambiguous</strong>). Binary questions are
           appropriate when an event can either occur or not occur. For example,
           the question &quot;
-          <a href="/questions/6296/us-unemployment-above-5-through-nov-2021/">
+          <Link href="/questions/6296/us-unemployment-above-5-through-nov-2021/">
             Will the US unemployment rate stay above 5% through November 2021?
-          </a>
+          </Link>
           &quot; resolved as <strong>No</strong> because the unemployment rate
           dropped below 5% before the specified time.
         </p>
@@ -991,13 +999,13 @@ export default async function FAQ() {
           fall within the bounds. If one or more of the bounds are open,
           forecasters may assign probability outside the boundary, and the
           question may resolve as outside the boundary.{" "}
-          <a href="#out-of-bounds-resolution">See here</a> for more details
-          about boundaries on range questions.
+          <a href="#out-of-bounds-resolution">See here</a>for more details about
+          boundaries on range questions.
         </p>
         <p>
           The range interface allows you to input multiple probability
           distributions with different weights.{" "}
-          <a href="#range-interface">See here</a> for more details on using the
+          <a href="#range-interface">See here</a>for more details on using the
           interface.
         </p>
         <p>
@@ -1009,20 +1017,20 @@ export default async function FAQ() {
         <p>
           Numeric range questions can resolve as a numeric value. For example,
           the question &quot;
-          <a href="/questions/7346/initial-jobless-claims-july-2021/">
+          <Link href="/questions/7346/initial-jobless-claims-july-2021/">
             What will be the 4-week average of initial jobless claims (in
             thousands) filed in July 2021?
-          </a>
+          </Link>
           &quot; resolved as <strong>395</strong>, because the underlying source
           reported 395 thousand initial jobless claims for July 2021.
         </p>
         <p>
           Questions can also resolve outside the numeric range. For example, the
           question &quot;
-          <a href="/questions/6645/highest-us-core-cpi-growth-in-2021/">
+          <Link href="/questions/6645/highest-us-core-cpi-growth-in-2021/">
             What will the highest level of annualised core US CPI growth be, in
             2021, according to U.S. Bureau of Labor Statistics data?
-          </a>
+          </Link>
           &quot; resolved as <strong>&gt; 6.5</strong> because the underlying
           source reported more than 6.5% annualized core CPI growth in the US,
           and 6.5 was the upper bound.
@@ -1032,19 +1040,19 @@ export default async function FAQ() {
         <p>
           Date range questions can resolve as a certain date. For example, the
           question &quot;
-          <a href="/questions/8723/date-of-next-who-pheic-declaration/">
+          <Link href="/questions/8723/date-of-next-who-pheic-declaration/">
             When will the next Public Health Emergency of International Concern
             be declared by the WHO?
-          </a>
+          </Link>
           &quot; resolved as <strong>July 23, 2022</strong>, because a Public
           Health Emergency of International Concern was declared on that date.
         </p>
         <p>
           Questions can also resolve outside the date range. For example, the
           question &quot;
-          <a href="/questions/6947/first-super-heavy-flight/">
+          <Link href="/questions/6947/first-super-heavy-flight/">
             When will a SpaceX Super Heavy Booster fly?
-          </a>
+          </Link>
           &quot; resolved as <strong>&gt; March 29, 2022</strong> because a
           SpaceX Super Heavy booster was not launched before March 29, 2022,
           which was the upper bound.
@@ -1120,9 +1128,9 @@ export default async function FAQ() {
         </p>
         <p>
           Feedback for question groups can be provided on the{" "}
-          <a href="/questions/9861/2022-3-9-update-forecast-question-groups/">
+          <Link href="/questions/9861/2022-3-9-update-forecast-question-groups/">
             question group discussion post
-          </a>
+          </Link>
           .
         </p>
 
@@ -1131,13 +1139,13 @@ export default async function FAQ() {
         </h3>
         <p>
           A Conditional Pair is a special type of{" "}
-          <a href="/faq/#question-groups">Question Group</a> that elicits{" "}
+          <Link href="/faq/#question-groups">Question Group</Link>that elicits{" "}
           <a href="https://en.wikipedia.org/wiki/Conditional_probability">
             conditional probabilities
           </a>
           . Each Conditional Pair sits between a Parent Question and a Child
           Question. Both Parent and Child must be existing Metaculus{" "}
-          <a href="/faq/#question-types">Binary Questions</a>.
+          <Link href="/faq/#question-types">Binary Questions</Link>.
         </p>
 
         <p>
@@ -1178,7 +1186,8 @@ export default async function FAQ() {
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
             When the Parent resolves Yes, the &quot;if No&quot; Conditional is{" "}
-            <a href="/faq/#ambiguous-annulled">Annulled</a>. (And vice versa.)
+            <Link href="/faq/#ambiguous-annulled">Annulled</Link>. (And vice
+            versa.)
           </li>
           <li>
             When the Child resolves, the Conditional that was not annulled
@@ -1243,7 +1252,7 @@ export default async function FAQ() {
         <p>
           You can create and submit conditional pairs like any other question
           type. On the &apos;
-          <a href="/questions/create/">Create a Question</a>
+          <Link href="/questions/create/">Create a Question</Link>
           &apos; page, select Question Type &apos;conditional pair&apos; and
           select Parent and Child questions.
         </p>
@@ -1270,7 +1279,7 @@ export default async function FAQ() {
           Questions on Metaculus are sorted by activity by default. Newer
           questions, questions with new comments, recently upvoted questions,
           and questions with many new predictions will appear at the top of the{" "}
-          <a href="/questions/">Metaculus homepage</a>. However, there are
+          <Link href="/questions/">Metaculus homepage</Link>. However, there are
           several additional ways to find questions of interest and customize
           the way you interact with Metaculus.
         </p>
@@ -1297,7 +1306,7 @@ export default async function FAQ() {
         </p>
 
         <h2
-          className="scroll-mt-nav scroll-mt-nav text-2xl font-bold"
+          className="scroll-mt-nav text-2xl font-bold"
           id="question-resolution"
         >
           Question Resolution
@@ -1366,9 +1375,9 @@ export default async function FAQ() {
             will occur at an unknown time, but the outcome is likely to be
             independent of this time, then it should be specified that the
             question{" "}
-            <a href="/faq/#retroactive-closure">retroactively closes</a> some
-            appropriate time before the process begins. (Example: success of a
-            rocket launch occurring at an unknown time)
+            <Link href="/faq/#retroactive-closure">retroactively closes</Link>
+            some appropriate time before the process begins. (Example: success
+            of a rocket launch occurring at an unknown time)
           </li>
           <li>
             If the outcome of a question depends on a discrete event that may or
@@ -1382,9 +1391,9 @@ export default async function FAQ() {
           should close between 1/2 to 2/3 of the way between the open time and
           resolution time. This was necessary due to the scoring system at the
           time, but has been replaced by the above guidelines due to an{" "}
-          <a href="/questions/10801/discontinuing-the-final-forecast-bonus/">
+          <Link href="/questions/10801/discontinuing-the-final-forecast-bonus/">
             update to the scoring system
-          </a>
+          </Link>
           .
         </p>
 
@@ -1403,15 +1412,16 @@ export default async function FAQ() {
           text will be used.
         </p>
         <p>
-          For <a href="/faq/#question-types">date range</a> questions, the dates
-          on the interface are in UTC. Typically the time of day makes little
-          difference as one day is miniscule in comparison to the full range,
-          but occasionally for shorter term questions the time of day might
-          materially impact scores. If it is not clear what point in a specified
-          period a date range question will be resolved as, it resolves as the{" "}
-          <a href="/faq/#whenresolve">midpoint of that period</a>. For example,
-          if a question says it will resolve as a certain day, but not what time
-          of day, it will resolve as noon UTC on that day.
+          For <Link href="/faq/#question-types">date range</Link>questions, the
+          dates on the interface are in UTC. Typically the time of day makes
+          little difference as one day is miniscule in comparison to the full
+          range, but occasionally for shorter term questions the time of day
+          might materially impact scores. If it is not clear what point in a
+          specified period a date range question will be resolved as, it
+          resolves as the{" "}
+          <Link href="/faq/#whenresolve">midpoint of that period</Link>. For
+          example, if a question says it will resolve as a certain day, but not
+          what time of day, it will resolve as noon UTC on that day.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="who-resolves">
@@ -1420,9 +1430,10 @@ export default async function FAQ() {
         <p>
           Only Metaculus Administrators can resolve questions. Binary questions
           can resolve <strong>Yes</strong>, <strong>No</strong>,{" "}
-          <a href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</a>. Range
-          questions can resolve to a specific value, an out-of-bounds value,{" "}
-          <a href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</a>.
+          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</Link>.
+          Range questions can resolve to a specific value, an out-of-bounds
+          value,{" "}
+          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</Link>.
         </p>
 
         <h3
@@ -1443,7 +1454,7 @@ export default async function FAQ() {
         <p>
           In the same way, when a Conditional turns out to be based on an
           outcome that did not occur, it is Annulled. For example, when a{" "}
-          <a href="/faq/#conditionals">Conditional Pair</a>
+          <Link href="/faq/#conditionals">Conditional Pair</Link>
           &apos;s parent resolves Yes, the <q>if No</q> Conditional is Annulled.
         </p>
         <p>
@@ -1618,14 +1629,14 @@ export default async function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="/questions/9459/russian-troops-in-kiev-in-2022/">
+            <Link href="/questions/9459/russian-troops-in-kiev-in-2022/">
               <strong>
                 <em>
                   Will Russian troops enter Kyiv, Ukraine before December 31,
                   2022?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question asked if at least 100 Russian troops would enter
@@ -1636,9 +1647,9 @@ export default async function FAQ() {
                 necessary to resolve as Ambiguous. In addition to the lack of a
                 clear consensus, this question is also an example of imbalanced
                 outcomes and the need to preserve incentives.{" "}
-                <a href="/questions/9459/russian-troops-in-kiev-in-2022/#comment-93915">
+                <Link href="/questions/9459/russian-troops-in-kiev-in-2022/#comment-93915">
                   As an Admin explains here
-                </a>
+                </Link>
                 , due to the uncertainty around events in February the question
                 could not remain open to see if a qualifying event would happen
                 before the end of 2022. This is because the ambiguity around the
@@ -1649,7 +1660,7 @@ export default async function FAQ() {
             </ul>
           </li>
           <li>
-            <a
+            <Link
               href="/questions/10134/average-ransomware-kit-cost-in-2022/"
               target="_blank"
               rel="noopener"
@@ -1659,14 +1670,14 @@ export default async function FAQ() {
                   What will the average cost of a ransomware kit be in 2022?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question relied on data published in a report by Microsoft,
                 however Microsoft&apos;s report for the year in question no
                 longer contained the relevant data. It&apos;s{" "}
-                <a href="/faq/#ressrc">Metaculus policy</a> that by default if a
-                resolution source is not available Metaculus may use a
+                <Link href="/faq/#ressrc">Metaculus policy</Link>that by default
+                if a resolution source is not available Metaculus may use a
                 functionally equivalent source in its place unless otherwise
                 specified in the resolution text, but for this question a search
                 for alternate sources did not turn anything up, leading to
@@ -1718,40 +1729,40 @@ export default async function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="/questions/12433/substacks-google-trends-at-end-of-2022/">
+            <Link href="/questions/12433/substacks-google-trends-at-end-of-2022/">
               <strong>
                 <em>
                   What will Substack&apos;s Google Trends index be at end of
                   2022?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question did not clearly specify how Google trends would be
                 used to arrive at the average index for December of 2022,
                 because the index value depends on the date range specified in
                 Google Trends. An Admin provided more details in{" "}
-                <a href="/questions/12433/substacks-google-trends-at-end-of-2022/#comment-112592">
+                <Link href="/questions/12433/substacks-google-trends-at-end-of-2022/#comment-112592">
                   this comment
-                </a>
+                </Link>
                 .
               </li>
             </ul>
           </li>
           <li>
-            <a href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/">
+            <Link href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/">
               <strong>
                 <em>When will a fusion reactor reach ignition?</em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question did not clearly define what was meant by
                 &ldquo;ignition&rdquo;. As an Admin described in{" "}
-                <a href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/#comment-110164">
+                <Link href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/#comment-110164">
                   this comment
-                </a>
+                </Link>
                 , the definition of ignition may vary depending on the
                 researchers using it and the fusion method, as well as the
                 reference frame for what counts as an energy input and output.
@@ -1759,13 +1770,13 @@ export default async function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="/questions/12532/russia-general-mobilization-before-2023/">
+            <Link href="/questions/12532/russia-general-mobilization-before-2023/">
               <strong>
                 <em>
                   Will Russia order a general mobilization by January 1, 2023?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question asked about Russia ordering a general
@@ -1777,9 +1788,9 @@ export default async function FAQ() {
                 of a &ldquo;general mobilization&rdquo; and didn&rsquo;t
                 adequately account for the actual partial mobilization that was
                 eventually ordered, as{" "}
-                <a href="/questions/12532/russia-general-mobilization-before-2023/">
+                <Link href="/questions/12532/russia-general-mobilization-before-2023/">
                   explained by an Admin here
-                </a>
+                </Link>
                 .
               </li>
             </ul>
@@ -1806,14 +1817,14 @@ export default async function FAQ() {
         <p>Here are some examples of Annulment due to subverted assumptions:</p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="/questions/10444/cause-of-flight-5735-crash/">
+            <Link href="/questions/10444/cause-of-flight-5735-crash/">
               <strong>
                 <em>
                   Will a technical problem be identified as the cause of the
                   crash of China Eastern Airlines Flight 5735?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question relied on the conclusions of a future National
@@ -1823,15 +1834,15 @@ export default async function FAQ() {
                 by which the report must be published resulting in a resolution
                 of No. Since this was not specified and the assumption of a
                 future NTSB report was violated the question was Annulled, as{" "}
-                <a href="/questions/10444/cause-of-flight-5735-crash/">
+                <Link href="/questions/10444/cause-of-flight-5735-crash/">
                   explained by an Admin here
-                </a>
+                </Link>
                 .
               </li>
             </ul>
           </li>
           <li>
-            <a href="/questions/6249/november-2021-production-of-semiconductors/">
+            <Link href="/questions/6249/november-2021-production-of-semiconductors/">
               <strong>
                 <em>
                   What will the Federal Reserves&apos; Industrial Production
@@ -1839,7 +1850,7 @@ export default async function FAQ() {
                   circuit boards and related products?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question did not provide a description of how it should
@@ -1853,14 +1864,14 @@ export default async function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="/questions/10048/russia-to-return-to-nuclear-level-1/">
+            <Link href="/questions/10048/russia-to-return-to-nuclear-level-1/">
               <strong>
                 <em>
                   When will Russia&apos;s nuclear readiness scale return to
                   Level 1?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 Media reporting about Russia&apos;s nuclear readiness level gave
@@ -1870,22 +1881,22 @@ export default async function FAQ() {
                 readiness most likely did not change. This violated the
                 assumption of the question leading to the question being
                 Annulled, as{" "}
-                <a href="/questions/10048/russia-to-return-to-nuclear-level-1/#comment-100275">
+                <Link href="/questions/10048/russia-to-return-to-nuclear-level-1/#comment-100275">
                   explained by an Admin here
-                </a>
+                </Link>
                 .
               </li>
             </ul>
           </li>
           <li>
-            <a href="/questions/9000/us-social-cost-of-carbon-in-2022/">
+            <Link href="/questions/9000/us-social-cost-of-carbon-in-2022/">
               <strong>
                 <em>
                   What will be the Biden Administration&apos;s social cost of 1
                   ton of CO2 in 2022?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question specified that it would resolve according to a
@@ -1926,14 +1937,14 @@ export default async function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="/questions/6047/1m-lost-in-prediction-market/">
+            <Link href="/questions/6047/1m-lost-in-prediction-market/">
               <strong>
                 <em>
                   Will any prediction market cause users to lose at least $1M
                   before 2023?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question asks whether certain incidents such as hacking,
@@ -1975,14 +1986,14 @@ export default async function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="/questions/13521/any-ftx-depositor-to-get-anything-out-by-2023/">
+            <Link href="/questions/13521/any-ftx-depositor-to-get-anything-out-by-2023/">
               <strong>
                 <em>
                   Will any remaining FTX depositor withdraw any amount of
                   tradeable assets from FTX before 2023?
                 </em>
               </strong>
-            </a>
+            </Link>
             <ul className="ml-4 list-inside list-disc space-y-2">
               <li>
                 This question asked if an FTX depositor would withdraw assets
@@ -1999,10 +2010,7 @@ export default async function FAQ() {
           </li>
         </ul>
         <div>
-          <h3
-            id="allres"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
-          >
+          <h3 id="allres" className="mb-4 scroll-mt-nav text-2xl font-semibold">
             Do all questions get resolved?
           </h3>
           <p>Currently, all questions will be resolved.</p>
@@ -2011,7 +2019,7 @@ export default async function FAQ() {
         <div>
           <h3
             id="whenresolve"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             When will a question be resolved?
           </h3>
@@ -2027,9 +2035,9 @@ export default async function FAQ() {
           <p>
             For questions which ask when something will happen (such as{" "}
             <q>
-              <a href="/questions/3515/when-will-the-first-humans-land-successfully-on-mars/">
+              <Link href="/questions/3515/when-will-the-first-humans-land-successfully-on-mars/">
                 When will the first humans land successfully on Mars?
-              </a>
+              </Link>
             </q>
             ), forecasters are asked to predict the date/time when the criteria
             have been satisfied (though the question may be decided and points
@@ -2047,7 +2055,7 @@ export default async function FAQ() {
         <div>
           <h3
             id="resolvebackground"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             Is the background material used for question resolution?
           </h3>
@@ -2074,7 +2082,7 @@ export default async function FAQ() {
         <div>
           <h3
             id="unclearresolve"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             What happens if the resolution criteria of a question is unclear or
             suboptimal?
@@ -2101,7 +2109,7 @@ export default async function FAQ() {
           </p>
           <p>
             In many cases such questions must be resolved as{" "}
-            <a href="#ambiguous-annulled">ambiguous or annulled</a> to preserve
+            <a href="#ambiguous-annulled">ambiguous or annulled</a>to preserve
             fairness in scoring. If you believe there are ambiguities or
             conflicts in the resolution criteria for a question please let
             Admins know by tagging @admins in a comment. We hope inconsistencies
@@ -2117,7 +2125,7 @@ export default async function FAQ() {
         <div>
           <h3
             id="reresolve"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             Can questions be re-resolved?
           </h3>
@@ -2138,7 +2146,7 @@ export default async function FAQ() {
         <div>
           <h3
             id="whatifres"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             What happens if a question gets resolved in the real world prior to
             the close time?
@@ -2162,7 +2170,7 @@ export default async function FAQ() {
         <div>
           <h3
             id="retroactive-closure"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             When should a question specify retroactive closure?
           </h3>
@@ -2207,10 +2215,10 @@ export default async function FAQ() {
               Previously some questions on Metaculus were approved with
               inappropriate retroactive closure clauses. For example, the
               question &quot;
-              <a href="/questions/6662/date-earth-functional-satellites-exceed-5000/">
+              <Link href="/questions/6662/date-earth-functional-satellites-exceed-5000/">
                 When will the number of functional artificial satellites in
                 orbit exceed 5,000?
-              </a>
+              </Link>
               &quot; specifies retroactive closure to the date when the 5,001st
               satellite is launched.{" "}
               <strong>
@@ -2227,9 +2235,9 @@ export default async function FAQ() {
             originally scheduled close date. But in order to elicit the best
             forecasts it’s important to follow proper scoring rules. For more on
             point truncation{" "}
-            <a href="/help/scores-faq/#score-truncation">
+            <Link href="/help/scores-faq/#score-truncation">
               this section of the FAQ
-            </a>
+            </Link>
             .
           </p>
           <p>
@@ -2243,7 +2251,7 @@ export default async function FAQ() {
         <div>
           <h3
             id="whatifres2"
-            className="mb-4 scroll-mt-nav scroll-mt-nav text-2xl font-semibold"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
             What happens if a question&apos;s resolution criteria turn out to
             have been fulfilled prior to the opening time?
@@ -2258,10 +2266,10 @@ export default async function FAQ() {
             <em>next</em> detonation after the detonations in 1945. In other
             questions like{" "}
             <q>
-              <a href="/questions/8946/facebook-uses-explainable-news-feed-by-2026/)">
+              <Link href="/questions/8946/facebook-uses-explainable-news-feed-by-2026/)">
                 Will Facebook implement a feature to explain news feed
                 recommendations before 2026?
-              </a>
+              </Link>
             </q>
             , we are asking about the <em>first</em> occurrence of this event.
             Since this event occurred before the question opened and this was
@@ -2343,7 +2351,7 @@ export default async function FAQ() {
           <p>
             We are working on recreating the tutorial.
             {/* Yes! Start the Metaculus forecasting tutorial{" "}
-            <a href="/tutorials/">here</a>. */}
+            <Link href="/tutorials/">here</Link>. */}
           </p>
         </div>
 
@@ -2813,15 +2821,18 @@ export default async function FAQ() {
             </li>
             <ul className="ml-5 list-disc">
               <li>
-                For <a href="/faq/#question-types">Binary Questions</a>, the
-                Community Prediction is a{" "}
+                For <Link href="/faq/#question-types">Binary Questions</Link>,
+                the Community Prediction is a{" "}
                 <a href="https://en.wikipedia.org/wiki/Weighted_median">
                   weighted median
                 </a>{" "}
                 of the individual forecaster probabilities.
               </li>
               <li>
-                For <a href="/faq/#question-types">Multiple Choice Questions</a>
+                For{" "}
+                <Link href="/faq/#question-types">
+                  Multiple Choice Questions
+                </Link>
                 , the Community Prediction is a{" "}
                 <a href="https://en.wikipedia.org/wiki/Weighted_median">
                   weighted median
@@ -2832,8 +2843,10 @@ export default async function FAQ() {
               </li>
               <li>
                 For{" "}
-                <a href="/faq/#question-types">Numeric and Date Questions</a>,
-                the Community Prediction is a{" "}
+                <Link href="/faq/#question-types">
+                  Numeric and Date Questions
+                </Link>
+                , the Community Prediction is a{" "}
                 <a href="https://en.wikipedia.org/wiki/Mixture_distribution">
                   weighted average
                 </a>{" "}
@@ -2873,13 +2886,13 @@ export default async function FAQ() {
           </h3>
           <p>
             The Metaculus Prediction can only be viewed in the{" "}
-            <a href="/aggregation-explorer/">Aggregation Explorer</a>. It is
-            deprecated since November 2024, but shows a record of the Metaculus
-            system&apos;s best estimate of how a question will resolve.
-            It&apos;s based on predictions from community members, but unlike
-            the Community Prediction, it&apos;s not a simple average or median.
-            Instead, the Metaculus Prediction uses a sophisticated model to
-            calibrate and weight each user, ideally resulting in a prediction
+            <Link href="/aggregation-explorer/">Aggregation Explorer</Link>. It
+            is deprecated since November 2024, but shows a record of the
+            Metaculus system&apos;s best estimate of how a question will
+            resolve. It&apos;s based on predictions from community members, but
+            unlike the Community Prediction, it&apos;s not a simple average or
+            median. Instead, the Metaculus Prediction uses a sophisticated model
+            to calibrate and weight each user, ideally resulting in a prediction
             that&apos;s better than the best of the community.
           </p>
           <p>
@@ -2964,7 +2977,7 @@ export default async function FAQ() {
           </p>
           <p>
             Learn more in the dedicated{" "}
-            <a href="/help/scores-faq/">Scores FAQ</a>.
+            <Link href="/help/scores-faq/">Scores FAQ</Link>.
           </p>
 
           <h3
@@ -2983,7 +2996,7 @@ export default async function FAQ() {
           </p>
           <p>
             Learn more in the dedicated{" "}
-            <a href="/help/medals-faq/">Medals FAQ</a>.
+            <Link href="/help/medals-faq/">Medals FAQ</Link>.
           </p>
         </div>
 
@@ -3003,7 +3016,7 @@ export default async function FAQ() {
             What is the Metaculus Journal?
           </h3>
           <p>
-            The <a href="/project/journal/">Metaculus Journal</a> publishes
+            The <Link href="/project/journal/">Metaculus Journal</Link>publishes
             longform, educational essays on critical topics like emerging
             science and technology, global health, biosecurity, economics and
             econometrics, environmental science, and geopolitics—all fortified
@@ -3129,7 +3142,7 @@ export default async function FAQ() {
             Metaculus may—though this thankfully occurs very rarely—issue the
             temporary suspensions of an account. This occurs when a user has
             acted in a way that we consider inappropriate, such as when our{" "}
-            <a href="/terms-of-use/">terms of use</a> are violated. At this
+            <Link href="/terms-of-use/">terms of use</Link>are violated. At this
             point, the user will receive a notice about the suspension and be
             made aware that continuing this behavior is unacceptable. Temporary
             suspensions serve as a warning to users that they are a few
@@ -3268,7 +3281,7 @@ export default async function FAQ() {
               , and share posts you like.
             </li>
             <li>
-              <a href="mailto:support@metaculus.com">Contact us</a> for other
+              <a href="mailto:support@metaculus.com">Contact us</a>for other
               ideas.
             </li>
           </ol>

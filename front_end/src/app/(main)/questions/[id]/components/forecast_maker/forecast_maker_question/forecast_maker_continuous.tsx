@@ -211,6 +211,7 @@ const ForecastMakerContinuous: FC<Props> = ({
       value,
       questionType: question.type,
       scaling: question.scaling,
+      actual_resolve_time: question.actual_resolve_time ?? null,
     });
 
   const handlePredictSubmit = async () => {
@@ -330,15 +331,26 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
 
-          {!!activeForecast && (
-            <Button
-              variant="secondary"
-              type="submit"
-              disabled={withdrawalIsPending}
-              onClick={withdraw}
-            >
-              {t("withdraw")}
+          {(forecastInputMode === ContinuousForecastInputType.Slider &&
+            isDirty) ||
+          (forecastInputMode === ContinuousForecastInputType.Quantile &&
+            Object.values(quantileDistributionComponents ?? []).some(
+              (value) => value?.isDirty === true
+            )) ? (
+            <Button variant="secondary" type="submit" onClick={handleDiscard}>
+              {t("discard")}
             </Button>
+          ) : (
+            !!activeForecast && (
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={withdrawalIsPending}
+                onClick={withdraw}
+              >
+                {t("withdraw")}
+              </Button>
+            )
           )}
 
           {forecastInputMode === ContinuousForecastInputType.Slider ? (
@@ -365,41 +377,6 @@ const ForecastMakerContinuous: FC<Props> = ({
               }
             />
           )}
-
-          {forecastInputMode === ContinuousForecastInputType.Slider &&
-            isDirty && (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={
-                  !isDirty &&
-                  !Object.values(quantileDistributionComponents ?? []).some(
-                    (value) => value?.isDirty === true
-                  )
-                }
-                onClick={handleDiscard}
-              >
-                {t("discard")}
-              </Button>
-            )}
-          {forecastInputMode === ContinuousForecastInputType.Quantile &&
-            Object.values(quantileDistributionComponents ?? []).some(
-              (value) => value?.isDirty === true
-            ) && (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={
-                  !isDirty &&
-                  !Object.values(quantileDistributionComponents ?? []).some(
-                    (value) => value?.isDirty === true
-                  )
-                }
-                onClick={handleDiscard}
-              >
-                {t("discard")}
-              </Button>
-            )}
         </div>
 
         <FormError

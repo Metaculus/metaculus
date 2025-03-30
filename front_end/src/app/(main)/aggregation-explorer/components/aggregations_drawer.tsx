@@ -42,7 +42,8 @@ const AggregationsDrawer: FC<Props> = ({
   selectedSubQuestionOption,
 }) => {
   const { user } = useAuth();
-  const { actual_close_time, scaling, type } = aggregationData ?? {};
+  const { actual_close_time, scaling, type, actual_resolve_time } =
+    aggregationData ?? {};
   const actualCloseTime = useMemo(
     () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
     [actual_close_time]
@@ -155,13 +156,14 @@ const AggregationsDrawer: FC<Props> = ({
               choiceItems={choiceItems}
               valueLabel={
                 choiceItem?.active
-                  ? getQuestionTooltipLabel(
-                      choiceItem.aggregationTimestamps,
-                      choiceItem.aggregationValues,
+                  ? getQuestionTooltipLabel({
+                      timestamps: choiceItem.aggregationTimestamps,
+                      values: choiceItem.aggregationValues,
                       cursorTimestamp,
-                      type,
-                      scaling
-                    )
+                      qType: type,
+                      scaling,
+                      actual_resolve_time: actual_resolve_time ?? null,
+                    })
                   : ""
               }
               onFetchData={onFetchData}
@@ -176,13 +178,21 @@ const AggregationsDrawer: FC<Props> = ({
   );
 };
 
-function getQuestionTooltipLabel(
-  timestamps: number[],
-  values: (number | null)[],
-  cursorTimestamp: number | null,
-  qType?: QuestionType,
-  scaling?: Scaling
-) {
+function getQuestionTooltipLabel({
+  timestamps,
+  values,
+  cursorTimestamp,
+  qType,
+  scaling,
+  actual_resolve_time,
+}: {
+  timestamps: number[];
+  values: (number | null)[];
+  cursorTimestamp: number | null;
+  qType?: QuestionType;
+  scaling?: Scaling;
+  actual_resolve_time: string | null;
+}) {
   const hasValue =
     !isNil(cursorTimestamp) && cursorTimestamp >= Math.min(...timestamps);
 
@@ -201,7 +211,11 @@ function getQuestionTooltipLabel(
   }
 
   if (qType === QuestionType.Binary) {
-    return displayValue({ value: cursorValue, questionType: qType });
+    return displayValue({
+      value: cursorValue,
+      questionType: qType,
+      actual_resolve_time,
+    });
   } else {
     const scaledValue = scaleInternalLocation(cursorValue, {
       range_min: scaling?.range_min ?? 0,
@@ -212,6 +226,7 @@ function getQuestionTooltipLabel(
       value: scaledValue,
       questionType: qType ?? QuestionType.Numeric,
       scaling,
+      actual_resolve_time,
     });
   }
 }
