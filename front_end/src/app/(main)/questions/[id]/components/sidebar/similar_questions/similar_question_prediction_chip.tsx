@@ -22,14 +22,19 @@ const SimilarPredictionChip: FC<Props> = ({
   }
 
   if (
-    ![QuestionType.Numeric, QuestionType.Date, QuestionType.Binary].includes(
-      question.type
-    )
+    ![
+      QuestionType.Numeric,
+      QuestionType.Date,
+      QuestionType.Discrete,
+      QuestionType.Binary,
+    ].includes(question.type)
   ) {
     return null;
   } else if (
     isGroup &&
-    ![QuestionType.Numeric, QuestionType.Date].includes(question.type)
+    ![QuestionType.Numeric, QuestionType.Date, QuestionType.Discrete].includes(
+      question.type
+    )
   ) {
     return null;
   }

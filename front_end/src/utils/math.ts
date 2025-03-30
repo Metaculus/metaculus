@@ -1,6 +1,10 @@
 import * as math from "mathjs";
 
-import { ExtendedQuartiles, Quartiles } from "@/types/question";
+import {
+  DefaultInboundOutcomeCount,
+  ExtendedQuartiles,
+  Quartiles,
+} from "@/types/question";
 
 export function almostEqual(a: number, b: number, eps = 1e-12) {
   return b == 0 ? a == 0 : Math.abs((a - b) / b) < eps;
@@ -83,10 +87,11 @@ export function cdfFromSliders(
   center: number,
   right: number,
   lowerOpen: boolean,
-  upperOpen: boolean
+  upperOpen: boolean,
+  inboundOutcomeCount: number = DefaultInboundOutcomeCount
 ) {
   const params = logisticDistributionParamsFromSliders(left, center, right);
-  const step = 1 / 200;
+  const step = 1 / inboundOutcomeCount;
   const xArr = Array.from(
     { length: Math.floor(1 / step) + 1 },
     (_, i) => i * step
@@ -110,16 +115,19 @@ export function cdfFromSliders(
 
 export function computeQuartilesFromCDF(
   cdf: number[],
-  extendedQuartiles: true
+  extendedQuartiles: true,
+  discrete?: boolean
 ): ExtendedQuartiles;
 export function computeQuartilesFromCDF(
   cdf: number[],
-  extendedQuartiles?: false
+  extendedQuartiles?: false,
+  discrete?: boolean
 ): Quartiles;
 export function computeQuartilesFromCDF(cdf: number[]): Quartiles;
 export function computeQuartilesFromCDF(
   cdf: number[],
-  extendedQuartiles?: boolean
+  extendedQuartiles?: boolean,
+  discrete?: boolean
 ): Quartiles | ExtendedQuartiles {
   function findPercentile(cdf: number[], percentile: number) {
     if (cdf === null) {
@@ -131,6 +139,10 @@ export function computeQuartilesFromCDF(
       /* eslint-disable @typescript-eslint/no-non-null-assertion */
       if (cdf[i]! >= target) {
         if (i === 0) return 0;
+
+        if (discrete) {
+          return (i - 0.5) / (cdf.length - 1);
+        }
 
         const diff = cdf[i]! - cdf[i - 1]!;
         const adjustedPercentile = (target - cdf[i - 1]!) / diff;

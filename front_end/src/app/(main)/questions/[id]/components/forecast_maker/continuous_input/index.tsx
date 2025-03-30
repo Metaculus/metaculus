@@ -10,6 +10,7 @@ import {
   DistributionQuantileComponent,
   DistributionSliderComponent,
   QuantileValue,
+  QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
@@ -47,6 +48,7 @@ type Props = {
   isDirty?: boolean;
   submitControls?: ReactNode;
   disabled?: boolean;
+  exampleOnly?: boolean;
   predictionMessage?: ReactNode;
   menu?: ReactNode;
   copyMenu?: ReactNode;
@@ -70,6 +72,7 @@ const ContinuousInput: FC<Props> = ({
   isDirty,
   submitControls,
   disabled,
+  exampleOnly,
   predictionMessage,
   menu,
   copyMenu,
@@ -122,7 +125,8 @@ const ContinuousInput: FC<Props> = ({
       previousForecast={previousForecast}
       menu={menu}
       copyMenu={copyMenu}
-      disabled={disabled}
+      disabled={disabled || exampleOnly}
+      questionType={question.type}
     >
       {(sliderGraphType, tableGraphType) => (
         <>
@@ -160,19 +164,35 @@ const ContinuousInput: FC<Props> = ({
             question={question}
             userBounds={getCdfBounds(userCdf)}
             userQuartiles={
-              userCdf ? computeQuartilesFromCDF(userCdf) : undefined
+              userCdf
+                ? computeQuartilesFromCDF(
+                    userCdf,
+                    true,
+                    question.type === QuestionType.Discrete
+                  )
+                : undefined
             }
             quantileComponents={quantileComponent}
             onQuantileChange={onQuantileChange}
             userPreviousBounds={getCdfBounds(userPreviousCdf)}
             userPreviousQuartiles={
               userPreviousCdf
-                ? computeQuartilesFromCDF(userPreviousCdf)
+                ? computeQuartilesFromCDF(
+                    userPreviousCdf,
+                    true,
+                    question.type === QuestionType.Discrete
+                  )
                 : undefined
             }
             communityBounds={getCdfBounds(communityCdf)}
             communityQuartiles={
-              communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
+              communityCdf
+                ? computeQuartilesFromCDF(
+                    communityCdf,
+                    true,
+                    question.type === QuestionType.Discrete
+                  )
+                : undefined
             }
             withCommunityQuartiles={withCommunityQuartiles}
             isDirty={isDirty}

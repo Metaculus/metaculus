@@ -17,6 +17,7 @@ import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,
@@ -54,6 +55,7 @@ type Props = {
   canPredict: boolean;
   canResolve: boolean;
   predictionMessage?: ReactNode;
+  exampleOnly?: boolean;
 };
 
 const ForecastMakerContinuous: FC<Props> = ({
@@ -63,6 +65,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   canPredict,
   canResolve,
   predictionMessage,
+  exampleOnly = false,
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
@@ -145,7 +148,8 @@ const ForecastMakerContinuous: FC<Props> = ({
       return getSliderNumericForecastDataset(
         sliderDistributionComponents,
         question.open_lower_bound,
-        question.open_upper_bound
+        question.open_upper_bound,
+        question.inbound_outcome_count ?? DefaultInboundOutcomeCount
       );
     }
 
@@ -353,30 +357,31 @@ const ForecastMakerContinuous: FC<Props> = ({
             )
           )}
 
-          {forecastInputMode === ContinuousForecastInputType.Slider ? (
-            <PredictButton
-              onSubmit={submit}
-              isDirty={isDirty}
-              hasUserForecast={hasUserForecast}
-              isPending={isPending}
-              predictLabel={previousForecast ? undefined : t("predict")}
-            />
-          ) : (
-            <PredictButton
-              onSubmit={submit}
-              isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
-              hasUserForecast={hasUserForecast}
-              isPending={isPending}
-              predictLabel={previousForecast ? undefined : t("predict")}
-              isDisabled={
-                validateAllQuantileInputs({
-                  question,
-                  components: quantileDistributionComponents,
-                  t,
-                }).length !== 0 || !isNil(submitError)
-              }
-            />
-          )}
+          {!exampleOnly &&
+            (forecastInputMode === ContinuousForecastInputType.Slider ? (
+              <PredictButton
+                onSubmit={submit}
+                isDirty={isDirty}
+                hasUserForecast={hasUserForecast}
+                isPending={isPending}
+                predictLabel={previousForecast ? undefined : t("predict")}
+              />
+            ) : (
+              <PredictButton
+                onSubmit={submit}
+                isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
+                hasUserForecast={hasUserForecast}
+                isPending={isPending}
+                predictLabel={previousForecast ? undefined : t("predict")}
+                isDisabled={
+                  validateAllQuantileInputs({
+                    question,
+                    components: quantileDistributionComponents,
+                    t,
+                  }).length !== 0 || !isNil(submitError)
+                }
+              />
+            ))}
         </div>
 
         <FormError
@@ -430,6 +435,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         isDirty={isDirty}
         submitControls={SubmitControls}
         disabled={!canPredict}
+        exampleOnly={exampleOnly}
         predictionMessage={predictionMessage}
       />
 

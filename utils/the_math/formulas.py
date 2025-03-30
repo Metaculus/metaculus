@@ -37,7 +37,7 @@ def string_location_to_scaled_location(
         return question.range_min - 1.0
     if string_location == "above_upper_bound":
         return question.range_max + 1.0
-    if question.type == Question.QuestionType.DATE:
+    if question.type == "date":
         return datetime.fromisoformat(string_location).timestamp()
     # question.type in [Question.QuestionType.NUMERIC, Question.QuestionType.DISCRETE]
     return float(string_location)
@@ -55,7 +55,7 @@ def scaled_location_to_string_location(
         return "below_lower_bound"
     if scaled_location > question.range_max:
         return "above_upper_bound"
-    if question.type == Question.QuestionType.DATE:
+    if question.type == "date":
         return datetime.fromtimestamp(scaled_location, tz=timezone.utc).isoformat()
     # question.type in [Question.QuestionType.NUMERIC, Question.QuestionType.DISCRETE]
     return str(scaled_location)

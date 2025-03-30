@@ -291,7 +291,11 @@ function generateReaffirmData({
     }
 
     // continuous group
-    if (groupType === QuestionType.Date || groupType === QuestionType.Numeric) {
+    if (
+      groupType === QuestionType.Date ||
+      groupType === QuestionType.Numeric ||
+      groupType === QuestionType.Discrete
+    ) {
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
         let forecastValues: number[] | undefined = undefined;

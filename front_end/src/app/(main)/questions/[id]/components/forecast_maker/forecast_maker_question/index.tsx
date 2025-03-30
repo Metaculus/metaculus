@@ -38,7 +38,8 @@ const QuestionForecastMaker: FC<Props> = ({
   return (
     <ForecastMakerContainer>
       {(question.type === QuestionType.Numeric ||
-        question.type === QuestionType.Date) && (
+        question.type === QuestionType.Date ||
+        question.type === QuestionType.Discrete) && (
         <>
           <ForecastMakerContinuous
             post={post}
@@ -105,6 +106,7 @@ const QuestionResolutionText = ({
       break;
     case QuestionType.Date:
     case QuestionType.Numeric:
+    case QuestionType.Discrete:
       resolutionText = t("resolutionDescriptionContinuous");
   }
 
