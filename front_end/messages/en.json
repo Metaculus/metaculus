@@ -893,6 +893,8 @@
   "numericQuestionGroupDescription": "Numeric question groups contain questions that ask about the value of an unknown future quantity and resolve within a specified range.",
   "dateQuestionGroup": "date question group",
   "dateQuestionGroupDescription": "Date question groups contain questions that ask when something will happen and resolve within a specified date range.",
+  "discreteQuestionGroup": "Discrete question group",
+  "discreteQuestionGroupDescription": "Discrete question groups contain questions that ask about the value of an unknown future quantity and resolve within a specified range.",
   "groupVariableDescription": "What the subquestion labels represent (e.g. year, country, etc).",
   "categoryPickerDescription": "A name for the parameter which varies between subquestions, like \"Option\", \"Year\" or \"Country\"",
   "subquestionLabel": "Subquestion label",

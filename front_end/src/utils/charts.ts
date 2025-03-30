@@ -770,8 +770,8 @@ export function generateScale({
   // labels, this operation will have to be done in the real
   // scaling first, then transformed back into the domain scale.
   const zoomedRange = zoomedDomainMax - zoomedDomainMin;
-  let minorRes: number;
-  let majorRes: number;
+  let minorRes: number = 1;
+  let majorRes: number = 1;
   let minorTickInterval: number;
   let tickStart: number;
   let tickEnd: number;
