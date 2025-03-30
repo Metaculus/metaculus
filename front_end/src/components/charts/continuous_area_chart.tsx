@@ -1,5 +1,6 @@
 "use client";
 import { isNil, merge } from "lodash";
+import { e } from "mathjs";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Tuple,
@@ -168,7 +169,7 @@ const ContinuousAreaChart: FC<Props> = ({
             ? (data.at(0)?.pmf.length || 32) - 2
             : undefined,
       }),
-    [chartWidth, questionType, scaling, unit, xDomain]
+    [chartWidth, questionType, scaling, unit, xDomain, data]
   );
   const yScale = useMemo(
     () =>
@@ -231,11 +232,19 @@ const ContinuousAreaChart: FC<Props> = ({
           evt.clientX >= chartRight)
       ) {
         let normalizedX: number | undefined;
+        const lowerBoundLocation =
+          questionType !== QuestionType.Discrete
+            ? 0
+            : 0.5 / ((data.at(0)?.pmf.length || 200) - 2);
+        const upperBoundLocation =
+          questionType !== QuestionType.Discrete
+            ? 1
+            : 1 - 0.5 / ((data.at(0)?.pmf.length || 200) - 2);
 
         if (evt.clientX < chartLeft) {
-          normalizedX = 0;
+          normalizedX = lowerBoundLocation;
         } else if (evt.clientX > chartRight) {
-          normalizedX = graphType === "cdf" ? 0.9999 : 1;
+          normalizedX = upperBoundLocation;
         }
         if (normalizedX !== undefined) {
           setCursorEdge(normalizedX);
@@ -243,10 +252,16 @@ const ContinuousAreaChart: FC<Props> = ({
           const hoverState = charts.reduce<ContinuousAreaHoverState>(
             (acc, el) => {
               if (el.graphType === "pmf") {
-                acc.yData[el.type] = getClosestYValue(
-                  normalizedX as number,
-                  el.graphLine
-                );
+                if (questionType === QuestionType.Discrete) {
+                  acc.yData[el.type] =
+                    getClosestYValue(normalizedX as number, el.graphLine) /
+                    (el.graphLine.length + 1);
+                } else {
+                  acc.yData[el.type] = getClosestYValue(
+                    normalizedX as number,
+                    el.graphLine
+                  );
+                }
                 return acc;
               }
 
@@ -257,7 +272,7 @@ const ContinuousAreaChart: FC<Props> = ({
               return acc;
             },
             {
-              x: normalizedX > 0 ? 1 : 0,
+              x: normalizedX,
               yData: {
                 community: 0,
                 user: 0,
@@ -271,7 +286,7 @@ const ContinuousAreaChart: FC<Props> = ({
         }
       }
     },
-    [charts, onCursorChange, chartContainerRef, leftPadding, graphType]
+    [charts, onCursorChange, chartContainerRef, leftPadding, data, questionType]
   );
   useEffect(() => {
     const svg = chartContainerRef.current?.firstChild as SVGElement;
@@ -447,7 +462,7 @@ const ContinuousAreaChart: FC<Props> = ({
                       opacity: chart.type === "user_previous" ? 0.1 : 0.3,
                     },
                   }}
-                  barWidth={(chartWidth - 30) / (chart.graphLine.length + 0.0)}
+                  barWidth={(chartWidth - 30) / (1.07 * chart.graphLine.length)}
                 />
               );
             })}
@@ -562,7 +577,7 @@ const ContinuousAreaChart: FC<Props> = ({
           {!isNil(cursorEdge) && (
             <LineCursorPoints
               x={
-                cursorEdge === 0
+                cursorEdge < 0.5
                   ? leftPadding + CURSOR_POINT_OFFSET
                   : chartWidth - CURSOR_POINT_OFFSET
               }
@@ -649,18 +664,21 @@ function generateNumericAreaGraph(data: {
 
   const verticalLines: Line = [];
   const quantiles = computeQuartilesFromCDF(cdf);
-  if (discrete) {
+  if (discrete && graphType === "pmf") {
     verticalLines.push(
       {
-        x: getClosestXValue(quantiles.lower25, graph),
+        // x: getClosestXValue(quantiles.lower25, graph),
+        x: quantiles.lower25,
         y: getClosestYValue(quantiles.lower25, graph),
       },
       {
-        x: getClosestXValue(quantiles.median, graph),
+        // x: getClosestXValue(quantiles.median, graph),
+        x: quantiles.median,
         y: getClosestYValue(quantiles.median, graph),
       },
       {
-        x: getClosestXValue(quantiles.upper75, graph),
+        // x: getClosestXValue(quantiles.upper75, graph),
+        x: quantiles.upper75,
         y: getClosestYValue(quantiles.upper75, graph),
       }
     );

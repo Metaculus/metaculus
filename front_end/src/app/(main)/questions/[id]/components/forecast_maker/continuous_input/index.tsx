@@ -10,6 +10,7 @@ import {
   DistributionQuantileComponent,
   DistributionSliderComponent,
   QuantileValue,
+  QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
@@ -163,19 +164,35 @@ const ContinuousInput: FC<Props> = ({
             question={question}
             userBounds={getCdfBounds(userCdf)}
             userQuartiles={
-              userCdf ? computeQuartilesFromCDF(userCdf) : undefined
+              userCdf
+                ? computeQuartilesFromCDF(
+                    userCdf,
+                    true,
+                    question.type === QuestionType.Discrete
+                  )
+                : undefined
             }
             quantileComponents={quantileComponent}
             onQuantileChange={onQuantileChange}
             userPreviousBounds={getCdfBounds(userPreviousCdf)}
             userPreviousQuartiles={
               userPreviousCdf
-                ? computeQuartilesFromCDF(userPreviousCdf)
+                ? computeQuartilesFromCDF(
+                    userPreviousCdf,
+                    true,
+                    question.type === QuestionType.Discrete
+                  )
                 : undefined
             }
             communityBounds={getCdfBounds(communityCdf)}
             communityQuartiles={
-              communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
+              communityCdf
+                ? computeQuartilesFromCDF(
+                    communityCdf,
+                    true,
+                    question.type === QuestionType.Discrete
+                  )
+                : undefined
             }
             withCommunityQuartiles={withCommunityQuartiles}
             isDirty={isDirty}

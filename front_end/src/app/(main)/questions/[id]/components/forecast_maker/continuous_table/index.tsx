@@ -159,6 +159,15 @@ const ContinuousTable: FC<Props> = ({
     [quantileComponents, onQuantileChange, question, t]
   );
 
+  const lowerBoundLocation =
+    question.type !== QuestionType.Discrete || !question.inbound_outcome_count
+      ? 0
+      : 0.5 / question.inbound_outcome_count;
+  const upperBoundLocation =
+    question.type !== QuestionType.Discrete || !question.inbound_outcome_count
+      ? 1
+      : 1 - 0.5 / question.inbound_outcome_count;
+
   return (
     <>
       <table className="mb-4 hidden w-full table-fixed border-separate border-spacing-1 sm:table">
@@ -171,7 +180,7 @@ const ContinuousTable: FC<Props> = ({
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
                     {"<"}
                     {getTableDisplayValue({
-                      value: 0,
+                      value: lowerBoundLocation,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
@@ -193,7 +202,7 @@ const ContinuousTable: FC<Props> = ({
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
                     {">"}
                     {getTableDisplayValue({
-                      value: 1,
+                      value: upperBoundLocation,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
@@ -221,7 +230,15 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight">
                 {checkQuartilesOutOfBorders(communityQuartiles?.lower25)}
                 {getTableDisplayValue({
-                  value: communityQuartiles?.lower25,
+                  value: communityQuartiles?.lower25
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          communityQuartiles?.lower25
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -232,7 +249,12 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight">
                 {checkQuartilesOutOfBorders(communityQuartiles?.median)}
                 {getTableDisplayValue({
-                  value: communityQuartiles?.median,
+                  value: communityQuartiles?.median
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(lowerBoundLocation, communityQuartiles?.median)
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -243,7 +265,15 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight">
                 {checkQuartilesOutOfBorders(communityQuartiles?.upper75)}
                 {getTableDisplayValue({
-                  value: communityQuartiles?.upper75,
+                  value: communityQuartiles?.upper75
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          communityQuartiles?.upper75
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -275,7 +305,15 @@ const ContinuousTable: FC<Props> = ({
                     <Td className="tabular-nums tracking-tight">
                       {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
                       {getTableDisplayValue({
-                        value: userQuartiles?.lower25,
+                        value: userQuartiles?.lower25
+                          ? Math.min(
+                              upperBoundLocation,
+                              Math.max(
+                                lowerBoundLocation,
+                                userQuartiles?.lower25
+                              )
+                            )
+                          : undefined,
                         questionType: question.type,
                         scaling: question.scaling,
                         precision: 4,
@@ -287,7 +325,15 @@ const ContinuousTable: FC<Props> = ({
                     <Td className="tabular-nums tracking-tight">
                       {checkQuartilesOutOfBorders(userQuartiles?.median)}
                       {getTableDisplayValue({
-                        value: userQuartiles?.median,
+                        value: userQuartiles?.median
+                          ? Math.min(
+                              upperBoundLocation,
+                              Math.max(
+                                lowerBoundLocation,
+                                userQuartiles?.median
+                              )
+                            )
+                          : undefined,
                         questionType: question.type,
                         scaling: question.scaling,
                         precision: 4,
@@ -299,7 +345,15 @@ const ContinuousTable: FC<Props> = ({
                     <Td className="tabular-nums tracking-tight">
                       {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
                       {getTableDisplayValue({
-                        value: userQuartiles?.upper75,
+                        value: userQuartiles?.upper75
+                          ? Math.min(
+                              upperBoundLocation,
+                              Math.max(
+                                lowerBoundLocation,
+                                userQuartiles?.upper75
+                              )
+                            )
+                          : undefined,
                         questionType: question.type,
                         scaling: question.scaling,
                         precision: 4,
@@ -484,7 +538,15 @@ const ContinuousTable: FC<Props> = ({
                 <Td className="tabular-nums tracking-tight">
                   {checkQuartilesOutOfBorders(userPreviousQuartiles?.lower25)}
                   {getTableDisplayValue({
-                    value: userPreviousQuartiles?.lower25,
+                    value: userPreviousQuartiles?.lower25
+                      ? Math.min(
+                          upperBoundLocation,
+                          Math.max(
+                            lowerBoundLocation,
+                            userPreviousQuartiles?.lower25
+                          )
+                        )
+                      : undefined,
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
@@ -495,7 +557,15 @@ const ContinuousTable: FC<Props> = ({
                 <Td className="tabular-nums tracking-tight">
                   {checkQuartilesOutOfBorders(userPreviousQuartiles?.median)}
                   {getTableDisplayValue({
-                    value: userPreviousQuartiles?.median,
+                    value: userPreviousQuartiles?.median
+                      ? Math.min(
+                          upperBoundLocation,
+                          Math.max(
+                            lowerBoundLocation,
+                            userPreviousQuartiles?.median
+                          )
+                        )
+                      : undefined,
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
@@ -506,7 +576,15 @@ const ContinuousTable: FC<Props> = ({
                 <Td className="tabular-nums tracking-tight">
                   {checkQuartilesOutOfBorders(userPreviousQuartiles?.upper75)}
                   {getTableDisplayValue({
-                    value: userPreviousQuartiles?.upper75,
+                    value: userPreviousQuartiles?.upper75
+                      ? Math.min(
+                          upperBoundLocation,
+                          Math.max(
+                            lowerBoundLocation,
+                            userPreviousQuartiles?.upper75
+                          )
+                        )
+                      : undefined,
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
@@ -616,7 +694,15 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
                 {checkQuartilesOutOfBorders(communityQuartiles?.lower25)}
                 {getTableDisplayValue({
-                  value: communityQuartiles?.lower25,
+                  value: communityQuartiles?.lower25
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          communityQuartiles?.lower25
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -651,7 +737,12 @@ const ContinuousTable: FC<Props> = ({
                   <>
                     {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
                     {getTableDisplayValue({
-                      value: userQuartiles?.lower25,
+                      value: userQuartiles?.lower25
+                        ? Math.min(
+                            upperBoundLocation,
+                            Math.max(lowerBoundLocation, userQuartiles?.lower25)
+                          )
+                        : undefined,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
@@ -668,7 +759,15 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {checkQuartilesOutOfBorders(userPreviousQuartiles?.lower25)}
                 {getTableDisplayValue({
-                  value: userPreviousQuartiles?.lower25,
+                  value: userPreviousQuartiles?.lower25
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          userPreviousQuartiles?.lower25
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -686,7 +785,12 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
                 {checkQuartilesOutOfBorders(communityQuartiles?.median)}
                 {getTableDisplayValue({
-                  value: communityQuartiles?.median,
+                  value: communityQuartiles?.median
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(lowerBoundLocation, communityQuartiles?.median)
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -721,7 +825,12 @@ const ContinuousTable: FC<Props> = ({
                   <>
                     {checkQuartilesOutOfBorders(userQuartiles?.median)}
                     {getTableDisplayValue({
-                      value: userQuartiles?.median,
+                      value: userQuartiles?.median
+                        ? Math.min(
+                            upperBoundLocation,
+                            Math.max(lowerBoundLocation, userQuartiles?.median)
+                          )
+                        : undefined,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
@@ -738,7 +847,15 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {checkQuartilesOutOfBorders(userPreviousQuartiles?.median)}
                 {getTableDisplayValue({
-                  value: userPreviousQuartiles?.median,
+                  value: userPreviousQuartiles?.median
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          userPreviousQuartiles?.median
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -756,7 +873,15 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
                 {checkQuartilesOutOfBorders(communityQuartiles?.upper75)}
                 {getTableDisplayValue({
-                  value: communityQuartiles?.upper75,
+                  value: communityQuartiles?.upper75
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          communityQuartiles?.upper75
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -791,7 +916,12 @@ const ContinuousTable: FC<Props> = ({
                   <>
                     {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
                     {getTableDisplayValue({
-                      value: userQuartiles?.upper75,
+                      value: userQuartiles?.upper75
+                        ? Math.min(
+                            upperBoundLocation,
+                            Math.max(lowerBoundLocation, userQuartiles?.upper75)
+                          )
+                        : undefined,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
@@ -808,7 +938,15 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {checkQuartilesOutOfBorders(userPreviousQuartiles?.upper75)}
                 {getTableDisplayValue({
-                  value: userPreviousQuartiles?.upper75,
+                  value: userPreviousQuartiles?.upper75
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          userPreviousQuartiles?.upper75
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,

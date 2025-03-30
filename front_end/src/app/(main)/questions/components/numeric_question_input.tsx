@@ -442,17 +442,17 @@ const NumericQuestionInput: React.FC<{
         )}
         {questionType === QuestionType.Discrete && (
           <div className="ml-2">
-            <span className="mr-2">Inbound Outcome Count</span>
+            <span className="mr-2">Number of Inbound Outcomes</span>
             <Input
               readOnly={hasForecasts}
               disabled={hasForecasts}
               type="number"
               min={1}
-              max={9999}
+              max={200}
               value={inboundOutcomeCount}
               onChange={(e) => {
                 const value = Number(e.target.value);
-                if (value >= 1 && value <= 9999) {
+                if (value >= 1 && value <= 200) {
                   setInboundOutcomeCount(value);
                 }
               }}

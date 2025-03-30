@@ -115,16 +115,19 @@ export function cdfFromSliders(
 
 export function computeQuartilesFromCDF(
   cdf: number[],
-  extendedQuartiles: true
+  extendedQuartiles: true,
+  discrete?: boolean
 ): ExtendedQuartiles;
 export function computeQuartilesFromCDF(
   cdf: number[],
-  extendedQuartiles?: false
+  extendedQuartiles?: false,
+  discrete?: boolean
 ): Quartiles;
 export function computeQuartilesFromCDF(cdf: number[]): Quartiles;
 export function computeQuartilesFromCDF(
   cdf: number[],
-  extendedQuartiles?: boolean
+  extendedQuartiles?: boolean,
+  discrete?: boolean
 ): Quartiles | ExtendedQuartiles {
   function findPercentile(cdf: number[], percentile: number) {
     if (cdf === null) {
@@ -136,6 +139,10 @@ export function computeQuartilesFromCDF(
       /* eslint-disable @typescript-eslint/no-non-null-assertion */
       if (cdf[i]! >= target) {
         if (i === 0) return 0;
+
+        if (discrete) {
+          return (i - 0.5) / (cdf.length - 1);
+        }
 
         const diff = cdf[i]! - cdf[i - 1]!;
         const adjustedPercentile = (target - cdf[i - 1]!) / diff;

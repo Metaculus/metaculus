@@ -835,51 +835,51 @@ export function generateScale({
     );
   }
 
-  if (direction == "horizontal") {
-    // Debugging - do not remove
-    console.log(
-      "\n displayType:",
-      displayType,
-      "\n axisLength:",
-      axisLength,
-      "\n domain:",
-      domain,
-      "\n zoomedDomain:",
-      zoomedDomain,
-      "\n zoomedRange:",
-      zoomedRange,
-      "\n scaling:",
-      scaling,
-      "\n unit:",
-      unit,
-      "\n forcedTickCount:",
-      forcedTickCount,
-      "\n maxLabelCount:",
-      maxLabelCount,
-      "\n tickCount:",
-      tickCount,
-      "\n domainScaling:",
-      domainScaling,
-      "\n rangeScaling:",
-      rangeScaling,
-      "\n minorRes:",
-      minorRes,
-      "\n majorRes:",
-      majorRes,
-      "\n tickStart:",
-      tickStart,
-      "\n tickEnd:",
-      tickEnd,
-      "\n minorTickInterval:",
-      minorTickInterval,
-      "\n minorTicks:",
-      minorTicks,
-      "\n majorTickInterval:",
-      majorTickInterval,
-      "\n majorTicks:",
-      majorTicks
-    );
-  }
+  // if (direction == "horizontal") {
+  //   // Debugging - do not remove
+  //   console.log(
+  //     "\n displayType:",
+  //     displayType,
+  //     "\n axisLength:",
+  //     axisLength,
+  //     "\n domain:",
+  //     domain,
+  //     "\n zoomedDomain:",
+  //     zoomedDomain,
+  //     "\n zoomedRange:",
+  //     zoomedRange,
+  //     "\n scaling:",
+  //     scaling,
+  //     "\n unit:",
+  //     unit,
+  //     "\n forcedTickCount:",
+  //     forcedTickCount,
+  //     "\n maxLabelCount:",
+  //     maxLabelCount,
+  //     "\n tickCount:",
+  //     tickCount,
+  //     "\n domainScaling:",
+  //     domainScaling,
+  //     "\n rangeScaling:",
+  //     rangeScaling,
+  //     "\n minorRes:",
+  //     minorRes,
+  //     "\n majorRes:",
+  //     majorRes,
+  //     "\n tickStart:",
+  //     tickStart,
+  //     "\n tickEnd:",
+  //     tickEnd,
+  //     "\n minorTickInterval:",
+  //     minorTickInterval,
+  //     "\n minorTicks:",
+  //     minorTicks,
+  //     "\n majorTickInterval:",
+  //     majorTickInterval,
+  //     "\n majorTicks:",
+  //     majorTicks
+  //   );
+  // }
 
   const conditionallyShowUnit = (value: string, idx?: number): string => {
     if (!unit) return value;
