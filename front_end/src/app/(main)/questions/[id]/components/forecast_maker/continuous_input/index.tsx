@@ -125,6 +125,7 @@ const ContinuousInput: FC<Props> = ({
       menu={menu}
       copyMenu={copyMenu}
       disabled={disabled || exampleOnly}
+      questionType={question.type}
     >
       {(sliderGraphType, tableGraphType) => (
         <>

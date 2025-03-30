@@ -163,6 +163,10 @@ const ContinuousAreaChart: FC<Props> = ({
         domain: xDomain,
         scaling: scaling,
         unit,
+        forcedTickCount:
+          questionType === QuestionType.Discrete
+            ? (data.at(0)?.pmf.length || 32) - 2
+            : undefined,
       }),
     [chartWidth, questionType, scaling, unit, xDomain]
   );
@@ -173,6 +177,7 @@ const ContinuousAreaChart: FC<Props> = ({
         axisLength: height - BOTTOM_PADDING - paddingTop,
         direction: "vertical",
         domain: yDomain,
+        zoomedDomain: yDomain,
       }),
     [height, yDomain, paddingTop]
   );
@@ -191,18 +196,18 @@ const ContinuousAreaChart: FC<Props> = ({
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
   const leftPadding = useMemo(() => {
-    if (graphType === "cdf") {
+    if (graphType === "cdf" || questionType === QuestionType.Discrete) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
       );
-      const longestLabelWidth = longestLabelLength * 9;
+      const longestLabelWidth = Math.max(5, longestLabelLength) * 9;
 
       return HORIZONTAL_PADDING + longestLabelWidth;
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale]);
+  }, [graphType, yScale, questionType]);
 
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
@@ -499,7 +504,7 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           )}
-          {graphType === "cdf" && (
+          {(graphType === "cdf" || questionType === QuestionType.Discrete) && (
             <VictoryAxis
               dependentAxis
               style={{

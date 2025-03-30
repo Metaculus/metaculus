@@ -167,13 +167,13 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
             questionType={t("dateGroup")}
             questionExample={`"${t("dateGroupExample")}"`}
           />
-          <QuestionTypePicker
+          {/* <QuestionTypePicker
             url={createHref("/questions/create/group", {
               subtype: QuestionType.Discrete,
             })}
             questionType={t("discreteGroup")}
             questionExample={`"${t("discreteGroupExample")}"`}
-          />
+          /> */}
           <QuestionTypePicker
             url={createHref("/questions/create/conditional")}
             questionType={t("conditionalPair")}

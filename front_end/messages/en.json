@@ -87,6 +87,7 @@
   "pdfLabel": "Probability Density",
   "cdfLabel": "Cumulative Probability",
   "pdf": "PDF",
+  "pmf": "PMF",
   "cdf": "CDF",
   "recencyWeighted": "Recency weighted",
   "unweighted": "Unweighted",

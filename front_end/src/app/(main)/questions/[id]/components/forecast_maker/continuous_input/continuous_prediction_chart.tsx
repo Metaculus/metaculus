@@ -11,6 +11,7 @@ import {
 import { QuestionStatus } from "@/types/post";
 import {
   DefaultInboundOutcomeCount,
+  QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
@@ -64,28 +65,46 @@ const ContinuousPredictionChart: FC<Props> = ({
       yUserLabel: !hoverState.yData.user
         ? null
         : graphType === "pmf"
-          ? (
-              hoverState.yData.user *
-              (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-            ).toFixed(3)
+          ? question.type !== QuestionType.Discrete
+            ? (
+                hoverState.yData.user *
+                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+              ).toFixed(3)
+            : (
+                100 *
+                hoverState.yData.user *
+                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+              ).toFixed(1) + "%"
           : getForecastPctDisplayValue(hoverState.yData.user),
       yUserPreviousLabel: readOnly
         ? null
         : !hoverState.yData.user_previous
           ? null
           : graphType === "pmf"
-            ? (
-                hoverState.yData.user_previous *
-                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-              ).toFixed(3)
+            ? question.type !== QuestionType.Discrete
+              ? (
+                  hoverState.yData.user_previous *
+                  (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+                ).toFixed(3)
+              : (
+                  100 *
+                  hoverState.yData.user_previous *
+                  (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+                ).toFixed(1) + "%"
             : getForecastPctDisplayValue(hoverState.yData.user_previous),
       yCommunityLabel: !hoverState.yData.community
         ? null
         : graphType === "pmf"
-          ? (
-              hoverState.yData.community *
-              (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-            ).toFixed(3)
+          ? question.type !== QuestionType.Discrete
+            ? (
+                hoverState.yData.community *
+                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+              ).toFixed(3)
+            : (
+                100 *
+                hoverState.yData.community *
+                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+              ).toFixed(1) + "%"
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
   }, [graphType, hoverState, question, readOnly]);
