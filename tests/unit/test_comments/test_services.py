@@ -1,6 +1,6 @@
 import pytest  # noqa
 
-from comments.services.common import create_comment
+from comments.services.common import create_comment, soft_delete_comment
 from comments.services.key_factors import key_factor_vote
 from comments.services.notifications import notify_mentioned_users
 from posts.models import Post, PostUserSnapshot
@@ -105,3 +105,37 @@ def test_key_factor_vote(user1, user2):
     assert key_factor_vote(kf, user1, vote=-1) == -2
     assert key_factor_vote(kf, user1) == -1
     assert key_factor_vote(kf, user1, vote=1) == 0
+
+
+def test_soft_delete_comment(user1, user2, post):
+    factory_comment(author=user2, on_post=post)
+    to_be_deleted = factory_comment(author=user2, on_post=post)
+
+    # Read comments
+    PostUserSnapshot.update_viewed_at(post, user1)
+    snapshot = PostUserSnapshot.objects.get(user=user1, post=post)
+    assert snapshot.comments_count == 2
+
+    # Delete already viewed comment
+    soft_delete_comment(to_be_deleted)
+
+    snapshot.refresh_from_db()
+    assert snapshot.comments_count == 1
+
+    # Adding new comment
+    factory_comment(author=user2, on_post=post)
+
+    # Still not viewed
+    snapshot.refresh_from_db()
+    assert snapshot.comments_count == 1
+
+    # View action
+    PostUserSnapshot.update_viewed_at(post, user1)
+    snapshot.refresh_from_db()
+    assert snapshot.comments_count == 2
+
+    # Create a new unread comment and delete it
+    to_be_deleted = factory_comment(author=user2, on_post=post)
+    soft_delete_comment(to_be_deleted)
+    snapshot.refresh_from_db()
+    assert snapshot.comments_count == 2

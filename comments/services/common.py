@@ -1,6 +1,7 @@
 import difflib
 
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -167,3 +168,14 @@ def unpin_comment(comment: Comment):
     comment.save(update_fields=["is_pinned"])
 
     return comment
+
+
+@transaction.atomic
+def soft_delete_comment(comment: Comment):
+    # Decrement counter during comment deletion
+    comment.on_post.snapshots.filter(viewed_at__gte=comment.created_at).update(
+        comments_count=F("comments_count") - 1
+    )
+
+    comment.is_soft_deleted = True
+    comment.save(update_fields=["is_soft_deleted"])

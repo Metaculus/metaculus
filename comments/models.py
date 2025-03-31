@@ -118,10 +118,7 @@ class Comment(TimeStampedModel, TranslatedModel):
 
     # annotated fields
     vote_score: int = 0
-    author_username: str = ""
-    # edited_at: None   # convenience field from edit_history ?
     user_vote: int = 0
-    children = []
 
     objects = models.Manager.from_queryset(CommentQuerySet)()
 
