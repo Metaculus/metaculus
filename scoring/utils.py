@@ -7,9 +7,22 @@ from io import StringIO
 
 import numpy as np
 from django.db import transaction
-from django.db.models import (Case, Count, Exists, ExpressionWrapper, F,
-                              FloatField, Func, IntegerField, OuterRef, Q,
-                              QuerySet, Sum, Value, When)
+from django.db.models import (
+    Case,
+    Count,
+    Exists,
+    ExpressionWrapper,
+    F,
+    FloatField,
+    Func,
+    IntegerField,
+    OuterRef,
+    Q,
+    QuerySet,
+    Sum,
+    Value,
+    When,
+)
 from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
@@ -19,9 +32,14 @@ from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast, Question, QuestionPost
 from questions.types import AggregationMethod
-from scoring.models import (ArchivedScore, Leaderboard, LeaderboardEntry,
-                            LeaderboardsRanksEntry, MedalExclusionRecord,
-                            Score)
+from scoring.models import (
+    ArchivedScore,
+    Leaderboard,
+    LeaderboardEntry,
+    LeaderboardsRanksEntry,
+    MedalExclusionRecord,
+    Score,
+)
 from scoring.score_math import evaluate_question
 from users.models import User
 from utils.dtypes import generate_map_from_list
