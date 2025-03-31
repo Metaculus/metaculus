@@ -19,9 +19,14 @@ import RevealCPButton from "./reveal_cp_button";
 type Props = {
   post: PostWithForecasts;
   preselectedQuestionId?: number;
+  className?: string;
 };
 
-const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
+const ForecastTimelineDrawer: FC<Props> = ({
+  post,
+  preselectedQuestionId,
+  className,
+}) => {
   const { hideCP } = useHideCP();
   const questions = post.group_of_questions
     ?.questions as QuestionWithNumericForecasts[];
@@ -71,6 +76,7 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
         preselectedQuestionId={preselectedQuestionId}
         hideCP={hideCP}
         forecastAvailability={forecastAvailability}
+        className={className}
       />
       {hideCP && <RevealCPButton className="mb-3" />}
     </>
