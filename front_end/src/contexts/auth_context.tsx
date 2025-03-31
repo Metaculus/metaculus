@@ -46,13 +46,9 @@ const AuthProvider: FC<
         const newAnonymousId = v4();
         sessionStorage.setItem(ANONYMOUS_SESSION_ID_KEY, newAnonymousId);
 
-        posthog.identify(newAnonymousId, {
-          is_anonymous: true,
-        });
+        posthog.identify(newAnonymousId);
       } else {
-        posthog.identify(anonymousId, {
-          is_anonymous: true,
-        });
+        posthog.identify(anonymousId);
       }
     }
 

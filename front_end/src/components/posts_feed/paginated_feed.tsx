@@ -36,6 +36,8 @@ type Props = {
   isCommunity?: boolean;
 };
 
+const FEATURE_FLAG_KEY = "consumer-view-test";
+
 const PaginatedPostsFeed: FC<Props> = ({
   initialQuestions,
   filters,
@@ -45,7 +47,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   const t = useTranslations();
   const pathname = usePathname();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-  const isConsumerViewEnabled = useFeatureFlagEnabled("consumerView");
+  const isConsumerViewEnabled = useFeatureFlagEnabled(FEATURE_FLAG_KEY);
 
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
