@@ -144,7 +144,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                   className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-4xl"
                 />
                 <span className="block self-center text-center text-base no-underline md:text-lg lg:self-start lg:text-left min-[1920px]:text-2xl">
-                  Learn how to set up a bot
+                  Set up a bot in 30min
                 </span>
               </Link>
             </div>
@@ -163,7 +163,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 The project ID to add the user to is hardcoded here - the FAB project is changed once every quarter, and it doesn't
                 make sense to build infrastructure to manage the ID from the UI. When the new FAB tournament starts, we'll just change the ID here.
               */}
-              <SignupForm forceIsBot={true} addToProject={32627} />
+              <SignupForm forceIsBot={true} addToProject={32721} />
             </div>
             <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
               {t.rich("registrationTerms", {
