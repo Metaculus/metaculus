@@ -1,12 +1,10 @@
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
 
 import numpy as np
 
+from questions.models import Question
 from utils.typing import ForecastValues
 
-if TYPE_CHECKING:
-    from questions.models import Question
 
 # string_location <> scaled_location <> unscaled_location <> bucket_index
 # string_location: the human-readable representation of the location
@@ -24,7 +22,7 @@ if TYPE_CHECKING:
 
 
 def string_location_to_scaled_location(
-    string_location: str, question: "Question"
+    string_location: str, question: Question
 ) -> float:
     if string_location in ["ambiguous", "annulled"]:
         raise ValueError("Cannot convert ambiguous or annulled to any real locations")
@@ -44,7 +42,7 @@ def string_location_to_scaled_location(
 
 
 def scaled_location_to_string_location(
-    scaled_location: float, question: "Question"
+    scaled_location: float, question: Question
 ) -> str:
     if question.type == "binary":
         return "yes" if scaled_location > 0.5 else "no"
@@ -62,7 +60,7 @@ def scaled_location_to_string_location(
 
 
 def unscaled_location_to_scaled_location(
-    unscaled_location: float, question: "Question"
+    unscaled_location: float, question: Question
 ) -> float:
     if question.type == "binary":
         return unscaled_location
@@ -85,7 +83,7 @@ def unscaled_location_to_scaled_location(
 
 
 def scaled_location_to_unscaled_location(
-    scaled_location: float, question: "Question"
+    scaled_location: float, question: Question
 ) -> float:
     if question.type == "binary":
         return scaled_location
@@ -111,7 +109,7 @@ def scaled_location_to_unscaled_location(
 
 
 def unscaled_location_to_bucket_index(
-    unscaled_location: float, question: "Question"
+    unscaled_location: float, question: Question
 ) -> int:
     if question.type == "binary":
         return int(unscaled_location)
@@ -128,13 +126,13 @@ def unscaled_location_to_bucket_index(
 
 
 def unscaled_location_to_string_location(
-    unscaled_location: float, question: "Question"
+    unscaled_location: float, question: Question
 ) -> str:
     scaled_location = unscaled_location_to_scaled_location(unscaled_location, question)
     return scaled_location_to_string_location(scaled_location, question)
 
 
-def bucket_index_to_unscaled_location(bucket_index: int, question: "Question") -> float:
+def bucket_index_to_unscaled_location(bucket_index: int, question: Question) -> float:
     if question.type == "binary":
         return bucket_index
     if question.type == "multiple_choice":
@@ -148,7 +146,7 @@ def bucket_index_to_unscaled_location(bucket_index: int, question: "Question") -
 
 
 def string_location_to_unscaled_location(
-    string_location: str, question: "Question"
+    string_location: str, question: Question
 ) -> float:
     if string_location in ["", None, "ambiguous", "annulled"]:
         return None
@@ -157,7 +155,7 @@ def string_location_to_unscaled_location(
 
 
 def string_location_to_bucket_index(
-    string_location: str, question: "Question"
+    string_location: str, question: Question
 ) -> int | None:
     if string_location in ["", None, "ambiguous", "annulled"]:
         return None
@@ -165,7 +163,7 @@ def string_location_to_bucket_index(
     return unscaled_location_to_bucket_index(unscaled_location, question)
 
 
-def get_scaled_quartiles_from_cdf(cdf: ForecastValues, question: "Question"):
+def get_scaled_quartiles_from_cdf(cdf: ForecastValues, question: Question):
     from utils.the_math.measures import percent_point_function
 
     q1 = unscaled_location_to_scaled_location(percent_point_function(cdf, 25), question)
