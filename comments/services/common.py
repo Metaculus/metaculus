@@ -172,11 +172,6 @@ def unpin_comment(comment: Comment):
 
 @transaction.atomic
 def soft_delete_comment(comment: Comment):
-    if comment.is_private:
-        comment.delete()
-
-        return
-
     # Decrease counter during comment deletion
     comment.on_post.snapshots.filter(viewed_at__gte=comment.created_at).update(
         comments_count=F("comments_count") - 1
