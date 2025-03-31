@@ -296,6 +296,13 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             return shortest_window
         return None
 
+    def get_inbound_outcome_count(self):
+        return (
+            self.inbound_outcome_count
+            if self.inbound_outcome_count
+            else DEFAULT_INBOUND_OUTCOME_COUNT
+        )
+
 
 QUESTION_CONTINUOUS_TYPES = [
     Question.QuestionType.NUMERIC,
