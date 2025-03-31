@@ -40,6 +40,7 @@
     "@types/numeric": "^1.2.6",
     "@types/react": "19.0.12",
     "@types/react-dom": "19.0.4",
+    "@types/uuid": "^10.0.0",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
     "date-fns": "^3.6.0",
