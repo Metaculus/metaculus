@@ -1,4 +1,3 @@
-from django.core.files.storage import default_storage
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -58,7 +57,7 @@ from utils.csv_utils import (
     export_all_data_for_questions,
     export_specific_data_for_questions,
 )
-from utils.files import UserUploadedImage, generate_filename
+from utils.files import validate_and_upload_image
 from utils.paginator import CountlessLimitOffsetPagination, LimitOffsetPagination
 
 spam_error = ValidationError(
@@ -424,14 +423,7 @@ def post_view_event_api_view(request: Request, pk: int):
 def upload_image_api_view(request):
     image = request.data["image"]
 
-    image_generator = UserUploadedImage(source=image)
-    result = image_generator.generate()
-
-    filename = generate_filename(default_storage, image.name, upload_to="user_uploaded")
-
-    # Save the processed image using the default storage system
-    filename = default_storage.save(filename, result, max_length=100)
-    file_url = default_storage.url(filename)
+    file_url = validate_and_upload_image(image)
 
     return Response({"url": file_url})
 
