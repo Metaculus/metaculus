@@ -1,7 +1,7 @@
 import datetime
 import posixpath
 
-from PIL.Image import Image
+from PIL import Image
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import UploadedFile
