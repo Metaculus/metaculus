@@ -172,7 +172,7 @@ def unpin_comment(comment: Comment):
 
 @transaction.atomic
 def soft_delete_comment(comment: Comment):
-    # Decrease counter during comment deletion
+    # Decrement counter during comment deletion
     comment.on_post.snapshots.filter(viewed_at__gte=comment.created_at).update(
         comments_count=F("comments_count") - 1
     )
