@@ -111,6 +111,9 @@ def test_soft_delete_comment(user1, user2, post):
     factory_comment(author=user2, on_post=post)
     to_be_deleted = factory_comment(author=user2, on_post=post)
 
+    post.update_comment_count()
+    assert post.comment_count == 2
+
     # Read comments
     PostUserSnapshot.update_viewed_at(post, user1)
     snapshot = PostUserSnapshot.objects.get(user=user1, post=post)
@@ -121,6 +124,8 @@ def test_soft_delete_comment(user1, user2, post):
 
     snapshot.refresh_from_db()
     assert snapshot.comments_count == 1
+    post.refresh_from_db()
+    assert post.comment_count == 1
 
     # Adding new comment
     factory_comment(author=user2, on_post=post)
@@ -133,9 +138,15 @@ def test_soft_delete_comment(user1, user2, post):
     PostUserSnapshot.update_viewed_at(post, user1)
     snapshot.refresh_from_db()
     assert snapshot.comments_count == 2
+    post.refresh_from_db()
+    assert post.comment_count == 2
 
     # Create a new unread comment and delete it
     to_be_deleted = factory_comment(author=user2, on_post=post)
+    post.refresh_from_db()
+    assert post.comment_count == 3
+
     soft_delete_comment(to_be_deleted)
     snapshot.refresh_from_db()
     assert snapshot.comments_count == 2
+    assert post.comment_count == 2
