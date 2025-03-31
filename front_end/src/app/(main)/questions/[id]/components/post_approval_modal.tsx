@@ -55,14 +55,14 @@ const PostApprovalModal: FC<{
         "yyyy-MM-dd'T'HH:mm:ss'Z'"
       ),
     scheduled_close_time:
-      post.question?.scheduled_close_time ??
+      post.scheduled_close_time ??
       formatInTimeZone(
         addDays(new Date(), 30),
         "UTC",
         "yyyy-MM-dd'T'HH:mm:ss'Z'"
       ),
     scheduled_resolve_time:
-      post.question?.scheduled_resolve_time ??
+      post.scheduled_resolve_time ??
       formatInTimeZone(
         addDays(new Date(), 30),
         "UTC",

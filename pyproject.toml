@@ -50,6 +50,8 @@ django-better-admin-arrayfield = "^1.4.2"
 django-modeltranslation = "^0.19.9"
 google-auth = "^2.35.0"
 django-select2 = "^8.2.1"
+instructor = "^1.7.7"
+pytz = "^2025.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

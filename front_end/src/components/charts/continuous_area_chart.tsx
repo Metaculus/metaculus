@@ -172,14 +172,15 @@ const ContinuousAreaChart: FC<Props> = ({
     [height, yDomain, paddingTop]
   );
 
-  const resolutionPoint = !isNil(resolution)
-    ? getResolutionData({
-        questionType,
-        resolution,
-        resolveTime: 1,
-        scaling,
-      })
-    : null;
+  const resolutionPoint =
+    !isNil(resolution) && resolution !== ""
+      ? getResolutionData({
+          questionType,
+          resolution,
+          resolveTime: 1,
+          scaling,
+        })
+      : null;
 
   // TODO: find a nice way to display the out of bounds weights as numbers
   // const massBelowBounds = dataset[0];
