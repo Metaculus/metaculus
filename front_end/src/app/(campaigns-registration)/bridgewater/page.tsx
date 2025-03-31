@@ -1,14 +1,15 @@
-import { faFile, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faTrophy } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC } from "react";
+import { google } from "googleapis";
+import Link from "next/link";
 
-import ProfileApi from "@/services/profile";
-import cn from "@/utils/cn";
+import GlobalHeader from "@/app/(main)/components/headers/global_header";
 
-import { Hero, Dates, Prize } from "./components/hero-section";
-import { RegisterAndStatus } from "./components/registration-status";
-import GlobalHeader from "../../(main)/components/headers/global_header";
+import ResultsAnnouncement from "./components/results-announcement";
+import ResultsDates from "./components/results-dates";
+import ResultsHero from "./components/results-hero";
+import ResultsLeaderboard from "./components/results-leaderboard";
+import ResultsPrize from "./components/results-prize";
 
 export const metadata = {
   title: "Bridgewater x Metaculus",
@@ -16,103 +17,123 @@ export const metadata = {
     "Register to forecast, explore opportunities with Bridgewater Associates, and compete for $25,000 in prizes!",
 };
 
-const buttonLinks = [
-  {
-    icon: faTrophy,
-    text: "Leaderboards",
-    url: "/bridgewater/leaderboards/",
-  },
-  {
-    icon: faQuestionCircle,
-    text: "Learn how it works",
-    url: "how-it-works",
-  },
-  {
-    icon: faFile,
-    text: "Contest Rules",
-    url: "contest-rules",
-  },
-];
+async function getSheetData() {
+  try {
+    const credentials = JSON.parse(
+      Buffer.from(
+        process.env.BW_LEADERBOARDS_GOOGLE_CREDENTIALS_B64 || "",
+        "base64"
+      ).toString()
+    );
 
-const DescriptionParagraphs: FC<{ className?: string }> = ({ className }) => {
-  return (
-    <div
-      className={cn(
-        "rounded bg-gray-0 p-5 text-sm text-blue-800 dark:bg-gray-0-dark dark:text-blue-800-dark md:p-8 md:text-base md:font-medium lg:text-lg  min-[1920px]:p-12 min-[1920px]:text-xl",
-        className
-      )}
-    >
-      <p className="mt-0 font-normal leading-normal md:font-light">
-        Metaculus and Bridgewater Associates are partnering again on a unique
-        forecasting competition. Starting February 3rd, forecasters of all
-        experience levels can share their predictions across a variety of
-        questions.
-      </p>
-      <p className="font-semibold leading-normal">
-        The most accurate forecasters will be eligible for $25,000 in prizes and
-        potential opportunities with Bridgewater. Last competition, multiple
-        offers were made to the top forecasters.
-      </p>
-      <p className="mb-0 font-normal leading-normal md:font-light">
-        The competition features two tracks: an undergraduate track for current
-        students and an open track for all participants. Register today and be
-        notified as soon as questions open. The earlier you forecast, the better
-        your odds to beat the competition and win cash prizes!
-      </p>
-    </div>
-  );
-};
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+    });
 
-const UtilLinks: FC<{ className?: string }> = ({ className }) => {
-  return (
-    <div
-      className={cn("flex flex-col gap-3 sm:flex-row xl:flex-col", className)}
-    >
-      {" "}
-      {buttonLinks.map((button) => (
-        <a
-          key={button.text}
-          href={button.url}
-          className="flex grow flex-col items-center justify-between gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 lg:p-5  xl:items-start min-[1920px]:gap-6"
-        >
-          <FontAwesomeIcon
-            icon={button.icon}
-            className="text-xl text-blue-700 dark:text-blue-700-dark xl:text-2xl"
-          />
-          <span className="block text-center text-base text-blue-700 no-underline dark:text-blue-700-dark xl:text-xl">
-            {button.text}
-          </span>
-        </a>
-      ))}
-    </div>
-  );
-};
+    const sheets = google.sheets({ version: "v4", auth });
+    const spreadsheetId = process.env.BW_LEADERBOARDS_GOOGLE_SHEET_ID;
+
+    // First, get all sheet names
+    const spreadsheet = await sheets.spreadsheets.get({
+      spreadsheetId,
+    });
+
+    const sheetNames = spreadsheet.data.sheets?.map(
+      (sheet) => sheet.properties?.title || ""
+    );
+
+    if (!sheetNames || sheetNames.length === 0) {
+      return [];
+    }
+
+    // Then get data for all sheets
+    const allSheetsData = await Promise.all(
+      sheetNames.map(async (sheetName) => {
+        const response = await sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: `${sheetName}!A1:Z`,
+        });
+        return {
+          name: sheetName,
+          data: response.data.values || [],
+        };
+      })
+    );
+
+    return allSheetsData;
+  } catch (error) {
+    console.error("Error fetching sheet data:", error);
+    return [];
+  }
+}
 
 export default async function Page() {
-  const currentUser = await ProfileApi.getMyProfile();
+  const allSheets = await getSheetData();
+
+  if (!allSheets || allSheets.length === 0) {
+    return <div>No data found</div>;
+  }
+
+  // Filter out any sheets that aren't Open or Undergraduate
+  const filteredSheets = allSheets.filter((sheet) => {
+    const name = sheet.name;
+    return name === "Open Leaderboard" || name === "Undergraduate Leaderboard";
+  });
 
   return (
     <>
       <GlobalHeader />
-      <main className="mt-12 flex h-fit min-h-screen flex-col items-center justify-start p-3 sm:p-5">
-        <div className="flex size-full h-auto flex-col items-center gap-2 md:h-fit md:min-h-[calc(100vh-80px)]">
-          <div className="flex w-full flex-col gap-3 lg:flex-row">
-            <div className="w-full self-stretch">
-              <Hero />
+      <main className="mt-12 flex h-fit flex-col items-center justify-start p-3 sm:p-5">
+        <div className="flex size-full flex-col items-center">
+          <div className="flex w-full flex-col gap-3 md:flex-row">
+            <div className="flex w-full flex-col gap-3 md:w-1/2 lg:flex-row">
+              <ResultsHero />
+              <div className="relative flex size-full min-h-[8rem] flex-row overflow-hidden rounded lg:h-auto lg:w-1/2">
+                <img
+                  className="w-full object-cover"
+                  src="https://metaculus-media.s3.amazonaws.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp"
+                  alt=""
+                />
+              </div>
             </div>
-            <div className="flex w-full flex-row gap-3 lg:flex-col xl:flex-row">
-              <Dates />
-              <Prize />
+            <div className="flex w-full flex-col gap-3 md:w-1/2 lg:flex-row">
+              <ResultsDates />
+              <ResultsPrize />
             </div>
           </div>
-
-          <div className="min-h-[147px] w-full shrink-0 rounded bg-[url('https://metaculus-media.s3.amazonaws.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp')] bg-cover bg-center lg:min-h-[178px] xl:min-h-[244px] min-[1920px]:min-h-[344px]"></div>
-          <div className="flex w-full grow flex-wrap gap-3 xl:flex-nowrap">
-            <DescriptionParagraphs className="w-full" />
-
-            <RegisterAndStatus className="w-full" currentUser={currentUser} />
-
-            <UtilLinks className="w-full" />
+          <div className="mt-3 flex w-full flex-col">
+            <ResultsAnnouncement />
+          </div>
+          <div className="my-3 flex w-full flex-col-reverse gap-3 lg:flex-row-reverse">
+            <div className="flex w-full gap-3 lg:w-1/4">
+              <Link
+                href="/tournament/bridgewater/"
+                className="flex size-full h-auto flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:h-full md:p-5 lg:justify-center min-[1920px]:gap-6 min-[1920px]:p-8"
+              >
+                <FontAwesomeIcon
+                  icon={faArrowRight}
+                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-5xl"
+                />
+                <span className="block self-center text-center text-base text-blue-700 no-underline dark:text-blue-700-dark md:text-xl lg:self-start lg:text-left min-[1920px]:text-3xl">
+                  View Contest Page
+                </span>
+              </Link>
+            </div>
+            <div className="flex size-full flex-col gap-3 md:flex-row">
+              {filteredSheets.map((sheet) => (
+                <ResultsLeaderboard
+                  key={sheet.name}
+                  title={
+                    sheet.name === "Open Leaderboard"
+                      ? "Open Leaderboard"
+                      : "Undergrad Leaderboard"
+                  }
+                  data={sheet.data}
+                  headers={sheet.data[0] || []}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </main>
