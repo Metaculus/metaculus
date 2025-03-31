@@ -84,8 +84,8 @@ export default async function Page() {
   return (
     <>
       <GlobalHeader />
-      <main className="mt-12 flex h-fit flex-col items-center justify-start p-3 sm:p-5">
-        <div className="flex size-full flex-col items-center">
+      <main className="mt-4 p-3 pt-12 sm:p-5 sm:pt-12 md:mt-5">
+        <div className="flex flex-col items-center gap-3">
           <div className="flex w-full flex-col gap-3 md:flex-row">
             <div className="flex w-full flex-col gap-3 md:w-1/2 lg:flex-row">
               <ResultsHero />
@@ -102,10 +102,10 @@ export default async function Page() {
               <ResultsPrize />
             </div>
           </div>
-          <div className="mt-3 flex w-full flex-col">
+          <div className="flex w-full flex-col">
             <ResultsAnnouncement />
           </div>
-          <div className="my-3 flex w-full flex-col-reverse gap-3 lg:flex-row-reverse">
+          <div className="flex w-full flex-col-reverse gap-3 lg:flex-row-reverse">
             <div className="flex w-full gap-3 lg:w-1/4">
               <Link
                 href="/tournament/bridgewater/"
