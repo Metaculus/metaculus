@@ -54,15 +54,6 @@ export default async function Tournaments() {
 
       <hr className="hidden border-gray-300 dark:border-gray-300-dark md:block" />
 
-      {indexes.length > 0 && (
-        <TournamentsList
-          title={t("Indexes")}
-          items={indexes}
-          cardsPerPage={12}
-          withEmptyState
-        />
-      )}
-
       <TournamentsList
         title={t("ActiveTournaments")}
         items={activeTournaments}
@@ -75,6 +66,15 @@ export default async function Tournaments() {
         items={questionSeries}
         cardsPerPage={12}
       />
+
+      {indexes.length > 0 && (
+        <TournamentsList
+          title={t("Indexes")}
+          items={indexes}
+          cardsPerPage={12}
+          withEmptyState
+        />
+      )}
 
       <TournamentsList
         title={t("Archive")}
