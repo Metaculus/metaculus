@@ -11,7 +11,6 @@ import {
 import PostsApi from "@/services/posts";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
-
 import "./styles.scss";
 import { TournamentType } from "@/types/projects";
 
