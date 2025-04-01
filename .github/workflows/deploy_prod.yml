@@ -35,3 +35,6 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}'
+      - name: "Sentry: Upload sourcemaps"
+        run: |
+          docker run -w /app/front_end -e SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} registry.heroku.com/$HEROKU_APP/web npx sentry-cli sourcemaps upload  /app/front_end/.next/ --project metaculus-frontend --org metaculus
