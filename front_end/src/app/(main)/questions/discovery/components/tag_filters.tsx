@@ -11,7 +11,8 @@ const TagFilters: FC = () => {
   const t = useTranslations();
 
   const [searchQuery, setSearchQuery] = useSearchInputState(
-    TAGS_TEXT_SEARCH_FILTER
+    TAGS_TEXT_SEARCH_FILTER,
+    { modifySearchParams: true }
   );
 
   return (
