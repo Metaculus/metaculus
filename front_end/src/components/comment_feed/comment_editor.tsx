@@ -15,7 +15,6 @@ import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
-import cn from "@/utils/cn";
 import { parseComment } from "@/utils/comments";
 
 import { validateComment } from "./validate_comment";
@@ -49,7 +48,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
    This ensures the editor reflects the correct markdown content. */
   const [rerenderKey, updateRerenderKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(true);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
 
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
@@ -83,7 +81,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       // Set the forecast checkbox
       setHasIncludedForecast(true);
     }
-  }, [params, clearParams]);
+  }, [params, clearParams, shallowNavigateToSearchParams]);
 
   const handleSubmit = async () => {
     setErrorMessage("");
@@ -122,7 +120,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
         return;
       }
 
-      setIsEditing(true);
       setHasIncludedForecast(false);
       setMarkdown("");
       setIsMarkdownDirty(false);
@@ -177,12 +174,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       )*/}
       <div
         ref={editorRef}
-        className={cn(
-          "scroll-mt-24 border border-gray-500 dark:border-gray-500-dark",
-          {
-            hidden: !isEditing,
-          }
-        )}
+        className="scroll-mt-24 border border-gray-500 dark:border-gray-500-dark"
       >
         <MarkdownEditor
           key={rerenderKey}
@@ -195,9 +187,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
           initialMention={replyUsername}
         />
       </div>
-      {!isEditing && (
-        <MarkdownEditor mode="read" markdown={markdown} withUgcLinks />
-      )}
       {(isReplying || hasInteracted) && (
         <div className="my-4 flex items-center justify-end gap-3">
           {!isReplying && isPrivateFeed && (
@@ -205,19 +194,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
               {t("youArePostingAPrivateComment")}
             </span>
           )}
-          <Button
-            disabled={markdown.length === 0}
-            className="p-2"
-            onClick={() => {
-              setIsEditing((prev) => !prev);
-              if (errorMessage) {
-                setErrorMessage("");
-              }
-            }}
-          >
-            {isEditing ? t("preview") : t("edit")}
-          </Button>
-
           <Button
             className="p-2"
             disabled={markdown.length === 0 || isLoading}
