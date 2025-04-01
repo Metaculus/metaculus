@@ -28,7 +28,7 @@ import { BECommentType, CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/cn";
-import { parseComment } from "@/utils/comments";
+import { getCommentIdToFocusOn, parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 
 import CommentWelcomeMessage, {
@@ -143,22 +143,6 @@ const CommentFeed: FC<Props> = ({
     userCommentsAmount !== null &&
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
     !PUBLIC_MINIMAL_UI;
-  /**
-   * Returns commentId to focus on if id is provided and comment is not already rendered
-   */
-  const getCommentIdToFocusOn = () => {
-    const match =
-      typeof window !== "undefined" &&
-      window.location.hash.match(/comment-(\d+)/);
-
-    const focus_comment_id = match ? match[1] : undefined;
-    // Check whether comment is already rendered. In this case we don't need to re-fetch the page
-    const isCommentLoaded =
-      focus_comment_id &&
-      document.getElementById(`comment-${focus_comment_id}`);
-
-    if (focus_comment_id && !isCommentLoaded) return focus_comment_id;
-  };
 
   const [feedFilters, setFeedFilters] = useState<getCommentsParams>(() => ({
     is_private: false,
