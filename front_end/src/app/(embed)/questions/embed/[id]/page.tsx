@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import ForecastCard from "@/components/forecast_card";
+import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import {
   EMBED_QUESTION_TITLE,
   GRAPH_ZOOM_PARAM,
@@ -12,6 +13,8 @@ import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 
 import "./styles.scss";
+import { TournamentType } from "@/types/projects";
+
 import { getEmbedTheme } from "../../helpers/embed_theme";
 
 export default async function GenerateQuestionPreview(props: {
@@ -25,6 +28,8 @@ export default async function GenerateQuestionPreview(props: {
   if (!post) {
     return null;
   }
+  const isCommunityQuestion =
+    post.projects.default_project.type === TournamentType.Community;
 
   const embedTheme = getEmbedTheme(
     searchParams["embed_theme"],
@@ -52,6 +57,13 @@ export default async function GenerateQuestionPreview(props: {
         ...embedTheme.card,
       }}
     >
+      {isCommunityQuestion && (
+        <CommunityDisclaimer
+          project={post.projects.default_project}
+          variant="standalone"
+          className="-mb-2"
+        />
+      )}
       <ForecastCard
         post={post}
         className="size-full flex-1 bg-transparent hover:shadow-none dark:bg-transparent"
