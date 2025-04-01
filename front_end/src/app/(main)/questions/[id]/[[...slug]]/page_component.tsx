@@ -8,6 +8,7 @@ import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import ProjectsApi from "@/services/projects";
+import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 import { PostStatus, ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
@@ -18,6 +19,7 @@ import {
   isQuestionPost,
 } from "@/utils/questions";
 
+import { cachedGetPost } from "./utils/get_post";
 import BackgroundInfo from "../components/background_info";
 import HideCPProvider from "../components/cp_provider";
 import DetailedGroupCard from "../components/detailed_group_card";
@@ -33,7 +35,6 @@ import QuestionResolutionStatus from "../components/question_resolution_status";
 import ResolutionCriteria from "../components/resolution_criteria";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
-import { cachedGetPost } from "./utils/get_post";
 
 const IndividualQuestionPage: FC<{
   params: { id: number; slug: string[] };
@@ -121,17 +122,28 @@ const IndividualQuestionPage: FC<{
                   <ConditionalTimeline post={postData} />
                 )}
 
-                {!!postData.group_of_questions && (
-                  <ContinuousGroupTimeline
-                    post={postData}
-                    preselectedQuestionId={preselectedGroupQuestionId}
-                  />
-                )}
+                {!!postData.group_of_questions &&
+                  postData.group_of_questions.graph_type !==
+                    GroupOfQuestionsGraphType.FanGraph && (
+                    <ContinuousGroupTimeline
+                      post={postData}
+                      preselectedQuestionId={preselectedGroupQuestionId}
+                    />
+                  )}
                 <div className="flex flex-col gap-2.5">
                   {!!keyFactors.length && (
                     <KeyFactorsSection keyFactors={keyFactors} />
                   )}
                   <BackgroundInfo post={postData} />
+                  {!!postData.group_of_questions &&
+                    postData.group_of_questions.graph_type ===
+                      GroupOfQuestionsGraphType.FanGraph && (
+                      <ContinuousGroupTimeline
+                        post={postData}
+                        preselectedQuestionId={preselectedGroupQuestionId}
+                        className="mt-2"
+                      />
+                    )}
                   <HistogramDrawer post={postData} />
                 </div>
               </section>

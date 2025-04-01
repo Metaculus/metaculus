@@ -1,16 +1,25 @@
 import difflib
 
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment, CommentDiff
+from comments.services.spam_detection import check_and_handle_comment_spam
 from posts.models import Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
+
 from ..tasks import run_on_post_comment_create
+
+spam_error = ValidationError(
+    detail="This comment seems to be spam. Please contact "
+    "support@metaculus.com if you believe this was a mistake.",
+    code="SPAM_DETECTED",
+)
 
 
 def get_comment_permission_for_user(
@@ -56,6 +65,7 @@ def create_comment(
     text: str = None,
 ) -> Comment:
     on_post = parent.on_post if parent else on_post
+    should_soft_delete = False
 
     with transaction.atomic():
         obj = Comment(
@@ -72,8 +82,16 @@ def create_comment(
         obj.full_clean()
         obj.save()
 
-        # Update comments read cache counter
-        PostUserSnapshot.update_viewed_at(on_post, user)
+        should_soft_delete = check_and_handle_comment_spam(user, obj)
+
+        if not should_soft_delete:
+            # Update comments read cache counter
+            PostUserSnapshot.update_viewed_at(on_post, user)
+
+    if should_soft_delete:
+        obj.is_soft_deleted = True
+        obj.save(update_fields=["is_soft_deleted"])
+        raise spam_error
 
     # Send related notifications and update counters
     # Only if comment is public
@@ -92,6 +110,7 @@ def update_comment(comment: Comment, text: str = None):
 
     diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))
     text_diff = "\n".join(diff)
+    should_soft_delete = False
 
     with transaction.atomic():
         comment_diff = CommentDiff.objects.create(
@@ -103,9 +122,18 @@ def update_comment(comment: Comment, text: str = None):
         comment.edit_history.append(comment_diff.id)
         comment.text = text
         comment.text_edited_at = timezone.now()
-        comment.save(update_fields=["text", "edit_history", "text_edited_at"])
+
+        should_soft_delete = check_and_handle_comment_spam(comment.author, comment)
+        comment.is_soft_deleted = should_soft_delete
+
+        comment.save(
+            update_fields=["text", "edit_history", "text_edited_at", "is_soft_deleted"]
+        )
 
     trigger_update_comment_translations(comment)
+
+    if should_soft_delete:
+        raise spam_error
 
 
 def trigger_update_comment_translations(comment: Comment):
@@ -140,3 +168,18 @@ def unpin_comment(comment: Comment):
     comment.save(update_fields=["is_pinned"])
 
     return comment
+
+
+@transaction.atomic
+def soft_delete_comment(comment: Comment):
+    post = comment.on_post
+
+    # Decrement counter during comment deletion
+    post.snapshots.filter(viewed_at__gte=comment.created_at).update(
+        comments_count=F("comments_count") - 1
+    )
+
+    comment.is_soft_deleted = True
+    comment.save(update_fields=["is_soft_deleted"])
+
+    post.update_comment_count()

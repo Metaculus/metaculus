@@ -201,6 +201,7 @@ def export_data_for_questions(
     #     forecast_data - Always (populated by user_forecasts and aggregate_forecasts)
     #     comment_data - only if comments given
     #     score_data - only if scores given
+    username_dict = dict(User.objects.values_list("id", "username"))
 
     questions = questions.prefetch_related(
         "related_posts__post", "related_posts__post__default_project"
@@ -233,6 +234,7 @@ def export_data_for_questions(
             "Resolution",
             "Resolution Known Time",
             "Include Bots in Aggregates",
+            "Question Weight",
         ]
     )
     for question in questions:
@@ -272,6 +274,7 @@ def export_data_for_questions(
                 question.resolution,
                 question.actual_resolve_time,
                 question.include_bots_in_aggregates,
+                question.question_weight,
             ]
         )
 
@@ -296,11 +299,11 @@ def export_data_for_questions(
     forecast_writer.writerow(headers)
 
     for forecast in user_forecasts or []:
-        row = [forecast.question.id]
+        row = [forecast.question_id]
         if anonymized:
             row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
         else:
-            row.extend([forecast.author_id, forecast.author.username])
+            row.extend([forecast.author_id, username_dict[forecast.author_id]])
         row.extend(
             [
                 forecast.start_time,
@@ -326,7 +329,7 @@ def export_data_for_questions(
                 probability_yes = None
                 probability_yes_per_category = None
                 continuous_cdf = aggregate_forecast.forecast_values
-        row = [aggregate_forecast.question.id]
+        row = [aggregate_forecast.question_id]
         if anonymized:
             row.append(aggregate_forecast.method)
         else:
@@ -397,14 +400,18 @@ def export_data_for_questions(
         if anonymized:
             row.append(
                 hashlib.sha256(str(score.user_id).encode()).hexdigest()
-                if score.user
+                if score.user_id
                 else score.aggregation_method
             )
         else:
             row.extend(
                 [
                     score.user_id,
-                    score.user.username if score.user else score.aggregation_method,
+                    (
+                        username_dict[score.user_id]
+                        if score.user_id
+                        else score.aggregation_method
+                    ),
                 ]
             )
         row.extend(
