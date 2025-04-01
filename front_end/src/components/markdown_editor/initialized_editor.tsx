@@ -143,7 +143,7 @@ const InitializedMarkdownEditor: FC<
   );
   const debouncedHandleEditorChange = useDebouncedCallback(
     handleEditorChange,
-    100,
+    500,
     { leading: true }
   );
 
