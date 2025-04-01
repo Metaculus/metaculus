@@ -63,7 +63,7 @@
     "openai": "^4.78.1",
     "posthog-js": "^1.181.0",
     "posthog-node": "^4.2.1",
-    "puppeteer": "^22.12.1",
+    "puppeteer": "^22.15.0",
     "rc-slider": "^10.6.2",
     "react": "19.0.0",
     "react-dom": "19.0.0",
