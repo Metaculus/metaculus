@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   AnchorHTMLAttributes,
   ButtonHTMLAttributes,
+  ElementType,
   forwardRef,
   PropsWithChildren,
 } from "react";
@@ -23,6 +24,7 @@ type Props = {
   size?: ButtonSize;
   variant?: ButtonVariant;
   presentationType?: PresentationType;
+  as?: ElementType;
 } & ButtonHTMLAttributes<HTMLButtonElement> &
   AnchorHTMLAttributes<HTMLAnchorElement>;
 
@@ -35,6 +37,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
       href,
       className,
       children,
+      as,
       ...props
     },
     ref
@@ -43,6 +46,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
       <Container
         ref={ref}
         href={href}
+        as={as}
         className={cn(
           "inline-flex items-center justify-center rounded-full disabled:opacity-30",
           {
@@ -78,11 +82,13 @@ const Button = forwardRef<HTMLButtonElement, Props>(
 Button.displayName = "Button";
 
 type ContainerProps = ButtonHTMLAttributes<HTMLButtonElement> &
-  AnchorHTMLAttributes<HTMLAnchorElement>;
+  AnchorHTMLAttributes<HTMLAnchorElement> & {
+    as?: ElementType;
+  };
 const Container = forwardRef<
   HTMLButtonElement,
   PropsWithChildren<ContainerProps>
->(({ href, children, ...props }, ref) => {
+>(({ href, children, as, ...props }, ref) => {
   if (href) {
     return (
       <HeadlessButton ref={ref} as={Link} href={href} {...props}>
@@ -92,7 +98,7 @@ const Container = forwardRef<
   }
 
   return (
-    <HeadlessButton ref={ref} {...props}>
+    <HeadlessButton ref={ref} as={as} {...props}>
       {children}
     </HeadlessButton>
   );

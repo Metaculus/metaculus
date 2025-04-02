@@ -1,7 +1,8 @@
 "use client";
 import { sendGAEvent } from "@next/third-parties/google";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
+import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import Voter from "@/components/voter";
 import { useAuth } from "@/contexts/auth_context";
@@ -26,6 +27,14 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
 
   const [userVote, setUserVote] = useState(voteData.userVote);
   const [votesScore, setVotesScore] = useState(voteData.votesScore);
+  const { setKeyFactorVote } = useCommentsFeed();
+
+  // Update local state when voteData changes
+  useEffect(() => {
+    setUserVote(voteData.userVote);
+    setVotesScore(voteData.votesScore);
+  }, [voteData.userVote, voteData.votesScore]);
+
   const handleVote = async (direction: VoteDirection) => {
     if (!user) {
       setCurrentModal({ type: "signin" });
@@ -39,13 +48,16 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
         vote: newDirection,
         user: user.id,
       });
-
       if (newDirection === 1) sendGAEvent("event", "KeyFactorUpvote");
       if (newDirection === -1) sendGAEvent("event", "KeyFactorDownvote");
 
       if (response && "score" in response) {
+        const newVotesScore = response.score as number;
+
+        setKeyFactorVote(voteData.keyFactorId, newDirection, newVotesScore);
+
         setUserVote(newDirection);
-        setVotesScore(response.score as number);
+        setVotesScore(newVotesScore);
       }
     } catch (e) {
       logError(e);
