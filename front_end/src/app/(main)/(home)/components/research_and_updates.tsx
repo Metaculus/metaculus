@@ -45,6 +45,7 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
                 width={265}
                 height={160}
                 quality={100}
+                sizes="(max-width: 768px) 200vw, 100vw"
                 className="h-56 w-full object-cover object-center"
               />
             ) : (
