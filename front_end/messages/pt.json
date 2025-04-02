@@ -1181,5 +1181,11 @@
   "communityDisclaimerSiteMain": "Esta pergunta também faz parte do Metaculus principal.",
   "conditionalBranchResolutionAnnulled": "Este ramo foi anulado porque a <link>pergunta pai</link> foi resolvida <resolution></resolution>.",
   "postNotebookMoveDateModalCopy": "A data de término das previsões do torneio é <b>{tournament_forecasting_end_date}</b> e você está tentando aprovar uma pergunta que fecha em <b>{question_close_date}</b>. Deseja mover a data de término das previsões do torneio para <b>{question_close_date}</b>?",
-  "moveDate": "Mover data"
+  "moveDate": "Mover data",
+  "addKeyFactor": "Adicionar fator chave",
+  "addKeyFactors": "Adicionar Fatores Chave",
+  "addKeyFactorsModalP1": "Insira seus fatores chave abaixo - tente mantê-los curtos e claros.",
+  "addKeyFactorsModalP2": "Seu comentário original deve explicar as razões por trás desses fatores chave.",
+  "typeKeyFator": "Digite um fator chave aqui",
+  "back": "Voltar"
 }

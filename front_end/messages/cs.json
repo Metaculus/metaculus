@@ -1183,5 +1183,11 @@
   "communityDisclaimerSiteMain": "Tato otázka je také součástí hlavního Metaculus.",
   "conditionalBranchResolutionAnnulled": "Tato větev byla zrušena, protože <link>nadřazená otázka</link> byla vyřešena <resolution></resolution>.",
   "postNotebookMoveDateModalCopy": "Datum ukončení předpovědí turnaje je <b>{tournament_forecasting_end_date}</b> a snažíte se schválit otázku, která se uzavírá <b>{question_close_date}</b>. Chcete přemístit datum ukončení předpovědí turnaje na <b>{question_close_date}</b>?",
-  "moveDate": "Přemístit datum"
+  "moveDate": "Přemístit datum",
+  "addKeyFactor": "Přidat klíčový faktor",
+  "addKeyFactors": "Přidat klíčové faktory",
+  "addKeyFactorsModalP1": "Zadejte své klíčové faktory níže - snažte se je udržet krátké a jasné.",
+  "addKeyFactorsModalP2": "Váš původní komentář by měl vysvětlovat důvody za těmito klíčovými faktory.",
+  "typeKeyFator": "Zadejte zde klíčový faktor",
+  "back": "Zpět"
 }

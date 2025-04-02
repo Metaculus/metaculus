@@ -1177,8 +1177,15 @@
   "forecastCopyToToastMessage": "Distribution copied from ''{from_name}'' to ''{to_name}''",
   "result": "result",
   "communityDisclaimer": "Contributed by the <community></community> community. <learnMore>Learn more</learnMore>",
+  "conditionalBranchResolutionAnnulled": "This branch was annulled because the <link>parent question</link> resolved <resolution></resolution>.",
   "communityDisclaimerSiteMain": "This question is also part of main Metaculus.",
   "conditionalBranchResolutionAnnulled": "This branch was annulled because the <link>parent question</link> resolved <resolution></resolution>.",
   "postNotebookMoveDateModalCopy": "The tournament forecasting end date is <b>{tournament_forecasting_end_date}</b> and you are trying to approve a question that closes on <b>{question_close_date}</b>. Do you want to move the tournament forecasting end date to <b>{question_close_date}</b>?",
-  "moveDate": "Move date"
+  "moveDate": "Move date",
+  "addKeyFactor": "Add key factor",
+  "addKeyFactors": "Add Key Factors",
+  "addKeyFactorsModalP1": "Enter your key factors below - try to keep them short and clear.",
+  "addKeyFactorsModalP2": "Your original comment should explain the reasons behind these key factors.",
+  "typeKeyFator": "Type a key factor here",
+  "back": "Back"
 }

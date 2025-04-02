@@ -310,6 +310,21 @@ export async function createComment(commentData: CreateCommentParams) {
   }
 }
 
+export async function addKeyFactorsToComment(
+  commentId: number,
+  keyFactors: string[]
+) {
+  try {
+    return await CommentsApi.addKeyFactorsToComment(commentId, keyFactors);
+  } catch (err) {
+    const error = err as ApiError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export async function commentTogglePin(commentId: number, pin: boolean) {
   return await CommentsApi.togglePin(commentId, pin);
 }
