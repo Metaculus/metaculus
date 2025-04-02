@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from comments.models import KeyFactor
+from comments.models import Comment, KeyFactor
 from users.models import User
 
 
@@ -16,3 +16,9 @@ def key_factor_vote(
 
     # Update counters
     return key_factor.update_vote_score()
+
+
+@transaction.atomic
+def create_key_factors(comment_id: int, key_factors: list[str]):
+    for key_factor in key_factors:
+        KeyFactor.objects.create(comment_id=comment_id, text=key_factor)

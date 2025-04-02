@@ -157,9 +157,9 @@ const IndividualQuestionPage: FC<{
                       />
                     )}
                   <div className="flex flex-col gap-2.5">
-                    {!!keyFactors.length && (
-                      <KeyFactorsSection keyFactors={keyFactors} />
-                    )}
+                     {/* ELis: here, get a callback for when the comment + keyfactor was created, and re-render the comment feed  */}
+                    <KeyFactorsSection keyFactors={keyFactors} />
+
                     <BackgroundInfo post={postData} />
                     {!!postData.group_of_questions &&
                       postData.group_of_questions.graph_type ===

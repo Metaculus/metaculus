@@ -31,7 +31,7 @@ from comments.services.common import (
 )
 from comments.services.common import update_comment
 from comments.services.feed import get_comments_feed
-from comments.services.key_factors import key_factor_vote
+from comments.services.key_factors import create_key_factors, key_factor_vote
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -149,8 +149,16 @@ def comment_create_api_view(request: Request):
         **serializer.validated_data, included_forecast=forecast, user=user
     )
 
+    key_factors = serializers.ListField(
+        child=serializers.CharField(allow_blank=False), allow_null=True
+    ).run_validation(request.data.get("key_factors"))
+
+    if key_factors is not None:
+        create_key_factors(new_comment.id, key_factors)
+
     return Response(
-        serialize_comment_many([new_comment])[0], status=status.HTTP_201_CREATED
+        serialize_comment_many([new_comment], with_key_factors=True)[0],
+        status=status.HTTP_201_CREATED,
     )
 
 
@@ -294,6 +302,27 @@ def key_factor_vote_view(request: Request, pk: int):
     score = key_factor_vote(key_factor, user=request.user, vote=vote)
 
     return Response({"score": score})
+
+
+@api_view(["POST"])
+def comment_add_key_factors_view(request: Request, pk: int):
+    comment = get_object_or_404(Comment, pk=pk)
+
+    if comment.author != request.user:
+        raise PermissionDenied(
+            "You do not have permission to add key factors to this comment."
+        )
+
+    key_factors = serializers.ListField(
+        child=serializers.CharField(allow_blank=False), allow_null=True
+    ).run_validation(request.data.get("key_factors"))
+
+    create_key_factors(comment.id, key_factors)
+
+    return Response(
+        serialize_comment_many([comment], with_key_factors=True)[0],
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["POST"])
