@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
-import imagePlaceholder from "@/app/assets/images/tournament.png";
+import imagePlaceholder from "@/app/assets/images/logo_placeholder.png";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { NotebookPost } from "@/types/post";
 import { getPostLink } from "@/utils/navigation";
@@ -45,6 +45,7 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
                 width={265}
                 height={160}
                 quality={100}
+                sizes="(max-width: 768px) 200vw, 100vw"
                 className="h-56 w-full object-cover object-center"
               />
             ) : (
@@ -53,6 +54,7 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
                 alt=""
                 className="h-56 w-full object-cover object-center"
                 quality={100}
+                sizes="(max-width: 768px) 200vw, 100vw"
               />
             )}
 
