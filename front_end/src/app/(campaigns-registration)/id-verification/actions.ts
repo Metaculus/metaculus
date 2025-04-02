@@ -71,7 +71,6 @@ export async function initiateStripeVerification(
         type: "document",
         options: {
           document: {
-            require_id_number: true,
             require_matching_selfie: true,
           },
           email: {
