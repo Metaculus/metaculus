@@ -13,6 +13,7 @@ import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 import { PostStatus, ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
+import cn from "@/utils/cn";
 import {
   getQuestionTitle,
   isConditionalPost,
@@ -81,17 +82,25 @@ const IndividualQuestionPage: FC<{
         ) : (
           <Header />
         )}
-        <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4 md:py-10">
+        <main
+          className={cn(
+            "mx-auto flex w-full max-w-max flex-col scroll-smooth py-4 md:py-10",
+            {
+              "sm:mt-5": isCommunityQuestion,
+            }
+          )}
+        >
           <div className="flex gap-4">
-            <div className="w-full">
+            <div className="relative w-full">
               {isCommunityQuestion && (
-                <CommunityDisclaimer
-                  project={postData.projects.default_project}
-                  variant="inline"
-                  className="hidden sm:block"
-                />
+                <div className="absolute z-0 -mt-[41px] hidden w-full sm:block">
+                  <CommunityDisclaimer
+                    project={postData.projects.default_project}
+                    variant="inline"
+                  />
+                </div>
               )}
-              <div className="flex w-full flex-col gap-4">
+              <div className="relative z-10 flex w-full flex-col gap-4">
                 <section className="w-[48rem] max-w-full rounded border-transparent bg-gray-0 px-3 pt-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
                   {isCommunityQuestion && (
                     <CommunityDisclaimer
