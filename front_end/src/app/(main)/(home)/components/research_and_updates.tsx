@@ -75,6 +75,7 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
                   markdown: notebook.markdown,
                   width: 200,
                   height: 80,
+                  withLinks: false,
                 })}
               </p>
             </div>
