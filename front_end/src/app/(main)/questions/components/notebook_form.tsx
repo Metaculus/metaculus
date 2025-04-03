@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
-import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import Button from "@/components/ui/button";
 import {
   FormErrorMessage,
@@ -175,8 +174,6 @@ const NotebookForm: React.FC<Props> = ({
           )(e);
         }}
       >
-        <PostDjangoAdminLink post={post} />
-
         {!community_id &&
           !news_category_id &&
           defaultProject?.type !== TournamentType.Community &&
