@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
@@ -59,6 +59,10 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(question)
   );
+
+  useEffect(() => {
+    setChoiceItems(generateList(question));
+  }, [question]);
 
   const timestamps = useMemo(() => {
     if (!forecastAvailability?.cpRevealsOn) {
