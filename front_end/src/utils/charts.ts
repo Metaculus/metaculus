@@ -675,6 +675,7 @@ type GenerateScaleParams = {
   unit?: string;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
+  shortLabels?: boolean;
 };
 
 /**
@@ -704,6 +705,7 @@ export function generateScale({
   zoomedDomain = [0, 1],
   scaling = null,
   unit,
+  shortLabels = false,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -860,6 +862,7 @@ export function generateScale({
           scaling: rangeScaling,
           precision: 3,
           actual_resolve_time: null,
+          dateFormatString: shortLabels ? "yyyy" : undefined,
         }),
         idx
       );
@@ -1298,6 +1301,11 @@ export function getGroupQuestionsTimestamps(
         ...question.aggregations.recency_weighted.history.map(
           (x) => x.end_time ?? x.start_time
         ),
+        // add user timestamps to display new forecast tooltip without page refresh
+        ...(question.my_forecasts?.history?.map((x) => x.start_time) ?? []),
+        ...(question.my_forecasts?.history?.map(
+          (x) => x.end_time ?? x.start_time
+        ) ?? []),
       ],
       []
     )

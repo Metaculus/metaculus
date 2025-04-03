@@ -20,7 +20,6 @@ import GroupFormBulkModal, {
   BulkBulkQuestionAttrs,
 } from "@/app/(main)/questions/components/group_form_bulk_modal";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
-import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import Button from "@/components/ui/button";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import {
@@ -403,8 +402,6 @@ const GroupForm: React.FC<Props> = ({
         }}
         className="mt-4 flex w-full flex-col gap-4 rounded"
       >
-        <PostDjangoAdminLink post={post} />
-
         {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}

@@ -106,6 +106,11 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
           name: t("duplicate"),
           link: createDuplicateLink(post),
         },
+        {
+          id: "viewInDjangoAdmin",
+          name: t("viewInDjangoAdmin"),
+          link: `/admin/posts/post/${post.id}/change`,
+        },
       ]
     );
   }
