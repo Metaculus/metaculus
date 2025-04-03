@@ -41,7 +41,6 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound: boolean | undefined | null;
   defaultZeroPoint: number | undefined | null;
   hasForecasts: boolean;
-  chartWidth?: number;
   control?: UseFormReturn;
   index?: number;
 }> = ({
@@ -53,7 +52,6 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound,
   defaultZeroPoint,
   hasForecasts,
-  chartWidth = 800,
   control,
   index,
 }) => {
@@ -446,7 +444,6 @@ const NumericQuestionInput: React.FC<{
               question={question}
               readOnly={false}
               height={100}
-              width={chartWidth}
               showCP={false}
             />
           </>

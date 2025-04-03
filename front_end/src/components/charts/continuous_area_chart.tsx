@@ -161,6 +161,7 @@ const ContinuousAreaChart: FC<Props> = ({
         scaling: scaling,
         unit,
         shortLabels,
+        adjustLabels: true,
       }),
     [chartWidth, questionType, scaling, unit, xDomain, shortLabels]
   );
@@ -171,6 +172,7 @@ const ContinuousAreaChart: FC<Props> = ({
         axisLength: height - BOTTOM_PADDING - paddingTop,
         direction: "vertical",
         domain: yDomain,
+        adjustLabels: true,
       }),
     [height, yDomain, paddingTop]
   );
