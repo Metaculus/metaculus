@@ -9,7 +9,6 @@ import ConditionalTimeline from "@/components/conditional_timeline";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import ProjectsApi from "@/services/projects";
-import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 import { PostStatus, ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
@@ -148,28 +147,18 @@ const IndividualQuestionPage: FC<{
                     <ConditionalTimeline post={postData} />
                   )}
 
-                  {!!postData.group_of_questions &&
-                    postData.group_of_questions.graph_type !==
-                      GroupOfQuestionsGraphType.FanGraph && (
-                      <ContinuousGroupTimeline
-                        post={postData}
-                        preselectedQuestionId={preselectedGroupQuestionId}
-                      />
-                    )}
                   <div className="flex flex-col gap-2.5">
                     {!!keyFactors.length && (
                       <KeyFactorsSection keyFactors={keyFactors} />
                     )}
                     <BackgroundInfo post={postData} />
-                    {!!postData.group_of_questions &&
-                      postData.group_of_questions.graph_type ===
-                        GroupOfQuestionsGraphType.FanGraph && (
-                        <ContinuousGroupTimeline
-                          post={postData}
-                          preselectedQuestionId={preselectedGroupQuestionId}
-                          className="mt-2"
-                        />
-                      )}
+                    {!!postData.group_of_questions && (
+                      <ContinuousGroupTimeline
+                        post={postData}
+                        preselectedQuestionId={preselectedGroupQuestionId}
+                        className="mt-2"
+                      />
+                    )}
                     <HistogramDrawer post={postData} />
                   </div>
                 </section>
