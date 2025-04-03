@@ -1,4 +1,5 @@
 "use client";
+import { uniq } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
@@ -66,7 +67,10 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
 
   const timestamps = useMemo(() => {
     if (!forecastAvailability?.cpRevealsOn) {
-      return choiceItems[0]?.aggregationTimestamps ?? [];
+      return uniq([
+        ...(choiceItems[0]?.aggregationTimestamps ?? []),
+        ...(choiceItems[0]?.userTimestamps ?? []),
+      ]);
     }
 
     return choiceItems[0]?.userTimestamps ?? [];
@@ -123,7 +127,11 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
       choiceItems
         .filter(({ active }) => active)
         .map(({ choice, aggregationValues, color }) => {
-          const aggregatedValue = aggregationValues.at(aggregationCursorIndex);
+          const adjustedCursorIndex =
+            aggregationCursorIndex >= aggregationValues.length
+              ? aggregationValues.length - 1
+              : aggregationCursorIndex;
+          const aggregatedValue = aggregationValues.at(adjustedCursorIndex);
 
           return {
             choiceLabel: choice,
