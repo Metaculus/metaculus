@@ -36,7 +36,6 @@ import {
   getDisplayValue,
   getQuestionDateFormatString,
   scaleInternalLocation,
-  unscaleNominalLocation,
 } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
@@ -479,45 +478,6 @@ export const generateUserForecastsForMultipleQuestion = (
       color:
         MULTIPLE_CHOICE_COLOR_SCALE[choiceOrdering.indexOf(index)] ??
         METAC_COLORS.gray["400"],
-    };
-  });
-};
-
-export const generateUserForecasts = (
-  questions: QuestionWithNumericForecasts[],
-  scaling?: Scaling
-): UserChoiceItem[] => {
-  return questions.map((question, index) => {
-    const userForecasts = question.my_forecasts;
-
-    return {
-      choice: question.label,
-      values: userForecasts?.history.map((forecast) => {
-        if (question.type === QuestionType.Binary) {
-          return forecast.forecast_values[1] ?? 0;
-        }
-
-        if (!forecast.centers || isNil(forecast.centers[0])) {
-          return 0;
-        }
-
-        const value = forecast.centers[0];
-        if (scaling) {
-          return unscaleNominalLocation(
-            scaleInternalLocation(value, question.scaling),
-            scaling
-          );
-        }
-
-        return value;
-      }),
-      timestamps: userForecasts?.history.map((forecast) => forecast.start_time),
-      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      unscaledValues: userForecasts?.history.map((forecast) =>
-        question.type === QuestionType.Binary
-          ? forecast.forecast_values[1] ?? 0
-          : forecast.centers?.[0] ?? 0
-      ),
     };
   });
 };

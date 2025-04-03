@@ -20,7 +20,7 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { displayValue, getTableDisplayValue } from "@/utils/charts";
+import { getTableDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
   getQuantileNumericForecastDataset,
@@ -549,10 +549,13 @@ const ContinuousTable: FC<Props> = ({
               <tr>
                 <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
                   {"<"}
-                  {displayValue({
-                    value: question.scaling.range_min,
+                  {getTableDisplayValue({
+                    value: 0,
                     questionType: question.type,
-                    actual_resolve_time: null,
+                    scaling: question.scaling,
+                    precision: 4,
+                    unit: question.unit,
+                    actual_resolve_time: question.actual_resolve_time ?? null,
                   })}
                 </Td>
                 {withCommunityQuartiles && (
@@ -819,9 +822,12 @@ const ContinuousTable: FC<Props> = ({
               <tr>
                 <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
                   {">"}
-                  {displayValue({
-                    value: question.scaling.range_max,
+                  {getTableDisplayValue({
+                    value: 1,
                     questionType: question.type,
+                    scaling: question.scaling,
+                    precision: 4,
+                    unit: question.unit,
                     actual_resolve_time: question.actual_resolve_time ?? null,
                   })}
                 </Td>
