@@ -201,6 +201,7 @@ const ConditionalChart: FC<Props> = ({
               questionType={question.type}
               resolution={question.resolution}
               hideCP={hideCP}
+              shortLabels={true}
             />
           </div>
           {resolved && (
