@@ -718,7 +718,6 @@ const GroupForm: React.FC<Props> = ({
                         hasForecasts={
                           subQuestion.has_forecasts && mode !== "create"
                         }
-                        chartWidth={720}
                         onChange={({
                           min: range_min,
                           max: range_max,
