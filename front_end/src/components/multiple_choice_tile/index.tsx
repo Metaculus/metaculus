@@ -10,6 +10,7 @@ import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
+import useContainerSize from "@/hooks/use_container_size";
 import { ForecastPayload } from "@/services/questions";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
@@ -60,6 +61,8 @@ type ContinuousMultipleChoiceTileProps = BaseProps &
     scaling?: Scaling | undefined;
   };
 
+const CHART_HEIGHT = 100;
+
 export const ContinuousMultipleChoiceTile: FC<
   ContinuousMultipleChoiceTileProps
 > = ({
@@ -70,7 +73,7 @@ export const ContinuousMultipleChoiceTile: FC<
   visibleChoicesCount,
   defaultChartZoom,
   withZoomPicker,
-  chartHeight = 100,
+  chartHeight,
   chartTheme,
   question,
   groupType,
@@ -81,7 +84,7 @@ export const ContinuousMultipleChoiceTile: FC<
   canPredict,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
-
+  const { ref, height } = useContainerSize<HTMLDivElement>();
   // when resolution chip is shown we want to hide the chart and display the chip
   // (e.g. multiple-choice question on questions feed)
   // otherwise, resolution status will be populated near the every choice
@@ -108,6 +111,7 @@ export const ContinuousMultipleChoiceTile: FC<
           <PredictionChip question={question} status={PostStatus.RESOLVED} />
         ) : (
           <MultipleChoiceTileLegend
+            ref={ref}
             choices={choices}
             visibleChoicesCount={visibleChoicesCount}
             questionType={groupType}
@@ -123,7 +127,7 @@ export const ContinuousMultipleChoiceTile: FC<
             timestamps={timestamps}
             actualCloseTime={actualCloseTime}
             choiceItems={choices}
-            height={chartHeight}
+            height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
             extraTheme={chartTheme}
             defaultZoom={defaultChartZoom}
             withZoomPicker={withZoomPicker}
@@ -161,6 +165,7 @@ export const FanGraphMultipleChoiceTile: FC<
   canPredict,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
+  const { ref, height } = useContainerSize<HTMLDivElement>();
 
   const { canReaffirm, forecast } = useMemo(
     () => generateReaffirmData({ groupQuestions, groupType }),
@@ -177,6 +182,7 @@ export const FanGraphMultipleChoiceTile: FC<
     <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 pr-1 xs:grid">
       <div className="resize-container">
         <MultipleChoiceTileLegend
+          ref={ref}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
           hideCP={hideCP}
@@ -190,7 +196,7 @@ export const FanGraphMultipleChoiceTile: FC<
       <div className="w-full">
         <FanGraphGroupChart
           questions={groupQuestions}
-          height={chartHeight}
+          height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
           pointSize={8}
           hideCP={hideCP}
           withTooltip={false}
