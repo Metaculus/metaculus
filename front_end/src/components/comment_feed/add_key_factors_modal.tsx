@@ -1,23 +1,19 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
-import toast from "react-hot-toast";
 
 import {
   addKeyFactorsToComment,
-  createComment,
-  reportComment,
+  createComment
 } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
-import { CommentReportReason } from "@/services/comments";
-import { BECommentType, CommentType } from "@/types/comment";
-import { Input } from "../ui/form_field";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faX } from "@fortawesome/free-solid-svg-icons";
+import { BECommentType } from "@/types/comment";
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import MarkdownEditor from "../markdown_editor";
-import { ErrorResponse } from "@/types/fetch";
+import { Input } from "../ui/form_field";
 
 type Props = {
   isOpen: boolean;

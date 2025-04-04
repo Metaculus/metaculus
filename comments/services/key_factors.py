@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from comments.models import Comment, KeyFactor
+from comments.models import KeyFactor
 from users.models import User
 
 

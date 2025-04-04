@@ -51,6 +51,7 @@ import { validateComment } from "./validate_comment";
 
 import { SortOption, sortComments } from ".";
 import AddKeyFactorsModal from "./add_key_factors_modal";
+import { useRouter } from "next/navigation";
 
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
@@ -230,10 +231,11 @@ const Comment: FC<CommentProps> = ({
     useState(false);
   const { user } = useAuth();
   const scrollTo = useScrollTo();
+  const router = useRouter();
+
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
-
   const isCmmButtonVisible =
     user?.id !== comment.author.id &&
     (!!postData?.question ||
@@ -666,7 +668,7 @@ const Comment: FC<CommentProps> = ({
                       size="xxs"
                       variant="tertiary"
                       onClick={() => onAddKeyFactor(comment)}
-                  >
+                    >
                       <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
                       {t("addKeyFactor")}
                     </Button>
@@ -757,6 +759,7 @@ const Comment: FC<CommentProps> = ({
         commentId={comment.id}
         onSuccess={() => {
           setIsAddKeyFactorsModalOpen(false);
+          router.refresh();
         }}
       />
     </div>
