@@ -24,7 +24,7 @@ const ForecastMakerConditional: FC<Props> = ({
   canPredict,
   predictionMessage,
 }) => {
-  const { id: postId, title: postTitle, projects } = post;
+  const { id: postId, title: postTitle, slug: postSlug, projects } = post;
   const { question_yes, question_no } = conditional;
 
   if (question_yes.type !== question_no.type) {
