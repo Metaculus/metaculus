@@ -31,6 +31,10 @@ def fab_management_view(request):
                     writer = csv.writer(response)
                     writer.writerow(['Question ID', 'Title', 'Scheduled Date', 'Notes'])
 
+                    # Add Content-Length header to ensure proper download handling
+                    response['Content-Length'] = len(response.content)
+
+                    # Return the response with the saved context to keep the page state
                     return response
 
                 case "submit_dry":
