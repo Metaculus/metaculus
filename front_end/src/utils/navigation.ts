@@ -1,10 +1,9 @@
-import { isNil } from "lodash";
-
 import { Post } from "@/types/post";
 import { Project, TournamentType } from "@/types/projects";
 import { Optional } from "@/types/utils";
 
 type EncodableValue = string | number | boolean;
+
 export function encodeQueryParams(
   params: Record<string, EncodableValue | Array<EncodableValue>>
 ): string {
