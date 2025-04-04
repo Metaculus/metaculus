@@ -24,18 +24,6 @@ def fab_management_view(request):
 
             saved_context = {"tournament_id": tournament_id}
             match action_name:
-                case "auto_schedule":
-                    response = HttpResponse(content_type='text/csv')
-                    response['Content-Disposition'] = 'attachment; filename="auto_schedule.csv"'
-
-                    writer = csv.writer(response)
-                    writer.writerow(['Question ID', 'Title', 'Scheduled Date', 'Notes'])
-
-                    # Add Content-Length header to ensure proper download handling
-                    response['Content-Length'] = len(response.content)
-
-                    # Return the response with the saved context to keep the page state
-                    return response
 
                 case "submit_dry":
                     doc_id = request.POST["doc_id"]
