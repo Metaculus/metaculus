@@ -30,6 +30,12 @@
                 <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" @click="actionName = 'publish_comments'" :disabled="form_loading"> Publish private notes</button>
             </div>
 
+            <div class="mt-6">
+                <h2 class="text-xl my-2">Auto Schedule</h2>
+                <p class="text-sm text-gray-600 my-1">Download CSV template for auto-scheduling questions.</p>
+                <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" @click="actionName = 'auto_schedule'" :disabled="form_loading">Download Schedule Template</button>
+            </div>
+
             <div>
                 <h2 class="text-xl  mt-5 mb-2">Questions submission</h2>
                 <label for="doc_id">Google doc/spreadsheet ID</label>
