@@ -3,6 +3,7 @@ import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
+import ForecastMakerConditionalResolutionMessage from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_resolution_message";
 import {
   createForecasts,
   withdrawForecasts,
@@ -13,7 +14,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { Question, QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/cn";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
@@ -80,6 +81,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     Array<
       ConditionalTableOption & {
         communitiesForecast?: number | null;
+        question: Question;
       }
     >
   >([
@@ -89,6 +91,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       value: prevYesForecastValue,
       isDirty: false,
       communitiesForecast: prevYesAggregationValue,
+      question: question_yes,
     },
     {
       id: questionNoId,
@@ -96,6 +99,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       value: prevNoForecastValue,
       isDirty: false,
       communitiesForecast: prevNoAggregationValue,
+      question: question_no,
     },
   ]);
 
@@ -316,6 +320,10 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
               !user || !hideCP ? option.communitiesForecast : null
             }
             disabled={!canPredict}
+          />
+          <ForecastMakerConditionalResolutionMessage
+            question={option.question}
+            condition={condition}
           />
         </div>
       ))}

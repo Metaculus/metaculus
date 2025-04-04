@@ -41,7 +41,7 @@ import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
 
-export const ANNULED_RESOLUTION = "annulled";
+export const ANNULLED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
 // Max length of a unit to be treated as compact
 export const QUESTION_UNIT_COMPACT_LENGTH = 3;
@@ -173,7 +173,7 @@ export function isUnsuccessfullyResolved(
   resolution: Resolution | null
 ): boolean {
   return (
-    resolution === ANNULED_RESOLUTION || resolution === AMBIGUOUS_RESOLUTION
+    resolution === ANNULLED_RESOLUTION || resolution === AMBIGUOUS_RESOLUTION
   );
 }
 

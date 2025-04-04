@@ -1178,5 +1178,6 @@
   "forecastCopyToToastMessage": "分布已从“{from_name}”复制到“{to_name}”",
   "result": "结果",
   "communityDisclaimer": "由<community></community>社区贡献。<learnMore>了解更多</learnMore>",
-  "communityDisclaimerSiteMain": "这个问题也是 Metaculus 主站的一部分。"
+  "communityDisclaimerSiteMain": "这个问题也是 Metaculus 主站的一部分。",
+  "conditionalBranchResolutionAnnulled": "此分支被取消，因为<link>父问题</link>解决<resolution></resolution>。"
 }
