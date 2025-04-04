@@ -17,14 +17,6 @@
     <div class="flex flex-col gap-2">
         <input type="hidden" name="action_name" x-model="actionName">
 
-        <div class="mt-6">
-            <h2 class="text-xl my-2">Auto Schedule</h2>
-            <p class="text-sm text-gray-600 my-1">Download CSV template for auto-scheduling questions.</p>
-            <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" @click="actionName = 'auto_schedule'" :disabled="form_loading">Download Schedule Template</button>
-        </div>
-
-        <div class="border-b border-gray-300 my-4"></div>
-
         <div class="mt-4">
             <h2 class="text-xl my-2">Tournament ID</h2>
             <label for="tournament_id">Tournament ID</label>
