@@ -1176,5 +1176,6 @@
   "forecastCopyToToastMessage": "Distribuce zkopírována z ''{from_name}'' do ''{to_name}''",
   "result": "výsledek",
   "communityDisclaimer": "Přispěl <community></community> komunita. <learnMore>Dozvědět se více</learnMore>",
-  "communityDisclaimerSiteMain": "Tato otázka je také součástí hlavního Metaculus."
+  "communityDisclaimerSiteMain": "Tato otázka je také součástí hlavního Metaculus.",
+  "conditionalBranchResolutionAnnulled": "Tato větev byla zrušena, protože <link>nadřazená otázka</link> byla vyřešena <resolution></resolution>."
 }
