@@ -671,17 +671,14 @@ function generateNumericAreaGraph(data: {
   if (discrete && graphType === "pmf") {
     verticalLines.push(
       {
-        // x: getClosestXValue(quantiles.lower25, graph),
         x: quantiles.lower25,
         y: getClosestYValue(quantiles.lower25, graph),
       },
       {
-        // x: getClosestXValue(quantiles.median, graph),
         x: quantiles.median,
         y: getClosestYValue(quantiles.median, graph),
       },
       {
-        // x: getClosestXValue(quantiles.upper75, graph),
         x: quantiles.upper75,
         y: getClosestYValue(quantiles.upper75, graph),
       }

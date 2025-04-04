@@ -6,14 +6,13 @@ import { UseFormReturn } from "react-hook-form";
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   DefaultInboundOutcomeCount,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { QuestionType } from "@/types/question";
 
-import ForecastMakerContinuous from "../[id]/components/forecast_maker/forecast_maker_question/forecast_maker_continuous";
+import ExampleForecastMakerContinuous from "../[id]/components/forecast_maker/forecast_maker_question/example_forecast_maker_continuous";
 
 const NumericQuestionInput: React.FC<{
   onChange: ({
@@ -475,14 +474,7 @@ const NumericQuestionInput: React.FC<{
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <>
             Example input chart:
-            <ForecastMakerContinuous
-              post={{ id: 1 } as PostWithForecasts}
-              question={question}
-              permission={ProjectPermissions.FORECASTER}
-              canPredict={true}
-              canResolve={false}
-              exampleOnly={true}
-            />
+            <ExampleForecastMakerContinuous question={question} />
           </>
         )}
       </div>
