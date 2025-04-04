@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
+import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import NotebookContentSections from "@/app/(main)/notebooks/components/notebook_content_sections";
@@ -191,11 +192,16 @@ const IndividualNotebookPage: FC<{
                 </div>
               )}
             </div>
-            <CommentFeed
-              postData={postData}
-              id={NOTEBOOK_COMMENTS_TITLE}
-              inNotebook={true}
-            />
+            <CommentsFeedProvider
+              postId={postData.id}
+              rootCommentStructure={true}
+            >
+              <CommentFeed
+                postData={postData}
+                id={NOTEBOOK_COMMENTS_TITLE}
+                inNotebook={true}
+              />
+            </CommentsFeedProvider>
           </div>
         </div>
       </main>

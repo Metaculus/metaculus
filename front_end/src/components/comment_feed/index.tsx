@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
+import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   commentTogglePin,
   getComments,
@@ -24,12 +25,11 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import useHash from "@/hooks/use_hash";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { getCommentsParams } from "@/services/comments";
-import { BECommentType, CommentType } from "@/types/comment";
+import { CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/cn";
-import { getCommentIdToFocusOn, parseComment } from "@/utils/comments";
-import { logError } from "@/utils/errors";
+import { getCommentIdToFocusOn } from "@/utils/comments";
 
 import CommentWelcomeMessage, {
   getIsMessagePreviouslyClosed,
@@ -56,40 +56,6 @@ export function sortComments(comments: CommentType[], sort: SortOption) {
     }
   });
   return comments;
-}
-
-function parseCommentsArray(
-  beComments: BECommentType[],
-  rootsOnly: boolean = true
-): CommentType[] {
-  const commentMap = new Map<number, CommentType>();
-
-  beComments.forEach((comment) => {
-    commentMap.set(comment.id, parseComment(comment));
-  });
-
-  if (!rootsOnly) {
-    return Array.from(commentMap.values());
-  }
-
-  const rootComments: CommentType[] = [];
-
-  beComments.forEach((comment) => {
-    if (comment.parent_id === null) {
-      const commentData = commentMap.get(comment.id);
-      if (commentData) {
-        rootComments.push(commentData);
-      }
-    } else {
-      const parentComment = commentMap.get(comment.parent_id);
-      const childComment = commentMap.get(comment.id);
-      if (parentComment && childComment) {
-        parentComment.children.push(childComment);
-      }
-    }
-  });
-
-  return rootComments;
 }
 
 type Props = {
@@ -120,13 +86,11 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
   return false;
 }
 
-const COMMENTS_PER_PAGE = 10;
 const NEW_USER_COMMENT_LIMIT = 3;
 
 const CommentFeed: FC<Props> = ({
   postData,
   profileId,
-  rootCommentStructure = true,
   id,
   inNotebook = false,
 }) => {
@@ -150,13 +114,16 @@ const CommentFeed: FC<Props> = ({
     focus_comment_id: getCommentIdToFocusOn() || undefined,
   }));
 
-  const [comments, setComments] = useState<CommentType[]>([]);
-  const [totalCount, setTotalCount] = useState<number | "?">("?");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<
-    (Error & { digest?: string }) | undefined
-  >();
-  const [offset, setOffset] = useState<number>(0);
+  const {
+    comments,
+    setComments,
+    isLoading,
+    setOffset,
+    error,
+    offset,
+    totalCount,
+    fetchComments,
+  } = useCommentsFeed();
   const postId = postData?.id;
   const includeUserForecast = shouldIncludeForecast(postData);
 
@@ -200,53 +167,6 @@ const CommentFeed: FC<Props> = ({
     [feedFilters]
   );
 
-  const fetchComments = async (
-    keepComments: boolean = true,
-    params: getCommentsParams
-  ) => {
-    try {
-      setIsLoading(true);
-      setError(undefined);
-      const response = await getComments({
-        post: postId,
-        author: profileId,
-        /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
-        limit: COMMENTS_PER_PAGE,
-        use_root_comments_pagination: rootCommentStructure,
-        ...params,
-      });
-      if ("errors" in response) {
-        logError(response.errors, "Error fetching comments:");
-      } else {
-        setTotalCount(response.total_count ?? response.count);
-
-        const sortedComments = parseCommentsArray(
-          response.results as unknown as BECommentType[],
-          rootCommentStructure
-        );
-        if (keepComments && offset > 0) {
-          setComments((prevComments) => [...prevComments, ...sortedComments]);
-        } else {
-          setComments(sortedComments);
-        }
-        if (response.next) {
-          const nextOffset = new URL(response.next).searchParams.get("offset");
-          setOffset(
-            nextOffset ? Number(nextOffset) : (prev) => prev + COMMENTS_PER_PAGE
-          );
-        } else {
-          setOffset(-1);
-        }
-      }
-    } catch (err) {
-      const error = err as Error & { digest?: string };
-      setError(error);
-      logError(err, `Error fetching comments: ${err}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const hash = useHash();
 
   // Track #comment-id and #comments hash changes to load & focus on target comment
@@ -286,7 +206,6 @@ const CommentFeed: FC<Props> = ({
       ...feedFilters,
       offset,
     };
-
     void fetchComments(true, finalFilters);
   }, [feedFilters]);
 
@@ -452,8 +371,7 @@ const CommentFeed: FC<Props> = ({
                 postId={postId}
                 onSubmit={
                   //TODO: revisit after BE changes
-                  (newComment) =>
-                    setComments((prevComments) => [newComment, ...prevComments])
+                  (newComment) => setComments([newComment, ...comments])
                 }
                 isPrivateFeed={feedFilters.is_private}
               />
