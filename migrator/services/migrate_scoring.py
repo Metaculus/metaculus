@@ -122,8 +122,8 @@ def score_questions(qty: int | None = None, start_id: int = 0):
             end="\r",
         )
         score_question(
-            question,
-            question.resolution,
+            question=question,
+            resolution=question.resolution,
             score_types=score_types,
         )
     print(

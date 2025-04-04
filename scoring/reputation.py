@@ -12,7 +12,7 @@ from users.models import User
 
 @dataclass
 class Reputation:
-    user: User
+    user_id: int
     value: float
     time: datetime
 
@@ -25,79 +25,84 @@ def reputation_value(scores: Sequence[Score]) -> float:
     )
 
 
-def get_reputation_at_time(user: User, time: datetime | None = None) -> Reputation:
-    """
-    Returns the reputation of a user at a given time.
-    """
-    if time is None:
-        time = timezone.now()
-    peer_scores = Score.objects.filter(
-        user=user,
-        score_type=Score.ScoreTypes.PEER,
-        question__in=Question.objects.filter_public(),
-        edited_at__lte=time,
-    ).distinct()
-    value = reputation_value(peer_scores)
-    return Reputation(user, value, time)
+# def get_reputation_at_time(user_id: int, time: datetime | None = None) -> Reputation:
+#     """
+#     Returns the reputation of a user at a given time.
+#     """
+#     if time is None:
+#         time = timezone.now()
+#     peer_scores = Score.objects.filter(
+#         user_id=user_id,
+#         score_type=Score.ScoreTypes.PEER,
+#         question__in=Question.objects.filter_public(),
+#         edited_at__lte=time,
+#     ).distinct()
+#     value = reputation_value(peer_scores)
+#     return Reputation(user_id, value, time)
 
 
-def get_reputations_at_time(
-    users: list[User], time: datetime | None = None
-) -> list[Reputation]:
-    """
-    Returns the reputations of a list of users at a given time.
-    """
-    if time is None:
-        time = timezone.now()
-    peer_scores = Score.objects.filter(
-        user__in=users,
-        score_type=Score.ScoreTypes.PEER,
-        question__in=Question.objects.filter_public(),
-        edited_at__lte=time,
-    ).distinct()
-    user_scores: dict[User, list[Score]] = defaultdict(list)
-    for score in peer_scores:
-        user_scores[score.user].append(score)
-    reputations = []
-    for user in users:
-        value = reputation_value(peer_scores)
-        reputations.append(Reputation(user, value, time))
-    return reputations
+# def get_reputations_at_time(
+#     user_ids: list[int], time: datetime | None = None
+# ) -> list[Reputation]:
+#     """
+#     Returns the reputations of a list of users at a given time.
+#     """
+#     if time is None:
+#         time = timezone.now()
+#     peer_scores = Score.objects.filter(
+#         user_id__in=user_ids,
+#         score_type=Score.ScoreTypes.PEER,
+#         question__in=Question.objects.filter_public(),
+#         edited_at__lte=time,
+#     ).distinct()
+#     user_scores: dict[int, list[Score]] = defaultdict(list)
+#     for score in peer_scores:
+#         user_scores[score.user_id].append(score)
+#     reputations = []
+#     for user_id in user_ids:
+#         value = reputation_value(user_scores[user_id])
+#         reputations.append(Reputation(user_id, value, time))
+#     return reputations
 
 
 def get_reputations_during_interval(
-    users: list[User], start: datetime, end: datetime | None = None
+    user_ids: list[int], start: datetime, end: datetime | None = None
 ) -> dict[User, list[Reputation]]:
     """returns a dict reputations. Each one is a record of what a particular
     user's reputation was at a particular time.
     The reputation can change during the interval."""
     if end is None:
         end = timezone.now()
-    all_peer_scores = (
-        Score.objects.filter(
-            user__in=users,
-            score_type=Score.ScoreTypes.PEER,
-            question__in=Question.objects.filter_public(),
-            edited_at__lte=end,
-        )
-        .prefetch_related("user", "question")
-        .distinct()
-    )
+    peer_scores = Score.objects.filter(
+        user_id__in=user_ids,
+        score_type=Score.ScoreTypes.PEER,
+        question__in=Question.objects.filter_public(),
+        edited_at__lte=end,
+    ).distinct()
+
+    # setup
+    scores_by_user: dict[int, dict[int, Score]] = defaultdict(dict)
+    reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+    # Establish reputations at the start of the interval.
     old_peer_scores = list(
-        all_peer_scores.filter(edited_at__lte=start).order_by("edited_at")
+        peer_scores.filter(edited_at__lte=start).order_by("edited_at")
     )
-    new_peer_scores = list(
-        all_peer_scores.filter(edited_at__gt=start).order_by("edited_at")
-    )
-    scores_by_user: dict[User, dict[Question, Score]] = defaultdict(dict)
     for score in old_peer_scores:
-        scores_by_user[score.user][score.question] = score
-    reputations: dict[User, list[Reputation]] = defaultdict(list)
-    for user in users:
-        value = reputation_value(scores_by_user[user].values())
-        reputations[user].append(Reputation(user, value, start))
+        scores_by_user[score.user_id][score.question_id] = score
+    for user_id in user_ids:
+        value = reputation_value(scores_by_user[user_id].values())
+        reputations[user_id].append(Reputation(user_id, value, start))
+
+    # Then, for each new score, add a new reputation record
+    new_peer_scores = list(
+        peer_scores.filter(edited_at__gt=start).order_by("edited_at")
+    )
     for score in new_peer_scores:
-        scores_by_user[score.user][score.question] = score
-        value = reputation_value(scores_by_user[user].values())
-        reputations[user].append(Reputation(score.user, value, score.edited_at))
+        # update the scores by user, then calculate the updated reputation
+        scores_by_user[score.user_id][score.question_id] = score
+        value = reputation_value(scores_by_user[score.user_id].values())
+        reputations[score.user_id].append(
+            Reputation(score.user_id, value, score.edited_at)
+        )
     return reputations

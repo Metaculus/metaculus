@@ -56,9 +56,9 @@ def resolve_question_and_send_notifications(question_id: int):
         score_types.append(Score.ScoreTypes.SPOT_PEER)
         score_types.append(Score.ScoreTypes.SPOT_BASELINE)
     score_question(
-        question,
-        question.resolution,
-        spot_scoring_time=(
+        question=question,
+        resolution=question.resolution,
+        spot_scoring_timestamp=(
             spot_scoring_time.timestamp() if spot_scoring_time else None
         ),
         score_types=score_types,

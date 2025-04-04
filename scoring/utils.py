@@ -53,15 +53,17 @@ logger = logging.getLogger(__name__)
 def score_question(
     question: Question,
     resolution: str,
-    spot_scoring_time: float | None = None,
+    spot_scoring_timestamp: float | None = None,
     score_types: list[str] | None = None,
+    aggregation_methods: list[AggregationMethod] | None = None,
 ):
+    aggregation_methods = aggregation_methods or [AggregationMethod.RECENCY_WEIGHTED]
     resolution_bucket = string_location_to_bucket_index(resolution, question)
-    if not spot_scoring_time:
+    if not spot_scoring_timestamp:
         if question.spot_scoring_time:
-            spot_scoring_time = question.spot_scoring_time.timestamp()
+            spot_scoring_timestamp = question.spot_scoring_time.timestamp()
         elif question.cp_reveal_time:
-            spot_scoring_time = question.cp_reveal_time.timestamp()
+            spot_scoring_timestamp = question.cp_reveal_time.timestamp()
     score_types = score_types or [
         c[0] for c in Score.ScoreTypes.choices if c[0] != Score.ScoreTypes.MANUAL
     ]
@@ -74,10 +76,11 @@ def score_question(
         for score in previous_scores
     }
     new_scores = evaluate_question(
-        question,
-        resolution_bucket,
-        score_types,
-        spot_scoring_time,
+        question=question,
+        resolution_bucket=resolution_bucket,
+        score_types=score_types,
+        spot_scoring_timestamp=spot_scoring_timestamp,
+        aggregation_methods=aggregation_methods,
     )
 
     for new_score in new_scores:

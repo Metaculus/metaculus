@@ -573,9 +573,9 @@ def unresolve_question(question: Question):
         score_types.append(Score.ScoreTypes.SPOT_PEER)
         score_types.append(Score.ScoreTypes.SPOT_BASELINE)
     score_question(
-        question,
-        None,  # None is the equivalent of unsetting scores
-        spot_scoring_time=(
+        question=question,
+        resolution=None,  # None is the equivalent of unsetting scores
+        spot_scoring_timestamp=(
             spot_scoring_time.timestamp() if spot_scoring_time else None
         ),
         score_types=score_types,
