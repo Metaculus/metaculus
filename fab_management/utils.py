@@ -24,9 +24,6 @@ from users.models import User
 logger = logging.getLogger(__name__)
 
 
-def get_fab_tournament() -> Project | None:
-    project = Project.objects.filter(pk=32627).last()
-    return project
 
 
 scopes = [
@@ -217,6 +214,10 @@ def submit_questions(
 
     def log_info(msg: str):
         return messages.append(("info", msg))
+
+    if not tournament:
+        log_error(f"Tournament not found")
+        return messages
 
     try:
         start_str, end_str = rows_range.split(":")
