@@ -27,6 +27,7 @@ type Props<T> = {
   paddingLeft?: number;
   paddingRight?: number;
   yDomain: Tuple<number>;
+  barWidth: number;
   discrete?: boolean;
 };
 
@@ -35,6 +36,7 @@ const LineCursorPoints = <T extends string>({
   yDomain,
   chartWidth,
   chartHeight,
+  barWidth,
   paddingBottom = 0,
   paddingTop = 0,
   paddingLeft = 0,
@@ -64,7 +66,6 @@ const LineCursorPoints = <T extends string>({
 
         const availableWidth = chartWidth - paddingLeft - paddingRight;
         const xValue = getClosestXValue(datum.x, line);
-        const barWidth = (chartWidth - 30) / (1.07 * line.length);
         const scaledX = xValue * availableWidth + paddingLeft - barWidth / 2;
 
         return discrete && graphType === "pmf" ? (

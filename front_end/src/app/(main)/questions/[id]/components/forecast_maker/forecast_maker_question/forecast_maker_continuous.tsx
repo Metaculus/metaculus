@@ -38,8 +38,8 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 
 import { sendGAPredictEvent } from "./ga_events";
 import PredictionSuccessBox from "./prediction_success_box";
+import ContinuousInput from "../../continuous_input";
 import { useHideCP } from "../../cp_provider";
-import ContinuousInput from "../continuous_input";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
@@ -417,8 +417,8 @@ const ForecastMakerContinuous: FC<Props> = ({
         }}
         overlayPreviousForecast={overlayPreviousForecast}
         onOverlayPreviousForecastChange={setOverlayPreviousForecast}
-        forecastInputMode={forecastInputMode}
-        onForecastInputModeChange={(mode) => {
+        inputMode={forecastInputMode}
+        onInputModeChange={(mode) => {
           setForecastInputMode(mode);
           if (
             activeForecast &&

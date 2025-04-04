@@ -24,7 +24,7 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import ContinuousInputContainer from "./continuous_input_container";
 import ContinuousPredictionChart from "./continuous_prediction_chart";
 import ContinuousSlider from "./continuous_slider";
-import { validateAllQuantileInputs } from "../helpers";
+import { validateAllQuantileInputs } from "../forecast_maker/helpers";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -42,8 +42,8 @@ type Props = {
   onQuantileChange: (quantileComponents: QuantileValue[]) => void;
   overlayPreviousForecast: boolean;
   onOverlayPreviousForecastChange: (value: boolean) => void;
-  forecastInputMode: ContinuousForecastInputType;
-  onForecastInputModeChange: (mode: ContinuousForecastInputType) => void;
+  inputMode: ContinuousForecastInputType;
+  onInputModeChange: (mode: ContinuousForecastInputType) => void;
   hasUserForecast: boolean;
   isDirty?: boolean;
   submitControls?: ReactNode;
@@ -66,8 +66,8 @@ const ContinuousInput: FC<Props> = ({
   onQuantileChange,
   overlayPreviousForecast,
   onOverlayPreviousForecastChange,
-  forecastInputMode,
-  onForecastInputModeChange,
+  inputMode,
+  onInputModeChange,
   hasUserForecast,
   isDirty,
   submitControls,
@@ -91,7 +91,7 @@ const ContinuousInput: FC<Props> = ({
       return;
     }
     if (
-      forecastInputMode === ContinuousForecastInputType.Quantile &&
+      inputMode === ContinuousForecastInputType.Quantile &&
       (isDirty ||
         (previousForecast?.distribution_input?.type ===
           ContinuousForecastInputType.Slider &&
@@ -101,7 +101,7 @@ const ContinuousInput: FC<Props> = ({
         getQuantilesDistributionFromSlider(sliderComponents, question, true)
       );
     } else if (
-      forecastInputMode === ContinuousForecastInputType.Slider &&
+      inputMode === ContinuousForecastInputType.Slider &&
       isAllQuantileComponentsDirty(quantileComponent) &&
       validateAllQuantileInputs({
         question,
@@ -114,12 +114,12 @@ const ContinuousInput: FC<Props> = ({
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [forecastInputMode]);
+  }, [inputMode]);
 
   return (
     <ContinuousInputContainer
-      forecastInputMode={forecastInputMode}
-      onInputModeChange={onForecastInputModeChange}
+      forecastInputMode={inputMode}
+      onInputModeChange={onInputModeChange}
       overlayPreviousForecast={overlayPreviousForecast}
       onOverlayPreviousForecastChange={onOverlayPreviousForecastChange}
       previousForecast={previousForecast}
@@ -133,7 +133,7 @@ const ContinuousInput: FC<Props> = ({
           <ContinuousPredictionChart
             dataset={dataset}
             graphType={
-              forecastInputMode === ContinuousForecastInputType.Slider
+              inputMode === ContinuousForecastInputType.Slider
                 ? sliderGraphType
                 : tableGraphType
             }
@@ -143,7 +143,7 @@ const ContinuousInput: FC<Props> = ({
             showCP={!user || !hideCP || !!question.resolution}
           />
 
-          {forecastInputMode === ContinuousForecastInputType.Slider && (
+          {inputMode === ContinuousForecastInputType.Slider && (
             <>
               <ContinuousSlider
                 components={sliderComponents}
@@ -198,10 +198,10 @@ const ContinuousInput: FC<Props> = ({
             isDirty={isDirty}
             disableQuantileInput={disabled}
             hasUserForecast={hasUserForecast}
-            forecastInputMode={forecastInputMode}
+            forecastInputMode={inputMode}
           />
 
-          {forecastInputMode === ContinuousForecastInputType.Quantile && (
+          {inputMode === ContinuousForecastInputType.Quantile && (
             <>{submitControls}</>
           )}
         </>

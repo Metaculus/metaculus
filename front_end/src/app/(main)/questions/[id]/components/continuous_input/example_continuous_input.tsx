@@ -14,13 +14,13 @@ import {
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts";
 
-import ContinuousInput from "../continuous_input";
+import ContinuousInput from ".";
 
 type Props = {
   question: QuestionWithNumericForecasts;
 };
 
-const ExampleForecastMakerContinuous: FC<Props> = ({ question }) => {
+const ExampleContinuousInput: FC<Props> = ({ question }) => {
   const [isDirty, setIsDirty] = useState(false);
   const t = useTranslations();
   const [sliderDistributionComponents, setSliderDistributionComponents] =
@@ -86,8 +86,8 @@ const ExampleForecastMakerContinuous: FC<Props> = ({ question }) => {
         onQuantileChange={() => {}}
         overlayPreviousForecast={false}
         onOverlayPreviousForecastChange={() => {}}
-        forecastInputMode={ContinuousForecastInputType.Slider}
-        onForecastInputModeChange={() => {}}
+        inputMode={ContinuousForecastInputType.Slider}
+        onInputModeChange={() => {}}
         hasUserForecast={false}
         isDirty={isDirty}
         submitControls={SubmitControls}
@@ -98,4 +98,4 @@ const ExampleForecastMakerContinuous: FC<Props> = ({ question }) => {
   );
 };
 
-export default ExampleForecastMakerContinuous;
+export default ExampleContinuousInput;

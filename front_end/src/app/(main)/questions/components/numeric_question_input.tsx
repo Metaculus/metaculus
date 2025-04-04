@@ -12,7 +12,7 @@ import {
 } from "@/types/question";
 import { QuestionType } from "@/types/question";
 
-import ExampleForecastMakerContinuous from "../[id]/components/forecast_maker/forecast_maker_question/example_forecast_maker_continuous";
+import ExampleContinuousInput from "../[id]/components/continuous_input/example_continuous_input";
 
 const NumericQuestionInput: React.FC<{
   onChange: ({
@@ -474,7 +474,7 @@ const NumericQuestionInput: React.FC<{
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <>
             Example input chart:
-            <ExampleForecastMakerContinuous question={question} />
+            <ExampleContinuousInput question={question} />
           </>
         )}
       </div>

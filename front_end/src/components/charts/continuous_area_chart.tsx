@@ -301,6 +301,10 @@ const ContinuousAreaChart: FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartContainerRef.current, handleMouseMove, handleMouseLeave]);
 
+  const barWidth = useMemo(() => {
+    return (chartWidth - 30) / (1.07 * (data.at(0)?.pmf.length || 200));
+  }, [chartWidth, data]);
+
   const CursorContainer = (
     <VictoryCursorContainer
       cursorLabel={"label"}
@@ -332,6 +336,7 @@ const ContinuousAreaChart: FC<Props> = ({
           yDomain={yDomain}
           chartWidth={chartWidth}
           chartHeight={height}
+          barWidth={barWidth}
           paddingTop={paddingTop}
           paddingBottom={BOTTOM_PADDING}
           paddingLeft={leftPadding}
@@ -463,7 +468,7 @@ const ContinuousAreaChart: FC<Props> = ({
                       opacity: chart.type === "user_previous" ? 0.1 : 0.3,
                     },
                   }}
-                  barWidth={(chartWidth - 30) / (1.07 * chart.graphLine.length)}
+                  barWidth={barWidth}
                 />
               );
             })}
@@ -604,6 +609,7 @@ const ContinuousAreaChart: FC<Props> = ({
               paddingLeft={leftPadding}
               paddingRight={HORIZONTAL_PADDING}
               discrete={discrete}
+              barWidth={barWidth}
             />
           )}
         </VictoryChart>

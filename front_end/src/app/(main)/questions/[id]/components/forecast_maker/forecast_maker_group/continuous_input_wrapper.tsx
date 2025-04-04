@@ -33,8 +33,8 @@ import {
   getSubquestionPredictionInputMessage,
 } from "@/utils/questions";
 
+import ContinuousInput from "../../continuous_input";
 import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
-import ContinuousInput from "../continuous_input";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
@@ -276,8 +276,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           }
           overlayPreviousForecast={overlayPreviousForecast}
           onOverlayPreviousForecastChange={setOverlayPreviousForecast}
-          forecastInputMode={forecastInputMode}
-          onForecastInputModeChange={setForecastInputMode}
+          inputMode={forecastInputMode}
+          onInputModeChange={setForecastInputMode}
           hasUserForecast={hasUserForecast}
           isDirty={option.isDirty}
           submitControls={SubmitControls}
