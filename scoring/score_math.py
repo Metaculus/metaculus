@@ -26,25 +26,17 @@ class AggregationEntry:
 
 def get_geometric_means(
     forecasts: list[Forecast | AggregateForecast],
-    include_bots: bool = False,
 ) -> list[AggregationEntry]:
-    included_forecasts = forecasts
-    if not include_bots:
-        included_forecasts = [
-            f
-            for f in forecasts
-            if (isinstance(f, AggregateForecast) or f.author.is_bot is False)
-        ]
     geometric_means = []
     timesteps: set[datetime] = set()
-    for forecast in included_forecasts:
+    for forecast in forecasts:
         timesteps.add(forecast.start_time.timestamp())
         if forecast.end_time:
             timesteps.add(forecast.end_time.timestamp())
     for timestep in sorted(timesteps):
         prediction_values = [
             f.get_pmf()
-            for f in included_forecasts
+            for f in forecasts
             if f.start_time.timestamp() <= timestep
             and (f.end_time is None or f.end_time.timestamp() > timestep)
         ]
@@ -173,12 +165,9 @@ def evaluate_forecasts_peer_accuracy(
     forecast_horizon_end: float,
     question_type: str,
     geometric_means: list[AggregationEntry] | None = None,
-    include_bots_in_aggregates: bool = False,
 ) -> list[ForecastScore]:
     base_forecasts = base_forecasts or forecasts
-    geometric_mean_forecasts = geometric_means or get_geometric_means(
-        base_forecasts, include_bots_in_aggregates
-    )
+    geometric_mean_forecasts = geometric_means or get_geometric_means(base_forecasts)
     for gm in geometric_mean_forecasts:
         gm.timestamp = max(gm.timestamp, forecast_horizon_start)
     total_duration = forecast_horizon_end - forecast_horizon_start
@@ -234,12 +223,9 @@ def evaluate_forecasts_peer_spot_forecast(
     spot_scoring_timestamp: float,
     question_type: str,
     geometric_means: list[AggregationEntry] | None = None,
-    include_bots_in_aggregates: bool = False,
 ) -> list[ForecastScore]:
     base_forecasts = base_forecasts or forecasts
-    geometric_mean_forecasts = geometric_means or get_geometric_means(
-        base_forecasts, include_bots_in_aggregates
-    )
+    geometric_mean_forecasts = geometric_means or get_geometric_means(base_forecasts)
     g = None
     for gm in geometric_mean_forecasts[::-1]:
         if gm.timestamp < spot_scoring_timestamp:
@@ -334,7 +320,9 @@ def evaluate_question(
 ) -> list[Score]:
     aggregation_methods = aggregation_methods or []
     aggregations_to_calculate = aggregation_methods.copy()
-    if AggregationMethod.RECENCY_WEIGHTED not in aggregations_to_calculate:
+    if Score.ScoreTypes.RELATIVE_LEGACY in score_types and (
+        AggregationMethod.RECENCY_WEIGHTED not in aggregations_to_calculate
+    ):
         aggregations_to_calculate.append(AggregationMethod.RECENCY_WEIGHTED)
     if resolution_bucket is None:
         return []
@@ -344,29 +332,27 @@ def evaluate_question(
 
     # We need all user forecasts to calculated GeoMean even
     # if we're only scoring some or none of the users
-    user_forecasts = question.user_forecasts.all().prefetch_related(
-        Prefetch("author", queryset=User.objects.only("is_bot"))
-    )
+    user_forecasts = question.user_forecasts.all()
     if score_users is True:
         scoring_user_forecasts = user_forecasts
     elif not score_users:
         scoring_user_forecasts = Forecast.objects.none()
     else:  # we have a list of user ids to score
         scoring_user_forecasts = user_forecasts.filter(author_id__in=score_users)
+    if not question.include_bots_in_aggregates:
+        user_forecasts = user_forecasts.exclude(author__is_bot=True)
     aggregations = get_aggregation_history(
         question,
         minimize=False,
         aggregation_methods=aggregations_to_calculate,
         include_bots=question.include_bots_in_aggregates,
     )
-    recency_weighted_aggregation = aggregations[AggregationMethod.RECENCY_WEIGHTED]
+    recency_weighted_aggregation = aggregations.get(AggregationMethod.RECENCY_WEIGHTED)
     geometric_means: list[AggregationEntry] = []
 
     ScoreTypes = Score.ScoreTypes
     if ScoreTypes.PEER in score_types:
-        geometric_means = get_geometric_means(
-            user_forecasts, include_bots=question.include_bots_in_aggregates
-        )
+        geometric_means = get_geometric_means(user_forecasts)
 
     scores: list[Score] = []
     for score_type in score_types:

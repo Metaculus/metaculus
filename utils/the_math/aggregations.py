@@ -41,7 +41,7 @@ from utils.typing import (
 class ForecastSet:
     forecasts_values: ForecastsValues
     timestep: datetime
-    users: list[User] = list
+    user_ids: list[int] = list
     timesteps: list[datetime] = list
 
 
@@ -320,8 +320,8 @@ class SingleAggregation(Aggregation):
 
     def get_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
         reps = []
-        for user in forecast_set.users:
-            for reputation in self.reputations[user.id][::-1]:
+        for user_id in forecast_set.user_ids:
+            for reputation in self.reputations[user_id][::-1]:
                 if reputation.time <= forecast_set.timestep:
                     reps.append(reputation)
                     break
@@ -426,8 +426,8 @@ class MedalistsAggregation(Aggregation):
 
     def get_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
         reps = []
-        for user in forecast_set.users:
-            for reputation in self.reputations[user.id][::-1]:
+        for user_id in forecast_set.user_ids:
+            for reputation in self.reputations[user_id][::-1]:
                 if reputation.time <= forecast_set.timestep:
                     reps.append(reputation)
                     break
@@ -507,8 +507,8 @@ class Experienced25ResolvedAggregation(Aggregation):
 
     def get_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
         reps = []
-        for user in forecast_set.users:
-            for reputation in self.reputations[user.id][::-1]:
+        for user_id in forecast_set.user_ids:
+            for reputation in self.reputations[user_id][::-1]:
                 if reputation.time <= forecast_set.timestep:
                     reps.append(reputation)
                     break
@@ -744,7 +744,7 @@ def get_user_forecast_history(
         timestep: ForecastSet(
             forecasts_values=[],
             timestep=timestep,
-            users=[],
+            user_ids=[],
             timesteps=[],
         )
         for timestep in timesteps
@@ -760,7 +760,7 @@ def get_user_forecast_history(
         forecast_values = forecast.get_prediction_values()
         for timestep in timesteps[start_index:end_index]:
             forecast_sets[timestep].forecasts_values.append(forecast_values)
-            forecast_sets[timestep].users.append(forecast.author)
+            forecast_sets[timestep].user_ids.append(forecast.author_id)
             forecast_sets[timestep].timesteps.append(forecast.start_time)
 
     return sorted(list(forecast_sets.values()), key=lambda x: x.timestep)
@@ -769,6 +769,7 @@ def get_user_forecast_history(
 def get_aggregation_history(
     question: Question,
     aggregation_methods: list[AggregationMethod],
+    forecasts: QuerySet[Forecast] | None = None,
     user_ids: list[int] | None = None,
     minimize: bool = True,
     include_stats: bool = True,
@@ -777,19 +778,20 @@ def get_aggregation_history(
 ) -> dict[AggregationMethod, list[AggregateForecast]]:
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
-    # get input forecasts
-    forecasts = (
-        Forecast.objects.filter(question_id=question.id)
-        .order_by("start_time")
-        .select_related("author")
-    )
-    if question.actual_close_time:
-        forecasts = forecasts.filter(start_time__lte=question.actual_close_time)
+    if not forecasts:
+        # get input forecasts
+        forecasts = (
+            Forecast.objects.filter(question_id=question.id)
+            .order_by("start_time")
+            .select_related("author")
+        )
+        if question.actual_close_time:
+            forecasts = forecasts.filter(start_time__lte=question.actual_close_time)
 
-    if user_ids:
-        forecasts = forecasts.filter(author_id__in=user_ids)
-    if not include_bots:
-        forecasts = forecasts.exclude(author__is_bot=True)
+        if user_ids:
+            forecasts = forecasts.filter(author_id__in=user_ids)
+        if not include_bots:
+            forecasts = forecasts.exclude(author__is_bot=True)
 
     forecast_history = get_user_forecast_history(
         forecasts, minimize, cutoff=question.actual_close_time
@@ -799,7 +801,7 @@ def get_aggregation_history(
         if method == AggregationMethod.METACULUS_PREDICTION:
             full_summary[method] = list(
                 AggregateForecast.objects.filter(
-                    question=question, method=method
+                    question_id=question.id, method=method
                 ).order_by("start_time")
             )
             continue
