@@ -1,7 +1,9 @@
+import csv
 import traceback
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -9,10 +11,7 @@ from comments.models import Comment
 from projects.models import Project
 
 # from metac_account.models.user import User
-from .utils import (
-    get_fab_tournament,
-    submit_questions,
-)
+from .utils import get_fab_tournament, submit_questions
 
 
 @staff_member_required
@@ -25,6 +24,15 @@ def fab_management_view(request):
 
             saved_context = {"tournament_id": tournament_id}
             match action_name:
+                case "auto_schedule":
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename="auto_schedule.csv"'
+
+                    writer = csv.writer(response)
+                    writer.writerow(['Question ID', 'Title', 'Scheduled Date', 'Notes'])
+
+                    return response
+
                 case "submit_dry":
                     doc_id = request.POST["doc_id"]
                     sheet_name = request.POST["sheet_name"]
