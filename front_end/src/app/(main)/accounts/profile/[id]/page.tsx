@@ -9,6 +9,7 @@ import strip from "strip-markdown";
 import MedalsPage from "@/app/(main)/(leaderboards)/medals/components/medals_page";
 import { MedalsWidget } from "@/app/(main)/(leaderboards)/medals/components/medals_widget";
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
+import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import CommentFeed from "@/components/comment_feed";
 import AwaitedPostsFeed from "@/components/posts_feed";
@@ -136,7 +137,12 @@ export default async function Profile(props: Props) {
       )}
       {mode === ProfilePageMode.Comments && (
         <div className="flex flex-col rounded bg-white px-4 py-1 dark:bg-blue-900 md:px-6 md:py-2">
-          <CommentFeed profileId={profile.id} rootCommentStructure={false} />
+          <CommentsFeedProvider
+            profileId={profile.id}
+            rootCommentStructure={false}
+          >
+            <CommentFeed profileId={profile.id} rootCommentStructure={false} />
+          </CommentsFeedProvider>
         </div>
       )}
       {mode === ProfilePageMode.Questions && (
