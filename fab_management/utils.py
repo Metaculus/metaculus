@@ -15,15 +15,9 @@ from posts.services.common import trigger_update_post_translations
 from posts.tasks import run_post_indexing
 from projects.models import Project
 from questions.models import Question
-# from metac_account.models.user import User
-# from metac_project.model_utils.permissions import QuestionPermissions
-# from metac_project.models.project import Project, ProjectScoreType
-# from metac_question.models.question import Question
 from users.models import User
 
 logger = logging.getLogger(__name__)
-
-
 
 
 scopes = [
@@ -126,7 +120,7 @@ def get_open_lower_bound(row_values):
 
 
 def get_open_upper_bound(row_values):
-    return row_values["open_lower_bound"].lower() == "true"
+    return row_values["open_upper_bound"].lower() == "true"
 
 
 def get_unit(row_values) -> str:
@@ -216,7 +210,7 @@ def submit_questions(
         return messages.append(("info", msg))
 
     if not tournament:
-        log_error(f"Tournament not found")
+        log_error("Tournament not found")
         return messages
 
     try:
@@ -264,10 +258,7 @@ def submit_questions(
                 if question_type == "numeric":
                     question_fields += numeric_q_fields
                     # Ensure unis are present for numeric questions
-                    if not get_raw_val(row, "unit"):
-                        log_error(f"Error on row {row_idx}: Unit field is required for numeric questions")
-                        rollback = True
-                        break
+
 
                 if question_type == "multiple_choice":
                     question_fields += multiple_choice_q_fields
@@ -281,7 +272,10 @@ def submit_questions(
                                 f"Error on row {row_idx}, col '{field_name}': question has no parent, but '.p' was used for field"
                             )
                             continue
-                        val = getattr(parent_post.question or parent_post.group_of_questions, field_name)
+                        val = getattr(
+                            parent_post.question or parent_post.group_of_questions,
+                            field_name,
+                        )
                     elif callable(field_get_value_fn):
                         val = field_get_value_fn(row_values)
 

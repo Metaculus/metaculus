@@ -1,16 +1,13 @@
-import csv
 import traceback
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
 from comments.models import Comment
 from projects.models import Project
 
-# from metac_account.models.user import User
 from .utils import submit_questions
 
 
