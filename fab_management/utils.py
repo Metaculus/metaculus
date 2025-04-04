@@ -259,7 +259,6 @@ def submit_questions(
                     question_fields += numeric_q_fields
                     # Ensure unis are present for numeric questions
 
-
                 if question_type == "multiple_choice":
                     question_fields += multiple_choice_q_fields
 
