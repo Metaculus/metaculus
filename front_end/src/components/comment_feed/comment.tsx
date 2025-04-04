@@ -2,6 +2,7 @@
 
 import {
   faChevronDown,
+  faPlus,
   faReply,
   faThumbtack,
   faXmark,
@@ -18,6 +19,7 @@ import {
   editComment,
   createForecasts,
   getComments,
+  addKeyFactorsToComment,
 } from "@/app/(main)/questions/actions";
 import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
@@ -48,6 +50,8 @@ import IncludedForecast from "./included_forecast";
 import { validateComment } from "./validate_comment";
 
 import { SortOption, sortComments } from ".";
+import AddKeyFactorsModal from "./add_key_factors_modal";
+import { useRouter } from "next/navigation";
 
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
@@ -223,13 +227,15 @@ const Comment: FC<CommentProps> = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-
+  const [isAddKeyFactorsModalOpen, setIsAddKeyFactorsModalOpen] =
+    useState(false);
   const { user } = useAuth();
   const scrollTo = useScrollTo();
+  const router = useRouter();
+
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
-
   const isCmmButtonVisible =
     user?.id !== comment.author.id &&
     (!!postData?.question ||
@@ -244,6 +250,10 @@ const Comment: FC<CommentProps> = ({
     comment.changed_my_mind.count,
     comment.changed_my_mind.for_this_user
   );
+
+  const onAddKeyFactor = async (comment: CommentType) => {
+    setIsAddKeyFactorsModalOpen(true);
+  };
 
   const updateForecast = async (value: number) => {
     const response = await createForecasts(comment.on_post, [
@@ -653,6 +663,17 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
+                  {comment.author.id === user?.id && (
+                    <Button
+                      size="xxs"
+                      variant="tertiary"
+                      onClick={() => onAddKeyFactor(comment)}
+                    >
+                      <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
+                      {t("addKeyFactor")}
+                    </Button>
+                  )}
+
                   {isCmmButtonVisible && !isMobileScreen && (
                     <CmmToggleButton
                       cmmContext={cmmContext}
@@ -731,6 +752,15 @@ const Comment: FC<CommentProps> = ({
         comment={comment}
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
+      />
+      <AddKeyFactorsModal
+        isOpen={isAddKeyFactorsModalOpen}
+        onClose={() => setIsAddKeyFactorsModalOpen(false)}
+        commentId={comment.id}
+        onSuccess={() => {
+          setIsAddKeyFactorsModalOpen(false);
+          router.refresh();
+        }}
       />
     </div>
   );
