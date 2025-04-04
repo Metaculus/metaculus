@@ -1,6 +1,5 @@
 "use client";
 import { isNil, merge } from "lodash";
-import { e } from "mathjs";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Tuple,
@@ -331,9 +330,12 @@ const ContinuousAreaChart: FC<Props> = ({
               graphType: chart.graphType,
             }))}
           yDomain={yDomain}
+          chartWidth={chartWidth}
           chartHeight={height}
           paddingTop={paddingTop}
           paddingBottom={BOTTOM_PADDING}
+          paddingLeft={leftPadding}
+          paddingRight={HORIZONTAL_PADDING}
           discrete={discrete}
         />
       }
@@ -342,7 +344,6 @@ const ContinuousAreaChart: FC<Props> = ({
           onCursorChange?.(null);
           return;
         }
-
         const hoverState = charts.reduce<ContinuousAreaHoverState>(
           (acc, el) => {
             if (el.graphType === "pmf") {
@@ -576,6 +577,7 @@ const ContinuousAreaChart: FC<Props> = ({
           {/* Manually render cursor component when cursor is on edge */}
           {!isNil(cursorEdge) && (
             <LineCursorPoints
+              chartWidth={chartWidth}
               x={
                 cursorEdge < 0.5
                   ? leftPadding + CURSOR_POINT_OFFSET
@@ -599,6 +601,8 @@ const ContinuousAreaChart: FC<Props> = ({
               yDomain={yDomain}
               paddingBottom={BOTTOM_PADDING}
               paddingTop={paddingTop}
+              paddingLeft={leftPadding}
+              paddingRight={HORIZONTAL_PADDING}
               discrete={discrete}
             />
           )}

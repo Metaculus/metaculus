@@ -3,9 +3,15 @@ import React, { ComponentProps } from "react";
 import { Point, Tuple, VictoryLabel } from "victory";
 
 import { Line } from "@/types/charts";
-import { getClosestYValue, interpolateYValue } from "@/utils/charts";
+import {
+  getClosestXValue,
+  getClosestYValue,
+  interpolateYValue,
+} from "@/utils/charts";
 
 const SIZE = 4;
+// https://commerce.nearform.com/open-source/victory/docs/api/victory-cursor-container#cursorlabeloffset
+const DEFAULT_X_OFFSET = 5;
 
 type Props<T> = {
   chartData: Array<{
@@ -14,18 +20,25 @@ type Props<T> = {
     color: string;
     graphType: "pmf" | "cdf";
   }>;
+  chartWidth: number;
   chartHeight: number;
   paddingBottom?: number;
   paddingTop?: number;
+  paddingLeft?: number;
+  paddingRight?: number;
   yDomain: Tuple<number>;
   discrete?: boolean;
 };
+
 const LineCursorPoints = <T extends string>({
   chartData,
   yDomain,
+  chartWidth,
   chartHeight,
   paddingBottom = 0,
   paddingTop = 0,
+  paddingLeft = 0,
+  paddingRight = 0,
   x,
   datum,
   discrete,
@@ -46,16 +59,30 @@ const LineCursorPoints = <T extends string>({
         // the graph is visually stretched from top due to padding, so we need to add the top padding after scaling
         const scaledY =
           (yValue / yDomain[1]) * (chartHeight - paddingBottom - paddingTop);
-
         // adjust the final position by adding paddingBottom to place it in the correct position
         const finalScaledY = chartHeight - scaledY - paddingBottom;
 
-        return (
+        const availableWidth = chartWidth - paddingLeft - paddingRight;
+        const xValue = getClosestXValue(datum.x, line);
+        const barWidth = (chartWidth - 30) / (1.07 * line.length);
+        const scaledX = xValue * availableWidth + paddingLeft - barWidth / 2;
+
+        return discrete && graphType === "pmf" ? (
+          <rect
+            key={index}
+            x={scaledX}
+            y={finalScaledY}
+            width={barWidth}
+            height={scaledY}
+            style={{
+              fill: color,
+              opacity: 0.3,
+            }}
+          />
+        ) : (
           <Point
             key={index}
-            // TODO: figure out why victory adds extra 5 pixels to cursor position
-            // and remove the magic number
-            x={x - 5}
+            x={x - DEFAULT_X_OFFSET}
             y={finalScaledY}
             size={SIZE}
             style={{
