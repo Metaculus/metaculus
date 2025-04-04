@@ -13,7 +13,7 @@ import {
   NotebookPost,
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import { Require } from "@/types/utils";
+import { DataParams, Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put, del } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
@@ -239,6 +239,12 @@ class PostsApi {
 
   static async getPostZipData(postId: number): Promise<Blob> {
     return await get<Blob>(`/posts/${postId}/download-data/`);
+  }
+
+  static async emailData(params: DataParams): Promise<{
+    message: string;
+  }> {
+    return await post(`/data/email/`, params);
   }
 
   static async getAggregationsPostZipData(
