@@ -11,11 +11,14 @@ Normalise to 1 over all outcomes.
 
 from bisect import bisect_left, bisect_right
 from dataclasses import dataclass
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+from typing import Sequence
 
 import numpy as np
 from django.db.models import Q, QuerySet
 
+from projects.permissions import ObjectPermission
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
     Question,
@@ -23,10 +26,7 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.reputation import (
-    get_reputations_during_interval,
-    Reputation,
-)
+from scoring.models import Score, LeaderboardEntry
 from users.models import User
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 from utils.typing import (
@@ -117,6 +117,13 @@ def compute_weighted_semi_standard_deviations(
     lower_semivariances = np.nan_to_num(lower_semivariances)
     upper_semivariances = np.nan_to_num(upper_semivariances)
     return np.sqrt(lower_semivariances), np.sqrt(upper_semivariances)
+
+
+@dataclass
+class Reputation:
+    user_id: int
+    value: float
+    time: datetime
 
 
 class Aggregation:
@@ -255,16 +262,66 @@ class SingleAggregation(Aggregation):
         if question is None or forecasts is None:
             raise ValueError("question and forecasts must be provided")
         self.question = question
-        self.reputations: list[Reputation] = get_reputations_during_interval(
-            user_ids=set(forecast.author_id for forecast in forecasts),
-            start=question.open_time,
-            end=question.scheduled_close_time,
+        self.reputations: list[Reputation] = self.get_reputation_history(
+            user_ids=set(forecast.author_id for forecast in forecasts)
         )
+
+    @staticmethod
+    def reputation_value(scores: Sequence[Score]) -> float:
+        return max(
+            sum([score.score for score in scores])
+            / (30 + sum([score.coverage for score in scores])),
+            1e-6,
+        )
+
+    def get_reputation_history(
+        self, user_ids: list[int]
+    ) -> dict[int, list[Reputation]]:
+        """returns a dict reputations. Each one is a record of what a particular
+        user's reputation was at a particular time.
+        The reputation can change during the interval."""
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        peer_scores = Score.objects.filter(
+            user_id__in=user_ids,
+            score_type=Score.ScoreTypes.PEER,
+            question__in=Question.objects.filter_public(),
+            edited_at__lte=end,
+        ).distinct()
+
+        # setup
+        scores_by_user: dict[int, dict[int, Score]] = defaultdict(dict)
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish reputations at the start of the interval.
+        old_peer_scores = list(
+            peer_scores.filter(edited_at__lte=start).order_by("edited_at")
+        )
+        for score in old_peer_scores:
+            scores_by_user[score.user_id][score.question_id] = score
+        for user_id in user_ids:
+            value = self.reputation_value(scores_by_user[user_id].values())
+            reputations[user_id].append(Reputation(user_id, value, start))
+
+        # Then, for each new score, add a new reputation record
+        new_peer_scores = list(
+            peer_scores.filter(edited_at__gt=start).order_by("edited_at")
+        )
+        for score in new_peer_scores:
+            # update the scores by user, then calculate the updated reputation
+            scores_by_user[score.user_id][score.question_id] = score
+            value = self.reputation_value(scores_by_user[score.user_id].values())
+            reputations[score.user_id].append(
+                Reputation(score.user_id, value, score.edited_at)
+            )
+        return reputations
 
     def get_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
         reps = []
         for user in forecast_set.users:
-            for reputation in self.reputations[user][::-1]:
+            for reputation in self.reputations[user.id][::-1]:
                 if reputation.time <= forecast_set.timestep:
                     reps.append(reputation)
                     break
@@ -278,11 +335,15 @@ class SingleAggregation(Aggregation):
             )
             for start_time in forecast_set.timesteps
         ]
-        weights = [
-            (decay**a * reputation.value ** (1 - a)) ** b
-            for decay, reputation in zip(decays, reps)
-        ]
-        return weights or None
+        weights = np.array(
+            [
+                (decay**a * reputation.value ** (1 - a)) ** b
+                for decay, reputation in zip(decays, reps)
+            ]
+        )
+        if all(weights == 0):
+            return None
+        return weights if weights.size else None
 
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: Weights | None
@@ -308,10 +369,173 @@ class SingleAggregation(Aggregation):
         return lowers, centers, uppers
 
 
+class MedalistsAggregation(Aggregation):
+    reputations: dict[int, list[Reputation]]
+    question: Question
+    method = AggregationMethod.MEDALISTS
+
+    def __init__(
+        self,
+        *args,
+        question: Question | None = None,
+        forecasts: QuerySet[Forecast] | None = None,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        if question is None or forecasts is None:
+            raise ValueError("question and forecasts must be provided")
+        self.question = question
+        self.reputations: list[Reputation] = self.get_reputation_history(
+            user_ids=set(forecast.author_id for forecast in forecasts)
+        )
+
+    def get_reputation_history(
+        self, user_ids: list[int]
+    ) -> dict[int, list[Reputation]]:
+        """returns a dict reputations. Each one is a record of what a particular
+        user's reputation was at a particular time.
+        The reputation can change during the interval."""
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        medals = LeaderboardEntry.objects.filter(
+            user_id__in=user_ids,
+            medal__isnull=False,
+            leaderboard__project__default_permission=ObjectPermission.FORECASTER,
+        ).order_by("edited_at")
+
+        # setup
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish initial reputations at the start of the interval.
+        old_medals = list(medals.filter(edited_at__lte=start).order_by("edited_at"))
+        for medal in old_medals:
+            user_id = medal.user_id
+            reputations[user_id] = [Reputation(user_id, 1, start)]
+        for user_id in user_ids:
+            if user_id not in reputations:
+                reputations[user_id] = [Reputation(user_id, 0, start)]
+        # Then, for each new medal, add a new reputation record
+        new_medals = list(medals.filter(edited_at__gt=start).order_by("edited_at"))
+        for medal in new_medals:
+            user_id = medal.user_id
+            if reputations[user_id][-1].value == 0:
+                reputations[user_id].append(Reputation(user_id, 1, medal.edited_at))
+        return reputations
+
+    def get_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
+        reps = []
+        for user in forecast_set.users:
+            for reputation in self.reputations[user.id][::-1]:
+                if reputation.time <= forecast_set.timestep:
+                    reps.append(reputation)
+                    break
+        weights = np.array([reputation.value for reputation in reps])
+        if all(weights == 0):
+            return None
+        return weights if weights.size else None
+
+
+class Experienced25ResolvedAggregation(Aggregation):
+    reputations: dict[int, list[Reputation]]
+    question: Question
+    method = AggregationMethod.MEDALISTS
+
+    def __init__(
+        self,
+        *args,
+        question: Question | None = None,
+        forecasts: QuerySet[Forecast] | None = None,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        if question is None or forecasts is None:
+            raise ValueError("question and forecasts must be provided")
+        self.question = question
+        self.reputations: list[Reputation] = self.get_reputation_history(
+            user_ids=set(forecast.author_id for forecast in forecasts)
+        )
+
+    def get_reputation_history(
+        self, user_ids: list[int]
+    ) -> dict[int, list[Reputation]]:
+        """returns a dict reputations. Each one is a record of what a particular
+        user's reputation was at a particular time.
+        The reputation can change during the interval."""
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        peer_scores = Score.objects.filter(
+            user_id__in=user_ids,
+            score_type=Score.ScoreTypes.PEER,
+            question__in=Question.objects.filter_public(),
+            edited_at__lte=end,
+        ).distinct()
+
+        # setup
+        resolved_per_user: dict[int, int] = defaultdict(int)
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish reputations at the start of the interval.
+        old_peer_scores = list(
+            peer_scores.filter(edited_at__lte=start).order_by("edited_at")
+        )
+        for score in old_peer_scores:
+            resolved_per_user[score.user_id] += 1
+        for user_id in user_ids:
+            reputations[user_id].append(
+                Reputation(user_id, 1 if resolved_per_user[user_id] >= 25 else 0, start)
+            )
+
+        # Then, for each new score, add a new reputation record
+        new_peer_scores = list(
+            peer_scores.filter(edited_at__gt=start).order_by("edited_at")
+        )
+        for score in new_peer_scores:
+            # update the scores by user, then calculate the updated reputation
+            resolved_per_user[score.user_id] += 1
+            reputations[score.user_id].append(
+                Reputation(
+                    score.user_id,
+                    1 if resolved_per_user[score.user_id] >= 25 else 0,
+                    score.edited_at,
+                )
+            )
+        return reputations
+
+    def get_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
+        reps = []
+        for user in forecast_set.users:
+            for reputation in self.reputations[user.id][::-1]:
+                if reputation.time <= forecast_set.timestep:
+                    reps.append(reputation)
+                    break
+        weights = np.array([reputation.value for reputation in reps])
+        if all(weights == 0):
+            return None
+        return weights if weights.size else None
+
+
+class IgnoranceAggregation(Aggregation):
+
+    def calculate_forecast_values(
+        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+    ) -> np.ndarray:
+        # Default Aggregation method uses weighted medians for binary and MC questions
+        # and weighted average for continuous
+        arr = np.ones_like(forecast_set.forecasts_values[0])
+        return arr / arr.size
+
+
 aggregation_method_map: dict[AggregationMethod, type[Aggregation]] = {
     AggregationMethod.UNWEIGHTED: UnweightedAggregation,
     AggregationMethod.RECENCY_WEIGHTED: RecencyWeightedAggregation,
     AggregationMethod.SINGLE_AGGREGATION: SingleAggregation,
+    AggregationMethod.MEDALISTS: MedalistsAggregation,
+    AggregationMethod.EXPERIENCED_USERS_25_RESOLVED: Experienced25ResolvedAggregation,
+    AggregationMethod.IGNORANCE: IgnoranceAggregation,
 }
 
 

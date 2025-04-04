@@ -56,8 +56,11 @@ def score_question(
     spot_scoring_timestamp: float | None = None,
     score_types: list[str] | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
+    protect_uncalculated_scores: bool = False,
+    score_users: bool | list[int] = True,
 ):
-    aggregation_methods = aggregation_methods or [AggregationMethod.RECENCY_WEIGHTED]
+    if aggregation_methods is None:
+        aggregation_methods = [AggregationMethod.RECENCY_WEIGHTED]
     resolution_bucket = string_location_to_bucket_index(resolution, question)
     if not spot_scoring_timestamp:
         if question.spot_scoring_time:
@@ -81,19 +84,26 @@ def score_question(
         score_types=score_types,
         spot_scoring_timestamp=spot_scoring_timestamp,
         aggregation_methods=aggregation_methods,
+        score_users=score_users,
     )
 
+    seen = set()
     for new_score in new_scores:
         previous_score_id = previous_scores_map.get(
             (new_score.user_id, new_score.aggregation_method, new_score.score_type)
         )
+        if previous_score_id:
+            seen.add(previous_score_id)
 
         new_score.id = previous_score_id
         new_score.question = question
         new_score.edited_at = question.resolution_set_time
 
     with transaction.atomic():
-        previous_scores.delete()
+        scores_to_delete = previous_scores
+        if protect_uncalculated_scores:
+            scores_to_delete = scores_to_delete.filter(id__in=seen)
+        scores_to_delete.delete()
         Score.objects.bulk_create(new_scores, batch_size=500)
 
 

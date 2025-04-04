@@ -10,21 +10,6 @@ from scoring.models import Score
 from users.models import User
 
 
-@dataclass
-class Reputation:
-    user_id: int
-    value: float
-    time: datetime
-
-
-def reputation_value(scores: Sequence[Score]) -> float:
-    return max(
-        sum([score.score for score in scores])
-        / (30 + sum([score.coverage for score in scores])),
-        1e-6,
-    )
-
-
 # def get_reputation_at_time(user_id: int, time: datetime | None = None) -> Reputation:
 #     """
 #     Returns the reputation of a user at a given time.
@@ -63,6 +48,21 @@ def reputation_value(scores: Sequence[Score]) -> float:
 #         value = reputation_value(user_scores[user_id])
 #         reputations.append(Reputation(user_id, value, time))
 #     return reputations
+
+
+@dataclass
+class Reputation:
+    user_id: int
+    value: float
+    time: datetime
+
+
+def reputation_value(scores: Sequence[Score]) -> float:
+    return max(
+        sum([score.score for score in scores])
+        / (30 + sum([score.coverage for score in scores])),
+        1e-6,
+    )
 
 
 def get_reputations_during_interval(
