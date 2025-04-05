@@ -1,5 +1,5 @@
-import json
 import base64
+import json
 import logging
 import re
 from collections.abc import Generator
@@ -10,23 +10,14 @@ import pytz
 from django.conf import settings
 from django.db import transaction
 
-# from metac_account.models.user import User
-# from metac_project.model_utils.permissions import QuestionPermissions
-# from metac_project.models.project import Project, ProjectScoreType
-# from metac_question.models.question import Question
-from users.models import User
+from posts.models import Post
+from posts.services.common import trigger_update_post_translations
+from posts.tasks import run_post_indexing
 from projects.models import Project
 from questions.models import Question
-from posts.models import Post
-from posts.tasks import run_post_indexing
-from posts.services.common import trigger_update_post_translations
+from users.models import User
 
 logger = logging.getLogger(__name__)
-
-
-def get_fab_tournament() -> Project | None:
-    project = Project.objects.filter(pk=32627).last()
-    return project
 
 
 scopes = [
@@ -99,7 +90,7 @@ def get_question_weight(row_values):
     if not value_str:
         return 1.0
     value = float(value_str)
-    if value <= 1 and value > 0:
+    if value <= 1 and value >= 0:
         return value
     raise ValueError("Invalid value for the question_weight field")
 
@@ -116,7 +107,7 @@ def get_range_min(row_values):
     return value
 
 
-def get_zero_point(row_values):
+def get_zero_point(row_values) -> float | None:
     value_str = row_values["zero_point"]
     if not value_str:
         return None
@@ -129,7 +120,14 @@ def get_open_lower_bound(row_values):
 
 
 def get_open_upper_bound(row_values):
-    return row_values["open_lower_bound"].lower() == "true"
+    return row_values["open_upper_bound"].lower() == "true"
+
+
+def get_unit(row_values) -> str:
+    value_str = row_values.get("unit", "")
+    if not value_str:
+        raise ValueError("Unit field is required for numeric questions")
+    return value_str.strip()
 
 
 def get_group_variable(row_values):
@@ -175,6 +173,7 @@ numeric_q_fields = [
     ("zero_point", get_zero_point),
     ("open_lower_bound", get_open_lower_bound),
     ("open_upper_bound", get_open_upper_bound),
+    ("unit", get_unit),
 ]
 
 multiple_choice_q_fields = [
@@ -209,6 +208,10 @@ def submit_questions(
 
     def log_info(msg: str):
         return messages.append(("info", msg))
+
+    if not tournament:
+        log_error("Tournament not found")
+        return messages
 
     try:
         start_str, end_str = rows_range.split(":")
@@ -254,6 +257,7 @@ def submit_questions(
 
                 if question_type == "numeric":
                     question_fields += numeric_q_fields
+                    # Ensure unis are present for numeric questions
 
                 if question_type == "multiple_choice":
                     question_fields += multiple_choice_q_fields
@@ -267,7 +271,10 @@ def submit_questions(
                                 f"Error on row {row_idx}, col '{field_name}': question has no parent, but '.p' was used for field"
                             )
                             continue
-                        val = getattr(parent_post.question or parent_post.group_of_questions, field_name)
+                        val = getattr(
+                            parent_post.question or parent_post.group_of_questions,
+                            field_name,
+                        )
                     elif callable(field_get_value_fn):
                         val = field_get_value_fn(row_values)
 
@@ -332,9 +339,9 @@ def rows_iterator(worksheet, rows_range: str) -> Generator[tuple[str, int], None
     batch = 5
     [start, end] = [int(a) for a in rows_range.split(":")]
     row = start
-    batch = min(batch, end - start)
     while row < end:
-        rows = worksheet.get(f"A{row}:T{row+batch-1}", maintain_size=True)
+        batch = min(batch, end - row)
+        rows = worksheet.get(f"A{row}:U{row+batch-1}", maintain_size=True)
         # range will not yield the last element in the range, while worksheet.get will, hence the
         # mismatch between the two here
         yield from zip(rows, range(row, row + batch))
