@@ -341,7 +341,7 @@ def rows_iterator(worksheet, rows_range: str) -> Generator[tuple[str, int], None
     row = start
     while row < end:
         batch = min(batch, end - row)
-        rows = worksheet.get(f"A{row}:T{row+batch-1}", maintain_size=True)
+        rows = worksheet.get(f"A{row}:U{row+batch-1}", maintain_size=True)
         # range will not yield the last element in the range, while worksheet.get will, hence the
         # mismatch between the two here
         yield from zip(rows, range(row, row + batch))
