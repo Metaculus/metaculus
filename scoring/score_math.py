@@ -192,6 +192,8 @@ def evaluate_forecasts_peer_accuracy(
                     * (gm.num_forecasters / (gm.num_forecasters - 1))
                     * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
                 )
+                if np.isnan(score) or np.isinf(score):
+                    breakpoint()
                 if question_type in QUESTION_CONTINUOUS_TYPES:
                     score /= 2
                 interval_scores.append(score)
@@ -346,6 +348,7 @@ def evaluate_question(
         minimize=False,
         aggregation_methods=aggregations_to_calculate,
         include_bots=question.include_bots_in_aggregates,
+        include_stats=False,
     )
     recency_weighted_aggregation = aggregations.get(AggregationMethod.RECENCY_WEIGHTED)
     geometric_means: list[AggregationEntry] = []

@@ -224,7 +224,7 @@ def notify_post_cp_change(post: Post):
             difference = prediction_difference_for_sorting(
                 old_forecast_values,
                 current_forecast_values,
-                question=question,
+                question.type,
             )
             display_diff = prediction_difference_for_display(
                 old_forecast_values,
