@@ -29,6 +29,7 @@ scopes = [
 MAX_COLUMN = "U"
 HEADER_ROW = 2
 
+
 def convert_to_timestamp(date, hour, minute):
     est_tz = pytz.timezone("US/Eastern")
     utc_tz = pytz.UTC
@@ -307,7 +308,9 @@ def submit_questions(
                 scheduled_resolve_time=question.scheduled_resolve_time,
             )
             posts_to_create.append(post)
-            log_info(f"   - added Question/Post [{question.title}] to {tournament.name}")
+            log_info(
+                f"   - added Question/Post [{question.title}] to {tournament.name}"
+            )
 
         Post.objects.bulk_create(posts_to_create)
 
@@ -315,7 +318,9 @@ def submit_questions(
             transaction.set_rollback(True)
             log_info("****UNDO all actions, nothing was saved to the DB****")
     transaction_end_time = time.time()
-    log_info(f"Total transaction time taken: {transaction_end_time - start_time:.2f} seconds")
+    log_info(
+        f"Total transaction time taken: {transaction_end_time - start_time:.2f} seconds"
+    )
 
     if not rollback:
         for post in posts_to_create:
