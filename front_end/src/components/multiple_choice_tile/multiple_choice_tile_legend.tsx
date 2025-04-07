@@ -1,7 +1,7 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import React, { FC } from "react";
+import React, { FC, RefObject } from "react";
 
 import ReaffirmButton from "@/components/post_card/reaffirm_button";
 import { ChoiceItem } from "@/types/choices";
@@ -18,6 +18,7 @@ type Props = {
   optionLabelClassName?: string;
   onReaffirm?: () => void;
   canPredict?: boolean;
+  ref?: RefObject<HTMLDivElement | null>;
 };
 
 const MultipleChoiceTileLegend: FC<Props> = ({
@@ -29,6 +30,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   optionLabelClassName,
   onReaffirm,
   canPredict = false,
+  ref,
 }) => {
   const t = useTranslations();
 
@@ -36,7 +38,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   const otherItemsCount = choices.length - visibleChoices.length;
 
   return (
-    <div className="embed-gap flex flex-col gap-2">
+    <div className="embed-gap flex flex-col gap-2" ref={ref}>
       {visibleChoices.map(
         ({
           choice,

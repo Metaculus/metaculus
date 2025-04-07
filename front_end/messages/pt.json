@@ -1174,5 +1174,6 @@
   "forecastCopyToToastMessage": "Distribuição copiada de ''{from_name}'' para ''{to_name}''",
   "result": "resultado",
   "communityDisclaimer": "Contribuído pela comunidade <community></community>. <learnMore>Saiba mais</learnMore>",
-  "communityDisclaimerSiteMain": "Esta pergunta também faz parte do Metaculus principal."
+  "communityDisclaimerSiteMain": "Esta pergunta também faz parte do Metaculus principal.",
+  "conditionalBranchResolutionAnnulled": "Este ramo foi anulado porque a <link>pergunta pai</link> foi resolvida <resolution></resolution>."
 }

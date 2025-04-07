@@ -10,6 +10,7 @@ import React, {
   useState,
 } from "react";
 
+import ForecastMakerConditionalResolutionMessage from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_resolution_message";
 import {
   createForecasts,
   withdrawForecasts,
@@ -798,6 +799,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               submitControls={SubmitControls}
               disabled={!canPredict}
               predictionMessage={predictionMessage}
+            />
+            <ForecastMakerConditionalResolutionMessage
+              question={option.question}
+              condition={condition}
             />
           </div>
         );
