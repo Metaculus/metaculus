@@ -2,6 +2,7 @@ import base64
 import json
 import logging
 import re
+import time
 from collections.abc import Generator
 from datetime import datetime
 
@@ -216,7 +217,6 @@ def submit_questions(
         start, end = int(start_str), int(end_str)
         if start > end:
             raise ValueError()
-        # [int(l) for l in rows_range.split(":")]
     except Exception:
         log_error(
             f"Invalid value for rows range: {rows_range}. Should be in the format start:end"
@@ -230,9 +230,7 @@ def submit_questions(
 
     def get_raw_val(row, col_name):
         col_idx = top_columns.index(col_name)
-        # row = worksheet.get(f"A{row_idx}:T{row_idx}", maintain_size=True)[0]
-        val = row[col_idx]
-        return val
+        return row[col_idx]
 
     def get_values_dict(row):
         values_dict = {}
@@ -240,6 +238,10 @@ def submit_questions(
             idx = top_columns.index(field_name)
             values_dict[field_name] = row[idx]
         return values_dict
+
+    start_time = time.time()
+    questions_to_create: list[Question] = []
+    posts_to_create: list[Post] = []
 
     with transaction.atomic():
         for row, row_idx in rows_iterator(worksheet, rows_range):
@@ -255,7 +257,6 @@ def submit_questions(
 
                 if question_type == "numeric":
                     question_fields += numeric_q_fields
-                    # Ensure units are present for numeric questions
 
                 if question_type == "multiple_choice":
                     question_fields += multiple_choice_q_fields
@@ -285,10 +286,10 @@ def submit_questions(
                 break
 
             question = Question(**question_data)
-
             question.cp_reveal_time = question.scheduled_close_time
             question.include_bots_in_aggregates = True
-            question.save()
+            questions_to_create.append(question)
+
             post = Post(
                 title=question.title,
                 author=author,
@@ -301,13 +302,25 @@ def submit_questions(
                 scheduled_close_time=question.scheduled_close_time,
                 scheduled_resolve_time=question.scheduled_resolve_time,
             )
-            post.save()
-            run_post_indexing.send(post.id)
-            trigger_update_post_translations(post)
+            posts_to_create.append(post)
             log_info(f"   - added question [{question.title}] to {tournament.name}")
-        if rollback:
+
+        if not rollback:
+            Question.objects.bulk_create(questions_to_create)
+            # Update posts with their question references
+            for post, question in zip(posts_to_create, questions_to_create):
+                post.question = question
+            Post.objects.bulk_create(posts_to_create)
+        else:
             transaction.set_rollback(True)
             log_info("****UNDO all actions, nothing was saved to the DB****")
+
+    if not rollback and posts_to_create:
+        run_post_indexing.send(posts_to_create[-1].id)
+        trigger_update_post_translations(posts_to_create[-1])
+    final_end_time = time.time()
+    log_info(f"Total time taken: {final_end_time - start_time:.2f} seconds")
+
     return messages
 
 
