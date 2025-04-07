@@ -26,8 +26,6 @@ scopes = [
     "https://www.googleapis.com/auth/drive",
 ]
 
-MAX_COL = "T"
-
 
 def convert_to_timestamp(date, hour, minute):
     est_tz = pytz.timezone("US/Eastern")
@@ -265,6 +263,7 @@ def submit_questions(
                     val = get_raw_val(row, field_name)
 
                     if val == ".p":
+                        # .p is used to indicate that the field of the parent post should be used
                         if parent_post is None:
                             log_error(
                                 f"Error on row {row_idx}, col '{field_name}': question has no parent, but '.p' was used for field"
