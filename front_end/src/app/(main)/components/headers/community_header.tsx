@@ -14,7 +14,7 @@ import { Community } from "@/types/projects";
 
 import { useShowActiveCommunityContext } from "../../c/components/community_context";
 import CommunitiesDropdown from "../communities_dropdown";
-import MobileMenu from "../mobile_menu";
+import CommunityMobileMenu from "./components/community_mobile_menu";
 
 type Props = {
   community: Community | null;
@@ -80,7 +80,7 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
           <ThemeToggle />
         </li>
       </ul>
-      <MobileMenu
+      <CommunityMobileMenu
         community={community}
         onClick={alwaysShowName ? undefined : setLocalShowName}
       />
