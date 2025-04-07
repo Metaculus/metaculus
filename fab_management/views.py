@@ -10,6 +10,8 @@ from projects.models import Project
 
 from .utils import submit_questions
 
+CURRENT_AIB_TOURNAMENT_ID = 32721
+
 
 @staff_member_required
 def fab_management_view(request):
@@ -87,5 +89,5 @@ def fab_management_view(request):
 
         return render(request, "fab_management.html", context=saved_context)
 
-    page_context = {"tournament_id": 32721}
+    page_context = {"tournament_id": CURRENT_AIB_TOURNAMENT_ID}
     return render(request, "fab_management.html", context=page_context)

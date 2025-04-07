@@ -125,8 +125,6 @@ def get_open_upper_bound(row_values):
 
 def get_unit(row_values) -> str:
     value_str = row_values.get("unit", "")
-    if not value_str:
-        raise ValueError("Unit field is required for numeric questions")
     return value_str.strip()
 
 
@@ -257,7 +255,7 @@ def submit_questions(
 
                 if question_type == "numeric":
                     question_fields += numeric_q_fields
-                    # Ensure unis are present for numeric questions
+                    # Ensure units are present for numeric questions
 
                 if question_type == "multiple_choice":
                     question_fields += multiple_choice_q_fields
