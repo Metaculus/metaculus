@@ -241,8 +241,7 @@ def submit_questions(
         return values_dict
 
     start_time = time.time()
-    questions_to_create: list[Question] = []
-    posts_to_create: list[Post] = []
+    created_posts: list[Post] = []
 
     with transaction.atomic():
         for row, row_idx in rows_iterator(worksheet, rows_range):
@@ -290,11 +289,8 @@ def submit_questions(
             question = Question(**question_data)
             question.cp_reveal_time = question.scheduled_close_time
             question.include_bots_in_aggregates = True
-            questions_to_create.append(question)
+            question.save()
 
-        created_questions = Question.objects.bulk_create(questions_to_create)
-
-        for question in created_questions:
             post = Post(
                 title=question.title,
                 author=author,
@@ -307,12 +303,11 @@ def submit_questions(
                 scheduled_close_time=question.scheduled_close_time,
                 scheduled_resolve_time=question.scheduled_resolve_time,
             )
-            posts_to_create.append(post)
+            post.save()
+            created_posts.append(post)
             log_info(
                 f"   - added Question/Post [{question.title}] to {tournament.name}"
             )
-
-        Post.objects.bulk_create(posts_to_create)
 
         if rollback:
             transaction.set_rollback(True)
@@ -323,7 +318,7 @@ def submit_questions(
     )
 
     if not rollback:
-        for post in posts_to_create:
+        for post in created_posts:
             run_post_indexing.send(post.id)
             trigger_update_post_translations(post)
     final_end_time = time.time()
