@@ -20,7 +20,7 @@ type Props = {
   wrapperClassName?: string;
   variant?: SectionVariant;
   id?: string;
-  detailText?: string | null;
+  detailElement?: React.ReactNode | null;
 };
 
 const SectionToggle: FC<PropsWithChildren<Props>> = ({
@@ -31,7 +31,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
   className,
   wrapperClassName,
   children,
-  detailText,
+  detailElement,
 }) => {
   return (
     <Disclosure
@@ -94,11 +94,8 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
                 )}
               />
               <span>{title}</span>
-              {detailText && (
-                <span className="ml-auto font-medium text-gray-800 dark:text-gray-800-dark">
-                  {detailText}
-                </span>
-              )}
+
+              {detailElement}
             </div>
           </DisclosureButton>
           <DisclosurePanel
