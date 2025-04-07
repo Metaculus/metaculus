@@ -26,6 +26,8 @@ scopes = [
     "https://www.googleapis.com/auth/drive",
 ]
 
+MAX_COLUMN = "U"
+HEADER_ROW = 2
 
 def convert_to_timestamp(date, hour, minute):
     est_tz = pytz.timezone("US/Eastern")
@@ -224,7 +226,7 @@ def submit_questions(
     log_info(
         f"Importing these questions to tournament [{tournament.id}/{tournament.name}], from sheet [{worksheet.title}]-> {rows_range}: "
     )
-    top_columns = worksheet.get("A2:T2")[0]
+    top_columns = worksheet.get(f"A{HEADER_ROW}:{MAX_COLUMN}{HEADER_ROW}")[0]
 
     def get_raw_val(row, col_name):
         col_idx = top_columns.index(col_name)
@@ -289,6 +291,9 @@ def submit_questions(
             question.include_bots_in_aggregates = True
             questions_to_create.append(question)
 
+        Question.objects.bulk_create(questions_to_create)
+
+        for question in questions_to_create:
             post = Post(
                 title=question.title,
                 author=author,
@@ -302,23 +307,22 @@ def submit_questions(
                 scheduled_resolve_time=question.scheduled_resolve_time,
             )
             posts_to_create.append(post)
-            log_info(f"   - added question [{question.title}] to {tournament.name}")
+            log_info(f"   - added Question/Post [{question.title}] to {tournament.name}")
 
-        if not rollback:
-            Question.objects.bulk_create(questions_to_create)
-            # Update posts with their question references
-            for post, question in zip(posts_to_create, questions_to_create):
-                post.question = question
-            Post.objects.bulk_create(posts_to_create)
-        else:
+        Post.objects.bulk_create(posts_to_create)
+
+        if rollback:
             transaction.set_rollback(True)
             log_info("****UNDO all actions, nothing was saved to the DB****")
+    transaction_end_time = time.time()
+    log_info(f"Total transaction time taken: {transaction_end_time - start_time:.2f} seconds")
 
-    if not rollback and posts_to_create:
-        run_post_indexing.send(posts_to_create[-1].id)
-        trigger_update_post_translations(posts_to_create[-1])
+    if not rollback:
+        for post in posts_to_create:
+            run_post_indexing.send(post.id)
+            trigger_update_post_translations(post)
     final_end_time = time.time()
-    log_info(f"Total time taken: {final_end_time - start_time:.2f} seconds")
+    log_info(f"Total final time taken: {final_end_time - start_time:.2f} seconds")
 
     return messages
 
@@ -351,7 +355,7 @@ def rows_iterator(worksheet, rows_range: str) -> Generator[tuple[str, int], None
     row = start
     while row < end:
         batch = min(batch, end - row)
-        rows = worksheet.get(f"A{row}:U{row+batch-1}", maintain_size=True)
+        rows = worksheet.get(f"A{row}:{MAX_COLUMN}{row+batch-1}", maintain_size=True)
         # range will not yield the last element in the range, while worksheet.get will, hence the
         # mismatch between the two here
         yield from zip(rows, range(row, row + batch))
