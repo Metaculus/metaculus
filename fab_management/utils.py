@@ -292,9 +292,9 @@ def submit_questions(
             question.include_bots_in_aggregates = True
             questions_to_create.append(question)
 
-        Question.objects.bulk_create(questions_to_create)
+        created_questions = Question.objects.bulk_create(questions_to_create)
 
-        for question in questions_to_create:
+        for question in created_questions:
             post = Post(
                 title=question.title,
                 author=author,
