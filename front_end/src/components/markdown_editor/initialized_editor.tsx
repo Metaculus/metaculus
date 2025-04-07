@@ -28,6 +28,7 @@ import {
   toolbarPlugin,
   UndoRedo,
 } from "@mdxeditor/editor";
+import { BeautifulMentionsTheme } from "lexical-beautiful-mentions";
 import React, {
   FC,
   ForwardedRef,
@@ -60,6 +61,11 @@ import { mentionsPlugin } from "./plugins/mentions";
 import { SourceModeTitle } from "./source_mode_title";
 
 type EditorMode = "write" | "read";
+
+const beautifulMentionsTheme: BeautifulMentionsTheme = {
+  "@": "block rounded",
+  "@Focused": "ring-2 ring-offset-1 ring-blue-500 dark:ring-blue-500-dark",
+};
 
 const jsxComponentDescriptors: JsxComponentDescriptor[] = [
   embeddedQuestionDescriptor,
@@ -265,6 +271,9 @@ const InitializedMarkdownEditor: FC<
         ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
         ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
       ]}
+      lexicalTheme={{
+        beautifulMentions: beautifulMentionsTheme,
+      }}
     />
   );
 };
