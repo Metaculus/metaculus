@@ -181,7 +181,9 @@ class CPChangeData:
         return value
 
     def format_user_forecast(self):
-        return self.format_value(self.user_forecast or self.user_median)
+        return self.format_value(
+            self.user_forecast if self.user_forecast is not None else self.user_median
+        )
 
     def format_cp_change_value(self):
         return self.format_value(self.cp_change_value, change=True)
