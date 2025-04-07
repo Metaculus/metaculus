@@ -309,6 +309,7 @@ export function displayValue({
   truncation,
   dateFormatString,
   unit,
+  adjustLabels = false,
 }: {
   value: number | null;
   questionType: QuestionType;
@@ -318,6 +319,7 @@ export function displayValue({
   truncation?: number;
   dateFormatString?: string;
   unit?: string;
+  adjustLabels?: boolean;
 }): string {
   if (value === null) {
     return "...";
@@ -328,6 +330,7 @@ export function displayValue({
       scaling,
       actual_resolve_time,
       valueTimestamp: value,
+      includeRefTime: adjustLabels,
     });
     return format(fromUnixTime(value), dateFormatString ?? dateFormat);
   } else if (questionType === QuestionType.Numeric) {
@@ -354,6 +357,7 @@ export function getDisplayValue({
   range,
   dateFormatString,
   unit,
+  adjustLabels = false,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -364,6 +368,7 @@ export function getDisplayValue({
   range?: number[];
   dateFormatString?: string;
   unit?: string;
+  adjustLabels?: boolean;
 }): string {
   if (value === undefined || value === null) {
     return "...";
@@ -378,6 +383,7 @@ export function getDisplayValue({
     actual_resolve_time,
     dateFormatString,
     unit,
+    adjustLabels,
   });
   if (range) {
     const lowerX = range[0];
@@ -395,6 +401,7 @@ export function getDisplayValue({
       scaling,
       truncation,
       dateFormatString,
+      adjustLabels,
     });
     const scaledUpper = scaleInternalLocation(upperX, scaling);
     const upperDisplay = displayValue({
@@ -405,6 +412,7 @@ export function getDisplayValue({
       scaling,
       truncation,
       dateFormatString,
+      adjustLabels,
     });
     return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }
@@ -466,10 +474,12 @@ export function getQuestionDateFormatString({
   scaling,
   actual_resolve_time,
   valueTimestamp,
+  includeRefTime = false,
 }: {
   scaling: Scaling;
   actual_resolve_time: string | null;
   valueTimestamp: number;
+  includeRefTime?: boolean;
 }) {
   const { range_min, range_max } = scaling;
   let dateFormat = "dd MMM yyyy HH:mm";
@@ -485,7 +495,10 @@ export function getQuestionDateFormatString({
           : Date.now()
       ) / 1000;
     const refDiffInSeconds = Math.abs(ref - valueTimestamp);
-    const diffInSeconds = Math.min(scaleDiffInSeconds, refDiffInSeconds);
+    const diffInSeconds = Math.min(
+      scaleDiffInSeconds,
+      includeRefTime ? scaleDiffInSeconds : refDiffInSeconds
+    );
     if (diffInSeconds < oneWeek) {
       dateFormat = "dd MMM yyyy HH:mm";
     } else if (diffInSeconds < 5 * oneYear) {
@@ -675,6 +688,8 @@ type GenerateScaleParams = {
   unit?: string;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
+  shortLabels?: boolean;
+  adjustLabels?: boolean;
 };
 
 /**
@@ -704,6 +719,8 @@ export function generateScale({
   zoomedDomain = [0, 1],
   scaling = null,
   unit,
+  shortLabels = false,
+  adjustLabels = false,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -772,7 +789,9 @@ export function generateScale({
   }
 
   const minorTickInterval =
-    Math.round(zoomedRange / (tickCount - 1) / minorRes) * minorRes;
+    Math.max(Math.round(zoomedRange / (tickCount - 1) / minorRes), 1) *
+    minorRes;
+
   const tickStart = Math.round(zoomedDomainMin / minorRes) * minorRes;
   const tickEnd =
     Math.round((zoomedDomainMax + minorTickInterval / 100) / minorRes) *
@@ -781,10 +800,11 @@ export function generateScale({
   const minorTicks: number[] = range(tickStart, tickEnd, minorTickInterval).map(
     (x) => Math.round(x * 1000) / 1000
   );
-
   const majorTickStart = Math.round(zoomedDomainMin / majorRes) * majorRes;
   const majorTickInterval =
-    Math.round(zoomedRange / (maxLabelCount - 1) / majorRes) * majorRes;
+    Math.max(Math.round(zoomedRange / (maxLabelCount - 1) / majorRes), 1) *
+    majorRes;
+
   const majorTicks: number[] = range(
     majorTickStart,
     tickEnd,
@@ -860,6 +880,8 @@ export function generateScale({
           scaling: rangeScaling,
           precision: 3,
           actual_resolve_time: null,
+          dateFormatString: shortLabels ? "yyyy" : undefined,
+          adjustLabels,
         }),
         idx
       );
@@ -1298,6 +1320,11 @@ export function getGroupQuestionsTimestamps(
         ...question.aggregations.recency_weighted.history.map(
           (x) => x.end_time ?? x.start_time
         ),
+        // add user timestamps to display new forecast tooltip without page refresh
+        ...(question.my_forecasts?.history?.map((x) => x.start_time) ?? []),
+        ...(question.my_forecasts?.history?.map(
+          (x) => x.end_time ?? x.start_time
+        ) ?? []),
       ],
       []
     )

@@ -1176,5 +1176,7 @@
   "forecastCopyToAllToastMessage": "分布已复制到所有其他问题",
   "forecastCopyFromToastMessage": "分布已从“{name}”复制",
   "forecastCopyToToastMessage": "分布已从“{from_name}”复制到“{to_name}”",
-  "result": "结果"
+  "result": "结果",
+  "communityDisclaimer": "由<community></community>社区贡献。<learnMore>了解更多</learnMore>",
+  "communityDisclaimerSiteMain": "这个问题也是 Metaculus 主站的一部分。"
 }

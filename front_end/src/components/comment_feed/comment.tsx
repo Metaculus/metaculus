@@ -38,7 +38,7 @@ import { CommentType } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/cn";
-import { parseUserMentions } from "@/utils/comments";
+import { getCommentIdToFocusOn, parseUserMentions } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 import { canPredictQuestion, getMarkdownSummary } from "@/utils/questions";
 import { formatUsername } from "@/utils/users";
@@ -68,9 +68,26 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
+
   const [childrenExpanded, setChildrenExpanded] = useState(
     expandedChildren && treeDepth < 5
   );
+
+  useEffect(() => {
+    const commentIdToFocusOn = getCommentIdToFocusOn();
+
+    if (commentIdToFocusOn) {
+      const shouldExpand = hasCommentInTree(
+        sortedCommentChildren,
+        Number(commentIdToFocusOn)
+      );
+
+      if (shouldExpand) {
+        setChildrenExpanded(true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function getTreeSize(commentChildren: CommentType[]): number {
     let totalChildren = 0;
@@ -727,6 +744,15 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
   comment.children.map((nestedComment) => {
     addNewChildrenComment(nestedComment, newComment);
   });
+}
+function hasCommentInTree(comments: CommentType[], targetId: number): boolean {
+  for (const comment of comments) {
+    if (comment.id === targetId) return true;
+    if (comment.children && comment.children.length > 0) {
+      if (hasCommentInTree(comment.children, targetId)) return true;
+    }
+  }
+  return false;
 }
 
 export default Comment;

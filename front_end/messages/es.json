@@ -1174,5 +1174,7 @@
   "forecastCopyToAllToastMessage": "Distribución copiada a todas las otras preguntas",
   "forecastCopyFromToastMessage": "Distribución copiada de ''{name}''",
   "forecastCopyToToastMessage": "Distribución copiada de ''{from_name}'' a ''{to_name}''",
-  "result": "resultado"
+  "result": "resultado",
+  "communityDisclaimer": "Contribuido por la comunidad de <community></community>. <learnMore>Más información</learnMore>",
+  "communityDisclaimerSiteMain": "Esta pregunta también forma parte de Metaculus principal."
 }

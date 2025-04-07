@@ -22,9 +22,10 @@ import QuestionChartTile from "./question_chart_tile";
 
 type Props = {
   post: PostWithForecasts;
+  forCommunityFeed?: boolean;
 };
 
-const PostCard: FC<Props> = ({ post }) => {
+const PostCard: FC<Props> = ({ post, forCommunityFeed }) => {
   const { user } = useAuth();
   const hideCP =
     user?.hide_community_prediction &&
@@ -45,6 +46,7 @@ const PostCard: FC<Props> = ({ post }) => {
           hideTitle={!!internalPost.conditional}
           borderVariant={internalPost.notebook ? "highlighted" : "regular"}
           borderColor={internalPost.notebook ? "purple" : "blue"}
+          forCommunityFeed={forCommunityFeed}
         >
           <HideCPProvider post={internalPost}>
             {isQuestionPost(internalPost) && (
