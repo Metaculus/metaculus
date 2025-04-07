@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest  # noqa
 from freezegun import freeze_time
 from django.utils import timezone
+from django.utils.timezone import make_aware
 
 
 from posts.models import Post
@@ -387,3 +388,44 @@ def test_annotate_weekly_movement(user1, conditional_1):
         .weekly_movement
         == 2
     )
+
+
+@pytest.mark.parametrize(
+    "condition_sct,child_sct,expected_sct",
+    [
+        (
+            make_aware(datetime(2024, 1, 1)),
+            make_aware(datetime(2025, 1, 1)),
+            make_aware(datetime(2024, 1, 1)),
+        ),
+        (
+            make_aware(datetime(2025, 1, 1)),
+            make_aware(datetime(2024, 1, 1)),
+            make_aware(datetime(2024, 1, 1)),
+        ),
+    ],
+)
+def test_set_scheduled_close_time__conditional(
+    user1, condition_sct, child_sct, expected_sct
+):
+    post = factory_post(
+        author=user1,
+        conditional=create_conditional(
+            condition=create_question(
+                question_type=Question.QuestionType.BINARY,
+                scheduled_close_time=condition_sct,
+            ),
+            condition_child=create_question(
+                question_type=Question.QuestionType.BINARY,
+                scheduled_close_time=child_sct,
+            ),
+            question_yes=create_question(
+                question_type=Question.QuestionType.NUMERIC, title="If Yes"
+            ),
+            question_no=create_question(
+                question_type=Question.QuestionType.NUMERIC, title="If No"
+            ),
+        ),
+    )
+    post.set_scheduled_close_time()
+    assert post.scheduled_close_time == expected_sct
