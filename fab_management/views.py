@@ -8,11 +8,9 @@ from django.utils import timezone
 from comments.models import Comment
 from projects.models import Project
 
-# from metac_account.models.user import User
-from .utils import (
-    get_fab_tournament,
-    submit_questions,
-)
+from .utils import submit_questions
+
+CURRENT_AIB_TOURNAMENT_ID = 32721
 
 
 @staff_member_required
@@ -25,6 +23,7 @@ def fab_management_view(request):
 
             saved_context = {"tournament_id": tournament_id}
             match action_name:
+
                 case "submit_dry":
                     doc_id = request.POST["doc_id"]
                     sheet_name = request.POST["sheet_name"]
@@ -90,6 +89,5 @@ def fab_management_view(request):
 
         return render(request, "fab_management.html", context=saved_context)
 
-    fab_tournament = get_fab_tournament()
-    page_context = {"tournament_id": fab_tournament.id if fab_tournament else None}
+    page_context = {"tournament_id": CURRENT_AIB_TOURNAMENT_ID}
     return render(request, "fab_management.html", context=page_context)
