@@ -527,8 +527,11 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
                 for question in self.group_of_questions.questions.all()
             )
         elif self.conditional:
-            self.scheduled_close_time = (
-                self.conditional.condition_child.scheduled_close_time
+            self.scheduled_close_time = min(
+                [
+                    self.conditional.condition.scheduled_close_time,
+                    self.conditional.condition_child.scheduled_close_time,
+                ]
             )
         else:
             self.scheduled_close_time = None
