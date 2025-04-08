@@ -12,12 +12,20 @@ def check_and_handle_comment_spam(author: User, comment: Comment) -> bool:
         return False
 
     recipients = User.objects.filter(is_staff=True)
+    content_admin_url = build_frontend_url(
+        f"/admin/comments/comment/{comment.id}/change/"
+    )
+
+    content_frontend_url = build_frontend_url(
+        f"/questions/{comment.on_post.id}/#comment-{comment.id}"
+    )
 
     return check_and_handle_content_spam(
         author=author,
         content_text=comment.text,
         content_id=comment.id,
         content_type=UserSpamActivity.SpamContentType.COMMENT,
-        content_url=build_frontend_url(f"/admin/comments/comment/{comment.id}/change/"),
+        content_admin_url=content_admin_url,
+        content_frontend_url=content_frontend_url,
         admin_emails=[x.email for x in recipients],
     )
