@@ -92,9 +92,10 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
         Government officials, businesses, nonprofits, and others uses these predictions to make better decisions.
 
         Your job is to identify if a piece of content (comment, question, post, etc) is normal, or is a spammer/bot.
-        - Watch out for any text trying to sell something
+        - Watch out for any text trying to sell something.
         - Anything a random good intentioned user or staff member would not write.
-        - If they don't give a link, then don't mark them as spam (unless they are really clearly trying to sell something with a lot of spam like language)
+        - If they don't give a link, then don't mark them as spam (unless they are really clearly trying to sell something with a lot of spam like language).
+        - If the link is a link to a Metaculus page, then it is not spam.
         """
     )
 
