@@ -17,15 +17,18 @@ const NavLink: FC<LinkProps> = ({
   ...props
 }) => {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive = pathname.replace(/\/+$/, "") === href.replace(/\/+$/, "");
 
   return (
     <Link
       {...props}
       href={href}
-      className={cn(props.className, { [activeClassName]: isActive })}
+      className={cn("group relative", props.className, {
+        [activeClassName]: isActive,
+      })}
     >
-      {children}
+      <span>{children}</span>
+      <span className="absolute bottom-0 left-0 h-1 w-full bg-blue-600 opacity-0 transition-opacity group-[.active]:opacity-100" />
     </Link>
   );
 };

@@ -10,6 +10,7 @@ import NavUserButton from "@/components/auth";
 import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
+import { useAuth } from "@/contexts/auth_context";
 import { Community } from "@/types/projects";
 
 import { useShowActiveCommunityContext } from "../../c/components/community_context";
@@ -23,6 +24,7 @@ type Props = {
 
 const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
   const t = useTranslations();
+  const { user } = useAuth();
   const { showActiveCommunity } = useShowActiveCommunityContext();
   const [localShowName, setLocalShowName] = useState(alwaysShowName);
 
@@ -55,21 +57,23 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
           <NavLink
             href={`/c/${community?.slug}/`}
             className="mr-2 flex h-full items-center p-3 capitalize no-underline hover:bg-blue-200-dark"
-            activeClassName="bg-blue-300-dark"
+            activeClassName="active"
           >
             {t("questions")}
           </NavLink>
         </li>
-        <li>
-          <NavLink
-            href={`/questions/create/?community_id=${community?.id}`}
-            className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-1 capitalize no-underline hover:bg-blue-200-dark"
-            activeClassName="bg-blue-300-dark"
-          >
-            <FontAwesomeIcon width={14} className="mr-1" icon={faPlus} />
-            {t("create")}
-          </NavLink>
-        </li>
+        {!!user && (
+          <li>
+            <NavLink
+              href={`/questions/create/?community_id=${community?.id}`}
+              className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-1 capitalize no-underline hover:bg-blue-200-dark"
+              activeClassName="active"
+            >
+              <FontAwesomeIcon width={14} className="mr-1" icon={faPlus} />
+              {t("create")}
+            </NavLink>
+          </li>
+        )}
         <li className="z-10 flex h-full items-center justify-center">
           <NavUserButton />
         </li>

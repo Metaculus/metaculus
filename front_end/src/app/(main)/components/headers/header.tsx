@@ -4,6 +4,7 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
@@ -12,6 +13,7 @@ import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
+import cn from "@/utils/cn";
 
 import ContentTranslatedBanner from "../content_translated_banner";
 import GlobalSearch from "../global_search";
@@ -23,7 +25,7 @@ import useNavbarLinks from "./hooks/useNavbarLinks";
 const Header: FC = () => {
   const t = useTranslations();
   const { user } = useAuth();
-
+  const pathname = usePathname();
   const { navbarLinks, menuLinks, LINKS } = useNavbarLinks();
   const { lgLinks, smLinks, xsLinks, xxsLinks } = navbarLinks;
 
@@ -53,9 +55,26 @@ const Header: FC = () => {
         <ul className="relative hidden list-none items-center justify-end text-sm font-medium md:flex">
           <li className="h-full">
             <Menu>
-              <MenuButton className="flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-200-dark">
+              <MenuButton
+                className={cn(
+                  "group relative flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-700",
+                  {
+                    active: menuLinks.some(
+                      (link) =>
+                        pathname.replace(/\/+$/, "") ===
+                        link.href.replace(/\/+$/, "")
+                    ),
+                  }
+                )}
+              >
                 {t("more")}
                 <FontAwesomeIcon size="xs" icon={faChevronDown} />
+                <span
+                  className={cn(
+                    "absolute bottom-0 left-0 h-1 w-full bg-blue-600 transition-opacity",
+                    "opacity-0 group-[.active]:opacity-100"
+                  )}
+                />
               </MenuButton>
               <MenuItems
                 anchor="bottom"
@@ -75,8 +94,8 @@ const Header: FC = () => {
             <li className="hidden h-full lg:block">
               <NavLink
                 href={LINKS.createQuestion.href}
-                className="mr-2 flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
-                activeClassName="bg-blue-300-dark"
+                className="group relative flex h-full items-center p-3 no-underline hover:bg-blue-700"
+                activeClassName="active"
               >
                 {LINKS.createQuestion.label}
               </NavLink>
@@ -85,13 +104,20 @@ const Header: FC = () => {
           <li className="z-10 flex h-full items-center justify-center">
             <NavUserButton />
           </li>
-          <li className="z-10 flex h-full items-center p-2 hover:bg-blue-200-dark">
+          <li className="z-10 flex h-full items-center p-2 hover:bg-blue-700">
             <LanguageMenu />
           </li>
           <li className="z-10 flex items-center p-4">
             <ThemeToggle />
           </li>
         </ul>
+
+        {!user && (
+          <div className="text-sm md:hidden">
+            <NavUserButton />
+          </div>
+        )}
+
         <MobileMenu />
       </header>
       <ContentTranslatedBanner />
@@ -106,7 +132,7 @@ const LinkMenuItem: FC<{ href: string; label: ReactNode }> = ({
   return (
     <MenuItem
       as={Link}
-      className="flex items-end justify-end whitespace-nowrap px-6 py-1.5 text-right no-underline hover:bg-blue-200-dark"
+      className="flex items-end justify-end whitespace-nowrap px-6 py-1.5 text-right no-underline hover:bg-blue-700"
       href={href}
     >
       {label}

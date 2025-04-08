@@ -27,12 +27,20 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
 
   if (!user) {
     return (
-      <button
-        className="w-full rounded-full bg-blue-200 px-2 text-center capitalize text-blue-900 hover:bg-blue-100"
-        onClick={() => setCurrentModal({ type: "signin" })}
-      >
-        {t("logIn")}
-      </button>
+      <div className="ml-auto mr-2 flex h-full items-center gap-2 p-0 sm:ml-9">
+        <button
+          className="hidden h-full w-full whitespace-nowrap px-2 text-center capitalize hover:bg-blue-700 min-[448px]:block"
+          onClick={() => setCurrentModal({ type: "signin" })}
+        >
+          {t("logIn")}
+        </button>
+        <button
+          className="h-6 w-full whitespace-nowrap rounded-full bg-blue-200 px-2 text-center capitalize text-blue-900 hover:bg-blue-100"
+          onClick={() => setCurrentModal({ type: "signup" })}
+        >
+          {t("createAnAccount")}
+        </button>
+      </div>
     );
   }
 
@@ -40,7 +48,7 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
     <Menu>
       <MenuButton
         className={cn(
-          "flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-200-dark",
+          "ml-6 flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-200-dark",
           btnClassName
         )}
       >
