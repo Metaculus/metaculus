@@ -39,4 +39,5 @@ def check_and_handle_post_spam(author: User, post: Post) -> bool:
         content_admin_url=content_admin_url,
         content_frontend_url=content_frontend_url,
         admin_emails=[x.email for x in recipients],
+        email_content_quote=post.title,
     )

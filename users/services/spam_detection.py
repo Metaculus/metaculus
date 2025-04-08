@@ -36,6 +36,7 @@ def check_and_handle_content_spam(
     content_admin_url: str,
     content_frontend_url: str,
     admin_emails: list[str],
+    email_content_quote: str | None = None,
 ) -> bool:
     if (
         not settings.CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS
@@ -83,7 +84,7 @@ def check_and_handle_content_spam(
                 author=author,
                 content_type=content_type,
                 content_url=content_admin_url,
-                content_text=content_text,
+                content_text=email_content_quote or content_text,
             )
         return True
 
@@ -93,7 +94,7 @@ def check_and_handle_content_spam(
         author=author,
         content_type=content_type,
         content_url=content_frontend_url,
-        content_text=content_text,
+        content_text=email_content_quote or content_text,
     )
 
     return False
