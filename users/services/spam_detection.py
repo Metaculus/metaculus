@@ -33,7 +33,8 @@ def check_and_handle_content_spam(
     content_text: str,
     content_id: int,
     content_type: str,
-    content_url: str,
+    content_admin_url: str,
+    content_frontend_url: str,
     admin_emails: list[str],
 ) -> bool:
     if (
@@ -81,7 +82,7 @@ def check_and_handle_content_spam(
                 admin_emails,
                 author=author,
                 content_type=content_type,
-                content_url=content_url,
+                content_url=content_admin_url,
                 content_text=content_text,
             )
         return True
@@ -91,7 +92,7 @@ def check_and_handle_content_spam(
         admin_emails,
         author=author,
         content_type=content_type,
-        content_url=content_url,
+        content_url=content_frontend_url,
         content_text=content_text,
     )
 
