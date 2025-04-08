@@ -22,7 +22,17 @@ export default function QuestionChecklist() {
           that these guidelines will promote, enhance, and safeguard a vibrant
           community forecasting space for many years to come.
         </p>
-        <p>See below for the sections described in this guide. A more in-depth question writing guide is also available <a href="https://www.notion.so/metaculus/Detailed-Question-Writing-Guide-9e7374d638e749a2ae40b093ce619a9a" target="_blank">here</a>.</p>
+        <p>
+          See below for the sections described in this guide. A more in-depth
+          question writing guide is also available{" "}
+          <a
+            href="https://www.notion.so/metaculus/Detailed-Question-Writing-Guide-9e7374d638e749a2ae40b093ce619a9a"
+            target="_blank"
+          >
+            here
+          </a>
+          .
+        </p>
         <ul className="ml-6 list-disc space-y-2">
           <li>
             <a href="#what-types">
