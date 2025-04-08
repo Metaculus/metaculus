@@ -40,9 +40,7 @@ export type CommunityUpdateParams = {
 
 class ProjectsApi {
   static async getTopics(): Promise<Topic[]> {
-    return await get<Topic[]>("/projects/topics/", {
-      next: { revalidate: 3600 },
-    });
+    return await get<Topic[]>("/projects/topics/");
   }
 
   static async getCategories(): Promise<Category[]> {
