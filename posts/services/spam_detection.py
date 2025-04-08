@@ -35,7 +35,11 @@ def check_and_handle_post_spam(author: User, post: Post) -> bool:
         author=author,
         content_text=content,
         content_id=post.id,
-        content_type=UserSpamActivity.SpamContentType.POST,
+        content_type=(
+            UserSpamActivity.SpamContentType.NOTEBOOK
+            if post.notebook
+            else UserSpamActivity.SpamContentType.QUESTION
+        ),
         content_admin_url=content_admin_url,
         content_frontend_url=content_frontend_url,
         admin_emails=[x.email for x in recipients],
