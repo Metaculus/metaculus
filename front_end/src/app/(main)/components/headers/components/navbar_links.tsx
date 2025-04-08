@@ -21,7 +21,6 @@ const NavbarLinks: FC<Props> = ({ links, className }) => {
           <NavLink
             href={link.href}
             className="flex h-full items-center p-3 no-underline hover:bg-blue-700"
-            activeClassName="active"
           >
             {link.label}
           </NavLink>

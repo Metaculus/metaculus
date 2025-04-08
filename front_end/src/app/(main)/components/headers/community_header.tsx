@@ -29,7 +29,7 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
   const [localShowName, setLocalShowName] = useState(alwaysShowName);
 
   return (
-    <header className="fixed left-0 top-0 z-100 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
+    <header className="fixed left-0 top-0 z-100 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between bg-blue-900 text-gray-0">
       <div className="flex items-center">
         <Link
           href="/questions"
@@ -57,7 +57,6 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
           <NavLink
             href={`/c/${community?.slug}/`}
             className="mr-2 flex h-full items-center p-3 capitalize no-underline hover:bg-blue-200-dark"
-            activeClassName="active"
           >
             {t("questions")}
           </NavLink>
@@ -67,7 +66,6 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
             <NavLink
               href={`/questions/create/?community_id=${community?.id}`}
               className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-1 capitalize no-underline hover:bg-blue-200-dark"
-              activeClassName="active"
             >
               <FontAwesomeIcon width={14} className="mr-1" icon={faPlus} />
               {t("create")}

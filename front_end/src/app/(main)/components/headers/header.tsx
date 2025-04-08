@@ -14,6 +14,7 @@ import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/cn";
+import { isPathEqual } from "@/utils/navigation";
 
 import ContentTranslatedBanner from "../content_translated_banner";
 import GlobalSearch from "../global_search";
@@ -31,7 +32,7 @@ const Header: FC = () => {
 
   return (
     <>
-      <header className="fixed left-0 top-0 z-100 flex h-header w-full flex-auto items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
+      <header className="fixed left-0 top-0 z-100 flex h-header w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0">
         <NavbarLogo />
 
         {/* Global Search */}
@@ -59,22 +60,15 @@ const Header: FC = () => {
                 className={cn(
                   "group relative flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-700",
                   {
-                    active: menuLinks.some(
-                      (link) =>
-                        pathname.replace(/\/+$/, "") ===
-                        link.href.replace(/\/+$/, "")
+                    active: menuLinks.some((link) =>
+                      isPathEqual(pathname, link.href ?? "")
                     ),
                   }
                 )}
               >
                 {t("more")}
                 <FontAwesomeIcon size="xs" icon={faChevronDown} />
-                <span
-                  className={cn(
-                    "absolute bottom-0 left-0 h-1 w-full bg-blue-600 transition-opacity",
-                    "opacity-0 group-[.active]:opacity-100"
-                  )}
-                />
+                <span className="absolute bottom-0 left-0 h-1 w-full bg-blue-600 opacity-0 transition-opacity group-[.active]:opacity-100" />
               </MenuButton>
               <MenuItems
                 anchor="bottom"
@@ -95,7 +89,6 @@ const Header: FC = () => {
               <NavLink
                 href={LINKS.createQuestion.href}
                 className="group relative flex h-full items-center p-3 no-underline hover:bg-blue-700"
-                activeClassName="active"
               >
                 {LINKS.createQuestion.label}
               </NavLink>

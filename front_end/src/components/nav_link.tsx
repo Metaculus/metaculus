@@ -4,20 +4,21 @@ import { usePathname } from "next/navigation";
 import { ComponentProps, FC } from "react";
 
 import cn from "@/utils/cn";
+import { isPathEqual } from "@/utils/navigation";
 
 type LinkProps = ComponentProps<typeof Link> & {
   href: string;
-  activeClassName: string;
+  activeClassName?: string;
 };
 
 const NavLink: FC<LinkProps> = ({
   children,
   href,
-  activeClassName,
+  activeClassName = "active",
   ...props
 }) => {
   const pathname = usePathname();
-  const isActive = pathname.replace(/\/+$/, "") === href.replace(/\/+$/, "");
+  const isActive = isPathEqual(pathname, href);
 
   return (
     <Link

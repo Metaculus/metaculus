@@ -4,20 +4,32 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { ReactNode, useMemo } from "react";
 
+import { LogOut } from "@/app/(main)/accounts/actions";
 import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useBreakpoint } from "@/hooks/tailwind";
+import cn from "@/utils/cn";
 
 type NavbarLinkDefinition = {
   label: ReactNode;
   href: string;
 };
 
+type MobileMenuItemDefinition = Omit<NavbarLinkDefinition, "href"> & {
+  href: string | null;
+  isTitle?: boolean;
+  className?: string;
+  onClick?: () => void;
+};
+
 const useNavbarLinks = () => {
   const t = useTranslations();
   const { user } = useAuth();
+  const { setCurrentModal } = useModal();
   const isLoggedIn = !isNil(user);
-  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
+  const { PUBLIC_MINIMAL_UI, PUBLIC_ALLOW_TUTORIAL, PUBLIC_ALLOW_SIGNUP } =
+    usePublicSettings();
 
   const LINKS = useMemo(
     () =>
@@ -152,7 +164,86 @@ const useNavbarLinks = () => {
     isMenuCollapsed,
   ]);
 
-  return { navbarLinks, menuLinks, LINKS };
+  const mobileMenuLinks = useMemo(() => {
+    const links: MobileMenuItemDefinition[] = [
+      {
+        ...LINKS.tournaments,
+        className: cn("hidden", {
+          "max-[374px]:flex": !isNil(user),
+          "max-[511px]:flex": isNil(user),
+        }),
+      },
+      LINKS.leaderboards,
+      LINKS.news,
+      { href: null, label: t("more"), isTitle: true },
+      LINKS.about,
+      LINKS.press,
+      LINKS.faq,
+      LINKS.trackRecord,
+      LINKS.journal,
+      LINKS.aggregationExplorer,
+    ];
+
+    if (isLoggedIn) {
+      const accountLinks = [
+        LINKS.createQuestion,
+        { href: null, label: t("account"), isTitle: true },
+        { href: `/accounts/profile/${user.id}`, label: t("profile") },
+        { href: "/accounts/settings/", label: t("settings") },
+        PUBLIC_ALLOW_TUTORIAL && {
+          href: "/accounts/tutorial/",
+          label: t("tutorial"),
+        },
+        !user.is_superuser &&
+          PUBLIC_ALLOW_SIGNUP && {
+            href: "/accounts/invite/",
+            label: t("signupInviteUsers"),
+          },
+        !user.is_superuser && {
+          href: "/admin/",
+          label: t("admin"),
+        },
+        { href: null, label: t("logout"), onClick: () => void LogOut() },
+      ].filter(Boolean) as MobileMenuItemDefinition[];
+
+      links.push(...accountLinks);
+    } else {
+      links.push(
+        {
+          href: null,
+          label: t("account"),
+          isTitle: true,
+          className: "hidden max-[447px]:flex",
+        },
+        {
+          href: null,
+          label: t("login"),
+          className: "hidden max-[447px]:flex",
+          onClick: () => setCurrentModal({ type: "signin" }),
+        }
+      );
+    }
+
+    return links;
+  }, [
+    LINKS.about,
+    LINKS.aggregationExplorer,
+    LINKS.createQuestion,
+    LINKS.faq,
+    LINKS.journal,
+    LINKS.leaderboards,
+    LINKS.news,
+    LINKS.press,
+    LINKS.trackRecord,
+    LINKS.tournaments,
+    PUBLIC_ALLOW_SIGNUP,
+    PUBLIC_ALLOW_TUTORIAL,
+    user,
+    isLoggedIn,
+    setCurrentModal,
+    t,
+  ]);
+  return { navbarLinks, menuLinks, LINKS, mobileMenuLinks };
 };
 
 export default useNavbarLinks;

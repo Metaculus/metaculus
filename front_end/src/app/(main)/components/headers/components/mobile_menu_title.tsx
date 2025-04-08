@@ -1,8 +1,19 @@
 import { FC, PropsWithChildren } from "react";
 
-const MobileMenuTitle: FC<PropsWithChildren> = ({ children }) => {
+import cn from "@/utils/cn";
+
+type Props = PropsWithChildren & {
+  className?: string;
+};
+
+const MobileMenuTitle: FC<Props> = ({ children, className }) => {
   return (
-    <div className="flex h-full items-center justify-center px-4 pb-1 pt-2 text-sm font-medium uppercase text-gray-200 opacity-50">
+    <div
+      className={cn(
+        "flex h-full items-center justify-center px-4 pb-1 pt-2 text-sm font-medium uppercase text-gray-200 opacity-50",
+        className
+      )}
+    >
       {children}
     </div>
   );
