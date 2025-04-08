@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useBreakpoint } from "@/hooks/tailwind";
+import { Community } from "@/types/projects";
 import cn from "@/utils/cn";
 
 type NavbarLinkDefinition = {
@@ -23,7 +24,9 @@ type MobileMenuItemDefinition = Omit<NavbarLinkDefinition, "href"> & {
   onClick?: () => void;
 };
 
-const useNavbarLinks = () => {
+const useNavbarLinks = ({
+  community,
+}: { community?: Community | null } = {}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -113,6 +116,36 @@ const useNavbarLinks = () => {
        * Breakpoint: \< 375
        */
       xxsLinks: [LINKS.questions],
+      /**
+       * Community links
+       */
+      communityLinks: [
+        {
+          href: `/c/${community?.slug}/`,
+          label: t("questions"),
+          className:
+            "mr-2 px-2 flex h-full items-center capitalize no-underline hover:bg-blue-200-dark",
+        },
+        ...(isLoggedIn
+          ? [
+              {
+                href: `/questions/create/?community_id=${community?.id}`,
+                label: (
+                  <>
+                    <FontAwesomeIcon
+                      width={14}
+                      className="mr-1"
+                      icon={faPlus}
+                    />
+                    {t("create")}
+                  </>
+                ),
+                className:
+                  "mr-2 flex top-1/2 relative -translate-y-1/2 items-center rounded-full bg-blue-300-dark p-3 py-1 capitalize no-underline hover:bg-blue-200-dark",
+              },
+            ]
+          : []),
+      ],
     }),
     [
       LINKS.leaderboards,
@@ -121,6 +154,8 @@ const useNavbarLinks = () => {
       LINKS.tournaments,
       PUBLIC_MINIMAL_UI,
       isLoggedIn,
+      community,
+      t,
     ]
   );
 
@@ -166,33 +201,53 @@ const useNavbarLinks = () => {
 
   const mobileMenuLinks = useMemo(() => {
     const links: MobileMenuItemDefinition[] = [
-      {
-        ...LINKS.tournaments,
-        className: cn("hidden", {
-          "max-[374px]:flex": !isNil(user),
-          "max-[511px]:flex": isNil(user),
-        }),
-      },
-      LINKS.leaderboards,
-      LINKS.news,
-      { href: null, label: t("more"), isTitle: true },
-      LINKS.about,
-      LINKS.press,
-      LINKS.faq,
-      LINKS.trackRecord,
-      LINKS.journal,
-      LINKS.aggregationExplorer,
+      ...(!isNil(community)
+        ? [
+            { href: null, label: t("community"), isTitle: true },
+            { href: `/c/${community.slug}`, label: t("questions") },
+          ]
+        : [
+            {
+              ...LINKS.tournaments,
+              className: cn("hidden", {
+                "max-[374px]:flex": !isNil(user),
+                "max-[511px]:flex": isNil(user),
+              }),
+            },
+            LINKS.leaderboards,
+            LINKS.news,
+            { href: null, label: t("more"), isTitle: true },
+            LINKS.about,
+            LINKS.press,
+            LINKS.faq,
+            LINKS.trackRecord,
+            LINKS.journal,
+            LINKS.aggregationExplorer,
+          ]),
     ];
 
     if (isLoggedIn) {
       const accountLinks = [
-        LINKS.createQuestion,
+        !isNil(community)
+          ? {
+              href: `/questions/create/?community_id=${community.id}`,
+              label: (
+                <>
+                  <FontAwesomeIcon size="1x" className="mr-1" icon={faPlus} />
+                  {t("createQuestion")}
+                </>
+              ),
+              className:
+                "mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm capitalize no-underline hover:bg-blue-200-dark",
+            }
+          : LINKS.createQuestion,
         { href: null, label: t("account"), isTitle: true },
         { href: `/accounts/profile/${user.id}`, label: t("profile") },
         { href: "/accounts/settings/", label: t("settings") },
         PUBLIC_ALLOW_TUTORIAL && {
-          href: "/accounts/tutorial/",
+          href: null,
           label: t("tutorial"),
+          onClick: () => setCurrentModal({ type: "onboarding" }),
         },
         !user.is_superuser &&
           PUBLIC_ALLOW_SIGNUP && {
@@ -213,12 +268,12 @@ const useNavbarLinks = () => {
           href: null,
           label: t("account"),
           isTitle: true,
-          className: "hidden max-[447px]:flex",
+          className: !isNil(community) ? "" : "hidden max-[447px]:flex",
         },
         {
           href: null,
           label: t("login"),
-          className: "hidden max-[447px]:flex",
+          className: !isNil(community) ? "" : "hidden max-[447px]:flex",
           onClick: () => setCurrentModal({ type: "signin" }),
         }
       );
@@ -242,6 +297,7 @@ const useNavbarLinks = () => {
     isLoggedIn,
     setCurrentModal,
     t,
+    community,
   ]);
   return { navbarLinks, menuLinks, LINKS, mobileMenuLinks };
 };
