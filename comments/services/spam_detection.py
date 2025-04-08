@@ -1,5 +1,4 @@
 from comments.models import Comment
-from projects.permissions import ObjectPermission
 from users.models import User, UserSpamActivity
 from users.services.spam_detection import check_and_handle_content_spam
 from utils.frontend import build_frontend_url
@@ -12,9 +11,7 @@ def check_and_handle_comment_spam(author: User, comment: Comment) -> bool:
     if private_note or private_post:
         return False
 
-    recipients = comment.on_post.default_project.get_users_for_permission(
-        ObjectPermission.CURATOR
-    )
+    recipients = User.objects.filter(is_staff=True)
 
     return check_and_handle_content_spam(
         author=author,

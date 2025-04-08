@@ -1,5 +1,4 @@
 from posts.models import Post
-from projects.permissions import ObjectPermission
 from users.models import User, UserSpamActivity
 from users.services.spam_detection import (
     check_and_handle_content_spam,
@@ -8,7 +7,7 @@ from utils.frontend import build_frontend_url
 
 
 def check_and_handle_post_spam(author: User, post: Post) -> bool:
-    recipients = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
+    recipients = User.objects.filter(is_staff=True)
 
     content = ""
     content_url = build_frontend_url(f"/admin/posts/post/{post.id}/change/")
