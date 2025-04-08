@@ -139,7 +139,8 @@ class UserCampaignRegistration(TimeStampedModel):
 class UserSpamActivity(TimeStampedModel):
     class SpamContentType(models.TextChoices):
         COMMENT = "comment"
-        POST = "post"
+        QUESTION = "question"
+        NOTEBOOK = "notebook"
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     reason = models.TextField()
