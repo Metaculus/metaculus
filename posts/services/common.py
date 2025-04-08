@@ -198,6 +198,8 @@ def trigger_update_post_translations(
         post.notebook.update_and_maybe_translate(should_translate_if_dirty)
     if post.group_of_questions_id is not None:
         post.group_of_questions.update_and_maybe_translate(should_translate_if_dirty)
+        for sub_question in post.group_of_questions.questions.all():
+            sub_question.update_and_maybe_translate(should_translate_if_dirty)
     if post.conditional_id is not None:
         post.conditional.condition.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition, "post"):
