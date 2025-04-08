@@ -227,7 +227,7 @@ const useNavbarLinks = ({
     ];
 
     if (isLoggedIn) {
-      const accountLinks = [
+      const accountLinks: MobileMenuItemDefinition[] = [
         !isNil(community)
           ? {
               href: `/questions/create/?community_id=${community.id}`,
@@ -244,22 +244,33 @@ const useNavbarLinks = ({
         { href: null, label: t("account"), isTitle: true },
         { href: `/accounts/profile/${user.id}`, label: t("profile") },
         { href: "/accounts/settings/", label: t("settings") },
-        PUBLIC_ALLOW_TUTORIAL && {
-          href: null,
-          label: t("tutorial"),
-          onClick: () => setCurrentModal({ type: "onboarding" }),
-        },
-        !user.is_superuser &&
-          PUBLIC_ALLOW_SIGNUP && {
-            href: "/accounts/invite/",
-            label: t("signupInviteUsers"),
-          },
-        !user.is_superuser && {
-          href: "/admin/",
-          label: t("admin"),
-        },
+        ...(PUBLIC_ALLOW_TUTORIAL
+          ? [
+              {
+                href: null,
+                label: t("tutorial"),
+                onClick: () => setCurrentModal({ type: "onboarding" }),
+              },
+            ]
+          : []),
+        ...(user.is_superuser && PUBLIC_ALLOW_SIGNUP
+          ? [
+              {
+                href: "/accounts/invite/",
+                label: t("signupInviteUsers"),
+              },
+            ]
+          : []),
+        ...(user.is_superuser
+          ? [
+              {
+                href: "/admin/",
+                label: t("admin"),
+              },
+            ]
+          : []),
         { href: null, label: t("logout"), onClick: () => void LogOut() },
-      ].filter(Boolean) as MobileMenuItemDefinition[];
+      ];
 
       links.push(...accountLinks);
     } else {
