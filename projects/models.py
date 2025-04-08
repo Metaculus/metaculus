@@ -245,6 +245,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     )
     start_date = models.DateTimeField(null=True, blank=True)
     close_date = models.DateTimeField(null=True, blank=True)
+    forecasting_end_date = models.DateTimeField(null=True, blank=True)
     sign_up_fields = models.JSONField(
         default=list, blank=True, help_text="Used during tournament onboarding."
     )
