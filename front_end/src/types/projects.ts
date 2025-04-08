@@ -71,9 +71,9 @@ export type TournamentTimeline = {
   latest_actual_resolve_time?: string;
   latest_scheduled_resolve_time?: string;
   latest_actual_close_time?: string;
-  latest_scheduled_close_time?: string;
   all_questions_resolved: boolean;
   all_questions_closed: boolean;
+  timeline_closure: string;
 };
 
 export type Tournament = TournamentPreview & {

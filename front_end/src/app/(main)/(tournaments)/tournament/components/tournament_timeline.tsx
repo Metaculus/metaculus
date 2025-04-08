@@ -34,7 +34,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
     last_cp_reveal_time,
     latest_scheduled_resolve_time,
     latest_actual_resolve_time,
-    latest_scheduled_close_time,
+    timeline_closure,
     latest_actual_close_time,
     all_questions_resolved,
     all_questions_closed,
@@ -51,7 +51,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
               : null
           }
           latestScheduledCloseTimestamp={getTimestampFromDateString(
-            latest_scheduled_close_time
+            timeline_closure
           )}
         />
       ) : (
