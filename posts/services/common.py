@@ -501,8 +501,8 @@ def approve_post(
     questions = post.get_questions()
 
     if post.question:
-        question = questions[0]
         # we have a single question, approval modal values overrule settings
+        question = questions[0]
         question.open_time = open_time
         question.cp_reveal_time = cp_reveal_time
         question.scheduled_close_time = scheduled_close_time
