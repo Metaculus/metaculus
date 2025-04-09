@@ -7,7 +7,7 @@ import {
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
 import { AuthResponse } from "@/types/auth";
-import { FetchError } from "@/types/fetch";
+import { ApiError } from "@/utils/errors";
 
 export type PasswordResetRequestActionState = {
   errors?: any;
@@ -32,10 +32,8 @@ export async function passwordResetRequestAction(
 
     return {};
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -72,10 +70,8 @@ export async function passwordResetConfirmAction(
       data: response,
     };
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }

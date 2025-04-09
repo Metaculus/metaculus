@@ -1,6 +1,5 @@
 "use server";
 
-import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
 
 import { getLastVerificationSession, saveVerificationSession } from "./utils";
@@ -93,10 +92,14 @@ export async function initiateStripeVerification(
 
     return { url: verificationSession.url };
   } catch (err) {
-    console.error("Stripe verification error", err);
-    const error = err as FetchError;
+    if (err instanceof Error) {
+      return {
+        error: err.message,
+      };
+    }
+
     return {
-      error: error.message || "Failed to initiate verification",
+      error: "Failed to initiate verification",
     };
   }
 }

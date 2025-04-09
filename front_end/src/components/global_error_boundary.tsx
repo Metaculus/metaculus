@@ -1,14 +1,8 @@
 "use client";
-import * as Sentry from "@sentry/nextjs";
 import { FC, useEffect } from "react";
 
 import Button from "@/components/ui/button";
-import { extractError } from "@/utils/errors";
-
-type GlobalErrorBoundaryProps = {
-  error: Error & { digest?: string };
-  reset: () => void;
-};
+import { extractError, logError } from "@/utils/errors";
 
 type GlobalErrorProps = {
   error: any;
@@ -33,16 +27,21 @@ export const GlobalErrorContainer: FC<GlobalErrorProps> = ({
   );
 };
 
+type GlobalErrorBoundaryProps = {
+  error: Error & { digest?: string };
+  reset: () => void;
+};
+
 const GlobalErrorBoundary: FC<GlobalErrorBoundaryProps> = ({
   error,
   reset,
 }) => {
   console.log("\n\n--- ERROR ---\n\n");
   console.log("Error message:", error);
-  console.log("Stack: ", error.stack);
+  console.log("Error name:", error.stack);
 
   useEffect(() => {
-    Sentry.captureException(error);
+    logError(error);
   }, [error]);
 
   // error.digest ensures we use display actual message on production build

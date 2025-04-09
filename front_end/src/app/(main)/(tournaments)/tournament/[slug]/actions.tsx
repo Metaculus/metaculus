@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import ProjectsApi from "@/services/projects";
-import { FetchError } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
+import { ApiError } from "@/utils/errors";
 
 export async function getProjectMembers(projectId: number) {
   return ProjectsApi.getMembers(projectId);
@@ -21,10 +21,8 @@ export async function inviteProjectUsers(
 
     return response;
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -37,10 +35,8 @@ export async function deleteProjectMember(projectId: number, userId: number) {
 
     return response;
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -55,10 +51,8 @@ export async function updateMember(
 
     revalidatePath("/");
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }

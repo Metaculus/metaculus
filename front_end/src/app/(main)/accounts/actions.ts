@@ -9,8 +9,8 @@ import AuthApi from "@/services/auth";
 import ProfileApi from "@/services/profile";
 import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
-import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
+import { ApiError } from "@/utils/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 export type PostLoginAction = {
@@ -46,10 +46,8 @@ export default async function loginAction(
       validatedFields.data.password
     );
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 
@@ -121,10 +119,8 @@ export async function signUpAction(
 
     return signUpActionState;
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -143,10 +139,8 @@ export async function registerUserCampaignAction(
     await ProfileApi.registerUserCampaign(key, details, addToProject);
     return { errors: null };
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -159,9 +153,8 @@ export async function resendActivationEmailAction(
     await AuthApi.resendActivationEmail(login, redirectUrl);
     return { errors: null };
   } catch (err) {
-    const error = err as FetchError;
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
