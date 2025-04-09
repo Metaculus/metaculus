@@ -19,6 +19,7 @@ import AuthProvider from "@/contexts/auth_context";
 import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
+import PolyfillProvider from "@/contexts/polyfill";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import ProfileApi from "@/services/profile";
 import { getPublicSettings } from "@/utils/public_settings.server";
@@ -169,31 +170,33 @@ export default async function RootLayout({
         </Script>
       </head>
       <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
-        <CSPostHogProvider>
-          <AppThemeProvided>
-            <NextIntlClientProvider messages={messages}>
-              <AuthProvider user={user}>
-                <PublicSettingsProvider settings={publicSettings}>
-                  <ModalProvider>
-                    <NavigationProvider>
-                      <GlobalSearchProvider>
-                        <TranslationsBannerProvider>
-                          <NextTopLoader
-                            showSpinner={false}
-                            color={METAC_COLORS.blue["500"].DEFAULT}
-                          />
-                          {children}
-                          <GlobalModals />
-                          <Toaster />
-                        </TranslationsBannerProvider>
-                      </GlobalSearchProvider>
-                    </NavigationProvider>
-                  </ModalProvider>
-                </PublicSettingsProvider>
-              </AuthProvider>
-            </NextIntlClientProvider>
-          </AppThemeProvided>
-        </CSPostHogProvider>
+        <PolyfillProvider>
+          <CSPostHogProvider>
+            <AppThemeProvided>
+              <NextIntlClientProvider messages={messages}>
+                <AuthProvider user={user}>
+                  <PublicSettingsProvider settings={publicSettings}>
+                    <ModalProvider>
+                      <NavigationProvider>
+                        <GlobalSearchProvider>
+                          <TranslationsBannerProvider>
+                            <NextTopLoader
+                              showSpinner={false}
+                              color={METAC_COLORS.blue["500"].DEFAULT}
+                            />
+                            {children}
+                            <GlobalModals />
+                            <Toaster />
+                          </TranslationsBannerProvider>
+                        </GlobalSearchProvider>
+                      </NavigationProvider>
+                    </ModalProvider>
+                  </PublicSettingsProvider>
+                </AuthProvider>
+              </NextIntlClientProvider>
+            </AppThemeProvided>
+          </CSPostHogProvider>
+        </PolyfillProvider>
       </body>
       {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
         <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />

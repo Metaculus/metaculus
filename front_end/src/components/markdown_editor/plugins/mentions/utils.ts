@@ -28,7 +28,7 @@ export async function queryMentions(
   }
 
   const users = await searchUsers(query);
-  if ("errors" in users) {
+  if (!!users && "errors" in users) {
     return clientSearch(query, fallbackMentions);
   }
 
