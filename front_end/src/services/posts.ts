@@ -55,6 +55,7 @@ export type ApprovePostParams = {
   cp_reveal_time: string;
   scheduled_close_time: string;
   scheduled_resolve_time: string;
+  move_forecasting_end_date?: boolean;
 };
 
 class PostsApi {

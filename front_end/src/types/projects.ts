@@ -58,6 +58,7 @@ export type TournamentPreview = Project & {
   prize_pool: string | null;
   start_date: string;
   close_date?: string;
+  forecasting_end_date?: string;
   is_ongoing: boolean;
   created_at: string;
   questions_count: number;
@@ -70,10 +71,8 @@ export type TournamentTimeline = {
   last_cp_reveal_time?: string;
   latest_actual_resolve_time?: string;
   latest_scheduled_resolve_time?: string;
-  latest_actual_close_time?: string;
   all_questions_resolved: boolean;
   all_questions_closed: boolean;
-  timeline_closure: string;
 };
 
 export type Tournament = TournamentPreview & {

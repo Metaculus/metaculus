@@ -34,8 +34,6 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
     last_cp_reveal_time,
     latest_scheduled_resolve_time,
     latest_actual_resolve_time,
-    timeline_closure,
-    latest_actual_close_time,
     all_questions_resolved,
     all_questions_closed,
   } = tournament.timeline;
@@ -51,7 +49,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
               : null
           }
           latestScheduledCloseTimestamp={getTimestampFromDateString(
-            timeline_closure
+            tournament.forecasting_end_date
           )}
         />
       ) : (
@@ -61,7 +59,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
             latest_scheduled_resolve_time
           )}
           latestActualCloseTimestamp={getTimestampFromDateString(
-            latest_actual_close_time
+            tournament.forecasting_end_date
           )}
           isAllQuestionsResolved={all_questions_resolved}
           latestActualResolutionTimestamp={getTimestampFromDateString(
