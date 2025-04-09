@@ -59,8 +59,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
-  const debouncedMarkdown = useDebouncedValue(markdown, 2000);
-  const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
+  const debouncedMarkdown = useDebouncedValue(markdown, 1000);
   const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [hasInteracted, setHasInteracted] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -92,7 +91,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   // save draft on debounced markdown change
   useEffect(() => {
-    if (!isNil(postId) && hasInteracted && isMarkdownDirty) {
+    if (!isNil(postId) && hasInteracted) {
       saveCommentDraft({
         markdown: debouncedMarkdown,
         isPrivate: isPrivateComment,
@@ -171,7 +170,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
       setHasIncludedForecast(false);
       setMarkdown("");
-      setIsMarkdownDirty(false);
 
       onSubmit?.(parseComment(newComment));
     } finally {
@@ -179,7 +177,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
     }
   };
   const handleMarkdownChange = (newMarkdown: string) => {
-    setIsMarkdownDirty(!!newMarkdown);
     setMarkdown(newMarkdown);
     if (!hasInteracted) {
       setHasInteracted(true);
