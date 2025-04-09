@@ -19,6 +19,7 @@ from projects.services.common import (
     get_projects_staff_users,
     get_site_main_project,
     notify_project_subscriptions_post_open,
+    move_project_forecasting_end_date,
 )
 from questions.models import Question
 from questions.services import (
@@ -45,10 +46,9 @@ from utils.translation import (
     queryset_filter_outdated_translations,
     update_translations_for_model,
 )
-
-from ..tasks import run_notify_post_status_change, run_post_indexing
 from .search import generate_post_content_for_embedding_vectorization
 from .subscriptions import notify_post_status_change
+from ..tasks import run_notify_post_status_change, run_post_indexing
 
 logger = logging.getLogger(__name__)
 
@@ -490,6 +490,7 @@ def approve_post(
     cp_reveal_time: date,
     scheduled_close_time: date,
     scheduled_resolve_time: date,
+    move_forecasting_end_date: bool = False,
 ):
     if post.curation_status == Post.CurationStatus.APPROVED:
         raise ValidationError("Post is already approved")
@@ -518,6 +519,18 @@ def approve_post(
             "scheduled_resolve_time",
         ],
     )
+
+    # Automatically update all secondary projects
+    projects_to_move_end_date = list(post.projects.all())
+    # Default projects require manual confirmation from moderators
+    # However, group questions should automatically update the default project
+    if post.group_of_questions_id or move_forecasting_end_date:
+        projects_to_move_end_date.append(post.default_project)
+
+    for project in projects_to_move_end_date:
+        if project.type == Project.ProjectTypes.TOURNAMENT:
+            move_project_forecasting_end_date(project, post)
+
     post.update_pseudo_materialized_fields()
 
 

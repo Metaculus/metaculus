@@ -244,8 +244,24 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         default=None, decimal_places=2, max_digits=15, null=True, blank=True
     )
     start_date = models.DateTimeField(null=True, blank=True)
-    close_date = models.DateTimeField(null=True, blank=True)
-    forecasting_end_date = models.DateTimeField(null=True, blank=True)
+    close_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "The date the tournament wraps up and prizes will be paid. "
+            "All questions that should be included in the leaderboard must close and resolve before this date. "
+            "This is displayed on the front end as the “Winners announced date”"
+        ),
+    )
+    forecasting_end_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "The date the last scored question that counts for the tournament closes."
+            "The date shown is the latest of the Forecasting end date "
+            "and the latest question close date closing and resolving before the Close date."
+        ),
+    )
     sign_up_fields = models.JSONField(
         default=list, blank=True, help_text="Used during tournament onboarding."
     )
