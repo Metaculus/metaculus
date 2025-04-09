@@ -1,6 +1,7 @@
 "use client";
 
 import { sendGAEvent } from "@next/third-parties/google";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useEffect, useRef, useState } from "react";
 
@@ -13,8 +14,15 @@ import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useDebouncedValue } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
+import {
+  saveCommentDraft,
+  getCommentDraft,
+  deleteCommentDraft,
+  cleanupOldDrafts,
+} from "@/utils/comments";
 import { parseComment } from "@/utils/comments";
 
 import { validateComment } from "./validate_comment";
@@ -49,9 +57,9 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [rerenderKey, updateRerenderKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
-
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
+  const debouncedMarkdown = useDebouncedValue(markdown, 2000);
   const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -65,7 +73,43 @@ const CommentEditor: FC<CommentEditorProps> = ({
     if (!isReplying) {
       setIsPrivateComment(isPrivateFeed);
     }
-  }, [isPrivateFeed, isReplying]);
+  }, [isReplying, isPrivateFeed]);
+
+  // Load comment draft and remove old ones on mount
+  useEffect(() => {
+    if (postId) {
+      cleanupOldDrafts();
+      const draft = getCommentDraft(postId, parentId);
+      if (draft) {
+        setMarkdown(draft.markdown);
+        setIsPrivateComment(draft.isPrivate);
+        setHasIncludedForecast(draft.includeForecast);
+      }
+      updateRerenderKey((prev) => prev + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // save draft on debounced markdown change
+  useEffect(() => {
+    if (!isNil(postId) && hasInteracted && isMarkdownDirty) {
+      saveCommentDraft({
+        markdown: debouncedMarkdown,
+        isPrivate: isPrivateComment,
+        includeForecast: hasIncludedForecast,
+        lastModified: Date.now(),
+        postId,
+        parentId,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    debouncedMarkdown,
+    isPrivateComment,
+    hasIncludedForecast,
+    postId,
+    parentId,
+  ]);
 
   useEffect(() => {
     if (params.get("action") === "comment-with-forecast") {
@@ -120,10 +164,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
         return;
       }
 
+      // Delete the draft after successful submission
+      if (postId) {
+        deleteCommentDraft(postId, parentId);
+      }
+
       setHasIncludedForecast(false);
       setMarkdown("");
       setIsMarkdownDirty(false);
-      updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
 
       onSubmit?.(parseComment(newComment));
     } finally {
@@ -181,10 +229,9 @@ const CommentEditor: FC<CommentEditorProps> = ({
           mode="write"
           markdown={markdown}
           onChange={handleMarkdownChange}
-          shouldConfirmLeave={isMarkdownDirty}
           withUgcLinks
           withUserMentions
-          initialMention={replyUsername}
+          initialMention={!markdown.trim() ? replyUsername : undefined} // only populate with mention if there is no draft
         />
       </div>
       {(isReplying || hasInteracted) && (

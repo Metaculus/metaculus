@@ -154,7 +154,7 @@ const InitializedMarkdownEditor: FC<
   );
 
   useEffect(() => {
-    if (mode == "read") {
+    if (mode == "read" || formattedMarkdown === "") {
       editorRef.current?.setMarkdown(formattedMarkdown);
     }
   }, [formattedMarkdown]);
@@ -273,6 +273,9 @@ const InitializedMarkdownEditor: FC<
       ]}
       lexicalTheme={{
         beautifulMentions: beautifulMentionsTheme,
+        text: {
+          underline: "underline",
+        },
       }}
     />
   );
