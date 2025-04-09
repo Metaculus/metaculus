@@ -1,9 +1,6 @@
 "use client";
 
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import NavUserButton from "@/components/auth";
@@ -14,20 +11,20 @@ import { Community } from "@/types/projects";
 
 import { useShowActiveCommunityContext } from "../../c/components/community_context";
 import CommunitiesDropdown from "../communities_dropdown";
-import MobileMenu from "../mobile_menu";
-
+import CommunityMobileMenu from "./components/community_mobile_menu";
+import useNavbarLinks from "./hooks/useNavbarLinks";
 type Props = {
   community: Community | null;
   alwaysShowName?: boolean;
 };
 
 const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
-  const t = useTranslations();
   const { showActiveCommunity } = useShowActiveCommunityContext();
   const [localShowName, setLocalShowName] = useState(alwaysShowName);
+  const { navbarLinks } = useNavbarLinks({ community });
 
   return (
-    <header className="fixed left-0 top-0 z-100 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
+    <header className="fixed left-0 top-0 z-100 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between bg-blue-900 text-gray-0">
       <div className="flex items-center">
         <Link
           href="/questions"
@@ -51,25 +48,13 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
 
       {/*Desktop items*/}
       <ul className="relative hidden list-none items-center justify-end text-sm font-medium lg:flex">
-        <li className="h-full">
-          <NavLink
-            href={`/c/${community?.slug}/`}
-            className="mr-2 flex h-full items-center p-3 capitalize no-underline hover:bg-blue-200-dark"
-            activeClassName="bg-blue-300-dark"
-          >
-            {t("questions")}
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            href={`/questions/create/?community_id=${community?.id}`}
-            className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-1 capitalize no-underline hover:bg-blue-200-dark"
-            activeClassName="bg-blue-300-dark"
-          >
-            <FontAwesomeIcon width={14} className="mr-1" icon={faPlus} />
-            {t("create")}
-          </NavLink>
-        </li>
+        {navbarLinks.communityLinks.map((link) => (
+          <li key={link.href} className="h-full">
+            <NavLink href={link.href} className={link.className}>
+              {link.label}
+            </NavLink>
+          </li>
+        ))}
         <li className="z-10 flex h-full items-center justify-center">
           <NavUserButton />
         </li>
@@ -80,7 +65,7 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
           <ThemeToggle />
         </li>
       </ul>
-      <MobileMenu
+      <CommunityMobileMenu
         community={community}
         onClick={alwaysShowName ? undefined : setLocalShowName}
       />

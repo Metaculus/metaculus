@@ -4,28 +4,32 @@ import { usePathname } from "next/navigation";
 import { ComponentProps, FC } from "react";
 
 import cn from "@/utils/cn";
+import { isPathEqual } from "@/utils/navigation";
 
 type LinkProps = ComponentProps<typeof Link> & {
   href: string;
-  activeClassName: string;
+  activeClassName?: string;
 };
 
 const NavLink: FC<LinkProps> = ({
   children,
   href,
-  activeClassName,
+  activeClassName = "active",
   ...props
 }) => {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive = isPathEqual(pathname, href);
 
   return (
     <Link
       {...props}
       href={href}
-      className={cn(props.className, { [activeClassName]: isActive })}
+      className={cn("group relative", props.className, {
+        [activeClassName]: isActive,
+      })}
     >
-      {children}
+      <span>{children}</span>
+      <span className="absolute bottom-0 left-0 h-1 w-full bg-blue-600 opacity-0 transition-opacity group-[.active]:opacity-100" />
     </Link>
   );
 };

@@ -79,3 +79,12 @@ export const getWithDefaultHeader = (pathname: string): boolean =>
   !pathname.match(/^\/notebooks\/(\d+)(\/.*)?$/) &&
   !pathname.startsWith("/c/") &&
   !pathname.startsWith("/questions/create");
+
+/**
+ * Ensures trailing slash is handled properly, e.g. when link is defined manually in code
+ *
+ * Pathname extracted with `usePathname` is always expected with trailing slash
+ */
+export const isPathEqual = (pathname: string, href: string) => {
+  return pathname.replace(/\/+$/, "") === href.replace(/\/+$/, "");
+};

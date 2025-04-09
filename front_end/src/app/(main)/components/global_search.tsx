@@ -45,8 +45,10 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
 
   const {
     globalSearch,
-    setGlobalSearch,
+    updateGlobalSearch,
     isVisible: otherSearchIsVisible,
+    isSearched,
+    setIsSearched,
   } = useGlobalSearchContext();
 
   useEffect(() => {
@@ -54,12 +56,14 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   }, [otherSearchIsVisible]);
 
   const eraseSearch = () => {
-    setGlobalSearch("");
+    updateGlobalSearch("");
+    setIsSearched(false);
   };
 
   const handleSearchSubmit = (searchQuery: string) => {
     debouncedGAEvent();
     onSubmit?.();
+    setIsSearched(true);
     router.push(
       `/questions` +
         encodeQueryParams({
@@ -78,20 +82,31 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   return (
     <div
       className={cn(
-        "items-center self-center xl:ml-4 xl:items-center",
+        "ml-2.5 items-center self-center xl:items-center",
         visibilityClass,
         className
       )}
     >
       <SearchInput
         value={globalSearch}
-        onChange={(e) => setGlobalSearch(e.target.value)}
+        onChange={(e) => updateGlobalSearch(e.target.value)}
         onErase={eraseSearch}
         onSubmit={handleSearchSubmit}
         placeholder={t("questionSearchPlaceholder")}
         size="base"
-        className="w-full"
-        globalSearch={true}
+        className="w-full min-w-[290px]"
+        inputClassName={cn(
+          "text-white",
+          "bg-blue-800 dark:bg-blue-800 hover:bg-blue-600 dark:hover:bg-blue-600 focus:bg-blue-900 dark:focus:bg-blue-900",
+          "border border-blue-700 dark:border-blue-700 hover:border-blue-600 dark:hover:border-blue-600 focus:border-blue-600 dark:focus:border-blue-600",
+          "outline-none focus:outline-1 focus:outline-offset-0 focus:outline-blue-600 dark:focus:outline-blue-600",
+          "placeholder:text-blue-500 dark:placeholder:text-blue-500 focus:placeholder:text-blue-500/30 dark:focus:placeholder:text-blue-500/30",
+          "outline-none focus:outline-none",
+          { "bg-blue-700 dark:bg-blue-700": isSearched }
+        )}
+        eraseButtonClassName="text-white dark:text-white hover:text-white"
+        submitButtonClassName="hidden md:block"
+        submitIconClassName="text-blue-500 dark:text-blue-500"
       />
       <RandomButton />
     </div>

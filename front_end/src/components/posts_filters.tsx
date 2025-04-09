@@ -83,8 +83,12 @@ const PostsFilters: FC<Props> = ({
   } = useSearchParams();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
-  const { globalSearch, setGlobalSearch, setIsVisible, setModifySearchParams } =
-    useGlobalSearchContext();
+  const {
+    globalSearch,
+    updateGlobalSearch,
+    setIsVisible,
+    setModifySearchParams,
+  } = useGlobalSearchContext();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedGAEvent = useCallback(
@@ -108,7 +112,7 @@ const PostsFilters: FC<Props> = ({
   }, []);
 
   const eraseSearch = () => {
-    setGlobalSearch("");
+    updateGlobalSearch("");
   };
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
@@ -227,7 +231,7 @@ const PostsFilters: FC<Props> = ({
               onChange={(e) => {
                 debouncedGAEvent();
                 deleteParam(POST_PAGE_FILTER, true);
-                setGlobalSearch(e.target.value);
+                updateGlobalSearch(e.target.value);
               }}
               onErase={eraseSearch}
               placeholder={t("questionSearchPlaceholder")}
