@@ -1,5 +1,6 @@
 "use client";
 
+import { MDXEditorMethods } from "@mdxeditor/editor";
 import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
@@ -21,7 +22,7 @@ import {
   saveCommentDraft,
   getCommentDraft,
   deleteCommentDraft,
-  cleanupOldDrafts,
+  cleanupDrafts,
 } from "@/utils/comments";
 import { parseComment } from "@/utils/comments";
 
@@ -52,9 +53,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   /* TODO: Investigate the synchronization between the internal state of MDXEditor and the external state. */
   /* Currently, manually updating the markdown state outside of MDXEditor only affects our local state, while the editor retains its previous state.
-   As a temporary workaround, we use the 'key' prop to force a re-render, creating a new instance of the component with the updated initial state.
-   This ensures the editor reflects the correct markdown content. */
-  const [rerenderKey, updateRerenderKey] = useState(0);
+   As a workaround, we use the setMarkdown function in editorRef to update the editor's state. */
   const [isLoading, setIsLoading] = useState(false);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
@@ -62,7 +61,8 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const debouncedMarkdown = useDebouncedValue(markdown, 1000);
   const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [hasInteracted, setHasInteracted] = useState(false);
-  const editorRef = useRef<HTMLDivElement>(null);
+  const editorWrapperRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<MDXEditorMethods>(null);
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -76,27 +76,28 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   // Load comment draft and remove old ones on mount
   useEffect(() => {
-    if (postId) {
-      cleanupOldDrafts();
-      const draft = getCommentDraft(postId, parentId);
+    if (postId && user?.id) {
+      cleanupDrafts();
+      const draft = getCommentDraft(user.id, postId, parentId);
       if (draft) {
         setMarkdown(draft.markdown);
         setIsPrivateComment(draft.isPrivate);
         setHasIncludedForecast(draft.includeForecast);
+        editorRef.current?.setMarkdown(draft.markdown);
       }
-      updateRerenderKey((prev) => prev + 1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // save draft on debounced markdown change
   useEffect(() => {
-    if (!isNil(postId) && hasInteracted) {
+    if (!isNil(postId) && hasInteracted && user) {
       saveCommentDraft({
         markdown: debouncedMarkdown,
         isPrivate: isPrivateComment,
         includeForecast: hasIncludedForecast,
         lastModified: Date.now(),
+        userId: user.id,
         postId,
         parentId,
       });
@@ -117,7 +118,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       shallowNavigateToSearchParams();
 
       // Scroll to editor
-      editorRef.current?.scrollIntoView({
+      editorWrapperRef.current?.scrollIntoView({
         behavior: "smooth",
       });
 
@@ -164,13 +165,13 @@ const CommentEditor: FC<CommentEditorProps> = ({
       }
 
       // Delete the draft after successful submission
-      if (postId) {
-        deleteCommentDraft(postId, parentId);
+      if (postId && user) {
+        deleteCommentDraft({ userId: user.id, postId, parentId });
       }
 
       setHasIncludedForecast(false);
       setMarkdown("");
-
+      editorRef.current?.setMarkdown("");
       onSubmit?.(parseComment(newComment));
     } finally {
       setIsLoading(false);
@@ -218,11 +219,11 @@ const CommentEditor: FC<CommentEditorProps> = ({
         <IncludedForecast author="test" forecastValue={test} />
       )*/}
       <div
-        ref={editorRef}
+        ref={editorWrapperRef}
         className="scroll-mt-24 border border-gray-500 dark:border-gray-500-dark"
       >
         <MarkdownEditor
-          key={rerenderKey}
+          ref={editorRef}
           mode="write"
           markdown={markdown}
           onChange={handleMarkdownChange}

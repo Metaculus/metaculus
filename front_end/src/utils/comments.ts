@@ -1,15 +1,15 @@
 import { userTagPattern } from "@/constants/comments";
-import { AuthorType, BECommentType, CommentType } from "@/types/comment";
+import {
+  AuthorType,
+  BECommentType,
+  CommentDraft,
+  CommentType,
+} from "@/types/comment";
+import { logError } from "@/utils/errors";
 
 const DRAFT_KEY_PREFIX = "comment_draft_";
-export type CommentDraft = {
-  markdown: string;
-  isPrivate: boolean;
-  includeForecast: boolean;
-  lastModified: number;
-  postId: number;
-  parentId?: number;
-};
+const MAX_DRAFT_SIZE_MB = 2.5;
+const BYTES_IN_MB = 1024 * 1024;
 
 export function parseComment(
   comment: BECommentType | CommentType
@@ -103,73 +103,111 @@ export function getCommentIdToFocusOn() {
   if (focus_comment_id && !isCommentLoaded) return focus_comment_id;
 }
 
-function getDraftKey(postId: number, parentId?: number): string {
-  return `${DRAFT_KEY_PREFIX}${postId}${parentId ? `_parent_${parentId}` : ""}`;
+function getDraftKey({
+  userId,
+  postId,
+  parentId,
+}: {
+  userId: number;
+  postId: number;
+  parentId?: number;
+}): string {
+  return `${DRAFT_KEY_PREFIX}${userId}_${postId}${parentId ? `_parent_${parentId}` : ""}`;
 }
 
 export function saveCommentDraft(draft: CommentDraft): void {
   try {
     if (!draft.markdown.trim()) {
-      deleteCommentDraft(draft.postId, draft.parentId);
+      deleteCommentDraft({ ...draft });
       return;
     }
-    const draftKey = getDraftKey(draft.postId, draft.parentId);
+    const draftKey = getDraftKey({ ...draft });
     localStorage.setItem(draftKey, JSON.stringify(draft));
   } catch (error) {
-    console.error("Failed to save comment draft:", error);
+    logError(error, "Failed to save comment draft");
   }
 }
 export function getCommentDraft(
-  postId?: number,
+  userId: number,
+  postId: number,
   parentId?: number
 ): CommentDraft | null {
   try {
-    if (!postId) return null;
-    const draftKey = getDraftKey(postId, parentId);
+    if (!postId || !userId) return null;
+    const draftKey = getDraftKey({ userId, postId, parentId });
     if (!draftKey) return null;
 
     const draftJson = localStorage.getItem(draftKey);
     return draftJson ? JSON.parse(draftJson) : null;
   } catch (error) {
-    console.error("Failed to get comment draft:", error);
+    logError(error, "Failed to get comment draft");
     return null;
   }
 }
 
-export const deleteCommentDraft = (
-  postId?: number,
-  parentId?: number
-): void => {
+export const deleteCommentDraft = ({
+  userId,
+  postId,
+  parentId,
+}: {
+  userId: number;
+  postId: number;
+  parentId?: number;
+}): void => {
   try {
-    if (!postId) return;
-    const draftKey = getDraftKey(postId, parentId);
+    if (!postId || !userId) return;
+    const draftKey = getDraftKey({ userId, postId, parentId });
 
     if (!draftKey) return;
     localStorage.removeItem(draftKey);
   } catch (error) {
-    console.error("Failed to delete comment draft:", error);
+    logError(error, "Failed to delete comment draft");
   }
 };
 
-export const cleanupOldDrafts = (maxAgeDays = 14): void => {
+export const cleanupDrafts = (maxAgeDays = 14): void => {
   try {
     const now = Date.now();
     const maxAge = maxAgeDays * 24 * 60 * 60 * 1000;
 
-    const draftKeys = Object.keys(localStorage).filter((key) =>
-      key.startsWith(DRAFT_KEY_PREFIX)
-    );
-    draftKeys.forEach((key) => {
-      try {
-        const draft = JSON.parse(localStorage.getItem(key) || "");
-        if (now - draft.lastModified >= maxAge) {
-          localStorage.removeItem(key);
+    const drafts = Object.keys(localStorage)
+      .filter((key) => key.startsWith(DRAFT_KEY_PREFIX))
+      .map((key) => {
+        try {
+          const item = localStorage.getItem(key) || "";
+          const draft = JSON.parse(item);
+          return {
+            key,
+            lastModified: draft.lastModified,
+            size: new Blob([item]).size,
+          };
+        } catch {
+          return {
+            key,
+            lastModified: 0,
+            size: 0,
+          };
         }
-      } catch {
-        localStorage.removeItem(key);
+      })
+      .sort((a, b) => a.lastModified - b.lastModified);
+    let totalSizeMB =
+      drafts.reduce((acc, draft) => acc + draft.size, 0) / BYTES_IN_MB;
+    // Delete drafts if they're older than maxAge
+    // Or if total size exceeds MAX_DRAFT_SIZE_MB - delete oldest ones until we're under limit
+    drafts.forEach((draft) => {
+      const shouldDeleteDueToAge = now - draft.lastModified >= maxAge;
+      const shouldDeleteDueToSize = totalSizeMB > MAX_DRAFT_SIZE_MB;
+
+      if (shouldDeleteDueToAge || shouldDeleteDueToSize) {
+        try {
+          localStorage.removeItem(draft.key);
+          totalSizeMB -= draft.size / BYTES_IN_MB;
+        } catch (error) {
+          logError(error, `Failed to remove draft: ${draft.key}`);
+        }
       }
     });
   } catch (error) {
-    console.error("Failed to cleanup old drafts:", error);
+    logError(error, "Failed to cleanup old drafts");
   }
 };

@@ -154,7 +154,7 @@ const InitializedMarkdownEditor: FC<
   );
 
   useEffect(() => {
-    if (mode == "read" || formattedMarkdown === "") {
+    if (mode == "read") {
       editorRef.current?.setMarkdown(formattedMarkdown);
     }
   }, [formattedMarkdown]);
