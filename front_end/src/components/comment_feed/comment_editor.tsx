@@ -51,9 +51,10 @@ const CommentEditor: FC<CommentEditorProps> = ({
 }) => {
   const t = useTranslations();
 
-  /* TODO: Investigate the synchronization between the internal state of MDXEditor and the external state. */
-  /* Currently, manually updating the markdown state outside of MDXEditor only affects our local state, while the editor retains its previous state.
-   As a workaround, we use the setMarkdown function in editorRef to update the editor's state. */
+  /* Manually updating the markdown state outside of MDXEditor only affects 
+   our local state, while the editor retains its previous state. As a workaround, 
+   we use the setMarkdown function in editorRef to update the editor's state. */
+  const editorRef = useRef<MDXEditorMethods>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
@@ -62,7 +63,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [hasInteracted, setHasInteracted] = useState(false);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<MDXEditorMethods>(null);
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -80,10 +80,9 @@ const CommentEditor: FC<CommentEditorProps> = ({
       cleanupDrafts();
       const draft = getCommentDraft(user.id, postId, parentId);
       if (draft) {
-        setMarkdown(draft.markdown);
-        setIsPrivateComment(draft.isPrivate);
-        setHasIncludedForecast(draft.includeForecast);
-        editorRef.current?.setMarkdown(draft.markdown);
+        setMarkdown(draft.markdown ?? "");
+        setHasIncludedForecast(draft.includeForecast ?? false);
+        editorRef.current?.setMarkdown(draft.markdown ?? "");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,7 +93,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
     if (!isNil(postId) && hasInteracted && user) {
       saveCommentDraft({
         markdown: debouncedMarkdown,
-        isPrivate: isPrivateComment,
         includeForecast: hasIncludedForecast,
         lastModified: Date.now(),
         userId: user.id,
@@ -103,13 +101,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    debouncedMarkdown,
-    isPrivateComment,
-    hasIncludedForecast,
-    postId,
-    parentId,
-  ]);
+  }, [debouncedMarkdown, hasIncludedForecast, postId, parentId]);
 
   useEffect(() => {
     if (params.get("action") === "comment-with-forecast") {

@@ -121,6 +121,14 @@ export function saveCommentDraft(draft: CommentDraft): void {
       deleteCommentDraft({ ...draft });
       return;
     }
+    const existingDraft = getCommentDraft(
+      draft.userId,
+      draft.postId,
+      draft.parentId
+    );
+    if (existingDraft && existingDraft.markdown === draft.markdown) {
+      return;
+    }
     const draftKey = getDraftKey({ ...draft });
     localStorage.setItem(draftKey, JSON.stringify(draft));
   } catch (error) {

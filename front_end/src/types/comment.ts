@@ -64,7 +64,6 @@ export type KeyFactor = {
 
 export type CommentDraft = {
   markdown: string;
-  isPrivate: boolean;
   includeForecast: boolean;
   lastModified: number;
   postId: number;
