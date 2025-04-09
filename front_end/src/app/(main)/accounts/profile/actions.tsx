@@ -7,8 +7,8 @@ import {
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
 import ProfileApi from "@/services/profile";
-import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
+import { ApiError } from "@/utils/errors";
 
 export type ChangeUsernameState = {
   errors?: any;
@@ -37,10 +37,8 @@ export default async function changeUsernameAction(
       user,
     };
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -49,10 +47,8 @@ export async function softDeleteUserAction(userId: number) {
   try {
     return await ProfileApi.markUserAsSpam(userId);
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -84,10 +80,8 @@ export async function updateProfileFormAction(
       user,
     };
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }

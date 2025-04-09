@@ -1,14 +1,8 @@
 "use client";
-import * as Sentry from "@sentry/nextjs";
 import { FC, useEffect } from "react";
 
 import Button from "@/components/ui/button";
-import { extractError } from "@/utils/errors";
-
-type GlobalErrorBoundaryProps = {
-  error: Error & { digest?: string };
-  reset: () => void;
-};
+import { ApiError, extractError, logError } from "@/utils/errors";
 
 type GlobalErrorProps = {
   error: any;
@@ -33,21 +27,35 @@ export const GlobalErrorContainer: FC<GlobalErrorProps> = ({
   );
 };
 
+type GlobalErrorBoundaryProps = {
+  error: unknown;
+  reset: () => void;
+};
+
 const GlobalErrorBoundary: FC<GlobalErrorBoundaryProps> = ({
   error,
   reset,
 }) => {
   console.log("\n\n--- ERROR ---\n\n");
   console.log("Error message:", error);
-  console.log("Stack: ", error.stack);
+  if (error instanceof Error) {
+    console.log("Error name:", error.stack);
+  }
 
   useEffect(() => {
-    Sentry.captureException(error);
+    logError(error);
   }, [error]);
+
+  let displayError = "Unknown error";
+  if (ApiError.isApiError(error)) {
+    displayError = error.digest;
+  } else if (error instanceof Error) {
+    displayError = error.message;
+  }
 
   // error.digest ensures we use display actual message on production build
   // for more info see definition of ApiError class
-  return <GlobalErrorContainer error={error.digest ?? error} reset={reset} />;
+  return <GlobalErrorContainer error={displayError} reset={reset} />;
 };
 
 export default GlobalErrorBoundary;
