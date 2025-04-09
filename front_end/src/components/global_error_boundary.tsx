@@ -2,7 +2,7 @@
 import { FC, useEffect } from "react";
 
 import Button from "@/components/ui/button";
-import { ApiError, extractError, logError } from "@/utils/errors";
+import { extractError, logError } from "@/utils/errors";
 
 type GlobalErrorProps = {
   error: any;
@@ -28,7 +28,7 @@ export const GlobalErrorContainer: FC<GlobalErrorProps> = ({
 };
 
 type GlobalErrorBoundaryProps = {
-  error: unknown;
+  error: Error & { digest?: string };
   reset: () => void;
 };
 
@@ -38,24 +38,15 @@ const GlobalErrorBoundary: FC<GlobalErrorBoundaryProps> = ({
 }) => {
   console.log("\n\n--- ERROR ---\n\n");
   console.log("Error message:", error);
-  if (error instanceof Error) {
-    console.log("Error name:", error.stack);
-  }
+  console.log("Error name:", error.stack);
 
   useEffect(() => {
     logError(error);
   }, [error]);
 
-  let displayError = "Unknown error";
-  if (ApiError.isApiError(error)) {
-    displayError = error.digest;
-  } else if (error instanceof Error) {
-    displayError = error.message;
-  }
-
   // error.digest ensures we use display actual message on production build
   // for more info see definition of ApiError class
-  return <GlobalErrorContainer error={displayError} reset={reset} />;
+  return <GlobalErrorContainer error={error.digest ?? error} reset={reset} />;
 };
 
 export default GlobalErrorBoundary;
