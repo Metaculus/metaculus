@@ -19,11 +19,11 @@ import QuestionsApi, {
   ForecastPayload,
   WithdrawalPayload,
 } from "@/services/questions";
-import { FetchError } from "@/types/fetch";
 import { PostSubscription, NotebookPost } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
 import { DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
+import { ApiError } from "@/utils/errors";
 
 export async function fetchMorePosts(
   filters: PostsParams,
@@ -108,10 +108,8 @@ export async function approvePost(postId: number, params: ApprovePostParams) {
     await PostsApi.approvePost(postId, params);
     revalidatePath(`/questions/${postId}/`);
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -121,10 +119,8 @@ export async function removePostFromProject(postId: number, projectId: number) {
     await PostsApi.removePostFromProject(postId, projectId);
     return null;
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -140,10 +136,8 @@ export async function createForecasts(
       revalidatePath(`/questions/${postId}`);
     }
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -159,10 +153,8 @@ export async function withdrawForecasts(
       revalidatePath(`/questions/${postId}`);
     }
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -244,10 +236,8 @@ export async function resolveQuestion(
 
     return;
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -260,10 +250,8 @@ export async function unresolveQuestion(questionId: number) {
 
     return;
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -272,10 +260,8 @@ export async function uploadImage(formData: FormData) {
   try {
     return await PostsApi.uploadImage(formData);
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -284,10 +270,8 @@ export async function getComments(commentsParams: getCommentsParams) {
   try {
     return await CommentsApi.getComments(commentsParams);
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -296,10 +280,8 @@ export async function softDeleteComment(commentId: number) {
   try {
     return await CommentsApi.softDeleteComment(commentId);
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -308,10 +290,8 @@ export async function editComment(commentData: EditCommentParams) {
   try {
     return await CommentsApi.editComment(commentData);
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -320,10 +300,8 @@ export async function createComment(commentData: CreateCommentParams) {
   try {
     return await CommentsApi.createComment(commentData);
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -355,10 +333,8 @@ export async function searchUsers(query: string) {
   try {
     return await ProfileApi.searchUsers(query);
   } catch (err) {
-    const error = err as FetchError;
-
     return {
-      errors: error.data,
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }

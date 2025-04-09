@@ -1,7 +1,7 @@
 "use server";
 
 import ProfileApi from "@/services/profile";
-import { FetchError } from "@/types/fetch";
+import { ApiError } from "@/utils/errors";
 
 export async function changePassword(password: string, new_password: string) {
   try {
@@ -9,14 +9,12 @@ export async function changePassword(password: string, new_password: string) {
 
     return {};
   } catch (err) {
-    const error = err as FetchError;
-
-    if (!error.data) {
+    if (!ApiError.isApiError(err)) {
       throw err;
     }
 
     return {
-      errors: error.data,
+      errors: err.data,
     };
   }
 }
@@ -27,14 +25,12 @@ export async function changeEmail(email: string, password: string) {
 
     return {};
   } catch (err) {
-    const error = err as FetchError;
-
-    if (!error.data) {
+    if (!ApiError.isApiError(err)) {
       throw err;
     }
 
     return {
-      errors: error.data,
+      errors: err.data,
     };
   }
 }

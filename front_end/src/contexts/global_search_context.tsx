@@ -8,6 +8,7 @@ import {
   useEffect,
   Dispatch,
   SetStateAction,
+  useCallback,
 } from "react";
 
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
@@ -19,15 +20,19 @@ interface GlobalSearchContextProps {
   isVisible: boolean;
   setIsVisible: (a: boolean) => void;
   globalSearch: string;
-  setGlobalSearch: Dispatch<SetStateAction<string>>;
+  updateGlobalSearch: (search: string) => void;
   setModifySearchParams: Dispatch<SetStateAction<boolean>>;
+  isSearched: boolean;
+  setIsSearched: Dispatch<SetStateAction<boolean>>;
 }
 const GlobalSearchContext = createContext<GlobalSearchContextProps>({
   isVisible: false,
   setIsVisible: () => {},
   globalSearch: "",
-  setGlobalSearch: () => {},
+  updateGlobalSearch: () => {},
   setModifySearchParams: () => {},
+  isSearched: false,
+  setIsSearched: () => {},
 });
 
 export const GlobalSearchProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -41,6 +46,8 @@ export const GlobalSearchProvider: FC<PropsWithChildren> = ({ children }) => {
       modifySearchParams,
     }
   );
+  const [isSearched, setIsSearched] = useState(false);
+
   const { previousPath, currentPath } = useNavigation();
   useEffect(() => {
     if (previousPath !== currentPath && previousPath !== null) {
@@ -55,14 +62,27 @@ export const GlobalSearchProvider: FC<PropsWithChildren> = ({ children }) => {
     }, 100);
   }, [isVisible]);
 
+  const updateGlobalSearch = useCallback(
+    (search: string) => {
+      setGlobalSearch(search);
+      if (modifySearchParams) {
+        // automatically update searched flag when search is applied while typing
+        setIsSearched(!!search);
+      }
+    },
+    [modifySearchParams, setGlobalSearch]
+  );
+
   return (
     <GlobalSearchContext.Provider
       value={{
         isVisible: delayedIsVisible,
         setIsVisible,
         globalSearch,
-        setGlobalSearch,
+        updateGlobalSearch,
         setModifySearchParams,
+        isSearched,
+        setIsSearched,
       }}
     >
       {children}
