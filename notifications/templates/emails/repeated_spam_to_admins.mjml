@@ -8,7 +8,7 @@
             <mj-column>
 
                 <mj-text>
-                    This user <a href="{% build_user_profile_url author.id %}">@{{ author.username }}</a> has had 2 pieces of content marked as spam in the last 2 weeks. The last one :
+                    This user <a href="{% build_user_profile_url author.id %}">@{{ author.username }}</a> has had 2 pieces of content marked as spam in the last 2 weeks. The last one ({{ content_type }}) :
                 </mj-text>
 
                 <mj-text>
