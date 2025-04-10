@@ -238,6 +238,34 @@ export type Question = {
   status?: QuestionStatus;
 };
 
+// TODO: add all fileds that are editable in creation form
+export type EditableQuestionFields = Pick<
+  Question,
+  | "title"
+  | "description"
+  | "options" // MC fields
+  | "group_variable"
+  | "group_rank"
+  | "scaling"
+  | "resolution"
+  | "include_bots_in_aggregates"
+  | "question_weight"
+  | "fine_print"
+  | "resolution_criteria"
+  | "label"
+  | "unit"
+  | "post_id"
+  | "display_divergences"
+  | "open_lower_bound"
+  | "open_upper_bound"
+  | "status"
+  | "type"
+>;
+
+export type QuestionDraft = Partial<EditableQuestionFields> & {
+  lastModified: number;
+};
+
 export type QuestionWithNumericForecasts = Question & {
   type: QuestionType.Numeric | QuestionType.Date | QuestionType.Binary;
   forecasts: NumericForecast;

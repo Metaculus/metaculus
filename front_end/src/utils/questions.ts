@@ -25,6 +25,7 @@ import {
 import {
   ForecastAvailability,
   Question,
+  QuestionDraft,
   QuestionLinearGraphType,
   QuestionType,
   QuestionWithForecasts,
@@ -684,3 +685,33 @@ export const formatValueUnit = (value: string, unit?: string) => {
 
 export const isUnitCompact = (unit?: string) =>
   unit && unit.length <= QUESTION_UNIT_COMPACT_LENGTH;
+
+const QUESTION_DRAFT_PREFIX = "question_draft_";
+// const DRAFT_SAVE_INTERVAL = 5000; // Remove if not needed
+
+export function getQuestionDraftKey(questionType: string) {
+  return `${QUESTION_DRAFT_PREFIX}${questionType}`;
+}
+
+export function saveQuestionDraft(
+  questionType: string,
+  formData: Partial<QuestionDraft>
+) {
+  const key = getQuestionDraftKey(questionType);
+  const draft = {
+    ...formData,
+    lastModified: Date.now(),
+  };
+  localStorage.setItem(key, JSON.stringify(draft));
+}
+
+export function getQuestionDraft(questionType: string): QuestionDraft | null {
+  const key = getQuestionDraftKey(questionType);
+  const draft = localStorage.getItem(key);
+  return draft ? JSON.parse(draft) : null;
+}
+
+export function deleteQuestionDraft(questionType: string) {
+  const key = getQuestionDraftKey(questionType);
+  localStorage.removeItem(key);
+}

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -23,6 +23,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
 import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
@@ -33,7 +34,11 @@ import {
 import { QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
-import { getQuestionStatus } from "@/utils/questions";
+import {
+  getQuestionDraft,
+  getQuestionStatus,
+  saveQuestionDraft,
+} from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -383,7 +388,42 @@ const QuestionForm: FC<Props> = ({
   if (questionType) {
     form.setValue("type", questionType);
   }
+  const handleFormChange = useCallback(() => {
+    if (mode === "create") {
+      const formData = form.getValues();
+      console.log("formData", formData);
+      saveQuestionDraft(questionType, {
+        ...formData,
+        options: optionsList, // If MC question
+      });
+    }
+  }, [form, mode, questionType, optionsList]);
+  // get draft and populate form if it exists
+  useEffect(() => {
+    if (mode === "create") {
+      const draft = getQuestionDraft(questionType);
+      console.log("draft", draft);
+      if (draft) {
+        // Populate form with draft data
+        Object.entries(draft).forEach(([key, value]) => {
+          if (key !== "lastModified" && key !== "type") {
+            form.setValue(key as any, value);
+          }
+        });
 
+        // If it's a multiple choice question, also update the options list
+        if (questionType === "multiple_choice" && draft.options) {
+          setOptionsList(draft.options);
+        }
+      }
+    }
+  }, [form, mode, questionType]);
+  const debouncedHandleFormChange = useDebouncedCallback(
+    handleFormChange,
+    5000,
+    { leading: true }
+  );
+  console.log(form);
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
@@ -402,7 +442,7 @@ const QuestionForm: FC<Props> = ({
               community_id ? community_id : defaultProject.id
             );
           }
-
+          console.log("form.getValues()", form.getValues());
           // e.preventDefault(); // Good for debugging
           await form.handleSubmit(
             async (data) => {
@@ -413,10 +453,7 @@ const QuestionForm: FC<Props> = ({
             }
           )(e);
         }}
-        onChange={async () => {
-          const data = form.getValues();
-          data["type"] = questionType;
-        }}
+        onChange={debouncedHandleFormChange}
         className="mt-4 flex w-full flex-col gap-6"
       >
         <FormError
