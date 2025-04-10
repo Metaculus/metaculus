@@ -178,14 +178,16 @@ const ContinuousTable: FC<Props> = ({
                 <Td></Td>
                 {question.open_lower_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
-                    {getTableDisplayValue({
-                      value: lowerBoundLocation,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
-                      unit: question.unit,
-                      actual_resolve_time: question.actual_resolve_time ?? null,
-                    })}
+                    {(question.type === QuestionType.Discrete ? "<" : "") +
+                      getTableDisplayValue({
+                        value: lowerBoundLocation,
+                        questionType: question.type,
+                        scaling: question.scaling,
+                        precision: 4,
+                        unit: question.unit,
+                        actual_resolve_time:
+                          question.actual_resolve_time ?? null,
+                      })}
                   </Td>
                 )}
                 <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
@@ -199,14 +201,16 @@ const ContinuousTable: FC<Props> = ({
                 </Td>
                 {question.open_upper_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
-                    {getTableDisplayValue({
-                      value: upperBoundLocation,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
-                      unit: question.unit,
-                      actual_resolve_time: question.actual_resolve_time ?? null,
-                    })}
+                    {(question.type === QuestionType.Discrete ? ">" : "") +
+                      getTableDisplayValue({
+                        value: upperBoundLocation,
+                        questionType: question.type,
+                        scaling: question.scaling,
+                        precision: 4,
+                        unit: question.unit,
+                        actual_resolve_time:
+                          question.actual_resolve_time ?? null,
+                      })}
                   </Td>
                 )}
               </>
