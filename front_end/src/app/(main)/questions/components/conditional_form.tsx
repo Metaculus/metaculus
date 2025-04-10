@@ -8,7 +8,6 @@ import { FieldValues, useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
-import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
@@ -165,8 +164,6 @@ const ConditionalForm: React.FC<{
           )(e);
         }}
       >
-        <PostDjangoAdminLink post={post} />
-
         {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}

@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import NotFound
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -18,6 +19,7 @@ from scoring.serializers import (
     LeaderboardSerializer,
     LeaderboardEntrySerializer,
     ContributionSerializer,
+    GetLeaderboardSerializer,
 )
 from scoring.utils import get_contributions
 from users.models import User
@@ -29,20 +31,22 @@ from users.views import serialize_profile
 def global_leaderboard(
     request: Request,
 ):
-    # params
-    start_time = request.GET.get("startTime", None)
-    end_time = request.GET.get("endTime", None)
-    leaderboard_type = request.GET.get("leaderboardType", None)
+    serializer = GetLeaderboardSerializer(data=request.GET)
+    serializer.is_valid(raise_exception=True)
+    score_type = serializer.validated_data.get("score_type")
+    start_time = serializer.validated_data.get("start_time")
+    end_time = serializer.validated_data.get("end_time")
+
     # filtering
     leaderboards = Leaderboard.objects.filter(
-        project__visibility=Project.Visibility.NORMAL
+        project__type=Project.ProjectTypes.SITE_MAIN
     )
     if start_time:
         leaderboards = leaderboards.filter(start_time=start_time)
     if end_time:
         leaderboards = leaderboards.filter(end_time=end_time)
-    if leaderboard_type:
-        leaderboards = leaderboards.filter(score_type=leaderboard_type)
+    if score_type:
+        leaderboards = leaderboards.filter(score_type=score_type)
     leaderboard_count = leaderboards.count()
     if leaderboard_count == 0:
         return Response(status=status.HTTP_404_NOT_FOUND)
@@ -78,9 +82,11 @@ def project_leaderboard(
     request: Request,
     project_id: int,
 ):
-    # params
-    leaderboard_type = request.GET.get("leaderboardType", None)
-    leaderboard_name = request.GET.get("leaderboardName", None)
+    serializer = GetLeaderboardSerializer(data=request.GET)
+    serializer.is_valid(raise_exception=True)
+    score_type = serializer.validated_data.get("score_type")
+    name = serializer.validated_data.get("name")
+    primary = serializer.validated_data.get("primary", True)
 
     projects = get_projects_qs(user=request.user)
     project: Project = get_object_or_404(projects, pk=project_id)
@@ -88,23 +94,29 @@ def project_leaderboard(
     permission = get_project_permission_for_user(project, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    # filtering
-    leaderboards = Leaderboard.objects.filter(project=project)
-    if leaderboard_name:
-        leaderboards = leaderboards.filter(name=leaderboard_name)
-    if leaderboard_type:
-        leaderboards = leaderboards.filter(score_type=leaderboard_type)
-
-    # get leaderboard and project
-    leaderboard_count = leaderboards.count()
-    if leaderboard_count == 0:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    if leaderboard_count > 1:
+    if primary:
+        # get the primary leaderboard
         leaderboard = project.primary_leaderboard
-        if not leaderboard:
+        if leaderboard is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
     else:
-        leaderboard = leaderboards.first()
+        # get the leaderboard through params (may return primary leaderboard)
+        leaderboards = Leaderboard.objects.filter(project=project)
+        if name:
+            leaderboards = leaderboards.filter(name=name)
+        if score_type:
+            leaderboards = leaderboards.filter(score_type=score_type)
+
+        # get leaderboard and project
+        leaderboard_count = leaderboards.count()
+        if leaderboard_count == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        if leaderboard_count > 1:
+            leaderboard = project.primary_leaderboard
+            if not leaderboard:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            leaderboard = leaderboards.first()
 
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
@@ -157,14 +169,11 @@ def user_medals(
     if not user_id:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    entries_with_medals = (
-        LeaderboardEntry.objects.filter(
-            user_id=user_id,
-            medal__isnull=False,
-        )
-        .exclude(leaderboard__project__default_permission__isnull=True)
-        .select_related("leaderboard__project", "user")
-    )
+    entries_with_medals = LeaderboardEntry.objects.filter(
+        user_id=user_id,
+        medal__isnull=False,
+        leaderboard__project__default_permission=ObjectPermission.FORECASTER,
+    ).select_related("leaderboard__project", "user")
 
     # Fetch counts of non-excluded entries for each leaderboard and create a mapping
     leaderboard_entries_mapping = {
@@ -203,41 +212,54 @@ def user_medals(
 def medal_contributions(
     request: Request,
 ):
-    user_id = request.GET.get("userId", None)
-    user = get_object_or_404(User, pk=user_id)
-    project_id = request.GET.get("projectId", get_site_main_project().id)
+    serializer = GetLeaderboardSerializer(data=request.GET)
+    serializer.is_valid(raise_exception=True)
 
+    user_id = serializer.validated_data.get("for_user")
+    user = get_object_or_404(User, pk=user_id)
+
+    project_id = serializer.validated_data.get("project")
+    project_id = project_id or get_site_main_project().id
     projects = get_projects_qs(user=request.user)
     project: Project = get_object_or_404(projects, pk=project_id)
+
     # Check permissions
     permission = get_project_permission_for_user(project, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    start_time = request.GET.get("startTime", None)
-    end_time = request.GET.get("endTime", None)
-    leaderboard_type = request.GET.get("leaderboardType", None)
-    leaderboard_name = request.GET.get("leaderboardName", None)
+    start_time = serializer.validated_data.get("start_time")
+    end_time = serializer.validated_data.get("end_time")
+    score_type = serializer.validated_data.get("score_type")
+    name = serializer.validated_data.get("name")
+    primary = serializer.validated_data.get("primary", True)
 
-    leaderboards = Leaderboard.objects.filter(project=project)
-    if start_time:
-        leaderboards = leaderboards.filter(start_time=start_time)
-    if end_time:
-        leaderboards = leaderboards.filter(end_time=end_time)
-    if leaderboard_type:
-        leaderboards = leaderboards.filter(score_type=leaderboard_type)
-    if leaderboard_name:
-        leaderboards = leaderboards.filter(name=leaderboard_name)
-
-    # get leaderboard and project
-    leaderboard_count = leaderboards.count()
-    if leaderboard_count == 0:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    if leaderboard_count > 1:
+    if primary:
+        # get the primary leaderboard
         leaderboard = project.primary_leaderboard
-        if not leaderboard:
+        if leaderboard is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
     else:
-        leaderboard = leaderboards.first()
+        # get the leaderboard through params (may return primary leaderboard)
+        leaderboards = Leaderboard.objects.filter(project=project)
+        if start_time:
+            leaderboards = leaderboards.filter(start_time=start_time)
+        if end_time:
+            leaderboards = leaderboards.filter(end_time=end_time)
+        if score_type:
+            leaderboards = leaderboards.filter(score_type=score_type)
+        if name:
+            leaderboards = leaderboards.filter(name=name)
+
+        # get leaderboard and project
+        leaderboard_count = leaderboards.count()
+        if leaderboard_count == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        if leaderboard_count > 1:
+            leaderboard = project.primary_leaderboard
+            if not leaderboard:
+                raise NotFound()
+        else:
+            leaderboard = leaderboards.first()
 
     contributions = get_contributions(user, leaderboard)
     leaderboard_entry = leaderboard.entries.filter(user=user).first()

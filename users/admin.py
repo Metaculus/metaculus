@@ -5,8 +5,9 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
 
-from users.models import User, UserCampaignRegistration
+from users.models import User, UserCampaignRegistration, UserSpamActivity
 from users.services.spam_detection import (
+    CONFIDENCE_THRESHOLD,
     check_profile_data_for_spam,
     send_deactivation_email,
 )
@@ -239,3 +240,50 @@ class UserCampaignRegistrationAdmin(admin.ModelAdmin):
     list_display = ["user", "key", "details"]
     readonly_fields = ["user", "key"]
     search_fields = ["user__username", "user__email"]
+
+
+@admin.register(UserSpamActivity)
+class UserSpamActivityAdmin(admin.ModelAdmin):
+    list_display = [
+        "user",
+        "content_type",
+        "content_link",
+        "confidence",
+        "confidence_value",
+        "reason",
+        "content_id",
+    ]
+    readonly_fields = [
+        "user",
+        "content_type",
+        "content_id",
+        "confidence",
+        "reason",
+        "text",
+        "confidence_value",
+        "content_link",
+    ]
+    search_fields = ["user__username", "user__email"]
+
+    def content_link(self, obj):
+        match obj.content_type:
+            case UserSpamActivity.SpamContentType.COMMENT:
+                url = f"/admin/comments/comment/{obj.content_id}/change/"
+            case UserSpamActivity.SpamContentType.QUESTION:
+                url = f"/admin/questions/question/{obj.content_id}/change/"
+            case UserSpamActivity.SpamContentType.NOTEBOOK:
+                url = f"/admin/posts/notebook/{obj.content_id}/change/"
+            case _:
+                url = None
+
+        return format_html('<a href="{}">View</a>', url)
+
+    content_link.short_description = "Content link"
+
+    def confidence_value(self, obj):
+        return (
+            f"{'high' if obj.confidence > CONFIDENCE_THRESHOLD else 'low (suspicious)'}"
+        )
+
+    confidence_value.admin_order_field = "confidence"
+    confidence_value.short_description = "Confidence"

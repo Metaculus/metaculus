@@ -843,11 +843,12 @@
   "FABStartDateJuly8": "July 8",
   "FABStartDateOct8": "October 8",
   "FABStartDateJan20": "January 20",
+  "FABStartDateApr21": "April 21",
   "FABEndDateSep30": "September 30",
   "FABEndDateDec31": "December 31",
   "FABdesc1": "Compete with API credits provided courtesy of OpenAI and Anthropic.",
-  "FABdesc2": "Features more question types, including <bold>Multiple Choice</bold>, <bold>Numerical</bold>, and <bold>Date</bold> questions.",
-  "FABdesc3": "New questions open at random times for only 1-2 hours windows, to build confidence that there is no human in the loop.",
+  "FABdesc2": "Features <bold>Multiple Choice</bold>, <bold>Numeric</bold>, and <bold>Binary</bold> questions.",
+  "FABdesc3": "New questions open once every 2hr for most the week and continue through the night, to build confidence that there is no human in the loop.",
   "FABRulesTitle": "Basic rules",
   "FABRulesRule1": "No human in the loop",
   "FABRulesRule2": "Bots must post a comment explaining reasoning alongside each forecast",
@@ -869,7 +870,7 @@
   "FABBotAlreadyCreated": "Create a bot account to participate. If you already have one, close this window, click the 'Log in' button in the upper-right corner of this page, and log in with your bot account.",
   "FABTokenInfo": "Your token is needed for your bot to interact with the Metaculus API.",
   "FABQ3Conclude": "Q3 is concluded, but Q4 is underway.",
-  "FABQ4Conclude": "2025's Q1 tournament is underway!",
+  "FABQ4Conclude": "2025's Q2 tournament is underway!",
   "FABQ3ConcludeButton": "Click to learn more and get started",
   "FABQ4Start": "Q4 has started, but the Q3 tournament has concluded! Click for the final rankings.",
   "FABQ1Start": "Check out the final rankings for last year's Q4 tournament!",
@@ -1178,5 +1179,8 @@
   "forecastCopyToAllToastMessage": "Distribution copied to all other questions",
   "forecastCopyFromToastMessage": "Distribution copied from ''{name}''",
   "forecastCopyToToastMessage": "Distribution copied from ''{from_name}'' to ''{to_name}''",
-  "result": "result"
+  "result": "result",
+  "communityDisclaimer": "Contributed by the <community></community> community. <learnMore>Learn more</learnMore>",
+  "communityDisclaimerSiteMain": "This question is also part of main Metaculus.",
+  "conditionalBranchResolutionAnnulled": "This branch was annulled because the <link>parent question</link> resolved <resolution></resolution>."
 }

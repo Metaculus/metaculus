@@ -1,7 +1,8 @@
-import json
 import base64
+import json
 import logging
 import re
+import time
 from collections.abc import Generator
 from datetime import datetime
 
@@ -10,23 +11,14 @@ import pytz
 from django.conf import settings
 from django.db import transaction
 
-# from metac_account.models.user import User
-# from metac_project.model_utils.permissions import QuestionPermissions
-# from metac_project.models.project import Project, ProjectScoreType
-# from metac_question.models.question import Question
-from users.models import User
+from posts.models import Post
+from posts.services.common import trigger_update_post_translations
+from posts.tasks import run_post_indexing
 from projects.models import Project
 from questions.models import Question
-from posts.models import Post
-from posts.tasks import run_post_indexing
-from posts.services.common import trigger_update_post_translations
+from users.models import User
 
 logger = logging.getLogger(__name__)
-
-
-def get_fab_tournament() -> Project | None:
-    project = Project.objects.filter(pk=32627).last()
-    return project
 
 
 scopes = [
@@ -34,7 +26,8 @@ scopes = [
     "https://www.googleapis.com/auth/drive",
 ]
 
-MAX_COL = "T"
+MAX_COLUMN = "U"
+HEADER_ROW = 2
 
 
 def convert_to_timestamp(date, hour, minute):
@@ -99,7 +92,7 @@ def get_question_weight(row_values):
     if not value_str:
         return 1.0
     value = float(value_str)
-    if value <= 1 and value > 0:
+    if value <= 1 and value >= 0:
         return value
     raise ValueError("Invalid value for the question_weight field")
 
@@ -116,7 +109,7 @@ def get_range_min(row_values):
     return value
 
 
-def get_zero_point(row_values):
+def get_zero_point(row_values) -> float | None:
     value_str = row_values["zero_point"]
     if not value_str:
         return None
@@ -129,7 +122,12 @@ def get_open_lower_bound(row_values):
 
 
 def get_open_upper_bound(row_values):
-    return row_values["open_lower_bound"].lower() == "true"
+    return row_values["open_upper_bound"].lower() == "true"
+
+
+def get_unit(row_values) -> str:
+    value_str = row_values.get("unit", "")
+    return value_str.strip()
 
 
 def get_group_variable(row_values):
@@ -175,6 +173,7 @@ numeric_q_fields = [
     ("zero_point", get_zero_point),
     ("open_lower_bound", get_open_lower_bound),
     ("open_upper_bound", get_open_upper_bound),
+    ("unit", get_unit),
 ]
 
 multiple_choice_q_fields = [
@@ -210,12 +209,15 @@ def submit_questions(
     def log_info(msg: str):
         return messages.append(("info", msg))
 
+    if not tournament:
+        log_error("Tournament not found")
+        return messages
+
     try:
         start_str, end_str = rows_range.split(":")
         start, end = int(start_str), int(end_str)
         if start > end:
             raise ValueError()
-        # [int(l) for l in rows_range.split(":")]
     except Exception:
         log_error(
             f"Invalid value for rows range: {rows_range}. Should be in the format start:end"
@@ -225,13 +227,11 @@ def submit_questions(
     log_info(
         f"Importing these questions to tournament [{tournament.id}/{tournament.name}], from sheet [{worksheet.title}]-> {rows_range}: "
     )
-    top_columns = worksheet.get("A2:T2")[0]
+    top_columns = worksheet.get(f"A{HEADER_ROW}:{MAX_COLUMN}{HEADER_ROW}")[0]
 
     def get_raw_val(row, col_name):
         col_idx = top_columns.index(col_name)
-        # row = worksheet.get(f"A{row_idx}:T{row_idx}", maintain_size=True)[0]
-        val = row[col_idx]
-        return val
+        return row[col_idx]
 
     def get_values_dict(row):
         values_dict = {}
@@ -239,6 +239,9 @@ def submit_questions(
             idx = top_columns.index(field_name)
             values_dict[field_name] = row[idx]
         return values_dict
+
+    start_time = time.time()
+    created_posts: list[Post] = []
 
     with transaction.atomic():
         for row, row_idx in rows_iterator(worksheet, rows_range):
@@ -262,6 +265,7 @@ def submit_questions(
                     val = get_raw_val(row, field_name)
 
                     if val == ".p":
+                        # .p is used to indicate that the field of the parent post should be used
                         if parent_post is None:
                             log_error(
                                 f"Error on row {row_idx}, col '{field_name}': question has no parent, but '.p' was used for field"
@@ -283,10 +287,10 @@ def submit_questions(
                 break
 
             question = Question(**question_data)
-
             question.cp_reveal_time = question.scheduled_close_time
             question.include_bots_in_aggregates = True
             question.save()
+
             post = Post(
                 title=question.title,
                 author=author,
@@ -300,12 +304,26 @@ def submit_questions(
                 scheduled_resolve_time=question.scheduled_resolve_time,
             )
             post.save()
-            run_post_indexing.send(post.id)
-            trigger_update_post_translations(post)
-            log_info(f"   - added question [{question.title}] to {tournament.name}")
+            created_posts.append(post)
+            log_info(
+                f"   - added Question/Post [{question.title}] to {tournament.name}"
+            )
+
         if rollback:
             transaction.set_rollback(True)
             log_info("****UNDO all actions, nothing was saved to the DB****")
+    transaction_end_time = time.time()
+    log_info(
+        f"Total transaction time taken: {transaction_end_time - start_time:.2f} seconds"
+    )
+
+    if not rollback:
+        for post in created_posts:
+            run_post_indexing.send(post.id)
+            trigger_update_post_translations(post)
+    final_end_time = time.time()
+    log_info(f"Total final time taken: {final_end_time - start_time:.2f} seconds")
+
     return messages
 
 
@@ -335,9 +353,9 @@ def rows_iterator(worksheet, rows_range: str) -> Generator[tuple[str, int], None
     batch = 5
     [start, end] = [int(a) for a in rows_range.split(":")]
     row = start
-    batch = min(batch, end - start)
     while row < end:
-        rows = worksheet.get(f"A{row}:T{row+batch-1}", maintain_size=True)
+        batch = min(batch, end - row)
+        rows = worksheet.get(f"A{row}:{MAX_COLUMN}{row+batch-1}", maintain_size=True)
         # range will not yield the last element in the range, while worksheet.get will, hence the
         # mismatch between the two here
         yield from zip(rows, range(row, row + batch))

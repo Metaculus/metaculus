@@ -1,6 +1,8 @@
 "use client";
 
+import { MDXEditorMethods } from "@mdxeditor/editor";
 import { sendGAEvent } from "@next/third-parties/google";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useEffect, useRef, useState } from "react";
 
@@ -13,9 +15,15 @@ import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useDebouncedValue } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
-import cn from "@/utils/cn";
+import {
+  saveCommentDraft,
+  getCommentDraft,
+  deleteCommentDraft,
+  cleanupDrafts,
+} from "@/utils/comments";
 import { parseComment } from "@/utils/comments";
 
 import { validateComment } from "./validate_comment";
@@ -43,21 +51,18 @@ const CommentEditor: FC<CommentEditorProps> = ({
 }) => {
   const t = useTranslations();
 
-  /* TODO: Investigate the synchronization between the internal state of MDXEditor and the external state. */
-  /* Currently, manually updating the markdown state outside of MDXEditor only affects our local state, while the editor retains its previous state.
-   As a temporary workaround, we use the 'key' prop to force a re-render, creating a new instance of the component with the updated initial state.
-   This ensures the editor reflects the correct markdown content. */
-  const [rerenderKey, updateRerenderKey] = useState(0);
+  /* Manually updating the markdown state outside of MDXEditor only affects 
+   our local state, while the editor retains its previous state. As a workaround, 
+   we use the setMarkdown function in editorRef to update the editor's state. */
+  const editorRef = useRef<MDXEditorMethods>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(true);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
-
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
-  const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
+  const debouncedMarkdown = useDebouncedValue(markdown, 1000);
   const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [hasInteracted, setHasInteracted] = useState(false);
-  const editorRef = useRef<HTMLDivElement>(null);
+  const editorWrapperRef = useRef<HTMLDivElement>(null);
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -67,7 +72,36 @@ const CommentEditor: FC<CommentEditorProps> = ({
     if (!isReplying) {
       setIsPrivateComment(isPrivateFeed);
     }
-  }, [isPrivateFeed, isReplying]);
+  }, [isReplying, isPrivateFeed]);
+
+  // Load comment draft and remove old ones on mount
+  useEffect(() => {
+    if (postId && user?.id) {
+      cleanupDrafts();
+      const draft = getCommentDraft(user.id, postId, parentId);
+      if (draft) {
+        setMarkdown(draft.markdown ?? "");
+        setHasIncludedForecast(draft.includeForecast ?? false);
+        editorRef.current?.setMarkdown(draft.markdown ?? "");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // save draft on debounced markdown change
+  useEffect(() => {
+    if (!isNil(postId) && hasInteracted && user) {
+      saveCommentDraft({
+        markdown: debouncedMarkdown,
+        includeForecast: hasIncludedForecast,
+        lastModified: Date.now(),
+        userId: user.id,
+        postId,
+        parentId,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedMarkdown, hasIncludedForecast, postId, parentId]);
 
   useEffect(() => {
     if (params.get("action") === "comment-with-forecast") {
@@ -76,14 +110,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
       shallowNavigateToSearchParams();
 
       // Scroll to editor
-      editorRef.current?.scrollIntoView({
+      editorWrapperRef.current?.scrollIntoView({
         behavior: "smooth",
       });
 
       // Set the forecast checkbox
       setHasIncludedForecast(true);
     }
-  }, [params, clearParams]);
+  }, [params, clearParams, shallowNavigateToSearchParams]);
 
   const handleSubmit = async () => {
     setErrorMessage("");
@@ -113,25 +147,29 @@ const CommentEditor: FC<CommentEditorProps> = ({
         is_private: isPrivateComment,
       });
 
-      if ("errors" in newComment) {
-        console.error(newComment.errors?.message);
-        setErrorMessage(newComment.errors?.message);
+      if (!!newComment && "errors" in newComment) {
+        const errorMessage =
+          newComment.errors?.message ??
+          newComment.errors?.non_field_errors?.[0];
+
+        setErrorMessage(errorMessage);
         return;
       }
 
-      setIsEditing(true);
+      // Delete the draft after successful submission
+      if (postId && user) {
+        deleteCommentDraft({ userId: user.id, postId, parentId });
+      }
+
       setHasIncludedForecast(false);
       setMarkdown("");
-      setIsMarkdownDirty(false);
-      updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
-
+      editorRef.current?.setMarkdown("");
       onSubmit?.(parseComment(newComment));
     } finally {
       setIsLoading(false);
     }
   };
   const handleMarkdownChange = (newMarkdown: string) => {
-    setIsMarkdownDirty(!!newMarkdown);
     setMarkdown(newMarkdown);
     if (!hasInteracted) {
       setHasInteracted(true);
@@ -173,28 +211,19 @@ const CommentEditor: FC<CommentEditorProps> = ({
         <IncludedForecast author="test" forecastValue={test} />
       )*/}
       <div
-        ref={editorRef}
-        className={cn(
-          "scroll-mt-24 border border-gray-500 dark:border-gray-500-dark",
-          {
-            hidden: !isEditing,
-          }
-        )}
+        ref={editorWrapperRef}
+        className="scroll-mt-24 border border-gray-500 dark:border-gray-500-dark"
       >
         <MarkdownEditor
-          key={rerenderKey}
+          ref={editorRef}
           mode="write"
           markdown={markdown}
           onChange={handleMarkdownChange}
-          shouldConfirmLeave={isMarkdownDirty}
           withUgcLinks
           withUserMentions
-          initialMention={replyUsername}
+          initialMention={!markdown.trim() ? replyUsername : undefined} // only populate with mention if there is no draft
         />
       </div>
-      {!isEditing && (
-        <MarkdownEditor mode="read" markdown={markdown} withUgcLinks />
-      )}
       {(isReplying || hasInteracted) && (
         <div className="my-4 flex items-center justify-end gap-3">
           {!isReplying && isPrivateFeed && (
@@ -202,19 +231,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
               {t("youArePostingAPrivateComment")}
             </span>
           )}
-          <Button
-            disabled={markdown.length === 0}
-            className="p-2"
-            onClick={() => {
-              setIsEditing((prev) => !prev);
-              if (errorMessage) {
-                setErrorMessage("");
-              }
-            }}
-          >
-            {isEditing ? t("preview") : t("edit")}
-          </Button>
-
           <Button
             className="p-2"
             disabled={markdown.length === 0 || isLoading}

@@ -1,0 +1,28 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+
+                <mj-text>
+                    This user <a href="{% build_user_profile_url author.id %}">@{{ author.username }}</a> has had 2 pieces of content marked as spam in the last 2 weeks. The last one ({{ content_type }}) :
+                </mj-text>
+
+                <mj-text>
+                    <span>“{{ content_text }}”</span>
+                    <a href="{{ content_url }}">(link)</a>
+                </mj-text>
+
+                <mj-text>
+                    Please review and take necessary actions if any. Here is a list with all their spam entries:
+                    <a href="{% build_frontend_url 'admin/users/userspamactivity/?q=' %}{{author.username}}">
+                        link
+                    </a>
+                </mj-text>
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>

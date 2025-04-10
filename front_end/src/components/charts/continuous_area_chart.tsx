@@ -72,6 +72,7 @@ type Props = {
   hideCP?: boolean;
   hideLabels?: boolean;
   unit?: string;
+  shortLabels?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -87,6 +88,7 @@ const ContinuousAreaChart: FC<Props> = ({
   hideCP,
   hideLabels = false,
   unit,
+  shortLabels = false,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -167,8 +169,10 @@ const ContinuousAreaChart: FC<Props> = ({
           questionType === QuestionType.Discrete
             ? (data.at(0)?.pmf.length || 32) - 2
             : undefined,
+        shortLabels,
+        adjustLabels: true,
       }),
-    [chartWidth, questionType, scaling, unit, xDomain, data]
+    [chartWidth, questionType, scaling, unit, xDomain, data, shortLabels]
   );
   const yScale = useMemo(
     () =>
@@ -178,6 +182,7 @@ const ContinuousAreaChart: FC<Props> = ({
         direction: "vertical",
         domain: yDomain,
         zoomedDomain: yDomain,
+        adjustLabels: true,
       }),
     [height, yDomain, paddingTop]
   );

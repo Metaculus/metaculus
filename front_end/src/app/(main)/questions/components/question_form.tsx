@@ -11,7 +11,6 @@ import { FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
-import PostDjangoAdminLink from "@/app/(main)/questions/create/components/django_admin_link";
 import Button from "@/components/ui/button";
 import {
   DateInput,
@@ -435,8 +434,6 @@ const QuestionForm: FC<Props> = ({
         }}
         className="mt-4 flex w-full flex-col gap-6"
       >
-        <PostDjangoAdminLink post={post} />
-
         <FormError
           errors={form.formState.errors}
           className="text-red-500 dark:text-red-500-dark"

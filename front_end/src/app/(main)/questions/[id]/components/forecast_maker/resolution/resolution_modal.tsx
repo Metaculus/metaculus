@@ -16,7 +16,7 @@ import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
 import { ErrorResponse } from "@/types/fetch";
 import { Question, QuestionType } from "@/types/question";
-import { AMBIGUOUS_RESOLUTION, ANNULED_RESOLUTION } from "@/utils/questions";
+import { AMBIGUOUS_RESOLUTION, ANNULLED_RESOLUTION } from "@/utils/questions";
 
 type Props = {
   question: Question;
@@ -57,7 +57,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   const resolutionTypeOptions = useMemo(() => {
     const baseQuestionOptions = [
       { value: AMBIGUOUS_RESOLUTION, label: "Ambiguous" },
-      { value: ANNULED_RESOLUTION, label: "Annulled" },
+      { value: ANNULLED_RESOLUTION, label: "Annulled" },
     ];
 
     if (

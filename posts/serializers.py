@@ -640,7 +640,7 @@ class DownloadDataSerializer(serializers.Serializer):
                 AggregationMethod.UNWEIGHTED,
                 AggregationMethod.METACULUS_PREDICTION,
             ]
-            if user.is_staff:
+            if user and user.is_staff:
                 aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
             return aggregation_methods
         methods: list[str] = [v.strip() for v in value.split(",")]
@@ -651,7 +651,7 @@ class DownloadDataSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 f"Invalid aggregation method(s): {', '.join(invalid_methods)}"
             )
-        if not user.is_staff:
+        if not user or not user.is_staff:
             methods = [
                 method
                 for method in methods

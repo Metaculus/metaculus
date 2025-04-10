@@ -37,7 +37,7 @@ const NewsCard: FC<Props> = ({ post }) => {
               height={300}
               quality={100}
               className="h-auto w-full object-cover max-sm:h-40 max-sm:rounded-t sm:h-full sm:w-60 sm:rounded-r"
-              unoptimized
+              sizes="(max-width: 640px) 100vw, 200vw"
             />
           )}
         <div className="flex flex-1 flex-col p-6 text-base">

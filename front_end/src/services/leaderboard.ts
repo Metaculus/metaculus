@@ -10,17 +10,19 @@ import { encodeQueryParams } from "@/utils/navigation";
 
 export type ProjectContributionsParams = {
   type: "project";
-  userId: number;
-  projectId: number;
+  for_user: number;
+  project: number;
+  primary?: boolean;
 };
 export type GlobalContributionsParams = {
   type: "global";
-  userId: number;
-  startTime: string;
-  endTime: string;
-  leaderboardType: LeaderboardType;
+  for_user: number;
+  start_time: string;
+  end_time: string;
+  score_type: LeaderboardType;
+  primary?: boolean;
 };
-type ContributionsRequestParams = { userId: number } & (
+type ContributionsRequestParams = { for_user: number } & (
   | ProjectContributionsParams
   | GlobalContributionsParams
 );
@@ -34,13 +36,13 @@ class LeaderboardApi {
     // TODO: make paginated
     const params = new URLSearchParams();
     if (startTime) {
-      params.append("startTime", startTime.toString());
+      params.append("start_time", startTime.toString());
     }
     if (endTime) {
-      params.append("endTime", endTime.toString());
+      params.append("end_time", endTime.toString());
     }
     if (leaderboardType) {
-      params.append("leaderboardType", leaderboardType);
+      params.append("score_type", leaderboardType);
     }
     const url = `/leaderboards/global/${params.toString() ? `?${params.toString()}` : ""}`;
     return await get<LeaderboardDetails>(url);
@@ -54,10 +56,10 @@ class LeaderboardApi {
     // TODO: make paginated
     const params = new URLSearchParams();
     if (leaderboardType) {
-      params.append("leaderboardType", leaderboardType);
+      params.append("score_type", leaderboardType);
     }
     if (leaderboardName) {
-      params.append("leaderboardName", leaderboardName);
+      params.append("name", leaderboardName);
     }
 
     const url = `/leaderboards/project/${projectId}/${params.toString() ? `?${params.toString()}` : ""}`;

@@ -19,7 +19,7 @@ from posts.models import Post
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.models import Score
-from users.models import User
+from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
     UserPublicSerializer,
@@ -372,6 +372,7 @@ def serialize_profile(
     user: User | None = None,
     aggregation_method: AggregationMethod | None = None,
     score_type: Score.ScoreTypes | None = None,
+    current_user: User | None = None,
 ) -> dict:
     if (user is None and aggregation_method is None) or (
         user is not None and aggregation_method is not None
@@ -392,9 +393,7 @@ def serialize_profile(
     else:
         score_qs = score_qs.filter(aggregation_method=aggregation_method)
     scores = list(
-        score_qs.select_related("question").prefetch_related(
-            "question__related_posts"
-        )
+        score_qs.select_related("question").prefetch_related("question__related_posts")
     )
     data = {}
     data.update(
@@ -416,6 +415,8 @@ def serialize_profile(
     if user is not None:
         data.update(get_user_profile_data(user))
         data.update(get_authoring_stats_data(user))
+    if current_user is not None and current_user.is_staff:
+        data.update({"spam_count": UserSpamActivity.objects.filter(user=user).count()})
     return data
 
 
@@ -445,7 +446,7 @@ def user_profile_api_view(request, pk: int):
         qs = qs.filter(is_active=True, is_spam=False)
     user = get_object_or_404(qs, pk=pk)
 
-    return Response(serialize_profile(user))
+    return Response(serialize_profile(user, current_user=request.user))
 
 
 @api_view(["GET"])
