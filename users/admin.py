@@ -120,6 +120,7 @@ class UserAdmin(admin.ModelAdmin):
         "id",
         "email",
         "is_active",
+        "verification_level",
         "is_spam",
         "is_bot",
         "duration_joined_to_last_login",
@@ -140,6 +141,7 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ["username", "email", "pk"]
     list_filter = [
         "is_active",
+        "verification_level",
         "is_spam",
         "is_bot",
         "date_joined",
