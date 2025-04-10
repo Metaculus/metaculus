@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone as dt_timezone, timedelta
 
@@ -465,14 +466,53 @@ class NotificationPostStatusChange(
         return _("Questions have changed status")
 
     @classmethod
-    def get_email_context_group(cls, notifications: list[Notification]):
+    def _group_post_subquestions(cls, params: list[ParamsType]):
+        """
+        There may be situations where multiple subquestions of the same post are opened at the same time.
+        We want to group those cases together and show only one row in the UI to make it more user-friendly.
+        """
+
+        grouped = defaultdict(list[cls.ParamsType])
+
+        for param in params:
+            grouped[f"{param.post.post_id}-{param.event}"].append(param)
+
+        new_params: list[cls.ParamsType] = []
+
+        for params in grouped.values():
+            baseline = params[0]
+
+            if len(params) == 1:
+                new_params.append(baseline)
+            else:
+                question_labels = [obj.question.label for obj in params if obj.question]
+                new_post_title = (
+                    f"{baseline.post.post_title}: {', '.join(question_labels)}"
+                )
+
+                # Build a new ParamsType object with the combination of child types
+                new_params.append(
+                    cls.ParamsType(
+                        post=NotificationPostParams(
+                            post_id=baseline.post.post_id,
+                            post_title=new_post_title,
+                            post_type=baseline.post.post_type,
+                        ),
+                        event=baseline.event,
+                        project=baseline.project,
+                    )
+                )
+
+        return new_params
+
+    @classmethod
+    def _generate_notification_params(cls, params: list[ParamsType]):
         # Deduplicate Posts
         # There could be some cases when we have post open notification
         # from both post subscriptions and tournament ones.
         params_map = {}
 
-        for notification in notifications:
-            obj = dataclass_from_dict(cls.ParamsType, notification.params)
+        for obj in params:
             question_id = obj.question.id if obj.question else None
             key = f"{obj.post.post_id}-{question_id}-{obj.event}"
 
@@ -495,14 +535,29 @@ class NotificationPostStatusChange(
             else:
                 from_posts.append(param)
 
+        # Group Post<>subquestions of the same event
+        from_posts = cls._group_post_subquestions(from_posts)
+        for project_id, obj in from_projects.items():
+            obj["notifications"] = cls._group_post_subquestions(obj["notifications"])
+
+        return {
+            "from_projects": list(from_projects.values()),
+            "from_posts": from_posts,
+        }
+
+    @classmethod
+    def get_email_context_group(cls, notifications: list[Notification]):
+        all_params = [
+            dataclass_from_dict(cls.ParamsType, notification.params)
+            for notification in notifications
+        ]
+        final_params = cls._generate_notification_params(all_params)
+
         return {
             "recipient": notifications[0].recipient,
-            "params": {
-                "from_projects": list(from_projects.values()),
-                "from_posts": from_posts,
-            },
+            "params": final_params,
             "similar_posts": cls.get_similar_posts(
-                [x.post.post_id for x in params_map.values()]
+                list({x.post.post_id for x in all_params})
             ),
         }
 
