@@ -214,33 +214,27 @@ export function formatResolution({
 
   if (resolution === "below_lower_bound") {
     if (shortBounds && scaling) {
-      return (
-        "<" +
-        getDisplayValue({
-          value: 0,
-          questionType,
-          scaling,
-          actual_resolve_time,
-          unit,
-          precision: 10,
-        })
-      );
+      return getDisplayValue({
+        value: 0,
+        questionType,
+        scaling,
+        actual_resolve_time,
+        unit,
+        precision: 10,
+      });
     }
     return "Below lower bound";
   }
   if (resolution === "above_upper_bound") {
     if (shortBounds && scaling) {
-      return (
-        ">" +
-        getDisplayValue({
-          value: 1,
-          questionType,
-          scaling,
-          actual_resolve_time,
-          unit,
-          precision: 10,
-        })
-      );
+      return getDisplayValue({
+        value: 1,
+        questionType,
+        scaling,
+        actual_resolve_time,
+        unit,
+        precision: 10,
+      });
     }
     return "Above upper bound";
   }
