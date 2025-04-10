@@ -163,7 +163,11 @@ const ForecastMakerBinary: FC<Props> = ({
           className="mt-2 flex items-center justify-center"
           detached
         />
-        {(isPending || withdrawalIsPending) && <LoadingIndicator />}
+        {(isPending || withdrawalIsPending) && (
+          <div className="h-[32px] w-full">
+            <LoadingIndicator />
+          </div>
+        )}
 
         {showSuccessBox && !isPending && (
           <PredictionSuccessBox
