@@ -113,7 +113,7 @@ const ContinuousAggregationChart: FC<Props> = ({
         {cursorDisplayData && (
           <>
             <span>
-              {graphType === "pmf" ? "P(x = " : "P(x < "}
+              {graphType === "pmf" ? "P(x = " : "P(x ≤ "}
               <span className="font-bold text-gray-900 dark:text-gray-900-dark">
                 {cursorDisplayData.xLabel}
               </span>

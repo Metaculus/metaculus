@@ -250,17 +250,14 @@ const ContinuousAreaChart: FC<Props> = ({
           normalizedX = Math.max(0, Math.min(1, normalizedX));
           const hoverState = charts.reduce<ContinuousAreaHoverState>(
             (acc, el) => {
-              if (el.graphType === "pmf") {
-                if (questionType === QuestionType.Discrete) {
-                  acc.yData[el.type] =
-                    getClosestYValue(normalizedX as number, el.graphLine) /
-                    (el.graphLine.length + 1);
-                } else {
-                  acc.yData[el.type] = getClosestYValue(
-                    normalizedX as number,
-                    el.graphLine
-                  );
-                }
+              if (
+                el.graphType === "pmf" ||
+                questionType === QuestionType.Discrete
+              ) {
+                acc.yData[el.type] = getClosestYValue(
+                  normalizedX as number,
+                  el.graphLine
+                );
                 return acc;
               }
 
@@ -302,7 +299,7 @@ const ContinuousAreaChart: FC<Props> = ({
   }, [chartContainerRef.current, handleMouseMove, handleMouseLeave]);
 
   const barWidth = useMemo(() => {
-    return (chartWidth - 30) / (1.07 * (data.at(0)?.pmf.length || 200));
+    return (chartWidth - 30) / (1.07 * ((data.at(0)?.cdf.length || 200) - 1));
   }, [chartWidth, data]);
 
   const CursorContainer = (
@@ -351,19 +348,16 @@ const ContinuousAreaChart: FC<Props> = ({
         }
         const hoverState = charts.reduce<ContinuousAreaHoverState>(
           (acc, el) => {
-            if (el.graphType === "pmf") {
-              // if graph is a pmf, we need to find the closest y value
-              const closestYValue = getClosestYValue(props?.x, el.graphLine);
-              if (!discrete) {
-                acc.yData[el.type] = closestYValue;
+            if (!discrete) {
+              if (el.graphType === "pmf") {
+                acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
               } else {
-                acc.x = getClosestXValue(props?.x, el.graphLine);
-                acc.yData[el.type] = closestYValue / (el.graphLine.length + 1);
+                acc.yData[el.type] = interpolateYValue(props?.x, el.graphLine);
               }
-              return acc;
+            } else {
+              acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
+              acc.x = getClosestXValue(props?.x, el.graphLine);
             }
-            // if graph is a cdf, we need to interpolate the y value
-            acc.yData[el.type] = interpolateYValue(props?.x, el.graphLine);
             return acc;
           },
           {
@@ -414,7 +408,7 @@ const ContinuousAreaChart: FC<Props> = ({
           {charts
             .filter((chart) => chart.type !== "user_components")
             .map((chart, index) => {
-              if (!discrete || chart.graphType === "cdf") {
+              if (!discrete) {
                 return (
                   <VictoryArea
                     key={`area-${index}`}
@@ -638,7 +632,7 @@ function generateNumericAreaGraph(data: {
   const graph: Line = [];
   if (graphType === "cdf") {
     cdf.forEach((value, index) => {
-      graph.push({ x: index / (cdf.length - 1), y: value });
+      graph.push({ x: (index - 0.5) / (cdf.length - 1), y: value });
     });
   } else {
     pmf.forEach((value, index) => {
@@ -674,7 +668,7 @@ function generateNumericAreaGraph(data: {
 
   const verticalLines: Line = [];
   const quantiles = computeQuartilesFromCDF(cdf);
-  if (discrete && graphType === "pmf") {
+  if (discrete) {
     verticalLines.push(
       {
         x: quantiles.lower25,

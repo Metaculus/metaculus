@@ -64,47 +64,29 @@ const ContinuousPredictionChart: FC<Props> = ({
       xLabel,
       yUserLabel: !hoverState.yData.user
         ? null
-        : graphType === "pmf"
-          ? question.type !== QuestionType.Discrete
-            ? (
-                hoverState.yData.user *
-                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-              ).toFixed(3)
-            : (
-                100 *
-                hoverState.yData.user *
-                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-              ).toFixed(1) + "%"
+        : graphType === "pmf" && question.type !== QuestionType.Discrete
+          ? (
+              hoverState.yData.user *
+              (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+            ).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.user),
       yUserPreviousLabel: readOnly
         ? null
         : !hoverState.yData.user_previous
           ? null
-          : graphType === "pmf"
-            ? question.type !== QuestionType.Discrete
-              ? (
-                  hoverState.yData.user_previous *
-                  (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-                ).toFixed(3)
-              : (
-                  100 *
-                  hoverState.yData.user_previous *
-                  (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-                ).toFixed(1) + "%"
+          : graphType === "pmf" && question.type !== QuestionType.Discrete
+            ? (
+                hoverState.yData.user_previous *
+                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+              ).toFixed(3)
             : getForecastPctDisplayValue(hoverState.yData.user_previous),
       yCommunityLabel: !hoverState.yData.community
         ? null
-        : graphType === "pmf"
-          ? question.type !== QuestionType.Discrete
-            ? (
-                hoverState.yData.community *
-                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-              ).toFixed(3)
-            : (
-                100 *
-                hoverState.yData.community *
-                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-              ).toFixed(1) + "%"
+        : graphType === "pmf" && question.type !== QuestionType.Discrete
+          ? (
+              hoverState.yData.community *
+              (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+            ).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
   }, [graphType, hoverState, question, readOnly]);
@@ -175,7 +157,7 @@ const ContinuousPredictionChart: FC<Props> = ({
         {cursorDisplayData && (
           <>
             <span>
-              {graphType === "pmf" ? "P(x = " : "P(x < "}
+              {graphType === "pmf" ? "P(x = " : "P(x ≤ "}
               <span className="font-bold text-gray-900 dark:text-gray-900-dark">
                 {formatValueUnit(cursorDisplayData.xLabel, question.unit)}
               </span>

@@ -51,11 +51,10 @@ const LineCursorPoints = <T extends string>({
 
   return (
     <>
-      {chartData.map(({ line, color, graphType }, index) => {
-        const yValue =
-          graphType === "pmf" && discrete
-            ? getClosestYValue(datum.x, line)
-            : interpolateYValue(datum.x, line);
+      {chartData.map(({ line, color }, index) => {
+        const yValue = discrete
+          ? getClosestYValue(datum.x, line)
+          : interpolateYValue(datum.x, line);
 
         // adjust the scaledY using the visible graph area
         // the graph is visually stretched from top due to padding, so we need to add the top padding after scaling
@@ -68,7 +67,7 @@ const LineCursorPoints = <T extends string>({
         const xValue = getClosestXValue(datum.x, line);
         const scaledX = xValue * availableWidth + paddingLeft - barWidth / 2;
 
-        return discrete && graphType === "pmf" ? (
+        return discrete ? (
           <rect
             key={index}
             x={scaledX}

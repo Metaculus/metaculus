@@ -66,10 +66,10 @@ const NumericQuestionInput: React.FC<{
       isNil(defaultInboundOutcomeCount)
       ? defaultMin
       : Math.round(
-          1e7 *
+          1e10 *
             (defaultMin +
               0.5 * ((defaultMax - defaultMin) / defaultInboundOutcomeCount))
-        ) / 1e7
+        ) / 1e10
   );
   const [max, setMax] = useState(
     questionType !== QuestionType.Discrete ||
@@ -78,32 +78,35 @@ const NumericQuestionInput: React.FC<{
       isNil(defaultInboundOutcomeCount)
       ? defaultMax
       : Math.round(
-          1e7 *
+          1e10 *
             (defaultMax -
               0.5 * ((defaultMax - defaultMin) / defaultInboundOutcomeCount))
-        ) / 1e7
+        ) / 1e10
   );
 
   const [openUpperBound, setOpenUpperBound] = useState(
-    defaultOpenUpperBound === undefined || defaultOpenUpperBound === null
-      ? false
-      : defaultOpenUpperBound
+    isNil(defaultOpenUpperBound) ? false : defaultOpenUpperBound
   );
   const [openLowerBound, setOpenLowerBound] = useState(
-    defaultOpenLowerBound === undefined || defaultOpenLowerBound === null
-      ? false
-      : defaultOpenLowerBound
+    isNil(defaultOpenLowerBound) ? false : defaultOpenLowerBound
   );
   const [zeroPoint, setZeroPoint] = useState(
-    defaultZeroPoint === undefined ||
-      defaultZeroPoint === null ||
-      Number.isNaN(defaultZeroPoint)
+    isNil(defaultZeroPoint) || Number.isNaN(defaultZeroPoint)
       ? null
       : defaultZeroPoint
   );
+  const [step, setStep] = useState(
+    isNil(defaultInboundOutcomeCount) || isNil(max) || isNil(min)
+      ? 1
+      : Math.round(1e10 * ((max - min) / (defaultInboundOutcomeCount - 1))) /
+          1e10
+  );
   const [inboundOutcomeCount, setInboundOutcomeCount] = useState(
-    defaultInboundOutcomeCount ||
-      (questionType !== QuestionType.Discrete ? DefaultInboundOutcomeCount : 31)
+    isNil(defaultInboundOutcomeCount)
+      ? questionType !== QuestionType.Discrete || isNil(min) || isNil(max)
+        ? DefaultInboundOutcomeCount
+        : Math.round((max - min) / step)
+      : defaultInboundOutcomeCount
   );
   const [question, setQuestion] = useState<QuestionWithNumericForecasts>({
     id: 1,
@@ -163,15 +166,22 @@ const NumericQuestionInput: React.FC<{
     }
 
     if (zeroPoint !== undefined && zeroPoint !== null) {
-      if ((min ? min : 0) <= zeroPoint && zeroPoint <= (max ? max : 0)) {
-        questionType == QuestionType.Numeric ||
-        questionType == QuestionType.Discrete
-          ? current_errors.push(
-              `Zero point (${zeroPoint}) should not be between min (${min}) and max (${max})`
-            )
-          : current_errors.push(
-              `Zero point (${format(new Date(zeroPoint * 1000), "yyyy-MM-dd HH:mm")}) should not be between min (${format(new Date((min ? min : 0) * 1000), "yyyy-MM-dd HH:mm")}) and max (${format(new Date((max ? max : 0) * 1000), "yyyy-MM-dd HH:mm")})`
-            );
+      if (questionType == QuestionType.Discrete) {
+        current_errors.push(
+          "Zero point is not supported for discrete questions"
+        );
+      } else {
+        if ((min ? min : 0) <= zeroPoint && zeroPoint <= (max ? max : 0)) {
+          questionType == QuestionType.Numeric
+            ? current_errors.push(
+                `Zero point (${zeroPoint}) should not be between min (${min}) and max (${max})`
+              )
+            : current_errors.push(
+                `Zero point (${format(new Date(zeroPoint * 1000), "yyyy-MM-dd HH:mm")}) should ` +
+                  `not be between min (${format(new Date((min ? min : 0) * 1000), "yyyy-MM-dd HH:mm")}) ` +
+                  `and max (${format(new Date((max ? max : 0) * 1000), "yyyy-MM-dd HH:mm")})`
+              );
+        }
       }
     }
     if (!isNil(min) && !isNil(max)) {
@@ -191,24 +201,24 @@ const NumericQuestionInput: React.FC<{
   };
   const isMounted = useRef(false);
   useEffect(() => {
-    let mn: number = min as number;
-    let mx: number = max as number;
-    if (questionType === QuestionType.Discrete && inboundOutcomeCount > 1) {
-      mn =
-        Math.round(
-          1e7 *
-            ((min as number) -
-              (0.5 * ((max as number) - (min as number))) /
-                (inboundOutcomeCount - 1))
-        ) / 1e7;
-      mx =
-        Math.round(
-          1e7 *
-            ((max as number) +
-              (0.5 * ((max as number) - (min as number))) /
-                (inboundOutcomeCount - 1))
-        ) / 1e7;
+    let mn: number = Math.round(1e10 * (min as number)) / 1e10;
+    let mx: number = Math.round(1e10 * (max as number)) / 1e10;
+    if (questionType === QuestionType.Discrete) {
+      mx = mx - (Math.round(1e10 * (mx - mn)) % (1e10 * step)) / 1e10; // estimate new value
+      mx = Math.round(1e10 * (mx + 0.5 * step)) / 1e10;
+      mn -= 0.5 * step;
+      setInboundOutcomeCount(Math.round((mx - mn) / step));
     }
+    console.log(
+      {
+        max,
+        mx,
+        min,
+        mn,
+        step,
+      },
+      Math.round(1e10 * ((mx - mn) % step)) / 1e10
+    );
     if (!isMounted.current) {
       onChange({
         range_min: mn as number,
@@ -216,7 +226,7 @@ const NumericQuestionInput: React.FC<{
         zero_point: zeroPoint,
         open_lower_bound: openLowerBound,
         open_upper_bound: openUpperBound,
-        inbound_outcome_count: inboundOutcomeCount,
+        inbound_outcome_count: Math.round((mx - mn) / step),
       });
 
       isMounted.current = true;
@@ -232,7 +242,7 @@ const NumericQuestionInput: React.FC<{
       zero_point: zeroPoint,
       open_lower_bound: openLowerBound,
       open_upper_bound: openUpperBound,
-      inbound_outcome_count: inboundOutcomeCount,
+      inbound_outcome_count: Math.round((mx - mn) / step),
     });
     setQuestion((prevQuestion) => ({
       ...prevQuestion,
@@ -243,18 +253,10 @@ const NumericQuestionInput: React.FC<{
       },
       open_upper_bound: openUpperBound,
       open_lower_bound: openLowerBound,
-      inbound_outcome_count: inboundOutcomeCount,
+      inbound_outcome_count: Math.round((mx - mn) / step),
     }));
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    min,
-    max,
-    openUpperBound,
-    openLowerBound,
-    zeroPoint,
-    inboundOutcomeCount,
-  ]);
+  }, [min, max, openUpperBound, openLowerBound, zeroPoint, step]);
 
   return (
     <div>
@@ -274,7 +276,7 @@ const NumericQuestionInput: React.FC<{
               <Input
                 readOnly={hasForecasts}
                 disabled={hasForecasts}
-                type="float"
+                type="number"
                 defaultValue={min}
                 onChange={(e) => {
                   e.preventDefault();
@@ -287,7 +289,7 @@ const NumericQuestionInput: React.FC<{
               <Input
                 readOnly={hasForecasts}
                 disabled={hasForecasts}
-                type="float"
+                type="number"
                 onChange={(e) => {
                   e.preventDefault();
                   setMax(Number(e.target.value));
@@ -296,6 +298,35 @@ const NumericQuestionInput: React.FC<{
               />
             </div>
           </>
+        )}
+        {questionType === QuestionType.Discrete && (
+          <div className="ml-4">
+            <span className="mr-2">Step</span>
+            <Input
+              readOnly={hasForecasts}
+              disabled={hasForecasts}
+              type="number"
+              min={0}
+              max={!isNil(max) && !isNil(min) ? (max - min) / 2 : undefined}
+              value={step}
+              onChange={(e) => {
+                setStep(Number(e.target.value));
+              }}
+            />
+            {step > 0 &&
+              !isNil(max) &&
+              !isNil(min) &&
+              !isNil(question.scaling?.range_max) &&
+              Math.round(1e10 * (max - min)) % (1e10 * step) != 0 && (
+                <span className="ml-2 text-sm font-medium text-red-500 dark:text-red-500-dark">
+                  Warning: Step does not divide the range evenly. Max reduced to{" "}
+                  {Math.round(
+                    1e10 * (question.scaling.range_max - 0.5 * step)
+                  ) / 1e10}
+                </span>
+              )}
+            <br />
+          </div>
         )}
         {questionType == QuestionType.Date && (
           <>
@@ -439,38 +470,7 @@ const NumericQuestionInput: React.FC<{
               ))}
           </div>
         )}
-        {questionType === QuestionType.Discrete && (
-          <div className="ml-2">
-            <span className="mr-2">Number of Inbound Outcomes</span>
-            <Input
-              readOnly={hasForecasts}
-              disabled={hasForecasts}
-              type="number"
-              min={1}
-              max={200}
-              value={inboundOutcomeCount}
-              onChange={(e) => {
-                const value = Number(e.target.value);
-                if (value >= 1 && value <= 200) {
-                  setInboundOutcomeCount(value);
-                }
-              }}
-            />
-            {inboundOutcomeCount &&
-              !isNil(question.scaling.range_max) &&
-              !isNil(question.scaling.range_min) && (
-                <span className="ml-2 text-sm font-medium text-gray-500 dark:text-gray-500-dark">
-                  Note: outcome bins have size{" "}
-                  {Math.round(
-                    ((question.scaling.range_max - question.scaling.range_min) /
-                      inboundOutcomeCount) *
-                      1000
-                  ) / 1000}
-                </span>
-              )}
-            <br />
-          </div>
-        )}
+
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <>
             Example input chart:
