@@ -22,6 +22,25 @@ type KeyFactorsSectionProps = {
   postId: number;
 };
 
+const AddKeyFactorsButton: FC<{
+  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  className?: string;
+}> = ({ onClick, className }) => {
+  const t = useTranslations();
+  return (
+    <Button
+      as="div"
+      className={className}
+      size="xs"
+      variant="tertiary"
+      onClick={(e) => onClick(e as React.MouseEvent<HTMLButtonElement>)}
+    >
+      <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
+      {t("addKeyFactor")}
+    </Button>
+  );
+};
+
 const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
   const t = useTranslations();
   const [displayLimit, setDisplayLimit] = useState(4);
@@ -42,21 +61,6 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
     }
   }, [combinedKeyFactors]);
 
-  const addKeyFactorsButton = (
-    <Button
-      as="div"
-      className="ml-auto"
-      size="xs"
-      variant="tertiary"
-      onClick={(event) => {
-        event.preventDefault();
-        setIsAddKeyFactorsModalOpen(true);
-      }}
-    >
-      <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
-      {t("addKeyFactor")}
-    </Button>
-  );
   return (
     <>
       <AddKeyFactorsModal
@@ -66,31 +70,54 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
       />
 
       <SectionToggle
-        detailElement={addKeyFactorsButton}
+        detailElement={
+          combinedKeyFactors.length > 0 ? (
+            <AddKeyFactorsButton
+              className="ml-auto"
+              onClick={(event) => {
+                event.preventDefault();
+                setIsAddKeyFactorsModalOpen(true);
+              }}
+            />
+          ) : null
+        }
         title={t("keyFactors")}
         defaultOpen
         id="key-factors"
       >
-        <div id="key-factors-list" className="flex flex-col gap-2.5">
-          {combinedKeyFactors.slice(0, displayLimit).map((kf) => {
-            return (
-              <KeyFactorItem
-                keyFactor={kf}
-                key={`post-key-factor-${kf.id}-${kf.votes_score}-${kf.user_vote}`}
-              />
-            );
-          })}
-          <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">
+        {combinedKeyFactors.length > 0 ? (
+          <div id="key-factors-list" className="flex flex-col gap-2.5">
+            {combinedKeyFactors.slice(0, displayLimit).map((kf) => {
+              return (
+                <KeyFactorItem
+                  keyFactor={kf}
+                  key={`post-key-factor-${kf.id}-${kf.votes_score}-${kf.user_vote}`}
+                />
+              );
+            })}
             {combinedKeyFactors.length > displayLimit && (
-              <Button
-                variant="tertiary"
-                onClick={() => setDisplayLimit((prev) => prev + 10)}
-              >
-                {t("showMore")}
-              </Button>
+              <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">
+                <Button
+                  variant="tertiary"
+                  onClick={() => setDisplayLimit((prev) => prev + 10)}
+                >
+                  {t("showMore")}
+                </Button>
+              </div>
             )}
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col items-center justify-between pb-8 pt-6 hover:text-blue-700">
+            <span>{t("noKeyFactorsP1")}</span>
+            <span className="mt-1 text-sm text-blue-600 dark:text-blue-600-dark">
+              {t("noKeyFactorsP2")}
+            </span>
+            <AddKeyFactorsButton
+              className="mx-auto mt-4"
+              onClick={() => setIsAddKeyFactorsModalOpen(true)}
+            />
+          </div>
+        )}
       </SectionToggle>
     </>
   );

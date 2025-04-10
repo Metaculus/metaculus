@@ -1180,5 +1180,7 @@
   "addKeyFactorsModalP1": "Enter your key factors below - try to keep them short and clear.",
   "addKeyFactorsModalP2": "Your original comment should explain the reasons behind these key factors.",
   "typeKeyFator": "Type a key factor here",
-  "back": "Back"
+  "back": "Back",
+  "noKeyFactorsP1": "No key factors yet",
+  "noKeyFactorsP2": "Add some that might influence this forecast."
 }
