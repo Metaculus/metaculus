@@ -147,7 +147,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         is_private: isPrivateComment,
       });
 
-      if ("errors" in newComment) {
+      if (!!newComment && "errors" in newComment) {
         const errorMessage =
           newComment.errors?.message ??
           newComment.errors?.non_field_errors?.[0];
