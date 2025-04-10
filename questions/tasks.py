@@ -8,6 +8,8 @@ from notifications.services import (
     NotificationPostParams,
     NotificationQuestionParams,
 )
+from posts.models import Post
+from posts.services.subscriptions import notify_post_status_change
 from questions.models import Question
 from questions.services import build_question_forecasts
 from scoring.models import Score
@@ -92,6 +94,11 @@ def resolve_question_and_send_notifications(question_id: int):
 
     # Rebuild question aggregations
     build_question_forecasts(question)
+
+    # Send question resolution notifications
+    notify_post_status_change(
+        question.get_post(), Post.PostStatusChange.RESOLVED, question=question
+    )
 
     # Send notifications
     for score in scores:

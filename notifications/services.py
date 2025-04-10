@@ -454,6 +454,7 @@ class NotificationPostStatusChange(
         post: NotificationPostParams
         event: Post.PostStatusChange
         project: NotificationProjectParams = None
+        question: NotificationQuestionParams = None
 
     @classmethod
     def generate_subject_group(cls, recipient: User):
@@ -472,7 +473,8 @@ class NotificationPostStatusChange(
 
         for notification in notifications:
             obj = dataclass_from_dict(cls.ParamsType, notification.params)
-            key = f"{obj.post.post_id}-{obj.event}"
+            question_id = obj.question.id if obj.question else None
+            key = f"{obj.post.post_id}-{question_id}-{obj.event}"
 
             if not params_map.get(key) or obj.project:
                 params_map[key] = obj

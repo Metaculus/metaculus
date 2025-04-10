@@ -49,7 +49,7 @@
                             {% for notification in params.from_posts %}
                             <li>
                                 <a href="{% post_url notification.post.post_id notification.post.post_title %}">
-                                    {{ notification.post.post_title }}
+                                    {{ notification.question.title|default:notification.post.post_title }}
                                 </a>
                                 is now {{notification.event}}
                             </li>

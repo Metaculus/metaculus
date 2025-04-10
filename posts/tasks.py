@@ -39,15 +39,6 @@ def run_on_post_forecast(post_id):
 
 
 @dramatiq.actor
-def run_notify_post_status_change(post_id: int, event: Post.PostStatusChange):
-    post = Post.objects.get(pk=post_id)
-
-    # Send only for approved posts
-    if post.curation_status == Post.CurationStatus.APPROVED:
-        notify_post_status_change(post, event)
-
-
-@dramatiq.actor
 def run_post_indexing(post_id):
     try:
         update_post_search_embedding_vector(Post.objects.get(pk=post_id))

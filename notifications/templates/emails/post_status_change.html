@@ -165,7 +165,7 @@
                             </a> {% if notification.post.post_type != 'notebook' %} is now {{notification.event}} {% endif %}
                           </li> {% endfor %} {% endfor %} {% endif %} {% if params.from_posts %} {% if params.from_projects %} <p> {% blocktrans %} In the rest of Metaculus: {% endblocktrans %} </p> {% else %} {% blocktrans with count=params.from_posts|length %} These {{count}} questions have changed status: {% endblocktrans %} {% endif %} <ul> {% for notification in params.from_posts %} <li>
                               <a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                                {{ notification.post.post_title }}
+                                {{ notification.question.title|default:notification.post.post_title }}
                               </a> is now {{notification.event}}
                             </li> {% endfor %} </ul> {% endif %}</div>
                       </td>
