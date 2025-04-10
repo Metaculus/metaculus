@@ -273,6 +273,9 @@ const InitializedMarkdownEditor: FC<
       ]}
       lexicalTheme={{
         beautifulMentions: beautifulMentionsTheme,
+        text: {
+          underline: "underline",
+        },
       }}
     />
   );
