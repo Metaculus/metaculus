@@ -15,6 +15,7 @@ import {
   isGroupOfQuestionsPost,
   isQuestionPost,
   isMultipleChoicePost,
+  ANNULLED_RESOLUTION,
 } from "@/utils/questions";
 
 import ConsumerKeyFactor from "./key_factor";
@@ -31,8 +32,20 @@ const ConsumerPostCard: FC<Props> = ({ post, forCommunityFeed }) => {
   const t = useTranslations();
   const isShortTitle = title.length < 100;
   const forecastAvailability = getPostForecastAvailability(post);
-  const isGroupOrMCPost =
-    isGroupOfQuestionsPost(post) || isMultipleChoicePost(post);
+  const isGroupPost = isGroupOfQuestionsPost(post);
+  const isMcPost = isMultipleChoicePost(post);
+  const isGroupOrMCPost = isGroupPost || isMcPost;
+
+  // Don’t display a question in Consumer Views if all subquestions are annulled
+  if (isGroupPost) {
+    const allQuestionsResolvedAnnulled =
+      post.group_of_questions.questions.every(
+        (q) => q.resolution === ANNULLED_RESOLUTION
+      );
+    if (allQuestionsResolvedAnnulled) {
+      return null;
+    }
+  }
 
   return (
     <div>

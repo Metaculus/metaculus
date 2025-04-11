@@ -358,6 +358,8 @@ export function getDisplayValue({
   dateFormatString,
   unit,
   adjustLabels = false,
+  skipQuartilesBorders = false,
+  longBounds = false,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -369,51 +371,64 @@ export function getDisplayValue({
   dateFormatString?: string;
   unit?: string;
   adjustLabels?: boolean;
+  skipQuartilesBorders?: boolean; // remove "<" or ">" from the formatted value if the value is out of the quartiles
+  longBounds?: boolean;
 }): string {
   if (value === undefined || value === null) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
-  const centerDisplay = displayValue({
-    value: scaledValue,
-    questionType,
-    precision,
-    truncation,
-    scaling,
-    actual_resolve_time,
-    dateFormatString,
-    unit,
-    adjustLabels,
-  });
+  const centerDisplay =
+    checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : value, {
+      longBounds,
+    }) +
+    displayValue({
+      value: scaledValue,
+      questionType,
+      precision,
+      truncation,
+      scaling,
+      actual_resolve_time,
+      dateFormatString,
+      unit,
+      adjustLabels,
+    });
   if (range) {
     const lowerX = range[0];
     const upperX = range[1];
     if (isNil(lowerX) || isNil(upperX)) {
       return "...";
     }
-
     const scaledLower = scaleInternalLocation(lowerX, scaling);
-    const lowerDisplay = displayValue({
-      value: scaledLower,
-      questionType,
-      precision,
-      actual_resolve_time,
-      scaling,
-      truncation,
-      dateFormatString,
-      adjustLabels,
-    });
+    const lowerDisplay =
+      checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : lowerX, {
+        longBounds,
+      }) +
+      displayValue({
+        value: scaledLower,
+        questionType,
+        precision,
+        actual_resolve_time,
+        scaling,
+        truncation,
+        dateFormatString,
+        adjustLabels,
+      });
     const scaledUpper = scaleInternalLocation(upperX, scaling);
-    const upperDisplay = displayValue({
-      value: scaledUpper,
-      questionType,
-      precision,
-      actual_resolve_time,
-      scaling,
-      truncation,
-      dateFormatString,
-      adjustLabels,
-    });
+    const upperDisplay =
+      checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : upperX, {
+        longBounds,
+      }) +
+      displayValue({
+        value: scaledUpper,
+        questionType,
+        precision,
+        actual_resolve_time,
+        scaling,
+        truncation,
+        dateFormatString,
+        adjustLabels,
+      });
     return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }
   return centerDisplay;
@@ -659,16 +674,15 @@ export function getUserPredictionDisplayValue({
 
     return displayCenter;
   } else if (questionType === QuestionType.Numeric) {
-    const displayCenter = formatValueUnit(
-      abbreviatedNumber(scaledCenter),
-      unit
-    );
+    const displayCenter =
+      checkQuartilesOutOfBorders(center) +
+      formatValueUnit(abbreviatedNumber(scaledCenter), unit);
     if (showRange) {
       const displayLower = !isNil(scaledLower)
-        ? abbreviatedNumber(scaledLower)
+        ? checkQuartilesOutOfBorders(lower) + abbreviatedNumber(scaledLower)
         : "...";
       const displayUpper = !isNil(scaledUpper)
-        ? abbreviatedNumber(scaledUpper)
+        ? checkQuartilesOutOfBorders(upper) + abbreviatedNumber(scaledUpper)
         : "...";
       return `${displayCenter}\n(${displayLower} - ${displayUpper})`;
     }
@@ -882,6 +896,7 @@ export function generateScale({
           actual_resolve_time: null,
           dateFormatString: shortLabels ? "yyyy" : undefined,
           adjustLabels,
+          skipQuartilesBorders: true,
         }),
         idx
       );
@@ -1160,7 +1175,7 @@ export function generateChoiceItemsFromGroupQuestions(
             scaling: question.scaling,
             unit: question.unit,
             actual_resolve_time: question.actual_resolve_time ?? null,
-            shortBounds: shortBounds,
+            completeBounds: shortBounds,
           })
         : null,
       closeTime,
@@ -1653,4 +1668,17 @@ export function getTruncatedLabel(label: string, maxLength: number): string {
     return label;
   }
   return label.slice(0, maxLength).trim() + "...";
+}
+
+export function checkQuartilesOutOfBorders(
+  quartile: number | undefined,
+  options?: { longBounds?: boolean }
+) {
+  const { longBounds = false } = options ?? {};
+
+  if (longBounds) {
+    return quartile === 0 ? "Less than " : quartile === 1 ? "More than " : "";
+  }
+
+  return quartile === 0 ? "<" : quartile === 1 ? ">" : "";
 }

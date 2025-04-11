@@ -165,15 +165,7 @@ const ForecastMakerBinary: FC<Props> = ({
         />
         {(isPending || withdrawalIsPending) && (
           <div className="h-[32px] w-full">
-            {forecast === 69 && isPending ? (
-              <span className="flex items-center justify-center overflow-hidden">
-                <div className="flex w-full animate-loading-slide items-center justify-center">
-                  Nice!
-                </div>
-              </span>
-            ) : (
-              <LoadingIndicator />
-            )}
+            <LoadingIndicator />
           </div>
         )}
 
