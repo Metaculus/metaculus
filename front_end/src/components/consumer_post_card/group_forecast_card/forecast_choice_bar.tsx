@@ -58,16 +58,22 @@ const ForecastChoiceBar: FC<Props> = ({
       <span className="z-10 text-nowrap">
         {displayedResolution ? (
           <>
-            {isResolutionSuccessful ? (
+            {isResolutionSuccessful && (
               <span className="font-medium capitalize text-purple-600 dark:text-purple-600-dark">
                 {t("result")}:{" "}
               </span>
-            ) : null}
+            )}
             <span className="font-bold">
-              {unit
-                ? String(displayedResolution).replace(unit, "")
-                : displayedResolution}
-              {unit && <span className="font-normal">{unit}</span>}
+              {isResolutionSuccessful ? (
+                <>
+                  {unit
+                    ? String(displayedResolution).replace(unit, "")
+                    : displayedResolution}
+                  {unit && <span className="font-normal">{unit}</span>}
+                </>
+              ) : (
+                displayedResolution
+              )}
             </span>
           </>
         ) : (

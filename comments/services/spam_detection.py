@@ -1,5 +1,4 @@
 from comments.models import Comment
-from projects.permissions import ObjectPermission
 from users.models import User, UserSpamActivity
 from users.services.spam_detection import check_and_handle_content_spam
 from utils.frontend import build_frontend_url
@@ -12,8 +11,13 @@ def check_and_handle_comment_spam(author: User, comment: Comment) -> bool:
     if private_note or private_post:
         return False
 
-    recipients = comment.on_post.default_project.get_users_for_permission(
-        ObjectPermission.CURATOR
+    recipients = User.objects.filter(is_staff=True)
+    content_admin_url = build_frontend_url(
+        f"/admin/comments/comment/{comment.id}/change/"
+    )
+
+    content_frontend_url = build_frontend_url(
+        f"/questions/{comment.on_post.id}/#comment-{comment.id}"
     )
 
     return check_and_handle_content_spam(
@@ -21,6 +25,7 @@ def check_and_handle_comment_spam(author: User, comment: Comment) -> bool:
         content_text=comment.text,
         content_id=comment.id,
         content_type=UserSpamActivity.SpamContentType.COMMENT,
-        content_url=build_frontend_url(f"/admin/comments/comment/{comment.id}/change/"),
+        content_admin_url=content_admin_url,
+        content_frontend_url=content_frontend_url,
         admin_emails=[x.email for x in recipients],
     )

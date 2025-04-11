@@ -188,7 +188,8 @@ export function formatResolution({
   actual_resolve_time,
   scaling,
   unit,
-  shortBounds = false,
+  completeBounds = false,
+  longBounds = false,
 }: {
   resolution: number | string | null | undefined;
   questionType: QuestionType;
@@ -196,7 +197,8 @@ export function formatResolution({
   actual_resolve_time: string | null;
   scaling?: Scaling;
   unit?: string;
-  shortBounds?: boolean;
+  completeBounds?: boolean;
+  longBounds?: boolean;
 }) {
   if (resolution === null || resolution === undefined) {
     return "-";
@@ -213,34 +215,30 @@ export function formatResolution({
   }
 
   if (resolution === "below_lower_bound") {
-    if (shortBounds && scaling) {
-      return (
-        "<" +
-        getDisplayValue({
-          value: 0,
-          questionType,
-          scaling,
-          actual_resolve_time,
-          unit,
-          precision: 10,
-        })
-      );
+    if (completeBounds && scaling) {
+      return getDisplayValue({
+        value: 0,
+        questionType,
+        scaling,
+        actual_resolve_time,
+        unit,
+        precision: 10,
+        longBounds,
+      });
     }
     return "Below lower bound";
   }
   if (resolution === "above_upper_bound") {
-    if (shortBounds && scaling) {
-      return (
-        ">" +
-        getDisplayValue({
-          value: 1,
-          questionType,
-          scaling,
-          actual_resolve_time,
-          unit,
-          precision: 10,
-        })
-      );
+    if (completeBounds && scaling) {
+      return getDisplayValue({
+        value: 1,
+        questionType,
+        scaling,
+        actual_resolve_time,
+        unit,
+        precision: 10,
+        longBounds,
+      });
     }
     return "Above upper bound";
   }

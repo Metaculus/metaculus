@@ -227,7 +227,7 @@ const InitializedMarkdownEditor: FC<
     const formData = new FormData();
     formData.append("image", image);
     const response = await uploadImage(formData);
-    if ("errors" in response) {
+    if (!!response && "errors" in response) {
       console.error(response.errors);
       return Promise.reject(response.errors);
     } else {
@@ -273,6 +273,9 @@ const InitializedMarkdownEditor: FC<
       ]}
       lexicalTheme={{
         beautifulMentions: beautifulMentionsTheme,
+        text: {
+          underline: "underline",
+        },
       }}
     />
   );
