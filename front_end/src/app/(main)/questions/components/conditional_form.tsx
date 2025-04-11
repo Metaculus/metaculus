@@ -280,7 +280,8 @@ async function setConditionQuestion({
     (question.type === QuestionType.Binary ||
       (fieldName === "condition_child_id" &&
         (question.type === QuestionType.Numeric ||
-          question.type === QuestionType.Date)))
+          question.type === QuestionType.Date ||
+          question.type === QuestionType.Discrete)))
   ) {
     if (
       ![QuestionStatus.OPEN, QuestionStatus.UPCOMING].includes(

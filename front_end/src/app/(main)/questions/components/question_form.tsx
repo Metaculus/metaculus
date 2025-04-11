@@ -30,7 +30,7 @@ import {
   TournamentPreview,
   TournamentType,
 } from "@/types/projects";
-import { QuestionType } from "@/types/question";
+import { DefaultInboundOutcomeCount, QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions";
@@ -56,7 +56,13 @@ const createQuestionSchemas = (
   post: PostWithForecasts | null
 ) => {
   const baseQuestionSchema = z.object({
-    type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
+    type: z.enum([
+      QuestionType.Binary,
+      QuestionType.MultipleChoice,
+      QuestionType.Date,
+      QuestionType.Numeric,
+      QuestionType.Discrete,
+    ]),
     title: z
       .string()
       .min(4, {
@@ -197,6 +203,7 @@ const createQuestionSchemas = (
       }),
       open_upper_bound: z.boolean().default(true),
       open_lower_bound: z.boolean().default(true),
+      inbound_outcome_count: z.number().default(DefaultInboundOutcomeCount),
     })
   );
 
@@ -209,6 +216,7 @@ const createQuestionSchemas = (
       min: z.number().optional(),
     })
   );
+  const discreteQuestionSchema = numericQuestionSchema;
 
   const dateQuestionSchema = continuousQuestionSchema.merge(
     z.object({
@@ -236,10 +244,11 @@ const createQuestionSchemas = (
   return {
     baseQuestionSchema,
     binaryQuestionSchema,
+    multipleChoiceQuestionSchema,
     continuousQuestionSchema,
     numericQuestionSchema,
     dateQuestionSchema,
-    multipleChoiceQuestionSchema,
+    discreteQuestionSchema,
   };
 };
 
@@ -296,13 +305,17 @@ const QuestionForm: FC<Props> = ({
       title: t("multipleChoice"),
       description: t("multipleChoiceDescription"),
     },
+    numeric: {
+      title: t("numericRange"),
+      description: t("numericRangeDescription"),
+    },
     date: {
       title: t("dateRange"),
       description: t("dateRangeDescription"),
     },
-    numeric: {
-      title: t("numericRange"),
-      description: t("numericRangeDescription"),
+    discrete: {
+      title: t("discrete"),
+      description: t("discreteDescription"),
     },
   };
 
@@ -362,14 +375,16 @@ const QuestionForm: FC<Props> = ({
   const schemas = createQuestionSchemas(t, post);
   const getFormSchema = (type: string) => {
     switch (type) {
-      case "binary":
+      case QuestionType.Binary:
         return schemas.binaryQuestionSchema;
-      case "numeric":
-        return schemas.numericQuestionSchema;
-      case "date":
-        return schemas.dateQuestionSchema;
-      case "multiple_choice":
+      case QuestionType.MultipleChoice:
         return schemas.multipleChoiceQuestionSchema;
+      case QuestionType.Numeric:
+        return schemas.numericQuestionSchema;
+      case QuestionType.Date:
+        return schemas.dateQuestionSchema;
+      case QuestionType.Discrete:
+        return schemas.discreteQuestionSchema;
       default:
         throw new Error("Invalid question type");
     }
@@ -446,7 +461,8 @@ const QuestionForm: FC<Props> = ({
             className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
-        {questionType === "numeric" && (
+        {(questionType === QuestionType.Numeric ||
+          questionType === QuestionType.Discrete) && (
           <InputContainer
             labelText={t("questionUnit")}
             explanation={t("questionUnitDescription")}
@@ -501,23 +517,28 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
 
-        {(questionType === QuestionType.Date ||
-          questionType === QuestionType.Numeric) && (
+        {(questionType === QuestionType.Numeric ||
+          questionType === QuestionType.Date ||
+          questionType === QuestionType.Discrete) && (
           <NumericQuestionInput
             questionType={questionType}
+            // TODO: smart range_min / max for discrete
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}
+            defaultZeroPoint={post?.question?.scaling.zero_point}
             defaultOpenLowerBound={post?.question?.open_lower_bound}
             defaultOpenUpperBound={post?.question?.open_upper_bound}
-            defaultZeroPoint={post?.question?.scaling.zero_point}
+            defaultInboundOutcomeCount={post?.question?.inbound_outcome_count}
             hasForecasts={hasForecasts && mode !== "create"}
+            unit={post?.question?.unit}
             control={form}
             onChange={({
-              min: rangeMin,
-              max: rangeMax,
+              range_min: rangeMin,
+              range_max: rangeMax,
+              zero_point: zeroPoint,
               open_upper_bound: openUpperBound,
               open_lower_bound: openLowerBound,
-              zero_point: zeroPoint,
+              inbound_outcome_count: inboundOutcomeCount,
             }) => {
               form.setValue("scaling", {
                 range_min: rangeMin,
@@ -526,6 +547,7 @@ const QuestionForm: FC<Props> = ({
               });
               form.setValue("open_lower_bound", openLowerBound);
               form.setValue("open_upper_bound", openUpperBound);
+              form.setValue("inbound_outcome_count", inboundOutcomeCount);
             }}
           />
         )}

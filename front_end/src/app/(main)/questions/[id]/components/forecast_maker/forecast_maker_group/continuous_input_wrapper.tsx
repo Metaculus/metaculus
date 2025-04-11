@@ -16,6 +16,7 @@ import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { QuestionStatus } from "@/types/post";
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,
@@ -32,8 +33,8 @@ import {
   getSubquestionPredictionInputMessage,
 } from "@/utils/questions";
 
+import ContinuousInput from "../../continuous_input";
 import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
-import ContinuousInput from "../continuous_input";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
@@ -106,7 +107,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
       return getSliderNumericForecastDataset(
         forecast as DistributionSliderComponent[],
         option.question.open_lower_bound,
-        option.question.open_upper_bound
+        option.question.open_upper_bound,
+        option.question.inbound_outcome_count ?? DefaultInboundOutcomeCount
       );
     }
     const validationErrors = validateAllQuantileInputs({
@@ -162,7 +164,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   const userCdf: number[] | undefined = getSliderNumericForecastDataset(
     getNormalizedContinuousForecast(option.userSliderForecast),
     option.question.open_lower_bound,
-    option.question.open_upper_bound
+    option.question.open_upper_bound,
+    option.question.inbound_outcome_count ?? DefaultInboundOutcomeCount
   ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
@@ -273,8 +276,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           }
           overlayPreviousForecast={overlayPreviousForecast}
           onOverlayPreviousForecastChange={setOverlayPreviousForecast}
-          forecastInputMode={forecastInputMode}
-          onForecastInputModeChange={setForecastInputMode}
+          inputMode={forecastInputMode}
+          onInputModeChange={setForecastInputMode}
           hasUserForecast={hasUserForecast}
           isDirty={option.isDirty}
           submitControls={SubmitControls}

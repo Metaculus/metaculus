@@ -112,7 +112,8 @@ function calculateIndex(posts: ProjectIndexWeights[]): {
           postValueWeekAgo = 2 * medianWeekAgo - 1;
           break;
         }
-        case QuestionType.Numeric: {
+        case QuestionType.Numeric:
+        case QuestionType.Discrete: {
           const cdfPoints = latestAggregation.forecast_values;
           if (!cdfPoints.length) {
             break;

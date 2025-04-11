@@ -10,6 +10,7 @@ import {
   DistributionQuantileComponent,
   DistributionSliderComponent,
   QuantileValue,
+  QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getCdfBounds } from "@/utils/charts";
@@ -23,7 +24,7 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import ContinuousInputContainer from "./continuous_input_container";
 import ContinuousPredictionChart from "./continuous_prediction_chart";
 import ContinuousSlider from "./continuous_slider";
-import { validateAllQuantileInputs } from "../helpers";
+import { validateAllQuantileInputs } from "../forecast_maker/helpers";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -41,12 +42,13 @@ type Props = {
   onQuantileChange: (quantileComponents: QuantileValue[]) => void;
   overlayPreviousForecast: boolean;
   onOverlayPreviousForecastChange: (value: boolean) => void;
-  forecastInputMode: ContinuousForecastInputType;
-  onForecastInputModeChange: (mode: ContinuousForecastInputType) => void;
+  inputMode: ContinuousForecastInputType;
+  onInputModeChange: (mode: ContinuousForecastInputType) => void;
   hasUserForecast: boolean;
   isDirty?: boolean;
   submitControls?: ReactNode;
   disabled?: boolean;
+  disableInputModeSwitch?: boolean;
   predictionMessage?: ReactNode;
   menu?: ReactNode;
   copyMenu?: ReactNode;
@@ -64,12 +66,13 @@ const ContinuousInput: FC<Props> = ({
   onQuantileChange,
   overlayPreviousForecast,
   onOverlayPreviousForecastChange,
-  forecastInputMode,
-  onForecastInputModeChange,
+  inputMode,
+  onInputModeChange,
   hasUserForecast,
   isDirty,
   submitControls,
   disabled,
+  disableInputModeSwitch,
   predictionMessage,
   menu,
   copyMenu,
@@ -88,7 +91,7 @@ const ContinuousInput: FC<Props> = ({
       return;
     }
     if (
-      forecastInputMode === ContinuousForecastInputType.Quantile &&
+      inputMode === ContinuousForecastInputType.Quantile &&
       (isDirty ||
         (previousForecast?.distribution_input?.type ===
           ContinuousForecastInputType.Slider &&
@@ -98,7 +101,7 @@ const ContinuousInput: FC<Props> = ({
         getQuantilesDistributionFromSlider(sliderComponents, question, true)
       );
     } else if (
-      forecastInputMode === ContinuousForecastInputType.Slider &&
+      inputMode === ContinuousForecastInputType.Slider &&
       isAllQuantileComponentsDirty(quantileComponent) &&
       validateAllQuantileInputs({
         question,
@@ -111,25 +114,26 @@ const ContinuousInput: FC<Props> = ({
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [forecastInputMode]);
+  }, [inputMode]);
 
   return (
     <ContinuousInputContainer
-      forecastInputMode={forecastInputMode}
-      onInputModeChange={onForecastInputModeChange}
+      forecastInputMode={inputMode}
+      onInputModeChange={onInputModeChange}
       overlayPreviousForecast={overlayPreviousForecast}
       onOverlayPreviousForecastChange={onOverlayPreviousForecastChange}
       previousForecast={previousForecast}
       menu={menu}
       copyMenu={copyMenu}
-      disabled={disabled}
+      disabled={disabled || disableInputModeSwitch}
+      questionType={question.type}
     >
       {(sliderGraphType, tableGraphType) => (
         <>
           <ContinuousPredictionChart
             dataset={dataset}
             graphType={
-              forecastInputMode === ContinuousForecastInputType.Slider
+              inputMode === ContinuousForecastInputType.Slider
                 ? sliderGraphType
                 : tableGraphType
             }
@@ -139,7 +143,7 @@ const ContinuousInput: FC<Props> = ({
             showCP={!user || !hideCP || !!question.resolution}
           />
 
-          {forecastInputMode === ContinuousForecastInputType.Slider && (
+          {inputMode === ContinuousForecastInputType.Slider && (
             <>
               <ContinuousSlider
                 components={sliderComponents}
@@ -160,28 +164,44 @@ const ContinuousInput: FC<Props> = ({
             question={question}
             userBounds={getCdfBounds(userCdf)}
             userQuartiles={
-              userCdf ? computeQuartilesFromCDF(userCdf) : undefined
+              userCdf
+                ? computeQuartilesFromCDF(
+                    userCdf,
+                    true,
+                    question.type === QuestionType.Discrete
+                  )
+                : undefined
             }
             quantileComponents={quantileComponent}
             onQuantileChange={onQuantileChange}
             userPreviousBounds={getCdfBounds(userPreviousCdf)}
             userPreviousQuartiles={
               userPreviousCdf
-                ? computeQuartilesFromCDF(userPreviousCdf)
+                ? computeQuartilesFromCDF(
+                    userPreviousCdf,
+                    true,
+                    question.type === QuestionType.Discrete
+                  )
                 : undefined
             }
             communityBounds={getCdfBounds(communityCdf)}
             communityQuartiles={
-              communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
+              communityCdf
+                ? computeQuartilesFromCDF(
+                    communityCdf,
+                    true,
+                    question.type === QuestionType.Discrete
+                  )
+                : undefined
             }
             withCommunityQuartiles={withCommunityQuartiles}
             isDirty={isDirty}
             disableQuantileInput={disabled}
             hasUserForecast={hasUserForecast}
-            forecastInputMode={forecastInputMode}
+            forecastInputMode={inputMode}
           />
 
-          {forecastInputMode === ContinuousForecastInputType.Quantile && (
+          {inputMode === ContinuousForecastInputType.Quantile && (
             <>{submitControls}</>
           )}
         </>

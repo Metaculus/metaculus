@@ -534,6 +534,7 @@ export function getQuestionLinearChartType(
       break;
     case QuestionType.Date:
     case QuestionType.Numeric:
+    case QuestionType.Discrete:
       type = "continuous";
       break;
     default:
