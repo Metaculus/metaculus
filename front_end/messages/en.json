@@ -1182,5 +1182,7 @@
   "typeKeyFator": "Type a key factor here",
   "back": "Back",
   "noKeyFactorsP1": "No key factors yet",
-  "noKeyFactorsP2": "Add some that might influence this forecast."
+  "noKeyFactorsP2": "Add some that might influence this forecast.",
+  "increasesLikelihood": "Increases likelihood",
+  "decreasesLikelihood": "Decreases likelihood"
 }
