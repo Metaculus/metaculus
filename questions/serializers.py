@@ -9,7 +9,6 @@ from rest_framework.exceptions import ValidationError
 
 from posts.models import Post
 from questions.constants import ResolutionType
-from questions.models import Forecast
 from questions.models import (
     DEFAULT_INBOUND_OUTCOME_COUNT,
     QUESTION_CONTINUOUS_TYPES,
@@ -19,6 +18,7 @@ from questions.models import (
     AggregateForecast,
     AggregationMethod,
 )
+from questions.models import Forecast
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf

@@ -368,6 +368,7 @@ export function getDisplayValue({
   unit,
   adjustLabels = false,
   skipQuartilesBorders = false,
+  longBounds = false,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -380,13 +381,16 @@ export function getDisplayValue({
   unit?: string;
   adjustLabels?: boolean;
   skipQuartilesBorders?: boolean; // remove "<" or ">" from the formatted value if the value is out of the quartiles
+  longBounds?: boolean;
 }): string {
   if (value === undefined || value === null) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
   const centerDisplay =
-    checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : value) +
+    checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : value, {
+      longBounds,
+    }) +
     displayValue({
       value: scaledValue,
       questionType,
@@ -406,7 +410,9 @@ export function getDisplayValue({
     }
     const scaledLower = scaleInternalLocation(lowerX, scaling);
     const lowerDisplay =
-      checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : lowerX) +
+      checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : lowerX, {
+        longBounds,
+      }) +
       displayValue({
         value: scaledLower,
         questionType,
@@ -419,7 +425,9 @@ export function getDisplayValue({
       });
     const scaledUpper = scaleInternalLocation(upperX, scaling);
     const upperDisplay =
-      checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : upperX) +
+      checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : upperX, {
+        longBounds,
+      }) +
       displayValue({
         value: scaledUpper,
         questionType,
@@ -1212,7 +1220,7 @@ export function generateChoiceItemsFromGroupQuestions(
             scaling: question.scaling,
             unit: question.unit,
             actual_resolve_time: question.actual_resolve_time ?? null,
-            shortBounds: shortBounds,
+            completeBounds: shortBounds,
           })
         : null,
       closeTime,
@@ -1727,6 +1735,15 @@ export function getTruncatedLabel(label: string, maxLength: number): string {
   return label.slice(0, maxLength).trim() + "...";
 }
 
-export function checkQuartilesOutOfBorders(quartile: number | undefined) {
+export function checkQuartilesOutOfBorders(
+  quartile: number | undefined,
+  options?: { longBounds?: boolean }
+) {
+  const { longBounds = false } = options ?? {};
+
+  if (longBounds) {
+    return quartile === 0 ? "Less than " : quartile === 1 ? "More than " : "";
+  }
+
   return quartile === 0 ? "<" : quartile === 1 ? ">" : "";
 }

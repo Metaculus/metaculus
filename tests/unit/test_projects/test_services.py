@@ -1,7 +1,9 @@
 from notifications.models import Notification
 from posts.models import Post
 from projects.permissions import ObjectPermission
-from projects.services.common import notify_project_subscriptions_post_open
+from projects.services.common import notify_project_subscriptions_question_open
+from questions.models import Question
+from tests.unit.test_questions.factories import create_question
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_users.factories import factory_user
@@ -20,10 +22,11 @@ def test_notify_project_subscriptions_post_open_notification(user1, user2):
         default_project=project_default,
         curation_status=Post.CurationStatus.APPROVED,
         projects=[project_1, project_2],
+        question=create_question(question_type=Question.QuestionType.BINARY),
     )
 
     # Post is located in 2 projects
-    notify_project_subscriptions_post_open(post)
+    notify_project_subscriptions_question_open(post.question)
 
     assert (
         Notification.objects.filter(recipient=user1, type="post_status_change").count()
@@ -61,10 +64,11 @@ def test_notify_project_subscriptions_post_open__private_question(user1, user2):
         default_project=project_default_private,
         curation_status=Post.CurationStatus.APPROVED,
         projects=[project_public],
+        question=create_question(question_type=Question.QuestionType.BINARY),
     )
 
     # Post is located in 2 projects
-    notify_project_subscriptions_post_open(post)
+    notify_project_subscriptions_question_open(post.question)
 
     assert set(
         Notification.objects.filter(type="post_status_change").values_list(

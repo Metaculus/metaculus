@@ -1179,5 +1179,7 @@
   "result": "结果",
   "communityDisclaimer": "由<community></community>社区贡献。<learnMore>了解更多</learnMore>",
   "communityDisclaimerSiteMain": "这个问题也是 Metaculus 主站的一部分。",
-  "conditionalBranchResolutionAnnulled": "此分支被取消，因为<link>父问题</link>解决<resolution></resolution>。"
+  "conditionalBranchResolutionAnnulled": "此分支被取消，因为<link>父问题</link>解决<resolution></resolution>。",
+  "postNotebookMoveDateModalCopy": "比赛预测结束日期为 <b>{tournament_forecasting_end_date}</b>，而您正在尝试批准一个关闭日期为 <b>{question_close_date}</b> 的问题。您是否想将比赛预测结束日期移至 <b>{question_close_date}</b>？",
+  "moveDate": "移动日期"
 }

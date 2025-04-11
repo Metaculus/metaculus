@@ -55,6 +55,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "prize_pool",
             "start_date",
             "close_date",
+            "forecasting_end_date",
             "meta_description",
             "is_ongoing",
             "user_permission",
