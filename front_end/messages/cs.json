@@ -1177,5 +1177,7 @@
   "result": "výsledek",
   "communityDisclaimer": "Přispěl <community></community> komunita. <learnMore>Dozvědět se více</learnMore>",
   "communityDisclaimerSiteMain": "Tato otázka je také součástí hlavního Metaculus.",
-  "conditionalBranchResolutionAnnulled": "Tato větev byla zrušena, protože <link>nadřazená otázka</link> byla vyřešena <resolution></resolution>."
+  "conditionalBranchResolutionAnnulled": "Tato větev byla zrušena, protože <link>nadřazená otázka</link> byla vyřešena <resolution></resolution>.",
+  "postNotebookMoveDateModalCopy": "Datum ukončení předpovědí turnaje je <b>{tournament_forecasting_end_date}</b> a snažíte se schválit otázku, která se uzavírá <b>{question_close_date}</b>. Chcete přemístit datum ukončení předpovědí turnaje na <b>{question_close_date}</b>?",
+  "moveDate": "Přemístit datum"
 }
