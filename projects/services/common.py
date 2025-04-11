@@ -210,6 +210,27 @@ def get_projects_for_posts(
     return post_projects_map
 
 
+def move_project_forecasting_end_date(project: Project, post: Post):
+    if not project.close_date:
+        return
+
+    forecasting_end_date = project.forecasting_end_date
+
+    for question in post.get_questions():
+        if (
+            question.scheduled_close_time <= project.close_date
+            and question.scheduled_resolve_time <= project.close_date
+            and (
+                not forecasting_end_date
+                or question.scheduled_close_time > forecasting_end_date
+            )
+        ):
+            forecasting_end_date = question.scheduled_close_time
+
+    project.forecasting_end_date = forecasting_end_date
+    project.save(update_fields=["forecasting_end_date"])
+
+
 def get_project_timeline_data(project: Project):
     all_questions_resolved = True
     all_questions_closed = True
@@ -217,8 +238,6 @@ def get_project_timeline_data(project: Project):
     cp_reveal_times = []
     actual_resolve_times = []
     scheduled_resolve_times = []
-    actual_close_times = []
-    scheduled_close_times = []
 
     posts = (
         Post.objects.filter_projects(project)
@@ -228,6 +247,7 @@ def get_project_timeline_data(project: Project):
     )
 
     project_close_date = project.close_date or make_aware(datetime.max)
+    project_forecasting_end_date = project.forecasting_end_date or project_close_date
 
     for post in posts:
         for question in post.get_questions():
@@ -242,7 +262,8 @@ def get_project_timeline_data(project: Project):
             if all_questions_closed:
                 close_time = question.actual_close_time or question.scheduled_close_time
                 all_questions_closed = (
-                    close_time <= timezone.now() or close_time > project_close_date
+                    close_time <= timezone.now()
+                    or close_time > project_forecasting_end_date
                 )
 
             if question.cp_reveal_time:
@@ -257,24 +278,13 @@ def get_project_timeline_data(project: Project):
                 )
                 scheduled_resolve_times.append(scheduled_resolve_time)
 
-            if question.actual_close_time:
-                actual_close_times.append(question.actual_close_time)
-
-            if question.scheduled_close_time:
-                scheduled_close_times.append(question.scheduled_close_time)
-
     def get_max(data: list):
-        if project.close_date:
-            data = [x for x in data if x <= project.close_date]
-
-        return max(data, default=None)
+        return max([x for x in data if x <= project_close_date], default=None)
 
     return {
         "last_cp_reveal_time": get_max(cp_reveal_times),
         "latest_actual_resolve_time": get_max(actual_resolve_times),
         "latest_scheduled_resolve_time": get_max(scheduled_resolve_times),
-        "latest_actual_close_time": get_max(actual_close_times),
-        "latest_scheduled_close_time": get_max(scheduled_close_times),
         "all_questions_resolved": all_questions_resolved,
         "all_questions_closed": all_questions_closed,
     }

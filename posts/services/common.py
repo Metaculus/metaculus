@@ -16,6 +16,7 @@ from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_projects_staff_users, get_site_main_project
+from projects.services.common import move_project_forecasting_end_date
 from questions.models import Question
 from questions.services import (
     create_conditional,
@@ -514,6 +515,12 @@ def approve_post(
             "scheduled_resolve_time",
         ],
     )
+
+    # Automatically update secondary and default project forecasting end date
+    for project in [post.default_project] + list(post.projects.all()):
+        if project.type == Project.ProjectTypes.TOURNAMENT:
+            move_project_forecasting_end_date(project, post)
+
     post.update_pseudo_materialized_fields()
 
 
