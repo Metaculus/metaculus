@@ -136,27 +136,21 @@ const PostApprovalModal: FC<{
     }
   }, [post.notebook, approvalData, t]);
 
-  const handleApprove = useCallback(
-    async (move_forecasting_end_date: boolean = false) => {
-      setIsLoading(true);
-      try {
-        // use form data to send request to the email api
-        const response = await approvePost(post.id, {
-          ...approvalData,
-          move_forecasting_end_date,
-        });
+  const handleApprove = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // use form data to send request to the email api
+      const response = await approvePost(post.id, approvalData);
 
-        if (response && "errors" in response && !!response.errors) {
-          setSubmitErrors(response.errors);
-        } else {
-          setIsOpen(false);
-        }
-      } finally {
-        setIsLoading(false);
+      if (response && "errors" in response && !!response.errors) {
+        setSubmitErrors(response.errors);
+      } else {
+        setIsOpen(false);
       }
-    },
-    [approvalData, post.id, setIsOpen]
-  );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [approvalData, post.id, setIsOpen]);
 
   const handleApprovePostSubmit = useCallback(async () => {
     const { forecasting_end_date, close_date } = default_project;
@@ -178,10 +172,6 @@ const PostApprovalModal: FC<{
       await handleApprove();
     }
   }, [approvalData, default_project, handleApprove, post.question]);
-
-  const handleConfirmForecastingEndDate = useCallback(async () => {
-    await handleApprove(true);
-  }, [handleApprove]);
 
   return (
     <>
@@ -310,14 +300,14 @@ const PostApprovalModal: FC<{
           </p>
           <div className="flex w-full justify-end gap-2">
             <Button
-              onClick={() => handleApprove()}
+              onClick={() => setIsOpen(false)}
               disabled={isLoading}
               variant="secondary"
             >
               {t("cancel")}
             </Button>
             <Button
-              onClick={handleConfirmForecastingEndDate}
+              onClick={handleApprove}
               disabled={isLoading || !!submitErrors}
               variant="primary"
             >
