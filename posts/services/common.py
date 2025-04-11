@@ -495,15 +495,25 @@ def approve_post(
     post.published_at = published_at
     questions = post.get_questions()
 
-    for question in questions:
-        question.open_time = question.open_time or open_time
-        question.cp_reveal_time = question.cp_reveal_time or cp_reveal_time
-        question.scheduled_close_time = (
-            question.scheduled_close_time or scheduled_close_time
-        )
-        question.scheduled_resolve_time = (
-            question.scheduled_resolve_time or scheduled_resolve_time
-        )
+    if post.question:
+        # we have a single question, approval modal values overrule settings
+        question = questions[0]
+        question.open_time = open_time
+        question.cp_reveal_time = cp_reveal_time
+        question.scheduled_close_time = scheduled_close_time
+        question.scheduled_resolve_time = scheduled_resolve_time
+    else:
+        # we have a group or conditional question
+        # filled out values only apply to subquestions without pre-filled values
+        for question in questions:
+            question.open_time = question.open_time or open_time
+            question.cp_reveal_time = question.cp_reveal_time or cp_reveal_time
+            question.scheduled_close_time = (
+                question.scheduled_close_time or scheduled_close_time
+            )
+            question.scheduled_resolve_time = (
+                question.scheduled_resolve_time or scheduled_resolve_time
+            )
 
     post.save()
     Question.objects.bulk_update(
