@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { KeyFactorVote } from "@/types/comment";
 import { VoteDirection } from "@/types/votes";
+import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
 
 type Props = {
@@ -72,12 +73,13 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
   };
   return (
     <Voter
-      className={className}
+      className={cn("rounded", className)}
       userVote={userVote?.score as VoteDirection}
       votes={votesScore}
       onVoteUp={() => handleVote({ vote_type: "a_updown", score: 1 })} // TODO: refactor it for new key factor variants
       onVoteDown={() => handleVote({ vote_type: "a_updown", score: -1 })}
       commentArea={true}
+      keyFactor={true}
     />
   );
 };
