@@ -21,6 +21,7 @@ from projects.services.common import (
     notify_project_subscriptions_post_open,
     move_project_forecasting_end_date,
 )
+from projects.services.common import get_projects_staff_users, get_site_main_project
 from questions.models import Question
 from questions.services import (
     create_conditional,
@@ -49,6 +50,7 @@ from utils.translation import (
 from .search import generate_post_content_for_embedding_vectorization
 from .subscriptions import notify_post_status_change
 from ..tasks import run_notify_post_status_change, run_post_indexing
+from ..tasks import run_post_indexing
 
 logger = logging.getLogger(__name__)
 
@@ -561,24 +563,6 @@ def send_back_to_review(post: Post):
     post.curation_status = Post.CurationStatus.PENDING
     post.open_time = None
     post.save(update_fields=["curation_status", "open_time"])
-
-
-def resolve_post(post: Post):
-    post.set_resolved()
-
-    run_notify_post_status_change.send(post.id, Post.PostStatusChange.RESOLVED)
-
-
-def handle_post_open(post: Post):
-    """
-    A specific handler is triggered once it's opened
-    """
-
-    # Handle post subscriptions
-    notify_post_status_change(post, Post.PostStatusChange.OPEN)
-
-    # Handle post on followed projects subscriptions
-    notify_project_subscriptions_post_open(post)
 
 
 def get_posts_staff_users(

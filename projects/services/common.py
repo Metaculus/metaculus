@@ -12,10 +12,12 @@ from notifications.services import (
     NotificationPostStatusChange,
     NotificationPostParams,
     NotificationProjectParams,
+    NotificationQuestionParams,
 )
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission, ProjectSubscription
 from projects.permissions import ObjectPermission
+from questions.models import Question
 from users.models import User
 from utils.dtypes import generate_map_from_list
 
@@ -121,7 +123,9 @@ def unsubscribe_project(project: Project, user: User) -> ProjectSubscription:
     project.save()
 
 
-def notify_project_subscriptions_post_open(post: Post):
+def notify_project_subscriptions_question_open(question: Question):
+    post = question.get_post()
+
     subscriptions = (
         ProjectSubscription.objects.filter(
             Q(project__posts=post) | Q(project__default_posts=post)
@@ -144,6 +148,7 @@ def notify_project_subscriptions_post_open(post: Post):
                 post=NotificationPostParams.from_post(post),
                 event=Post.PostStatusChange.OPEN,
                 project=NotificationProjectParams.from_project(subscription.project),
+                question=NotificationQuestionParams.from_question(question),
             ),
             mailing_tag=MailingTags.TOURNAMENT_NEW_QUESTIONS,
         )
