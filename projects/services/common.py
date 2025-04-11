@@ -206,6 +206,9 @@ def get_projects_for_posts(
 
 
 def move_project_forecasting_end_date(project: Project, post: Post):
+    if not project.close_date:
+        return
+
     forecasting_end_date = project.forecasting_end_date
 
     for question in post.get_questions():
