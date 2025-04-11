@@ -1,7 +1,10 @@
+from typing import Iterable
+
 from django.db import transaction
 
 from comments.models import KeyFactor, KeyFactorVote
 from users.models import User
+from utils.dtypes import generate_map_from_list
 
 
 @transaction.atomic
@@ -19,6 +22,18 @@ def key_factor_vote(
 
     # Update counters
     return key_factor.update_vote_score()
+
+
+def get_user_votes_for_key_factors(
+    key_factors: Iterable[KeyFactor], user: User
+) -> dict[int, list[KeyFactor]]:
+    """
+    Generates map of user votes for a set of KeyFactors
+    """
+
+    votes = KeyFactorVote.objects.filter(key_factor__in=key_factors, user=user)
+
+    return generate_map_from_list(list(votes), key=lambda vote: vote.key_factor_id)
 
 
 @transaction.atomic

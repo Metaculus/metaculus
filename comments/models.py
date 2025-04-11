@@ -187,26 +187,6 @@ class KeyFactorQuerySet(models.QuerySet):
     def filter_active(self):
         return self.filter(is_active=True)
 
-    def annotate_user_vote(self, user: User):
-        """
-        Annotates queryset with the user's vote option and the vote type
-        """
-        # TODO: This needs to be updated to return all votes for the user, not only the first one.
-        # There is also the option to let the frontend specify the type of votes, but I think that
-        # overcomplicates things on the frontend side.
-        return self.annotate(
-            user_vote=Subquery(
-                KeyFactorVote.objects.filter(
-                    user=user, key_factor=OuterRef("pk")
-                ).values("score")[:1]
-            ),
-            vote_type=Subquery(
-                KeyFactorVote.objects.filter(
-                    user=user, key_factor=OuterRef("pk")
-                ).values("vote_type")[:1]
-            ),
-        )
-
 
 class KeyFactor(TimeStampedModel, TranslatedModel):
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
@@ -215,9 +195,18 @@ class KeyFactor(TimeStampedModel, TranslatedModel):
     is_active = models.BooleanField(default=True, db_index=True)
 
     def get_votes_score(self) -> int:
-        # TODO: Perhaps revisit this for the two new vote types. Is Sum the best
-        # aggregate function, or should we use Avg?
-        return self.votes.aggregate(Sum("score")).get("score__sum") or 0
+        """
+        Aggregate function applies only to A-type Votes.
+        B and C types can't be aggregated this way, so we exclude them for now.
+        TODO: This may need to be revisited in the future for broader vote type support.
+        """
+
+        return (
+            self.votes.filter(vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE)
+            .aggregate(Sum("score"))
+            .get("score__sum")
+            or 0
+        )
 
     def update_vote_score(self):
         self.votes_score = self.get_votes_score()
