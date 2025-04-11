@@ -57,9 +57,13 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
       if (response && "score" in response) {
         const newVotesScore = response.score as number;
 
-        setKeyFactorVote(voteData.keyFactorId, vote, newVotesScore);
+        setKeyFactorVote(
+          voteData.keyFactorId,
+          { ...vote, score: newScore },
+          newVotesScore
+        );
 
-        setUserVote(vote);
+        setUserVote({ ...vote, score: newScore });
         setVotesScore(newVotesScore);
       }
     } catch (e) {

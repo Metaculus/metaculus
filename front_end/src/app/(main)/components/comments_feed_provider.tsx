@@ -44,7 +44,7 @@ export type CommentsFeedContextType = {
   setCombinedKeyFactors: (combinedKeyFactors: KeyFactor[]) => void;
   setKeyFactorVote: (
     keyFactorId: number,
-    keyFactorVote: KeyFactorVote | null,
+    keyFactorVote: KeyFactorVote,
     votesScore: number
   ) => void;
 };
@@ -122,17 +122,15 @@ const CommentsFeedProvider: FC<
     useState<KeyFactor[]>(initialKeyFactors);
 
   const setAndSortCombinedKeyFactors = (keyFactors: KeyFactor[]) => {
-    const sortedKeyFactors = keyFactors.sort((a, b) =>
-      b.votes_score === a.votes_score
-        ? Math.random() - 0.5
-        : b.votes_score - a.votes_score
+    const sortedKeyFactors = keyFactors.sort(
+      (a, b) => b.votes_score - a.votes_score
     );
     setCombinedKeyFactors(sortedKeyFactors);
   };
 
   const setKeyFactorVote = (
     keyFactorId: number,
-    keyFactorVote: KeyFactorVote | null,
+    keyFactorVote: KeyFactorVote,
     votes_score: number
   ) => {
     // Update the list of combined key factors with the new vote
@@ -142,9 +140,12 @@ const CommentsFeedProvider: FC<
           ? {
               ...kf,
               votes_score,
-              user_votes: keyFactorVote
-                ? [...kf.user_votes, keyFactorVote]
-                : [...kf.user_votes],
+              user_votes: [
+                ...kf.user_votes.filter(
+                  (vote) => vote.vote_type !== keyFactorVote.vote_type
+                ),
+                keyFactorVote,
+              ],
             }
           : { ...kf }
       )
@@ -163,9 +164,12 @@ const CommentsFeedProvider: FC<
                 ? {
                     ...kf,
                     votes_score,
-                    user_votes: keyFactorVote
-                      ? [...kf.user_votes, keyFactorVote]
-                      : [...kf.user_votes],
+                    user_votes: [
+                      ...kf.user_votes.filter(
+                        (vote) => vote.vote_type !== keyFactorVote.vote_type
+                      ),
+                      keyFactorVote,
+                    ],
                   }
                 : kf
             ),

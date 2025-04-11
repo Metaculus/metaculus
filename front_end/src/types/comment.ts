@@ -63,7 +63,7 @@ export const KeyFactorVoteTypes = {
 export type KeyFactorVoteType =
   (typeof KeyFactorVoteTypes)[keyof typeof KeyFactorVoteTypes];
 
-type KeyFactorVoteA = -1 | 1;
+type KeyFactorVoteA = -1 | 1 | null;
 type KeyFactorVoteBAndC = -5 | -3 | -2 | 0 | 2 | 3 | 5;
 export type KeyFactorVoteScore = KeyFactorVoteA | KeyFactorVoteBAndC;
 
@@ -76,7 +76,7 @@ export type KeyFactor = {
   id: number;
   text: string;
   comment_id: string;
-  user_votes: KeyFactorVote[]; // null if the user has not voted
+  user_votes: KeyFactorVote[]; // empty array if the user has not voted
   vote_type: KeyFactorVoteType | null; // null if the user has not voted
   votes_score: number;
 };
