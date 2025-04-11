@@ -5,7 +5,10 @@ from notifications.services import (
     NotificationPostCPChange,
     CPChangeData,
     NotificationQuestionParams,
+    NotificationPostStatusChange,
+    NotificationProjectParams,
 )
+from posts.models import Post
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_notifications.factories import factory_notification
 from tests.unit.test_posts.factories import factory_post
@@ -186,3 +189,133 @@ class TestNotificationCPChange:
 
         assert context_notifs[1].post.post_id == post_1.pk
         assert context_notifs[1].question_data[0].cp_change_value == 0.25
+
+
+class TestNotificationPostStatusChange:
+    def test_group_post_subquestions(self):
+        cls = NotificationPostStatusChange.ParamsType
+
+        params = [
+            # Duplicate events
+            cls(
+                post=NotificationPostParams(
+                    post_id=1, post_title="Post", post_type="question"
+                ),
+                event=Post.PostStatusChange.OPEN,
+            ),
+            cls(
+                post=NotificationPostParams(
+                    post_id=1, post_title="Post", post_type="question"
+                ),
+                event=Post.PostStatusChange.OPEN,
+                project=NotificationProjectParams(id=1, name="Project", slug="project"),
+            ),
+            # Different project events
+            cls(
+                post=NotificationPostParams(
+                    post_id=2, post_title="Post", post_type="question"
+                ),
+                event=Post.PostStatusChange.OPEN,
+                project=NotificationProjectParams(id=2, name="Project", slug="project"),
+            ),
+            cls(
+                post=NotificationPostParams(
+                    post_id=3, post_title="Post", post_type="question"
+                ),
+                event=Post.PostStatusChange.OPEN,
+                project=NotificationProjectParams(id=3, name="Project", slug="project"),
+            ),
+            cls(
+                post=NotificationPostParams(
+                    post_id=301, post_title="Post", post_type="question"
+                ),
+                event=Post.PostStatusChange.OPEN,
+                project=NotificationProjectParams(id=3, name="Project", slug="project"),
+            ),
+            cls(
+                post=NotificationPostParams(
+                    post_id=3, post_title="Post", post_type="question"
+                ),
+                event=Post.PostStatusChange.OPEN,
+                project=NotificationProjectParams(id=3, name="Project", slug="project"),
+            ),
+            # Same post, different events
+            cls(
+                post=NotificationPostParams(
+                    post_id=4, post_title="Post", post_type="question"
+                ),
+                event=Post.PostStatusChange.OPEN,
+            ),
+            cls(
+                post=NotificationPostParams(
+                    post_id=4, post_title="Post", post_type="question"
+                ),
+                event=Post.PostStatusChange.CLOSED,
+            ),
+            # Same post, same subquestions, different events
+            cls(
+                post=NotificationPostParams(
+                    post_id=5, post_title="Post", post_type="question"
+                ),
+                question=NotificationQuestionParams(id=1, title="", label="First", type="binary"),
+                event=Post.PostStatusChange.OPEN,
+            ),
+            cls(
+                post=NotificationPostParams(
+                    post_id=5, post_title="Post", post_type="question"
+                ),
+                question=NotificationQuestionParams(id=1, title="", label="First", type="binary"),
+                event=Post.PostStatusChange.CLOSED,
+            ),
+            # Same post, different subquestions, same events
+            cls(
+                post=NotificationPostParams(
+                    post_id=6, post_title="Post", post_type="question"
+                ),
+                question=NotificationQuestionParams(id=1, title="", label="First", type="binary"),
+                event=Post.PostStatusChange.OPEN,
+            ),
+            cls(
+                post=NotificationPostParams(
+                    post_id=6, post_title="Post", post_type="question"
+                ),
+                question=NotificationQuestionParams(id=2, title="", label="Second", type="binary"),
+                event=Post.PostStatusChange.OPEN,
+            ),
+        ]
+
+        result_params = NotificationPostStatusChange._generate_notification_params(params)
+
+        # Test from_projects
+        from_projects = result_params["from_projects"]
+
+        assert len(from_projects) == 3
+
+        assert from_projects[0]["project"].id == 1
+        assert len(from_projects[0]["notifications"]) == 1
+        assert from_projects[0]["notifications"][0].post.post_id == 1
+
+        assert from_projects[1]["project"].id == 2
+        assert len(from_projects[1]["notifications"]) == 1
+        assert from_projects[1]["notifications"][0].post.post_id == 2
+
+        assert from_projects[2]["project"].id == 3
+        assert len(from_projects[2]["notifications"]) == 2
+        assert from_projects[2]["notifications"][0].post.post_id == 3
+        assert from_projects[2]["notifications"][1].post.post_id == 301
+
+        # Test from_posts
+        from_posts = result_params["from_posts"]
+
+        assert len(from_posts) == 5
+
+        assert from_posts[0].post.post_id == 4
+        assert from_posts[1].post.post_id == 4
+        assert from_posts[2].post.post_id == 5
+        assert from_posts[2].question.id == 1
+        assert from_posts[2].event == Post.PostStatusChange.OPEN
+        assert from_posts[3].post.post_id == 5
+        assert from_posts[3].question.id == 1
+        assert from_posts[3].event == Post.PostStatusChange.CLOSED
+        assert from_posts[4].post.post_id == 6
+        assert from_posts[4].post.post_title == "Post: First, Second"

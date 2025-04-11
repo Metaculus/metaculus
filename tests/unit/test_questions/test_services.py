@@ -4,10 +4,10 @@ import freezegun
 import pytest  # noqa
 from django.utils.timezone import make_aware
 
-from posts.jobs import job_close_question
 from posts.models import Post
 from posts.services.common import create_post, approve_post
 from questions.constants import QuestionStatus, ResolutionType
+from questions.jobs import job_close_question
 from questions.models import Question
 from questions.services import resolve_question, unresolve_question
 from tests.unit.test_posts.factories import factory_post
