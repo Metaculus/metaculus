@@ -189,14 +189,21 @@ class KeyFactorQuerySet(models.QuerySet):
 
     def annotate_user_vote(self, user: User):
         """
-        Annotates queryset with the user's vote option
+        Annotates queryset with the user's vote option and the vote type
         """
-
+        # TODO: This needs to be updated to return all votes for the user, not only the first one.
+        # There is also the option to let the frontend specify the type of votes, but I think that
+        # overcomplicates things on the frontend side.
         return self.annotate(
             user_vote=Subquery(
                 KeyFactorVote.objects.filter(
                     user=user, key_factor=OuterRef("pk")
                 ).values("score")[:1]
+            ),
+            vote_type=Subquery(
+                KeyFactorVote.objects.filter(
+                    user=user, key_factor=OuterRef("pk")
+                ).values("vote_type")[:1]
             ),
         )
 
@@ -208,6 +215,8 @@ class KeyFactor(TimeStampedModel, TranslatedModel):
     is_active = models.BooleanField(default=True, db_index=True)
 
     def get_votes_score(self) -> int:
+        # TODO: Perhaps revisit this for the two new vote types. Is Sum the best
+        # aggregate function, or should we use Avg?
         return self.votes.aggregate(Sum("score")).get("score__sum") or 0
 
     def update_vote_score(self):
@@ -220,24 +229,52 @@ class KeyFactor(TimeStampedModel, TranslatedModel):
 
     # Annotated placeholders
     user_vote: int = None
+    vote_type: str = None
 
     def __str__(self):
         return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}: {self.text}"
 
+    class Meta:
+        # Used to get rid of the type error which complains
+        # about the two Meta classes in the 2 parent classes
+        pass
+
 
 class KeyFactorVote(TimeStampedModel):
+    class VoteType(models.TextChoices):
+        A_UPVOTE_DOWNVOTE = "a_updown"
+        B_TWO_STEP_SURVEY = "b_2step"
+        C_LIKERT_SCALE = "c_likert"
+
     class VoteScore(models.IntegerChoices):
         UP = 1
         DOWN = -1
+        # Using a simple integer value to encode scores for both B and C options
+        # B and C are conceptually on different scales than A, because they should
+        # capture the change in probability caused by the key factor, and not whether
+        # the key factor is relevant or not (as the UP/DOWN vote type does)
+        # But we do use the same field to store these given this is temporary and simpler.
+        DECREASE_HIGH = -5
+        DECREASE_MEDIUM = -3
+        DECREASE_LOW = -2
+        NO_IMPACT = 0
+        INCREASE_LOW = 2
+        INCREASE_MEDIUM = 3
+        INCREASE_HIGH = 5
 
     user = models.ForeignKey(User, models.CASCADE, related_name="key_factor_votes")
     key_factor = models.ForeignKey(KeyFactor, models.CASCADE, related_name="votes")
     score = models.SmallIntegerField(choices=VoteScore.choices, db_index=True)
+    # This field will be removed once we decide on the type of vote
+    vote_type = models.CharField(
+        choices=VoteType.choices, max_length=20, default=VoteType.A_UPVOTE_DOWNVOTE
+    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                name="votes_unique_user_key_factor", fields=["user_id", "key_factor_id"]
+                name="votes_unique_user_key_factor",
+                fields=["user_id", "key_factor_id", "vote_type"],
             )
         ]
         indexes = [

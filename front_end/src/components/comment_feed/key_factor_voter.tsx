@@ -7,6 +7,7 @@ import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import Voter from "@/components/voter";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { KeyFactorVote, KeyFactorVoteTypes } from "@/types/comment";
 import { VoteDirection } from "@/types/votes";
 import { logError } from "@/utils/errors";
 
@@ -18,7 +19,7 @@ type Props = {
 type VoteData = {
   keyFactorId: number;
   votesScore?: number | null;
-  userVote: VoteDirection;
+  userVote: KeyFactorVote | null;
 };
 
 const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
@@ -47,6 +48,7 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
         id: voteData.keyFactorId,
         vote: newDirection,
         user: user.id,
+        vote_type: KeyFactorVoteTypes.UP_DOWN,
       });
       if (newDirection === 1) sendGAEvent("event", "KeyFactorUpvote");
       if (newDirection === -1) sendGAEvent("event", "KeyFactorDownvote");
@@ -66,7 +68,7 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
   return (
     <Voter
       className={className}
-      userVote={userVote}
+      userVote={userVote as VoteDirection}
       votes={votesScore}
       onVoteUp={() => handleVote(1)}
       onVoteDown={() => handleVote(-1)}

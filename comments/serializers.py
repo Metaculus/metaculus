@@ -214,6 +214,7 @@ def serialize_key_factor(key_factor: KeyFactor) -> dict:
         "post_id": key_factor.comment.on_post_id,
         "user_vote": key_factor.user_vote,
         "votes_score": key_factor.votes_score,
+        "vote_type": key_factor.vote_type,
     }
 
 
