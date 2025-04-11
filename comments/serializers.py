@@ -5,7 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Comment, KeyFactor
+from comments.models import Comment, KeyFactor, KeyFactorVote
+from comments.services.key_factors import get_user_votes_for_key_factors
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
 from posts.services.common import get_posts_staff_users
@@ -206,14 +207,21 @@ def serialize_comment_many(
     ]
 
 
-def serialize_key_factor(key_factor: KeyFactor) -> dict:
+def serialize_key_factor(
+    key_factor: KeyFactor, user_votes: list[KeyFactorVote] = None
+) -> dict:
+    user_votes = user_votes or []
+
     return {
         "id": key_factor.id,
         "text": key_factor.text,
         "comment_id": key_factor.comment_id,
         "post_id": key_factor.comment.on_post_id,
-        "user_vote": key_factor.user_vote,
+        "user_votes": [
+            {"vote_type": vote.vote_type, "score": vote.score} for vote in user_votes
+        ],
         "votes_score": key_factor.votes_score,
+        "vote_type": key_factor.vote_type,
     }
 
 
@@ -228,11 +236,18 @@ def serialize_key_factors_many(
         .prefetch_related("comment")
     )
 
-    if current_user and not current_user.is_anonymous:
-        qs = qs.annotate_user_vote(current_user)
-
     # Restore the original ordering
     objects = list(qs.all())
     objects.sort(key=lambda obj: ids.index(obj.id))
 
-    return [serialize_key_factor(comment) for comment in objects]
+    # Extract user votes
+    user_votes_map = (
+        get_user_votes_for_key_factors(key_factors, current_user)
+        if current_user and not current_user.is_anonymous
+        else {}
+    )
+
+    return [
+        serialize_key_factor(key_factor, user_votes=user_votes_map.get(key_factor.id))
+        for key_factor in objects
+    ]

@@ -54,10 +54,29 @@ export type ForecastType = {
   question_unit?: string;
 };
 
+export const KeyFactorVoteTypes = {
+  UP_DOWN: "a_updown",
+  TWO_STEP: "b_2step",
+  LIKERT: "c_likert",
+} as const;
+
+export type KeyFactorVoteType =
+  (typeof KeyFactorVoteTypes)[keyof typeof KeyFactorVoteTypes];
+
+type KeyFactorVoteA = -1 | 1 | null;
+type KeyFactorVoteBAndC = -5 | -3 | -2 | 0 | 2 | 3 | 5;
+export type KeyFactorVoteScore = KeyFactorVoteA | KeyFactorVoteBAndC;
+
+export type KeyFactorVote = {
+  vote_type: KeyFactorVoteType;
+  score: KeyFactorVoteScore;
+};
+
 export type KeyFactor = {
   id: number;
   text: string;
   comment_id: string;
-  user_vote: VoteDirection | null;
+  user_votes: KeyFactorVote[]; // empty array if the user has not voted
+  vote_type: KeyFactorVoteType | null; // null if the user has not voted
   votes_score: number;
 };
