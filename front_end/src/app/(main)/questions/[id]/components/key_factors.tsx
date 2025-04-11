@@ -17,6 +17,7 @@ import SectionToggle from "@/components/ui/section_toggle";
 import useHash from "@/hooks/use_hash";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { KeyFactor } from "@/types/comment";
+import cn from "@/utils/cn";
 
 type KeyFactorsSectionProps = {
   postId: number;
@@ -43,8 +44,8 @@ const AddKeyFactorsButton: FC<{
 
 const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
   const t = useTranslations();
-  const [displayLimit, setDisplayLimit] = useState(4);
   const hash = useHash();
+  const [displayLimit, setDisplayLimit] = useState(4);
   const [isAddKeyFactorsModalOpen, setIsAddKeyFactorsModalOpen] =
     useState(false);
 
@@ -84,6 +85,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
         title={t("keyFactors")}
         defaultOpen
         id="key-factors"
+        wrapperClassName="scroll-mt-header"
       >
         {combinedKeyFactors.length > 0 ? (
           <div id="key-factors-list" className="flex flex-col gap-2.5">
@@ -133,12 +135,15 @@ export const KeyFactorItem: FC<KeyFactorBlockProps> = ({
   linkToComment = true,
 }) => {
   const scrollTo = useScrollTo();
-  const linkAnchor = linkToComment
-    ? `#comment-${comment_id}`
-    : "#key-factors-list";
+  const linkAnchor = linkToComment ? `#comment-${comment_id}` : "#key-factors";
 
   return (
-    <div className="relative flex items-center gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark [&>.target]:hover:visible">
+    <div
+      className={cn(
+        "relative flex items-center gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark [&>.target]:hover:visible",
+        { "bg-gray-0 dark:bg-gray-0-dark": linkToComment }
+      )}
+    >
       {/* Link component does not trigger hash event trigger, so we use <a> instead */}
       <KeyFactorVoter
         className="z-10"
@@ -157,9 +162,11 @@ export const KeyFactorItem: FC<KeyFactorBlockProps> = ({
       <a
         href={linkAnchor}
         onClick={(e) => {
-          const target = document.getElementById(linkAnchor);
+          const target = document.getElementById(linkAnchor.replace("#", ""));
           if (target) {
-            e.preventDefault();
+            if (linkToComment) {
+              e.preventDefault();
+            }
             scrollTo(target.getBoundingClientRect().top);
           }
           sendGAEvent("event", "KeyFactorClick", { event_label: "fromList" });

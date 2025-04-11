@@ -493,13 +493,17 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {commentKeyFactors.map((kf) => (
-        <KeyFactorItem
-          key={`key-factor-${kf.id}`}
-          keyFactor={kf}
-          linkToComment={false}
-        />
-      ))}
+      {commentKeyFactors.length > 0 && (
+        <div className="mb-3 mt-1.5 flex flex-col gap-1">
+          {commentKeyFactors.map((kf) => (
+            <KeyFactorItem
+              key={`key-factor-${kf.id}`}
+              keyFactor={kf}
+              linkToComment={false}
+            />
+          ))}
+        </div>
+      )}
       <div>
         <CmmOverlay
           forecast={100 * userForecast}
