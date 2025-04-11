@@ -15,13 +15,8 @@ from comments.services.feed import get_comments_feed
 from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services.common import (
-    get_projects_staff_users,
-    get_site_main_project,
-    notify_project_subscriptions_post_open,
-    move_project_forecasting_end_date,
-)
 from projects.services.common import get_projects_staff_users, get_site_main_project
+from projects.services.common import move_project_forecasting_end_date
 from questions.models import Question
 from questions.services import (
     create_conditional,
@@ -48,8 +43,6 @@ from utils.translation import (
     update_translations_for_model,
 )
 from .search import generate_post_content_for_embedding_vectorization
-from .subscriptions import notify_post_status_change
-from ..tasks import run_notify_post_status_change, run_post_indexing
 from ..tasks import run_post_indexing
 
 logger = logging.getLogger(__name__)
