@@ -492,7 +492,6 @@ def approve_post(
     cp_reveal_time: date,
     scheduled_close_time: date,
     scheduled_resolve_time: date,
-    move_forecasting_end_date: bool = False,
 ):
     if post.curation_status == Post.CurationStatus.APPROVED:
         raise ValidationError("Post is already approved")
@@ -522,14 +521,8 @@ def approve_post(
         ],
     )
 
-    # Automatically update all secondary projects
-    projects_to_move_end_date = list(post.projects.all())
-    # Default projects require manual confirmation from moderators
-    # However, group questions should automatically update the default project
-    if post.group_of_questions_id or move_forecasting_end_date:
-        projects_to_move_end_date.append(post.default_project)
-
-    for project in projects_to_move_end_date:
+    # Automatically update secondary and default project forecasting end date
+    for project in [post.default_project] + list(post.projects.all()):
         if project.type == Project.ProjectTypes.TOURNAMENT:
             move_project_forecasting_end_date(project, post)
 

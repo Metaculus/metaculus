@@ -914,4 +914,3 @@ class QuestionApproveSerializer(serializers.Serializer):
     cp_reveal_time = serializers.DateTimeField(required=True)
     scheduled_close_time = serializers.DateTimeField(required=True)
     scheduled_resolve_time = serializers.DateTimeField(required=True)
-    move_forecasting_end_date = serializers.BooleanField(required=False)
