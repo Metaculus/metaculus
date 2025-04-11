@@ -100,7 +100,10 @@ const ContinuousAreaChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const paddingTop = graphType === "cdf" ? TOP_PADDING : 0;
+  const paddingTop =
+    graphType === "cdf" || questionType === QuestionType.Discrete
+      ? TOP_PADDING
+      : 0;
   const discrete = questionType === QuestionType.Discrete;
 
   const charts = useMemo(() => {
@@ -153,9 +156,12 @@ const ContinuousAreaChart: FC<Props> = ({
     );
     return {
       xDomain: [0, 1],
-      yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
+      yDomain:
+        questionType !== QuestionType.Discrete
+          ? [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)]
+          : [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
     };
-  }, [data, graphType]);
+  }, [data, graphType, questionType]);
   const xScale = useMemo(
     () =>
       generateScale({

@@ -277,6 +277,7 @@ const NumericQuestionInput: React.FC<{
                 readOnly={hasForecasts}
                 disabled={hasForecasts}
                 type="number"
+                step="any"
                 defaultValue={min}
                 onChange={(e) => {
                   e.preventDefault();
@@ -290,6 +291,7 @@ const NumericQuestionInput: React.FC<{
                 readOnly={hasForecasts}
                 disabled={hasForecasts}
                 type="number"
+                step="any"
                 onChange={(e) => {
                   e.preventDefault();
                   setMax(Number(e.target.value));
@@ -306,11 +308,15 @@ const NumericQuestionInput: React.FC<{
               readOnly={hasForecasts}
               disabled={hasForecasts}
               type="number"
-              min={0}
+              step="any"
               max={!isNil(max) && !isNil(min) ? (max - min) / 2 : undefined}
               value={step}
               onChange={(e) => {
-                setStep(Number(e.target.value));
+                const val = Math.max(
+                  !isNil(max) && !isNil(min) ? (max - min) / 200 : 0,
+                  Number(e.target.value)
+                );
+                setStep(val);
               }}
             />
             {step > 0 &&
@@ -445,7 +451,8 @@ const NumericQuestionInput: React.FC<{
                   <Input
                     readOnly={hasForecasts}
                     disabled={hasForecasts}
-                    type="float"
+                    type="number"
+                    step="any"
                     onChange={(e) => {
                       setZeroPoint(Number(e.target.value));
                     }}

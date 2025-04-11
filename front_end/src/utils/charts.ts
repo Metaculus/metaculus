@@ -866,7 +866,7 @@ export function generateScale({
     );
   }
 
-  // if (direction == "horizontal") {
+  // if (direction == "vertical") {
   //   // Debugging - do not remove
   //   console.log(
   //     "\n displayType:",
