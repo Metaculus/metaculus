@@ -228,6 +228,7 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    breakpoint()
     # manually convert scaling to range_min, range_max, zero_point
     # TODO: move scaling handling
     qdatas = []
