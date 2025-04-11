@@ -91,7 +91,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
               return (
                 <KeyFactorItem
                   keyFactor={kf}
-                  key={`post-key-factor-${kf.id}-${kf.votes_score}-${kf.user_vote}`}
+                  key={`post-key-factor-${kf.id}-${kf.votes_score}-${kf.user_votes.at(-1)?.score ?? 0} `}
                 />
               );
             })}
@@ -129,7 +129,7 @@ type KeyFactorBlockProps = {
 };
 
 export const KeyFactorItem: FC<KeyFactorBlockProps> = ({
-  keyFactor: { text, id, votes_score, user_vote, comment_id },
+  keyFactor: { text, id, votes_score, user_votes, comment_id },
   linkToComment = true,
 }) => {
   const scrollTo = useScrollTo();
@@ -145,7 +145,9 @@ export const KeyFactorItem: FC<KeyFactorBlockProps> = ({
         voteData={{
           keyFactorId: id,
           votesScore: votes_score,
-          userVote: user_vote ?? null,
+          userVote:
+            user_votes.findLast((vote) => vote.vote_type === "a_updown") ??
+            null, // TODO: pass all user votes array and use it inside the voter
         }}
       />
       <div className="decoration-blue-500 underline-offset-4 dark:decoration-blue-500-dark">

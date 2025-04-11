@@ -10,9 +10,13 @@ import {
 
 import { SortOption } from "@/components/comment_feed";
 import { getCommentsParams } from "@/services/comments";
-import { BECommentType, CommentType, KeyFactor } from "@/types/comment";
+import {
+  BECommentType,
+  CommentType,
+  KeyFactor,
+  KeyFactorVote,
+} from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
-import { VoteDirection } from "@/types/votes";
 import { parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 
@@ -40,7 +44,7 @@ export type CommentsFeedContextType = {
   setCombinedKeyFactors: (combinedKeyFactors: KeyFactor[]) => void;
   setKeyFactorVote: (
     keyFactorId: number,
-    direction: number | null,
+    keyFactorVote: KeyFactorVote | null,
     votesScore: number
   ) => void;
 };
@@ -128,14 +132,20 @@ const CommentsFeedProvider: FC<
 
   const setKeyFactorVote = (
     keyFactorId: number,
-    direction: number | null,
+    keyFactorVote: KeyFactorVote | null,
     votes_score: number
   ) => {
     // Update the list of combined key factors with the new vote
     setAndSortCombinedKeyFactors(
       combinedKeyFactors.map((kf) =>
         kf.id === keyFactorId
-          ? { ...kf, votes_score, user_vote: direction as VoteDirection }
+          ? {
+              ...kf,
+              votes_score,
+              user_votes: keyFactorVote
+                ? [...kf.user_votes, keyFactorVote]
+                : [...kf.user_votes],
+            }
           : { ...kf }
       )
     );
@@ -150,7 +160,13 @@ const CommentsFeedProvider: FC<
             ...comment,
             key_factors: comment.key_factors?.map((kf) =>
               kf.id === keyFactorId
-                ? { ...kf, votes_score, user_vote: direction as VoteDirection }
+                ? {
+                    ...kf,
+                    votes_score,
+                    user_votes: keyFactorVote
+                      ? [...kf.user_votes, keyFactorVote]
+                      : [...kf.user_votes],
+                  }
                 : kf
             ),
           };
