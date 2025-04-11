@@ -190,6 +190,28 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   })
                 }
               />
+              <TopicItem
+                isActive={false}
+                emoji="🏛️"
+                text="POTUS"
+                href="/tournament/POTUS-predictions/"
+                onClick={() =>
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "POTUS",
+                  })
+                }
+              />
+              <TopicItem
+                isActive={false}
+                emoji="💵"
+                text="Fiscal"
+                href="/tournament/fiscal/"
+                onClick={() =>
+                  sendGAEvent("event", "sidebarClick", {
+                    event_category: "Fiscal",
+                  })
+                }
+              />
             </>
           )}
           {!!hotTopics.length && (
