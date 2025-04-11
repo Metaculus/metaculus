@@ -4,10 +4,7 @@ import dramatiq
 
 from posts.models import Post
 from posts.services.search import update_post_search_embedding_vector
-from posts.services.subscriptions import (
-    notify_post_cp_change,
-    notify_post_status_change,
-)
+from posts.services.subscriptions import notify_post_cp_change
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
 
 logger = logging.getLogger(__name__)
