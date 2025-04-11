@@ -1,5 +1,6 @@
 import pytest  # noqa
 
+from comments.models import KeyFactorVote
 from comments.services.common import create_comment, soft_delete_comment
 from comments.services.key_factors import key_factor_vote
 from comments.services.notifications import notify_mentioned_users
@@ -100,11 +101,25 @@ def test_key_factor_vote(user1, user2):
         comment=comment,
         text="Key Factor Text",
         votes={user2: -1},
+        vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE,
     )
 
-    assert key_factor_vote(kf, user1, vote=-1) == -2
-    assert key_factor_vote(kf, user1) == -1
-    assert key_factor_vote(kf, user1, vote=1) == 0
+    assert (
+        key_factor_vote(
+            kf, user1, vote=-1, vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE
+        )
+        == -2
+    )
+    assert (
+        key_factor_vote(kf, user1, vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE)
+        == -1
+    )
+    assert (
+        key_factor_vote(
+            kf, user1, vote=1, vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE
+        )
+        == 0
+    )
 
 
 def test_soft_delete_comment(user1, user2, post):

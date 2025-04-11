@@ -1,4 +1,4 @@
-import { BECommentType, CommentType } from "@/types/comment";
+import { BECommentType, CommentType, KeyFactorVoteType } from "@/types/comment";
 import { get, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
@@ -33,6 +33,10 @@ export type VoteParams = {
   id: number;
   vote: number | null;
   user: number;
+};
+
+export type KeyFactorVoteParams = VoteParams & {
+  vote_type: KeyFactorVoteType;
 };
 
 export type ToggleCMMCommentParams = {
@@ -132,8 +136,10 @@ class CommentsApi {
     return post(`/comments/${commentId}/report/`, { reason });
   }
 
-  static async voteKeyFactor(voteData: VoteParams): Promise<Response | null> {
-    return await post<null, VoteParams>(
+  static async voteKeyFactor(
+    voteData: KeyFactorVoteParams
+  ): Promise<Response | null> {
+    return await post<null, KeyFactorVoteParams>(
       `/key-factors/${voteData.id}/vote/`,
       voteData
     );

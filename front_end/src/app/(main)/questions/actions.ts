@@ -9,6 +9,7 @@ import CommentsApi, {
   CreateCommentParams,
   EditCommentParams,
   getCommentsParams,
+  KeyFactorVoteParams,
   ToggleCMMCommentParams,
   VoteParams,
 } from "@/services/comments";
@@ -333,7 +334,7 @@ export async function voteComment(voteData: VoteParams) {
   return await CommentsApi.voteComment(voteData);
 }
 
-export async function voteKeyFactor(voteData: VoteParams) {
+export async function voteKeyFactor(voteData: KeyFactorVoteParams) {
   return await CommentsApi.voteKeyFactor(voteData);
 }
 

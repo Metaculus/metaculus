@@ -298,8 +298,15 @@ def key_factor_vote_view(request: Request, pk: int):
     vote = serializers.ChoiceField(
         required=False, allow_null=True, choices=KeyFactorVote.VoteScore.choices
     ).run_validation(request.data.get("vote"))
+    # vote_type is always required, and when vote is None, the type is being used to
+    # decide which vote to delete based on the type
+    vote_type = serializers.ChoiceField(
+        required=True, allow_null=False, choices=KeyFactorVote.VoteType.choices
+    ).run_validation(request.data.get("vote_type"))
 
-    score = key_factor_vote(key_factor, user=request.user, vote=vote)
+    score = key_factor_vote(
+        key_factor, user=request.user, vote=vote, vote_type=vote_type
+    )
 
     return Response({"score": score})
 
