@@ -196,6 +196,7 @@ def notify_post_cp_change(post: Post):
             AggregateForecast.objects.filter(
                 question=question,
                 method=AggregationMethod.RECENCY_WEIGHTED,
+                start_time__gte=question.cp_reveal_time or question.created_at,
             ).order_by("start_time")
         )
         for question in questions
@@ -378,7 +379,9 @@ def notify_milestone(post: Post):
         subscription.save()
 
 
-def notify_post_status_change(post: Post, event: Post.PostStatusChange):
+def notify_post_status_change(
+    post: Post, event: Post.PostStatusChange, question: Question = None
+):
     """
     Notify about post status change
     """
@@ -391,7 +394,9 @@ def notify_post_status_change(post: Post, event: Post.PostStatusChange):
         NotificationPostStatusChange.schedule(
             subscription.user,
             NotificationPostStatusChange.ParamsType(
-                post=NotificationPostParams.from_post(post), event=event
+                post=NotificationPostParams.from_post(post),
+                event=event,
+                question=NotificationQuestionParams.from_question(question),
             ),
         )
 

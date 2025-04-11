@@ -11,7 +11,6 @@ from questions.constants import QuestionStatus
 from questions.types import AggregationMethod
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
-from utils.the_math.measures import percent_point_function
 
 if TYPE_CHECKING:
     from posts.models import Post
@@ -191,6 +190,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     )
     group_rank = models.IntegerField(null=True, blank=True)
 
+    # Indicates whether we triggered "handle_post_open" event
+    # And guarantees idempotency of "on post open" evens
+    open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
+
     def __str__(self):
         return f"{self.type} {self.title}"
 
@@ -296,6 +301,13 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         if shortest_window[0]:
             return shortest_window
         return None
+
+    def get_inbound_outcome_count(self):
+        return (
+            self.inbound_outcome_count
+            if self.inbound_outcome_count
+            else DEFAULT_INBOUND_OUTCOME_COUNT
+        )
 
 
 QUESTION_CONTINUOUS_TYPES = [
@@ -429,6 +441,8 @@ class Forecast(models.Model):
         ]
 
     def __str__(self):
+        from utils.the_math.measures import percent_point_function
+
         pv = self.get_prediction_values()
         if len(pv) > 64:
             q1, q2, q3 = percent_point_function(pv, [25, 50, 75])
@@ -491,6 +505,8 @@ class AggregateForecast(models.Model):
         ]
 
     def __repr__(self):
+        from utils.the_math.measures import percent_point_function
+
         pv = self.get_prediction_values()
         if len(pv) > 64:
             q1, q2, q3 = percent_point_function(pv, [25, 50, 75])

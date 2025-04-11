@@ -27,6 +27,7 @@ from comments.services.common import (
     create_comment,
     pin_comment,
     unpin_comment,
+    soft_delete_comment,
 )
 from comments.services.common import update_comment
 from comments.services.feed import get_comments_feed
@@ -35,10 +36,6 @@ from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from users.models import User
-from users.services.spam_detection import (
-    check_new_comment_for_spam,
-    send_deactivation_email,
-)
 from utils.paginator import LimitOffsetPagination
 
 
@@ -116,8 +113,7 @@ def comments_list_api_view(request: Request):
 def comment_delete_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
-    comment.is_soft_deleted = True
-    comment.save()
+    soft_delete_comment(comment)
 
     return Response({}, status=status.HTTP_200_OK)
 
@@ -148,23 +144,6 @@ def comment_create_api_view(request: Request):
         if included_forecast
         else None
     )
-
-    # Check for spam
-    is_spam, _ = check_new_comment_for_spam(
-        user=user, comment_text=serializer.validated_data["text"]
-    )
-
-    if is_spam:
-        user.mark_as_spam()
-        send_deactivation_email(user.email)
-        return Response(
-            data={
-                "message": "This comment seems to be spam. Please contact "
-                "support@metaculus.com if you believe this was a mistake.",
-                "error_code": "SPAM_DETECTED",
-            },
-            status=status.HTTP_403_FORBIDDEN,
-        )
 
     new_comment = create_comment(
         **serializer.validated_data, included_forecast=forecast, user=user

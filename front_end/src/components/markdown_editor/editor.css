@@ -7,6 +7,18 @@
   --baseBorder: theme("colors.gray.500.DEFAULT");
 }
 
+.mdxeditor-popup-container {
+  @apply z-100;
+  [role="dialog"] {
+    @apply flex flex-col xs:flex-row;
+  }
+}
+
+/* user mentions menu */
+#typeahead-menu {
+  @apply z-100;
+}
+
 .markdown-editor-form .mdxeditor-toolbar {
   @apply sticky top-0 z-10;
 }

@@ -61,3 +61,12 @@ export type KeyFactor = {
   user_vote: VoteDirection | null;
   votes_score: number;
 };
+
+export type CommentDraft = {
+  markdown: string;
+  includeForecast: boolean;
+  lastModified: number;
+  postId: number;
+  userId: number;
+  parentId?: number;
+};

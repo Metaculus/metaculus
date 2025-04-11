@@ -8,7 +8,6 @@ export type FetchOptions = RequestInit & {
 export type ApiErrorResponse = Record<string, string[]> & {
   non_field_errors?: string[];
   detail?: string;
-  status?: number;
 };
 
 /**
@@ -19,11 +18,6 @@ export type ErrorResponse = {
   message?: string;
   [key: string]: any;
   non_field_errors?: string[];
-};
-
-export type FetchError = Error & {
-  response?: Response;
-  data?: ErrorResponse;
 };
 
 export type PaginationParams = {

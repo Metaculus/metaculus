@@ -2,47 +2,10 @@ import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 
 import { getAlphaTokenSession, getServerSession } from "@/services/session";
-import {
-  ApiErrorResponse,
-  ErrorResponse,
-  FetchError,
-  FetchOptions,
-} from "@/types/fetch";
+import { ApiErrorResponse, FetchOptions } from "@/types/fetch";
 
-import { extractError } from "./errors";
+import { ApiError, logError } from "./errors";
 import { getPublicSettings } from "./public_settings.server";
-
-class ApiError extends Error {
-  public digest: string;
-
-  constructor(message: string) {
-    super(message);
-    // workaround Next.js removes error information on prod
-    // this workaround will be used only for REST API errors, which shouldn't provide any sensitive information in the message
-    // https://nextjs.org/docs/app/building-your-application/routing/error-handling#securing-sensitive-error-information
-    // https://github.com/vercel/next.js/discussions/49506#discussioncomment-10120012
-    this.digest = message;
-
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-
-    this.name = this.constructor.name;
-  }
-}
-
-/**
- * Util for converting Django errors to the standardized way
- */
-const normalizeApiErrors = ({
-  detail,
-  ...props
-}: ApiErrorResponse): ErrorResponse => {
-  return {
-    ...props,
-    message: detail,
-  };
-};
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
@@ -51,25 +14,18 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     }
 
     let errorData: ApiErrorResponse;
-
     try {
       errorData = await response.json();
     } catch {
       errorData = {
-        detail: "Unexpected Server Error",
+        detail: "Unexpected Api Error",
       } as ApiErrorResponse;
     }
 
-    // Converting Django errors
-    const data: ErrorResponse = normalizeApiErrors(errorData);
+    const apiError = new ApiError(response, errorData);
+    logError(apiError);
 
-    const error: FetchError = new ApiError(
-      data.message ?? `Error occurred: \n ${extractError(data)}`
-    );
-    error.response = response;
-    error.data = data;
-
-    throw error;
+    throw apiError;
   }
 
   // Check the content type to determine how to process the response

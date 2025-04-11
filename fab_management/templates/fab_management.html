@@ -23,34 +23,32 @@
             <input type="number" id="tournament_id" name="tournament_id" value="{{tournament_id}}">
         </div>
 
-        {% if tournament_id is not None%}
-            <div class="mt-6">
-                <h2 class="text-xl my-2">Private comments </h2>
-                <p class="text-sm text-gray-600 my-1"> Publish all private notes as comments on all questions with CP visible from this tournament.</p>
-                <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" @click="actionName = 'publish_comments'" :disabled="form_loading"> Publish private notes</button>
-            </div>
+        <div class="mt-6">
+            <h2 class="text-xl my-2">Private comments </h2>
+            <p class="text-sm text-gray-600 my-1"> Publish all private notes as comments on all questions with CP visible from this tournament.</p>
+            <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" @click="actionName = 'publish_comments'" :disabled="form_loading"> Publish private notes</button>
+        </div>
 
-            <div>
-                <h2 class="text-xl  mt-5 mb-2">Questions submission</h2>
-                <label for="doc_id">Google doc/spreadsheet ID</label>
-                <input type="text" id="doc_id" name="doc_id" value="18SvH1FjOsY3ZBm9S90Q4kIvYxIsFAUs6MVJaWnCCiSc">
-            </div>
+        <div>
+            <h2 class="text-xl  mt-5 mb-2">Questions submission</h2>
+            <label for="doc_id">Google doc/spreadsheet ID</label>
+            <input type="text" id="doc_id" name="doc_id" value="18SvH1FjOsY3ZBm9S90Q4kIvYxIsFAUs6MVJaWnCCiSc">
+        </div>
 
-            <div>
-                <label for="sheet_name">Sheet name</label>
-                <input type="text" id="sheet_name" name="sheet_name" value="Launch">
-            </div>
+        <div>
+            <label for="sheet_name">Sheet name</label>
+            <input type="text" id="sheet_name" name="sheet_name" value="Launch">
+        </div>
 
-            <div>
-                <label for="rows_range">Rows range</label>
-                <input type="text" id="rows_range" name="rows_range" value="{{rows_range}}">
-            </div>
+        <div>
+            <label for="rows_range">Rows range</label>
+            <input type="text" id="rows_range" name="rows_range" value="{{rows_range}}">
+        </div>
 
-            <div class="flex max-w-xl justify-between">
-                <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" name="submit_questions" @click="actionName = 'submit_dry'" :disabled="form_loading" >Dry run</button>
-                <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" name="submit_questions"  @click="actionName = 'submit'" :disabled="form_loading"> Submit </button>
-            </div>
-        {% endif%}
+        <div class="flex max-w-xl justify-between">
+            <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" name="submit_questions" @click="actionName = 'submit_dry'" :disabled="form_loading" >Dry run</button>
+            <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" name="submit_questions"  @click="actionName = 'submit'" :disabled="form_loading"> Submit </button>
+        </div>
     </div>
 </form>
 

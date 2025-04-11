@@ -61,6 +61,9 @@ const config: Config = {
         "border-dashed-1-dark":
           "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='4' ry='4' stroke='%236387A8FF' stroke-width='1' stroke-dasharray='4%2c 6' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e\")",
       },
+      spacing: {
+        header: "3rem",
+      },
     },
   },
   plugins: [

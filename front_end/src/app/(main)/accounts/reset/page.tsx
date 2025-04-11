@@ -4,8 +4,7 @@ import PasswordReset from "@/app/(main)/accounts/reset/components/password_reset
 import { GlobalErrorContainer } from "@/components/global_error_boundary";
 import AuthApi from "@/services/auth";
 import { getServerSession } from "@/services/session";
-import { FetchError } from "@/types/fetch";
-import { logError } from "@/utils/errors";
+import { ApiError, logError } from "@/utils/errors";
 
 export default async function ResetPassword(props: {
   searchParams: Promise<{ user_id: number; token: string }>;
@@ -23,7 +22,8 @@ export default async function ResetPassword(props: {
     await AuthApi.passwordResetVerifyToken(user_id, token);
   } catch (error) {
     logError(error);
-    return <GlobalErrorContainer error={(error as FetchError).data} />;
+    const err = ApiError.isApiError(error) ? error.data : error;
+    return <GlobalErrorContainer error={err} />;
   }
 
   return (

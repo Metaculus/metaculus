@@ -26,7 +26,7 @@ const Header: FC = () => {
       </div>
 
       <div className="z-10 flex h-full items-center justify-center gap-2 pr-4">
-        {user && <NavUserButton btnClassName="text-[13px] h-full " />}
+        {user && <NavUserButton btnClassName="text-[13px] h-full" />}
         <ThemeToggle />
       </div>
     </header>

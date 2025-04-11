@@ -36,7 +36,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [posts, setPosts] = useState<PostWithForecasts[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [topic, setTopic] = useState<OnboardingTopic | null>(null);
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
 
   const [onboardingState, setOnboardingState, deleteOnboardingState] =
     useStoredState<OnboardingStoredState>(ONBOARDING_STATE_KEY, INITIAL_STATE);
@@ -106,6 +106,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     updateProfileAction({ is_onboarding_complete: true }, false).catch(
       logError
     );
+    // Update user state without global revalidation
+    if (user) setUser({ ...user, is_onboarding_complete: true });
     resetState();
     onClose();
   };

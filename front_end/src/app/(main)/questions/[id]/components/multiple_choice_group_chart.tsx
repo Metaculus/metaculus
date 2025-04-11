@@ -13,7 +13,6 @@ import { VictoryThemeDefinition } from "victory";
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { useAuth } from "@/contexts/auth_context";
-import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
@@ -29,7 +28,6 @@ import {
   getContinuousGroupScaling,
   getDisplayValue,
 } from "@/utils/charts";
-import { generateUserForecasts } from "@/utils/questions";
 
 type Props = {
   questions: QuestionWithNumericForecasts[];
@@ -49,6 +47,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
   withLegend?: boolean;
+  className?: string;
 };
 
 const MultipleChoiceGroupChart: FC<Props> = ({
@@ -69,6 +68,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
   chartTheme,
   embedMode,
   withLegend,
+  className,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -78,26 +78,6 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       type === "continuous" ? getContinuousGroupScaling(questions) : undefined,
     [questions, type]
   );
-
-  const userForecasts = useMemo(
-    () => (user ? generateUserForecasts(questions, scaling) : undefined),
-    [user, questions, scaling]
-  );
-
-  const timestampsCount = timestamps.length;
-  const prevTimestampsCount = usePrevious(timestampsCount);
-  const latestUserTimestamp = useMemo(() => {
-    if (!userForecasts) {
-      return null;
-    }
-
-    return Math.max(
-      ...userForecasts
-        .map((forecast) => forecast.timestamps?.at(-1) ?? 0)
-        .filter((timestamp) => timestamp !== undefined)
-    );
-  }, [userForecasts]);
-  const prevUserTimestamp = usePrevious(latestUserTimestamp);
 
   const generateList = useCallback(
     (
@@ -117,21 +97,8 @@ const MultipleChoiceGroupChart: FC<Props> = ({
 
   // sync BE driven data with local state
   useEffect(() => {
-    if (
-      (prevTimestampsCount && prevTimestampsCount !== timestampsCount) ||
-      (latestUserTimestamp && latestUserTimestamp !== prevUserTimestamp)
-    ) {
-      setChoiceItems(generateList(questions, preselectedQuestionId));
-    }
-  }, [
-    questions,
-    prevTimestampsCount,
-    timestampsCount,
-    preselectedQuestionId,
-    latestUserTimestamp,
-    prevUserTimestamp,
-    generateList,
-  ]);
+    setChoiceItems(generateList(questions, preselectedQuestionId));
+  }, [questions, preselectedQuestionId, generateList]);
 
   const [cursorTimestamp, tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
@@ -269,6 +236,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       isEmptyDomain={
         !!forecastAvailability?.isEmpty || !!forecastAvailability?.cpRevealsOn
       }
+      className={className}
     />
   );
 };

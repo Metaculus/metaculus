@@ -72,7 +72,7 @@ const TournamentsList: FC<Props> = ({
               name={item.name}
               questionsCount={item.questions_count}
               prizePool={item.prize_pool}
-              closeDate={item.close_date}
+              closeDate={item.forecasting_end_date || item.close_date}
               showCloseDate={item.type !== TournamentType.QuestionSeries}
               isPrivate={item.default_permission === null}
             />

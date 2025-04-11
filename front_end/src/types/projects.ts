@@ -36,9 +36,9 @@ export enum TournamentType {
   QuestionSeries = "question_series",
   Tournament = "tournament",
   Index = "index",
-  GlobalLeaderboard = "global_leaderboard",
   Community = "community",
   NewsCategory = "news_category",
+  SiteMain = "site_main",
 }
 
 export enum TournamentsSortBy {
@@ -58,6 +58,7 @@ export type TournamentPreview = Project & {
   prize_pool: string | null;
   start_date: string;
   close_date?: string;
+  forecasting_end_date?: string;
   is_ongoing: boolean;
   created_at: string;
   questions_count: number;
@@ -70,8 +71,6 @@ export type TournamentTimeline = {
   last_cp_reveal_time?: string;
   latest_actual_resolve_time?: string;
   latest_scheduled_resolve_time?: string;
-  latest_actual_close_time?: string;
-  latest_scheduled_close_time?: string;
   all_questions_resolved: boolean;
   all_questions_closed: boolean;
 };

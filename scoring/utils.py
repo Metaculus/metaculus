@@ -45,6 +45,7 @@ from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
+from projects.permissions import ObjectPermission
 
 logger = logging.getLogger(__name__)
 
@@ -459,8 +460,9 @@ def calculate_medals_points_at_time(at_time):
     # Look only at leaderboard entries which are closed before the timestamp
     relevant_entries_qs = LeaderboardEntry.objects.filter(
         Q(leaderboard__end_time__lte=at_time)
-        | Q(leaderboard__project__close_date__lte=at_time)
-    ).exclude(leaderboard__project__default_permission__isnull=True)
+        | Q(leaderboard__project__close_date__lte=at_time),
+        leaderboard__project__default_permission=ObjectPermission.FORECASTER,
+    )
 
     # Get the age, in yeaers, for each leaderboard, and use it to
     # exp-decay the points associated with each medal (older medals weigh less)

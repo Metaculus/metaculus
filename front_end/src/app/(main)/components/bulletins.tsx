@@ -2,6 +2,8 @@
 import { usePathname } from "next/navigation";
 import { FC, useCallback, useEffect, useState } from "react";
 
+import { logError } from "@/utils/errors";
+
 import Bulletin from "./bulletin";
 import { getBulletins } from "../actions";
 
@@ -17,8 +19,12 @@ const Bulletins: FC = () => {
   const isHomePage = pathname === "/";
 
   const fetchBulletins = useCallback(async () => {
-    const res = await getBulletins();
-    setBulletins(res);
+    try {
+      const res = await getBulletins();
+      setBulletins(res);
+    } catch (error) {
+      logError(error);
+    }
   }, []);
 
   useEffect(() => {

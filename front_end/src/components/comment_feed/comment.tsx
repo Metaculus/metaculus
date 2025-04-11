@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useState, useEffect, useRef, ReactNode } from "react";
+import { FC, useState, useEffect, useRef, ReactNode, useCallback } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import {
@@ -38,7 +38,7 @@ import { CommentType } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/cn";
-import { parseUserMentions } from "@/utils/comments";
+import { getCommentIdToFocusOn, parseUserMentions } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 import { canPredictQuestion, getMarkdownSummary } from "@/utils/questions";
 import { formatUsername } from "@/utils/users";
@@ -46,6 +46,7 @@ import { formatUsername } from "@/utils/users";
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
 import { validateComment } from "./validate_comment";
+import LoadingSpinner from "../ui/loading_spiner";
 
 import { SortOption, sortComments } from ".";
 
@@ -68,9 +69,26 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
+
   const [childrenExpanded, setChildrenExpanded] = useState(
     expandedChildren && treeDepth < 5
   );
+
+  useEffect(() => {
+    const commentIdToFocusOn = getCommentIdToFocusOn();
+
+    if (commentIdToFocusOn) {
+      const shouldExpand = hasCommentInTree(
+        sortedCommentChildren,
+        Number(commentIdToFocusOn)
+      );
+
+      if (shouldExpand) {
+        setChildrenExpanded(true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function getTreeSize(commentChildren: CommentType[]): number {
     let totalChildren = 0;
@@ -199,6 +217,7 @@ const Comment: FC<CommentProps> = ({
   const commentRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
+  const [isLoading, setIsLoading] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
@@ -252,7 +271,65 @@ const Comment: FC<CommentProps> = ({
       logError(err, `${t("failedToCopyText")} ${err}`);
     }
   };
+  const handleSaveComment = useCallback(async () => {
+    if (!user || isLoading) {
+      // usually, don't expect this, as action is available only for logged-in users
+      return;
+    }
 
+    try {
+      setIsLoading(true);
+      setErrorMessage("");
+
+      const parsedMarkdown = commentMarkdown.replace(userTagPattern, (match) =>
+        match.replace(/[\\]/g, "")
+      );
+
+      const validateMessage = PUBLIC_MINIMAL_UI
+        ? null
+        : validateComment(parsedMarkdown, user, t);
+      if (validateMessage) {
+        setErrorMessage(validateMessage);
+        return;
+      }
+
+      const response = await editComment({
+        id: comment.id,
+        text: parsedMarkdown,
+        author: user.id,
+      });
+      if (response && "errors" in response) {
+        const errorMessage =
+          response.errors?.message ?? response.errors?.non_field_errors?.[0];
+        setErrorMessage(errorMessage);
+      } else {
+        const newCommentDataResponse = await getComments({
+          focus_comment_id: String(comment.id),
+          sort: "-created_at",
+        });
+        if (newCommentDataResponse && "errors" in newCommentDataResponse) {
+          console.error(
+            t("errorDeletingComment"),
+            newCommentDataResponse.errors
+          );
+        } else {
+          setCommentMarkdown(parsedMarkdown);
+        }
+        setIsEditing(false);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    user,
+    isLoading,
+    commentMarkdown,
+    comment.id,
+    PUBLIC_MINIMAL_UI,
+    t,
+    setCommentMarkdown,
+    setIsEditing,
+  ]);
   // scroll to comment from URL hash
   useEffect(() => {
     const match = window.location.hash.match(/#comment-(\d+)/);
@@ -562,53 +639,15 @@ const Comment: FC<CommentProps> = ({
             {isEditing && (
               <>
                 <Button
-                  onClick={async () => {
-                    if (!user) {
-                      // usually, don't expect this, as action is available only for logged-in users
-                      return;
-                    }
-                    setErrorMessage("");
-                    const parsedMarkdown = commentMarkdown.replace(
-                      userTagPattern,
-                      (match) => match.replace(/[\\]/g, "")
-                    );
-
-                    const validateMessage = PUBLIC_MINIMAL_UI
-                      ? null
-                      : validateComment(parsedMarkdown, user, t);
-                    if (validateMessage) {
-                      setErrorMessage(validateMessage);
-                      return;
-                    }
-
-                    const response = await editComment({
-                      id: comment.id,
-                      text: parsedMarkdown,
-                      author: user.id,
-                    });
-                    if (response && "errors" in response) {
-                      console.error(t("errorDeletingComment"), response.errors);
-                    } else {
-                      const newCommentDataResponse = await getComments({
-                        focus_comment_id: String(comment.id),
-                        sort: "-created_at",
-                      });
-                      if (
-                        newCommentDataResponse &&
-                        "errors" in newCommentDataResponse
-                      ) {
-                        console.error(
-                          t("errorDeletingComment"),
-                          newCommentDataResponse.errors
-                        );
-                      } else {
-                        setCommentMarkdown(parsedMarkdown);
-                      }
-                      setIsEditing(false);
-                    }
-                  }}
+                  onClick={handleSaveComment}
+                  disabled={isLoading}
+                  className={cn(isLoading && "h-8")}
                 >
-                  {t("save")}
+                  {isLoading ? (
+                    <LoadingSpinner className="mx-2.5 size-3" />
+                  ) : (
+                    t("save")
+                  )}
                 </Button>
                 <Button
                   className="ml-2"
@@ -616,6 +655,7 @@ const Comment: FC<CommentProps> = ({
                     setCommentMarkdown(tempCommentMarkdown);
                     setIsEditing(false);
                   }}
+                  disabled={isLoading}
                 >
                   {t("cancel")}
                 </Button>
@@ -724,6 +764,15 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
   comment.children.map((nestedComment) => {
     addNewChildrenComment(nestedComment, newComment);
   });
+}
+function hasCommentInTree(comments: CommentType[], targetId: number): boolean {
+  for (const comment of comments) {
+    if (comment.id === targetId) return true;
+    if (comment.children && comment.children.length > 0) {
+      if (hasCommentInTree(comment.children, targetId)) return true;
+    }
+  }
+  return false;
 }
 
 export default Comment;

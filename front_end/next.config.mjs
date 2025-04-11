@@ -1,6 +1,5 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
-
 const withNextIntl = createNextIntlPlugin();
 
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
@@ -17,6 +16,7 @@ const nextConfig = {
       dynamic: 30,
       static: 180,
     },
+    serverSourceMaps: true,
   },
   images: {
     remotePatterns: [
@@ -91,6 +91,8 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   org: "metaculus",
   project: "metaculus-frontend",
   silent: false,
-  widenClientFileUpload: true,
   telemetry: false,
+  sourcemaps: {
+    disable: true,
+  },
 });

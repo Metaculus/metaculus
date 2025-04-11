@@ -36,13 +36,12 @@ import {
   getDisplayValue,
   getQuestionDateFormatString,
   scaleInternalLocation,
-  unscaleNominalLocation,
 } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
 
-export const ANNULED_RESOLUTION = "annulled";
+export const ANNULLED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
 // Max length of a unit to be treated as compact
 export const QUESTION_UNIT_COMPACT_LENGTH = 3;
@@ -174,7 +173,7 @@ export function isUnsuccessfullyResolved(
   resolution: Resolution | null
 ): boolean {
   return (
-    resolution === ANNULED_RESOLUTION || resolution === AMBIGUOUS_RESOLUTION
+    resolution === ANNULLED_RESOLUTION || resolution === AMBIGUOUS_RESOLUTION
   );
 }
 
@@ -189,7 +188,8 @@ export function formatResolution({
   actual_resolve_time,
   scaling,
   unit,
-  shortBounds = false,
+  completeBounds = false,
+  longBounds = false,
 }: {
   resolution: number | string | null | undefined;
   questionType: QuestionType;
@@ -197,7 +197,8 @@ export function formatResolution({
   actual_resolve_time: string | null;
   scaling?: Scaling;
   unit?: string;
-  shortBounds?: boolean;
+  completeBounds?: boolean;
+  longBounds?: boolean;
 }) {
   if (resolution === null || resolution === undefined) {
     return "-";
@@ -214,34 +215,30 @@ export function formatResolution({
   }
 
   if (resolution === "below_lower_bound") {
-    if (shortBounds && scaling) {
-      return (
-        "<" +
-        getDisplayValue({
-          value: 0,
-          questionType,
-          scaling,
-          actual_resolve_time,
-          unit,
-          precision: 10,
-        })
-      );
+    if (completeBounds && scaling) {
+      return getDisplayValue({
+        value: 0,
+        questionType,
+        scaling,
+        actual_resolve_time,
+        unit,
+        precision: 10,
+        longBounds,
+      });
     }
     return "Below lower bound";
   }
   if (resolution === "above_upper_bound") {
-    if (shortBounds && scaling) {
-      return (
-        ">" +
-        getDisplayValue({
-          value: 1,
-          questionType,
-          scaling,
-          actual_resolve_time,
-          unit,
-          precision: 10,
-        })
-      );
+    if (completeBounds && scaling) {
+      return getDisplayValue({
+        value: 1,
+        questionType,
+        scaling,
+        actual_resolve_time,
+        unit,
+        precision: 10,
+        longBounds,
+      });
     }
     return "Above upper bound";
   }
@@ -479,45 +476,6 @@ export const generateUserForecastsForMultipleQuestion = (
       color:
         MULTIPLE_CHOICE_COLOR_SCALE[choiceOrdering.indexOf(index)] ??
         METAC_COLORS.gray["400"],
-    };
-  });
-};
-
-export const generateUserForecasts = (
-  questions: QuestionWithNumericForecasts[],
-  scaling?: Scaling
-): UserChoiceItem[] => {
-  return questions.map((question, index) => {
-    const userForecasts = question.my_forecasts;
-
-    return {
-      choice: question.label,
-      values: userForecasts?.history.map((forecast) => {
-        if (question.type === QuestionType.Binary) {
-          return forecast.forecast_values[1] ?? 0;
-        }
-
-        if (!forecast.centers || isNil(forecast.centers[0])) {
-          return 0;
-        }
-
-        const value = forecast.centers[0];
-        if (scaling) {
-          return unscaleNominalLocation(
-            scaleInternalLocation(value, question.scaling),
-            scaling
-          );
-        }
-
-        return value;
-      }),
-      timestamps: userForecasts?.history.map((forecast) => forecast.start_time),
-      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      unscaledValues: userForecasts?.history.map((forecast) =>
-        question.type === QuestionType.Binary
-          ? forecast.forecast_values[1] ?? 0
-          : forecast.centers?.[0] ?? 0
-      ),
     };
   });
 };

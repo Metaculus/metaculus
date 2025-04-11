@@ -1,9 +1,9 @@
 import logging
 from collections.abc import Iterable
-from datetime import timedelta, date, datetime
+from datetime import date, datetime, timedelta
 
 from django.db import transaction
-from django.db.models import Q, Count, Sum, Value, Case, When, QuerySet
+from django.db.models import Case, Count, Q, QuerySet, Sum, Value, When
 from django.db.models.functions import Coalesce
 from django.db.utils import IntegrityError
 from django.utils import timezone
@@ -15,39 +15,35 @@ from comments.services.feed import get_comments_feed
 from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services.common import (
-    notify_project_subscriptions_post_open,
-    get_site_main_project,
-    get_projects_staff_users,
-)
+from projects.services.common import get_projects_staff_users, get_site_main_project
+from projects.services.common import move_project_forecasting_end_date
 from questions.models import Question
 from questions.services import (
-    create_question,
     create_conditional,
     create_group_of_questions,
-    update_question,
+    create_question,
     update_conditional,
     update_group_of_questions,
     update_notebook,
+    update_question,
 )
 from questions.types import AggregationMethod
 from scoring.models import (
+    GLOBAL_LEADERBOARD_STRING,
     global_leaderboard_dates,
     name_and_slug_for_global_leaderboard_dates,
-    GLOBAL_LEADERBOARD_STRING,
 )
 from users.models import User
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregations_at_time
 from utils.the_math.measures import prediction_difference_for_sorting
 from utils.translation import (
-    update_translations_for_model,
-    queryset_filter_outdated_translations,
     detect_and_update_content_language,
+    queryset_filter_outdated_translations,
+    update_translations_for_model,
 )
 from .search import generate_post_content_for_embedding_vectorization
-from .subscriptions import notify_post_status_change
-from ..tasks import run_notify_post_status_change, run_post_indexing
+from ..tasks import run_post_indexing
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +193,8 @@ def trigger_update_post_translations(
         post.notebook.update_and_maybe_translate(should_translate_if_dirty)
     if post.group_of_questions_id is not None:
         post.group_of_questions.update_and_maybe_translate(should_translate_if_dirty)
+        for sub_question in post.group_of_questions.questions.all():
+            sub_question.update_and_maybe_translate(should_translate_if_dirty)
     if post.conditional_id is not None:
         post.conditional.condition.update_and_maybe_translate(should_translate_if_dirty)
         if hasattr(post.conditional.condition, "post"):
@@ -517,6 +515,12 @@ def approve_post(
             "scheduled_resolve_time",
         ],
     )
+
+    # Automatically update secondary and default project forecasting end date
+    for project in [post.default_project] + list(post.projects.all()):
+        if project.type == Project.ProjectTypes.TOURNAMENT:
+            move_project_forecasting_end_date(project, post)
+
     post.update_pseudo_materialized_fields()
 
 
@@ -552,24 +556,6 @@ def send_back_to_review(post: Post):
     post.curation_status = Post.CurationStatus.PENDING
     post.open_time = None
     post.save(update_fields=["curation_status", "open_time"])
-
-
-def resolve_post(post: Post):
-    post.set_resolved()
-
-    run_notify_post_status_change.send(post.id, Post.PostStatusChange.RESOLVED)
-
-
-def handle_post_open(post: Post):
-    """
-    A specific handler is triggered once it's opened
-    """
-
-    # Handle post subscriptions
-    notify_post_status_change(post, Post.PostStatusChange.OPEN)
-
-    # Handle post on followed projects subscriptions
-    notify_project_subscriptions_post_open(post)
 
 
 def get_posts_staff_users(

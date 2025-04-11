@@ -23,7 +23,6 @@ import {
   sortGroupPredictionOptions,
 } from "@/utils/questions";
 
-const CHART_HEIGHT = 100;
 const VISIBLE_CHOICES_COUNT = 3;
 
 type Props = {
@@ -64,11 +63,10 @@ const GroupContinuousTile: FC<Props> = ({ post, hideCP }) => {
         <FanGraphMultipleChoiceTile
           choices={choices}
           visibleChoicesCount={VISIBLE_CHOICES_COUNT}
-          groupQuestions={questions}
+          groupQuestions={sortedQuestions}
           groupType={questionType}
           hideCP={hideCP}
           forecastAvailability={forecastAvailability}
-          chartHeight={CHART_HEIGHT}
           canPredict={canPredict}
         />
       );

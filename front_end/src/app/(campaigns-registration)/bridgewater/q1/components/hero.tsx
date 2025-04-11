@@ -6,7 +6,7 @@ function Hero() {
           Bridgewater <span className="font-thin opacity-50">x</span> Metaculus
         </span>{" "}
         <br />
-        Forecasting Contest <br />
+        Forecasting Contest 2024 <br />
         <span className="font-light text-blue-600 dark:text-blue-600-dark">
           Final Rankings
         </span>

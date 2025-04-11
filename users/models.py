@@ -134,3 +134,17 @@ class UserCampaignRegistration(TimeStampedModel):
 
     def __str__(self):
         return f"UserCampaignRegistration {self.user.username}({self.key})"
+
+
+class UserSpamActivity(TimeStampedModel):
+    class SpamContentType(models.TextChoices):
+        COMMENT = "comment"
+        QUESTION = "question"
+        NOTEBOOK = "notebook"
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    reason = models.TextField()
+    confidence = models.FloatField()
+    content_type = models.CharField(max_length=200, choices=SpamContentType.choices)
+    content_id = models.IntegerField(null=True, blank=True)
+    text = models.TextField(blank=True)

@@ -3,6 +3,7 @@ import { Project, TournamentType } from "@/types/projects";
 import { Optional } from "@/types/utils";
 
 type EncodableValue = string | number | boolean;
+
 export function encodeQueryParams(
   params: Record<string, EncodableValue | Array<EncodableValue>>
 ): string {
@@ -36,17 +37,18 @@ export const addUrlParams = (
 export const getPostLink = (
   post: Optional<
     Pick<Post, "id" | "slug" | "notebook" | "projects" | "group_of_questions">,
-    "notebook" | "projects" | "group_of_questions"
+    "slug" | "notebook" | "projects" | "group_of_questions"
   >,
   questionId?: number
 ) => {
-  let url = `/questions/${post.id}/${post.slug}/`;
+  const idPath = post.slug ? `${post.id}/${post.slug}` : post.id;
+  let url = `/questions/${idPath}/`;
   const defaultProject = post.projects?.default_project;
 
   if (defaultProject?.type === TournamentType.Community) {
-    url = `/c/${defaultProject.slug}/${post.id}/${post.slug}/`;
+    url = `/c/${defaultProject.slug}/${idPath}/`;
   } else if (!!post.notebook) {
-    url = `/notebooks/${post.id}/${post.slug}/`;
+    url = `/notebooks/${post.id}/${idPath}/`;
   }
 
   // If generate links to the specific subquestion
@@ -77,3 +79,12 @@ export const getWithDefaultHeader = (pathname: string): boolean =>
   !pathname.match(/^\/notebooks\/(\d+)(\/.*)?$/) &&
   !pathname.startsWith("/c/") &&
   !pathname.startsWith("/questions/create");
+
+/**
+ * Ensures trailing slash is handled properly, e.g. when link is defined manually in code
+ *
+ * Pathname extracted with `usePathname` is always expected with trailing slash
+ */
+export const isPathEqual = (pathname: string, href: string) => {
+  return pathname.replace(/\/+$/, "") === href.replace(/\/+$/, "");
+};

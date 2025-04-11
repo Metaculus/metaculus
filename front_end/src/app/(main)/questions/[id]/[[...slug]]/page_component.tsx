@@ -1,16 +1,19 @@
 import { redirect } from "next/navigation";
 import { FC } from "react";
 
+import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
+import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { PostStatus, ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
+import cn from "@/utils/cn";
 import {
   getQuestionTitle,
   isConditionalPost,
@@ -18,6 +21,7 @@ import {
   isQuestionPost,
 } from "@/utils/questions";
 
+import { cachedGetPost } from "./utils/get_post";
 import BackgroundInfo from "../components/background_info";
 import HideCPProvider from "../components/cp_provider";
 import DetailedGroupCard from "../components/detailed_group_card";
@@ -33,7 +37,6 @@ import QuestionResolutionStatus from "../components/question_resolution_status";
 import ResolutionCriteria from "../components/resolution_criteria";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
-import { cachedGetPost } from "./utils/get_post";
 
 const IndividualQuestionPage: FC<{
   params: { id: number; slug: string[] };
@@ -73,86 +76,114 @@ const IndividualQuestionPage: FC<{
   const questionTitle = getQuestionTitle(postData);
   return (
     <EmbedModalContextProvider>
-      <HideCPProvider post={postData}>
-        {isCommunityQuestion ? (
-          <CommunityHeader community={currentCommunity} />
-        ) : (
-          <Header />
-        )}
-        <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4 md:py-10">
-          <div className="flex gap-4">
-            <div className="flex w-full flex-col gap-4">
-              <section className="w-[48rem] max-w-full rounded border-transparent bg-gray-0 px-3 pt-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
-                <PostHeader post={postData} questionTitle={questionTitle} />
-                {!postData.conditional && (
-                  <div className="mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
-                    <h1 className="m-0 text-xl leading-tight sm:text-3xl">
-                      {postData.title}
-                    </h1>
-                    {postData.resolved && !!postData.question && (
-                      <QuestionResolutionStatus post={postData} />
-                    )}
+      <CommentsFeedProvider postId={postData.id} rootCommentStructure={true}>
+        <HideCPProvider post={postData}>
+          {isCommunityQuestion ? (
+            <CommunityHeader community={currentCommunity} />
+          ) : (
+            <Header />
+          )}
+          <main
+            className={cn(
+              "mx-auto flex w-full max-w-max flex-col scroll-smooth py-4 md:py-10",
+              {
+                "sm:mt-5": isCommunityQuestion,
+              }
+            )}
+          >
+            <div className="flex gap-4">
+              <div className="relative w-full">
+                {isCommunityQuestion && (
+                  <div className="absolute z-0 -mt-[41px] hidden w-full sm:block">
+                    <CommunityDisclaimer
+                      project={postData.projects.default_project}
+                      variant="inline"
+                    />
                   </div>
                 )}
+                <div className="relative z-10 flex w-full flex-col gap-4">
+                  <section className="w-[48rem] max-w-full rounded border-transparent bg-gray-0 px-3 pt-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
+                    {isCommunityQuestion && (
+                      <CommunityDisclaimer
+                        project={postData.projects.default_project}
+                        variant="standalone"
+                        className="mb-4 block sm:hidden"
+                      />
+                    )}
 
-                {isConditionalPost(postData) && (
-                  <ConditionalTile
-                    post={postData}
-                    withNavigation
-                    withCPRevealBtn
+                    <PostHeader post={postData} questionTitle={questionTitle} />
+                    {!postData.conditional && (
+                      <div className="mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
+                        <h1 className="m-0 text-xl leading-tight sm:text-3xl">
+                          {postData.title}
+                        </h1>
+                        {postData.resolved && !!postData.question && (
+                          <QuestionResolutionStatus post={postData} />
+                        )}
+                      </div>
+                    )}
+
+                    {isConditionalPost(postData) && (
+                      <ConditionalTile
+                        post={postData}
+                        withNavigation
+                        withCPRevealBtn
+                      />
+                    )}
+                    <QuestionHeaderInfo post={postData} />
+
+                    {isQuestionPost(postData) && (
+                      <DetailedQuestionCard post={postData} />
+                    )}
+                    {isGroupOfQuestionsPost(postData) && (
+                      <DetailedGroupCard
+                        post={postData}
+                        preselectedQuestionId={preselectedGroupQuestionId}
+                      />
+                    )}
+
+                    <ForecastMaker post={postData} />
+                    <ResolutionCriteria post={postData} />
+
+                    {isConditionalPost(postData) && (
+                      <ConditionalTimeline post={postData} />
+                    )}
+
+                    <div className="flex flex-col gap-2.5">
+                      {!!keyFactors.length && (
+                        <KeyFactorsSection keyFactors={keyFactors} />
+                      )}
+                      <BackgroundInfo post={postData} />
+                      {!!postData.group_of_questions && (
+                        <ContinuousGroupTimeline
+                          post={postData}
+                          preselectedQuestionId={preselectedGroupQuestionId}
+                          className="mt-2"
+                        />
+                      )}
+                      <HistogramDrawer post={postData} />
+                    </div>
+                  </section>
+                  <Sidebar
+                    postData={postData}
+                    allowModifications={allowModifications}
+                    layout="mobile"
+                    questionTitle={questionTitle}
                   />
-                )}
-                <QuestionHeaderInfo post={postData} />
-
-                {isQuestionPost(postData) && (
-                  <DetailedQuestionCard post={postData} />
-                )}
-                {isGroupOfQuestionsPost(postData) && (
-                  <DetailedGroupCard
-                    post={postData}
-                    preselectedQuestionId={preselectedGroupQuestionId}
-                  />
-                )}
-
-                <ForecastMaker post={postData} />
-                <ResolutionCriteria post={postData} />
-
-                {isConditionalPost(postData) && (
-                  <ConditionalTimeline post={postData} />
-                )}
-
-                {!!postData.group_of_questions && (
-                  <ContinuousGroupTimeline
-                    post={postData}
-                    preselectedQuestionId={preselectedGroupQuestionId}
-                  />
-                )}
-                <div className="flex flex-col gap-2.5">
-                  {!!keyFactors.length && (
-                    <KeyFactorsSection keyFactors={keyFactors} />
-                  )}
-                  <BackgroundInfo post={postData} />
-                  <HistogramDrawer post={postData} />
+                  <CommentFeed postData={postData} />
                 </div>
-              </section>
+              </div>
               <Sidebar
                 postData={postData}
                 allowModifications={allowModifications}
-                layout="mobile"
                 questionTitle={questionTitle}
               />
-              <CommentFeed postData={postData} />
             </div>
-            <Sidebar
-              postData={postData}
-              allowModifications={allowModifications}
-              questionTitle={questionTitle}
-            />
-          </div>
-        </main>
+          </main>
 
-        <QuestionEmbedModal postId={postData.id} postTitle={postData.title} />
-      </HideCPProvider>
+          <QuestionEmbedModal postId={postData.id} postTitle={postData.title} />
+        </HideCPProvider>
+      </CommentsFeedProvider>
     </EmbedModalContextProvider>
   );
 };

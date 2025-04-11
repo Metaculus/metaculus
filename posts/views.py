@@ -1,11 +1,10 @@
-from django.core.files.storage import default_storage
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.cache import cache_page
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
-from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -44,6 +43,7 @@ from posts.services.common import (
     make_repost,
     vote_post,
 )
+from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
@@ -57,8 +57,14 @@ from utils.csv_utils import (
     export_all_data_for_questions,
     export_specific_data_for_questions,
 )
-from utils.files import UserUploadedImage, generate_filename
+from utils.files import validate_and_upload_image
 from utils.paginator import CountlessLimitOffsetPagination, LimitOffsetPagination
+
+spam_error = ValidationError(
+    detail="This post seems to be spam. Please contact "
+    "support@metaculus.com if you believe this was a mistake.",
+    code="SPAM_DETECTED",
+)
 
 
 @api_view(["GET"])
@@ -239,6 +245,13 @@ def post_create_api_view(request):
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
 
+    should_delete = check_and_handle_post_spam(request.user, post)
+
+    if should_delete:
+        post.curation_status = Post.CurationStatus.DELETED
+        post.save(update_fields=["curation_status"])
+        raise spam_error
+
     trigger_update_post_translations(post, with_comments=False, force=False)
 
     return Response(
@@ -282,6 +295,13 @@ def post_update_api_view(request, pk):
     serializer.is_valid(raise_exception=True)
 
     post = update_post(post, **serializer.validated_data)
+
+    should_delete = check_and_handle_post_spam(request.user, post)
+
+    if should_delete:
+        post.curation_status = Post.CurationStatus.DELETED
+        post.save(update_fields=["curation_status"])
+        raise spam_error
 
     trigger_update_post_translations(post, with_comments=False, force=False)
 
@@ -403,14 +423,7 @@ def post_view_event_api_view(request: Request, pk: int):
 def upload_image_api_view(request):
     image = request.data["image"]
 
-    image_generator = UserUploadedImage(source=image)
-    result = image_generator.generate()
-
-    filename = generate_filename(default_storage, image.name, upload_to="user_uploaded")
-
-    # Save the processed image using the default storage system
-    filename = default_storage.save(filename, result, max_length=100)
-    file_url = default_storage.url(filename)
+    file_url = validate_and_upload_image(image)
 
     return Response({"url": file_url})
 

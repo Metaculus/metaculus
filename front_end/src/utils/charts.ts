@@ -309,6 +309,7 @@ export function displayValue({
   truncation,
   dateFormatString,
   unit,
+  adjustLabels = false,
 }: {
   value: number | null;
   questionType: QuestionType;
@@ -318,6 +319,7 @@ export function displayValue({
   truncation?: number;
   dateFormatString?: string;
   unit?: string;
+  adjustLabels?: boolean;
 }): string {
   if (value === null) {
     return "...";
@@ -328,6 +330,7 @@ export function displayValue({
       scaling,
       actual_resolve_time,
       valueTimestamp: value,
+      includeRefTime: adjustLabels,
     });
     return format(fromUnixTime(value), dateFormatString ?? dateFormat);
   } else if (questionType === QuestionType.Numeric) {
@@ -354,6 +357,9 @@ export function getDisplayValue({
   range,
   dateFormatString,
   unit,
+  adjustLabels = false,
+  skipQuartilesBorders = false,
+  longBounds = false,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -364,48 +370,65 @@ export function getDisplayValue({
   range?: number[];
   dateFormatString?: string;
   unit?: string;
+  adjustLabels?: boolean;
+  skipQuartilesBorders?: boolean; // remove "<" or ">" from the formatted value if the value is out of the quartiles
+  longBounds?: boolean;
 }): string {
   if (value === undefined || value === null) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
-  const centerDisplay = displayValue({
-    value: scaledValue,
-    questionType,
-    precision,
-    truncation,
-    scaling,
-    actual_resolve_time,
-    dateFormatString,
-    unit,
-  });
+  const centerDisplay =
+    checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : value, {
+      longBounds,
+    }) +
+    displayValue({
+      value: scaledValue,
+      questionType,
+      precision,
+      truncation,
+      scaling,
+      actual_resolve_time,
+      dateFormatString,
+      unit,
+      adjustLabels,
+    });
   if (range) {
     const lowerX = range[0];
     const upperX = range[1];
     if (isNil(lowerX) || isNil(upperX)) {
       return "...";
     }
-
     const scaledLower = scaleInternalLocation(lowerX, scaling);
-    const lowerDisplay = displayValue({
-      value: scaledLower,
-      questionType,
-      precision,
-      actual_resolve_time,
-      scaling,
-      truncation,
-      dateFormatString,
-    });
+    const lowerDisplay =
+      checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : lowerX, {
+        longBounds,
+      }) +
+      displayValue({
+        value: scaledLower,
+        questionType,
+        precision,
+        actual_resolve_time,
+        scaling,
+        truncation,
+        dateFormatString,
+        adjustLabels,
+      });
     const scaledUpper = scaleInternalLocation(upperX, scaling);
-    const upperDisplay = displayValue({
-      value: scaledUpper,
-      questionType,
-      precision,
-      actual_resolve_time,
-      scaling,
-      truncation,
-      dateFormatString,
-    });
+    const upperDisplay =
+      checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : upperX, {
+        longBounds,
+      }) +
+      displayValue({
+        value: scaledUpper,
+        questionType,
+        precision,
+        actual_resolve_time,
+        scaling,
+        truncation,
+        dateFormatString,
+        adjustLabels,
+      });
     return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }
   return centerDisplay;
@@ -466,10 +489,12 @@ export function getQuestionDateFormatString({
   scaling,
   actual_resolve_time,
   valueTimestamp,
+  includeRefTime = false,
 }: {
   scaling: Scaling;
   actual_resolve_time: string | null;
   valueTimestamp: number;
+  includeRefTime?: boolean;
 }) {
   const { range_min, range_max } = scaling;
   let dateFormat = "dd MMM yyyy HH:mm";
@@ -485,7 +510,10 @@ export function getQuestionDateFormatString({
           : Date.now()
       ) / 1000;
     const refDiffInSeconds = Math.abs(ref - valueTimestamp);
-    const diffInSeconds = Math.min(scaleDiffInSeconds, refDiffInSeconds);
+    const diffInSeconds = Math.min(
+      scaleDiffInSeconds,
+      includeRefTime ? scaleDiffInSeconds : refDiffInSeconds
+    );
     if (diffInSeconds < oneWeek) {
       dateFormat = "dd MMM yyyy HH:mm";
     } else if (diffInSeconds < 5 * oneYear) {
@@ -646,16 +674,15 @@ export function getUserPredictionDisplayValue({
 
     return displayCenter;
   } else if (questionType === QuestionType.Numeric) {
-    const displayCenter = formatValueUnit(
-      abbreviatedNumber(scaledCenter),
-      unit
-    );
+    const displayCenter =
+      checkQuartilesOutOfBorders(center) +
+      formatValueUnit(abbreviatedNumber(scaledCenter), unit);
     if (showRange) {
       const displayLower = !isNil(scaledLower)
-        ? abbreviatedNumber(scaledLower)
+        ? checkQuartilesOutOfBorders(lower) + abbreviatedNumber(scaledLower)
         : "...";
       const displayUpper = !isNil(scaledUpper)
-        ? abbreviatedNumber(scaledUpper)
+        ? checkQuartilesOutOfBorders(upper) + abbreviatedNumber(scaledUpper)
         : "...";
       return `${displayCenter}\n(${displayLower} - ${displayUpper})`;
     }
@@ -675,6 +702,8 @@ type GenerateScaleParams = {
   unit?: string;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
+  shortLabels?: boolean;
+  adjustLabels?: boolean;
 };
 
 /**
@@ -704,6 +733,8 @@ export function generateScale({
   zoomedDomain = [0, 1],
   scaling = null,
   unit,
+  shortLabels = false,
+  adjustLabels = false,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -772,7 +803,9 @@ export function generateScale({
   }
 
   const minorTickInterval =
-    Math.round(zoomedRange / (tickCount - 1) / minorRes) * minorRes;
+    Math.max(Math.round(zoomedRange / (tickCount - 1) / minorRes), 1) *
+    minorRes;
+
   const tickStart = Math.round(zoomedDomainMin / minorRes) * minorRes;
   const tickEnd =
     Math.round((zoomedDomainMax + minorTickInterval / 100) / minorRes) *
@@ -781,10 +814,11 @@ export function generateScale({
   const minorTicks: number[] = range(tickStart, tickEnd, minorTickInterval).map(
     (x) => Math.round(x * 1000) / 1000
   );
-
   const majorTickStart = Math.round(zoomedDomainMin / majorRes) * majorRes;
   const majorTickInterval =
-    Math.round(zoomedRange / (maxLabelCount - 1) / majorRes) * majorRes;
+    Math.max(Math.round(zoomedRange / (maxLabelCount - 1) / majorRes), 1) *
+    majorRes;
+
   const majorTicks: number[] = range(
     majorTickStart,
     tickEnd,
@@ -860,6 +894,9 @@ export function generateScale({
           scaling: rangeScaling,
           precision: 3,
           actual_resolve_time: null,
+          dateFormatString: shortLabels ? "yyyy" : undefined,
+          adjustLabels,
+          skipQuartilesBorders: true,
         }),
         idx
       );
@@ -1138,7 +1175,7 @@ export function generateChoiceItemsFromGroupQuestions(
             scaling: question.scaling,
             unit: question.unit,
             actual_resolve_time: question.actual_resolve_time ?? null,
-            shortBounds: shortBounds,
+            completeBounds: shortBounds,
           })
         : null,
       closeTime,
@@ -1298,6 +1335,11 @@ export function getGroupQuestionsTimestamps(
         ...question.aggregations.recency_weighted.history.map(
           (x) => x.end_time ?? x.start_time
         ),
+        // add user timestamps to display new forecast tooltip without page refresh
+        ...(question.my_forecasts?.history?.map((x) => x.start_time) ?? []),
+        ...(question.my_forecasts?.history?.map(
+          (x) => x.end_time ?? x.start_time
+        ) ?? []),
       ],
       []
     )
@@ -1626,4 +1668,17 @@ export function getTruncatedLabel(label: string, maxLength: number): string {
     return label;
   }
   return label.slice(0, maxLength).trim() + "...";
+}
+
+export function checkQuartilesOutOfBorders(
+  quartile: number | undefined,
+  options?: { longBounds?: boolean }
+) {
+  const { longBounds = false } = options ?? {};
+
+  if (longBounds) {
+    return quartile === 0 ? "Less than " : quartile === 1 ? "More than " : "";
+  }
+
+  return quartile === 0 ? "<" : quartile === 1 ? ">" : "";
 }

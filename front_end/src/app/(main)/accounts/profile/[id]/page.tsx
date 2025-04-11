@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { FC, PropsWithChildren, Suspense } from "react";
@@ -8,6 +9,7 @@ import strip from "strip-markdown";
 import MedalsPage from "@/app/(main)/(leaderboards)/medals/components/medals_page";
 import { MedalsWidget } from "@/app/(main)/(leaderboards)/medals/components/medals_widget";
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
+import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import CommentFeed from "@/components/comment_feed";
 import AwaitedPostsFeed from "@/components/posts_feed";
@@ -96,6 +98,15 @@ export default async function Profile(props: Props) {
             <ProfileChip variant={profile.is_spam ? "danger" : "success"}>
               {profile.is_spam ? "Spam" : "Not Spam"}
             </ProfileChip>
+            {profile.spam_count && currentUser?.is_staff ? (
+              <Link
+                href={`/admin/users/userspamactivity/?q=${profile.username}`}
+              >
+                <ProfileChip variant="danger">
+                  {profile.spam_count} spam warnings
+                </ProfileChip>
+              </Link>
+            ) : null}
           </div>
         </div>
       )}
@@ -126,7 +137,12 @@ export default async function Profile(props: Props) {
       )}
       {mode === ProfilePageMode.Comments && (
         <div className="flex flex-col rounded bg-white px-4 py-1 dark:bg-blue-900 md:px-6 md:py-2">
-          <CommentFeed profileId={profile.id} rootCommentStructure={false} />
+          <CommentsFeedProvider
+            profileId={profile.id}
+            rootCommentStructure={false}
+          >
+            <CommentFeed profileId={profile.id} rootCommentStructure={false} />
+          </CommentsFeedProvider>
         </div>
       )}
       {mode === ProfilePageMode.Questions && (
