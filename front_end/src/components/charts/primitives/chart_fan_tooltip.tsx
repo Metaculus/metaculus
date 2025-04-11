@@ -283,7 +283,7 @@ function getTooltipItems({
 
   if (question.open_lower_bound) {
     tooltipItems.unshift({
-      choiceLabel: `< ${getDisplayValue({
+      choiceLabel: `${getDisplayValue({
         value: unscaleNominalLocation(
           question.scaling.range_min ?? 0,
           question.scaling
@@ -303,7 +303,7 @@ function getTooltipItems({
 
   if (question.open_upper_bound) {
     tooltipItems.push({
-      choiceLabel: `> ${getDisplayValue({
+      choiceLabel: `${getDisplayValue({
         value: unscaleNominalLocation(
           question.scaling.range_max ?? 1,
           question.scaling

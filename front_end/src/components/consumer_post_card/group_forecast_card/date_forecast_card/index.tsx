@@ -346,6 +346,7 @@ function formatTickLabel(tick: number, scaling: Scaling, index: number) {
     precision: 3,
     actual_resolve_time: null,
     dateFormatString: "dd MMM yyyy",
+    skipQuartilesBorders: true,
   });
 }
 export default DateForecastCard;

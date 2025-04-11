@@ -359,17 +359,28 @@ class PostQuerySet(models.QuerySet):
 
         return self.filter(default_project__default_permission__isnull=True)
 
+    def filter_published(self):
+        """
+        Filter approved published posts
+        """
+
+        return self.filter(
+            published_at__lte=timezone.now(),
+            curation_status=Post.CurationStatus.APPROVED,
+        )
+
     def filter_active(self):
         """
         Filter active posts
         """
 
-        return self.filter(
-            published_at__lte=timezone.now(),
-            open_time__lte=timezone.now(),
-            curation_status=Post.CurationStatus.APPROVED,
-        ).filter(
-            Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=timezone.now())
+        return (
+            self.filter_published()
+            .filter(open_time__lte=timezone.now())
+            .filter(
+                Q(actual_close_time__isnull=True)
+                | Q(actual_close_time__gte=timezone.now())
+            )
         )
 
     def filter_projects(self, p: list[Project] | Project):
@@ -683,12 +694,6 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     vote_score = models.IntegerField(default=0, db_index=True, editable=False)
     comment_count = models.PositiveIntegerField(
         default=0, db_index=True, editable=False
-    )
-
-    # Indicates whether we triggered "handle_post_open" event
-    # And guarantees idempotency of "on post open" evens
-    open_time_triggered = models.BooleanField(
-        default=False, db_index=True, editable=False
     )
 
     def update_forecasts_count(self):

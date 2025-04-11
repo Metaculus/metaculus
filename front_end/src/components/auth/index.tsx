@@ -29,7 +29,7 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
     return (
       <div className="ml-auto mr-2 flex h-full items-center gap-2 p-0 sm:ml-9">
         <button
-          className="hidden h-full w-full whitespace-nowrap px-2 text-center capitalize hover:bg-blue-700 min-[448px]:block"
+          className="hidden h-full w-full whitespace-nowrap px-2 text-center capitalize hover:bg-blue-700 min-[375px]:block"
           onClick={() => setCurrentModal({ type: "signin" })}
         >
           {t("logIn")}

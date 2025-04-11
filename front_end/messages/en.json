@@ -1178,5 +1178,7 @@
   "result": "result",
   "communityDisclaimer": "Contributed by the <community></community> community. <learnMore>Learn more</learnMore>",
   "communityDisclaimerSiteMain": "This question is also part of main Metaculus.",
-  "conditionalBranchResolutionAnnulled": "This branch was annulled because the <link>parent question</link> resolved <resolution></resolution>."
+  "conditionalBranchResolutionAnnulled": "This branch was annulled because the <link>parent question</link> resolved <resolution></resolution>.",
+  "postNotebookMoveDateModalCopy": "The tournament forecasting end date is <b>{tournament_forecasting_end_date}</b> and you are trying to approve a question that closes on <b>{question_close_date}</b>. Do you want to move the tournament forecasting end date to <b>{question_close_date}</b>?",
+  "moveDate": "Move date"
 }

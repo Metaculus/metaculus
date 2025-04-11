@@ -144,7 +144,7 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">This user <a href="{% build_user_profile_url author.id %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">@{{ author.username }}</a> has had 2 pieces of content marked as spam in the last 2 weeks. The last one :</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">This user <a href="{% build_user_profile_url author.id %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">@{{ author.username }}</a> has had 2 pieces of content marked as spam in the last 2 weeks. The last one ({{ content_type }}) :</div>
                       </td>
                     </tr>
                     <tr>

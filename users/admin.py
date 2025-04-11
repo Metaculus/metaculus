@@ -5,7 +5,6 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
 
-from posts.models import Post
 from users.models import User, UserCampaignRegistration, UserSpamActivity
 from users.services.spam_detection import (
     CONFIDENCE_THRESHOLD,
@@ -267,21 +266,24 @@ class UserSpamActivityAdmin(admin.ModelAdmin):
     search_fields = ["user__username", "user__email"]
 
     def content_link(self, obj):
-        if obj.content_type == UserSpamActivity.SpamContentType.COMMENT:
-            url = f"/admin/comments/comment/{obj.content_id}/change/"
-        elif obj.content_type == UserSpamActivity.SpamContentType.POST:
-            post = Post.objects.get(id=obj.content_id)
-            if post.notebook is not None:
-                url = f"/admin/posts/notebook/{post.notebook.id}/change/"
-            else:
-                url = f"/admin/questions/question/{post.question.id}/change/"
+        match obj.content_type:
+            case UserSpamActivity.SpamContentType.COMMENT:
+                url = f"/admin/comments/comment/{obj.content_id}/change/"
+            case UserSpamActivity.SpamContentType.QUESTION:
+                url = f"/admin/questions/question/{obj.content_id}/change/"
+            case UserSpamActivity.SpamContentType.NOTEBOOK:
+                url = f"/admin/posts/notebook/{obj.content_id}/change/"
+            case _:
+                url = None
 
         return format_html('<a href="{}">View</a>', url)
 
     content_link.short_description = "Content link"
 
     def confidence_value(self, obj):
-        return f"{'high' if obj.confidence > CONFIDENCE_THRESHOLD else 'low (suspicious)'}"
+        return (
+            f"{'high' if obj.confidence > CONFIDENCE_THRESHOLD else 'low (suspicious)'}"
+        )
 
     confidence_value.admin_order_field = "confidence"
     confidence_value.short_description = "Confidence"

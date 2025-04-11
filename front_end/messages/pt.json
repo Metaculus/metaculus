@@ -1179,5 +1179,7 @@
   "result": "resultado",
   "communityDisclaimer": "Contribuído pela comunidade <community></community>. <learnMore>Saiba mais</learnMore>",
   "communityDisclaimerSiteMain": "Esta pergunta também faz parte do Metaculus principal.",
-  "conditionalBranchResolutionAnnulled": "Este ramo foi anulado porque a <link>pergunta pai</link> foi resolvida <resolution></resolution>."
+  "conditionalBranchResolutionAnnulled": "Este ramo foi anulado porque a <link>pergunta pai</link> foi resolvida <resolution></resolution>.",
+  "postNotebookMoveDateModalCopy": "A data de término das previsões do torneio é <b>{tournament_forecasting_end_date}</b> e você está tentando aprovar uma pergunta que fecha em <b>{question_close_date}</b>. Deseja mover a data de término das previsões do torneio para <b>{question_close_date}</b>?",
+  "moveDate": "Mover data"
 }
