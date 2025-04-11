@@ -10,7 +10,9 @@ import {
 
 import { SortOption } from "@/components/comment_feed";
 import { getCommentsParams } from "@/services/comments";
-import { BECommentType, CommentType } from "@/types/comment";
+import { BECommentType, CommentType, KeyFactor } from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
+import { VoteDirection } from "@/types/votes";
 import { parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 
@@ -34,6 +36,13 @@ export type CommentsFeedContextType = {
     keepComments: boolean,
     params: getCommentsParams
   ) => Promise<void>;
+  combinedKeyFactors: KeyFactor[];
+  setCombinedKeyFactors: (combinedKeyFactors: KeyFactor[]) => void;
+  setKeyFactorVote: (
+    keyFactorId: number,
+    direction: number | null,
+    votesScore: number
+  ) => void;
 };
 
 const COMMENTS_PER_PAGE = 10;
@@ -79,25 +88,78 @@ type BaseProviderProps = {
   rootCommentStructure: boolean;
 };
 type PostProviderProps = {
-  postId: number;
+  postData: PostWithForecasts;
   profileId?: never;
 };
 type ProfileProviderProps = {
   profileId: number;
-  postId?: never;
+  postData?: never;
 };
 
 const CommentsFeedProvider: FC<
   PropsWithChildren<
     BaseProviderProps & (PostProviderProps | ProfileProviderProps)
   >
-> = ({ children, postId, profileId, rootCommentStructure }) => {
+> = ({ children, postData, profileId, rootCommentStructure }) => {
   const [sort, setSort] = useState<SortOption>("created_at");
   const [comments, setComments] = useState<CommentType[]>([]);
   const [totalCount, setTotalCount] = useState<number | "?">("?");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<ErrorType | undefined>(undefined);
   const [offset, setOffset] = useState<number>(0);
+
+  const initialKeyFactors = (postData?.key_factors ?? []).sort((a, b) =>
+    b.votes_score === a.votes_score
+      ? Math.random() - 0.5
+      : b.votes_score - a.votes_score
+  );
+
+  const [combinedKeyFactors, setCombinedKeyFactors] =
+    useState<KeyFactor[]>(initialKeyFactors);
+
+  const setAndSortCombinedKeyFactors = (keyFactors: KeyFactor[]) => {
+    const sortedKeyFactors = keyFactors.sort((a, b) =>
+      b.votes_score === a.votes_score
+        ? Math.random() - 0.5
+        : b.votes_score - a.votes_score
+    );
+    setCombinedKeyFactors(sortedKeyFactors);
+  };
+
+  const setKeyFactorVote = (
+    keyFactorId: number,
+    direction: number | null,
+    votes_score: number
+  ) => {
+    // Update the list of combined key factors with the new vote
+    setAndSortCombinedKeyFactors(
+      combinedKeyFactors.map((kf) =>
+        kf.id === keyFactorId
+          ? { ...kf, votes_score, user_vote: direction as VoteDirection }
+          : { ...kf }
+      )
+    );
+
+    //Update the comments state with the new vote for the key factor
+    setComments((prevComments) => {
+      return prevComments.map((comment) => {
+        // Check if this comment has the key factor we're updating
+        if (comment.key_factors?.some((kf) => kf.id === keyFactorId)) {
+          // Create a new comment object with updated key factors
+          return {
+            ...comment,
+            key_factors: comment.key_factors?.map((kf) =>
+              kf.id === keyFactorId
+                ? { ...kf, votes_score, user_vote: direction as VoteDirection }
+                : kf
+            ),
+          };
+        }
+        // Return unchanged comment if it doesn't have the key factor
+        return { ...comment };
+      });
+    });
+  };
 
   const fetchComments = async (
     keepComments: boolean = true,
@@ -107,7 +169,7 @@ const CommentsFeedProvider: FC<
       setIsLoading(true);
       setError(undefined);
       const response = await getComments({
-        post: postId,
+        post: postData?.id,
         author: profileId,
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
         limit: COMMENTS_PER_PAGE,
@@ -161,6 +223,9 @@ const CommentsFeedProvider: FC<
         sort,
         setSort,
         fetchComments,
+        combinedKeyFactors,
+        setCombinedKeyFactors: setAndSortCombinedKeyFactors,
+        setKeyFactorVote,
       }}
     >
       {children}

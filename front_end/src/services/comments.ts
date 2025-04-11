@@ -20,6 +20,7 @@ export type CreateCommentParams = {
   on_post?: number;
   included_forecast?: boolean;
   is_private: boolean;
+  key_factors?: string[];
 };
 
 export type EditCommentParams = {
@@ -87,6 +88,18 @@ class CommentsApi {
     return await post<BECommentType, CreateCommentParams>(
       `/comments/create/`,
       commentData
+    );
+  }
+
+  static async addKeyFactorsToComment(
+    commentId: number,
+    keyFactors: string[]
+  ): Promise<BECommentType> {
+    return await post<BECommentType>(
+      `/comments/${commentId}/add-key-factors/`,
+      {
+        key_factors: keyFactors,
+      }
     );
   }
 

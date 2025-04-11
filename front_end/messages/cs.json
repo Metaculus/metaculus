@@ -1177,5 +1177,11 @@
   "result": "výsledek",
   "communityDisclaimer": "Přispěl <community></community> komunita. <learnMore>Dozvědět se více</learnMore>",
   "communityDisclaimerSiteMain": "Tato otázka je také součástí hlavního Metaculus.",
-  "conditionalBranchResolutionAnnulled": "Tato větev byla zrušena, protože <link>nadřazená otázka</link> byla vyřešena <resolution></resolution>."
+  "conditionalBranchResolutionAnnulled": "Tato větev byla zrušena, protože <link>nadřazená otázka</link> byla vyřešena <resolution></resolution>.",
+  "addKeyFactor": "Přidat klíčový faktor",
+  "addKeyFactors": "Přidat klíčové faktory",
+  "addKeyFactorsModalP1": "Zadejte své klíčové faktory níže - snažte se je udržet krátké a jasné.",
+  "addKeyFactorsModalP2": "Váš původní komentář by měl vysvětlovat důvody za těmito klíčovými faktory.",
+  "typeKeyFator": "Zadejte zde klíčový faktor",
+  "back": "Zpět"
 }

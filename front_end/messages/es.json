@@ -1177,5 +1177,11 @@
   "result": "resultado",
   "communityDisclaimer": "Contribuido por la comunidad de <community></community>. <learnMore>Más información</learnMore>",
   "communityDisclaimerSiteMain": "Esta pregunta también forma parte de Metaculus principal.",
-  "conditionalBranchResolutionAnnulled": "Esta rama fue anulada porque la <link>pregunta principal</link> se resolvió <resolution></resolution>."
+  "conditionalBranchResolutionAnnulled": "Esta rama fue anulada porque la <link>pregunta principal</link> se resolvió <resolution></resolution>.",
+  "addKeyFactor": "Añadir factor clave",
+  "addKeyFactors": "Añadir factores clave",
+  "addKeyFactorsModalP1": "Introduce tus factores clave a continuación - intenta que sean breves y claros.",
+  "addKeyFactorsModalP2": "Tu comentario original debe explicar las razones detrás de estos factores clave.",
+  "typeKeyFator": "Escribe un factor clave aquí",
+  "back": "Volver"
 }
