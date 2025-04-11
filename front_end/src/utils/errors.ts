@@ -27,7 +27,10 @@ export class ApiError extends Error {
   public data: ErrorResponse;
 
   constructor(response: Response, apiError: ApiErrorResponse) {
-    const message = apiError.detail ?? "Unexpected API Error";
+    const message =
+      extractError(apiError.detail ?? apiError.non_field_errors ?? apiError, {
+        detached: true,
+      }) ?? "Unexpected API Error";
 
     super(message);
     this.digest = message;

@@ -219,7 +219,7 @@ const CommentFeed: FC<Props> = ({
         offset: 0,
         author: userId,
       });
-      if ("errors" in response) {
+      if (!!response && "errors" in response) {
         console.error("Error fetching comments:", response.errors);
       } else {
         setUserCommentsAmount(response.total_count ?? response.count);

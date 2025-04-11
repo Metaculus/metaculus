@@ -169,7 +169,6 @@ const ContinuousTable: FC<Props> = ({
                 <Td></Td>
                 {question.open_lower_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
-                    {"<"}
                     {getTableDisplayValue({
                       value: 0,
                       questionType: question.type,
@@ -191,7 +190,6 @@ const ContinuousTable: FC<Props> = ({
                 </Td>
                 {question.open_upper_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
-                    {">"}
                     {getTableDisplayValue({
                       value: 1,
                       questionType: question.type,
@@ -219,7 +217,6 @@ const ContinuousTable: FC<Props> = ({
                 </Td>
               )}
               <Td className="tabular-nums tracking-tight">
-                {checkQuartilesOutOfBorders(communityQuartiles?.lower25)}
                 {getTableDisplayValue({
                   value: communityQuartiles?.lower25,
                   questionType: question.type,
@@ -230,7 +227,6 @@ const ContinuousTable: FC<Props> = ({
                 })}
               </Td>
               <Td className="tabular-nums tracking-tight">
-                {checkQuartilesOutOfBorders(communityQuartiles?.median)}
                 {getTableDisplayValue({
                   value: communityQuartiles?.median,
                   questionType: question.type,
@@ -241,7 +237,6 @@ const ContinuousTable: FC<Props> = ({
                 })}
               </Td>
               <Td className="tabular-nums tracking-tight">
-                {checkQuartilesOutOfBorders(communityQuartiles?.upper75)}
                 {getTableDisplayValue({
                   value: communityQuartiles?.upper75,
                   questionType: question.type,
@@ -273,7 +268,6 @@ const ContinuousTable: FC<Props> = ({
                       </Td>
                     )}
                     <Td className="tabular-nums tracking-tight">
-                      {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
                       {getTableDisplayValue({
                         value: userQuartiles?.lower25,
                         questionType: question.type,
@@ -285,7 +279,6 @@ const ContinuousTable: FC<Props> = ({
                       })}
                     </Td>
                     <Td className="tabular-nums tracking-tight">
-                      {checkQuartilesOutOfBorders(userQuartiles?.median)}
                       {getTableDisplayValue({
                         value: userQuartiles?.median,
                         questionType: question.type,
@@ -297,7 +290,6 @@ const ContinuousTable: FC<Props> = ({
                       })}
                     </Td>
                     <Td className="tabular-nums tracking-tight">
-                      {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
                       {getTableDisplayValue({
                         value: userQuartiles?.upper75,
                         questionType: question.type,
@@ -479,7 +471,6 @@ const ContinuousTable: FC<Props> = ({
                   </Td>
                 )}
                 <Td className="tabular-nums tracking-tight">
-                  {checkQuartilesOutOfBorders(userPreviousQuartiles?.lower25)}
                   {getTableDisplayValue({
                     value: userPreviousQuartiles?.lower25,
                     questionType: question.type,
@@ -490,7 +481,6 @@ const ContinuousTable: FC<Props> = ({
                   })}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
-                  {checkQuartilesOutOfBorders(userPreviousQuartiles?.median)}
                   {getTableDisplayValue({
                     value: userPreviousQuartiles?.median,
                     questionType: question.type,
@@ -501,7 +491,6 @@ const ContinuousTable: FC<Props> = ({
                   })}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
-                  {checkQuartilesOutOfBorders(userPreviousQuartiles?.upper75)}
                   {getTableDisplayValue({
                     value: userPreviousQuartiles?.upper75,
                     questionType: question.type,
@@ -548,7 +537,6 @@ const ContinuousTable: FC<Props> = ({
             <>
               <tr>
                 <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
-                  {"<"}
                   {getTableDisplayValue({
                     value: 0,
                     questionType: question.type,
@@ -614,7 +602,6 @@ const ContinuousTable: FC<Props> = ({
             </Td>
             {withCommunityQuartiles && (
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
-                {checkQuartilesOutOfBorders(communityQuartiles?.lower25)}
                 {getTableDisplayValue({
                   value: communityQuartiles?.lower25,
                   questionType: question.type,
@@ -646,7 +633,6 @@ const ContinuousTable: FC<Props> = ({
               <Td className="text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
                   <>
-                    {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
                     {getTableDisplayValue({
                       value: userQuartiles?.lower25,
                       questionType: question.type,
@@ -663,7 +649,6 @@ const ContinuousTable: FC<Props> = ({
             )}
             {withUserQuartiles && userPreviousQuartiles && (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
-                {checkQuartilesOutOfBorders(userPreviousQuartiles?.lower25)}
                 {getTableDisplayValue({
                   value: userPreviousQuartiles?.lower25,
                   questionType: question.type,
@@ -681,7 +666,6 @@ const ContinuousTable: FC<Props> = ({
             </Td>
             {withCommunityQuartiles && (
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
-                {checkQuartilesOutOfBorders(communityQuartiles?.median)}
                 {getTableDisplayValue({
                   value: communityQuartiles?.median,
                   questionType: question.type,
@@ -713,7 +697,6 @@ const ContinuousTable: FC<Props> = ({
               <Td className="text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
                   <>
-                    {checkQuartilesOutOfBorders(userQuartiles?.median)}
                     {getTableDisplayValue({
                       value: userQuartiles?.median,
                       questionType: question.type,
@@ -730,7 +713,6 @@ const ContinuousTable: FC<Props> = ({
             )}
             {withUserQuartiles && userPreviousQuartiles && (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
-                {checkQuartilesOutOfBorders(userPreviousQuartiles?.median)}
                 {getTableDisplayValue({
                   value: userPreviousQuartiles?.median,
                   questionType: question.type,
@@ -748,7 +730,6 @@ const ContinuousTable: FC<Props> = ({
             </Td>
             {withCommunityQuartiles && (
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
-                {checkQuartilesOutOfBorders(communityQuartiles?.upper75)}
                 {getTableDisplayValue({
                   value: communityQuartiles?.upper75,
                   questionType: question.type,
@@ -780,7 +761,6 @@ const ContinuousTable: FC<Props> = ({
               <Td className="text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
                   <>
-                    {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
                     {getTableDisplayValue({
                       value: userQuartiles?.upper75,
                       questionType: question.type,
@@ -797,7 +777,6 @@ const ContinuousTable: FC<Props> = ({
             )}
             {withUserQuartiles && userPreviousQuartiles && (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
-                {checkQuartilesOutOfBorders(userPreviousQuartiles?.upper75)}
                 {getTableDisplayValue({
                   value: userPreviousQuartiles?.upper75,
                   questionType: question.type,
@@ -821,7 +800,6 @@ const ContinuousTable: FC<Props> = ({
               </tr>
               <tr>
                 <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
-                  {">"}
                   {getTableDisplayValue({
                     value: 1,
                     questionType: question.type,
@@ -910,9 +888,5 @@ const Td: FC<
     {children}
   </td>
 );
-
-function checkQuartilesOutOfBorders(quartile: number | undefined) {
-  return quartile === 0 ? "<" : quartile === 1 ? ">" : null;
-}
 
 export default ContinuousTable;

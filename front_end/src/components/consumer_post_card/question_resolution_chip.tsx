@@ -5,13 +5,13 @@ import cn from "@/utils/cn";
 
 type Props = {
   formatedResolution: string;
-  successfullResolution: boolean;
+  successfullyResolved: boolean;
   unit?: string;
 };
 
 const QuestionResolutionChip: FC<Props> = ({
   formatedResolution,
-  successfullResolution,
+  successfullyResolved,
   unit,
 }) => {
   const t = useTranslations();
@@ -21,20 +21,20 @@ const QuestionResolutionChip: FC<Props> = ({
         className={cn(
           "flex w-fit flex-col items-center rounded bg-purple-100 px-4 py-2 dark:bg-purple-100-dark",
           {
-            "bg-gray-300 dark:bg-gray-300-dark": !successfullResolution,
+            "bg-gray-300 dark:bg-gray-300-dark": !successfullyResolved,
           }
         )}
       >
-        {successfullResolution && (
+        {successfullyResolved && (
           <span className="text-xs font-medium uppercase leading-4 text-purple-600 dark:text-purple-600-dark">
             {t("result")}
           </span>
         )}
         <span
           className={cn(
-            "text-base font-bold leading-6 text-purple-800 dark:text-purple-800-dark",
+            "text-center text-base font-bold leading-6 text-purple-800 dark:text-purple-800-dark",
             {
-              "text-gray-700 dark:text-gray-700-dark": !successfullResolution,
+              "text-gray-700 dark:text-gray-700-dark": !successfullyResolved,
             }
           )}
         >

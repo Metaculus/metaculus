@@ -203,7 +203,7 @@ function buildChartData(
             questionType: question.type,
             locale: locale,
             scaling: question.scaling,
-            shortBounds: true,
+            completeBounds: true,
             actual_resolve_time: null,
           })
         : null;
