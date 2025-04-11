@@ -14,7 +14,7 @@ import { useTranslations } from "next-intl";
 import { FC, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
-import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors";
+import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
 import {
   createForecasts,
   editComment,

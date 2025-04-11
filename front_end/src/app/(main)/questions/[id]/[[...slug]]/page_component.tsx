@@ -29,7 +29,7 @@ import DetailedQuestionCard from "../components/detailed_question_card";
 import ForecastMaker from "../components/forecast_maker";
 import ContinuousGroupTimeline from "../components/forecast_timeline_drawer";
 import HistogramDrawer from "../components/histogram_drawer";
-import KeyFactorsSection from "../components/key_factors";
+import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";

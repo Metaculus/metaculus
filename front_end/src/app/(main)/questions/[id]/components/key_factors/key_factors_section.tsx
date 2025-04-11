@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  faArrowUpRightFromSquare,
-  faPlus,
-} from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
@@ -11,13 +8,11 @@ import { FC, useEffect, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import AddKeyFactorsModal from "@/components/comment_feed/add_key_factors_modal";
-import KeyFactorVoter from "@/components/comment_feed/key_factor_voter";
 import Button from "@/components/ui/button";
 import SectionToggle from "@/components/ui/section_toggle";
 import useHash from "@/hooks/use_hash";
-import useScrollTo from "@/hooks/use_scroll_to";
-import { KeyFactor } from "@/types/comment";
-import cn from "@/utils/cn";
+
+import KeyFactorItem from "./key_factor_item";
 
 type KeyFactorsSectionProps = {
   postId: number;
