@@ -336,8 +336,10 @@ def evaluate_question(
     actual_close_time = question.actual_close_time.timestamp()
     forecast_horizon_end = question.scheduled_close_time.timestamp()
 
-    user_forecasts = question.user_forecasts.all().prefetch_related(
-        Prefetch("author", queryset=User.objects.only("is_bot"))
+    user_forecasts = (
+        question.user_forecasts.all()
+        .prefetch_related(Prefetch("author", queryset=User.objects.only("is_bot")))
+        .order_by("start_time")
     )
     community_forecasts = get_aggregation_history(
         question,

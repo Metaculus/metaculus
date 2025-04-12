@@ -9,7 +9,11 @@ import PredictionChip from "@/components/prediction_chip";
 import ProgressBar from "@/components/ui/progress_bar";
 import { ContinuousAreaType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import {
+  DefaultInboundOutcomeCount,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
@@ -112,7 +116,8 @@ const ConditionalChart: FC<Props> = ({
       );
     }
     case QuestionType.Numeric:
-    case QuestionType.Date: {
+    case QuestionType.Date:
+    case QuestionType.Discrete: {
       if (aggregate.history.length === 0) {
         return <div className="text-center text-xs">No data yet</div>;
       }
@@ -163,7 +168,8 @@ const ConditionalChart: FC<Props> = ({
         dataset = getSliderNumericForecastDataset(
           prevForecastValue.components,
           question.open_lower_bound,
-          question.open_upper_bound
+          question.open_upper_bound,
+          question.inbound_outcome_count ?? DefaultInboundOutcomeCount
         );
       }
       if (isQuantileForecast(prevForecastValue)) {

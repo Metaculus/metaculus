@@ -24,6 +24,7 @@ import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional, QuestionStatus } from "@/types/post";
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,
@@ -47,11 +48,11 @@ import {
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import { sendGAConditionalPredictEvent } from "./ga_events";
+import ContinuousInput from "../../continuous_input";
 import { useHideCP } from "../../cp_provider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
-import ContinuousInput from "../continuous_input";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
@@ -444,7 +445,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 : getSliderNumericForecastDataset(
                     sliderForecast,
                     question.open_lower_bound,
-                    question.open_upper_bound
+                    question.open_upper_bound,
+                    question.inbound_outcome_count ?? DefaultInboundOutcomeCount
                   ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
@@ -562,7 +564,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           dataset: getSliderNumericForecastDataset(
             option.sliderForecast,
             option.question.open_lower_bound,
-            option.question.open_upper_bound
+            option.question.open_upper_bound,
+            option.question.inbound_outcome_count ?? DefaultInboundOutcomeCount
           ),
         };
       } else if (
@@ -595,7 +598,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     getSliderNumericForecastDataset(
       activeOptionData.sliderForecast,
       activeOptionData.question.open_lower_bound,
-      activeOptionData.question.open_upper_bound
+      activeOptionData.question.open_upper_bound,
+      activeOptionData.question.inbound_outcome_count ??
+        DefaultInboundOutcomeCount
     ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
@@ -790,8 +795,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               }
               overlayPreviousForecast={overlayPreviousForecast}
               onOverlayPreviousForecastChange={setOverlayPreviousForecast}
-              forecastInputMode={option.forecastInputMode}
-              onForecastInputModeChange={(mode) =>
+              inputMode={option.forecastInputMode}
+              onInputModeChange={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
               hasUserForecast={hasUserForecast}
@@ -828,7 +833,8 @@ function getUserQuartiles(
   const dataset = getSliderNumericForecastDataset(
     components,
     openLower,
-    openUpper
+    openUpper,
+    DefaultInboundOutcomeCount
   );
   return computeQuartilesFromCDF(dataset.cdf);
 }

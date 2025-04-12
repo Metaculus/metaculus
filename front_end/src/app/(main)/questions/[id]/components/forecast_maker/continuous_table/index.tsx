@@ -159,6 +159,15 @@ const ContinuousTable: FC<Props> = ({
     [quantileComponents, onQuantileChange, question, t]
   );
 
+  const lowerBoundLocation =
+    question.type !== QuestionType.Discrete || !question.inbound_outcome_count
+      ? 0
+      : 0.5 / question.inbound_outcome_count;
+  const upperBoundLocation =
+    question.type !== QuestionType.Discrete || !question.inbound_outcome_count
+      ? 1
+      : 1 - 0.5 / question.inbound_outcome_count;
+
   return (
     <>
       <table className="mb-4 hidden w-full table-fixed border-separate border-spacing-1 sm:table">
@@ -169,14 +178,16 @@ const ContinuousTable: FC<Props> = ({
                 <Td></Td>
                 {question.open_lower_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
-                    {getTableDisplayValue({
-                      value: 0,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
-                      unit: question.unit,
-                      actual_resolve_time: question.actual_resolve_time ?? null,
-                    })}
+                    {(question.type === QuestionType.Discrete ? "<" : "") +
+                      getTableDisplayValue({
+                        value: lowerBoundLocation,
+                        questionType: question.type,
+                        scaling: question.scaling,
+                        precision: 4,
+                        unit: question.unit,
+                        actual_resolve_time:
+                          question.actual_resolve_time ?? null,
+                      })}
                   </Td>
                 )}
                 <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
@@ -190,14 +201,16 @@ const ContinuousTable: FC<Props> = ({
                 </Td>
                 {question.open_upper_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
-                    {getTableDisplayValue({
-                      value: 1,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
-                      unit: question.unit,
-                      actual_resolve_time: question.actual_resolve_time ?? null,
-                    })}
+                    {(question.type === QuestionType.Discrete ? ">" : "") +
+                      getTableDisplayValue({
+                        value: upperBoundLocation,
+                        questionType: question.type,
+                        scaling: question.scaling,
+                        precision: 4,
+                        unit: question.unit,
+                        actual_resolve_time:
+                          question.actual_resolve_time ?? null,
+                      })}
                   </Td>
                 )}
               </>
@@ -218,7 +231,15 @@ const ContinuousTable: FC<Props> = ({
               )}
               <Td className="tabular-nums tracking-tight">
                 {getTableDisplayValue({
-                  value: communityQuartiles?.lower25,
+                  value: communityQuartiles?.lower25
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          communityQuartiles?.lower25
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -228,7 +249,12 @@ const ContinuousTable: FC<Props> = ({
               </Td>
               <Td className="tabular-nums tracking-tight">
                 {getTableDisplayValue({
-                  value: communityQuartiles?.median,
+                  value: communityQuartiles?.median
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(lowerBoundLocation, communityQuartiles?.median)
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -238,7 +264,15 @@ const ContinuousTable: FC<Props> = ({
               </Td>
               <Td className="tabular-nums tracking-tight">
                 {getTableDisplayValue({
-                  value: communityQuartiles?.upper75,
+                  value: communityQuartiles?.upper75
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          communityQuartiles?.upper75
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -269,7 +303,15 @@ const ContinuousTable: FC<Props> = ({
                     )}
                     <Td className="tabular-nums tracking-tight">
                       {getTableDisplayValue({
-                        value: userQuartiles?.lower25,
+                        value: userQuartiles?.lower25
+                          ? Math.min(
+                              upperBoundLocation,
+                              Math.max(
+                                lowerBoundLocation,
+                                userQuartiles?.lower25
+                              )
+                            )
+                          : undefined,
                         questionType: question.type,
                         scaling: question.scaling,
                         precision: 4,
@@ -280,7 +322,15 @@ const ContinuousTable: FC<Props> = ({
                     </Td>
                     <Td className="tabular-nums tracking-tight">
                       {getTableDisplayValue({
-                        value: userQuartiles?.median,
+                        value: userQuartiles?.median
+                          ? Math.min(
+                              upperBoundLocation,
+                              Math.max(
+                                lowerBoundLocation,
+                                userQuartiles?.median
+                              )
+                            )
+                          : undefined,
                         questionType: question.type,
                         scaling: question.scaling,
                         precision: 4,
@@ -291,7 +341,15 @@ const ContinuousTable: FC<Props> = ({
                     </Td>
                     <Td className="tabular-nums tracking-tight">
                       {getTableDisplayValue({
-                        value: userQuartiles?.upper75,
+                        value: userQuartiles?.upper75
+                          ? Math.min(
+                              upperBoundLocation,
+                              Math.max(
+                                lowerBoundLocation,
+                                userQuartiles?.upper75
+                              )
+                            )
+                          : undefined,
                         questionType: question.type,
                         scaling: question.scaling,
                         precision: 4,
@@ -351,7 +409,8 @@ const ContinuousTable: FC<Props> = ({
                     <Td>
                       <ContinuousTableInput
                         type={
-                          question.type === QuestionType.Numeric
+                          question.type === QuestionType.Numeric ||
+                          question.type === QuestionType.Discrete
                             ? "number"
                             : "date"
                         }
@@ -373,7 +432,8 @@ const ContinuousTable: FC<Props> = ({
                     <Td>
                       <ContinuousTableInput
                         type={
-                          question.type === QuestionType.Numeric
+                          question.type === QuestionType.Numeric ||
+                          question.type === QuestionType.Discrete
                             ? "number"
                             : "date"
                         }
@@ -395,7 +455,8 @@ const ContinuousTable: FC<Props> = ({
                     <Td>
                       <ContinuousTableInput
                         type={
-                          question.type === QuestionType.Numeric
+                          question.type === QuestionType.Numeric ||
+                          question.type === QuestionType.Discrete
                             ? "number"
                             : "date"
                         }
@@ -472,7 +533,15 @@ const ContinuousTable: FC<Props> = ({
                 )}
                 <Td className="tabular-nums tracking-tight">
                   {getTableDisplayValue({
-                    value: userPreviousQuartiles?.lower25,
+                    value: userPreviousQuartiles?.lower25
+                      ? Math.min(
+                          upperBoundLocation,
+                          Math.max(
+                            lowerBoundLocation,
+                            userPreviousQuartiles?.lower25
+                          )
+                        )
+                      : undefined,
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
@@ -482,7 +551,15 @@ const ContinuousTable: FC<Props> = ({
                 </Td>
                 <Td className="tabular-nums tracking-tight">
                   {getTableDisplayValue({
-                    value: userPreviousQuartiles?.median,
+                    value: userPreviousQuartiles?.median
+                      ? Math.min(
+                          upperBoundLocation,
+                          Math.max(
+                            lowerBoundLocation,
+                            userPreviousQuartiles?.median
+                          )
+                        )
+                      : undefined,
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
@@ -492,7 +569,15 @@ const ContinuousTable: FC<Props> = ({
                 </Td>
                 <Td className="tabular-nums tracking-tight">
                   {getTableDisplayValue({
-                    value: userPreviousQuartiles?.upper75,
+                    value: userPreviousQuartiles?.upper75
+                      ? Math.min(
+                          upperBoundLocation,
+                          Math.max(
+                            lowerBoundLocation,
+                            userPreviousQuartiles?.upper75
+                          )
+                        )
+                      : undefined,
                     questionType: question.type,
                     scaling: question.scaling,
                     precision: 4,
@@ -603,7 +688,15 @@ const ContinuousTable: FC<Props> = ({
             {withCommunityQuartiles && (
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
                 {getTableDisplayValue({
-                  value: communityQuartiles?.lower25,
+                  value: communityQuartiles?.lower25
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          communityQuartiles?.lower25
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -617,7 +710,10 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 <ContinuousTableInput
                   type={
-                    question.type === QuestionType.Numeric ? "number" : "date"
+                    question.type === QuestionType.Numeric ||
+                    question.type === QuestionType.Discrete
+                      ? "number"
+                      : "date"
                   }
                   quantileValue={quantileComponents?.[1]}
                   error={
@@ -634,7 +730,12 @@ const ContinuousTable: FC<Props> = ({
                 {isDirty || hasUserForecast ? (
                   <>
                     {getTableDisplayValue({
-                      value: userQuartiles?.lower25,
+                      value: userQuartiles?.lower25
+                        ? Math.min(
+                            upperBoundLocation,
+                            Math.max(lowerBoundLocation, userQuartiles?.lower25)
+                          )
+                        : undefined,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
@@ -650,7 +751,15 @@ const ContinuousTable: FC<Props> = ({
             {withUserQuartiles && userPreviousQuartiles && (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {getTableDisplayValue({
-                  value: userPreviousQuartiles?.lower25,
+                  value: userPreviousQuartiles?.lower25
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          userPreviousQuartiles?.lower25
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -667,7 +776,12 @@ const ContinuousTable: FC<Props> = ({
             {withCommunityQuartiles && (
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
                 {getTableDisplayValue({
-                  value: communityQuartiles?.median,
+                  value: communityQuartiles?.median
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(lowerBoundLocation, communityQuartiles?.median)
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -681,7 +795,10 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 <ContinuousTableInput
                   type={
-                    question.type === QuestionType.Numeric ? "number" : "date"
+                    question.type === QuestionType.Numeric ||
+                    question.type === QuestionType.Discrete
+                      ? "number"
+                      : "date"
                   }
                   quantileValue={quantileComponents?.[2]}
                   error={
@@ -698,7 +815,12 @@ const ContinuousTable: FC<Props> = ({
                 {isDirty || hasUserForecast ? (
                   <>
                     {getTableDisplayValue({
-                      value: userQuartiles?.median,
+                      value: userQuartiles?.median
+                        ? Math.min(
+                            upperBoundLocation,
+                            Math.max(lowerBoundLocation, userQuartiles?.median)
+                          )
+                        : undefined,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
@@ -714,7 +836,15 @@ const ContinuousTable: FC<Props> = ({
             {withUserQuartiles && userPreviousQuartiles && (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {getTableDisplayValue({
-                  value: userPreviousQuartiles?.median,
+                  value: userPreviousQuartiles?.median
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          userPreviousQuartiles?.median
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -731,7 +861,15 @@ const ContinuousTable: FC<Props> = ({
             {withCommunityQuartiles && (
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
                 {getTableDisplayValue({
-                  value: communityQuartiles?.upper75,
+                  value: communityQuartiles?.upper75
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          communityQuartiles?.upper75
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,
@@ -745,7 +883,10 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 <ContinuousTableInput
                   type={
-                    question.type === QuestionType.Numeric ? "number" : "date"
+                    question.type === QuestionType.Numeric ||
+                    question.type === QuestionType.Discrete
+                      ? "number"
+                      : "date"
                   }
                   quantileValue={quantileComponents?.[3]}
                   error={
@@ -762,7 +903,12 @@ const ContinuousTable: FC<Props> = ({
                 {isDirty || hasUserForecast ? (
                   <>
                     {getTableDisplayValue({
-                      value: userQuartiles?.upper75,
+                      value: userQuartiles?.upper75
+                        ? Math.min(
+                            upperBoundLocation,
+                            Math.max(lowerBoundLocation, userQuartiles?.upper75)
+                          )
+                        : undefined,
                       questionType: question.type,
                       scaling: question.scaling,
                       precision: 4,
@@ -778,7 +924,15 @@ const ContinuousTable: FC<Props> = ({
             {withUserQuartiles && userPreviousQuartiles && (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 {getTableDisplayValue({
-                  value: userPreviousQuartiles?.upper75,
+                  value: userPreviousQuartiles?.upper75
+                    ? Math.min(
+                        upperBoundLocation,
+                        Math.max(
+                          lowerBoundLocation,
+                          userPreviousQuartiles?.upper75
+                        )
+                      )
+                    : undefined,
                   questionType: question.type,
                   scaling: question.scaling,
                   precision: 4,

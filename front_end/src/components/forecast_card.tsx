@@ -155,6 +155,7 @@ const ForecastCard: FC<Props> = ({
         case QuestionType.Binary:
         case QuestionType.Numeric:
         case QuestionType.Date:
+        case QuestionType.Discrete:
           return (
             <div className="relative flex w-full flex-col">
               <NumericChart
@@ -220,7 +221,8 @@ const ForecastCard: FC<Props> = ({
       switch (question.type) {
         case QuestionType.Binary:
         case QuestionType.Numeric:
-        case QuestionType.Date: {
+        case QuestionType.Date:
+        case QuestionType.Discrete: {
           const cursorForecast = getCursorForecast(
             cursorTimestamp,
             question.aggregations.recency_weighted
