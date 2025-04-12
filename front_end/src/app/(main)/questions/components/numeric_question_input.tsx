@@ -101,13 +101,6 @@ const NumericQuestionInput: React.FC<{
       : Math.round(1e10 * ((max - min) / (defaultInboundOutcomeCount - 1))) /
           1e10
   );
-  const [inboundOutcomeCount, setInboundOutcomeCount] = useState(
-    isNil(defaultInboundOutcomeCount)
-      ? questionType !== QuestionType.Discrete || isNil(min) || isNil(max)
-        ? DefaultInboundOutcomeCount
-        : Math.round((max - min) / step)
-      : defaultInboundOutcomeCount
-  );
   const [question, setQuestion] = useState<QuestionWithNumericForecasts>({
     id: 1,
     title: "",
@@ -150,7 +143,11 @@ const NumericQuestionInput: React.FC<{
     },
     open_lower_bound: openLowerBound,
     open_upper_bound: openUpperBound,
-    inbound_outcome_count: inboundOutcomeCount,
+    inbound_outcome_count: isNil(defaultInboundOutcomeCount)
+      ? questionType !== QuestionType.Discrete || isNil(min) || isNil(max)
+        ? DefaultInboundOutcomeCount
+        : Math.max(3, Math.min(200, Math.round((max - min) / step)))
+      : defaultInboundOutcomeCount,
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
     },
@@ -184,6 +181,20 @@ const NumericQuestionInput: React.FC<{
         }
       }
     }
+    if (questionType == QuestionType.Discrete) {
+      if (!isNil(min) && !isNil(max) && !isNil(step)) {
+        if (step > (max - min) / 2) {
+          current_errors.push(
+            `Step cannot be more than half the range: (${(max - min) / 2})`
+          );
+        }
+        if (step != 0 && step < (max - min) / 200) {
+          current_errors.push(
+            `Step must be at least 1/200 of the range: (${(max - min) / 200})`
+          );
+        }
+      }
+    }
     if (!isNil(min) && !isNil(max)) {
       if (isNaN(min) || isNaN(max)) {
         current_errors.push("Provide correct min and max values");
@@ -207,17 +218,10 @@ const NumericQuestionInput: React.FC<{
       mx = mx - (Math.round(1e10 * (mx - mn)) % (1e10 * step)) / 1e10; // estimate new value
       mx = Math.round(1e10 * (mx + 0.5 * step)) / 1e10;
       mn -= 0.5 * step;
-      setInboundOutcomeCount(Math.round((mx - mn) / step));
     }
-    console.log(
-      {
-        max,
-        mx,
-        min,
-        mn,
-        step,
-      },
-      Math.round(1e10 * ((mx - mn) % step)) / 1e10
+    const inboundOutcomeCount = Math.max(
+      3,
+      Math.min(200, Math.round((mx - mn) / step))
     );
     if (!isMounted.current) {
       onChange({
@@ -226,7 +230,7 @@ const NumericQuestionInput: React.FC<{
         zero_point: zeroPoint,
         open_lower_bound: openLowerBound,
         open_upper_bound: openUpperBound,
-        inbound_outcome_count: Math.round((mx - mn) / step),
+        inbound_outcome_count: inboundOutcomeCount,
       });
 
       isMounted.current = true;
@@ -242,7 +246,7 @@ const NumericQuestionInput: React.FC<{
       zero_point: zeroPoint,
       open_lower_bound: openLowerBound,
       open_upper_bound: openUpperBound,
-      inbound_outcome_count: Math.round((mx - mn) / step),
+      inbound_outcome_count: inboundOutcomeCount,
     });
     setQuestion((prevQuestion) => ({
       ...prevQuestion,
@@ -253,7 +257,7 @@ const NumericQuestionInput: React.FC<{
       },
       open_upper_bound: openUpperBound,
       open_lower_bound: openLowerBound,
-      inbound_outcome_count: Math.round((mx - mn) / step),
+      inbound_outcome_count: inboundOutcomeCount,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [min, max, openUpperBound, openLowerBound, zeroPoint, step]);
@@ -309,19 +313,16 @@ const NumericQuestionInput: React.FC<{
               disabled={hasForecasts}
               type="number"
               step="any"
-              max={!isNil(max) && !isNil(min) ? (max - min) / 2 : undefined}
+              min={0}
               value={step}
               onChange={(e) => {
-                const val = Math.max(
-                  !isNil(max) && !isNil(min) ? (max - min) / 200 : 0,
-                  Number(e.target.value)
-                );
-                setStep(val);
+                setStep(Number(e.target.value));
               }}
             />
             {step > 0 &&
               !isNil(max) &&
               !isNil(min) &&
+              step <= max - min &&
               !isNil(question.scaling?.range_max) &&
               Math.round(1e10 * (max - min)) % (1e10 * step) != 0 && (
                 <span className="ml-2 text-sm font-medium text-red-500 dark:text-red-500-dark">
