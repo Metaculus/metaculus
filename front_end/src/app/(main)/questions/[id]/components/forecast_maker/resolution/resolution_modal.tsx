@@ -1,6 +1,7 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -177,8 +178,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               variant="tertiary"
             />
           )}
-          {(question.type === QuestionType.Numeric ||
-            question.type === QuestionType.Discrete) &&
+          {question.type === QuestionType.Numeric &&
             resolutionType === "unambiguous" &&
             unambiguousType === "knownValue" && (
               <Input
@@ -196,6 +196,37 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                     ? undefined
                     : question?.scaling.range_max ?? undefined
                 }
+                {...register("resolutionValue")}
+              />
+            )}
+          {question.type === QuestionType.Discrete &&
+            resolutionType === "unambiguous" &&
+            unambiguousType === "knownValue" && (
+              <Input
+                type="number"
+                step={
+                  !isNil(question?.scaling.range_max) &&
+                  !isNil(question.scaling.range_min) &&
+                  !isNil(question.inbound_outcome_count)
+                    ? (question.scaling.range_max -
+                        question.scaling.range_min) /
+                      question.inbound_outcome_count
+                    : "any"
+                }
+                placeholder="numeric resolution"
+                className="max-w-xs bg-transparent"
+                min={
+                  !isNil(question?.scaling.range_max) &&
+                  !isNil(question.scaling.range_min) &&
+                  !isNil(question.inbound_outcome_count)
+                    ? question.scaling.range_min +
+                      0.5 *
+                        ((question.scaling.range_max -
+                          question.scaling.range_min) /
+                          question.inbound_outcome_count)
+                    : undefined
+                }
+                max={question?.scaling.range_max ?? undefined}
                 {...register("resolutionValue")}
               />
             )}
