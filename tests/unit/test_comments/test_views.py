@@ -7,8 +7,8 @@ from questions.services import create_forecast
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.conftest import question_binary
 from tests.unit.test_questions.factories import factory_group_of_questions
+from tests.unit.test_questions.conftest import *  # noqa
 
 
 class TestPagination:
