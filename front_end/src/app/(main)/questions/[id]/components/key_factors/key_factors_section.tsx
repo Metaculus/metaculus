@@ -4,7 +4,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useMemo } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import AddKeyFactorsModal from "@/components/comment_feed/add_key_factors_modal";
@@ -57,6 +57,11 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
     }
   }, [combinedKeyFactors]);
 
+  const visibleKeyFactors = useMemo(
+    () => combinedKeyFactors.slice(0, displayLimit),
+    [combinedKeyFactors, displayLimit]
+  );
+
   return (
     <>
       <AddKeyFactorsModal
@@ -84,14 +89,12 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
       >
         {combinedKeyFactors.length > 0 ? (
           <div id="key-factors-list" className="flex flex-col gap-2.5">
-            {combinedKeyFactors.slice(0, displayLimit).map((kf) => {
-              return (
-                <KeyFactorItem
-                  keyFactor={kf}
-                  key={`post-key-factor-${kf.id}-${kf.votes_score}-${kf.user_votes.at(-1)?.score ?? 0} `}
-                />
-              );
-            })}
+            {visibleKeyFactors.map((kf) => (
+              <KeyFactorItem
+                key={`post-key-factor-${kf.id}-${kf.votes_score}-${kf.user_votes.at(-1)?.score ?? 0}`}
+                keyFactor={kf}
+              />
+            ))}
             {combinedKeyFactors.length > displayLimit && (
               <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">
                 <Button

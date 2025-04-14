@@ -70,6 +70,7 @@ export type KeyFactorVoteScore = KeyFactorVoteA | KeyFactorVoteBAndC;
 export type KeyFactorVote = {
   vote_type: KeyFactorVoteType;
   score: KeyFactorVoteScore;
+  show_second_step?: boolean; // used only for two step survey
 };
 
 export type KeyFactor = {

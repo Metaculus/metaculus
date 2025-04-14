@@ -1183,5 +1183,14 @@
   "addKeyFactorsModalP1": "Introduce tus factores clave a continuación - intenta que sean breves y claros.",
   "addKeyFactorsModalP2": "Tu comentario original debe explicar las razones detrás de estos factores clave.",
   "typeKeyFator": "Escribe un factor clave aquí",
-  "back": "Volver"
+  "back": "Volver",
+  "noKeyFactorsP1": "Aún no hay factores clave",
+  "noKeyFactorsP2": "Agrega algunos que puedan influir en este pronóstico.",
+  "increasesLikelihood": "Aumenta la probabilidad",
+  "decreasesLikelihood": "Disminuye la probabilidad",
+  "howImpactfulFactor": "¿Qué tan impactante crees que es este factor?",
+  "lowImpact": "Bajo impacto",
+  "moderateImpact": "Impacto moderado",
+  "highImpact": "Alto impacto",
+  "thankYouForSubmission": "¡Gracias por tu envío!"
 }

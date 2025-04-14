@@ -1185,5 +1185,14 @@
   "addKeyFactorsModalP1": "在下面输入您的关键因素 - 尽量保持简洁明了。",
   "addKeyFactorsModalP2": "您的原始评论应解释这些关键因素背后的原因。",
   "typeKeyFator": "在此输入关键因素",
-  "back": "返回"
+  "back": "返回",
+  "noKeyFactorsP1": "尚无关键因素",
+  "noKeyFactorsP2": "添加一些可能会影响此预测的因素。",
+  "increasesLikelihood": "增加可能性",
+  "decreasesLikelihood": "降低可能性",
+  "howImpactfulFactor": "您认为此因素的影响力有多大？",
+  "lowImpact": "低影响",
+  "moderateImpact": "中等影响",
+  "highImpact": "高影响",
+  "thankYouForSubmission": "感谢您的提交！"
 }

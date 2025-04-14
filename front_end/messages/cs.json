@@ -1183,5 +1183,14 @@
   "addKeyFactorsModalP1": "Zadejte své klíčové faktory níže - snažte se je udržet krátké a jasné.",
   "addKeyFactorsModalP2": "Váš původní komentář by měl vysvětlovat důvody za těmito klíčovými faktory.",
   "typeKeyFator": "Zadejte zde klíčový faktor",
-  "back": "Zpět"
+  "back": "Zpět",
+  "noKeyFactorsP1": "Žádné klíčové faktory zatím nejsou",
+  "noKeyFactorsP2": "Přidejte některé, které by mohly ovlivnit tuto prognózu.",
+  "increasesLikelihood": "Zvyšuje pravděpodobnost",
+  "decreasesLikelihood": "Snižuje pravděpodobnost",
+  "howImpactfulFactor": "Jak výrazný si myslíte, že tento faktor je?",
+  "lowImpact": "Nízký dopad",
+  "moderateImpact": "Střední dopad",
+  "highImpact": "Vysoký dopad",
+  "thankYouForSubmission": "Děkujeme za vaši příspěvek!"
 }

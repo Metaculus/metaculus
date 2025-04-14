@@ -1184,5 +1184,10 @@
   "noKeyFactorsP1": "No key factors yet",
   "noKeyFactorsP2": "Add some that might influence this forecast.",
   "increasesLikelihood": "Increases likelihood",
-  "decreasesLikelihood": "Decreases likelihood"
+  "decreasesLikelihood": "Decreases likelihood",
+  "howImpactfulFactor": "How impactful do you think this factor is?",
+  "lowImpact": "Low impact",
+  "moderateImpact": "Moderate impact",
+  "highImpact": "High impact",
+  "thankYouForSubmission": "Thank you for your submission!"
 }
