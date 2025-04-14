@@ -3,9 +3,12 @@ from django.urls import reverse
 
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
+from questions.services import create_forecast
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_questions.conftest import question_binary
+from tests.unit.test_questions.factories import factory_group_of_questions
 
 
 class TestPagination:
@@ -131,7 +134,9 @@ class TestPagination:
             comments["c1"].pk,
         ]
 
-    def test_focus_on_comment__root__with_pinned_comment(self, user2, user1_client, comments):
+    def test_focus_on_comment__root__with_pinned_comment(
+        self, user2, user1_client, comments
+    ):
         c2 = comments["c2"]
         c2.is_pinned = True
         c2.save()
@@ -217,8 +222,8 @@ class TestCommentCreation:
     url = reverse("comment-create")
 
     @pytest.fixture()
-    def post(self, user1):
-        return factory_post(author=user1)
+    def post(self, user1, question_binary):
+        return factory_post(author=user1, question=question_binary)
 
     def test_private(self, post, user1_client, user1, user2):
         response = user1_client.post(
@@ -254,3 +259,35 @@ class TestCommentCreation:
 
         assert response.data["text"] == "Test comment"
         assert not response.data["mentioned_users"]
+
+    def test_with_forecast(self, user1, user1_client, post):
+        create_forecast(question=post.question, user=user1, probability_yes=0.5)
+        response = user1_client.post(
+            self.url,
+            {"on_post": post.pk, "text": "Test comment", "included_forecast": True},
+        )
+        assert response.data["included_forecast"]["probability_yes"] == 0.5
+
+        # A new one
+        create_forecast(question=post.question, user=user1, probability_yes=0.6)
+        response = user1_client.post(
+            self.url,
+            {"on_post": post.pk, "text": "Test comment", "included_forecast": True},
+        )
+        assert response.data["included_forecast"]["probability_yes"] == 0.6
+
+    def test_with_forecast__group_questions(
+        self, user1, user2, user1_client, question_binary
+    ):
+        post = factory_post(
+            author=user1, group_of_questions=factory_group_of_questions()
+        )
+        question_binary.group = post.group_of_questions
+        question_binary.save()
+
+        # Still works
+        response = user1_client.post(
+            self.url,
+            {"on_post": post.pk, "text": "Test comment", "included_forecast": True},
+        )
+        assert response.status_code == 201

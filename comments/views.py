@@ -141,7 +141,7 @@ def comment_create_api_view(request: Request):
             .order_by("-start_time")
             .first()
         )
-        if included_forecast
+        if included_forecast and on_post.question_id
         else None
     )
 
