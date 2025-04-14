@@ -60,6 +60,16 @@ export const KeyFactorVoteTypes = {
   LIKERT: "c_likert",
 } as const;
 
+export const IMPACT_VALUES = {
+  LOW: 2,
+  MEDIUM: 3,
+  HIGH: 5,
+  LOW_NEGATIVE: -2,
+  MEDIUM_NEGATIVE: -3,
+  HIGH_NEGATIVE: -5,
+  NO_IMPACT: 0,
+} as const satisfies Record<string, KeyFactorVoteScore>;
+
 export type KeyFactorVoteType =
   (typeof KeyFactorVoteTypes)[keyof typeof KeyFactorVoteTypes];
 

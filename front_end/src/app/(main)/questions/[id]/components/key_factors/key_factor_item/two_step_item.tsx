@@ -16,6 +16,7 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import {
+  IMPACT_VALUES,
   KeyFactor,
   KeyFactorVoteScore,
   KeyFactorVoteTypes,
@@ -23,27 +24,22 @@ import {
 import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
 
+import KeyFactorText from "./key_factor_text";
 type Props = {
   keyFactor: KeyFactor;
+  linkAnchor: string;
   linkToComment?: boolean;
 };
-
-const IMPACT_VALUES = {
-  LOW: 2,
-  MEDIUM: 3,
-  HIGH: 5,
-  LOW_NEGATIVE: -2,
-  MEDIUM_NEGATIVE: -3,
-  HIGH_NEGATIVE: -5,
-} as const satisfies Record<string, KeyFactorVoteScore>;
 
 export const TwoStepKeyFactorItem: FC<Props> = ({
   keyFactor: { text, id, user_votes },
   linkToComment = true,
+  linkAnchor,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
+  const { setKeyFactorVote } = useCommentsFeed();
   const twoStepVote = user_votes.find(
     (vote) => vote.vote_type === KeyFactorVoteTypes.TWO_STEP
   );
@@ -54,7 +50,6 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
     twoStepVote?.show_second_step ?? false
   );
   const [isSecondStepCompleted, setIsSecondStepCompleted] = useState(false);
-  const { setKeyFactorVote } = useCommentsFeed();
 
   const handleVote = async (
     score: KeyFactorVoteScore,
@@ -109,13 +104,15 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark",
+        "relative flex flex-col gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark [&:hover_.target]:visible",
         { "bg-gray-0 dark:bg-gray-0-dark": linkToComment }
       )}
     >
-      <div className="text-center text-base font-medium leading-5 xs:text-left">
-        {text}
-      </div>
+      <KeyFactorText
+        text={text}
+        linkAnchor={linkAnchor}
+        linkToComment={linkToComment}
+      />
       <div className="mx-auto flex flex-row gap-2 xs:mx-0">
         <Button
           variant="tertiary"

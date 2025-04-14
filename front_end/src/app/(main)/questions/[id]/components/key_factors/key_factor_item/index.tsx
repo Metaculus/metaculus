@@ -4,9 +4,9 @@ import { FC } from "react";
 
 import { KeyFactor } from "@/types/comment";
 
+import LikertKeyFactorItem from "./likert_item";
 import TwoStepKeyFactorItem from "./two_step_item";
-// import UpdownKeyFactorItem from "./updown_item";
-// import MultiVoteKeyFactorItem from "./multi_vote_item";
+import UpdownKeyFactorItem from "./updown_item";
 type Props = {
   keyFactor: KeyFactor;
   linkToComment?: boolean;
@@ -21,12 +21,27 @@ export const KeyFactorItem: FC<Props> = ({
   const linkAnchor = linkToComment
     ? `#comment-${keyFactor.comment_id}`
     : "#key-factors";
-
+  if (false) {
+    return (
+      <UpdownKeyFactorItem
+        keyFactor={keyFactor}
+        linkAnchor={linkAnchor}
+        linkToComment={linkToComment}
+      />
+    );
+  }
   return (
     <TwoStepKeyFactorItem
       keyFactor={keyFactor}
-      // linkAnchor={linkAnchor}
       linkToComment={linkToComment}
+      linkAnchor={linkAnchor}
+    />
+  );
+  return (
+    <LikertKeyFactorItem
+      keyFactor={keyFactor}
+      linkToComment={linkToComment}
+      linkAnchor={linkAnchor}
     />
   );
 };

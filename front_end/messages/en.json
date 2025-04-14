@@ -1189,5 +1189,11 @@
   "lowImpact": "Low impact",
   "moderateImpact": "Moderate impact",
   "highImpact": "High impact",
-  "thankYouForSubmission": "Thank you for your submission!"
+  "thankYouForSubmission": "Thank you for your submission!",
+  "vote": "Vote",
+  "voted": "Voted",
+  "howInfluenceForecast": "How does this influence your forecast?",
+  "decreases": "decreases",
+  "increases": "increases",
+  "noImpact": "no impact"
 }

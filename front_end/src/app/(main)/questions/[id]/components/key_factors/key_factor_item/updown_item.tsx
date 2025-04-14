@@ -1,14 +1,11 @@
 "use client";
-
-import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { FC } from "react";
 
 import KeyFactorVoter from "@/components/comment_feed/key_factor_voter";
-import useScrollTo from "@/hooks/use_scroll_to";
 import { KeyFactor } from "@/types/comment";
 import cn from "@/utils/cn";
+
+import KeyFactorText from "./key_factor_text";
 
 type Props = {
   keyFactor: KeyFactor;
@@ -21,18 +18,16 @@ export const UpdownKeyFactorItem: FC<Props> = ({
   linkToComment = true,
   linkAnchor,
 }) => {
-  const scrollTo = useScrollTo();
-
   return (
     <div
       className={cn(
-        "relative flex flex-col items-center justify-center gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark xs:flex-row [&>.target]:hover:visible",
+        "relative flex flex-col items-center justify-center gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark xs:flex-row [&:hover_.target]:visible",
         { "bg-gray-0 dark:bg-gray-0-dark": linkToComment }
       )}
     >
       {/* Link component does not trigger hash event trigger, so we use <a> instead */}
       <KeyFactorVoter
-        className="z-10"
+        className="z-10 shrink-0"
         voteData={{
           keyFactorId: id,
           votesScore: votes_score,
@@ -41,29 +36,11 @@ export const UpdownKeyFactorItem: FC<Props> = ({
             null,
         }}
       />
-      <div className="decoration-blue-500 underline-offset-4 dark:decoration-blue-500-dark">
-        {text}
-      </div>
-
-      <a
-        href={linkAnchor}
-        onClick={(e) => {
-          const target = document.getElementById(linkAnchor.replace("#", ""));
-          if (target) {
-            if (linkToComment) {
-              e.preventDefault();
-            }
-            scrollTo(target.getBoundingClientRect().top);
-          }
-          sendGAEvent("event", "KeyFactorClick", { event_label: "fromList" });
-        }}
-        className=" target absolute right-2 top-2 ml-0 mr-auto flex items-center rounded-full p-1 text-blue-600 hover:bg-blue-400 hover:text-blue-700 dark:text-blue-600 dark:hover:bg-blue-400-dark xs:invisible xs:relative xs:right-0 xs:top-0"
-      >
-        <FontAwesomeIcon
-          icon={faArrowUpRightFromSquare}
-          className="size-3 p-1"
-        />
-      </a>
+      <KeyFactorText
+        text={text}
+        linkAnchor={linkAnchor}
+        linkToComment={linkToComment}
+      />
     </div>
   );
 };

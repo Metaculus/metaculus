@@ -1194,5 +1194,11 @@
   "lowImpact": "低影响",
   "moderateImpact": "中等影响",
   "highImpact": "高影响",
-  "thankYouForSubmission": "感谢您的提交！"
+  "thankYouForSubmission": "感谢您的提交！",
+  "vote": "投票",
+  "voted": "已投票",
+  "howInfluenceForecast": "这如何影响您的预测？",
+  "decreases": "减少",
+  "increases": "增加",
+  "noImpact": "无影响"
 }

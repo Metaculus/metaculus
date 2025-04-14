@@ -1192,5 +1192,11 @@
   "lowImpact": "Nízký dopad",
   "moderateImpact": "Střední dopad",
   "highImpact": "Vysoký dopad",
-  "thankYouForSubmission": "Děkujeme za vaši příspěvek!"
+  "thankYouForSubmission": "Děkujeme za vaši příspěvek!",
+  "vote": "Hlasovat",
+  "voted": "Hlasováno",
+  "howInfluenceForecast": "Jak to ovlivňuje vaši předpověď?",
+  "decreases": "snižuje",
+  "increases": "zvyšuje",
+  "noImpact": "bez dopadu"
 }
