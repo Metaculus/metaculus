@@ -27,12 +27,13 @@ const TableRow: FC<Props> = ({
     medal,
     rank,
     score,
+    excluded,
     coverage,
     take,
     percent_prize,
     prize,
   } = rowEntry;
-  const highlight = user?.id === userId;
+  const highlight = user?.id === userId || excluded;
   const t = useTranslations();
 
   if (!withPrizePool) {
