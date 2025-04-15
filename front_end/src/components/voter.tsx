@@ -15,7 +15,8 @@ type Props = {
   onVoteUp: () => void;
   onVoteDown?: () => void;
   commentArea?: boolean;
-  keyFactor?: boolean;
+  upChevronClassName?: string;
+  downChevronClassName?: string;
 };
 
 const Voter: FC<Props> = ({
@@ -26,7 +27,8 @@ const Voter: FC<Props> = ({
   onVoteUp,
   onVoteDown,
   commentArea,
-  keyFactor = false,
+  upChevronClassName,
+  downChevronClassName,
 }) => {
   return (
     <div
@@ -57,10 +59,7 @@ const Voter: FC<Props> = ({
                   ? "rounded-none bg-gradient-to-r"
                   : "rounded-full bg-gradient-to-b "
               }`,
-              {
-                "h-2.5 w-2.5 rounded-bl-[3px] rounded-tl-[3px] p-1.5":
-                  keyFactor,
-              }
+              upChevronClassName
             )}
           />
         ) : (
@@ -72,10 +71,7 @@ const Voter: FC<Props> = ({
                   ? "rounded-none bg-gradient-to-r group-hover:from-blue-400/80 group-hover:to-blue-100 dark:group-hover:from-blue-400-dark/50 dark:group-hover:to-blue-100-dark/50"
                   : "rounded-full bg-gradient-to-b group-hover:from-blue-400  group-hover:to-blue-100 dark:group-hover:from-blue-400-dark dark:group-hover:to-blue-100-dark "
               }`,
-              {
-                "h-2.5 w-2.5 rounded-bl-[3px] rounded-tl-[3px] p-1.5":
-                  keyFactor,
-              }
+              upChevronClassName
             )}
           />
         )}
@@ -108,10 +104,7 @@ const Voter: FC<Props> = ({
                     ? "rounded-none bg-gradient-to-l"
                     : "rounded-full bg-gradient-to-b"
                 }`,
-                {
-                  "h-2.5 w-2.5 rounded-br-[3px] rounded-tr-[3px] p-1.5":
-                    keyFactor,
-                }
+                downChevronClassName
               )}
             />
           ) : (
@@ -123,10 +116,7 @@ const Voter: FC<Props> = ({
                     ? "rounded-none bg-gradient-to-l"
                     : "rounded-full bg-gradient-to-b"
                 }`,
-                {
-                  "h-2.5 w-2.5 rounded-br-[3px] rounded-tr-[3px] p-1.5":
-                    keyFactor,
-                }
+                downChevronClassName
               )}
             />
           )}

@@ -73,6 +73,7 @@ const KeyFactorField = ({
         onChange={(e) => setKeyFactor(e.target.value)}
         className="grow"
         readOnly={!isActive}
+        maxLength={150}
       />
       {showXButton && (
         <Button
@@ -88,6 +89,7 @@ const KeyFactorField = ({
   );
 };
 
+// TODO: add limit of 6 key factors per question when BE changes will be implemented
 const Step1AddKeyFactors = ({
   keyFactors,
   setKeyFactors,
@@ -126,7 +128,7 @@ const Step1AddKeyFactors = ({
           onClick={() => {
             setKeyFactors([...keyFactors, ""]);
           }}
-          disabled={keyFactors.at(-1) === ""}
+          disabled={keyFactors.length > 3 && keyFactors.at(-1) === ""}
         >
           <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
           {t("addKeyFactor")}

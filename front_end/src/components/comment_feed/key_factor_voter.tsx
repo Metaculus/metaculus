@@ -7,7 +7,7 @@ import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import Voter from "@/components/voter";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import { KeyFactorVote } from "@/types/comment";
+import { KeyFactorVote, KeyFactorVoteTypes } from "@/types/comment";
 import { VoteDirection } from "@/types/votes";
 import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
@@ -23,7 +23,6 @@ type VoteData = {
   userVote: KeyFactorVote | null;
 };
 
-// TODO: refactore it for new key factor variants
 const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -76,10 +75,15 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
       className={cn("rounded", className)}
       userVote={userVote?.score as VoteDirection}
       votes={votesScore}
-      onVoteUp={() => handleVote({ vote_type: "a_updown", score: 1 })} // TODO: refactor it for new key factor variants
-      onVoteDown={() => handleVote({ vote_type: "a_updown", score: -1 })}
+      onVoteUp={() =>
+        handleVote({ vote_type: KeyFactorVoteTypes.UP_DOWN, score: 1 })
+      }
+      onVoteDown={() =>
+        handleVote({ vote_type: KeyFactorVoteTypes.UP_DOWN, score: -1 })
+      }
       commentArea={true}
-      keyFactor={true}
+      upChevronClassName="h-2.5 w-2.5 rounded-bl-[3px] rounded-tl-[3px] p-1.5"
+      downChevronClassName="h-2.5 w-2.5 rounded-br-[3px] rounded-tr-[3px] p-1.5"
     />
   );
 };

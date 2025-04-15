@@ -4,7 +4,7 @@ import { faCircleCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
@@ -12,7 +12,7 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import {
-  IMPACT_VALUES,
+  ImpactValues,
   KeyFactor,
   KeyFactorVoteScore,
   KeyFactorVoteTypes,
@@ -36,8 +36,10 @@ export const LikertKeyFactorItem: FC<Props> = ({
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
   const { setKeyFactorVote } = useCommentsFeed();
-  const likertVote = user_votes.find(
-    (vote) => vote.vote_type === KeyFactorVoteTypes.LIKERT
+  const likertVote = useMemo(
+    () =>
+      user_votes.find((vote) => vote.vote_type === KeyFactorVoteTypes.LIKERT),
+    [user_votes]
   );
   const [voteScore, setVoteScore] = useState(
     !isNil(likertVote?.score) ? likertVote.score : null
@@ -56,9 +58,10 @@ export const LikertKeyFactorItem: FC<Props> = ({
         id,
         vote: newScore,
         user: user.id,
-        vote_type: KeyFactorVoteTypes.TWO_STEP,
+        vote_type: KeyFactorVoteTypes.LIKERT,
       });
-      // sendGAEvent("event", "KeyFactorTwoStepVote"); // TODO: add new GA event tracking if needed
+      // TODO: add new GA event tracking if needed
+      // sendGAEvent("event", "KeyFactorTwoStepVote");
 
       if (response && "score" in response) {
         setVoteScore(newScore);
@@ -78,13 +81,10 @@ export const LikertKeyFactorItem: FC<Props> = ({
 
   // update key factor state in other place on the page
   useEffect(() => {
-    const likertVote = user_votes.find(
-      (vote) => vote.vote_type === KeyFactorVoteTypes.LIKERT
-    );
     if (likertVote) {
       setVoteScore(likertVote.score);
     }
-  }, [user_votes]);
+  }, [likertVote]);
 
   return (
     <div
@@ -95,10 +95,10 @@ export const LikertKeyFactorItem: FC<Props> = ({
     >
       <div className="relative flex w-full flex-col items-center gap-3 xs:flex-row">
         <Button
-          variant="tertiary"
+          variant="secondary"
           onClick={() => setShowVoter((prev) => !prev)}
           className={cn(
-            "shrink-0 gap-1 border-gray-900 leading-4 text-gray-900 hover:border-gray-900 hover:bg-gray-100 active:bg-blue-900 active:text-gray-200 dark:border-gray-900-dark dark:text-gray-900-dark hover:dark:border-gray-900-dark hover:dark:bg-gray-100-dark active:dark:bg-blue-900-dark active:dark:text-gray-200-dark xs:px-2 xs:py-[1px] xs:text-xs xs:font-normal",
+            "shrink-0 gap-1 xs:px-2 xs:py-[1px] xs:text-xs xs:font-normal",
             {
               "bg-blue-900 text-gray-200 hover:bg-blue-900 dark:bg-blue-900-dark dark:text-gray-200-dark hover:dark:bg-blue-900-dark":
                 showVoter || !isNil(voteScore),
@@ -130,7 +130,7 @@ export const LikertKeyFactorItem: FC<Props> = ({
           <Button
             presentationType="icon"
             variant="text"
-            className="absolute right-[-4px] top-[-2px] text-gray-500 dark:text-gray-500-dark"
+            className="absolute -right-1 -top-0.5 text-gray-500 dark:text-gray-500-dark"
             onClick={() => setShowVoter(false)}
           >
             <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
@@ -140,12 +140,12 @@ export const LikertKeyFactorItem: FC<Props> = ({
               <Button
                 key={index}
                 className={cn(
-                  "flex flex-col gap-0 rounded-none border-none px-3.5 py-2.5 text-base font-medium leading-5 xs:w-full xs:flex-row",
+                  "flex w-full flex-col gap-0 rounded-sm border border-transparent px-1 py-2.5 text-base font-medium leading-5 dark:border-transparent xs:w-full xs:flex-row xs:py-5",
                   button.className,
                   {
-                    [button.activeClassName.concat(
-                      " text-gray-0 dark:text-gray-0"
-                    )]: voteScore === button.score,
+                    [button.activeClassName]: voteScore === button.score,
+                    "text-gray-0 dark:text-gray-0-dark":
+                      voteScore === button.score,
                   }
                 )}
                 onClick={() => handleVote(button.score)}
@@ -174,7 +174,7 @@ export const LikertKeyFactorItem: FC<Props> = ({
 
 const VOTE_BUTTONS = [
   {
-    score: IMPACT_VALUES.HIGH_NEGATIVE,
+    score: ImpactValues.HIGH_NEGATIVE,
     children: (
       <>
         <span>-</span>
@@ -183,11 +183,11 @@ const VOTE_BUTTONS = [
       </>
     ),
     className:
-      "bg-salmon-300 dark:bg-salmon-300-dark text-salmon-700 dark:text-salmon-700-dark hover:bg-salmon-400 hover:dark:bg-salmon-400-dark",
-    activeClassName: "bg-salmon-800 dark:bg-salmon-800",
+      "bg-salmon-300 dark:bg-salmon-300-dark text-salmon-700 dark:text-salmon-700-dark hover:bg-salmon-400 hover:border-solid hover:border-salmon-500 hover:dark:border-salmon-500-dark hover:dark:bg-salmon-400-dark",
+    activeClassName: "bg-salmon-800 dark:bg-salmon-800-dark",
   },
   {
-    score: IMPACT_VALUES.MEDIUM_NEGATIVE,
+    score: ImpactValues.MEDIUM_NEGATIVE,
     children: (
       <>
         <span>-</span>
@@ -195,32 +195,32 @@ const VOTE_BUTTONS = [
       </>
     ),
     className:
-      "bg-salmon-200 dark:bg-salmon-200-dark text-salmon-700 dark:text-salmon-700-dark hover:bg-salmon-300 hover:dark:bg-salmon-300-dark",
-    activeClassName: "bg-salmon-800 dark:bg-salmon-800",
+      "bg-salmon-200 dark:bg-salmon-200-dark text-salmon-700 dark:text-salmon-700-dark hover:bg-salmon-300 hover:dark:bg-salmon-300-dark hover:border-solid hover:border-salmon-400 hover:dark:border-salmon-400-dark",
+    activeClassName: "bg-salmon-800 dark:bg-salmon-800-dark",
   },
   {
-    score: IMPACT_VALUES.LOW_NEGATIVE,
+    score: ImpactValues.LOW_NEGATIVE,
     children: <span>-</span>,
     className:
-      "bg-salmon-100 dark:bg-salmon-100-dark text-salmon-700 dark:text-salmon-700-dark hover:bg-salmon-200 hover:dark:bg-salmon-200-dark",
-    activeClassName: "bg-salmon-800 dark:bg-salmon-800",
+      "bg-salmon-100 dark:bg-salmon-100-dark text-salmon-700 dark:text-salmon-700-dark hover:bg-salmon-200 hover:dark:bg-salmon-200-dark hover:border-solid hover:border-salmon-300 hover:dark:border-salmon-300-dark",
+    activeClassName: "bg-salmon-800 dark:bg-salmon-800-dark",
   },
   {
-    score: IMPACT_VALUES.NO_IMPACT,
+    score: ImpactValues.NO_IMPACT,
     children: <FontAwesomeIcon icon={faCircle} className="h-2.5 w-2.5" />,
     className:
-      "bg-blue-100 dark:bg-blue-100-dark text-blue-500 dark:text-blue-500-dark hover:bg-blue-200 hover:dark:bg-salmon-400-dark",
-    activeClassName: "bg-blue-700 dark:bg-blue-700",
+      "bg-blue-100 dark:bg-blue-100-dark text-blue-500 dark:text-blue-500-dark hover:bg-blue-200 hover:dark:bg-blue-200-dark hover:border-solid hover:border-blue-500 hover:dark:border-blue-500-dark",
+    activeClassName: "bg-blue-700 dark:bg-blue-700-dark",
   },
   {
-    score: IMPACT_VALUES.LOW,
+    score: ImpactValues.LOW,
     children: <span>+</span>,
     className:
-      "bg-mint-200 dark:bg-mint-200-dark text-mint-800 dark:text-mint-800-dark hover:bg-mint-300 hover:dark:bg-mint-300-dark",
-    activeClassName: "bg-mint-800 dark:bg-mint-800",
+      "bg-mint-200 dark:bg-mint-200-dark text-mint-800 dark:text-mint-800-dark hover:bg-mint-300 hover:dark:bg-mint-300-dark hover:border-solid hover:border-mint-400 hover:dark:border-mint-400-dark",
+    activeClassName: "bg-mint-800 dark:bg-mint-800-dark",
   },
   {
-    score: IMPACT_VALUES.MEDIUM,
+    score: ImpactValues.MEDIUM,
     children: (
       <>
         <span>+</span>
@@ -228,11 +228,11 @@ const VOTE_BUTTONS = [
       </>
     ),
     className:
-      "bg-mint-300 dark:bg-mint-300-dark text-mint-800 dark:text-mint-800-dark hover:bg-mint-400 hover:dark:bg-mint-400-dark",
-    activeClassName: "bg-mint-800 dark:bg-mint-800",
+      "bg-mint-300 dark:bg-mint-300-dark text-mint-800 dark:text-mint-800-dark hover:bg-mint-400 hover:dark:bg-mint-400-dark hover:border-solid hover:border-mint-500 hover:dark:border-mint-500-dark",
+    activeClassName: "bg-mint-800 dark:bg-mint-800-dark",
   },
   {
-    score: IMPACT_VALUES.HIGH,
+    score: ImpactValues.HIGH,
     children: (
       <>
         <span>+</span>
@@ -241,8 +241,8 @@ const VOTE_BUTTONS = [
       </>
     ),
     className:
-      "bg-mint-400 dark:bg-mint-400-dark text-mint-800 dark:text-mint-800-dark hover:bg-mint-500 hover:dark:bg-mint-500-dark",
-    activeClassName: "bg-mint-800 dark:bg-mint-800",
+      "bg-mint-400 dark:bg-mint-400-dark text-mint-800 dark:text-mint-800-dark hover:bg-mint-500 hover:dark:bg-mint-500-dark hover:border-solid hover:border-mint-600 hover:dark:border-mint-600-dark",
+    activeClassName: "bg-mint-800 dark:bg-mint-800-dark",
   },
 ];
 

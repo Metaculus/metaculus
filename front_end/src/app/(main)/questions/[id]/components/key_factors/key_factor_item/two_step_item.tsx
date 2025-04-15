@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
@@ -16,7 +16,7 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import {
-  IMPACT_VALUES,
+  ImpactValues,
   KeyFactor,
   KeyFactorVoteScore,
   KeyFactorVoteTypes,
@@ -40,8 +40,10 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
   const { setKeyFactorVote } = useCommentsFeed();
-  const twoStepVote = user_votes.find(
-    (vote) => vote.vote_type === KeyFactorVoteTypes.TWO_STEP
+  const twoStepVote = useMemo(
+    () =>
+      user_votes.find((vote) => vote.vote_type === KeyFactorVoteTypes.TWO_STEP),
+    [user_votes]
   );
   const [voteScore, setVoteScore] = useState(
     !isNil(twoStepVote?.score) ? twoStepVote.score : null
@@ -61,7 +63,7 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
     }
 
     try {
-      let secondStepCompletion = isFirstStep ? false : true;
+      let secondStepCompletion = !isFirstStep;
       let newScore = isFirstStep && score === voteScore ? null : score;
       if (
         !isFirstStep &&
@@ -70,7 +72,7 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
         isSecondStepCompleted
       ) {
         newScore =
-          score < 0 ? IMPACT_VALUES.MEDIUM_NEGATIVE : IMPACT_VALUES.MEDIUM;
+          score < 0 ? ImpactValues.MEDIUM_NEGATIVE : ImpactValues.MEDIUM;
         secondStepCompletion = false;
       }
 
@@ -80,7 +82,8 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
         user: user.id,
         vote_type: KeyFactorVoteTypes.TWO_STEP,
       });
-      // sendGAEvent("event", "KeyFactorTwoStepVote"); // TODO: add new GA event tracking if needed
+      // TODO: add new GA event tracking if needed
+      // sendGAEvent("event", "KeyFactorTwoStepVote");
 
       if (response && "score" in response) {
         if (isFirstStep) {
@@ -106,15 +109,12 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
 
   // update key factor state in other place on the page
   useEffect(() => {
-    const twoStepVote = user_votes.find(
-      (vote) => vote.vote_type === KeyFactorVoteTypes.TWO_STEP
-    );
     if (twoStepVote) {
       setVoteScore(twoStepVote.score);
       setIsSecondStepCompleted(twoStepVote.second_step_completed ?? false);
       setShowSecondStep(twoStepVote.show_second_step ?? false);
     }
-  }, [user_votes]);
+  }, [twoStepVote]);
 
   return (
     <div
@@ -132,9 +132,9 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
         <Button
           variant="tertiary"
           size="sm"
-          onClick={() => handleVote(IMPACT_VALUES.MEDIUM)}
+          onClick={() => handleVote(ImpactValues.MEDIUM)}
           className={cn(
-            "rounded-sm border-mint-400 bg-mint-300 text-xs leading-4 text-mint-800 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark xs:bg-gray-0 xs:text-sm xs:text-mint-700 xs:dark:bg-gray-0-dark xs:dark:text-mint-700-dark",
+            "rounded-sm border-mint-400 bg-mint-300 text-xs leading-4 text-mint-800 hover:border-mint-700 hover:bg-mint-200 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark dark:hover:border-mint-700-dark dark:hover:bg-mint-200-dark xs:bg-gray-0 xs:text-sm xs:text-mint-700 xs:dark:bg-gray-0-dark xs:dark:text-mint-700-dark",
             {
               "border-mint-800 !bg-mint-800 !text-gray-0 dark:border-mint-800-dark dark:!bg-mint-800-dark dark:!text-gray-0-dark":
                 voteScore && voteScore > 0,
@@ -156,9 +156,9 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
         <Button
           variant="tertiary"
           size="sm"
-          onClick={() => handleVote(IMPACT_VALUES.MEDIUM_NEGATIVE)}
+          onClick={() => handleVote(ImpactValues.MEDIUM_NEGATIVE)}
           className={cn(
-            "rounded-sm border-salmon-300 bg-salmon-200 text-xs leading-4 text-salmon-700 hover:border-salmon-400 hover:bg-salmon-300 dark:border-salmon-300-dark dark:bg-salmon-200-dark dark:text-salmon-700-dark xs:bg-gray-0 xs:text-sm xs:dark:bg-gray-0-dark",
+            "rounded-sm border-salmon-300 bg-salmon-200 text-xs leading-4 text-salmon-700 hover:border-salmon-400 hover:bg-salmon-300 dark:border-salmon-300-dark dark:bg-salmon-200-dark dark:text-salmon-700-dark dark:hover:border-salmon-400-dark dark:hover:bg-salmon-300-dark xs:bg-gray-0 xs:text-sm xs:dark:bg-gray-0-dark",
             {
               "!border-salmon-800 !bg-salmon-800 !text-gray-0":
                 voteScore && voteScore < 0,
@@ -200,14 +200,12 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
                   "border-mint-800 bg-mint-800 text-gray-0 hover:bg-mint-800 dark:border-mint-800-dark dark:bg-mint-800-dark dark:text-gray-0-dark dark:hover:bg-mint-800-dark":
                     isSecondStepCompleted &&
                     !isNil(voteScore) &&
-                    Math.abs(voteScore) === IMPACT_VALUES.LOW,
+                    Math.abs(voteScore) === ImpactValues.LOW,
                 }
               )}
               onClick={() =>
                 handleVote(
-                  voteScore < 0
-                    ? IMPACT_VALUES.LOW_NEGATIVE
-                    : IMPACT_VALUES.LOW,
+                  voteScore < 0 ? ImpactValues.LOW_NEGATIVE : ImpactValues.LOW,
                   false
                 )
               }
@@ -223,14 +221,14 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
                   "border-mint-800 bg-mint-800 text-gray-0 hover:bg-mint-800 dark:border-mint-800-dark dark:bg-mint-800-dark dark:text-gray-0-dark dark:hover:bg-mint-800-dark":
                     isSecondStepCompleted &&
                     !isNil(voteScore) &&
-                    Math.abs(voteScore) === IMPACT_VALUES.MEDIUM,
+                    Math.abs(voteScore) === ImpactValues.MEDIUM,
                 }
               )}
               onClick={() =>
                 handleVote(
                   voteScore < 0
-                    ? IMPACT_VALUES.MEDIUM_NEGATIVE
-                    : IMPACT_VALUES.MEDIUM,
+                    ? ImpactValues.MEDIUM_NEGATIVE
+                    : ImpactValues.MEDIUM,
                   false
                 )
               }
@@ -246,14 +244,14 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
                   "border-mint-800 bg-mint-800 text-gray-0 hover:bg-mint-800 dark:border-mint-800-dark dark:bg-mint-800-dark dark:text-gray-0-dark dark:hover:bg-mint-800-dark":
                     isSecondStepCompleted &&
                     !isNil(voteScore) &&
-                    Math.abs(voteScore) === IMPACT_VALUES.HIGH,
+                    Math.abs(voteScore) === ImpactValues.HIGH,
                 }
               )}
               onClick={() =>
                 handleVote(
                   voteScore < 0
-                    ? IMPACT_VALUES.HIGH_NEGATIVE
-                    : IMPACT_VALUES.HIGH,
+                    ? ImpactValues.HIGH_NEGATIVE
+                    : ImpactValues.HIGH,
                   false
                 )
               }

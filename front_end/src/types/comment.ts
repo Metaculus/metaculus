@@ -54,21 +54,21 @@ export type ForecastType = {
   question_unit?: string;
 };
 
-export const KeyFactorVoteTypes = {
-  UP_DOWN: "a_updown",
-  TWO_STEP: "b_2step",
-  LIKERT: "c_likert",
-} as const;
+export enum KeyFactorVoteTypes {
+  UP_DOWN = "a_updown",
+  TWO_STEP = "b_2step",
+  LIKERT = "c_likert",
+}
 
-export const IMPACT_VALUES = {
-  LOW: 2,
-  MEDIUM: 3,
-  HIGH: 5,
-  LOW_NEGATIVE: -2,
-  MEDIUM_NEGATIVE: -3,
-  HIGH_NEGATIVE: -5,
-  NO_IMPACT: 0,
-} as const satisfies Record<string, KeyFactorVoteScore>;
+export enum ImpactValues {
+  LOW = 2,
+  MEDIUM = 3,
+  HIGH = 5,
+  LOW_NEGATIVE = -2,
+  MEDIUM_NEGATIVE = -3,
+  HIGH_NEGATIVE = -5,
+  NO_IMPACT = 0,
+}
 
 export type KeyFactorVoteType =
   (typeof KeyFactorVoteTypes)[keyof typeof KeyFactorVoteTypes];
@@ -87,6 +87,7 @@ export type KeyFactorVote = {
 export type KeyFactor = {
   id: number;
   text: string;
+  user_id: number; // used to set limit per question
   comment_id: string;
   user_votes: KeyFactorVote[]; // empty array if the user has not voted
   vote_type: KeyFactorVoteType | null; // null if the user has not voted

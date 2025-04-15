@@ -2,7 +2,7 @@
 import { FC } from "react";
 
 import KeyFactorVoter from "@/components/comment_feed/key_factor_voter";
-import { KeyFactor } from "@/types/comment";
+import { KeyFactor, KeyFactorVoteTypes } from "@/types/comment";
 import cn from "@/utils/cn";
 
 import KeyFactorText from "./key_factor_text";
@@ -25,15 +25,15 @@ export const UpdownKeyFactorItem: FC<Props> = ({
         { "bg-gray-0 dark:bg-gray-0-dark": linkToComment }
       )}
     >
-      {/* Link component does not trigger hash event trigger, so we use <a> instead */}
       <KeyFactorVoter
         className="z-10 shrink-0"
         voteData={{
           keyFactorId: id,
           votesScore: votes_score,
           userVote:
-            user_votes.findLast((vote) => vote.vote_type === "a_updown") ??
-            null,
+            user_votes.findLast(
+              (vote) => vote.vote_type === KeyFactorVoteTypes.UP_DOWN
+            ) ?? null,
         }}
       />
       <KeyFactorText
