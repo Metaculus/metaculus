@@ -119,7 +119,7 @@ def comment_delete_api_view(request: Request, pk: int):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@transaction.atomic
 def comment_create_api_view(request: Request):
     user: User = request.user
     serializer = CommentWriteSerializer(data=request.data)
@@ -128,6 +128,10 @@ def comment_create_api_view(request: Request):
     on_post = serializer.validated_data["on_post"]
     parent = serializer.validated_data.get("parent")
     included_forecast = serializer.validated_data.pop("included_forecast", False)
+
+    key_factors = serializers.ListField(
+        child=serializers.CharField(allow_blank=False), allow_null=True
+    ).run_validation(request.data.get("key_factors"))
 
     # Small validation
     permission = get_post_permission_for_user(
@@ -141,7 +145,7 @@ def comment_create_api_view(request: Request):
             .order_by("-start_time")
             .first()
         )
-        if included_forecast
+        if included_forecast and on_post.question_id
         else None
     )
 
@@ -149,12 +153,8 @@ def comment_create_api_view(request: Request):
         **serializer.validated_data, included_forecast=forecast, user=user
     )
 
-    key_factors = serializers.ListField(
-        child=serializers.CharField(allow_blank=False), allow_null=True
-    ).run_validation(request.data.get("key_factors"))
-
-    if key_factors is not None:
-        create_key_factors(new_comment.id, key_factors)
+    if key_factors:
+        create_key_factors(new_comment, key_factors)
 
     return Response(
         serialize_comment_many([new_comment], with_key_factors=True)[0],
@@ -312,6 +312,7 @@ def key_factor_vote_view(request: Request, pk: int):
 
 
 @api_view(["POST"])
+@transaction.atomic
 def comment_add_key_factors_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
@@ -324,7 +325,7 @@ def comment_add_key_factors_view(request: Request, pk: int):
         child=serializers.CharField(allow_blank=False), allow_null=True
     ).run_validation(request.data.get("key_factors"))
 
-    create_key_factors(comment.id, key_factors)
+    create_key_factors(comment, key_factors)
 
     return Response(
         serialize_comment_many([comment], with_key_factors=True)[0],

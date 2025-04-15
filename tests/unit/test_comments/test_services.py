@@ -1,13 +1,13 @@
 import pytest  # noqa
+from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactorVote
 from comments.services.common import create_comment, soft_delete_comment
-from comments.services.key_factors import key_factor_vote
+from comments.services.key_factors import key_factor_vote, create_key_factors
 from comments.services.notifications import notify_mentioned_users
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
-from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import factory_forecast
@@ -165,3 +165,26 @@ def test_soft_delete_comment(user1, user2, post):
     snapshot.refresh_from_db()
     assert snapshot.comments_count == 2
     assert post.comment_count == 2
+
+
+def test_create_key_factors__limit_validation(user1, user2, post):
+    c1 = factory_comment(author=user1, on_post=post)
+    c2 = factory_comment(author=user1, on_post=post)
+    create_key_factors(c1, ["1", "2", "3"])
+
+    assert c1.key_factors.count() == 3
+
+    # Create too many key-factors for one comment
+    with pytest.raises(ValidationError):
+        create_key_factors(c1, ["4", "5"])
+
+    create_key_factors(c2, ["2.1", "2.2", "2.3"])
+    assert c2.key_factors.count() == 3
+
+    # Create too many key-factors for one post
+    with pytest.raises(ValidationError):
+        create_key_factors(c2, ["2.4"])
+
+    # Check limit does not affect other users
+    c3 = factory_comment(author=user2, on_post=post)
+    create_key_factors(c3, ["3.1"])

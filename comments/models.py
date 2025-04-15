@@ -217,7 +217,6 @@ class KeyFactor(TimeStampedModel, TranslatedModel):
     objects = models.Manager.from_queryset(KeyFactorQuerySet)()
 
     # Annotated placeholders
-    user_vote: int = None
     vote_type: str = None
 
     def __str__(self):
