@@ -8,6 +8,7 @@ from comments.services.notifications import notify_mentioned_users
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
+from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import factory_forecast
