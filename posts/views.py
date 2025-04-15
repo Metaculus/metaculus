@@ -19,7 +19,7 @@ from posts.models import (
     PostActivityBoost,
 )
 from posts.serializers import (
-    DownloadDataSerializer,
+    DataGetRequestSerializer,
     PostFilterSerializer,
     OldQuestionFilterSerializer,
     PostWriteSerializer,
@@ -578,6 +578,8 @@ def post_related_articles_api_view(request: Request, pk):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def download_data(request, post_id: int):
+    # TODO: move this to a /data/download/ endpoint
+    # like /data/email/ which accepts post_id as a param instead
     post = get_object_or_404(Post, pk=post_id)
     user: User = request.user
 
@@ -602,11 +604,12 @@ def download_data(request, post_id: int):
         "is_whitelisted": is_whitelisted,
     }
 
-    serializer = DownloadDataSerializer(
+    serializer = DataGetRequestSerializer(
         data=request.query_params, context=serializer_context
     )
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
+
     sub_question = params.get("sub_question")
     aggregation_methods = params.get("aggregation_methods")
     user_ids = params.get("user_ids")

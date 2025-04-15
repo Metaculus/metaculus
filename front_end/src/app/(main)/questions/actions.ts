@@ -21,7 +21,7 @@ import QuestionsApi, {
 } from "@/services/questions";
 import { PostSubscription, NotebookPost } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
-import { DeepPartial } from "@/types/utils";
+import { DataParams, DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
 import { ApiError } from "@/utils/errors";
 
@@ -367,4 +367,8 @@ export async function getPostZipData(postId: number) {
   const base64String = Buffer.from(arrayBuffer).toString("base64");
 
   return `data:application/octet-stream;base64,${base64String}`;
+}
+
+export async function emailData(params: DataParams) {
+  return await PostsApi.emailData(params);
 }
