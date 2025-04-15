@@ -215,6 +215,7 @@ def serialize_key_factor(
     return {
         "id": key_factor.id,
         "text": key_factor.text,
+        "author": BaseUserSerializer(key_factor.comment.author).data,
         "comment_id": key_factor.comment_id,
         "post_id": key_factor.comment.on_post_id,
         "user_votes": [
@@ -233,7 +234,7 @@ def serialize_key_factors_many(
     qs = (
         KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors])
         .filter_active()
-        .prefetch_related("comment")
+        .select_related("comment__author")
     )
 
     # Restore the original ordering

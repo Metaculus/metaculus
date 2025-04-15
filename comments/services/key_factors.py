@@ -1,8 +1,9 @@
 from typing import Iterable
 
 from django.db import transaction
+from rest_framework.exceptions import ValidationError
 
-from comments.models import KeyFactor, KeyFactorVote
+from comments.models import KeyFactor, KeyFactorVote, Comment
 from users.models import User
 from utils.dtypes import generate_map_from_list
 
@@ -37,6 +38,25 @@ def get_user_votes_for_key_factors(
 
 
 @transaction.atomic
-def create_key_factors(comment_id: int, key_factors: list[str]):
+def create_key_factors(comment: Comment, key_factors: list[str]):
+    # Limit total key-factors for one user per comment
+    if comment.key_factors.filter_active().count() + len(key_factors) > 4:
+        raise ValidationError(
+            "Exceeded the maximum limit of 4 key factors allowed per comment"
+        )
+
+    # Limit total key-factors amount for one user per post
+    if (
+        KeyFactor.objects.for_posts(posts=[comment.on_post])
+        .filter_active()
+        .filter(comment__author=comment.author)
+        .count()
+        + len(key_factors)
+        > 6
+    ):
+        raise ValidationError(
+            "Exceeded the maximum limit of 6 key factors allowed per question"
+        )
+
     for key_factor in key_factors:
-        KeyFactor.objects.create(comment_id=comment_id, text=key_factor)
+        KeyFactor.objects.create(comment=comment, text=key_factor)
