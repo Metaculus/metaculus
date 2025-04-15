@@ -4,7 +4,7 @@ import { faCircleCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
@@ -75,6 +75,17 @@ export const LikertKeyFactorItem: FC<Props> = ({
       logError(error);
     }
   };
+
+  // update key factor state in other place on the page
+  useEffect(() => {
+    const likertVote = user_votes.find(
+      (vote) => vote.vote_type === KeyFactorVoteTypes.LIKERT
+    );
+    if (likertVote) {
+      setVoteScore(likertVote.score);
+    }
+  }, [user_votes]);
+
   return (
     <div
       className={cn(
@@ -85,7 +96,7 @@ export const LikertKeyFactorItem: FC<Props> = ({
       <div className="relative flex w-full flex-col items-center gap-3 xs:flex-row">
         <Button
           variant="tertiary"
-          onClick={() => setShowVoter(true)}
+          onClick={() => setShowVoter((prev) => !prev)}
           className={cn(
             "shrink-0 gap-1 border-gray-900 leading-4 text-gray-900 hover:border-gray-900 hover:bg-gray-100 active:bg-blue-900 active:text-gray-200 dark:border-gray-900-dark dark:text-gray-900-dark hover:dark:border-gray-900-dark hover:dark:bg-gray-100-dark active:dark:bg-blue-900-dark active:dark:text-gray-200-dark xs:px-2 xs:py-[1px] xs:text-xs xs:font-normal",
             {

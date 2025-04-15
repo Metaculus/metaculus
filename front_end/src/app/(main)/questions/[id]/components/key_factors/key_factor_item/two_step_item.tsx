@@ -61,7 +61,19 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
     }
 
     try {
-      const newScore = isFirstStep && score === voteScore ? null : score;
+      let secondStepCompletion = isFirstStep ? false : true;
+      let newScore = isFirstStep && score === voteScore ? null : score;
+      if (
+        !isFirstStep &&
+        !isNil(score) &&
+        score === voteScore &&
+        isSecondStepCompleted
+      ) {
+        newScore =
+          score < 0 ? IMPACT_VALUES.MEDIUM_NEGATIVE : IMPACT_VALUES.MEDIUM;
+        secondStepCompletion = false;
+      }
+
       const response = await voteKeyFactor({
         id,
         vote: newScore,
@@ -74,14 +86,15 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
         if (isFirstStep) {
           setShowSecondStep(!isNil(newScore));
         }
-        setIsSecondStepCompleted(isFirstStep ? false : true);
+        setIsSecondStepCompleted(secondStepCompletion);
         setVoteScore(newScore);
         setKeyFactorVote(
           id,
           {
             vote_type: KeyFactorVoteTypes.TWO_STEP,
             score: newScore,
-            show_second_step: isFirstStep ? true : false,
+            show_second_step: !isNil(newScore) ? true : false,
+            second_step_completed: secondStepCompletion,
           },
           response.score as number
         );
@@ -96,11 +109,13 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
     const twoStepVote = user_votes.find(
       (vote) => vote.vote_type === KeyFactorVoteTypes.TWO_STEP
     );
-    setVoteScore(twoStepVote?.score ?? null);
-    if (twoStepVote?.show_second_step) {
-      setShowSecondStep(twoStepVote.show_second_step);
+    if (twoStepVote) {
+      setVoteScore(twoStepVote.score);
+      setIsSecondStepCompleted(twoStepVote.second_step_completed ?? false);
+      setShowSecondStep(twoStepVote.show_second_step ?? false);
     }
   }, [user_votes]);
+
   return (
     <div
       className={cn(

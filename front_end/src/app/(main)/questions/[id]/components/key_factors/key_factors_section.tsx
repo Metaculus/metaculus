@@ -90,10 +90,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
         {combinedKeyFactors.length > 0 ? (
           <div id="key-factors-list" className="flex flex-col gap-2.5">
             {visibleKeyFactors.map((kf) => (
-              <KeyFactorItem
-                key={`post-key-factor-${kf.id}-${kf.votes_score}-${kf.user_votes.at(-1)?.score ?? 0}`}
-                keyFactor={kf}
-              />
+              <KeyFactorItem key={`post-key-factor-${kf.id}`} keyFactor={kf} />
             ))}
             {combinedKeyFactors.length > displayLimit && (
               <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">
