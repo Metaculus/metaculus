@@ -37,3 +37,4 @@ def test_serialize_key_factors_many(user1, user2):
         {"vote_type": "c_likert", "score": 5},
     ]
     assert data[0]["votes_score"] == -1
+    assert data[0]["author"]["id"] == user1.id
