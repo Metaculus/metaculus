@@ -1,7 +1,7 @@
 "use client";
 import { FC } from "react";
 
-import KeyFactorVoter from "@/components/comment_feed/key_factor_voter";
+import KeyFactorVoter from "@/app/(main)/questions/[id]/components/key_factors/key_factor_voter";
 import { KeyFactor, KeyFactorVoteTypes } from "@/types/comment";
 import cn from "@/utils/cn";
 

@@ -1198,5 +1198,7 @@
   "howInfluenceForecast": "Jak to ovlivňuje vaši předpověď?",
   "decreases": "snižuje",
   "increases": "zvyšuje",
-  "noImpact": "bez dopadu"
+  "noImpact": "bez dopadu",
+  "maxKeyFactorsPerComment": "Komentář může obsahovat maximálně 4 klíčové faktory.",
+  "maxKeyFactorsPerQuestion": "Otázka může mít od jednoho autora nejvýše 6 klíčových faktorů."
 }

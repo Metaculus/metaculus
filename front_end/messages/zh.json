@@ -1200,5 +1200,7 @@
   "howInfluenceForecast": "这如何影响您的预测？",
   "decreases": "减少",
   "increases": "增加",
-  "noImpact": "无影响"
+  "noImpact": "无影响",
+  "maxKeyFactorsPerComment": "一条评论最多可以包含 4 个关键因素。",
+  "maxKeyFactorsPerQuestion": "一个问题由一位作者最多可以包含 6 个关键因素。"
 }

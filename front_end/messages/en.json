@@ -1195,5 +1195,7 @@
   "howInfluenceForecast": "How does this influence your forecast?",
   "decreases": "decreases",
   "increases": "increases",
-  "noImpact": "no impact"
+  "noImpact": "no impact",
+  "maxKeyFactorsPerComment": "A comment can include a maximum of 4 key factors.",
+  "maxKeyFactorsPerQuestion": "A question can have no more than 6 key factors by one author."
 }

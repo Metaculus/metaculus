@@ -87,8 +87,8 @@ export type KeyFactorVote = {
 export type KeyFactor = {
   id: number;
   text: string;
-  user_id: number; // used to set limit per question
-  comment_id: string;
+  author: AuthorType; // used to set limit per question
+  comment_id: number;
   user_votes: KeyFactorVote[]; // empty array if the user has not voted
   vote_type: KeyFactorVoteType | null; // null if the user has not voted
   votes_score: number;

@@ -10,6 +10,8 @@ import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider"
 import AddKeyFactorsModal from "@/components/comment_feed/add_key_factors_modal";
 import Button from "@/components/ui/button";
 import SectionToggle from "@/components/ui/section_toggle";
+import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import useHash from "@/hooks/use_hash";
 
 import KeyFactorItem from "./key_factor_item";
@@ -40,6 +42,8 @@ const AddKeyFactorsButton: FC<{
 const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
   const t = useTranslations();
   const hash = useHash();
+  const { user } = useAuth();
+  const { setCurrentModal } = useModal();
   const [displayLimit, setDisplayLimit] = useState(4);
   const [isAddKeyFactorsModalOpen, setIsAddKeyFactorsModalOpen] =
     useState(false);
@@ -64,11 +68,14 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
 
   return (
     <>
-      <AddKeyFactorsModal
-        isOpen={isAddKeyFactorsModalOpen}
-        onClose={() => setIsAddKeyFactorsModalOpen(false)}
-        postId={postId}
-      />
+      {user && (
+        <AddKeyFactorsModal
+          isOpen={isAddKeyFactorsModalOpen}
+          onClose={() => setIsAddKeyFactorsModalOpen(false)}
+          postId={postId}
+          user={user}
+        />
+      )}
 
       <SectionToggle
         detailElement={
@@ -77,6 +84,10 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
               className="ml-auto"
               onClick={(event) => {
                 event.preventDefault();
+                if (!user) {
+                  setCurrentModal({ type: "signin" });
+                  return;
+                }
                 setIsAddKeyFactorsModalOpen(true);
               }}
             />

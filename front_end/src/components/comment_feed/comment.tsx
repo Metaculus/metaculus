@@ -778,14 +778,17 @@ const Comment: FC<CommentProps> = ({
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
       />
-      <AddKeyFactorsModal
-        isOpen={isAddKeyFactorsModalOpen}
-        onClose={() => setIsAddKeyFactorsModalOpen(false)}
-        commentId={comment.id}
-        onSuccess={(comment: BECommentType) => {
-          setCommentKeyFactors(comment.key_factors ?? []);
-        }}
-      />
+      {user && (
+        <AddKeyFactorsModal
+          isOpen={isAddKeyFactorsModalOpen}
+          onClose={() => setIsAddKeyFactorsModalOpen(false)}
+          commentId={comment.id}
+          onSuccess={(comment: BECommentType) => {
+            setCommentKeyFactors(comment.key_factors ?? []);
+          }}
+          user={user}
+        />
+      )}
     </div>
   );
 };
