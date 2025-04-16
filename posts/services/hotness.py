@@ -6,9 +6,10 @@ from django.db.models import Sum, Max, Count, Prefetch
 from django.utils import timezone
 
 from comments.models import Comment
-from posts.models import Post
+from posts.models import Post, Vote, PostActivityBoost
 from questions.constants import QuestionStatus
 from questions.models import Question
+from users.models import User
 from utils.models import ModelBatchUpdater
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,11 @@ def compute_question_hotness(question: Question) -> float:
     )
 
     return hotness
+
+
+def _compute_hotness_approval_score(post: Post) -> float:
+    now = timezone.now()
+    return decay(20, post.published_at) if now > post.published_at else 0
 
 
 def _compute_hotness_relevant_news(post: Post) -> float:
@@ -83,26 +89,34 @@ def _compute_hotness_questions(post: Post) -> float:
     return max([compute_question_hotness(q) for q in post.get_questions()], default=0)
 
 
-def compute_post_hotness(post: Post):
-    now = timezone.now()
-    hotness = 0
+def _compute_hotness_boosts(post: Post) -> float:
+    # TODO: clear old hotness values!
+    boosts = post.activity_boosts.all()
 
-    # Publishing action
-    hotness += decay(20, post.published_at) if now > post.published_at else 0
+    return sum([decay(x.score, x.created_at) for x in boosts])
 
-    # Relevant news
-    hotness += _compute_hotness_relevant_news(post)
 
-    # Net post votes
-    hotness += _compute_hotness_post_votes(post)
+HOTNESS_COMPONENTS = [
+    ("Approval score", _compute_hotness_approval_score),
+    ("Relevant ITN news", _compute_hotness_relevant_news),
+    ("Net post votes score", _compute_hotness_post_votes),
+    ("Posted comments score", _compute_hotness_comments),
+    ("Max subquestions score", _compute_hotness_questions),
+    ("Total Boosts Score", _compute_hotness_boosts),
+]
 
-    # Comments posted
-    hotness += _compute_hotness_comments(post)
 
-    # Individual questions
-    hotness += _compute_hotness_questions(post)
+def compute_post_hotness(post: Post) -> float:
+    return sum([f(post) for _, f in HOTNESS_COMPONENTS])
 
-    return hotness
+
+def explain_post_hotness(post: Post):
+    return {
+        "hotness": compute_post_hotness(post),
+        "components": [
+            {"label": label, "score": f(post)} for label, f in HOTNESS_COMPONENTS
+        ],
+    }
 
 
 def compute_feed_hotness():
@@ -132,3 +146,17 @@ def compute_feed_hotness():
                 logger.info(f"Generated hotness for {idx}/{total} posts")
 
     logger.info(f"Finished computing hotness in {round(time.time() - tm, 3)} seconds.")
+
+
+def handle_post_boost(user: User, post: Post, direction: Vote.VoteDirection):
+    if direction == Vote.VoteDirection.UP:
+        top_post = (
+            Post.objects.filter_projects(post.default_project)
+            .order_by("-hotness")
+            .first()
+        )
+        score = (top_post.hotness or 0) / 4 + 20
+    else:
+        score = -(post.hotness or 0) / 2 - 20
+
+    return PostActivityBoost.objects.create(user=user, post=post, score=score)

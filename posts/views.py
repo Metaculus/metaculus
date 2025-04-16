@@ -43,8 +43,8 @@ from posts.services.common import (
     make_repost,
     vote_post,
 )
-from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.feed import get_posts_feed, get_similar_posts
+from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
 from projects.models import Project
@@ -435,7 +435,9 @@ def activity_boost_api_view(request, pk):
     """
 
     post = get_object_or_404(Post, pk=pk)
-    score = serializers.IntegerField().run_validation(request.data.get("score"))
+    direction = serializers.ChoiceField(
+        choices=Vote.VoteDirection.choices
+    ).run_validation(request.data.get("direction"))
 
     if not request.user.is_superuser:
         raise PermissionDenied("You do not have permission boost this post")
