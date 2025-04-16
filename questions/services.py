@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 from collections.abc import Iterable
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import cast
 
 from django.db import transaction
@@ -32,9 +32,15 @@ from scoring.models import Score, Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
 from utils.models import model_update
-from utils.the_math.aggregations import get_aggregation_history
+from utils.the_math.aggregations import (
+    get_aggregation_history,
+    get_aggregations_at_time,
+)
 from utils.the_math.formulas import unscaled_location_to_scaled_location
-from utils.the_math.measures import percent_point_function
+from utils.the_math.measures import (
+    percent_point_function,
+    prediction_difference_for_sorting,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +142,30 @@ def build_question_forecasts_for_user(
             )
 
     return forecasts_data
+
+
+def compute_question_movement(question: Question) -> float | None:
+    now = timezone.now()
+
+    cp_now = get_aggregations_at_time(
+        question, now, [AggregationMethod.RECENCY_WEIGHTED]
+    ).get(AggregationMethod.RECENCY_WEIGHTED)
+
+    if not cp_now:
+        return
+
+    cp_previous = get_aggregations_at_time(
+        question, now - timedelta(days=7), [AggregationMethod.RECENCY_WEIGHTED]
+    ).get(AggregationMethod.RECENCY_WEIGHTED)
+
+    if not cp_previous:
+        return
+
+    return prediction_difference_for_sorting(
+        cp_now.get_prediction_values(),
+        cp_previous.get_prediction_values(),
+        question,
+    )
 
 
 def create_question(*, title: str = None, **kwargs) -> Question:
