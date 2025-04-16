@@ -93,3 +93,12 @@ export type KeyFactor = {
   vote_type: KeyFactorVoteType | null; // null if the user has not voted
   votes_score: number;
 };
+
+export type CommentDraft = {
+  markdown: string;
+  includeForecast: boolean;
+  lastModified: number;
+  postId: number;
+  userId: number;
+  parentId?: number;
+};

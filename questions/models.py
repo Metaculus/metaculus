@@ -190,6 +190,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     )
     group_rank = models.IntegerField(null=True, blank=True)
 
+    # Indicates whether we triggered "handle_post_open" event
+    # And guarantees idempotency of "on post open" evens
+    open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
+
     def __str__(self):
         return f"{self.type} {self.title}"
 

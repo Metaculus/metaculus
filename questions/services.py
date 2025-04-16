@@ -10,10 +10,14 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from notifications.constants import MailingTags
-from posts.models import PostUserSnapshot, PostSubscription, Notebook
-from posts.services.subscriptions import create_subscription_cp_change
+from posts.models import PostUserSnapshot, PostSubscription, Notebook, Post
+from posts.services.subscriptions import (
+    create_subscription_cp_change,
+    notify_post_status_change,
+)
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
+from projects.services.common import notify_project_subscriptions_question_open
 from questions.constants import ResolutionType
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
@@ -484,14 +488,6 @@ def resolve_question(
 
     resolve_question_and_send_notifications.send(question.id)
 
-    if post.resolved:
-        from posts.services.common import resolve_post
-
-        try:
-            resolve_post(post)
-        except Exception:
-            logger.exception("Error during post resolving")
-
 
 @transaction.atomic()
 def unresolve_question(question: Question):
@@ -874,3 +870,17 @@ def get_aggregated_forecasts_for_questions(
         forecasts_by_question[question_map[forecast.question_id]].append(forecast)
 
     return forecasts_by_question
+
+
+def handle_question_open(question: Question):
+    """
+    A specific handler is triggered once it's opened
+    """
+
+    # Handle post subscriptions
+    notify_post_status_change(
+        question.get_post(), Post.PostStatusChange.OPEN, question=question
+    )
+
+    # Handle question on followed projects subscriptions
+    notify_project_subscriptions_question_open(question)

@@ -49,16 +49,18 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
       const formatedResolution = formatResolution({
         resolution: question.resolution,
         questionType: question.type,
+        scaling: question.scaling,
         locale,
         unit: question.unit,
         actual_resolve_time: question.actual_resolve_time ?? null,
-        shortBounds: true,
+        completeBounds: true,
+        longBounds: true,
       });
-      const successfullResolution = isSuccessfullyResolved(question.resolution);
+      const successfullyResolved = isSuccessfullyResolved(question.resolution);
       return (
         <QuestionResolutionChip
           formatedResolution={formatedResolution}
-          successfullResolution={successfullResolution}
+          successfullyResolved={successfullyResolved}
           unit={question.unit}
         />
       );

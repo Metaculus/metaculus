@@ -196,7 +196,7 @@ const CommentsFeedProvider: FC<
         use_root_comments_pagination: rootCommentStructure,
         ...params,
       });
-      if ("errors" in response) {
+      if (!!response && "errors" in response) {
         logError(response.errors, "Error fetching comments:");
       } else {
         setTotalCount(response.total_count ?? response.count);
