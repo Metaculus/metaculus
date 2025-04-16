@@ -1,5 +1,6 @@
 "use client";
 import { sendGAEvent } from "@next/third-parties/google";
+import { isNil } from "lodash";
 import { FC, useEffect, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
@@ -51,8 +52,11 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
         user: user.id,
         vote_type: vote.vote_type,
       });
-      if (newScore === 1) sendGAEvent("event", "KeyFactorUpvote");
-      if (newScore === -1) sendGAEvent("event", "KeyFactorDownvote");
+
+      sendGAEvent("event", "KeyFactorVote", {
+        event_category: "none",
+        event_label: isNil(newScore) ? "null" : newScore.toString(),
+      });
 
       if (response && "score" in response) {
         const newVotesScore = response.score as number;

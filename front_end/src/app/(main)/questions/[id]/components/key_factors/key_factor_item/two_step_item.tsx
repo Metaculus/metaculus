@@ -6,6 +6,7 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
@@ -82,8 +83,11 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
         user: user.id,
         vote_type: KeyFactorVoteTypes.TWO_STEP,
       });
-      // TODO: add new GA event tracking if needed
-      // sendGAEvent("event", "KeyFactorTwoStepVote");
+
+      sendGAEvent("event", "KeyFactorVote", {
+        event_category: isFirstStep ? "first_step" : "second_step",
+        event_label: isNil(newScore) ? "null" : newScore.toString(),
+      });
 
       if (response && "score" in response) {
         if (isFirstStep) {
@@ -134,7 +138,7 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
           size="sm"
           onClick={() => handleVote(ImpactValues.MEDIUM)}
           className={cn(
-            "rounded-sm border-mint-400 bg-mint-300 text-xs leading-4 text-mint-800 hover:border-mint-700 hover:bg-mint-200 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark dark:hover:border-mint-700-dark dark:hover:bg-mint-200-dark xs:bg-gray-0 xs:text-sm xs:text-mint-700 xs:dark:bg-gray-0-dark xs:dark:text-mint-700-dark",
+            "rounded-sm border-mint-400 bg-mint-300 px-2.5 py-1 text-xs capitalize leading-4 text-mint-800 hover:border-mint-700 hover:bg-mint-200 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark dark:hover:border-mint-700-dark dark:hover:bg-mint-200-dark xs:bg-gray-0 xs:text-sm xs:text-mint-700 xs:hover:text-mint-800 xs:dark:bg-gray-0-dark xs:dark:text-mint-700-dark xs:dark:hover:text-mint-800-dark",
             {
               "border-mint-800 !bg-mint-800 !text-gray-0 dark:border-mint-800-dark dark:!bg-mint-800-dark dark:!text-gray-0-dark":
                 voteScore && voteScore > 0,
@@ -143,13 +147,9 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
         >
           <FontAwesomeIcon
             icon={faArrowUp}
-            className={cn(
-              "hidden text-mint-700 dark:text-mint-700-dark xs:block",
-              {
-                "!text-gray-0 dark:!text-gray-0-dark":
-                  voteScore && voteScore > 0,
-              }
-            )}
+            className={cn("hidden xs:block", {
+              "!text-gray-0 dark:!text-gray-0-dark": voteScore && voteScore > 0,
+            })}
           />
           {t("increasesLikelihood")}
         </Button>
@@ -158,7 +158,7 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
           size="sm"
           onClick={() => handleVote(ImpactValues.MEDIUM_NEGATIVE)}
           className={cn(
-            "rounded-sm border-salmon-300 bg-salmon-200 text-xs leading-4 text-salmon-700 hover:border-salmon-400 hover:bg-salmon-300 dark:border-salmon-300-dark dark:bg-salmon-200-dark dark:text-salmon-700-dark dark:hover:border-salmon-400-dark dark:hover:bg-salmon-300-dark xs:bg-gray-0 xs:text-sm xs:dark:bg-gray-0-dark",
+            "rounded-sm border-salmon-300 bg-salmon-200 px-2.5 py-1 text-xs capitalize leading-4 text-salmon-700 hover:border-salmon-400 hover:bg-salmon-300 dark:border-salmon-300-dark dark:bg-salmon-200-dark dark:text-salmon-700-dark dark:hover:border-salmon-400-dark dark:hover:bg-salmon-300-dark xs:bg-gray-0 xs:text-sm xs:hover:text-salmon-800 xs:dark:bg-gray-0-dark xs:dark:hover:text-salmon-800-dark",
             {
               "!border-salmon-800 !bg-salmon-800 !text-gray-0":
                 voteScore && voteScore < 0,
@@ -167,12 +167,9 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
         >
           <FontAwesomeIcon
             icon={faArrowDown}
-            className={cn(
-              "hidden text-salmon-700 dark:text-salmon-700-dark xs:block",
-              {
-                "!text-gray-0 dark:!text-gray-0": voteScore && voteScore < 0,
-              }
-            )}
+            className={cn("hidden xs:block", {
+              "!text-gray-0 dark:!text-gray-0": voteScore && voteScore < 0,
+            })}
           />
           {t("decreasesLikelihood")}
         </Button>
@@ -194,15 +191,20 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
             <Button
               variant="tertiary"
               size="sm"
-              className={cn(
-                "w-full rounded-sm border-mint-400 bg-mint-300 text-xs font-normal leading-4 text-mint-800 hover:border-mint-500 hover:bg-mint-400 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark dark:hover:border-mint-500-dark dark:hover:bg-mint-400-dark",
-                {
-                  "border-mint-800 bg-mint-800 text-gray-0 hover:bg-mint-800 dark:border-mint-800-dark dark:bg-mint-800-dark dark:text-gray-0-dark dark:hover:bg-mint-800-dark":
-                    isSecondStepCompleted &&
-                    !isNil(voteScore) &&
-                    Math.abs(voteScore) === ImpactValues.LOW,
-                }
-              )}
+              className={cn("w-full rounded-sm text-xs font-normal leading-4", {
+                "border-salmon-500 bg-salmon-300 text-salmon-800 hover:border-salmon-600 hover:bg-salmon-400 active:border-salmon-500 active:bg-salmon-300 dark:border-salmon-500-dark dark:bg-salmon-300-dark dark:text-salmon-800-dark dark:hover:border-salmon-500-dark dark:hover:bg-salmon-400-dark dark:active:border-salmon-500-dark dark:active:bg-salmon-300-dark":
+                  voteScore < 0,
+                "border-mint-400 bg-mint-300 text-mint-800 hover:border-mint-500 hover:bg-mint-400 active:border-mint-400 active:bg-mint-300 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark dark:hover:border-mint-500-dark dark:hover:bg-mint-400-dark dark:active:border-mint-400-dark dark:active:bg-mint-300-dark":
+                  voteScore > 0,
+                "border-mint-800 bg-mint-800 text-gray-0 hover:bg-mint-800 dark:border-mint-800-dark dark:bg-mint-800-dark dark:text-gray-0-dark dark:hover:bg-mint-800-dark":
+                  isSecondStepCompleted &&
+                  !isNil(voteScore) &&
+                  voteScore === ImpactValues.LOW,
+                "border-salmon-800 bg-salmon-800 text-gray-0 hover:bg-salmon-800 dark:border-salmon-800 dark:bg-salmon-800 dark:text-gray-0":
+                  isSecondStepCompleted &&
+                  !isNil(voteScore) &&
+                  voteScore === ImpactValues.LOW_NEGATIVE,
+              })}
               onClick={() =>
                 handleVote(
                   voteScore < 0 ? ImpactValues.LOW_NEGATIVE : ImpactValues.LOW,
@@ -215,15 +217,20 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
             <Button
               variant="tertiary"
               size="sm"
-              className={cn(
-                "w-full rounded-sm border-mint-400 bg-mint-300 text-xs font-normal leading-4 text-mint-800 hover:border-mint-500 hover:bg-mint-400 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark dark:hover:border-mint-500-dark dark:hover:bg-mint-400-dark",
-                {
-                  "border-mint-800 bg-mint-800 text-gray-0 hover:bg-mint-800 dark:border-mint-800-dark dark:bg-mint-800-dark dark:text-gray-0-dark dark:hover:bg-mint-800-dark":
-                    isSecondStepCompleted &&
-                    !isNil(voteScore) &&
-                    Math.abs(voteScore) === ImpactValues.MEDIUM,
-                }
-              )}
+              className={cn("w-full rounded-sm text-xs font-normal leading-4", {
+                "border-salmon-500 bg-salmon-300 text-salmon-800 hover:border-salmon-600 hover:bg-salmon-400 active:border-salmon-500 active:bg-salmon-300 dark:border-salmon-500-dark dark:bg-salmon-300-dark dark:text-salmon-800-dark dark:hover:border-salmon-500-dark dark:hover:bg-salmon-400-dark dark:active:border-salmon-500-dark dark:active:bg-salmon-300-dark":
+                  voteScore < 0,
+                "border-mint-400 bg-mint-300 text-mint-800 hover:border-mint-500 hover:bg-mint-400 active:border-mint-400 active:bg-mint-300 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark dark:hover:border-mint-500-dark dark:hover:bg-mint-400-dark dark:active:border-mint-400-dark dark:active:bg-mint-300-dark":
+                  voteScore > 0,
+                "border-mint-800 bg-mint-800 text-gray-0 hover:bg-mint-800 dark:border-mint-800-dark dark:bg-mint-800-dark dark:text-gray-0-dark dark:hover:bg-mint-800-dark":
+                  isSecondStepCompleted &&
+                  !isNil(voteScore) &&
+                  voteScore === ImpactValues.MEDIUM,
+                "border-salmon-800 bg-salmon-800 text-gray-0 hover:bg-salmon-800 dark:border-salmon-800 dark:bg-salmon-800 dark:text-gray-0":
+                  isSecondStepCompleted &&
+                  !isNil(voteScore) &&
+                  voteScore === ImpactValues.MEDIUM_NEGATIVE,
+              })}
               onClick={() =>
                 handleVote(
                   voteScore < 0
@@ -238,15 +245,20 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
             <Button
               variant="tertiary"
               size="sm"
-              className={cn(
-                "w-full rounded-sm border-mint-400 bg-mint-300 text-xs font-normal leading-4 text-mint-800 hover:border-mint-500 hover:bg-mint-400 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark dark:hover:border-mint-500-dark dark:hover:bg-mint-400-dark",
-                {
-                  "border-mint-800 bg-mint-800 text-gray-0 hover:bg-mint-800 dark:border-mint-800-dark dark:bg-mint-800-dark dark:text-gray-0-dark dark:hover:bg-mint-800-dark":
-                    isSecondStepCompleted &&
-                    !isNil(voteScore) &&
-                    Math.abs(voteScore) === ImpactValues.HIGH,
-                }
-              )}
+              className={cn("w-full rounded-sm text-xs font-normal leading-4", {
+                "border-salmon-500 bg-salmon-300 text-salmon-800 hover:border-salmon-600 hover:bg-salmon-400 active:border-salmon-500 active:bg-salmon-300 dark:border-salmon-500-dark dark:bg-salmon-300-dark dark:text-salmon-800-dark dark:hover:border-salmon-500-dark dark:hover:bg-salmon-400-dark dark:active:border-salmon-500-dark dark:active:bg-salmon-300-dark":
+                  voteScore < 0,
+                "border-mint-400 bg-mint-300 text-mint-800 hover:border-mint-500 hover:bg-mint-400 active:border-mint-400 active:bg-mint-300 dark:border-mint-400-dark dark:bg-mint-300-dark dark:text-mint-800-dark dark:hover:border-mint-500-dark dark:hover:bg-mint-400-dark dark:active:border-mint-400-dark dark:active:bg-mint-300-dark":
+                  voteScore > 0,
+                "border-mint-800 bg-mint-800 text-gray-0 hover:bg-mint-800 dark:border-mint-800-dark dark:bg-mint-800-dark dark:text-gray-0-dark dark:hover:bg-mint-800-dark":
+                  isSecondStepCompleted &&
+                  !isNil(voteScore) &&
+                  voteScore === ImpactValues.HIGH,
+                "border-salmon-800 bg-salmon-800 text-gray-0 hover:bg-salmon-800 dark:border-salmon-800 dark:bg-salmon-800 dark:text-gray-0":
+                  isSecondStepCompleted &&
+                  !isNil(voteScore) &&
+                  voteScore === ImpactValues.HIGH_NEGATIVE,
+              })}
               onClick={() =>
                 handleVote(
                   voteScore < 0
@@ -260,7 +272,12 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
             </Button>
           </div>
           {isSecondStepCompleted && (
-            <p className="m-0 text-center text-xs font-medium leading-4 text-mint-700 dark:text-mint-700-dark">
+            <p
+              className={cn("m-0 text-center text-xs font-medium leading-4", {
+                "text-salmon-700 dark:text-salmon-700-dark": voteScore < 0,
+                "text-mint-700 dark:text-mint-700-dark": voteScore > 0,
+              })}
+            >
               {t("thankYouForSubmission")}
             </p>
           )}

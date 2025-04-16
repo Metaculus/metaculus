@@ -2,6 +2,7 @@
 import { faCircle } from "@fortawesome/free-regular-svg-icons";
 import { faCircleCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
@@ -21,6 +22,7 @@ import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
 
 import KeyFactorText from "./key_factor_text";
+
 type Props = {
   keyFactor: KeyFactor;
   linkToComment?: boolean;
@@ -60,8 +62,11 @@ export const LikertKeyFactorItem: FC<Props> = ({
         user: user.id,
         vote_type: KeyFactorVoteTypes.LIKERT,
       });
-      // TODO: add new GA event tracking if needed
-      // sendGAEvent("event", "KeyFactorTwoStepVote");
+
+      sendGAEvent("event", "KeyFactorVote", {
+        event_category: "none",
+        event_label: isNil(newScore) ? "null" : newScore.toString(),
+      });
 
       if (response && "score" in response) {
         setVoteScore(newScore);
@@ -118,7 +123,7 @@ export const LikertKeyFactorItem: FC<Props> = ({
           text={text}
           linkAnchor={linkAnchor}
           linkToComment={linkToComment}
-          className="-order-1 xs:order-2"
+          className="-order-1 text-base leading-5 xs:order-2"
         />
       </div>
 
