@@ -11,16 +11,16 @@ class CommentAdmin(CustomTranslationAdmin):
         "__str__",
         "author",
         "on_post",
-        "on_project",
     ]
     list_filter = [
         AutocompleteFilterFactory("Post", "on_post"),
         AutocompleteFilterFactory("Project", "on_project"),
+        AutocompleteFilterFactory("Author", "author"),
+        "is_soft_deleted",
     ]
     autocomplete_fields = [
         "author",
         "on_post",
-        "on_project",
     ]
     readonly_fields = ["included_forecast"]
     fields = [
