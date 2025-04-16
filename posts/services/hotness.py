@@ -89,7 +89,7 @@ def _compute_hotness_questions(post: Post) -> float:
     return max([compute_question_hotness(q) for q in post.get_questions()], default=0)
 
 
-def _compute_hotness_boosts(post: Post) -> float:
+def compute_hotness_total_boosts(post: Post) -> float:
     # TODO: clear old hotness values!
     boosts = post.activity_boosts.all()
 
@@ -102,7 +102,7 @@ HOTNESS_COMPONENTS = [
     ("Net post votes score", _compute_hotness_post_votes),
     ("Posted comments score", _compute_hotness_comments),
     ("Max subquestions score", _compute_hotness_questions),
-    ("Total Boosts Score", _compute_hotness_boosts),
+    ("Total Boosts Score", compute_hotness_total_boosts),
 ]
 
 

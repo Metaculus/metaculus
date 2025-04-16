@@ -16,7 +16,6 @@ from posts.models import (
     Post,
     Vote,
     PostUserSnapshot,
-    PostActivityBoost,
 )
 from posts.serializers import (
     DownloadDataSerializer,
@@ -43,7 +42,7 @@ from posts.services.common import (
     vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
-from posts.services.hotness import handle_post_boost
+from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
 from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
@@ -446,10 +445,10 @@ def activity_boost_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    handle_post_boost(request.user, post, direction)
+    boost = handle_post_boost(request.user, post, direction)
 
     return Response(
-        {"score_total": PostActivityBoost.get_post_score(pk)},
+        {"score": boost.score, "score_total": compute_hotness_total_boosts(post)},
         status=status.HTTP_201_CREATED,
     )
 
