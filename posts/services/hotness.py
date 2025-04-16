@@ -159,4 +159,10 @@ def handle_post_boost(user: User, post: Post, direction: Vote.VoteDirection):
     else:
         score = -(post.hotness or 0) / 2 - 20
 
-    return PostActivityBoost.objects.create(user=user, post=post, score=score)
+    obj = PostActivityBoost.objects.create(user=user, post=post, score=score)
+
+    # Recalculate hotness for the given post
+    post.hotness = compute_post_hotness(post)
+    post.save(update_fields=["hotness"])
+
+    return obj

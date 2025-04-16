@@ -38,12 +38,12 @@ from posts.services.common import (
     reject_post,
     post_make_draft,
     send_back_to_review,
-    compute_hotness,
     trigger_update_post_translations,
     make_repost,
     vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
+from posts.services.hotness import handle_post_boost
 from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
@@ -446,10 +446,7 @@ def activity_boost_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    PostActivityBoost.objects.create(user=request.user, post=post, score=score)
-
-    # Recalculate hotness for the given post
-    compute_hotness(Post.objects.filter(pk=pk))
+    handle_post_boost(request.user, post, direction)
 
     return Response(
         {"score_total": PostActivityBoost.get_post_score(pk)},
