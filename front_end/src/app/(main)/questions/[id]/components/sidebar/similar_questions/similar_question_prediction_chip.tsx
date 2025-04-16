@@ -1,5 +1,6 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { isNil } from "lodash";
 import { FC } from "react";
 
 import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
@@ -50,7 +51,7 @@ const SimilarPredictionChip: FC<Props> = ({
       >
         <FontAwesomeIcon icon={faUserGroup} className="!w-[13px]" />
         <span>
-          {prediction
+          {!isNil(prediction)
             ? getDisplayValue({
                 value: prediction,
                 questionType: question.type,

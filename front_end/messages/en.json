@@ -622,6 +622,10 @@
   "postPublishTime": "Post Publish Time",
   "openTime": "Open Time",
   "Question": "Question",
+  "initialValueByWriter": "Initial value set by question writer.",
+  "initialValueByWriterOverwrite": "Initial value set by question writer: overwrite to this value.",
+  "noValueSetByWriter": "No value set by question writer.",
+  "onlySetForSubquestions": "Will only set for sub-questions that do not have this field pre-set.",
   "editOpenAndCpRevealTimes": "Edit Open & CP Reveal Times",
   "noQuestionsResolved": "No questions have resolved yet in this period.",
   "duration:": "Duration:",
@@ -1182,5 +1186,7 @@
   "typeKeyFator": "Type a key factor here",
   "back": "Back",
   "noKeyFactorsP1": "No key factors yet",
-  "noKeyFactorsP2": "Add some that might influence this forecast."
+  "noKeyFactorsP2": "Add some that might influence this forecast.",
+  "postNotebookMoveDateModalCopy": "The tournament forecasting end date is <b>{tournament_forecasting_end_date}</b> and you are trying to approve a question that closes on <b>{question_close_date}</b>. Do you want to move the tournament forecasting end date to <b>{question_close_date}</b>?",
+  "moveDate": "Move date"
 }

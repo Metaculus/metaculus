@@ -279,12 +279,12 @@ const useNavbarLinks = ({
           href: null,
           label: t("account"),
           isTitle: true,
-          className: !isNil(community) ? "" : "hidden max-[447px]:flex",
+          className: !isNil(community) ? "" : "hidden max-[374px]:flex",
         },
         {
           href: null,
           label: t("login"),
-          className: !isNil(community) ? "" : "hidden max-[447px]:flex",
+          className: !isNil(community) ? "" : "hidden max-[374px]:flex",
           onClick: () => setCurrentModal({ type: "signin" }),
         }
       );

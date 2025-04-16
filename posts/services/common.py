@@ -15,11 +15,8 @@ from comments.services.feed import get_comments_feed
 from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services.common import (
-    get_projects_staff_users,
-    get_site_main_project,
-    notify_project_subscriptions_post_open,
-)
+from projects.services.common import get_projects_staff_users, get_site_main_project
+from projects.services.common import move_project_forecasting_end_date
 from questions.models import Question
 from questions.services import (
     create_conditional,
@@ -45,10 +42,8 @@ from utils.translation import (
     queryset_filter_outdated_translations,
     update_translations_for_model,
 )
-
-from ..tasks import run_notify_post_status_change, run_post_indexing
 from .search import generate_post_content_for_embedding_vectorization
-from .subscriptions import notify_post_status_change
+from ..tasks import run_post_indexing
 
 logger = logging.getLogger(__name__)
 
@@ -500,15 +495,25 @@ def approve_post(
     post.published_at = published_at
     questions = post.get_questions()
 
-    for question in questions:
-        question.open_time = question.open_time or open_time
-        question.cp_reveal_time = question.cp_reveal_time or cp_reveal_time
-        question.scheduled_close_time = (
-            question.scheduled_close_time or scheduled_close_time
-        )
-        question.scheduled_resolve_time = (
-            question.scheduled_resolve_time or scheduled_resolve_time
-        )
+    if post.question:
+        # we have a single question, approval modal values overrule settings
+        question = questions[0]
+        question.open_time = open_time
+        question.cp_reveal_time = cp_reveal_time
+        question.scheduled_close_time = scheduled_close_time
+        question.scheduled_resolve_time = scheduled_resolve_time
+    else:
+        # we have a group or conditional question
+        # filled out values only apply to subquestions without pre-filled values
+        for question in questions:
+            question.open_time = question.open_time or open_time
+            question.cp_reveal_time = question.cp_reveal_time or cp_reveal_time
+            question.scheduled_close_time = (
+                question.scheduled_close_time or scheduled_close_time
+            )
+            question.scheduled_resolve_time = (
+                question.scheduled_resolve_time or scheduled_resolve_time
+            )
 
     post.save()
     Question.objects.bulk_update(
@@ -520,6 +525,12 @@ def approve_post(
             "scheduled_resolve_time",
         ],
     )
+
+    # Automatically update secondary and default project forecasting end date
+    for project in [post.default_project] + list(post.projects.all()):
+        if project.type == Project.ProjectTypes.TOURNAMENT:
+            move_project_forecasting_end_date(project, post)
+
     post.update_pseudo_materialized_fields()
 
 
@@ -555,24 +566,6 @@ def send_back_to_review(post: Post):
     post.curation_status = Post.CurationStatus.PENDING
     post.open_time = None
     post.save(update_fields=["curation_status", "open_time"])
-
-
-def resolve_post(post: Post):
-    post.set_resolved()
-
-    run_notify_post_status_change.send(post.id, Post.PostStatusChange.RESOLVED)
-
-
-def handle_post_open(post: Post):
-    """
-    A specific handler is triggered once it's opened
-    """
-
-    # Handle post subscriptions
-    notify_post_status_change(post, Post.PostStatusChange.OPEN)
-
-    # Handle post on followed projects subscriptions
-    notify_project_subscriptions_post_open(post)
 
 
 def get_posts_staff_users(
