@@ -5,10 +5,12 @@ Module contains Cron Job handlers
 import logging
 
 import dramatiq
-from django.db.models import Q
 
 from posts.models import Post
 from posts.services.subscriptions import notify_milestone, notify_date
+from questions.models import Question
+from questions.services import compute_question_movement
+from utils.models import ModelBatchUpdater
 
 logger = logging.getLogger(__name__)
 
@@ -26,35 +28,30 @@ def job_subscription_notify_date():
 
 @dramatiq.actor
 def job_compute_movement():
-    from posts.services.common import compute_movement
+    chunk_size = 100
+    qs = Post.objects.filter_active().filter_questions().prefetch_questions()
+    logger.info(f"Start computing movement for {qs.count()} posts")
 
-    qs = (
-        Post.objects.filter_active()
-        .filter(
-            Q(question__isnull=False)
-            | Q(group_of_questions__isnull=False)
-            | Q(conditional__isnull=False)
-        )
-        .prefetch_questions()
-    )
+    with (
+        ModelBatchUpdater(
+            model_class=Post, fields=["movement"], batch_size=chunk_size
+        ) as posts_updater,
+        ModelBatchUpdater(
+            model_class=Question, fields=["movement"], batch_size=chunk_size
+        ) as questions_updater,
+    ):
+        for post in qs.iterator(chunk_size):
+            questions = post.get_questions()
 
-    posts = []
+            for question in questions:
+                question.movement = compute_question_movement(question)
+                questions_updater.append(question)
 
-    for i, post in enumerate(qs.iterator(100), 1):
-        try:
-            post.movement = compute_movement(post)
-        except Exception:
-            logger.exception(f"Error during compute_movement for post_id {post.id}")
-            continue
+            post.movement = max(
+                [q.movement for q in questions if q.movement is not None],
+                key=abs,
+                default=None,
+            )
+            posts_updater.append(post)
 
-        posts.append(post)
-
-        if len(posts) >= 100:
-            print("bulk updating...", end="\r")
-            Post.objects.bulk_update(posts, fields=["movement"])
-            posts = []
-            print("bulk updating... DONE")
-
-    print("bulk updating...", end="\r")
-    Post.objects.bulk_update(posts, fields=["movement"])
-    print("bulk updating... DONE")
+    logger.info("Done computing movement for posts")
