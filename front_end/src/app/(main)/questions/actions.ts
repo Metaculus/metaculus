@@ -12,14 +12,18 @@ import CommentsApi, {
   ToggleCMMCommentParams,
   VoteParams,
 } from "@/services/comments";
-import PostsApi, { ApprovePostParams, PostsParams } from "@/services/posts";
+import PostsApi, {
+  ApprovePostParams,
+  BoostDirection,
+  PostsParams,
+} from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import QuestionsApi, {
   ForecastPayload,
   WithdrawalPayload,
 } from "@/services/questions";
-import { PostSubscription, NotebookPost } from "@/types/post";
+import { NotebookPost, PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
 import { DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
@@ -339,8 +343,11 @@ export async function searchUsers(query: string) {
   }
 }
 
-export async function changePostActivityBoost(postId: number, score: number) {
-  return await PostsApi.changePostActivityBoost(postId, score);
+export async function changePostActivityBoost(
+  postId: number,
+  direction: BoostDirection
+) {
+  return await PostsApi.changePostActivityBoost(postId, direction);
 }
 
 export async function removeRelatedArticle(articleId: number) {
