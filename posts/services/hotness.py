@@ -2,7 +2,7 @@ import datetime
 import logging
 import time
 
-from django.db.models import Sum, Max, Count, Prefetch
+from django.db.models import Prefetch
 from django.utils import timezone
 
 from comments.models import Comment
@@ -60,29 +60,11 @@ def _compute_hotness_post_votes(post: Post) -> float:
 
     return sum([decay(2 * x.direction, x.created_at) for x in votes])
 
-    # TODO: could be replaced with prefetched votes
-    stats = post.votes.aggregate(
-        net_votes=Sum("direction"), last_vote_date=Max("created_at")
-    )
-    net_votes = stats["net_votes"] or 0
-    last_vote_date = stats["last_vote_date"]
-
-    return decay(net_votes, last_vote_date) if net_votes else 0
-
 
 def _compute_hotness_comments(post: Post) -> float:
-    # TODO: could be replaced with prefetched votes
     comments = post.comments.all()
 
-    return sum([decay(2, c.created_at) for c in comments])
-
-    stats = post.comments.aggregate(
-        comments_count=Count("id"), last_comment_created_at=Max("created_at")
-    )
-    comments_count = stats["comments_count"] or 0
-    last_comment_created_at = stats["last_comment_created_at"]
-
-    return decay(2 * comments_count, last_comment_created_at) if comments_count else 0
+    return sum([decay(2, c.created_at) for c in comments if not c.is_private])
 
 
 def _compute_hotness_questions(post: Post) -> float:
@@ -90,7 +72,6 @@ def _compute_hotness_questions(post: Post) -> float:
 
 
 def compute_hotness_total_boosts(post: Post) -> float:
-    # TODO: clear old hotness values!
     boosts = post.activity_boosts.all()
 
     return sum([decay(x.score, x.created_at) for x in boosts])
@@ -121,12 +102,27 @@ def explain_post_hotness(post: Post):
 
 def compute_feed_hotness():
     tm = time.time()
+    # Minimum creation date of related objects — records created before
+    # have negligible impact on calculations (since 1 / (2**(dT)) becomes a very small number),
+    # so we can safely ignore them for performance reasons
+    min_creation_date = timezone.now() - datetime.timedelta(days=70)
+
     qs = (
         Post.objects.filter_published()
         .prefetch_questions()
         .prefetch_related(
-            "votes",
-            Prefetch("comments", queryset=Comment.objects.only("id", "created_at")),
+            Prefetch(
+                "votes",
+                queryset=Vote.objects.filter(created_at__gte=min_creation_date).only(
+                    "id", "direction", "created_at"
+                ),
+            ),
+            Prefetch(
+                "comments",
+                queryset=Comment.objects.filter(
+                    created_at__gte=min_creation_date, is_private=False
+                ).only("id", "created_at"),
+            ),
         )
     )
     total = qs.count()
