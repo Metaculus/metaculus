@@ -7,9 +7,10 @@ import {
 } from "@/types/comment";
 import { logError } from "@/utils/errors";
 
+import { cleanupDrafts } from "./storage";
+
 const DRAFT_KEY_PREFIX = "comment_draft_";
-const MAX_DRAFT_SIZE_MB = 2.5;
-const BYTES_IN_MB = 1024 * 1024;
+const MAX_COMMENTS_DRAFT_SIZE_MB = 1.5;
 
 export function parseComment(
   comment: BECommentType | CommentType
@@ -173,49 +174,10 @@ export const deleteCommentDraft = ({
   }
 };
 
-export const cleanupDrafts = (maxAgeDays = 14): void => {
-  try {
-    const now = Date.now();
-    const maxAge = maxAgeDays * 24 * 60 * 60 * 1000;
-
-    const drafts = Object.keys(localStorage)
-      .filter((key) => key.startsWith(DRAFT_KEY_PREFIX))
-      .map((key) => {
-        try {
-          const item = localStorage.getItem(key) || "";
-          const draft = JSON.parse(item);
-          return {
-            key,
-            lastModified: draft.lastModified,
-            size: new Blob([item]).size,
-          };
-        } catch {
-          return {
-            key,
-            lastModified: 0,
-            size: 0,
-          };
-        }
-      })
-      .sort((a, b) => a.lastModified - b.lastModified);
-    let totalSizeMB =
-      drafts.reduce((acc, draft) => acc + draft.size, 0) / BYTES_IN_MB;
-    // Delete drafts if they're older than maxAge
-    // Or if total size exceeds MAX_DRAFT_SIZE_MB - delete oldest ones until we're under limit
-    drafts.forEach((draft) => {
-      const shouldDeleteDueToAge = now - draft.lastModified >= maxAge;
-      const shouldDeleteDueToSize = totalSizeMB > MAX_DRAFT_SIZE_MB;
-
-      if (shouldDeleteDueToAge || shouldDeleteDueToSize) {
-        try {
-          localStorage.removeItem(draft.key);
-          totalSizeMB -= draft.size / BYTES_IN_MB;
-        } catch (error) {
-          logError(error, `Failed to remove draft: ${draft.key}`);
-        }
-      }
-    });
-  } catch (error) {
-    logError(error, "Failed to cleanup old drafts");
-  }
+export const cleanupCommentDrafts = (maxAgeDays = 14): void => {
+  cleanupDrafts({
+    keyPrefix: DRAFT_KEY_PREFIX,
+    maxAgeDays,
+    maxSizeMB: MAX_COMMENTS_DRAFT_SIZE_MB,
+  });
 };

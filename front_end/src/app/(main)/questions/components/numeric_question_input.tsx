@@ -59,19 +59,13 @@ const NumericQuestionInput: React.FC<{
   const [max, setMax] = useState(defaultMax);
   const [min, setMin] = useState(defaultMin);
   const [openUpperBound, setOpenUpperBound] = useState(
-    defaultOpenUpperBound === undefined || defaultOpenUpperBound === null
-      ? false
-      : defaultOpenUpperBound
+    isNil(defaultOpenUpperBound) ? false : defaultOpenUpperBound
   );
   const [openLowerBound, setOpenLowerBound] = useState(
-    defaultOpenLowerBound === undefined || defaultOpenLowerBound === null
-      ? false
-      : defaultOpenLowerBound
+    isNil(defaultOpenLowerBound) ? false : defaultOpenLowerBound
   );
   const [zeroPoint, setZeroPoint] = useState(
-    defaultZeroPoint === undefined ||
-      defaultZeroPoint === null ||
-      Number.isNaN(defaultZeroPoint)
+    isNil(defaultZeroPoint) || Number.isNaN(defaultZeroPoint)
       ? null
       : defaultZeroPoint
   );
