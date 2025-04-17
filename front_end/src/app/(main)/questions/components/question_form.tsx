@@ -348,8 +348,8 @@ const QuestionForm: FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
+        deleteQuestionDraft(questionType);
       }
-      deleteQuestionDraft(questionType);
       router.push(getPostLink(resp.post));
     } catch (e) {
       const error = e as Error & { digest?: string };
@@ -409,7 +409,7 @@ const QuestionForm: FC<Props> = ({
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
-    5000
+    3000
   );
 
   // Change draft when react state changes (options, categories)
@@ -595,6 +595,7 @@ const QuestionForm: FC<Props> = ({
               open_upper_bound: openUpperBound,
               open_lower_bound: openLowerBound,
               zero_point: zeroPoint,
+              shouldUpdateDraft = true,
             }) => {
               form.setValue("scaling", {
                 range_min: rangeMin,
@@ -603,7 +604,9 @@ const QuestionForm: FC<Props> = ({
               });
               form.setValue("open_lower_bound", openLowerBound);
               form.setValue("open_upper_bound", openUpperBound);
-              debouncedHandleFormChange("");
+              if (shouldUpdateDraft) {
+                debouncedHandleFormChange("");
+              }
             }}
           />
         )}
