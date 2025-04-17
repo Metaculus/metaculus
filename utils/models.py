@@ -1,6 +1,5 @@
 import logging
 from collections.abc import Iterable
-from typing import TypeVar
 
 from django.conf import settings
 from django.contrib import admin
@@ -20,8 +19,6 @@ from utils.translation import (
 from utils.types import DjangoModelType
 
 logger = logging.getLogger(__name__)
-
-ModelType = TypeVar("ModelType", bound=models.Model)
 
 
 def uniques_ordered_list(ordered_list):
@@ -344,7 +341,7 @@ class ModelBatchUpdater:
 
     def __init__(
         self,
-        model_class: type[ModelType],
+        model_class: type[DjangoModelType],
         fields: list[str],
         batch_size: int = 100,
     ):
@@ -352,9 +349,9 @@ class ModelBatchUpdater:
         self.fields = fields
         self.batch_size = batch_size
 
-        self._batch: list[ModelType] = []
+        self._batch: list[DjangoModelType] = []
 
-    def append(self, obj: ModelType) -> None:
+    def append(self, obj: DjangoModelType) -> None:
         self._batch.append(obj)
 
         if len(self._batch) >= self.batch_size:
