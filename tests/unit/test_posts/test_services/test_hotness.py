@@ -5,7 +5,7 @@ from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
 from comments.services.common import create_comment
-from posts.models import PostActivityBoost
+from posts.models import PostActivityBoost, Vote
 from posts.services.common import vote_post
 from posts.services.hotness import (
     decay,
@@ -15,6 +15,7 @@ from posts.services.hotness import (
     _compute_hotness_comments,
     compute_hotness_total_boosts,
     compute_post_hotness,
+    handle_post_boost,
 )
 from questions.models import Question
 from tests.unit.test_posts.factories import factory_post
@@ -179,3 +180,24 @@ def test_compute_post_hotness(user1):
     vote_post(post, user1, 1)
 
     assert compute_post_hotness(post) == 123
+
+
+@freeze_time("2025-04-18")
+def test_handle_post_boost(user1):
+    post = factory_post(
+        author=user1,
+        published_at=make_aware(datetime.datetime(2025, 4, 17, 23)),
+    )
+
+    post.hotness = compute_post_hotness(post)
+    post.save()
+
+    assert post.hotness == 20
+
+    # Boost
+    handle_post_boost(user1, post, Vote.VoteDirection.UP)
+    assert post.hotness == 45
+
+    # Bury
+    handle_post_boost(user1, post, Vote.VoteDirection.DOWN)
+    assert post.hotness == 3
