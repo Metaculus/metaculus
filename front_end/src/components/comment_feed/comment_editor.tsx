@@ -22,7 +22,7 @@ import {
   saveCommentDraft,
   getCommentDraft,
   deleteCommentDraft,
-  cleanupDrafts,
+  cleanupCommentDrafts,
 } from "@/utils/comments";
 import { parseComment } from "@/utils/comments";
 
@@ -77,7 +77,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   // Load comment draft and remove old ones on mount
   useEffect(() => {
     if (postId && user?.id) {
-      cleanupDrafts();
+      cleanupCommentDrafts();
       const draft = getCommentDraft(user.id, postId, parentId);
       if (draft) {
         setMarkdown(draft.markdown ?? "");

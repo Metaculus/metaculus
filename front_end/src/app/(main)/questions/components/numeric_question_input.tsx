@@ -7,8 +7,9 @@ import { UseFormReturn } from "react-hook-form";
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionDraft, QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
+import { getQuestionDraft } from "@/utils/questions";
 
 const ContinuousPredictionChart = dynamic(
   () =>
@@ -27,12 +28,14 @@ const NumericQuestionInput: React.FC<{
     open_upper_bound,
     open_lower_bound,
     zero_point,
+    shouldUpdateDraft,
   }: {
     min: number;
     max: number;
     open_upper_bound: boolean;
     open_lower_bound: boolean;
     zero_point: number | null;
+    shouldUpdateDraft?: boolean;
   }) => void;
   questionType: QuestionType.Numeric | QuestionType.Date;
   defaultMin: number | undefined;
@@ -43,6 +46,7 @@ const NumericQuestionInput: React.FC<{
   hasForecasts: boolean;
   control?: UseFormReturn;
   index?: number;
+  draftKey?: string;
 }> = ({
   onChange,
   questionType,
@@ -54,24 +58,19 @@ const NumericQuestionInput: React.FC<{
   hasForecasts,
   control,
   index,
+  draftKey,
 }) => {
   const [errors, setError] = useState<string[]>([]);
   const [max, setMax] = useState(defaultMax);
   const [min, setMin] = useState(defaultMin);
   const [openUpperBound, setOpenUpperBound] = useState(
-    defaultOpenUpperBound === undefined || defaultOpenUpperBound === null
-      ? false
-      : defaultOpenUpperBound
+    isNil(defaultOpenUpperBound) ? false : defaultOpenUpperBound
   );
   const [openLowerBound, setOpenLowerBound] = useState(
-    defaultOpenLowerBound === undefined || defaultOpenLowerBound === null
-      ? false
-      : defaultOpenLowerBound
+    isNil(defaultOpenLowerBound) ? false : defaultOpenLowerBound
   );
   const [zeroPoint, setZeroPoint] = useState(
-    defaultZeroPoint === undefined ||
-      defaultZeroPoint === null ||
-      Number.isNaN(defaultZeroPoint)
+    isNil(defaultZeroPoint) || Number.isNaN(defaultZeroPoint)
       ? null
       : defaultZeroPoint
   );
@@ -159,17 +158,45 @@ const NumericQuestionInput: React.FC<{
     return true;
   };
   const isMounted = useRef(false);
+  const shouldUpdateParrent = useRef(false);
   useEffect(() => {
     if (!isMounted.current) {
-      onChange({
-        min: min as number,
-        max: max as number,
-        open_lower_bound: openLowerBound,
-        open_upper_bound: openUpperBound,
-        zero_point: zeroPoint,
-      });
-
+      // populate draft values
+      const draft = getQuestionDraft(draftKey ?? "");
+      if (draft) {
+        const {
+          draftMin,
+          draftMax,
+          draftOpenLowerBound,
+          draftOpenUpperBound,
+          draftZeroPoint,
+        } = getDraftValues(draft, index);
+        setMin(isNil(draftMin) ? min : draftMin);
+        setMax(isNil(draftMax) ? max : draftMax);
+        setOpenLowerBound(
+          isNil(draftOpenLowerBound) ? openLowerBound : draftOpenLowerBound
+        );
+        setOpenUpperBound(
+          isNil(draftOpenUpperBound) ? openUpperBound : draftOpenUpperBound
+        );
+        setZeroPoint(isNil(draftZeroPoint) ? zeroPoint : draftZeroPoint);
+      } else {
+        onChange({
+          min: min as number,
+          max: max as number,
+          open_lower_bound: openLowerBound,
+          open_upper_bound: openUpperBound,
+          zero_point: zeroPoint,
+          shouldUpdateDraft: false,
+        });
+        shouldUpdateParrent.current = true;
+      }
       isMounted.current = true;
+      return;
+    }
+    // prevent update of draft timestamp after mounting
+    if (!shouldUpdateParrent.current) {
+      shouldUpdateParrent.current = true;
       return;
     }
     const ok = runChecks();
@@ -309,6 +336,7 @@ const NumericQuestionInput: React.FC<{
                   onChange={(e) => {
                     setOpenLowerBound(e);
                   }}
+                  checked={openLowerBound}
                   defaultChecked={openLowerBound}
                 />
               </div>
@@ -320,6 +348,7 @@ const NumericQuestionInput: React.FC<{
                   onChange={async (e) => {
                     setOpenUpperBound(e);
                   }}
+                  checked={openUpperBound}
                   defaultChecked={openUpperBound}
                 />
               </div>
@@ -453,4 +482,31 @@ const NumericQuestionInput: React.FC<{
   );
 };
 
+function getDraftValues(draft: QuestionDraft, index?: number) {
+  const isGroup = !isNil(index);
+  const groupSubquestion = isGroup ? draft.subQuestions?.[index] : undefined;
+  const draftMin = isGroup
+    ? groupSubquestion?.scaling?.range_min
+    : draft.scaling?.range_min;
+  const draftMax = isGroup
+    ? groupSubquestion?.scaling?.range_max
+    : draft.scaling?.range_max;
+  const draftOpenLowerBound = isGroup
+    ? groupSubquestion?.open_lower_bound
+    : draft.open_lower_bound;
+  const draftOpenUpperBound = isGroup
+    ? groupSubquestion?.open_upper_bound
+    : draft.open_upper_bound;
+  const draftZeroPoint = isGroup
+    ? groupSubquestion?.scaling?.zero_point
+    : draft.scaling?.zero_point;
+
+  return {
+    draftMin,
+    draftMax,
+    draftOpenLowerBound,
+    draftOpenUpperBound,
+    draftZeroPoint,
+  };
+}
 export default NumericQuestionInput;
