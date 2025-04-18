@@ -6,7 +6,6 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
@@ -22,10 +21,12 @@ import {
   KeyFactorVoteScore,
   KeyFactorVoteTypes,
 } from "@/types/comment";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
 
 import KeyFactorText from "./key_factor_text";
+
 type Props = {
   keyFactor: KeyFactor;
   linkAnchor: string;
@@ -65,7 +66,13 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
 
     try {
       let secondStepCompletion = !isFirstStep;
-      let newScore = isFirstStep && score === voteScore ? null : score;
+      let newScore =
+        isFirstStep &&
+        !isNil(voteScore) &&
+        !isNil(score) &&
+        ((voteScore < 0 && score < 0) || (voteScore > 0 && score > 0))
+          ? null
+          : score;
       if (
         !isFirstStep &&
         !isNil(score) &&
@@ -84,7 +91,7 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
         vote_type: KeyFactorVoteTypes.TWO_STEP,
       });
 
-      sendGAEvent("event", "KeyFactorVote", {
+      sendAnalyticsEvent("KeyFactorVote", {
         event_category: isFirstStep ? "first_step" : "second_step",
         event_label: isNil(newScore) ? "null" : newScore.toString(),
       });

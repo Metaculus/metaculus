@@ -13,11 +13,14 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import useHash from "@/hooks/use_hash";
+import { PostStatus } from "@/types/post";
+import cn from "@/utils/cn";
 
 import KeyFactorItem from "./key_factor_item";
 
 type KeyFactorsSectionProps = {
   postId: number;
+  postStatus: PostStatus;
 };
 
 const AddKeyFactorsButton: FC<{
@@ -28,18 +31,24 @@ const AddKeyFactorsButton: FC<{
   return (
     <Button
       as="div"
-      className={className}
+      className={cn(
+        "cursor-pointer gap-2 px-3 py-1 text-sm capitalize",
+        className
+      )}
       size="xs"
       variant="tertiary"
       onClick={(e) => onClick(e as React.MouseEvent<HTMLButtonElement>)}
     >
-      <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
+      <FontAwesomeIcon icon={faPlus} className="size-4 p-0" />
       {t("addKeyFactor")}
     </Button>
   );
 };
 
-const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
+const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
+  postId,
+  postStatus,
+}) => {
   const t = useTranslations();
   const hash = useHash();
   const { user } = useAuth();
@@ -66,6 +75,17 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
     [combinedKeyFactors, displayLimit]
   );
 
+  if (
+    [
+      PostStatus.CLOSED,
+      PostStatus.RESOLVED,
+      PostStatus.PENDING_RESOLUTION,
+    ].includes(postStatus) &&
+    combinedKeyFactors.length === 0
+  ) {
+    return null;
+  }
+
   return (
     <>
       {user && (
@@ -79,7 +99,12 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
 
       <SectionToggle
         detailElement={
-          combinedKeyFactors.length > 0 ? (
+          combinedKeyFactors.length > 0 &&
+          ![
+            PostStatus.CLOSED,
+            PostStatus.RESOLVED,
+            PostStatus.PENDING_RESOLUTION,
+          ].includes(postStatus) ? (
             <AddKeyFactorsButton
               className="ml-auto"
               onClick={(event) => {
@@ -115,14 +140,21 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ postId }) => {
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-between pb-8 pt-6 hover:text-blue-700">
+          <div className="flex flex-col items-center justify-between pb-8 pt-6">
             <span>{t("noKeyFactorsP1")}</span>
             <span className="mt-1 text-sm text-blue-600 dark:text-blue-600-dark">
               {t("noKeyFactorsP2")}
             </span>
             <AddKeyFactorsButton
               className="mx-auto mt-4"
-              onClick={() => setIsAddKeyFactorsModalOpen(true)}
+              onClick={(event) => {
+                event.preventDefault();
+                if (!user) {
+                  setCurrentModal({ type: "signin" });
+                  return;
+                }
+                setIsAddKeyFactorsModalOpen(true);
+              }}
             />
           </div>
         )}

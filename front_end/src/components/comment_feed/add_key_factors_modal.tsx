@@ -77,9 +77,8 @@ const KeyFactorField = ({
         value={keyFactor}
         placeholder={t("typeKeyFator")}
         onChange={(e) => setKeyFactor(e.target.value)}
-        className="grow"
+        className="grow rounded px-3 py-2 text-base"
         readOnly={!isActive}
-        maxLength={150}
       />
       {showXButton && (
         <Button
@@ -193,7 +192,12 @@ const AddKeyFactorsModal: FC<Props> = ({
   };
   const onSubmit = async () => {
     let comment;
-
+    for (const keyFactor of keyFactors) {
+      if (keyFactor.trim().length > 150) {
+        setErrorMessage(t("maxKeyFactorLength"));
+        return;
+      }
+    }
     if (commentId) {
       if (userCommentFactors.length >= FACTORS_PER_COMMENT) {
         setErrorMessage(t("maxKeyFactorsPerComment"));
@@ -235,7 +239,6 @@ const AddKeyFactorsModal: FC<Props> = ({
 
   const handleOnClose = () => {
     onClose(true);
-    clearState();
   };
   const [submit, isPending] = useServerAction(onSubmit);
 
@@ -266,7 +269,7 @@ const AddKeyFactorsModal: FC<Props> = ({
           <Step2AddComment markdown={markdown} setMarkdown={setMarkdown} />
         )}
 
-        <div className="mt-auto flex w-full gap-2 lg:mt-6">
+        <div className="mt-auto flex w-full gap-3 md:mt-6">
           {currentStep > 1 ? (
             <Button
               variant="secondary"
@@ -291,9 +294,9 @@ const AddKeyFactorsModal: FC<Props> = ({
           {currentStep < numberOfSteps ? (
             <Button
               variant="primary"
-              size="xs"
+              size="sm"
               onClick={() => setCurrentStep(currentStep + 1)}
-              className="px-4"
+              className="px-3"
               disabled={isPending || keyFactors.some((k) => k.trim() === "")}
             >
               {t("next")}
@@ -301,7 +304,7 @@ const AddKeyFactorsModal: FC<Props> = ({
           ) : (
             <Button
               variant="primary"
-              size="xs"
+              size="sm"
               onClick={submit}
               disabled={isPending}
             >

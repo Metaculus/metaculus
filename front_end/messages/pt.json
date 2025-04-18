@@ -1204,5 +1204,6 @@
   "increases": "aumenta",
   "noImpact": "sem impacto",
   "maxKeyFactorsPerComment": "Um comentário pode incluir no máximo 4 fatores-chave.",
-  "maxKeyFactorsPerQuestion": "Uma pergunta pode ter no máximo 6 fatores-chave por um autor."
+  "maxKeyFactorsPerQuestion": "Uma pergunta pode ter no máximo 6 fatores-chave por um autor.",
+  "maxKeyFactorLength": "Os fatores principais devem ter menos de 150 caracteres."
 }

@@ -1,9 +1,9 @@
-import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+import { faArrowTurnUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { FC } from "react";
 
 import useScrollTo from "@/hooks/use_scroll_to";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 
 type Props = {
@@ -39,13 +39,19 @@ const KeyFactorText: FC<Props> = ({
             }
             scrollTo(target.getBoundingClientRect().top);
           }
-          sendGAEvent("event", "KeyFactorClick", {
+          sendAnalyticsEvent("KeyFactorClick", {
             event_label: "fromList",
           });
         }}
-        className="target invisible ml-1 inline-flex items-center overflow-visible rounded-full p-2 text-blue-600 hover:bg-blue-400 hover:text-blue-700 dark:text-blue-600 dark:hover:bg-blue-400-dark"
+        className="target invisible ml-1 inline-flex items-center overflow-visible rounded-full p-2 text-blue-600 hover:bg-blue-400 hover:font-bold hover:text-blue-700 dark:text-blue-600 dark:hover:bg-blue-400-dark"
       >
-        <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="size-3" />
+        <FontAwesomeIcon
+          icon={faArrowTurnUp}
+          className={cn(
+            "size-3 scale-110",
+            linkToComment && "rotate-180 scale-x-[-1]"
+          )}
+        />
       </a>
     </div>
   );

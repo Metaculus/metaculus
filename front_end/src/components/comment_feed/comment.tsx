@@ -36,7 +36,11 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { BECommentType, CommentType, KeyFactor } from "@/types/comment";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import {
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/cn";
 import { getCommentIdToFocusOn, parseUserMentions } from "@/utils/comments";
@@ -688,16 +692,21 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
-                  {comment.author.id === user?.id && (
-                    <Button
-                      size="xxs"
-                      variant="tertiary"
-                      onClick={() => setIsAddKeyFactorsModalOpen(true)}
-                    >
-                      <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
-                      {t("addKeyFactor")}
-                    </Button>
-                  )}
+                  {comment.author.id === user?.id &&
+                    ![
+                      PostStatus.CLOSED,
+                      PostStatus.RESOLVED,
+                      PostStatus.PENDING_RESOLUTION,
+                    ].includes(postData?.status ?? PostStatus.CLOSED) && (
+                      <Button
+                        size="xxs"
+                        variant="tertiary"
+                        onClick={() => setIsAddKeyFactorsModalOpen(true)}
+                      >
+                        <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
+                        {t("addKeyFactor")}
+                      </Button>
+                    )}
 
                   {isCmmButtonVisible && !isMobileScreen && (
                     <CmmToggleButton

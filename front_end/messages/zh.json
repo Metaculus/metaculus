@@ -1208,5 +1208,6 @@
   "increases": "增加",
   "noImpact": "无影响",
   "maxKeyFactorsPerComment": "一条评论最多可以包含 4 个关键因素。",
-  "maxKeyFactorsPerQuestion": "一个问题由一位作者最多可以包含 6 个关键因素。"
+  "maxKeyFactorsPerQuestion": "一个问题由一位作者最多可以包含 6 个关键因素。",
+  "maxKeyFactorLength": "关键因素必须少于150个字符。"
 }

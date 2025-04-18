@@ -145,7 +145,10 @@ const IndividualQuestionPage: FC<{
                     )}
 
                     <div className="flex flex-col gap-2.5">
-                      <KeyFactorsSection postId={postData.id} />
+                      <KeyFactorsSection
+                        postId={postData.id}
+                        postStatus={postData.status}
+                      />
 
                       <BackgroundInfo post={postData} />
                       {!!postData.group_of_questions && (
