@@ -47,6 +47,8 @@ export const ANNULLED_RESOLUTION = "annulled";
 export const AMBIGUOUS_RESOLUTION = "ambiguous";
 // Max length of a unit to be treated as compact
 export const QUESTION_UNIT_COMPACT_LENGTH = 3;
+export const QUESTION_DRAFT_INTERACTION_DELAY = 10000;
+export const QUESTION_DRAFT_DEBOUNCE_TIME = 3000;
 const MAX_QUESTIONS_DRAFT_SIZE_MB = 1.5;
 
 export function isMultipleChoicePost(post: PostWithForecasts) {
