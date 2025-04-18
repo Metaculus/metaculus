@@ -171,7 +171,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               <TopicItem
                 isActive={false}
                 emoji="🤖"
-                text="AI Benchmarking"
+                text="Q2 AI Benchmarking"
                 href="/aib"
                 onClick={() =>
                   sendGAEvent("event", "sidebarClick", {
