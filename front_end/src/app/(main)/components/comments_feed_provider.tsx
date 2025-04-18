@@ -15,6 +15,7 @@ import {
   CommentType,
   KeyFactor,
   KeyFactorVote,
+  KeyFactorVoteTypes,
 } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { parseComment } from "@/utils/comments";
@@ -112,17 +113,16 @@ const CommentsFeedProvider: FC<
   const [error, setError] = useState<ErrorType | undefined>(undefined);
   const [offset, setOffset] = useState<number>(0);
 
-  const initialKeyFactors = (postData?.key_factors ?? []).sort((a, b) =>
+  const initialKeyFactors = [...(postData?.key_factors ?? [])].sort((a, b) =>
     b.votes_score === a.votes_score
       ? Math.random() - 0.5
       : b.votes_score - a.votes_score
   );
-
   const [combinedKeyFactors, setCombinedKeyFactors] =
     useState<KeyFactor[]>(initialKeyFactors);
 
   const setAndSortCombinedKeyFactors = (keyFactors: KeyFactor[]) => {
-    const sortedKeyFactors = keyFactors.sort(
+    const sortedKeyFactors = [...keyFactors].sort(
       (a, b) => b.votes_score - a.votes_score
     );
     setCombinedKeyFactors(sortedKeyFactors);
@@ -134,22 +134,26 @@ const CommentsFeedProvider: FC<
     votes_score: number
   ) => {
     // Update the list of combined key factors with the new vote
-    setAndSortCombinedKeyFactors(
-      combinedKeyFactors.map((kf) =>
-        kf.id === keyFactorId
-          ? {
-              ...kf,
-              votes_score,
-              user_votes: [
-                ...kf.user_votes.filter(
-                  (vote) => vote.vote_type !== keyFactorVote.vote_type
-                ),
-                keyFactorVote,
-              ],
-            }
-          : { ...kf }
-      )
+    const newKeyFactors = combinedKeyFactors.map((kf) =>
+      kf.id === keyFactorId
+        ? {
+            ...kf,
+            votes_score,
+            user_votes: [
+              ...kf.user_votes.filter(
+                (vote) => vote.vote_type !== keyFactorVote.vote_type
+              ),
+              keyFactorVote,
+            ],
+          }
+        : { ...kf }
     );
+
+    if (keyFactorVote.vote_type === KeyFactorVoteTypes.UP_DOWN) {
+      setAndSortCombinedKeyFactors(newKeyFactors);
+    } else {
+      setCombinedKeyFactors(newKeyFactors);
+    }
 
     //Update the comments state with the new vote for the key factor
     setComments((prevComments) => {

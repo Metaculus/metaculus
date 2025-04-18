@@ -15,6 +15,7 @@ const AddEquationAction: FC = () => {
         presentationType="icon"
         variant="text"
         onClick={() => setIsModalOpen(true)}
+        className="h-7 w-7"
       >
         <FontAwesomeIcon icon={faSquareRootVariable} />
       </Button>
