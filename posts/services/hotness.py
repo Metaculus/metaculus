@@ -33,7 +33,11 @@ def compute_question_hotness(question: Question) -> float:
     )
 
     # Open time
-    hotness += decay(20, question.open_time) if now > question.open_time else 0
+    hotness += (
+        decay(20, question.open_time)
+        if question.open_time and now > question.open_time
+        else 0
+    )
 
     # Resolution time
     hotness += (
@@ -58,7 +62,7 @@ def _compute_hotness_relevant_news(post: Post) -> float:
 def _compute_hotness_post_votes(post: Post) -> float:
     votes = post.votes.all()
 
-    return sum([decay(2 * x.direction, x.created_at) for x in votes])
+    return sum([decay(1 * x.direction, x.created_at) for x in votes])
 
 
 def _compute_hotness_comments(post: Post) -> float:
