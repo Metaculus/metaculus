@@ -196,6 +196,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         default=False, db_index=True, editable=False
     )
 
+    # Jeffrey's Divergence
+    movement = models.FloatField(null=True, blank=True)
+
     def __str__(self):
         return f"{self.type} {self.title}"
 

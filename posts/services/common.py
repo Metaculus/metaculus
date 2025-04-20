@@ -1,14 +1,12 @@
 import logging
 from collections.abc import Iterable
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 from django.db import transaction
-from django.db.models import Case, Count, Q, QuerySet, Sum, Value, When
-from django.db.models.functions import Coalesce
+from django.db.models import Q, QuerySet
 from django.db.utils import IntegrityError
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
-from sql_util.aggregates import SubqueryAggregate
 
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
@@ -308,35 +306,6 @@ def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermiss
     return perm
 
 
-def compute_movement(post: Post) -> float | None:
-    questions = post.get_questions()
-    movement = None
-    now = timezone.now()
-    for question in questions:
-        cp_now = get_aggregations_at_time(
-            question, now, [AggregationMethod.RECENCY_WEIGHTED]
-        ).get(AggregationMethod.RECENCY_WEIGHTED)
-
-        if cp_now is None:
-            continue
-
-        cp_previous = get_aggregations_at_time(
-            question, now - timedelta(days=7), [AggregationMethod.RECENCY_WEIGHTED]
-        ).get(AggregationMethod.RECENCY_WEIGHTED)
-
-        if cp_previous is None:
-            continue
-
-        difference = prediction_difference_for_sorting(
-            cp_now.get_prediction_values(),
-            cp_previous.get_prediction_values(),
-            question,
-        )
-        if (movement is None) or (abs(difference) > abs(movement)):
-            movement = difference
-    return movement
-
-
 # Computes the jeffry divergence
 def compute_sorting_divergence(post: Post) -> dict[int, float]:
     user_divergences = dict()
@@ -388,95 +357,6 @@ def compute_post_sorting_divergence_and_update_snapshots(post: Post):
     PostUserSnapshot.objects.bulk_update(
         bulk_update, fields=["divergence"], batch_size=2000
     )
-
-
-def compute_feed_hotness():
-    """
-    Compute hotness for the entire feed
-    """
-
-    qs = Post.objects.filter(
-        curation_status=Post.CurationStatus.APPROVED,
-        published_at__lte=timezone.now(),
-    )
-
-    compute_hotness(qs)
-
-
-def compute_hotness(qs: QuerySet[Post]):
-    """
-    Compute hotness for the given queryset
-    """
-
-    batch_size = 500
-    last_week_dt = timezone.now() - timedelta(days=7)
-
-    qs = (
-        qs.annotate(
-            # nb predictions in last week
-            hotness_value=Coalesce(
-                SubqueryAggregate(
-                    "forecasts",
-                    filter=Q(start_time__gte=last_week_dt),
-                    aggregate=Count,
-                ),
-                0,
-            )
-            + (
-                # Net votes in last week * 5
-                # Please note: we didn't have this before
-                Coalesce(
-                    SubqueryAggregate(
-                        "votes__direction",
-                        filter=Q(created_at__gte=last_week_dt),
-                        aggregate=Sum,
-                    ),
-                    0,
-                )
-                * 5
-            )
-            + (
-                # nr comments for last week * 10
-                Coalesce(
-                    SubqueryAggregate(
-                        "comments__id",
-                        filter=Q(created_at__gte=last_week_dt),
-                        aggregate=Count,
-                    ),
-                    0,
-                )
-                * 10
-            )
-            + (
-                Coalesce(
-                    SubqueryAggregate(
-                        "activity_boosts__score",
-                        filter=Q(created_at__gte=last_week_dt),
-                        aggregate=Sum,
-                    ),
-                    0,
-                )
-            )
-            + Case(
-                # approved in last week
-                When(
-                    published_at__gte=last_week_dt,
-                    then=Value(50),
-                ),
-                default=Value(0),
-            )
-        )
-        .only("id")
-        .iterator(chunk_size=batch_size)
-    )
-
-    # Updating posts
-    to_update = []
-    for post in qs:
-        post.hotness = post.hotness_value
-        to_update.append(post)
-
-    Post.objects.bulk_update(to_update, fields=["hotness"], batch_size=batch_size)
 
 
 @transaction.atomic

@@ -57,6 +57,8 @@ export type ApprovePostParams = {
   scheduled_resolve_time: string;
 };
 
+export type BoostDirection = 1 | -1;
+
 class PostsApi {
   static async getPost(id: number, with_cp = true): Promise<PostWithForecasts> {
     return await get<PostWithForecasts>(
@@ -196,8 +198,16 @@ class PostsApi {
     return post(`/posts/${postId}/read/`, {});
   }
 
-  static async changePostActivityBoost(postId: number, score: number) {
-    return post<{ score_total: number }>(`/posts/${postId}/boost/`, { score });
+  static async changePostActivityBoost(
+    postId: number,
+    direction: BoostDirection
+  ) {
+    return post<{ score: number; score_total: number }>(
+      `/posts/${postId}/boost/`,
+      {
+        direction,
+      }
+    );
   }
 
   static async updateSubscriptions(
