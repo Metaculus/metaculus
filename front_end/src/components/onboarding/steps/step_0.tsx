@@ -1,8 +1,8 @@
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { useEffect } from "react";
 
 import { OnboardingStep } from "@/types/onboarding";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import Step from "./step";
 import { ONBOARDING_TOPICS } from "../utils";
@@ -11,8 +11,7 @@ const Step0: React.FC<OnboardingStep> = ({ setTopic }) => {
   const t = useTranslations();
 
   useEffect(() => {
-    sendGAEvent({
-      event: "onboardingStarted",
+    sendAnalyticsEvent("onboardingStarted", {
       event_category: "onboarding",
     });
   }, []);
@@ -45,8 +44,7 @@ const Step0: React.FC<OnboardingStep> = ({ setTopic }) => {
           <button
             key={index}
             onClick={() => {
-              sendGAEvent({
-                event: "onboardingTopicSelected",
+              sendAnalyticsEvent("onboardingTopicSelected", {
                 event_category: "onboarding",
                 event_label: topic.name,
               });

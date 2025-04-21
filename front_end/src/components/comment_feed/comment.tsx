@@ -8,7 +8,6 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useCallback, useEffect, useRef, useState } from "react";
@@ -42,6 +41,7 @@ import {
   ProjectPermissions,
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 import { getCommentIdToFocusOn, parseUserMentions } from "@/utils/comments";
 import { logError } from "@/utils/errors";
@@ -270,7 +270,7 @@ const Comment: FC<CommentProps> = ({
         },
       },
     ]);
-    sendGAEvent("event", "commentChangedPrediction");
+    sendAnalyticsEvent("commentChangedPrediction");
     if (response && "errors" in response && !!response.errors) {
       throw response.errors;
     }

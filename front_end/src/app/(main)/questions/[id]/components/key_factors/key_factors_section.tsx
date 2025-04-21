@@ -2,7 +2,6 @@
 
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState, useMemo } from "react";
 
@@ -14,6 +13,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import useHash from "@/hooks/use_hash";
 import { PostStatus } from "@/types/post";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 
 import KeyFactorItem from "./key_factor_item";
@@ -66,7 +66,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
 
   useEffect(() => {
     if (combinedKeyFactors.length > 0) {
-      sendGAEvent("event", "KeyFactorPageview");
+      sendAnalyticsEvent("KeyFactorPageview");
     }
   }, [combinedKeyFactors]);
 

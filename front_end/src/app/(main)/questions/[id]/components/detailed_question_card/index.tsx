@@ -1,9 +1,9 @@
 "use client";
-import { sendGAEvent } from "@next/third-parties/google";
 import React, { FC, useEffect } from "react";
 
 import { PostStatus, QuestionPost } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getQuestionForecastAvailability } from "@/utils/questions";
 
 import DetailedContinuousChartCard from "./continuous_chart_card";
@@ -24,7 +24,7 @@ const DetailedQuestionCard: FC<Props> = ({ post }) => {
 
   useEffect(() => {
     if (!!question.my_forecasts?.history.length) {
-      sendGAEvent("event", "visitPredictedQuestion", {
+      sendAnalyticsEvent("visitPredictedQuestion", {
         event_category: question.type,
       });
     }

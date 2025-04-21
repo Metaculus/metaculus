@@ -94,6 +94,7 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
       sendAnalyticsEvent("KeyFactorVote", {
         event_category: isFirstStep ? "first_step" : "second_step",
         event_label: isNil(newScore) ? "null" : newScore.toString(),
+        variant: "2-step",
       });
 
       if (response && "score" in response) {

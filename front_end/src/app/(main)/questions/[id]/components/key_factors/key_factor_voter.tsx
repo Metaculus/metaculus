@@ -1,5 +1,4 @@
 "use client";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { FC, useEffect, useState } from "react";
 
@@ -10,6 +9,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { KeyFactorVote, KeyFactorVoteTypes } from "@/types/comment";
 import { VoteDirection } from "@/types/votes";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
 
@@ -53,9 +53,10 @@ const KeyFactorVoter: FC<Props> = ({ voteData, className }) => {
         vote_type: vote.vote_type,
       });
 
-      sendGAEvent("event", "KeyFactorVote", {
+      sendAnalyticsEvent("KeyFactorVote", {
         event_category: "none",
         event_label: isNil(newScore) ? "null" : newScore.toString(),
+        variant: "updown",
       });
 
       if (response && "score" in response) {

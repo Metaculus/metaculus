@@ -1,6 +1,5 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
 import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -14,6 +13,7 @@ import {
 } from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import { QuestionOrder } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 import { encodeQueryParams } from "@/utils/navigation";
 
@@ -33,10 +33,9 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   const [isHidden, setIsHidden] = useState(true);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedGAEvent = useCallback(
+  const debouncedAnalyticsEvent = useCallback(
     debounce(() => {
-      sendGAEvent({
-        event: "feedSearch",
+      sendAnalyticsEvent("feedSearch", {
         event_category: "fromNavbar",
       });
     }, 2000),
@@ -61,7 +60,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   };
 
   const handleSearchSubmit = (searchQuery: string) => {
-    debouncedGAEvent();
+    debouncedAnalyticsEvent();
     onSubmit?.();
     setIsSearched(true);
     router.push(

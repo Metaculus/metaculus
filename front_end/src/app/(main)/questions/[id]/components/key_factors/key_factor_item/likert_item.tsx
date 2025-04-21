@@ -66,6 +66,7 @@ export const LikertKeyFactorItem: FC<Props> = ({
       sendAnalyticsEvent("KeyFactorVote", {
         event_category: "none",
         event_label: isNil(newScore) ? "null" : newScore.toString(),
+        variant: "likert",
       });
 
       if (response && "score" in response) {

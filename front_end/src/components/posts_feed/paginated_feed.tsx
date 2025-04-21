@@ -1,5 +1,4 @@
 "use client";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -18,6 +17,7 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, NotebookPost } from "@/types/post";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/errors";
 import { isConditionalPost, isNotebookPost } from "@/utils/questions";
 
@@ -81,7 +81,7 @@ const PaginatedPostsFeed: FC<Props> = ({
 
   useEffect(() => {
     // capture search event from AwaitedPostsFeed
-    sendGAEvent("event", "feedSearch", {
+    sendAnalyticsEvent("feedSearch", {
       event_category: JSON.stringify(filters),
     });
   }, [filters]);
@@ -90,7 +90,7 @@ const PaginatedPostsFeed: FC<Props> = ({
       setIsLoading(true);
       setError(undefined);
       try {
-        sendGAEvent("event", "feedSearch", {
+        sendAnalyticsEvent("feedSearch", {
           event_category: JSON.stringify(filters),
         });
         const { newPosts, hasNextPage } = await fetchMorePosts(
