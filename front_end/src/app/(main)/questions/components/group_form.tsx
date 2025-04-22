@@ -839,6 +839,7 @@ const GroupForm: React.FC<Props> = ({
                     ...subQuestions,
                     {
                       ...subQuestions[subQuestions.length - 1],
+                      has_forecasts: false,
                       id: undefined,
                       label: "",
                     },
