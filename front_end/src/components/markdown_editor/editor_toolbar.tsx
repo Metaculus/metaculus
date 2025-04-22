@@ -46,7 +46,7 @@ const EditorToolbar = () => {
         >
           <FontAwesomeIcon
             icon={faCaretDown}
-            className={cn("block md:!hidden", {
+            className={cn("block @[695px]:hidden", {
               "rotate-180": isOpen,
             })}
           />
