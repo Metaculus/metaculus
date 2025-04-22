@@ -2,18 +2,11 @@ import "@mdxeditor/editor/style.css";
 import "./editor.css";
 
 import {
-  BlockTypeSelect,
-  BoldItalicUnderlineToggles,
   CodeBlockEditorDescriptor,
   codeBlockPlugin,
-  CreateLink,
   diffSourcePlugin,
-  DiffSourceToggleWrapper,
   headingsPlugin,
   imagePlugin,
-  InsertImage,
-  InsertTable,
-  InsertThematicBreak,
   JsxComponentDescriptor,
   jsxPlugin,
   linkDialogPlugin,
@@ -22,11 +15,9 @@ import {
   MDXEditor,
   MDXEditorMethods,
   quotePlugin,
-  Separator,
   tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
-  UndoRedo,
 } from "@mdxeditor/editor";
 import { BeautifulMentionsTheme } from "lexical-beautiful-mentions";
 import React, {
@@ -48,17 +39,13 @@ import { useDebouncedCallback } from "@/hooks/use_debounce";
 import cn from "@/utils/cn";
 import { logErrorWithScope } from "@/utils/errors";
 
-import {
-  embeddedQuestionDescriptor,
-  EmbedQuestionAction,
-} from "./embedded_question";
+import EditorToolbar from "./editor_toolbar";
+import { embeddedQuestionDescriptor } from "./embedded_question";
 import { tweetDescriptor } from "./embedded_twitter";
 import { processMarkdown } from "./helpers";
 import { equationPlugin } from "./plugins/equation";
-import AddEquationAction from "./plugins/equation/components/add_equation_action";
 import { linkPlugin } from "./plugins/link";
 import { mentionsPlugin } from "./plugins/mentions";
-import { SourceModeTitle } from "./source_mode_title";
 
 type EditorMode = "write" | "read";
 
@@ -201,25 +188,7 @@ const InitializedMarkdownEditor: FC<
     if (mode === "read") return null;
 
     return toolbarPlugin({
-      toolbarContents: () => (
-        <>
-          <SourceModeTitle />
-          <DiffSourceToggleWrapper options={["rich-text", "source"]}>
-            <UndoRedo />
-            <Separator />
-            <BlockTypeSelect />
-            <BoldItalicUnderlineToggles />
-            <Separator />
-            <CreateLink />
-            <InsertImage />
-            <InsertThematicBreak />
-            <InsertTable />
-            <AddEquationAction />
-            <Separator />
-            <EmbedQuestionAction />
-          </DiffSourceToggleWrapper>
-        </>
-      ),
+      toolbarContents: () => <EditorToolbar />,
     });
   }, [mode]);
 

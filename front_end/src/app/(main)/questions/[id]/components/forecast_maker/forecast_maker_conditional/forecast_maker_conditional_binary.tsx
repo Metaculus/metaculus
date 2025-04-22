@@ -15,10 +15,10 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import { Question, QuestionWithNumericForecasts } from "@/types/question";
+import { sendConditionalPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
-import { sendGAConditionalPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
@@ -257,7 +257,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       })
     );
     questionsToSubmit.forEach((q) => {
-      sendGAConditionalPredictEvent(
+      sendConditionalPredictEvent(
         projects,
         q.id === questionYesId ? !!prevYesForecastValue : !!prevNoForecastValue,
         hideCP

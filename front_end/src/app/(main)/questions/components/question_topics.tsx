@@ -5,7 +5,6 @@ import {
   faHome,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
@@ -17,6 +16,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 
 import TopicItem from "./topic_item";
@@ -124,7 +124,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 text={t("myPredictions")}
                 emoji={"👤"}
                 onClick={() => {
-                  sendGAEvent("event", "sidebarClick", {
+                  sendAnalyticsEvent("sidebarClick", {
                     event_category: t("myPredictions"),
                   });
                   switchFeed(FeedType.MY_PREDICTIONS);
@@ -135,7 +135,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 text={t("myQuestionsAndPosts")}
                 emoji={"✍️"}
                 onClick={() => {
-                  sendGAEvent("event", "sidebarClick", {
+                  sendAnalyticsEvent("sidebarClick", {
                     event_category: t("myQuestionsAndPosts"),
                   });
                   switchFeed(FeedType.MY_QUESTIONS_AND_POSTS);
@@ -146,7 +146,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 text={t("followingButton")}
                 emoji={"🔎 "}
                 onClick={() => {
-                  sendGAEvent("event", "sidebarClick", {
+                  sendAnalyticsEvent("sidebarClick", {
                     event_category: t("followingButton"),
                   });
                   switchFeed(FeedType.FOLLOWING);
@@ -161,7 +161,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 emoji="👥"
                 text={t("communities")}
                 onClick={() => {
-                  sendGAEvent("event", "sidebarClick", {
+                  sendAnalyticsEvent("sidebarClick", {
                     event_category: "Communities",
                   });
                   switchFeed(FeedType.COMMUNITIES);
@@ -171,10 +171,10 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               <TopicItem
                 isActive={false}
                 emoji="🤖"
-                text="AI Benchmarking"
+                text="Q2 AI Benchmarking"
                 href="/aib"
                 onClick={() =>
-                  sendGAEvent("event", "sidebarClick", {
+                  sendAnalyticsEvent("sidebarClick", {
                     event_category: "AI Benchmarking",
                   })
                 }
@@ -185,7 +185,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 text="USAID Outlook"
                 href="/tournament/usaid/"
                 onClick={() =>
-                  sendGAEvent("event", "sidebarClick", {
+                  sendAnalyticsEvent("sidebarClick", {
                     event_category: "USAID Outlook",
                   })
                 }
@@ -196,7 +196,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 text="POTUS"
                 href="/tournament/POTUS-predictions/"
                 onClick={() =>
-                  sendGAEvent("event", "sidebarClick", {
+                  sendAnalyticsEvent("sidebarClick", {
                     event_category: "POTUS",
                   })
                 }
@@ -207,7 +207,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 text="Fiscal"
                 href="/tournament/fiscal/"
                 onClick={() =>
-                  sendGAEvent("event", "sidebarClick", {
+                  sendAnalyticsEvent("sidebarClick", {
                     event_category: "Fiscal",
                   })
                 }
@@ -224,7 +224,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   emoji={topic.emoji}
                   text={topic.name}
                   onClick={() => {
-                    sendGAEvent("event", "sidebarClick", {
+                    sendAnalyticsEvent("sidebarClick", {
                       event_category: topic.name,
                     });
                     selectTopic(topic);
@@ -244,7 +244,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   emoji={category.emoji}
                   text={category.name}
                   onClick={() => {
-                    sendGAEvent("event", "sidebarClick", {
+                    sendAnalyticsEvent("sidebarClick", {
                       event_category: category.name,
                     });
                     selectTopic(category);
@@ -260,7 +260,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             emoji={<FontAwesomeIcon icon={faEllipsis} />}
             isActive={false}
             onClick={() => {
-              sendGAEvent("event", "sidebarClick", {
+              sendAnalyticsEvent("sidebarClick", {
                 event_category: t("seeAllCategories"),
               });
             }}

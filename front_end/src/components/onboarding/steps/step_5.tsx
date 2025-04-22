@@ -1,6 +1,5 @@
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil, round } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -16,6 +15,7 @@ import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { OnboardingStep } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/errors";
 
 type ForecastedPost = {
@@ -51,8 +51,7 @@ const Step5: React.FC<OnboardingStep> = ({
   }, []);
 
   const handleViewQuestionFeed = () => {
-    sendGAEvent({
-      event: "onboardingFinished",
+    sendAnalyticsEvent("onboardingFinished", {
       event_category: "onboarding",
       event_label: "Viewed Feed",
     });
@@ -60,8 +59,7 @@ const Step5: React.FC<OnboardingStep> = ({
   };
 
   const handleViewMyPredictions = () => {
-    sendGAEvent({
-      event: "onboardingFinished",
+    sendAnalyticsEvent("onboardingFinished", {
       event_category: "onboarding",
       event_label: "Viewed Predictions",
     });
@@ -82,8 +80,7 @@ const Step5: React.FC<OnboardingStep> = ({
   };
 
   const handleViewAnotherQuestion = () => {
-    sendGAEvent({
-      event: "onboardingFinished",
+    sendAnalyticsEvent("onboardingFinished", {
       event_category: "onboarding",
       event_label: "Viewed Another Question",
     });

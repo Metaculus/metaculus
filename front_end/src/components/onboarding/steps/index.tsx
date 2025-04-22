@@ -1,11 +1,11 @@
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
 import { OnboardingStep } from "@/types/onboarding";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import Step0 from "./step_0";
 import Step1 from "./step_1";
@@ -45,8 +45,7 @@ const StepsRouter: React.FC<OnboardingStep> = (props) => {
           <div className="mt-4 flex w-full justify-center gap-3">
             <button
               onClick={() => {
-                sendGAEvent({
-                  event: "onboardingSkipped",
+                sendAnalyticsEvent("onboardingSkipped", {
                   event_category: "onboarding",
                 });
                 handleComplete();

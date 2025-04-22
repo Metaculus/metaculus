@@ -1,7 +1,6 @@
 "use client";
 
 import { Tab, TabGroup, TabList } from "@headlessui/react";
-import { sendGAEvent } from "@next/third-parties/google";
 import { debounce } from "lodash";
 import { useTranslations } from "next-intl";
 import React, {
@@ -22,6 +21,7 @@ import { useAuth } from "@/contexts/auth_context";
 import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { NewsCategory } from "@/types/projects";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 
 import NewsSubscribeButton from "./news_subscribe_button";
@@ -54,10 +54,9 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
   const t = useTranslations();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedGAEvent = useCallback(
+  const debouncedAnalyticsEvent = useCallback(
     debounce(() => {
-      sendGAEvent({
-        event: "feedSearch",
+      sendAnalyticsEvent("feedSearch", {
         event_category: "fromNews",
       });
     }, 2000),
@@ -87,7 +86,7 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
         <SearchInput
           value={search}
           onChange={(e) => {
-            debouncedGAEvent();
+            debouncedAnalyticsEvent();
             setSearch(e.target.value);
           }}
           onErase={eraseSearch}

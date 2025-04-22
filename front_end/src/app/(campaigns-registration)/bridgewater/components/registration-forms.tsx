@@ -3,7 +3,6 @@
 import { Radio, RadioGroup } from "@headlessui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
-import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -27,6 +26,7 @@ import RadioButton from "@/components/ui/radio_button";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 export interface CampaignRegistrationProps {
   campaignKey: string;
@@ -276,8 +276,7 @@ export const RegistrationAndSignupForm: FC<
         }
       }
     } else {
-      sendGAEvent(
-        "event",
+      sendAnalyticsEvent(
         watch("undergrad") ? "bw_register_under" : "bw_register_non_under"
       );
       onSuccess(watch("email"));
@@ -455,8 +454,7 @@ export const RegistrationForm: FC<
         }
       }
     } else {
-      sendGAEvent(
-        "event",
+      sendAnalyticsEvent(
         watch("undergrad") ? "bw_register_under" : "bw_register_non_under"
       );
       onSuccess();

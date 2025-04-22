@@ -15,7 +15,7 @@ from posts.jobs import (
     job_subscription_notify_date,
     job_subscription_notify_milestone,
 )
-from posts.services.common import compute_feed_hotness
+from posts.services.hotness import compute_feed_hotness
 from questions.jobs import job_check_question_open_event, job_close_question
 from scoring.jobs import update_global_comment_and_question_leaderboards
 
