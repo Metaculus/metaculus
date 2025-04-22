@@ -190,7 +190,8 @@ const VOTE_BUTTONS = [
     ),
     className:
       "bg-salmon-300 dark:bg-salmon-300-dark active:bg-salmon-300 active:dark:bg-salmon-300-dark text-salmon-700 dark:text-salmon-700-dark hover:bg-salmon-400 hover:border-solid hover:border-salmon-500 hover:dark:border-salmon-500-dark hover:dark:bg-salmon-400-dark",
-    activeClassName: "bg-salmon-800 dark:bg-salmon-800-dark",
+    activeClassName:
+      "bg-salmon-800 dark:bg-salmon-800-dark hover:bg-salmon-800 hover:dark:bg-salmon-800-dark",
   },
   {
     score: ImpactValues.MEDIUM_NEGATIVE,
@@ -202,28 +203,32 @@ const VOTE_BUTTONS = [
     ),
     className:
       "bg-salmon-200 dark:bg-salmon-200-dark active:bg-salmon-200 active:dark:bg-salmon-200-dark text-salmon-700 dark:text-salmon-700-dark hover:bg-salmon-300 hover:dark:bg-salmon-300-dark hover:border-solid hover:border-salmon-400 hover:dark:border-salmon-400-dark",
-    activeClassName: "bg-salmon-800 dark:bg-salmon-800-dark",
+    activeClassName:
+      "bg-salmon-800 dark:bg-salmon-800-dark hover:bg-salmon-800 hover:dark:bg-salmon-800-dark",
   },
   {
     score: ImpactValues.LOW_NEGATIVE,
     children: <span>-</span>,
     className:
       "bg-salmon-100 dark:bg-salmon-100-dark active:bg-salmon-100 active:dark:bg-salmon-100-dark text-salmon-700 dark:text-salmon-700-dark hover:bg-salmon-200 hover:dark:bg-salmon-200-dark hover:border-solid hover:border-salmon-300 hover:dark:border-salmon-300-dark",
-    activeClassName: "bg-salmon-800 dark:bg-salmon-800-dark",
+    activeClassName:
+      "bg-salmon-800 dark:bg-salmon-800-dark hover:bg-salmon-800 hover:dark:bg-salmon-800-dark",
   },
   {
     score: ImpactValues.NO_IMPACT,
     children: <FontAwesomeIcon icon={faCircle} className="h-2.5 w-2.5" />,
     className:
       "bg-blue-100 dark:bg-blue-100-dark active:bg-blue-100 active:dark:bg-blue-100-dark text-blue-500 dark:text-blue-500-dark hover:bg-blue-200 hover:dark:bg-blue-200-dark hover:border-solid hover:border-blue-500 hover:dark:border-blue-500-dark",
-    activeClassName: "bg-blue-700 dark:bg-blue-700-dark",
+    activeClassName:
+      "bg-blue-700 dark:bg-blue-700-dark hover:bg-blue-700 hover:dark:bg-blue-700-dark",
   },
   {
     score: ImpactValues.LOW,
     children: <span>+</span>,
     className:
       "bg-mint-200 dark:bg-mint-200-dark active:bg-mint-200 active:dark:bg-mint-200-dark text-mint-800 dark:text-mint-800-dark hover:bg-mint-300 hover:dark:bg-mint-300-dark hover:border-solid hover:border-mint-400 hover:dark:border-mint-400-dark",
-    activeClassName: "bg-mint-800 dark:bg-mint-800-dark",
+    activeClassName:
+      "bg-mint-800 dark:bg-mint-800-dark hover:bg-mint-800 hover:dark:bg-mint-800-dark",
   },
   {
     score: ImpactValues.MEDIUM,
@@ -235,7 +240,8 @@ const VOTE_BUTTONS = [
     ),
     className:
       "bg-mint-300 dark:bg-mint-300-dark active:bg-mint-300 active:dark:bg-mint-300-dark text-mint-800 dark:text-mint-800-dark hover:bg-mint-400 hover:dark:bg-mint-400-dark hover:border-solid hover:border-mint-500 hover:dark:border-mint-500-dark",
-    activeClassName: "bg-mint-800 dark:bg-mint-800-dark",
+    activeClassName:
+      "bg-mint-800 dark:bg-mint-800-dark hover:bg-mint-800 hover:dark:bg-mint-800-dark",
   },
   {
     score: ImpactValues.HIGH,
@@ -248,7 +254,8 @@ const VOTE_BUTTONS = [
     ),
     className:
       "bg-mint-400 dark:bg-mint-400-dark active:bg-mint-400 active:dark:bg-mint-400-dark text-mint-800 dark:text-mint-800-dark hover:bg-mint-500 hover:dark:bg-mint-500-dark hover:border-solid hover:border-mint-600 hover:dark:border-mint-600-dark",
-    activeClassName: "bg-mint-800 dark:bg-mint-800-dark",
+    activeClassName:
+      "bg-mint-800 dark:bg-mint-800-dark hover:bg-mint-800 hover:dark:bg-mint-800-dark",
   },
 ];
 

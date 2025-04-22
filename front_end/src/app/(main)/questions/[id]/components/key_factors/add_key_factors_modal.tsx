@@ -12,13 +12,12 @@ import {
   createComment,
 } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
+import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
+import { Input } from "@/components/ui/form_field";
 import { useServerAction } from "@/hooks/use_server_action";
 import { BECommentType } from "@/types/comment";
 import { User } from "@/types/users";
-
-import MarkdownEditor from "../markdown_editor";
-import { Input } from "../ui/form_field";
 
 const FACTORS_PER_QUESTION = 6;
 const FACTORS_PER_COMMENT = 4;
@@ -198,17 +197,18 @@ const AddKeyFactorsModal: FC<Props> = ({
         return;
       }
     }
+    const filteredKeyFactors = keyFactors.filter((f) => f.trim() !== "");
     if (commentId) {
       if (userCommentFactors.length >= FACTORS_PER_COMMENT) {
         setErrorMessage(t("maxKeyFactorsPerComment"));
         return;
       }
-      comment = await addKeyFactorsToComment(commentId, keyFactors);
+      comment = await addKeyFactorsToComment(commentId, filteredKeyFactors);
     } else {
       comment = await createComment({
         on_post: postId,
         text: markdown,
-        key_factors: keyFactors,
+        key_factors: filteredKeyFactors,
         is_private: false,
       });
     }
@@ -297,7 +297,7 @@ const AddKeyFactorsModal: FC<Props> = ({
               size="sm"
               onClick={() => setCurrentStep(currentStep + 1)}
               className="px-3"
-              disabled={isPending || keyFactors.some((k) => k.trim() === "")}
+              disabled={isPending || !keyFactors.some((k) => k.trim() !== "")}
             >
               {t("next")}
             </Button>

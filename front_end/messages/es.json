@@ -1186,8 +1186,6 @@
   "conditionalBranchResolutionAnnulled": "Esta rama fue anulada porque la <link>pregunta principal</link> se resolvió <resolution></resolution>.",
   "addKeyFactor": "Añadir factor clave",
   "addKeyFactors": "Añadir factores clave",
-  "addKeyFactorsModalP1": "Introduce tus factores clave a continuación - intenta que sean breves y claros.",
-  "addKeyFactorsModalP2": "Tu comentario original debe explicar las razones detrás de estos factores clave.",
   "typeKeyFator": "Escribe un factor clave aquí",
   "back": "Volver",
   "noKeyFactorsP1": "Aún no hay factores clave",
@@ -1207,5 +1205,7 @@
   "noImpact": "sin impacto",
   "maxKeyFactorsPerComment": "Un comentario puede incluir un máximo de 4 factores clave.",
   "maxKeyFactorsPerQuestion": "Una pregunta puede tener no más de 6 factores clave por un autor.",
-  "maxKeyFactorLength": "Los factores clave deben tener menos de 150 caracteres."
+  "maxKeyFactorLength": "Los factores clave deben tener menos de 150 caracteres.",
+  "addKeyFactorsModalP1": "Enumere los factores clave que considera más importantes — mantenga cada uno de manera breve y específica.",
+  "addKeyFactorsModalP2": "Por favor, publique un comentario para explicar por qué estos factores son importantes para su pronóstico."
 }

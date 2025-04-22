@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import { FC, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
+import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
 import {
   createForecasts,
@@ -48,7 +49,6 @@ import { logError } from "@/utils/errors";
 import { canPredictQuestion, getMarkdownSummary } from "@/utils/questions";
 import { formatUsername } from "@/utils/users";
 
-import AddKeyFactorsModal from "./add_key_factors_modal";
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
 import { validateComment } from "./validate_comment";

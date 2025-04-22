@@ -1188,8 +1188,6 @@
   "conditionalBranchResolutionAnnulled": "此分支被取消，因为<link>父问题</link>解决<resolution></resolution>。",
   "addKeyFactor": "添加关键因素",
   "addKeyFactors": "添加关键因素",
-  "addKeyFactorsModalP1": "在下面输入您的关键因素 - 尽量保持简洁明了。",
-  "addKeyFactorsModalP2": "您的原始评论应解释这些关键因素背后的原因。",
   "typeKeyFator": "在此输入关键因素",
   "back": "返回",
   "noKeyFactorsP1": "尚无关键因素",
@@ -1209,5 +1207,7 @@
   "noImpact": "无影响",
   "maxKeyFactorsPerComment": "一条评论最多可以包含 4 个关键因素。",
   "maxKeyFactorsPerQuestion": "一个问题由一位作者最多可以包含 6 个关键因素。",
-  "maxKeyFactorLength": "关键因素必须少于150个字符。"
+  "maxKeyFactorLength": "关键因素必须少于150个字符。",
+  "addKeyFactorsModalP1": "列出您认为最重要的关键因素——保持每个因素简短且具体。",
+  "addKeyFactorsModalP2": "请发表评论，解释这些因素对您的预测为什么重要。"
 }

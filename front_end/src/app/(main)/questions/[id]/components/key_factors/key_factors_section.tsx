@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { FC, useEffect, useState, useMemo } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
-import AddKeyFactorsModal from "@/components/comment_feed/add_key_factors_modal";
+import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import Button from "@/components/ui/button";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";

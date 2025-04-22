@@ -11,7 +11,10 @@
 .mdxeditor-popup-container {
   @apply z-100;
   [role="dialog"] {
-    @apply flex flex-col xs:flex-row;
+    @apply flex max-w-full flex-col xs:flex-row;
+    form {
+      @apply max-w-full;
+    }
   }
 }
 
