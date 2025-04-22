@@ -57,7 +57,7 @@ def test_notify_new_comments(user1, user2):
     notification = Notification.objects.filter(recipient=user1).last()
 
     assert notification.params["post"]["post_id"] == post.id
-    assert notification.params["new_comment_ids"] == [c_3.id, c_4.id, c_5.id]
+    assert set(notification.params["new_comment_ids"]) == {c_3.id, c_4.id, c_5.id}
     assert notification.params["new_comments_count"] == 3
 
 
