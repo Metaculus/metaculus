@@ -1,5 +1,4 @@
 "use client";
-import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
@@ -24,6 +23,7 @@ import {
   PostSubscriptionSpecificTimeConfig,
   PostSubscriptionType,
 } from "@/types/post";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 type Props = {
   isOpen: boolean;
@@ -124,7 +124,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
         revalidate
       );
       onPostSubscriptionChange?.(newSubscriptions);
-      sendGAEvent("event", "questionUnfollowed");
+      sendAnalyticsEvent("questionUnfollowed");
     } finally {
       setIsLoading(false);
     }

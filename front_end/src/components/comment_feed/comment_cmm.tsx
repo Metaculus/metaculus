@@ -16,7 +16,6 @@ import {
   faCaretUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useState, forwardRef, FC } from "react";
@@ -24,6 +23,7 @@ import React, { useState, forwardRef, FC } from "react";
 import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_text_input";
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 import { logError } from "@/utils/errors";
 
@@ -310,7 +310,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
           enabled: !cmmContext.cmmEnabled,
         });
         cmmContext.onCMMToggled(!cmmContext.cmmEnabled);
-        sendGAEvent("event", "commentChangedMind");
+        sendAnalyticsEvent("commentChangedMind");
       } catch (e) {
         logError(e);
         cmmContext.onCMMToggled(cmmContext.cmmEnabled);

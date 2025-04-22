@@ -8,13 +8,13 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
-import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors";
+import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
+import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
 import {
   createForecasts,
   editComment,
@@ -36,15 +36,19 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { BECommentType, CommentType, KeyFactor } from "@/types/comment";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import {
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 import { getCommentIdToFocusOn, parseUserMentions } from "@/utils/comments";
 import { logError } from "@/utils/errors";
 import { canPredictQuestion, getMarkdownSummary } from "@/utils/questions";
 import { formatUsername } from "@/utils/users";
 
-import AddKeyFactorsModal from "./add_key_factors_modal";
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
 import { validateComment } from "./validate_comment";
@@ -266,7 +270,7 @@ const Comment: FC<CommentProps> = ({
         },
       },
     ]);
-    sendGAEvent("event", "commentChangedPrediction");
+    sendAnalyticsEvent("commentChangedPrediction");
     if (response && "errors" in response && !!response.errors) {
       throw response.errors;
     }
@@ -493,13 +497,17 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {commentKeyFactors.map((kf) => (
-        <KeyFactorItem
-          key={`key-factor-${kf.id}`}
-          keyFactor={kf}
-          linkToComment={false}
-        />
-      ))}
+      {commentKeyFactors.length > 0 && (
+        <div className="mb-3 mt-1.5 flex flex-col gap-1">
+          {commentKeyFactors.map((kf) => (
+            <KeyFactorItem
+              key={`key-factor-${kf.id}`}
+              keyFactor={kf}
+              linkToComment={false}
+            />
+          ))}
+        </div>
+      )}
       <div>
         <CmmOverlay
           forecast={100 * userForecast}
@@ -684,16 +692,21 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
-                  {comment.author.id === user?.id && (
-                    <Button
-                      size="xxs"
-                      variant="tertiary"
-                      onClick={() => setIsAddKeyFactorsModalOpen(true)}
-                    >
-                      <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
-                      {t("addKeyFactor")}
-                    </Button>
-                  )}
+                  {comment.author.id === user?.id &&
+                    ![
+                      PostStatus.CLOSED,
+                      PostStatus.RESOLVED,
+                      PostStatus.PENDING_RESOLUTION,
+                    ].includes(postData?.status ?? PostStatus.CLOSED) && (
+                      <Button
+                        size="xxs"
+                        variant="tertiary"
+                        onClick={() => setIsAddKeyFactorsModalOpen(true)}
+                      >
+                        <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
+                        {t("addKeyFactor")}
+                      </Button>
+                    )}
 
                   {isCmmButtonVisible && !isMobileScreen && (
                     <CmmToggleButton
@@ -774,14 +787,17 @@ const Comment: FC<CommentProps> = ({
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
       />
-      <AddKeyFactorsModal
-        isOpen={isAddKeyFactorsModalOpen}
-        onClose={() => setIsAddKeyFactorsModalOpen(false)}
-        commentId={comment.id}
-        onSuccess={(comment: BECommentType) => {
-          setCommentKeyFactors(comment.key_factors ?? []);
-        }}
-      />
+      {user && (
+        <AddKeyFactorsModal
+          isOpen={isAddKeyFactorsModalOpen}
+          onClose={() => setIsAddKeyFactorsModalOpen(false)}
+          commentId={comment.id}
+          onSuccess={(comment: BECommentType) => {
+            setCommentKeyFactors(comment.key_factors ?? []);
+          }}
+          user={user}
+        />
+      )}
     </div>
   );
 };

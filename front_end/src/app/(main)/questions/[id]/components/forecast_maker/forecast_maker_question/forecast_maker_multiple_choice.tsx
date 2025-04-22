@@ -23,8 +23,8 @@ import {
   UserForecast,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
+import { sendPredictEvent } from "@/utils/analytics";
 
-import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import {
   BINARY_FORECAST_PRECISION,
@@ -201,7 +201,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         );
       }
     });
-    sendGAPredictEvent(post, question, hideCP);
+    sendPredictEvent(post, question, hideCP);
     const response = await createForecasts(post.id, [
       {
         questionId: question.id,

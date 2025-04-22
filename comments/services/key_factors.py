@@ -18,7 +18,7 @@ def key_factor_vote(
     # Deleting existing vote for this vote type
     key_factor.votes.filter(user=user, vote_type=vote_type).delete()
 
-    if vote:
+    if vote is not None:
         key_factor.votes.create(user=user, score=vote, vote_type=vote_type)
 
     # Update counters

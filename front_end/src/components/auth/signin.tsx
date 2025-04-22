@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useTransition, useActionState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,6 +15,7 @@ import { Input } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
 
@@ -50,7 +50,7 @@ const SignInModal: FC<SignInModalType> = ({
     }
 
     if (state.user) {
-      sendGAEvent("event", "login");
+      sendAnalyticsEvent("login");
       setUser(state.user);
       setCurrentModal(null);
       handlePostLoginAction(state.postLoginAction);

@@ -1,13 +1,13 @@
 "use client";
 
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { sendGAEvent } from "@next/third-parties/google";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import useSearchParams from "@/hooks/use_search_params";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 
 type Props = {
@@ -75,7 +75,7 @@ const LanguageMenu: FC<Props> = ({ className }) => {
                 e.preventDefault();
                 params.delete("locale");
                 params.append("locale", item.locale);
-                sendGAEvent("event", "translate", { event_label: item.locale });
+                sendAnalyticsEvent("translate", { event_label: item.locale });
                 // Certain pages do not trigger an update after calling router.refresh()
                 // so for now I am using a forced page reload when changing the language.
                 // Even though this is horrible, changing the language is not a common

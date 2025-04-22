@@ -2,7 +2,6 @@
 
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { debounce } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo } from "react";
@@ -21,6 +20,7 @@ import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 
 import RandomButton from "./random_button";
@@ -91,10 +91,9 @@ const PostsFilters: FC<Props> = ({
   } = useGlobalSearchContext();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedGAEvent = useCallback(
+  const debouncedAnalyticsEvent = useCallback(
     debounce(() => {
-      sendGAEvent({
-        event: "feedSearch",
+      sendAnalyticsEvent("feedSearch", {
         event_category: "fromPostsFilter",
       });
     }, 2000),
@@ -192,7 +191,7 @@ const PostsFilters: FC<Props> = ({
     setParam(filterId, optionValue);
   };
   const clearPopupFilters = (withNavigation = true) => {
-    sendGAEvent("event", "feedFiltersCleared");
+    sendAnalyticsEvent("feedFiltersCleared");
     const filtersToDelete = popoverFilters.reduce<string[]>(
       (filterIds, filter) => {
         const optionIds = filter.options.reduce<string[]>(
@@ -229,7 +228,7 @@ const PostsFilters: FC<Props> = ({
             <SearchInput
               value={globalSearch}
               onChange={(e) => {
-                debouncedGAEvent();
+                debouncedAnalyticsEvent();
                 deleteParam(POST_PAGE_FILTER, true);
                 updateGlobalSearch(e.target.value);
               }}
@@ -246,7 +245,7 @@ const PostsFilters: FC<Props> = ({
             onChange={handleOrderChange}
             variant="tertiary"
             onClick={(buttonLabel) =>
-              sendGAEvent("event", "feedShortcutClick", {
+              sendAnalyticsEvent("feedShortcutClick", {
                 event_category: buttonLabel,
               })
             }
@@ -257,7 +256,7 @@ const PostsFilters: FC<Props> = ({
                 className="rounded-full"
                 onChange={handleOrderChange}
                 onClick={(value) =>
-                  sendGAEvent("event", "feedSortClick", {
+                  sendAnalyticsEvent("feedSortClick", {
                     event_category: value,
                   })
                 }
