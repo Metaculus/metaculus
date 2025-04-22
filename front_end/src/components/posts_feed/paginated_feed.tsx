@@ -3,7 +3,6 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useFeatureFlagVariantKey } from "posthog-js/react";
 import { FC, Fragment, useEffect, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
@@ -14,6 +13,7 @@ import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostsParams } from "@/services/posts";
@@ -36,9 +36,6 @@ type Props = {
   isCommunity?: boolean;
 };
 
-const FEATURE_FLAG_KEY = "consumer-view-test";
-const CONSUMER_VIEW_ENABLED_VARIANT = "consumer-view-enabled";
-
 const PaginatedPostsFeed: FC<Props> = ({
   initialQuestions,
   filters,
@@ -48,7 +45,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   const t = useTranslations();
   const pathname = usePathname();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-  const consumerViewVariant = useFeatureFlagVariantKey(FEATURE_FLAG_KEY);
+  const { user } = useAuth();
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
     ? Number(params.get(POST_PAGE_FILTER))
@@ -138,11 +135,7 @@ const PaginatedPostsFeed: FC<Props> = ({
       return <NewsCard post={post as NotebookPost} />;
     }
 
-    if (
-      consumerViewVariant === CONSUMER_VIEW_ENABLED_VARIANT &&
-      !isNotebookPost(post) &&
-      !isConditionalPost(post)
-    ) {
+    if (isNil(user) && !isNotebookPost(post) && !isConditionalPost(post)) {
       return <ConsumerPostCard post={post} forCommunityFeed={isCommunity} />;
     }
     return <PostCard post={post} forCommunityFeed={isCommunity} />;

@@ -1,4 +1,3 @@
-from datetime import timedelta
 from itertools import chain
 
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -870,15 +869,6 @@ class PostActivityBoost(TimeStampedModel):
     user = models.ForeignKey(User, models.CASCADE)
     post = models.ForeignKey(Post, models.CASCADE, related_name="activity_boosts")
     score = models.IntegerField()
-
-    @classmethod
-    def get_post_score(cls, post_id: int):
-        return (
-            cls.objects.filter(
-                post_id=post_id, created_at__gte=timezone.now() - timedelta(days=7)
-            ).aggregate(total_score=Sum("score"))["total_score"]
-            or 0
-        )
 
 
 class Vote(TimeStampedModel):
