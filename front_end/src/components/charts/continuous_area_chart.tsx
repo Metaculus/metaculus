@@ -26,7 +26,7 @@ import {
   Line,
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
-import { QuestionType, Scaling } from "@/types/question";
+import { Question, QuestionType, Scaling } from "@/types/question";
 import {
   generateScale,
   getClosestYValue,
@@ -60,35 +60,39 @@ const CURSOR_POINT_OFFSET = 5;
 const CURSOR_CHART_EXTENSION = 10;
 
 type Props = {
-  scaling: Scaling;
   data: ContinuousAreaGraphInput;
   graphType?: ContinuousAreaGraphType;
-  questionType?: QuestionType;
   height?: number;
   width?: number;
   extraTheme?: VictoryThemeDefinition;
-  resolution: Resolution | null;
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
   hideCP?: boolean;
-  hideLabels?: boolean;
-  unit?: string;
   shortLabels?: boolean;
+  hideLabels?: boolean;
+  question:
+    | Question
+    | {
+        scaling: Scaling;
+        resolution?: Resolution | null;
+        type: QuestionType;
+        unit?: string;
+        open_lower_bound?: boolean;
+        open_upper_bound?: boolean;
+        inbound_outcome_count?: number | null;
+      };
 };
 
 const ContinuousAreaChart: FC<Props> = ({
-  scaling,
   data,
   graphType = "pmf",
-  questionType = QuestionType.Numeric,
   height = 150,
   width = undefined,
   extraTheme,
-  resolution,
   onCursorChange,
   hideCP,
   hideLabels = false,
-  unit,
   shortLabels = false,
+  question,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -100,11 +104,8 @@ const ContinuousAreaChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const paddingTop =
-    graphType === "cdf" || questionType === QuestionType.Discrete
-      ? TOP_PADDING
-      : 0;
-  const discrete = questionType === QuestionType.Discrete;
+  const discrete = question.type === QuestionType.Discrete;
+  const paddingTop = graphType === "cdf" || discrete ? TOP_PADDING : 0;
 
   const charts = useMemo(() => {
     const parsedData = hideCP
@@ -120,7 +121,7 @@ const ContinuousAreaChart: FC<Props> = ({
           cdf,
           graphType,
           type: datum.type,
-          discrete: discrete,
+          question,
         })
       );
       if (componentCdfs) {
@@ -131,54 +132,72 @@ const ContinuousAreaChart: FC<Props> = ({
               cdf: componentCdf,
               graphType,
               type: "user_components",
-              discrete: discrete,
+              question,
             })
           );
         }
       }
     }
     return chartData;
-  }, [data, graphType, hideCP, discrete]);
+  }, [data, graphType, hideCP, question]);
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;
   }>(() => {
-    if (graphType === "cdf") {
+    if (question.type !== QuestionType.Discrete) {
+      if (graphType === "cdf") {
+        return {
+          xDomain: [0, 1],
+          yDomain: [0, 1],
+        };
+      }
+
+      const maxValue = Math.max(
+        ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
+      );
       return {
         xDomain: [0, 1],
+        yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
+      };
+    }
+    const xDomain: Tuple<number> = [
+      Math.min(
+        ...charts.map((chart) => 2 * (chart.graphLine.at(0)?.x ?? 0)),
+        0
+      ),
+      Math.max(
+        ...charts.map(
+          (chart) => 1 + 2 * ((chart.graphLine.at(-1)?.x ?? 1) - 1)
+        ),
+        1
+      ),
+    ];
+    if (graphType === "cdf") {
+      return {
+        xDomain: xDomain,
         yDomain: [0, 1],
       };
     }
 
-    const maxValue = Math.max(
-      ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
-    );
+    const maxValue = Math.max(...data.map((x) => x.pmf).flat());
     return {
-      xDomain: [0, 1],
-      yDomain:
-        questionType !== QuestionType.Discrete
-          ? [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)]
-          : [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
+      xDomain: xDomain,
+      yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
     };
-  }, [data, graphType, questionType]);
+  }, [data, graphType, question.type, charts]);
   const xScale = useMemo(
     () =>
       generateScale({
-        displayType: questionType,
+        displayType: question.type,
         axisLength: chartWidth,
         direction: "horizontal",
         domain: xDomain,
-        scaling: scaling,
-        unit,
-        forcedTickCount:
-          questionType === QuestionType.Discrete
-            ? (data.at(0)?.pmf.length || 32) - 2
-            : undefined,
         shortLabels,
         adjustLabels: true,
+        question: question,
       }),
-    [chartWidth, questionType, scaling, unit, xDomain, data, shortLabels]
+    [chartWidth, question, xDomain, shortLabels]
   );
   const yScale = useMemo(
     () =>
@@ -194,12 +213,12 @@ const ContinuousAreaChart: FC<Props> = ({
   );
 
   const resolutionPoint =
-    !isNil(resolution) && resolution !== ""
+    !isNil(question.resolution) && question.resolution !== ""
       ? getResolutionData({
-          questionType,
-          resolution,
+          questionType: question.type,
+          resolution: question.resolution,
           resolveTime: 1,
-          scaling,
+          scaling: question.scaling,
         })
       : null;
 
@@ -207,7 +226,7 @@ const ContinuousAreaChart: FC<Props> = ({
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
   const leftPadding = useMemo(() => {
-    if (graphType === "cdf" || questionType === QuestionType.Discrete) {
+    if (graphType === "cdf" || question.type === QuestionType.Discrete) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
@@ -218,7 +237,7 @@ const ContinuousAreaChart: FC<Props> = ({
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale, questionType]);
+  }, [graphType, yScale, question.type]);
 
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
@@ -243,13 +262,13 @@ const ContinuousAreaChart: FC<Props> = ({
       ) {
         let normalizedX: number | undefined;
         const lowerBoundLocation =
-          questionType !== QuestionType.Discrete
+          question.type !== QuestionType.Discrete
             ? 0
-            : 0.5 / ((data.at(0)?.pmf.length || 200) - 2);
+            : -0.5 / ((data.at(0)?.pmf.length || 200) - 2);
         const upperBoundLocation =
-          questionType !== QuestionType.Discrete
+          question.type !== QuestionType.Discrete
             ? 1
-            : 1 - 0.5 / ((data.at(0)?.pmf.length || 200) - 2);
+            : 1 + 0.5 / ((data.at(0)?.pmf.length || 200) - 2);
 
         if (evt.clientX < chartLeft) {
           normalizedX = lowerBoundLocation;
@@ -263,7 +282,7 @@ const ContinuousAreaChart: FC<Props> = ({
             (acc, el) => {
               if (
                 el.graphType === "pmf" ||
-                questionType === QuestionType.Discrete
+                question.type === QuestionType.Discrete
               ) {
                 acc.yData[el.type] = getClosestYValue(
                   normalizedX as number,
@@ -293,7 +312,14 @@ const ContinuousAreaChart: FC<Props> = ({
         }
       }
     },
-    [charts, onCursorChange, chartContainerRef, leftPadding, data, questionType]
+    [
+      charts,
+      onCursorChange,
+      chartContainerRef,
+      leftPadding,
+      data,
+      question.type,
+    ]
   );
   useEffect(() => {
     const svg = chartContainerRef.current?.firstChild as SVGElement;
@@ -310,8 +336,16 @@ const ContinuousAreaChart: FC<Props> = ({
   }, [chartContainerRef.current, handleMouseMove, handleMouseLeave]);
 
   const barWidth = useMemo(() => {
-    return (chartWidth - 30) / (1.07 * ((data.at(0)?.cdf.length || 200) - 1));
-  }, [chartWidth, data]);
+    if (question.type !== QuestionType.Discrete) {
+      return (chartWidth - 30) / (1.07 * ((data.at(0)?.cdf.length || 200) - 1));
+    }
+    const openBoundCount =
+      (question.open_lower_bound ? 1 : 0) + (question.open_upper_bound ? 1 : 0);
+    return (
+      (chartWidth - 30) /
+      (1.07 * ((data.at(0)?.cdf.length || 200) - 1 + openBoundCount))
+    );
+  }, [chartWidth, data, question]);
 
   const CursorContainer = (
     <VictoryCursorContainer
@@ -342,6 +376,7 @@ const ContinuousAreaChart: FC<Props> = ({
               graphType: chart.graphType,
             }))}
           yDomain={yDomain}
+          xDomain={xDomain}
           chartWidth={chartWidth}
           chartHeight={height}
           barWidth={barWidth}
@@ -530,7 +565,7 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           )}
-          {(graphType === "cdf" || questionType === QuestionType.Discrete) && (
+          {(graphType === "cdf" || question.type === QuestionType.Discrete) && (
             <VictoryAxis
               dependentAxis
               style={{
@@ -539,6 +574,7 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
               tickValues={yScale.ticks}
               tickFormat={yScale.tickFormat}
+              axisValue={xDomain[0]}
             />
           )}
           <VictoryAxis
@@ -609,6 +645,7 @@ const ContinuousAreaChart: FC<Props> = ({
               }))}
               chartHeight={height}
               yDomain={yDomain}
+              xDomain={xDomain}
               paddingBottom={BOTTOM_PADDING}
               paddingTop={paddingTop}
               paddingLeft={leftPadding}
@@ -636,35 +673,68 @@ function generateNumericAreaGraph(data: {
   cdf: number[];
   graphType: ContinuousAreaGraphType;
   type: ContinuousAreaType;
-  discrete: boolean;
+  question:
+    | Question
+    | {
+        type: QuestionType;
+        open_lower_bound?: boolean;
+        open_upper_bound?: boolean;
+      };
 }): NumericPredictionGraph {
-  const { pmf, cdf, graphType, type, discrete } = data;
+  const { pmf, cdf, graphType, type, question } = data;
 
   const graph: Line = [];
-  if (graphType === "cdf") {
-    cdf.forEach((value, index) => {
-      graph.push({ x: (index - 0.5) / (cdf.length - 1), y: value });
-    });
+  if (question.type === QuestionType.Discrete) {
+    if (graphType === "cdf") {
+      if (question.open_lower_bound) {
+        graph.push({
+          x: -0.5 / (cdf.length - 1),
+          y: cdf.at(0) ?? 0,
+        });
+      }
+      cdf.slice(1).forEach((value, index) => {
+        graph.push({ x: (index + 0.5) / (cdf.length - 1), y: value });
+      });
+      if (question.open_upper_bound) {
+        graph.push({
+          x: (cdf.length - 0.5) / (cdf.length - 1),
+          y: 1,
+        });
+      }
+    } else {
+      if (question.open_lower_bound) {
+        graph.push({ x: -0.5 / (cdf.length - 1), y: pmf.at(0) ?? 0 });
+      }
+      pmf.slice(1, -1).forEach((value, index) => {
+        graph.push({ x: (index + 0.5) / (cdf.length - 1), y: value });
+      });
+      if (question.open_upper_bound) {
+        graph.push({
+          x: (cdf.length - 0.5) / (cdf.length - 1),
+          y: pmf.at(-1) ?? 0,
+        });
+      }
+    }
   } else {
-    pmf.forEach((value, index) => {
-      if (index === 0) {
-        if (discrete) {
+    if (graphType === "cdf") {
+      cdf.forEach((value, index) => {
+        graph.push({ x: (index - 0.5) / (cdf.length - 1), y: value });
+      });
+    } else {
+      pmf.forEach((value, index) => {
+        if (index === 0) {
+          // add a point at the beginning to extend pmf to the edge
+          graph.push({ x: -1e-10, y: pmf[1] ?? null });
           return;
         }
-        // add a point at the beginning to extend pmf to the edge
-        graph.push({ x: -1e-10, y: pmf[1] ?? null });
-        return;
-      }
-      if (index === pmf.length - 1) {
-        if (discrete) {
+        if (index === pmf.length - 1) {
+          // add a point at the end to extend pmf to the edge
+          graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] ?? null });
           return;
         }
-        // add a point at the end to extend pmf to the edge
-        graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] ?? null });
-        return;
-      }
-      graph.push({ x: (index - 0.5) / (pmf.length - 2), y: value });
-    });
+        graph.push({ x: (index - 0.5) / (pmf.length - 2), y: value });
+      });
+    }
   }
 
   if (type === "user_components") {
@@ -679,7 +749,7 @@ function generateNumericAreaGraph(data: {
 
   const verticalLines: Line = [];
   const quantiles = computeQuartilesFromCDF(cdf);
-  if (discrete) {
+  if (question.type === QuestionType.Discrete) {
     verticalLines.push(
       {
         x: quantiles.lower25,

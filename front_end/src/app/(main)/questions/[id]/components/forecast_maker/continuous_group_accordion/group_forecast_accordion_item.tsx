@@ -178,9 +178,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                       height={55}
                       hideLabels
                       hideCP={!showCP}
-                      scaling={question.scaling}
-                      questionType={question.type}
-                      resolution={question.resolution}
+                      question={question}
                     />
                   </div>
                 </div>

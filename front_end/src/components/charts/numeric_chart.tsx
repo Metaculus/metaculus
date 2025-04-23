@@ -144,6 +144,7 @@ const NumericChart: FC<Props> = ({
       extraTheme,
       isEmptyDomain,
       openTime,
+      unit,
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {

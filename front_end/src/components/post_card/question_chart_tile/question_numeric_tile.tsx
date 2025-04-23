@@ -161,13 +161,10 @@ const QuestionNumericTile: FC<Props> = ({
           />
         ) : (
           <ContinuousAreaChart
-            scaling={question.scaling}
             data={continuousAreaChartData}
             height={HEIGHT}
-            questionType={question.type}
-            resolution={question.resolution}
             hideCP={hideCP}
-            unit={question.unit}
+            question={question}
           />
         )}
 

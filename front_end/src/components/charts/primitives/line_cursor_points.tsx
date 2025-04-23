@@ -27,6 +27,7 @@ type Props<T> = {
   paddingLeft?: number;
   paddingRight?: number;
   yDomain: Tuple<number>;
+  xDomain: Tuple<number>;
   barWidth: number;
   discrete?: boolean;
 };
@@ -34,6 +35,7 @@ type Props<T> = {
 const LineCursorPoints = <T extends string>({
   chartData,
   yDomain,
+  xDomain,
   chartWidth,
   chartHeight,
   barWidth,
@@ -65,7 +67,10 @@ const LineCursorPoints = <T extends string>({
 
         const availableWidth = chartWidth - paddingLeft - paddingRight;
         const xValue = getClosestXValue(datum.x, line);
-        const scaledX = xValue * availableWidth + paddingLeft - barWidth / 2;
+        const scaledX =
+          ((xValue - xDomain[0]) / (xDomain[1] - xDomain[0])) * availableWidth +
+          paddingLeft -
+          barWidth / 2;
 
         return discrete ? (
           <rect

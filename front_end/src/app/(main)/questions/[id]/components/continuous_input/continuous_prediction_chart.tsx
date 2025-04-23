@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
@@ -50,6 +51,24 @@ const ContinuousPredictionChart: FC<Props> = ({
     null
   );
 
+  let discreteValueOptions: number[] | undefined = undefined;
+  if (
+    question.type === QuestionType.Discrete &&
+    question?.inbound_outcome_count &&
+    !isNil(question.scaling?.range_min) &&
+    !isNil(question.scaling?.range_max)
+  ) {
+    discreteValueOptions = [];
+    for (let i = 0; i < question.inbound_outcome_count; i++) {
+      discreteValueOptions.push(
+        question.scaling.range_min +
+          ((question.scaling.range_max - question.scaling.range_min) *
+            (i + 0.5)) /
+            question.inbound_outcome_count
+      );
+    }
+  }
+
   const cursorDisplayData = useMemo(() => {
     if (!hoverState) return null;
 
@@ -59,7 +78,8 @@ const ContinuousPredictionChart: FC<Props> = ({
       scaling: question.scaling,
       precision: 5,
       actual_resolve_time: question.actual_resolve_time ?? null,
-      skipQuartilesBorders: true,
+      skipQuartilesBorders: question.type !== QuestionType.Discrete,
+      discreteValueOptions,
     });
     return {
       xLabel,
@@ -146,13 +166,10 @@ const ContinuousPredictionChart: FC<Props> = ({
       <ContinuousAreaChart
         height={height}
         width={width}
-        scaling={question.scaling}
-        questionType={question.type}
+        question={question}
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
-        resolution={question.resolution}
-        unit={question.unit}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (

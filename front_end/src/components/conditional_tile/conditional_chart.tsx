@@ -201,13 +201,11 @@ const ConditionalChart: FC<Props> = ({
             )}
             <ContinuousAreaChart
               height={40}
-              scaling={question.scaling}
               data={continuousAreaChartData}
               extraTheme={chartTheme}
-              questionType={question.type}
-              resolution={question.resolution}
               hideCP={hideCP}
               shortLabels={true}
+              question={question}
             />
           </div>
           {resolved && (

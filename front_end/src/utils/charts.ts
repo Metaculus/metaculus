@@ -353,8 +353,6 @@ export function displayValue({
 /**
  * Returns the display value of an internal location given the
  * details of the question
- *
- * Accepts a Question or the individual parameters of a Question
  */
 export function getDisplayValue({
   value,
@@ -369,6 +367,7 @@ export function getDisplayValue({
   adjustLabels = false,
   skipQuartilesBorders = false,
   longBounds = false,
+  discreteValueOptions,
 }: {
   value: number | null | undefined;
   questionType: QuestionType;
@@ -382,11 +381,18 @@ export function getDisplayValue({
   adjustLabels?: boolean;
   skipQuartilesBorders?: boolean; // remove "<" or ">" from the formatted value if the value is out of the quartiles
   longBounds?: boolean;
+  discreteValueOptions?: number[]; // ordered asc. if given, the value will be rounded to the nearest value in this list
 }): string {
   if (value === undefined || value === null) {
     return "...";
   }
-  const scaledValue = scaleInternalLocation(value, scaling);
+  let scaledValue = scaleInternalLocation(value, scaling);
+  if (discreteValueOptions) {
+    const closestValue = discreteValueOptions.reduce((prev, curr) =>
+      Math.abs(curr - scaledValue) < Math.abs(prev - scaledValue) ? curr : prev
+    );
+    scaledValue = closestValue;
+  }
   const centerDisplay =
     checkQuartilesOutOfBorders(skipQuartilesBorders ? undefined : value, {
       longBounds,
@@ -718,6 +724,7 @@ type GenerateScaleParams = {
   forcedTickCount?: number;
   shortLabels?: boolean;
   adjustLabels?: boolean;
+  question?: Question;
 };
 
 /**
@@ -750,6 +757,7 @@ export function generateScale({
   forcedTickCount,
   shortLabels = false,
   adjustLabels = false,
+  question,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -759,9 +767,12 @@ export function generateScale({
     zero_point: null,
   };
 
-  const rangeMin = scaling?.range_min ?? domainMin;
-  const rangeMax = scaling?.range_max ?? domainMax;
-  const zeroPoint = scaling?.zero_point ?? null;
+  const rangeMin =
+    question?.scaling?.range_min ?? scaling?.range_min ?? domainMin;
+  const rangeMax =
+    question?.scaling?.range_max ?? scaling?.range_max ?? domainMax;
+  const zeroPoint =
+    question?.scaling?.zero_point ?? scaling?.zero_point ?? null;
   const rangeScaling = {
     range_min: rangeMin,
     range_max: rangeMax,
@@ -791,7 +802,11 @@ export function generateScale({
   }
   const tickCount =
     displayType === QuestionType.Discrete
-      ? forcedTickCount ?? (maxLabelCount - 1) * 5 + 1
+      ? ((question?.inbound_outcome_count || 0) +
+          (question?.open_lower_bound ? 1 : 0) +
+          (question?.open_upper_bound ? 1 : 0) ||
+          forcedTickCount) ??
+        (maxLabelCount - 1) * 5 + 1
       : (maxLabelCount - 1) * 5 + 1;
 
   // TODO: this does not support choosing values intelligently in
@@ -814,15 +829,16 @@ export function generateScale({
   if (displayType === QuestionType.Discrete) {
     // First and last ticks are 1/2 a bucket width away from the
     // boarders
-    tickStart = Math.round(1e7 * (0.5 / tickCount)) / 1e7;
-    tickEnd = Math.round(1e7 * (1 - 0.5 / tickCount)) / 1e7;
-    minorTickInterval = Math.round(1e9 / tickCount) / 1e9;
+    tickStart = Math.round(1e7 * (-0.5 / (tickCount - 2))) / 1e7;
+    tickEnd = Math.round(1e7 * (1 + 0.5 / (tickCount - 2))) / 1e7;
+    minorTickInterval = Math.round(1e9 / (tickCount - 2)) / 1e9;
     minorTicks = range(tickStart, tickEnd + 1e-4, minorTickInterval).map(
       (x) => Math.round(x * 10000) / 10000
     );
     majorTickStart = tickStart;
     majorTickInterval =
-      minorTickInterval * Math.max(1, Math.round(tickCount / maxLabelCount));
+      minorTickInterval *
+      Math.max(1, Math.round((tickCount - 2) / maxLabelCount));
     majorTicks = range(majorTickStart, tickEnd + 1e-4, majorTickInterval).map(
       (x) => Math.round(x * 10000) / 10000
     );
@@ -866,52 +882,6 @@ export function generateScale({
     );
   }
 
-  // if (direction == "vertical") {
-  //   // Debugging - do not remove
-  //   console.log(
-  //     "\n displayType:",
-  //     displayType,
-  //     "\n axisLength:",
-  //     axisLength,
-  //     "\n domain:",
-  //     domain,
-  //     "\n zoomedDomain:",
-  //     zoomedDomain,
-  //     "\n zoomedRange:",
-  //     zoomedRange,
-  //     "\n scaling:",
-  //     scaling,
-  //     "\n unit:",
-  //     unit,
-  //     "\n forcedTickCount:",
-  //     forcedTickCount,
-  //     "\n maxLabelCount:",
-  //     maxLabelCount,
-  //     "\n tickCount:",
-  //     tickCount,
-  //     "\n domainScaling:",
-  //     domainScaling,
-  //     "\n rangeScaling:",
-  //     rangeScaling,
-  //     "\n minorRes:",
-  //     minorRes,
-  //     "\n majorRes:",
-  //     majorRes,
-  //     "\n tickStart:",
-  //     tickStart,
-  //     "\n tickEnd:",
-  //     tickEnd,
-  //     "\n minorTickInterval:",
-  //     minorTickInterval,
-  //     "\n minorTicks:",
-  //     minorTicks,
-  //     "\n majorTickInterval:",
-  //     majorTickInterval,
-  //     "\n majorTicks:",
-  //     majorTicks
-  //   );
-  // }
-
   const conditionallyShowUnit = (value: string, idx?: number): string => {
     if (!unit) return value;
 
@@ -928,9 +898,41 @@ export function generateScale({
 
     return value;
   };
-
+  let discreteValueOptions: number[] | undefined = undefined;
+  if (
+    displayType === QuestionType.Discrete &&
+    question?.inbound_outcome_count &&
+    !isNil(question.scaling?.range_min) &&
+    !isNil(question.scaling?.range_max)
+  ) {
+    discreteValueOptions = [];
+    for (let i = 0; i < question.inbound_outcome_count; i++) {
+      discreteValueOptions.push(
+        question.scaling.range_min +
+          ((question.scaling.range_max - question.scaling.range_min) *
+            (i + 0.5)) /
+            question.inbound_outcome_count
+      );
+    }
+  }
   function tickFormat(x: number, idx?: number) {
     if (majorTicks.includes(Math.round(x * 10000) / 10000)) {
+      if (displayType === QuestionType.Discrete) {
+        return conditionallyShowUnit(
+          getDisplayValue({
+            value: x,
+            questionType: displayType as QuestionType,
+            scaling: rangeScaling,
+            precision: 3,
+            actual_resolve_time: null,
+            dateFormatString: shortLabels ? "yyyy" : undefined,
+            adjustLabels,
+            skipQuartilesBorders: false,
+            discreteValueOptions,
+          }),
+          idx
+        );
+      }
       const unscaled = unscaleNominalLocation(x, domainScaling);
       return conditionallyShowUnit(
         getDisplayValue({
@@ -950,6 +952,19 @@ export function generateScale({
   }
 
   function cursorFormat(x: number, idx?: number) {
+    if (displayType === QuestionType.Discrete) {
+      return conditionallyShowUnit(
+        getDisplayValue({
+          value: x,
+          questionType: displayType as QuestionType,
+          scaling: rangeScaling,
+          precision: 6,
+          actual_resolve_time: null,
+          discreteValueOptions,
+        }),
+        idx
+      );
+    }
     const unscaled = unscaleNominalLocation(x, domainScaling);
     return conditionallyShowUnit(
       getDisplayValue({
@@ -960,6 +975,54 @@ export function generateScale({
         actual_resolve_time: null,
       }),
       idx
+    );
+  }
+
+  if (direction == "horizontal") {
+    // Debugging - do not remove
+    console.log(
+      "\n displayType:",
+      displayType,
+      "\n axisLength:",
+      axisLength,
+      "\n domain:",
+      domain,
+      "\n zoomedDomain:",
+      zoomedDomain,
+      "\n zoomedRange:",
+      zoomedRange,
+      "\n scaling:",
+      scaling,
+      "\n unit:",
+      unit,
+      "\n forcedTickCount:",
+      forcedTickCount,
+      "\n maxLabelCount:",
+      maxLabelCount,
+      "\n tickCount:",
+      tickCount,
+      "\n domainScaling:",
+      domainScaling,
+      "\n rangeScaling:",
+      rangeScaling,
+      "\n minorRes:",
+      minorRes,
+      "\n majorRes:",
+      majorRes,
+      "\n tickStart:",
+      tickStart,
+      "\n tickEnd:",
+      tickEnd,
+      "\n minorTickInterval:",
+      minorTickInterval,
+      "\n minorTicks:",
+      minorTicks,
+      "\n majorTickInterval:",
+      majorTickInterval,
+      "\n majorTicks:",
+      majorTicks,
+      "\n major tick labels:",
+      majorTicks.map((x) => tickFormat(x))
     );
   }
 
@@ -1742,8 +1805,8 @@ export function checkQuartilesOutOfBorders(
   const { longBounds = false } = options ?? {};
 
   if (longBounds) {
-    return quartile === 0 ? "Less than " : quartile === 1 ? "More than " : "";
+    return quartile <= 0 ? "Less than " : quartile >= 1 ? "More than " : "";
   }
 
-  return quartile === 0 ? "<" : quartile === 1 ? ">" : "";
+  return quartile <= 0 ? "<" : quartile >= 1 ? ">" : "";
 }

@@ -102,8 +102,7 @@ const ContinuousAggregationChart: FC<Props> = ({
       </div>
       <ContinuousAreaChart
         height={150}
-        scaling={scaling}
-        questionType={qType}
+        question={question}
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}

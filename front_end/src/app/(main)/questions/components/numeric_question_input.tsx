@@ -183,6 +183,9 @@ const NumericQuestionInput: React.FC<{
     }
     if (questionType == QuestionType.Discrete) {
       if (!isNil(min) && !isNil(max) && !isNil(step)) {
+        if (step === 0) {
+          current_errors.push(`Step cannot be zero`);
+        }
         if (step > (max - min) / 2) {
           current_errors.push(
             `Step cannot be more than half the range: (${(max - min) / 2})`
