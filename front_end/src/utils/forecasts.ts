@@ -233,15 +233,33 @@ export function generateQuantileContinuousCdf({
   probAboveUpper: number;
   question: Question;
 }): number[] | string {
+  console.log({ quantiles, probBelowLower, probAboveUpper, question });
   const { range_min, range_max } = question.scaling;
   if (range_min === null || range_max === null) {
     return "questionRangeError";
+  }
+  let value_at_lower = range_min;
+  let value_at_upper = range_max;
+  if (
+    question.type === QuestionType.Discrete &&
+    !isNil(question.inbound_outcome_count)
+  ) {
+    const step_size = (range_max - range_min) / question.inbound_outcome_count;
+    value_at_lower = Math.round(1e10 * (range_min + 0.5 * step_size)) / 1e10;
+    value_at_upper = Math.round(1e10 * (range_max - 0.5 * step_size)) / 1e10;
   }
 
   // create a sorted list of known points
   const scaledQuantiles: { quantile: number; value: number }[] = [];
   quantiles.forEach(({ quantile, value }) => {
-    const scaledValue = nominalLocationToCdfLocation(value, question);
+    const scaledValue = nominalLocationToCdfLocation(
+      value <= value_at_lower
+        ? range_min
+        : value >= value_at_upper
+          ? range_max
+          : value,
+      question
+    );
     // TODO: support for quantiles on boundaries
     if (0 < scaledValue && scaledValue < 1) {
       scaledQuantiles.push({

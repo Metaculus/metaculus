@@ -5,6 +5,7 @@ import {
   DefaultInboundOutcomeCount,
   DistributionQuantileComponent,
   Quantile,
+  QuestionType,
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
@@ -25,7 +26,13 @@ export function validateQuantileInput({
   t: ReturnType<typeof useTranslations>;
 }): string | undefined {
   const { open_lower_bound, open_upper_bound } = question;
-  const { range_min, range_max } = question.scaling;
+  let range_min = question.scaling.range_min;
+  let range_max = question.scaling.range_max;
+  if (question.type === QuestionType.Discrete) {
+    const step_size = (range_max - range_min) / question.inbound_outcome_count!;
+    range_min = Math.round(1e10 * (range_min + 0.5 * step_size)) / 1e10;
+    range_max = Math.round(1e10 * (range_max - 0.5 * step_size)) / 1e10;
+  }
   const probBelowLower = components[0]?.value;
   const probAboveUpper = components[components.length - 1]?.value;
   const q1 = components.find((q) => q.quantile === Quantile.q1)?.value;

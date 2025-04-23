@@ -208,9 +208,12 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                   !isNil(question?.scaling.range_max) &&
                   !isNil(question.scaling.range_min) &&
                   !isNil(question.inbound_outcome_count)
-                    ? (question.scaling.range_max -
-                        question.scaling.range_min) /
-                      question.inbound_outcome_count
+                    ? Math.round(
+                        1e10 *
+                          ((question.scaling.range_max -
+                            question.scaling.range_min) /
+                            question.inbound_outcome_count)
+                      ) / 1e10
                     : "any"
                 }
                 placeholder="numeric resolution"
@@ -219,11 +222,14 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                   !isNil(question?.scaling.range_max) &&
                   !isNil(question.scaling.range_min) &&
                   !isNil(question.inbound_outcome_count)
-                    ? question.scaling.range_min +
-                      0.5 *
-                        ((question.scaling.range_max -
-                          question.scaling.range_min) /
-                          question.inbound_outcome_count)
+                    ? Math.round(
+                        1e10 *
+                          (question.scaling.range_min +
+                            0.5 *
+                              ((question.scaling.range_max -
+                                question.scaling.range_min) /
+                                question.inbound_outcome_count))
+                      ) / 1e10
                     : undefined
                 }
                 max={question?.scaling.range_max ?? undefined}
