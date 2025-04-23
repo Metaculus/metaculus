@@ -2,26 +2,27 @@
 
 import {
   faChevronDown,
+  faPlus,
   faReply,
   faThumbtack,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useState, useEffect, useRef, ReactNode, useCallback } from "react";
+import { FC, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
+import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
+import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
 import {
-  softDeleteComment,
-  editComment,
   createForecasts,
+  editComment,
   getComments,
+  softDeleteComment,
 } from "@/app/(main)/questions/actions";
 import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
-import KeyFactor from "@/components/comment_feed/comment_key_factor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import { Admin } from "@/components/icons/admin";
@@ -34,9 +35,14 @@ import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
-import { CommentType } from "@/types/comment";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { BECommentType, CommentType, KeyFactor } from "@/types/comment";
+import {
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 import { getCommentIdToFocusOn, parseUserMentions } from "@/utils/comments";
 import { logError } from "@/utils/errors";
@@ -49,7 +55,6 @@ import { validateComment } from "./validate_comment";
 import LoadingSpinner from "../ui/loading_spiner";
 
 import { SortOption, sortComments } from ".";
-
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
   expandedChildren?: boolean;
@@ -225,13 +230,13 @@ const Comment: FC<CommentProps> = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-
+  const [isAddKeyFactorsModalOpen, setIsAddKeyFactorsModalOpen] =
+    useState(false);
   const { user } = useAuth();
   const scrollTo = useScrollTo();
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
-
   const isCmmButtonVisible =
     user?.id !== comment.author.id &&
     (!!postData?.question ||
@@ -247,6 +252,13 @@ const Comment: FC<CommentProps> = ({
     comment.changed_my_mind.for_this_user
   );
 
+  const [commentKeyFactors, setCommentKeyFactors] = useState<KeyFactor[]>(
+    comment.key_factors ?? []
+  );
+  useEffect(() => {
+    setCommentKeyFactors(comment.key_factors ?? []);
+  }, [comment.key_factors]);
+
   const updateForecast = async (value: number) => {
     const response = await createForecasts(comment.on_post, [
       {
@@ -258,7 +270,7 @@ const Comment: FC<CommentProps> = ({
         },
       },
     ]);
-    sendGAEvent("event", "commentChangedPrediction");
+    sendAnalyticsEvent("commentChangedPrediction");
     if (response && "errors" in response && !!response.errors) {
       throw response.errors;
     }
@@ -485,10 +497,17 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {comment.key_factors &&
-        comment.key_factors.map((kf) => (
-          <KeyFactor keyFactor={kf} key={`key-factor-${kf.id}`} />
-        ))}
+      {commentKeyFactors.length > 0 && (
+        <div className="mb-3 mt-1.5 flex flex-col gap-1">
+          {commentKeyFactors.map((kf) => (
+            <KeyFactorItem
+              key={`key-factor-${kf.id}`}
+              keyFactor={kf}
+              linkToComment={false}
+            />
+          ))}
+        </div>
+      )}
       <div>
         <CmmOverlay
           forecast={100 * userForecast}
@@ -673,6 +692,22 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
+                  {comment.author.id === user?.id &&
+                    ![
+                      PostStatus.CLOSED,
+                      PostStatus.RESOLVED,
+                      PostStatus.PENDING_RESOLUTION,
+                    ].includes(postData?.status ?? PostStatus.CLOSED) && (
+                      <Button
+                        size="xxs"
+                        variant="tertiary"
+                        onClick={() => setIsAddKeyFactorsModalOpen(true)}
+                      >
+                        <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
+                        {t("addKeyFactor")}
+                      </Button>
+                    )}
+
                   {isCmmButtonVisible && !isMobileScreen && (
                     <CmmToggleButton
                       cmmContext={cmmContext}
@@ -752,6 +787,17 @@ const Comment: FC<CommentProps> = ({
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
       />
+      {user && (
+        <AddKeyFactorsModal
+          isOpen={isAddKeyFactorsModalOpen}
+          onClose={() => setIsAddKeyFactorsModalOpen(false)}
+          commentId={comment.id}
+          onSuccess={(comment: BECommentType) => {
+            setCommentKeyFactors(comment.key_factors ?? []);
+          }}
+          user={user}
+        />
+      )}
     </div>
   );
 };

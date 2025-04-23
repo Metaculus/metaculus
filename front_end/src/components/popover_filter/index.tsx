@@ -1,7 +1,6 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect } from "react";
 
@@ -10,6 +9,7 @@ import MultiChipFilter from "@/components/popover_filter/multi_chip_filter";
 import ToggleChipFilter from "@/components/popover_filter/toggle_chip_filter";
 import Button from "@/components/ui/button";
 import { useBreakpoint } from "@/hooks/tailwind";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 
 import { FilterOptionType, FilterReplaceInfo, FilterSection } from "./types";
@@ -89,7 +89,7 @@ const PopoverFilter: FC<Props> = ({
               "bg-gray-300 dark:bg-gray-300-dark": open,
             })}
             onClick={() =>
-              sendGAEvent("event", "feedFilterClick", {
+              sendAnalyticsEvent("feedFilterClick", {
                 event_category: new URLSearchParams(
                   window.location.search
                 ).toString(),

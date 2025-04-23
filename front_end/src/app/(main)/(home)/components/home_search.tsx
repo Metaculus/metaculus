@@ -1,5 +1,4 @@
 "use client";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
@@ -13,6 +12,7 @@ import {
 } from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import { QuestionOrder } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { encodeQueryParams } from "@/utils/navigation";
 
 const HomeSearch: FC = () => {
@@ -30,8 +30,7 @@ const HomeSearch: FC = () => {
         })
     );
 
-    sendGAEvent({
-      event: "feedSearch",
+    sendAnalyticsEvent("feedSearch", {
       event_category: "fromHomepage",
     });
   };

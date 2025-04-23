@@ -1,6 +1,5 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
 import { useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 
@@ -15,6 +14,7 @@ import { PostsParams } from "@/services/posts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/errors";
 
 type Props = {
@@ -58,7 +58,7 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
       setIsLoading(true);
       setError(undefined);
       try {
-        sendGAEvent("event", "feedSearch", {
+        sendAnalyticsEvent("feedSearch", {
           event_category: JSON.stringify(pageFilters),
         });
         const { questions } = (await fetchPosts(

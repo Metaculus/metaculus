@@ -16,9 +16,9 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import { sendPredictEvent } from "@/utils/analytics";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
-import { sendGAPredictEvent } from "./ga_events";
 import PredictionSuccessBox from "./prediction_success_box";
 import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
@@ -72,7 +72,7 @@ const ForecastMakerBinary: FC<Props> = ({
 
     if (forecast === null) return;
 
-    sendGAPredictEvent(post, question, hideCP);
+    sendPredictEvent(post, question, hideCP);
 
     const forecastValue = round(forecast / 100, BINARY_FORECAST_PRECISION);
     const response = await createForecasts(post.id, [

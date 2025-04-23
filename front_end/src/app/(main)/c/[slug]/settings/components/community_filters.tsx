@@ -2,7 +2,6 @@
 
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
@@ -12,6 +11,7 @@ import { POST_STATUS_FILTER } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { Community } from "@/types/projects";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 
 type Props = {
@@ -51,7 +51,7 @@ const CommunityFilters: FC<Props> = ({ community }) => {
           onChange={handleStatusChange}
           variant="tertiary"
           onClick={(buttonLabel) =>
-            sendGAEvent("event", "feedShortcutClick", {
+            sendAnalyticsEvent("feedShortcutClick", {
               event_category: buttonLabel,
             })
           }

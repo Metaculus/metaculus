@@ -1,11 +1,11 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import useScrollTo from "@/hooks/use_scroll_to";
 import { KeyFactor } from "@/types/comment";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 type Props = {
   keyFactor: KeyFactor;
@@ -29,7 +29,7 @@ const CommentKeyFactor: FC<Props> = ({ keyFactor: { text } }) => {
           if (target) {
             scrollTo(target.getBoundingClientRect().top);
           }
-          sendGAEvent("event", "KeyFactorClick", {
+          sendAnalyticsEvent("KeyFactorClick", {
             event_label: "fromComment",
           });
         }}

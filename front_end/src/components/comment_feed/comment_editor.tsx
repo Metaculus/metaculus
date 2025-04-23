@@ -1,7 +1,6 @@
 "use client";
 
 import { MDXEditorMethods } from "@mdxeditor/editor";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useEffect, useRef, useState } from "react";
@@ -18,6 +17,7 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import {
   saveCommentDraft,
   getCommentDraft,
@@ -130,7 +130,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         return;
       }
     }
-    sendGAEvent("event", "postComment", {
+    sendAnalyticsEvent("postComment", {
       event_label: hasIncludedForecast ? "predictionIncluded" : null,
     });
 

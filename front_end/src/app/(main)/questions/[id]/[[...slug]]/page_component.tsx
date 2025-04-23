@@ -29,7 +29,7 @@ import DetailedQuestionCard from "../components/detailed_question_card";
 import ForecastMaker from "../components/forecast_maker";
 import ContinuousGroupTimeline from "../components/forecast_timeline_drawer";
 import HistogramDrawer from "../components/histogram_drawer";
-import KeyFactorsSection from "../components/key_factors";
+import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
@@ -44,11 +44,6 @@ const IndividualQuestionPage: FC<{
 }> = async ({ params, searchParams }) => {
   const postData = await cachedGetPost(params.id);
   const defaultProject = postData.projects.default_project;
-  const keyFactors = (postData.key_factors ?? []).sort((a, b) =>
-    b.votes_score === a.votes_score
-      ? Math.random() - 0.5
-      : b.votes_score - a.votes_score
-  );
 
   if (postData.notebook) {
     return redirect(
@@ -76,7 +71,7 @@ const IndividualQuestionPage: FC<{
   const questionTitle = getQuestionTitle(postData);
   return (
     <EmbedModalContextProvider>
-      <CommentsFeedProvider postId={postData.id} rootCommentStructure={true}>
+      <CommentsFeedProvider postData={postData} rootCommentStructure={true}>
         <HideCPProvider post={postData}>
           {isCommunityQuestion ? (
             <CommunityHeader community={currentCommunity} />
@@ -150,9 +145,11 @@ const IndividualQuestionPage: FC<{
                     )}
 
                     <div className="flex flex-col gap-2.5">
-                      {!!keyFactors.length && (
-                        <KeyFactorsSection keyFactors={keyFactors} />
-                      )}
+                      <KeyFactorsSection
+                        postId={postData.id}
+                        postStatus={postData.status}
+                      />
+
                       <BackgroundInfo post={postData} />
                       {!!postData.group_of_questions && (
                         <ContinuousGroupTimeline

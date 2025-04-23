@@ -9,6 +9,7 @@ import CommentsApi, {
   CreateCommentParams,
   EditCommentParams,
   getCommentsParams,
+  KeyFactorVoteParams,
   ToggleCMMCommentParams,
   VoteParams,
 } from "@/services/comments";
@@ -310,6 +311,21 @@ export async function createComment(commentData: CreateCommentParams) {
   }
 }
 
+export async function addKeyFactorsToComment(
+  commentId: number,
+  keyFactors: string[]
+) {
+  try {
+    return await CommentsApi.addKeyFactorsToComment(commentId, keyFactors);
+  } catch (err) {
+    const error = err as ApiError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export async function commentTogglePin(commentId: number, pin: boolean) {
   return await CommentsApi.togglePin(commentId, pin);
 }
@@ -318,7 +334,7 @@ export async function voteComment(voteData: VoteParams) {
   return await CommentsApi.voteComment(voteData);
 }
 
-export async function voteKeyFactor(voteData: VoteParams) {
+export async function voteKeyFactor(voteData: KeyFactorVoteParams) {
   return await CommentsApi.voteKeyFactor(voteData);
 }
 

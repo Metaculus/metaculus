@@ -193,7 +193,7 @@ const IndividualNotebookPage: FC<{
               )}
             </div>
             <CommentsFeedProvider
-              postId={postData.id}
+              postData={postData}
               rootCommentStructure={true}
             >
               <CommentFeed
