@@ -24,6 +24,7 @@ import {
   DistributionSliderComponent,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { sendPredictEvent } from "@/utils/analytics";
 import { getDisplayValue } from "@/utils/charts";
 import {
   clearQuantileComponents,
@@ -36,7 +37,6 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
-import { sendGAPredictEvent } from "./ga_events";
 import PredictionSuccessBox from "./prediction_success_box";
 import ContinuousInput from "../../continuous_input";
 import { useHideCP } from "../../cp_provider";
@@ -218,7 +218,7 @@ const ForecastMakerContinuous: FC<Props> = ({
 
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
-    sendGAPredictEvent(post, question, hideCP);
+    sendPredictEvent(post, question, hideCP);
 
     if (forecastInputMode === ContinuousForecastInputType.Quantile) {
       const validationErrors = validateUserQuantileData({

@@ -193,7 +193,13 @@ export default async function FAQ() {
             </li>
             <li>
               <a href="#ressrc">
-                What happens if a resolution source is no longer available?
+                What happens if a resolution source is in error or no longer
+                available?
+              </a>
+            </li>
+            <li>
+              <a href="#resmethod">
+                What happens if a resolution source changes methodology?
               </a>
             </li>
             <li>
@@ -2297,12 +2303,56 @@ export default async function FAQ() {
             Ideally, every question would be written with maximally clear
             language, but some ambiguities are inevitable. Unless specifically
             indicated otherwise, if a resolution source is judged by Metaculus
-            Admins to be defunct, obsolete, or inadequate, Admins will make a
-            best effort to replace it with a functional equivalent. Questions
-            can over-rule this policy with language such as &quot;If [this
-            source] is no longer available, the question will resolve
-            Ambiguously&quot; or &quot;This question tracks publications by
-            [this source], regardless of publications by other sources.&quot;
+            Admins to be defunct, obsolete, inadequate, or in error, Admins will
+            make a best effort to replace it with a functional equivalent or may
+            annul the question. Questions can over-rule this policy with
+            language such as &quot;If [this source] is no longer available, the
+            question will resolve Ambiguously&quot; or &quot;This question
+            tracks publications by [this source], regardless of publications by
+            other sources or perceived errors in the publication.&quot;
+          </p>
+        </div>
+
+        <div>
+          <h3
+            id="resmethod"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What happens if a resolution source changes methodology?
+          </h3>
+          <p>
+            Some questions on Metaculus are resolved based on estimates from
+            credible sources, which can substantially vary depending on each
+            source&#39;s methodology. For example, the Global Study on Homicide{" "}
+            <a
+              href="https://www.unodc.org/documents/data-and-analysis/gsh/2023/GSH23_Special_Points.pdf"
+              target="_blank"
+            >
+              estimated
+            </a>{" "}
+            a rate of 5.8 per 100k people in 2021, while Our World in Data{" "}
+            <a
+              href="https://ourworldindata.org/grapher/homicide-rate?tab=chart&country=~OWID_WRL"
+              target="_blank"
+            >
+              reported
+            </a>{" "}
+            a rate of 5.0 per 100k people using data from the Institute for
+            Health Metrics and Evaluation. If Our World in Data were to change
+            its underlying source to the Global Study on Homicide, then its
+            reported homicide rate for 2021 would change.
+          </p>
+          <p>
+            Ideally such questions should clearly specify how they would resolve
+            if the source&#39;s methodology changes. If not specified, Metaculus
+            Admins will resolve the question based on the new estimates if they
+            judge the change in methodology to be minor. If the change is
+            substantial, then Metaculus Admins will generally resolve the
+            question based on the previous methodology, if this is available, or
+            use an alternate credible source with similar estimates to the
+            previous methodology. If resulting data from the previous
+            methodology or alternate credible sources is unavailable, Admins
+            will annul the question.
           </p>
         </div>
 

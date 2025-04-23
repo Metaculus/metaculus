@@ -1,6 +1,5 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 import { VictoryThemeDefinition } from "victory";
@@ -12,6 +11,7 @@ import ForecastersCounter from "@/app/(main)/questions/components/forecaster_cou
 import PredictionChip from "@/components/prediction_chip";
 import { ConditionalPost, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/cn";
 import {
   getConditionalQuestionTitle,
@@ -69,7 +69,7 @@ const ConditionalTile: FC<Props> = ({
       !!question_no.my_forecasts?.history.length ||
       !!question_yes.my_forecasts?.history.length
     ) {
-      sendGAEvent("event", "visitPredictedQuestion", {
+      sendAnalyticsEvent("visitPredictedQuestion", {
         event_category: "conditional",
       });
     }

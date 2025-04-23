@@ -1,6 +1,5 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 
@@ -13,6 +12,7 @@ import {
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
 import {
   getGroupForecastAvailability,
@@ -44,7 +44,7 @@ const DetailedGroupCard: FC<Props> = ({ post, preselectedQuestionId }) => {
 
   useEffect(() => {
     if (questions.some((q) => !!q.my_forecasts?.history.length)) {
-      sendGAEvent("event", "visitPredictedQuestion", {
+      sendAnalyticsEvent("visitPredictedQuestion", {
         event_category: "group",
       });
     }

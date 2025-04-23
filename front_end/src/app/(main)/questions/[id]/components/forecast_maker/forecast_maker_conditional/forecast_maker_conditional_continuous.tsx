@@ -33,6 +33,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { sendConditionalPredictEvent } from "@/utils/analytics";
 import { getTableDisplayValue } from "@/utils/charts";
 import cn from "@/utils/cn";
 import {
@@ -47,7 +48,6 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
-import { sendGAConditionalPredictEvent } from "./ga_events";
 import ContinuousInput from "../../continuous_input";
 import { useHideCP } from "../../cp_provider";
 import ConditionalForecastTable, {
@@ -462,7 +462,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       )
     );
     questionsToSubmit.forEach((q) => {
-      sendGAConditionalPredictEvent(
+      sendConditionalPredictEvent(
         projects,
         q.id === questionYesId ? !!prevYesForecastValue : !!prevNoForecastValue,
         hideCP

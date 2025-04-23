@@ -111,7 +111,11 @@ export const EmbedQuestionAction: FC = () => {
 
   return (
     <>
-      <Button variant="tertiary" onClick={() => setIsModalOpen(true)}>
+      <Button
+        variant="tertiary"
+        className="whitespace-nowrap"
+        onClick={() => setIsModalOpen(true)}
+      >
         + {t("question")}
       </Button>
       <EmbedQuestionModal

@@ -1,7 +1,6 @@
 "use client";
 import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
@@ -15,6 +14,7 @@ import {
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { PostWithForecasts } from "@/types/post";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getProjectLink } from "@/utils/navigation";
 
 import { removePostFromProject } from "../../../actions";
@@ -69,7 +69,7 @@ const SidebarQuestionTags: FC<Props> = ({
             key={element.id}
             href={getProjectLink(element)}
             onClick={() =>
-              sendGAEvent("event", "questionTagClicked", {
+              sendAnalyticsEvent("questionTagClicked", {
                 event_category: element.name,
               })
             }
@@ -84,7 +84,7 @@ const SidebarQuestionTags: FC<Props> = ({
             key={element.id}
             href={`/questions/?${POST_CATEGORIES_FILTER}=${element.slug}&for_main_feed=false`}
             onClick={() =>
-              sendGAEvent("event", "questionTagClicked", {
+              sendAnalyticsEvent("questionTagClicked", {
                 event_category: element.name,
               })
             }
@@ -104,7 +104,7 @@ const SidebarQuestionTags: FC<Props> = ({
               router.refresh();
             }}
             onClick={() =>
-              sendGAEvent("event", "questionTagClicked", {
+              sendAnalyticsEvent("questionTagClicked", {
                 event_category: element.name,
               })
             }
