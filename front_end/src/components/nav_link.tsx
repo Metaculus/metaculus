@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ComponentProps, FC } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 import { isPathEqual } from "@/utils/navigation";
 
 type LinkProps = ComponentProps<typeof Link> & {

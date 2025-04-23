@@ -10,7 +10,7 @@ import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { Community } from "@/types/projects";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type NavbarLinkDefinition = {
   label: ReactNode;

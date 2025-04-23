@@ -1,9 +1,12 @@
 import { isNil, round } from "lodash";
 import React, { FC, useCallback } from "react";
 
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import { BINARY_FORECAST_PRECISION } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
-import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
+import ContinuousAreaChart, {
+  getContinuousAreaChartData,
+} from "@/components/charts/continuous_area_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
@@ -16,11 +19,8 @@ import {
   QuestionWithNumericForecasts,
   UserForecast,
 } from "@/types/question";
-import {
-  getContinuousAreaChartData,
-  getContinuousChartTypeFromQuestion,
-} from "@/utils/charts";
-import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
+import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 const HEIGHT = 100;
 
@@ -28,28 +28,26 @@ type Props = {
   question: QuestionWithNumericForecasts;
   curationStatus: PostStatus | QuestionStatus;
   defaultChartZoom?: TimelineChartZoomOption;
-  hideCP?: boolean;
   forecasters?: number;
   forecastAvailability: ForecastAvailability;
   canPredict?: boolean;
 };
 
-const QuestionNumericTile: FC<Props> = ({
+const QuestionContinuousTile: FC<Props> = ({
   question,
   curationStatus,
   defaultChartZoom,
-  hideCP,
   forecasters,
   forecastAvailability,
   canPredict,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
 
-  const latest = question.aggregations.recency_weighted.latest;
-  const continuousAreaChartData = getContinuousAreaChartData(
-    latest,
-    question.my_forecasts?.latest
-  );
+  const { hideCP } = useHideCP();
+
+  const continuousAreaChartData = getContinuousAreaChartData({
+    question,
+  });
 
   // generate data to submit based on user forecast and question type
   const handleReaffirmClick = useCallback(
@@ -132,15 +130,8 @@ const QuestionNumericTile: FC<Props> = ({
             aggregation={question.aggregations.recency_weighted}
             myForecasts={question.my_forecasts}
             height={HEIGHT}
-            questionType={
-              getContinuousChartTypeFromQuestion(question.type) ??
-              QuestionType.Numeric
-            }
-            actualCloseTime={
-              question.actual_close_time
-                ? new Date(question.actual_close_time).getTime()
-                : null
-            }
+            questionType={question.type}
+            actualCloseTime={getPostDrivenTime(question.actual_close_time)}
             scaling={question.scaling}
             defaultZoom={defaultChartZoom}
             resolution={question.resolution}
@@ -151,11 +142,7 @@ const QuestionNumericTile: FC<Props> = ({
               !!forecastAvailability?.isEmpty ||
               !!forecastAvailability?.cpRevealsOn
             }
-            openTime={
-              question.open_time
-                ? new Date(question.open_time).getTime()
-                : undefined
-            }
+            openTime={getPostDrivenTime(question.open_time)}
             unit={question.unit}
           />
         ) : (
@@ -179,4 +166,4 @@ const QuestionNumericTile: FC<Props> = ({
   );
 };
 
-export default QuestionNumericTile;
+export default QuestionContinuousTile;

@@ -4,8 +4,8 @@ import { isNil } from "lodash";
 import { forwardRef, Fragment, PropsWithChildren, useState } from "react";
 
 import { TimelineChartZoomOption } from "@/types/charts";
-import { getChartZoomOptions } from "@/utils/charts";
-import cn from "@/utils/cn";
+import { getChartZoomOptions } from "@/utils/charts/helpers";
+import cn from "@/utils/core/cn";
 
 type Props = {
   height: number;

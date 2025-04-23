@@ -13,7 +13,7 @@ import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 import { isPathEqual } from "@/utils/navigation";
 
 import ContentTranslatedBanner from "../content_translated_banner";

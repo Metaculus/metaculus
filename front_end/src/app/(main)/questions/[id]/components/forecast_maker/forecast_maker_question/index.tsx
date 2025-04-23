@@ -3,7 +3,7 @@ import { FC, ReactNode } from "react";
 
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { formatResolution } from "@/utils/questions";
+import { formatResolution } from "@/utils/formatters/resolution";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
 import ForecastMakerContinuous from "./forecast_maker_continuous";

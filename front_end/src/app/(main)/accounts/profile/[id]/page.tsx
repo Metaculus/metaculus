@@ -20,8 +20,8 @@ import { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
 import { ProfilePageMode, UserProfile } from "@/types/users";
-import cn from "@/utils/cn";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { formatUsername } from "@/utils/formatters/users";
 
 import SoftDeleteButton from "../components/soft_delete_button";
 import TrackRecord from "../components/track_record";

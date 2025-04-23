@@ -7,7 +7,7 @@ import { FC } from "react";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 interface PredictionSuccessBoxProps {
   forecastValue: number | string;

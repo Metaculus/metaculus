@@ -14,7 +14,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { isUnitCompact } from "@/utils/questions";
+import { isUnitCompact } from "@/utils/questions/units";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
 import { useHideCP } from "../../cp_provider";

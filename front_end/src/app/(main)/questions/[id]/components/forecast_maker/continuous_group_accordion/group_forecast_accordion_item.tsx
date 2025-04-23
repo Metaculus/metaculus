@@ -5,23 +5,21 @@ import { isNil } from "lodash";
 import { useLocale } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useState } from "react";
 
-import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
+import ContinuousAreaChart, {
+  getContinuousAreaChartData,
+} from "@/components/charts/continuous_area_chart";
 import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
 import { Quantile } from "@/types/question";
+import cn from "@/utils/core/cn";
 import {
-  displayValue,
-  getContinuousAreaChartData,
-  getDisplayValue,
-} from "@/utils/charts";
-import cn from "@/utils/cn";
-import {
-  getSliderNumericForecastDataset,
   getQuantileNumericForecastDataset,
-} from "@/utils/forecasts";
-import { formatResolution } from "@/utils/questions";
+  getSliderNumericForecastDataset,
+} from "@/utils/forecasts/dataset";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { formatResolution } from "@/utils/formatters/resolution";
 
 import { AccordionOpenButton } from "./accordion_open_button";
 import { AccordionResolutionCell } from "./accordion_resolution_cell";
@@ -67,7 +65,6 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   const isLargeScreen = useBreakpoint("sm");
   const showUserPrediction = hasUserForecast || isDirty;
   const isResolvedOption = type === QuestionStatus.RESOLVED;
-  const latest = question.aggregations.recency_weighted.latest;
   const optionForecast =
     forecastInputMode === ContinuousForecastInputType.Slider
       ? getSliderNumericForecastDataset(
@@ -80,34 +77,35 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
           question
         );
 
-  const continuousAreaChartData = getContinuousAreaChartData(
-    latest,
-    question.my_forecasts?.latest,
-    optionForecast && showUserPrediction
-      ? { cdf: optionForecast.cdf, pmf: optionForecast.pmf }
-      : undefined,
-    type === QuestionStatus.CLOSED
-  );
-  const median = getDisplayValue({
-    value: showCP ? option.communityQuartiles?.median : undefined,
-    questionType: option.question.type,
-    scaling: option.question.scaling,
-    unit,
-    actual_resolve_time: option.question.actual_resolve_time ?? null,
+  const continuousAreaChartData = getContinuousAreaChartData({
+    question,
+    userForecastOverride:
+      optionForecast && showUserPrediction
+        ? { cdf: optionForecast.cdf, pmf: optionForecast.pmf }
+        : undefined,
+    isClosed: type === QuestionStatus.CLOSED,
   });
+  const median = getPredictionDisplayValue(
+    showCP ? option.communityQuartiles?.median : undefined,
+    {
+      questionType: option.question.type,
+      scaling: option.question.scaling,
+      unit,
+      actual_resolve_time: option.question.actual_resolve_time ?? null,
+    }
+  );
   const userMedian = showUserPrediction
     ? forecastInputMode === ContinuousForecastInputType.Quantile
-      ? displayValue({
-          value:
-            option.userQuantileForecast?.find((q) => q.quantile === Quantile.q2)
-              ?.value ?? null,
-          questionType: option.question.type,
-          scaling: option.question.scaling,
-          unit,
-          actual_resolve_time: option.question.actual_resolve_time ?? null,
-        })
-      : getDisplayValue({
-          value: option.userQuartiles?.median,
+      ? getPredictionDisplayValue(
+          option.userQuantileForecast?.find((q) => q.quantile === Quantile.q2)
+            ?.value ?? null,
+          {
+            questionType: option.question.type,
+            unit,
+            actual_resolve_time: option.question.actual_resolve_time ?? null,
+          }
+        )
+      : getPredictionDisplayValue(option.userQuartiles?.median, {
           questionType: option.question.type,
           scaling: option.question.scaling,
           unit,

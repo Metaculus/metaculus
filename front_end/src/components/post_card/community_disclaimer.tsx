@@ -6,7 +6,7 @@ import { FC, PropsWithChildren } from "react";
 
 import Button from "@/components/ui/button";
 import { Project, TournamentType } from "@/types/projects";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 import { getProjectLink } from "@/utils/navigation";
 
 type Props = {

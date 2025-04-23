@@ -8,13 +8,11 @@ import CPWeeklyMovement from "@/components/cp_weekly_movement";
 import ReaffirmButton from "@/components/post_card/reaffirm_button";
 import { PostStatus } from "@/types/post";
 import { QuestionWithForecasts, UserForecast } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
-import cn from "@/utils/cn";
-import {
-  formatResolution,
-  formatValueUnit,
-  isUnsuccessfullyResolved,
-} from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { formatResolution } from "@/utils/formatters/resolution";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
+import { formatValueUnit } from "@/utils/questions/units";
 
 type Size = "compact" | "large";
 
@@ -67,12 +65,14 @@ const PredictionChip: FC<Props> = ({
     const latest = question.my_forecasts?.latest;
 
     if (showUserForecast && latest && !latest.end_time) {
-      const displayValue = getDisplayValue({
-        value: latest.centers ? latest.centers[0] : latest.forecast_values[1],
-        questionType: question.type,
-        scaling: question.scaling,
-        actual_resolve_time: question.actual_resolve_time ?? null,
-      });
+      const displayValue = getPredictionDisplayValue(
+        latest.centers ? latest.centers[0] : latest.forecast_values[1],
+        {
+          questionType: question.type,
+          scaling: question.scaling,
+          actual_resolve_time: question.actual_resolve_time ?? null,
+        }
+      );
 
       return (
         <p className="m-2 text-orange-800 dark:text-orange-800-dark">
@@ -128,19 +128,23 @@ const PredictionChip: FC<Props> = ({
   const latest = question.aggregations.recency_weighted.latest;
   let communityPredictionDisplayValue: string | null = null;
   if (predictionOverride) {
-    communityPredictionDisplayValue = getDisplayValue({
-      value: predictionOverride,
-      questionType: question.type,
-      scaling: question.scaling,
-      actual_resolve_time: question.actual_resolve_time ?? null,
-    });
+    communityPredictionDisplayValue = getPredictionDisplayValue(
+      predictionOverride,
+      {
+        questionType: question.type,
+        scaling: question.scaling,
+        actual_resolve_time: question.actual_resolve_time ?? null,
+      }
+    );
   } else if (latest && !latest.end_time) {
-    communityPredictionDisplayValue = getDisplayValue({
-      value: latest.centers?.[0],
-      questionType: question.type,
-      scaling: question.scaling,
-      actual_resolve_time: question.actual_resolve_time ?? null,
-    });
+    communityPredictionDisplayValue = getPredictionDisplayValue(
+      latest.centers?.[0],
+      {
+        questionType: question.type,
+        scaling: question.scaling,
+        actual_resolve_time: question.actual_resolve_time ?? null,
+      }
+    );
   }
 
   switch (status) {

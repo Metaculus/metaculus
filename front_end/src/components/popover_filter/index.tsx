@@ -10,7 +10,7 @@ import ToggleChipFilter from "@/components/popover_filter/toggle_chip_filter";
 import Button from "@/components/ui/button";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import { FilterOptionType, FilterReplaceInfo, FilterSection } from "./types";
 

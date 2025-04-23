@@ -1,6 +1,6 @@
 import { DetailedHTMLProps, FC, HTMLProps, ReactNode } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type TableProps = {
   title?: string;

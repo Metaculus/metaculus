@@ -16,8 +16,8 @@ import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import { Question, QuestionWithNumericForecasts } from "@/types/question";
 import { sendConditionalPredictEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
-import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
+import cn from "@/utils/core/cn";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
 import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";

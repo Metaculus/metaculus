@@ -8,7 +8,7 @@ import {
   PropsWithChildren,
 } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type ButtonSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 export type ButtonVariant =

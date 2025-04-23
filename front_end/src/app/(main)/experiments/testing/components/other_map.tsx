@@ -2,7 +2,7 @@
 import { FC } from "react";
 
 import { StateByForecastItem, MapType } from "@/types/experiments";
-import { getColorInSpectrum } from "@/utils/colors";
+import { getColorInSpectrum } from "@/utils/core/colors";
 
 import ExperimentMap from "../../components/experiment_map";
 

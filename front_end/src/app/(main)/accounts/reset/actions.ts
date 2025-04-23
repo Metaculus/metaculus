@@ -7,7 +7,7 @@ import {
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
 import { AuthResponse } from "@/types/auth";
-import { ApiError } from "@/utils/errors";
+import { ApiError } from "@/utils/core/errors";
 
 export type PasswordResetRequestActionState = {
   errors?: any;

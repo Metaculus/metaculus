@@ -17,7 +17,7 @@ import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
-import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
 import PredictionSuccessBox from "./prediction_success_box";
 import { useHideCP } from "../../cp_provider";

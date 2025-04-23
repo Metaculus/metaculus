@@ -5,18 +5,20 @@ import { FC } from "react";
 
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import RichText from "@/components/rich_text";
+import { ANNULLED_RESOLUTION } from "@/constants/questions";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
 import {
   getGroupForecastAvailability,
   getQuestionForecastAvailability,
+} from "@/utils/questions/forecastAvailability";
+import {
   isGroupOfQuestionsPost,
-  isQuestionPost,
   isMultipleChoicePost,
-  ANNULLED_RESOLUTION,
-} from "@/utils/questions";
+  isQuestionPost,
+} from "@/utils/questions/helpers";
 
 import ConsumerKeyFactor from "./key_factor";
 import ConsumerPredictionInfo from "./prediction_info";

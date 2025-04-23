@@ -4,7 +4,7 @@ import { FC } from "react";
 import AbreviatedNumericInput from "@/components/ui/abreviated_numeric_input";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { QuantileValue } from "@/types/question";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   type: "number" | "date";

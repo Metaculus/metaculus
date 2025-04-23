@@ -1,4 +1,4 @@
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const DIE_PATH =
   "M64 80c-8.8 0-16 7.2-16 16V416c0 8.8 7.2 16 16 16H384c8.8 " +

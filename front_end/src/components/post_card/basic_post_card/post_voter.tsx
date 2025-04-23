@@ -8,7 +8,7 @@ import { useModal } from "@/contexts/modal_context";
 import { Post } from "@/types/post";
 import { VoteDirection } from "@/types/votes";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 type Props = {
   className?: string;

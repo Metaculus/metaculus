@@ -2,7 +2,7 @@ import { useLocale } from "next-intl";
 import { FC } from "react";
 import "@github/relative-time-element";
 
-import { formatDate } from "@/utils/date_formatters";
+import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
   date?: string;

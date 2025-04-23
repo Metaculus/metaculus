@@ -5,7 +5,7 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { VoteDirection } from "@/types/votes";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   className?: string;

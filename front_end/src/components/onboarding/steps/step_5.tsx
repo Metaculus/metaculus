@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { OnboardingStep } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 type ForecastedPost = {
   post: PostWithForecasts | null;

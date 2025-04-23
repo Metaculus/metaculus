@@ -5,7 +5,7 @@ import {
   SocialProvider,
   SocialProviderType,
 } from "@/types/auth";
-import { get, post } from "@/utils/fetch";
+import { get, post } from "@/utils/core/fetch";
 
 export type SignUpProps = {
   email: string;

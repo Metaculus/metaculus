@@ -9,7 +9,7 @@ import {
 import { Fragment, useMemo } from "react";
 
 import Button, { ButtonVariant } from "@/components/ui/button";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 export type SelectOption<T> = {
   value: T;

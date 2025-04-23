@@ -10,11 +10,11 @@ import { FC } from "react";
 import RadioButton from "@/components/ui/radio_button";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { Question, QuestionWithForecasts } from "@/types/question";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 import {
   getConditionalQuestionTitle,
   getConditionTitle,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
 
 export type ConditionalTableOption = {
   id: number;

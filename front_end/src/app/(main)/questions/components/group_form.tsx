@@ -46,9 +46,9 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
-import { logErrorWithScope } from "@/utils/errors";
+import { logErrorWithScope } from "@/utils/core/errors";
 import { getPostLink } from "@/utils/navigation";
-import { sortGroupPredictionOptions } from "@/utils/questions";
+import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";

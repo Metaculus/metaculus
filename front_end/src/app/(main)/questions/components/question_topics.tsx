@@ -9,15 +9,15 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 import Button from "@/components/ui/button";
 import { FeedType, POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import TopicItem from "./topic_item";
 
@@ -54,7 +54,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
   const { bannerIsVisible: isTranslationBannerVisible } =
-    useContentTranslatedBannerProvider();
+    useContentTranslatedBannerContext();
 
   const selectTopic = (topic: Topic) => {
     clearParams();

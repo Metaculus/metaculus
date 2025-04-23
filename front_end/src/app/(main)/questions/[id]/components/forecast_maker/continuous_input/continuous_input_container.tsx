@@ -11,7 +11,7 @@ import {
   ContinuousForecastInputType,
 } from "@/types/charts";
 import { UserForecast } from "@/types/question";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import ContinuousInputModeSwitcher from "./continuous_input_mode_switcher";
 

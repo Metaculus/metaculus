@@ -8,10 +8,10 @@ import { useLocale, useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
 
 import { updateNotebook } from "@/app/(main)/questions/actions";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 import MarkdownEditor from "@/components/markdown_editor";
 import PostDefaultProject from "@/components/post_default_project";
 import Button from "@/components/ui/button";
+import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { PostStatus, NotebookPost, ProjectPermissions } from "@/types/post";
 
 interface NotebookEditorProps {
@@ -51,7 +51,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
     setIsEditing((prev) => !prev);
   };
 
-  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const locale = useLocale();
 
   useEffect(() => {

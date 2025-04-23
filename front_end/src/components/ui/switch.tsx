@@ -1,7 +1,7 @@
 import { Switch as HeadlessSwitch, SwitchProps } from "@headlessui/react";
 import React, { FC } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const Switch: FC<SwitchProps> = ({ className, ...props }) => {
   return (

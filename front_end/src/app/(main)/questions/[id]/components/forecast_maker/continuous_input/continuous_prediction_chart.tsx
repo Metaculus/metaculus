@@ -10,10 +10,12 @@ import {
 } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
-import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import {
+  getForecastPctDisplayValue,
+  getPredictionDisplayValue,
+} from "@/utils/formatters/prediction";
 import { cdfToPmf } from "@/utils/math";
-import { formatValueUnit } from "@/utils/questions";
+import { formatValueUnit } from "@/utils/questions/units";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -49,8 +51,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   const cursorDisplayData = useMemo(() => {
     if (!hoverState) return null;
 
-    const xLabel = getDisplayValue({
-      value: hoverState.x,
+    const xLabel = getPredictionDisplayValue(hoverState.x, {
       questionType: question.type,
       scaling: question.scaling,
       precision: 5,

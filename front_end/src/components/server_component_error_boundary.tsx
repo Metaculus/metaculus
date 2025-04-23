@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import RefreshButton from "./refresh_button";
 

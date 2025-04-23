@@ -9,8 +9,9 @@ import NumericChart from "@/components/charts/numeric_chart";
 import Button from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import { QuestionType } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
 import { base64ToBlob } from "@/utils/files";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
@@ -71,7 +72,7 @@ const AggregationsTab: FC<Props> = ({
   }
 
   const actualCloseTime = useMemo(
-    () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
+    () => getPostDrivenTime(actual_close_time),
     [actual_close_time]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
@@ -221,8 +222,7 @@ const AggregationsTab: FC<Props> = ({
             />
             <CursorDetailItem
               title={t("communityPredictionLabel")}
-              content={getDisplayValue({
-                value: cursorData.center,
+              content={getPredictionDisplayValue(cursorData.center, {
                 questionType: aggregationData.type,
                 scaling: aggregationData.scaling,
                 range: cursorData?.interval_lower_bound

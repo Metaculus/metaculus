@@ -23,19 +23,13 @@ import {
   Scaling,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import {
-  calculateTextWidth,
-  generateChoiceItemsFromGroupQuestions,
-  getContinuousGroupScaling,
-  getDisplayValue,
-  getResolutionPoint,
-  scaleInternalLocation,
-  unscaleNominalLocation,
-} from "@/utils/charts";
-import {
-  isUnsuccessfullyResolved,
-  sortGroupPredictionOptions,
-} from "@/utils/questions";
+import { calculateTextWidth } from "@/utils/charts/helpers";
+import { getResolutionPoint } from "@/utils/charts/resolution";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
+import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
+import { getContinuousGroupScaling } from "@/utils/questions/helpers";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import DateForecastCardTooltip from "./date_card_tooltip";
 import PredictionSymbol from "./prediction_symbol";
@@ -58,8 +52,7 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
-  const sortedQuestions = sortGroupPredictionOptions(questions, questionsGroup);
-  const choices = generateChoiceItemsFromGroupQuestions(sortedQuestions, {
+  const choices = generateChoiceItemsFromGroupQuestions(questionsGroup, {
     locale,
   });
   const scaling = getContinuousGroupScaling(questions);
@@ -253,7 +246,7 @@ function generateChartData(choices: ChoiceItem[], originalScaling: Scaling) {
                 resolution: choice.resolution,
                 resolveTime: Date.now(),
                 scaling: choice.scaling,
-              })?.[0]?.y ?? null;
+              })?.y ?? null;
             break;
         }
       }
@@ -339,8 +332,7 @@ function formatTickLabel(tick: number, scaling: Scaling, index: number) {
   if (!TICK_LABEL_INDEXES.includes(index)) {
     return "";
   }
-  return getDisplayValue({
-    value: tick,
+  return getPredictionDisplayValue(tick, {
     questionType: QuestionType.Date,
     scaling,
     precision: 3,

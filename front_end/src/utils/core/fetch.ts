@@ -5,7 +5,7 @@ import { getAlphaTokenSession, getServerSession } from "@/services/session";
 import { ApiErrorResponse, FetchOptions } from "@/types/fetch";
 
 import { ApiError, logError } from "./errors";
-import { getPublicSettings } from "./public_settings.server";
+import { getPublicSettings } from "../public_settings.server";
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {

@@ -5,7 +5,7 @@ import {
 import { forwardRef } from "react";
 
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 export function Menu({
   loading,

@@ -21,7 +21,7 @@ import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import RandomButton from "./random_button";
 import VisibilityObserver from "./visibility_observer";

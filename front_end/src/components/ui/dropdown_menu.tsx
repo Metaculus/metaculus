@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuItem, MenuItems, MenuButton } from "@headlessui/react";
 import { Fragment, useEffect } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import Button from "./button";
 

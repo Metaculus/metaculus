@@ -9,7 +9,7 @@ import { FC } from "react";
 
 import SectionToggle, { SectionVariant } from "@/components/ui/section_toggle";
 import { QuestionWithForecasts, ScoreData } from "@/types/question";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   question: QuestionWithForecasts;

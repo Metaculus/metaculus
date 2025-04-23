@@ -1,7 +1,7 @@
 import { Input } from "@headlessui/react";
 import { ChangeEvent, FC } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const INPUT_REGEX = /^(\d{1,2}\.?\d?)?%?$/;
 

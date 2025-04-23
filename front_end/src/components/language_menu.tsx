@@ -8,7 +8,7 @@ import { FC } from "react";
 
 import useSearchParams from "@/hooks/use_search_params";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   className?: string;

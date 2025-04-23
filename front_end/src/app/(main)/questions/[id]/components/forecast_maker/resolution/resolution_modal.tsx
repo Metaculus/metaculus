@@ -14,9 +14,12 @@ import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
+import {
+  AMBIGUOUS_RESOLUTION,
+  ANNULLED_RESOLUTION,
+} from "@/constants/questions";
 import { ErrorResponse } from "@/types/fetch";
 import { Question, QuestionType } from "@/types/question";
-import { AMBIGUOUS_RESOLUTION, ANNULLED_RESOLUTION } from "@/utils/questions";
 
 type Props = {
   question: Question;

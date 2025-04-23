@@ -19,7 +19,7 @@ import {
 } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { parseComment } from "@/utils/comments";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import { getComments } from "../questions/actions";
 

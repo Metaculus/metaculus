@@ -6,7 +6,7 @@ import { AnchorHTMLAttributes, ButtonHTMLAttributes, FC } from "react";
 
 import Button from "@/components/ui/button";
 import { useModal } from "@/contexts/modal_context";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 export const BWRegisterButton: FC<
   ButtonHTMLAttributes<HTMLButtonElement> &

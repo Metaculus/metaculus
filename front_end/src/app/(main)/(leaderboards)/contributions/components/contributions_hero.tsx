@@ -9,7 +9,7 @@ import WithServerComponentErrorBoundary from "@/components/server_component_erro
 import Button from "@/components/ui/button";
 import ProfileApi from "@/services/profile";
 import { CategoryKey } from "@/types/scoring";
-import { formatUsername } from "@/utils/users";
+import { formatUsername } from "@/utils/formatters/users";
 
 import { getPeriodLabel } from "../../helpers/filters";
 import { RANKING_CATEGORIES } from "../../ranking_categories";

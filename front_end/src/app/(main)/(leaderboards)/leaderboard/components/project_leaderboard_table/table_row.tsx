@@ -3,8 +3,8 @@ import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import { LeaderboardEntry } from "@/types/scoring";
-import cn from "@/utils/cn";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
 

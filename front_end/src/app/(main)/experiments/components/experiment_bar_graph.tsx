@@ -3,7 +3,7 @@ import { FC, Fragment, ReactNode, useEffect, useState } from "react";
 
 import useAppTheme from "@/hooks/use_app_theme";
 import { BaseExperimentBar } from "@/types/experiments";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props<T> = {
   bars: T[];

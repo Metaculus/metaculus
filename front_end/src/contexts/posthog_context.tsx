@@ -1,25 +1,19 @@
 "use client";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
-import {
-  PropsWithChildren,
-  useContext,
-  useEffect,
-  useState,
-  FC,
-  createContext,
-  ReactNode,
-} from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
 import SuspendedPostHogPageView from "@/components/posthog_page_view";
 import { getPublicSetting } from "@/components/public_settings_script";
 
-export function CSPostHogProvider({ children }: { children: ReactNode }) {
-  const PUBLIC_POSTHOG_KEY = getPublicSetting("PUBLIC_POSTHOG_KEY");
-  const PUBLIC_POSTHOG_BASE_URL = getPublicSetting("PUBLIC_POSTHOG_BASE_URL");
+function CSPostHogProvider({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
+    const PUBLIC_POSTHOG_KEY = getPublicSetting("PUBLIC_POSTHOG_KEY");
+    const PUBLIC_POSTHOG_BASE_URL = getPublicSetting("PUBLIC_POSTHOG_BASE_URL");
+
     if (PUBLIC_POSTHOG_KEY) {
       posthog.init(PUBLIC_POSTHOG_KEY, {
         api_host: PUBLIC_POSTHOG_BASE_URL,
@@ -57,26 +51,4 @@ export function CSPostHogProvider({ children }: { children: ReactNode }) {
   );
 }
 
-interface TranslationsBannerContextProps {
-  bannerIsVisible: boolean;
-  setBannerIsVisible: (a: boolean) => void;
-}
-const TranslationsBannerContext = createContext<TranslationsBannerContextProps>(
-  { bannerIsVisible: false, setBannerIsVisible: () => {} }
-);
-
-export const TranslationsBannerProvider: FC<PropsWithChildren> = ({
-  children,
-}) => {
-  const [bannerIsVisible, setBannerIsVisible] = useState(false);
-  return (
-    <TranslationsBannerContext.Provider
-      value={{ setBannerIsVisible, bannerIsVisible }}
-    >
-      {children}
-    </TranslationsBannerContext.Provider>
-  );
-};
-
-export const useContentTranslatedBannerProvider = () =>
-  useContext(TranslationsBannerContext);
+export default CSPostHogProvider;

@@ -20,9 +20,10 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { getDisplayValue, unscaleNominalLocation } from "@/utils/charts";
-import cn from "@/utils/cn";
-import { formatResolution } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { formatResolution } from "@/utils/formatters/resolution";
+import { unscaleNominalLocation } from "@/utils/math";
 
 import GroupPredictionsTooltip from "./group_predictions_tooltip";
 
@@ -199,8 +200,7 @@ const getPredictionLabel = ({
     return "...";
   }
 
-  return getDisplayValue({
-    value: value,
+  return getPredictionDisplayValue(value, {
     questionType: question.type,
     scaling: question.scaling,
     actual_resolve_time: question.actual_resolve_time ?? null,
@@ -283,15 +283,17 @@ function getTooltipItems({
 
   if (question.open_lower_bound) {
     tooltipItems.unshift({
-      choiceLabel: `${getDisplayValue({
-        value: unscaleNominalLocation(
+      choiceLabel: `${getPredictionDisplayValue(
+        unscaleNominalLocation(
           question.scaling.range_min ?? 0,
           question.scaling
         ),
-        questionType: question.type,
-        scaling: question.scaling,
-        actual_resolve_time: question.actual_resolve_time ?? null,
-      })}`,
+        {
+          questionType: question.type,
+          scaling: question.scaling,
+          actual_resolve_time: question.actual_resolve_time ?? null,
+        }
+      )}`,
       valueElement: getBoundsLabel({
         t,
         value: bounds?.belowLower,
@@ -303,15 +305,17 @@ function getTooltipItems({
 
   if (question.open_upper_bound) {
     tooltipItems.push({
-      choiceLabel: `${getDisplayValue({
-        value: unscaleNominalLocation(
+      choiceLabel: `${getPredictionDisplayValue(
+        unscaleNominalLocation(
           question.scaling.range_max ?? 1,
           question.scaling
         ),
-        questionType: question.type,
-        scaling: question.scaling,
-        actual_resolve_time: question.actual_resolve_time ?? null,
-      })}`,
+        {
+          questionType: question.type,
+          scaling: question.scaling,
+          actual_resolve_time: question.actual_resolve_time ?? null,
+        }
+      )}`,
       valueElement: getBoundsLabel({
         t,
         value: bounds?.aboveUpper,

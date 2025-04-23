@@ -60,14 +60,22 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
   const createDuplicateLink = (post: Post) => {
     if (post.question) {
       return `/questions/create/question?mode=create&post_id=${post.id}`;
-    } else if (post.conditional) {
+    }
+
+    if (post.conditional) {
       return `/questions/create/conditional?mode=create&post_id=${post.id}`;
-    } else if (post.group_of_questions) {
+    }
+
+    if (post.group_of_questions) {
       return `/questions/create/group?mode=create&post_id=${post.id}`;
-    } else if (post.notebook) {
+    }
+
+    if (post.notebook) {
       return `/questions/create/notebook?mode=create&post_id=${post.id}`;
     }
-    return `/questions/create/question?mode=create&post_id=${post.id}`;
+
+    console.warn("Could not create duplicate link for post: unsupported type");
+    return "#";
   };
 
   const handleDownloadQuestionData = async () => {

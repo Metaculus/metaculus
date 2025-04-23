@@ -26,8 +26,8 @@ import {
 import useScreenSize from "@/hooks/use_screen_size";
 import { PostWithForecasts } from "@/types/post";
 import { ProjectIndexWeights } from "@/types/projects";
-import { getDisplayValue } from "@/utils/charts";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { getPostLink } from "@/utils/navigation";
 
 import CommunityPrediction, {
@@ -246,8 +246,7 @@ function getTableData(questions: ProjectIndexWeights[]): TableItem[] {
 
     const cpRawValue =
       question.aggregations.recency_weighted.latest?.centers?.[0] ?? null;
-    const cpDisplayValue = getDisplayValue({
-      value: cpRawValue,
+    const cpDisplayValue = getPredictionDisplayValue(cpRawValue, {
       questionType: question.type,
       scaling: question.scaling,
       actual_resolve_time: question.actual_resolve_time ?? null,

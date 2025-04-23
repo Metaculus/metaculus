@@ -4,7 +4,7 @@ import { FC } from "react";
 
 import useScrollTo from "@/hooks/use_scroll_to";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   text: string;

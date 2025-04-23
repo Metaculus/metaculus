@@ -5,7 +5,7 @@ import { FC, MouseEventHandler } from "react";
 
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   onClick: MouseEventHandler<HTMLButtonElement>;
@@ -13,7 +13,11 @@ type Props = {
   className?: string;
 };
 
-const ReaffirmButton: FC<Props> = ({ onClick, combined, className }) => {
+const ReaffirmButton: FC<Props> = ({
+  onClick,
+  combined = false,
+  className,
+}) => {
   const t = useTranslations();
   const { reaffirmStatus } = useCardReaffirmContext();
 
@@ -23,11 +27,13 @@ const ReaffirmButton: FC<Props> = ({ onClick, combined, className }) => {
         lowercase: combined,
       })}
     >
+      {combined && "("}
       {t("reaffirm")}
       {reaffirmStatus === "loading" && <LoadingSpinner size="sm" />}
       {reaffirmStatus === "completed" && (
         <FontAwesomeIcon icon={faCircleCheck} size="sm" />
       )}
+      {combined && ")"}
     </span>
   );
 
@@ -46,7 +52,7 @@ const ReaffirmButton: FC<Props> = ({ onClick, combined, className }) => {
         onClick(e);
       }}
     >
-      {combined ? <>({ReaffirmElement})</> : ReaffirmElement}
+      {ReaffirmElement}
     </button>
   );
 };

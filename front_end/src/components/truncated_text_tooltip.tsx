@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react";
 
 import Tooltip from "@/components/ui/tooltip";
 import useContainerSize from "@/hooks/use_container_size";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   text: string;

@@ -31,7 +31,7 @@ import {
 } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";

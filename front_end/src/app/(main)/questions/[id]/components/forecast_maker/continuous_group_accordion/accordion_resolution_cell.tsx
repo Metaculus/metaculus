@@ -3,8 +3,8 @@ import { FC } from "react";
 
 import ResolutionIcon from "@/components/icons/resolution";
 import { QuestionStatus, Resolution } from "@/types/post";
-import cn from "@/utils/cn";
-import { isUnsuccessfullyResolved } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 type Props = {
   formatedResolution: string;

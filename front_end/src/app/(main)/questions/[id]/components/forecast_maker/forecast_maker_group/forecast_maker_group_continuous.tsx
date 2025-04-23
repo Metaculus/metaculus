@@ -30,18 +30,24 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import {
+  getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
+} from "@/utils/forecasts/dataset";
+import {
   clearQuantileComponents,
+  getNormalizedContinuousForecast,
+  getUserContinuousQuartiles,
+  isAllQuantileComponentsDirty,
+} from "@/utils/forecasts/helpers";
+import {
   extractPrevNumericForecastValue,
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
-  getNormalizedContinuousForecast,
-  getQuantileNumericForecastDataset,
+} from "@/utils/forecasts/initial_values";
+import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
-  getSliderNumericForecastDataset,
-  getUserContinuousQuartiles,
-  isAllQuantileComponentsDirty,
-} from "@/utils/forecasts";
+} from "@/utils/forecasts/switch_forecast_type";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";

@@ -6,7 +6,7 @@ import React, { FC, useMemo } from "react";
 import PostStatusIcon from "@/components/post_status/status_icon";
 import { PostStatus, QuestionStatus, Resolution } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
-import { formatRelativeDate } from "@/utils/date_formatters";
+import { formatRelativeDate } from "@/utils/formatters/date";
 
 type Props = {
   resolution: Resolution | null;

@@ -10,9 +10,9 @@ import {
   LeaderboardEntry,
   LeaderboardType,
 } from "@/types/scoring";
-import cn from "@/utils/cn";
-import { abbreviatedNumber } from "@/utils/number_formatters";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { abbreviatedNumber } from "@/utils/formatters/number";
+import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
 import {

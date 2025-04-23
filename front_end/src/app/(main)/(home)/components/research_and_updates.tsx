@@ -9,8 +9,8 @@ import { FC } from "react";
 import imagePlaceholder from "@/app/assets/images/logo_placeholder.png";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { NotebookPost } from "@/types/post";
+import { getMarkdownSummary } from "@/utils/markdown";
 import { getPostLink } from "@/utils/navigation";
-import { getMarkdownSummary } from "@/utils/questions";
 
 type Props = {
   posts: NotebookPost[];
