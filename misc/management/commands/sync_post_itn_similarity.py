@@ -45,4 +45,4 @@ class Command(BaseCommand):
                 )
                 tm = time.time()
 
-        logger.info(f"Done generating PostArticle relations")
+        logger.info("Done generating PostArticle relations")
