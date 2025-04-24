@@ -15,11 +15,13 @@ from django.utils import timezone
 from pgvector.django import CosineDistance
 from sshtunnel import SSHTunnelForwarder
 
-from misc.models import ITNArticle
+from misc.models import ITNArticle, PostArticle
 from posts.models import Post
 from utils.cache import cache_get_or_set
 from utils.db import paginate_cursor
 from utils.openai import chunked_tokens, generate_text_embed_vector
+
+MAX_RELEVANT_DISTANCE = 0.6
 
 logger = logging.getLogger(__name__)
 
@@ -146,6 +148,55 @@ def update_article_embedding_vector(obj: ITNArticle):
 
     obj.embedding_vector = vector
     obj.save()
+
+
+def generate_related_posts_for_article(article: ITNArticle):
+    """
+    Generates related posts for the given ITN Article
+
+    Generates relevant posts for the given ITN article and saves them to the PostArticle cache table
+    """
+
+    relevant_posts = (
+        Post.objects.filter_public()
+        .filter_published()
+        .annotate(distance=CosineDistance("embedding_vector", article.embedding_vector))
+        .filter(distance__lte=MAX_RELEVANT_DISTANCE)
+    )
+
+    PostArticle.objects.bulk_create(
+        [
+            PostArticle(article=article, post=post, distance=post.distance)
+            for post in relevant_posts
+        ],
+        ignore_conflicts=True,
+        batch_size=100,
+    )
+
+
+def generate_related_articles_for_post(post: Post):
+    """
+    Generates related ITN Articles for the given Post and saves them in the PostArticle cache table.
+    Takes only 20 relevant objects
+    """
+
+    relevant_articles = (
+        ITNArticle.objects.annotate(
+            distance=CosineDistance("embedding_vector", post.embedding_vector),
+            # Take only fresh news
+            created_at__gte=timezone.now() - timedelta(days=2),
+        )
+        .filter(distance__lte=MAX_RELEVANT_DISTANCE)
+        .order_by("distance")[:20]
+    )
+
+    PostArticle.objects.bulk_create(
+        [
+            PostArticle(article=article, post=post, distance=article.distance)
+            for article in relevant_articles
+        ],
+        ignore_conflicts=True,
+    )
 
 
 def get_post_similar_articles_qs(post: Post):

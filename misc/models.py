@@ -1,10 +1,10 @@
 from django.db import models
 from pgvector.django import VectorField
 
-from utils.models import TimeStampedModel
-from users.models import User
-from projects.models import Project
 from posts.models import Post
+from projects.models import Project
+from users.models import User
+from utils.models import TimeStampedModel
 
 
 class ITNArticle(TimeStampedModel):
@@ -25,6 +25,20 @@ class ITNArticle(TimeStampedModel):
     is_removed = models.BooleanField(default=False)
 
 
+# TODO: play with halfindex!
+class PostArticle(TimeStampedModel):
+    article = models.ForeignKey(ITNArticle, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    distance = models.FloatField(null=False, db_index=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="post_article_unique", fields=["article_id", "post_id"]
+            ),
+        ]
+
+
 class Bulletin(TimeStampedModel):
     bulletin_start = models.DateTimeField()
     bulletin_end = models.DateTimeField()
@@ -34,11 +48,6 @@ class Bulletin(TimeStampedModel):
 class BulletinViewedBy(TimeStampedModel):
     bulletin = models.ForeignKey(Bulletin, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
-# TODO: index new posts
-# TODO: ensure we sync PostITNArticle new articles only
-# TODO: create a sync command + cron job
 
 
 class WhitelistUser(TimeStampedModel):
