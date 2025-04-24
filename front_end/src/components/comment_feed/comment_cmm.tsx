@@ -78,10 +78,9 @@ const CmmMakeForecast: FC<{
 
   const onUpdateVal = (step: number | undefined) => {
     if (isNil(step)) {
-      logError(
-        new Error("Step is undefined"),
-        "Error updating comment forecast"
-      );
+      logError(new Error("Step is undefined"), {
+        message: "Error updating comment forecast",
+      });
       return;
     }
 

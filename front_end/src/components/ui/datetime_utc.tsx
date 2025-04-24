@@ -69,7 +69,7 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
           return;
         }
 
-        logError(e);
+        logError(e, { payload: localDateString });
         onError && onError(e);
       }
     };

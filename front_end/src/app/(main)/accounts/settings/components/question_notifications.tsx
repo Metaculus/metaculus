@@ -66,7 +66,9 @@ const QuestionNotifications: FC<Props> = ({
 
   const handleUnfollow = useCallback(async () => {
     if (!activeModal) {
-      logError(new Error("Active modal is not set"), "Couldn't unfollow post");
+      logError(new Error("Active modal is not set"), {
+        message: "Couldn't unfollow post",
+      });
       return;
     }
 
