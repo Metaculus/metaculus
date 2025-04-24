@@ -1,3 +1,5 @@
+import DOMPurify from "dompurify";
+
 import { transformTwitterLinks } from "./embedded_twitter/helpers";
 
 // match block math: $$...$$
@@ -150,7 +152,7 @@ export function processMarkdown(
   config?: { revert?: boolean; withTwitterPreview?: boolean }
 ): string {
   const { revert, withTwitterPreview } = config ?? {};
-
+  markdown = DOMPurify.sanitize(markdown);
   markdown = formatBlockquoteNewlines(markdown);
   if (!revert) {
     markdown = transformMathJaxToLatex(markdown);
