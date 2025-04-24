@@ -40,7 +40,7 @@ const KeyFactorText: FC<Props> = ({
             scrollTo(target.getBoundingClientRect().top);
           }
           sendAnalyticsEvent("KeyFactorClick", {
-            event_label: "fromList",
+            event_label: linkToComment ? "fromList" : "fromComment",
           });
         }}
         className="target invisible ml-1 inline-flex items-center overflow-visible rounded-full p-2 text-blue-600 hover:bg-blue-400 hover:font-bold hover:text-blue-700 dark:text-blue-600 dark:hover:bg-blue-400-dark"
