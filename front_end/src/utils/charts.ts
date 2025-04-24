@@ -724,7 +724,17 @@ type GenerateScaleParams = {
   forcedTickCount?: number;
   shortLabels?: boolean;
   adjustLabels?: boolean;
-  question?: Question;
+  question?:
+    | Question
+    | {
+        scaling: Scaling;
+        resolution?: Resolution | null;
+        type: QuestionType;
+        unit?: string;
+        open_lower_bound?: boolean;
+        open_upper_bound?: boolean;
+        inbound_outcome_count?: number | null;
+      };
 };
 
 /**
@@ -1804,6 +1814,9 @@ export function checkQuartilesOutOfBorders(
 ) {
   const { longBounds = false } = options ?? {};
 
+  if (isNil(quartile)) {
+    return "";
+  }
   if (longBounds) {
     return quartile <= 0 ? "Less than " : quartile >= 1 ? "More than " : "";
   }

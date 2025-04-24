@@ -190,6 +190,16 @@ export type MultipleChoiceForecast = BaseForecast & {
   }>;
 };
 
+export type GraphingQuestionProps = {
+  scaling: Scaling;
+  resolution?: Resolution | null;
+  type: QuestionType;
+  unit?: string;
+  open_lower_bound?: boolean;
+  open_upper_bound?: boolean;
+  inbound_outcome_count?: number | null;
+};
+
 export type Question = {
   id: number;
   title: string;

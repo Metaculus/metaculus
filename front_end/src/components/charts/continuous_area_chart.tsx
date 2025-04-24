@@ -25,8 +25,11 @@ import {
   ContinuousAreaType,
   Line,
 } from "@/types/charts";
-import { Resolution } from "@/types/post";
-import { Question, QuestionType, Scaling } from "@/types/question";
+import {
+  GraphingQuestionProps,
+  Question,
+  QuestionType,
+} from "@/types/question";
 import {
   generateScale,
   getClosestYValue,
@@ -69,17 +72,7 @@ type Props = {
   hideCP?: boolean;
   shortLabels?: boolean;
   hideLabels?: boolean;
-  question:
-    | Question
-    | {
-        scaling: Scaling;
-        resolution?: Resolution | null;
-        type: QuestionType;
-        unit?: string;
-        open_lower_bound?: boolean;
-        open_upper_bound?: boolean;
-        inbound_outcome_count?: number | null;
-      };
+  question: Question | GraphingQuestionProps;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -673,13 +666,7 @@ function generateNumericAreaGraph(data: {
   cdf: number[];
   graphType: ContinuousAreaGraphType;
   type: ContinuousAreaType;
-  question:
-    | Question
-    | {
-        type: QuestionType;
-        open_lower_bound?: boolean;
-        open_upper_bound?: boolean;
-      };
+  question: Question | GraphingQuestionProps;
 }): NumericPredictionGraph {
   const { pmf, cdf, graphType, type, question } = data;
 

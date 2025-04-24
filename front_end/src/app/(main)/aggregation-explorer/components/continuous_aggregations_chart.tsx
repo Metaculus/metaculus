@@ -9,7 +9,10 @@ import {
   ContinuousAreaGraphType,
   ContinuousAreaHoverState,
 } from "@/types/charts";
-import { AggregateForecastHistory } from "@/types/question";
+import {
+  AggregateForecastHistory,
+  GraphingQuestionProps,
+} from "@/types/question";
 import { displayValue, scaleInternalLocation } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
@@ -102,11 +105,10 @@ const ContinuousAggregationChart: FC<Props> = ({
       </div>
       <ContinuousAreaChart
         height={150}
-        question={question}
+        question={questionData as GraphingQuestionProps}
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
-        resolution={null}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (
