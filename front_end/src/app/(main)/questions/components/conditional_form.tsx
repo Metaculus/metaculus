@@ -20,7 +20,7 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { logErrorWithScope } from "@/utils/core/errors";
+import { logError } from "@/utils/core/errors";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions/helpers";
 
@@ -119,7 +119,7 @@ const ConditionalForm: React.FC<{
       }
     } catch (e) {
       const error = e as Error & { digest?: string };
-      logErrorWithScope(error, post_data);
+      logError(error, { payload: post_data });
       setError(error);
     } finally {
       setIsLoading(false);

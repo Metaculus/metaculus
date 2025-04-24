@@ -46,7 +46,7 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
-import { logErrorWithScope } from "@/utils/core/errors";
+import { logError } from "@/utils/core/errors";
 import { getPostLink } from "@/utils/navigation";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 
@@ -259,7 +259,7 @@ const GroupForm: React.FC<Props> = ({
       router.push(getPostLink(resp.post));
     } catch (e) {
       const error = e as Error & { digest?: string };
-      logErrorWithScope(error, post_data);
+      logError(error, { payload: post_data });
       setError(error);
     } finally {
       setIsLoading(false);

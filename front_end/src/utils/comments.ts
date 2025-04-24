@@ -132,7 +132,7 @@ export function saveCommentDraft(draft: CommentDraft): void {
     const draftKey = getDraftKey({ ...draft });
     localStorage.setItem(draftKey, JSON.stringify(draft));
   } catch (error) {
-    logError(error, "Failed to save comment draft");
+    logError(error, { message: "Failed to save comment draft" });
   }
 }
 export function getCommentDraft(
@@ -148,7 +148,7 @@ export function getCommentDraft(
     const draftJson = localStorage.getItem(draftKey);
     return draftJson ? JSON.parse(draftJson) : null;
   } catch (error) {
-    logError(error, "Failed to get comment draft");
+    logError(error, { message: "Failed to get comment draft" });
     return null;
   }
 }
@@ -169,7 +169,7 @@ export const deleteCommentDraft = ({
     if (!draftKey) return;
     localStorage.removeItem(draftKey);
   } catch (error) {
-    logError(error, "Failed to delete comment draft");
+    logError(error, { message: "Failed to delete comment draft" });
   }
 };
 
@@ -211,11 +211,11 @@ export const cleanupDrafts = (maxAgeDays = 14): void => {
           localStorage.removeItem(draft.key);
           totalSizeMB -= draft.size / BYTES_IN_MB;
         } catch (error) {
-          logError(error, `Failed to remove draft: ${draft.key}`);
+          logError(error, { message: `Failed to remove draft: ${draft.key}` });
         }
       }
     });
   } catch (error) {
-    logError(error, "Failed to cleanup old drafts");
+    logError(error, { message: "Failed to cleanup old drafts" });
   }
 };

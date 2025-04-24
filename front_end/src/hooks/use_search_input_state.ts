@@ -25,7 +25,7 @@ const useSearchInputState = (paramName: string, config?: Config) => {
 
   const [search, setSearch] = useState(() => {
     const search = params.get(paramName);
-    return search ? decodeURIComponent(search) : "";
+    return search ?? "";
   });
   const debouncedSearch = useDebouncedValue(search, debounceTime);
   const prevDebouncedSearch = usePrevious(debouncedSearch);
