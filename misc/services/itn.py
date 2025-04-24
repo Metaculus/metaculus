@@ -17,7 +17,7 @@ from posts.models import Post
 from utils.db import paginate_cursor
 from utils.openai import chunked_tokens, generate_text_embed_vector
 
-MAX_RELEVANT_DISTANCE = 0.4
+MAX_RELEVANT_DISTANCE = 0.5
 
 logger = logging.getLogger(__name__)
 
