@@ -1,6 +1,7 @@
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DialogTitle } from "@headlessui/react";
+import DOMPurify from "dompurify";
 import React, { FC } from "react";
 
 import MetaculusLogo from "./MetacLogo";
@@ -100,7 +101,9 @@ const PersonModal: FC<Props> = ({
           )}
           <p
             className="mb-0 mt-4 text-sm text-gray-700 dark:text-gray-700-dark"
-            dangerouslySetInnerHTML={{ __html: introduction }}
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(introduction),
+            }}
           />
         </div>
       </div>

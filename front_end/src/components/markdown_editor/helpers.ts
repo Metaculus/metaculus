@@ -1,3 +1,7 @@
+import DOMPurify from "dompurify";
+
+import { EMBEDDED_QUESTION_COMPONENT_NAME } from "./embedded_question";
+import { EMBEDDED_TWITTER_COMPONENT_NAME } from "./embedded_twitter";
 import { transformTwitterLinks } from "./embedded_twitter/helpers";
 
 // match block math: $$...$$
@@ -150,7 +154,6 @@ export function processMarkdown(
   config?: { revert?: boolean; withTwitterPreview?: boolean }
 ): string {
   const { revert, withTwitterPreview } = config ?? {};
-
   markdown = formatBlockquoteNewlines(markdown);
   if (!revert) {
     markdown = transformMathJaxToLatex(markdown);
@@ -160,5 +163,15 @@ export function processMarkdown(
   if (withTwitterPreview) {
     markdown = transformTwitterLinks(markdown);
   }
+
+  markdown = DOMPurify.sanitize(markdown, {
+    KEEP_CONTENT: true,
+    PARSER_MEDIA_TYPE: "application/xhtml+xml",
+    ADD_TAGS: [
+      EMBEDDED_QUESTION_COMPONENT_NAME,
+      EMBEDDED_TWITTER_COMPONENT_NAME,
+    ],
+  });
+
   return markdown;
 }

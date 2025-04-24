@@ -29,7 +29,7 @@ type Props = {
   id: number;
 };
 
-const COMPONENT_NAME = "EmbeddedQuestion";
+export const EMBEDDED_QUESTION_COMPONENT_NAME = "EmbeddedQuestion";
 
 const EmbeddedQuestion: FC<Props> = ({ id }) => {
   const [postData, setPostData] = useState<PostWithForecasts | null>(null);
@@ -101,7 +101,7 @@ export const EmbedQuestionAction: FC = () => {
 
   const handleSelectQuestion = (id: number) => {
     insertJsx({
-      name: COMPONENT_NAME,
+      name: EMBEDDED_QUESTION_COMPONENT_NAME,
       kind: "flow",
       props: {
         id: id.toString(),
@@ -129,7 +129,7 @@ export const EmbedQuestionAction: FC = () => {
 
 const MemorizedEmbeddedQuestion = memo(EmbeddedQuestion);
 export const embeddedQuestionDescriptor: JsxComponentDescriptor = {
-  name: COMPONENT_NAME,
+  name: EMBEDDED_QUESTION_COMPONENT_NAME,
   props: [{ name: "id", type: "number", required: true }],
   kind: "flow",
   hasChildren: false,
