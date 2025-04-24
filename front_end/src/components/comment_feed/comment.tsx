@@ -702,7 +702,12 @@ const Comment: FC<CommentProps> = ({
                       <Button
                         size="xxs"
                         variant="tertiary"
-                        onClick={() => setIsAddKeyFactorsModalOpen(true)}
+                        onClick={() => {
+                          sendAnalyticsEvent("addKeyFactor", {
+                            event_label: "fromComment",
+                          });
+                          setIsAddKeyFactorsModalOpen(true);
+                        }}
                       >
                         <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
                         {t("addKeyFactor")}
