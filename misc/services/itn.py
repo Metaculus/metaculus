@@ -21,7 +21,7 @@ from utils.cache import cache_get_or_set
 from utils.db import paginate_cursor
 from utils.openai import chunked_tokens, generate_text_embed_vector
 
-MAX_RELEVANT_DISTANCE = 0.6
+MAX_RELEVANT_DISTANCE = 0.4
 
 logger = logging.getLogger(__name__)
 
