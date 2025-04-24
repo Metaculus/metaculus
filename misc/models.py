@@ -25,7 +25,6 @@ class ITNArticle(TimeStampedModel):
     is_removed = models.BooleanField(default=False)
 
 
-# TODO: play with halfindex!
 class PostArticle(TimeStampedModel):
     article = models.ForeignKey(ITNArticle, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
