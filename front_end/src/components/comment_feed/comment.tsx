@@ -281,7 +281,7 @@ const Comment: FC<CommentProps> = ({
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
-      logError(err, `${t("failedToCopyText")} ${err}`);
+      logError(err, { message: `failed to copy text: ${err}` });
     }
   };
   const handleSaveComment = useCallback(async () => {

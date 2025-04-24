@@ -47,7 +47,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
-      logError(err, `${t("failedToCopyText")} ${err}`);
+      logError(err, { message: `failed to copy text: ${err}` });
     }
   };
 
