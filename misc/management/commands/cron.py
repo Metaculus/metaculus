@@ -158,8 +158,7 @@ class Command(BaseCommand):
         )
         scheduler.add_job(
             close_old_connections(finalize_leaderboards),
-            # trigger=CronTrigger.from_crontab("0 3 * * *"),  # Every day at 03:00 UTC
-            trigger=CronTrigger.from_crontab("*/1 * * * *"),
+            trigger=CronTrigger.from_crontab("0 3 * * *"),  # Every day at 03:00 UTC
             id="global_comment_and_question_leaderboards",
             max_instances=1,
             replace_existing=True,

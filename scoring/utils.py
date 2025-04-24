@@ -678,7 +678,7 @@ def update_project_leaderboard(
             )
             if prize_pool:
                 new_entries = assign_prizes(new_entries, prize_pool)
-        # set finalize
+        # always set finalize
         Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
 
     # save entries

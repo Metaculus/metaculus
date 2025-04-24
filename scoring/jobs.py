@@ -1,7 +1,11 @@
+import logging
+
 from django.utils import timezone
 
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
+
+logger = logging.getLogger(__name__)
 
 
 def update_global_comment_and_question_leaderboards():
@@ -23,5 +27,5 @@ def finalize_leaderboards():
             leaderboard.project.close_date if leaderboard.project else None
         )
         if finalize_time and finalize_time <= timezone.now():
-            print("Finalizing leaderboard: ", leaderboard)
+            logger.info("Finalizing leaderboard: ", leaderboard)
             update_project_leaderboard(leaderboard=leaderboard)
