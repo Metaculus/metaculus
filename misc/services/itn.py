@@ -203,7 +203,7 @@ def get_post_similar_articles(post: Post):
             created_at__gte=timezone.now() - timedelta(days=14),
         )
         .order_by("distance")
-        .values_list("article_id")[:9]
+        .values_list("article_id")[:18]
     )
 
     return ITNArticle.objects.filter(pk__in=article_ids).order_by("-created_at")
