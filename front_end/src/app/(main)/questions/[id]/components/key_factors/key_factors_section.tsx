@@ -109,6 +109,9 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
               className="ml-auto"
               onClick={(event) => {
                 event.preventDefault();
+                sendAnalyticsEvent("addKeyFactor", {
+                  event_label: "fromList",
+                });
                 if (!user) {
                   setCurrentModal({ type: "signin" });
                   return;

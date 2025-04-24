@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/form_field";
 import { useServerAction } from "@/hooks/use_server_action";
 import { BECommentType } from "@/types/comment";
 import { User } from "@/types/users";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 const FACTORS_PER_QUESTION = 6;
 const FACTORS_PER_COMMENT = 4;
@@ -212,7 +213,10 @@ const AddKeyFactorsModal: FC<Props> = ({
         is_private: false,
       });
     }
-
+    sendAnalyticsEvent("addKeyFactor", {
+      event_label: isNil(commentId) ? "fromList" : "fromComment",
+      event_category: "submit",
+    });
     if ("errors" in comment) {
       const errors = comment.errors;
       setErrorMessage(errors?.message ?? errors?.non_field_errors?.[0]);
@@ -295,7 +299,13 @@ const AddKeyFactorsModal: FC<Props> = ({
             <Button
               variant="primary"
               size="sm"
-              onClick={() => setCurrentStep(currentStep + 1)}
+              onClick={() => {
+                sendAnalyticsEvent("addKeyFactor", {
+                  event_label: "fromList",
+                  event_category: "next",
+                });
+                setCurrentStep(currentStep + 1);
+              }}
               className="px-3"
               disabled={isPending || !keyFactors.some((k) => k.trim() !== "")}
             >
