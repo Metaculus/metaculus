@@ -1,4 +1,6 @@
-from django.db.models import Q, Case, When, Value, IntegerField
+from django.db.models import Q, Case, When, Value, IntegerField, Exists, OuterRef
+
+from comments.models import Comment
 
 
 def get_comments_feed(
@@ -44,10 +46,11 @@ def get_comments_feed(
 
     if not include_deleted:
         qs = qs.filter(
-            Q(is_soft_deleted=False) | Q(child_comments__is_soft_deleted=False)
-        ).distinct()
-
-    qs = qs.annotate_vote_score()
+            Q(is_soft_deleted=False)
+            | Exists(
+                Comment.objects.filter(parent_id=OuterRef("pk"), is_soft_deleted=False)
+            )
+        )
 
     # Filter comments located under Posts current user is allowed to see
     qs = qs.filter_by_user_permission(user=user)
