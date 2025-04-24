@@ -8,16 +8,12 @@ from datetime import timedelta
 import mysql.connector
 import numpy as np
 from django.conf import settings
-from django.core.cache import cache
-from django.db.models import F, ExpressionWrapper, Func, IntegerField
-from django.db.models.functions import Now
 from django.utils import timezone
 from pgvector.django import CosineDistance
 from sshtunnel import SSHTunnelForwarder
 
 from misc.models import ITNArticle, PostArticle
 from posts.models import Post
-from utils.cache import cache_get_or_set
 from utils.db import paginate_cursor
 from utils.openai import chunked_tokens, generate_text_embed_vector
 
@@ -199,40 +195,15 @@ def generate_related_articles_for_post(post: Post):
     )
 
 
-def get_post_similar_articles_qs(post: Post):
-    return (
-        ITNArticle.objects.annotate(
-            nr_days_old=ExpressionWrapper(
-                Func(
-                    Now() - F("created_at"),
-                    function="EXTRACT",
-                    template="%(function)s(DAY FROM %(expressions)s)",
-                ),
-                output_field=IntegerField(),
-            ),
-            distance=CosineDistance("embedding_vector", post.embedding_vector),
-        )
-        .annotate(rank=(1 - F("distance") - (F("nr_days_old") / 600)))
-        # Exclude removed posts
-        .filter(is_removed=False)
-        .filter(rank__isnull=False)
-        .order_by("-rank")
-    )
-
-
-def get_post_articles_cache(post_id: str):
-    return f"post_similar_itn_article_ids:{post_id}"
-
-
 def get_post_similar_articles(post: Post):
-    article_ids = cache_get_or_set(
-        get_post_articles_cache(post.pk),
-        lambda: list(
-            get_post_similar_articles_qs(post).values_list("id", flat=True)[:9]
-        ),
-        # 12h
-        timeout=3600 * 12,
-        version=1,
+    article_ids = (
+        PostArticle.objects.filter(
+            post=post,
+            article__is_removed=False,
+            created_at__gte=timezone.now() - timedelta(days=14),
+        )
+        .order_by("distance")
+        .values_list("article_id")[:9]
     )
 
     return ITNArticle.objects.filter(pk__in=article_ids).order_by("-created_at")
@@ -240,7 +211,4 @@ def get_post_similar_articles(post: Post):
 
 def remove_article(article: ITNArticle):
     article.is_removed = True
-    article.save()
-
-    # Drop cache
-    cache.delete_pattern(get_post_articles_cache("*"))
+    article.save(update_fields=["is_removed"])
