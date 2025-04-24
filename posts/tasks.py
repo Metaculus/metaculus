@@ -2,6 +2,7 @@ import logging
 
 import dramatiq
 
+from misc.services.itn import generate_related_articles_for_post
 from posts.models import Post
 from posts.services.search import update_post_search_embedding_vector
 from posts.services.subscriptions import notify_post_cp_change
@@ -38,6 +39,9 @@ def run_on_post_forecast(post_id):
 @dramatiq.actor
 def run_post_indexing(post_id):
     try:
-        update_post_search_embedding_vector(Post.objects.get(pk=post_id))
+        post = Post.objects.get(pk=post_id)
+
+        update_post_search_embedding_vector(post)
+        generate_related_articles_for_post(post)
     except Post.DoesNotExist:
         logger.warning(f"Post {post_id} does not exist")
