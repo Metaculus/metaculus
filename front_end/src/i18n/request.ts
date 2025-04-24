@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
 // Read the translations documentation for more info on "original"
-const locales = ["cs", "en", "es", "zh", "pt", "original"];
+const locales = ["cs", "en", "es", "zh", "zh-TW", "pt", "original"];
 const defaultLocale = "en";
 
 async function getLocale(): Promise<string> {

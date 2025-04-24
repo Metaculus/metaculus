@@ -504,12 +504,18 @@ LANGUAGES = (
     ("cs", gettext("Czech")),
     ("es", gettext("Spanish")),
     ("zh", gettext("Simplified Chinese")),
+    ("zh-TW", gettext("Traditional Chinese")),
     ("pt", gettext("Portuguese")),
 )
 
 ORIGINAL_LANGUAGE_CODE = "original"
 MODELTRANSLATION_DEFAULT_LANGUAGE = ORIGINAL_LANGUAGE_CODE
-MODELTRANSLATION_FALLBACK_LANGUAGES = ("original", "en", "es")
+MODELTRANSLATION_FALLBACK_LANGUAGES = {
+    "default": ("original", "en", "es"),
+    "zh": ("zh-TW",),
+    "zh-TW": ("zh",),
+}
+
 USE_I18N = True
 
 LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)

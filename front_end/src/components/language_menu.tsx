@@ -41,6 +41,10 @@ const LanguageMenu: FC<Props> = ({ className }) => {
       locale: "zh",
     },
     {
+      name: "繁體中文",
+      locale: "zh-TW",
+    },
+    {
       name: "Untranslated",
       locale: "original", // Check the translations documentation why this is the case
     },
