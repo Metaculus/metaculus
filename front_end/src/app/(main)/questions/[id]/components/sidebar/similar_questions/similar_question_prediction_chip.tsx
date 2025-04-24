@@ -4,8 +4,8 @@ import { isNil } from "lodash";
 import { FC } from "react";
 
 import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 
 type Props = {
   question: QuestionWithNumericForecasts | null;
@@ -52,8 +52,7 @@ const SimilarPredictionChip: FC<Props> = ({
         <FontAwesomeIcon icon={faUserGroup} className="!w-[13px]" />
         <span>
           {!isNil(prediction)
-            ? getDisplayValue({
-                value: prediction,
+            ? getPredictionDisplayValue(prediction, {
                 questionType: question.type,
                 scaling: question.scaling,
                 actual_resolve_time: question.actual_resolve_time ?? null,

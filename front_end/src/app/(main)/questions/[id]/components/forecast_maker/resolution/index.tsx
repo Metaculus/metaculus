@@ -5,7 +5,7 @@ import { FC, useState } from "react";
 import Button from "@/components/ui/button";
 import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
-import { canChangeQuestionResolution } from "@/utils/questions";
+import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 
 import QuestionResolutionModal from "./resolution_modal";
 

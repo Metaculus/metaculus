@@ -8,7 +8,7 @@ import ChoiceCheckbox from "@/components/choice_checkbox";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { ChoiceItem } from "@/types/choices";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   choices: ChoiceItem[];

@@ -13,7 +13,7 @@ import { ApprovePostParams } from "@/services/posts";
 import { ErrorResponse } from "@/types/fetch";
 import { Post } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import { formatDate } from "@/utils/date_formatters";
+import { formatDate } from "@/utils/formatters/date";
 
 import { approvePost } from "../../actions";
 

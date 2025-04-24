@@ -8,7 +8,7 @@ import { FieldValues, useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
-import QuestionChartTile from "@/components/post_card/question_chart_tile";
+import QuestionTile from "@/components/post_card/question_tile";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
@@ -20,9 +20,9 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { logErrorWithScope } from "@/utils/errors";
+import { logErrorWithScope } from "@/utils/core/errors";
 import { getPostLink } from "@/utils/navigation";
-import { getQuestionStatus } from "@/utils/questions";
+import { getQuestionStatus } from "@/utils/questions/helpers";
 
 import BacktoCreate from "./back_to_create";
 import ConditionalQuestionPicker from "./conditional_question_picker";
@@ -195,7 +195,7 @@ const ConditionalForm: React.FC<{
           {conditionParent && (
             <>
               <h1 className="m-0 text-lg font-bold">{conditionParent.title}</h1>
-              <QuestionChartTile
+              <QuestionTile
                 question={conditionParent}
                 authorUsername={conditionParent.author_username}
                 // we expect status to be populated on BE for conditional questions
@@ -226,7 +226,7 @@ const ConditionalForm: React.FC<{
           {conditionChild && (
             <>
               <h1 className="m-0 text-lg font-bold">{conditionChild.title}</h1>
-              <QuestionChartTile
+              <QuestionTile
                 question={conditionChild}
                 authorUsername={conditionChild.author_username}
                 // we expect status to be populated on BE for conditional questions

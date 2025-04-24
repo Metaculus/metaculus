@@ -13,11 +13,10 @@ import {
   ForecastAvailability,
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
-import {
-  findPreviousTimestamp,
-  generateChoiceItemsFromMultipleChoiceForecast,
-} from "@/utils/charts";
-import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/questions/choices";
+import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
@@ -47,15 +46,9 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const actualCloseTime = question.actual_close_time
-    ? new Date(question.actual_close_time).getTime()
-    : null;
-  const openTime = question?.open_time
-    ? new Date(question.open_time).getTime()
-    : undefined;
-  const isClosed = question.actual_close_time
-    ? new Date(question.actual_close_time).getTime() < Date.now()
-    : false;
+  const actualCloseTime = getPostDrivenTime(question.actual_close_time);
+  const openTime = getPostDrivenTime(question.open_time);
+  const isClosed = actualCloseTime ? actualCloseTime < Date.now() : false;
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(question)
@@ -117,9 +110,21 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
         return "...";
       }
 
-      return getForecastPctDisplayValue(aggregatedValue);
+      return getPredictionDisplayValue(aggregatedValue, {
+        questionType: question.type,
+        scaling: question.scaling,
+        actual_resolve_time: question.actual_resolve_time ?? null,
+      });
     },
-    [forecastAvailability, hideCP, t]
+    [
+      forecastAvailability?.cpRevealsOn,
+      forecastAvailability?.isEmpty,
+      hideCP,
+      question.actual_resolve_time,
+      question.scaling,
+      question.type,
+      t,
+    ]
   );
 
   const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
@@ -147,9 +152,19 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
       .map(({ choice, userValues, color }) => ({
         choiceLabel: choice,
         color,
-        valueElement: getForecastPctDisplayValue(userValues[userCursorIndex]),
+        valueElement: getPredictionDisplayValue(userValues[userCursorIndex], {
+          questionType: question.type,
+          scaling: question.scaling,
+          actual_resolve_time: question.actual_resolve_time ?? null,
+        }),
       }));
-  }, [choiceItems, userCursorIndex]);
+  }, [
+    choiceItems,
+    question.actual_resolve_time,
+    question.scaling,
+    question.type,
+    userCursorIndex,
+  ]);
 
   return (
     <MultiChoicesChartView

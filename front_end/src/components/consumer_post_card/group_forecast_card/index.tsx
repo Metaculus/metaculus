@@ -1,17 +1,16 @@
 import { FC } from "react";
 
-import { GroupOfQuestionsGraphType } from "@/types/charts";
-import { PostGroupOfQuestions, PostWithForecasts } from "@/types/post";
 import {
-  QuestionType,
-  QuestionWithForecasts,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+  GroupOfQuestionsGraphType,
+  PostGroupOfQuestions,
+  PostWithForecasts,
+} from "@/types/post";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
-  sortGroupPredictionOptions,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
 
 import DateForecastCard from "./date_forecast_card";
 import NumericForecastCard from "./numeric_forecast_card";
@@ -27,7 +26,7 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
     post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph
   ) {
     const sortedQuestions = sortGroupPredictionOptions(
-      post.group_of_questions?.questions as QuestionWithNumericForecasts[],
+      post.group_of_questions?.questions,
       post.group_of_questions
     );
 

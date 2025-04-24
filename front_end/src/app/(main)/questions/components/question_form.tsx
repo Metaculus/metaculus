@@ -31,9 +31,9 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { QuestionType } from "@/types/question";
-import { logErrorWithScope } from "@/utils/errors";
+import { logErrorWithScope } from "@/utils/core/errors";
 import { getPostLink } from "@/utils/navigation";
-import { getQuestionStatus } from "@/utils/questions";
+import { getQuestionStatus } from "@/utils/questions/helpers";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";

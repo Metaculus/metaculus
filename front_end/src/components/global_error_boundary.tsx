@@ -2,7 +2,7 @@
 import { FC, useEffect } from "react";
 
 import Button from "@/components/ui/button";
-import { extractError, logError } from "@/utils/errors";
+import { extractError, logError } from "@/utils/core/errors";
 
 type GlobalErrorProps = {
   error: any;

@@ -1,6 +1,6 @@
 import { FC, PropsWithChildren } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type MarkdownProps = {
   className?: string;

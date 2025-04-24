@@ -5,7 +5,7 @@ import {
   CommentDraft,
   CommentType,
 } from "@/types/comment";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 const DRAFT_KEY_PREFIX = "comment_draft_";
 const MAX_DRAFT_SIZE_MB = 2.5;

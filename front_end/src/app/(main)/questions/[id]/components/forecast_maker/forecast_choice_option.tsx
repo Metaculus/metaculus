@@ -18,8 +18,8 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useMounted from "@/hooks/use_mounted";
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
-import cn from "@/utils/cn";
-import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import cn from "@/utils/core/cn";
+import { getForecastPctDisplayValue } from "@/utils/formatters/prediction";
 
 import ForecastTextInput from "./forecast_text_input";
 

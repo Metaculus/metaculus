@@ -20,7 +20,7 @@ import EmbedQuestionModal from "@/components/markdown_editor/embedded_question/e
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostWithForecasts } from "@/types/post";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import createEditorComponent from "../createJsxComponent";
 import useLexicalBackspaceNodeRemove from "../hooks/use_backspace_node_remove";

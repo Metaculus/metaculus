@@ -22,7 +22,7 @@ import {
   CommunitySettingsMode,
   ProjectVisibility,
 } from "@/types/projects";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import { updateCommunity } from "../actions";
 import { CommunitySettingsSchema, communitySettingsSchema } from "../schemas";

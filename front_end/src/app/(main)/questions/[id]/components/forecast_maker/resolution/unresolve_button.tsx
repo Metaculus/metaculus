@@ -9,8 +9,8 @@ import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
-import cn from "@/utils/cn";
-import { canChangeQuestionResolution } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 
 type Props = {
   question: Question;

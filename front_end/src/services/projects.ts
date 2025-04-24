@@ -12,7 +12,7 @@ import {
   TournamentPreview,
 } from "@/types/projects";
 import { LeaderboardDetails } from "@/types/scoring";
-import { del, get, patch, post, put } from "@/utils/fetch";
+import { del, get, patch, post, put } from "@/utils/core/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type TagsParams = {

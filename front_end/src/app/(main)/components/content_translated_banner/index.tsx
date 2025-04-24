@@ -4,9 +4,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useEffect } from "react";
 
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 import { SetOriginalLanguage as setOriginalLanguage } from "@/components/language_menu";
 import Button from "@/components/ui/button";
+import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
 
 import GoogleTranslateAttribution from "./google_translate_attribution";
@@ -16,7 +16,7 @@ const ContentTranslatedBanner: FC<{ forceVisible?: boolean }> = ({
 }) => {
   const t = useTranslations();
   const { setBannerIsVisible, bannerIsVisible } =
-    useContentTranslatedBannerProvider();
+    useContentTranslatedBannerContext();
   const pathname = usePathname();
   const router = useRouter();
   const { params } = useSearchParams();

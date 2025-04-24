@@ -4,8 +4,8 @@ import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { Tournament } from "@/types/projects";
-import cn from "@/utils/cn";
-import { formatRelativeDate } from "@/utils/date_formatters";
+import cn from "@/utils/core/cn";
+import { formatRelativeDate } from "@/utils/formatters/date";
 
 type Props = {
   tournament: Tournament;

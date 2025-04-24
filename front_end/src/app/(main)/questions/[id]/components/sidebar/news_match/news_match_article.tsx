@@ -12,7 +12,7 @@ import Button from "@/components/ui/button";
 import ImageWithFallback from "@/components/ui/image_with_fallback";
 import { useAuth } from "@/contexts/auth_context";
 import { NewsArticle } from "@/types/news";
-import { formatDate } from "@/utils/date_formatters";
+import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
   article: NewsArticle;

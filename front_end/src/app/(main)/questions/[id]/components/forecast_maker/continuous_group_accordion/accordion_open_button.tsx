@@ -2,7 +2,7 @@ import { DisclosureButton } from "@headlessui/react";
 import { FC, PropsWithChildren } from "react";
 
 import Button from "@/components/ui/button";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   onClick: () => void;

@@ -18,8 +18,8 @@ import {
   KeyFactorVoteTypes,
 } from "@/types/comment";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
-import { logError } from "@/utils/errors";
+import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
 
 import KeyFactorText from "./key_factor_text";
 

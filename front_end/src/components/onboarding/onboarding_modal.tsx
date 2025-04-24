@@ -11,7 +11,7 @@ import useStoredState from "@/hooks/use_stored_state";
 import { OnboardingStoredState, OnboardingTopic } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 import {
   ONBOARDING_STATE_KEY,
   setOnboardingSuppressed,

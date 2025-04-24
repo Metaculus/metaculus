@@ -11,8 +11,8 @@ import PostsApi from "@/services/posts";
 import { StateByForecastItem } from "@/types/experiments";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 
 import MiddleVotesArrow from "./middle_votes_arrow";
 import StateByForecastCharts from "./state_by_forecast_charts";
@@ -220,16 +220,14 @@ function getDemocratRepublicanPrediction({
 
   return {
     democratPrediction: rawDemocratPrediction
-      ? getDisplayValue({
-          value: rawDemocratPrediction,
+      ? getPredictionDisplayValue(rawDemocratPrediction, {
           questionType: demQuestion.type,
           scaling: demQuestion.scaling,
           actual_resolve_time: demQuestion.actual_resolve_time ?? null,
         })
       : null,
     republicanPrediction: rawRepublicanPrediction
-      ? getDisplayValue({
-          value: rawRepublicanPrediction,
+      ? getPredictionDisplayValue(rawRepublicanPrediction, {
           questionType: repQuestion.type,
           scaling: repQuestion.scaling,
           actual_resolve_time: repQuestion.actual_resolve_time ?? null,

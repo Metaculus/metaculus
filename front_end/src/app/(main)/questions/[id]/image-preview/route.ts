@@ -4,7 +4,7 @@ import {
   ENFORCED_THEME_PARAM,
   HIDE_ZOOM_PICKER,
 } from "@/constants/global_search_params";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function GET(

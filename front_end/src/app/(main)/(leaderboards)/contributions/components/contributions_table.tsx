@@ -20,12 +20,10 @@ import {
   LeaderboardEntry,
   LeaderboardType,
 } from "@/types/scoring";
-import cn from "@/utils/cn";
-import { abbreviatedNumber } from "@/utils/number_formatters";
-import {
-  getMarkdownSummary,
-  isUnsuccessfullyResolved,
-} from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { abbreviatedNumber } from "@/utils/formatters/number";
+import { getMarkdownSummary } from "@/utils/markdown";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 type SortingColumn = "score" | "coverage" | "title" | "type";
 type SortingDirection = "asc" | "desc";

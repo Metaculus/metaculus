@@ -7,7 +7,7 @@ import { FC, useEffect, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import CurveQuestionDetails from "./question_details/curve_question_details";
 

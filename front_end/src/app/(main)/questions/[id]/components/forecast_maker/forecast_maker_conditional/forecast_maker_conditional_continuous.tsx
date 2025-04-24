@@ -33,18 +33,22 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { sendConditionalPredictEvent } from "@/utils/analytics";
-import { getTableDisplayValue } from "@/utils/charts";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 import {
-  clearQuantileComponents,
+  getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
+} from "@/utils/forecasts/dataset";
+import { clearQuantileComponents } from "@/utils/forecasts/helpers";
+import {
   extractPrevNumericForecastValue,
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
-  getQuantileNumericForecastDataset,
+} from "@/utils/forecasts/initial_values";
+import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
-  getSliderNumericForecastDataset,
-} from "@/utils/forecasts";
+} from "@/utils/forecasts/switch_forecast_type";
+import { getTableDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import { useHideCP } from "../../cp_provider";
@@ -745,8 +749,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         onChange={setActiveTableOption}
         formatForecastValue={(value, forecastInputMode) => {
           if (activeOptionData && !isNil(value)) {
-            return getTableDisplayValue({
-              value,
+            return getTableDisplayValue(value, {
               questionType: activeOptionData.question.type,
               scaling: activeOptionData.question.scaling,
               forecastInputMode: forecastInputMode,

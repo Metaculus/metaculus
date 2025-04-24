@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   maxCollapsedHeight?: number;

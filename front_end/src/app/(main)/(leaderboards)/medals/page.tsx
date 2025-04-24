@@ -8,7 +8,7 @@ import LeaderboardApi from "@/services/leaderboard";
 import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
 import { MedalsPath } from "@/types/scoring";
-import { formatUsername } from "@/utils/users";
+import { formatUsername } from "@/utils/formatters/users";
 
 import { MEDALS_PATH_FILTER, MEDALS_USER_FILTER } from "./search_params";
 

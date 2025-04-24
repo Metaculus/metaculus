@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import Button from "@/app/(main)/about/components/Button";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import { useHideCP } from "./cp_provider";
 

@@ -4,7 +4,7 @@ import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ChoiceItem } from "@/types/choices";
 import { Aggregations, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
-import { formatResolution } from "@/utils/questions";
+import { formatResolution } from "@/utils/formatters/resolution";
 
 import { AGGREGATION_EXPLORER_OPTIONS } from "./constants";
 import {

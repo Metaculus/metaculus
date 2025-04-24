@@ -4,7 +4,7 @@ import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useState } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import { cancelBulletin } from "../actions";
 

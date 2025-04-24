@@ -14,7 +14,7 @@ import { useModal } from "@/contexts/modal_context";
 import useHash from "@/hooks/use_hash";
 import { PostStatus } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import KeyFactorItem from "./key_factor_item";
 

@@ -7,18 +7,11 @@ import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { ConditionalPost, PostConditional, PostStatus } from "@/types/post";
-import {
-  QuestionWithForecasts,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
-import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import {
-  getGroupForecastAvailability,
-  getQuestionLinearChartType,
-} from "@/utils/questions";
+import { QuestionWithNumericForecasts } from "@/types/question";
+import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 type Props = {
-  post: ConditionalPost<QuestionWithForecasts>;
+  post: ConditionalPost<QuestionWithNumericForecasts>;
 };
 
 const ConditionalTimeline: FC<Props> = ({ post }) => {
@@ -28,39 +21,17 @@ const ConditionalTimeline: FC<Props> = ({ post }) => {
 
   const { conditional, status } = post;
 
-  const groupType = conditional.question_no.type;
-  const type = getQuestionLinearChartType(groupType);
-  if (!type) {
-    return null;
-  }
-
-  const questions = generateQuestions(
-    t,
-    conditional as PostConditional<QuestionWithNumericForecasts>
-  );
-  const forecastAvailability = getGroupForecastAvailability(questions);
-  const timestamps = getGroupQuestionsTimestamps(questions, {
-    withUserTimestamps: !!forecastAvailability.cpRevealsOn,
-  });
+  const questions = generateQuestions(t, conditional);
 
   return (
     <div className="my-4">
       <MultipleChoiceGroupChart
         questions={questions}
-        timestamps={timestamps}
-        type={type}
-        actualCloseTime={
+        actualCloseTime={getPostDrivenTime(
           conditional.condition_child.actual_close_time
-            ? new Date(conditional.condition_child.actual_close_time).getTime()
-            : null
-        }
-        openTime={
-          conditional.condition_child.open_time
-            ? new Date(conditional.condition_child.open_time).getTime()
-            : undefined
-        }
+        )}
+        openTime={getPostDrivenTime(conditional.condition_child.open_time)}
         hideCP={hideCP}
-        forecastAvailability={forecastAvailability}
         isClosed={status === PostStatus.CLOSED}
       />
       {hideCP && <RevealCPButton className="mb-3" />}

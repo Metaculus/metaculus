@@ -21,16 +21,14 @@ import {
   DistributionSlider,
   DistributionSliderComponent,
 } from "@/types/question";
-import cn from "@/utils/cn";
+import { TranslationKey } from "@/types/translations";
+import cn from "@/utils/core/cn";
 import {
-  getNormalizedContinuousForecast,
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
-} from "@/utils/forecasts";
-import {
-  formatResolution,
-  getSubquestionPredictionInputMessage,
-} from "@/utils/questions";
+} from "@/utils/forecasts/dataset";
+import { getNormalizedContinuousForecast } from "@/utils/forecasts/helpers";
+import { formatResolution } from "@/utils/formatters/resolution";
 
 import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
 import ContinuousInput from "../continuous_input";
@@ -318,5 +316,18 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     </div>
   );
 };
+
+function getSubquestionPredictionInputMessage(
+  option: ContinuousGroupOption
+): TranslationKey | null {
+  switch (option.question.status) {
+    case QuestionStatus.CLOSED:
+      return "predictionClosedMessage";
+    case QuestionStatus.UPCOMING:
+      return "predictionUpcomingMessage";
+    default:
+      return null;
+  }
+}
 
 export default ContinuousInputWrapper;

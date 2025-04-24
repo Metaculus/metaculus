@@ -22,7 +22,7 @@ import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { NewsCategory } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import NewsSubscribeButton from "./news_subscribe_button";
 

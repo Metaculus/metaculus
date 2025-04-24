@@ -6,8 +6,8 @@ import ResolutionIcon from "@/components/icons/resolution";
 import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import { getChoiceOptionValue } from "@/utils/charts";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 
 type Props = {
   choice: string;
@@ -56,11 +56,15 @@ const ChoiceOption: FC<Props> = ({
       </div>
       {isNil(resolution) ? (
         <div className="resize-label py-0.5 pr-1.5 text-right text-sm font-bold leading-4 text-gray-900 dark:text-gray-900-dark">
-          {getChoiceOptionValue({
-            value: values[values.length - 1] ?? null,
-            questionType,
-            scaling,
+          {getPredictionDisplayValue(values.at(-1), {
+            questionType: questionType ?? QuestionType.Binary,
+            scaling: scaling ?? {
+              range_min: 0,
+              range_max: 1,
+              zero_point: null,
+            },
             actual_resolve_time: actual_resolve_time ?? null,
+            emptyLabel: "?",
           })}
         </div>
       ) : (

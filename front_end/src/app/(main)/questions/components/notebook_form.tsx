@@ -24,7 +24,7 @@ import {
   TournamentPreview,
   TournamentType,
 } from "@/types/projects";
-import { logErrorWithScope } from "@/utils/errors";
+import { logErrorWithScope } from "@/utils/core/errors";
 import { getPostLink } from "@/utils/navigation";
 
 import BacktoCreate from "./back_to_create";

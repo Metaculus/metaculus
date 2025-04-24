@@ -10,8 +10,8 @@ import { useModal } from "@/contexts/modal_context";
 import { KeyFactorVote, KeyFactorVoteTypes } from "@/types/comment";
 import { VoteDirection } from "@/types/votes";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
-import { logError } from "@/utils/errors";
+import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
 
 type Props = {
   voteData: VoteData;

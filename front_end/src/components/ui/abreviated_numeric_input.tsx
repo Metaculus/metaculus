@@ -4,8 +4,8 @@ import { isNil } from "lodash";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/form_field";
-import cn from "@/utils/cn";
-import { abbreviatedNumber } from "@/utils/number_formatters";
+import cn from "@/utils/core/cn";
+import { abbreviatedNumber } from "@/utils/formatters/number";
 
 type Props = {
   disabled?: boolean;

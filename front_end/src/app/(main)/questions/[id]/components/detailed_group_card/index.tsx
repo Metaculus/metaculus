@@ -3,31 +3,38 @@
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 
-import FanGraphGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/fan_graph_group_chart";
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
-import { GroupOfQuestionsGraphType } from "@/types/charts";
-import { GroupOfQuestionsPost, PostStatus } from "@/types/post";
+import FanChart from "@/components/charts/fan_chart";
 import {
-  QuestionWithForecasts,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+  GroupOfQuestionsGraphType,
+  GroupOfQuestionsPost,
+  PostStatus,
+} from "@/types/post";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import {
-  getGroupForecastAvailability,
-  getQuestionLinearChartType,
-  sortGroupPredictionOptions,
-} from "@/utils/questions";
+import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
+import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 import { useHideCP } from "../cp_provider";
 
 type Props = {
-  post: GroupOfQuestionsPost<QuestionWithForecasts>;
+  post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   preselectedQuestionId?: number;
+  /**
+   * Skips post-driven presentation.
+   * Specifically useful to show timeline for fan graph groups
+   */
+  groupPresentationOverride?: GroupOfQuestionsGraphType;
+  className?: string;
 };
 
-const DetailedGroupCard: FC<Props> = ({ post, preselectedQuestionId }) => {
+const DetailedGroupCard: FC<Props> = ({
+  post,
+  preselectedQuestionId,
+  groupPresentationOverride,
+  className,
+}) => {
   const t = useTranslations();
 
   const {
@@ -39,24 +46,27 @@ const DetailedGroupCard: FC<Props> = ({ post, preselectedQuestionId }) => {
   } = post;
   const refCloseTime = actual_close_time ?? scheduled_close_time;
 
-  const groupType = questions.at(0)?.type;
   const { hideCP } = useHideCP();
 
+  const presentationType = groupPresentationOverride ?? graph_type;
+
+  const hasUserForecast = questions.some(
+    (q) => !!q.my_forecasts?.history.length
+  );
+
   useEffect(() => {
-    if (questions.some((q) => !!q.my_forecasts?.history.length)) {
+    if (groupPresentationOverride) {
+      // skip event tracking as it will be tracked by details card in hero section
+      return;
+    }
+
+    if (hasUserForecast) {
       sendAnalyticsEvent("visitPredictedQuestion", {
         event_category: "group",
       });
     }
-  }, [questions]);
+  }, [groupPresentationOverride, hasUserForecast]);
 
-  if (!groupType) {
-    return (
-      <div className="text-l m-4 w-full text-center">
-        {t("forecastDataIsEmpty")}
-      </div>
-    );
-  }
   const forecastAvailability = getGroupForecastAvailability(questions);
   if (
     forecastAvailability.isEmpty &&
@@ -66,35 +76,18 @@ const DetailedGroupCard: FC<Props> = ({ post, preselectedQuestionId }) => {
     return null;
   }
 
-  const sortedQuestions = sortGroupPredictionOptions(
-    questions as QuestionWithNumericForecasts[],
-    post.group_of_questions
-  );
-  switch (graph_type) {
+  switch (presentationType) {
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
-      const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
-        withUserTimestamps: !!forecastAvailability.cpRevealsOn,
-      });
-      const type = getQuestionLinearChartType(groupType);
-
-      if (!type) {
-        return null;
-      }
-
       return (
         <>
           <MultipleChoiceGroupChart
-            questions={sortedQuestions}
-            timestamps={timestamps}
-            type={type}
-            actualCloseTime={
-              refCloseTime ? new Date(refCloseTime).getTime() : null
-            }
-            openTime={open_time ? new Date(open_time).getTime() : undefined}
+            group={post.group_of_questions}
+            actualCloseTime={getPostDrivenTime(refCloseTime)}
+            openTime={getPostDrivenTime(open_time)}
             isClosed={status === PostStatus.CLOSED}
             preselectedQuestionId={preselectedQuestionId}
             hideCP={hideCP}
-            forecastAvailability={forecastAvailability}
+            className={className}
           />
           {hideCP && <RevealCPButton />}
         </>
@@ -103,11 +96,11 @@ const DetailedGroupCard: FC<Props> = ({ post, preselectedQuestionId }) => {
     case GroupOfQuestionsGraphType.FanGraph:
       return (
         <>
-          <FanGraphGroupChart
-            questions={sortedQuestions as QuestionWithNumericForecasts[]}
-            withLabel
+          <FanChart
+            group={post.group_of_questions}
+            yLabel={t("communityPredictionLabel")}
             hideCP={hideCP}
-            forecastAvailability={forecastAvailability}
+            withTooltip
           />
           {hideCP && <RevealCPButton />}
         </>

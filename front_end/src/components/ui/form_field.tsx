@@ -14,8 +14,8 @@ import { mergeRefs } from "react-merge-refs";
 import MarkdownEditor from "@/components/markdown_editor";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { ErrorResponse } from "@/types/fetch";
-import cn from "@/utils/cn";
-import { extractError } from "@/utils/errors";
+import cn from "@/utils/core/cn";
+import { extractError } from "@/utils/core/errors";
 
 export type ErrorProps = {
   errors?: ErrorResponse;

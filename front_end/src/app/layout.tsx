@@ -20,11 +20,11 @@ import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import PolyfillProvider from "@/contexts/polyfill";
+import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
+import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
 import ProfileApi from "@/services/profile";
 import { getPublicSettings } from "@/utils/public_settings.server";
-
-import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
 
 config.autoAddCss = false;
 

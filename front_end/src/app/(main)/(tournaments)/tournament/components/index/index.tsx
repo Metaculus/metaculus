@@ -1,3 +1,4 @@
+import "./styles.css";
 import { fromUnixTime, subWeeks } from "date-fns";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
@@ -6,11 +7,9 @@ import React, { FC } from "react";
 import WeeklyMovement from "@/components/weekly_movement";
 import { ProjectIndexWeights } from "@/types/projects";
 import { QuestionType } from "@/types/question";
-import { scaleInternalLocation } from "@/utils/charts";
+import { scaleInternalLocation } from "@/utils/math";
 
 import IndexQuestionsTable from "./index_questions_table";
-
-import "./styles.css";
 
 type Props = {
   indexWeights: ProjectIndexWeights[];

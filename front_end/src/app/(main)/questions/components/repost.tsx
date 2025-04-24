@@ -16,9 +16,9 @@ import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { PostWithForecasts } from "@/types/post";
 import { Community } from "@/types/projects";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 import { getPostLink } from "@/utils/navigation";
-import { parseQuestionId } from "@/utils/questions";
+import { parseQuestionId } from "@/utils/questions/helpers";
 
 import BacktoCreate from "./back_to_create";
 

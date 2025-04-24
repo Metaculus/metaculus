@@ -4,7 +4,7 @@ import { FC, Suspense } from "react";
 
 import ShareElectionsMenu from "@/app/(main)/experiments/elections/components/share_elections_menu";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import CardForecast from "./components/card_forecast";
 import ElectoralConsequences from "./components/electoral_consequences";

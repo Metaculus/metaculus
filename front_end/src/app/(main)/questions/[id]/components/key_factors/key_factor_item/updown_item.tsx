@@ -3,7 +3,7 @@ import { FC } from "react";
 
 import KeyFactorVoter from "@/app/(main)/questions/[id]/components/key_factors/key_factor_voter";
 import { KeyFactor, KeyFactorVoteTypes } from "@/types/comment";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import KeyFactorText from "./key_factor_text";
 

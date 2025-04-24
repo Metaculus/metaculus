@@ -4,7 +4,7 @@ import { Checkbox as HeadlessCheckbox, Field, Label } from "@headlessui/react";
 import { FC, MouseEventHandler, ReactNode, TouchEventHandler } from "react";
 
 import { ErrorResponse } from "@/types/fetch";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import { FormError } from "./form_field";
 

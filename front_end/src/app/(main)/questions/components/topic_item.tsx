@@ -2,7 +2,7 @@ import { Button } from "@headlessui/react";
 import Link from "next/link";
 import { FC, ReactNode } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   text: string;

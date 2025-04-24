@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import { CommentType } from "@/types/comment";
-import { formatDate } from "@/utils/date_formatters";
+import { formatDate } from "@/utils/formatters/date";
 
 export const CommentDate: FC<{ comment: CommentType }> = ({ comment }) => {
   const locale = useLocale();

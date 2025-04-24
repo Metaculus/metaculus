@@ -1,6 +1,13 @@
+import { isNil } from "lodash";
 import * as math from "mathjs";
 
-import { ExtendedQuartiles, Quartiles } from "@/types/question";
+import {
+  Bounds,
+  ExtendedQuartiles,
+  Quartiles,
+  Question,
+  Scaling,
+} from "@/types/question";
 
 export function almostEqual(a: number, b: number, eps = 1e-12) {
   return b == 0 ? a == 0 : Math.abs((a - b) / b) < eps;
@@ -162,4 +169,91 @@ export function computeQuartilesFromCDF(
       upper75: upper75,
     };
   }
+}
+
+export function getCdfBounds(cdf: number[] | undefined): Bounds | undefined {
+  if (!cdf) {
+    return;
+  }
+
+  const start = cdf.at(0);
+  const end = cdf.at(-1);
+  if (isNil(start) || isNil(end)) {
+    return;
+  }
+
+  return {
+    belowLower: start,
+    aboveUpper: 1 - end,
+  };
+}
+
+export function nominalLocationToCdfLocation(
+  location: number,
+  question: Question
+) {
+  const { range_min, range_max, zero_point } = question.scaling;
+  if (range_min === null || range_max === null) {
+    throw new Error("range_min and range_max must be defined");
+  }
+  if (zero_point !== null) {
+    const derivRatio = (range_max - zero_point) / (range_min - zero_point);
+    return (
+      (Math.log(
+        (location - range_min) * (derivRatio - 1) + (range_max - range_min)
+      ) -
+        Math.log(range_max - range_min)) /
+      Math.log(derivRatio)
+    );
+  }
+  return (location - range_min) / (range_max - range_min);
+}
+
+/**
+ * scales an internal location within a range of 0 to 1 to a location
+ * within a range of range_min to range_max, taking into account any logarithmic
+ * scaling determined by zero_point
+ */
+export function scaleInternalLocation(x: number, scaling: Scaling) {
+  const { range_min, range_max, zero_point } = scaling;
+  if (isNil(range_max) || isNil(range_min)) {
+    return x;
+  }
+
+  let scaled_location: number;
+  if (zero_point !== null) {
+    const derivRatio = (range_max - zero_point) / (range_min - zero_point);
+    scaled_location =
+      range_min +
+      ((range_max - range_min) * (derivRatio ** x - 1)) / (derivRatio - 1);
+  } else if (range_min === null || range_max === null) {
+    scaled_location = x;
+  } else {
+    scaled_location = range_min + (range_max - range_min) * x;
+  }
+  return scaled_location;
+}
+
+/**
+ * unscales a nominal location within a range of range_min to range_max
+ * to an internal location within a range of 0 to 1
+ * taking into account any logarithmic scaling determined by zero_point
+ */
+export function unscaleNominalLocation(x: number, scaling: Scaling) {
+  const { range_min, range_max, zero_point } = scaling;
+  if (isNil(range_max) || isNil(range_min)) {
+    return x;
+  }
+
+  let unscaled_location: number;
+  if (zero_point !== null) {
+    const derivRatio = (range_max - zero_point) / (range_min - zero_point);
+    unscaled_location =
+      Math.log(
+        ((x - range_min) * (derivRatio - 1)) / (range_max - range_min) + 1
+      ) / Math.log(derivRatio);
+  } else {
+    unscaled_location = (x - range_min) / (range_max - range_min);
+  }
+  return unscaled_location;
 }

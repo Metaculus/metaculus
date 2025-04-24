@@ -15,7 +15,7 @@ import {
 } from "@/hooks/share";
 import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   questionTitle: string;

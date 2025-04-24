@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import React, { ChangeEvent, forwardRef, useEffect, useState } from "react";
 
 import { Input, InputProps } from "@/components/ui/form_field";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 interface DatetimeUtcProps extends Omit<InputProps, "onChange"> {
   defaultValue?: string;

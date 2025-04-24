@@ -9,9 +9,9 @@ import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
-import { extractPostResolution } from "@/utils/questions";
+import { extractPostResolution } from "@/utils/questions/resolution";
 
 import CommentStatus from "./comment_status";
 import PostVoter from "./post_voter";

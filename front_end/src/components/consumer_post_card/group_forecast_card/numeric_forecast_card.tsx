@@ -3,16 +3,11 @@ import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
-import {
-  generateChoiceItemsFromGroupQuestions,
-  getChoiceOptionValue,
-  scaleInternalLocation,
-} from "@/utils/charts";
-import {
-  isGroupOfQuestionsPost,
-  sortGroupPredictionOptions,
-} from "@/utils/questions";
+import { QuestionType, Scaling } from "@/types/question";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { scaleInternalLocation } from "@/utils/math";
+import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
+import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import ForecastCardWrapper from "./forecast_card_wrapper";
 import ForecastChoiceBar from "./forecast_choice_bar";
@@ -29,16 +24,14 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
     return null;
   }
 
-  const sortedQuestions = sortGroupPredictionOptions(
-    post.group_of_questions?.questions as QuestionWithNumericForecasts[],
-    post.group_of_questions
+  const choices = generateChoiceItemsFromGroupQuestions(
+    post.group_of_questions,
+    {
+      activeCount: visibleChoicesCount,
+      locale,
+      shortBounds: true,
+    }
   );
-
-  const choices = generateChoiceItemsFromGroupQuestions(sortedQuestions, {
-    activeCount: visibleChoicesCount,
-    locale,
-    shortBounds: true,
-  });
   // Move resolved/annulled choices to the start
   const sortedChoices = [...choices].sort((a, b) => {
     const aResolved = !isNil(a.resolution);
@@ -85,17 +78,24 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
           const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
           const rawChoiceValue =
             aggregationValues[aggregationValues.length - 1] ?? null;
-          const formattedChoiceValue = getChoiceOptionValue({
-            value: rawChoiceValue,
-            questionType: QuestionType.Numeric,
-            scaling,
-            actual_resolve_time: actual_resolve_time ?? null,
-          });
-          const scaledChoiceValue = scaleInternalLocation(rawChoiceValue ?? 0, {
+          const normalizedScaling: Scaling = {
             range_min: scaling?.range_min ?? 0,
             range_max: scaling?.range_max ?? 1,
             zero_point: scaling?.zero_point ?? null,
-          });
+          };
+          const formattedChoiceValue = getPredictionDisplayValue(
+            rawChoiceValue,
+            {
+              questionType: QuestionType.Numeric,
+              scaling: normalizedScaling,
+              actual_resolve_time: actual_resolve_time ?? null,
+              emptyLabel: "?",
+            }
+          );
+          const scaledChoiceValue = scaleInternalLocation(
+            rawChoiceValue ?? 0,
+            normalizedScaling
+          );
           const relativeWidth = !isNil(resolution)
             ? 100
             : calculateRelativeWidth({

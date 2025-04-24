@@ -7,7 +7,7 @@ import { FC, useState } from "react";
 import Comment from "@/components/comment_feed/comment";
 import { CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import { SortOption } from ".";
 

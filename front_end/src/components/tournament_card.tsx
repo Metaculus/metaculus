@@ -9,7 +9,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import tournamentPlaceholder from "@/app/assets/images/tournament.png";
-import { formatDate } from "@/utils/date_formatters";
+import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
   href: LinkProps["href"];

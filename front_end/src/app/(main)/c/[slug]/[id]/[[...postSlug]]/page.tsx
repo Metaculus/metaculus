@@ -9,7 +9,7 @@ import { defaultDescription } from "@/constants/metadata";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
 import { TournamentType } from "@/types/projects";
-import { getQuestionTitle } from "@/utils/questions";
+import { getPostTitle } from "@/utils/questions/helpers";
 
 type Props = {
   params: Promise<{ id: number; slug: string[]; postSlug: string[] }>;
@@ -33,7 +33,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       description: !!parsedDescription ? parsedDescription : defaultDescription,
     };
   }
-  const questionTitle = getQuestionTitle(postData);
+  const questionTitle = getPostTitle(postData);
   return {
     title: questionTitle,
     description: null,

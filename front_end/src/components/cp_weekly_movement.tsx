@@ -4,9 +4,10 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { displayValue, scaleInternalLocation } from "@/utils/charts";
-import cn from "@/utils/cn";
-import { formatValueUnit } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { scaleInternalLocation } from "@/utils/math";
+import { formatValueUnit } from "@/utils/questions/units";
 
 import WeeklyMovement from "./weekly_movement";
 
@@ -36,13 +37,11 @@ const CPWeeklyMovement: FC<Props> = ({
 
   const message =
     presentation === "consumerView"
-      ? displayValue({
-          value: Math.abs(weeklyMovement),
+      ? getPredictionDisplayValue(Math.abs(weeklyMovement), {
           questionType: question.type,
           actual_resolve_time: null,
         })
-      : `${displayValue({
-          value: Math.abs(weeklyMovement),
+      : `${getPredictionDisplayValue(Math.abs(weeklyMovement), {
           questionType: question.type,
           actual_resolve_time: null,
         })}${percentagePoints}`.replace("%", "");

@@ -14,7 +14,7 @@ import {
   PostSubscriptionSpecificTimeConfig,
   PostSubscriptionType,
 } from "@/types/post";
-import { formatDate } from "@/utils/date_formatters";
+import { formatDate } from "@/utils/formatters/date";
 
 import { SubscriptionSectionProps } from "./types";
 

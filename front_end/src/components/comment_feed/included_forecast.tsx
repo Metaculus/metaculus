@@ -8,11 +8,11 @@ import ChoiceIcon from "@/components/choice_icon";
 import Button from "@/components/ui/button";
 import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ForecastType } from "@/types/comment";
-import { getQuestionDateFormatString } from "@/utils/charts";
-import cn from "@/utils/cn";
-import { formatDate } from "@/utils/date_formatters";
-import { abbreviatedNumber } from "@/utils/number_formatters";
-import { formatValueUnit } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { formatDate } from "@/utils/formatters/date";
+import { abbreviatedNumber } from "@/utils/formatters/number";
+import { getQuestionDateFormatString } from "@/utils/formatters/prediction";
+import { formatValueUnit } from "@/utils/questions/units";
 
 type Props = {
   author: string;
