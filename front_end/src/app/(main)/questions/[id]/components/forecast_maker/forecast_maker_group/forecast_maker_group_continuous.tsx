@@ -54,7 +54,7 @@ import {
   getSliderDistributionFromQuantiles,
 } from "@/utils/forecasts/switch_forecast_type";
 import { computeQuartilesFromCDF } from "@/utils/math";
-import { canWithdrawForecast } from "@/utils/questions";
+import { canWithdrawForecast } from "@/utils/questions/predictions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
@@ -82,7 +82,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const params = useSearchParams();
-  const shouldResetOptions = useRef<boolean | number>(false);
+  const resetTarget = useRef<"all" | number | undefined>(undefined);
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const { id: postId, user_permission: permission } = post;
 
@@ -116,10 +116,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setGroupOptions((prev) =>
       prev.map((o) => {
         const newOption = newGroupOptions.find((q) => q.id === o.question.id);
+        // we want to reset all options if we withdraw/reaffirm all group subquestions using button unter the table
+        // but when updating a single subquestion, we want to reset only that subquestion state
         return {
           ...o,
-          ...(shouldResetOptions.current === true ||
-          shouldResetOptions.current === o.id
+          ...(resetTarget.current === "all" || resetTarget.current === o.id
             ? newOption
             : o),
           resolution: newOption?.resolution ?? o.resolution,
@@ -128,9 +129,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         };
       })
     );
-    if (shouldResetOptions.current) {
-      shouldResetOptions.current = false;
-    }
+    resetTarget.current = undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions]);
 
@@ -450,7 +449,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   const handlePredictWithdraw = useCallback(
     async (questionId?: number) => {
-      shouldResetOptions.current = isNil(questionId) ? true : questionId;
+      resetTarget.current = questionId === undefined ? "all" : questionId;
 
       setSubmitError(undefined);
       setIsSubmitting(true);
@@ -473,7 +472,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const handlePredictionReaffirm = useCallback(async () => {
-    shouldResetOptions.current = true;
+    resetTarget.current = "all";
     setSubmitError(undefined);
     setIsSubmitting(true);
     const response = await createForecasts(
