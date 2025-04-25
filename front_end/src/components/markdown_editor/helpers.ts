@@ -149,6 +149,40 @@ export const escapeRawDollarSigns = (markdown: string): string => {
   );
 };
 
+function sanitizeHtml(markdown: string) {
+  const supportedComponents = [
+    EMBEDDED_QUESTION_COMPONENT_NAME,
+    EMBEDDED_TWITTER_COMPONENT_NAME,
+  ];
+
+  const componentPatternString = supportedComponents.join("|");
+  const jsxComponentRegex = new RegExp(
+    `<(${componentPatternString})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
+    "gs"
+  );
+
+  const jsxComponents: { placeholder: string; original: string }[] = [];
+  let placeholderIndex = 0;
+
+  const sanitizedContent = markdown.replace(jsxComponentRegex, (match) => {
+    const placeholder = `___JSX_COMPONENT_${placeholderIndex++}___`;
+    jsxComponents.push({
+      placeholder,
+      original: match,
+    });
+    return placeholder;
+  });
+
+  const purifiedContent = DOMPurify.sanitize(sanitizedContent);
+
+  let finalContent = purifiedContent;
+  jsxComponents.forEach(({ placeholder, original }) => {
+    finalContent = finalContent.replace(placeholder, original);
+  });
+
+  return finalContent;
+}
+
 export function processMarkdown(
   markdown: string,
   config?: { revert?: boolean; withTwitterPreview?: boolean }
@@ -164,14 +198,7 @@ export function processMarkdown(
     markdown = transformTwitterLinks(markdown);
   }
 
-  markdown = DOMPurify.sanitize(markdown, {
-    KEEP_CONTENT: true,
-    PARSER_MEDIA_TYPE: "application/xhtml+xml",
-    ADD_TAGS: [
-      EMBEDDED_QUESTION_COMPONENT_NAME,
-      EMBEDDED_TWITTER_COMPONENT_NAME,
-    ],
-  });
+  markdown = sanitizeHtml(markdown);
 
   return markdown;
 }

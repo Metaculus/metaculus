@@ -15,7 +15,10 @@ type Props = {
 
 const HtmlContent: FC<Props> = ({ content, className }) => {
   const toggleKey = useRef<string | null>(null);
-  const clearContent = DOMPurify.sanitize(content);
+  const clearContent = DOMPurify.sanitize(content, {
+    ADD_ATTR: ["toggle-details", "ng-show"],
+  });
+
   const transform = (node: any, index: number) => {
     if (!node.attribs) return undefined;
 
