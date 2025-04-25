@@ -27,6 +27,11 @@ urlpatterns = [
         views.comment_add_key_factors_view,
         name="comment-add-key-factors",
     ),
+    path(
+        "comments/<int:pk>/suggest-key-factors/",
+        views.comment_suggest_key_factors_view,
+        name="comment-suggest-key-factors",
+    ),
 ]
 
 

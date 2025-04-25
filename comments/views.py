@@ -31,7 +31,11 @@ from comments.services.common import (
 )
 from comments.services.common import update_comment
 from comments.services.feed import get_comments_feed
-from comments.services.key_factors import create_key_factors, key_factor_vote
+from comments.services.key_factors import (
+    create_key_factors,
+    generate_keyfactors_for_comment,
+    key_factor_vote,
+)
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -329,6 +333,25 @@ def comment_add_key_factors_view(request: Request, pk: int):
 
     return Response(
         serialize_comment_many([comment], with_key_factors=True)[0],
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def comment_suggest_key_factors_view(request: Request, pk: int):
+    comment = get_object_or_404(Comment, pk=pk)
+
+    existing_keyfactors = [keyfactor.text for keyfactor in comment.key_factors.all()]
+
+    suggested_key_factors = generate_keyfactors_for_comment(
+        comment.text,
+        existing_keyfactors,
+        comment.on_post,  # type: ignore (on_post is not None)
+    )
+
+    return Response(
+        [keyfactor.text for keyfactor in suggested_key_factors],
         status=status.HTTP_200_OK,
     )
 

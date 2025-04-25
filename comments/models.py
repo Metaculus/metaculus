@@ -81,6 +81,7 @@ class CommentQuerySet(models.QuerySet):
 
 class Comment(TimeStampedModel, TranslatedModel):
     comment_votes: QuerySet["CommentVote"]
+    key_factors: QuerySet["KeyFactor"]
 
     author = models.ForeignKey(User, models.CASCADE)  # are we sure we want this?
     parent = models.ForeignKey(
