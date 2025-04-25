@@ -178,11 +178,13 @@ def generate_related_articles_for_post(post: Post):
 
     relevant_articles = (
         ITNArticle.objects.annotate(
-            distance=CosineDistance("embedding_vector", post.embedding_vector),
+            distance=CosineDistance("embedding_vector", post.embedding_vector)
+        )
+        .filter(
+            distance__lte=MAX_RELEVANT_DISTANCE,
             # Take only fresh news
             created_at__gte=timezone.now() - timedelta(days=2),
         )
-        .filter(distance__lte=MAX_RELEVANT_DISTANCE)
         .order_by("distance")[:20]
     )
 
