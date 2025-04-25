@@ -1207,5 +1207,7 @@
   "maxKeyFactorsPerQuestion": "Una pregunta puede tener no más de 6 factores clave por un autor.",
   "maxKeyFactorLength": "Los factores clave deben tener menos de 150 caracteres.",
   "addKeyFactorsModalP1": "Enumere los factores clave que considera más importantes — mantenga cada uno de manera breve y específica.",
-  "addKeyFactorsModalP2": "Por favor, publique un comentario para explicar por qué estos factores son importantes para su pronóstico."
+  "addKeyFactorsModalP2": "Por favor, publique un comentario para explicar por qué estos factores son importantes para su pronóstico.",
+  "withdrawAll": "Retirar todo",
+  "reaffirmAll": "Reafirmar todo"
 }

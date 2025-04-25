@@ -13,7 +13,11 @@ import LocalDaytime from "@/components/ui/local_daytime";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { Post, ProjectPermissions, QuestionStatus } from "@/types/post";
-import { Question, QuestionWithForecasts } from "@/types/question";
+import {
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import { canWithdrawForecast } from "@/utils/questions/predictions";
 import { canChangeQuestionResolution } from "@/utils/questions/resolution";
@@ -88,7 +92,9 @@ const ForecastMakerGroupControls: FC<Props> = ({
           ...(canWithdrawForecast(
             question as QuestionWithForecasts,
             permission
-          ) && !isNil(post)
+          ) &&
+          !isNil(post) &&
+          question.type === QuestionType.Binary
             ? [
                 {
                   id: "withdraw",
