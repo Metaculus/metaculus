@@ -78,6 +78,9 @@ def get_comments_feed(
             order_by_args.append("-is_focused_comment")
 
     if sort:
+        if "vote_score" in sort:
+            qs = qs.annotate_vote_score()
+
         order_by_args.append(sort)
 
     if order_by_args:

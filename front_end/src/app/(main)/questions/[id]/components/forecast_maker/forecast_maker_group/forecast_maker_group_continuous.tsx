@@ -10,10 +10,14 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { ContinuousForecastInputType } from "@/types/charts";
@@ -28,6 +32,7 @@ import {
   DistributionQuantile,
   DistributionSlider,
   QuestionWithNumericForecasts,
+  UserForecast,
 } from "@/types/question";
 import {
   getQuantileNumericForecastDataset,
@@ -49,6 +54,7 @@ import {
   getSliderDistributionFromQuantiles,
 } from "@/utils/forecasts/switch_forecast_type";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import { canWithdrawForecast } from "@/utils/questions/predictions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
@@ -76,6 +82,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const params = useSearchParams();
+  const resetTarget = useRef<"all" | number | undefined>(undefined);
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const { id: postId, user_permission: permission } = post;
 
@@ -109,14 +116,20 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setGroupOptions((prev) =>
       prev.map((o) => {
         const newOption = newGroupOptions.find((q) => q.id === o.question.id);
+        // we want to reset all options if we withdraw/reaffirm all group subquestions using button unter the table
+        // but when updating a single subquestion, we want to reset only that subquestion state
         return {
           ...o,
+          ...(resetTarget.current === "all" || resetTarget.current === o.id
+            ? newOption
+            : o),
           resolution: newOption?.resolution ?? o.resolution,
           menu: newOption?.menu ?? o.menu,
           question: newOption?.question ?? o.question,
         };
       })
     );
+    resetTarget.current = undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions]);
 
@@ -425,6 +438,66 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     );
     setIsSubmitting(false);
   }, [postId, questionsToSubmit, t]);
+  const predictedQuestions = useMemo(() => {
+    return questions.filter(
+      (q) =>
+        q.status === QuestionStatus.OPEN &&
+        q.my_forecasts?.latest &&
+        isNil(q.my_forecasts?.latest.end_time)
+    );
+  }, [questions]);
+
+  const handlePredictWithdraw = useCallback(
+    async (questionId?: number) => {
+      resetTarget.current = questionId === undefined ? "all" : questionId;
+
+      setSubmitError(undefined);
+      setIsSubmitting(true);
+      const response = await withdrawForecasts(
+        postId,
+        isNil(questionId)
+          ? predictedQuestions.map((q) => ({
+              question: q.id,
+            }))
+          : [{ question: questionId }]
+      );
+      setIsSubmitting(false);
+
+      if (response && "errors" in response && !!response.errors) {
+        setSubmitError(response.errors);
+      }
+      return response;
+    },
+    [postId, predictedQuestions]
+  );
+
+  const handlePredictionReaffirm = useCallback(async () => {
+    resetTarget.current = "all";
+    setSubmitError(undefined);
+    setIsSubmitting(true);
+    const response = await createForecasts(
+      postId,
+      predictedQuestions.map(({ my_forecasts, id }) => {
+        const latest = my_forecasts?.latest as UserForecast;
+        return {
+          questionId: id,
+          forecastData: {
+            continuousCdf: latest.forecast_values,
+            probabilityYesPerCategory: null,
+            probabilityYes: null,
+          },
+          distributionInput: latest.distribution_input,
+        };
+      })
+    );
+
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+      setIsSubmitting(false);
+      return;
+    }
+    setIsSubmitting(false);
+  }, [postId, predictedQuestions]);
 
   return (
     <>
@@ -443,28 +516,53 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         handleAddComponent={handleAddComponent}
         handleResetForecasts={handleResetForecasts}
         handlePredictSubmit={handleSingleQuestionSubmit}
+        handlePredictWithdraw={handlePredictWithdraw}
         handleForecastInputModeChange={handleForecastInputModeChange}
         handleCopy={handleCopy}
+        permission={permission}
       />
-      {questionsToSubmit.some((opt) => opt.isDirty) && (
-        <div className="mb-2 mt-4 flex justify-center gap-3">
+      <div className="mx-auto mb-2 mt-4 flex flex-wrap justify-center gap-3">
+        {questions.some((q) => canWithdrawForecast(q, permission)) && (
           <Button
             variant="secondary"
-            type="reset"
-            onClick={() => handleResetForecasts()}
+            type="submit"
+            disabled={isSubmitting}
+            onClick={() => handlePredictWithdraw()}
           >
-            {t("discardAllChangesButton")}
+            {t("withdrawAll")}
           </Button>
+        )}
+        {predictedQuestions.length > 0 && (
+          <Button
+            variant="secondary"
+            type="submit"
+            disabled={isSubmitting}
+            onClick={handlePredictionReaffirm}
+          >
+            {t("reaffirmAll")}
+          </Button>
+        )}
 
-          <PredictButton
-            onSubmit={() => handlePredictSubmit()}
-            isDirty={true}
-            hasUserForecast={true}
-            isPending={isSubmitting}
-            predictLabel={t("saveAllChanges")}
-          />
-        </div>
-      )}
+        {questionsToSubmit.some((opt) => opt.isDirty) && (
+          <>
+            <Button
+              variant="secondary"
+              type="reset"
+              onClick={() => handleResetForecasts()}
+            >
+              {t("discardAllChangesButton")}
+            </Button>
+
+            <PredictButton
+              onSubmit={() => handlePredictSubmit()}
+              isDirty={true}
+              hasUserForecast={true}
+              isPending={isSubmitting}
+              predictLabel={t("saveAllChanges")}
+            />
+          </>
+        )}
+      </div>
 
       <FormError
         errors={submitError}

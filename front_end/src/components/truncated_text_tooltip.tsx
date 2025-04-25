@@ -26,17 +26,14 @@ const TruncatedTextTooltip: FC<Props> = ({
 
   useEffect(() => {
     if (ref.current) {
-      const temp = ref.current.cloneNode(true) as HTMLElement;
-      temp.style.position = "fixed";
-      temp.style.overflow = "scroll";
-      temp.style.visibility = "hidden";
-      temp.style.width = width.toString() + "px";
-      ref.current.parentElement?.appendChild(temp);
-      const scrollHeight = temp.scrollHeight;
-      const displayHeight = ref.current.clientHeight;
-
-      setIsTextTruncated(scrollHeight > displayHeight);
-      ref.current.parentElement?.removeChild(temp);
+      const element = ref.current;
+      const elementStyle = getComputedStyle(element);
+      if (isStyledWithEllipsis(elementStyle)) {
+        setIsTextTruncated(isOverflowX(element));
+      }
+      if (isStyledWithClamp(elementStyle)) {
+        setIsTextTruncated(isOverflowY(element));
+      }
     }
   }, [width, ref]);
 
@@ -67,5 +64,21 @@ const TruncatedTextTooltip: FC<Props> = ({
     </Tooltip>
   );
 };
+
+const isStyledWithEllipsis = (style: CSSStyleDeclaration) =>
+  style.overflowX === "hidden" &&
+  style.textOverflow === "ellipsis" &&
+  style.whiteSpace === "nowrap";
+
+const isStyledWithClamp = (style: CSSStyleDeclaration) => {
+  const lineClamp = style.getPropertyValue("-webkit-line-clamp");
+  return lineClamp !== "" && parseInt(lineClamp, 10) > 0;
+};
+
+const isOverflowX = (element: HTMLSpanElement) =>
+  element.offsetWidth < element.scrollWidth;
+
+const isOverflowY = (element: HTMLSpanElement) =>
+  element.offsetHeight < element.scrollHeight;
 
 export default TruncatedTextTooltip;
