@@ -27,5 +27,5 @@ def finalize_leaderboards():
             leaderboard.project.close_date if leaderboard.project else None
         )
         if finalize_time and finalize_time <= timezone.now():
-            logger.info("Finalizing leaderboard: ", leaderboard)
+            logger.info(f"Finalizing leaderboard: {leaderboard}")
             update_project_leaderboard(leaderboard=leaderboard)
