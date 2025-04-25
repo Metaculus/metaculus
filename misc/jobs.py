@@ -22,7 +22,7 @@ def index_itn_articles__worker(ids, worker_idx):
             update_article_embedding_vector(article)
 
             # Generate list of similar posts
-            generate_related_posts_for_article(article.id)
+            generate_related_posts_for_article(article)
 
             if idx % 100 == 0:
                 logger.info(f"[W{worker_idx}] ITN Articles sync: Processed {idx}/{len(ids)} records")
