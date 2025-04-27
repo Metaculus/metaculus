@@ -1,5 +1,5 @@
 import { isNil, isNull } from "lodash";
-import { MessageKeys, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 import {
   DefaultInboundOutcomeCount,
@@ -9,9 +9,9 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
-import { unscaleNominalLocation } from "@/utils/charts";
+import { TranslationKey } from "@/types/translations";
+import { unscaleNominalLocation } from "@/utils/math";
 
-export type ValidationErrorKey = MessageKeys<IntlMessages, keyof IntlMessages>;
 export function validateQuantileInput({
   question,
   components,
@@ -298,7 +298,7 @@ export function validateUserQuantileData({
 type QuantileCheck = {
   quantile: Quantile;
   percentileValue: number;
-  errorMessageKey: ValidationErrorKey;
+  errorMessageKey: TranslationKey;
   boundType: "lower" | "upper";
   withinBounds?: boolean;
 };

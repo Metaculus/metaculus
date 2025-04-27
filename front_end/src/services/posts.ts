@@ -15,7 +15,7 @@ import {
 import { QuestionWithForecasts } from "@/types/question";
 import { Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
-import { get, post, put, del } from "@/utils/fetch";
+import { get, post, put, del } from "@/utils/core/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {

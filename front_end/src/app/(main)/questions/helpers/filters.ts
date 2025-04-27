@@ -40,7 +40,7 @@ import {
 import { TournamentPreview } from "@/types/projects";
 import { QuestionOrder, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 // TODO: translate
 const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {

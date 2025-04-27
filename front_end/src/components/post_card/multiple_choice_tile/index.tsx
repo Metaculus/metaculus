@@ -1,11 +1,10 @@
 "use client";
 
-import { isNil, round } from "lodash";
+import { isNil } from "lodash";
 import React, { FC, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import FanGraphGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/fan_graph_group_chart";
-import { BINARY_FORECAST_PRECISION } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import FanChart from "@/components/charts/fan_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
@@ -14,7 +13,7 @@ import useContainerSize from "@/hooks/use_container_size";
 import { ForecastPayload } from "@/services/questions";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
-import { PostStatus, QuestionStatus } from "@/types/post";
+import { PostGroupOfQuestions, PostStatus, QuestionStatus } from "@/types/post";
 import {
   ForecastAvailability,
   QuestionType,
@@ -22,7 +21,6 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
-import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
 
@@ -30,19 +28,18 @@ type BaseProps = {
   choices: ChoiceItem[];
   visibleChoicesCount: number;
   hideCP?: boolean;
-  forecastAvailability?: ForecastAvailability;
   chartHeight?: number;
   canPredict?: boolean;
 };
 
 type QuestionProps = {
   question: QuestionWithMultipleChoiceForecasts;
-  groupQuestions?: never;
+  group?: never;
   groupType?: never;
 };
 
 type GroupProps = {
-  groupQuestions: QuestionWithNumericForecasts[];
+  group: PostGroupOfQuestions<QuestionWithNumericForecasts>;
   groupType?: QuestionType;
   question?: never;
 };
@@ -59,13 +56,12 @@ type ContinuousMultipleChoiceTileProps = BaseProps &
     chartTheme?: VictoryThemeDefinition;
     question?: QuestionWithMultipleChoiceForecasts;
     scaling?: Scaling | undefined;
+    forecastAvailability?: ForecastAvailability;
   };
 
 const CHART_HEIGHT = 100;
 
-export const ContinuousMultipleChoiceTile: FC<
-  ContinuousMultipleChoiceTileProps
-> = ({
+export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   timestamps,
   actualCloseTime,
   openTime,
@@ -77,7 +73,7 @@ export const ContinuousMultipleChoiceTile: FC<
   chartTheme,
   question,
   groupType,
-  groupQuestions,
+  group,
   scaling,
   hideCP,
   forecastAvailability,
@@ -94,8 +90,13 @@ export const ContinuousMultipleChoiceTile: FC<
     choices.every((choice) => isNil(choice.resolution));
 
   const { canReaffirm, forecast } = useMemo(
-    () => generateReaffirmData({ question, groupQuestions, groupType }),
-    [groupQuestions, groupType, question]
+    () =>
+      generateReaffirmData({
+        question,
+        groupQuestions: group?.questions,
+        groupType,
+      }),
+    [group?.questions, groupType, question]
   );
 
   const handleReaffirmClick = useCallback(() => {
@@ -155,11 +156,10 @@ type FanGraphMultipleChoiceTileProps = BaseProps & GroupProps;
 export const FanGraphMultipleChoiceTile: FC<
   FanGraphMultipleChoiceTileProps
 > = ({
-  groupQuestions,
+  group,
   choices,
   visibleChoicesCount,
   hideCP,
-  forecastAvailability,
   chartHeight,
   groupType,
   canPredict,
@@ -168,8 +168,8 @@ export const FanGraphMultipleChoiceTile: FC<
   const { ref, height } = useContainerSize<HTMLDivElement>();
 
   const { canReaffirm, forecast } = useMemo(
-    () => generateReaffirmData({ groupQuestions, groupType }),
-    [groupQuestions, groupType]
+    () => generateReaffirmData({ groupQuestions: group.questions, groupType }),
+    [group.questions, groupType]
   );
 
   const handleReaffirmClick = useCallback(() => {
@@ -194,13 +194,12 @@ export const FanGraphMultipleChoiceTile: FC<
         />
       </div>
       <div className="w-full">
-        <FanGraphGroupChart
-          questions={groupQuestions}
+        <FanChart
+          group={group}
           height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
           pointSize={8}
           hideCP={hideCP}
           withTooltip={false}
-          forecastAvailability={forecastAvailability}
         />
       </div>
     </div>
@@ -264,12 +263,7 @@ function generateReaffirmData({
         const latest = q.my_forecasts?.latest;
         let forecast: number | null = null;
         if (latest && !latest.end_time) {
-          const rawForecast = extractPrevBinaryForecastValue(
-            latest.forecast_values[1]
-          );
-          forecast = rawForecast
-            ? round(rawForecast / 100, BINARY_FORECAST_PRECISION)
-            : null;
+          forecast = latest.forecast_values[1] ?? null;
         }
 
         return {

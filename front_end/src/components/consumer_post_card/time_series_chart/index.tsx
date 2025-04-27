@@ -22,16 +22,14 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
-import {
-  getDisplayValue,
-  scaleInternalLocation,
-  unscaleNominalLocation,
-  getResolutionPosition,
-  calculateCharWidth,
-  getTruncatedLabel,
-  getContinuousGroupScaling,
-} from "@/utils/charts";
-import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
+import { calculateCharWidth } from "@/utils/charts/helpers";
+import { getResolutionPosition } from "@/utils/charts/resolution";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { formatResolution } from "@/utils/formatters/resolution";
+import { truncateLabel } from "@/utils/formatters/string";
+import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
+import { getContinuousGroupScaling } from "@/utils/questions/helpers";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import TimeSeriesLabel from "./time_series_label";
 
@@ -223,14 +221,14 @@ function buildChartData(
         y: !isNil(resolutionPoint) ? resolutionPoint : point,
         label: !isNil(formatedResolution)
           ? formatedResolution
-          : getDisplayValue({
-              value:
-                question.aggregations.recency_weighted.latest?.centers?.[0] ??
-                0,
-              questionType: question.type,
-              scaling: question.scaling,
-              actual_resolve_time: null,
-            }),
+          : getPredictionDisplayValue(
+              question.aggregations.recency_weighted.latest?.centers?.[0] ?? 0,
+              {
+                questionType: question.type,
+                scaling: question.scaling,
+                actual_resolve_time: null,
+              }
+            ),
         isClosed: question.status === QuestionStatus.CLOSED,
         resolution: question.resolution,
       };
@@ -282,7 +280,7 @@ function adjustLabelsForDisplay(
         }
       }
 
-      return getTruncatedLabel(adjustedLabel, 25);
+      return truncateLabel(adjustedLabel, 25);
     }),
   ];
 

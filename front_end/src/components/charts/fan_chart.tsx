@@ -20,45 +20,67 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
-import { Area, FanOption, Line } from "@/types/charts";
 import {
-  ForecastAvailability,
+  Area,
+  ContinuousForecastInputType,
+  FanOption,
+  Line,
+} from "@/types/charts";
+import { PostGroupOfQuestions } from "@/types/post";
+import {
+  DefaultInboundOutcomeCount,
   Quartiles,
   QuestionType,
+  QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
 import {
-  calculateCharWidth,
   generateScale,
-  getLeftPadding,
-  getResolutionPosition,
+  getAxisLeftPadding,
   getTickLabelFontSize,
+} from "@/utils/charts/axis";
+import {
+  calculateCharWidth,
+  getLineGraphTypeFromQuestion,
+} from "@/utils/charts/helpers";
+import { getResolutionPosition } from "@/utils/charts/resolution";
+import {
+  getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
+} from "@/utils/forecasts/dataset";
+import {
+  extractPrevBinaryForecastValue,
+  extractPrevNumericForecastValue,
+} from "@/utils/forecasts/initial_values";
+import {
+  computeQuartilesFromCDF,
+  getCdfBounds,
   scaleInternalLocation,
   unscaleNominalLocation,
-} from "@/utils/charts";
+} from "@/utils/math";
+import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
+import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 
 const TOOLTIP_WIDTH = 150;
 
 type Props = {
-  options: FanOption[];
+  group: PostGroupOfQuestions<QuestionWithNumericForecasts>;
   height?: number;
   yLabel?: string;
   withTooltip?: boolean;
   extraTheme?: VictoryThemeDefinition;
   pointSize?: number;
   hideCP?: boolean;
-  forecastAvailability?: ForecastAvailability;
 };
 
 const FanChart: FC<Props> = ({
-  options,
+  group,
   height = 220,
   yLabel,
   withTooltip = false,
   extraTheme,
   pointSize,
   hideCP,
-  forecastAvailability,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -72,6 +94,9 @@ const FanChart: FC<Props> = ({
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
+  const forecastAvailability = getGroupForecastAvailability(group.questions);
+
+  const options = useMemo(() => getFanOptions(group), [group]);
   const {
     communityLine,
     userLine,
@@ -94,7 +119,7 @@ const FanChart: FC<Props> = ({
   });
   const { ticks, tickFormat } = yScale;
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
   const shouldDisplayChart = !!chartWidth;
@@ -513,6 +538,113 @@ function adjustLabelsForDisplay(
   return options.map((option, index) =>
     index % step === 0 ? option.name : ""
   );
+}
+
+function getFanOptions(
+  group: PostGroupOfQuestions<QuestionWithNumericForecasts>
+): FanOption[] {
+  const { questions } = group;
+
+  const groupType = questions.at(0)?.type;
+  if (!groupType) {
+    console.warn("Can't generate fan options. Group type is not defined.");
+    return [];
+  }
+
+  const graphType = getLineGraphTypeFromQuestion(groupType);
+  if (!graphType) {
+    console.warn("Can't generate fan options. Graph type is not supported.");
+    return [];
+  }
+
+  const sortedQuestions = sortGroupPredictionOptions(questions, group);
+
+  return graphType === "binary"
+    ? getFanOptionsFromBinaryGroup(sortedQuestions)
+    : getFanOptionsFromContinuousGroup(sortedQuestions);
+}
+
+function getFanOptionsFromContinuousGroup(
+  questions: QuestionWithNumericForecasts[]
+): FanOption[] {
+  return questions
+    .map((q) => {
+      const latest = q.my_forecasts?.latest;
+      const userForecast = extractPrevNumericForecastValue(
+        latest && !latest.end_time ? latest.distribution_input : undefined
+      );
+
+      let userCdf: number[] | null = null;
+      if (userForecast?.components) {
+        userForecast.type === ContinuousForecastInputType.Slider
+          ? (userCdf = getSliderNumericForecastDataset(
+              userForecast.components,
+              q.open_lower_bound,
+              q.open_upper_bound,
+              q.inbound_outcome_count ?? DefaultInboundOutcomeCount
+            ).cdf)
+          : (userCdf = getQuantileNumericForecastDataset(
+              userForecast.components,
+              q
+            ).cdf);
+      }
+
+      return {
+        name: q.label,
+        communityCdf:
+          q.aggregations.recency_weighted.latest?.forecast_values ?? [],
+        userCdf: userCdf,
+        resolved: q.resolution !== null,
+        question: q,
+      };
+    })
+    .map(({ name, communityCdf, resolved, question, userCdf }) => ({
+      name,
+      communityQuartiles: communityCdf.length
+        ? computeQuartilesFromCDF(communityCdf) ?? null
+        : null,
+      communityBounds: getCdfBounds(communityCdf) ?? null,
+      userQuartiles: userCdf?.length ? computeQuartilesFromCDF(userCdf) : null,
+      userBounds: userCdf ? getCdfBounds(userCdf) ?? null : null,
+      resolved,
+      question,
+    }));
+}
+
+function getFanOptionsFromBinaryGroup(
+  questions: QuestionWithNumericForecasts[]
+): FanOption[] {
+  return questions.map((q) => {
+    const aggregation = q.aggregations.recency_weighted.latest;
+    const resolved = q.resolution !== null;
+
+    const latest = q.my_forecasts?.latest;
+    const userForecast = extractPrevBinaryForecastValue(
+      latest && !latest.end_time ? latest.forecast_values[1] : null
+    );
+
+    return {
+      name: q.label,
+      communityQuartiles: !!aggregation
+        ? {
+            median: aggregation.centers?.[0] ?? 0,
+            lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
+            upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
+          }
+        : null,
+      communityBounds: null,
+      userQuartiles: userForecast
+        ? {
+            lower25: userForecast / 100,
+            median: userForecast / 100,
+            upper75: userForecast / 100,
+          }
+        : null,
+      userBounds: null,
+      resolved,
+      question: q,
+    };
+  });
 }
 
 export default FanChart;

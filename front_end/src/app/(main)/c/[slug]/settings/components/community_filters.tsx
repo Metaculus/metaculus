@@ -12,7 +12,7 @@ import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { Community } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   community: Community;

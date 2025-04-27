@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import { Href } from "@/types/navigation";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const MobileMenuLink: FC<
   PropsWithChildren<{

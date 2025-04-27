@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 import NavLink from "@/components/nav_link";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   links: Array<{ label: string; href: string }>;

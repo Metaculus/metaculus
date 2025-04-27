@@ -13,9 +13,12 @@ import {
   AggregateForecastHistory,
   GraphingQuestionProps,
 } from "@/types/question";
-import { displayValue, scaleInternalLocation } from "@/utils/charts";
-import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import {
+  getForecastPctDisplayValue,
+  getPredictionDisplayValue,
+} from "@/utils/formatters/prediction";
 import { cdfToPmf } from "@/utils/math";
+import { formatValueUnit } from "@/utils/questions/units";
 
 import { AggregationQuestionWithBots } from "../types";
 
@@ -40,13 +43,12 @@ const ContinuousAggregationChart: FC<Props> = ({
   const cursorDisplayData = useMemo(() => {
     if (!hoverState) return null;
 
-    const scaledValue = scaleInternalLocation(hoverState.x, {
-      range_min: scaling.range_min ?? 0,
-      range_max: scaling.range_max ?? 1,
-      zero_point: scaling.zero_point,
-    });
-    const xLabel = displayValue({
-      value: scaledValue,
+    const xLabel = getPredictionDisplayValue(hoverState.x, {
+      scaling: {
+        range_min: scaling.range_min ?? 0,
+        range_max: scaling.range_max ?? 1,
+        zero_point: scaling.zero_point,
+      },
       questionType: qType,
       precision: 5,
       actual_resolve_time: null,
@@ -88,6 +90,25 @@ const ContinuousAggregationChart: FC<Props> = ({
     return charts;
   }, [selectedTimestamp, activeAggregation]);
 
+  const xLabel = cursorDisplayData?.xLabel ?? "";
+  let probabilityLabel: string;
+  if (graphType === "pmf") {
+    if (xLabel.includes("<") || xLabel.includes(">")) {
+      probabilityLabel = xLabel.at(0) + " " + xLabel.slice(1);
+    } else {
+      probabilityLabel = "= " + xLabel;
+    }
+  } else {
+    // cdf
+    if (xLabel.includes("<")) {
+      probabilityLabel = "< " + xLabel.slice(1);
+    } else if (xLabel.includes(">")) {
+      probabilityLabel = "≤ ∞";
+    } else {
+      probabilityLabel = "≤ " + xLabel;
+    }
+  }
+
   return (
     <div className="my-5">
       <div className="flex">
@@ -114,11 +135,11 @@ const ContinuousAggregationChart: FC<Props> = ({
         {cursorDisplayData && (
           <>
             <span>
-              {graphType === "pmf" ? "P(x = " : "P(x ≤ "}
+              {"P(x "}
               <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                {cursorDisplayData.xLabel}
+                {formatValueUnit(probabilityLabel, questionData.unit)}
               </span>
-              {" ):"}
+              {"):"}
             </span>
             {cursorDisplayData.yUserLabel !== null && (
               <span>

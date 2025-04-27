@@ -3,7 +3,7 @@ import { FC, useState } from "react";
 
 import Voter from "@/components/voter";
 import { NewsArticle } from "@/types/news";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 type Props = {
   article: NewsArticle;

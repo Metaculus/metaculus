@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dialog, DialogPanel, Transition } from "@headlessui/react";
 import { FC, Fragment, PropsWithChildren, useEffect } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   isOpen: boolean;

@@ -5,7 +5,7 @@ import { SemanticName } from "rc-slider/lib/interface";
 import { CSSProperties, FC, useCallback, useEffect, useState } from "react";
 
 import Slider from "@/components/sliders/slider";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const DEFAULT_SLIDER_VALUE = 50;
 export const BINARY_FORECAST_PRECISION = 3;

@@ -4,7 +4,7 @@ import React, { FC, useEffect } from "react";
 import { PostStatus, QuestionPost } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { getQuestionForecastAvailability } from "@/utils/questions";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 
 import DetailedContinuousChartCard from "./continuous_chart_card";
 import DetailsQuestionCardErrorBoundary from "./error_boundary";

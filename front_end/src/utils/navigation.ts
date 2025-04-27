@@ -48,7 +48,7 @@ export const getPostLink = (
   if (defaultProject?.type === TournamentType.Community) {
     url = `/c/${defaultProject.slug}/${idPath}/`;
   } else if (!!post.notebook) {
-    url = `/notebooks/${post.id}/${idPath}/`;
+    url = `/notebooks/${idPath}/`;
   }
 
   // If generate links to the specific subquestion

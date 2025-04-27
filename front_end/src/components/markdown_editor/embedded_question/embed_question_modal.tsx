@@ -12,9 +12,9 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import { Post, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
-import { logError } from "@/utils/errors";
-import { formatPrediction } from "@/utils/forecasts";
-import { extractPostResolution } from "@/utils/questions";
+import { logError } from "@/utils/core/errors";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { extractPostResolution } from "@/utils/questions/resolution";
 
 type Props = {
   isOpen: boolean;
@@ -148,12 +148,11 @@ const PredictionInfo: FC<{ question: QuestionWithNumericForecasts }> = ({
             className="w-[13px]"
           />
           <span>
-            {formatPrediction(
-              prediction,
-              question.type,
-              question.scaling,
-              question.unit
-            )}
+            {getPredictionDisplayValue(prediction, {
+              questionType: question.type,
+              scaling: question.scaling,
+              actual_resolve_time: question.actual_resolve_time ?? null,
+            })}
           </span>
         </div>
       )}

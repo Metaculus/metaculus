@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { Post } from "@/types/post";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
 

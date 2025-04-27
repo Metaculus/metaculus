@@ -1,4 +1,4 @@
-import { post, get } from "@/utils/fetch";
+import { post, get } from "@/utils/core/fetch";
 
 export type ContactForm = {
   email: string;

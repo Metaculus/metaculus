@@ -13,12 +13,14 @@ import LocalDaytime from "@/components/ui/local_daytime";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { Post, ProjectPermissions, QuestionStatus } from "@/types/post";
-import { Question, QuestionWithForecasts } from "@/types/question";
-import { logError } from "@/utils/errors";
 import {
-  canChangeQuestionResolution,
-  canWithdrawForecast,
-} from "@/utils/questions";
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
+import { logError } from "@/utils/core/errors";
+import { canWithdrawForecast } from "@/utils/questions/predictions";
+import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import IncludeBotsInfo from "../../sidebar/question_info/include_bots_info";
@@ -49,7 +51,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
-      logError(err, `${t("failedToCopyText")} ${err}`);
+      logError(err, { message: `failed to copy text: ${err}` });
     }
   };
 
@@ -90,7 +92,9 @@ const ForecastMakerGroupControls: FC<Props> = ({
           ...(canWithdrawForecast(
             question as QuestionWithForecasts,
             permission
-          ) && !isNil(post)
+          ) &&
+          !isNil(post) &&
+          question.type === QuestionType.Binary
             ? [
                 {
                   id: "withdraw",

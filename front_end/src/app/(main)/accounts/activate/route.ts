@@ -3,7 +3,7 @@ import invariant from "ts-invariant";
 
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);

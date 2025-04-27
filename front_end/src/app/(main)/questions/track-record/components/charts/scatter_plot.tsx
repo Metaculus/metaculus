@@ -23,7 +23,7 @@ import { TrackRecordScatterPlotItem } from "@/types/track_record";
 import {
   generateNumericXDomain,
   generateTimestampXScale,
-} from "@/utils/charts";
+} from "@/utils/charts/axis";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
 

@@ -4,7 +4,7 @@ import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import LeaderboardApi from "@/services/leaderboard";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import MedalIcon from "../../components/medal_icon";
 import { RANKING_CATEGORIES } from "../../ranking_categories";

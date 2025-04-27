@@ -36,8 +36,7 @@ import { useAuth } from "@/contexts/auth_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
-import cn from "@/utils/cn";
-import { logErrorWithScope } from "@/utils/errors";
+import cn from "@/utils/core/cn";
 
 import EditorToolbar from "./editor_toolbar";
 import { embeddedQuestionDescriptor } from "./embedded_question";
@@ -226,7 +225,7 @@ const InitializedMarkdownEditor: FC<
       onChange={debouncedHandleEditorChange}
       onBlur={onBlur}
       onError={(err) => {
-        logErrorWithScope(err.error, err.source);
+        console.warn(err);
         if (mode === "read") {
           requestAnimationFrame(() => {
             setErrorMarkdown(markdown);

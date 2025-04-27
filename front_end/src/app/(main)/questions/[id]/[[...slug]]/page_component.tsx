@@ -11,15 +11,19 @@ import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { PostStatus, ProjectPermissions } from "@/types/post";
-import { TournamentType } from "@/types/projects";
-import cn from "@/utils/cn";
 import {
-  getQuestionTitle,
+  GroupOfQuestionsGraphType,
+  PostStatus,
+  ProjectPermissions,
+} from "@/types/post";
+import { TournamentType } from "@/types/projects";
+import cn from "@/utils/core/cn";
+import {
+  getPostTitle,
   isConditionalPost,
   isGroupOfQuestionsPost,
   isQuestionPost,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
 
 import { cachedGetPost } from "./utils/get_post";
 import BackgroundInfo from "../components/background_info";
@@ -27,7 +31,6 @@ import HideCPProvider from "../components/cp_provider";
 import DetailedGroupCard from "../components/detailed_group_card";
 import DetailedQuestionCard from "../components/detailed_question_card";
 import ForecastMaker from "../components/forecast_maker";
-import ContinuousGroupTimeline from "../components/forecast_timeline_drawer";
 import HistogramDrawer from "../components/histogram_drawer";
 import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import PostHeader from "../components/post_header";
@@ -68,7 +71,7 @@ const IndividualQuestionPage: FC<{
     (postData.user_permission === ProjectPermissions.CREATOR &&
       postData.curation_status !== PostStatus.APPROVED);
 
-  const questionTitle = getQuestionTitle(postData);
+  const questionTitle = getPostTitle(postData);
   return (
     <EmbedModalContextProvider>
       <CommentsFeedProvider postData={postData} rootCommentStructure={true}>
@@ -151,13 +154,18 @@ const IndividualQuestionPage: FC<{
                       />
 
                       <BackgroundInfo post={postData} />
-                      {!!postData.group_of_questions && (
-                        <ContinuousGroupTimeline
-                          post={postData}
-                          preselectedQuestionId={preselectedGroupQuestionId}
-                          className="mt-2"
-                        />
-                      )}
+                      {isGroupOfQuestionsPost(postData) &&
+                        postData.group_of_questions.graph_type ===
+                          GroupOfQuestionsGraphType.FanGraph && (
+                          <DetailedGroupCard
+                            post={postData}
+                            preselectedQuestionId={preselectedGroupQuestionId}
+                            groupPresentationOverride={
+                              GroupOfQuestionsGraphType.MultipleChoiceGraph
+                            }
+                            className="mt-2"
+                          />
+                        )}
                       <HistogramDrawer post={postData} />
                     </div>
                   </section>

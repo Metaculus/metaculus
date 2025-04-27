@@ -6,7 +6,7 @@ import { FC } from "react";
 import NavUserButton from "@/components/auth";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const Header: FC = () => {
   const { user } = useAuth();

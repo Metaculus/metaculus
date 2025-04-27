@@ -19,7 +19,7 @@ import {
 } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { parseComment } from "@/utils/comments";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import { getComments } from "../questions/actions";
 
@@ -201,7 +201,7 @@ const CommentsFeedProvider: FC<
         ...params,
       });
       if (!!response && "errors" in response) {
-        logError(response.errors, "Error fetching comments:");
+        logError(response.errors, { message: "Error fetching comments:" });
       } else {
         setTotalCount(response.total_count ?? response.count);
 
@@ -226,7 +226,7 @@ const CommentsFeedProvider: FC<
     } catch (err) {
       const error = err as Error & { digest?: string };
       setError(error);
-      logError(err, `Error fetching comments: ${err}`);
+      logError(err, { message: `Error fetching comments: ${err}` });
     } finally {
       setIsLoading(false);
     }

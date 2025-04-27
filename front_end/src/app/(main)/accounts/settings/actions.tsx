@@ -1,7 +1,7 @@
 "use server";
 
 import ProfileApi from "@/services/profile";
-import { ApiError } from "@/utils/errors";
+import { ApiError } from "@/utils/core/errors";
 
 export async function changePassword(password: string, new_password: string) {
   try {

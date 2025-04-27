@@ -7,7 +7,7 @@ import {
   TrackRecordHistogramItem,
   TrackRecordScatterPlotItem,
 } from "@/types/track_record";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import CalibrationChart from "./charts/calibration_chart";
 import ScatterPlot from "./charts/scatter_plot";

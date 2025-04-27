@@ -1,5 +1,5 @@
 import { BECommentType, CommentType, KeyFactorVoteType } from "@/types/comment";
-import { get, post } from "@/utils/fetch";
+import { get, post } from "@/utils/core/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type getCommentsParams = {

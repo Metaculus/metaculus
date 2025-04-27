@@ -2,7 +2,7 @@ import { Select as HeadlessSelect } from "@headlessui/react";
 import { ComponentPropsWithoutRef, forwardRef, Fragment, Ref } from "react";
 
 import { SelectOption } from "@/components/ui/listbox";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props<T> = {
   name?: string;

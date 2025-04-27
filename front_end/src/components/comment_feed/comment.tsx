@@ -43,11 +43,12 @@ import {
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
 import { getCommentIdToFocusOn, parseUserMentions } from "@/utils/comments";
-import { logError } from "@/utils/errors";
-import { canPredictQuestion, getMarkdownSummary } from "@/utils/questions";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
+import { formatUsername } from "@/utils/formatters/users";
+import { getMarkdownSummary } from "@/utils/markdown";
+import { canPredictQuestion } from "@/utils/questions/predictions";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
@@ -280,7 +281,7 @@ const Comment: FC<CommentProps> = ({
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
-      logError(err, `${t("failedToCopyText")} ${err}`);
+      logError(err, { message: `failed to copy text: ${err}` });
     }
   };
   const handleSaveComment = useCallback(async () => {
@@ -701,7 +702,12 @@ const Comment: FC<CommentProps> = ({
                       <Button
                         size="xxs"
                         variant="tertiary"
-                        onClick={() => setIsAddKeyFactorsModalOpen(true)}
+                        onClick={() => {
+                          sendAnalyticsEvent("addKeyFactor", {
+                            event_label: "fromComment",
+                          });
+                          setIsAddKeyFactorsModalOpen(true);
+                        }}
                       >
                         <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
                         {t("addKeyFactor")}

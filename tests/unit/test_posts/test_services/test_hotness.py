@@ -5,6 +5,7 @@ from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
 from comments.services.common import create_comment
+from misc.models import PostArticle
 from posts.models import PostActivityBoost, Vote
 from posts.services.common import vote_post
 from posts.services.hotness import (
@@ -13,11 +14,13 @@ from posts.services.hotness import (
     _compute_hotness_approval_score,
     _compute_hotness_post_votes,
     _compute_hotness_comments,
+    _compute_hotness_relevant_news,
     compute_hotness_total_boosts,
     compute_post_hotness,
     handle_post_boost,
 )
 from questions.models import Question
+from tests.unit.test_misc.factories import factory_itn_article
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import (
     create_question,
@@ -143,6 +146,23 @@ def test_compute_hotness_total_boosts(post_binary_public, user1):
 
 
 @freeze_time("2025-04-18")
+def test_compute_hotness_relevant_news(post_binary_public):
+    assert _compute_hotness_relevant_news(post_binary_public) == 0
+
+    with freeze_time("2025-04-11"):
+        PostArticle.objects.create(
+            post=post_binary_public,
+            article=factory_itn_article(),
+            distance=0.4,
+        )
+        PostArticle.objects.create(
+            post=post_binary_public, article=factory_itn_article(), distance=0.1
+        )
+
+    assert _compute_hotness_relevant_news(post_binary_public) == 4
+
+
+@freeze_time("2025-04-18")
 def test_compute_post_hotness(user1):
     post = factory_post(
         author=user1,
@@ -179,7 +199,10 @@ def test_compute_post_hotness(user1):
     # Add vote. Score: 1
     vote_post(post, user1, 1)
 
-    assert compute_post_hotness(post) == 123
+    # Add ITN article
+    PostArticle.objects.create(post=post, article=factory_itn_article(), distance=0.1)
+
+    assert compute_post_hotness(post) == 131
 
 
 @freeze_time("2025-04-18")

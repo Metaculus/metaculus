@@ -20,12 +20,10 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { getTableDisplayValue } from "@/utils/charts";
-import cn from "@/utils/cn";
-import {
-  getQuantileNumericForecastDataset,
-  isAllQuantileComponentsDirty,
-} from "@/utils/forecasts";
+import cn from "@/utils/core/cn";
+import { getQuantileNumericForecastDataset } from "@/utils/forecasts/dataset";
+import { isAllQuantileComponentsDirty } from "@/utils/forecasts/helpers";
+import { getTableDisplayValue } from "@/utils/formatters/prediction";
 
 import ContinuousTableInput from "./continuous_table_input";
 import {
@@ -167,6 +165,20 @@ const ContinuousTable: FC<Props> = ({
     question.type !== QuestionType.Discrete || !question.inbound_outcome_count
       ? 1
       : 1 - 0.5 / question.inbound_outcome_count;
+  const getDisplayValue = (value: number | null | undefined) => {
+    return getTableDisplayValue(
+      value
+        ? Math.min(upperBoundLocation, Math.max(lowerBoundLocation, value))
+        : undefined,
+      {
+        questionType: question.type,
+        scaling: question.scaling,
+        precision: 4,
+        unit: question.unit,
+        actual_resolve_time: question.actual_resolve_time ?? null,
+      }
+    );
+  };
 
   return (
     <>
@@ -179,15 +191,7 @@ const ContinuousTable: FC<Props> = ({
                 {question.open_lower_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
                     {(question.type === QuestionType.Discrete ? "<" : "") +
-                      getTableDisplayValue({
-                        value: lowerBoundLocation,
-                        questionType: question.type,
-                        scaling: question.scaling,
-                        precision: 4,
-                        unit: question.unit,
-                        actual_resolve_time:
-                          question.actual_resolve_time ?? null,
-                      })}
+                      getDisplayValue(0)}
                   </Td>
                 )}
                 <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
@@ -202,15 +206,7 @@ const ContinuousTable: FC<Props> = ({
                 {question.open_upper_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
                     {(question.type === QuestionType.Discrete ? ">" : "") +
-                      getTableDisplayValue({
-                        value: upperBoundLocation,
-                        questionType: question.type,
-                        scaling: question.scaling,
-                        precision: 4,
-                        unit: question.unit,
-                        actual_resolve_time:
-                          question.actual_resolve_time ?? null,
-                      })}
+                      getDisplayValue(1)}
                   </Td>
                 )}
               </>
@@ -230,55 +226,13 @@ const ContinuousTable: FC<Props> = ({
                 </Td>
               )}
               <Td className="tabular-nums tracking-tight">
-                {getTableDisplayValue({
-                  value: communityQuartiles?.lower25
-                    ? Math.min(
-                        upperBoundLocation,
-                        Math.max(
-                          lowerBoundLocation,
-                          communityQuartiles?.lower25
-                        )
-                      )
-                    : undefined,
-                  questionType: question.type,
-                  scaling: question.scaling,
-                  precision: 4,
-                  unit: question.unit,
-                  actual_resolve_time: question.actual_resolve_time ?? null,
-                })}
+                {getDisplayValue(communityQuartiles?.lower25)}
               </Td>
               <Td className="tabular-nums tracking-tight">
-                {getTableDisplayValue({
-                  value: communityQuartiles?.median
-                    ? Math.min(
-                        upperBoundLocation,
-                        Math.max(lowerBoundLocation, communityQuartiles?.median)
-                      )
-                    : undefined,
-                  questionType: question.type,
-                  scaling: question.scaling,
-                  precision: 4,
-                  unit: question.unit,
-                  actual_resolve_time: question.actual_resolve_time ?? null,
-                })}
+                {getDisplayValue(communityQuartiles?.median)}
               </Td>
               <Td className="tabular-nums tracking-tight">
-                {getTableDisplayValue({
-                  value: communityQuartiles?.upper75
-                    ? Math.min(
-                        upperBoundLocation,
-                        Math.max(
-                          lowerBoundLocation,
-                          communityQuartiles?.upper75
-                        )
-                      )
-                    : undefined,
-                  questionType: question.type,
-                  scaling: question.scaling,
-                  precision: 4,
-                  unit: question.unit,
-                  actual_resolve_time: question.actual_resolve_time ?? null,
-                })}
+                {getDisplayValue(communityQuartiles?.upper75)}
               </Td>
               {question.open_upper_bound && (
                 <Td>
@@ -302,61 +256,13 @@ const ContinuousTable: FC<Props> = ({
                       </Td>
                     )}
                     <Td className="tabular-nums tracking-tight">
-                      {getTableDisplayValue({
-                        value: userQuartiles?.lower25
-                          ? Math.min(
-                              upperBoundLocation,
-                              Math.max(
-                                lowerBoundLocation,
-                                userQuartiles?.lower25
-                              )
-                            )
-                          : undefined,
-                        questionType: question.type,
-                        scaling: question.scaling,
-                        precision: 4,
-                        unit: question.unit,
-                        actual_resolve_time:
-                          question.actual_resolve_time ?? null,
-                      })}
+                      {getDisplayValue(userQuartiles?.lower25)}
                     </Td>
                     <Td className="tabular-nums tracking-tight">
-                      {getTableDisplayValue({
-                        value: userQuartiles?.median
-                          ? Math.min(
-                              upperBoundLocation,
-                              Math.max(
-                                lowerBoundLocation,
-                                userQuartiles?.median
-                              )
-                            )
-                          : undefined,
-                        questionType: question.type,
-                        scaling: question.scaling,
-                        precision: 4,
-                        unit: question.unit,
-                        actual_resolve_time:
-                          question.actual_resolve_time ?? null,
-                      })}
+                      {getDisplayValue(userQuartiles?.median)}
                     </Td>
                     <Td className="tabular-nums tracking-tight">
-                      {getTableDisplayValue({
-                        value: userQuartiles?.upper75
-                          ? Math.min(
-                              upperBoundLocation,
-                              Math.max(
-                                lowerBoundLocation,
-                                userQuartiles?.upper75
-                              )
-                            )
-                          : undefined,
-                        questionType: question.type,
-                        scaling: question.scaling,
-                        precision: 4,
-                        unit: question.unit,
-                        actual_resolve_time:
-                          question.actual_resolve_time ?? null,
-                      })}
+                      {getDisplayValue(userQuartiles?.upper75)}
                     </Td>
                     {question.open_upper_bound && userBounds && (
                       <Td>{(userBounds.aboveUpper * 100).toFixed(1)}%</Td>
@@ -532,58 +438,13 @@ const ContinuousTable: FC<Props> = ({
                   </Td>
                 )}
                 <Td className="tabular-nums tracking-tight">
-                  {getTableDisplayValue({
-                    value: userPreviousQuartiles?.lower25
-                      ? Math.min(
-                          upperBoundLocation,
-                          Math.max(
-                            lowerBoundLocation,
-                            userPreviousQuartiles?.lower25
-                          )
-                        )
-                      : undefined,
-                    questionType: question.type,
-                    scaling: question.scaling,
-                    precision: 4,
-                    unit: question.unit,
-                    actual_resolve_time: question.actual_resolve_time ?? null,
-                  })}
+                  {getDisplayValue(userPreviousQuartiles?.lower25)}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
-                  {getTableDisplayValue({
-                    value: userPreviousQuartiles?.median
-                      ? Math.min(
-                          upperBoundLocation,
-                          Math.max(
-                            lowerBoundLocation,
-                            userPreviousQuartiles?.median
-                          )
-                        )
-                      : undefined,
-                    questionType: question.type,
-                    scaling: question.scaling,
-                    precision: 4,
-                    unit: question.unit,
-                    actual_resolve_time: question.actual_resolve_time ?? null,
-                  })}
+                  {getDisplayValue(userPreviousQuartiles?.median)}
                 </Td>
                 <Td className="tabular-nums tracking-tight">
-                  {getTableDisplayValue({
-                    value: userPreviousQuartiles?.upper75
-                      ? Math.min(
-                          upperBoundLocation,
-                          Math.max(
-                            lowerBoundLocation,
-                            userPreviousQuartiles?.upper75
-                          )
-                        )
-                      : undefined,
-                    questionType: question.type,
-                    scaling: question.scaling,
-                    precision: 4,
-                    unit: question.unit,
-                    actual_resolve_time: question.actual_resolve_time ?? null,
-                  })}
+                  {getDisplayValue(userPreviousQuartiles?.upper75)}
                 </Td>
                 {question.open_upper_bound && userPreviousBounds && (
                   <Td>{(userPreviousBounds.aboveUpper * 100).toFixed(1)}%</Td>
@@ -622,14 +483,7 @@ const ContinuousTable: FC<Props> = ({
             <>
               <tr>
                 <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
-                  {getTableDisplayValue({
-                    value: 0,
-                    questionType: question.type,
-                    scaling: question.scaling,
-                    precision: 4,
-                    unit: question.unit,
-                    actual_resolve_time: question.actual_resolve_time ?? null,
-                  })}
+                  {getDisplayValue(0)}
                 </Td>
                 {withCommunityQuartiles && (
                   <Td className="text-olive-800 dark:text-olive-800-dark">
@@ -687,22 +541,7 @@ const ContinuousTable: FC<Props> = ({
             </Td>
             {withCommunityQuartiles && (
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
-                {getTableDisplayValue({
-                  value: communityQuartiles?.lower25
-                    ? Math.min(
-                        upperBoundLocation,
-                        Math.max(
-                          lowerBoundLocation,
-                          communityQuartiles?.lower25
-                        )
-                      )
-                    : undefined,
-                  questionType: question.type,
-                  scaling: question.scaling,
-                  precision: 4,
-                  unit: question.unit,
-                  actual_resolve_time: null,
-                })}
+                {getDisplayValue(communityQuartiles?.lower25)}
               </Td>
             )}
             {withUserQuartiles &&
@@ -728,21 +567,7 @@ const ContinuousTable: FC<Props> = ({
             ) : (
               <Td className="text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
-                  <>
-                    {getTableDisplayValue({
-                      value: userQuartiles?.lower25
-                        ? Math.min(
-                            upperBoundLocation,
-                            Math.max(lowerBoundLocation, userQuartiles?.lower25)
-                          )
-                        : undefined,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
-                      unit: question.unit,
-                      actual_resolve_time: question.actual_resolve_time ?? null,
-                    })}
-                  </>
+                  <>{getDisplayValue(userQuartiles?.lower25)}</>
                 ) : (
                   "—"
                 )}
@@ -750,22 +575,7 @@ const ContinuousTable: FC<Props> = ({
             )}
             {withUserQuartiles && userPreviousQuartiles && (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
-                {getTableDisplayValue({
-                  value: userPreviousQuartiles?.lower25
-                    ? Math.min(
-                        upperBoundLocation,
-                        Math.max(
-                          lowerBoundLocation,
-                          userPreviousQuartiles?.lower25
-                        )
-                      )
-                    : undefined,
-                  questionType: question.type,
-                  scaling: question.scaling,
-                  precision: 4,
-                  unit: question.unit,
-                  actual_resolve_time: question.actual_resolve_time ?? null,
-                })}
+                {getDisplayValue(userPreviousQuartiles?.lower25)}
               </Td>
             )}
           </tr>
@@ -775,19 +585,7 @@ const ContinuousTable: FC<Props> = ({
             </Td>
             {withCommunityQuartiles && (
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
-                {getTableDisplayValue({
-                  value: communityQuartiles?.median
-                    ? Math.min(
-                        upperBoundLocation,
-                        Math.max(lowerBoundLocation, communityQuartiles?.median)
-                      )
-                    : undefined,
-                  questionType: question.type,
-                  scaling: question.scaling,
-                  precision: 4,
-                  unit: question.unit,
-                  actual_resolve_time: question.actual_resolve_time ?? null,
-                })}
+                {getDisplayValue(communityQuartiles?.median)}
               </Td>
             )}
             {withUserQuartiles &&
@@ -813,21 +611,7 @@ const ContinuousTable: FC<Props> = ({
             ) : (
               <Td className="text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
-                  <>
-                    {getTableDisplayValue({
-                      value: userQuartiles?.median
-                        ? Math.min(
-                            upperBoundLocation,
-                            Math.max(lowerBoundLocation, userQuartiles?.median)
-                          )
-                        : undefined,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
-                      unit: question.unit,
-                      actual_resolve_time: question.actual_resolve_time ?? null,
-                    })}
-                  </>
+                  <>{getDisplayValue(userQuartiles?.median)}</>
                 ) : (
                   "—"
                 )}
@@ -835,22 +619,7 @@ const ContinuousTable: FC<Props> = ({
             )}
             {withUserQuartiles && userPreviousQuartiles && (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
-                {getTableDisplayValue({
-                  value: userPreviousQuartiles?.median
-                    ? Math.min(
-                        upperBoundLocation,
-                        Math.max(
-                          lowerBoundLocation,
-                          userPreviousQuartiles?.median
-                        )
-                      )
-                    : undefined,
-                  questionType: question.type,
-                  scaling: question.scaling,
-                  precision: 4,
-                  unit: question.unit,
-                  actual_resolve_time: question.actual_resolve_time ?? null,
-                })}
+                {getDisplayValue(userPreviousQuartiles?.median)}
               </Td>
             )}
           </tr>
@@ -860,22 +629,7 @@ const ContinuousTable: FC<Props> = ({
             </Td>
             {withCommunityQuartiles && (
               <Td className="tabular-nums tracking-tight text-olive-800 dark:text-olive-800-dark">
-                {getTableDisplayValue({
-                  value: communityQuartiles?.upper75
-                    ? Math.min(
-                        upperBoundLocation,
-                        Math.max(
-                          lowerBoundLocation,
-                          communityQuartiles?.upper75
-                        )
-                      )
-                    : undefined,
-                  questionType: question.type,
-                  scaling: question.scaling,
-                  precision: 4,
-                  unit: question.unit,
-                  actual_resolve_time: question.actual_resolve_time ?? null,
-                })}
+                {getDisplayValue(communityQuartiles?.upper75)}
               </Td>
             )}
             {withUserQuartiles &&
@@ -901,21 +655,7 @@ const ContinuousTable: FC<Props> = ({
             ) : (
               <Td className="text-orange-800 dark:text-orange-800-dark">
                 {isDirty || hasUserForecast ? (
-                  <>
-                    {getTableDisplayValue({
-                      value: userQuartiles?.upper75
-                        ? Math.min(
-                            upperBoundLocation,
-                            Math.max(lowerBoundLocation, userQuartiles?.upper75)
-                          )
-                        : undefined,
-                      questionType: question.type,
-                      scaling: question.scaling,
-                      precision: 4,
-                      unit: question.unit,
-                      actual_resolve_time: question.actual_resolve_time ?? null,
-                    })}
-                  </>
+                  <>{getDisplayValue(userQuartiles?.upper75)}</>
                 ) : (
                   "—"
                 )}
@@ -923,22 +663,7 @@ const ContinuousTable: FC<Props> = ({
             )}
             {withUserQuartiles && userPreviousQuartiles && (
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
-                {getTableDisplayValue({
-                  value: userPreviousQuartiles?.upper75
-                    ? Math.min(
-                        upperBoundLocation,
-                        Math.max(
-                          lowerBoundLocation,
-                          userPreviousQuartiles?.upper75
-                        )
-                      )
-                    : undefined,
-                  questionType: question.type,
-                  scaling: question.scaling,
-                  precision: 4,
-                  unit: question.unit,
-                  actual_resolve_time: question.actual_resolve_time ?? null,
-                })}
+                {getDisplayValue(userPreviousQuartiles?.upper75)}
               </Td>
             )}
           </tr>
@@ -954,14 +679,7 @@ const ContinuousTable: FC<Props> = ({
               </tr>
               <tr>
                 <Td className="rounded bg-blue-400/60 px-1 py-3 font-bold text-blue-700 dark:bg-blue-600/20 dark:text-blue-800-dark">
-                  {getTableDisplayValue({
-                    value: 1,
-                    questionType: question.type,
-                    scaling: question.scaling,
-                    precision: 4,
-                    unit: question.unit,
-                    actual_resolve_time: question.actual_resolve_time ?? null,
-                  })}
+                  {getDisplayValue(1)}
                 </Td>
                 {withCommunityQuartiles && (
                   <Td className="text-olive-800 dark:text-olive-800-dark">

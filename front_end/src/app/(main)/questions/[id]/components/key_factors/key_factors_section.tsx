@@ -14,7 +14,7 @@ import { useModal } from "@/contexts/modal_context";
 import useHash from "@/hooks/use_hash";
 import { PostStatus } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import KeyFactorItem from "./key_factor_item";
 
@@ -109,6 +109,9 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
               className="ml-auto"
               onClick={(event) => {
                 event.preventDefault();
+                sendAnalyticsEvent("addKeyFactor", {
+                  event_label: "fromList",
+                });
                 if (!user) {
                   setCurrentModal({ type: "signin" });
                   return;

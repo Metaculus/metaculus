@@ -7,7 +7,7 @@ import {
   getClosestXValue,
   getClosestYValue,
   interpolateYValue,
-} from "@/utils/charts";
+} from "@/utils/charts/helpers";
 
 const SIZE = 4;
 // https://commerce.nearform.com/open-source/victory/docs/api/victory-cursor-container#cursorlabeloffset
@@ -61,7 +61,8 @@ const LineCursorPoints = <T extends string>({
         // adjust the scaledY using the visible graph area
         // the graph is visually stretched from top due to padding, so we need to add the top padding after scaling
         const scaledY =
-          (yValue / yDomain[1]) * (chartHeight - paddingBottom - paddingTop);
+          ((yValue ?? 0) / yDomain[1]) *
+          (chartHeight - paddingBottom - paddingTop);
         // adjust the final position by adding paddingBottom to place it in the correct position
         const finalScaledY = chartHeight - scaledY - paddingBottom;
 

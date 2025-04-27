@@ -24,8 +24,8 @@ import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_m
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
-import { logError } from "@/utils/errors";
+import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
 
 export const BINARY_MIN_VALUE = 0.001;
 export const BINARY_MAX_VALUE = 0.999;
@@ -78,10 +78,9 @@ const CmmMakeForecast: FC<{
 
   const onUpdateVal = (step: number | undefined) => {
     if (isNil(step)) {
-      logError(
-        new Error("Step is undefined"),
-        "Error updating comment forecast"
-      );
+      logError(new Error("Step is undefined"), {
+        message: "Error updating comment forecast",
+      });
       return;
     }
 

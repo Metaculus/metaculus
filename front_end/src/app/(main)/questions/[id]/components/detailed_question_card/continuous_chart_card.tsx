@@ -8,12 +8,13 @@ import CPRevealTime from "@/components/cp_reveal_time";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ForecastAvailability, Question } from "@/types/question";
+import { getCursorForecast } from "@/utils/charts/cursor";
+import cn from "@/utils/core/cn";
 import {
+  getPredictionDisplayValue,
   getUserPredictionDisplayValue,
-  getDisplayValue,
-  getCursorForecast,
-} from "@/utils/charts";
-import cn from "@/utils/cn";
+} from "@/utils/formatters/prediction";
+import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 import CursorDetailItem from "./numeric_cursor_item";
 
@@ -102,8 +103,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       return "...";
     }
 
-    const displayValue = getDisplayValue({
-      value: cursorData?.center,
+    const displayValue = getPredictionDisplayValue(cursorData?.center, {
       questionType: question.type,
       scaling: question.scaling,
       range:
@@ -177,11 +177,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           yLabel={t("communityPredictionLabel")}
           onChartReady={handleChartReady}
           questionType={question.type}
-          actualCloseTime={
-            question.actual_close_time
-              ? new Date(question.actual_close_time).getTime()
-              : null
-          }
+          actualCloseTime={getPostDrivenTime(question.actual_close_time)}
           scaling={question.scaling}
           defaultZoom={
             user
@@ -195,11 +191,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             !!forecastAvailability?.isEmpty ||
             !!forecastAvailability?.cpRevealsOn
           }
-          openTime={
-            question.open_time
-              ? new Date(question.open_time).getTime()
-              : undefined
-          }
+          openTime={getPostDrivenTime(question.open_time)}
           unit={question.unit}
         />
       </div>

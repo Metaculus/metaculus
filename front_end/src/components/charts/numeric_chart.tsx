@@ -45,12 +45,10 @@ import {
   generateScale,
   generateTimestampXScale,
   generateYDomain,
-  getLeftPadding,
-  getResolutionPoint,
+  getAxisLeftPadding,
   getTickLabelFontSize,
-  unscaleNominalLocation,
-} from "@/utils/charts";
-import { isUnsuccessfullyResolved } from "@/utils/questions";
+} from "@/utils/charts/axis";
+import { getResolutionPoint } from "@/utils/charts/resolution";
 
 import XTickLabel from "./primitives/x_tick_label";
 
@@ -65,7 +63,7 @@ type Props = {
   onCursorChange?: (value: number | null) => void;
   onChartReady?: () => void;
   questionType: QuestionType;
-  actualCloseTime: number | null;
+  actualCloseTime: number | null | undefined;
   scaling: Scaling;
   extraTheme?: VictoryThemeDefinition;
   resolution?: Resolution | null;
@@ -148,7 +146,7 @@ const NumericChart: FC<Props> = ({
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
   const prevWidth = usePrevious(chartWidth);
@@ -219,7 +217,12 @@ const NumericChart: FC<Props> = ({
     !!chartWidth && !!xScale.ticks.length && yScale.ticks.length;
 
   const resolutionPoint = useMemo(() => {
-    if (!resolution || !resolveTime || isNil(actualCloseTime)) {
+    if (
+      !resolution ||
+      resolution === "" ||
+      !resolveTime ||
+      isNil(actualCloseTime)
+    ) {
       return null;
     }
 
@@ -316,7 +319,7 @@ const NumericChart: FC<Props> = ({
 
           {!!resolutionPoint && (
             <VictoryScatter
-              data={resolutionPoint}
+              data={[resolutionPoint]}
               style={{
                 data: {
                   stroke: getThemeColor(METAC_COLORS.purple["800"]),
@@ -383,7 +386,7 @@ function buildChartData({
   unit,
 }: {
   questionType: QuestionType;
-  actualCloseTime: number | null;
+  actualCloseTime?: number | null;
   scaling: Scaling;
   height: number;
   aggregation: AggregateForecastHistory;
@@ -574,72 +577,6 @@ function buildChartData({
     yScale,
     points,
   };
-}
-
-export function getResolutionData({
-  questionType,
-  resolution,
-  resolveTime,
-  scaling,
-}: {
-  questionType: QuestionType;
-  resolution: Resolution;
-  resolveTime: number;
-  scaling: Scaling;
-}) {
-  if (isUnsuccessfullyResolved(resolution)) {
-    return null;
-  }
-
-  switch (questionType) {
-    case QuestionType.Binary: {
-      // format data for binary question
-      return [
-        {
-          y:
-            resolution === "no"
-              ? scaling.range_min ?? 0
-              : scaling.range_max ?? 1,
-          x: resolveTime,
-          symbol: "diamond",
-          size: 4,
-        },
-      ];
-    }
-    case QuestionType.Numeric:
-    case QuestionType.Discrete: {
-      // format data for numerical/discrete question
-      const unscaledResolution = unscaleNominalLocation(
-        Number(resolution),
-        scaling
-      );
-
-      return [
-        {
-          y: unscaledResolution,
-          x: resolveTime,
-          symbol: "diamond",
-          size: 4,
-        },
-      ];
-    }
-    case QuestionType.Date: {
-      // format data for date question
-      const dateTimestamp = new Date(resolution).getTime() / 1000;
-      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
-
-      return [
-        {
-          y: unscaledResolution,
-          x: resolveTime,
-          symbol: "diamond",
-          size: 4,
-        },
-      ];
-    }
-    default:
-      return null;
-  }
 }
 
 const PredictionWithRange: React.FC<any> = ({

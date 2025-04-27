@@ -12,9 +12,9 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useServerAction } from "@/hooks/use_server_action";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import cn from "@/utils/cn";
-import { generateCurveChoiceOptions } from "@/utils/forecasts";
-import { canPredictQuestion } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { generateCurveChoiceOptions } from "@/utils/forecasts/thecurve";
+import { canPredictQuestion } from "@/utils/questions/predictions";
 
 type Props = {
   post: PostWithForecasts;

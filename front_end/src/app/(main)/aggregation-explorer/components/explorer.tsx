@@ -19,8 +19,8 @@ import useSearchParams from "@/hooks/use_search_params";
 import { SearchParams } from "@/types/navigation";
 import { Post, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { logError } from "@/utils/errors";
-import { parseQuestionId } from "@/utils/questions";
+import { logError } from "@/utils/core/errors";
+import { parseQuestionId } from "@/utils/questions/helpers";
 
 import { AggregationWrapper } from "./aggregation_wrapper";
 import { fetchPost, fetchQuestion } from "../actions";

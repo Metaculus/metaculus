@@ -10,28 +10,17 @@ import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionChip from "@/components/prediction_chip";
-import {
-  GroupOfQuestionsGraphType,
-  TimelineChartZoomOption,
-} from "@/types/charts";
-import { PostWithForecasts } from "@/types/post";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
-import {
-  getFanOptionsFromBinaryGroup,
-  getFanOptionsFromContinuousGroup,
-  getGroupQuestionsTimestamps,
-  getContinuousChartTypeFromQuestion,
-  getCursorForecast,
-} from "@/utils/charts";
-import cn from "@/utils/cn";
+import { TimelineChartZoomOption } from "@/types/charts";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
+import { QuestionType } from "@/types/question";
+import { getCursorForecast } from "@/utils/charts/cursor";
+import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import {
-  getGroupForecastAvailability,
-  getQuestionForecastAvailability,
-  getQuestionLinearChartType,
+  getPostDrivenTime,
   isConditionalPost,
-  sortGroupPredictionOptions,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
 
 type Props = {
   post: PostWithForecasts;
@@ -75,67 +64,27 @@ const ForecastCard: FC<Props> = ({
 
   const renderChart = () => {
     if (post.group_of_questions) {
-      const { questions } = post.group_of_questions;
-      const groupType = questions.at(0)?.type;
-
-      const sortedQuestions = sortGroupPredictionOptions(
-        questions as QuestionWithNumericForecasts[],
-        post.group_of_questions
-      );
-
-      if (!groupType) {
-        return null;
-      }
-
-      const graphType = getQuestionLinearChartType(groupType);
-      if (!graphType) {
-        return null;
-      }
-      const forecastAvailability = getGroupForecastAvailability(questions);
       switch (post.group_of_questions.graph_type) {
         case GroupOfQuestionsGraphType.FanGraph: {
-          const predictionQuestion =
-            graphType === "continuous"
-              ? getFanOptionsFromContinuousGroup(
-                  sortedQuestions as QuestionWithNumericForecasts[]
-                )
-              : getFanOptionsFromBinaryGroup(
-                  sortedQuestions as QuestionWithNumericForecasts[]
-                );
-
           return (
             <FanChart
-              options={predictionQuestion}
+              group={post.group_of_questions}
               height={chartHeight}
               withTooltip={!nonInteractive}
               extraTheme={embedTheme?.chart}
-              forecastAvailability={forecastAvailability}
             />
           );
         }
         case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
-          const timestamps = getGroupQuestionsTimestamps(sortedQuestions, {
-            withUserTimestamps: !!forecastAvailability.cpRevealsOn,
-          });
-
           return (
             <MultipleChoiceGroupChart
-              type={graphType}
-              questions={sortedQuestions}
-              timestamps={timestamps}
-              actualCloseTime={
-                post.actual_close_time
-                  ? new Date(post.actual_close_time).getTime()
-                  : null
-              }
-              openTime={
-                post.open_time ? new Date(post.open_time).getTime() : undefined
-              }
+              group={post.group_of_questions}
+              actualCloseTime={getPostDrivenTime(post.actual_close_time)}
+              openTime={getPostDrivenTime(post.open_time)}
               chartHeight={chartHeight}
               chartTheme={embedTheme?.chart}
               defaultZoom={defaultChartZoom}
               embedMode
-              forecastAvailability={forecastAvailability}
             />
           );
         }
@@ -164,15 +113,8 @@ const ForecastCard: FC<Props> = ({
                 resolution={question.resolution}
                 resolveTime={question.actual_resolve_time}
                 height={chartHeight}
-                questionType={
-                  getContinuousChartTypeFromQuestion(question.type) ??
-                  QuestionType.Numeric
-                }
-                actualCloseTime={
-                  question.actual_close_time
-                    ? new Date(question.actual_close_time).getTime()
-                    : null
-                }
+                questionType={question.type}
+                actualCloseTime={getPostDrivenTime(question.actual_close_time)}
                 scaling={question.scaling}
                 onCursorChange={nonInteractive ? undefined : setCursorTimestamp}
                 extraTheme={embedTheme?.chart}
@@ -183,11 +125,7 @@ const ForecastCard: FC<Props> = ({
                   forecastAvailability.isEmpty ||
                   !!forecastAvailability.cpRevealsOn
                 }
-                openTime={
-                  question.open_time
-                    ? new Date(question.open_time).getTime()
-                    : undefined
-                }
+                openTime={getPostDrivenTime(question.open_time)}
                 unit={question.unit}
               />
               <ForecastAvailabilityChartOverflow

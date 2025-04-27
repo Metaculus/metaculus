@@ -5,7 +5,7 @@ import { FC, MouseEvent, useEffect, useState } from "react";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { StateByForecastItem } from "@/types/experiments";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   x: number;

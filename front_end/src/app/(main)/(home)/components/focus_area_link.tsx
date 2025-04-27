@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 export type FocusAreaItem = {
   id: string;

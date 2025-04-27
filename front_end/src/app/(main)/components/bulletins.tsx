@@ -2,7 +2,7 @@
 import { usePathname } from "next/navigation";
 import { FC, useCallback, useEffect, useState } from "react";
 
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import Bulletin from "./bulletin";
 import { getBulletins } from "../actions";

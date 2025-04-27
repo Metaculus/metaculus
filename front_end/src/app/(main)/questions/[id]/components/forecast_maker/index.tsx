@@ -8,7 +8,7 @@ import {
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
-import { canPredictQuestion } from "@/utils/questions";
+import { canPredictQuestion } from "@/utils/questions/predictions";
 
 import ForecastMakerConditional from "./forecast_maker_conditional";
 import ForecastMakerGroup from "./forecast_maker_group";

@@ -110,7 +110,7 @@ export class EquationNode extends DecoratorNode<JSX.Element> {
   exportDOM(): DOMExportOutput {
     const element = document.createElement(this.__inline ? "span" : "div");
     // Encode the equation as base64 to avoid issues with special characters
-    const equation = btoa(this.__equation);
+    const equation = bytesToBase64(new TextEncoder().encode(this.__equation));
     element.setAttribute("data-lexical-equation", equation);
     element.setAttribute("data-lexical-inline", `${this.__inline}`);
     katex.render(this.__equation, element, {
@@ -180,6 +180,14 @@ export class EquationNode extends DecoratorNode<JSX.Element> {
   select() {
     this.__focusEmitter.publish();
   }
+}
+
+function bytesToBase64(bytes: Uint8Array) {
+  const binString = Array.from(bytes, (byte) =>
+    String.fromCodePoint(byte)
+  ).join("");
+
+  return btoa(binString);
 }
 
 /**

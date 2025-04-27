@@ -31,9 +31,9 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { DefaultInboundOutcomeCount, QuestionType } from "@/types/question";
-import { logErrorWithScope } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 import { getPostLink } from "@/utils/navigation";
-import { getQuestionStatus } from "@/utils/questions";
+import { getQuestionStatus } from "@/utils/questions/helpers";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -356,7 +356,7 @@ const QuestionForm: FC<Props> = ({
       router.push(getPostLink(resp.post));
     } catch (e) {
       const error = e as Error & { digest?: string };
-      logErrorWithScope(error, post_data);
+      logError(error, { payload: post_data });
       setError(error);
     } finally {
       setIsLoading(false);

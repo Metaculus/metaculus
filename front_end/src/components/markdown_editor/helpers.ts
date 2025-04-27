@@ -1,3 +1,7 @@
+import DOMPurify from "dompurify";
+
+import { EMBEDDED_QUESTION_COMPONENT_NAME } from "./embedded_question";
+import { EMBEDDED_TWITTER_COMPONENT_NAME } from "./embedded_twitter";
 import { transformTwitterLinks } from "./embedded_twitter/helpers";
 
 // match block math: $$...$$
@@ -145,12 +149,45 @@ export const escapeRawDollarSigns = (markdown: string): string => {
   );
 };
 
+function sanitizeHtml(markdown: string) {
+  const supportedComponents = [
+    EMBEDDED_QUESTION_COMPONENT_NAME,
+    EMBEDDED_TWITTER_COMPONENT_NAME,
+  ];
+
+  const componentPatternString = supportedComponents.join("|");
+  const jsxComponentRegex = new RegExp(
+    `<(${componentPatternString})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
+    "gs"
+  );
+
+  const jsxComponents: { placeholder: string; original: string }[] = [];
+  let placeholderIndex = 0;
+
+  const sanitizedContent = markdown.replace(jsxComponentRegex, (match) => {
+    const placeholder = `___JSX_COMPONENT_${placeholderIndex++}___`;
+    jsxComponents.push({
+      placeholder,
+      original: match,
+    });
+    return placeholder;
+  });
+
+  const purifiedContent = DOMPurify.sanitize(sanitizedContent);
+
+  let finalContent = purifiedContent;
+  jsxComponents.forEach(({ placeholder, original }) => {
+    finalContent = finalContent.replace(placeholder, original);
+  });
+
+  return finalContent;
+}
+
 export function processMarkdown(
   markdown: string,
   config?: { revert?: boolean; withTwitterPreview?: boolean }
 ): string {
   const { revert, withTwitterPreview } = config ?? {};
-
   markdown = formatBlockquoteNewlines(markdown);
   if (!revert) {
     markdown = transformMathJaxToLatex(markdown);
@@ -160,5 +197,8 @@ export function processMarkdown(
   if (withTwitterPreview) {
     markdown = transformTwitterLinks(markdown);
   }
+
+  markdown = sanitizeHtml(markdown);
+
   return markdown;
 }

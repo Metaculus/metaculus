@@ -3,7 +3,7 @@ import { FC, useEffect, useMemo, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
 import PostCard from "@/components/post_card";
-import QuestionChartTile from "@/components/post_card/question_chart_tile";
+import QuestionTile from "@/components/post_card/question_tile";
 import SearchInput from "@/components/search_input";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -11,8 +11,8 @@ import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { PostsParams } from "@/services/posts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { logError } from "@/utils/errors";
-import { parseQuestionId } from "@/utils/questions";
+import { logError } from "@/utils/core/errors";
+import { parseQuestionId } from "@/utils/questions/helpers";
 
 import { fetchPosts, getPost, getQuestion } from "../actions";
 
@@ -129,7 +129,7 @@ const ConditionalQuestionPicker: FC<Props> = ({
                           <h1 className="m-0 text-lg font-bold">
                             {post.title}
                           </h1>
-                          <QuestionChartTile
+                          <QuestionTile
                             question={post}
                             authorUsername={post.author_username}
                             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

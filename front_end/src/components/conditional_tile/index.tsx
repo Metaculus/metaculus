@@ -12,12 +12,12 @@ import PredictionChip from "@/components/prediction_chip";
 import { ConditionalPost, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 import {
   getConditionalQuestionTitle,
   getConditionTitle,
-  isUnsuccessfullyResolved,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import ConditionalCard from "./conditional_card";
 import ConditionalChart from "./conditional_chart";

@@ -14,7 +14,6 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
-import { getResolutionData } from "@/components/charts/numeric_chart";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
@@ -29,13 +28,15 @@ import {
   GraphingQuestionProps,
   Question,
   QuestionType,
+  QuestionWithForecasts,
 } from "@/types/question";
+import { generateScale } from "@/utils/charts/axis";
 import {
-  generateScale,
   getClosestYValue,
   getClosestXValue,
   interpolateYValue,
-} from "@/utils/charts";
+} from "@/utils/charts/helpers";
+import { getResolutionPoint } from "@/utils/charts/resolution";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
@@ -207,7 +208,7 @@ const ContinuousAreaChart: FC<Props> = ({
 
   const resolutionPoint =
     !isNil(question.resolution) && question.resolution !== ""
-      ? getResolutionData({
+      ? getResolutionPoint({
           questionType: question.type,
           resolution: question.resolution,
           resolveTime: 1,
@@ -254,23 +255,25 @@ const ContinuousAreaChart: FC<Props> = ({
           evt.clientX >= chartRight)
       ) {
         let normalizedX: number | undefined;
-        const lowerBoundLocation =
+        const firstBucketLocation =
           question.type !== QuestionType.Discrete
             ? 0
-            : -0.5 / ((data.at(0)?.pmf.length || 200) - 2);
-        const upperBoundLocation =
+            : (question.open_lower_bound ? -0.5 : 0.5) /
+              ((data.at(0)?.pmf.length || 200) - 2);
+        const lastBucketLocation =
           question.type !== QuestionType.Discrete
             ? 1
-            : 1 + 0.5 / ((data.at(0)?.pmf.length || 200) - 2);
+            : 1 +
+              (question.open_upper_bound ? 0.5 : -0.5) /
+                ((data.at(0)?.pmf.length || 200) - 2);
 
-        if (evt.clientX < chartLeft) {
-          normalizedX = lowerBoundLocation;
-        } else if (evt.clientX > chartRight) {
-          normalizedX = upperBoundLocation;
+        if (evt.clientX <= chartLeft) {
+          normalizedX = firstBucketLocation;
+        } else if (evt.clientX >= chartRight) {
+          normalizedX = lastBucketLocation;
         }
         if (normalizedX !== undefined) {
           setCursorEdge(normalizedX);
-          normalizedX = Math.max(0, Math.min(1, normalizedX));
           const hoverState = charts.reduce<ContinuousAreaHoverState>(
             (acc, el) => {
               if (
@@ -539,11 +542,11 @@ const ContinuousAreaChart: FC<Props> = ({
                 />
               ))
             : null}
-          {resolutionPoint && !isNil(resolutionPoint[0]) && (
+          {resolutionPoint && (
             <VictoryScatter
               data={[
                 {
-                  x: resolutionPoint[0].y,
+                  x: resolutionPoint.y,
                   y: 0,
                   symbol: "diamond",
                   size: 4,
@@ -775,6 +778,48 @@ function generateNumericAreaGraph(data: {
     type,
     graphType,
   };
+}
+
+export function getContinuousAreaChartData({
+  question,
+  userForecastOverride,
+  isClosed,
+}: {
+  question: QuestionWithForecasts;
+  userForecastOverride?: {
+    cdf: number[];
+    pmf: number[];
+  };
+  isClosed?: boolean;
+}): ContinuousAreaGraphInput {
+  const chartData: ContinuousAreaGraphInput = [];
+
+  const latest = question.aggregations.recency_weighted.latest;
+  const userForecast = question.my_forecasts?.latest;
+
+  if (latest && !latest.end_time) {
+    chartData.push({
+      pmf: cdfToPmf(latest.forecast_values),
+      cdf: latest.forecast_values,
+      type: (isClosed ? "community_closed" : "community") as ContinuousAreaType,
+    });
+  }
+
+  if (userForecastOverride) {
+    chartData.push({
+      pmf: userForecastOverride.pmf,
+      cdf: userForecastOverride.cdf,
+      type: "user" as ContinuousAreaType,
+    });
+  } else if (!!userForecast && !userForecast.end_time) {
+    chartData.push({
+      pmf: cdfToPmf(userForecast.forecast_values),
+      cdf: userForecast.forecast_values,
+      type: "user" as ContinuousAreaType,
+    });
+  }
+
+  return chartData;
 }
 
 export default React.memo(ContinuousAreaChart);

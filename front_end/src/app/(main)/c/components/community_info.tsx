@@ -13,8 +13,8 @@ import Button from "@/components/ui/button";
 import { useNavigation } from "@/contexts/navigation_context";
 import { ProjectPermissions } from "@/types/post";
 import { Community } from "@/types/projects";
-import cn from "@/utils/cn";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { formatUsername } from "@/utils/formatters/users";
 
 import { useShowActiveCommunityContext } from "./community_context";
 import CommunityFollow from "./community_follow";

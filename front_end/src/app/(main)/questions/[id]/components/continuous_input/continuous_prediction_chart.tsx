@@ -15,10 +15,12 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
-import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import {
+  getForecastPctDisplayValue,
+  getPredictionDisplayValue,
+} from "@/utils/formatters/prediction";
 import { cdfToPmf } from "@/utils/math";
-import { formatValueUnit } from "@/utils/questions";
+import { formatValueUnit } from "@/utils/questions/units";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -72,8 +74,17 @@ const ContinuousPredictionChart: FC<Props> = ({
   const cursorDisplayData = useMemo(() => {
     if (!hoverState) return null;
 
-    const xLabel = getDisplayValue({
-      value: hoverState.x,
+    function getYLabel(yDataValue: number | null) {
+      if (!yDataValue) return null;
+      return graphType === "pmf" && question.type !== QuestionType.Discrete
+        ? (
+            yDataValue *
+            (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
+          ).toFixed(3)
+        : getForecastPctDisplayValue(yDataValue);
+    }
+
+    const xLabel = getPredictionDisplayValue(hoverState.x, {
       questionType: question.type,
       scaling: question.scaling,
       precision: 5,
@@ -83,34 +94,13 @@ const ContinuousPredictionChart: FC<Props> = ({
     });
     return {
       xLabel,
-      yUserLabel: !hoverState.yData.user
-        ? null
-        : graphType === "pmf" && question.type !== QuestionType.Discrete
-          ? (
-              hoverState.yData.user *
-              (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-            ).toFixed(3)
-          : getForecastPctDisplayValue(hoverState.yData.user),
+      yUserLabel: getYLabel(hoverState.yData.user),
       yUserPreviousLabel: readOnly
         ? null
-        : !hoverState.yData.user_previous
-          ? null
-          : graphType === "pmf" && question.type !== QuestionType.Discrete
-            ? (
-                hoverState.yData.user_previous *
-                (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-              ).toFixed(3)
-            : getForecastPctDisplayValue(hoverState.yData.user_previous),
-      yCommunityLabel: !hoverState.yData.community
-        ? null
-        : graphType === "pmf" && question.type !== QuestionType.Discrete
-          ? (
-              hoverState.yData.community *
-              (question.inbound_outcome_count ?? DefaultInboundOutcomeCount)
-            ).toFixed(3)
-          : getForecastPctDisplayValue(hoverState.yData.community),
+        : getYLabel(hoverState.yData.user_previous),
+      yCommunityLabel: getYLabel(hoverState.yData.community),
     };
-  }, [graphType, hoverState, question, readOnly]);
+  }, [graphType, hoverState, question, readOnly, discreteValueOptions]);
 
   const handleCursorChange = useCallback(
     (value: ContinuousAreaHoverState | null) => {
@@ -161,6 +151,25 @@ const ContinuousPredictionChart: FC<Props> = ({
     overlayPreviousForecast,
   ]);
 
+  const xLabel = cursorDisplayData?.xLabel ?? "";
+  let probabilityLabel: string;
+  if (graphType === "pmf") {
+    if (xLabel.includes("<") || xLabel.includes(">")) {
+      probabilityLabel = xLabel.at(0) + " " + xLabel.slice(1);
+    } else {
+      probabilityLabel = "= " + xLabel;
+    }
+  } else {
+    // cdf
+    if (xLabel.includes("<")) {
+      probabilityLabel = "< " + xLabel.slice(1);
+    } else if (xLabel.includes(">")) {
+      probabilityLabel = "≤ ∞";
+    } else {
+      probabilityLabel = "≤ " + xLabel;
+    }
+  }
+
   return (
     <>
       <ContinuousAreaChart
@@ -175,9 +184,9 @@ const ContinuousPredictionChart: FC<Props> = ({
         {cursorDisplayData && (
           <>
             <span>
-              {graphType === "pmf" ? "P(x = " : "P(x ≤ "}
+              {"P(x "}
               <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                {formatValueUnit(cursorDisplayData.xLabel, question.unit)}
+                {formatValueUnit(probabilityLabel, question.unit)}
               </span>
               {"):"}
             </span>

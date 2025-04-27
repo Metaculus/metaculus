@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { VoteDirection } from "@/types/votes";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 type Props = {
   voteData: VoteData;

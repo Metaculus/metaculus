@@ -14,7 +14,7 @@ import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
-import { QuestionStatus } from "@/types/post";
+import { ProjectPermissions, QuestionStatus } from "@/types/post";
 import {
   DefaultInboundOutcomeCount,
   DistributionQuantile,
@@ -22,16 +22,15 @@ import {
   DistributionSlider,
   DistributionSliderComponent,
 } from "@/types/question";
-import cn from "@/utils/cn";
+import { TranslationKey } from "@/types/translations";
+import cn from "@/utils/core/cn";
 import {
-  getNormalizedContinuousForecast,
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
-} from "@/utils/forecasts";
-import {
-  formatResolution,
-  getSubquestionPredictionInputMessage,
-} from "@/utils/questions";
+} from "@/utils/forecasts/dataset";
+import { getNormalizedContinuousForecast } from "@/utils/forecasts/helpers";
+import { formatResolution } from "@/utils/formatters/resolution";
+import { canWithdrawForecast } from "@/utils/questions/predictions";
 
 import ContinuousInput from "../../continuous_input";
 import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
@@ -46,6 +45,7 @@ type Props = {
   option: ContinuousGroupOption;
   canPredict: boolean;
   isPending: boolean;
+  permission?: ProjectPermissions;
   handleChange: (
     optionId: number,
     distribution: DistributionSlider | DistributionQuantile
@@ -53,6 +53,12 @@ type Props = {
   handleAddComponent: (option: ContinuousGroupOption) => void;
   handleResetForecasts: (option?: ContinuousGroupOption) => void;
   handlePredictSubmit: (id: number) => Promise<
+    | {
+        errors: ErrorResponse | undefined;
+      }
+    | undefined
+  >;
+  handlePredictWithdraw: (id: number) => Promise<
     | {
         errors: ErrorResponse | undefined;
       }
@@ -66,10 +72,12 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   option,
   canPredict,
   isPending,
+  permission,
   handleChange,
   handleAddComponent,
   handleResetForecasts,
   handlePredictSubmit,
+  handlePredictWithdraw,
   setForecastInputMode,
   copyMenu,
 }) => {
@@ -98,7 +106,11 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   const hasUserForecast = useMemo(() => {
     const prevForecast = option.question.my_forecasts?.latest;
 
-    return !!prevForecast && !!prevForecast.distribution_input;
+    return (
+      !!prevForecast &&
+      !!prevForecast.distribution_input &&
+      isNil(prevForecast.end_time)
+    );
   }, [option]);
 
   const dataset = useMemo(() => {
@@ -161,6 +173,14 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     }
   }, [handlePredictSubmit, option, dataset, t]);
 
+  const onWithdraw = useCallback(async () => {
+    setSubmitError(undefined);
+    const response = await handlePredictWithdraw(option.id);
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+    }
+  }, [handlePredictWithdraw, option]);
+
   const userCdf: number[] | undefined = getSliderNumericForecastDataset(
     getNormalizedContinuousForecast(option.userSliderForecast),
     option.question.open_lower_bound,
@@ -215,6 +235,16 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
               >
                 {t("discardChangesButton")}
               </Button>
+              {canWithdrawForecast(option.question, permission) && (
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={isPending}
+                  onClick={onWithdraw}
+                >
+                  {t("withdrawForecast")}
+                </Button>
+              )}
             </>
           )}
 
@@ -321,5 +351,18 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     </div>
   );
 };
+
+function getSubquestionPredictionInputMessage(
+  option: ContinuousGroupOption
+): TranslationKey | null {
+  switch (option.question.status) {
+    case QuestionStatus.CLOSED:
+      return "predictionClosedMessage";
+    case QuestionStatus.UPCOMING:
+      return "predictionUpcomingMessage";
+    default:
+      return null;
+  }
+}
 
 export default ContinuousInputWrapper;

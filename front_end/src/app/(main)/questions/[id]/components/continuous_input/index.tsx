@@ -13,13 +13,12 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { getCdfBounds } from "@/utils/charts";
+import { isAllQuantileComponentsDirty } from "@/utils/forecasts/helpers";
 import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
-  isAllQuantileComponentsDirty,
-} from "@/utils/forecasts";
-import { computeQuartilesFromCDF } from "@/utils/math";
+} from "@/utils/forecasts/switch_forecast_type";
+import { computeQuartilesFromCDF, getCdfBounds } from "@/utils/math";
 
 import ContinuousInputContainer from "./continuous_input_container";
 import ContinuousPredictionChart from "./continuous_prediction_chart";

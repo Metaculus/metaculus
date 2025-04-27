@@ -17,7 +17,10 @@ from posts.jobs import (
 )
 from posts.services.hotness import compute_feed_hotness
 from questions.jobs import job_check_question_open_event, job_close_question
-from scoring.jobs import update_global_comment_and_question_leaderboards
+from scoring.jobs import (
+    finalize_leaderboards,
+    update_global_comment_and_question_leaderboards,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -74,7 +77,6 @@ class Command(BaseCommand):
         #
         # Post Jobs
         #
-
         scheduler.add_job(
             close_old_connections(job_compute_movement.send),
             trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour
@@ -145,14 +147,19 @@ class Command(BaseCommand):
         )
 
         #
-        #
         # Scoring Jobs
-        #
         #
         scheduler.add_job(
             close_old_connections(update_global_comment_and_question_leaderboards),
             trigger=CronTrigger.from_crontab("0 2 * * *"),  # Every day at 02:00 UTC
             id="global_comment_and_question_leaderboards",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(finalize_leaderboards),
+            trigger=CronTrigger.from_crontab("0 3 * * *"),  # Every day at 03:00 UTC
+            id="finalize_leaderboards",
             max_instances=1,
             replace_existing=True,
         )

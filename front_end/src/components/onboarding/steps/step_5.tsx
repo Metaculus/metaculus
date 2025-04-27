@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { OnboardingStep } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 type ForecastedPost = {
   post: PostWithForecasts | null;
@@ -123,24 +123,21 @@ const Step5: React.FC<OnboardingStep> = ({
 
   const handleSubmit = async ({ post, forecast }: ForecastedPost) => {
     if (isNil(post)) {
-      logError(
-        new Error("Post not found"),
-        "Error submitting onboarding forecast"
-      );
+      logError(new Error("Post not found"), {
+        message: "Error submitting onboarding forecast",
+      });
       return;
     }
     if (isNil(post.question)) {
-      logError(
-        new Error("Question not found"),
-        "Error submitting onboarding forecast"
-      );
+      logError(new Error("Question not found"), {
+        message: "Error submitting onboarding forecast",
+      });
       return;
     }
     if (isNil(forecast)) {
-      logError(
-        new Error("Forecast not found"),
-        "Error submitting onboarding forecast"
-      );
+      logError(new Error("Forecast not found"), {
+        message: "Error submitting onboarding forecast",
+      });
       return;
     }
 
@@ -163,9 +160,7 @@ const Step5: React.FC<OnboardingStep> = ({
         false
       );
 
-      if (response && "errors" in response && !!response.errors) {
-        logError(response, "Error submitting onboarding forecast");
-      } else {
+      if (!!response && !response.errors) {
         updateForecastedPostState(post.id, { isSubmitted: true });
       }
     } finally {

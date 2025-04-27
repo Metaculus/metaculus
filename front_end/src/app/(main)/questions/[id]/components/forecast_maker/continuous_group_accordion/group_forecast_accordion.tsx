@@ -5,7 +5,7 @@ import ForecastMakerGroupCopyMenu from "@/app/(main)/questions/[id]/components/f
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
-import { QuestionStatus, Resolution } from "@/types/post";
+import { ProjectPermissions, QuestionStatus, Resolution } from "@/types/post";
 import {
   DistributionQuantile,
   DistributionQuantileComponent,
@@ -14,7 +14,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { isUnitCompact } from "@/utils/questions";
+import { isUnitCompact } from "@/utils/questions/units";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
 import { useHideCP } from "../../cp_provider";
@@ -41,6 +41,7 @@ type Props = {
   canPredict: boolean;
   isPending: boolean;
   subQuestionId?: number | null;
+  permission?: ProjectPermissions;
   handleChange: (
     optionId: number,
     distribution: DistributionSlider | DistributionQuantile
@@ -48,6 +49,12 @@ type Props = {
   handleAddComponent: (option: ContinuousGroupOption) => void;
   handleResetForecasts: (option?: ContinuousGroupOption) => void;
   handlePredictSubmit: (id: number) => Promise<
+    | {
+        errors: ErrorResponse | undefined;
+      }
+    | undefined
+  >;
+  handlePredictWithdraw: (id: number) => Promise<
     | {
         errors: ErrorResponse | undefined;
       }
@@ -66,10 +73,12 @@ const GroupForecastAccordion: FC<Props> = ({
   canPredict,
   isPending,
   subQuestionId,
+  permission,
   handleChange,
   handleAddComponent,
   handleResetForecasts,
   handlePredictSubmit,
+  handlePredictWithdraw,
   handleForecastInputModeChange,
   handleCopy,
 }) => {
@@ -163,12 +172,14 @@ const GroupForecastAccordion: FC<Props> = ({
                   />
                 ) : undefined
               }
+              permission={permission}
               canPredict={canPredict}
               isPending={isPending}
               handleChange={handleChange}
               handleAddComponent={handleAddComponent}
               handleResetForecasts={handleResetForecasts}
               handlePredictSubmit={handlePredictSubmit}
+              handlePredictWithdraw={handlePredictWithdraw}
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
@@ -199,6 +210,7 @@ const GroupForecastAccordion: FC<Props> = ({
               handleAddComponent={handleAddComponent}
               handleResetForecasts={handleResetForecasts}
               handlePredictSubmit={handlePredictSubmit}
+              handlePredictWithdraw={handlePredictWithdraw}
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
@@ -229,6 +241,7 @@ const GroupForecastAccordion: FC<Props> = ({
               handleAddComponent={handleAddComponent}
               handleResetForecasts={handleResetForecasts}
               handlePredictSubmit={handlePredictSubmit}
+              handlePredictWithdraw={handlePredictWithdraw}
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }

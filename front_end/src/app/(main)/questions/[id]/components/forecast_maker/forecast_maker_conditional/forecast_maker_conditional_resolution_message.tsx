@@ -2,10 +2,11 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC } from "react";
 
+import { ANNULLED_RESOLUTION } from "@/constants/questions";
 import { QuestionStatus } from "@/types/post";
 import { Question } from "@/types/question";
+import { formatResolution } from "@/utils/formatters/resolution";
 import { getPostLink } from "@/utils/navigation";
-import { ANNULLED_RESOLUTION, formatResolution } from "@/utils/questions";
 
 type Props = {
   condition: Question;

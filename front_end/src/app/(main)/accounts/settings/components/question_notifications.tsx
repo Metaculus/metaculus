@@ -11,9 +11,9 @@ import PostSubscribeCustomizeModal from "@/components/post_subscribe/post_subscr
 import Button from "@/components/ui/button";
 import { Post, PostSubscriptionType } from "@/types/post";
 import { Require } from "@/types/utils";
-import cn from "@/utils/cn";
-import { formatDate } from "@/utils/date_formatters";
-import { logError } from "@/utils/errors";
+import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
+import { formatDate } from "@/utils/formatters/date";
 
 type PostWithSubscriptions = Require<Post, "subscriptions">;
 type Props = {
@@ -66,7 +66,9 @@ const QuestionNotifications: FC<Props> = ({
 
   const handleUnfollow = useCallback(async () => {
     if (!activeModal) {
-      logError(new Error("Active modal is not set"), "Couldn't unfollow post");
+      logError(new Error("Active modal is not set"), {
+        message: "Couldn't unfollow post",
+      });
       return;
     }
 

@@ -116,7 +116,7 @@ const NumericQuestionInput: React.FC<{
     nr_forecasters: 0,
     author_username: "",
     post_id: 0,
-    resolution: "",
+    resolution: "11",
     include_bots_in_aggregates: false,
     question_weight: 1.0,
     forecasts: {

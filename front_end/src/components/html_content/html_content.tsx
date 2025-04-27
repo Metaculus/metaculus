@@ -1,9 +1,10 @@
 "use client";
+import DOMPurify from "dompurify";
 import parse, { domToReact } from "html-react-parser";
 import { FC, Fragment, ReactNode, useRef } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const TOGGLE_CHILDREN_LOOKUP_LIMIT = 10;
 
@@ -14,6 +15,9 @@ type Props = {
 
 const HtmlContent: FC<Props> = ({ content, className }) => {
   const toggleKey = useRef<string | null>(null);
+  const clearContent = DOMPurify.sanitize(content, {
+    ADD_ATTR: ["toggle-details", "ng-show"],
+  });
 
   const transform = (node: any, index: number) => {
     if (!node.attribs) return undefined;
@@ -70,7 +74,7 @@ const HtmlContent: FC<Props> = ({ content, className }) => {
 
   return (
     <div className={cn("content", className)}>
-      {parse(content, { replace: transform })}
+      {parse(clearContent, { replace: transform })}
     </div>
   );
 };

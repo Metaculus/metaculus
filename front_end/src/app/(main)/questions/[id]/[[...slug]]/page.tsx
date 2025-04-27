@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 import { SearchParams } from "@/types/navigation";
-import { getQuestionTitle } from "@/utils/questions";
+import { getPostTitle } from "@/utils/questions/helpers";
 
 import IndividualQuestionPage from "./page_component";
 import { cachedGetPost } from "./utils/get_post";
@@ -19,7 +19,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     return {};
   }
 
-  const questionTitle = getQuestionTitle(postData);
+  const questionTitle = getPostTitle(postData);
   return {
     title: postData.short_title ?? questionTitle,
     description: null,

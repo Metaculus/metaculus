@@ -8,7 +8,7 @@ import { FC } from "react";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import "./styles.css";
 

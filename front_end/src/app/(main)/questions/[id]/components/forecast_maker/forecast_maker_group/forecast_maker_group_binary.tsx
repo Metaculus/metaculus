@@ -1,7 +1,7 @@
 "use client";
 import { faEllipsis, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { round } from "lodash";
+import { isNil, round } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, {
@@ -13,7 +13,10 @@ import React, {
   useState,
 } from "react";
 
-import { createForecasts } from "@/app/(main)/questions/actions";
+import {
+  createForecasts,
+  withdrawForecasts,
+} from "@/app/(main)/questions/actions";
 import GroupQuestionResolution from "@/components/group_question_resolution";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
@@ -31,7 +34,8 @@ import {
 } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
+import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
+import { canWithdrawForecast } from "@/utils/questions/predictions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
@@ -198,6 +202,29 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     }
   }, [postId, questionsToSubmit]);
   const [submit, isPending] = useServerAction(handlePredictSubmit);
+
+  const predictedQuestions = useMemo(() => {
+    return questions.filter(
+      (q) =>
+        q.status === QuestionStatus.OPEN &&
+        q.my_forecasts?.latest &&
+        isNil(q.my_forecasts?.latest.end_time)
+    );
+  }, [questions]);
+
+  const handlePredictWithdraw = useCallback(async () => {
+    setSubmitError(undefined);
+    const response = await withdrawForecasts(
+      post.id,
+      predictedQuestions.map((q) => ({
+        question: q.id,
+      }))
+    );
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors);
+    }
+  }, [post, predictedQuestions]);
+  const [withdraw, isWithdrawing] = useServerAction(handlePredictWithdraw);
   return (
     <>
       <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
@@ -272,21 +299,34 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         <>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
             {!!user && (
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={resetForecasts}
-                disabled={!isPickerDirty}
-              >
-                {t("discardChangesButton")}
-              </Button>
+              <>
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={resetForecasts}
+                  disabled={!isPickerDirty}
+                >
+                  {t("discardChangesButton")}
+                </Button>
+
+                {questions.some((q) => canWithdrawForecast(q, permission)) && (
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={isPending || isWithdrawing}
+                    onClick={withdraw}
+                  >
+                    {t("withdrawAll")}
+                  </Button>
+                )}
+              </>
             )}
 
             <PredictButton
               onSubmit={submit}
               isDirty={isPickerDirty}
               hasUserForecast={hasUserForecast}
-              isPending={isPending}
+              isPending={isPending || isWithdrawing}
               isDisabled={!questionsToSubmit.length}
             />
           </div>

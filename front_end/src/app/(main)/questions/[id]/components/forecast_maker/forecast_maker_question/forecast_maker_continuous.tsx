@@ -25,16 +25,20 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
-import { getDisplayValue } from "@/utils/charts";
+import {
+  getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
+} from "@/utils/forecasts/dataset";
 import {
   clearQuantileComponents,
+  isAllQuantileComponentsDirty,
+} from "@/utils/forecasts/helpers";
+import {
   extractPrevNumericForecastValue,
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
-  getQuantileNumericForecastDataset,
-  getSliderNumericForecastDataset,
-  isAllQuantileComponentsDirty,
-} from "@/utils/forecasts";
+} from "@/utils/forecasts/initial_values";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import PredictionSuccessBox from "./prediction_success_box";
@@ -209,8 +213,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   const userQuartiles = userCdf ? computeQuartilesFromCDF(userCdf) : undefined;
 
   const forecastDisplayValue = (value: number | null | undefined) =>
-    getDisplayValue({
-      value,
+    getPredictionDisplayValue(value, {
       questionType: question.type,
       scaling: question.scaling,
       actual_resolve_time: question.actual_resolve_time ?? null,

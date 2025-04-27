@@ -4,7 +4,7 @@ import { Button } from "@headlessui/react";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 export type ChipSize = "xs" | "sm" | "md";
 export type ChipVariant = "filled" | "outlined" | "subtle";

@@ -1,14 +1,12 @@
+import { differenceInMilliseconds } from "date-fns";
 import Link from "next/link";
 import { FC } from "react";
 
-import PostStatus from "@/components/post_status";
-import { PostWithForecasts } from "@/types/post";
+import PostStatusIndicator from "@/components/post_status";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getPostLink } from "@/utils/navigation";
-import {
-  extractPostResolution,
-  getPredictionQuestion,
-} from "@/utils/questions";
+import { extractPostResolution } from "@/utils/questions/resolution";
 
 import SimilarPredictionChip from "./similar_question_prediction_chip";
 import { useHideCP } from "../../cp_provider";
@@ -48,12 +46,35 @@ const SimilarQuestionCard: FC<Props> = ({ post }) => {
             </div>
           )}
           <div>
-            <PostStatus post={post} resolution={resolutionData} />
+            <PostStatusIndicator post={post} resolution={resolutionData} />
           </div>
         </div>
       </div>
     </Link>
   );
 };
+
+function getPredictionQuestion(
+  questions: QuestionWithNumericForecasts[],
+  curationStatus: PostStatus
+) {
+  const sortedQuestions = questions
+    .map((q) => ({
+      ...q,
+      resolvedAt: new Date(q.scheduled_resolve_time),
+      fanName: q.label,
+    }))
+    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
+
+  if (curationStatus === PostStatus.RESOLVED) {
+    return sortedQuestions[sortedQuestions.length - 1] ?? null;
+  }
+
+  return (
+    sortedQuestions.find((q) => q.resolution === null) ??
+    sortedQuestions[sortedQuestions.length - 1] ??
+    null
+  );
+}
 
 export default SimilarQuestionCard;

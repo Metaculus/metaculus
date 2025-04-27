@@ -13,7 +13,7 @@ import {
 } from "@mdxeditor/editor";
 import { useState } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import { EmbedQuestionAction } from "./embedded_question";
 import AddEquationAction from "./plugins/equation/components/add_equation_action";

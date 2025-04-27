@@ -7,9 +7,9 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useMounted from "@/hooks/use_mounted";
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
-import cn from "@/utils/cn";
-import { addOpacityToHex } from "@/utils/colors";
-import { isSuccessfullyResolved } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { addOpacityToHex } from "@/utils/core/colors";
+import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 type Props = {
   choiceLabel: string;

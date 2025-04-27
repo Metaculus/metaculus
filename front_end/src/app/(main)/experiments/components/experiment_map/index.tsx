@@ -11,7 +11,7 @@ import {
 
 import usePrevious from "@/hooks/use_previous";
 import { BaseMapArea, MapType } from "@/types/experiments";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import RawMap from "./raw_map";
 

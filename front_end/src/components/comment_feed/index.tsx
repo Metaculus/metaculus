@@ -13,7 +13,6 @@ import {
   getComments,
   markPostAsRead,
 } from "@/app/(main)/questions/actions";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import { DefaultUserMentionsContextProvider } from "@/components/markdown_editor/plugins/mentions/components/default_mentions_context";
 import { MentionItem } from "@/components/markdown_editor/plugins/mentions/types";
@@ -22,14 +21,15 @@ import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useHash from "@/hooks/use_hash";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { getCommentsParams } from "@/services/comments";
 import { CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import cn from "@/utils/cn";
 import { getCommentIdToFocusOn } from "@/utils/comments";
+import cn from "@/utils/core/cn";
 
 import CommentWelcomeMessage, {
   getIsMessagePreviouslyClosed,
@@ -138,7 +138,7 @@ const CommentFeed: FC<Props> = ({
     [comments, postData]
   );
 
-  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerContext();
 
   useEffect(() => {
     if (comments.filter((c) => c.is_current_content_translated).length > 0) {

@@ -1,6 +1,6 @@
 import { FC, PropsWithChildren, ReactNode, useMemo } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type InputContainerProps = {
   labelText?: string;

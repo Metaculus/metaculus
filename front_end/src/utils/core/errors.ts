@@ -90,7 +90,12 @@ export function extractError(
   }
 }
 
-export function logError(error: unknown, message?: string) {
+export function logError(
+  error: unknown,
+  options?: { message?: string; payload?: unknown }
+) {
+  const { message, payload } = options ?? {};
+
   if (ApiError.isApiError(error)) {
     const { digest, response, data } = error;
 
@@ -106,7 +111,14 @@ export function logError(error: unknown, message?: string) {
 
     // Capture exception in Sentry for server errors or unknown status
     if (!status || status >= 500) {
-      Sentry.captureException(error);
+      if (payload) {
+        Sentry.withScope(function (scope) {
+          scope.setContext("payload", { payload: JSON.stringify(payload) });
+          Sentry.captureException(error);
+        });
+      } else {
+        Sentry.captureException(error);
+      }
     }
 
     const logChunks = [
@@ -125,17 +137,5 @@ export function logError(error: unknown, message?: string) {
 
   // Capture any non-api error to sentry
   Sentry.captureException(error);
-  console.error(message ?? error);
-}
-
-export function logErrorWithScope(
-  error: Error | unknown,
-  payload: unknown,
-  message?: string
-) {
-  Sentry.withScope(function (scope) {
-    scope.setContext("payload", { payload: JSON.stringify(payload) });
-    Sentry.captureException(error);
-  });
   console.error(message ?? error);
 }

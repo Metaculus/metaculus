@@ -14,7 +14,7 @@ import {
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import { QuestionOrder } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 import { encodeQueryParams } from "@/utils/navigation";
 
 interface GlobalSearchProps {

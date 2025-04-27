@@ -110,9 +110,13 @@ const CookiesBanner: FC = () => {
 };
 
 export function getAnalyticsCookieConsentGiven(): ConsentGiven {
-  const consentGiven = localStorage.getItem(STORAGE_KEY);
+  try {
+    const consentGiven = localStorage.getItem(STORAGE_KEY);
 
-  return consentGiven ? (consentGiven as ConsentGiven) : "undecided";
+    return consentGiven ? (consentGiven as ConsentGiven) : "undecided";
+  } catch {
+    return "undecided";
+  }
 }
 
 export default CookiesBanner;

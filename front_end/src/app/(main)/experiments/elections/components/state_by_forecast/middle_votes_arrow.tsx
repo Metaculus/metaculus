@@ -2,7 +2,7 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   className?: string;

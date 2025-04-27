@@ -6,7 +6,7 @@ import {
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { sortGroupPredictionOptions } from "@/utils/questions";
+import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 
 import ForecastMakerGroupBinary from "./forecast_maker_group_binary";
 import ForecastMakerGroupContinuous from "./forecast_maker_group_continuous";

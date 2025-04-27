@@ -1209,5 +1209,7 @@
   "maxKeyFactorsPerQuestion": "一个问题由一位作者最多可以包含 6 个关键因素。",
   "maxKeyFactorLength": "关键因素必须少于150个字符。",
   "addKeyFactorsModalP1": "列出您认为最重要的关键因素——保持每个因素简短且具体。",
-  "addKeyFactorsModalP2": "请发表评论，解释这些因素对您的预测为什么重要。"
+  "addKeyFactorsModalP2": "请发表评论，解释这些因素对您的预测为什么重要。",
+  "withdrawAll": "全部撤回",
+  "reaffirmAll": "全部重申"
 }
