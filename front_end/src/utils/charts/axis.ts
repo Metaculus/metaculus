@@ -11,6 +11,7 @@ import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { Scale, TimelineChartZoomOption } from "@/types/charts";
 import {
+  DefaultInboundOutcomeCount,
   GraphingQuestionProps,
   Question,
   QuestionType,
@@ -235,6 +236,7 @@ type GenerateScaleParams = {
   cursorDisplayLabel?: string | null;
   shortLabels?: boolean;
   adjustLabels?: boolean;
+  inboundOutcomeCount?: number | null;
   question?: Question | GraphingQuestionProps;
 };
 
@@ -267,6 +269,7 @@ export function generateScale({
   unit,
   shortLabels = false,
   adjustLabels = false,
+  inboundOutcomeCount,
   question,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
@@ -283,6 +286,10 @@ export function generateScale({
     question?.scaling?.range_max ?? scaling?.range_max ?? domainMax;
   const zeroPoint =
     question?.scaling?.zero_point ?? scaling?.zero_point ?? null;
+  const inbound_outcome_count =
+    question?.inbound_outcome_count ??
+    inboundOutcomeCount ??
+    DefaultInboundOutcomeCount;
   const rangeScaling = {
     range_min: rangeMin,
     range_max: rangeMax,
@@ -312,8 +319,8 @@ export function generateScale({
   }
   const tickCount =
     displayType === QuestionType.Discrete
-      ? question?.inbound_outcome_count
-        ? 2 + question.inbound_outcome_count
+      ? inbound_outcome_count
+        ? 2 + inbound_outcome_count
         : (maxLabelCount - 1) * 5 + 1
       : (maxLabelCount - 1) * 5 + 1;
 
@@ -409,17 +416,14 @@ export function generateScale({
   let discreteValueOptions: number[] | undefined = undefined;
   if (
     displayType === QuestionType.Discrete &&
-    question?.inbound_outcome_count &&
-    !isNil(question.scaling?.range_min) &&
-    !isNil(question.scaling?.range_max)
+    inbound_outcome_count &&
+    !isNil(rangeMin) &&
+    !isNil(rangeMax)
   ) {
     discreteValueOptions = [];
-    for (let i = 0; i < question.inbound_outcome_count; i++) {
+    for (let i = 0; i < inbound_outcome_count; i++) {
       discreteValueOptions.push(
-        question.scaling.range_min +
-          ((question.scaling.range_max - question.scaling.range_min) *
-            (i + 0.5)) /
-            question.inbound_outcome_count
+        rangeMin + ((rangeMax - rangeMin) * (i + 0.5)) / inbound_outcome_count
       );
     }
   }
@@ -482,7 +486,7 @@ export function generateScale({
     );
   }
 
-  // if (direction == "horizontal") {
+  // if (displayType === "discrete") {
   //   // Debugging - do not remove
   //   console.log(
   //     "\n displayType:",
@@ -497,6 +501,10 @@ export function generateScale({
   //     zoomedRange,
   //     "\n scaling:",
   //     scaling,
+  //     "\n discreteValueOptions:",
+  //     discreteValueOptions,
+  //     "\n inboundOutcomeCount:",
+  //     inboundOutcomeCount,
   //     "\n unit:",
   //     unit,
   //     "\n question:",

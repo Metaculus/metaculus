@@ -213,6 +213,7 @@ const ContinuousAreaChart: FC<Props> = ({
           resolution: question.resolution,
           resolveTime: 1,
           scaling: question.scaling,
+          inboundOutcomeCount: question.inbound_outcome_count,
         })
       : null;
 
@@ -308,14 +309,7 @@ const ContinuousAreaChart: FC<Props> = ({
         }
       }
     },
-    [
-      charts,
-      onCursorChange,
-      chartContainerRef,
-      leftPadding,
-      data,
-      question.type,
-    ]
+    [charts, onCursorChange, chartContainerRef, leftPadding, data, question]
   );
   useEffect(() => {
     const svg = chartContainerRef.current?.firstChild as SVGElement;

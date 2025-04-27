@@ -157,27 +157,32 @@ const ContinuousTable: FC<Props> = ({
     [quantileComponents, onQuantileChange, question, t]
   );
 
-  const lowerBoundLocation =
-    question.type !== QuestionType.Discrete || !question.inbound_outcome_count
-      ? 0
-      : 0.5 / question.inbound_outcome_count;
-  const upperBoundLocation =
-    question.type !== QuestionType.Discrete || !question.inbound_outcome_count
-      ? 1
-      : 1 - 0.5 / question.inbound_outcome_count;
+  let discreteValueOptions: number[] | undefined = undefined;
+  if (
+    question.type === QuestionType.Discrete &&
+    question?.inbound_outcome_count &&
+    !isNil(question.scaling?.range_min) &&
+    !isNil(question.scaling?.range_max)
+  ) {
+    discreteValueOptions = [];
+    for (let i = 0; i < question.inbound_outcome_count; i++) {
+      discreteValueOptions.push(
+        question.scaling.range_min +
+          ((question.scaling.range_max - question.scaling.range_min) *
+            (i + 0.5)) /
+            question.inbound_outcome_count
+      );
+    }
+  }
   const getDisplayValue = (value: number | null | undefined) => {
-    return getTableDisplayValue(
-      value
-        ? Math.min(upperBoundLocation, Math.max(lowerBoundLocation, value))
-        : undefined,
-      {
-        questionType: question.type,
-        scaling: question.scaling,
-        precision: 4,
-        unit: question.unit,
-        actual_resolve_time: question.actual_resolve_time ?? null,
-      }
-    );
+    return getTableDisplayValue(value, {
+      questionType: question.type,
+      scaling: question.scaling,
+      precision: 4,
+      unit: question.unit,
+      actual_resolve_time: question.actual_resolve_time ?? null,
+      discreteValueOptions,
+    });
   };
 
   return (
@@ -190,8 +195,7 @@ const ContinuousTable: FC<Props> = ({
                 <Td></Td>
                 {question.open_lower_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
-                    {(question.type === QuestionType.Discrete ? "<" : "") +
-                      getDisplayValue(0)}
+                    {getDisplayValue(0)}
                   </Td>
                 )}
                 <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
@@ -205,8 +209,7 @@ const ContinuousTable: FC<Props> = ({
                 </Td>
                 {question.open_upper_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
-                    {(question.type === QuestionType.Discrete ? ">" : "") +
-                      getDisplayValue(1)}
+                    {getDisplayValue(1)}
                   </Td>
                 )}
               </>

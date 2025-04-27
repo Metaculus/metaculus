@@ -31,6 +31,9 @@ export const interpolateYValue = (xValue: number, line: Line) => {
   if (i === -1) {
     return line[0]?.y ?? 0;
   }
+  if (i === line.length - 1) {
+    return line[line.length - 1]?.y ?? 0;
+  }
   const p1 = line[i];
   const p2 = line[i + 1] ?? line[i];
 

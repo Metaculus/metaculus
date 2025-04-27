@@ -27,10 +27,17 @@ export function getForecastNumericDisplayValue(
   params?: {
     precision?: number;
     unit?: string;
+    discreteValueOptions?: number[];
   }
 ) {
-  const { precision, unit } = params ?? {};
-  return formatValueUnit(abbreviatedNumber(value, precision), unit);
+  const { precision, unit, discreteValueOptions } = params ?? {};
+  let closestValue = +value;
+  if (discreteValueOptions) {
+    closestValue = discreteValueOptions.reduce((prev, curr) =>
+      Math.abs(curr - +value) < Math.abs(prev - +value) ? curr : prev
+    );
+  }
+  return formatValueUnit(abbreviatedNumber(closestValue, precision), unit);
 }
 
 export function getForecastDateDisplayValue(
@@ -71,6 +78,7 @@ function formatPredictionDisplayValue(
     dateFormatString,
     unit,
     adjustLabels = false,
+    discreteValueOptions,
   }: {
     questionType: QuestionType;
     actual_resolve_time: string | null;
@@ -80,6 +88,7 @@ function formatPredictionDisplayValue(
     dateFormatString?: string;
     unit?: string;
     adjustLabels?: boolean;
+    discreteValueOptions?: number[];
   }
 ): string {
   precision = precision ?? 3;
@@ -94,7 +103,11 @@ function formatPredictionDisplayValue(
     questionType === QuestionType.Numeric ||
     questionType === QuestionType.Discrete
   ) {
-    return getForecastNumericDisplayValue(value, { precision, unit });
+    return getForecastNumericDisplayValue(value, {
+      precision,
+      unit,
+      discreteValueOptions,
+    });
   } else {
     return getForecastPctDisplayValue(value);
   }
@@ -192,7 +205,6 @@ export function getPredictionDisplayValue(
   if (isNil(value)) {
     return emptyLabel;
   }
-
   const centerDisplay = displayValue(value, displayValueParams);
 
   if (range) {
@@ -221,6 +233,7 @@ export function getTableDisplayValue(
     range,
     forecastInputMode = ContinuousForecastInputType.Slider,
     unit,
+    discreteValueOptions,
   }: {
     questionType: QuestionType;
     actual_resolve_time: string | null;
@@ -229,6 +242,7 @@ export function getTableDisplayValue(
     range?: number[];
     forecastInputMode?: ContinuousForecastInputType;
     unit?: string;
+    discreteValueOptions?: number[];
   }
 ) {
   if (isNil(value)) {
@@ -241,6 +255,7 @@ export function getTableDisplayValue(
       scaling,
       actual_resolve_time,
       precision,
+      discreteValueOptions,
     });
   }
 
@@ -250,6 +265,7 @@ export function getTableDisplayValue(
     actual_resolve_time,
     precision,
     range,
+    discreteValueOptions,
   });
 
   return isUnitCompact(unit)
@@ -307,6 +323,7 @@ export function getUserPredictionDisplayValue({
   actual_resolve_time,
   showRange,
   unit,
+  discreteValueOptions,
 }: {
   myForecasts: UserForecastHistory;
   timestamp: number | null | undefined;
@@ -315,6 +332,7 @@ export function getUserPredictionDisplayValue({
   actual_resolve_time: string | null;
   showRange?: boolean;
   unit?: string;
+  discreteValueOptions?: number[];
 }): string {
   if (!timestamp) {
     return "...";
@@ -409,16 +427,40 @@ export function getUserPredictionDisplayValue({
     questionType === QuestionType.Numeric ||
     questionType === QuestionType.Discrete
   ) {
-    const displayCenter =
-      checkQuartilesOutOfBorders(center) +
-      formatValueUnit(abbreviatedNumber(scaledCenter), unit);
+    const displayCenter = getPredictionDisplayValue(center, {
+      questionType,
+      scaling: scaling ?? {
+        range_min: 0,
+        range_max: 1,
+        zero_point: null,
+      },
+      unit,
+      actual_resolve_time,
+      discreteValueOptions,
+    });
     if (showRange) {
-      const displayLower = !isNil(scaledLower)
-        ? checkQuartilesOutOfBorders(lower) + abbreviatedNumber(scaledLower)
-        : "...";
-      const displayUpper = !isNil(scaledUpper)
-        ? checkQuartilesOutOfBorders(upper) + abbreviatedNumber(scaledUpper)
-        : "...";
+      const displayLower = getPredictionDisplayValue(scaledLower, {
+        questionType,
+        scaling: scaling ?? {
+          range_min: 0,
+          range_max: 1,
+          zero_point: null,
+        },
+        unit,
+        actual_resolve_time,
+        discreteValueOptions,
+      });
+      const displayUpper = getPredictionDisplayValue(scaledUpper, {
+        questionType,
+        scaling: scaling ?? {
+          range_min: 0,
+          range_max: 1,
+          zero_point: null,
+        },
+        unit,
+        actual_resolve_time,
+        discreteValueOptions,
+      });
       return `${displayCenter}\n(${displayLower} - ${displayUpper})`;
     }
     return displayCenter;

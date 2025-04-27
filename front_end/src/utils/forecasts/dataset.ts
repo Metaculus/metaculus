@@ -185,11 +185,7 @@ function generateQuantileContinuousCdf({
   question: Question;
 }): number[] | TranslationKey {
   const { range_min, range_max } = question.scaling;
-  if (
-    range_min === null ||
-    range_max === null ||
-    question.inbound_outcome_count === null
-  ) {
+  if (range_min === null || range_max === null) {
     return "questionRangeError";
   }
 
@@ -212,8 +208,10 @@ function generateQuantileContinuousCdf({
 
   const cdfEvalLocs: number[] = [];
   // TODO: set up for arbitrary cdf size
-  for (let i = 0; i < 201; i++) {
-    cdfEvalLocs.push(i / 200);
+  const inboundOutcomeCount =
+    question.inbound_outcome_count ?? DefaultInboundOutcomeCount;
+  for (let i = 0; i < inboundOutcomeCount + 1; i++) {
+    cdfEvalLocs.push(i / inboundOutcomeCount);
   }
 
   const hydratedQuantiles =
@@ -221,7 +219,6 @@ function generateQuantileContinuousCdf({
       ? hydrateQuantiles(scaledQuantiles, cdfEvalLocs)
       : scaledQuantiles;
   if (hydratedQuantiles.length < 2) {
-    // TODO: adjust error message
     return "chartDataError";
   }
 
@@ -257,8 +254,8 @@ function generateQuantileContinuousCdf({
   }
 
   const cdf = [];
-  for (let i = 0; i < question.inbound_outcome_count + 1; i++) {
-    const cdfValue = getCdfAt(i / question.inbound_outcome_count);
+  for (let i = 0; i < inboundOutcomeCount + 1; i++) {
+    const cdfValue = getCdfAt(i / inboundOutcomeCount);
     !isNil(cdfValue) ? cdf.push(cdfValue) : undefined;
   }
 

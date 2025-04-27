@@ -223,6 +223,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     setSubmitError(undefined);
     sendPredictEvent(post, question, hideCP);
 
+    console.log(forecastInputMode, quantileDistributionComponents, userCdf);
     if (forecastInputMode === ContinuousForecastInputType.Quantile) {
       const validationErrors = validateUserQuantileData({
         question,

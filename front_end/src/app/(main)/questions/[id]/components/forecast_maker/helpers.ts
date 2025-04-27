@@ -1,4 +1,4 @@
-import { isNil, isNull } from "lodash";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 
 import {
@@ -26,18 +26,7 @@ export function validateQuantileInput({
   t: ReturnType<typeof useTranslations>;
 }): string | undefined {
   const { open_lower_bound, open_upper_bound } = question;
-  let range_min = question.scaling.range_min;
-  let range_max = question.scaling.range_max;
-  if (
-    question.type === QuestionType.Discrete &&
-    !isNull(range_max) &&
-    !isNull(range_min) &&
-    !isNull(question.inbound_outcome_count)
-  ) {
-    const step_size = (range_max - range_min) / question.inbound_outcome_count;
-    range_min = Math.round(1e10 * (range_min + 0.5 * step_size)) / 1e10;
-    range_max = Math.round(1e10 * (range_max - 0.5 * step_size)) / 1e10;
-  }
+  const { range_min, range_max } = question.scaling;
   const probBelowLower = components[0]?.value;
   const probAboveUpper = components[components.length - 1]?.value;
   const q1 = components.find((q) => q.quantile === Quantile.q1)?.value;
@@ -272,14 +261,15 @@ export function validateUserQuantileData({
     inboundPmf.push(Number(diff.toFixed(10)));
   }
 
-  // Check minimum step size (0.00005)
-  const minDiff = 0.01 / 200;
+  // Check minimum step size (0.00005 for default continuous)
+  // Guarantee that at least 1% of weight is evenly spread within bounds
+  const minDiff = 0.01 / inboundPmf.length;
   if (inboundPmf.some((diff) => diff < minDiff)) {
     validationErrors.push(t("quantileTooCloseError"));
   }
 
-  // Check maximum step size (0.59)
-  const maxDiff = 0.59;
+  // Check maximum step size (0.59 for default continuous)
+  const maxDiff = question.type !== QuestionType.Discrete ? 0.59 : 0.99;
   if (inboundPmf.some((diff) => diff > maxDiff)) {
     validationErrors.push(t("quantileTooCloseError"));
   }
