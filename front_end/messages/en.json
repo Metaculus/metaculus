@@ -1250,5 +1250,8 @@
   "duplicateSubQuestionLabel": "Duplicate sub question labels",
   "CPMovementHourChangeLabel": "{value} this hour",
   "CPMovementDayChangeLabel": "{value} today",
-  "CPMovementWeekChangeLabel": "{value} this week"
+  "CPMovementWeekChangeLabel": "{value} this week",
+  "add": "Add",
+  "suggestedKeyFactorsSection": "Here are the suggested key factors based on your comment text. Feel free to add the ones you see fit, or enter your key factors manually.",
+  "loadingSuggestedKeyFactors": "Generating key factors..."
 }

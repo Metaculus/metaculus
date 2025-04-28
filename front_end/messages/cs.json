@@ -1254,5 +1254,8 @@
   "thereAreQuestionsYouHaveNotPredicted": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které jste ještě nepředpověděli.",
   "CPMovementHourChangeLabel": "{value} tuto hodinu",
   "CPMovementDayChangeLabel": "{value} dnes",
-  "CPMovementWeekChangeLabel": "{value} tento týden"
+  "CPMovementWeekChangeLabel": "{value} tento týden",
+  "add": "Přidat",
+  "suggestedKeyFactorsSection": "Zde jsou navrženy klíčové faktory na základě vašeho komentáře. Neváhejte přidat ty, které považujete za vhodné, nebo zadejte své vlastní klíčové faktory ručně.",
+  "loadingSuggestedKeyFactors": "Generování klíčových faktorů..."
 }
