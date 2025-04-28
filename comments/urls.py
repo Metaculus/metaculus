@@ -28,9 +28,9 @@ urlpatterns = [
         name="comment-add-key-factors",
     ),
     path(
-        "comments/<int:pk>/suggest-key-factors/",
-        views.comment_suggest_key_factors_view,
-        name="comment-suggest-key-factors",
+        "comments/<int:pk>/suggested-key-factors/",
+        views.comment_suggested_key_factors_view,
+        name="comment-suggested-key-factors",
     ),
 ]
 
