@@ -1,15 +1,16 @@
 "use client";
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useMemo, useState } from "react";
+import { FC, useMemo, useState, useEffect } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   addKeyFactorsToComment,
   createComment,
+  getSuggestedKeyFactors,
 } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -19,6 +20,7 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { BECommentType } from "@/types/comment";
 import { User } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 
 const FACTORS_PER_QUESTION = 6;
 const FACTORS_PER_COMMENT = 4;
@@ -32,6 +34,8 @@ type Props = {
   // Used when adding key factors and also creating a new comment on a given post
   // This also determines the number of steps in the modal: 2 if a new comment is createad too
   postId?: number;
+  // if true, loads a set of suggested key factors
+  showSuggestedKeyFactors?: boolean;
   onSuccess?: (comment: BECommentType) => void;
 };
 
@@ -100,17 +104,65 @@ const Step1AddKeyFactors = ({
   isActive,
   factorsLimit,
   limitError,
+  suggestedKeyFactors,
+  setSuggestedKeyFactors,
 }: {
   keyFactors: string[];
   setKeyFactors: (factors: string[]) => void;
   isActive: boolean;
   limitError?: string;
   factorsLimit: number;
+  suggestedKeyFactors: { text: string; selected: boolean }[];
+  setSuggestedKeyFactors: (
+    factors: { text: string; selected: boolean }[]
+  ) => void;
 }) => {
   const t = useTranslations();
 
   return (
     <div className="flex w-full flex-col gap-4">
+      {suggestedKeyFactors.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="text-base leading-tight">
+            {t("suggestedKeyFactorsSection")}
+          </p>
+          {suggestedKeyFactors.map((keyFactor) => (
+            <div
+              key={keyFactor.text}
+              className="flex grow items-center justify-between rounded border px-3 py-2 text-base"
+            >
+              <span>{keyFactor.text}</span>
+              <Button
+                variant={keyFactor.selected ? "primary" : "tertiary"}
+                size="xs"
+                className="h-fit w-fit"
+                onClick={() => {
+                  setSuggestedKeyFactors(
+                    suggestedKeyFactors.map((kf) =>
+                      kf.text === keyFactor.text
+                        ? { ...kf, selected: !kf.selected }
+                        : kf
+                    )
+                  );
+                }}
+              >
+                <FontAwesomeIcon
+                  icon={keyFactor.selected ? faMinus : faPlus}
+                  className="size-4 p-1"
+                />
+                <span className="capitalize">
+                  {keyFactor.selected ? t("remove") : t("add")}
+                </span>
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {suggestedKeyFactors.length === 0 && (
+        <p className="text-base leading-tight">{t("addKeyFactorsModalP1")}</p>
+      )}
+
       {keyFactors.map((keyFactor, idx) => (
         <KeyFactorField
           key={idx}
@@ -150,6 +202,18 @@ const Step1AddKeyFactors = ({
   );
 };
 
+const LoadingSuggestedKeyFactors = () => {
+  const t = useTranslations();
+  return (
+    <div className="flex w-full grow flex-col items-center justify-center gap-2 md:w-[576px]">
+      <p className="text-base leading-tight">
+        {t("loadingSuggestedKeyFactors")}
+      </p>
+      <LoadingSpinner />
+    </div>
+  );
+};
+
 const AddKeyFactorsModal: FC<Props> = ({
   isOpen,
   onClose,
@@ -157,14 +221,32 @@ const AddKeyFactorsModal: FC<Props> = ({
   postId,
   onSuccess,
   user,
+  showSuggestedKeyFactors = false,
 }) => {
   const t = useTranslations();
   const [keyFactors, setKeyFactors] = useState<string[]>([""]);
+  const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
+    { text: string; selected: boolean }[]
+  >([]);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const numberOfSteps = commentId ? 1 : 2;
   const [markdown, setMarkdown] = useState<string>("");
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
     useCommentsFeed();
+  const [isLoadingSuggestedKeyFactors, setIsLoadingSuggestedKeyFactors] =
+    useState<boolean>(false);
+
+  useEffect(() => {
+    if (showSuggestedKeyFactors && commentId && isOpen) {
+      setIsLoadingSuggestedKeyFactors(true);
+      getSuggestedKeyFactors(commentId).then((suggestedKeyFactors) => {
+        setSuggestedKeyFactors(
+          suggestedKeyFactors.map((kf) => ({ text: kf, selected: false }))
+        );
+        setIsLoadingSuggestedKeyFactors(false);
+      });
+    }
+  }, [showSuggestedKeyFactors, commentId, isOpen]);
 
   const [userPostFactors, userCommentFactors] = useMemo(() => {
     const postFactors = combinedKeyFactors.filter(
@@ -199,17 +281,23 @@ const AddKeyFactorsModal: FC<Props> = ({
       }
     }
     const filteredKeyFactors = keyFactors.filter((f) => f.trim() !== "");
+    const filteredSuggestedKeyFactors = suggestedKeyFactors
+      .filter((kf) => kf.selected)
+      .map((kf) => kf.text);
     if (commentId) {
       if (userCommentFactors.length >= FACTORS_PER_COMMENT) {
         setErrorMessage(t("maxKeyFactorsPerComment"));
         return;
       }
-      comment = await addKeyFactorsToComment(commentId, filteredKeyFactors);
+      comment = await addKeyFactorsToComment(commentId, [
+        ...filteredKeyFactors,
+        ...filteredSuggestedKeyFactors,
+      ]);
     } else {
       comment = await createComment({
         on_post: postId,
         text: markdown,
-        key_factors: filteredKeyFactors,
+        key_factors: [...filteredKeyFactors, ...filteredSuggestedKeyFactors],
         is_private: false,
       });
     }
@@ -254,76 +342,82 @@ const AddKeyFactorsModal: FC<Props> = ({
       isImmersive={true}
       className="m-0 flex h-full w-full max-w-none flex-col overscroll-contain rounded-none md:w-auto md:rounded lg:m-auto lg:h-auto"
     >
-      <div className="flex max-w-xl grow flex-col gap-2">
-        <p className="text-base leading-tight">{t("addKeyFactorsModalP1")}</p>
+      {isLoadingSuggestedKeyFactors && <LoadingSuggestedKeyFactors />}
 
-        <Step1AddKeyFactors
-          keyFactors={keyFactors}
-          setKeyFactors={setKeyFactors}
-          isActive={currentStep === 1}
-          factorsLimit={
-            commentId
-              ? FACTORS_PER_COMMENT - userCommentFactors.length
-              : FACTORS_PER_QUESTION - userPostFactors.length
-          }
-          limitError={limitError}
-        />
+      {!isLoadingSuggestedKeyFactors && (
+        <div className="flex max-w-xl grow flex-col gap-2">
+          <Step1AddKeyFactors
+            keyFactors={keyFactors}
+            setKeyFactors={setKeyFactors}
+            isActive={currentStep === 1}
+            factorsLimit={
+              commentId
+                ? FACTORS_PER_COMMENT - userCommentFactors.length
+                : FACTORS_PER_QUESTION - userPostFactors.length
+            }
+            limitError={limitError}
+            suggestedKeyFactors={suggestedKeyFactors}
+            setSuggestedKeyFactors={setSuggestedKeyFactors}
+          />
 
-        {currentStep > 1 && (
-          <Step2AddComment markdown={markdown} setMarkdown={setMarkdown} />
-        )}
-
-        <div className="mt-auto flex w-full gap-3 md:mt-6">
-          {currentStep > 1 ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setCurrentStep(currentStep - 1)}
-              className="ml-auto"
-            >
-              {t("back")}
-            </Button>
-          ) : (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleOnClose}
-              className="ml-auto"
-              disabled={isPending}
-            >
-              {t("cancel")}
-            </Button>
+          {currentStep > 1 && (
+            <Step2AddComment markdown={markdown} setMarkdown={setMarkdown} />
           )}
 
-          {currentStep < numberOfSteps ? (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                sendAnalyticsEvent("addKeyFactor", {
-                  event_label: "fromList",
-                  event_category: "next",
-                });
-                setCurrentStep(currentStep + 1);
-              }}
-              className="px-3"
-              disabled={isPending || !keyFactors.some((k) => k.trim() !== "")}
-            >
-              {t("next")}
-            </Button>
-          ) : (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={submit}
-              disabled={isPending}
-            >
-              {t("submit")}
-            </Button>
+          <div className="mt-auto flex w-full gap-3 md:mt-6">
+            {currentStep > 1 ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setCurrentStep(currentStep - 1)}
+                className="ml-auto"
+              >
+                {t("back")}
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleOnClose}
+                className="ml-auto"
+                disabled={isPending}
+              >
+                {t("cancel")}
+              </Button>
+            )}
+
+            {currentStep < numberOfSteps ? (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  sendAnalyticsEvent("addKeyFactor", {
+                    event_label: "fromList",
+                    event_category: "next",
+                  });
+                  setCurrentStep(currentStep + 1);
+                }}
+                className="px-3"
+                disabled={isPending || !keyFactors.some((k) => k.trim() !== "")}
+              >
+                {t("next")}
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={submit}
+                disabled={isPending}
+              >
+                {t("submit")}
+              </Button>
+            )}
+          </div>
+          {errorMessage && (
+            <p className="text-sm text-red-500">{errorMessage}</p>
           )}
         </div>
-        {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
-      </div>
+      )}
     </BaseModal>
   );
 };

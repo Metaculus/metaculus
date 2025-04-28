@@ -332,6 +332,10 @@ export async function addKeyFactorsToComment(
   }
 }
 
+export async function getSuggestedKeyFactors(commentId: number) {
+  return await CommentsApi.getSuggestedKeyFactors(commentId);
+}
+
 export async function commentTogglePin(commentId: number, pin: boolean) {
   return await CommentsApi.togglePin(commentId, pin);
 }

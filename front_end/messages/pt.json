@@ -1252,5 +1252,8 @@
   "thereAreQuestionsYouHaveNotPredicted": "Há {count, plural, =1 {<bold># pergunta</bold>} other {<bold># perguntas</bold>}} que você ainda não previu.",
   "CPMovementHourChangeLabel": "{value} nesta hora",
   "CPMovementDayChangeLabel": "{value} hoje",
-  "CPMovementWeekChangeLabel": "{value} nesta semana"
+  "CPMovementWeekChangeLabel": "{value} nesta semana",
+  "add": "Adicionar",
+  "suggestedKeyFactorsSection": "Aqui estão os fatores-chave sugeridos com base no seu comentário. Sinta-se à vontade para adicionar os que considerar apropriados, ou insira seus fatores-chave manualmente.",
+  "loadingSuggestedKeyFactors": "Gerando fatores-chave..."
 }

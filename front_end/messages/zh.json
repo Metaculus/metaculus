@@ -1256,5 +1256,9 @@
   "thereAreQuestionsYouHaveNotPredicted": "您尚未预测的 {count, plural, =1 {是 <bold># 个问题</bold>} other {是 <bold># 个问题</bold>}}。",
   "CPMovementHourChangeLabel": "{value} 本小时",
   "CPMovementDayChangeLabel": "{value} 今天",
-  "CPMovementWeekChangeLabel": "{value} 本周"
+  "CPMovementWeekChangeLabel": "{value} 本周",
+  "CPMovementChangeLabel": "{period} 内的 {value}",
+  "add": "添加",
+  "suggestedKeyFactorsSection": "以下是根据您的评论文本建议的关键因素。您可以添加您认为合适的因素，或手动输入您的关键因素。",
+  "loadingSuggestedKeyFactors": "生成关键因素..."
 }
