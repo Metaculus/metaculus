@@ -795,6 +795,7 @@ const Comment: FC<CommentProps> = ({
       />
       {user && (
         <AddKeyFactorsModal
+          showSuggestedKeyFactors={true}
           isOpen={isAddKeyFactorsModalOpen}
           onClose={() => setIsAddKeyFactorsModalOpen(false)}
           commentId={comment.id}

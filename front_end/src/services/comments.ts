@@ -107,6 +107,10 @@ class CommentsApi {
     );
   }
 
+  static async getSuggestedKeyFactors(commentId: number): Promise<string[]> {
+    return await get<string[]>(`/comments/${commentId}/suggested-key-factors/`);
+  }
+
   static async togglePin(
     commentId: number,
     pin: boolean
