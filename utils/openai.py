@@ -167,6 +167,7 @@ def generate_keyfactors(
         The user comment is: \n\n{comment}\n\n
         The Metaculus question is: \n\n{question_data}\n\n
         The existing key factors are: \n\n{existing_keyfactors}\n\n
+        If we are not sure the comment has meaningful key factors information, return an empty list. Better be conservative than creating meaningless key factors.
         """
     )
 
