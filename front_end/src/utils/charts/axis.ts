@@ -132,14 +132,21 @@ export function generateYDomain({
   const distanceToZero = Math.abs(minValue - zoomDomainPadding);
   const distanceToOne = Math.abs(1 - (maxValue + zoomDomainPadding));
 
-  if (distanceToZero === distanceToOne) {
-    zoomedYDomain = [0, 1];
+  if (includeClosestBoundOnZoom) {
+    if (distanceToZero === distanceToOne) {
+      zoomedYDomain = [0, 1];
+    } else {
+      // Include the closer bound
+      zoomedYDomain =
+        distanceToZero < distanceToOne
+          ? [0, Math.min(1, maxValue + zoomDomainPadding)]
+          : [Math.max(0, minValue - zoomDomainPadding), 1];
+    }
   } else {
-    // Include the closer bound
-    zoomedYDomain =
-      distanceToZero < distanceToOne
-        ? [0, Math.min(1, maxValue + zoomDomainPadding)]
-        : [Math.max(0, minValue - zoomDomainPadding), 1];
+    zoomedYDomain = [
+      Math.max(0, minValue - zoomDomainPadding),
+      Math.min(1, maxValue + zoomDomainPadding),
+    ];
   }
 
   return {
