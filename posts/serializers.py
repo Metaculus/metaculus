@@ -52,7 +52,6 @@ class NotebookSerializer(serializers.ModelSerializer):
 
 class PostReadSerializer(serializers.ModelSerializer):
     author_username = serializers.SerializerMethodField()
-    status = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
     nr_forecasters = serializers.IntegerField(source="forecasters_count")
     slug = serializers.SerializerMethodField()
@@ -91,25 +90,6 @@ class PostReadSerializer(serializers.ModelSerializer):
 
     def get_coauthors(self, obj: Post):
         return [{"id": u.id, "username": u.username} for u in obj.coauthors.all()]
-
-    def get_status(self, obj: Post):
-        if obj.notebook or obj.curation_status != Post.CurationStatus.APPROVED:
-            return obj.curation_status
-
-        if obj.resolved:
-            return Post.PostStatusChange.RESOLVED
-
-        now = timezone.now()
-
-        if not obj.open_time or obj.open_time > now:
-            return Post.CurationStatus.APPROVED
-
-        if now < obj.scheduled_close_time and (
-            not obj.actual_close_time or now < obj.actual_close_time
-        ):
-            return Post.PostStatusChange.OPEN
-
-        return Post.PostStatusChange.CLOSED
 
     def get_slug(self, obj: Post):
         return get_post_slug(obj)

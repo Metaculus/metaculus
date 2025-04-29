@@ -76,14 +76,15 @@ class PostQuerySet(models.QuerySet):
 
     def prefetch_questions(self):
         return self.prefetch_related(
+            # Group Of Questions
+            "group_of_questions__questions__group"
+        ).select_related(
             "question",
             # Conditional
             "conditional__condition",
             "conditional__condition_child",
             "conditional__question_yes",
             "conditional__question_no",
-            # Group Of Questions
-            "group_of_questions__questions__group",
         )
 
     def prefetch_condition_post(self):
@@ -533,6 +534,26 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         blank=True,
         default=None,
     )
+
+    @property
+    def status(self):
+        if self.notebook_id or self.curation_status != Post.CurationStatus.APPROVED:
+            return self.curation_status
+
+        if self.resolved:
+            return self.PostStatusChange.RESOLVED
+
+        now = timezone.now()
+
+        if not self.open_time or self.open_time > now:
+            return self.CurationStatus.APPROVED
+
+        if now < self.scheduled_close_time and (
+            not self.actual_close_time or now < self.actual_close_time
+        ):
+            return self.PostStatusChange.OPEN
+
+        return self.PostStatusChange.CLOSED
 
     def set_scheduled_close_time(self):
         if self.question:
