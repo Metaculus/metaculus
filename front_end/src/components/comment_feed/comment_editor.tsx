@@ -51,10 +51,17 @@ const CommentEditor: FC<CommentEditorProps> = ({
 }) => {
   const t = useTranslations();
 
-  /* Manually updating the markdown state outside of MDXEditor only affects 
-   our local state, while the editor retains its previous state. As a workaround, 
-   we use the setMarkdown function in editorRef to update the editor's state. */
+  /**
+   * Manually updating the markdown state outside of MDXEditor only affects
+   * our local state, while the editor retains its previous state. As a workaround,
+   * we use the setMarkdown function in editorRef to update the editor's state.
+   */
   const editorRef = useRef<MDXEditorMethods>(null);
+  /**
+   * Key is used to force editor reset after submission.
+   * This is a workaround for MDX editor issue when`setMarkdown` method won't properly update editor state if the user is on the "source" mode
+   */
+  const [editorRenderKey, setEditorRenderKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
@@ -164,6 +171,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       setHasIncludedForecast(false);
       setMarkdown("");
       editorRef.current?.setMarkdown("");
+      setEditorRenderKey((prev) => prev + 1);
       onSubmit?.(parseComment(newComment));
     } finally {
       setIsLoading(false);
@@ -215,6 +223,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         className="scroll-mt-24 border border-gray-500 dark:border-gray-500-dark"
       >
         <MarkdownEditor
+          key={editorRenderKey}
           ref={editorRef}
           mode="write"
           markdown={markdown}

@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify";
+import { sanitizeHtmlContent } from "@/utils/markdown";
 
 import { EMBEDDED_QUESTION_COMPONENT_NAME } from "./embedded_question";
 import { EMBEDDED_TWITTER_COMPONENT_NAME } from "./embedded_twitter";
@@ -173,7 +173,7 @@ function sanitizeHtml(markdown: string) {
     return placeholder;
   });
 
-  const purifiedContent = DOMPurify.sanitize(sanitizedContent);
+  const purifiedContent = sanitizeHtmlContent(sanitizedContent);
 
   let finalContent = purifiedContent;
   jsxComponents.forEach(({ placeholder, original }) => {
