@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
@@ -64,4 +65,38 @@ export function estimateReadingTime(markdown: string) {
   const words = markdown.split(/\s+/).length;
   const wordsPerMinute = 225;
   return Math.ceil(words / wordsPerMinute);
+}
+
+export function sanitizeHtmlContent(content: string): string {
+  // DOMPurify doesn't allow self-closing tags for mXSS protection
+  // Our DB includes a bunch of self-closing tags for iframes, so pre-process text to expected HTML format
+  const iframeRegex = /<iframe\s+([^>]*?)\s*\/>/gs;
+  const processedContent = content.replace(iframeRegex, (match, attributes) => {
+    return `<iframe ${attributes}></iframe>`;
+  });
+
+  const purified = DOMPurify.sanitize(processedContent, {
+    ADD_TAGS: ["iframe"],
+    ADD_ATTR: [
+      /**
+       * Attribute-driven toggle
+       */
+      "toggle-details",
+      "ng-show",
+
+      /**
+       * Iframe attributes
+       */
+      "src",
+      "loading",
+      "style",
+      "width",
+      "height",
+      "frameborder",
+      "allowfullscreen",
+      "scrolling",
+    ],
+  });
+
+  return purified;
 }
