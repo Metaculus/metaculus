@@ -1000,12 +1000,6 @@ def calculate_user_forecast_movement_for_questions(
     return question_movement_map
 
 
-# TODO: skip IF cp is hidden!
-# TODO: ensure sorting
-# TODO: group cutoff!!!
-# TODO: ensure we extract correct aggregation type!
-
-
 def calculate_movement_from_forecast(
     question: Question,
     user_forecast: Forecast,
