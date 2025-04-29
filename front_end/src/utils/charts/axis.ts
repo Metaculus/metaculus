@@ -92,6 +92,7 @@ type GenerateYDomainParams = {
   zoom: TimelineChartZoomOption;
   isChartEmpty: boolean;
   zoomDomainPadding?: number;
+  includeClosestBoundOnZoom?: boolean;
 };
 
 export function generateYDomain({
@@ -101,6 +102,7 @@ export function generateYDomain({
   maxValues,
   minTimestamp,
   zoomDomainPadding = 0.05,
+  includeClosestBoundOnZoom = false,
 }: GenerateYDomainParams): {
   originalYDomain: Tuple<number>;
   zoomedYDomain: Tuple<number>;
@@ -130,14 +132,21 @@ export function generateYDomain({
   const distanceToZero = Math.abs(minValue - zoomDomainPadding);
   const distanceToOne = Math.abs(1 - (maxValue + zoomDomainPadding));
 
-  if (distanceToZero === distanceToOne) {
-    zoomedYDomain = [0, 1];
+  if (includeClosestBoundOnZoom) {
+    if (distanceToZero === distanceToOne) {
+      zoomedYDomain = [0, 1];
+    } else {
+      // Include the closer bound
+      zoomedYDomain =
+        distanceToZero < distanceToOne
+          ? [0, Math.min(1, maxValue + zoomDomainPadding)]
+          : [Math.max(0, minValue - zoomDomainPadding), 1];
+    }
   } else {
-    // Include the closer bound
-    zoomedYDomain =
-      distanceToZero < distanceToOne
-        ? [0, Math.min(1, maxValue + zoomDomainPadding)]
-        : [Math.max(0, minValue - zoomDomainPadding), 1];
+    zoomedYDomain = [
+      Math.max(0, minValue - zoomDomainPadding),
+      Math.min(1, maxValue + zoomDomainPadding),
+    ];
   }
 
   return {
