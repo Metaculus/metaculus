@@ -150,22 +150,20 @@ export const escapeRawDollarSigns = (markdown: string): string => {
 };
 
 function sanitizeHtml(markdown: string) {
+  // pre-process embedded JSX as otherwise it will be removed by DOMPurify
   const supportedComponents = [
     EMBEDDED_QUESTION_COMPONENT_NAME,
     EMBEDDED_TWITTER_COMPONENT_NAME,
   ];
-
   const componentPatternString = supportedComponents.join("|");
   const jsxComponentRegex = new RegExp(
     `<(${componentPatternString})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
     "gs"
   );
-
   const jsxComponents: { placeholder: string; original: string }[] = [];
-  let placeholderIndex = 0;
-
-  const sanitizedContent = markdown.replace(jsxComponentRegex, (match) => {
-    const placeholder = `___JSX_COMPONENT_${placeholderIndex++}___`;
+  let jsxId = 0;
+  markdown = markdown.replace(jsxComponentRegex, (match) => {
+    const placeholder = `___JSX_COMPONENT_${jsxId++}___`;
     jsxComponents.push({
       placeholder,
       original: match,
@@ -173,14 +171,29 @@ function sanitizeHtml(markdown: string) {
     return placeholder;
   });
 
-  const purifiedContent = sanitizeHtmlContent(sanitizedContent);
-
-  let finalContent = purifiedContent;
-  jsxComponents.forEach(({ placeholder, original }) => {
-    finalContent = finalContent.replace(placeholder, original);
+  // pre-process blockquotes as otherwise quote handle will be encoded to &gt; by DOMPurify
+  const blockquoteRegex = /^(>.*?)$/gm;
+  const blockquotes: { placeholder: string; original: string }[] = [];
+  let blockquoteId = 0;
+  markdown = markdown.replace(blockquoteRegex, (match) => {
+    const placeholder = `___BLOCKQUOTE_${blockquoteId++}___`;
+    blockquotes.push({ placeholder, original: match });
+    return placeholder;
   });
 
-  return finalContent;
+  // sanitize html content
+  markdown = sanitizeHtmlContent(markdown);
+
+  // restore JSX components
+  jsxComponents.forEach(({ placeholder, original }) => {
+    markdown = markdown.replace(placeholder, original);
+  });
+  // restore blockquotes
+  blockquotes.forEach(({ placeholder, original }) => {
+    markdown = markdown.replace(placeholder, original);
+  });
+
+  return markdown;
 }
 
 export function processMarkdown(
