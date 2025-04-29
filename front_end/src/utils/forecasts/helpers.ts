@@ -1,5 +1,6 @@
 import { ContinuousForecastInputType } from "@/types/charts";
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,
@@ -70,7 +71,8 @@ export function getUserContinuousQuartiles(
   const dataset = getSliderNumericForecastDataset(
     components,
     !!question.open_lower_bound,
-    !!question.open_upper_bound
+    !!question.open_upper_bound,
+    question.inbound_outcome_count ?? DefaultInboundOutcomeCount
   );
 
   return computeQuartilesFromCDF(dataset.cdf);

@@ -165,8 +165,16 @@ def export_all_data_for_questions(
         comments = None
 
     if include_scores:
-        scores = Score.objects.filter(question__in=questions)
-        archived_scores = ArchivedScore.objects.filter(question__in=questions)
+        scores = Score.objects.filter(
+            Q(aggregation_method__isnull=True)
+            | Q(aggregation_method="recency_weighted"),
+            question__in=questions,
+        )
+        archived_scores = ArchivedScore.objects.filter(
+            Q(aggregation_method__isnull=True)
+            | Q(aggregation_method="recency_weighted"),
+            question__in=questions,
+        )
         if user_ids:
             scores = scores.filter(Q(user_id__in=user_ids) | Q(user__isnull=True))
             archived_scores = archived_scores.filter(
@@ -175,6 +183,11 @@ def export_all_data_for_questions(
         all_scores = scores.union(archived_scores)
     else:
         all_scores = None
+
+    print("questions", questions.count())
+    print("user forecasts", user_forecasts.count())
+    print("aggregate forecasts", aggregate_forecasts.count())
+    print("scores", all_scores.count())
 
     return export_data_for_questions(
         questions=questions,
@@ -209,6 +222,7 @@ def export_data_for_questions(
     question_ids = questions.values_list("id", flat=True)
     if not question_ids:
         return
+    question_type_dict = {question.id: question.type for question in questions}
 
     # question_data csv file
     question_output = io.StringIO()
@@ -237,7 +251,11 @@ def export_data_for_questions(
             "Question Weight",
         ]
     )
+    i = 0
+    c = questions.count()
     for question in questions:
+        i += 1
+        print(f"Processing question {i}/{c}", end="\r")
         post = question.related_posts.first().post
         question_writer.writerow(
             [
@@ -277,6 +295,7 @@ def export_data_for_questions(
                 question.question_weight,
             ]
         )
+    print()
 
     # forecast_data csv file
     forecast_output = io.StringIO()
@@ -298,7 +317,11 @@ def export_data_for_questions(
     )
     forecast_writer.writerow(headers)
 
+    i = 0
+    c = user_forecasts.count()
     for forecast in user_forecasts or []:
+        i += 1
+        print(f"Processing forecast {i}/{c}", end="\r")
         row = [forecast.question_id]
         if anonymized:
             row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
@@ -315,8 +338,13 @@ def export_data_for_questions(
             ]
         )
         forecast_writer.writerow(row)
+    print()
+    i = 0
+    c = aggregate_forecasts.count()
     for aggregate_forecast in aggregate_forecasts or []:
-        match aggregate_forecast.question.type:
+        i += 1
+        print(f"Processing aggregate forecast {i}/{c}", end="\r")
+        match question_type_dict[aggregate_forecast.question_id]:
             case Question.QuestionType.BINARY:
                 probability_yes = aggregate_forecast.forecast_values[1]
                 probability_yes_per_category = None
@@ -345,6 +373,7 @@ def export_data_for_questions(
             ]
         )
         forecast_writer.writerow(row)
+    print()
 
     # comment_data csv file
     comment_output = io.StringIO()
@@ -395,7 +424,12 @@ def export_data_for_questions(
         ]
     )
     score_writer.writerow(headers)
+    print()
+    i = 0
+    c = scores.count()
     for score in scores or []:
+        i += 1
+        print(f"Processing score {i}/{c}", end="\r")
         row = [score.question_id]
         if anonymized:
             row.append(
@@ -423,6 +457,8 @@ def export_data_for_questions(
         )
         score_writer.writerow(row)
 
+    print()
+    print("ZIPPPPING")
     # create a zip file with both csv files
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:

@@ -17,6 +17,7 @@ import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,
@@ -41,8 +42,8 @@ import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import PredictionSuccessBox from "./prediction_success_box";
+import ContinuousInput from "../../continuous_input";
 import { useHideCP } from "../../cp_provider";
-import ContinuousInput from "../continuous_input";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
@@ -149,7 +150,8 @@ const ForecastMakerContinuous: FC<Props> = ({
       return getSliderNumericForecastDataset(
         sliderDistributionComponents,
         question.open_lower_bound,
-        question.open_upper_bound
+        question.open_upper_bound,
+        question.inbound_outcome_count ?? DefaultInboundOutcomeCount
       );
     }
 
@@ -221,6 +223,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     setSubmitError(undefined);
     sendPredictEvent(post, question, hideCP);
 
+    console.log(forecastInputMode, quantileDistributionComponents, userCdf);
     if (forecastInputMode === ContinuousForecastInputType.Quantile) {
       const validationErrors = validateUserQuantileData({
         question,
@@ -418,8 +421,8 @@ const ForecastMakerContinuous: FC<Props> = ({
         }}
         overlayPreviousForecast={overlayPreviousForecast}
         onOverlayPreviousForecastChange={setOverlayPreviousForecast}
-        forecastInputMode={forecastInputMode}
-        onForecastInputModeChange={(mode) => {
+        inputMode={forecastInputMode}
+        onInputModeChange={(mode) => {
           setForecastInputMode(mode);
           if (
             activeForecast &&

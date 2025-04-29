@@ -140,6 +140,7 @@ const AggregationsTab: FC<Props> = ({
         );
       case QuestionType.Numeric:
       case QuestionType.Date:
+      case QuestionType.Discrete:
         return (
           <ContinuousAggregationChart
             activeAggregation={activeAggregation}

@@ -11,11 +11,13 @@ export function getResolutionPoint({
   resolution,
   resolveTime,
   scaling,
+  inboundOutcomeCount,
 }: {
   questionType: QuestionType;
   resolution: Resolution;
   resolveTime: number;
   scaling: Scaling;
+  inboundOutcomeCount?: number | null;
 }): LinePoint | null {
   if (isUnsuccessfullyResolved(resolution)) {
     return null;
@@ -27,6 +29,18 @@ export function getResolutionPoint({
       return {
         y:
           resolution === "no" ? scaling.range_min ?? 0 : scaling.range_max ?? 1,
+        x: resolveTime,
+        symbol: "diamond",
+        size: 4,
+      };
+    }
+    case QuestionType.Date: {
+      // format data for date question
+      const dateTimestamp = new Date(resolution).getTime() / 1000;
+      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
+
+      return {
+        y: unscaledResolution,
         x: resolveTime,
         symbol: "diamond",
         size: 4,
@@ -46,10 +60,22 @@ export function getResolutionPoint({
         size: 4,
       };
     }
-    case QuestionType.Date: {
-      // format data for date question
-      const dateTimestamp = new Date(resolution).getTime() / 1000;
-      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
+    case QuestionType.Discrete: {
+      // format data for discrete question
+      let unscaledResolution = unscaleNominalLocation(
+        Number(resolution),
+        scaling
+      );
+      if (resolution === "below_lower_bound" || unscaledResolution <= 0) {
+        unscaledResolution = inboundOutcomeCount
+          ? -0.5 / inboundOutcomeCount
+          : 0;
+      }
+      if (resolution === "above_upper_bound" || unscaledResolution >= 1) {
+        unscaledResolution = inboundOutcomeCount
+          ? 1 + 0.5 / inboundOutcomeCount
+          : 1;
+      }
 
       return {
         y: unscaledResolution,
@@ -90,7 +116,8 @@ export function getResolutionPosition({
   } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
     return 1;
   } else {
-    return question.type === QuestionType.Numeric
+    return question.type === QuestionType.Numeric ||
+      question.type === QuestionType.Discrete
       ? unscaleNominalLocation(Number(resolution), scaling)
       : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
   }

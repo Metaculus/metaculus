@@ -7,7 +7,7 @@ import NumericChart from "@/components/charts/numeric_chart";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { ForecastAvailability, Question } from "@/types/question";
+import { ForecastAvailability, Question, QuestionType } from "@/types/question";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import {
@@ -90,6 +90,24 @@ const DetailedContinuousChartCard: FC<Props> = ({
     forecastAvailability,
   ]);
 
+  let discreteValueOptions: number[] | undefined = undefined;
+  if (
+    question.type === QuestionType.Discrete &&
+    question?.inbound_outcome_count &&
+    !isNil(question.scaling?.range_min) &&
+    !isNil(question.scaling?.range_max)
+  ) {
+    discreteValueOptions = [];
+    for (let i = 0; i < question.inbound_outcome_count; i++) {
+      discreteValueOptions.push(
+        question.scaling.range_min +
+          ((question.scaling.range_max - question.scaling.range_min) *
+            (i + 0.5)) /
+            question.inbound_outcome_count
+      );
+    }
+  }
+
   const cpCursorElement = useMemo(() => {
     if (forecastAvailability?.cpRevealsOn) {
       return <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />;
@@ -116,6 +134,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           : [],
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
+      discreteValueOptions,
     });
     return renderDisplayValue(displayValue);
   }, [
@@ -127,6 +146,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.actual_resolve_time,
     question.unit,
     hideCP,
+    discreteValueOptions,
   ]);
 
   const userCursorElement = useMemo(() => {
@@ -141,6 +161,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       showRange: true,
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
+      discreteValueOptions,
     });
     return renderDisplayValue(userDisplayValue);
   }, [
@@ -150,6 +171,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.scaling,
     question.actual_resolve_time,
     question.unit,
+    discreteValueOptions,
   ]);
 
   const handleCursorChange = useCallback((value: number | null) => {
@@ -193,6 +215,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           }
           openTime={getPostDrivenTime(question.open_time)}
           unit={question.unit}
+          inboundOutcomeCount={question.inbound_outcome_count}
         />
       </div>
       <div

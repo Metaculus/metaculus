@@ -52,8 +52,9 @@ const ForecastMakerGroup: FC<Props> = ({
           predictionMessage={predictionMessage}
         />
       )}
-      {(tileType === QuestionType.Date ||
-        tileType === QuestionType.Numeric) && (
+      {(tileType === QuestionType.Numeric ||
+        tileType === QuestionType.Date ||
+        tileType === QuestionType.Discrete) && (
         <ForecastMakerGroupContinuous
           post={post}
           questions={sortedQuestions}

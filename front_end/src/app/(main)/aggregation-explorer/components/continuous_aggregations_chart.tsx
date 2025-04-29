@@ -9,12 +9,16 @@ import {
   ContinuousAreaGraphType,
   ContinuousAreaHoverState,
 } from "@/types/charts";
-import { AggregateForecastHistory } from "@/types/question";
+import {
+  AggregateForecastHistory,
+  GraphingQuestionProps,
+} from "@/types/question";
 import {
   getForecastPctDisplayValue,
   getPredictionDisplayValue,
 } from "@/utils/formatters/prediction";
 import { cdfToPmf } from "@/utils/math";
+import { formatValueUnit } from "@/utils/questions/units";
 
 import { AggregationQuestionWithBots } from "../types";
 
@@ -86,6 +90,25 @@ const ContinuousAggregationChart: FC<Props> = ({
     return charts;
   }, [selectedTimestamp, activeAggregation]);
 
+  const xLabel = cursorDisplayData?.xLabel ?? "";
+  let probabilityLabel: string;
+  if (graphType === "pmf") {
+    if (xLabel.includes("<") || xLabel.includes(">")) {
+      probabilityLabel = xLabel.at(0) + " " + xLabel.slice(1);
+    } else {
+      probabilityLabel = "= " + xLabel;
+    }
+  } else {
+    // cdf
+    if (xLabel.includes("<")) {
+      probabilityLabel = "< " + xLabel.slice(1);
+    } else if (xLabel.includes(">")) {
+      probabilityLabel = "≤ ∞";
+    } else {
+      probabilityLabel = "≤ " + xLabel;
+    }
+  }
+
   return (
     <div className="my-5">
       <div className="flex">
@@ -103,22 +126,20 @@ const ContinuousAggregationChart: FC<Props> = ({
       </div>
       <ContinuousAreaChart
         height={150}
-        scaling={scaling}
-        questionType={qType}
+        question={questionData as GraphingQuestionProps}
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
-        resolution={null}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (
           <>
             <span>
-              {graphType === "pmf" ? "P(x = " : "P(x < "}
+              {"P(x "}
               <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                {cursorDisplayData.xLabel}
+                {formatValueUnit(probabilityLabel, questionData.unit)}
               </span>
-              {" ):"}
+              {"):"}
             </span>
             {cursorDisplayData.yUserLabel !== null && (
               <span>

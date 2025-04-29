@@ -33,8 +33,6 @@ export type LinePoint<X = number, Y = number | null> = {
 export type Line<X = number, Y = number | null> = Array<LinePoint<X, Y>>;
 export type Area<X = number, Y = number | null> = Array<{ x: X; y: Y; y0?: Y }>;
 
-export type NumericChartType = "date" | "numeric" | "binary";
-
 export type FanOption = {
   name: string;
   communityQuartiles: Quartiles | null;

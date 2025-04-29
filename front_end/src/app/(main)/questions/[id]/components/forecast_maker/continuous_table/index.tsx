@@ -157,6 +157,23 @@ const ContinuousTable: FC<Props> = ({
     [quantileComponents, onQuantileChange, question, t]
   );
 
+  let discreteValueOptions: number[] | undefined = undefined;
+  if (
+    question.type === QuestionType.Discrete &&
+    question?.inbound_outcome_count &&
+    !isNil(question.scaling?.range_min) &&
+    !isNil(question.scaling?.range_max)
+  ) {
+    discreteValueOptions = [];
+    for (let i = 0; i < question.inbound_outcome_count; i++) {
+      discreteValueOptions.push(
+        question.scaling.range_min +
+          ((question.scaling.range_max - question.scaling.range_min) *
+            (i + 0.5)) /
+            question.inbound_outcome_count
+      );
+    }
+  }
   const getDisplayValue = (value: number | null | undefined) => {
     return getTableDisplayValue(value, {
       questionType: question.type,
@@ -164,6 +181,7 @@ const ContinuousTable: FC<Props> = ({
       precision: 4,
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
+      discreteValueOptions,
     });
   };
 
@@ -300,7 +318,8 @@ const ContinuousTable: FC<Props> = ({
                     <Td>
                       <ContinuousTableInput
                         type={
-                          question.type === QuestionType.Numeric
+                          question.type === QuestionType.Numeric ||
+                          question.type === QuestionType.Discrete
                             ? "number"
                             : "date"
                         }
@@ -322,7 +341,8 @@ const ContinuousTable: FC<Props> = ({
                     <Td>
                       <ContinuousTableInput
                         type={
-                          question.type === QuestionType.Numeric
+                          question.type === QuestionType.Numeric ||
+                          question.type === QuestionType.Discrete
                             ? "number"
                             : "date"
                         }
@@ -344,7 +364,8 @@ const ContinuousTable: FC<Props> = ({
                     <Td>
                       <ContinuousTableInput
                         type={
-                          question.type === QuestionType.Numeric
+                          question.type === QuestionType.Numeric ||
+                          question.type === QuestionType.Discrete
                             ? "number"
                             : "date"
                         }
@@ -531,7 +552,10 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 <ContinuousTableInput
                   type={
-                    question.type === QuestionType.Numeric ? "number" : "date"
+                    question.type === QuestionType.Numeric ||
+                    question.type === QuestionType.Discrete
+                      ? "number"
+                      : "date"
                   }
                   quantileValue={quantileComponents?.[1]}
                   error={
@@ -572,7 +596,10 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 <ContinuousTableInput
                   type={
-                    question.type === QuestionType.Numeric ? "number" : "date"
+                    question.type === QuestionType.Numeric ||
+                    question.type === QuestionType.Discrete
+                      ? "number"
+                      : "date"
                   }
                   quantileValue={quantileComponents?.[2]}
                   error={
@@ -613,7 +640,10 @@ const ContinuousTable: FC<Props> = ({
               <Td className="tabular-nums tracking-tight text-orange-800 dark:text-orange-800-dark">
                 <ContinuousTableInput
                   type={
-                    question.type === QuestionType.Numeric ? "number" : "date"
+                    question.type === QuestionType.Numeric ||
+                    question.type === QuestionType.Discrete
+                      ? "number"
+                      : "date"
                   }
                   quantileValue={quantileComponents?.[3]}
                   error={
