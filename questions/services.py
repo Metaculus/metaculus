@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import cast
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, QuerySet, Subquery, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -31,6 +31,7 @@ from questions.types import AggregationMethod
 from scoring.models import Score, Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
+from utils.dtypes import flatten
 from utils.models import model_update
 from utils.the_math.aggregations import (
     get_aggregation_history,
@@ -822,13 +823,16 @@ def get_recency_weighted_for_questions(
 
 
 def get_aggregated_forecasts_for_questions(
-    questions: Iterable[Question], group_cutoff: int = None
+    questions: Iterable[Question],
+    group_cutoff: int = None,
+    aggregated_forecast_qs: QuerySet[AggregateForecast] | None = None,
 ):
     """
     Extracts aggregated forecasts for the given questions.
 
     @param questions: questions to generate forecasts for
     @param group_cutoff: generated forecasts for the top first N questions of the group
+    @param aggregated_forecast_qs: Optional initial AggregateForecast queryset
     """
 
     # Copy questions list
@@ -836,6 +840,8 @@ def get_aggregated_forecasts_for_questions(
     questions_to_fetch = set(questions)
     question_map = {q.pk: q for q in questions}
     aggregated_forecasts = set()
+    if aggregated_forecast_qs is None:
+        aggregated_forecast_qs = AggregateForecast.objects.all()
 
     if group_cutoff is not None:
         recently_weighted = get_recency_weighted_for_questions(questions)
@@ -889,7 +895,7 @@ def get_aggregated_forecasts_for_questions(
         questions_to_fetch = questions_to_fetch - cutoff_excluded
 
     aggregated_forecasts.update(
-        AggregateForecast.objects.filter(question__in=questions_to_fetch).exclude(
+        aggregated_forecast_qs.filter(question__in=questions_to_fetch).exclude(
             # Exclude previously fetched aggregated_forecasts
             id__in=[f.id for f in aggregated_forecasts]
         )
@@ -900,6 +906,130 @@ def get_aggregated_forecasts_for_questions(
         forecasts_by_question[question_map[forecast.question_id]].append(forecast)
 
     return forecasts_by_question
+
+
+def get_user_last_forecasts_map(
+    questions: Iterable[Question], user: User
+) -> dict[Question, Forecast]:
+    qs = Forecast.objects.filter(
+        author=user,
+        question__in=questions,
+        id=Subquery(
+            Forecast.objects.filter(
+                author=user,
+                question_id=OuterRef("question_id"),
+            )
+            .order_by("-start_time", "-id")
+            .values("id")[:1]
+        ),
+    )
+    question_id_map = {x.question_id: x for x in qs}
+
+    return {q: question_id_map.get(q.id) for q in questions}
+
+
+def calculate_user_forecast_movement_for_questions(
+    questions: Iterable[Question], forecasts_map: dict[Question, Forecast]
+):
+    """
+    Calculate, for each question, how much forecast has moved
+    between the user last forecasting date and the latest aggregate forecasts.
+    """
+
+    question_movement_map: dict[Question, float | None] = {q: None for q in questions}
+
+    # Step 1: Fetch aggregated forecasts with deferred `forecast_values` field.
+    # We do this to significantly reduce data transfer size and Django model instance serialization time,
+    # because the `forecast_values` object can be quite large.
+    question_aggregated_forecasts_map = get_aggregated_forecasts_for_questions(
+        # Only forecasted questions
+        forecasts_map.keys(),
+        aggregated_forecast_qs=AggregateForecast.objects.filter(
+            method=AggregationMethod.RECENCY_WEIGHTED,
+        ).only("id", "start_time", "question_id", "end_time"),
+    )
+
+    agg_id_map: dict[Question, tuple[int, int]] = {}
+
+    # Step 2: find First and Last AggregateForecast for each question
+    for question in questions:
+        user_forecast = forecasts_map[question]
+        aggregated_forecasts = question_aggregated_forecasts_map.get(question)
+
+        if not user_forecast or not aggregated_forecasts:
+            continue
+
+        # Skip hidden CP
+        if question.cp_reveal_time and question.cp_reveal_time > timezone.now():
+            continue
+
+        last_agg = aggregated_forecasts[-1]
+        first_agg = (
+            next(
+                (
+                    agg
+                    for agg in aggregated_forecasts
+                    if agg.start_time <= user_forecast.start_time
+                    and (
+                        agg.end_time is None or agg.end_time > user_forecast.start_time
+                    )
+                ),
+                None,
+            )
+            or last_agg
+        )
+
+        agg_id_map[question] = (first_agg.id, last_agg.id)
+
+    # 3) Bulk‐fetch full forecasts for just those IDs
+    full_aggs = {
+        x.id: x
+        for x in AggregateForecast.objects.filter(
+            pk__in=flatten(agg_id_map.values())
+        ).only("id", "forecast_values")
+    }
+
+    # 4) Compute and return the movement per question
+    for question, (first_id, last_id) in agg_id_map.items():
+        question_movement_map[question] = prediction_difference_for_sorting(
+            full_aggs[first_id].forecast_values,
+            full_aggs[last_id].forecast_values,
+            question=question,
+        )
+
+    return question_movement_map
+
+
+# TODO: skip IF cp is hidden!
+# TODO: ensure sorting
+# TODO: group cutoff!!!
+# TODO: ensure we extract correct aggregation type!
+
+
+def calculate_movement_from_forecast(
+    question: Question,
+    user_forecast: Forecast,
+    aggregated_forecasts: list[AggregateForecast],
+) -> float | None:
+    if not aggregated_forecasts:
+        return
+
+    first_agg = next(
+        (
+            agg
+            for agg in aggregated_forecasts
+            if agg.start_time <= user_forecast.start_time
+            and (agg.end_time is None or agg.end_time > user_forecast.start_time)
+        ),
+        None,
+    )
+    last_agg = aggregated_forecasts[-1]
+
+    return prediction_difference_for_sorting(
+        first_agg.forecast_values,
+        last_agg.forecast_values,
+        question=question,
+    )
 
 
 def handle_question_open(question: Question):
