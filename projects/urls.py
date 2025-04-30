@@ -10,7 +10,7 @@ urlpatterns = [
     path("projects/site_main/", views.site_main_view),
     path("projects/tournaments/<str:slug>/", views.tournament_by_slug_api_view),
     path(
-        "projects/tournaments/<str:slug>/forecasts-flow-posts/",
+        "projects/tournaments/<str:slug>/forecast-flow-posts/",
         views.tournament_forecast_flow_posts_api_view,
     ),
     path("projects/tags/", views.tags_list_api_view),

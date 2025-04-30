@@ -325,6 +325,10 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     # Whether we should display tournament on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
 
+    forecasts_flow_enabled = models.BooleanField(
+        default=False, help_text="Enables new forecast flow for tournaments"
+    )
+
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     # Annotated fields
