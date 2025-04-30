@@ -1000,32 +1000,6 @@ def calculate_user_forecast_movement_for_questions(
     return question_movement_map
 
 
-def calculate_movement_from_forecast(
-    question: Question,
-    user_forecast: Forecast,
-    aggregated_forecasts: list[AggregateForecast],
-) -> float | None:
-    if not aggregated_forecasts:
-        return
-
-    first_agg = next(
-        (
-            agg
-            for agg in aggregated_forecasts
-            if agg.start_time <= user_forecast.start_time
-            and (agg.end_time is None or agg.end_time > user_forecast.start_time)
-        ),
-        None,
-    )
-    last_agg = aggregated_forecasts[-1]
-
-    return prediction_difference_for_sorting(
-        first_agg.forecast_values,
-        last_agg.forecast_values,
-        question=question,
-    )
-
-
 def handle_question_open(question: Question):
     """
     A specific handler is triggered once it's opened
