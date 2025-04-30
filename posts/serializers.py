@@ -18,7 +18,7 @@ from projects.serializers.common import (
 )
 from projects.services.common import get_projects_for_posts
 from questions.models import Question, AggregateForecast
-from questions.serializers import (
+from questions.serializers.common import (
     QuestionWriteSerializer,
     QuestionUpdateSerializer,
     serialize_question,
@@ -28,7 +28,12 @@ from questions.serializers import (
     GroupOfQuestionsWriteSerializer,
     GroupOfQuestionsUpdateSerializer,
 )
-from questions.services import get_aggregated_forecasts_for_questions
+from questions.serializers.forecasting_flow import serialize_forecasting_flow_content
+from questions.services import (
+    get_aggregated_forecasts_for_questions,
+    get_user_last_forecasts_map,
+    calculate_user_forecast_movement_for_questions,
+)
 from questions.types import AggregationMethod
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
@@ -318,7 +323,6 @@ class OldQuestionFilterSerializer(SerializerKeyLookupMixin, serializers.Serializ
 
 def serialize_post(
     post: Post,
-    with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
@@ -481,7 +485,6 @@ def serialize_post_many(
     return [
         serialize_post(
             post,
-            with_cp=with_cp,
             current_user=current_user,
             with_subscriptions=with_subscriptions,
             aggregate_forecasts={
@@ -689,3 +692,41 @@ class DownloadDataSerializer(serializers.Serializer):
             )
 
         return attrs
+
+
+def serialize_posts_many_forecast_flow(
+    posts: Union[QuerySet[Post], list[Post], list[int] | set[int]], current_user: User
+):
+    """
+    Serializes post object specifically for ForecastsFlow. Contains only basic info
+    """
+
+    ids = [p.id if isinstance(p, Post) else p for p in posts]
+
+    # Restore the original ordering
+    posts = sorted(
+        Post.objects.filter(id__in=ids).prefetch_questions(),
+        key=lambda obj: ids.index(obj.id),
+    )
+
+    questions = flatten([p.get_questions() for p in posts])
+
+    user_question_forecasts_map = get_user_last_forecasts_map(questions, current_user)
+    question_movement_map = calculate_user_forecast_movement_for_questions(
+        questions, user_question_forecasts_map
+    )
+
+    return [
+        {
+            "id": post.id,
+            "title": post.title,
+            **serialize_forecasting_flow_content(
+                question=post.question,
+                conditional=post.conditional,
+                group_of_questions=post.group_of_questions,
+                question_movement_map=question_movement_map,
+                user_question_forecasts_map=user_question_forecasts_map,
+            ),
+        }
+        for post in posts
+    ]

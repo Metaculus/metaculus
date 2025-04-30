@@ -960,7 +960,7 @@ def calculate_user_forecast_movement_for_questions(
             continue
 
         # Skip hidden CP
-        if question.cp_reveal_time and question.cp_reveal_time > timezone.now():
+        if question.is_cp_hidden:
             continue
 
         last_agg = aggregated_forecasts[-1]

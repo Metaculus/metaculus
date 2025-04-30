@@ -269,6 +269,10 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return QuestionStatus.OPEN
 
+    @property
+    def is_cp_hidden(self):
+        return self.cp_reveal_time and self.cp_reveal_time > timezone.now()
+
     def get_global_leaderboard_dates(
         self, gl_dates: list[tuple[datetime, datetime]] | None = None
     ) -> tuple[datetime, datetime] | None:
