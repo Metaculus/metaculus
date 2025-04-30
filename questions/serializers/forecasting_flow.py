@@ -5,6 +5,7 @@ from .common import (
     ConditionalSerializer,
     GroupOfQuestionsSerializer,
 )
+from ..constants import QuestionStatus
 from ..utils import calculate_question_lifespan_from_date
 
 
@@ -23,6 +24,8 @@ def _serialize_question(
                     calculate_question_lifespan_from_date(
                         question, user_forecast.start_time
                     )
+                    if question.status == QuestionStatus.OPEN
+                    else None
                 ),
             }
             if user_forecast
