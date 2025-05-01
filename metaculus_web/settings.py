@@ -80,7 +80,6 @@ INSTALLED_APPS = [
     "comments",
     "notifications",
     "fab_management",
-    "fab_credits",
     "django_select2",
 ]
 
@@ -389,9 +388,6 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
 
 GOOGLE_CREDEBTIALS_FAB_SHEET_B64 = os.environ.get("GOOGLE_CREDEBTIALS_FAB_SHEET_B64")
-
-FAB_CREDITS_ANTHROPIC_API_KEY = os.environ.get("FAB_CREDITS_ANTHROPIC_API_KEY")
-FAB_CREDITS_OPENAI_API_KEY = os.environ.get("FAB_CREDITS_OPENAI_API_KEY")
 
 ALLOWED_HOSTS = [
     ".metaculus.com",
