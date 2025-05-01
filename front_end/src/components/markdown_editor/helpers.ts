@@ -149,6 +149,28 @@ export const escapeRawDollarSigns = (markdown: string): string => {
   );
 };
 
+const preProcessMarkdownContent = (
+  markdown: string,
+  {
+    search,
+    placeholderName,
+  }: { search: string | RegExp; placeholderName: string }
+) => {
+  const placeholders: {
+    placeholder: string;
+    original: string;
+  }[] = [];
+
+  let placeholderId = 0;
+  markdown = markdown.replace(search, (match) => {
+    const placeholder = `___${placeholderName}_${placeholderId++}___`;
+    placeholders.push({ placeholder, original: match });
+    return placeholder;
+  });
+
+  return { markdown, placeholders };
+};
+
 function sanitizeHtml(markdown: string) {
   // pre-process embedded JSX as otherwise it will be removed by DOMPurify
   const supportedComponents = [
@@ -160,47 +182,28 @@ function sanitizeHtml(markdown: string) {
     `<(${componentPatternString})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
     "gs"
   );
-  const jsxComponents: { placeholder: string; original: string }[] = [];
-  let jsxId = 0;
-  markdown = markdown.replace(jsxComponentRegex, (match) => {
-    const placeholder = `___JSX_COMPONENT_${jsxId++}___`;
-    jsxComponents.push({
-      placeholder,
-      original: match,
+  const { markdown: jsxProcessedMarkdown, placeholders: jsxComponents } =
+    preProcessMarkdownContent(markdown, {
+      search: jsxComponentRegex,
+      placeholderName: "JSX_COMPONENT",
     });
-    return placeholder;
-  });
-
-  // pre-process blockquotes as otherwise quote handle will be encoded to &gt; by DOMPurify
-  const blockquoteRegex = /^(>.*?)$/gm;
-  const blockquotes: { placeholder: string; original: string }[] = [];
-  let blockquoteId = 0;
-  markdown = markdown.replace(blockquoteRegex, (match) => {
-    const placeholder = `___BLOCKQUOTE_${blockquoteId++}___`;
-    blockquotes.push({ placeholder, original: match });
-    return placeholder;
-  });
+  markdown = jsxProcessedMarkdown;
 
   // pre-process images as otherwise DOMPurify will remove self-closing tags by converting to HTML5 syntax
   // MDXEditor renderer expects images to have self-closing syntax
   const imageRegex = /<img\s+([^>]*?)\s*\/?>/gs;
-  const images: { placeholder: string; original: string }[] = [];
-  let imageId = 0;
-  markdown = markdown.replace(imageRegex, (match) => {
-    const placeholder = `___IMAGE_TAG_${imageId++}___`;
-    images.push({ placeholder, original: match });
-    return placeholder;
-  });
+  const { markdown: imagesProcessedMarkdown, placeholders: images } =
+    preProcessMarkdownContent(markdown, {
+      search: imageRegex,
+      placeholderName: "IMAGE_TAG",
+    });
+  markdown = imagesProcessedMarkdown;
 
   // sanitize html content
   markdown = sanitizeHtmlContent(markdown);
 
   // restore JSX components
   jsxComponents.forEach(({ placeholder, original }) => {
-    markdown = markdown.replace(placeholder, original);
-  });
-  // restore blockquotes
-  blockquotes.forEach(({ placeholder, original }) => {
     markdown = markdown.replace(placeholder, original);
   });
   // restore images
@@ -212,6 +215,10 @@ function sanitizeHtml(markdown: string) {
     }
     markdown = markdown.replace(placeholder, imageTag);
   });
+
+  // decode gt and lt to < and >, so MDXEditor can render it properly
+  markdown = markdown.replace(/&lt;/g, "<");
+  markdown = markdown.replace(/&gt;/g, ">");
 
   return markdown;
 }
