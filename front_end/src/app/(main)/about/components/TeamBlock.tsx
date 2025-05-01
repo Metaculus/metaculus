@@ -39,6 +39,13 @@ const people: Person[] = [
     ],
   },
   {
+    name: "Tobi Alafin",
+    position: "Research Engineer",
+    imgSrc: "https://metaculus-web-media.s3.amazonaws.com/tobi_1.webp",
+    introduction:
+      "Tobi is a research engineer working on PRISM-AI, developing coherence checking systems for Metaculus forecasts. Prior to Metaculus he undertook a masters degree in theoretical computer science from the University of Liverpool and before that worked as a software developer at Bluechip Technologies in Nigeria. His interests include AI safety and ensuring the longterm future of humanity is robustly beneficial. He enjoys weightlifting, reading fiction and discussing it with fellow fans.",
+  },
+  {
     userId: 126463,
     name: "Atakan Seçkin",
     position: "Head of Design",
@@ -329,6 +336,7 @@ const people: Person[] = [
 const groups: Groups = {
   team: [
     "Deger Turan",
+    "Tobi Alafin",
     "Atakan Seçkin",
     "Molly Hickman",
     "Leonard Barrett",
@@ -360,7 +368,7 @@ const groups: Groups = {
   ],
 };
 
-const TeamBlock: FC = ({}) => {
+const TeamBlock: FC = ({ }) => {
   const [randomizedGroups, setRandomizedGroups] = useState(groups);
   const [openPerson, setOpenPerson] = useState<{
     groupName: Group;
