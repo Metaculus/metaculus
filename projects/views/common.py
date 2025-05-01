@@ -202,6 +202,7 @@ def tournament_forecast_flow_posts_api_view(request: Request, slug: str):
         .filter_projects(tournament)
         .filter_active()
         .filter_questions()
+        .order_by("open_time")
     )
 
     return Response(serialize_posts_many_forecast_flow(posts, user))

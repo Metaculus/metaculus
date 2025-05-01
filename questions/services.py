@@ -41,6 +41,7 @@ from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import (
     percent_point_function,
     prediction_difference_for_sorting,
+    prediction_difference_for_display,
 )
 
 logger = logging.getLogger(__name__)
@@ -989,13 +990,24 @@ def calculate_user_forecast_movement_for_questions(
         ).only("id", "forecast_values")
     }
 
+    def display_diff(p1, p2, q) -> float:
+        diff = prediction_difference_for_display(p1, p2, q)
+
+        if question.type in ["binary", "multiple_choice"]:
+            return max([abs(x[0]) for x in diff])
+
+        earth_movers_distance, asymmetric = diff[0]
+        symmetric = earth_movers_distance - abs(asymmetric)
+
+        return abs(asymmetric) if abs(asymmetric) > symmetric else symmetric
+
     # 4) Compute and return the movement per question
     for question, (first_id, last_id) in agg_id_map.items():
-        question_movement_map[question] = prediction_difference_for_sorting(
+        question_movement_map[question] = display_diff(
             full_aggs[first_id].forecast_values,
             full_aggs[last_id].forecast_values,
-            question=question,
-        )
+            question,
+        ) / 100
 
     return question_movement_map
 
