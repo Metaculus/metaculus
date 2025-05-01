@@ -181,6 +181,17 @@ function sanitizeHtml(markdown: string) {
     return placeholder;
   });
 
+  // pre-process images as otherwise DOMPurify will remove self-closing tags by converting to HTML5 syntax
+  // MDXEditor renderer expects images to have self-closing syntax
+  const imageRegex = /<img\s+([^>]*?)\s*\/?>/gs;
+  const images: { placeholder: string; original: string }[] = [];
+  let imageId = 0;
+  markdown = markdown.replace(imageRegex, (match) => {
+    const placeholder = `___IMAGE_TAG_${imageId++}___`;
+    images.push({ placeholder, original: match });
+    return placeholder;
+  });
+
   // sanitize html content
   markdown = sanitizeHtmlContent(markdown);
 
@@ -191,6 +202,15 @@ function sanitizeHtml(markdown: string) {
   // restore blockquotes
   blockquotes.forEach(({ placeholder, original }) => {
     markdown = markdown.replace(placeholder, original);
+  });
+  // restore images
+  images.forEach(({ placeholder, original }) => {
+    // ensure image tag has self-closing syntax
+    let imageTag = original;
+    if (!imageTag.endsWith("/>") && !imageTag.endsWith("/ >")) {
+      imageTag = imageTag.replace(/>$/, " />");
+    }
+    markdown = markdown.replace(placeholder, imageTag);
   });
 
   return markdown;
