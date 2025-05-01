@@ -368,7 +368,7 @@ const groups: Groups = {
   ],
 };
 
-const TeamBlock: FC = ({ }) => {
+const TeamBlock: FC = ({}) => {
   const [randomizedGroups, setRandomizedGroups] = useState(groups);
   const [openPerson, setOpenPerson] = useState<{
     groupName: Group;
