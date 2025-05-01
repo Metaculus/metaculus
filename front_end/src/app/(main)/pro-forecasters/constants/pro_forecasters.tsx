@@ -1,6 +1,5 @@
 import IsabelJuniewiczImage from "../assets/Isabel Juniewicz.png";
 import PeterWildefordImage from "../assets/Peter Wildeford.png";
-import PhilippSchoeneggerImage from "../assets/Philipp Schoenegger.jpeg";
 import ScottEastmanImageImage from "../assets/Scott Eastman.jpeg";
 import ProForecasterLink from "../components/link";
 import { ProForecaster } from "../types";
