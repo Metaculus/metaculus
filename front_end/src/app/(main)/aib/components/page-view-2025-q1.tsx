@@ -11,6 +11,7 @@ import Button from "@/components/ui/button";
 
 import { Dates, Prize } from "./cards-q1";
 import HeroQ1 from "./hero-q1";
+import BotLeaderboard from "./leaderboard-q1";
 
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
   const t = useTranslations();
@@ -48,16 +49,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
           </div>
         </div>
         <div className="flex size-full flex-col-reverse gap-3 md:flex-row">
-          <div className="flex size-full max-h-[420px] min-h-[300px] flex-col items-center items-stretch justify-center gap-1 overflow-y-auto rounded bg-white p-4 px-8 dark:bg-blue-100-dark md:gap-2 min-[1920px]:max-h-[680px] min-[1920px]:gap-4 min-[1920px]:p-12">
-            <h3 className="my-0 text-center text-lg text-blue-800 dark:text-blue-800-dark md:text-2xl min-[1920px]:text-3xl">
-              Bot Leaderboard
-            </h3>
-            <div className="flex h-full items-center justify-center text-gray-600 dark:text-gray-400">
-              <p className="text-center text-base opacity-75">
-                Leaderboard will be available soon when all questions resolve.
-              </p>
-            </div>
-          </div>
+          <BotLeaderboard />
           <Link href="/aib" className="group flex w-full no-underline">
             <div className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 text-balance rounded-md bg-gradient-to-r from-purple-500/35 to-purple-700/35 p-3 text-center text-lg text-purple-800 transition-colors dark:text-gray-1000-dark md:gap-4 md:p-6 md:text-2xl">
               <FontAwesomeIcon
