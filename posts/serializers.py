@@ -83,6 +83,7 @@ class PostReadSerializer(serializers.ModelSerializer):
             "scheduled_resolve_time",
             "open_time",
             "nr_forecasters",
+            "html_metadata_json",
         )
 
     def get_author_username(self, obj: Post):

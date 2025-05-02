@@ -456,7 +456,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     user_permission: ObjectPermission = None
     user_last_forecasts_date = None
     divergence: int = None
-
+    html_metadata_json: dict[str, str] | None = None
     objects: PostManager = PostManager()
 
     class CurationStatus(models.TextChoices):
@@ -527,6 +527,12 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # Whether we should display Post/Notebook on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
+    html_metadata_json = models.JSONField(
+        help_text="Custom JSON for HTML meta tags. Supported fields are: title, description, image_url",
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     def set_scheduled_close_time(self):
         if self.question:

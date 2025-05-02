@@ -21,12 +21,17 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   const questionTitle = getPostTitle(postData);
   return {
-    title: postData.short_title ?? questionTitle,
-    description: null,
+    title:
+      postData.html_metadata_json?.title ??
+      postData.short_title ??
+      questionTitle,
+    description: postData.html_metadata_json?.description,
     openGraph: {
       type: "article",
       images: {
-        url: `/questions/${params.id}/image-preview/`,
+        url:
+          postData.html_metadata_json?.image_url ??
+          `/questions/${params.id}/image-preview/`,
         width: 1200,
         height: 630,
         alt: "community predictions",
@@ -36,7 +41,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       site: "@metaculus",
       card: "summary_large_image",
       images: {
-        url: `/questions/${params.id}/image-preview/`,
+        url:
+          postData.html_metadata_json?.image_url ??
+          `/questions/${params.id}/image-preview/`,
         width: 1200,
         height: 630,
         alt: "community predictions",
