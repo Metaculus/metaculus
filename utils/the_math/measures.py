@@ -123,7 +123,8 @@ def prediction_difference_for_display(
     x_locations = unscaled_location_to_scaled_location(
         np.linspace(0, 1, len(p1)), question
     )
-    diffs = np.array(p1) - np.array(p2)
+    # TODO: Discuss this change with Luke!
+    diffs = np.array(p2) - np.array(p1)
     total = float(np.trapz(np.abs(diffs), x=x_locations))
     asymmetric = float(-np.trapz(diffs, x=x_locations))
     return [

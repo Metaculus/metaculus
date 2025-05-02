@@ -994,12 +994,11 @@ def calculate_user_forecast_movement_for_questions(
         diff = prediction_difference_for_display(p1, p2, q)
 
         if question.type in ["binary", "multiple_choice"]:
-            return max([abs(x[0]) for x in diff])
+            return max([x[0] for x in diff], key=abs)
 
-        earth_movers_distance, asymmetric = diff[0]
-        symmetric = earth_movers_distance - abs(asymmetric)
+        _, asymmetric = diff[0]
 
-        return abs(asymmetric) if abs(asymmetric) > symmetric else symmetric
+        return asymmetric
 
     # 4) Compute and return the movement per question
     for question, (first_id, last_id) in agg_id_map.items():
@@ -1007,7 +1006,7 @@ def calculate_user_forecast_movement_for_questions(
             full_aggs[first_id].forecast_values,
             full_aggs[last_id].forecast_values,
             question,
-        ) / 100
+        )
 
     return question_movement_map
 
