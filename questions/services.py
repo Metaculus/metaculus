@@ -41,7 +41,7 @@ from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import (
     percent_point_function,
     prediction_difference_for_sorting,
-    prediction_difference_for_display,
+    calculate_max_centers_difference,
 )
 
 logger = logging.getLogger(__name__)
@@ -990,23 +990,29 @@ def calculate_user_forecast_movement_for_questions(
         ).only("id", "forecast_values")
     }
 
-    def display_diff(p1, p2, q) -> float:
-        diff = prediction_difference_for_display(p1, p2, q)
-
-        if question.type in ["binary", "multiple_choice"]:
-            return max([x[0] for x in diff], key=abs)
-
-        _, asymmetric = diff[0]
-
-        return asymmetric
-
     # 4) Compute and return the movement per question
     for question, (first_id, last_id) in agg_id_map.items():
-        question_movement_map[question] = display_diff(
+        divergence = prediction_difference_for_sorting(
             full_aggs[first_id].forecast_values,
             full_aggs[last_id].forecast_values,
             question,
         )
+
+        if divergence >= 0.25:
+            unscaled_diff = calculate_max_centers_difference(
+                full_aggs[first_id].centers,
+                full_aggs[last_id].centers,
+                question,
+            )
+
+            question_movement_map[question] = {
+                "unscaled": unscaled_diff,
+                "scaled": unscaled_location_to_scaled_location(unscaled_diff, question),
+                "centers": {
+                    "first": full_aggs[first_id].centers,
+                    "last": full_aggs[last_id].centers
+                }
+            }
 
     return question_movement_map
 

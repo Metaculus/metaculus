@@ -1,5 +1,6 @@
-import numpy as np
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.typing import (
@@ -133,6 +134,22 @@ def prediction_difference_for_display(
             asymmetric if not np.isnan(asymmetric) else None,
         )
     ]
+
+
+def calculate_max_centers_difference(
+    p1: ForecastValues,
+    p2: ForecastValues,
+    question: "Question",
+) -> float:
+    if not p1 or not p2 or len(p1) != len(p2):
+        return 0.0
+
+    if question.type == "binary":
+        return p2[1] - p1[1]
+    if question.type == "multiple_choice":
+        return max([c2 - c1 for c1, c2 in zip(p1, p2)], key=abs)
+
+    return p2[0] - p1[0]
 
 
 def decimal_h_index(scores) -> float:
