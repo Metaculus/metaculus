@@ -42,8 +42,9 @@ export default function PostHeader({
 
   const allowModifications =
     post.user_permission === ProjectPermissions.ADMIN ||
-    post.user_permission === ProjectPermissions.CURATOR ||
-    (post.user_permission === ProjectPermissions.CREATOR &&
+    ([ProjectPermissions.CURATOR, ProjectPermissions.CREATOR].includes(
+      post.user_permission
+    ) &&
       post.curation_status !== PostStatus.APPROVED);
 
   const edit_type = getEditType(post);
