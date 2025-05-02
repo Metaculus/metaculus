@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from comments.models import KeyFactor
 from users.models import User, UserCampaignRegistration
 from projects.models import Project
 
@@ -63,6 +64,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
 
 class UserPrivateSerializer(UserPublicSerializer):
     registered_campaigns = serializers.SerializerMethodField()
+    has_key_factors = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -74,6 +76,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "hide_community_prediction",
             "is_onboarding_complete",
             "registered_campaigns",
+            "has_key_factors",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -86,6 +89,9 @@ class UserPrivateSerializer(UserPublicSerializer):
             .exclude(key__isnull=True)
             .all()
         ]
+
+    def get_has_key_factors(self, user: User):
+        return KeyFactor.objects.filter(comment__author=user).exists()
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):

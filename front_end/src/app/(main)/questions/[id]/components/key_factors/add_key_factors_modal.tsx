@@ -16,11 +16,11 @@ import BaseModal from "@/components/base_modal";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useServerAction } from "@/hooks/use_server_action";
 import { BECommentType } from "@/types/comment";
 import { User } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import LoadingSpinner from "@/components/ui/loading_spiner";
 
 const FACTORS_PER_QUESTION = 6;
 const FACTORS_PER_COMMENT = 4;
@@ -239,12 +239,15 @@ const AddKeyFactorsModal: FC<Props> = ({
   useEffect(() => {
     if (showSuggestedKeyFactors && commentId && isOpen) {
       setIsLoadingSuggestedKeyFactors(true);
-      getSuggestedKeyFactors(commentId).then((suggestedKeyFactors) => {
-        setSuggestedKeyFactors(
-          suggestedKeyFactors.map((kf) => ({ text: kf, selected: false }))
-        );
-        setIsLoadingSuggestedKeyFactors(false);
-      });
+      getSuggestedKeyFactors(commentId)
+        .then((suggestedKeyFactors) => {
+          setSuggestedKeyFactors(
+            suggestedKeyFactors.map((kf) => ({ text: kf, selected: false }))
+          );
+        })
+        .finally(() => {
+          setIsLoadingSuggestedKeyFactors(false);
+        });
     }
   }, [showSuggestedKeyFactors, commentId, isOpen]);
 

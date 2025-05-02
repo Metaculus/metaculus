@@ -8,6 +8,7 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
+import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import {
   commentTogglePin,
   getComments,
@@ -109,6 +110,9 @@ const CommentFeed: FC<Props> = ({
     userCommentsAmount !== null &&
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
     !PUBLIC_MINIMAL_UI;
+
+  const [userKeyFactorsComment, setUserKeyFactorsComment] =
+    useState<CommentType | null>(null);
 
   const [feedFilters, setFeedFilters] = useState<getCommentsParams>(() => ({
     is_private: false,
@@ -319,6 +323,25 @@ const CommentFeed: FC<Props> = ({
     [t]
   );
 
+  const onNewComment = (newComment: CommentType) => {
+    const isSimpleQuestion =
+      postData?.question?.type &&
+      postData?.question?.type !== QuestionType.MultipleChoice;
+
+    setComments([newComment, ...comments]);
+
+    fetchTotalCount({
+      is_private: feedFilters.is_private,
+    });
+
+    if (postId && isSimpleQuestion && user?.has_key_factors) {
+      setTimeout(() => {
+        // We open the modal after a delay as per the design, no technical reason
+        setUserKeyFactorsComment(newComment);
+      }, 500);
+    }
+  };
+
   return (
     <DefaultUserMentionsContextProvider
       defaultUserMentions={commentAuthorMentionItems}
@@ -337,6 +360,22 @@ const CommentFeed: FC<Props> = ({
           }
         )}
       >
+        {user && (
+          <AddKeyFactorsModal
+            showSuggestedKeyFactors={user.has_key_factors}
+            isOpen={!!userKeyFactorsComment}
+            onClose={() => setUserKeyFactorsComment(null)}
+            commentId={userKeyFactorsComment?.id}
+            user={user}
+            onSuccess={(comment) => {
+              setComments([
+                { ...comment, children: [] },
+                ...comments.filter((c) => c.id !== comment.id),
+              ]);
+            }}
+          />
+        )}
+
         <div className="mb-4 mt-2 flex flex-col items-start gap-3">
           <div
             className={cn(
@@ -384,10 +423,7 @@ const CommentFeed: FC<Props> = ({
                 onSubmit={
                   //TODO: revisit after BE changes
                   (newComment) => {
-                    setComments([newComment, ...comments]);
-                    fetchTotalCount({
-                      is_private: feedFilters.is_private,
-                    });
+                    onNewComment(newComment);
                   }
                 }
                 isPrivateFeed={feedFilters.is_private}
