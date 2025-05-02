@@ -351,7 +351,7 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
     )
 
     return Response(
-        [keyfactor.text for keyfactor in suggested_key_factors],
+        suggested_key_factors,
         status=status.HTTP_200_OK,
     )
 
