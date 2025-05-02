@@ -162,6 +162,11 @@ type BasePost = {
   last_viewed_at?: string;
   is_current_content_translated?: boolean;
   key_factors?: KeyFactor[];
+  html_metadata_json?: {
+    title: string;
+    description: string;
+    image_url: string;
+  };
 };
 
 export type QuestionPost<QT = Question> = BasePost & {

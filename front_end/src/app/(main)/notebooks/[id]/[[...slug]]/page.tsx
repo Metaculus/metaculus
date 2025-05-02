@@ -23,8 +23,13 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const parsedDescription = String(file).split("\n")[0];
 
   return {
-    title: postData.short_title ?? postData.title,
-    description: !!parsedDescription ? parsedDescription : defaultDescription,
+    title:
+      postData.html_metadata_json?.title ??
+      postData.short_title ??
+      postData.title,
+    description:
+      postData.html_metadata_json?.description ??
+      (!!parsedDescription ? parsedDescription : defaultDescription),
   };
 }
 
