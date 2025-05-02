@@ -999,20 +999,11 @@ def calculate_user_forecast_movement_for_questions(
         )
 
         if divergence >= 0.25:
-            unscaled_diff = calculate_max_centers_difference(
+            question_movement_map[question] = calculate_max_centers_difference(
                 full_aggs[first_id].centers,
                 full_aggs[last_id].centers,
                 question,
             )
-
-            question_movement_map[question] = {
-                "unscaled": unscaled_diff,
-                "scaled": unscaled_location_to_scaled_location(unscaled_diff, question),
-                "centers": {
-                    "first": full_aggs[first_id].centers,
-                    "last": full_aggs[last_id].centers
-                }
-            }
 
     return question_movement_map
 
