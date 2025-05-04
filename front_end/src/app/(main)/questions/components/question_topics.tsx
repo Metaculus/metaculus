@@ -193,7 +193,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               <TopicItem
                 isActive={false}
                 emoji="🏛️"
-                text="POTUS"
+                text="POTUS Predictions"
                 href="/tournament/POTUS-predictions/"
                 onClick={() =>
                   sendAnalyticsEvent("sidebarClick", {
@@ -204,7 +204,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               <TopicItem
                 isActive={false}
                 emoji="💵"
-                text="Fiscal"
+                text="Fiscal Showdown"
                 href="/tournament/fiscal/"
                 onClick={() =>
                   sendAnalyticsEvent("sidebarClick", {
