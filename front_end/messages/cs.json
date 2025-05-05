@@ -1209,5 +1209,6 @@
   "addKeyFactorsModalP1": "Uveďte klíčové faktory, které považujete za nejdůležitější — každý faktor by měl být krátký a konkrétní.",
   "addKeyFactorsModalP2": "Prosím, přidejte komentář, který vysvětlí, proč jsou tyto faktory pro vaši předpověď důležité.",
   "withdrawAll": "Vybrat vše",
-  "reaffirmAll": "Potvrdit vše"
+  "reaffirmAll": "Potvrdit vše",
+  "outdatedServerActionMessage": "Něco se pokazilo. Prosím, obnovte stránku a zkuste to znovu."
 }

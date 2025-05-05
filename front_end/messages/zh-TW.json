@@ -1203,5 +1203,9 @@
   "noImpact": "沒有影響",
   "maxKeyFactorsPerComment": "一條評論最多可包含 4 個關鍵因素。",
   "maxKeyFactorsPerQuestion": "一個問題同一作者最多可添加 6 個關鍵因素。",
-  "maxKeyFactorLength": "關鍵因素不得超過 150 個字符。"
+  "maxKeyFactorLength": "關鍵因素不得超過 150 個字符。",
+  "withdrawAll": "撤回全部",
+  "reaffirmAll": "確認全部",
+  "reminderNewCommentsDescription2": "新評論",
+  "outdatedServerActionMessage": "發生錯誤。請重新整理頁面並再試一次。"
 }
