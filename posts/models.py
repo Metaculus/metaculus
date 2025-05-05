@@ -378,8 +378,11 @@ class PostQuerySet(models.QuerySet):
             self.filter_published()
             .filter(open_time__lte=timezone.now())
             .filter(
-                Q(actual_close_time__isnull=True)
-                | Q(actual_close_time__gte=timezone.now())
+                (
+                    Q(actual_close_time__isnull=True)
+                    | Q(actual_close_time__gte=timezone.now())
+                )
+                & Q(resolved=False)
             )
         )
 
