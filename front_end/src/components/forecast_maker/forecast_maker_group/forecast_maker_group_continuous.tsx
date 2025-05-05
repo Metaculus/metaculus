@@ -71,6 +71,7 @@ type Props = {
   canPredict: boolean;
   canResolve: boolean;
   predictionMessage: ReactNode;
+  onPredictionSubmit?: () => void;
 };
 
 const ForecastMakerGroupContinuous: FC<Props> = ({
@@ -79,6 +80,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   canPredict,
   groupVariable,
   predictionMessage,
+  onPredictionSubmit,
 }) => {
   const t = useTranslations();
   const params = useSearchParams();
@@ -102,17 +104,24 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     [questions]
   );
   const [groupOptions, setGroupOptions] = useState<ContinuousGroupOption[]>(
-    generateGroupOptions(questions, prevForecastValuesMap, permission, post)
+    generateGroupOptions({
+      questions,
+      prevForecastValuesMap,
+      permission,
+      post,
+      onPredictionSubmit,
+    })
   );
 
   // ensure options have the latest forecast data
   useEffect(() => {
-    const newGroupOptions = generateGroupOptions(
+    const newGroupOptions = generateGroupOptions({
       questions,
       prevForecastValuesMap,
       permission,
-      post
-    );
+      post,
+      onPredictionSubmit,
+    });
     setGroupOptions((prev) =>
       prev.map((o) => {
         const newOption = newGroupOptions.find((q) => q.id === o.question.id);
@@ -347,9 +356,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         })
       );
       setIsSubmitting(false);
+      onPredictionSubmit?.();
       return response;
     },
-    [postId, questionsToSubmit]
+    [postId, questionsToSubmit, onPredictionSubmit]
   );
 
   const handlePredictSubmit = useCallback(async () => {
@@ -497,7 +507,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       return;
     }
     setIsSubmitting(false);
-  }, [postId, predictedQuestions]);
+    onPredictionSubmit?.();
+  }, [postId, predictedQuestions, onPredictionSubmit]);
 
   return (
     <>
@@ -573,15 +584,22 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 };
 
-function generateGroupOptions(
-  questions: QuestionWithNumericForecasts[],
+function generateGroupOptions({
+  questions,
+  prevForecastValuesMap,
+  permission,
+  post,
+  onPredictionSubmit,
+}: {
+  questions: QuestionWithNumericForecasts[];
   prevForecastValuesMap: Record<
     number,
     DistributionSlider | DistributionQuantile | undefined
-  >,
-  permission?: ProjectPermissions,
-  post?: Post
-): ContinuousGroupOption[] {
+  >;
+  permission?: ProjectPermissions;
+  post?: Post;
+  onPredictionSubmit?: () => void;
+}): ContinuousGroupOption[] {
   return [...questions].map((q) => {
     const prevForecast = prevForecastValuesMap[q.id];
     const userSliderForecast = getInitialSliderDistributionComponents(
@@ -626,6 +644,7 @@ function generateGroupOptions(
             </Button>
           }
           post={post}
+          onPredictionSubmit={onPredictionSubmit}
         />
       ),
     };

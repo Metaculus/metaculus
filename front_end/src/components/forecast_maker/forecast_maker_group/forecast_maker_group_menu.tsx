@@ -32,6 +32,7 @@ type Props = {
   permission?: ProjectPermissions;
   button?: ReactNode;
   post?: Post;
+  onPredictionSubmit?: () => void;
 };
 
 const ForecastMakerGroupControls: FC<Props> = ({
@@ -39,6 +40,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
   button,
   permission,
   post,
+  onPredictionSubmit,
 }) => {
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
   const t = useTranslations();
@@ -99,8 +101,12 @@ const ForecastMakerGroupControls: FC<Props> = ({
                 {
                   id: "withdraw",
                   name: t("withdrawForecast"),
-                  onClick: () =>
-                    withdrawForecasts(post.id, [{ question: question.id }]),
+                  onClick: async () => {
+                    await withdrawForecasts(post.id, [
+                      { question: question.id },
+                    ]);
+                    onPredictionSubmit?.();
+                  },
                 },
               ]
             : []),

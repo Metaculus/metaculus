@@ -1215,5 +1215,17 @@
   "potentialyStale": "Potenciálně zastaralé",
   "significantMovement": "Významný pohyb",
   "notForecasted": "Nepředpovězeno",
-  "previous": "Předchozí"
+  "previous": "Předchozí",
+  "skippedWithoutForecasting": "Přeskočili jste {count, plural, =1 {# otázku} other {# otázek}} bez předpovědi.",
+  "youSubmittedPredictionsFor": "Odeslali jste předpovědi pro {count} z {total} otázek.",
+  "reviewSkippedQuestions": "Zkontrolujte přeskočené otázky",
+  "questionsTotal": "{count} otázek celkem",
+  "noParticipationTournament": "Dosud jste se tohoto turnaje nezúčastnili.",
+  "reviewAll": "Zkontrolujte vše",
+  "questionsNotPredicted": "{count, plural, =1 {# otázka} other {# otázek}} nebylo předpovězeno",
+  "significantMovementForecasts": "{count, plural, =1 {# předpověď} other {# předpovědí}} se významně změnilo",
+  "stalePredictions": "{count, plural, =1 {# předpověď} other {# předpovědí}} může být zastarána",
+  "allQuestionsForecasted": "Všechny otázky jsou předpovězeny",
+  "noForecastsWithSignificantMovement": "Žádné předpovědi se významně nezměnily",
+  "predictionsUpToDate": "Všechny předpovědi jsou aktuální"
 }

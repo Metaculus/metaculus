@@ -9,8 +9,14 @@ import {
 } from "react";
 
 import { PostWithForecasts } from "@/types/post";
+import { isPostPredicted } from "@/utils/forecasts/helpers";
 
-export type FlowType = "general" | "not-predicted" | "movement" | "stale";
+export enum FlowType {
+  GENERAL = "general",
+  NOT_PREDICTED = "not-predicted",
+  MOVEMENT = "movement",
+  STALE = "stale",
+}
 type PredictionFlowPost = PostWithForecasts & {
   isDone?: boolean;
 };
@@ -18,11 +24,13 @@ type PredictionFlowPost = PostWithForecasts & {
 type PredictionFlowContextType = {
   posts: PredictionFlowPost[];
   setPosts: (posts: PredictionFlowPost[]) => void;
-  currentPostId: number;
-  flowType: FlowType;
-  setCurrentPostId: (postId: number) => void;
+  currentPostId: number | null;
+  flowType?: FlowType;
+  setCurrentPostId: (postId: number | null) => void;
   isPending: boolean;
   setIsPending: (isPending: boolean) => void;
+  isMenuOpen: boolean;
+  setIsMenuOpen: (isMenuOpen: boolean) => void;
 };
 
 export const PredictionFlowContext =
@@ -30,17 +38,21 @@ export const PredictionFlowContext =
 
 type PredictionFlowProviderProps = {
   initialPosts: PostWithForecasts[];
-  flowType: FlowType;
+  flowType?: FlowType;
 };
 
 const PredictionFlowProvider: FC<
   PropsWithChildren<PredictionFlowProviderProps>
 > = ({ children, initialPosts, flowType }) => {
-  const [posts, setPosts] = useState<PredictionFlowPost[]>(initialPosts);
-  const [currentPostId, setCurrentPostId] = useState<number>(
-    initialPosts[0]?.id ?? 0
+  const [posts, setPosts] = useState<PredictionFlowPost[]>(
+    initialPosts.map((post) => ({ ...post, isDone: isPostPredicted(post) }))
+  );
+  const [currentPostId, setCurrentPostId] = useState<number | null>(
+    initialPosts[0]?.id ?? null
   );
   const [isPending, setIsPending] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+
   return (
     <PredictionFlowContext.Provider
       value={{
@@ -51,6 +63,8 @@ const PredictionFlowProvider: FC<
         setCurrentPostId,
         isPending,
         setIsPending,
+        isMenuOpen,
+        setIsMenuOpen,
       }}
     >
       {children}

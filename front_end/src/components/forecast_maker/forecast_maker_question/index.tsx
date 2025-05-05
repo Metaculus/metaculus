@@ -18,6 +18,7 @@ type Props = {
   canPredict: boolean;
   canResolve: boolean;
   predictionMessage: ReactNode;
+  onPredictionSubmit?: () => void;
 };
 
 const QuestionForecastMaker: FC<Props> = ({
@@ -27,6 +28,7 @@ const QuestionForecastMaker: FC<Props> = ({
   canResolve,
   post,
   predictionMessage,
+  onPredictionSubmit,
 }) => {
   const activeUserForecast =
     (question.my_forecasts?.latest?.end_time ||
@@ -47,6 +49,7 @@ const QuestionForecastMaker: FC<Props> = ({
             canPredict={canPredict}
             canResolve={canResolve}
             predictionMessage={predictionMessage}
+            onPredictionSubmit={onPredictionSubmit}
           />
           <QuestionResolutionText question={question} />
         </>
@@ -61,6 +64,7 @@ const QuestionForecastMaker: FC<Props> = ({
             canPredict={canPredict}
             canResolve={canResolve}
             predictionMessage={predictionMessage}
+            onPredictionSubmit={onPredictionSubmit}
           />
           <QuestionResolutionText question={question} />
         </>
@@ -74,6 +78,7 @@ const QuestionForecastMaker: FC<Props> = ({
             canPredict={canPredict}
             canResolve={canResolve}
             predictionMessage={predictionMessage}
+            onPredictionSubmit={onPredictionSubmit}
           />
           <QuestionResolutionText question={question} />
         </>

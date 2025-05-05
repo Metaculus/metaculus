@@ -2,8 +2,9 @@
 
 import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useMemo, useState } from "react";
+import { FC, useMemo } from "react";
 
 import PostStepButton from "@/app/(prediction-flow)/components/post_step_button";
 import { usePredictionFlow } from "@/app/(prediction-flow)/components/prediction_flow_provider";
@@ -13,16 +14,19 @@ import { isPostPredicted } from "@/utils/forecasts/helpers";
 
 import PredictionFlowMenu from "./prediction_flow_menu";
 
-type Props = {
-  tournamentId: number;
-};
+type Props = {};
 
-const ProgressSection: FC<Props> = ({ tournamentId }) => {
+const ProgressSection: FC<Props> = () => {
   const t = useTranslations();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { posts, setPosts, currentPostId, setCurrentPostId } =
-    usePredictionFlow();
-  const postsLeft = posts.filter((post) => !isPostPredicted(post));
+  const {
+    posts,
+    setPosts,
+    currentPostId,
+    setCurrentPostId,
+    isMenuOpen,
+    setIsMenuOpen,
+  } = usePredictionFlow();
+  const postsLeft = posts.filter((post) => !post.isDone);
   const currentIndex = useMemo(
     () => posts.findIndex((post) => post.id === currentPostId),
     [posts, currentPostId]
@@ -38,11 +42,11 @@ const ProgressSection: FC<Props> = ({ tournamentId }) => {
           return post;
         })
       );
-      setCurrentPostId(posts[currentIndex - 1]?.id ?? 0);
+      setCurrentPostId(posts[currentIndex - 1]?.id ?? null);
     }
   };
   const handleSkip = () => {
-    if (currentIndex < posts.length - 1) {
+    if (currentIndex <= posts.length - 1) {
       setPosts(
         posts.map((post) => {
           if (post.id === currentPostId) {
@@ -51,22 +55,21 @@ const ProgressSection: FC<Props> = ({ tournamentId }) => {
           return post;
         })
       );
-      setCurrentPostId(posts[currentIndex + 1]?.id ?? 0);
+      setCurrentPostId(posts[currentIndex + 1]?.id ?? null);
     }
   };
 
   return (
     <div className="relative flex max-h-[calc(100vh-48px)] w-full flex-col rounded-b bg-gray-0 p-4 py-3 dark:bg-gray-0-dark sm:p-8 sm:py-[26px]">
-      <p className="m-0 text-xs font-medium leading-4">
-        {posts[currentIndex]?.title}
-      </p>
       <div className="flex items-center justify-between">
         <p className="m-0 text-lg font-medium leading-7">
-          {t("questionsLeft", { count: postsLeft.length })}
+          {isNil(currentPostId)
+            ? t("questionsTotal", { count: posts.length })
+            : t("questionsLeft", { count: postsLeft.length })}
         </p>
         <Button
           variant="tertiary"
-          onClick={() => setIsMenuOpen((prev) => !prev)}
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="h-8 w-8 rounded-full px-2 py-2"
         >
           <FontAwesomeIcon
@@ -92,25 +95,24 @@ const ProgressSection: FC<Props> = ({ tournamentId }) => {
         ))}
       </div>
       {/* Navigation buttons */}
-      {posts.some((post) => !post.isDone) &&
-        currentIndex !== posts.length - 1 && (
-          <div className="mt-4 flex justify-between gap-2">
-            <Button
-              variant="tertiary"
-              onClick={handlePrevious}
-              disabled={currentIndex <= 0}
-            >
-              {t("previous")}
-            </Button>
-            <Button
-              variant="tertiary"
-              onClick={handleSkip}
-              disabled={currentIndex >= posts.length - 1}
-            >
-              {t("skipQuestions")}
-            </Button>
-          </div>
-        )}
+      {!isNil(currentPostId) && !isMenuOpen && (
+        <div className="mt-4 flex justify-between gap-2">
+          <Button
+            variant="tertiary"
+            onClick={handlePrevious}
+            disabled={currentIndex <= 0}
+          >
+            {t("previous")}
+          </Button>
+          <Button
+            variant="tertiary"
+            onClick={handleSkip}
+            disabled={currentIndex > posts.length - 1}
+          >
+            {t("skipQuestions")}
+          </Button>
+        </div>
+      )}
       {isMenuOpen && <PredictionFlowMenu posts={posts} />}
     </div>
   );

@@ -70,6 +70,7 @@ type Props = {
   canPredict: boolean;
   predictionMessage: ReactNode;
   projects: Post["projects"];
+  onPredictionSubmit?: () => void;
 };
 
 const ForecastMakerConditionalContinuous: FC<Props> = ({
@@ -79,6 +80,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   canPredict,
   predictionMessage,
   projects,
+  onPredictionSubmit,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -529,6 +531,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    onPredictionSubmit?.();
   };
 
   const handlePredictWithdraw = async () => {
@@ -547,6 +550,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    onPredictionSubmit?.();
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
     handlePredictWithdraw

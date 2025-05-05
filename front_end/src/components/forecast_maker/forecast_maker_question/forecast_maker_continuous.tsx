@@ -58,6 +58,7 @@ type Props = {
   canPredict: boolean;
   canResolve: boolean;
   predictionMessage?: ReactNode;
+  onPredictionSubmit?: () => void;
 };
 
 const ForecastMakerContinuous: FC<Props> = ({
@@ -67,6 +68,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   canPredict,
   canResolve,
   predictionMessage,
+  onPredictionSubmit,
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
@@ -262,6 +264,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     } else {
       setShowSuccessBox(true);
     }
+    onPredictionSubmit?.();
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
@@ -280,6 +283,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    onPredictionSubmit?.();
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
     handlePredictWithdraw

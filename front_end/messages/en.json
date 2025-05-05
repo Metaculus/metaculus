@@ -1212,5 +1212,17 @@
   "potentialyStale": "Potentialy stale",
   "significantMovement": "Significant movement",
   "notForecasted": "Not forecasted",
-  "previous": "Previous"
+  "previous": "Previous",
+  "skippedWithoutForecasting": "You skipped {count, plural, =1 {# question} other {# questions}} without forecasting.",
+  "youSubmittedPredictionsFor": "You’ve submitted predictions for {count} of {total} questions.",
+  "reviewSkippedQuestions": "Review skipped questions",
+  "questionsTotal": "{count} questions total",
+  "noParticipationTournament": "You have not participated in this tournament yet.",
+  "reviewAll": "Review all",
+  "questionsNotPredicted": "{count, plural, =1 {# question} other {# questions}} not predicted",
+  "significantMovementForecasts": "{count, plural, =1 {# forecast} other {# forecasts}} with significant movement",
+  "stalePredictions": "{count, plural, =1 {# prediction} other {# predictions}} might be stale",
+  "allQuestionsForecasted": "All questions forecasted",
+  "noForecastsWithSignificantMovement": "No forecasts with significant movement",
+  "predictionsUpToDate": "All predictions are up to date"
 }

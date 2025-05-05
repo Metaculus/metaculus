@@ -68,6 +68,7 @@ type Props = {
   canPredict: boolean;
   canResolve: boolean;
   predictionMessage: ReactNode;
+  onPredictionSubmit?: () => void;
 };
 
 const ForecastMakerGroupBinary: FC<Props> = ({
@@ -76,6 +77,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   groupVariable,
   canPredict,
   predictionMessage,
+  onPredictionSubmit,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -103,7 +105,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     [prevForecastValuesMap]
   );
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
-    generateChoiceOptions(questions, prevForecastValuesMap, undefined, post)
+    generateChoiceOptions({ questions, prevForecastValuesMap, post })
   );
 
   const sortedQuestionOptions = [...questionOptions].sort((a, b) => {
@@ -127,7 +129,12 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
   useEffect(() => {
     setQuestionOptions(
-      generateChoiceOptions(questions, prevForecastValuesMap, permission, post)
+      generateChoiceOptions({
+        questions,
+        prevForecastValuesMap,
+        permission,
+        post,
+      })
     );
   }, [permission, prevForecastValuesMap, questions]);
 
@@ -200,7 +207,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
-  }, [postId, questionsToSubmit]);
+    onPredictionSubmit?.();
+  }, [postId, questionsToSubmit, onPredictionSubmit]);
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
   const predictedQuestions = useMemo(() => {
@@ -345,12 +353,19 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   );
 };
 
-function generateChoiceOptions(
-  questions: QuestionWithNumericForecasts[],
-  prevForecastValuesMap: Record<number, number | null>,
-  permission?: ProjectPermissions,
-  post?: Post
-): QuestionOption[] {
+function generateChoiceOptions({
+  questions,
+  prevForecastValuesMap,
+  permission,
+  post,
+  onPredictionSubmit,
+}: {
+  questions: QuestionWithNumericForecasts[];
+  prevForecastValuesMap: Record<number, number | null>;
+  permission?: ProjectPermissions;
+  post?: Post;
+  onPredictionSubmit?: () => void;
+}): QuestionOption[] {
   return questions.map((question, index) => {
     const latest = question.aggregations.recency_weighted.latest;
     return {
@@ -373,6 +388,7 @@ function generateChoiceOptions(
             </Button>
           }
           post={post}
+          onPredictionSubmit={onPredictionSubmit}
         />
       ),
     };

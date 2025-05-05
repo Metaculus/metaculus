@@ -16,9 +16,10 @@ import QuestionForecastMaker from "./forecast_maker_question";
 
 type Props = {
   post: PostWithForecasts;
+  onPredictionSubmit?: () => void;
 };
 
-const ForecastMaker: FC<Props> = ({ post }) => {
+const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
   const {
     group_of_questions: groupOfQuestions,
     conditional,
@@ -44,6 +45,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         canPredict={canPredict}
         canResolve={canResolve}
         predictionMessage={predictionMessage}
+        onPredictionSubmit={onPredictionSubmit}
       />
     );
   }
@@ -55,6 +57,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         conditional={conditional}
         canPredict={canPredict}
         predictionMessage={predictionMessage}
+        onPredictionSubmit={onPredictionSubmit}
       />
     );
   }
@@ -68,6 +71,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         canResolve={canResolve}
         post={post}
         predictionMessage={predictionMessage}
+        onPredictionSubmit={onPredictionSubmit}
       />
     );
   }

@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 
 import { fetchPosts } from "@/app/(main)/questions/actions";
-import DetailedPost from "@/app/(prediction-flow)/components/detailed_post";
 import PredictionFlowHeader from "@/app/(prediction-flow)/components/header";
+import PredictionFlowPost from "@/app/(prediction-flow)/components/prediction_flow_post";
 import PredictionFlowProvider, {
   FlowType,
 } from "@/app/(prediction-flow)/components/prediction_flow_provider";
@@ -29,11 +29,11 @@ export default async function PredictionFlow(props: Props) {
   if (!user) {
     return redirect(`/tournament/${params.slug}`);
   }
-
+  // TODO: replace with new endpoint to fetch data for prediction flow
   const posts = await fetchPosts(
-    { statuses: PostStatus.APPROVED, tournaments: tournament.id.toString() },
+    { statuses: PostStatus.OPEN, tournaments: tournament.id.toString() },
     0,
-    10
+    14
   );
 
   console.log(posts);
@@ -43,9 +43,9 @@ export default async function PredictionFlow(props: Props) {
         tournamentName={tournament.name}
         tournamentSlug={tournament.slug}
       />
-      <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col justify-center pt-header">
-        <ProgressSection tournamentId={tournament.id} />
-        <DetailedPost />
+      <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
+        <ProgressSection />
+        <PredictionFlowPost tournamentSlug={tournament.slug} />
       </main>
     </PredictionFlowProvider>
   );

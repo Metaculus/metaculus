@@ -19,6 +19,7 @@ type Props = {
   canPredict: boolean;
   canResolve: boolean;
   predictionMessage: ReactNode;
+  onPredictionSubmit?: () => void;
 };
 
 const ForecastMakerGroup: FC<Props> = ({
@@ -28,6 +29,7 @@ const ForecastMakerGroup: FC<Props> = ({
   canResolve,
   canPredict,
   predictionMessage,
+  onPredictionSubmit,
 }) => {
   const tileType = questions.at(0)?.type;
 
@@ -50,6 +52,7 @@ const ForecastMakerGroup: FC<Props> = ({
           canResolve={canResolve}
           canPredict={canPredict}
           predictionMessage={predictionMessage}
+          onPredictionSubmit={onPredictionSubmit}
         />
       )}
       {(tileType === QuestionType.Date ||
@@ -61,6 +64,7 @@ const ForecastMakerGroup: FC<Props> = ({
           canResolve={canResolve}
           canPredict={canPredict}
           predictionMessage={predictionMessage}
+          onPredictionSubmit={onPredictionSubmit}
         />
       )}
     </ForecastMakerContainer>

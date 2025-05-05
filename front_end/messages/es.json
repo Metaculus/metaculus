@@ -1215,5 +1215,17 @@
   "potentialyStale": "Potencialmente obsoleto",
   "significantMovement": "Movimiento significativo",
   "notForecasted": "No pronosticado",
-  "previous": "Anterior"
+  "previous": "Anterior",
+  "skippedWithoutForecasting": "Saltaste {count, plural, =1 {# pregunta} other {# preguntas}} sin pronosticar.",
+  "youSubmittedPredictionsFor": "Has enviado pronósticos para {count} de {total} preguntas.",
+  "reviewSkippedQuestions": "Revisar las preguntas omitidas",
+  "questionsTotal": "{count} preguntas en total",
+  "noParticipationTournament": "Aún no has participado en este torneo.",
+  "reviewAll": "Revisar todo",
+  "questionsNotPredicted": "{count, plural, =1 {# pregunta} other {# preguntas}} no pronosticadas",
+  "significantMovementForecasts": "{count, plural, =1 {# pronóstico} other {# pronósticos}} con movimiento significativo",
+  "stalePredictions": "{count, plural, =1 {# pronóstico} other {# pronósticos}} podrían estar desactualizados",
+  "allQuestionsForecasted": "Todas las preguntas pronosticadas",
+  "noForecastsWithSignificantMovement": "No hay pronósticos con movimiento significativo",
+  "predictionsUpToDate": "Todos los pronósticos están actualizados"
 }

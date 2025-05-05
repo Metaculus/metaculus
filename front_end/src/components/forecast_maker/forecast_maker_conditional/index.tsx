@@ -16,6 +16,7 @@ type Props = {
   conditional: PostConditional<QuestionWithForecasts>;
   canPredict: boolean;
   predictionMessage: ReactNode;
+  onPredictionSubmit?: () => void;
 };
 
 const ForecastMakerConditional: FC<Props> = ({
@@ -23,6 +24,7 @@ const ForecastMakerConditional: FC<Props> = ({
   conditional,
   canPredict,
   predictionMessage,
+  onPredictionSubmit,
 }) => {
   const { id: postId, title: postTitle, projects } = post;
   const { question_yes, question_no } = conditional;
@@ -43,6 +45,7 @@ const ForecastMakerConditional: FC<Props> = ({
           canPredict={canPredict}
           predictionMessage={predictionMessage}
           projects={projects}
+          onPredictionSubmit={onPredictionSubmit}
         />
       )}
       {(question_yes.type === QuestionType.Date ||
@@ -56,6 +59,7 @@ const ForecastMakerConditional: FC<Props> = ({
           canPredict={canPredict}
           predictionMessage={predictionMessage}
           projects={projects}
+          onPredictionSubmit={onPredictionSubmit}
         />
       )}
     </ForecastMakerContainer>

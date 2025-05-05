@@ -9,6 +9,7 @@ import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/comp
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
 import IndexSection from "@/app/(main)/(tournaments)/tournament/components/index";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
+import { fetchPosts } from "@/app/(main)/questions/actions";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
@@ -17,13 +18,15 @@ import { defaultDescription } from "@/constants/metadata";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { ProjectPermissions } from "@/types/post";
+import { PostStatus, ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/formatters/date";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import HeaderBlockNav from "../components/header_block_navigation";
 import ProjectMembers from "../components/members";
+import NavigationBlock from "../components/navigation_block";
+import ParticipationBlock from "../components/participation_block";
 import TournamentFeed from "../components/tournament_feed";
 import TournamentTimeline from "../components/tournament_timeline";
 
@@ -64,7 +67,12 @@ export default async function TournamentSlug(props: Props) {
   invariant(tournament, `Tournament not found: ${params.slug}`);
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const currentUser = await ProfileApi.getMyProfile();
-
+  // TODO: replace with new endpoint to fetch data for prediction flow
+  const { questions: posts } = await fetchPosts(
+    { statuses: PostStatus.OPEN, tournaments: tournament.id.toString() },
+    0,
+    14
+  );
   const t = await getTranslations();
   const locale = await getLocale();
   const isQuestionSeries = tournament.type === TournamentType.QuestionSeries;
@@ -143,25 +151,8 @@ export default async function TournamentSlug(props: Props) {
         </div>
       </div>
 
-      {/* Links block */}
-      <div className="mx-4 mt-4 flex flex-row justify-between gap-2 lg:mx-0">
-        <Button
-          href={`/tournament/${tournament.slug}/prediction-flow`}
-          className="w-full flex-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg"
-        >
-          {t("forecastFlow")}
-        </Button>
-
-        <Button
-          href={"#questions"}
-          className="w-full flex-1 gap-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg"
-        >
-          {t.rich("viewQuestions", {
-            count: tournament.questions_count,
-            bold: (chunks) => <span className="font-bold">{chunks}</span>,
-          })}
-        </Button>
-      </div>
+      <NavigationBlock tournament={tournament} />
+      <ParticipationBlock tournament={tournament} posts={posts} />
 
       {/* Description block */}
       <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">

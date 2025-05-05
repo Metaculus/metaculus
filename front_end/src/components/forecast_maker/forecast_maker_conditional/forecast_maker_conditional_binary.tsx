@@ -34,6 +34,7 @@ type Props = {
   canPredict: boolean;
   predictionMessage: ReactNode;
   projects: Post["projects"];
+  onPredictionSubmit?: () => void;
 };
 
 const ForecastMakerConditionalBinary: FC<Props> = ({
@@ -43,6 +44,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   canPredict,
   predictionMessage,
   projects,
+  onPredictionSubmit,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -271,6 +273,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    onPredictionSubmit?.();
   };
 
   const handlePredictWithdraw = async () => {
@@ -289,6 +292,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    onPredictionSubmit?.();
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
     handlePredictWithdraw
