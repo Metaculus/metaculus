@@ -139,15 +139,16 @@ def update_comment(comment: Comment, text: str = None):
 def trigger_update_comment_translations(comment: Comment):
     on_post = comment.on_post
     author = comment.author
-    on_bots_tournament = (
-        on_post.default_project is not None
-        and on_post.default_project.include_bots_in_leaderboard
-    )
 
-    on_private_post = on_post.is_private() is None
+    # Don't translate comments that are too long
+    comment_too_long = len(comment.text) > 10000
+
+    on_private_post = on_post.is_private()
     if (
-        not (author.is_bot and on_bots_tournament)
+        not author.is_bot
         and not on_private_post
+        and not comment_too_long
+        and not comment.is_private
         and comment.is_automatically_translated
     ):
         comment.update_and_maybe_translate()
