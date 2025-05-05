@@ -4,11 +4,11 @@ import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import PredictionChip from "@/components/prediction_chip";
+import { useHideCP } from "@/components/question/cp_provider";
 import { ConditionalPost, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";

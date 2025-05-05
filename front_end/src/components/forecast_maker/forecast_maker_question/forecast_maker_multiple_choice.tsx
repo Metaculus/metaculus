@@ -5,11 +5,11 @@ import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
+import { useHideCP } from "@/components/question/cp_provider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";

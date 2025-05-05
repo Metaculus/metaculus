@@ -1224,5 +1224,9 @@
   "stalePredictions": "{count, plural, =1 {# prediction} other {# predictions}} might be stale",
   "allQuestionsForecasted": "All questions forecasted",
   "noForecastsWithSignificantMovement": "No forecasts with significant movement",
-  "predictionsUpToDate": "All predictions are up to date"
+  "predictionsUpToDate": "All predictions are up to date",
+  "keepPredicting": "Keep predicting",
+  "exit": "Exit",
+  "youCanComeBackAnytime": "You can come back any time to continue where you left off.",
+  "thereAreQuestionsThatRequireAttention": "There {count, plural, =1 {is <bold># question</bold>} other {are <bold># questions</bold>}} that {count, plural, =1 {requires} other {require}} your attention."
 }

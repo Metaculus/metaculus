@@ -4,27 +4,20 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
-import BackgroundInfo from "@/app/(main)/questions/[id]/components/background_info";
-import ResolutionCriteria from "@/app/(main)/questions/[id]/components/resolution_criteria";
 import { fetchPosts, getPost } from "@/app/(main)/questions/actions";
-import CommentFeed from "@/components/comment_feed";
-import ConditionalTile from "@/components/conditional_tile";
-import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
-import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
 import ForecastMaker from "@/components/forecast_maker";
+import BackgroundInfo from "@/components/question/background_info";
+import HideCPProvider from "@/components/question/cp_provider";
+import ResolutionCriteria from "@/components/question/resolution_criteria";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import SectionToggle from "@/components/ui/section_toggle";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { isPostPredicted } from "@/utils/forecasts/helpers";
-import {
-  isConditionalPost,
-  isGroupOfQuestionsPost,
-  isQuestionPost,
-} from "@/utils/questions/helpers";
 
+import PredictionFlowCommentsSection from "./prediction_flow_comments";
 import { usePredictionFlow } from "./prediction_flow_provider";
+import PredictionFlowQuestionCard from "./prediction_flow_question_card";
 
 type Props = {
   tournamentSlug: string;
@@ -35,10 +28,9 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
     null
   );
   const [isLoadingPost, setIsLoadingPost] = useState(false);
-  const t = useTranslations();
   // TODO: adjust condition
   const shouldShowBanner = true;
-  const { posts, setPosts, currentPostId, setIsPending, isMenuOpen } =
+  const { posts, setPosts, currentPostId, setIsPending, isMenuOpen, flowType } =
     usePredictionFlow();
 
   useEffect(() => {
@@ -102,84 +94,88 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
   if (isNil(detailedPost)) {
     return null;
   }
-
+  // TODO: adjust to check participation status
+  const forceHideCP = isNil(flowType);
   return (
-    <div
-      className={cn("mx-4 mt-6 flex flex-col sm:mx-0", {
-        hidden: isMenuOpen,
-      })}
-    >
-      {shouldShowBanner && (
-        <div className="dark:bg-orange-50-dark rounded-t border-b border-blue-400 bg-orange-50 px-4 py-3 text-center text-xs font-medium leading-4 text-orange-900 dark:border-blue-400-dark dark:text-orange-900-dark">
-          Community prediction increased by 25 percentage points since your last
-          forecast.
-        </div>
-      )}
+    <HideCPProvider post={detailedPost} forceHideCP={forceHideCP}>
       <div
-        className={cn(
-          "flex w-full flex-col rounded bg-gray-0 p-4 py-3 dark:bg-gray-0-dark sm:p-8 sm:py-[26px]",
-          {
-            "rounded-t-none": shouldShowBanner,
-          }
-        )}
+        className={cn("mx-4 mt-6 flex flex-col sm:mx-0", {
+          hidden: isMenuOpen,
+        })}
       >
-        <div className="flex flex-col gap-4">
-          <h2 className="m-0 text-2xl font-bold leading-8">
-            {detailedPost?.title}
-          </h2>
-          {isConditionalPost(detailedPost) && (
-            <ConditionalTile
-              post={detailedPost}
-              withNavigation
-              withCPRevealBtn
-            />
-          )}
-
-          {isQuestionPost(detailedPost) && (
-            <DetailedQuestionCard post={detailedPost} />
-          )}
-          {isGroupOfQuestionsPost(detailedPost) && (
-            <DetailedGroupCard post={detailedPost} />
-          )}
-
-          <ForecastMaker
-            post={detailedPost}
-            onPredictionSubmit={onPredictionSubmit}
+        {shouldShowBanner && (
+          <RequireAttentionBanner
+            bannerText="Community prediction increased by 25 percentage points since your
+            last forecast."
           />
+        )}
+        <div
+          className={cn(
+            "flex w-full flex-col rounded bg-gray-0 p-4 py-3 dark:bg-gray-0-dark sm:p-8 sm:py-[26px]",
+            {
+              "rounded-t-none": shouldShowBanner,
+            }
+          )}
+        >
+          <div className="flex flex-col gap-4">
+            <h2 className="m-0 text-2xl font-bold leading-8 text-blue-800 dark:text-blue-800-dark">
+              {detailedPost?.title}
+            </h2>
 
-          <div className="flex flex-col gap-2">
-            <ResolutionCriteria
+            <PredictionFlowQuestionCard post={detailedPost} />
+
+            <ForecastMaker
               post={detailedPost}
-              defaultOpen={false}
-              className="my-0 gap-2"
+              onPredictionSubmit={onPredictionSubmit}
             />
-            <BackgroundInfo post={detailedPost} defaultOpen={false} />
-            <SectionToggle title={t("comments")} defaultOpen={false}>
+
+            <div className="flex flex-col gap-2">
+              <ResolutionCriteria
+                post={detailedPost}
+                defaultOpen={false}
+                className="my-0 gap-2"
+              />
+              <BackgroundInfo post={detailedPost} defaultOpen={false} />
               <CommentsFeedProvider
                 postData={detailedPost}
                 rootCommentStructure={true}
               >
-                {/* TODO: remove title */}
-                <CommentFeed postData={detailedPost} />
+                <PredictionFlowCommentsSection postData={detailedPost} />
               </CommentsFeedProvider>
-            </SectionToggle>
+            </div>
           </div>
         </div>
       </div>
+    </HideCPProvider>
+  );
+};
+
+const RequireAttentionBanner = ({ bannerText }: { bannerText: string }) => {
+  return (
+    <div className="rounded-t border-b border-blue-400 bg-orange-50 px-4 py-3 text-center text-xs font-medium leading-4 text-orange-900 dark:border-blue-400-dark dark:bg-orange-50-dark dark:text-orange-900-dark">
+      {bannerText}
     </div>
   );
 };
 
 const FinalFlowView = ({ tournamentSlug }: { tournamentSlug: string }) => {
-  const { posts, setCurrentPostId } = usePredictionFlow();
+  const { posts, setPosts, setCurrentPostId, flowType } = usePredictionFlow();
   const t = useTranslations();
-  const skippedQuestions = posts.filter((post) => !isPostPredicted(post));
+  const skippedQuestions = posts.filter((post) =>
+    isNil(flowType) ? !isPostPredicted(post) : !post.isDone
+  );
 
   const handleReviewSkippedQuestions = useCallback(() => {
+    if (isNil(flowType)) {
+      setPosts(
+        posts.map((post) => ({ ...post, isDone: isPostPredicted(post) }))
+      );
+    }
     if (skippedQuestions[0]) {
       setCurrentPostId(skippedQuestions[0].id);
     }
-  }, [skippedQuestions, setCurrentPostId]);
+  }, [skippedQuestions, setCurrentPostId, setPosts, flowType, posts]);
+
   return (
     <div className="mx-4 mb-auto mt-2.5 flex flex-col items-center rounded bg-gray-0 p-4 py-3 dark:bg-gray-0-dark sm:mx-0 sm:mt-6 sm:items-start sm:p-8 sm:py-[26px]">
       <h2 className="m-0 text-center text-2xl font-bold leading-8 text-blue-800 dark:text-blue-800-dark sm:text-left">

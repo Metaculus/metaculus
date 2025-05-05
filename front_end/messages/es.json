@@ -1227,5 +1227,9 @@
   "stalePredictions": "{count, plural, =1 {# pronóstico} other {# pronósticos}} podrían estar desactualizados",
   "allQuestionsForecasted": "Todas las preguntas pronosticadas",
   "noForecastsWithSignificantMovement": "No hay pronósticos con movimiento significativo",
-  "predictionsUpToDate": "Todos los pronósticos están actualizados"
+  "predictionsUpToDate": "Todos los pronósticos están actualizados",
+  "keepPredicting": "Sigue prediciendo",
+  "exit": "Salir",
+  "youCanComeBackAnytime": "Puedes volver en cualquier momento para continuar donde lo dejaste.",
+  "thereAreQuestionsThatRequireAttention": "Hay {count, plural, =1 {<bold># pregunta</bold>} other {<bold># preguntas</bold>}} que {count, plural, =1 {requiere} other {requieren}} tu atención."
 }

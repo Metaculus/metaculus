@@ -64,6 +64,7 @@ type Props = {
   rootCommentStructure?: boolean;
   id?: string;
   inNotebook?: boolean;
+  showTitle?: boolean;
 };
 
 function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
@@ -93,6 +94,7 @@ const CommentFeed: FC<Props> = ({
   profileId,
   id,
   inNotebook = false,
+  showTitle = true,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -335,13 +337,22 @@ const CommentFeed: FC<Props> = ({
         )}
       >
         <div className="mb-4 mt-2 flex flex-col items-start gap-3">
-          <div className="flex w-full flex-row justify-between gap-4 md:gap-3">
-            <h2
-              className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
-              id="comments"
-            >
-              {t("comments")}
-            </h2>
+          <div
+            className={cn(
+              "flex w-full flex-row justify-between gap-4 md:gap-3",
+              {
+                "justify-center sm:justify-start": !showTitle,
+              }
+            )}
+          >
+            {showTitle && (
+              <h2
+                className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
+                id="comments"
+              >
+                {t("comments")}
+              </h2>
+            )}
             {!profileId &&
               user &&
               (!showWelcomeMessage || getIsMessagePreviouslyClosed()) && (

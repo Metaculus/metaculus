@@ -13,13 +13,13 @@ import React, {
   useState,
 } from "react";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
 import GroupQuestionResolution from "@/components/group_question_resolution";
+import { useHideCP } from "@/components/question/cp_provider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";

@@ -7,7 +7,7 @@ import SectionToggle from "@/components/ui/section_toggle";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
 
-import { useHideCP } from "./cp_provider";
+import { useHideCP } from "../../../../../components/question/cp_provider";
 import RevealCPButton from "./reveal_cp_button";
 
 const Histogram = dynamic(() => import("@/components/charts/histogram"), {

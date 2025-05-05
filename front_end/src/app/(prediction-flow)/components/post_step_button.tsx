@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
@@ -14,23 +15,36 @@ type Props = {
 
 const PostStepButton: FC<Props> = ({ post, className }) => {
   const isPredicted = isPostPredicted(post);
-  const { currentPostId, setCurrentPostId } = usePredictionFlow();
+  const { posts, setPosts, currentPostId, setCurrentPostId, flowType } =
+    usePredictionFlow();
   const isActiveStep = currentPostId === post.id;
-  console.log(currentPostId, post.id, isActiveStep);
-  console.log(isPredicted);
+
   return (
     <Button
       variant="primary"
       className={cn(
-        "h-3 max-h-3 w-full rounded-none border-2 border-transparent bg-gray-300 p-0 dark:bg-gray-300-dark",
+        "h-3 max-h-3 w-full rounded-none border-2 border-transparent bg-gray-300 p-0 hover:border-transparent hover:bg-gray-400 dark:border-transparent dark:bg-gray-300-dark dark:hover:border-transparent dark:hover:bg-gray-400-dark",
         {
-          "border-blue-600 bg-blue-200 dark:border-blue-600-dark dark:bg-blue-200-dark":
+          "bg-olive-500 hover:bg-olive-600 dark:bg-olive-500-dark dark:hover:bg-olive-600-dark":
+            isPredicted,
+          "dark:hover-bg-gray-300-dark border-blue-600 bg-blue-200 hover:bg-gray-300 dark:border-blue-600-dark dark:bg-blue-200-dark":
             isActiveStep,
-          "bg-olive-500 dark:bg-olive-500-dark": isPredicted,
         },
         className
       )}
-      onClick={() => setCurrentPostId(post.id)}
+      onClick={() => {
+        if (isNil(flowType)) {
+          setPosts(
+            posts.map((p) => {
+              if (p.id === currentPostId) {
+                return { ...p, isDone: true };
+              }
+              return p;
+            })
+          );
+        }
+        setCurrentPostId(post.id);
+      }}
     />
   );
 };

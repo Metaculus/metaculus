@@ -1,8 +1,8 @@
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo, useState } from "react";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import ForecastMakerGroupCopyMenu from "@/components/forecast_maker/forecast_maker_group/forecast_maker_group_copy_menu";
+import { useHideCP } from "@/components/question/cp_provider";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";

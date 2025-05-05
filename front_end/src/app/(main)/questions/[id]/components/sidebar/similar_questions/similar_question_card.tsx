@@ -9,7 +9,7 @@ import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions/resolution";
 
 import SimilarPredictionChip from "./similar_question_prediction_chip";
-import { useHideCP } from "../../cp_provider";
+import { useHideCP } from "../../../../../../../components/question/cp_provider";
 
 type Props = {
   post: PostWithForecasts;

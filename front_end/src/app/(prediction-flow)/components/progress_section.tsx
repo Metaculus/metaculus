@@ -14,9 +14,7 @@ import { isPostPredicted } from "@/utils/forecasts/helpers";
 
 import PredictionFlowMenu from "./prediction_flow_menu";
 
-type Props = {};
-
-const ProgressSection: FC<Props> = () => {
+const ProgressSection: FC = () => {
   const t = useTranslations();
   const {
     posts,
@@ -25,6 +23,7 @@ const ProgressSection: FC<Props> = () => {
     setCurrentPostId,
     isMenuOpen,
     setIsMenuOpen,
+    flowType,
   } = usePredictionFlow();
   const postsLeft = posts.filter((post) => !post.isDone);
   const currentIndex = useMemo(
@@ -32,30 +31,21 @@ const ProgressSection: FC<Props> = () => {
     [posts, currentPostId]
   );
 
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      setPosts(
-        posts.map((post) => {
-          if (post.id === currentPostId) {
-            return { ...post, isDone: true };
-          }
-          return post;
-        })
+  const handleClick = (isPrevious: boolean) => {
+    if (isPrevious ? currentIndex > 0 : currentIndex <= posts.length - 1) {
+      if (isNil(flowType)) {
+        setPosts(
+          posts.map((post) => {
+            if (post.id === currentPostId) {
+              return { ...post, isDone: true };
+            }
+            return post;
+          })
+        );
+      }
+      setCurrentPostId(
+        posts[isPrevious ? currentIndex - 1 : currentIndex + 1]?.id ?? null
       );
-      setCurrentPostId(posts[currentIndex - 1]?.id ?? null);
-    }
-  };
-  const handleSkip = () => {
-    if (currentIndex <= posts.length - 1) {
-      setPosts(
-        posts.map((post) => {
-          if (post.id === currentPostId) {
-            return { ...post, isDone: true };
-          }
-          return post;
-        })
-      );
-      setCurrentPostId(posts[currentIndex + 1]?.id ?? null);
     }
   };
 
@@ -88,8 +78,8 @@ const ProgressSection: FC<Props> = () => {
             key={post.id}
             post={post}
             className={cn({
-              "rounded-l-full": index === 0,
-              "rounded-r-full": index === posts.length - 1,
+              "rounded-l": index === 0,
+              "rounded-r": index === posts.length - 1,
             })}
           />
         ))}
@@ -99,17 +89,26 @@ const ProgressSection: FC<Props> = () => {
         <div className="mt-4 flex justify-between gap-2">
           <Button
             variant="tertiary"
-            onClick={handlePrevious}
+            onClick={() => handleClick(true)}
             disabled={currentIndex <= 0}
           >
             {t("previous")}
           </Button>
           <Button
             variant="tertiary"
-            onClick={handleSkip}
+            onClick={() => handleClick(false)}
             disabled={currentIndex > posts.length - 1}
+            className="capitalize"
           >
-            {t("skipQuestions")}
+            {t(
+              isNil(flowType) && posts[currentIndex]
+                ? isPostPredicted(posts[currentIndex])
+                  ? "nextQuestion"
+                  : "skipQuestions"
+                : posts[currentIndex]?.isDone
+                  ? "nextQuestion"
+                  : "skipQuestions"
+            )}
           </Button>
         </div>
       )}

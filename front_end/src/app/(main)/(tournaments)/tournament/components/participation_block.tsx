@@ -35,7 +35,7 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
   }
 
   return (
-    <div className="dark:bg-orange-50-dark dark:bg-orange-50-dark mx-4 mt-4 rounded-md border border-orange-300 bg-orange-50 px-4 py-3 dark:border-orange-300-dark sm:px-8 sm:py-7 lg:mx-0">
+    <div className="mx-4 mt-4 rounded-md border border-orange-300 bg-orange-50 px-4 py-3 dark:border-orange-300-dark dark:bg-orange-50-dark sm:px-8 sm:py-7 lg:mx-0">
       <p className="m-0 text-base font-medium text-orange-800 dark:text-orange-800-dark sm:text-xl">
         {t("myParticipation")}
       </p>

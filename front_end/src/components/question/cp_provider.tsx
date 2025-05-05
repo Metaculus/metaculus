@@ -1,5 +1,6 @@
 "use client";
 
+import { isNil } from "lodash";
 import {
   createContext,
   FC,
@@ -23,10 +24,12 @@ export const HideCPContext = createContext<HideCPContextType>({
 
 type CPProviderProps = {
   post: PostWithForecasts;
+  forceHideCP?: boolean;
 };
 const HideCPProvider: FC<PropsWithChildren<CPProviderProps>> = ({
   post,
   children,
+  forceHideCP,
 }) => {
   const { user } = useAuth();
   let hideCP =
@@ -43,7 +46,9 @@ const HideCPProvider: FC<PropsWithChildren<CPProviderProps>> = ({
     hideCP = conditionClosedOrResolved ? false : hideCP;
   }
 
-  const [currentHideCP, setCurrentHideCP] = useState<boolean>(!!hideCP);
+  const [currentHideCP, setCurrentHideCP] = useState<boolean>(
+    !isNil(forceHideCP) ? forceHideCP : !!hideCP
+  );
 
   return (
     <HideCPContext.Provider value={{ hideCP: currentHideCP, setCurrentHideCP }}>

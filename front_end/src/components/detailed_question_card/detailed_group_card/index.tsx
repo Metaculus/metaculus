@@ -16,7 +16,7 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
-import { useHideCP } from "../../../app/(main)/questions/[id]/components/cp_provider";
+import { useHideCP } from "../../question/cp_provider";
 
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;

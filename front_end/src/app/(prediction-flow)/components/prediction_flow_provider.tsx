@@ -1,5 +1,6 @@
 "use client";
 
+import { isNil } from "lodash";
 import {
   createContext,
   FC,
@@ -45,7 +46,10 @@ const PredictionFlowProvider: FC<
   PropsWithChildren<PredictionFlowProviderProps>
 > = ({ children, initialPosts, flowType }) => {
   const [posts, setPosts] = useState<PredictionFlowPost[]>(
-    initialPosts.map((post) => ({ ...post, isDone: isPostPredicted(post) }))
+    initialPosts.map((post) => ({
+      ...post,
+      isDone: isNil(flowType) ? isPostPredicted(post) : false,
+    }))
   );
   const [currentPostId, setCurrentPostId] = useState<number | null>(
     initialPosts[0]?.id ?? null

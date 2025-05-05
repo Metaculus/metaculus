@@ -2,11 +2,11 @@
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import {
   MultipleChoiceTile,
   FanGraphMultipleChoiceTile,
 } from "@/components/post_card/multiple_choice_tile";
+import { useHideCP } from "@/components/question/cp_provider";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { GroupOfQuestionsGraphType, GroupOfQuestionsPost } from "@/types/post";

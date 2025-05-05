@@ -1227,5 +1227,9 @@
   "stalePredictions": "{count, plural, =1 {# předpověď} other {# předpovědí}} může být zastarána",
   "allQuestionsForecasted": "Všechny otázky jsou předpovězeny",
   "noForecastsWithSignificantMovement": "Žádné předpovědi se významně nezměnily",
-  "predictionsUpToDate": "Všechny předpovědi jsou aktuální"
+  "predictionsUpToDate": "Všechny předpovědi jsou aktuální",
+  "keepPredicting": "Pokračujte v předpovídání",
+  "exit": "Ukončit",
+  "youCanComeBackAnytime": "Můžete se kdykoliv vrátit a pokračovat tam, kde jste skončili.",
+  "thereAreQuestionsThatRequireAttention": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které {count, plural, =1 {vyžaduje} other {vyžadují}} vaši pozornost."
 }

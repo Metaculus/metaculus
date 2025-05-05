@@ -29,15 +29,15 @@ import {
 import { cachedGetPost } from "./utils/get_post";
 import DetailedGroupCard from "../../../../../components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "../../../../../components/detailed_question_card/detailed_question_card";
-import BackgroundInfo from "../components/background_info";
-import HideCPProvider from "../components/cp_provider";
+import BackgroundInfo from "../../../../../components/question/background_info";
+import HideCPProvider from "../../../../../components/question/cp_provider";
+import ResolutionCriteria from "../../../../../components/question/resolution_criteria";
 import HistogramDrawer from "../components/histogram_drawer";
 import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
-import ResolutionCriteria from "../components/resolution_criteria";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 

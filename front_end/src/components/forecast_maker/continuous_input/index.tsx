@@ -2,8 +2,8 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect, useRef } from "react";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import ContinuousTable from "@/components/forecast_maker/continuous_table";
+import { useHideCP } from "@/components/question/cp_provider";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousForecastInputType } from "@/types/charts";
 import {

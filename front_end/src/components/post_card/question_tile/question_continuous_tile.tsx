@@ -1,7 +1,6 @@
 import { isNil, round } from "lodash";
 import React, { FC, useCallback } from "react";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import ContinuousAreaChart, {
   getContinuousAreaChartData,
@@ -11,6 +10,7 @@ import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_sl
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
+import { useHideCP } from "@/components/question/cp_provider";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {

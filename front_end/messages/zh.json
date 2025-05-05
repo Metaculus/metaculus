@@ -1229,5 +1229,9 @@
   "stalePredictions": "{count, plural, =1 {# 个预测} other {# 个预测}}可能已过时",
   "allQuestionsForecasted": "所有问题已预测",
   "noForecastsWithSignificantMovement": "没有显著变动的预测",
-  "predictionsUpToDate": "所有预测均为最新"
+  "predictionsUpToDate": "所有预测均为最新",
+  "keepPredicting": "继续预测",
+  "exit": "退出",
+  "youCanComeBackAnytime": "您可以随时回来继续未完成的工作。",
+  "thereAreQuestionsThatRequireAttention": "有 {count, plural, =1 {<bold># 个问题</bold>} other {<bold># 个问题</bold>}} 需要您的注意。"
 }
