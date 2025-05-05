@@ -5,7 +5,20 @@ import { CupVideo } from "./components/CupVideo";
 export const metadata = {
   title: "Metaculus Cup",
   description:
-    "Join the Metaculus Cup and compete for a share of the $5,000 prize pool by predicting topical questions from May 5th to August 1st.",
+    "Join the Metaculus Cup and compete for a share of the $5,000 prize pool by predicting topical questions from May 5th to September 1st.",
+  openGraph: {
+    title: "Metaculus Cup",
+    description:
+      "Join the Metaculus Cup and compete for a share of the $5,000 prize pool by predicting topical questions from May 5th to September 1st.",
+    images: [
+      {
+        url: "https://dev-metaculus-web-media.s3.amazonaws.com/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Metaculus Cup - Forecasting Tournament",
+      },
+    ],
+  },
 };
 
 export default function MetaculusCupPage() {
@@ -27,7 +40,7 @@ export default function MetaculusCupPage() {
           Metaculus Cup
           <div className="mx-auto mt-2 flex flex-row items-center justify-center gap-2 text-center font-light text-white/80 sm:mt-1 sm:gap-4 md:mt-0">
             <span className="rounded-lg bg-black/20 px-1.5 py-1 text-sm backdrop-blur sm:px-2 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base">
-              May 5th to Aug 1st
+              May 5th to Sep 1st
             </span>
             <span className="rounded-lg bg-black/20 px-1.5 py-1 text-sm backdrop-blur sm:px-2 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base">
               Prize Pool:{" "}
@@ -154,6 +167,11 @@ export default function MetaculusCupPage() {
               Track your performance on the leaderboard.
             </div>
           </div>
+        </div>
+        <div className="text-center text-xs text-blue-400">
+          Review Metaculus&apos;s{" "}
+          <Link href="/terms-of-use/">Terms of Use</Link>, including important
+          rules for contest participation.
         </div>
       </div>
     </main>
