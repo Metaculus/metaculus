@@ -1211,5 +1211,6 @@
   "addKeyFactorsModalP1": "列出您认为最重要的关键因素——保持每个因素简短且具体。",
   "addKeyFactorsModalP2": "请发表评论，解释这些因素对您的预测为什么重要。",
   "withdrawAll": "全部撤回",
-  "reaffirmAll": "全部重申"
+  "reaffirmAll": "全部重申",
+  "outdatedServerActionMessage": "出现了问题。请刷新页面并重试。"
 }

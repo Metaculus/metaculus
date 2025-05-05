@@ -1209,5 +1209,6 @@
   "addKeyFactorsModalP1": "Enumere los factores clave que considera más importantes — mantenga cada uno de manera breve y específica.",
   "addKeyFactorsModalP2": "Por favor, publique un comentario para explicar por qué estos factores son importantes para su pronóstico.",
   "withdrawAll": "Retirar todo",
-  "reaffirmAll": "Reafirmar todo"
+  "reaffirmAll": "Reafirmar todo",
+  "outdatedServerActionMessage": "Algo salió mal. Por favor, actualiza la página e inténtalo de nuevo."
 }

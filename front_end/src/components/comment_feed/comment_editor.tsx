@@ -146,7 +146,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         match.replace(/[\\]/g, "")
       );
 
-      const newComment = await createComment({
+      const response = await createComment({
         parent: parentId,
         text: parsedMarkdown,
         on_post: postId,
@@ -154,10 +154,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
         is_private: isPrivateComment,
       });
 
-      if (!!newComment && "errors" in newComment) {
+      if (!response) {
+        setErrorMessage(t("outdatedServerActionMessage"));
+        return;
+      }
+
+      if (!!response && "errors" in response) {
         const errorMessage =
-          newComment.errors?.message ??
-          newComment.errors?.non_field_errors?.[0];
+          response.errors?.message ?? response.errors?.non_field_errors?.[0];
 
         setErrorMessage(errorMessage);
         return;
@@ -172,7 +176,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       setMarkdown("");
       editorRef.current?.setMarkdown("");
       setEditorRenderKey((prev) => prev + 1);
-      onSubmit?.(parseComment(newComment));
+      onSubmit?.(parseComment(response));
     } finally {
       setIsLoading(false);
     }
