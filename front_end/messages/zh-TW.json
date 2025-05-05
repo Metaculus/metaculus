@@ -1207,5 +1207,10 @@
   "withdrawAll": "撤回全部",
   "reaffirmAll": "確認全部",
   "reminderNewCommentsDescription2": "新評論",
-  "outdatedServerActionMessage": "發生錯誤。請重新整理頁面並再試一次。"
+  "outdatedServerActionMessage": "發生錯誤。請重新整理頁面並再試一次。",
+  "exitPredictionFlow": "退出預測流程",
+  "potentialyStale": "可能陳舊",
+  "significantMovement": "顯著變動",
+  "notForecasted": "未預測",
+  "previous": "先前"
 }

@@ -1212,5 +1212,10 @@
   "addKeyFactorsModalP2": "请发表评论，解释这些因素对您的预测为什么重要。",
   "withdrawAll": "全部撤回",
   "reaffirmAll": "全部重申",
-  "outdatedServerActionMessage": "出现了问题。请刷新页面并重试。"
+  "outdatedServerActionMessage": "出现了问题。请刷新页面并重试。",
+  "exitPredictionFlow": "退出预测流程",
+  "potentialyStale": "可能过时",
+  "significantMovement": "显著运动",
+  "notForecasted": "未预测",
+  "previous": "之前"
 }

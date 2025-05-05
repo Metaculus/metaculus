@@ -145,13 +145,12 @@ export default async function TournamentSlug(props: Props) {
 
       {/* Links block */}
       <div className="mx-4 mt-4 flex flex-row justify-between gap-2 lg:mx-0">
-        {/* TODO: Uncomment this when the forecast flow is implemented */}
-        {/* <Button
-          href="/forecastFlowLink"
+        <Button
+          href={`/tournament/${tournament.slug}/prediction-flow`}
           className="w-full flex-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg"
         >
           {t("forecastFlow")}
-        </Button> */}
+        </Button>
 
         <Button
           href={"#questions"}

@@ -13,7 +13,7 @@ import { QuestionType } from "@/types/question";
 const ContinuousPredictionChart = dynamic(
   () =>
     import(
-      "../[id]/components/forecast_maker/continuous_input/continuous_prediction_chart"
+      "@/components/forecast_maker/continuous_input/continuous_prediction_chart"
     ),
   {
     ssr: false,

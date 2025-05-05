@@ -1207,5 +1207,10 @@
   "maxKeyFactorsPerComment": "A comment can include a maximum of 4 key factors.",
   "maxKeyFactorsPerQuestion": "A question can have no more than 6 key factors by one author.",
   "maxKeyFactorLength": "Key factors must be less than 150 characters.",
-  "outdatedServerActionMessage": "Something went wrong. Please, refresh the page and try again."
+  "outdatedServerActionMessage": "Something went wrong. Please, refresh the page and try again.",
+  "exitPredictionFlow": "Exit Prediction Flow",
+  "potentialyStale": "Potentialy stale",
+  "significantMovement": "Significant movement",
+  "notForecasted": "Not forecasted",
+  "previous": "Previous"
 }

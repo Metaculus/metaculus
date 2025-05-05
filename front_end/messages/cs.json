@@ -1210,5 +1210,10 @@
   "addKeyFactorsModalP2": "Prosím, přidejte komentář, který vysvětlí, proč jsou tyto faktory pro vaši předpověď důležité.",
   "withdrawAll": "Vybrat vše",
   "reaffirmAll": "Potvrdit vše",
-  "outdatedServerActionMessage": "Něco se pokazilo. Prosím, obnovte stránku a zkuste to znovu."
+  "outdatedServerActionMessage": "Něco se pokazilo. Prosím, obnovte stránku a zkuste to znovu.",
+  "exitPredictionFlow": "Ukončit prediktivní tok",
+  "potentialyStale": "Potenciálně zastaralé",
+  "significantMovement": "Významný pohyb",
+  "notForecasted": "Nepředpovězeno",
+  "previous": "Předchozí"
 }

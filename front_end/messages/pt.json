@@ -1208,5 +1208,10 @@
   "addKeyFactorsModalP2": "Por favor, publique um comentário para explicar por que esses fatores são importantes para sua previsão.",
   "withdrawAll": "Retirar Tudo",
   "reaffirmAll": "Reafirmar Tudo",
-  "outdatedServerActionMessage": "Algo deu errado. Por favor, atualize a página e tente novamente."
+  "outdatedServerActionMessage": "Algo deu errado. Por favor, atualize a página e tente novamente.",
+  "exitPredictionFlow": "Sair do Fluxo de Previsão",
+  "potentialyStale": "Potencialmente desatualizado",
+  "significantMovement": "Movimento significativo",
+  "notForecasted": "Não previsto",
+  "previous": "Anterior"
 }

@@ -5,14 +5,21 @@ import MarkdownEditor from "@/components/markdown_editor";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { Post } from "@/types/post";
+import cn from "@/utils/core/cn";
 
 const MAX_COLLAPSED_HEIGHT = 256;
 
 type Props = {
   post: Post;
+  defaultOpen?: boolean;
+  className?: string;
 };
 
-const ResolutionCriteria: FC<Props> = ({ post }) => {
+const ResolutionCriteria: FC<Props> = ({
+  post,
+  defaultOpen = true,
+  className,
+}) => {
   const t = useTranslations();
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
@@ -21,8 +28,11 @@ const ResolutionCriteria: FC<Props> = ({ post }) => {
     const { condition, condition_child } = post.conditional;
 
     return (
-      <div className="my-4 flex flex-col gap-2.5">
-        <SectionToggle title={t("parentResolutionCriteria")} defaultOpen>
+      <div className={cn("my-4 flex flex-col gap-2.5", className)}>
+        <SectionToggle
+          title={t("parentResolutionCriteria")}
+          defaultOpen={defaultOpen}
+        >
           <ExpandableContent
             maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
             expandLabel={expandLabel}
@@ -47,7 +57,10 @@ const ResolutionCriteria: FC<Props> = ({ post }) => {
           </ExpandableContent>
         </SectionToggle>
 
-        <SectionToggle title={t("childResolutionCriteria")} defaultOpen>
+        <SectionToggle
+          title={t("childResolutionCriteria")}
+          defaultOpen={defaultOpen}
+        >
           <ExpandableContent
             maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
             expandLabel={expandLabel}
@@ -85,8 +98,8 @@ const ResolutionCriteria: FC<Props> = ({ post }) => {
   return (
     <SectionToggle
       title={t("resolutionCriteria")}
-      wrapperClassName="my-4"
-      defaultOpen
+      wrapperClassName={cn("my-4", className)}
+      defaultOpen={defaultOpen}
     >
       <ExpandableContent
         maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}

@@ -10,9 +10,10 @@ const MAX_COLLAPSED_HEIGHT = 256;
 
 type Props = {
   post: Post;
+  defaultOpen?: boolean;
 };
 
-const BackgroundInfo: FC<Props> = ({ post }) => {
+const BackgroundInfo: FC<Props> = ({ post, defaultOpen = true }) => {
   const t = useTranslations();
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
@@ -22,7 +23,10 @@ const BackgroundInfo: FC<Props> = ({ post }) => {
 
     return (
       <>
-        <SectionToggle title={t("parentBackgroundInfo")} defaultOpen>
+        <SectionToggle
+          title={t("parentBackgroundInfo")}
+          defaultOpen={defaultOpen}
+        >
           <ExpandableContent
             maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
             expandLabel={expandLabel}
@@ -32,7 +36,10 @@ const BackgroundInfo: FC<Props> = ({ post }) => {
             <MarkdownEditor markdown={condition.description} />
           </ExpandableContent>
         </SectionToggle>
-        <SectionToggle title={t("childBackgroundInfo")} defaultOpen>
+        <SectionToggle
+          title={t("childBackgroundInfo")}
+          defaultOpen={defaultOpen}
+        >
           <ExpandableContent
             maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
             expandLabel={expandLabel}
@@ -50,7 +57,7 @@ const BackgroundInfo: FC<Props> = ({ post }) => {
     post.group_of_questions?.description ?? post.question?.description ?? "";
 
   return (
-    <SectionToggle title={t("backgroundInfo")} defaultOpen>
+    <SectionToggle title={t("backgroundInfo")} defaultOpen={defaultOpen}>
       <ExpandableContent
         maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
         expandLabel={expandLabel}
