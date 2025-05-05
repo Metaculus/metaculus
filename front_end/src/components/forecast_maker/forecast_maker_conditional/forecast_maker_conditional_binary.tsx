@@ -8,10 +8,10 @@ import {
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
 import ForecastMakerConditionalResolutionMessage from "@/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_resolution_message";
-import { useHideCP } from "@/components/question/cp_provider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { useHideCP } from "@/contexts/cp_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";

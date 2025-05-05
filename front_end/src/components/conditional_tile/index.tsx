@@ -8,7 +8,7 @@ import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_but
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import PredictionChip from "@/components/prediction_chip";
-import { useHideCP } from "@/components/question/cp_provider";
+import { useHideCP } from "@/contexts/cp_context";
 import { ConditionalPost, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";

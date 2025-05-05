@@ -1,6 +1,8 @@
 "use client";
 import React, { FC, useEffect } from "react";
 
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
+import { useHideCP } from "@/contexts/cp_context";
 import { PostStatus, QuestionPost } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -9,8 +11,6 @@ import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvail
 import DetailedContinuousChartCard from "./continuous_chart_card";
 import DetailsQuestionCardErrorBoundary from "./error_boundary";
 import DetailedMultipleChoiceChartCard from "./multiple_choice_chart_card";
-import RevealCPButton from "../../../app/(main)/questions/[id]/components/reveal_cp_button";
-import { useHideCP } from "../../question/cp_provider";
 
 type Props = {
   post: QuestionPost<QuestionWithForecasts>;

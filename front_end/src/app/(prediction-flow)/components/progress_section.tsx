@@ -18,14 +18,14 @@ const ProgressSection: FC = () => {
   const t = useTranslations();
   const {
     posts,
-    setPosts,
     currentPostId,
-    setCurrentPostId,
     isMenuOpen,
     setIsMenuOpen,
     flowType,
+    postsLeft,
+    changeActivePost,
   } = usePredictionFlow();
-  const postsLeft = posts.filter((post) => !post.isDone);
+
   const currentIndex = useMemo(
     () => posts.findIndex((post) => post.id === currentPostId),
     [posts, currentPostId]
@@ -33,17 +33,7 @@ const ProgressSection: FC = () => {
 
   const handleClick = (isPrevious: boolean) => {
     if (isPrevious ? currentIndex > 0 : currentIndex <= posts.length - 1) {
-      if (isNil(flowType)) {
-        setPosts(
-          posts.map((post) => {
-            if (post.id === currentPostId) {
-              return { ...post, isDone: true };
-            }
-            return post;
-          })
-        );
-      }
-      setCurrentPostId(
+      changeActivePost(
         posts[isPrevious ? currentIndex - 1 : currentIndex + 1]?.id ?? null
       );
     }
@@ -55,7 +45,7 @@ const ProgressSection: FC = () => {
         <p className="m-0 text-lg font-medium leading-7">
           {isNil(currentPostId)
             ? t("questionsTotal", { count: posts.length })
-            : t("questionsLeft", { count: postsLeft.length })}
+            : t("questionsLeft", { count: postsLeft })}
         </p>
         <Button
           variant="tertiary"
@@ -102,7 +92,9 @@ const ProgressSection: FC = () => {
           >
             {t(
               isNil(flowType) && posts[currentIndex]
-                ? isPostOpenQuestionPredicted(posts[currentIndex])
+                ? isPostOpenQuestionPredicted(posts[currentIndex], {
+                    checkAllSubquestions: true,
+                  })
                   ? "nextQuestion"
                   : "skipQuestions"
                 : posts[currentIndex]?.isDone

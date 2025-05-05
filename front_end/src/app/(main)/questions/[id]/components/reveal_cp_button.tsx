@@ -3,9 +3,8 @@ import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import Button from "@/app/(main)/about/components/Button";
+import { useHideCP } from "@/contexts/cp_context";
 import cn from "@/utils/core/cn";
-
-import { useHideCP } from "../../../../../components/question/cp_provider";
 
 type Props = {
   className?: string;

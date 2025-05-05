@@ -17,7 +17,7 @@ type Props = {
 
 const PredictionFlowMenu: FC<Props> = ({ posts }) => {
   const t = useTranslations();
-  const { currentPostId, setCurrentPostId, flowType, setIsMenuOpen } =
+  const { currentPostId, changeActivePost, flowType, setIsMenuOpen } =
     usePredictionFlow();
 
   return (
@@ -38,7 +38,7 @@ const PredictionFlowMenu: FC<Props> = ({ posts }) => {
               }
             )}
             onClick={() => {
-              setCurrentPostId(post.id);
+              changeActivePost(post.id);
               setIsMenuOpen(false);
             }}
           >
@@ -66,7 +66,9 @@ function getUserPredictionChip(
   post: PredictionFlowPost,
   t: ReturnType<typeof useTranslations>
 ) {
-  const isPredicted = isPostOpenQuestionPredicted(post, true);
+  const isPredicted = isPostOpenQuestionPredicted(post, {
+    checkAllSubquestions: true,
+  });
   if (!isNil(post.question)) {
     if (post.question.type === QuestionType.MultipleChoice) {
       const optionsAmount = post.question.options?.length;
@@ -114,7 +116,9 @@ function getAttentionChipText(
   t: ReturnType<typeof useTranslations>,
   flowType: FlowType
 ) {
-  const isPredicted = isPostOpenQuestionPredicted(post, true);
+  const isPredicted = isPostOpenQuestionPredicted(post, {
+    checkAllSubquestions: true,
+  });
   if (!isPredicted) {
     return t("notForecasted");
   }

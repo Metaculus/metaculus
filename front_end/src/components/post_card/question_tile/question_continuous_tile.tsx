@@ -10,7 +10,7 @@ import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_sl
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
-import { useHideCP } from "@/components/question/cp_provider";
+import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {

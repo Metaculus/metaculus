@@ -46,7 +46,11 @@ const RequireAttentionBanner = ({ detailedPost }: Props) => {
       });
       break;
     case FlowType.GENERAL:
-      if (!isPostOpenQuestionPredicted(detailedPost, true)) {
+      if (
+        !isPostOpenQuestionPredicted(detailedPost, {
+          checkAllSubquestions: true,
+        })
+      ) {
         bannerText = t("unpredictedQuestion");
       } else if (isPostWithSignificantMovement(detailedPost)) {
         bannerText = getMovementBannerText(

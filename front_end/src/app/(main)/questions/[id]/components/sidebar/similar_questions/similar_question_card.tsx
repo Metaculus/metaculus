@@ -3,13 +3,13 @@ import Link from "next/link";
 import { FC } from "react";
 
 import PostStatusIndicator from "@/components/post_status";
+import { useHideCP } from "@/contexts/cp_context";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions/resolution";
 
 import SimilarPredictionChip from "./similar_question_prediction_chip";
-import { useHideCP } from "../../../../../../../components/question/cp_provider";
 
 type Props = {
   post: PostWithForecasts;

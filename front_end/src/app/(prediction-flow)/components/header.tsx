@@ -24,9 +24,8 @@ const PredictionFlowHeader: FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
-  const { posts } = usePredictionFlow();
+  const { postsLeft } = usePredictionFlow();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const postsLeft = posts.filter((post) => !post.isDone).length;
   return (
     <>
       <header className="fixed left-0 top-0 z-50 flex h-12 w-full flex-auto flex-nowrap items-center justify-between bg-blue-900 text-gray-0">

@@ -4,8 +4,8 @@ import { FC, useState } from "react";
 import ConditionalTile from "@/components/conditional_tile";
 import NotebookTile from "@/components/post_card/notebook_tile";
 import { CardReaffirmContextProvider } from "@/components/post_card/reaffirm_context";
-import HideCPProvider from "@/components/question/cp_provider";
 import { useAuth } from "@/contexts/auth_context";
+import HideCPProvider from "@/contexts/cp_context";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import {
   isConditionalPost,

@@ -125,6 +125,7 @@ const CommentFeed: FC<Props> = ({
     offset,
     totalCount,
     fetchComments,
+    fetchTotalCount,
   } = useCommentsFeed();
   const postId = postData?.id;
   const includeUserForecast = shouldIncludeForecast(postData);
@@ -382,7 +383,12 @@ const CommentFeed: FC<Props> = ({
                 postId={postId}
                 onSubmit={
                   //TODO: revisit after BE changes
-                  (newComment) => setComments([newComment, ...comments])
+                  (newComment) => {
+                    setComments([newComment, ...comments]);
+                    fetchTotalCount({
+                      is_private: feedFilters.is_private,
+                    });
+                  }
                 }
                 isPrivateFeed={feedFilters.is_private}
               />

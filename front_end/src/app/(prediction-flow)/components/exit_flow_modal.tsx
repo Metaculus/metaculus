@@ -17,8 +17,7 @@ type Props = {
 const ExitFlowModal: FC<Props> = ({ isOpen, onClose, tournamentSlug }) => {
   const t = useTranslations();
   const router = useRouter();
-  const { posts } = usePredictionFlow();
-  const postsLeft = posts.filter((post) => !post.isDone).length;
+  const { postsLeft } = usePredictionFlow();
 
   return (
     <BaseModal

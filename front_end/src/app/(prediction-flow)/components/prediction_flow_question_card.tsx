@@ -4,8 +4,8 @@ import { FC } from "react";
 import ConditionalTile from "@/components/conditional_tile";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
-import { useHideCP } from "@/components/question/cp_provider";
 import Button from "@/components/ui/button";
+import { useHideCP } from "@/contexts/cp_context";
 import { PostWithForecasts } from "@/types/post";
 import {
   isConditionalPost,

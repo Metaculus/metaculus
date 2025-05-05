@@ -14,9 +14,10 @@ type Props = {
 };
 
 const PostStepButton: FC<Props> = ({ post, className }) => {
-  const isPredicted = isPostOpenQuestionPredicted(post, true);
-  const { posts, setPosts, currentPostId, setCurrentPostId, flowType } =
-    usePredictionFlow();
+  const isPredicted = isPostOpenQuestionPredicted(post, {
+    checkAllSubquestions: true,
+  });
+  const { currentPostId, flowType, changeActivePost } = usePredictionFlow();
   const isActiveStep = currentPostId === post.id;
 
   return (
@@ -33,17 +34,7 @@ const PostStepButton: FC<Props> = ({ post, className }) => {
         className
       )}
       onClick={() => {
-        if (isNil(flowType)) {
-          setPosts(
-            posts.map((p) => {
-              if (p.id === currentPostId) {
-                return { ...p, isDone: true };
-              }
-              return p;
-            })
-          );
-        }
-        setCurrentPostId(post.id);
+        changeActivePost(post.id);
       }}
     />
   );

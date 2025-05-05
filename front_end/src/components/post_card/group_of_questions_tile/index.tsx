@@ -6,8 +6,8 @@ import {
   MultipleChoiceTile,
   FanGraphMultipleChoiceTile,
 } from "@/components/post_card/multiple_choice_tile";
-import { useHideCP } from "@/components/question/cp_provider";
 import { useAuth } from "@/contexts/auth_context";
+import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { GroupOfQuestionsGraphType, GroupOfQuestionsPost } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";

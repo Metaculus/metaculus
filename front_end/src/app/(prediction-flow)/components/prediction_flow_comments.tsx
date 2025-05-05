@@ -18,7 +18,6 @@ const PredictionFlowCommentsSection: FC<Props> = ({ postData }) => {
     if (!isMounted.current) {
       fetchTotalCount({
         is_private: false,
-        sort: "-created_at",
       });
       isMounted.current = true;
     }

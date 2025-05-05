@@ -1,3 +1,5 @@
+import { isNil } from "lodash";
+
 import { ContinuousForecastInputType } from "@/types/charts";
 import {
   PostWithForecasts,
@@ -14,8 +16,6 @@ import {
 } from "@/types/question";
 import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
 import { computeQuartilesFromCDF } from "@/utils/math";
-
-import { isOpenPredictedQuestion } from "../questions/helpers";
 
 export function isAllQuantileComponentsDirty(
   components: DistributionQuantileComponent
@@ -95,29 +95,40 @@ export const isQuantileForecast = (
 
 export const isPostOpenQuestionPredicted = (
   post: PostWithForecasts | PredictionFlowPost,
-  checkAllSubquestions?: boolean
+  config?: {
+    checkAllSubquestions?: boolean;
+  }
 ) => {
+  const { checkAllSubquestions = false } = config ?? {};
   if (post.question) {
-    return isOpenPredictedQuestion(post.question);
+    return isOpenQuestionPredicted(post.question);
   }
   if (post.group_of_questions) {
     return checkAllSubquestions
       ? post.group_of_questions.questions.every(
           (question) =>
             question.status !== QuestionStatus.OPEN ||
-            isOpenPredictedQuestion(question)
+            isOpenQuestionPredicted(question)
         )
       : post.group_of_questions.questions.some((question) =>
-          isOpenPredictedQuestion(question)
+          isOpenQuestionPredicted(question)
         );
   }
   if (post.conditional) {
     const { question_no, question_yes } = post.conditional;
     return checkAllSubquestions
-      ? isOpenPredictedQuestion(question_no) &&
-          isOpenPredictedQuestion(question_yes)
-      : isOpenPredictedQuestion(question_no) ||
-          isOpenPredictedQuestion(question_yes);
+      ? isOpenQuestionPredicted(question_no) &&
+          isOpenQuestionPredicted(question_yes)
+      : isOpenQuestionPredicted(question_no) ||
+          isOpenQuestionPredicted(question_yes);
   }
   return false;
 };
+
+export function isOpenQuestionPredicted(question: Question) {
+  return (
+    question.status === QuestionStatus.OPEN &&
+    (!isNil(question.my_forecasts?.latest) ||
+      !isNil(question.my_forecast?.latest))
+  );
+}

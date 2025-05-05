@@ -5,7 +5,9 @@ import {
   createContext,
   FC,
   PropsWithChildren,
+  useCallback,
   useContext,
+  useMemo,
   useState,
 } from "react";
 
@@ -23,14 +25,20 @@ export enum FlowType {
 
 type PredictionFlowContextType = {
   posts: PredictionFlowPost[];
-  setPosts: (posts: PredictionFlowPost[]) => void;
   currentPostId: number | null;
   flowType?: FlowType;
-  setCurrentPostId: (postId: number | null) => void;
   isPending: boolean;
   setIsPending: (isPending: boolean) => void;
   isMenuOpen: boolean;
   setIsMenuOpen: (isMenuOpen: boolean) => void;
+  postsLeft: number;
+  changeActivePost: (
+    postId: number | null,
+    shouldCheckPredictedQuestions?: boolean
+  ) => void;
+  handlePostPredictionSubmit: (
+    currentPost: PredictionFlowPost | undefined
+  ) => void;
 };
 
 export const PredictionFlowContext =
@@ -48,7 +56,9 @@ const PredictionFlowProvider: FC<
   const [posts, setPosts] = useState<PredictionFlowPost[]>(
     flowTypePosts.map((post) => ({
       ...post,
-      isDone: isNil(flowType) ? isPostOpenQuestionPredicted(post) : false,
+      // for all tournament questions flow we set this field to true after user saw (skipped) or predicted the question
+      // for require attention flow we set this field to true after user predicted or reaffirmed the prediction
+      isDone: false,
     }))
   );
   const [currentPostId, setCurrentPostId] = useState<number | null>(
@@ -56,19 +66,69 @@ const PredictionFlowProvider: FC<
   );
   const [isPending, setIsPending] = useState<boolean>(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const postsLeft = useMemo(() => {
+    return posts.filter((post) => !post.isDone).length;
+  }, [posts]);
+
+  const changeActivePost = useCallback(
+    (postId: number | null, shouldCheckPredictedQuestions = false) => {
+      if (isNil(flowType)) {
+        setPosts(
+          posts.map((post) => {
+            if (post.id === currentPostId) {
+              // update counter of questions left in ALL tournament questions flow
+              return {
+                ...post,
+                isDone: shouldCheckPredictedQuestions
+                  ? isPostOpenQuestionPredicted(post, {
+                      checkAllSubquestions: true,
+                    })
+                  : true,
+              };
+            }
+            return post;
+          })
+        );
+      }
+      setCurrentPostId(postId);
+    },
+    [currentPostId, flowType, posts]
+  );
+
+  const handlePostPredictionSubmit = useCallback(
+    (currentPost: PredictionFlowPost | undefined) => {
+      if (currentPost) {
+        setPosts(
+          posts.map((prevPost) => {
+            return prevPost?.id === currentPost.id
+              ? {
+                  ...currentPost,
+                  // update counter of questions left and color of the step button
+                  isDone: isPostOpenQuestionPredicted(currentPost, {
+                    checkAllSubquestions: true,
+                  }),
+                }
+              : prevPost;
+          })
+        );
+      }
+    },
+    [posts]
+  );
 
   return (
     <PredictionFlowContext.Provider
       value={{
         posts,
-        setPosts,
         currentPostId,
         flowType,
-        setCurrentPostId,
         isPending,
         setIsPending,
         isMenuOpen,
         setIsMenuOpen,
+        postsLeft,
+        changeActivePost,
+        handlePostPredictionSubmit,
       }}
     >
       {children}

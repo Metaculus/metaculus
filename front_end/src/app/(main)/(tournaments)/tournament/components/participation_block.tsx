@@ -1,6 +1,10 @@
 "use client";
 
-import { faCheckCircle, faClock } from "@fortawesome/free-regular-svg-icons";
+import {
+  faCheckCircle,
+  faClock,
+  IconDefinition,
+} from "@fortawesome/free-regular-svg-icons";
 import {
   faArrowsUpDown,
   faArrowUp,
@@ -38,22 +42,25 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
   const isParticipated = posts.some((post) =>
     isPostOpenQuestionPredicted(post)
   );
-  let unpredictedQuestions: PredictionFlowPost[] = [];
-  let stalePredictions: PredictionFlowPost[] = [];
-  let significantMovementPredictions: PredictionFlowPost[] = [];
-  if (isParticipated) {
-    unpredictedQuestions = posts.filter(
-      (post) => !isPostOpenQuestionPredicted(post)
-    );
-    stalePredictions = posts.filter((post) => isPostStale(post));
-    significantMovementPredictions = posts.filter((post) =>
-      isPostWithSignificantMovement(post)
-    );
-  }
+  const unpredictedPosts: PredictionFlowPost[] = [];
+  const stalePredictionsPosts: PredictionFlowPost[] = [];
+  const significantMovementPosts: PredictionFlowPost[] = [];
+
+  posts.forEach((post) => {
+    if (!isPostOpenQuestionPredicted(post, { checkAllSubquestions: true })) {
+      unpredictedPosts.push(post);
+    }
+    if (isPostStale(post)) {
+      stalePredictionsPosts.push(post);
+    }
+    if (isPostWithSignificantMovement(post)) {
+      significantMovementPosts.push(post);
+    }
+  });
   const isRequireAttention =
-    !!unpredictedQuestions.length ||
-    !!stalePredictions.length ||
-    !!significantMovementPredictions.length;
+    !!unpredictedPosts.length ||
+    !!stalePredictionsPosts.length ||
+    !!significantMovementPosts.length;
 
   return (
     <div className="mx-4 mt-4 rounded-md border border-orange-300 bg-orange-50 px-4 py-3 dark:border-orange-300-dark dark:bg-orange-50-dark sm:px-8 sm:py-7 lg:mx-0">
@@ -70,59 +77,34 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
         <div className="mt-3 sm:mt-4">
           <div className="flex flex-col gap-2 sm:gap-3">
             {/* Unpredicted questions */}
-            {!!unpredictedQuestions.length && (
-              <Link
+            {!!unpredictedPosts.length && (
+              <ParticipationBlockLink
                 href={`/tournament/${tournament.slug}/prediction-flow?flow_type=${FlowType.NOT_PREDICTED}`}
-                className="group relative m-0 flex w-fit items-center text-xs  text-blue-800 no-underline hover:underline hover:decoration-orange-500 dark:text-blue-800-dark sm:text-sm"
-              >
-                <FontAwesomeIcon
-                  icon={faExclamationTriangle}
-                  className="mr-2.5 h-[18px] w-4 text-orange-700 dark:text-orange-700-dark"
-                />
-                {t("questionsNotPredicted", {
-                  count: unpredictedQuestions.length,
+                text={t("questionsNotPredicted", {
+                  count: unpredictedPosts.length,
                 })}
-                <FontAwesomeIcon
-                  icon={faArrowUp}
-                  className="absolute left-full top-0 ml-1 hidden rotate-45 text-blue-800/50 group-hover:block dark:text-blue-800-dark/50"
-                />
-              </Link>
+                icon={faExclamationTriangle}
+              />
             )}
             {/* Significant movement forecasts */}
-            {!!significantMovementPredictions.length && (
-              <Link
+            {!!significantMovementPosts.length && (
+              <ParticipationBlockLink
                 href={`/tournament/${tournament.slug}/prediction-flow?flow_type=${FlowType.MOVEMENT}`}
-                className="group relative m-0 flex w-fit items-center text-xs text-blue-800 no-underline hover:underline hover:decoration-orange-500 dark:text-blue-800-dark sm:text-sm"
-              >
-                <FontAwesomeIcon
-                  icon={faArrowsUpDown}
-                  className="mr-2.5 h-4 w-4 text-orange-700 dark:text-orange-700-dark"
-                />
-                {t("significantMovementForecasts", {
-                  count: significantMovementPredictions.length,
+                text={t("significantMovementForecasts", {
+                  count: significantMovementPosts.length,
                 })}
-                <FontAwesomeIcon
-                  icon={faArrowUp}
-                  className="absolute left-full top-0 ml-1 hidden rotate-45 text-blue-800/50 group-hover:block dark:text-blue-800-dark/50"
-                />
-              </Link>
+                icon={faArrowsUpDown}
+              />
             )}
             {/* Stale predictions */}
-            {!!stalePredictions.length && (
-              <Link
+            {!!stalePredictionsPosts.length && (
+              <ParticipationBlockLink
                 href={`/tournament/${tournament.slug}/prediction-flow?flow_type=${FlowType.STALE}`}
-                className="group relative m-0 flex w-fit items-center text-xs text-blue-800 no-underline hover:underline hover:decoration-orange-500 dark:text-blue-800-dark sm:text-sm"
-              >
-                <FontAwesomeIcon
-                  icon={faClock}
-                  className="mr-2.5 h-4 w-4 text-orange-700 dark:text-orange-700-dark"
-                />
-                {t("stalePredictions", { count: stalePredictions.length })}
-                <FontAwesomeIcon
-                  icon={faArrowUp}
-                  className="absolute left-full top-0 ml-1 hidden rotate-45 text-blue-800/50 group-hover:block dark:text-blue-800-dark/50"
-                />
-              </Link>
+                text={t("stalePredictions", {
+                  count: stalePredictionsPosts.length,
+                })}
+                icon={faClock}
+              />
             )}
           </div>
 
@@ -138,21 +120,54 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
       )}
       {isParticipated && !isRequireAttention && (
         <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:gap-2.5">
-          <p className="m-0 text-xs text-olive-700 dark:text-olive-700-dark sm:text-sm">
-            <FontAwesomeIcon icon={faCheckCircle} className="mr-2.5 h-4 w-4" />
-            {t("allQuestionsForecasted")}
-          </p>
-          <p className="m-0 text-xs text-olive-700 dark:text-olive-700-dark sm:text-sm">
-            <FontAwesomeIcon icon={faCheckCircle} className="mr-2.5 h-4 w-4" />
-            {t("noForecastsWithSignificantMovement")}
-          </p>
-          <p className="m-0 text-xs text-olive-700 dark:text-olive-700-dark sm:text-sm">
-            <FontAwesomeIcon icon={faCheckCircle} className="mr-2.5 h-4 w-4" />
-            {t("predictionsUpToDate")}
-          </p>
+          <StatusMessage text={t("allQuestionsForecasted")} />
+          <StatusMessage text={t("noForecastsWithSignificantMovement")} />
+          <StatusMessage text={t("predictionsUpToDate")} />
         </div>
       )}
     </div>
+  );
+};
+
+type ParticipationBlockLinkProps = {
+  href: string;
+  text: string;
+  icon: IconDefinition;
+};
+
+const ParticipationBlockLink: FC<ParticipationBlockLinkProps> = ({
+  href,
+  text,
+  icon,
+}) => {
+  return (
+    <Link
+      href={href}
+      className="group relative m-0 flex w-fit items-center text-xs text-blue-800 no-underline hover:underline hover:decoration-orange-500 dark:text-blue-800-dark sm:text-sm"
+    >
+      <FontAwesomeIcon
+        icon={icon}
+        className="mr-2.5 h-4 w-4 text-orange-700 dark:text-orange-700-dark"
+      />
+      {text}
+      <FontAwesomeIcon
+        icon={faArrowUp}
+        className="absolute left-full top-0 ml-1 hidden rotate-45 text-blue-800/50 group-hover:block dark:text-blue-800-dark/50"
+      />
+    </Link>
+  );
+};
+
+type StatusMessageProps = {
+  text: string;
+};
+
+const StatusMessage: FC<StatusMessageProps> = ({ text }) => {
+  return (
+    <p className="m-0 text-xs text-olive-700 dark:text-olive-700-dark sm:text-sm">
+      <FontAwesomeIcon icon={faCheckCircle} className="mr-2.5 h-4 w-4" />
+      {text}
+    </p>
   );
 };
 

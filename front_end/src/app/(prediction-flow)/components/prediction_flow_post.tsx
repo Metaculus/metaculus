@@ -10,10 +10,10 @@ import {
 } from "@/app/(main)/questions/actions";
 import ForecastMaker from "@/components/forecast_maker";
 import BackgroundInfo from "@/components/question/background_info";
-import HideCPProvider from "@/components/question/cp_provider";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import HideCPProvider from "@/contexts/cp_context";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
@@ -36,8 +36,14 @@ const PredictionFlowPost: FC<Props> = ({
     null
   );
   const [isLoadingPost, setIsLoadingPost] = useState(false);
-  const { posts, setPosts, currentPostId, setIsPending, isMenuOpen, flowType } =
-    usePredictionFlow();
+  const {
+    posts,
+    currentPostId,
+    setIsPending,
+    isMenuOpen,
+    flowType,
+    handlePostPredictionSubmit,
+  } = usePredictionFlow();
   const shouldShowBanner = !isNil(flowType);
   const currentFlowPost = posts.find((post) => post.id === currentPostId);
   useEffect(() => {
@@ -53,7 +59,7 @@ const PredictionFlowPost: FC<Props> = ({
       setIsLoadingPost(false);
     };
     fetchDetailedPost();
-  }, [currentPostId, setIsLoadingPost]);
+  }, [currentPostId]);
 
   // update chart data with new forecasts
   const onPredictionSubmit = useCallback(async () => {
@@ -66,21 +72,9 @@ const PredictionFlowPost: FC<Props> = ({
     // update prediction flow posts data
     const flowPosts = await fetchTournamentForecastFlowPosts(tournamentSlug);
     const currentPost = flowPosts.find((post) => post.id === currentPostId);
-    setPosts(
-      posts.map((prevPost) => {
-        if (!currentPost) {
-          return prevPost;
-        }
-        return prevPost?.id === currentPostId
-          ? {
-              ...currentPost,
-              isDone: isPostOpenQuestionPredicted(currentPost, true),
-            }
-          : prevPost;
-      })
-    );
+    handlePostPredictionSubmit(currentPost);
     setIsPending(false);
-  }, [currentPostId, setIsPending, posts, setPosts, tournamentSlug]);
+  }, [currentPostId, setIsPending, tournamentSlug, handlePostPredictionSubmit]);
 
   if (isLoadingPost) {
     return (
@@ -159,25 +153,21 @@ const PredictionFlowPost: FC<Props> = ({
 };
 
 const FinalFlowView = ({ tournamentSlug }: { tournamentSlug: string }) => {
-  const { posts, setPosts, setCurrentPostId, flowType } = usePredictionFlow();
+  const { posts, changeActivePost, flowType } = usePredictionFlow();
   const t = useTranslations();
   const skippedQuestions = posts.filter((post) =>
-    isNil(flowType) ? !isPostOpenQuestionPredicted(post) : !post.isDone
+    isNil(flowType)
+      ? !isPostOpenQuestionPredicted(post, {
+          checkAllSubquestions: true,
+        })
+      : !post.isDone
   );
 
   const handleReviewSkippedQuestions = useCallback(() => {
-    if (isNil(flowType)) {
-      setPosts(
-        posts.map((post) => ({
-          ...post,
-          isDone: isPostOpenQuestionPredicted(post),
-        }))
-      );
+    if (!isNil(skippedQuestions[0])) {
+      changeActivePost(skippedQuestions[0].id, true);
     }
-    if (skippedQuestions[0]) {
-      setCurrentPostId(skippedQuestions[0].id);
-    }
-  }, [skippedQuestions, setCurrentPostId, setPosts, flowType, posts]);
+  }, [skippedQuestions, changeActivePost]);
 
   return (
     <div className="mx-4 mb-auto mt-2.5 flex flex-col items-center rounded bg-gray-0 p-4 py-3 dark:bg-gray-0-dark sm:mx-0 sm:mt-6 sm:items-start sm:p-8 sm:py-[26px]">

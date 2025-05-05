@@ -1,7 +1,6 @@
 "use client";
 
 import { isNil } from "lodash";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -15,7 +14,6 @@ type Props = {
 };
 
 const NavigationBlock: FC<Props> = ({ tournament }) => {
-  const router = useRouter();
   const t = useTranslations();
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
@@ -28,8 +26,12 @@ const NavigationBlock: FC<Props> = ({ tournament }) => {
             if (isNil(user)) {
               setCurrentModal({ type: "signin" });
             }
-            router.push(`/tournament/${tournament.slug}/prediction-flow`);
           }}
+          href={
+            !isNil(user)
+              ? `/tournament/${tournament.slug}/prediction-flow`
+              : undefined
+          }
           className="w-full flex-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg"
         >
           {t("predictionFlow")}

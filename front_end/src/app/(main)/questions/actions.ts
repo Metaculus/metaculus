@@ -143,7 +143,6 @@ export async function createForecasts(
     await QuestionsApi.createForecasts(forecasts);
     if (revalidate) {
       revalidatePath(`/questions/${postId}`);
-      revalidatePath(`/tournament/respiratory-outlook-24-25/prediction-flow/`);
     }
   } catch (err) {
     return {
