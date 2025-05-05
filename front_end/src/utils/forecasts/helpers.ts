@@ -125,7 +125,7 @@ export const isPostOpenQuestionPredicted = (
   return false;
 };
 
-export function isOpenQuestionPredicted(question: Question) {
+function isOpenQuestionPredicted(question: Question) {
   return (
     question.status === QuestionStatus.OPEN &&
     (!isNil(question.my_forecasts?.latest) ||

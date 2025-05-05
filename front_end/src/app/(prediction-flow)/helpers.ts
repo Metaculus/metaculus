@@ -32,28 +32,18 @@ export function isPostStale(post: PredictionFlowPost) {
 }
 
 export function isPostWithSignificantMovement(post: PredictionFlowPost) {
-  // CP chang is more than 20% of question range
-  const MOVEMENT_THRESHOLD = 0.2;
   if (!isNil(post.question?.my_forecast)) {
-    return (
-      !isNil(post.question.my_forecast.movement) &&
-      post.question.my_forecast.movement > MOVEMENT_THRESHOLD
-    );
+    return !isNil(post.question.my_forecast.movement);
   }
   if (!isNil(post.group_of_questions)) {
     return post.group_of_questions.questions.some(
-      (question) =>
-        !isNil(question.my_forecast?.movement) &&
-        question.my_forecast.movement > MOVEMENT_THRESHOLD
+      (question) => !isNil(question.my_forecast?.movement)
     );
   }
   if (!isNil(post.conditional)) {
     return (
-      (!isNil(post.conditional.question_no.my_forecast?.movement) &&
-        post.conditional.question_no.my_forecast.movement >
-          MOVEMENT_THRESHOLD) ||
-      (!isNil(post.conditional.question_yes.my_forecast?.movement) &&
-        post.conditional.question_yes.my_forecast.movement > MOVEMENT_THRESHOLD)
+      !isNil(post.conditional.question_no.my_forecast?.movement) ||
+      !isNil(post.conditional.question_yes.my_forecast?.movement)
     );
   }
   return false;
