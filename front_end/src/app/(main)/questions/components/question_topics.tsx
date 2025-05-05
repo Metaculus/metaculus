@@ -170,6 +170,17 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               />
               <TopicItem
                 isActive={false}
+                emoji="💎"
+                text="Metaculus Cup"
+                href="/cup"
+                onClick={() =>
+                  sendAnalyticsEvent("sidebarClick", {
+                    event_category: "Metaculus Cup",
+                  })
+                }
+              />
+              <TopicItem
+                isActive={false}
                 emoji="🤖"
                 text="Q2 AI Benchmarking"
                 href="/aib"
