@@ -269,7 +269,7 @@ class PostQuerySet(models.QuerySet):
 
         # Exclude posts user doesn't have access to
         qs = qs.filter(
-            Q(author_id=user_id)
+            Q(Q(author_id=user_id) & ~Q(curation_status=Post.CurationStatus.DELETED))
             # Admins are allowed to see all posts
             | Q(_user_permission=ObjectPermission.ADMIN)
             # Curators have more strict permissions
