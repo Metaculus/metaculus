@@ -67,6 +67,9 @@ def get_posts_feed(
     if ids:
         qs = qs.filter(id__in=ids)
 
+    # Exclude Deleted posts
+    qs = qs.exclude(curation_status=Post.CurationStatus.DELETED)
+
     # Filter by permission level
     qs = qs.filter_permission(user=user)
 
