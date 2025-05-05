@@ -1,11 +1,8 @@
 import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { FC } from "react";
+
 import { CupVideo } from "./components/CupVideo";
 
 export default function MetaculusCupPage() {
-  const t = useTranslations();
-
   return (
     <main
       className="min-h-screen scroll-smooth pb-4 pt-6 md:pb-16 md:pt-12"
