@@ -9,9 +9,10 @@ from utils.typing import (
     Weights,
     Percentiles,
 )
+from django.db.models import TextChoices
 
 if TYPE_CHECKING:
-    from questions.models import Question
+    from questions.models import Question, Forecast, AggregateForecast
 
 
 def weighted_percentile_2d(
@@ -115,17 +116,16 @@ def prediction_difference_for_display(
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
     if question.type == "binary":
-        # single-item list of (abs pred diff, ratio of odds)
+        # single-item list of (pred diff, ratio of odds)
         return [(p2[1] - p1[1], (p2[1] / (1 - p2[1])) / (p1[1] / (1 - p1[1])))]
     elif question.type == "multiple_choice":
-        # list of (abs pred diff, ratio of odds)
+        # list of (pred diff, ratio of odds)
         return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
     # total earth mover's distance, assymmetric earth mover's distance
     x_locations = unscaled_location_to_scaled_location(
         np.linspace(0, 1, len(p1)), question
     )
-    # TODO: Discuss this with Luke, looks like it should be np.array(p2) - np.array(p1) instead!
-    diffs = np.array(p1) - np.array(p2)
+    diffs = np.array(p2) - np.array(p1)
     total = float(np.trapz(np.abs(diffs), x=x_locations))
     asymmetric = float(-np.trapz(diffs, x=x_locations))
     return [
@@ -134,6 +134,85 @@ def prediction_difference_for_display(
             asymmetric if not np.isnan(asymmetric) else None,
         )
     ]
+
+
+class Direction(TextChoices):
+    UNCHANGED = "unchanged"
+    UP = "up"
+    DOWN = "down"
+    EXPANDED = "expanded"
+    CONTRACTED = "contracted"
+    CHANGED = "changed"  # failsafe
+
+
+def get_difference_display(
+    f1: "Forecast | AggregateForecast",
+    f2: "Forecast | AggregateForecast",
+    question: "Question",
+) -> list[tuple[Direction, float]]:
+    p1 = f1.get_prediction_values()
+    p2 = f2.get_prediction_values()
+    differences = prediction_difference_for_display(p1, p2, question)
+    if len(differences) == 0:
+        return []
+    if question.type == "binary":
+        pred_diff, _ = differences[0]
+        direction = (
+            Direction.UNCHANGED
+            if pred_diff == 0
+            else (Direction.UP if pred_diff > 0 else Direction.DOWN)
+        )
+        magnitude = abs(pred_diff)
+        return [(direction, magnitude)]
+    if question.type == "multiple_choice":
+        result = []
+        for pred_diff, _ in differences:
+            direction = (
+                Direction.UNCHANGED
+                if pred_diff == 0
+                else (Direction.UP if pred_diff > 0 else Direction.DOWN)
+            )
+            magnitude = abs(pred_diff)
+            result.append((direction, magnitude))
+        return result
+    # continuous
+    earth_movers_distance, assymetry = differences[0]
+    symmetry = earth_movers_distance - abs(assymetry)
+    if earth_movers_distance == 0:
+        return [(Direction.UNCHANGED, 0)]
+    if abs(assymetry) > symmetry:
+        # gone up / down
+        direction = Direction.UP if assymetry > 0 else Direction.DOWN
+        magnitude = abs(assymetry)
+        return [(direction, magnitude)]
+    # expanded / contracted
+    f1_q1 = (getattr(f1, "interval_lower_bounds", None) or [None])[0]
+    f1_q3 = (getattr(f1, "interval_upper_bounds", None) or [None])[0]
+    if f1_q1 is None or f1_q3 is None:
+        f1_q1, _, f1_q3 = percent_point_function(p1, [25.0, 50.0, 75.0])
+    f1_q1_scaled = unscaled_location_to_scaled_location(f1_q1, question)
+    f1_q3_scaled = unscaled_location_to_scaled_location(f1_q3, question)
+
+    f2_q1 = (getattr(f2, "interval_lower_bounds", None) or [None])[0]
+    f2_q3 = (getattr(f2, "interval_upper_bounds", None) or [None])[0]
+    if f2_q1 is None or f2_q3 is None:
+        f2_q1, _, f2_q3 = percent_point_function(p1, [25.0, 50.0, 75.0])
+
+    f2_q1_scaled = unscaled_location_to_scaled_location(f2_q1, question)
+    f2_q3_scaled = unscaled_location_to_scaled_location(f2_q3, question)
+    if (
+        f1_q1_scaled is None
+        or f1_q3_scaled is None
+        or f2_q1_scaled is None
+        or f2_q3_scaled is None
+    ):
+        # default to changed
+        return [(Direction.CHANGED, symmetry)]
+    f1_range = f1_q3_scaled - f1_q1_scaled
+    f2_range = f2_q3_scaled - f2_q1_scaled
+    direction = Direction.EXPANDED if f2_range > f1_range else Direction.CONTRACTED
+    magnitude = abs(symmetry)
+    return [(direction, magnitude)]
 
 
 def calculate_max_centers_difference(

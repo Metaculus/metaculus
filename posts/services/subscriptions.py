@@ -30,23 +30,24 @@ from utils.the_math.formulas import (
 )
 from utils.the_math.measures import (
     prediction_difference_for_sorting,
-    prediction_difference_for_display,
+    get_difference_display,
+    Direction,
 )
 
 
 def _get_question_data_for_cp_change_notification(
     question: Question,
     current_entry: AggregateForecast,
-    previous_entry: AggregateForecast,
-    display_diff: list[tuple[float, float]],
+    difference_display: list[tuple[Direction, float]],
     user_forecast: Forecast | None,
 ) -> list[CPChangeData]:
     question_data: list[CPChangeData] = []
     if question.type == "binary":
         data = CPChangeData(question=NotificationQuestionParams.from_question(question))
         data.cp_median = current_entry.centers[1] if current_entry.centers else None
-        data.cp_change_label = "goneUp" if display_diff[0][0] > 0 else "goneDown"
-        data.cp_change_value = abs(display_diff[0][0])
+        direction, magnitude = difference_display[0]
+        data.cp_change_label = direction
+        data.cp_change_value = magnitude
 
         if user_forecast:
             data.user_forecast = user_forecast.probability_yes
@@ -62,8 +63,9 @@ def _get_question_data_for_cp_change_notification(
             data.cp_median = (
                 current_entry.centers[i] if current_entry.centers is not None else None
             )
-            data.cp_change_label = "goneUp" if display_diff[i][0] > 0 else "goneDown"
-            data.cp_change_value = abs(display_diff[i][0])
+            direction, magnitude = difference_display[i]
+            data.cp_change_label = direction
+            data.cp_change_value = magnitude
             data.user_forecast = (
                 user_forecast.probability_yes_per_category[i] if user_forecast else None
             )
@@ -96,49 +98,9 @@ def _get_question_data_for_cp_change_notification(
             if q3 is not None
             else None
         )
-        earth_movers_distance, assymetric = display_diff[0]
-        symmetric = earth_movers_distance - abs(assymetric)
-        if abs(assymetric) > symmetric:
-            # gone up / down
-            data.cp_change_label = "goneUp" if assymetric > 0 else "goneDown"
-            data.cp_change_value = abs(assymetric)
-        else:
-            # expanded / contracted
-            old_q1 = (
-                previous_entry.interval_lower_bounds[0]
-                if previous_entry.interval_lower_bounds
-                else None
-            )
-            old_q1_scaled = (
-                unscaled_location_to_scaled_location(old_q1, question)
-                if old_q1 is not None
-                else None
-            )
-            old_q3 = (
-                previous_entry.interval_upper_bounds[0]
-                if previous_entry.interval_upper_bounds
-                else None
-            )
-            old_q3_scaled = (
-                unscaled_location_to_scaled_location(old_q3, question)
-                if old_q3 is not None
-                else None
-            )
-            if (
-                old_q1_scaled is not None
-                and old_q3_scaled is not None
-                and data.cp_q1 is not None
-                and data.cp_q3 is not None
-            ):
-                old_range = old_q3_scaled - old_q1_scaled
-                new_range = data.cp_q3 - data.cp_q1
-                if new_range > old_range:
-                    data.cp_change_label = "expanded"
-                else:
-                    data.cp_change_label = "contracted"
-            else:
-                data.cp_change_label = "changed"  # Failsafe
-            data.cp_change_value = symmetric
+        direction, magnitude = difference_display[0]
+        data.cp_change_label = direction
+        data.cp_change_value = magnitude
         user_q1, user_median, user_q3 = None, None, None
         if user_forecast:
             user_q1, user_median, user_q3 = get_scaled_quartiles_from_cdf(
@@ -227,13 +189,13 @@ def notify_post_cp_change(post: Post):
                 current_forecast_values,
                 question=question,
             )
-            display_diff = prediction_difference_for_display(
-                old_forecast_values,
-                current_forecast_values,
-                question=question,
-            )
             if max_sorting_diff is None or difference > max_sorting_diff:
                 max_sorting_diff = difference
+            difference_display = get_difference_display(
+                entry,
+                current_entry,
+                question,
+            )
 
             user_pred = question_author_forecasts_map.get(question.pk, {}).get(
                 subscription.user_id
@@ -242,8 +204,7 @@ def notify_post_cp_change(post: Post):
             question_data += _get_question_data_for_cp_change_notification(
                 question,
                 current_entry,
-                entry,
-                display_diff,
+                difference_display,
                 user_pred,
             )
 
