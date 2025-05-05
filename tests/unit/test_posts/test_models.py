@@ -293,6 +293,45 @@ class TestPostPermissions:
         # Post not visible for a random user
         assert not Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
 
+    @freeze_time("2024-07-09")
+    def test_future_publish_queryset(self, user1, user2):
+        user_admin = factory_user()
+        user_curator = factory_user()
+
+        # User2 & User3
+        p1 = factory_post(
+            author=user1,
+            default_project=factory_project(
+                override_permissions={
+                    user_admin.id: ObjectPermission.ADMIN,
+                    user_curator.id: ObjectPermission.CURATOR,
+                },
+            ),
+            curation_status=Post.CurationStatus.APPROVED,
+            published_at=make_aware(datetime(2024, 8, 1))
+        )
+
+        qs = Post.objects.filter(pk=p1.pk)
+
+        # Post exists for creator
+        assert qs.filter_permission(user=user1).exists()
+        # Postponed post should not be visible to anyone except creators and admins/curators
+        assert qs.filter_permission(user=user_admin).exists()
+        assert qs.filter_permission(user=user_curator).exists()
+        # Post is not visible for a random user
+        assert not qs.filter_permission(user=user2).exists()
+
+        # Delete post
+        p1.curation_status = Post.CurationStatus.DELETED
+        p1.save()
+
+        # Post does not exist for creator
+        assert not qs.filter_permission(user=user1).exists()
+        # Post does not exist for curator
+        assert not qs.filter_permission(user=user_curator).exists()
+        # Post is still visible for admin
+        assert qs.filter_permission(user=user_admin).exists()
+
     @pytest.mark.parametrize(
         "user_project_permission,excepted_permission",
         [
