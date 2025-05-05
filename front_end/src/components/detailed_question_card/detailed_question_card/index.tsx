@@ -9,8 +9,8 @@ import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvail
 import DetailedContinuousChartCard from "./continuous_chart_card";
 import DetailsQuestionCardErrorBoundary from "./error_boundary";
 import DetailedMultipleChoiceChartCard from "./multiple_choice_chart_card";
-import { useHideCP } from "../cp_provider";
-import RevealCPButton from "../reveal_cp_button";
+import { useHideCP } from "../../../app/(main)/questions/[id]/components/cp_provider";
+import RevealCPButton from "../../../app/(main)/questions/[id]/components/reveal_cp_button";
 
 type Props = {
   post: QuestionPost<QuestionWithForecasts>;

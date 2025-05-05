@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect, useMemo, useState } from "react";
 
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import {
   createForecasts,
   withdrawForecasts,
@@ -41,7 +42,6 @@ import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import PredictionSuccessBox from "./prediction_success_box";
-import { useHideCP } from "../../cp_provider";
 import ContinuousInput from "../continuous_input";
 import {
   validateAllQuantileInputs,

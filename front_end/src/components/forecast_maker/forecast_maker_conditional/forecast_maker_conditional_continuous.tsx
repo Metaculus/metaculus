@@ -10,11 +10,12 @@ import React, {
   useState,
 } from "react";
 
-import ForecastMakerConditionalResolutionMessage from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_resolution_message";
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
+import ForecastMakerConditionalResolutionMessage from "@/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_resolution_message";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -51,7 +52,6 @@ import {
 import { getTableDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
-import { useHideCP } from "../../cp_provider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";

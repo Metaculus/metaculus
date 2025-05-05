@@ -2,7 +2,7 @@ import { parseISO } from "date-fns";
 import { isNil } from "lodash";
 import { FC } from "react";
 
-import PredictionStatusMessage from "@/app/(main)/questions/[id]/components/forecast_maker/prediction_status_message";
+import PredictionStatusMessage from "@/components/forecast_maker/prediction_status_message";
 import {
   PostStatus,
   PostWithForecasts,

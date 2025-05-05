@@ -3,6 +3,9 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useState } from "react";
 
+import IncludeBotsInfo from "@/app/(main)/questions/[id]/components/sidebar/question_info/include_bots_info";
+import QuestionWeightInfo from "@/app/(main)/questions/[id]/components/sidebar/question_info/question_weight_info";
+import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import {
   unresolveQuestion as unresolveQuestionAction,
   withdrawForecasts,
@@ -22,9 +25,6 @@ import { logError } from "@/utils/core/errors";
 import { canWithdrawForecast } from "@/utils/questions/predictions";
 import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 
-import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
-import IncludeBotsInfo from "../../sidebar/question_info/include_bots_info";
-import QuestionWeightInfo from "../../sidebar/question_info/question_weight_info";
 import QuestionResolutionModal from "../resolution/resolution_modal";
 
 type Props = {

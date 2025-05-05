@@ -13,6 +13,8 @@ import React, {
   useState,
 } from "react";
 
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
+import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import {
   createForecasts,
   withdrawForecasts,
@@ -38,8 +40,6 @@ import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values
 import { canWithdrawForecast } from "@/utils/questions/predictions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
-import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
-import { useHideCP } from "../../cp_provider";
 import {
   BINARY_FORECAST_PRECISION,
   BINARY_MAX_VALUE,

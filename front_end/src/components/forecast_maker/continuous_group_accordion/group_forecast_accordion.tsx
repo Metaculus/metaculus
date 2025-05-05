@@ -1,7 +1,8 @@
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo, useState } from "react";
 
-import ForecastMakerGroupCopyMenu from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_maker_group/forecast_maker_group_copy_menu";
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
+import ForecastMakerGroupCopyMenu from "@/components/forecast_maker/forecast_maker_group/forecast_maker_group_copy_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
@@ -17,7 +18,6 @@ import {
 import { isUnitCompact } from "@/utils/questions/units";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
-import { useHideCP } from "../../cp_provider";
 import ContinuousInputWrapper from "../forecast_maker_group/continuous_input_wrapper";
 
 export type ContinuousGroupOption = {

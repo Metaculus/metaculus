@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect, useState } from "react";
 
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import {
   createForecasts,
   withdrawForecasts,
@@ -20,7 +21,6 @@ import { sendPredictEvent } from "@/utils/analytics";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
 import PredictionSuccessBox from "./prediction_success_box";
-import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";

@@ -6,9 +6,9 @@ import { useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
-import { BINARY_FORECAST_PRECISION } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
+import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
 import Step from "@/components/onboarding/steps/step";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";

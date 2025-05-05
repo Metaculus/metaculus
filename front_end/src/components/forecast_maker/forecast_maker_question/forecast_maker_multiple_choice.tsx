@@ -5,6 +5,7 @@ import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import {
   createForecasts,
   withdrawForecasts,
@@ -25,7 +26,6 @@ import {
 import { ThemeColor } from "@/types/theme";
 import { sendPredictEvent } from "@/utils/analytics";
 
-import { useHideCP } from "../../cp_provider";
 import {
   BINARY_FORECAST_PRECISION,
   BINARY_MAX_VALUE,

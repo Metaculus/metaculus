@@ -3,11 +3,12 @@ import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
-import ForecastMakerConditionalResolutionMessage from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_resolution_message";
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
+import ForecastMakerConditionalResolutionMessage from "@/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_resolution_message";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -19,7 +20,6 @@ import { sendConditionalPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
-import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
   ConditionalTableOption,

@@ -14,6 +14,7 @@ import React, {
   useState,
 } from "react";
 
+import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import {
   createForecasts,
   withdrawForecasts,
@@ -57,7 +58,6 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import { canWithdrawForecast } from "@/utils/questions/predictions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
-import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import GroupForecastAccordion, {
   ContinuousGroupOption,
 } from "../continuous_group_accordion/group_forecast_accordion";

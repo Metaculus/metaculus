@@ -15,8 +15,8 @@ import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
-import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
-import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
+import DetailsQuestionCardErrorBoundary from "../../../../components/detailed_question_card/detailed_question_card/error_boundary";
+import CursorDetailItem from "../../../../components/detailed_question_card/detailed_question_card/numeric_cursor_item";
 import { getAggregationsPostZipData } from "../actions";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import { AggregationQuestionWithBots } from "../types";
