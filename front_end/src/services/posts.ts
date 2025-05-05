@@ -11,6 +11,7 @@ import {
   PostSubscription,
   PostWithForecasts,
   NotebookPost,
+  PredictionFlowPost,
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import { Require } from "@/types/utils";
@@ -140,6 +141,14 @@ class PostsApi {
         revalidate: 900,
       },
     });
+  }
+
+  static async getTournamentForecastFlowPosts(
+    tournamentSlug: string
+  ): Promise<PredictionFlowPost[]> {
+    return await get(
+      `/projects/tournaments/${tournamentSlug}/forecast-flow-posts/`
+    );
   }
 
   static async createQuestionPost<

@@ -229,6 +229,12 @@ export type Question = {
   open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
+  // used for prediction flow in tournament
+  my_forecast?: {
+    latest: UserForecast;
+    lifetime_elapsed: number;
+    movement: number;
+  };
 };
 
 export type QuestionWithNumericForecasts = Question & {

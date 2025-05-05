@@ -1,7 +1,7 @@
 import { isNil } from "lodash";
 
 import { ContinuousForecastInputType } from "@/types/charts";
-import { PostWithForecasts } from "@/types/post";
+import { PostWithForecasts, PredictionFlowPost } from "@/types/post";
 import {
   DistributionQuantile,
   DistributionQuantileComponent,
@@ -89,20 +89,39 @@ export const isQuantileForecast = (
 ): input is DistributionQuantile =>
   input?.type === ContinuousForecastInputType.Quantile;
 
-export const isPostPredicted = (post: PostWithForecasts) => {
+export const isPostPredicted = (
+  post: PostWithForecasts | PredictionFlowPost,
+  checkAllSubquestions?: boolean
+) => {
   if (post.question) {
-    return !isNil(post.question.my_forecasts?.latest);
+    return (
+      !isNil(post.question.my_forecasts?.latest) ||
+      !isNil(post.question.my_forecast?.latest)
+    );
   }
   if (post.group_of_questions) {
-    return post.group_of_questions.questions.some(
-      (question) => !isNil(question.my_forecasts?.latest)
-    );
+    return checkAllSubquestions
+      ? post.group_of_questions.questions.every(
+          (question) =>
+            !isNil(question.my_forecasts?.latest) ||
+            !isNil(question.my_forecast?.latest)
+        )
+      : post.group_of_questions.questions.some(
+          (question) =>
+            !isNil(question.my_forecasts?.latest) ||
+            !isNil(question.my_forecast?.latest)
+        );
   }
   if (post.conditional) {
-    return (
-      !isNil(post.conditional.question_no.my_forecasts?.latest) ||
-      !isNil(post.conditional.question_yes.my_forecasts?.latest)
-    );
+    return checkAllSubquestions
+      ? (!isNil(post.conditional.question_no.my_forecasts?.latest) ||
+          !isNil(post.conditional.question_no.my_forecast?.latest)) &&
+          (!isNil(post.conditional.question_yes.my_forecasts?.latest) ||
+            !isNil(post.conditional.question_yes.my_forecast?.latest))
+      : !isNil(post.conditional.question_no.my_forecasts?.latest) ||
+          !isNil(post.conditional.question_no.my_forecast?.latest) ||
+          !isNil(post.conditional.question_yes.my_forecasts?.latest) ||
+          !isNil(post.conditional.question_yes.my_forecast?.latest);
   }
   return false;
 };

@@ -4,7 +4,10 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
-import { fetchPosts, getPost } from "@/app/(main)/questions/actions";
+import {
+  fetchTournamentForecastFlowPosts,
+  getPost,
+} from "@/app/(main)/questions/actions";
 import ForecastMaker from "@/components/forecast_maker";
 import BackgroundInfo from "@/components/question/background_info";
 import HideCPProvider from "@/components/question/cp_provider";
@@ -18,21 +21,25 @@ import { isPostPredicted } from "@/utils/forecasts/helpers";
 import PredictionFlowCommentsSection from "./prediction_flow_comments";
 import { usePredictionFlow } from "./prediction_flow_provider";
 import PredictionFlowQuestionCard from "./prediction_flow_question_card";
+import RequireAttentionBanner from "./require_attention_banner";
 
 type Props = {
   tournamentSlug: string;
+  isAlreadyParticipated: boolean;
 };
 
-const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
+const PredictionFlowPost: FC<Props> = ({
+  tournamentSlug,
+  isAlreadyParticipated,
+}) => {
   const [detailedPost, setDetailedPost] = useState<PostWithForecasts | null>(
     null
   );
   const [isLoadingPost, setIsLoadingPost] = useState(false);
-  // TODO: adjust condition
-  const shouldShowBanner = true;
   const { posts, setPosts, currentPostId, setIsPending, isMenuOpen, flowType } =
     usePredictionFlow();
-
+  const shouldShowBanner = !isNil(flowType);
+  const currentFlowPost = posts.find((post) => post.id === currentPostId);
   useEffect(() => {
     const fetchDetailedPost = async () => {
       setIsLoadingPost(true);
@@ -57,20 +64,20 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
     const post = await getPost(currentPostId);
     setDetailedPost(post);
     // update prediction flow posts data
-    // TODO: replace with new endpoint to fetch data for prediction flow
-    const { questions } = await fetchPosts({ ids: [currentPostId] }, 0, 1);
+    const flowPosts = await fetchTournamentForecastFlowPosts(tournamentSlug);
+    const currentPost = flowPosts.find((post) => post.id === currentPostId);
     setPosts(
       posts.map((prevPost) => {
-        if (!questions[0]) {
+        if (!currentPost) {
           return prevPost;
         }
         return prevPost?.id === currentPostId
-          ? { ...questions[0], isDone: true } // TODO: check for withdrawal
+          ? { ...currentPost, isDone: isPostPredicted(currentPost, true) }
           : prevPost;
       })
     );
     setIsPending(false);
-  }, [currentPostId, setIsPending, posts, setPosts]);
+  }, [currentPostId, setIsPending, posts, setPosts, tournamentSlug]);
 
   if (isLoadingPost) {
     return (
@@ -91,11 +98,11 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
     return <FinalFlowView tournamentSlug={tournamentSlug} />;
   }
 
-  if (isNil(detailedPost)) {
+  if (isNil(detailedPost) || isNil(currentFlowPost)) {
     return null;
   }
-  // TODO: adjust to check participation status
-  const forceHideCP = isNil(flowType);
+
+  const forceHideCP = isNil(flowType) && !isAlreadyParticipated;
   return (
     <HideCPProvider post={detailedPost} forceHideCP={forceHideCP}>
       <div
@@ -104,10 +111,7 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
         })}
       >
         {shouldShowBanner && (
-          <RequireAttentionBanner
-            bannerText="Community prediction increased by 25 percentage points since your
-            last forecast."
-          />
+          <RequireAttentionBanner detailedPost={currentFlowPost} />
         )}
         <div
           className={cn(
@@ -136,6 +140,7 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
                 className="my-0 gap-2"
               />
               <BackgroundInfo post={detailedPost} defaultOpen={false} />
+
               <CommentsFeedProvider
                 postData={detailedPost}
                 rootCommentStructure={true}
@@ -147,14 +152,6 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
         </div>
       </div>
     </HideCPProvider>
-  );
-};
-
-const RequireAttentionBanner = ({ bannerText }: { bannerText: string }) => {
-  return (
-    <div className="rounded-t border-b border-blue-400 bg-orange-50 px-4 py-3 text-center text-xs font-medium leading-4 text-orange-900 dark:border-blue-400-dark dark:bg-orange-50-dark dark:text-orange-900-dark">
-      {bannerText}
-    </div>
   );
 };
 

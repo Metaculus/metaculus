@@ -59,6 +59,12 @@ export async function fetchPosts(
   return { questions: response.results, count: response.count };
 }
 
+export async function fetchTournamentForecastFlowPosts(tournamentSlug: string) {
+  const response =
+    await PostsApi.getTournamentForecastFlowPosts(tournamentSlug);
+  return response.sort((a, b) => a.id - b.id); // TODO: remove sorting after BE will be updated
+}
+
 export async function fetchRandomPostId() {
   return await PostsApi.getRandomPostId();
 }

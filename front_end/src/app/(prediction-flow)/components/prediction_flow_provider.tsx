@@ -9,8 +9,10 @@ import {
   useState,
 } from "react";
 
-import { PostWithForecasts } from "@/types/post";
+import { PredictionFlowPost } from "@/types/post";
 import { isPostPredicted } from "@/utils/forecasts/helpers";
+
+import { isPostWithSignificantMovement, isPostStale } from "../helpers";
 
 export enum FlowType {
   GENERAL = "general",
@@ -18,9 +20,6 @@ export enum FlowType {
   MOVEMENT = "movement",
   STALE = "stale",
 }
-type PredictionFlowPost = PostWithForecasts & {
-  isDone?: boolean;
-};
 
 type PredictionFlowContextType = {
   posts: PredictionFlowPost[];
@@ -38,21 +37,22 @@ export const PredictionFlowContext =
   createContext<PredictionFlowContextType | null>(null);
 
 type PredictionFlowProviderProps = {
-  initialPosts: PostWithForecasts[];
+  initialPosts: PredictionFlowPost[];
   flowType?: FlowType;
 };
 
 const PredictionFlowProvider: FC<
   PropsWithChildren<PredictionFlowProviderProps>
 > = ({ children, initialPosts, flowType }) => {
+  const flowTypePosts = getFlowTypePosts(initialPosts, flowType);
   const [posts, setPosts] = useState<PredictionFlowPost[]>(
-    initialPosts.map((post) => ({
+    flowTypePosts.map((post) => ({
       ...post,
       isDone: isNil(flowType) ? isPostPredicted(post) : false,
     }))
   );
   const [currentPostId, setCurrentPostId] = useState<number | null>(
-    initialPosts[0]?.id ?? null
+    flowTypePosts[0]?.id ?? null
   );
   const [isPending, setIsPending] = useState<boolean>(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -86,5 +86,28 @@ export const usePredictionFlow = () => {
 
   return context;
 };
+
+function getFlowTypePosts(
+  posts: PredictionFlowPost[],
+  flowType?: FlowType
+): PredictionFlowPost[] {
+  switch (flowType) {
+    case FlowType.GENERAL:
+      return posts.filter(
+        (post) =>
+          !isPostPredicted(post) ||
+          isPostStale(post) ||
+          isPostWithSignificantMovement(post)
+      );
+    case FlowType.NOT_PREDICTED:
+      return posts.filter((post) => !isPostPredicted(post));
+    case FlowType.MOVEMENT:
+      return posts.filter((post) => isPostWithSignificantMovement(post));
+    case FlowType.STALE:
+      return posts.filter((post) => isPostStale(post));
+    default:
+      return posts;
+  }
+}
 
 export default PredictionFlowProvider;

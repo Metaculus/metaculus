@@ -10,19 +10,19 @@ import { PostWithForecasts } from "@/types/post";
 type Props = { postData: PostWithForecasts };
 
 const PredictionFlowCommentsSection: FC<Props> = ({ postData }) => {
-  const { totalCount, fetchComments } = useCommentsFeed();
+  const { totalCount, fetchTotalCount } = useCommentsFeed();
   const t = useTranslations();
   const isMounted = useRef(false);
   // fetch initial comments to display total count
   useEffect(() => {
     if (!isMounted.current) {
-      isMounted.current = true;
-      fetchComments(true, {
+      fetchTotalCount({
         is_private: false,
         sort: "-created_at",
       });
+      isMounted.current = true;
     }
-  }, [fetchComments]);
+  }, [fetchTotalCount]);
 
   return (
     <SectionToggle

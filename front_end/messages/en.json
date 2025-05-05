@@ -1228,5 +1228,11 @@
   "keepPredicting": "Keep predicting",
   "exit": "Exit",
   "youCanComeBackAnytime": "You can come back any time to continue where you left off.",
-  "thereAreQuestionsThatRequireAttention": "There {count, plural, =1 {is <bold># question</bold>} other {are <bold># questions</bold>}} that {count, plural, =1 {requires} other {require}} your attention."
+  "thereAreQuestionsThatRequireAttention": "There {count, plural, =1 {is <bold># question</bold>} other {are <bold># questions</bold>}} that {count, plural, =1 {requires} other {require}} your attention.",
+  "unpredictedQuestion": "There is still an unpredicted question left.",
+  "staleQuestions": "{count}% of the question’s lifetime elapsed since your forecast.",
+  "significantMovementBannerText": "There was a significant movement in the question prediction since your forecast.",
+  "detailedSignificantMovementBannerText": "Community prediction {increased} by {movement}{unit} since your last forecast.",
+  "increased": "increased",
+  "decreased": "decreased"
 }
