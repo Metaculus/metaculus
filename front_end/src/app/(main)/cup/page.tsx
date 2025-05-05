@@ -20,10 +20,10 @@ export default function MetaculusCupPage() {
         <div className="absolute left-1/2 top-1/2 mt-[10px] w-full -translate-x-1/2 -translate-y-1/2 text-center text-[clamp(32px,10vw,90px)] font-semibold text-white">
           Metaculus Cup
           <div className="mx-auto mt-2 flex flex-row items-center justify-center gap-2 text-center font-light text-white/80 sm:mt-1 sm:gap-4 md:mt-0">
-            <span className="rounded-lg bg-black/20 px-1.5 py-1 text-xs backdrop-blur sm:px-2 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base">
+            <span className="rounded-lg bg-black/20 px-1.5 py-1 text-sm backdrop-blur sm:px-2 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base">
               May 5th to Aug 1st
             </span>
-            <span className="rounded-lg bg-black/20 px-1.5 py-1 text-xs backdrop-blur sm:px-2 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base">
+            <span className="rounded-lg bg-black/20 px-1.5 py-1 text-sm backdrop-blur sm:px-2 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base">
               Prize Pool:{" "}
               <span className="font-bold text-[#6fff8f]">$5,000</span>
             </span>
@@ -31,7 +31,7 @@ export default function MetaculusCupPage() {
         </div>
       </div>
       <div className="mx-auto w-full max-w-3xl px-4">
-        <div className="mx-auto mx-auto mt-[10px] flex w-full self-center text-balance rounded-2xl bg-black/20 p-4 py-5 text-center text-xs font-light leading-relaxed text-blue-200 sm:text-lg md:-mt-[32px] md:p-8 md:py-12 md:py-8 md:text-lg">
+        <div className="mx-auto mx-auto mt-[10px] flex w-full self-center text-balance rounded-xl bg-black/20 p-4 py-5 text-center text-sm font-light leading-relaxed text-blue-200 sm:text-lg md:-mt-[32px] md:p-8 md:py-12 md:py-8 md:text-lg">
           Join us and make quick predictions on topical questions. Each week, a
           few new questions will be available to forecast on. All questions will
           resolve by the end of the quarter and questions will resolve
@@ -42,24 +42,24 @@ export default function MetaculusCupPage() {
         <div className="mt-2 flex w-full flex-col gap-2 text-sm sm:flex-row md:mt-4 md:gap-4 md:text-base">
           <Link
             href="#basics"
-            className="flex w-full items-center justify-center rounded-lg bg-black/50 py-4 text-center text-white no-underline transition-all duration-200 hover:scale-105 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="flex w-full items-center justify-center rounded-xl bg-black/50 py-4 text-center text-white no-underline transition-all duration-200 hover:scale-105 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             Learn More
           </Link>
           <Link
             href="/tournament/metaculus-cup/#questions"
-            className="flex w-full items-center justify-center rounded-lg bg-black/50 py-4 text-center text-white no-underline transition-all duration-200 hover:scale-105 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="flex w-full items-center justify-center rounded-xl bg-black/50 py-4 text-center text-white no-underline transition-all duration-200 hover:scale-105 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             View Questions
           </Link>
         </div>
       </div>
-      <div className="mx-auto mt-8 flex w-full max-w-3xl flex-col space-y-8 px-4">
+      <div className="mx-auto mt-8 flex w-full max-w-3xl flex-col space-y-4 px-4 md:space-y-8">
         <div
           id="basics"
-          className="mx-auto mx-auto flex w-full flex-col gap-4 self-center rounded-2xl bg-black/20 p-4 py-5 text-left text-xs font-light leading-relaxed text-blue-200 sm:text-sm md:p-8 md:py-12 md:py-8 md:text-sm"
+          className="mx-auto mx-auto flex w-full flex-col gap-4 self-center rounded-xl bg-black/20 p-4 py-5 text-left text-sm font-light leading-relaxed text-blue-200 sm:text-sm md:p-8 md:py-12 md:py-8 md:text-sm"
         >
-          <div className="mb-2 text-xl font-semibold md:text-2xl">
+          <div className="text-xl font-semibold md:text-2xl">
             Forecasting Basics
           </div>
           <div className="mx-auto flex w-full flex-col space-y-4 text-left text-blue-400">
@@ -112,7 +112,7 @@ export default function MetaculusCupPage() {
             </div>
           </div>
         </div>
-        <div className="mx-auto mx-auto flex w-full flex-col gap-4 self-center text-balance rounded-2xl bg-black/20 p-4 py-5 text-center text-xs font-light leading-relaxed text-blue-200 sm:text-lg md:p-8 md:py-12 md:py-8 md:text-lg">
+        <div className="mx-auto mx-auto flex w-full flex-col gap-4 self-center text-balance rounded-xl bg-black/20 p-4 py-5 text-center text-sm font-light leading-relaxed text-blue-200 sm:text-lg md:p-8 md:py-12 md:py-8 md:text-lg">
           <div className="mb-2 text-xl font-semibold md:text-2xl">
             How to Participate
           </div>
