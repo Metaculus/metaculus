@@ -2,6 +2,12 @@ import Link from "next/link";
 
 import { CupVideo } from "./components/CupVideo";
 
+export const metadata = {
+  title: "Metaculus Cup",
+  description:
+    "Join the Metaculus Cup and compete for a share of the $5,000 prize pool by predicting topical questions from May 5th to August 1st.",
+};
+
 export default function MetaculusCupPage() {
   return (
     <main
@@ -74,22 +80,22 @@ export default function MetaculusCupPage() {
             </ul>
             <p>Instead of saying:</p>
             <span className="w-fit bg-blue-300/5 px-4 py-2 italic">
-              “There’s a big risk of recession sometime soon.”
+              &quot;There&apos;s a big risk of recession sometime soon.&quot;
             </span>
             <p>
               —a forecaster might specify that{" "}
               <span className="italic">
-                “there’s a 60% chance the US enters a recession in the next 12
-                months.”
+                &quot;there&apos;s a 60% chance the US enters a recession in the
+                next 12 months.&quot;
               </span>{" "}
               Much clearer! We might agree or disagree with them, but now we
-              know how likely they think it is and when they think it’ll happen.
-              If ultimately they’re right, we know it. If they’re wrong, well,
-              at least they were willing to say what they actually believed with
-              clarity and accountability.
+              know how likely they think it is and when they think it&apos;ll
+              happen. If ultimately they&apos;re right, we know it. If
+              they&apos;re wrong, well, at least they were willing to say what
+              they actually believed with clarity and accountability.
             </p>
             <p className="font-semibold">
-              That’s what Metaculus is all about: questions that matter to
+              That&apos;s what Metaculus is all about: questions that matter to
               people, clearly defined, giving you the ability to make forecasts
               and follow up on whether they were accurate.
             </p>
