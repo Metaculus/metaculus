@@ -21,7 +21,7 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { PredictionFlowPost } from "@/types/post";
 import { Tournament } from "@/types/projects";
-import { isPostPredicted } from "@/utils/forecasts/helpers";
+import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 type Props = {
   tournament: Tournament;
@@ -35,12 +35,16 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
   if (isNil(user) || !tournament.forecasts_flow_enabled) {
     return null;
   }
-  const isParticipated = posts.some((post) => isPostPredicted(post));
+  const isParticipated = posts.some((post) =>
+    isPostOpenQuestionPredicted(post)
+  );
   let unpredictedQuestions: PredictionFlowPost[] = [];
   let stalePredictions: PredictionFlowPost[] = [];
   let significantMovementPredictions: PredictionFlowPost[] = [];
   if (isParticipated) {
-    unpredictedQuestions = posts.filter((post) => !isPostPredicted(post));
+    unpredictedQuestions = posts.filter(
+      (post) => !isPostOpenQuestionPredicted(post)
+    );
     stalePredictions = posts.filter((post) => isPostStale(post));
     significantMovementPredictions = posts.filter((post) =>
       isPostWithSignificantMovement(post)
@@ -132,8 +136,6 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
           </Button>
         </div>
       )}
-      {/* TODO: adjust condition to show this block */}
-      {/*isParticipated && !isRequireAttention  */}
       {isParticipated && !isRequireAttention && (
         <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:gap-2.5">
           <p className="m-0 text-xs text-olive-700 dark:text-olive-700-dark sm:text-sm">

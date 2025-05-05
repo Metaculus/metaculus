@@ -64,14 +64,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function TournamentSlug(props: Props) {
   const params = await props.params;
   const tournament = await ProjectsApi.getTournament(params.slug);
-  console.log(tournament);
   invariant(tournament, `Tournament not found: ${params.slug}`);
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const currentUser = await ProfileApi.getMyProfile();
   const predictionFlowPosts = await fetchTournamentForecastFlowPosts(
     params.slug
   );
-  console.log(predictionFlowPosts);
   const t = await getTranslations();
   const locale = await getLocale();
   const isQuestionSeries = tournament.type === TournamentType.QuestionSeries;

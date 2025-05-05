@@ -1,7 +1,9 @@
-import { isNil } from "lodash";
-
 import { ContinuousForecastInputType } from "@/types/charts";
-import { PostWithForecasts, PredictionFlowPost } from "@/types/post";
+import {
+  PostWithForecasts,
+  PredictionFlowPost,
+  QuestionStatus,
+} from "@/types/post";
 import {
   DistributionQuantile,
   DistributionQuantileComponent,
@@ -12,6 +14,8 @@ import {
 } from "@/types/question";
 import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
 import { computeQuartilesFromCDF } from "@/utils/math";
+
+import { isOpenPredictedQuestion } from "../questions/helpers";
 
 export function isAllQuantileComponentsDirty(
   components: DistributionQuantileComponent
@@ -89,39 +93,31 @@ export const isQuantileForecast = (
 ): input is DistributionQuantile =>
   input?.type === ContinuousForecastInputType.Quantile;
 
-export const isPostPredicted = (
+export const isPostOpenQuestionPredicted = (
   post: PostWithForecasts | PredictionFlowPost,
   checkAllSubquestions?: boolean
 ) => {
   if (post.question) {
-    return (
-      !isNil(post.question.my_forecasts?.latest) ||
-      !isNil(post.question.my_forecast?.latest)
-    );
+    return isOpenPredictedQuestion(post.question);
   }
   if (post.group_of_questions) {
     return checkAllSubquestions
       ? post.group_of_questions.questions.every(
           (question) =>
-            !isNil(question.my_forecasts?.latest) ||
-            !isNil(question.my_forecast?.latest)
+            question.status !== QuestionStatus.OPEN ||
+            isOpenPredictedQuestion(question)
         )
-      : post.group_of_questions.questions.some(
-          (question) =>
-            !isNil(question.my_forecasts?.latest) ||
-            !isNil(question.my_forecast?.latest)
+      : post.group_of_questions.questions.some((question) =>
+          isOpenPredictedQuestion(question)
         );
   }
   if (post.conditional) {
+    const { question_no, question_yes } = post.conditional;
     return checkAllSubquestions
-      ? (!isNil(post.conditional.question_no.my_forecasts?.latest) ||
-          !isNil(post.conditional.question_no.my_forecast?.latest)) &&
-          (!isNil(post.conditional.question_yes.my_forecasts?.latest) ||
-            !isNil(post.conditional.question_yes.my_forecast?.latest))
-      : !isNil(post.conditional.question_no.my_forecasts?.latest) ||
-          !isNil(post.conditional.question_no.my_forecast?.latest) ||
-          !isNil(post.conditional.question_yes.my_forecasts?.latest) ||
-          !isNil(post.conditional.question_yes.my_forecast?.latest);
+      ? isOpenPredictedQuestion(question_no) &&
+          isOpenPredictedQuestion(question_yes)
+      : isOpenPredictedQuestion(question_no) ||
+          isOpenPredictedQuestion(question_yes);
   }
   return false;
 };

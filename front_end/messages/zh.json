@@ -1233,5 +1233,15 @@
   "keepPredicting": "继续预测",
   "exit": "退出",
   "youCanComeBackAnytime": "您可以随时回来继续未完成的工作。",
-  "thereAreQuestionsThatRequireAttention": "有 {count, plural, =1 {<bold># 个问题</bold>} other {<bold># 个问题</bold>}} 需要您的注意。"
+  "thereAreQuestionsThatRequireAttention": "有 {count, plural, =1 {<bold># 个问题</bold>} other {<bold># 个问题</bold>}} 需要您的注意。",
+  "predictionFlow": "预测流程",
+  "unpredictedQuestion": "还有一个未预测的问题。",
+  "staleQuestions": "自您预测以来，问题寿命的 {count}% 已经过。",
+  "significantMovementBannerText": "自您的预测以来，问题预测出现了显著变化。",
+  "detailedSignificantMovementBannerText": "自您的上次预测以来，社区预测{direction}了 <bold>{movement}{unit}</bold>。",
+  "increased": "增加",
+  "decreased": "减少",
+  "options": "选项",
+  "cpHiddenByDefault": "在此流程中，社区预测默认情况下被隐藏。",
+  "revealCP": "显示CP"
 }

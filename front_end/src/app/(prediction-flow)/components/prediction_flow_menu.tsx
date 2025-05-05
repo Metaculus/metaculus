@@ -5,10 +5,10 @@ import { FC } from "react";
 import { PredictionFlowPost } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
-import { isPostPredicted } from "@/utils/forecasts/helpers";
+import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 
-import { usePredictionFlow } from "./prediction_flow_provider";
+import { FlowType, usePredictionFlow } from "./prediction_flow_provider";
 import { isPostStale, isPostWithSignificantMovement } from "../helpers";
 
 type Props = {
@@ -25,7 +25,7 @@ const PredictionFlowMenu: FC<Props> = ({ posts }) => {
       {posts.map((post) => {
         const isActive = currentPostId === post.id;
         const attentionChipText = !isNil(flowType)
-          ? getAttentionChipText(post, t)
+          ? getAttentionChipText(post, t, flowType)
           : null;
         return (
           <div
@@ -46,7 +46,7 @@ const PredictionFlowMenu: FC<Props> = ({ posts }) => {
               {post.title}
             </span>
             <div className="flex flex-row gap-2">
-              <span className="flex h-5 min-w-10 items-center justify-center border border-orange-300 bg-orange-100 px-1 py-0.5 text-xs font-bold leading-4 text-orange-800 dark:border-orange-300-dark dark:bg-orange-100-dark dark:text-orange-800-dark">
+              <span className="flex min-w-10 items-center justify-center border border-orange-300 bg-orange-100 px-1 py-0.5 text-xs font-bold leading-4 text-orange-800 dark:border-orange-300-dark dark:bg-orange-100-dark dark:text-orange-800-dark">
                 {getUserPredictionChip(post, t)}
               </span>
               {!isNil(attentionChipText) && (
@@ -66,11 +66,11 @@ function getUserPredictionChip(
   post: PredictionFlowPost,
   t: ReturnType<typeof useTranslations>
 ) {
-  const isPredicted = isPostPredicted(post, true);
+  const isPredicted = isPostOpenQuestionPredicted(post, true);
   if (!isNil(post.question)) {
     if (post.question.type === QuestionType.MultipleChoice) {
       const optionsAmount = post.question.options?.length;
-      return `${isPredicted ? optionsAmount : 0}/${optionsAmount} ${t("subquestions")}`;
+      return `${isPredicted ? optionsAmount : 0}/${optionsAmount} ${t("options")}`;
     }
     const latest = post.question.my_forecast?.latest;
     if (latest && !latest.end_time) {
@@ -111,17 +111,24 @@ function getUserPredictionChip(
 
 function getAttentionChipText(
   post: PredictionFlowPost,
-  t: ReturnType<typeof useTranslations>
+  t: ReturnType<typeof useTranslations>,
+  flowType: FlowType
 ) {
-  const isPredicted = isPostPredicted(post, true);
+  const isPredicted = isPostOpenQuestionPredicted(post, true);
   if (!isPredicted) {
     return t("notForecasted");
   }
-  if (isPostWithSignificantMovement(post)) {
-    return t("significantMovement");
-  }
-  if (isPostStale(post)) {
+  if (flowType === FlowType.STALE) {
     return t("potentialyStale");
+  } else if (flowType === FlowType.MOVEMENT) {
+    return t("significantMovement");
+  } else {
+    if (isPostWithSignificantMovement(post)) {
+      return t("significantMovement");
+    }
+    if (isPostStale(post)) {
+      return t("potentialyStale");
+    }
   }
   return null;
 }

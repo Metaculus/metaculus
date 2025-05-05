@@ -16,7 +16,7 @@ import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
-import { isPostPredicted } from "@/utils/forecasts/helpers";
+import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 import PredictionFlowCommentsSection from "./prediction_flow_comments";
 import { usePredictionFlow } from "./prediction_flow_provider";
@@ -48,7 +48,7 @@ const PredictionFlowPost: FC<Props> = ({
         return;
       }
       const post = await getPost(currentPostId);
-      console.log(post);
+
       setDetailedPost(post);
       setIsLoadingPost(false);
     };
@@ -72,7 +72,10 @@ const PredictionFlowPost: FC<Props> = ({
           return prevPost;
         }
         return prevPost?.id === currentPostId
-          ? { ...currentPost, isDone: isPostPredicted(currentPost, true) }
+          ? {
+              ...currentPost,
+              isDone: isPostOpenQuestionPredicted(currentPost, true),
+            }
           : prevPost;
       })
     );
@@ -159,13 +162,16 @@ const FinalFlowView = ({ tournamentSlug }: { tournamentSlug: string }) => {
   const { posts, setPosts, setCurrentPostId, flowType } = usePredictionFlow();
   const t = useTranslations();
   const skippedQuestions = posts.filter((post) =>
-    isNil(flowType) ? !isPostPredicted(post) : !post.isDone
+    isNil(flowType) ? !isPostOpenQuestionPredicted(post) : !post.isDone
   );
 
   const handleReviewSkippedQuestions = useCallback(() => {
     if (isNil(flowType)) {
       setPosts(
-        posts.map((post) => ({ ...post, isDone: isPostPredicted(post) }))
+        posts.map((post) => ({
+          ...post,
+          isDone: isPostOpenQuestionPredicted(post),
+        }))
       );
     }
     if (skippedQuestions[0]) {
@@ -182,7 +188,7 @@ const FinalFlowView = ({ tournamentSlug }: { tournamentSlug: string }) => {
         })}
       </h2>
       {!!skippedQuestions.length && (
-        <p className="m-0 mt-3 text-sm text-gray-700 dark:text-gray-700-dark sm:mt-5">
+        <p className="m-0 mt-3 text-center text-sm text-gray-700 dark:text-gray-700-dark sm:mt-5 sm:text-left">
           {t("skippedWithoutForecasting", {
             count: skippedQuestions.length,
           })}

@@ -17,7 +17,6 @@ type Props = {
 };
 
 const DetailedQuestionCard: FC<Props> = ({ post }) => {
-  console.log(post);
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
 

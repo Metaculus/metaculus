@@ -32,7 +32,7 @@ const NavigationBlock: FC<Props> = ({ tournament }) => {
           }}
           className="w-full flex-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg"
         >
-          {t("forecastFlow")}
+          {t("predictionFlow")}
         </Button>
       )}
 

@@ -60,9 +60,7 @@ export async function fetchPosts(
 }
 
 export async function fetchTournamentForecastFlowPosts(tournamentSlug: string) {
-  const response =
-    await PostsApi.getTournamentForecastFlowPosts(tournamentSlug);
-  return response.sort((a, b) => a.id - b.id); // TODO: remove sorting after BE will be updated
+  return await PostsApi.getTournamentForecastFlowPosts(tournamentSlug);
 }
 
 export async function fetchRandomPostId() {

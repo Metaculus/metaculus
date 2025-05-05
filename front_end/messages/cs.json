@@ -1231,5 +1231,15 @@
   "keepPredicting": "Pokračujte v předpovídání",
   "exit": "Ukončit",
   "youCanComeBackAnytime": "Můžete se kdykoliv vrátit a pokračovat tam, kde jste skončili.",
-  "thereAreQuestionsThatRequireAttention": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které {count, plural, =1 {vyžaduje} other {vyžadují}} vaši pozornost."
+  "thereAreQuestionsThatRequireAttention": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které {count, plural, =1 {vyžaduje} other {vyžadují}} vaši pozornost.",
+  "predictionFlow": "Průběh předpovědi",
+  "unpredictedQuestion": "Ještě zbývá otázka bez předpovědi.",
+  "staleQuestions": "{count}% doby platnosti otázky uplynulo od vaší předpovědi.",
+  "significantMovementBannerText": "Od vaší předpovědi došlo k významnému pohybu v předpovědi otázky.",
+  "detailedSignificantMovementBannerText": "Komunitní předpověď {direction} o <bold>{movement}{unit}</bold> od vaší poslední předpovědi.",
+  "increased": "zvýšila",
+  "decreased": "snížila",
+  "options": "možnosti",
+  "cpHiddenByDefault": "Komunitní předpověď je v tomto průběhu ve výchozím nastavení skrytá.",
+  "revealCP": "Zobrazit CP"
 }

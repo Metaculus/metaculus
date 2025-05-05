@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ConditionalTile from "@/components/conditional_tile";
@@ -18,17 +19,17 @@ type Props = {
 
 const PredictionFlowQuestionCard: FC<Props> = ({ post }) => {
   const { hideCP, setCurrentHideCP } = useHideCP();
-
+  const t = useTranslations();
   if (hideCP) {
     return (
       <div className="text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:text-left sm:text-sm">
-        <span>Community prediction is hidden by default in this flow. </span>
+        <span>{t("cpHiddenByDefault")}</span>
         <Button
           variant="link"
           className="inline-block text-xs text-blue-700 dark:text-blue-700-dark sm:text-sm"
           onClick={() => setCurrentHideCP(false)}
         >
-          Reveal CP
+          {t("revealCP")}
         </Button>
       </div>
     );

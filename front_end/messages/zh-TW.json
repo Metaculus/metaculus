@@ -1228,5 +1228,15 @@
   "keepPredicting": "繼續預測",
   "exit": "離開",
   "youCanComeBackAnytime": "您可以隨時回來繼續從您離開的地方開始。",
-  "thereAreQuestionsThatRequireAttention": "有 {count, plural, =1 {<bold># 個問題</bold>} other {<bold># 個問題</bold>}} 需要您的注意。"
+  "thereAreQuestionsThatRequireAttention": "有 {count, plural, =1 {<bold># 個問題</bold>} other {<bold># 個問題</bold>}} 需要您的注意。",
+  "predictionFlow": "預測流程",
+  "unpredictedQuestion": "還有一個未預測的問題。",
+  "staleQuestions": "自您預測以來，問題的生命周期已經過了 {count}%。",
+  "significantMovementBannerText": "自您預測以來，問題預測出現了顯著變動。",
+  "detailedSignificantMovementBannerText": "自您上次預測以來，社區預測{direction}了 <bold>{movement}{unit}</bold>。",
+  "increased": "增加",
+  "decreased": "減少",
+  "options": "選項",
+  "cpHiddenByDefault": "在此流程中，社區預測預設被隱藏。",
+  "revealCP": "顯示 CP"
 }

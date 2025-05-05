@@ -1231,5 +1231,15 @@
   "keepPredicting": "Sigue prediciendo",
   "exit": "Salir",
   "youCanComeBackAnytime": "Puedes volver en cualquier momento para continuar donde lo dejaste.",
-  "thereAreQuestionsThatRequireAttention": "Hay {count, plural, =1 {<bold># pregunta</bold>} other {<bold># preguntas</bold>}} que {count, plural, =1 {requiere} other {requieren}} tu atención."
+  "thereAreQuestionsThatRequireAttention": "Hay {count, plural, =1 {<bold># pregunta</bold>} other {<bold># preguntas</bold>}} que {count, plural, =1 {requiere} other {requieren}} tu atención.",
+  "predictionFlow": "Flujo de Predicción",
+  "unpredictedQuestion": "Todavía hay una pregunta sin predecir.",
+  "staleQuestions": "El {count}% de la vida útil de la pregunta ha transcurrido desde tu pronóstico.",
+  "significantMovementBannerText": "Hubo un movimiento significativo en la predicción de la pregunta desde tu pronóstico.",
+  "detailedSignificantMovementBannerText": "La predicción de la comunidad {direction} en <bold>{movement}{unit}</bold> desde tu último pronóstico.",
+  "increased": "aumentó",
+  "decreased": "disminuyó",
+  "options": "opciones",
+  "cpHiddenByDefault": "La predicción de la comunidad está oculta por defecto en este flujo.",
+  "revealCP": "Revelar CP"
 }

@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import { PredictionFlowPost } from "@/types/post";
-import { isPostPredicted } from "@/utils/forecasts/helpers";
+import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 import { isPostWithSignificantMovement, isPostStale } from "../helpers";
 
@@ -48,7 +48,7 @@ const PredictionFlowProvider: FC<
   const [posts, setPosts] = useState<PredictionFlowPost[]>(
     flowTypePosts.map((post) => ({
       ...post,
-      isDone: isNil(flowType) ? isPostPredicted(post) : false,
+      isDone: isNil(flowType) ? isPostOpenQuestionPredicted(post) : false,
     }))
   );
   const [currentPostId, setCurrentPostId] = useState<number | null>(
@@ -95,12 +95,12 @@ function getFlowTypePosts(
     case FlowType.GENERAL:
       return posts.filter(
         (post) =>
-          !isPostPredicted(post) ||
+          !isPostOpenQuestionPredicted(post) ||
           isPostStale(post) ||
           isPostWithSignificantMovement(post)
       );
     case FlowType.NOT_PREDICTED:
-      return posts.filter((post) => !isPostPredicted(post));
+      return posts.filter((post) => !isPostOpenQuestionPredicted(post));
     case FlowType.MOVEMENT:
       return posts.filter((post) => isPostWithSignificantMovement(post));
     case FlowType.STALE:

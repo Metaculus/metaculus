@@ -10,7 +10,7 @@ import ProgressSection from "@/app/(prediction-flow)/components/progress_section
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { isPostPredicted } from "@/utils/forecasts/helpers";
+import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -22,22 +22,21 @@ export default async function PredictionFlow(props: Props) {
   const searchParams = await props.searchParams;
   const flowType = searchParams["flow_type"] as FlowType;
 
-  // Get tournament and user data
   const [tournament, user] = await Promise.all([
     ProjectsApi.getTournament(params.slug),
     ProfileApi.getMyProfile(),
   ]);
 
-  // Check access
-  if (!tournament) return notFound();
+  if (!tournament) {
+    return notFound();
+  }
   if (!user || !tournament.forecasts_flow_enabled) {
     return redirect(`/tournament/${params.slug}`);
   }
 
-  // Get posts data
   const forecastFlowPosts = await fetchTournamentForecastFlowPosts(params.slug);
   const isAlreadyParticipated = forecastFlowPosts.some((post) =>
-    isPostPredicted(post)
+    isPostOpenQuestionPredicted(post)
   );
 
   return (

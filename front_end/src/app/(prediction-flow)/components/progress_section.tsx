@@ -10,7 +10,7 @@ import PostStepButton from "@/app/(prediction-flow)/components/post_step_button"
 import { usePredictionFlow } from "@/app/(prediction-flow)/components/prediction_flow_provider";
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
-import { isPostPredicted } from "@/utils/forecasts/helpers";
+import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 import PredictionFlowMenu from "./prediction_flow_menu";
 
@@ -102,7 +102,7 @@ const ProgressSection: FC = () => {
           >
             {t(
               isNil(flowType) && posts[currentIndex]
-                ? isPostPredicted(posts[currentIndex])
+                ? isPostOpenQuestionPredicted(posts[currentIndex])
                   ? "nextQuestion"
                   : "skipQuestions"
                 : posts[currentIndex]?.isDone

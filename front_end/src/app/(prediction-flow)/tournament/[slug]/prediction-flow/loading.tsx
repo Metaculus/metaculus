@@ -8,6 +8,7 @@ export default async function Loading() {
   const t = await getTranslations();
   return (
     <>
+      {/* Header */}
       <header className="fixed left-0 top-0 z-50 flex h-12 w-full flex-auto flex-nowrap items-center justify-between bg-blue-900 text-gray-0">
         <div className="flex h-full items-center">
           <h1 className="mx-3 my-0 inline-flex h-full max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center text-center font-league-gothic text-[28px] font-light tracking-widest !text-gray-0 no-underline antialiased lg:bg-blue-800 lg:dark:bg-gray-0-dark">

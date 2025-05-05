@@ -3,7 +3,8 @@ import { isNil } from "lodash";
 import { PredictionFlowPost } from "@/types/post";
 
 export function isPostStale(post: PredictionFlowPost) {
-  const STALE_THRESHOLD = 0.02; // TODO: change to 0.2
+  // minimum 20% of the question's lifetime elapsed since the forecast
+  const STALE_THRESHOLD = 0.02;
   if (
     !isNil(post.question?.my_forecast) &&
     !isNil(post.question.my_forecast.lifetime_elapsed)
@@ -31,7 +32,8 @@ export function isPostStale(post: PredictionFlowPost) {
 }
 
 export function isPostWithSignificantMovement(post: PredictionFlowPost) {
-  const MOVEMENT_THRESHOLD = 0.02; // TODO: change to 0.2
+  // CP chang is more than 20% of question range
+  const MOVEMENT_THRESHOLD = 0.2;
   if (!isNil(post.question?.my_forecast)) {
     return (
       !isNil(post.question.my_forecast.movement) &&

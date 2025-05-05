@@ -4,7 +4,7 @@ import { FC } from "react";
 import Button from "@/components/ui/button";
 import { PredictionFlowPost } from "@/types/post";
 import cn from "@/utils/core/cn";
-import { isPostPredicted } from "@/utils/forecasts/helpers";
+import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 import { usePredictionFlow } from "./prediction_flow_provider";
 
@@ -14,7 +14,7 @@ type Props = {
 };
 
 const PostStepButton: FC<Props> = ({ post, className }) => {
-  const isPredicted = isPostPredicted(post, true);
+  const isPredicted = isPostOpenQuestionPredicted(post, true);
   const { posts, setPosts, currentPostId, setCurrentPostId, flowType } =
     usePredictionFlow();
   const isActiveStep = currentPostId === post.id;
@@ -27,7 +27,7 @@ const PostStepButton: FC<Props> = ({ post, className }) => {
         {
           "bg-olive-500 hover:bg-olive-600 dark:bg-olive-500-dark dark:hover:bg-olive-600-dark":
             isNil(flowType) ? isPredicted : post.isDone,
-          "dark:hover-bg-gray-300-dark border-blue-600 bg-blue-200 hover:bg-gray-300 dark:border-blue-600-dark dark:bg-blue-200-dark":
+          "border-blue-600 bg-blue-200 hover:border-blue-600 hover:bg-gray-300 dark:border-blue-600-dark dark:bg-blue-200-dark dark:hover:border-blue-600-dark dark:hover:bg-gray-300-dark":
             isActiveStep,
         },
         className

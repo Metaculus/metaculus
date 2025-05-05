@@ -1115,8 +1115,8 @@
   "selectParentQuestion": "Select Parent Question",
   "selectChildQuestion": "Select Child Question",
   "pickQuestion": "Pick Question",
-  "forecastFlow": "Forecast Flow",
   "viewQuestions": "View Questions<bold>({count})</bold>",
+  "predictionFlow": "Prediction Flow",
   "started": "Started",
   "starts": "Starts",
   "lastDayForPrizeParticipation": "Last day for prize participation",
@@ -1232,7 +1232,10 @@
   "unpredictedQuestion": "There is still an unpredicted question left.",
   "staleQuestions": "{count}% of the question’s lifetime elapsed since your forecast.",
   "significantMovementBannerText": "There was a significant movement in the question prediction since your forecast.",
-  "detailedSignificantMovementBannerText": "Community prediction {increased} by {movement}{unit} since your last forecast.",
+  "detailedSignificantMovementBannerText": "Community prediction {direction} by <bold>{movement}{unit}</bold> since your last forecast.",
   "increased": "increased",
-  "decreased": "decreased"
+  "decreased": "decreased",
+  "options": "options",
+  "cpHiddenByDefault": "Community prediction is hidden by default in this flow.",
+  "revealCP": "Reveal CP"
 }

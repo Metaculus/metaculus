@@ -8,6 +8,7 @@ import {
   PostStatus,
   PostWithForecasts,
   QuestionPost,
+  QuestionStatus,
 } from "@/types/post";
 import {
   Question,
@@ -167,4 +168,12 @@ export function getContinuousGroupScaling(
     scaling.zero_point = null;
   }
   return scaling;
+}
+
+export function isOpenPredictedQuestion(question: Question) {
+  return (
+    question.status === QuestionStatus.OPEN &&
+    (!isNil(question.my_forecasts?.latest) ||
+      !isNil(question.my_forecast?.latest))
+  );
 }
