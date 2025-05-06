@@ -1,8 +1,7 @@
-from typing import TYPE_CHECKING
-
 import numpy as np
 from django.db.models import TextChoices
 
+from questions.models import Question, AggregateForecast
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.typing import (
     ForecastValues,
@@ -10,9 +9,6 @@ from utils.typing import (
     Weights,
     Percentiles,
 )
-
-if TYPE_CHECKING:
-    from questions.models import Question, AggregateForecast
 
 
 def weighted_percentile_2d(
@@ -148,7 +144,7 @@ class Direction(TextChoices):
 def get_difference_display(
     f1: AggregateForecast,
     f2: AggregateForecast,
-    question: "Question",
+    question: Question,
 ) -> list[tuple[Direction, float]]:
     p1 = f1.get_prediction_values()
     p2 = f2.get_prediction_values()
