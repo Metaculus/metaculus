@@ -52,11 +52,9 @@ export default function MetaculusCupPage() {
       <div className="mx-auto w-full max-w-3xl px-4">
         <div className="mx-auto mx-auto mt-[10px] flex w-full self-center text-balance rounded-xl bg-black/20 p-4 py-5 text-center text-sm font-light leading-relaxed text-blue-200 sm:text-lg md:-mt-[32px] md:p-8 md:py-12 md:py-8 md:text-lg">
           Join us and make quick predictions on topical questions. Each week, a
-          few new questions will be available to forecast on. All questions will
-          resolve by the end of the quarter and questions will resolve
-          throughout the quarter. We welcome both new and experienced
-          forecasters to participate. Beginners can learn how Metaculus works
-          while veterans can showcase their expertise.
+          few new questions will be available to forecast on. We welcome both
+          new and experienced forecasters to participate. Beginners can learn
+          how Metaculus works while veterans can showcase their expertise.
         </div>
         <div className="mt-2 flex w-full flex-col gap-2 text-sm sm:flex-row md:mt-4 md:gap-4 md:text-base">
           <Link

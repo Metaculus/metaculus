@@ -13,8 +13,6 @@ export const CupVideo: FC<CupVideoProps> = ({ className = "" }) => {
     const video = videoRef.current;
     if (!video) return;
 
-    video.playbackRate = 1; // Play at half speed
-
     const handleLoadedData = () => {
       setIsVideoLoaded(true);
     };
