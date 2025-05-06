@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+from django.db.models import TextChoices
 
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.typing import (
@@ -9,10 +10,9 @@ from utils.typing import (
     Weights,
     Percentiles,
 )
-from django.db.models import TextChoices
 
 if TYPE_CHECKING:
-    from questions.models import Question, Forecast, AggregateForecast
+    from questions.models import Question, AggregateForecast
 
 
 def weighted_percentile_2d(
@@ -146,68 +146,66 @@ class Direction(TextChoices):
 
 
 def get_difference_display(
-    f1: "Forecast | AggregateForecast",
-    f2: "Forecast | AggregateForecast",
+    f1: AggregateForecast,
+    f2: AggregateForecast,
     question: "Question",
 ) -> list[tuple[Direction, float]]:
     p1 = f1.get_prediction_values()
     p2 = f2.get_prediction_values()
     differences = prediction_difference_for_display(p1, p2, question)
-    if len(differences) == 0:
+    if not differences:
         return []
-    if question.type == "binary":
-        pred_diff, _ = differences[0]
-        direction = (
-            Direction.UNCHANGED
-            if pred_diff == 0
-            else (Direction.UP if pred_diff > 0 else Direction.DOWN)
-        )
-        magnitude = abs(pred_diff)
-        return [(direction, magnitude)]
-    if question.type == "multiple_choice":
-        result = []
-        for pred_diff, _ in differences:
-            direction = (
-                Direction.UNCHANGED
-                if pred_diff == 0
-                else (Direction.UP if pred_diff > 0 else Direction.DOWN)
-            )
-            magnitude = abs(pred_diff)
-            result.append((direction, magnitude))
-        return result
-    # continuous
-    earth_movers_distance, assymetry = differences[0]
-    symmetry = earth_movers_distance - abs(assymetry)
-    if earth_movers_distance == 0:
-        return [(Direction.UNCHANGED, 0)]
-    if abs(assymetry) > symmetry:
-        # gone up / down
-        direction = Direction.UP if assymetry > 0 else Direction.DOWN
-        magnitude = abs(assymetry)
-        return [(direction, magnitude)]
-    # expanded / contracted
-    f1_q1 = (getattr(f1, "interval_lower_bounds", None) or [None])[0]
-    f1_q3 = (getattr(f1, "interval_upper_bounds", None) or [None])[0]
-    if f1_q1 is None or f1_q3 is None:
-        f1_q1, _, f1_q3 = percent_point_function(p1, [25.0, 50.0, 75.0])
-    f1_q1_scaled = unscaled_location_to_scaled_location(f1_q1, question)
-    f1_q3_scaled = unscaled_location_to_scaled_location(f1_q3, question)
 
-    f2_q1 = (getattr(f2, "interval_lower_bounds", None) or [None])[0]
-    f2_q3 = (getattr(f2, "interval_upper_bounds", None) or [None])[0]
-    if f2_q1 is None or f2_q3 is None:
-        f2_q1, _, f2_q3 = percent_point_function(p1, [25.0, 50.0, 75.0])
+    def to_direction_and_magnitude(diff: float) -> tuple[Direction, float]:
+        if diff == 0:
+            return Direction.UNCHANGED, 0.0
 
-    f2_q1_scaled = unscaled_location_to_scaled_location(f2_q1, question)
-    f2_q3_scaled = unscaled_location_to_scaled_location(f2_q3, question)
-    if (
-        f1_q1_scaled is None
-        or f1_q3_scaled is None
-        or f2_q1_scaled is None
-        or f2_q3_scaled is None
+        direction = Direction.UP if diff > 0 else Direction.DOWN
+        return direction, abs(diff)
+
+    # Handle binary and multiple-choice questions uniformly
+    if question.type in (
+        Question.QuestionType.BINARY,
+        Question.QuestionType.MULTIPLE_CHOICE,
     ):
-        # default to changed
+        return [to_direction_and_magnitude(d[0]) for d in differences]
+
+    # continuous
+    earth_movers_distance, asymmetry = differences[0]
+    symmetry = earth_movers_distance - abs(asymmetry)
+    if earth_movers_distance == 0:
+        return [(Direction.UNCHANGED, 0.0)]
+
+    # If asymmetric shift dominates, treat as up/down
+    if abs(asymmetry) > symmetry:
+        return [to_direction_and_magnitude(asymmetry)]
+
+    # Otherwise, compare spread of prediction intervals
+    def get_scaled_interval(forecast):
+        # Try to use precomputed bounds
+        lower = (forecast.interval_lower_bounds or [None])[0]
+        upper = (forecast.interval_upper_bounds or [None])[0]
+
+        # Fallback to empirical quantiles
+        if lower is None or upper is None:
+            lower, _, upper = percent_point_function(
+                forecast.get_prediction_values(), [25.0, 50.0, 75.0]
+            )
+
+        # Scale to question domain
+        return (
+            unscaled_location_to_scaled_location(lower, question),
+            unscaled_location_to_scaled_location(upper, question),
+        )
+
+    f1_q1_scaled, f1_q3_scaled = get_scaled_interval(f1)
+    f2_q1_scaled, f2_q3_scaled = get_scaled_interval(f2)
+
+    # If scaling failed, default to generic change
+    if None in (f1_q1_scaled, f1_q3_scaled, f2_q1_scaled, f2_q3_scaled):
         return [(Direction.CHANGED, symmetry)]
+
+    # Determine expansion or contraction
     f1_range = f1_q3_scaled - f1_q1_scaled
     f2_range = f2_q3_scaled - f2_q1_scaled
     direction = Direction.EXPANDED if f2_range > f1_range else Direction.CONTRACTED
