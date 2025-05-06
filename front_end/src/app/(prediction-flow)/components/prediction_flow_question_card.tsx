@@ -23,7 +23,7 @@ const PredictionFlowQuestionCard: FC<Props> = ({ post }) => {
   if (hideCP) {
     return (
       <div className="text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:text-left sm:text-sm">
-        <span>{t("cpHiddenByDefault")}</span>
+        <span>{t("cpHiddenByDefault")}</span>{" "}
         <Button
           variant="link"
           className="inline-block text-xs text-blue-700 dark:text-blue-700-dark sm:text-sm"

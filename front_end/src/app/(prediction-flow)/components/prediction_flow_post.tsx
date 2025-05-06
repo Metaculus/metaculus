@@ -1,7 +1,7 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import {
@@ -32,6 +32,7 @@ const PredictionFlowPost: FC<Props> = ({
   tournamentSlug,
   isAlreadyParticipated,
 }) => {
+  const isAlreadyParticipatedRef = useRef(isAlreadyParticipated);
   const [detailedPost, setDetailedPost] = useState<PostWithForecasts | null>(
     null
   );
@@ -61,18 +62,16 @@ const PredictionFlowPost: FC<Props> = ({
     fetchDetailedPost();
   }, [currentPostId]);
 
-  // update chart data with new forecasts
   const onPredictionSubmit = useCallback(async () => {
     if (isNil(currentPostId)) {
       return;
     }
-    // update datailed post data
-    const post = await getPost(currentPostId);
-    setDetailedPost(post);
     // update prediction flow posts data
     const flowPosts = await fetchTournamentForecastFlowPosts(tournamentSlug);
     const currentPost = flowPosts.find((post) => post.id === currentPostId);
-    handlePostPredictionSubmit(currentPost);
+    if (currentPost) {
+      handlePostPredictionSubmit(currentPost);
+    }
     setIsPending(false);
   }, [currentPostId, setIsPending, tournamentSlug, handlePostPredictionSubmit]);
 
@@ -99,7 +98,8 @@ const PredictionFlowPost: FC<Props> = ({
     return null;
   }
 
-  const forceHideCP = isNil(flowType) && !isAlreadyParticipated;
+  const forceHideCP = isNil(flowType) && !isAlreadyParticipatedRef.current;
+
   return (
     <HideCPProvider post={detailedPost} forceHideCP={forceHideCP}>
       <div
@@ -128,6 +128,7 @@ const PredictionFlowPost: FC<Props> = ({
             <ForecastMaker
               post={detailedPost}
               onPredictionSubmit={onPredictionSubmit}
+              disableResolveButtons={true}
             />
 
             <div className="flex flex-col gap-2">

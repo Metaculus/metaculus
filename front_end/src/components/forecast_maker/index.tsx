@@ -17,9 +17,14 @@ import QuestionForecastMaker from "./forecast_maker_question";
 type Props = {
   post: PostWithForecasts;
   onPredictionSubmit?: () => void;
+  disableResolveButtons?: boolean;
 };
 
-const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
+const ForecastMaker: FC<Props> = ({
+  post,
+  onPredictionSubmit,
+  disableResolveButtons,
+}) => {
   const {
     group_of_questions: groupOfQuestions,
     conditional,
@@ -43,7 +48,9 @@ const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
         questions={groupOfQuestions.questions}
         groupVariable={groupOfQuestions.group_variable}
         canPredict={canPredict}
-        canResolve={canResolve}
+        canResolve={
+          isNil(disableResolveButtons) ? canResolve : !disableResolveButtons
+        }
         predictionMessage={predictionMessage}
         onPredictionSubmit={onPredictionSubmit}
       />
@@ -68,7 +75,9 @@ const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
         question={question}
         permission={permission}
         canPredict={canPredict}
-        canResolve={canResolve}
+        canResolve={
+          isNil(disableResolveButtons) ? canResolve : !disableResolveButtons
+        }
         post={post}
         predictionMessage={predictionMessage}
         onPredictionSubmit={onPredictionSubmit}

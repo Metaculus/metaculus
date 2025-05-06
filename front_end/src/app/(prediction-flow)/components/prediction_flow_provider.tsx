@@ -36,9 +36,7 @@ type PredictionFlowContextType = {
     postId: number | null,
     shouldCheckPredictedQuestions?: boolean
   ) => void;
-  handlePostPredictionSubmit: (
-    currentPost: PredictionFlowPost | undefined
-  ) => void;
+  handlePostPredictionSubmit: (currentPost: PredictionFlowPost) => void;
 };
 
 export const PredictionFlowContext =
@@ -96,21 +94,25 @@ const PredictionFlowProvider: FC<
   );
 
   const handlePostPredictionSubmit = useCallback(
-    (currentPost: PredictionFlowPost | undefined) => {
-      if (currentPost) {
-        setPosts(
-          posts.map((prevPost) => {
-            return prevPost?.id === currentPost.id
-              ? {
-                  ...currentPost,
-                  // update counter of questions left and color of the step button
-                  isDone: isPostOpenQuestionPredicted(currentPost, {
-                    checkAllSubquestions: true,
-                  }),
-                }
-              : prevPost;
-          })
-        );
+    (currentPost: PredictionFlowPost) => {
+      setPosts(
+        posts.map((prevPost) => {
+          return prevPost?.id === currentPost.id
+            ? {
+                ...currentPost,
+                // update counter of questions left and color of the step button
+                isDone: isPostOpenQuestionPredicted(currentPost, {
+                  checkAllSubquestions: true,
+                }),
+              }
+            : prevPost;
+        })
+      );
+      const currentPostIndex = posts.findIndex(
+        (post) => post.id === currentPost.id
+      );
+      if (currentPostIndex !== -1) {
+        setCurrentPostId(posts[currentPostIndex + 1]?.id ?? null);
       }
     },
     [posts]
