@@ -479,6 +479,11 @@ if SENTRY_DNS:
     )
 
 
+# Posthog config
+PUBLIC_POSTHOG_KEY = os.environ.get("PUBLIC_POSTHOG_KEY")
+PUBLIC_POSTHOG_BASE_URL = os.environ.get("PUBLIC_POSTHOG_BASE_URL")
+
+
 def gettext(s):
     return s
 
