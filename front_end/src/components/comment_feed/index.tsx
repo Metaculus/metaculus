@@ -27,7 +27,7 @@ import useHash from "@/hooks/use_hash";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { getCommentsParams } from "@/services/comments";
 import { CommentType } from "@/types/comment";
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getCommentIdToFocusOn } from "@/utils/comments";
 import cn from "@/utils/core/cn";
@@ -334,7 +334,13 @@ const CommentFeed: FC<Props> = ({
       is_private: feedFilters.is_private,
     });
 
-    if (postId && isSimpleQuestion && user?.has_key_factors) {
+    const isPostOpen = ![
+      PostStatus.CLOSED,
+      PostStatus.RESOLVED,
+      PostStatus.PENDING_RESOLUTION,
+    ].includes(postData?.status ?? PostStatus.CLOSED);
+
+    if (postId && isSimpleQuestion && user?.has_key_factors && isPostOpen) {
       setTimeout(() => {
         // We open the modal after a delay as per the design, no technical reason
         setUserKeyFactorsComment(newComment);
