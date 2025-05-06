@@ -425,7 +425,7 @@ class TestGetDifferenceDisplay:
             ([0.2, 0.8], [0.3, 0.7], (Direction.EXPANDED, pytest.approx(0.2))),
         ],
     )
-    def test_continuous_asymmetry_dominates(self, p1, p2, expected_result):
+    def test_continuous(self, p1, p2, expected_result):
         question = create_question(
             question_type=Question.QuestionType.NUMERIC, range_min=0, range_max=2
         )
