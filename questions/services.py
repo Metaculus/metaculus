@@ -1,8 +1,7 @@
 import logging
 from collections import defaultdict
-from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import cast
+from typing import cast, TypedDict, Iterable
 
 from django.db import transaction
 from django.db.models import Q, QuerySet, Subquery, OuterRef
@@ -41,7 +40,8 @@ from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import (
     percent_point_function,
     prediction_difference_for_sorting,
-    calculate_max_centers_difference,
+    get_difference_display,
+    Direction,
 )
 
 logger = logging.getLogger(__name__)
@@ -929,15 +929,22 @@ def get_user_last_forecasts_map(
     return {q: question_id_map.get(q.id) for q in questions}
 
 
+QuestionMovement = TypedDict(
+    "QuestionMovement", {"direction": Direction, "movement": float}
+)
+
+
 def calculate_user_forecast_movement_for_questions(
     questions: Iterable[Question], forecasts_map: dict[Question, Forecast]
-):
+) -> dict[Question, QuestionMovement | None]:
     """
     Calculate, for each question, how much forecast has moved
     between the user last forecasting date and the latest aggregate forecasts.
     """
 
-    question_movement_map: dict[Question, float | None] = {q: None for q in questions}
+    question_movement_map: dict[Question, QuestionMovement | None] = {
+        q: None for q in questions
+    }
 
     # Step 1: Fetch aggregated forecasts with deferred `forecast_values` field.
     # We do this to significantly reduce data transfer size and Django model instance serialization time,
@@ -985,24 +992,36 @@ def calculate_user_forecast_movement_for_questions(
     # 3) Bulk‐fetch full forecasts for just those IDs
     full_aggs = {
         x.id: x
-        for x in AggregateForecast.objects.filter(
-            pk__in=flatten(agg_id_map.values())
-        ).only("id", "forecast_values")
+        for x in AggregateForecast.objects.filter(pk__in=flatten(agg_id_map.values()))
     }
 
     # 4) Compute and return the movement per question
     for question, (first_id, last_id) in agg_id_map.items():
+        f1 = full_aggs[first_id]
+        f2 = full_aggs[last_id]
+
         divergence = prediction_difference_for_sorting(
-            full_aggs[first_id].forecast_values,
-            full_aggs[last_id].forecast_values,
+            f1.forecast_values,
+            f2.forecast_values,
             question,
         )
 
         if divergence >= 0.25:
-            question_movement_map[question] = calculate_max_centers_difference(
-                full_aggs[first_id].centers,
-                full_aggs[last_id].centers,
+            display_diff = get_difference_display(
+                f1,
+                f2,
                 question,
+            )
+
+            # Finds max difference for multiple choice cases
+            direction, change = max(display_diff, key=lambda x: x[1])
+
+            question_movement_map[question] = cast(
+                QuestionMovement,
+                {
+                    "direction": direction,
+                    "movement": change,
+                },
             )
 
     return question_movement_map
