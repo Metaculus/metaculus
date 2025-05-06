@@ -293,7 +293,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 zero_point=None,
             ),
             [
-                (1.0, 1.0),
+                (1.0, -1.0),
             ],
         ),
         (
@@ -306,7 +306,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 zero_point=None,
             ),
             [
-                (1.0, 1.0),
+                (1.0, -1.0),
             ],
         ),
         (
@@ -319,7 +319,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 zero_point=None,
             ),
             [
-                (100.0, 100.0),
+                (100.0, -100.0),
             ],
         ),
         (
