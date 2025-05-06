@@ -1243,5 +1243,11 @@
   "decreased": "减少",
   "options": "选项",
   "cpHiddenByDefault": "在此流程中，社区预测默认情况下被隐藏。",
-  "revealCP": "显示CP"
+  "revealCP": "显示CP",
+  "days": "天",
+  "weeks": "周",
+  "months": "月",
+  "sooner": "提前",
+  "later": "推后",
+  "dateQuestionSignificantMovementBannerText": "自您上次预测以来，社区预测已经<bold>移动了{amount} {unit} {movementDirection}</bold>。"
 }

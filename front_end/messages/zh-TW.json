@@ -1238,5 +1238,11 @@
   "decreased": "減少",
   "options": "選項",
   "cpHiddenByDefault": "在此流程中，社區預測預設被隱藏。",
-  "revealCP": "顯示 CP"
+  "revealCP": "顯示 CP",
+  "days": "天",
+  "weeks": "週",
+  "months": "月",
+  "sooner": "更早",
+  "later": "更晚",
+  "dateQuestionSignificantMovementBannerText": "自您上次預測以來，社群預測已<bold>{movementDirection} {amount} {unit}</bold>。"
 }

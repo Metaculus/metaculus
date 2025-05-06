@@ -1239,5 +1239,11 @@
   "decreased": "diminuiu",
   "options": "opções",
   "cpHiddenByDefault": "A previsão da comunidade está oculta por padrão neste fluxo.",
-  "revealCP": "Revelar CP"
+  "revealCP": "Revelar CP",
+  "days": "dias",
+  "weeks": "semanas",
+  "months": "meses",
+  "sooner": "mais cedo",
+  "later": "mais tarde",
+  "dateQuestionSignificantMovementBannerText": "A previsão da comunidade mudou <bold>{amount} {unit} {movementDirection}</bold> desde sua última previsão."
 }

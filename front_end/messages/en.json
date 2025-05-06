@@ -1232,10 +1232,16 @@
   "unpredictedQuestion": "There is still an unpredicted question left.",
   "staleQuestions": "{count}% of the question’s lifetime elapsed since your forecast.",
   "significantMovementBannerText": "There was a significant movement in the question prediction since your forecast.",
-  "detailedSignificantMovementBannerText": "Community prediction {direction} by <bold>{movement}{unit}</bold> since your last forecast.",
+  "detailedSignificantMovementBannerText": "Community prediction {direction} by <bold>{movement} {unit}</bold> since your last forecast.",
   "increased": "increased",
   "decreased": "decreased",
   "options": "options",
   "cpHiddenByDefault": "Community prediction is hidden by default in this flow.",
-  "revealCP": "Reveal CP"
+  "revealCP": "Reveal CP",
+  "days": "days",
+  "weeks": "weeks",
+  "months": "months",
+  "sooner": "sooner",
+  "later": "later",
+  "dateQuestionSignificantMovementBannerText": "Community prediction moved <bold>{amount} {unit} {movementDirection}</bold> since your last forecast."
 }

@@ -3,9 +3,12 @@ import { useTranslations } from "next-intl";
 import { ReactNode } from "react";
 
 import { PredictionFlowPost } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import {
+  MovementDirection,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
 import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
-import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 
 import { FlowType, usePredictionFlow } from "./prediction_flow_provider";
 import { isPostStale, isPostWithSignificantMovement } from "../helpers";
@@ -83,37 +86,69 @@ function getMovementBannerText(
   flowUserForecast: QuestionWithForecasts["my_forecast"] | undefined,
   t: ReturnType<typeof useTranslations>
 ) {
-  if (
-    requireAttentionQuestion &&
-    requireAttentionQuestion.type !== QuestionType.Date
-  ) {
-    const hasIncreased =
-      flowUserForecast?.movement && flowUserForecast?.movement > 0;
-    const formattedMovement = getPredictionDisplayValue(
-      Math.abs(flowUserForecast?.movement ?? 0),
-      {
-        questionType: requireAttentionQuestion.type,
-        scaling: requireAttentionQuestion.scaling,
-        actual_resolve_time: null,
+  console.log(requireAttentionQuestion, flowUserForecast);
+  if (isNil(requireAttentionQuestion) || isNil(flowUserForecast?.movement)) {
+    return null;
+  }
+  switch (requireAttentionQuestion.type) {
+    case QuestionType.Date:
+      // TBD: returned value doesn't really make sense when rendered and maybe it's bettter to return some general movement string
+      // for date questions we receive movement in seconds so we need to convert it to days
+      const movementInDays =
+        (flowUserForecast.movement.movement ?? 0) / (60 * 60 * 24);
+      let amount = movementInDays;
+      let unit = t("days");
+      const movementDirection = [
+        MovementDirection.UP,
+        MovementDirection.EXPANDED,
+      ].includes(flowUserForecast.movement.direction)
+        ? t("later")
+        : t("sooner");
+      if (movementInDays > 730) {
+        amount = Math.round(movementInDays / 365);
+        unit = t("years");
+      } else if (movementInDays <= 730) {
+        amount = Math.round(movementInDays / 30);
+        unit = t("months");
+      } else if (movementInDays <= 120) {
+        amount = Math.round(movementInDays / 7);
+        unit = t("weeks");
+      } else if (movementInDays <= 21) {
+        amount = movementInDays;
+        unit = t("days");
       }
-    );
-    const isPercentageQuestion = [
-      QuestionType.Binary,
-      QuestionType.MultipleChoice,
-    ].includes(requireAttentionQuestion.type);
-    return t.rich("detailedSignificantMovementBannerText", {
-      direction: hasIncreased ? t("increased") : t("decreased"),
-      movement: isPercentageQuestion
-        ? formattedMovement.replace("%", " ")
-        : formattedMovement,
-      unit: isPercentageQuestion
-        ? t("percentagePoints")
-        : requireAttentionQuestion.unit,
-      bold: (chunks) => <span className="font-bold">{chunks}</span>,
-    });
-  } else {
-    // TBD: significant movement calculation for date questions
-    return t("significantMovementBannerText");
+      console.log(movementInDays);
+      return t.rich("dateQuestionSignificantMovementBannerText", {
+        amount,
+        unit,
+        movementDirection,
+        bold: (chunks) => <span className="font-bold">{chunks}</span>,
+      });
+    case QuestionType.Numeric:
+      // we get scaled value of movement so can just render it with unit
+      return t.rich("detailedSignificantMovementBannerText", {
+        direction: [MovementDirection.UP, MovementDirection.EXPANDED].includes(
+          flowUserForecast.movement.direction
+        )
+          ? t("increased")
+          : t("decreased"),
+        movement: Math.round(flowUserForecast.movement.movement * 10) / 10,
+        unit: requireAttentionQuestion.unit,
+        bold: (chunks) => <span className="font-bold">{chunks}</span>,
+      });
+    case QuestionType.Binary:
+    case QuestionType.MultipleChoice:
+      // for binaries and MC we receive the movement in format form 0 to 1
+      return t.rich("detailedSignificantMovementBannerText", {
+        direction: [MovementDirection.UP, MovementDirection.EXPANDED].includes(
+          flowUserForecast.movement.direction
+        )
+          ? t("increased")
+          : t("decreased"),
+        movement: Math.round(flowUserForecast.movement.movement * 1000) / 10,
+        unit: t("percentagePoints"),
+        bold: (chunks) => <span className="font-bold">{chunks}</span>,
+      });
   }
 }
 
@@ -134,9 +169,11 @@ function getAttentionQuestionFromPost(
           !isNil(currentQuestion.my_forecast)
         ) {
           const currentMovement = Math.abs(
-            currentQuestion.my_forecast.movement || 0
+            currentQuestion.my_forecast.movement?.movement || 0
           );
-          const maxMovement = Math.abs(maxQuestion.my_forecast.movement || 0);
+          const maxMovement = Math.abs(
+            maxQuestion.my_forecast.movement?.movement || 0
+          );
           if (flowType === FlowType.MOVEMENT) {
             return currentMovement > maxMovement
               ? currentQuestion
@@ -187,7 +224,7 @@ function getAttentionQuestionFromPost(
       if (isNil(question.question?.my_forecast)) return 1;
 
       if (flowType === FlowType.MOVEMENT) {
-        return Math.abs(question.question.my_forecast.movement || 0);
+        return Math.abs(question.question.my_forecast.movement?.movement || 0);
       }
       if (flowType === FlowType.STALE) {
         return question.question.my_forecast.lifetime_elapsed || 0;

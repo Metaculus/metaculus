@@ -30,14 +30,11 @@ const ForecastMaker: FC<Props> = ({
     conditional,
     question,
     user_permission: permission,
-    status,
   } = post;
   const canPredict = canPredictQuestion(post);
-  const canResolve =
-    permission === ProjectPermissions.ADMIN &&
-    !isNil(post.published_at) &&
-    parseISO(post.published_at) <= new Date() &&
-    [PostStatus.APPROVED, PostStatus.OPEN, PostStatus.CLOSED].includes(status);
+  const canResolve = canResolveQuestion(post, {
+    disableResolveButtons,
+  });
 
   const predictionMessage = <PredictionStatusMessage post={post} />;
 
@@ -86,6 +83,20 @@ const ForecastMaker: FC<Props> = ({
   }
 
   return null;
+};
+
+const canResolveQuestion = (
+  post: PostWithForecasts,
+  config?: { disableResolveButtons?: boolean }
+) => {
+  const { disableResolveButtons } = config ?? {};
+  const { user_permission: permission, status } = post;
+  const canResolve =
+    permission === ProjectPermissions.ADMIN &&
+    !isNil(post.published_at) &&
+    parseISO(post.published_at) <= new Date() &&
+    [PostStatus.APPROVED, PostStatus.OPEN, PostStatus.CLOSED].includes(status);
+  return isNil(disableResolveButtons) ? canResolve : !disableResolveButtons;
 };
 
 export default ForecastMaker;

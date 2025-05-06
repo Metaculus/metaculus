@@ -1241,5 +1241,11 @@
   "decreased": "snížila",
   "options": "možnosti",
   "cpHiddenByDefault": "Komunitní předpověď je v tomto průběhu ve výchozím nastavení skrytá.",
-  "revealCP": "Zobrazit CP"
+  "revealCP": "Zobrazit CP",
+  "days": "dny",
+  "weeks": "týdny",
+  "months": "měsíce",
+  "sooner": "dříve",
+  "later": "později",
+  "dateQuestionSignificantMovementBannerText": "Předpověď komunity se posunula <bold>{amount} {unit} {movementDirection}</bold> od vaší poslední předpovědi."
 }
