@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime, timezone as dt_timezone, timedelta
 
 import numpy as np
 from django.utils import timezone
@@ -19,10 +19,15 @@ from questions.models import (
     AggregationMethod,
 )
 from questions.models import Forecast
+from questions.utils import get_question_movement_period
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
-from utils.the_math.measures import percent_point_function
+from utils.the_math.measures import (
+    percent_point_function,
+    prediction_difference_for_sorting,
+    get_difference_display,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -635,7 +640,12 @@ def serialize_question(
     serialized_data = QuestionSerializer(question).data
     serialized_data["post_id"] = post.id if post else question.get_post_id()
     serialized_data["aggregations"] = {
-        "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
+        "recency_weighted": {
+            "history": [],
+            "latest": None,
+            "score_data": dict(),
+            "movement": None,
+        },
         "unweighted": {"history": [], "latest": None, "score_data": dict()},
         "single_aggregation": {"history": [], "latest": None, "score_data": dict()},
         "metaculus_prediction": {
@@ -650,7 +660,21 @@ def serialize_question(
             AggregationMethod, list[AggregateForecast]
         ] = defaultdict(list)
 
+        movement_period = get_question_movement_period(question)
+        movement_start_date = timezone.now() - movement_period
+        movement_f1 = None
+
         for aggregate in aggregate_forecasts:
+            if (
+                aggregate.method == AggregationMethod.RECENCY_WEIGHTED
+                and aggregate.start_time <= movement_start_date
+                and (
+                    aggregate.end_time is None
+                    or aggregate.end_time > movement_start_date
+                )
+            ):
+                movement_f1 = aggregate
+
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
 
         # Debug method for building aggregation history from scratch
@@ -724,6 +748,13 @@ def serialize_question(
                 if forecasts
                 else None
             )
+
+            if method == AggregationMethod.RECENCY_WEIGHTED and movement_start_date:
+                serialized_data["aggregations"][method]["movement"] = (
+                    serialize_question_movement(
+                        question, movement_f1, forecasts[-1], movement_period
+                    )
+                )
 
     if (
         current_user
@@ -914,3 +945,36 @@ class QuestionApproveSerializer(serializers.Serializer):
     cp_reveal_time = serializers.DateTimeField(required=True)
     scheduled_close_time = serializers.DateTimeField(required=True)
     scheduled_resolve_time = serializers.DateTimeField(required=True)
+
+
+def serialize_question_movement(
+    question: Question,
+    f1: AggregateForecast,
+    f2: AggregateForecast,
+    period: timedelta,
+    threshold: float = 0.25,
+) -> dict | None:
+    divergence = prediction_difference_for_sorting(
+        f1.forecast_values,
+        f2.forecast_values,
+        question,
+    )
+
+    if divergence >= threshold:
+        display_diff = get_difference_display(
+            f1,
+            f2,
+            question,
+        )
+
+        # Finds max difference for multiple choice cases
+        direction, change = max(display_diff, key=lambda x: x[1])
+
+        return {
+            "divergence": divergence,
+            "direction": direction,
+            "movement": change,
+            "period": period,
+        }
+
+    return
