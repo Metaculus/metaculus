@@ -4,25 +4,19 @@ import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useMemo, useState, useEffect } from "react";
+import { FC, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
-import {
-  addKeyFactorsToComment,
-  createComment,
-  getSuggestedKeyFactors,
-} from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import { useServerAction } from "@/hooks/use_server_action";
 import { BECommentType } from "@/types/comment";
 import { User } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import { useKeyFactors } from "./hooks";
 
-const FACTORS_PER_QUESTION = 6;
 const FACTORS_PER_COMMENT = 4;
 
 type Props = {
@@ -98,7 +92,7 @@ const KeyFactorField = ({
   );
 };
 
-const Step1AddKeyFactors = ({
+export const AddKeyFactorsForm = ({
   keyFactors,
   setKeyFactors,
   isActive,
@@ -224,119 +218,47 @@ const AddKeyFactorsModal: FC<Props> = ({
   showSuggestedKeyFactors = false,
 }) => {
   const t = useTranslations();
-  const [keyFactors, setKeyFactors] = useState<string[]>([""]);
-  const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
-    { text: string; selected: boolean }[]
-  >([]);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const numberOfSteps = commentId ? 1 : 2;
   const [markdown, setMarkdown] = useState<string>("");
-  const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
-    useCommentsFeed();
-  const [isLoadingSuggestedKeyFactors, setIsLoadingSuggestedKeyFactors] =
-    useState<boolean>(false);
 
-  useEffect(() => {
-    if (showSuggestedKeyFactors && commentId && isOpen) {
-      setIsLoadingSuggestedKeyFactors(true);
-      getSuggestedKeyFactors(commentId)
-        .then((suggestedKeyFactors) => {
-          setSuggestedKeyFactors(
-            suggestedKeyFactors.map((kf) => ({ text: kf, selected: false }))
-          );
-        })
-        .finally(() => {
-          setIsLoadingSuggestedKeyFactors(false);
-        });
-    }
-  }, [showSuggestedKeyFactors, commentId, isOpen]);
-
-  const [userPostFactors, userCommentFactors] = useMemo(() => {
-    const postFactors = combinedKeyFactors.filter(
-      (kf) => kf.author.id === user.id
-    );
-    const commentFactors = !isNil(commentId)
-      ? combinedKeyFactors.filter((kf) => kf.comment_id === commentId)
-      : [];
-    return [postFactors, commentFactors];
-  }, [combinedKeyFactors, user, commentId]);
-  const limitError = commentId
-    ? userCommentFactors.length >= FACTORS_PER_COMMENT
-      ? t("maxKeyFactorsPerComment")
-      : undefined
-    : userPostFactors.length >= FACTORS_PER_QUESTION
-      ? t("maxKeyFactorsPerQuestion")
-      : undefined;
-  const [errorMessage, setErrorMessage] = useState<string | undefined>(
-    limitError
-  );
-  const clearState = () => {
-    setKeyFactors([""]);
-    setMarkdown("");
-    setCurrentStep(1);
-  };
-  const onSubmit = async () => {
-    let comment;
-    for (const keyFactor of keyFactors) {
-      if (keyFactor.trim().length > 150) {
-        setErrorMessage(t("maxKeyFactorLength"));
-        return;
-      }
-    }
-    const filteredKeyFactors = keyFactors.filter((f) => f.trim() !== "");
-    const filteredSuggestedKeyFactors = suggestedKeyFactors
-      .filter((kf) => kf.selected)
-      .map((kf) => kf.text);
-    if (commentId) {
-      if (userCommentFactors.length >= FACTORS_PER_COMMENT) {
-        setErrorMessage(t("maxKeyFactorsPerComment"));
-        return;
-      }
-      comment = await addKeyFactorsToComment(commentId, [
-        ...filteredKeyFactors,
-        ...filteredSuggestedKeyFactors,
-      ]);
-    } else {
-      comment = await createComment({
-        on_post: postId,
-        text: markdown,
-        key_factors: [...filteredKeyFactors, ...filteredSuggestedKeyFactors],
-        is_private: false,
-      });
-    }
-    sendAnalyticsEvent("addKeyFactor", {
-      event_label: isNil(commentId) ? "fromList" : "fromComment",
-      event_category: "submit",
-    });
-    if ("errors" in comment) {
-      const errors = comment.errors;
-      setErrorMessage(errors?.message ?? errors?.non_field_errors?.[0]);
-      return;
-    }
-
-    // Only add new key factors to the combinedKeyFactors array if they don't already exist
-    setCombinedKeyFactors([
-      ...(comment.key_factors?.filter(
-        (kf) => !combinedKeyFactors.some((existing) => existing.id === kf.id)
-      ) ?? []),
-      ...combinedKeyFactors,
-    ]);
-
-    if (!commentId) {
-      // Only add the new comment to the comments array if it's a new comment
-      setComments([{ ...comment, children: [] }, ...comments]);
-    }
-
-    clearState();
-    onClose(true);
-    onSuccess?.(comment);
-  };
+  const {
+    keyFactors,
+    setKeyFactors,
+    errorMessage,
+    setErrorMessage,
+    suggestedKeyFactors,
+    setSuggestedKeyFactors,
+    isLoadingSuggestedKeyFactors,
+    limitError,
+    factorsLimit,
+    submit,
+    isPending,
+    clearState,
+  } = useKeyFactors({
+    user_id: user.id,
+    commentId,
+    postId,
+    showSuggestedKeyFactors: showSuggestedKeyFactors && isOpen,
+  });
 
   const handleOnClose = () => {
+    clearState();
     onClose(true);
   };
-  const [submit, isPending] = useServerAction(onSubmit);
 
+  const handleSubmit = async () => {
+    const result = await submit(keyFactors, suggestedKeyFactors, markdown);
+    if (result?.error) {
+      setErrorMessage(result.error);
+      return;
+    }
+    clearState();
+    if (result?.comment) {
+      onSuccess?.(result.comment);
+    }
+    onClose(true);
+  };
   return (
     <BaseModal
       label={t("addKeyFactors")}
@@ -349,15 +271,11 @@ const AddKeyFactorsModal: FC<Props> = ({
 
       {!isLoadingSuggestedKeyFactors && (
         <div className="flex max-w-xl grow flex-col gap-2">
-          <Step1AddKeyFactors
+          <AddKeyFactorsForm
             keyFactors={keyFactors}
             setKeyFactors={setKeyFactors}
             isActive={currentStep === 1}
-            factorsLimit={
-              commentId
-                ? FACTORS_PER_COMMENT - userCommentFactors.length
-                : FACTORS_PER_QUESTION - userPostFactors.length
-            }
+            factorsLimit={factorsLimit}
             limitError={limitError}
             suggestedKeyFactors={suggestedKeyFactors}
             setSuggestedKeyFactors={setSuggestedKeyFactors}
@@ -409,7 +327,7 @@ const AddKeyFactorsModal: FC<Props> = ({
               <Button
                 variant="primary"
                 size="sm"
-                onClick={submit}
+                onClick={handleSubmit}
                 disabled={isPending}
               >
                 {t("submit")}
