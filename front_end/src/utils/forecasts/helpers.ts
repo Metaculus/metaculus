@@ -125,12 +125,12 @@ export const isPostOpenQuestionPredicted = (
   return false;
 };
 
-function isOpenQuestionPredicted(question: Question) {
+export function isOpenQuestionPredicted(question: Question) {
   return (
-    question.status === QuestionStatus.OPEN &&
-    ((!isNil(question.my_forecasts?.latest) &&
+    question.status !== QuestionStatus.OPEN ||
+    (!isNil(question.my_forecasts?.latest) &&
       !question.my_forecasts?.latest.end_time) ||
-      (!isNil(question.my_forecast?.latest) &&
-        !question.my_forecast?.latest.end_time))
+    (!isNil(question.my_forecast?.latest) &&
+      !question.my_forecast?.latest.end_time)
   );
 }

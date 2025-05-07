@@ -5,7 +5,10 @@ import { FC } from "react";
 import { PredictionFlowPost } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
-import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
+import {
+  isOpenQuestionPredicted,
+  isPostOpenQuestionPredicted,
+} from "@/utils/forecasts/helpers";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 
 import { FlowType, usePredictionFlow } from "./prediction_flow_provider";
@@ -46,7 +49,17 @@ const PredictionFlowMenu: FC<Props> = ({ posts }) => {
               {post.title}
             </span>
             <div className="flex flex-row gap-2">
-              <span className="flex min-w-10 items-center justify-center border border-orange-300 bg-orange-100 px-1 py-0.5 text-xs font-bold leading-4 text-orange-800 dark:border-orange-300-dark dark:bg-orange-100-dark dark:text-orange-800-dark">
+              <span
+                className={cn(
+                  "flex min-w-10 items-center justify-center border border-orange-300 bg-orange-100 px-1 py-0.5 text-xs font-bold leading-4 text-orange-800 dark:border-orange-300-dark dark:bg-orange-100-dark dark:text-orange-800-dark",
+                  {
+                    "border-salmon-500 bg-salmon-300 text-salmon-800 dark:border-salmon-500-dark dark:bg-salmon-300-dark dark:text-salmon-800-dark":
+                      !isPostOpenQuestionPredicted(post, {
+                        checkAllSubquestions: true,
+                      }),
+                  }
+                )}
+              >
                 {getUserPredictionChip(post, t)}
               </span>
               {!isNil(attentionChipText) && (
@@ -92,10 +105,10 @@ function getUserPredictionChip(
   if (!isNil(post.conditional)) {
     const { question_yes, question_no } = post.conditional;
     let questionsPredicted = 0;
-    if (!!question_yes.my_forecast?.latest) {
+    if (isOpenQuestionPredicted(question_yes)) {
       questionsPredicted++;
     }
-    if (!!question_no.my_forecast?.latest) {
+    if (isOpenQuestionPredicted(question_no)) {
       questionsPredicted++;
     }
     return `${questionsPredicted}/2 ${t("subquestions")}`;
@@ -103,7 +116,7 @@ function getUserPredictionChip(
 
   if (!isNil(post.group_of_questions)) {
     const questionsPredicted = post.group_of_questions.questions.filter(
-      (question) => question.my_forecast?.latest
+      (question) => isOpenQuestionPredicted(question)
     ).length;
     return `${questionsPredicted}/${post.group_of_questions.questions.length} ${t("subquestions")}`;
   }
@@ -120,7 +133,7 @@ function getAttentionChipText(
     checkAllSubquestions: true,
   });
   if (!isPredicted) {
-    return t("notForecasted");
+    return t("notPredicted");
   }
   if (flowType === FlowType.STALE) {
     return t("potentialyStale");

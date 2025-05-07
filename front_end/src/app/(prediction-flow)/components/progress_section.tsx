@@ -40,7 +40,7 @@ const ProgressSection: FC = () => {
   };
 
   return (
-    <div className="relative flex max-h-[calc(100vh-48px)] w-full flex-col rounded-b bg-gray-0 p-4 py-3 dark:bg-gray-0-dark sm:p-8 sm:py-[26px]">
+    <div className="relative flex max-h-[calc(100dvh-48px)] w-full flex-col rounded-b bg-gray-0 p-4 py-3 dark:bg-gray-0-dark sm:p-8 sm:py-[26px]">
       <div className="flex items-center justify-between">
         <p className="m-0 text-lg font-medium leading-7">
           {isNil(currentPostId)

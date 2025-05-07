@@ -65,6 +65,15 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
     const flowPosts = await fetchTournamentForecastFlowPosts(tournamentSlug);
     const currentPost = flowPosts.find((post) => post.id === currentPostId);
     if (currentPost) {
+      // update detailed post if we doesn't move to the next question
+      if (
+        !isPostOpenQuestionPredicted(currentPost, {
+          checkAllSubquestions: true,
+        })
+      ) {
+        const post = await getPost(currentPostId);
+        setDetailedPost(post);
+      }
       handlePostPredictionSubmit(currentPost);
     }
     setIsPending(false);
@@ -177,7 +186,7 @@ const FinalFlowView = ({ tournamentSlug }: { tournamentSlug: string }) => {
       </h2>
       {!!skippedQuestions.length && (
         <p className="m-0 mt-3 text-center text-sm text-gray-700 dark:text-gray-700-dark sm:mt-5 sm:text-left">
-          {t("skippedWithoutForecasting", {
+          {t("skippedWithoutPredicting", {
             count: skippedQuestions.length,
           })}
         </p>

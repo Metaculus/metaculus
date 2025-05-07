@@ -120,7 +120,7 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
       )}
       {isParticipated && !isRequireAttention && (
         <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:gap-2.5">
-          <StatusMessage text={t("allQuestionsForecasted")} />
+          <StatusMessage text={t("allQuestionsPredicted")} />
           <StatusMessage text={t("noForecastsWithSignificantMovement")} />
           <StatusMessage text={t("predictionsUpToDate")} />
         </div>

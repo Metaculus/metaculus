@@ -476,9 +476,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       if (response && "errors" in response && !!response.errors) {
         setSubmitError(response.errors);
       }
+      onPredictionSubmit?.();
       return response;
     },
-    [postId, predictedQuestions]
+    [postId, predictedQuestions, onPredictionSubmit]
   );
 
   const handlePredictionReaffirm = useCallback(async () => {

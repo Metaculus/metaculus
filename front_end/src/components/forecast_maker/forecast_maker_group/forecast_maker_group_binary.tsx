@@ -231,7 +231,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
-  }, [post, predictedQuestions]);
+    onPredictionSubmit?.();
+  }, [post, predictedQuestions, onPredictionSubmit]);
   const [withdraw, isWithdrawing] = useServerAction(handlePredictWithdraw);
   return (
     <>

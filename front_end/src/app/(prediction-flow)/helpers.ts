@@ -4,7 +4,7 @@ import { PredictionFlowPost } from "@/types/post";
 
 export function isPostStale(post: PredictionFlowPost) {
   // minimum 20% of the question's lifetime elapsed since the forecast
-  const STALE_THRESHOLD = 0.02;
+  const STALE_THRESHOLD = 0.2;
   if (
     !isNil(post.question?.my_forecast) &&
     !isNil(post.question.my_forecast.lifetime_elapsed)

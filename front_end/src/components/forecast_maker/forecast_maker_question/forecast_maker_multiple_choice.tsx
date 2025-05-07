@@ -236,8 +236,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
+    } else {
+      resetForecasts();
+      onPredictionSubmit?.();
     }
-    onPredictionSubmit?.();
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
     handlePredictWithdraw

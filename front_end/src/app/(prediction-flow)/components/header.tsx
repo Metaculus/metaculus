@@ -57,8 +57,14 @@ const PredictionFlowHeader: FC<Props> = ({
           {t("exitPredictionFlow")}
         </Button>
         <Button
-          className="mr-2 border-none bg-transparent text-gray-0 dark:text-gray-0-dark sm:hidden"
-          href={`/tournament/${tournamentSlug}`}
+          className="mr-2 border-none bg-transparent text-gray-0 dark:bg-transparent dark:text-gray-0 dark:hover:bg-blue-800 dark:active:bg-gray-800 sm:hidden"
+          onClick={() => {
+            if (postsLeft === 0) {
+              router.push(`/tournament/${tournamentSlug}`);
+            } else {
+              setIsModalOpen(true);
+            }
+          }}
           variant="primary"
         >
           <FontAwesomeIcon icon={faRightFromBracket} className="h-5 w-5" />

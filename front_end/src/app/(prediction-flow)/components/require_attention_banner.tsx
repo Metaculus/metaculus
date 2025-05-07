@@ -9,7 +9,6 @@ import {
   QuestionType,
   QuestionWithForecasts,
 } from "@/types/question";
-import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 import { FlowType, usePredictionFlow } from "./prediction_flow_provider";
 import { isPostStale, isPostWithSignificantMovement } from "../helpers";
@@ -26,7 +25,7 @@ const RequireAttentionBanner = ({ detailedPost }: Props) => {
     return null;
   }
 
-  let bannerText: string | ReactNode = t("unpredictedQuestion");
+  let bannerText: string | ReactNode = "";
   const requireAttentionQuestion = getAttentionQuestionFromPost(
     detailedPost,
     flowType
@@ -34,9 +33,6 @@ const RequireAttentionBanner = ({ detailedPost }: Props) => {
   const flowUserForecast = requireAttentionQuestion?.my_forecast;
 
   switch (flowType) {
-    case FlowType.NOT_PREDICTED:
-      bannerText = t("unpredictedQuestion");
-      break;
     case FlowType.MOVEMENT:
       bannerText = getMovementBannerText(
         requireAttentionQuestion,
@@ -50,13 +46,7 @@ const RequireAttentionBanner = ({ detailedPost }: Props) => {
       });
       break;
     case FlowType.GENERAL:
-      if (
-        !isPostOpenQuestionPredicted(detailedPost, {
-          checkAllSubquestions: true,
-        })
-      ) {
-        bannerText = t("unpredictedQuestion");
-      } else if (isPostWithSignificantMovement(detailedPost)) {
+      if (isPostWithSignificantMovement(detailedPost)) {
         bannerText = getMovementBannerText(
           requireAttentionQuestion,
           flowUserForecast,
@@ -71,7 +61,7 @@ const RequireAttentionBanner = ({ detailedPost }: Props) => {
   }
 
   // remove banner if post doesn't require attention anymore (new prediction or reaffirmed)
-  if (detailedPost.isDone) {
+  if (detailedPost.isDone || !bannerText) {
     return null;
   }
 
@@ -87,7 +77,6 @@ function getMovementBannerText(
   flowUserForecast: QuestionWithForecasts["my_forecast"] | undefined,
   t: ReturnType<typeof useTranslations>
 ) {
-  console.log(requireAttentionQuestion, flowUserForecast);
   if (isNil(requireAttentionQuestion) || isNil(flowUserForecast?.movement)) {
     return;
   }
@@ -100,20 +89,20 @@ function getMovementBannerText(
     // For date questions we receive movement in seconds so we need to convert it to days
     const movementInDays =
       (flowUserForecast.movement.movement ?? 0) / (60 * 60 * 24);
-    console.log(movementInDays);
+
     let amount = movementInDays;
     let unit = t("days");
     if (movementInDays > 730) {
-      amount = round(movementInDays / 365);
+      amount = round(movementInDays / 365, 1);
       unit = t("years");
     } else if (movementInDays <= 730 && movementInDays > 120) {
-      amount = round(movementInDays / 30);
+      amount = round(movementInDays / 30, 1);
       unit = t("months");
     } else if (movementInDays <= 120 && movementInDays > 21) {
-      amount = round(movementInDays / 7);
+      amount = round(movementInDays / 7, 1);
       unit = t("weeks");
     } else if (movementInDays <= 21) {
-      amount = round(movementInDays);
+      amount = round(movementInDays, 1);
       unit = t("days");
     }
     if (
