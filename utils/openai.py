@@ -151,8 +151,9 @@ def generate_keyfactors(
         The user comment is: \n\n{comment}\n\n
         The Metaculus question is: \n\n{question_data}\n\n
         The existing key factors are: \n\n{existing_keyfactors}\n\n
+        Do not include any key factors that are already in the existing key factors list.
         If we are not sure the comment has meaningful key factors information, return the literal string "None". Better be conservative than creating meaningless key factors.
-        Each key factor should be a single sentence, not longer than {MAX_LENGTH} characters, and they should be coma separated. List only the key factors, nothing else.
+        Each key factor should be a single sentence, not longer than {MAX_LENGTH} characters, and they should be coma separated without quotes or other formatting. List only the key factors, nothing else.
         """
     )
 
