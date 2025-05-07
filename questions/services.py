@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 from collections.abc import Iterable
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import cast
 
 from django.db import transaction
@@ -28,6 +28,7 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
+from questions.utils import get_question_movement_period
 from scoring.models import Score, Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
@@ -155,7 +156,9 @@ def compute_question_movement(question: Question) -> float | None:
         return
 
     cp_previous = get_aggregations_at_time(
-        question, now - timedelta(days=7), [AggregationMethod.RECENCY_WEIGHTED]
+        question,
+        now - get_question_movement_period(question),
+        [AggregationMethod.RECENCY_WEIGHTED],
     ).get(AggregationMethod.RECENCY_WEIGHTED)
 
     if not cp_previous:
