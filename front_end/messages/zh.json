@@ -1238,7 +1238,6 @@
   "unpredictedQuestion": "还有一个未预测的问题。",
   "staleQuestions": "自您预测以来，问题寿命的 {count}% 已经过。",
   "significantMovementBannerText": "自您的预测以来，问题预测出现了显著变化。",
-  "detailedSignificantMovementBannerText": "自您的上次预测以来，社区预测{direction}了 <bold>{movement}{unit}</bold>。",
   "increased": "增加",
   "decreased": "减少",
   "options": "选项",
@@ -1249,5 +1248,9 @@
   "months": "月",
   "sooner": "提前",
   "later": "推后",
-  "dateQuestionSignificantMovementBannerText": "自您上次预测以来，社区预测已经<bold>移动了{amount} {unit} {movementDirection}</bold>。"
+  "narrowed": "缩小",
+  "expanded": "扩大",
+  "detailedSignificantMovementBannerText": "社区预测自您上次预测后<strong>{amount}{unit}</strong>{direction}。",
+  "dateQuestionSignificantMovementBannerText": "社区预测自您上次预测后<strong>{amount}{unit}</strong>{direction}。",
+  "uncertaintySignificantMovementBannerText": "社区预测自您上次预测后不确定性<strong>{amount}{unit}</strong>{direction}。"
 }

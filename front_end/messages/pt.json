@@ -1234,7 +1234,6 @@
   "unpredictedQuestion": "Ainda há uma pergunta não prevista.",
   "staleQuestions": "{count}% do tempo de vida da pergunta se passou desde sua previsão.",
   "significantMovementBannerText": "Houve um movimento significativo na previsão da pergunta desde sua previsão.",
-  "detailedSignificantMovementBannerText": "Previsão da comunidade {direction} em <bold>{movement}{unit}</bold> desde sua última previsão.",
   "increased": "aumentou",
   "decreased": "diminuiu",
   "options": "opções",
@@ -1245,5 +1244,9 @@
   "months": "meses",
   "sooner": "mais cedo",
   "later": "mais tarde",
-  "dateQuestionSignificantMovementBannerText": "A previsão da comunidade mudou <bold>{amount} {unit} {movementDirection}</bold> desde sua última previsão."
+  "narrowed": "reduzida",
+  "expanded": "expandida",
+  "detailedSignificantMovementBannerText": "Previsão da comunidade {direction} em <strong>{amount}{unit}</strong> desde sua última previsão.",
+  "dateQuestionSignificantMovementBannerText": "A previsão da comunidade mudou <strong>{amount}{unit} {direction}</strong> desde sua última previsão.",
+  "uncertaintySignificantMovementBannerText": "Previsão da comunidade {direction} a incerteza em <strong>{amount}{unit}</strong> desde sua última previsão."
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { isNil } from "lodash";
 import {
   createContext,
   FC,
@@ -47,7 +46,7 @@ const HideCPProvider: FC<PropsWithChildren<CPProviderProps>> = ({
   }
 
   const [currentHideCP, setCurrentHideCP] = useState<boolean>(
-    !isNil(forceHideCP) ? forceHideCP : !!hideCP
+    !!forceHideCP || !!hideCP
   );
 
   return (

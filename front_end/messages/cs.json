@@ -1236,7 +1236,6 @@
   "unpredictedQuestion": "Ještě zbývá otázka bez předpovědi.",
   "staleQuestions": "{count}% doby platnosti otázky uplynulo od vaší předpovědi.",
   "significantMovementBannerText": "Od vaší předpovědi došlo k významnému pohybu v předpovědi otázky.",
-  "detailedSignificantMovementBannerText": "Komunitní předpověď {direction} o <bold>{movement}{unit}</bold> od vaší poslední předpovědi.",
   "increased": "zvýšila",
   "decreased": "snížila",
   "options": "možnosti",
@@ -1247,5 +1246,9 @@
   "months": "měsíce",
   "sooner": "dříve",
   "later": "později",
-  "dateQuestionSignificantMovementBannerText": "Předpověď komunity se posunula <bold>{amount} {unit} {movementDirection}</bold> od vaší poslední předpovědi."
+  "narrowed": "zúžená",
+  "expanded": "rozšířená",
+  "detailedSignificantMovementBannerText": "Komunitní předpověď se {direction} o <strong>{amount}{unit}</strong> od vaší poslední prognózy.",
+  "dateQuestionSignificantMovementBannerText": "Komunitní předpověď se posunula o <strong>{amount}{unit} {direction}</strong> od vaší poslední prognózy.",
+  "uncertaintySignificantMovementBannerText": "Nejistota komunitní předpovědi se {direction} o <strong>{amount}{unit}</strong> od vaší poslední prognózy."
 }

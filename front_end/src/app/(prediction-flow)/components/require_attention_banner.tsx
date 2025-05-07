@@ -1,7 +1,8 @@
-import { isNil } from "lodash";
+import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
 import { ReactNode } from "react";
 
+import RichText from "@/components/rich_text";
 import { PredictionFlowPost } from "@/types/post";
 import {
   MovementDirection,
@@ -88,67 +89,131 @@ function getMovementBannerText(
 ) {
   console.log(requireAttentionQuestion, flowUserForecast);
   if (isNil(requireAttentionQuestion) || isNil(flowUserForecast?.movement)) {
-    return null;
+    return;
   }
-  switch (requireAttentionQuestion.type) {
-    case QuestionType.Date:
-      // TBD: returned value doesn't really make sense when rendered and maybe it's bettter to return some general movement string
-      // for date questions we receive movement in seconds so we need to convert it to days
-      const movementInDays =
-        (flowUserForecast.movement.movement ?? 0) / (60 * 60 * 24);
-      let amount = movementInDays;
-      let unit = t("days");
-      const movementDirection = [
-        MovementDirection.UP,
-        MovementDirection.EXPANDED,
-      ].includes(flowUserForecast.movement.direction)
+  // Date questions
+  if (requireAttentionQuestion.type === QuestionType.Date) {
+    const direction =
+      flowUserForecast.movement.direction === MovementDirection.UP
         ? t("later")
         : t("sooner");
-      if (movementInDays > 730) {
-        amount = Math.round(movementInDays / 365);
-        unit = t("years");
-      } else if (movementInDays <= 730) {
-        amount = Math.round(movementInDays / 30);
-        unit = t("months");
-      } else if (movementInDays <= 120) {
-        amount = Math.round(movementInDays / 7);
-        unit = t("weeks");
-      } else if (movementInDays <= 21) {
-        amount = movementInDays;
-        unit = t("days");
-      }
-      console.log(movementInDays);
-      return t.rich("dateQuestionSignificantMovementBannerText", {
-        amount,
-        unit,
-        movementDirection,
-        bold: (chunks) => <span className="font-bold">{chunks}</span>,
-      });
-    case QuestionType.Numeric:
-      // we get scaled value of movement so can just render it with unit
-      return t.rich("detailedSignificantMovementBannerText", {
-        direction: [MovementDirection.UP, MovementDirection.EXPANDED].includes(
-          flowUserForecast.movement.direction
-        )
-          ? t("increased")
-          : t("decreased"),
-        movement: Math.round(flowUserForecast.movement.movement * 10) / 10,
-        unit: requireAttentionQuestion.unit,
-        bold: (chunks) => <span className="font-bold">{chunks}</span>,
-      });
-    case QuestionType.Binary:
-    case QuestionType.MultipleChoice:
-      // for binaries and MC we receive the movement in format form 0 to 1
-      return t.rich("detailedSignificantMovementBannerText", {
-        direction: [MovementDirection.UP, MovementDirection.EXPANDED].includes(
-          flowUserForecast.movement.direction
-        )
-          ? t("increased")
-          : t("decreased"),
-        movement: Math.round(flowUserForecast.movement.movement * 1000) / 10,
-        unit: t("percentagePoints"),
-        bold: (chunks) => <span className="font-bold">{chunks}</span>,
-      });
+    // For date questions we receive movement in seconds so we need to convert it to days
+    const movementInDays =
+      (flowUserForecast.movement.movement ?? 0) / (60 * 60 * 24);
+    console.log(movementInDays);
+    let amount = movementInDays;
+    let unit = t("days");
+    if (movementInDays > 730) {
+      amount = round(movementInDays / 365);
+      unit = t("years");
+    } else if (movementInDays <= 730 && movementInDays > 120) {
+      amount = round(movementInDays / 30);
+      unit = t("months");
+    } else if (movementInDays <= 120 && movementInDays > 21) {
+      amount = round(movementInDays / 7);
+      unit = t("weeks");
+    } else if (movementInDays <= 21) {
+      amount = round(movementInDays);
+      unit = t("days");
+    }
+    if (
+      [MovementDirection.UP, MovementDirection.DOWN].includes(
+        flowUserForecast.movement.direction
+      )
+    ) {
+      // Median movement
+      return (
+        <RichText>
+          {(tags) =>
+            t.rich("dateQuestionSignificantMovementBannerText", {
+              ...tags,
+              amount,
+              unit: ` ${unit}`,
+              direction,
+            })
+          }
+        </RichText>
+      );
+    } else if (
+      [MovementDirection.CONTRACTED, MovementDirection.EXPANDED].includes(
+        flowUserForecast.movement.direction
+      )
+    ) {
+      const direction =
+        flowUserForecast.movement.direction === MovementDirection.EXPANDED
+          ? t("expanded")
+          : t("narrowed");
+      // Uncertainty movement
+      return (
+        <RichText>
+          {(tags) =>
+            t.rich("uncertaintySignificantMovementBannerText", {
+              ...tags,
+              amount,
+              unit: ` ${unit}`,
+              direction,
+            })
+          }
+        </RichText>
+      );
+    }
+  } else {
+    // Numeric, binary and MC questions
+    const direction =
+      flowUserForecast.movement.direction === MovementDirection.UP
+        ? t("increased")
+        : t("decreased");
+    const unit =
+      requireAttentionQuestion.type === QuestionType.Numeric
+        ? isNil(requireAttentionQuestion.unit)
+          ? requireAttentionQuestion.unit
+          : " " + requireAttentionQuestion.unit
+        : " " + t("percentagePoints");
+    const amount =
+      requireAttentionQuestion.type === QuestionType.Numeric
+        ? round(flowUserForecast.movement.movement, 1) // for numeric questions we receive already scaled value
+        : round(flowUserForecast.movement.movement * 100, 1); // for binary and MC questions we receive a percentage in 0-1 range
+    if (
+      [MovementDirection.UP, MovementDirection.DOWN].includes(
+        flowUserForecast.movement.direction
+      )
+    ) {
+      // Median movement
+      return (
+        <RichText>
+          {(tags) =>
+            t.rich("detailedSignificantMovementBannerText", {
+              ...tags,
+              amount,
+              unit,
+              direction,
+            })
+          }
+        </RichText>
+      );
+    } else if (
+      [MovementDirection.CONTRACTED, MovementDirection.EXPANDED].includes(
+        flowUserForecast.movement.direction
+      )
+    ) {
+      // Uncertainty movement
+      const direction =
+        flowUserForecast.movement.direction === MovementDirection.EXPANDED
+          ? t("expanded")
+          : t("narrowed");
+      return (
+        <RichText>
+          {(tags) =>
+            t.rich("uncertaintySignificantMovementBannerText", {
+              ...tags,
+              amount,
+              unit,
+              direction,
+            })
+          }
+        </RichText>
+      );
+    }
   }
 }
 

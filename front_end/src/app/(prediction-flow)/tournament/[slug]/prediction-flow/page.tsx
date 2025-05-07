@@ -10,7 +10,6 @@ import ProgressSection from "@/app/(prediction-flow)/components/progress_section
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -35,9 +34,6 @@ export default async function PredictionFlow(props: Props) {
   }
 
   const forecastFlowPosts = await fetchTournamentForecastFlowPosts(params.slug);
-  const isAlreadyParticipated = forecastFlowPosts.some((post) =>
-    isPostOpenQuestionPredicted(post)
-  );
 
   return (
     <PredictionFlowProvider
@@ -50,10 +46,7 @@ export default async function PredictionFlow(props: Props) {
       />
       <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
         <ProgressSection />
-        <PredictionFlowPost
-          tournamentSlug={tournament.slug}
-          isAlreadyParticipated={isAlreadyParticipated}
-        />
+        <PredictionFlowPost tournamentSlug={tournament.slug} />
       </main>
     </PredictionFlowProvider>
   );

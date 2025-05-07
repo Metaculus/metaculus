@@ -1,7 +1,7 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import {
@@ -25,14 +25,9 @@ import RequireAttentionBanner from "./require_attention_banner";
 
 type Props = {
   tournamentSlug: string;
-  isAlreadyParticipated: boolean;
 };
 
-const PredictionFlowPost: FC<Props> = ({
-  tournamentSlug,
-  isAlreadyParticipated,
-}) => {
-  const isAlreadyParticipatedRef = useRef(isAlreadyParticipated);
+const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
   const [detailedPost, setDetailedPost] = useState<PostWithForecasts | null>(
     null
   );
@@ -98,7 +93,9 @@ const PredictionFlowPost: FC<Props> = ({
     return null;
   }
 
-  const forceHideCP = isNil(flowType) && !isAlreadyParticipatedRef.current;
+  const forceHideCP =
+    isNil(flowType) &&
+    !isPostOpenQuestionPredicted(detailedPost, { checkAllSubquestions: true });
 
   return (
     <HideCPProvider post={detailedPost} forceHideCP={forceHideCP}>

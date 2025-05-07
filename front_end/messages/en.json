@@ -1232,7 +1232,6 @@
   "unpredictedQuestion": "There is still an unpredicted question left.",
   "staleQuestions": "{count}% of the question’s lifetime elapsed since your forecast.",
   "significantMovementBannerText": "There was a significant movement in the question prediction since your forecast.",
-  "detailedSignificantMovementBannerText": "Community prediction {direction} by <bold>{movement} {unit}</bold> since your last forecast.",
   "increased": "increased",
   "decreased": "decreased",
   "options": "options",
@@ -1243,5 +1242,9 @@
   "months": "months",
   "sooner": "sooner",
   "later": "later",
-  "dateQuestionSignificantMovementBannerText": "Community prediction moved <bold>{amount} {unit} {movementDirection}</bold> since your last forecast."
+  "narrowed": "narrowed",
+  "expanded": "expanded",
+  "detailedSignificantMovementBannerText": "Community prediction {direction} by <strong>{amount}{unit}</strong> since your last forecast.",
+  "dateQuestionSignificantMovementBannerText": "Community prediction moved <strong>{amount}{unit} {direction}</strong> since your last forecast.",
+  "uncertaintySignificantMovementBannerText": "Community prediction {direction} uncertainty by <strong>{amount}{unit}</strong> since your last forecast."
 }
