@@ -6,7 +6,6 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import BaseModal from "@/components/base_modal";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
@@ -15,6 +14,7 @@ import LoadingSpinner from "@/components/ui/loading_spiner";
 import { BECommentType } from "@/types/comment";
 import { User } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+
 import { useKeyFactors } from "./hooks";
 
 const FACTORS_PER_COMMENT = 4;
@@ -239,7 +239,7 @@ const AddKeyFactorsModal: FC<Props> = ({
     user_id: user.id,
     commentId,
     postId,
-    showSuggestedKeyFactors: showSuggestedKeyFactors && isOpen,
+    suggestKeyFactors: showSuggestedKeyFactors && isOpen,
   });
 
   const handleOnClose = () => {
