@@ -41,6 +41,7 @@ export type CommentsFeedContextType = {
     keepComments: boolean,
     params: getCommentsParams
   ) => Promise<void>;
+  fetchTotalCount: (params: getCommentsParams) => Promise<void>;
   combinedKeyFactors: KeyFactor[];
   setCombinedKeyFactors: (combinedKeyFactors: KeyFactor[]) => void;
   setKeyFactorVote: (
@@ -185,6 +186,21 @@ const CommentsFeedProvider: FC<
     });
   };
 
+  const fetchTotalCount = async (params: getCommentsParams) => {
+    const response = await getComments({
+      post: postData?.id,
+      author: profileId,
+      limit: 1,
+      use_root_comments_pagination: rootCommentStructure,
+      ...params,
+    });
+    if (!!response && "errors" in response) {
+      logError(response.errors, { message: "Error fetching comments:" });
+    } else {
+      setTotalCount(response.total_count ?? response.count);
+    }
+  };
+
   const fetchComments = async (
     keepComments: boolean = true,
     params: getCommentsParams
@@ -247,6 +263,7 @@ const CommentsFeedProvider: FC<
         sort,
         setSort,
         fetchComments,
+        fetchTotalCount,
         combinedKeyFactors,
         setCombinedKeyFactors: setAndSortCombinedKeyFactors,
         setKeyFactorVote,

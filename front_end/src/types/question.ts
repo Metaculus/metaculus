@@ -229,7 +229,27 @@ export type Question = {
   open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
+  // used for prediction flow in tournament
+
+  my_forecast?: {
+    latest: UserForecast;
+    lifetime_elapsed: number;
+    movement: null | {
+      direction: MovementDirection;
+      movement: number;
+    };
+  };
 };
+
+export enum MovementDirection {
+  UP = "up",
+  DOWN = "down",
+  EXPANDED = "expanded",
+  CONTRACTED = "contracted",
+  // safety values that we should never use
+  UNCHANGED = "unchanged",
+  CHANGED = "changed",
+}
 
 export type QuestionWithNumericForecasts = Question & {
   type: QuestionType.Numeric | QuestionType.Date | QuestionType.Binary;

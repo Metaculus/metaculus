@@ -13,7 +13,7 @@ from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
 from questions.models import Question
-from questions.serializers import (
+from questions.serializers.common import (
     validate_question_resolution,
     OldForecastWriteSerializer,
     ForecastWriteSerializer,

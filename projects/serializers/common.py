@@ -87,6 +87,7 @@ class TournamentSerializer(TournamentShortSerializer):
             "meta_description",
             "edited_at",
             "visibility",
+            "forecasts_flow_enabled",
         )
 
 

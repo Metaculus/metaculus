@@ -1,16 +1,16 @@
 import { isNil, round } from "lodash";
 import React, { FC, useCallback } from "react";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
-import { BINARY_FORECAST_PRECISION } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import ContinuousAreaChart, {
   getContinuousAreaChartData,
 } from "@/components/charts/continuous_area_chart";
 import NumericChart from "@/components/charts/numeric_chart";
+import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
+import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
 import {
