@@ -675,7 +675,7 @@ def serialize_question(
             recency_weighted[-1].forecaster_count if recency_weighted else 0
         )
 
-        if question.cp_reveal_time and question.cp_reveal_time > timezone.now():
+        if question.is_cp_hidden:
             # don't show any forecasts
             aggregate_forecasts_by_method = {}
 

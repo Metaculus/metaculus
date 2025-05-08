@@ -1,13 +1,16 @@
 import numpy as np
 import pytest
 
-from questions.models import Question
+from questions.models import Question, AggregateForecast
+from tests.unit.test_questions.factories import create_question
 from utils.the_math.measures import (
     weighted_percentile_2d,
     percent_point_function,
     prediction_difference_for_sorting,
     prediction_difference_for_display,
     decimal_h_index,
+    Direction,
+    get_difference_display,
 )
 
 
@@ -290,7 +293,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 zero_point=None,
             ),
             [
-                (1.0, 1.0),
+                (1.0, -1.0),
             ],
         ),
         (
@@ -303,7 +306,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 zero_point=None,
             ),
             [
-                (1.0, 1.0),
+                (1.0, -1.0),
             ],
         ),
         (
@@ -316,7 +319,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 zero_point=None,
             ),
             [
-                (100.0, 100.0),
+                (100.0, -100.0),
             ],
         ),
         (
@@ -364,3 +367,94 @@ def test_prediction_difference_for_display(p1, p2, question, expected_result):
 def test_decimal_h_index(scores, expected_result):
     result = decimal_h_index(scores)
     assert np.isclose(result, expected_result)
+
+
+class TestGetDifferenceDisplay:
+    @pytest.mark.parametrize(
+        "f1,f2,expected_change",
+        [
+            [[0.4, 0.6], [0.25, 0.75], (Direction.UP, pytest.approx(0.15))],
+            [[0.67, 0.33], [0.75, 0.25], (Direction.DOWN, pytest.approx(0.08))],
+            [[0.4, 0.6], [0.4, 0.6], (Direction.UNCHANGED, pytest.approx(0.0))],
+        ],
+    )
+    def test_binary(self, f1, f2, expected_change):
+        question = create_question(question_type=Question.QuestionType.BINARY)
+
+        assert (
+            expected_change
+            == get_difference_display(
+                AggregateForecast(forecast_values=f1),
+                AggregateForecast(forecast_values=f2),
+                question,
+            )[0]
+        )
+
+    def test_multiple_choice(self):
+        f1 = [0.1, 0.2, 0.5]
+        f2 = [0.1, 0.15, 0.95]
+        expected_result = [
+            (Direction.UNCHANGED, 0.0),
+            (Direction.DOWN, 0.05),
+            (Direction.UP, 0.45),
+        ]
+        question = create_question(question_type=Question.QuestionType.MULTIPLE_CHOICE)
+
+        for idx, (direction, change) in enumerate(
+            get_difference_display(
+                AggregateForecast(forecast_values=f1),
+                AggregateForecast(forecast_values=f2),
+                question,
+            )
+        ):
+            expected_direction, expected_change = expected_result[idx]
+
+            assert direction == expected_direction
+            assert pytest.approx(change) == expected_change
+
+    @pytest.mark.parametrize(
+        "p1, p2, expected_result",
+        [
+            # Uniform downward shift -> net positive asymmetry -> UP
+            ([0.3, 0.5, 0.7], [0.2, 0.4, 0.6], (Direction.UP, pytest.approx(0.2))),
+            # Uniform upward shift -> net negative asymmetry -> DOWN
+            ([0.3, 0.5, 0.7], [0.4, 0.6, 0.8], (Direction.DOWN, pytest.approx(0.2))),
+            # p2 narrower CDF than p1 -> CONTRACTED
+            ([0.3, 0.7], [0.2, 0.8], (Direction.CONTRACTED, pytest.approx(0.2))),
+            # p2 wider CDF than p1  -> EXPANDED
+            ([0.2, 0.8], [0.3, 0.7], (Direction.EXPANDED, pytest.approx(0.2))),
+        ],
+    )
+    def test_continuous_asymmetry_dominates(self, p1, p2, expected_result):
+        question = create_question(
+            question_type=Question.QuestionType.NUMERIC, range_min=0, range_max=2
+        )
+        f1 = AggregateForecast(forecast_values=p1)
+        f2 = AggregateForecast(forecast_values=p2)
+        assert expected_result == get_difference_display(f1, f2, question)[0]
+
+    def test_continuous_with_explicit_bounds(self):
+        question = create_question(
+            question_type=Question.QuestionType.NUMERIC, range_min=0, range_max=1
+        )
+
+        # f1: interval [0.0, 0.8] -> width = 0.8
+        f1 = AggregateForecast(
+            forecast_values=[0.2, 0.8],
+            interval_lower_bounds=[0.0],
+            interval_upper_bounds=[0.8],
+        )
+        # f2: interval [0.2, 0.6] -> width = 0.4
+        f2 = AggregateForecast(
+            forecast_values=[0.1, 0.9],
+            interval_lower_bounds=[0.2],
+            interval_upper_bounds=[0.6],
+        )
+
+        direction, magnitude = get_difference_display(f1, f2, question)[0]
+
+        # f2_width (0.4) < f1_width (0.8) -> CONTRACTED
+        assert direction == Direction.CONTRACTED
+
+        # magnitude is still the earth‐mover’s distance (0.1) since asymmetry == 0
+        assert magnitude == pytest.approx(0.1)
