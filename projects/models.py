@@ -326,7 +326,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     show_on_homepage = models.BooleanField(default=False, db_index=True)
 
     forecasts_flow_enabled = models.BooleanField(
-        default=False, help_text="Enables new forecast flow for tournaments"
+        default=True, help_text="Enables new forecast flow for tournaments"
     )
 
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
