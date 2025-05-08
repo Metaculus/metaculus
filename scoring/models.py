@@ -219,6 +219,14 @@ class Leaderboard(TimeStampedModel):
         </br>- If the Project has a prize pool, but this leaderboard has none, set this to 0.
         """,
     )
+    bot_status = models.CharField(
+        max_length=32,
+        choices=Project.BotLeaderboardStatus.choices,
+        null=True,
+        blank=True,
+        help_text="""Optional. If not set, the Project's bot_leaderboard_status will be
+        used instead. See Project for more details.""",
+    )
     user_list = models.ManyToManyField(
         User,
         blank=True,
@@ -325,6 +333,33 @@ def name_and_slug_for_global_leaderboard_dates(
         f"{start_year}-{end_year - 1} {GLOBAL_LEADERBOARD_STRING}",
         f"{start_year}_{end_year - 1}_{GLOBAL_LEADERBOARD_SLUG}",
     )
+
+
+# class LeaderboardEntryQuerySet(QuerySet["LeaderboardEntry"]):
+#     def filter_for_display(self) -> QuerySet["LeaderboardEntry"]:
+#         # returns only entries that can be displayed
+#         # if not attached to a leaderboard:
+#         #     return all entries that are aggregations or not excluded
+#         # if leaderboard is attached:
+#         #     if bot_status is not populated:
+#         #         if leaderboard has no project:
+#         #             return all entries that are aggregations or not excluded
+#         #         if leaderboard has a project:
+#         #             take bot_leaderboard_status from project as "bot_status"
+#         #    if bot_status is populated:
+#         #         take "bot_status" from leaderboard
+#         # if bot_status === "excluded_and_hide":
+#         #     return all entries that are aggregations or not excluded
+#         # if bot_status === "excluded_and_show":
+#         #     return all entries that are aggregations or not excluded or excluded & user.is_bot
+#         # if bot_status === "included":
+#         #     return all entries that are aggregations or not excluded
+#         # if bot_status === "bots_only":
+#         #     return all entries that are aggregations or not excluded or excluded & not user.is_bot
+
+
+#     def exclude_excluded(self) -> QuerySet["LeaderboardEntry"]:
+#         return self.exclude(excluded=True)
 
 
 class LeaderboardEntry(TimeStampedModel):

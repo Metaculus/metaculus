@@ -333,6 +333,7 @@ def generate_project_leaderboard(
 def assign_ranks(
     entries: list[LeaderboardEntry],
     leaderboard: Leaderboard,
+    include_humans: bool = True,
     include_bots: bool = False,
 ) -> list[LeaderboardEntry]:
     RelativeLegacy = Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
@@ -382,8 +383,10 @@ def assign_ranks(
         id__in=[x.user_id for x in entries if x.user_id], is_active=True
     ).values_list("pk", flat=True)
 
+    if not include_humans:
+        included_users = included_users.exclude(is_bot=False)
     if not include_bots:
-        included_users = included_users.filter(is_bot=False)
+        included_users = included_users.exclude(is_bot=True)
 
     for entry in entries:
         if entry.user_id and entry.user_id not in included_users:
@@ -650,10 +653,17 @@ def update_project_leaderboard(
     new_entries = generate_project_leaderboard(project, leaderboard)
 
     # assign ranks - also applies exclusions
+    bot_status = leaderboard.bot_status or project.bot_leaderboard_status
+    bots_get_ranks = bot_status in [
+        Project.BotLeaderboardStatus.BOTS_ONLY,
+        Project.BotLeaderboardStatus.INCLUDE,
+    ]
+    humans_get_ranks = bot_status != Project.BotLeaderboardStatus.BOTS_ONLY
     new_entries = assign_ranks(
         new_entries,
         leaderboard,
-        include_bots=project.include_bots_in_leaderboard,
+        include_humans=humans_get_ranks,
+        include_bots=bots_get_ranks,
     )
 
     # assign prize percentages
