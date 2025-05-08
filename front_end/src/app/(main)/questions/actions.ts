@@ -203,7 +203,9 @@ export async function rejectPost(postId: number) {
 }
 
 export async function deletePost(postId: number) {
-  return await PostsApi.deletePost(postId);
+  await PostsApi.deletePost(postId);
+
+  return redirect("/questions/");
 }
 
 export async function sendBackToReview(postId: number) {
