@@ -6,9 +6,10 @@ from django.contrib import admin
 from django.contrib import messages
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import F
+from django.db.models import F, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, activate, get_language
+from rest_framework.generics import get_object_or_404
 
 from utils.tasks import update_translations_task
 from utils.translation import (
@@ -367,3 +368,16 @@ class ModelBatchUpdater:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.flush()
+
+
+def get_by_pk_or_slug(
+    queryset: QuerySet, slug_or_pk: str | int, slug_field: str = "slug"
+):
+    """
+    Tries to retrieve an object by primary key if possible,
+    otherwise by slug field
+    """
+    try:
+        return get_object_or_404(queryset, pk=int(slug_or_pk))
+    except (ValueError, TypeError):
+        return get_object_or_404(queryset, **{slug_field: slug_or_pk})

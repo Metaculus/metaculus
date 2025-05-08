@@ -3,10 +3,10 @@ import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
+import { createForecasts } from "@/app/(main)/questions/actions";
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,
-} from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
-import { createForecasts } from "@/app/(main)/questions/actions";
+} from "@/components/forecast_maker/binary_slider";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useServerAction } from "@/hooks/use_server_action";

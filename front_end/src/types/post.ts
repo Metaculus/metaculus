@@ -217,6 +217,13 @@ export type PostWithForecasts =
   | GroupOfQuestionsPost<QuestionWithNumericForecasts>
   | NotebookPost;
 
+export type PredictionFlowPost = Pick<
+  PostWithForecasts,
+  "id" | "title" | "conditional" | "group_of_questions" | "question"
+> & {
+  isDone?: boolean;
+};
+
 export enum PostSubscriptionType {
   CP_CHANGE = "cp_change",
   NEW_COMMENTS = "new_comments",
