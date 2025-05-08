@@ -68,10 +68,16 @@ export const getProjectLink = (
     case TournamentType.Community:
       return `/c/${project.slug}/`;
     case TournamentType.Index:
-      return `/index/${project.slug || project.id}/`;
+      return `/index/${getProjectSlug(project)}/`;
     default:
-      return `/tournament/${project.slug ?? project.id}`;
+      return `/tournament/${getProjectSlug(project)}`;
   }
+};
+
+export const getProjectSlug = (
+  project: Pick<Project, "id" | "type" | "slug">
+) => {
+  return project.slug ?? project.id;
 };
 
 export const getWithDefaultHeader = (pathname: string): boolean =>
