@@ -56,11 +56,7 @@ const PredictionFlowProvider: FC<
       ...post,
       // for all tournament questions flow we set this field to true after user saw (skipped) or predicted the question
       // for require attention flow we set this field to true after user predicted or reaffirmed the prediction
-      isDone: isNil(flowType)
-        ? isPostOpenQuestionPredicted(post, {
-            checkAllSubquestions: true,
-          })
-        : false,
+      isDone: isNil(flowType) ? isPostOpenQuestionPredicted(post) : false,
     }))
   );
   const [currentPostId, setCurrentPostId] = useState<number | null>(
@@ -80,9 +76,7 @@ const PredictionFlowProvider: FC<
             if (shouldCheckPredictedQuestions) {
               return {
                 ...post,
-                isDone: isPostOpenQuestionPredicted(post, {
-                  checkAllSubquestions: true,
-                }),
+                isDone: isPostOpenQuestionPredicted(post),
               };
             }
             if (post.id === currentPostId) {
@@ -109,9 +103,7 @@ const PredictionFlowProvider: FC<
             ? {
                 ...currentPost,
                 // update counter of questions left and color of the step button
-                isDone: isPostOpenQuestionPredicted(currentPost, {
-                  checkAllSubquestions: true,
-                }),
+                isDone: isPostOpenQuestionPredicted(currentPost),
               }
             : prevPost;
         })
@@ -120,12 +112,7 @@ const PredictionFlowProvider: FC<
         (post) => post.id === currentPost.id
       );
       // move to the next question if all subquestions are predicted
-      if (
-        currentPostIndex !== -1 &&
-        isPostOpenQuestionPredicted(currentPost, {
-          checkAllSubquestions: true,
-        })
-      ) {
+      if (currentPostIndex !== -1 && isPostOpenQuestionPredicted(currentPost)) {
         setCurrentPostId(posts[currentPostIndex + 1]?.id ?? null);
       }
     },

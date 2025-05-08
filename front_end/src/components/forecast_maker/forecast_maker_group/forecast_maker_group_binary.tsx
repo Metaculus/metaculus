@@ -105,7 +105,12 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     [prevForecastValuesMap]
   );
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
-    generateChoiceOptions({ questions, prevForecastValuesMap, post })
+    generateChoiceOptions({
+      questions,
+      prevForecastValuesMap,
+      post,
+      onPredictionSubmit,
+    })
   );
 
   const sortedQuestionOptions = [...questionOptions].sort((a, b) => {
@@ -134,9 +139,10 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         prevForecastValuesMap,
         permission,
         post,
+        onPredictionSubmit,
       })
     );
-  }, [permission, prevForecastValuesMap, questions]);
+  }, [permission, prevForecastValuesMap, questions, post, onPredictionSubmit]);
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const questionsToSubmit = useMemo(

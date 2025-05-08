@@ -54,9 +54,7 @@ const PredictionFlowMenu: FC<Props> = ({ posts }) => {
                   "flex min-w-10 items-center justify-center border border-orange-300 bg-orange-100 px-1 py-0.5 text-xs font-bold leading-4 text-orange-800 dark:border-orange-300-dark dark:bg-orange-100-dark dark:text-orange-800-dark",
                   {
                     "border-salmon-500 bg-salmon-300 text-salmon-800 dark:border-salmon-500-dark dark:bg-salmon-300-dark dark:text-salmon-800-dark":
-                      !isPostOpenQuestionPredicted(post, {
-                        checkAllSubquestions: true,
-                      }),
+                      !isPostOpenQuestionPredicted(post),
                   }
                 )}
               >
@@ -79,9 +77,7 @@ function getUserPredictionChip(
   post: PredictionFlowPost,
   t: ReturnType<typeof useTranslations>
 ) {
-  const isPredicted = isPostOpenQuestionPredicted(post, {
-    checkAllSubquestions: true,
-  });
+  const isPredicted = isPostOpenQuestionPredicted(post);
   if (!isNil(post.question)) {
     if (post.question.type === QuestionType.MultipleChoice) {
       const optionsAmount = post.question.options?.length;
@@ -129,9 +125,7 @@ function getAttentionChipText(
   t: ReturnType<typeof useTranslations>,
   flowType: FlowType
 ) {
-  const isPredicted = isPostOpenQuestionPredicted(post, {
-    checkAllSubquestions: true,
-  });
+  const isPredicted = isPostOpenQuestionPredicted(post);
   if (!isPredicted) {
     return t("notPredicted");
   }

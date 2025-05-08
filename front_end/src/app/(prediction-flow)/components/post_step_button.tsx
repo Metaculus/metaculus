@@ -14,9 +14,7 @@ type Props = {
 };
 
 const PostStepButton: FC<Props> = ({ post, className }) => {
-  const isPredicted = isPostOpenQuestionPredicted(post, {
-    checkAllSubquestions: true,
-  });
+  const isPredicted = isPostOpenQuestionPredicted(post);
   const { currentPostId, flowType, changeActivePost } = usePredictionFlow();
   const isActiveStep = currentPostId === post.id;
   const isCompletedStep = isNil(flowType) ? isPredicted : post.isDone;

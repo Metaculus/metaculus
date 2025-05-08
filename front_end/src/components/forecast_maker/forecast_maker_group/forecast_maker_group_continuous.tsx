@@ -138,7 +138,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         };
       })
     );
-    resetTarget.current = undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions]);
 
@@ -355,8 +354,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           return opt;
         })
       );
-      setIsSubmitting(false);
       onPredictionSubmit?.();
+      setIsSubmitting(false);
       return response;
     },
     [postId, questionsToSubmit, onPredictionSubmit]
@@ -446,8 +445,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           : prevQuestion;
       })
     );
+    onPredictionSubmit?.();
     setIsSubmitting(false);
-  }, [postId, questionsToSubmit, t]);
+  }, [postId, questionsToSubmit, t, onPredictionSubmit]);
   const predictedQuestions = useMemo(() => {
     return questions.filter(
       (q) =>

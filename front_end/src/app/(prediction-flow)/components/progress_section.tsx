@@ -92,9 +92,7 @@ const ProgressSection: FC = () => {
           >
             {t(
               isNil(flowType) && posts[currentIndex]
-                ? isPostOpenQuestionPredicted(posts[currentIndex], {
-                    checkAllSubquestions: true,
-                  })
+                ? isPostOpenQuestionPredicted(posts[currentIndex])
                   ? "nextQuestion"
                   : "skipQuestions"
                 : posts[currentIndex]?.isDone

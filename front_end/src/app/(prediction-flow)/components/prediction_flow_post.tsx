@@ -66,11 +66,7 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
     const currentPost = flowPosts.find((post) => post.id === currentPostId);
     if (currentPost) {
       // update detailed post if we doesn't move to the next question
-      if (
-        !isPostOpenQuestionPredicted(currentPost, {
-          checkAllSubquestions: true,
-        })
-      ) {
+      if (!isPostOpenQuestionPredicted(currentPost)) {
         const post = await getPost(currentPostId);
         setDetailedPost(post);
       }
@@ -103,8 +99,7 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
   }
 
   const forceHideCP =
-    isNil(flowType) &&
-    !isPostOpenQuestionPredicted(detailedPost, { checkAllSubquestions: true });
+    isNil(flowType) && !isPostOpenQuestionPredicted(detailedPost);
 
   return (
     <HideCPProvider post={detailedPost} forceHideCP={forceHideCP}>
@@ -163,11 +158,7 @@ const FinalFlowView = ({ tournamentSlug }: { tournamentSlug: string }) => {
   const { posts, changeActivePost, flowType } = usePredictionFlow();
   const t = useTranslations();
   const skippedQuestions = posts.filter((post) =>
-    isNil(flowType)
-      ? !isPostOpenQuestionPredicted(post, {
-          checkAllSubquestions: true,
-        })
-      : !post.isDone
+    isNil(flowType) ? !isPostOpenQuestionPredicted(post) : !post.isDone
   );
 
   const handleReviewSkippedQuestions = useCallback(() => {

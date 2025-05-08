@@ -286,7 +286,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
     ]);
     setQuestionOptions((prev) =>
-      prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
+      prev.map((prevChoice) => ({ ...prevChoice, value: null, isDirty: false }))
     );
 
     if (response && "errors" in response && !!response.errors) {

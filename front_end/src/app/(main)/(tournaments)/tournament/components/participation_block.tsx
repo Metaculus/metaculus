@@ -40,14 +40,14 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
     return null;
   }
   const isParticipated = posts.some((post) =>
-    isPostOpenQuestionPredicted(post)
+    isPostOpenQuestionPredicted(post, { checkAllSubquestions: false })
   );
   const unpredictedPosts: PredictionFlowPost[] = [];
   const stalePredictionsPosts: PredictionFlowPost[] = [];
   const significantMovementPosts: PredictionFlowPost[] = [];
 
   posts.forEach((post) => {
-    if (!isPostOpenQuestionPredicted(post, { checkAllSubquestions: true })) {
+    if (!isPostOpenQuestionPredicted(post)) {
       unpredictedPosts.push(post);
     }
     if (isPostStale(post)) {

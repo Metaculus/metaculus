@@ -99,7 +99,7 @@ export const isPostOpenQuestionPredicted = (
     checkAllSubquestions?: boolean;
   }
 ) => {
-  const { checkAllSubquestions = false } = config ?? {};
+  const { checkAllSubquestions = true } = config ?? {};
   if (post.question) {
     return isOpenQuestionPredicted(post.question);
   }
