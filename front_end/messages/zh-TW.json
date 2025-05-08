@@ -1255,5 +1255,7 @@
   "CPMovementChangeLabel": "{value} 本 {period}",
   "add": "新增",
   "suggestedKeyFactorsSection": "這裡是根據您的評論文本推薦的關鍵因素。如果您覺得合適，可以添加這些關鍵因素，或者手動輸入您的關鍵因素。",
-  "loadingSuggestedKeyFactors": "生成關鍵因素中..."
+  "loadingSuggestedKeyFactors": "生成關鍵因素中...",
+  "duplicateSubQuestionLabel": "重複的子問題標籤",
+  "close": "關閉"
 }

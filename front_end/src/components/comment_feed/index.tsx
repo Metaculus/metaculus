@@ -8,7 +8,6 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
-import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import {
   commentTogglePin,
   getComments,
@@ -341,10 +340,7 @@ const CommentFeed: FC<Props> = ({
     ].includes(postData?.status ?? PostStatus.CLOSED);
 
     if (postId && isSimpleQuestion && user?.has_key_factors && isPostOpen) {
-      setTimeout(() => {
-        // We open the modal after a delay as per the design, no technical reason
-        setUserKeyFactorsComment(newComment);
-      }, 500);
+      setUserKeyFactorsComment(newComment);
     }
   };
 
@@ -366,22 +362,6 @@ const CommentFeed: FC<Props> = ({
           }
         )}
       >
-        {user && (
-          <AddKeyFactorsModal
-            showSuggestedKeyFactors={user.has_key_factors}
-            isOpen={!!userKeyFactorsComment}
-            onClose={() => setUserKeyFactorsComment(null)}
-            commentId={userKeyFactorsComment?.id}
-            user={user}
-            onSuccess={(comment) => {
-              setComments([
-                { ...comment, children: [] },
-                ...comments.filter((c) => c.id !== comment.id),
-              ]);
-            }}
-          />
-        )}
-
         <div className="mb-4 mt-2 flex flex-col items-start gap-3">
           <div
             className={cn(
@@ -468,6 +448,11 @@ const CommentFeed: FC<Props> = ({
             profileId={profileId}
             last_viewed_at={postData?.last_viewed_at}
             postData={postData}
+            suggestKeyFactorsOnFirstRender={
+              // This is the newly added comment, so we want to suggest key factors
+              comment.id === userKeyFactorsComment?.id
+            }
+            shouldSuggestKeyFactors={user?.has_key_factors}
           />
         ))}
         {comments.length === 0 && !isLoading && (

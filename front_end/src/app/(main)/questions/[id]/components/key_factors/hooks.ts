@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
+import { useState, useEffect, useMemo } from "react";
+
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   addKeyFactorsToComment,
@@ -23,16 +24,16 @@ type UseKeyFactorsProps = {
   user_id: number;
   commentId?: number;
   postId?: number;
-  showSuggestedKeyFactors?: boolean;
-  shouldLoadKeyFactors?: boolean;
+  suggestKeyFactors?: boolean;
+  onKeyFactorsLoadded?: (success: boolean) => void;
 };
 
 export const useKeyFactors = ({
   user_id,
   commentId,
   postId,
-  showSuggestedKeyFactors,
-  shouldLoadKeyFactors = false,
+  suggestKeyFactors: shouldLoadKeyFactors = false,
+  onKeyFactorsLoadded,
 }: UseKeyFactorsProps) => {
   const t = useTranslations();
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
@@ -47,19 +48,23 @@ export const useKeyFactors = ({
     useState(false);
 
   useEffect(() => {
-    if (showSuggestedKeyFactors && commentId) {
+    if (shouldLoadKeyFactors && commentId) {
       setIsLoadingSuggestedKeyFactors(true);
       getSuggestedKeyFactors(commentId)
         .then((suggested) => {
           setSuggestedKeyFactors(
             suggested.map((text) => ({ text, selected: false }))
           );
+          onKeyFactorsLoadded?.(true);
+        })
+        .catch(() => {
+          onKeyFactorsLoadded?.(false);
         })
         .finally(() => {
           setIsLoadingSuggestedKeyFactors(false);
         });
     }
-  }, [showSuggestedKeyFactors, commentId]);
+  }, [commentId, shouldLoadKeyFactors]);
 
   const { factorsLimit } = useMemo(
     () => getKeyFactorsLimits(combinedKeyFactors, user_id, commentId),
@@ -147,6 +152,7 @@ export const useKeyFactors = ({
   const clearState = () => {
     setKeyFactors([""]);
     setErrorMessage(undefined);
+    setSuggestedKeyFactors([]);
   };
 
   return {

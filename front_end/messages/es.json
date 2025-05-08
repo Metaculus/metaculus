@@ -1257,5 +1257,6 @@
   "CPMovementWeekChangeLabel": "{value} esta semana",
   "add": "Agregar",
   "suggestedKeyFactorsSection": "Aquí están los factores clave sugeridos basados en el texto de tu comentario. Siéntete libre de añadir los que consideres apropiados o ingresa tus factores clave manualmente.",
-  "loadingSuggestedKeyFactors": "Generando factores clave..."
+  "loadingSuggestedKeyFactors": "Generando factores clave...",
+  "close": "Cerrar"
 }
