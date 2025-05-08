@@ -335,33 +335,6 @@ def name_and_slug_for_global_leaderboard_dates(
     )
 
 
-# class LeaderboardEntryQuerySet(QuerySet["LeaderboardEntry"]):
-#     def filter_for_display(self) -> QuerySet["LeaderboardEntry"]:
-#         # returns only entries that can be displayed
-#         # if not attached to a leaderboard:
-#         #     return all entries that are aggregations or not excluded
-#         # if leaderboard is attached:
-#         #     if bot_status is not populated:
-#         #         if leaderboard has no project:
-#         #             return all entries that are aggregations or not excluded
-#         #         if leaderboard has a project:
-#         #             take bot_leaderboard_status from project as "bot_status"
-#         #    if bot_status is populated:
-#         #         take "bot_status" from leaderboard
-#         # if bot_status === "excluded_and_hide":
-#         #     return all entries that are aggregations or not excluded
-#         # if bot_status === "excluded_and_show":
-#         #     return all entries that are aggregations or not excluded or excluded & user.is_bot
-#         # if bot_status === "included":
-#         #     return all entries that are aggregations or not excluded
-#         # if bot_status === "bots_only":
-#         #     return all entries that are aggregations or not excluded or excluded & not user.is_bot
-
-
-#     def exclude_excluded(self) -> QuerySet["LeaderboardEntry"]:
-#         return self.exclude(excluded=True)
-
-
 class LeaderboardEntry(TimeStampedModel):
     # typing
     id: int
