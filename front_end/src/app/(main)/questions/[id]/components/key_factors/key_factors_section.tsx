@@ -16,8 +16,8 @@ import { PostStatus } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
-import KeyFactorItem from "./key_factor_item";
 import { getKeyFactorsLimits } from "./hooks";
+import KeyFactorItem from "./key_factor_item";
 
 type KeyFactorsSectionProps = {
   postId: number;
@@ -60,7 +60,9 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
 
   const { combinedKeyFactors } = useCommentsFeed();
 
-  const { factorsLimit } = getKeyFactorsLimits(combinedKeyFactors, user?.id!);
+  const { factorsLimit } = user?.id
+    ? getKeyFactorsLimits(combinedKeyFactors, user?.id)
+    : { factorsLimit: 0 };
 
   useEffect(() => {
     // Expands the key factor list when you follow the #key-factors link.
