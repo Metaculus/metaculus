@@ -46,17 +46,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
     []
   );
   const { open_lower_bound, open_upper_bound } = question;
-  const { handleSubmit, register, watch, setValue, formState } =
-    useForm<FormData>({
-      resolver: zodResolver(schema),
-      defaultValues: {
-        resolutionType: "",
-        actualResolveTime: currentDateTime,
-      },
-    });
 
-  const resolutionType = watch("resolutionType");
-  const unambiguousType = watch("unambiguousType");
   const resolutionTypeOptions = useMemo(() => {
     const baseQuestionOptions = [
       { value: AMBIGUOUS_RESOLUTION, label: "Ambiguous" },
@@ -86,6 +76,21 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       ...baseQuestionOptions,
     ];
   }, [question.options, question.type]);
+
+  const { handleSubmit, register, watch, setValue, formState } =
+    useForm<FormData>({
+      resolver: zodResolver(schema),
+      defaultValues: {
+        resolutionType:
+          question.type === QuestionType.MultipleChoice
+            ? resolutionTypeOptions[0]?.value ?? ""
+            : "",
+        actualResolveTime: currentDateTime,
+      },
+    });
+
+  const resolutionType = watch("resolutionType");
+  const unambiguousType = watch("unambiguousType");
 
   const unambiguousOptions = useMemo(() => {
     const options = [{ value: "knownValue", label: "Known value" }];
