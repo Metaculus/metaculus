@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             model_name="project",
             name="forecasts_flow_enabled",
             field=models.BooleanField(
-                default=False, help_text="Enables new forecast flow for tournaments"
+                default=True, help_text="Enables new forecast flow for tournaments"
             ),
         ),
     ]
