@@ -98,8 +98,7 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
     return null;
   }
 
-  const forceHideCP =
-    isNil(flowType) && !isPostOpenQuestionPredicted(detailedPost);
+  const forceHideCP = !isPostOpenQuestionPredicted(detailedPost);
 
   return (
     <HideCPProvider post={detailedPost} forceHideCP={forceHideCP}>

@@ -1247,5 +1247,8 @@
   "expanded": "rozšířená",
   "detailedSignificantMovementBannerText": "Komunitní předpověď se {direction} o <strong>{amount}{unit}</strong> od vaší poslední prognózy.",
   "dateQuestionSignificantMovementBannerText": "Komunitní předpověď se posunula o <strong>{amount}{unit} {direction}</strong> od vaší poslední prognózy.",
-  "uncertaintySignificantMovementBannerText": "Nejistota komunitní předpovědi se {direction} o <strong>{amount}{unit}</strong> od vaší poslední prognózy."
+  "uncertaintySignificantMovementBannerText": "Nejistota komunitní předpovědi se {direction} o <strong>{amount}{unit}</strong> od vaší poslední prognózy.",
+  "skippedWithoutPredicting": "Přeskočili jste {count, plural, =1 {# otázku} other {# otázek}} bez předpovědi.",
+  "allQuestionsPredicted": "Všechny otázky jsou předpovězeny",
+  "thereAreQuestionsYouHaveNotPredicted": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které jste ještě nepředpověděli."
 }

@@ -1,4 +1,5 @@
 "use client";
+import { isNil } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
@@ -17,7 +18,7 @@ type Props = {
 const ExitFlowModal: FC<Props> = ({ isOpen, onClose, tournamentSlug }) => {
   const t = useTranslations();
   const router = useRouter();
-  const { postsLeft } = usePredictionFlow();
+  const { postsLeft, flowType } = usePredictionFlow();
 
   return (
     <BaseModal
@@ -30,10 +31,15 @@ const ExitFlowModal: FC<Props> = ({ isOpen, onClose, tournamentSlug }) => {
           {t("exitPredictionFlow")}
         </h2>
         <p className="m-0 text-sm">
-          {t.rich("thereAreQuestionsThatRequireAttention", {
-            count: postsLeft,
-            bold: (chunks) => <strong>{chunks}</strong>,
-          })}
+          {t.rich(
+            isNil(flowType)
+              ? "thereAreQuestionsYouHaveNotPredicted"
+              : "thereAreQuestionsThatRequireAttention",
+            {
+              count: postsLeft,
+              bold: (chunks) => <strong>{chunks}</strong>,
+            }
+          )}
         </p>
         <p className="m-0 text-sm text-gray-700 dark:text-gray-700-dark">
           {t("youCanComeBackAnytime")}

@@ -40,7 +40,10 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
     return null;
   }
   const isParticipated = posts.some((post) =>
-    isPostOpenQuestionPredicted(post, { checkAllSubquestions: false })
+    isPostOpenQuestionPredicted(post, {
+      checkAllSubquestions: false,
+      treatClosedAsPredicted: false,
+    })
   );
   const unpredictedPosts: PredictionFlowPost[] = [];
   const stalePredictionsPosts: PredictionFlowPost[] = [];

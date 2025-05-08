@@ -1245,5 +1245,8 @@
   "expanded": "expandida",
   "detailedSignificantMovementBannerText": "Previsão da comunidade {direction} em <strong>{amount}{unit}</strong> desde sua última previsão.",
   "dateQuestionSignificantMovementBannerText": "A previsão da comunidade mudou <strong>{amount}{unit} {direction}</strong> desde sua última previsão.",
-  "uncertaintySignificantMovementBannerText": "Previsão da comunidade {direction} a incerteza em <strong>{amount}{unit}</strong> desde sua última previsão."
+  "uncertaintySignificantMovementBannerText": "Previsão da comunidade {direction} a incerteza em <strong>{amount}{unit}</strong> desde sua última previsão.",
+  "skippedWithoutPredicting": "Você pulou {count, plural, =1 {# pergunta} other {# perguntas}} sem prever.",
+  "allQuestionsPredicted": "Todas as perguntas previstas",
+  "thereAreQuestionsYouHaveNotPredicted": "Há {count, plural, =1 {<bold># pergunta</bold>} other {<bold># perguntas</bold>}} que você ainda não previu."
 }

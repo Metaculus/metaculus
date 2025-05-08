@@ -1247,5 +1247,8 @@
   "expanded": "expandido",
   "detailedSignificantMovementBannerText": "Predicción de la comunidad {direction} en <strong>{amount}{unit}</strong> desde tu último pronóstico.",
   "dateQuestionSignificantMovementBannerText": "La predicción de la comunidad se movió <strong>{amount}{unit} {direction}</strong> desde tu último pronóstico.",
-  "uncertaintySignificantMovementBannerText": "La predicción de la comunidad {direction} la incertidumbre en <strong>{amount}{unit}</strong> desde tu último pronóstico."
+  "uncertaintySignificantMovementBannerText": "La predicción de la comunidad {direction} la incertidumbre en <strong>{amount}{unit}</strong> desde tu último pronóstico.",
+  "skippedWithoutPredicting": "Has omitido {count, plural, =1 {# pregunta} other {# preguntas}} sin predecir.",
+  "allQuestionsPredicted": "Todas las preguntas predichas",
+  "thereAreQuestionsYouHaveNotPredicted": "Hay {count, plural, =1 {<bold># pregunta</bold>} other {<bold># preguntas</bold>}} que aún no has predicho."
 }

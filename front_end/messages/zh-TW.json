@@ -1244,5 +1244,8 @@
   "expanded": "擴大",
   "detailedSignificantMovementBannerText": "自您上次預測以來，社會預測{direction}了<strong>{amount}{unit}</strong>。",
   "dateQuestionSignificantMovementBannerText": "自您上次預測以來，社會預測<strong>{amount}{unit} {direction}</strong>。",
-  "uncertaintySignificantMovementBannerText": "自您上次預測以來，社會預測不確定性{direction}了<strong>{amount}{unit}</strong>。"
+  "uncertaintySignificantMovementBannerText": "自您上次預測以來，社會預測不確定性{direction}了<strong>{amount}{unit}</strong>。",
+  "skippedWithoutPredicting": "您跳過了 {count, plural, =1 {# 個問題} other {# 個問題}} 而未預測。",
+  "allQuestionsPredicted": "所有問題均已預測",
+  "thereAreQuestionsYouHaveNotPredicted": "您還有 {count, plural, =1 {<bold># 個問題</bold>} other {<bold># 個問題</bold>}} 尚未預測。"
 }
