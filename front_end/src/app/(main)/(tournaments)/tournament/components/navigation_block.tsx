@@ -8,6 +8,7 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Tournament } from "@/types/projects";
+import { getProjectSlug } from "@/utils/navigation";
 
 type Props = {
   tournament: Tournament;
@@ -29,7 +30,7 @@ const NavigationBlock: FC<Props> = ({ tournament }) => {
           }}
           href={
             !isNil(user)
-              ? `/tournament/${tournament.slug}/prediction-flow`
+              ? `/tournament/${getProjectSlug(tournament)}/prediction-flow`
               : undefined
           }
           className="w-full flex-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg"

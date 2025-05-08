@@ -10,6 +10,7 @@ import ProgressSection from "@/app/(prediction-flow)/components/progress_section
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
+import { getProjectSlug } from "@/utils/navigation";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -34,7 +35,7 @@ export default async function PredictionFlow(props: Props) {
   }
 
   const forecastFlowPosts = await fetchTournamentForecastFlowPosts(params.slug);
-
+  const tournamentSlug = getProjectSlug(tournament);
   return (
     <PredictionFlowProvider
       flowType={flowType}
@@ -42,11 +43,11 @@ export default async function PredictionFlow(props: Props) {
     >
       <PredictionFlowHeader
         tournamentName={tournament.name}
-        tournamentSlug={tournament.slug}
+        tournamentSlug={tournamentSlug}
       />
       <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
         <ProgressSection />
-        <PredictionFlowPost tournamentSlug={tournament.slug} />
+        <PredictionFlowPost tournamentSlug={tournamentSlug} />
       </main>
     </PredictionFlowProvider>
   );
