@@ -19,12 +19,12 @@ class SpamAnalysisResult(BaseModel):
     confidence: float
 
 
-def get_openai_client() -> OpenAI:
-    return OpenAI(api_key=settings.OPENAI_API_KEY)
+def get_openai_client(api_key: str | None = None) -> OpenAI:
+    return OpenAI(api_key=api_key or settings.OPENAI_API_KEY)
 
 
-def get_openai_client_async() -> AsyncOpenAI:
-    return AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+def get_openai_client_async(api_key: str | None = None) -> AsyncOpenAI:
+    return AsyncOpenAI(api_key=api_key or settings.OPENAI_API_KEY)
 
 
 async def generate_text_async(
@@ -157,7 +157,9 @@ def generate_keyfactors(
         """
     )
 
-    client = instructor.from_openai(get_openai_client())
+    client = instructor.from_openai(
+        get_openai_client(settings.OPENAI_API_KEY_FACTORS)
+    )
 
     keyfactors = client.chat.completions.create(
         model="gpt-4o",
