@@ -49,11 +49,11 @@ export function cleanupDrafts({
           localStorage.removeItem(draft.key);
           totalSizeMB -= draft.size / BYTES_IN_MB;
         } catch (error) {
-          logError(error, `Failed to remove draft: ${draft.key}`);
+          logError(error, { message: `Failed to remove draft: ${draft.key}` });
         }
       }
     });
   } catch (error) {
-    logError(error, "Failed to cleanup old drafts");
+    logError(error, { message: "Failed to cleanup old drafts" });
   }
 }
