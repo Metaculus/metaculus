@@ -1,14 +1,12 @@
 import logging
 
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse, Http404
+from django.http import JsonResponse, HttpResponse, Http404, HttpResponseForbidden
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
-from rest_framework.negotiation import DefaultContentNegotiation
-from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request as DRFRequest
 from rest_framework.settings import api_settings
-from rest_framework.views import APIView, exception_handler
 
 logger = logging.getLogger(__name__)
 
@@ -47,31 +45,6 @@ class LocaleOverrideMiddleware:
 
 
 class AuthenticationRequiredMiddleware(MiddlewareMixin):
-    @classmethod
-    def render_browsable_error(cls, request, exc):
-        drf_request = DRFRequest(request)
-
-        # negotiate between Browsable and JSON
-        negotiator = DefaultContentNegotiation()
-        renderer, media_type = negotiator.select_renderer(
-            drf_request,
-            [BrowsableAPIRenderer(), JSONRenderer()],
-        )
-
-        if not isinstance(renderer, BrowsableAPIRenderer):
-            raise exc
-
-        # otherwise build the browsable‐API response
-        context = {"request": drf_request, "view": APIView()}
-        response = exception_handler(exc, context)
-
-        response.accepted_renderer = renderer
-        response.accepted_media_type = media_type
-        response.renderer_context = context
-        response.render()
-
-        return response
-
     def process_view(self, request, view_func, view_args, view_kwargs):
         if settings.PUBLIC_AUTHENTICATION_REQUIRED:
             if any(
@@ -88,7 +61,7 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
             user, _ = authenticate_request(request)
 
             if not user:
-                return self.render_browsable_error(request, Http404())
+                raise Http404()
 
         return None
 
