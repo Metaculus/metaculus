@@ -1,10 +1,9 @@
 import logging
 
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse, Http404, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request as DRFRequest
 from rest_framework.settings import api_settings
 
