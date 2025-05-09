@@ -230,6 +230,7 @@ const Comment: FC<CommentProps> = ({
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
+  const keyFactorFormRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isLoading, setIsLoading] = useState(false);
@@ -276,6 +277,11 @@ const Comment: FC<CommentProps> = ({
   const onKeyFactorsLoadded = () => {
     setIsKeyfactorsFormOpen(true);
     setLoadKeyFactors(false);
+    setTimeout(() => {
+      if (keyFactorFormRef.current) {
+        scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
+      }
+    }, 200);
   };
 
   const { comments, setComments } = useCommentsFeed();
@@ -340,6 +346,11 @@ const Comment: FC<CommentProps> = ({
 
       clearState();
       setComments(updatedComments);
+      setTimeout(() => {
+        if (commentRef.current) {
+          scrollTo(commentRef.current.getBoundingClientRect().top);
+        }
+      }, 500);
     }
     setIsKeyfactorsFormOpen(false);
   };
@@ -888,7 +899,10 @@ const Comment: FC<CommentProps> = ({
       )}
 
       {isKeyfactorsFormOpen && (
-        <div className="mt-3 flex flex-col gap-5 rounded border border-blue-800 bg-gray-0 p-4 dark:border-blue-800-dark dark:bg-gray-0-dark md:p-6">
+        <div
+          ref={keyFactorFormRef}
+          className="mt-3 flex flex-col gap-5 rounded border border-blue-800 bg-gray-0 p-4 dark:border-blue-800-dark dark:bg-gray-0-dark md:p-6"
+        >
           <AddKeyFactorsForm
             keyFactors={keyFactors}
             setKeyFactors={setKeyFactors}
