@@ -1,10 +1,12 @@
 import logging
 
+from http.cookies import SimpleCookie
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +44,14 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
                 return None
 
             if not TokenAuthentication().authenticate(request):
-                raise Http404()
+                # Try to get the cookie directly
+                cookie = SimpleCookie()
+                cookie.load(request.META.get("HTTP_COOKIE", ""))
+                auth_token = (
+                    cookie.get("auth_token").value if cookie.get("auth_token") else ""
+                )
+                if not Token.objects.filter(key=auth_token).exists():
+                    raise Http404()
         return None
 
 
