@@ -13,7 +13,7 @@ class FallbackTokenAuthentication(TokenAuthentication):
         if not auth:
             return None
 
-        # single part → assume it's the raw token
+        # single part -> assume it's the raw token
         if len(auth) == 1:
             try:
                 token = auth[0].decode()
