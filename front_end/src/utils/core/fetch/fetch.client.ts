@@ -15,7 +15,7 @@ const clientAppFetch = async <T>(
 
   // use Next.js endpoint to handle user session on server
   // this is needed to continue using httpOnly cookies which are not exposed to JS
-  const finalUrl = `/api/proxy${url}`;
+  const finalUrl = `/api-proxy${url}`;
 
   const finalOptions: FetchOptions = {
     ...defaultOptions,
