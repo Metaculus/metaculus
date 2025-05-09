@@ -9,6 +9,7 @@ import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
+import { getQuestionDraft } from "@/utils/questions";
 
 const ContinuousPredictionChart = dynamic(
   () =>
@@ -27,12 +28,14 @@ const NumericQuestionInput: React.FC<{
     open_upper_bound,
     open_lower_bound,
     zero_point,
+    shouldUpdateDraft,
   }: {
     min: number;
     max: number;
     open_upper_bound: boolean;
     open_lower_bound: boolean;
     zero_point: number | null;
+    shouldUpdateDraft?: boolean;
   }) => void;
   questionType: QuestionType.Numeric | QuestionType.Date;
   defaultMin: number | undefined;
@@ -153,17 +156,49 @@ const NumericQuestionInput: React.FC<{
     return true;
   };
   const isMounted = useRef(false);
+  const shouldUpdateParrent = useRef(false);
   useEffect(() => {
     if (!isMounted.current) {
-      onChange({
-        min: min as number,
-        max: max as number,
-        open_lower_bound: openLowerBound,
-        open_upper_bound: openUpperBound,
-        zero_point: zeroPoint,
-      });
-
+      // populate draft values
+      const draft = getQuestionDraft(questionType); // TODO: adjust structure for group questions
+      if (draft) {
+        const draftMin = !isNil(draft.scaling?.range_min)
+          ? draft.scaling.range_min
+          : min;
+        const draftMax = !isNil(draft.scaling?.range_max)
+          ? draft.scaling.range_max
+          : max;
+        const draftOpenLowerBound = !isNil(draft.open_lower_bound)
+          ? draft.open_lower_bound
+          : openLowerBound;
+        const draftOpenUpperBound = !isNil(draft.open_upper_bound)
+          ? draft.open_upper_bound
+          : openUpperBound;
+        const draftZeroPoint = !isNil(draft.scaling?.zero_point)
+          ? draft.scaling.zero_point
+          : zeroPoint;
+        setMin(draftMin);
+        setMax(draftMax);
+        setOpenLowerBound(draftOpenLowerBound);
+        setOpenUpperBound(draftOpenUpperBound);
+        setZeroPoint(draftZeroPoint);
+      } else {
+        onChange({
+          min: min as number,
+          max: max as number,
+          open_lower_bound: openLowerBound,
+          open_upper_bound: openUpperBound,
+          zero_point: zeroPoint,
+          shouldUpdateDraft: false,
+        });
+        shouldUpdateParrent.current = true;
+      }
       isMounted.current = true;
+      return;
+    }
+    // prevent update of draft timestamp after mounting
+    if (!shouldUpdateParrent.current) {
+      shouldUpdateParrent.current = true;
       return;
     }
     const ok = runChecks();
@@ -303,6 +338,7 @@ const NumericQuestionInput: React.FC<{
                   onChange={(e) => {
                     setOpenLowerBound(e);
                   }}
+                  checked={openLowerBound}
                   defaultChecked={openLowerBound}
                 />
               </div>
@@ -314,6 +350,7 @@ const NumericQuestionInput: React.FC<{
                   onChange={async (e) => {
                     setOpenUpperBound(e);
                   }}
+                  checked={openUpperBound}
                   defaultChecked={openUpperBound}
                 />
               </div>
