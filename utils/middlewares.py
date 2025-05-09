@@ -4,57 +4,38 @@ from http.cookies import SimpleCookie
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
-from django.utils.translation import activate
-from rest_framework.authentication import BaseAuthentication, TokenAuthentication
-from rest_framework.authtoken.models import Token
+from django.utils.translation import activate, gettext_lazy as _
+from rest_framework.authentication import TokenAuthentication
+from rest_framework import exceptions
 
 logger = logging.getLogger(__name__)
 
 
-def get_authorization_cookie(request, key="auth_token"):
-    auth = request.META.get("HTTP_COOKIE", b"")
+def get_authorization_cookie_value(request, key="auth_token"):
+    auth = request.META.get("HTTP_COOKIE", "")
     cookie = SimpleCookie()
     cookie.load(auth)
-    return cookie.get(key)
+    c = cookie.get(key)
+    return c.value if c else ""
 
 
-class CookieAuthentication(BaseAuthentication):
+class CookieAuthentication(TokenAuthentication):
 
-    key = "auth_token"
-    keyword = "Token"
+    keyword = "Token"  # optional
     model = None
 
-    def get_model(self):
-        if self.model is not None:
-            return self.model
-        from rest_framework.authtoken.models import Token
-
-        return Token
-
     def authenticate(self, request):
-        cookie = get_authorization_cookie(request, self.key)
+        auth = get_authorization_cookie_value(request, "auth_token").split()
 
-        if not cookie:
+        if not auth or (
+            len(auth) == 2 and auth[0].lower() != self.keyword.lower().encode()
+        ):
             return None
+        elif len(auth) > 2:
+            msg = _("Invalid token header. Token string should not contain spaces.")
+            raise exceptions.AuthenticationFailed(msg)
 
-        auth = cookie.value.split()
-        if not auth:
-            return None
-        token = auth[-1]
-
-        return self.authenticate_credentials(token)
-
-    def authenticate_credentials(self, token):
-        model = self.get_model()
-        try:
-            token = model.objects.select_related("user").get(key=token)
-        except model.DoesNotExist:
-            return None
-
-        if not token.user.is_active:
-            return None
-
-        return (token.user, token)
+        return self.authenticate_credentials(auth[-1])
 
 
 class LocaleOverrideMiddleware:
