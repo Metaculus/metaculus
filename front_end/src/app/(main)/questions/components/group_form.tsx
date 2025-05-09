@@ -49,7 +49,6 @@ import {
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import {
-  cleanupQuestionDrafts,
   deleteQuestionDraft,
   getQuestionDraft,
   saveQuestionDraft,
@@ -153,7 +152,7 @@ const GroupForm: React.FC<Props> = ({
           (x) => x.id === tournament_id
         )[0] as Tournament)
       : siteMain;
-  const [defaultProjectState, setDefaultProjectState] =
+  const [currentProject, setCurrentProject] =
     useState<Tournament>(defaultProject);
 
   const submitQuestion = async (data: any) => {
@@ -387,24 +386,11 @@ const GroupForm: React.FC<Props> = ({
 
   useEffect(() => {
     if (mode === "create") {
-      cleanupQuestionDrafts();
       const draft = getQuestionDraft(draftKey);
       if (draft) {
-        Object.entries(draft).forEach(([key, value]) => {
-          if (!["lastModified", "type", "categories"].includes(key)) {
-            if (key === "default_project") {
-              // prevent draft value overwrite query value
-              form.setValue(key as any, tournament_id ?? community_id ?? value);
-            } else {
-              form.setValue(key as any, value);
-            }
-          }
-        });
-
         setCategoriesList(draft.categories ?? []);
-        setDefaultProjectState(
-          draft.default_project &&
-            !isNil(draft.default_project) &&
+        setCurrentProject(
+          !isNil(draft.default_project) &&
             isNil(tournament_id) &&
             isNil(community_id)
             ? ([...tournaments, siteMain].filter(
@@ -416,6 +402,7 @@ const GroupForm: React.FC<Props> = ({
         setCollapsedSubQuestions(
           [...(draft.subQuestions ?? [])].map(() => true)
         );
+        form.reset(draft);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -489,7 +476,7 @@ const GroupForm: React.FC<Props> = ({
           <ProjectPickerInput
             tournaments={tournaments}
             siteMain={siteMain}
-            currentProject={defaultProjectState}
+            currentProject={currentProject}
             onChange={(project) => {
               form.setValue("default_project", project.id);
               debouncedHandleFormChange("");

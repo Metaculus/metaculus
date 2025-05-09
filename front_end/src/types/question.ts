@@ -230,7 +230,6 @@ export type Question = {
   // Used for GroupOfQuestions
   status?: QuestionStatus;
   // used for prediction flow in tournament
-
   my_forecast?: {
     latest: UserForecast;
     lifetime_elapsed: number;
@@ -251,7 +250,6 @@ export enum MovementDirection {
   CHANGED = "changed",
 }
 
-// TODO: add ALL fileds that are editable in creation form
 export type EditableQuestionFields = Pick<
   Question,
   | "title"
@@ -279,7 +277,7 @@ export type QuestionDraft = Partial<EditableQuestionFields> & {
   lastModified: number;
   categories?: Category[];
   default_project?: number;
-  subQuestions?: any[]; // Group form
+  subQuestions?: QuestionWithForecasts[]; // Group form
   condition?: QuestionWithForecasts | null;
   condition_child?: QuestionWithForecasts | null;
   condition_id?: string;

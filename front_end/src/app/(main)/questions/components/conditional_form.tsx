@@ -24,7 +24,6 @@ import {
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import {
-  cleanupQuestionDrafts,
   deleteQuestionDraft,
   getQuestionDraft,
   saveQuestionDraft,
@@ -94,7 +93,7 @@ const ConditionalForm: React.FC<{
           (x) => x.id === tournament_id
         )[0] as Tournament)
       : siteMain;
-  const [defaultProjectState, setDefaultProjectState] =
+  const [currentProject, setCurrentProject] =
     useState<Tournament>(defaultProject);
 
   const [conditionParent, setConditionParent] =
@@ -135,7 +134,9 @@ const ConditionalForm: React.FC<{
         } else {
           resp = await createQuestionPost(post_data);
         }
-        deleteQuestionDraft(draftKey);
+        if (mode === "create") {
+          deleteQuestionDraft(draftKey);
+        }
         router.push(getPostLink(resp.post));
       }
     } catch (e) {
@@ -149,26 +150,10 @@ const ConditionalForm: React.FC<{
 
   useEffect(() => {
     if (mode === "create") {
-      cleanupQuestionDrafts();
       const draft = getQuestionDraft(draftKey);
       if (draft) {
-        Object.entries(draft).forEach(([key, value]) => {
-          if (!["lastModified"].includes(key)) {
-            if (key === "default_project") {
-              // prevent draft value overwrite query value
-              control.setValue(
-                key as any,
-                tournament_id ?? community_id ?? value
-              );
-            } else {
-              control.setValue(key as any, value);
-            }
-          }
-        });
-
-        setDefaultProjectState(
-          draft.default_project &&
-            !isNil(draft.default_project) &&
+        setCurrentProject(
+          !isNil(draft.default_project) &&
             isNil(tournament_id) &&
             isNil(community_id)
             ? ([...tournaments, siteMain].filter(
@@ -178,6 +163,7 @@ const ConditionalForm: React.FC<{
         );
         setConditionParent(draft.condition ?? null);
         setConditionChild(draft.condition_child ?? null);
+        control.reset(draft);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -235,7 +221,7 @@ const ConditionalForm: React.FC<{
           <ProjectPickerInput
             tournaments={tournaments}
             siteMain={siteMain}
-            currentProject={defaultProjectState}
+            currentProject={currentProject}
             onChange={(project) => {
               control.setValue("default_project", project.id);
               debouncedHandleFormChange("");
