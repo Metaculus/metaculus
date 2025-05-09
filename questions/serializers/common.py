@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone, timedelta
 
 import numpy as np
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
