@@ -71,8 +71,7 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
                 return None
 
             if not TokenAuthentication().authenticate(request):
-                if not CookieAuthentication().authenticate(request):
-                    raise Http404()
+                raise Http404()
         return None
 
 
