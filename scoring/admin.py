@@ -65,7 +65,12 @@ class LeaderboardEntryInline(admin.TabularInline):
     autocomplete_fields = ("user",)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(rank__lte=50).order_by("rank")
+        qs = super().get_queryset(request)
+        qs = qs.filter(rank__lte=50)
+        if qs.count() > 100:
+            # can happen if large number of high ranking excluded users
+            return qs.none()
+        return qs.order_by("rank")
 
 
 @admin.register(Leaderboard)

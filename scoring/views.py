@@ -63,9 +63,21 @@ def global_leaderboard(
     )
 
     if not user.is_staff:
-        entries = entries.filter(
-            Q(excluded=False) | Q(aggregation_method__isnull=False)
+        bot_status: Project.BotLeaderboardStatus = leaderboard.bot_status or (
+            leaderboard.project.bot_leaderboard_status
+            if leaderboard.project
+            else Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW
         )
+        if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW:
+            entries = entries.filter(
+                Q(excluded=False)
+                | Q(aggregation_method__isnull=False)
+                | Q(user__is_bot=True)
+            )
+        else:
+            entries = entries.filter(
+                Q(excluded=False) | Q(aggregation_method__isnull=False)
+            )
 
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
@@ -124,7 +136,21 @@ def project_leaderboard(
     user = request.user
 
     if not user.is_staff:
-        entries = entries.filter(excluded=False)
+        bot_status: Project.BotLeaderboardStatus = leaderboard.bot_status or (
+            leaderboard.project.bot_leaderboard_status
+            if leaderboard.project
+            else Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW
+        )
+        if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW:
+            entries = entries.filter(
+                Q(excluded=False)
+                | Q(aggregation_method__isnull=False)
+                | Q(user__is_bot=True)
+            )
+        else:
+            entries = entries.filter(
+                Q(excluded=False) | Q(aggregation_method__isnull=False)
+            )
 
     # manual annotations will be lost
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
