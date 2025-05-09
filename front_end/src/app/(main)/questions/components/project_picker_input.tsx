@@ -40,6 +40,11 @@ const ProjectPickerInput: React.FC<{
     ];
   }, []);
 
+  // populate selected project from draft
+  useEffect(() => {
+    setSelectedProject(initialProject);
+  }, [initialProject]);
+
   const [filteredProjects, setFilteredProjects] =
     useState<TournamentPreview[]>(initialProjects);
   const [selectedProject, setSelectedProject] =

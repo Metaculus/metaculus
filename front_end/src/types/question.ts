@@ -1,4 +1,4 @@
-import { QuestionStatus, Resolution } from "@/types/post";
+import { Category, QuestionStatus, Resolution } from "@/types/post";
 
 import { ContinuousForecastInputType } from "./charts";
 
@@ -230,7 +230,6 @@ export type Question = {
   // Used for GroupOfQuestions
   status?: QuestionStatus;
   // used for prediction flow in tournament
-
   my_forecast?: {
     latest: UserForecast;
     lifetime_elapsed: number;
@@ -250,6 +249,40 @@ export enum MovementDirection {
   UNCHANGED = "unchanged",
   CHANGED = "changed",
 }
+
+export type EditableQuestionFields = Pick<
+  Question,
+  | "title"
+  | "description"
+  | "options"
+  | "group_variable"
+  | "group_rank"
+  | "scaling"
+  | "resolution"
+  | "include_bots_in_aggregates"
+  | "question_weight"
+  | "fine_print"
+  | "resolution_criteria"
+  | "label"
+  | "unit"
+  | "post_id"
+  | "display_divergences"
+  | "open_lower_bound"
+  | "open_upper_bound"
+  | "status"
+  | "type"
+>;
+
+export type QuestionDraft = Partial<EditableQuestionFields> & {
+  lastModified: number;
+  categories?: Category[];
+  default_project?: number;
+  subQuestions?: QuestionWithForecasts[]; // Group form
+  condition?: QuestionWithForecasts | null;
+  condition_child?: QuestionWithForecasts | null;
+  condition_id?: string;
+  condition_child_id?: string;
+};
 
 export type QuestionWithNumericForecasts = Question & {
   type: QuestionType.Numeric | QuestionType.Date | QuestionType.Binary;
