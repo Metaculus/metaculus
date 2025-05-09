@@ -189,15 +189,22 @@ function sanitizeHtml(markdown: string) {
     });
   markdown = jsxProcessedMarkdown;
 
-  // pre-process images as otherwise DOMPurify will remove self-closing tags by converting to HTML5 syntax
-  // MDXEditor renderer expects images to have self-closing syntax
-  const imageRegex = /<img\s+([^>]*?)\s*\/?>/gs;
-  const { markdown: imagesProcessedMarkdown, placeholders: images } =
-    preProcessMarkdownContent(markdown, {
-      search: imageRegex,
-      placeholderName: "IMAGE_TAG",
-    });
-  markdown = imagesProcessedMarkdown;
+  // pre-process self-closing tags as otherwise DOMPurify will remove or mess them up by converting to HTML5 syntax
+  // also MDXEditor renderer expects images to have self-closing syntax
+  const defaultSelfClosingTags = ["hr", "br", "img"];
+  const selfClosingTagsPattern = defaultSelfClosingTags.join("|");
+  const selfClosingTagsRegex = new RegExp(
+    `<(${selfClosingTagsPattern})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
+    "gs"
+  );
+  const {
+    markdown: selfClosingProcessedMarkdown,
+    placeholders: selfClosingTags,
+  } = preProcessMarkdownContent(markdown, {
+    search: selfClosingTagsRegex,
+    placeholderName: "SELF_CLOSING_TAG",
+  });
+  markdown = selfClosingProcessedMarkdown;
 
   // sanitize html content
   markdown = sanitizeHtmlContent(markdown);
@@ -206,14 +213,14 @@ function sanitizeHtml(markdown: string) {
   jsxComponents.forEach(({ placeholder, original }) => {
     markdown = markdown.replace(placeholder, original);
   });
-  // restore images
-  images.forEach(({ placeholder, original }) => {
-    // ensure image tag has self-closing syntax
-    let imageTag = original;
-    if (!imageTag.endsWith("/>") && !imageTag.endsWith("/ >")) {
-      imageTag = imageTag.replace(/>$/, " />");
+  // restore native self-closing tags
+  selfClosingTags.forEach(({ placeholder, original }) => {
+    // ensure self-closing syntax
+    let nativeTag = original;
+    if (!nativeTag.endsWith("/>") && !nativeTag.endsWith("/ >")) {
+      nativeTag = nativeTag.replace(/>$/, " />");
     }
-    markdown = markdown.replace(placeholder, imageTag);
+    markdown = markdown.replace(placeholder, nativeTag);
   });
 
   // decode gt and lt to < and >, so MDXEditor can render it properly
