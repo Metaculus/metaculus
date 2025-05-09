@@ -1,11 +1,10 @@
 import logging
 from collections import defaultdict
-from collections.abc import Iterable
 from datetime import datetime
-from typing import cast
+from typing import cast, TypedDict, Iterable
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, QuerySet, Subquery, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -32,6 +31,7 @@ from questions.utils import get_question_movement_period
 from scoring.models import Score, Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
+from utils.dtypes import flatten
 from utils.models import model_update
 from utils.the_math.aggregations import (
     get_aggregation_history,
@@ -41,6 +41,8 @@ from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import (
     percent_point_function,
     prediction_difference_for_sorting,
+    get_difference_display,
+    Direction,
 )
 
 logger = logging.getLogger(__name__)
@@ -825,13 +827,16 @@ def get_recency_weighted_for_questions(
 
 
 def get_aggregated_forecasts_for_questions(
-    questions: Iterable[Question], group_cutoff: int = None
+    questions: Iterable[Question],
+    group_cutoff: int = None,
+    aggregated_forecast_qs: QuerySet[AggregateForecast] | None = None,
 ):
     """
     Extracts aggregated forecasts for the given questions.
 
     @param questions: questions to generate forecasts for
     @param group_cutoff: generated forecasts for the top first N questions of the group
+    @param aggregated_forecast_qs: Optional initial AggregateForecast queryset
     """
 
     # Copy questions list
@@ -839,6 +844,8 @@ def get_aggregated_forecasts_for_questions(
     questions_to_fetch = set(questions)
     question_map = {q.pk: q for q in questions}
     aggregated_forecasts = set()
+    if aggregated_forecast_qs is None:
+        aggregated_forecast_qs = AggregateForecast.objects.all()
 
     if group_cutoff is not None:
         recently_weighted = get_recency_weighted_for_questions(questions)
@@ -892,7 +899,7 @@ def get_aggregated_forecasts_for_questions(
         questions_to_fetch = questions_to_fetch - cutoff_excluded
 
     aggregated_forecasts.update(
-        AggregateForecast.objects.filter(question__in=questions_to_fetch).exclude(
+        aggregated_forecast_qs.filter(question__in=questions_to_fetch).exclude(
             # Exclude previously fetched aggregated_forecasts
             id__in=[f.id for f in aggregated_forecasts]
         )
@@ -903,6 +910,124 @@ def get_aggregated_forecasts_for_questions(
         forecasts_by_question[question_map[forecast.question_id]].append(forecast)
 
     return forecasts_by_question
+
+
+def get_user_last_forecasts_map(
+    questions: Iterable[Question], user: User
+) -> dict[Question, Forecast]:
+    qs = Forecast.objects.filter(
+        author=user,
+        question__in=questions,
+        id=Subquery(
+            Forecast.objects.filter(
+                author=user,
+                question_id=OuterRef("question_id"),
+            )
+            .order_by("-start_time", "-id")
+            .values("id")[:1]
+        ),
+    )
+    question_id_map = {x.question_id: x for x in qs}
+
+    return {q: question_id_map.get(q.id) for q in questions}
+
+
+QuestionMovement = TypedDict(
+    "QuestionMovement", {"direction": Direction, "movement": float}
+)
+
+
+def calculate_user_forecast_movement_for_questions(
+    questions: Iterable[Question], forecasts_map: dict[Question, Forecast]
+) -> dict[Question, QuestionMovement | None]:
+    """
+    Calculate, for each question, how much forecast has moved
+    between the user last forecasting date and the latest aggregate forecasts.
+    """
+
+    question_movement_map: dict[Question, QuestionMovement | None] = {
+        q: None for q in questions
+    }
+
+    # Step 1: Fetch aggregated forecasts with deferred `forecast_values` field.
+    # We do this to significantly reduce data transfer size and Django model instance serialization time,
+    # because the `forecast_values` object can be quite large.
+    question_aggregated_forecasts_map = get_aggregated_forecasts_for_questions(
+        # Only forecasted questions
+        forecasts_map.keys(),
+        aggregated_forecast_qs=AggregateForecast.objects.filter(
+            method=AggregationMethod.RECENCY_WEIGHTED,
+        ).only("id", "start_time", "question_id", "end_time"),
+    )
+
+    agg_id_map: dict[Question, tuple[int, int]] = {}
+
+    # Step 2: find First and Last AggregateForecast for each question
+    for question in questions:
+        user_forecast = forecasts_map[question]
+        aggregated_forecasts = question_aggregated_forecasts_map.get(question)
+
+        if not user_forecast or not aggregated_forecasts:
+            continue
+
+        # Skip hidden CP
+        if question.is_cp_hidden:
+            continue
+
+        last_agg = aggregated_forecasts[-1]
+        first_agg = (
+            next(
+                (
+                    agg
+                    for agg in aggregated_forecasts
+                    if agg.start_time <= user_forecast.start_time
+                    and (
+                        agg.end_time is None or agg.end_time > user_forecast.start_time
+                    )
+                ),
+                None,
+            )
+            or last_agg
+        )
+
+        agg_id_map[question] = (first_agg.id, last_agg.id)
+
+    # 3) Bulk‐fetch full forecasts for just those IDs
+    full_aggs = {
+        x.id: x
+        for x in AggregateForecast.objects.filter(pk__in=flatten(agg_id_map.values()))
+    }
+
+    # 4) Compute and return the movement per question
+    for question, (first_id, last_id) in agg_id_map.items():
+        f1 = full_aggs[first_id]
+        f2 = full_aggs[last_id]
+
+        divergence = prediction_difference_for_sorting(
+            f1.forecast_values,
+            f2.forecast_values,
+            question,
+        )
+
+        if divergence >= 0.25:
+            display_diff = get_difference_display(
+                f1,
+                f2,
+                question,
+            )
+
+            # Finds max difference for multiple choice cases
+            direction, change = max(display_diff, key=lambda x: x[1])
+
+            question_movement_map[question] = cast(
+                QuestionMovement,
+                {
+                    "direction": direction,
+                    "movement": change,
+                },
+            )
+
+    return question_movement_map
 
 
 def handle_question_open(question: Question):

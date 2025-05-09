@@ -35,6 +35,8 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
                     request.path.startswith("/admin/"),
                     request.path.startswith("/api/auth/"),
                     request.path.startswith("/static/"),
+                    # Swagger doc
+                    request.path == "/api/",
                 ]
             ):
                 return None

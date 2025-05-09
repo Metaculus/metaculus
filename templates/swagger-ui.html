@@ -11,13 +11,40 @@
 <script src="//unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
 <script>
 
+    function InjectServerPlugin() {
+        return {
+            statePlugins: {
+                spec: {
+                    wrapActions: {
+                        updateJsonSpec: (orig) => (spec) => {
+                            if (!spec.servers || spec.servers.length === 0) {
+                                spec.servers = [
+                                    {
+                                        url: window.location.origin,
+                                        description: "Production Server"
+                                    },
+                                    {
+                                        url: "http://localhost:8000",
+                                        description: "Local Server"
+                                    }
+                                ];
+                            }
+                            return orig(spec);
+                        }
+                    }
+                }
+            }
+        };
+    }
+
     const ui = SwaggerUIBundle({
         url: "{% static 'openapi.yml' %}",
-        dom_id: '#swagger-ui',
+        dom_id: "#swagger-ui",
         presets: [
             SwaggerUIBundle.presets.apis,
             SwaggerUIBundle.SwaggerUIStandalonePreset
-        ]
+        ],
+        plugins: [InjectServerPlugin]
     })
 </script>
 </body>

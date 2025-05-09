@@ -59,6 +59,10 @@ export async function fetchPosts(
   return { questions: response.results, count: response.count };
 }
 
+export async function fetchTournamentForecastFlowPosts(tournamentSlug: string) {
+  return await PostsApi.getTournamentForecastFlowPosts(tournamentSlug);
+}
+
 export async function fetchRandomPostId() {
   return await PostsApi.getRandomPostId();
 }

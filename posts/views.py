@@ -50,7 +50,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_project_permission_for_user
 from questions.models import Question
-from questions.serializers import QuestionApproveSerializer
+from questions.serializers.common import QuestionApproveSerializer
 from users.models import User
 from utils.csv_utils import (
     export_all_data_for_questions,
@@ -254,7 +254,7 @@ def post_create_api_view(request):
     trigger_update_post_translations(post, with_comments=False, force=False)
 
     return Response(
-        serialize_post(post, with_cp=False, current_user=request.user),
+        serialize_post(post, current_user=request.user),
         status=status.HTTP_201_CREATED,
     )
 
@@ -305,7 +305,7 @@ def post_update_api_view(request, pk):
     trigger_update_post_translations(post, with_comments=False, force=False)
 
     return Response(
-        serialize_post(post, with_cp=False, current_user=request.user),
+        serialize_post(post, current_user=request.user),
         status=status.HTTP_200_OK,
     )
 

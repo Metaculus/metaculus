@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import React, { useRef, useState } from "react";
 
-import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import BinarySlider from "@/components/forecast_maker/binary_slider";
 import { extractCommunityForecast } from "@/components/onboarding/utils";
 import { OnboardingStep } from "@/types/onboarding";
 import { sendAnalyticsEvent } from "@/utils/analytics";

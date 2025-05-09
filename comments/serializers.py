@@ -11,7 +11,7 @@ from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
 from posts.services.common import get_posts_staff_users
 from projects.permissions import ObjectPermission
-from questions.serializers import ForecastSerializer
+from questions.serializers.common import ForecastSerializer
 from users.models import User
 from users.serializers import BaseUserSerializer
 from utils.dtypes import flatten, generate_map_from_list

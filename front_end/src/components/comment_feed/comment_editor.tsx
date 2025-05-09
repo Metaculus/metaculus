@@ -18,13 +18,13 @@ import { useDebouncedValue } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import { parseComment } from "@/utils/comments";
 import {
   saveCommentDraft,
   getCommentDraft,
   deleteCommentDraft,
-  cleanupDrafts,
-} from "@/utils/comments";
-import { parseComment } from "@/utils/comments";
+  cleanupCommentDrafts,
+} from "@/utils/drafts/comments";
 
 import { validateComment } from "./validate_comment";
 
@@ -84,7 +84,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   // Load comment draft and remove old ones on mount
   useEffect(() => {
     if (postId && user?.id) {
-      cleanupDrafts();
+      cleanupCommentDrafts();
       const draft = getCommentDraft(user.id, postId, parentId);
       if (draft) {
         setMarkdown(draft.markdown ?? "");

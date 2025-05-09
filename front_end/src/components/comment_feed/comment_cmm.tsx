@@ -20,8 +20,8 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useState, forwardRef, FC } from "react";
 
-import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_text_input";
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
+import ForecastTextInput from "@/components/forecast_maker/forecast_text_input";
 import Button from "@/components/ui/button";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";

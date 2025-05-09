@@ -3,9 +3,9 @@
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
+import { useHideCP } from "@/contexts/cp_context";
 import { ConditionalPost, PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getPostDrivenTime } from "@/utils/questions/helpers";

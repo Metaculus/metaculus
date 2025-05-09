@@ -45,6 +45,7 @@ export const METAC_COLORS = {
     900: { DEFAULT: "#2d403a", dark: "#edf7f3" },
   },
   orange: {
+    50: { DEFAULT: "#fff7f0", dark: "#322a1c" },
     100: { DEFAULT: "#feebd9", dark: "#4d360e" },
     200: { DEFAULT: "#fad8b8", dark: "#79521d" },
     300: { DEFAULT: "#f2c59a", dark: "#9f6c31" },

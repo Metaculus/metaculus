@@ -7,7 +7,13 @@ import Header from "@/app/(main)/components/headers/header";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
+import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
+import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
+import ForecastMaker from "@/components/forecast_maker";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
+import BackgroundInfo from "@/components/question/background_info";
+import ResolutionCriteria from "@/components/question/resolution_criteria";
+import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
@@ -26,18 +32,12 @@ import {
 } from "@/utils/questions/helpers";
 
 import { cachedGetPost } from "./utils/get_post";
-import BackgroundInfo from "../components/background_info";
-import HideCPProvider from "../components/cp_provider";
-import DetailedGroupCard from "../components/detailed_group_card";
-import DetailedQuestionCard from "../components/detailed_question_card";
-import ForecastMaker from "../components/forecast_maker";
 import HistogramDrawer from "../components/histogram_drawer";
 import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
-import ResolutionCriteria from "../components/resolution_criteria";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 
