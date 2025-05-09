@@ -1,12 +1,12 @@
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import TrackRecordApi from "@/services/track_record";
+import ServerTrackRecordApi from "@/services/api/track_record/track_record.server";
 
 import TrackRecordCharts from "./track_record_charts";
 
 const AsyncTrackRecord: FC = async () => {
-  const trackRecord = await TrackRecordApi.getGlobalTrackRecord();
+  const trackRecord = await ServerTrackRecordApi.getGlobalTrackRecord();
   const keyStatStyles =
     "flex w-full md:w-1/3 flex-col min-h-[100px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
 

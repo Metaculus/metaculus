@@ -4,12 +4,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
-import { fetchEmbedPosts, getPost } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import PostStatus from "@/components/post_status";
 import SearchInput from "@/components/search_input";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedValue } from "@/hooks/use_debounce";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { Post, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
@@ -44,14 +44,22 @@ const EmbedQuestionModal: FC<Props> = ({
         if (match?.[1]) {
           try {
             const questionId = Number(match?.[1]);
-            const question = await getPost(questionId);
+            const question = await ClientPostsApi.getPost(questionId);
             posts = [question];
           } catch (e) {
             logError(e);
           }
         }
         if (!posts.length) {
-          posts = await fetchEmbedPosts(debouncedSearch);
+          try {
+            const { results } = await ClientPostsApi.getPostsWithCP({
+              search: debouncedSearch || undefined,
+              limit: debouncedSearch ? undefined : 10,
+            });
+            posts = results;
+          } catch (e) {
+            logError(e);
+          }
         }
 
         setPosts(posts);

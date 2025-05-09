@@ -2,7 +2,7 @@ import { differenceInMilliseconds } from "date-fns";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import ProjectsApi from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentPreview, TournamentType } from "@/types/projects";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -18,7 +18,7 @@ export const metadata = {
 export default async function Tournaments() {
   const t = await getTranslations();
 
-  const tournaments = await ProjectsApi.getTournaments();
+  const tournaments = await ServerProjectsApi.getTournaments();
   const { activeTournaments, archivedTournaments, questionSeries, indexes } =
     extractTournamentLists(tournaments);
 

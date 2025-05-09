@@ -8,8 +8,9 @@ import {
   useState,
 } from "react";
 
-import { createForecasts, getPost } from "@/app/(main)/questions/actions";
-import { ForecastPayload } from "@/services/questions";
+import { createForecasts } from "@/app/(main)/questions/actions";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { ForecastPayload } from "@/services/api/questions/questions.server";
 import { PostWithForecasts } from "@/types/post";
 
 export type ReaffirmStatus = "idle" | "loading" | "completed";
@@ -41,7 +42,7 @@ export const CardReaffirmContextProvider: FC<
 
       setStatus("loading");
       await createForecasts(post.id, userForecast, false);
-      const postResponse = await getPost(post.id);
+      const postResponse = await ClientPostsApi.getPost(post.id);
       onPostChanged(postResponse);
       setStatus("completed");
     },

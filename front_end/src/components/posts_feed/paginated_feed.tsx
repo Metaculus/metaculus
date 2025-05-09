@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, useEffect, useState } from "react";
 
-import { fetchMorePosts } from "@/app/(main)/questions/actions";
 import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
@@ -15,7 +14,8 @@ import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
-import { PostsParams } from "@/services/posts";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
@@ -90,11 +90,14 @@ const PaginatedPostsFeed: FC<Props> = ({
         sendAnalyticsEvent("feedSearch", {
           event_category: JSON.stringify(filters),
         });
-        const { newPosts, hasNextPage } = await fetchMorePosts(
-          filters,
+        const response = await ClientPostsApi.getPostsWithCP({
+          ...filters,
           offset,
-          POSTS_PER_PAGE
-        );
+          limit: POSTS_PER_PAGE,
+        });
+        const newPosts = response.results;
+        const hasNextPage =
+          !!response.next && response.results.length >= POSTS_PER_PAGE;
 
         if (
           newPosts.filter((q) => q.is_current_content_translated).length > 0

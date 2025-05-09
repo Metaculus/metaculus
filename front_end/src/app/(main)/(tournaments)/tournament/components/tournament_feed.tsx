@@ -3,14 +3,14 @@
 import { useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 
-import { fetchPosts } from "@/app/(main)/questions/actions";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import PaginatedPostsFeed from "@/components/posts_feed/paginated_feed";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
-import { PostsParams } from "@/services/posts";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
@@ -61,11 +61,11 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
         sendAnalyticsEvent("feedSearch", {
           event_category: JSON.stringify(pageFilters),
         });
-        const { questions } = (await fetchPosts(
-          pageFilters,
-          0,
-          (!isNaN(Number(page)) ? Number(page) : 1) * POSTS_PER_PAGE
-        )) as { questions: PostWithForecasts[]; count: number };
+        const { results: questions } = await ClientPostsApi.getPostsWithCP({
+          ...pageFilters,
+          offset: 0,
+          limit: (!isNaN(Number(page)) ? Number(page) : 1) * POSTS_PER_PAGE,
+        });
 
         setQuestions(questions);
       } catch (e) {

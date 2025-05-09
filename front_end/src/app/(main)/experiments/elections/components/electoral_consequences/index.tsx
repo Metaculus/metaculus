@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import PostsApi from "@/services/posts";
+import ServerPostsApi from "@/services/api/posts/posts.server";
 
 import QuestionLink from "./question_link";
 
@@ -14,7 +14,7 @@ const QUESTION_IDS = [
 
 const ElectoralConsequences: FC = async () => {
   const t = await getTranslations();
-  const { results: questions } = await PostsApi.getPostsWithCPAnonymous(
+  const { results: questions } = await ServerPostsApi.getPostsWithCPAnonymous(
     {
       ids: QUESTION_IDS,
     },

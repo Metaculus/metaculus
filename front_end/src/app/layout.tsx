@@ -23,7 +23,7 @@ import PolyfillProvider from "@/contexts/polyfill";
 import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 config.autoAddCss = false;
@@ -142,7 +142,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
-  const user = await ProfileApi.getMyProfile();
+  const user = await ServerProfileApi.getMyProfile();
   const publicSettings = getPublicSettings();
 
   return (

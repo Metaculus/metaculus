@@ -1,15 +1,15 @@
+import { ApiService } from "@/services/api/api_service";
 import { AggregationQuestion } from "@/types/question";
-import { get } from "@/utils/core/fetch";
 
-export type AggregationExplorerParams = {
+type AggregationExplorerParams = {
   postId?: number | string | null;
   questionId?: number | string | null;
   includeBots?: boolean;
   aggregationMethods?: string;
 };
 
-class AggregationExplorerAPI {
-  static async getAggregations(params: AggregationExplorerParams) {
+class AggregationExplorerApi extends ApiService {
+  async getAggregations(params: AggregationExplorerParams) {
     const queryParams: Record<string, string> = {
       post_id: params.postId?.toString() || "",
       question_id: params.questionId?.toString() || "",
@@ -19,10 +19,10 @@ class AggregationExplorerAPI {
 
     const queryString = new URLSearchParams(queryParams).toString();
 
-    return await get<AggregationQuestion>(
+    return await this.get<AggregationQuestion>(
       `/aggregation_explorer/?${queryString}`
     );
   }
 }
 
-export default AggregationExplorerAPI;
+export default AggregationExplorerApi;

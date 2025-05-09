@@ -9,7 +9,7 @@ import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError } from "@/components/ui/form_field";
-import { ApprovePostParams } from "@/services/posts";
+import { ApprovePostParams } from "@/services/api/posts/posts.shared";
 import { ErrorResponse } from "@/types/fetch";
 import { Post } from "@/types/post";
 import { TournamentType } from "@/types/projects";

@@ -4,16 +4,13 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
-import {
-  fetchTournamentForecastFlowPosts,
-  getPost,
-} from "@/app/(main)/questions/actions";
 import ForecastMaker from "@/components/forecast_maker";
 import BackgroundInfo from "@/components/question/background_info";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import HideCPProvider from "@/contexts/cp_context";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
@@ -49,7 +46,7 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
         setIsLoadingPost(false);
         return;
       }
-      const post = await getPost(currentPostId);
+      const post = await ClientPostsApi.getPost(currentPostId);
 
       setDetailedPost(post);
       setIsLoadingPost(false);
@@ -62,12 +59,13 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
       return;
     }
     // update prediction flow posts data
-    const flowPosts = await fetchTournamentForecastFlowPosts(tournamentSlug);
+    const flowPosts =
+      await ClientPostsApi.getTournamentForecastFlowPosts(tournamentSlug);
     const currentPost = flowPosts.find((post) => post.id === currentPostId);
     if (currentPost) {
-      // update detailed post if we doesn't move to the next question
+      // update detailed post if we don't move to the next question
       if (!isPostOpenQuestionPredicted(currentPost)) {
-        const post = await getPost(currentPostId);
+        const post = await ClientPostsApi.getPost(currentPostId);
         setDetailedPost(post);
       }
       handlePostPredictionSubmit(currentPost);

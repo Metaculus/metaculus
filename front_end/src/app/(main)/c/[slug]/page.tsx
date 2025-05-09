@@ -6,9 +6,9 @@ import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/componen
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { defaultDescription } from "@/constants/metadata";
-import { PostsParams } from "@/services/posts";
-import ProfileApi from "@/services/profile";
-import ProjectsApi from "@/services/projects";
+import { PostsParams } from "@/services/api/posts/posts.shared";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectVisibility } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
@@ -26,7 +26,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const community = await ProjectsApi.getCommunity(params.slug);
+  const community = await ServerProjectsApi.getCommunity(params.slug);
 
   if (!community) {
     return {};
@@ -54,8 +54,8 @@ export default async function IndividualCommunity(props: Props) {
   const searchParams = await props.searchParams;
   const params = await props.params;
   const { slug } = params;
-  const currentUser = await ProfileApi.getMyProfile();
-  const community = await ProjectsApi.getCommunity(slug);
+  const currentUser = await ServerProfileApi.getMyProfile();
+  const community = await ServerProjectsApi.getCommunity(slug);
   const questionFilters = generateFiltersFromSearchParams(searchParams, {
     defaultOrderBy: QuestionOrder.HotDesc,
   });

@@ -1,4 +1,4 @@
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import { getVerificationSession } from "./actions";
 import LoginView from "./components/login-view";
@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function Page() {
-  const currentUser = await ProfileApi.getMyProfile();
+  const currentUser = await ServerProfileApi.getMyProfile();
   const verificationSession = await getVerificationSession(currentUser);
 
   return (

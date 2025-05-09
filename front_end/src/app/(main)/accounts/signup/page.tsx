@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import SignUp from "./components/signup";
 
 export default async function SignupPage() {
   const t = await getTranslations();
-  const user = await ProfileApi.getMyProfile();
+  const user = await ServerProfileApi.getMyProfile();
 
   if (user) {
     return redirect("/");

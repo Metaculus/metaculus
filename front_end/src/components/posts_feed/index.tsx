@@ -5,7 +5,8 @@ import PaginatedPostsFeed, {
 } from "@/components/posts_feed/paginated_feed";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
-import PostsApi, { PostsParams } from "@/services/posts";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import { PostsParams } from "@/services/api/posts/posts.shared";
 import { Topic } from "@/types/projects";
 
 type Props = {
@@ -33,7 +34,7 @@ const AwaitedPostsFeed: FC<Props> = async ({
     );
   }
 
-  const { results: questions } = await PostsApi.getPostsWithCP({
+  const { results: questions } = await ServerPostsApi.getPostsWithCP({
     ...filters,
     limit:
       (!isNaN(Number(filters.page)) ? Number(filters.page) : 1) *

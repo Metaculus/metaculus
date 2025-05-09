@@ -1,8 +1,9 @@
+import "server-only";
 import { permanentRedirect } from "next/navigation";
 import { cache } from "react";
 
-import PostsApi from "@/services/posts";
-import questions from "@/services/questions";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import ServerQuestionsApi from "@/services/api/questions/questions.server";
 import { getPostLink } from "@/utils/navigation";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "../../search_params";
@@ -12,7 +13,7 @@ import { SLUG_POST_SUB_QUESTION_ID } from "../../search_params";
  */
 async function getPost(id: number, with_cp = true) {
   try {
-    return await PostsApi.getPost(id, with_cp);
+    return await ServerPostsApi.getPost(id, with_cp);
   } catch (e) {
     const lastLegacyQuestionId = parseInt(
       process.env.LAST_LEGACY_QUESTION_ID || ""
@@ -33,7 +34,8 @@ async function getPost(id: number, with_cp = true) {
       id <= lastLegacyQuestionId &&
       nextError?.digest === "NEXT_NOT_FOUND"
     ) {
-      const { post_id, post_slug } = await questions.legacyGetPostId(id);
+      const { post_id, post_slug } =
+        await ServerQuestionsApi.legacyGetPostId(id);
 
       // Permanently redirecting to the correct endpoint
       return permanentRedirect(

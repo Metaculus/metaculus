@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { reportComment } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
-import { CommentReportReason } from "@/services/comments";
+import { CommentReportReason } from "@/services/api/comments/comments.shared";
 import { CommentType } from "@/types/comment";
 
 type Props = {

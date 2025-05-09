@@ -2,7 +2,7 @@ import { google } from "googleapis";
 import Link from "next/link";
 
 import GlobalHeader from "@/app/(main)/components/headers/global_header";
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import LeaderboardTabs from "./leaderboard-tabs";
 
@@ -59,7 +59,7 @@ async function getSheetData() {
 
 export default async function Page() {
   const allSheets = await getSheetData();
-  const currentUser = await ProfileApi.getMyProfile();
+  const currentUser = await ServerProfileApi.getMyProfile();
   const highlightedUser = currentUser?.username;
 
   if (!allSheets || allSheets.length === 0) {
