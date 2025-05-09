@@ -44,7 +44,7 @@ const QuestionCPMovement: FC<Props> = ({
       direction={movement.direction}
       message={t("CPMovementChangeLabel", {
         value: formatValueUnit(
-          movementComponents.amount,
+          movementComponents.amount.toString(),
           question?.type === QuestionType.Binary &&
             presentation == "consumerView"
             ? "%"

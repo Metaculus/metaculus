@@ -1,4 +1,4 @@
-export const formatValueUnit = (value: string | number, unit?: string) => {
+export const formatValueUnit = (value: string, unit?: string) => {
   if (!unit) return value;
 
   return unit === "%" ? `${value}%` : `${value} ${unit}`;
