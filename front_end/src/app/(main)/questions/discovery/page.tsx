@@ -1,5 +1,6 @@
 import { TAGS_TEXT_SEARCH_FILTER } from "@/app/(main)/questions/discovery/constants/tags_feed";
-import ProjectsApi, { TagsParams } from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
+import { TagsParams } from "@/services/api/projects/projects.shared";
 import { SearchParams } from "@/types/navigation";
 
 import CategoriesDiscovery from "./components/categories";
@@ -9,7 +10,7 @@ export default async function ProjectsDiscovery(props: {
   searchParams: Promise<SearchParams>;
 }) {
   const searchParams = await props.searchParams;
-  const categories = await ProjectsApi.getCategories();
+  const categories = await ServerProjectsApi.getCategories();
   const filters = getFilters(searchParams);
 
   return (

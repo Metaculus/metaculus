@@ -6,7 +6,7 @@ import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
 import QuestionRepost from "@/app/(main)/questions/components/question_repost";
-import ProjectsApi from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { getPublicSettings } from "@/utils/public_settings.server";
@@ -43,7 +43,7 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
     ? Number(searchParams["community_id"])
     : undefined;
   const communitiesResponse = communityId
-    ? await ProjectsApi.getCommunities({ ids: [communityId] })
+    ? await ServerProjectsApi.getCommunities({ ids: [communityId] })
     : undefined;
   const community = communitiesResponse
     ? communitiesResponse.results[0]

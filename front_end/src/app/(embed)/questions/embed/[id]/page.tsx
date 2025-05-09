@@ -8,7 +8,7 @@ import {
   GRAPH_ZOOM_PARAM,
   HIDE_ZOOM_PICKER,
 } from "@/constants/global_search_params";
-import PostsApi from "@/services/posts";
+import ServerPostsApi from "@/services/api/posts/posts.server";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 import "./styles.scss";
@@ -23,7 +23,7 @@ export default async function GenerateQuestionPreview(props: {
   const searchParams = await props.searchParams;
   const params = await props.params;
   const t = await getTranslations();
-  const post = await PostsApi.getPostAnonymous(params.id);
+  const post = await ServerPostsApi.getPostAnonymous(params.id);
   if (!post) {
     return null;
   }

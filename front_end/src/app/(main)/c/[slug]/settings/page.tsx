@@ -7,8 +7,8 @@ import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { PostsParams } from "@/services/posts";
-import ProjectsApi from "@/services/projects";
+import { PostsParams } from "@/services/api/posts/posts.shared";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { CommunitySettingsMode } from "@/types/projects";
@@ -27,7 +27,7 @@ export default async function CommunityManagementSettings(props: Props) {
   const params = await props.params;
   const { slug } = params;
   const t = await getTranslations();
-  const community = await ProjectsApi.getCommunity(slug);
+  const community = await ServerProjectsApi.getCommunity(slug);
   if (community.user_permission !== ProjectPermissions.ADMIN) {
     return redirect(`/c/${community.slug}`);
   }

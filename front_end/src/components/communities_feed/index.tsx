@@ -2,21 +2,21 @@ import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
-import ProfileApi from "@/services/profile";
-import ProjectsApi from "@/services/projects";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 
 import PaginatedCommunitiesFeed from "./paginated_communities_feed";
 
 const AwaitedCommunitiesFeed: FC = async () => {
-  const user = await ProfileApi.getMyProfile();
+  const user = await ServerProfileApi.getMyProfile();
   const requests = [
-    ProjectsApi.getCommunities({
+    ServerProjectsApi.getCommunities({
       limit: POSTS_PER_PAGE,
       is_subscribed: false,
     }),
     ...(user
       ? [
-          ProjectsApi.getCommunities({
+          ServerProjectsApi.getCommunities({
             is_subscribed: true,
           }),
         ]

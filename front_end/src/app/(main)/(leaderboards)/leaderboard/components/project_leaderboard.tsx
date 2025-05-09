@@ -3,7 +3,7 @@ import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import SectionToggle from "@/components/ui/section_toggle";
-import LeaderboardApi from "@/services/leaderboard";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 import { LeaderboardType } from "@/types/scoring";
 
 import ProjectLeaderboardTable from "./project_leaderboard_table";
@@ -21,7 +21,7 @@ const ProjectLeaderboard: FC<Props> = async ({
   isQuestionSeries,
   userId,
 }) => {
-  const leaderboardDetails = await LeaderboardApi.getProjectLeaderboard(
+  const leaderboardDetails = await ServerLeaderboardApi.getProjectLeaderboard(
     projectId,
     leaderboardType
   );

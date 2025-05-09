@@ -1,3 +1,4 @@
+import { ApiService } from "@/services/api/api_service";
 import {
   ContributionDetails,
   LeaderboardDetails,
@@ -5,16 +6,15 @@ import {
   MedalEntry,
   MedalRanksEntry,
 } from "@/types/scoring";
-import { get } from "@/utils/core/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
-export type ProjectContributionsParams = {
+type ProjectContributionsParams = {
   type: "project";
   for_user: number;
   project: number;
   primary?: boolean;
 };
-export type GlobalContributionsParams = {
+type GlobalContributionsParams = {
   type: "global";
   for_user: number;
   start_time: string;
@@ -27,8 +27,8 @@ type ContributionsRequestParams = { for_user: number } & (
   | GlobalContributionsParams
 );
 
-class LeaderboardApi {
-  static async getGlobalLeaderboard(
+class LeaderboardApi extends ApiService {
+  async getGlobalLeaderboard(
     startTime: string | null = null,
     endTime: string | null = null,
     leaderboardType: string | null = null
@@ -45,10 +45,10 @@ class LeaderboardApi {
       params.append("score_type", leaderboardType);
     }
     const url = `/leaderboards/global/${params.toString() ? `?${params.toString()}` : ""}`;
-    return await get<LeaderboardDetails>(url);
+    return await this.get<LeaderboardDetails>(url);
   }
 
-  static async getProjectLeaderboard(
+  async getProjectLeaderboard(
     projectId: number,
     leaderboardType: string | null = null,
     leaderboardName: string | null = null
@@ -63,23 +63,23 @@ class LeaderboardApi {
     }
 
     const url = `/leaderboards/project/${projectId}/${params.toString() ? `?${params.toString()}` : ""}`;
-    return await get<LeaderboardDetails>(url);
+    return await this.get<LeaderboardDetails>(url);
   }
 
-  static async getUserMedals(userId: number) {
-    return await get<MedalEntry[]>(`/medals/?userId=${userId}`);
+  async getUserMedals(userId: number) {
+    return await this.get<MedalEntry[]>(`/medals/?userId=${userId}`);
   }
 
-  static async getUserMedalRanks(userId: number) {
-    return await get<MedalRanksEntry[]>(`/medal_ranks/?userId=${userId}`);
+  async getUserMedalRanks(userId: number) {
+    return await this.get<MedalRanksEntry[]>(`/medal_ranks/?userId=${userId}`);
   }
 
-  static async getContributions(
+  async getContributions(
     params: ContributionsRequestParams
   ): Promise<ContributionDetails> {
     const { type, ...requestParams } = params;
     const encodedParams = encodeQueryParams(requestParams);
-    return await get<ContributionDetails>(
+    return await this.get<ContributionDetails>(
       `/medals/contributions/${encodedParams}`
     );
   }

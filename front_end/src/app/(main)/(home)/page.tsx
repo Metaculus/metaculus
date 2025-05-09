@@ -4,8 +4,8 @@ import { Suspense } from "react";
 
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
-import PostsApi from "@/services/posts";
-import ProjectsApi from "@/services/projects";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { PostWithForecasts, NotebookPost } from "@/types/post";
 import { encodeQueryParams } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
@@ -31,7 +31,7 @@ export default async function Home() {
   }
 
   const t = await getTranslations();
-  const topics = await ProjectsApi.getTopics();
+  const topics = await ServerProjectsApi.getTopics();
   const hotTopics = topics.filter((t) => t.section === "hot_topics");
 
   const FOCUS_AREAS: FocusAreaItem[] = [
@@ -65,7 +65,7 @@ export default async function Home() {
     },
   ];
 
-  const homepagePosts = await PostsApi.getPostsForHomepage();
+  const homepagePosts = await ServerPostsApi.getPostsForHomepage();
   const postQuestions = homepagePosts.filter(
     (post) => !post.notebook
   ) as unknown as PostWithForecasts[];

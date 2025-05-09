@@ -5,8 +5,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
-import AuthApi from "@/services/auth";
-import ProfileApi from "@/services/profile";
+import ServerAuthApi from "@/services/api/auth/auth.server";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
@@ -41,7 +41,7 @@ export default async function loginAction(
   let response: AuthResponse;
 
   try {
-    response = await AuthApi.signIn(
+    response = await ServerAuthApi.signIn(
       validatedFields.data.login,
       validatedFields.data.password
     );
@@ -79,7 +79,7 @@ export async function signUpAction(
     headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");
 
   try {
-    const response = await AuthApi.signUp(
+    const response = await ServerAuthApi.signUp(
       {
         email: validatedSignupData.email,
         username: validatedSignupData.username,
@@ -136,7 +136,7 @@ export async function registerUserCampaignAction(
   addToProject?: number
 ): Promise<{ errors?: any }> {
   try {
-    await ProfileApi.registerUserCampaign(key, details, addToProject);
+    await ServerProfileApi.registerUserCampaign(key, details, addToProject);
     return { errors: null };
   } catch (err) {
     return {
@@ -150,7 +150,7 @@ export async function resendActivationEmailAction(
   redirectUrl: string
 ): Promise<{ errors?: any }> {
   try {
-    await AuthApi.resendActivationEmail(login, redirectUrl);
+    await ServerAuthApi.resendActivationEmail(login, redirectUrl);
     return { errors: null };
   } catch (err) {
     return {
@@ -160,5 +160,5 @@ export async function resendActivationEmailAction(
 }
 
 export async function inviteUsers(emails: string[]) {
-  await AuthApi.inviteUsers(emails);
+  await ServerAuthApi.inviteUsers(emails);
 }

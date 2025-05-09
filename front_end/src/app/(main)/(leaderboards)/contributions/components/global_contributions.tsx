@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import ContributionsTable from "@/app/(main)/(leaderboards)/contributions/components/contributions_table";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import LeaderboardApi from "@/services/leaderboard";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 import { CategoryKey, LeaderboardType } from "@/types/scoring";
 
 type Props = {
@@ -20,7 +20,7 @@ const GlobalContributions: FC<Props> = async ({
   startTime,
   category,
 }) => {
-  const contributionsDetails = await LeaderboardApi.getContributions({
+  const contributionsDetails = await ServerLeaderboardApi.getContributions({
     type: "global",
     score_type: leaderboardType,
     for_user: userId,

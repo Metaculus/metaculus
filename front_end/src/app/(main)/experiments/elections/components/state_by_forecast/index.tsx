@@ -7,7 +7,7 @@ import { FC } from "react";
 import ElectionsEmbedModal from "@/app/(main)/experiments/elections/components/elections_embed_modal";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import Button from "@/components/ui/button";
-import PostsApi from "@/services/posts";
+import ServerPostsApi from "@/services/api/posts/posts.server";
 import { StateByForecastItem } from "@/types/experiments";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
@@ -32,7 +32,7 @@ const StateByForecast: FC<Props> = async ({
   isEmbed,
 }) => {
   const t = await getTranslations();
-  const post = await PostsApi.getPostAnonymous(questionGroupId, {
+  const post = await ServerPostsApi.getPostAnonymous(questionGroupId, {
     next: { revalidate: 900 },
   });
   if (!post?.group_of_questions) {
@@ -43,8 +43,8 @@ const StateByForecast: FC<Props> = async ({
   let republicanPrediction = null;
   if (democratPostId && republicanPostId) {
     const [demPost, repPost] = await Promise.all([
-      PostsApi.getPostAnonymous(democratPostId),
-      PostsApi.getPostAnonymous(republicanPostId),
+      ServerPostsApi.getPostAnonymous(democratPostId),
+      ServerPostsApi.getPostAnonymous(republicanPostId),
     ]);
     const predictions = getDemocratRepublicanPrediction({ demPost, repPost });
     if (predictions) {

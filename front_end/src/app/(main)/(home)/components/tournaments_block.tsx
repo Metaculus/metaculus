@@ -6,12 +6,12 @@ import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import TournamentCard from "@/components/tournament_card";
-import ProjectsApi from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentType } from "@/types/projects";
 
 const TournamentsBlock: FC = async () => {
   const t = await getTranslations();
-  const tournaments = await ProjectsApi.getTournaments({
+  const tournaments = await ServerProjectsApi.getTournaments({
     show_on_homepage: true,
   });
 

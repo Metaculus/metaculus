@@ -10,7 +10,7 @@ import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_over
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
 import useContainerSize from "@/hooks/use_container_size";
-import { ForecastPayload } from "@/services/questions";
+import { ForecastPayload } from "@/services/api/questions/questions.server";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { PostGroupOfQuestions, PostStatus, QuestionStatus } from "@/types/post";

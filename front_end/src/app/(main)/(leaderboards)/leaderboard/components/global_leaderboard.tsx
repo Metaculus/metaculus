@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import LeaderboardApi from "@/services/leaderboard";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 import { CategoryKey, LeaderboardType } from "@/types/scoring";
 
 import LeaderboardTable from "./leaderboard_table";
@@ -25,7 +25,7 @@ const GlobalLeaderboard: FC<Props> = async ({
   category,
   cardSized,
 }) => {
-  const leaderboardDetails = await LeaderboardApi.getGlobalLeaderboard(
+  const leaderboardDetails = await ServerLeaderboardApi.getGlobalLeaderboard(
     startTime,
     endTime,
     leaderboardType

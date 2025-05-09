@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import invariant from "ts-invariant";
 
-import AuthApi from "@/services/auth";
+import ServerAuthApi from "@/services/api/auth/auth.server";
 import { setServerSession } from "@/services/session";
 import { logError } from "@/utils/core/errors";
 
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   invariant(token, "Token param is missing");
 
   try {
-    const response = await AuthApi.activateAccount(userId, token);
+    const response = await ServerAuthApi.activateAccount(userId, token);
     await setServerSession(response.token);
   } catch (err) {
     logError(err);

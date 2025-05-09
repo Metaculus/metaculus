@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const { token } = search_params;
 
   if (token) {
-    await ProfileApi.changeEmailConfirm(token);
+    await ServerProfileApi.changeEmailConfirm(token);
   }
 
   return redirect("/accounts/settings");

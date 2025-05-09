@@ -5,7 +5,7 @@ import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POST_COMMUNITIES_FILTER } from "@/constants/posts_feed";
-import ProjectsApi from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { QuestionOrder } from "@/types/question";
 
@@ -29,7 +29,7 @@ export default async function Questions(props: {
     defaultOrderBy: QuestionOrder.HotDesc,
     defaultForMainFeed: true,
   });
-  const topics = await ProjectsApi.getTopics();
+  const topics = await ServerProjectsApi.getTopics();
 
   return (
     <>

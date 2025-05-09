@@ -5,7 +5,7 @@ import { FC } from "react";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import InfoToggle from "@/components/ui/info_toggle";
 import SectionToggle from "@/components/ui/section_toggle";
-import LeaderboardApi from "@/services/leaderboard";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 import { Project } from "@/types/projects";
 
 type Props = {
@@ -15,7 +15,7 @@ type Props = {
 
 const ProjectContributions: FC<Props> = async ({ project, userId }) => {
   const t = await getTranslations();
-  const contributionsDetails = await LeaderboardApi.getContributions({
+  const contributionsDetails = await ServerLeaderboardApi.getContributions({
     type: "project",
     for_user: userId,
     project: project.id,

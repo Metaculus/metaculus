@@ -2,10 +2,10 @@
 import { useTranslations } from "next-intl";
 import React, { FC, useState } from "react";
 
-import { fetchMoreCommunities } from "@/app/(main)/c/actions";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
+import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { Community } from "@/types/projects";
 import { logError } from "@/utils/core/errors";
 
@@ -41,10 +41,12 @@ const PaginatedCommunitiesFeed: FC<Props> = ({
       setIsLoading(true);
       setError(undefined);
       try {
-        const { newCommunities, hasNextPage } = await fetchMoreCommunities(
-          offset,
-          POSTS_PER_PAGE
-        );
+        const { results: newCommunities, next } =
+          await ClientProjectsApi.getCommunities({
+            offset,
+            limit: POSTS_PER_PAGE,
+          });
+        const hasNextPage = !!next && newCommunities.length >= POSTS_PER_PAGE;
 
         if (!hasNextPage) setHasMoreData(false);
         setPaginatedCommunities((prevPosts) => [

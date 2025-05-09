@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 
-import PostsApi from "@/services/posts";
-import ProfileApi from "@/services/profile";
-import ProjectsApi from "@/services/projects";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { PostStatus } from "@/types/post";
 
 import CurveHeader from "../../components/curve_header";
@@ -10,9 +10,11 @@ import Survey from "../../components/curve_survey";
 import { THECURVE_TOURNAMENT_SLUG } from "../../constants";
 
 export default async function TheCurve() {
-  const user = await ProfileApi.getMyProfile();
+  const user = await ServerProfileApi.getMyProfile();
 
-  const tournament = await ProjectsApi.getTournament(THECURVE_TOURNAMENT_SLUG);
+  const tournament = await ServerProjectsApi.getTournament(
+    THECURVE_TOURNAMENT_SLUG
+  );
   if (!tournament) {
     return notFound();
   }
@@ -28,7 +30,7 @@ export default async function TheCurve() {
     limit: tournament.questions_count,
   };
 
-  const response = await PostsApi.getPostsWithCP(tournamentFilter);
+  const response = await ServerPostsApi.getPostsWithCP(tournamentFilter);
   const notPredictedQuestions = response.results.length;
 
   if (notPredictedQuestions === 0) {

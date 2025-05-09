@@ -4,7 +4,7 @@ import { Button } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import { FC, useState } from "react";
 
-import { fetchRandomPostId } from "@/app/(main)/questions/actions";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 
 import { Die } from "./icons/die";
 
@@ -15,7 +15,7 @@ const RandomButton: FC = () => {
   const handleRandomClick = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchRandomPostId();
+      const data = await ClientPostsApi.getRandomPostId();
       if (!data) {
         return;
       }
