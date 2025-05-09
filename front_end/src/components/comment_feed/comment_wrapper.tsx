@@ -17,6 +17,8 @@ type Props = {
   profileId?: number;
   handleCommentPin?: (comment: CommentType) => Promise<void>;
   postData?: PostWithForecasts;
+  suggestKeyFactorsOnFirstRender?: boolean;
+  shouldSuggestKeyFactors?: boolean;
 };
 
 export const CommentWrapper: FC<Props> = ({
@@ -25,6 +27,8 @@ export const CommentWrapper: FC<Props> = ({
   last_viewed_at,
   postData,
   handleCommentPin,
+  suggestKeyFactorsOnFirstRender = false,
+  shouldSuggestKeyFactors = false,
 }) => {
   const isUnread =
     last_viewed_at && new Date(last_viewed_at) < new Date(comment.created_at);
@@ -69,6 +73,8 @@ export const CommentWrapper: FC<Props> = ({
         postData={postData}
         lastViewedAt={postData?.last_viewed_at}
         isCollapsed={isCollapsed}
+        suggestKeyFactorsOnFirstRender={suggestKeyFactorsOnFirstRender}
+        shouldSuggestKeyFactors={shouldSuggestKeyFactors}
       />
     </div>
   );

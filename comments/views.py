@@ -339,10 +339,13 @@ def comment_add_key_factors_view(request: Request, pk: int):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def comment_suggest_key_factors_view(request: Request, pk: int):
+def comment_suggested_key_factors_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
-    existing_keyfactors = [keyfactor.text for keyfactor in comment.key_factors.all()]
+    existing_keyfactors = [
+        keyfactor.text
+        for keyfactor in KeyFactor.objects.for_posts([comment.on_post]).filter_active()
+    ]
 
     suggested_key_factors = generate_keyfactors_for_comment(
         comment.text,
@@ -351,7 +354,7 @@ def comment_suggest_key_factors_view(request: Request, pk: int):
     )
 
     return Response(
-        [keyfactor.text for keyfactor in suggested_key_factors],
+        suggested_key_factors,
         status=status.HTTP_200_OK,
     )
 
