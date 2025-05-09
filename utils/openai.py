@@ -157,11 +157,9 @@ def generate_keyfactors(
         """
     )
 
-    client = instructor.from_openai(
-        get_openai_client(settings.OPENAI_API_KEY_FACTORS)
-    )
+    client = get_openai_client(settings.OPENAI_API_KEY_FACTORS)
 
-    keyfactors = client.chat.completions.create(
+    response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
             {
@@ -173,11 +171,10 @@ def generate_keyfactors(
                 "content": user_prompt,
             },
         ],
-        # Sadly, instructor crashes on prod when using a list of str or list of other models.
-        # It works fine locally but not inside the container.
-        response_model=str,
     )
+    keyfactors = response.choices[0].message.content
 
-    if keyfactors.lower() == "none":
+    if keyfactors is None or keyfactors.lower() == "none":
         return []
+
     return keyfactors.split(",")
