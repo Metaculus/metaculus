@@ -65,7 +65,6 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     ),
     "Accept-Language": locale,
   };
-  console.log("requestHeaders", requestHeaders);
 
   if (emptyContentType && "Content-Type" in requestHeaders) {
     delete requestHeaders["Content-Type"];
