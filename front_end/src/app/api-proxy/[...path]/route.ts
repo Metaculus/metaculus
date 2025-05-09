@@ -39,7 +39,7 @@ async function handleProxyRequest(request: NextRequest, method: string) {
   const locale = includeLocale ? await getLocale() : "en";
 
   const url = new URL(request.url);
-  const apiPath = url.pathname.replace("/api/proxy/", "/api/");
+  const apiPath = url.pathname.replace("/api-proxy/", "/api/");
   const targetUrl = `${PUBLIC_API_BASE_URL}${apiPath}${url.search}`;
 
   const blocklistHeaders = [
