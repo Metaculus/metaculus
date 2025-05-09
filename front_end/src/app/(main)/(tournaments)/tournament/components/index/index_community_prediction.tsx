@@ -2,7 +2,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import CPWeeklyMovement from "@/components/cp_weekly_movement";
+import QuestionCPMovement from "@/components/cp_movement";
 import { PostWithForecasts } from "@/types/post";
 
 export type IndexCommunityPrediction = {
@@ -37,7 +37,10 @@ const CommunityPrediction: FC<Props> = ({
         {displayValue}
       </span>
       {!!post.question && (
-        <CPWeeklyMovement question={post.question} checkDelta={checkDelta} />
+        <QuestionCPMovement
+          question={post.question}
+          threshold={checkDelta ? 0.25 : 0}
+        />
       )}
     </div>
   );
