@@ -20,7 +20,7 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
-import { lightTheme, darkTheme } from "@/constants/chart_theme";
+import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -645,6 +645,7 @@ function buildChartData({
     isChartEmpty: !domainTimestamps.length,
     minValues: areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
     maxValues: areas.map((a) => ({ timestamp: a.x, y: a.y })),
+    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
   });
   const yScale = generateScale({
     displayType: questionType,
