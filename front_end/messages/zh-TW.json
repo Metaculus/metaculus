@@ -1247,5 +1247,7 @@
   "uncertaintySignificantMovementBannerText": "自您上次預測以來，社會預測不確定性{direction}了<strong>{amount}{unit}</strong>。",
   "skippedWithoutPredicting": "您跳過了 {count, plural, =1 {# 個問題} other {# 個問題}} 而未預測。",
   "allQuestionsPredicted": "所有問題均已預測",
-  "thereAreQuestionsYouHaveNotPredicted": "您還有 {count, plural, =1 {<bold># 個問題</bold>} other {<bold># 個問題</bold>}} 尚未預測。"
+  "thereAreQuestionsYouHaveNotPredicted": "您還有 {count, plural, =1 {<bold># 個問題</bold>} other {<bold># 個問題</bold>}} 尚未預測。",
+  "duplicateSubQuestionLabel": "重複的子問題標籤",
+  "CPMovementChangeLabel": "{value} 本 {period}"
 }

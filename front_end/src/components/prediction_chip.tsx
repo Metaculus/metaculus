@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale, useTranslations } from "next-intl";
 import { CSSProperties, FC, PropsWithChildren } from "react";
 
-import CPWeeklyMovement from "@/components/cp_weekly_movement";
+import QuestionCPMovement from "@/components/cp_movement";
 import ReaffirmButton from "@/components/post_card/reaffirm_button";
 import { PostStatus } from "@/types/post";
 import { QuestionWithForecasts, UserForecast } from "@/types/question";
@@ -116,9 +116,9 @@ const PredictionChip: FC<Props> = ({
           {formatValueUnit(communityPredictionDisplayValue, question.unit)}
         </Chip>
         {showWeeklyMovement && (
-          <CPWeeklyMovement
+          <QuestionCPMovement
             question={question}
-            className="my-1 max-w-[100px]"
+            className="my-1 max-w-[110px]"
           />
         )}
       </>

@@ -1253,5 +1253,6 @@
   "uncertaintySignificantMovementBannerText": "社区预测自您上次预测后不确定性<strong>{amount}{unit}</strong>{direction}。",
   "skippedWithoutPredicting": "您跳过了 {count, plural, =1 {# 个问题} other {# 个问题}} 并未预测。",
   "allQuestionsPredicted": "所有问题均已预测",
-  "thereAreQuestionsYouHaveNotPredicted": "您尚未预测的 {count, plural, =1 {是 <bold># 个问题</bold>} other {是 <bold># 个问题</bold>}}。"
+  "thereAreQuestionsYouHaveNotPredicted": "您尚未预测的 {count, plural, =1 {是 <bold># 个问题</bold>} other {是 <bold># 个问题</bold>}}。",
+  "CPMovementChangeLabel": "{period} 内的 {value}"
 }

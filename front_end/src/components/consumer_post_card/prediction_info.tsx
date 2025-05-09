@@ -2,7 +2,7 @@ import { isNil } from "lodash";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 
-import CPWeeklyMovement from "@/components/cp_weekly_movement";
+import QuestionCPMovement from "@/components/cp_movement";
 import { PostWithForecasts } from "@/types/post";
 import {
   ForecastAvailability,
@@ -72,11 +72,7 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
         <QuestionForecastChip
           question={question as QuestionWithNumericForecasts}
         />
-        <CPWeeklyMovement
-          question={question}
-          displayUnit={false}
-          presentation="consumerView"
-        />
+        <QuestionCPMovement question={question} presentation="consumerView" />
       </div>
     );
   }

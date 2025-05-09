@@ -1247,5 +1247,6 @@
   "dateQuestionSignificantMovementBannerText": "Community prediction moved <strong>{amount}{unit} {direction}</strong> since your last forecast.",
   "uncertaintySignificantMovementBannerText": "Community prediction {direction} uncertainty by <strong>{amount}{unit}</strong> since your last forecast.",
   "thereAreQuestionsYouHaveNotPredicted": "There {count, plural, =1 {is <bold># question</bold>} other {are <bold># questions</bold>}} that you have not predicted yet.",
-  "duplicateSubQuestionLabel": "Duplicate sub question labels"
+  "duplicateSubQuestionLabel": "Duplicate sub question labels",
+  "CPMovementChangeLabel": "{value} this {period}"
 }
