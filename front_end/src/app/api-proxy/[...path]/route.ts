@@ -45,7 +45,12 @@ async function handleProxyRequest(request: NextRequest, method: string) {
   const blocklistHeaders = [
     "cookie", // properly pass user session to Django API from proxy endpoint
     "host", // ensure paginated requests return proper url in next and prev properties
-    "connection", // unsupported header
+    "connection", // unsupported header,
+    "referer",
+    "x-forwarded-for",
+    "x-forwarded-host",
+    "x-forwarded-port",
+    "x-forwarded-proto",
 
     // custom headers used to apply the same logic as on server fetcher
     "x-empty-content",
@@ -60,6 +65,7 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     ),
     "Accept-Language": locale,
   };
+  console.log("requestHeaders", requestHeaders);
 
   if (emptyContentType && "Content-Type" in requestHeaders) {
     delete requestHeaders["Content-Type"];
