@@ -437,9 +437,9 @@ const GroupForm: React.FC<Props> = ({
     QUESTION_DRAFT_DEBOUNCE_TIME
   );
 
-  // Change draft when react state changes (subquestions, categories)
+  // Change draft when subquestions state changes
   useEffect(() => {
-    // A delay to not update draft with initial state values
+    // A delay to not update draft with initial empty values
     if (!isMounted.current) {
       if (!isIntervalRunning.current) {
         isIntervalRunning.current = true;
@@ -452,14 +452,7 @@ const GroupForm: React.FC<Props> = ({
     if (mode === "create") {
       debouncedHandleFormChange("");
     }
-  }, [
-    mode,
-    form,
-    subQuestions,
-    categoriesList,
-    subtype,
-    debouncedHandleFormChange,
-  ]);
+  }, [mode, subQuestions, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -591,6 +584,7 @@ const GroupForm: React.FC<Props> = ({
             categories={categoriesList}
             onChange={(categories) => {
               setCategoriesList(categories);
+              debouncedHandleFormChange("");
             }}
           />
         </InputContainer>

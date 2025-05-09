@@ -1,9 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isNil } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { Category, Post, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
@@ -26,6 +27,13 @@ import {
 } from "@/types/projects";
 import { logError } from "@/utils/core/errors";
 import { getPostLink } from "@/utils/navigation";
+import {
+  QUESTION_DRAFT_DEBOUNCE_TIME,
+  cleanupQuestionDrafts,
+  deleteQuestionDraft,
+  getQuestionDraft,
+  saveQuestionDraft,
+} from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -82,7 +90,7 @@ const NotebookForm: React.FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
-
+  const draftKey = `notebook`;
   const t = useTranslations();
   const notebookSchema = createNotebookSchema(t);
   const form = useForm<FormData>({
@@ -94,7 +102,6 @@ const NotebookForm: React.FC<Props> = ({
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
-  const [isCategoriesDirty, setIsCategoriesDirty] = useState(false);
 
   const defaultProjectId =
     post?.projects?.default_project?.id ??
@@ -107,10 +114,12 @@ const NotebookForm: React.FC<Props> = ({
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
-      ? [...tournaments, siteMain].find((x) => x.id === tournament_id)
+      ? ([...tournaments, siteMain].find(
+          (x) => x.id === tournament_id
+        ) as Tournament)
       : siteMain;
-  const isFormDirty =
-    !!Object.keys(form.formState.dirtyFields).length || isCategoriesDirty;
+  const [defaultProjectState, setDefaultProjectState] =
+    useState<Tournament>(defaultProject);
 
   const router = useRouter();
 
@@ -137,7 +146,7 @@ const NotebookForm: React.FC<Props> = ({
       } else {
         resp = await createQuestionPost(post_data);
       }
-
+      deleteQuestionDraft(draftKey);
       router.push(getPostLink(resp.post));
     } catch (e) {
       const error = e as Error & { digest?: string };
@@ -148,7 +157,55 @@ const NotebookForm: React.FC<Props> = ({
     }
   };
 
-  useConfirmPageLeave(isFormDirty);
+  useEffect(() => {
+    if (mode === "create") {
+      cleanupQuestionDrafts();
+      const draft = getQuestionDraft(draftKey);
+      if (draft) {
+        Object.entries(draft).forEach(([key, value]) => {
+          if (
+            !["lastModified", "type", "options", "categories"].includes(key)
+          ) {
+            if (key === "default_project") {
+              // prevent draft value overwrite query value
+              form.setValue(key as any, tournament_id ?? community_id ?? value);
+            } else {
+              form.setValue(key as any, value);
+            }
+          }
+        });
+
+        setCategoriesList(draft.categories ?? []);
+        setDefaultProjectState(
+          draft.default_project &&
+            !isNil(draft.default_project) &&
+            isNil(tournament_id) &&
+            isNil(community_id) &&
+            isNil(news_category_id)
+            ? ([...tournaments, siteMain].filter(
+                (x) => x.id === draft.default_project
+              )[0] as Tournament)
+            : defaultProject
+        );
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleFormChange = useCallback(() => {
+    if (mode === "create") {
+      const formData = form.getValues();
+      saveQuestionDraft(draftKey, {
+        ...formData,
+        categories: categoriesList,
+      });
+    }
+  }, [form, mode, categoriesList, draftKey]);
+
+  const debouncedHandleFormChange = useDebouncedCallback(
+    handleFormChange,
+    QUESTION_DRAFT_DEBOUNCE_TIME
+  );
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -173,6 +230,7 @@ const NotebookForm: React.FC<Props> = ({
             }
           )(e);
         }}
+        onChange={debouncedHandleFormChange}
       >
         {!community_id &&
           !news_category_id &&
@@ -181,9 +239,10 @@ const NotebookForm: React.FC<Props> = ({
             <ProjectPickerInput
               tournaments={tournaments}
               siteMain={siteMain}
-              currentProject={defaultProject}
+              currentProject={defaultProjectState}
               onChange={(project) => {
                 form.setValue("default_project", project.id);
+                debouncedHandleFormChange("");
               }}
             />
           )}
@@ -209,6 +268,7 @@ const NotebookForm: React.FC<Props> = ({
             name={"markdown"}
             defaultValue={post?.notebook?.markdown}
             errors={form.formState.errors.markdown}
+            onChange={debouncedHandleFormChange}
           />
         </div>
         <InputContainer labelText={t("categories")}>
@@ -217,7 +277,7 @@ const NotebookForm: React.FC<Props> = ({
             categories={categoriesList}
             onChange={(categories) => {
               setCategoriesList(categories);
-              setIsCategoriesDirty(true);
+              debouncedHandleFormChange("");
             }}
           ></CategoryPicker>
         </InputContainer>

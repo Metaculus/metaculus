@@ -7,7 +7,7 @@ import { isNil } from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -24,7 +24,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
-import { useDebouncedCallback, useDebouncedValue } from "@/hooks/use_debounce";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
 import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
@@ -280,8 +280,6 @@ const QuestionForm: FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
-  const isMounted = useRef(false);
-  const isIntervalRunning = useRef(false);
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
@@ -369,8 +367,6 @@ const QuestionForm: FC<Props> = ({
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
-  const debouncedCategoriesList = useDebouncedValue(categoriesList, 3000);
-  const debouncedOptionsList = useDebouncedValue(optionsList, 3000);
 
   const schemas = createQuestionSchemas(t, post);
   const getFormSchema = (type: string) => {
@@ -413,28 +409,6 @@ const QuestionForm: FC<Props> = ({
     QUESTION_DRAFT_DEBOUNCE_TIME
   );
 
-  // Change draft when react state changes (options, categories)
-  useEffect(() => {
-    // A delay to not update draft with initial state values
-    if (!isMounted.current) {
-      if (!isIntervalRunning.current) {
-        isIntervalRunning.current = true;
-        setTimeout(() => {
-          isMounted.current = true;
-        }, QUESTION_DRAFT_DEBOUNCE_TIME);
-      }
-      return;
-    }
-
-    const formData = form.getValues();
-    saveQuestionDraft(questionType, {
-      ...formData,
-      categories: debouncedCategoriesList,
-      options: debouncedOptionsList,
-    });
-  }, [debouncedOptionsList, debouncedCategoriesList, questionType, form]);
-
-  // populate form with draft data
   useEffect(() => {
     if (mode === "create") {
       cleanupQuestionDrafts();
@@ -654,6 +628,7 @@ const QuestionForm: FC<Props> = ({
                                 return opt;
                               })
                             );
+                            debouncedHandleFormChange("");
                           }}
                           errors={
                             (
@@ -676,6 +651,7 @@ const QuestionForm: FC<Props> = ({
                               form.setValue("options", newOptionsArray);
                               return newOptionsArray;
                             });
+                            debouncedHandleFormChange("");
                           }}
                         >
                           <FontAwesomeIcon icon={faXmark} />
@@ -728,6 +704,7 @@ const QuestionForm: FC<Props> = ({
             categories={categoriesList}
             onChange={(categories) => {
               setCategoriesList(categories);
+              debouncedHandleFormChange("");
             }}
           />
         </InputContainer>
