@@ -391,9 +391,7 @@ const GroupForm: React.FC<Props> = ({
       const draft = getQuestionDraft(draftKey);
       if (draft) {
         Object.entries(draft).forEach(([key, value]) => {
-          if (
-            !["lastModified", "type", "options", "categories"].includes(key)
-          ) {
+          if (!["lastModified", "type", "categories"].includes(key)) {
             if (key === "default_project") {
               // prevent draft value overwrite query value
               form.setValue(key as any, tournament_id ?? community_id ?? value);
@@ -426,7 +424,6 @@ const GroupForm: React.FC<Props> = ({
   const handleFormChange = useCallback(() => {
     if (mode === "create") {
       const formData = form.getValues();
-      console.log("Form data: ", formData);
       saveQuestionDraft(draftKey, {
         ...formData,
         categories: categoriesList,

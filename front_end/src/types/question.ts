@@ -279,7 +279,11 @@ export type QuestionDraft = Partial<EditableQuestionFields> & {
   lastModified: number;
   categories?: Category[];
   default_project?: number;
-  subQuestions?: any[];
+  subQuestions?: any[]; // Group form
+  condition?: QuestionWithForecasts | null;
+  condition_child?: QuestionWithForecasts | null;
+  condition_id?: string;
+  condition_child_id?: string;
 };
 
 export type QuestionWithNumericForecasts = Question & {
