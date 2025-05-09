@@ -3,6 +3,7 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isNil } from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -37,6 +38,7 @@ import {
   cleanupQuestionDrafts,
   deleteQuestionDraft,
   getQuestionDraft,
+  QUESTION_DRAFT_DEBOUNCE_TIME,
   saveQuestionDraft,
 } from "@/utils/drafts/questionForm";
 import { getPostLink } from "@/utils/navigation";
@@ -48,7 +50,6 @@ import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
 
 const MIN_OPTIONS_AMOUNT = 2;
-const DRAFT_INTERACTION_DELAY = 10000;
 
 type PostCreationData = {
   title: string;
@@ -409,7 +410,7 @@ const QuestionForm: FC<Props> = ({
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
-    3000
+    QUESTION_DRAFT_DEBOUNCE_TIME
   );
 
   // Change draft when react state changes (options, categories)
@@ -420,7 +421,7 @@ const QuestionForm: FC<Props> = ({
         isIntervalRunning.current = true;
         setTimeout(() => {
           isMounted.current = true;
-        }, DRAFT_INTERACTION_DELAY);
+        }, QUESTION_DRAFT_DEBOUNCE_TIME);
       }
       return;
     }
@@ -443,14 +444,20 @@ const QuestionForm: FC<Props> = ({
           if (
             !["lastModified", "type", "options", "categories"].includes(key)
           ) {
-            form.setValue(key as any, value);
+            if (key === "default_project") {
+              form.setValue(key as any, tournament_id ?? community_id ?? value);
+            } else {
+              form.setValue(key as any, value);
+            }
           }
         });
 
         setOptionsList(draft.options ?? Array(MIN_OPTIONS_AMOUNT).fill("")); // MC questions
         setCategoriesList(draft.categories ?? []);
         setDefaultProjectState(
-          draft.default_project
+          !isNil(draft.default_project) &&
+            isNil(tournament_id) &&
+            isNil(community_id)
             ? ([...tournaments, siteMain].filter(
                 (x) => x.id === draft.default_project
               )[0] as Tournament)
@@ -581,6 +588,7 @@ const QuestionForm: FC<Props> = ({
         {(questionType === QuestionType.Date ||
           questionType === QuestionType.Numeric) && (
           <NumericQuestionInput
+            draftKey={questionType}
             questionType={questionType}
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}

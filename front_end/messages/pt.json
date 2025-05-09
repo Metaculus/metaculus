@@ -1206,6 +1206,7 @@
   "maxKeyFactorLength": "Os fatores principais devem ter menos de 150 caracteres.",
   "addKeyFactorsModalP1": "Liste os principais fatores que você acha que são mais importantes — mantenha cada um curto e específico.",
   "addKeyFactorsModalP2": "Por favor, publique um comentário para explicar por que esses fatores são importantes para sua previsão.",
+  "duplicateSubQuestionLabel": "Rótulos de subperguntas duplicados",
   "withdrawAll": "Retirar Tudo",
   "reaffirmAll": "Reafirmar Tudo",
   "outdatedServerActionMessage": "Algo deu errado. Por favor, atualize a página e tente novamente.",

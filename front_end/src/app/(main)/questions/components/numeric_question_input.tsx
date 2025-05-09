@@ -7,7 +7,7 @@ import { UseFormReturn } from "react-hook-form";
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionDraft, QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
 import { getQuestionDraft } from "@/utils/questions";
 
@@ -46,6 +46,7 @@ const NumericQuestionInput: React.FC<{
   hasForecasts: boolean;
   control?: UseFormReturn;
   index?: number;
+  draftKey?: string;
 }> = ({
   onChange,
   questionType,
@@ -57,6 +58,7 @@ const NumericQuestionInput: React.FC<{
   hasForecasts,
   control,
   index,
+  draftKey,
 }) => {
   const [errors, setError] = useState<string[]>([]);
   const [max, setMax] = useState(defaultMax);
@@ -160,28 +162,24 @@ const NumericQuestionInput: React.FC<{
   useEffect(() => {
     if (!isMounted.current) {
       // populate draft values
-      const draft = getQuestionDraft(questionType); // TODO: adjust structure for group questions
+      const draft = getQuestionDraft(draftKey ?? "");
       if (draft) {
-        const draftMin = !isNil(draft.scaling?.range_min)
-          ? draft.scaling.range_min
-          : min;
-        const draftMax = !isNil(draft.scaling?.range_max)
-          ? draft.scaling.range_max
-          : max;
-        const draftOpenLowerBound = !isNil(draft.open_lower_bound)
-          ? draft.open_lower_bound
-          : openLowerBound;
-        const draftOpenUpperBound = !isNil(draft.open_upper_bound)
-          ? draft.open_upper_bound
-          : openUpperBound;
-        const draftZeroPoint = !isNil(draft.scaling?.zero_point)
-          ? draft.scaling.zero_point
-          : zeroPoint;
-        setMin(draftMin);
-        setMax(draftMax);
-        setOpenLowerBound(draftOpenLowerBound);
-        setOpenUpperBound(draftOpenUpperBound);
-        setZeroPoint(draftZeroPoint);
+        const {
+          draftMin,
+          draftMax,
+          draftOpenLowerBound,
+          draftOpenUpperBound,
+          draftZeroPoint,
+        } = getDraftValues(draft, index);
+        setMin(isNil(draftMin) ? min : draftMin);
+        setMax(isNil(draftMax) ? max : draftMax);
+        setOpenLowerBound(
+          isNil(draftOpenLowerBound) ? openLowerBound : draftOpenLowerBound
+        );
+        setOpenUpperBound(
+          isNil(draftOpenUpperBound) ? openUpperBound : draftOpenUpperBound
+        );
+        setZeroPoint(isNil(draftZeroPoint) ? zeroPoint : draftZeroPoint);
       } else {
         onChange({
           min: min as number,
@@ -484,4 +482,31 @@ const NumericQuestionInput: React.FC<{
   );
 };
 
+function getDraftValues(draft: QuestionDraft, index?: number) {
+  const isGroup = !isNil(index);
+  const groupSubquestion = isGroup ? draft.subQuestions?.[index] : undefined;
+  const draftMin = isGroup
+    ? groupSubquestion?.scaling?.range_min
+    : draft.scaling?.range_min;
+  const draftMax = isGroup
+    ? groupSubquestion?.scaling?.range_max
+    : draft.scaling?.range_max;
+  const draftOpenLowerBound = isGroup
+    ? groupSubquestion?.open_lower_bound
+    : draft.open_lower_bound;
+  const draftOpenUpperBound = isGroup
+    ? groupSubquestion?.open_upper_bound
+    : draft.open_upper_bound;
+  const draftZeroPoint = isGroup
+    ? groupSubquestion?.scaling?.zero_point
+    : draft.scaling?.zero_point;
+
+  return {
+    draftMin,
+    draftMax,
+    draftOpenLowerBound,
+    draftOpenUpperBound,
+    draftZeroPoint,
+  };
+}
 export default NumericQuestionInput;

@@ -37,7 +37,7 @@ export function cleanupDrafts({
       .sort((a, b) => a.lastModified - b.lastModified);
     let totalSizeMB =
       drafts.reduce((acc, draft) => acc + draft.size, 0) / BYTES_IN_MB;
-    console.log(totalSizeMB);
+
     // Delete drafts if they're older than maxAge
     // Or if total size exceeds MAX_DRAFT_SIZE_MB - delete oldest ones until we're under limit
     drafts.forEach((draft) => {

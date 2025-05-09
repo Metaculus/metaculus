@@ -8,11 +8,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { forEach } from "lodash";
+import { forEach, isNil } from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -33,6 +33,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import Select from "@/components/ui/select";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
   Category,
   Post,
@@ -47,6 +48,13 @@ import {
 } from "@/types/projects";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
+import {
+  cleanupQuestionDrafts,
+  deleteQuestionDraft,
+  getQuestionDraft,
+  saveQuestionDraft,
+  QUESTION_DRAFT_DEBOUNCE_TIME,
+} from "@/utils/drafts/questionForm";
 import { getPostLink } from "@/utils/navigation";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 
@@ -129,7 +137,9 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
-
+  const isMounted = useRef(false);
+  const isIntervalRunning = useRef(false);
+  const draftKey = `group_${subtype}`;
   const [isLoading, setIsLoading] = useState<boolean>();
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [error, setError] = useState<
@@ -143,6 +153,8 @@ const GroupForm: React.FC<Props> = ({
           (x) => x.id === tournament_id
         )[0] as Tournament)
       : siteMain;
+  const [defaultProjectState, setDefaultProjectState] =
+    useState<Tournament>(defaultProject);
 
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
@@ -153,7 +165,7 @@ const GroupForm: React.FC<Props> = ({
     }
     const labels = subQuestions.map((q) => q.label);
     if (new Set(labels).size !== labels.length) {
-      setError("Duplicate sub question labels");
+      setError(t("duplicateSubQuestionLabel"));
       setIsLoading(false);
       return;
     }
@@ -186,7 +198,7 @@ const GroupForm: React.FC<Props> = ({
       if (subtype === QuestionType.Binary) {
         return subquestionData;
       } else if (subtype === QuestionType.Numeric) {
-        if (x.scaling.range_max == null || x.scaling.range_min == null) {
+        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
           setError(
             "Please enter a range_max and range_min value for numeric questions"
           );
@@ -201,7 +213,7 @@ const GroupForm: React.FC<Props> = ({
           open_upper_bound: x.open_upper_bound,
         };
       } else if (subtype === QuestionType.Date) {
-        if (x.scaling.range_max === null || x.scaling.range_min === null) {
+        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
           setError(
             "Please enter a range_max and range_min value for date questions"
           );
@@ -254,6 +266,7 @@ const GroupForm: React.FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
+        deleteQuestionDraft(draftKey);
       }
 
       router.push(getPostLink(resp.post));
@@ -372,6 +385,85 @@ const GroupForm: React.FC<Props> = ({
     return newArray;
   };
 
+  useEffect(() => {
+    if (mode === "create") {
+      cleanupQuestionDrafts();
+      const draft = getQuestionDraft(draftKey);
+      if (draft) {
+        Object.entries(draft).forEach(([key, value]) => {
+          if (
+            !["lastModified", "type", "options", "categories"].includes(key)
+          ) {
+            if (key === "default_project") {
+              // prevent draft value overwrite query value
+              form.setValue(key as any, tournament_id ?? community_id ?? value);
+            } else {
+              form.setValue(key as any, value);
+            }
+          }
+        });
+
+        setCategoriesList(draft.categories ?? []);
+        setDefaultProjectState(
+          draft.default_project &&
+            !isNil(draft.default_project) &&
+            isNil(tournament_id) &&
+            isNil(community_id)
+            ? ([...tournaments, siteMain].filter(
+                (x) => x.id === draft.default_project
+              )[0] as Tournament)
+            : defaultProject
+        );
+        setSubQuestions(draft.subQuestions ?? []);
+        setCollapsedSubQuestions(
+          [...(draft.subQuestions ?? [])].map(() => true)
+        );
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleFormChange = useCallback(() => {
+    if (mode === "create") {
+      const formData = form.getValues();
+      console.log("Form data: ", formData);
+      saveQuestionDraft(draftKey, {
+        ...formData,
+        categories: categoriesList,
+        subQuestions: subQuestions,
+      });
+    }
+  }, [form, mode, categoriesList, subQuestions, draftKey]);
+
+  const debouncedHandleFormChange = useDebouncedCallback(
+    handleFormChange,
+    QUESTION_DRAFT_DEBOUNCE_TIME
+  );
+
+  // Change draft when react state changes (subquestions, categories)
+  useEffect(() => {
+    // A delay to not update draft with initial state values
+    if (!isMounted.current) {
+      if (!isIntervalRunning.current) {
+        isIntervalRunning.current = true;
+        setTimeout(() => {
+          isMounted.current = true;
+        }, QUESTION_DRAFT_DEBOUNCE_TIME);
+      }
+      return;
+    }
+    if (mode === "create") {
+      debouncedHandleFormChange("");
+    }
+  }, [
+    mode,
+    form,
+    subQuestions,
+    categoriesList,
+    subtype,
+    debouncedHandleFormChange,
+  ]);
+
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
@@ -400,15 +492,17 @@ const GroupForm: React.FC<Props> = ({
             }
           )(e);
         }}
+        onChange={debouncedHandleFormChange}
         className="mt-4 flex w-full flex-col gap-4 rounded"
       >
         {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}
             siteMain={siteMain}
-            currentProject={defaultProject}
+            currentProject={defaultProjectState}
             onChange={(project) => {
               form.setValue("default_project", project.id);
+              debouncedHandleFormChange("");
             }}
           />
         )}
@@ -449,6 +543,7 @@ const GroupForm: React.FC<Props> = ({
             name={"description"}
             defaultValue={post?.group_of_questions?.description}
             errors={form.formState.errors.description}
+            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -474,6 +569,7 @@ const GroupForm: React.FC<Props> = ({
             name={"resolution_criteria"}
             defaultValue={post?.group_of_questions?.resolution_criteria}
             errors={form.formState.errors.resolution_criteria}
+            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -486,6 +582,7 @@ const GroupForm: React.FC<Props> = ({
             name={"fine_print"}
             defaultValue={post?.group_of_questions?.fine_print}
             errors={form.formState.errors.fine_print}
+            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -580,7 +677,7 @@ const GroupForm: React.FC<Props> = ({
                             );
                           }}
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                          value={subQuestion?.unit}
+                          value={subQuestion?.unit ?? ""}
                         />
                       </InputContainer>
                     )}
@@ -709,6 +806,7 @@ const GroupForm: React.FC<Props> = ({
                     {(subtype === QuestionType.Date ||
                       subtype === QuestionType.Numeric) && (
                       <NumericQuestionInput
+                        draftKey={draftKey}
                         questionType={subtype}
                         defaultMin={subQuestion.scaling.range_min}
                         defaultMax={subQuestion.scaling.range_max}
