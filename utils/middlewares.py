@@ -5,10 +5,56 @@ from django.conf import settings
 from django.http import JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import BaseAuthentication, TokenAuthentication
 from rest_framework.authtoken.models import Token
 
 logger = logging.getLogger(__name__)
+
+
+def get_authorization_cookie(request, key="auth_token"):
+    auth = request.META.get("HTTP_COOKIE", b"")
+    cookie = SimpleCookie()
+    cookie.load(auth)
+    return cookie.get(key)
+
+
+class CookieAuthentication(BaseAuthentication):
+
+    key = "auth_token"
+    keyword = "Token"
+    model = None
+
+    def get_model(self):
+        if self.model is not None:
+            return self.model
+        from rest_framework.authtoken.models import Token
+
+        return Token
+
+    def authenticate(self, request):
+        cookie = get_authorization_cookie(request, self.key)
+
+        if not cookie:
+            return None
+
+        auth = cookie.value.split()
+        if not auth:
+            return None
+        token = auth[-1]
+
+        return self.authenticate_credentials(token)
+
+    def authenticate_credentials(self, token):
+        model = self.get_model()
+        try:
+            token = model.objects.select_related("user").get(key=token)
+        except model.DoesNotExist:
+            return None
+
+        if not token.user.is_active:
+            return None
+
+        return (token.user, token)
 
 
 class LocaleOverrideMiddleware:
@@ -44,13 +90,7 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
                 return None
 
             if not TokenAuthentication().authenticate(request):
-                # Try to get the cookie directly
-                cookie = SimpleCookie()
-                cookie.load(request.META.get("HTTP_COOKIE", ""))
-                auth_token = (
-                    cookie.get("auth_token").value if cookie.get("auth_token") else ""
-                )
-                if not Token.objects.filter(key=auth_token).exists():
+                if not CookieAuthentication().authenticate(request):
                     raise Http404()
         return None
 
