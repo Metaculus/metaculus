@@ -4,7 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isNil } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { SetStateAction, useCallback, useEffect, useState } from "react";
+import {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { FieldValues, useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
@@ -85,7 +91,7 @@ const ConditionalForm: React.FC<{
   if (isDone) {
     throw new Error(t("isDoneError"));
   }
-
+  const isDraftMounted = useRef(false);
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
@@ -133,8 +139,6 @@ const ConditionalForm: React.FC<{
           resp = await updatePost(post?.id as number, post_data);
         } else {
           resp = await createQuestionPost(post_data);
-        }
-        if (mode === "create") {
           deleteQuestionDraft(draftKey);
         }
         router.push(getPostLink(resp.post));
@@ -165,6 +169,9 @@ const ConditionalForm: React.FC<{
         setConditionChild(draft.condition_child ?? null);
         control.reset(draft);
       }
+      setTimeout(() => {
+        isDraftMounted.current = true;
+      }, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -186,6 +193,15 @@ const ConditionalForm: React.FC<{
     handleFormChange,
     QUESTION_DRAFT_DEBOUNCE_TIME
   );
+  // update draft when form values changes
+  useEffect(() => {
+    const subscription = control.watch(() => {
+      if (mode === "create" && isDraftMounted.current) {
+        debouncedHandleFormChange();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [control, mode, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -224,7 +240,6 @@ const ConditionalForm: React.FC<{
             currentProject={currentProject}
             onChange={(project) => {
               control.setValue("default_project", project.id);
-              debouncedHandleFormChange("");
             }}
           />
         )}
@@ -238,7 +253,6 @@ const ConditionalForm: React.FC<{
                 fieldName: "condition_id",
                 t,
               });
-              debouncedHandleFormChange("");
             }}
             title={t("selectParentQuestion")}
             isParentQuestion={true}
@@ -270,7 +284,6 @@ const ConditionalForm: React.FC<{
                 fieldName: "condition_child_id",
                 t,
               });
-              debouncedHandleFormChange("");
             }}
             title={t("selectChildQuestion")}
             isParentQuestion={false}

@@ -7,7 +7,7 @@ import { isNil } from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -35,7 +35,6 @@ import {
 import { QuestionType } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import {
-  cleanupQuestionDrafts,
   deleteQuestionDraft,
   getQuestionDraft,
   QUESTION_DRAFT_DEBOUNCE_TIME,
@@ -280,6 +279,7 @@ const QuestionForm: FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
+  const isDraftMounted = useRef(false);
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
@@ -410,8 +410,7 @@ const QuestionForm: FC<Props> = ({
   );
 
   useEffect(() => {
-    if (mode === "create") {
-      cleanupQuestionDrafts();
+    if (mode === "create" && !isDraftMounted.current) {
       const draft = getQuestionDraft(questionType);
       if (draft) {
         setOptionsList(draft.options ?? Array(MIN_OPTIONS_AMOUNT).fill("")); // MC questions
@@ -427,9 +426,22 @@ const QuestionForm: FC<Props> = ({
         );
         form.reset(draft);
       }
+      setTimeout(() => {
+        isDraftMounted.current = true;
+      }, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // update draft when form values changes
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (mode === "create" && isDraftMounted.current) {
+        debouncedHandleFormChange();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, mode, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -460,7 +472,6 @@ const QuestionForm: FC<Props> = ({
             }
           )(e);
         }}
-        onChange={debouncedHandleFormChange}
         className="mt-4 flex w-full flex-col gap-6"
       >
         <FormError
@@ -516,7 +527,6 @@ const QuestionForm: FC<Props> = ({
             name={"description"}
             defaultValue={post?.question?.description}
             errors={form.formState.errors.description}
-            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -531,7 +541,6 @@ const QuestionForm: FC<Props> = ({
             name={"resolution_criteria"}
             defaultValue={post?.question?.resolution_criteria}
             errors={form.formState.errors.resolution_criteria}
-            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -544,7 +553,6 @@ const QuestionForm: FC<Props> = ({
             name={"fine_print"}
             defaultValue={post?.question?.fine_print}
             errors={form.formState.errors.fine_print}
-            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
 
@@ -566,7 +574,6 @@ const QuestionForm: FC<Props> = ({
               open_upper_bound: openUpperBound,
               open_lower_bound: openLowerBound,
               zero_point: zeroPoint,
-              shouldUpdateDraft = true,
             }) => {
               form.setValue("scaling", {
                 range_min: rangeMin,
@@ -575,9 +582,6 @@ const QuestionForm: FC<Props> = ({
               });
               form.setValue("open_lower_bound", openLowerBound);
               form.setValue("open_upper_bound", openUpperBound);
-              if (shouldUpdateDraft) {
-                debouncedHandleFormChange();
-              }
             }}
           />
         )}
@@ -617,7 +621,6 @@ const QuestionForm: FC<Props> = ({
                                 return opt;
                               })
                             );
-                            debouncedHandleFormChange("");
                           }}
                           errors={
                             (
@@ -640,7 +643,6 @@ const QuestionForm: FC<Props> = ({
                               form.setValue("options", newOptionsArray);
                               return newOptionsArray;
                             });
-                            debouncedHandleFormChange("");
                           }}
                         >
                           <FontAwesomeIcon icon={faXmark} />
@@ -693,7 +695,6 @@ const QuestionForm: FC<Props> = ({
             categories={categoriesList}
             onChange={(categories) => {
               setCategoriesList(categories);
-              debouncedHandleFormChange("");
             }}
           />
         </InputContainer>
@@ -755,7 +756,6 @@ const QuestionForm: FC<Props> = ({
                 currentProject={currentProject}
                 onChange={(project) => {
                   form.setValue("default_project", project.id);
-                  debouncedHandleFormChange("");
                 }}
               />
             )}

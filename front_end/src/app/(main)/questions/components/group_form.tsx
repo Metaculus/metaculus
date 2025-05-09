@@ -136,8 +136,7 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
-  const isMounted = useRef(false);
-  const isIntervalRunning = useRef(false);
+  const isDraftMounted = useRef(false);
   const draftKey = `group_${subtype}`;
   const [isLoading, setIsLoading] = useState<boolean>();
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
@@ -404,6 +403,10 @@ const GroupForm: React.FC<Props> = ({
         );
         form.reset(draft);
       }
+      const timeout = setTimeout(() => {
+        isDraftMounted.current = true;
+      }, QUESTION_DRAFT_DEBOUNCE_TIME);
+      return () => clearTimeout(timeout);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -424,22 +427,22 @@ const GroupForm: React.FC<Props> = ({
     QUESTION_DRAFT_DEBOUNCE_TIME
   );
 
-  // Change draft when subquestions state changes
+  // update draft when form values changes
   useEffect(() => {
-    // A delay to not update draft with initial empty values
-    if (!isMounted.current) {
-      if (!isIntervalRunning.current) {
-        isIntervalRunning.current = true;
-        setTimeout(() => {
-          isMounted.current = true;
-        }, QUESTION_DRAFT_DEBOUNCE_TIME);
+    const subscription = form.watch(() => {
+      if (mode === "create" && isDraftMounted.current) {
+        debouncedHandleFormChange();
       }
-      return;
+    });
+    return () => subscription.unsubscribe();
+  }, [form, mode, debouncedHandleFormChange]);
+
+  // update draft when subquestions state changes
+  useEffect(() => {
+    if (mode === "create" && isDraftMounted.current) {
+      debouncedHandleFormChange();
     }
-    if (mode === "create") {
-      debouncedHandleFormChange("");
-    }
-  }, [mode, subQuestions, debouncedHandleFormChange]);
+  }, [form, mode, debouncedHandleFormChange, subQuestions]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -469,7 +472,6 @@ const GroupForm: React.FC<Props> = ({
             }
           )(e);
         }}
-        onChange={debouncedHandleFormChange}
         className="mt-4 flex w-full flex-col gap-4 rounded"
       >
         {!community_id && defaultProject.type !== TournamentType.Community && (
@@ -479,7 +481,6 @@ const GroupForm: React.FC<Props> = ({
             currentProject={currentProject}
             onChange={(project) => {
               form.setValue("default_project", project.id);
-              debouncedHandleFormChange("");
             }}
           />
         )}
@@ -520,7 +521,6 @@ const GroupForm: React.FC<Props> = ({
             name={"description"}
             defaultValue={post?.group_of_questions?.description}
             errors={form.formState.errors.description}
-            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -546,7 +546,6 @@ const GroupForm: React.FC<Props> = ({
             name={"resolution_criteria"}
             defaultValue={post?.group_of_questions?.resolution_criteria}
             errors={form.formState.errors.resolution_criteria}
-            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -559,7 +558,6 @@ const GroupForm: React.FC<Props> = ({
             name={"fine_print"}
             defaultValue={post?.group_of_questions?.fine_print}
             errors={form.formState.errors.fine_print}
-            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -571,7 +569,6 @@ const GroupForm: React.FC<Props> = ({
             categories={categoriesList}
             onChange={(categories) => {
               setCategoriesList(categories);
-              debouncedHandleFormChange("");
             }}
           />
         </InputContainer>

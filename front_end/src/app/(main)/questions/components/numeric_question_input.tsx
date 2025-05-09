@@ -28,14 +28,12 @@ const NumericQuestionInput: React.FC<{
     open_upper_bound,
     open_lower_bound,
     zero_point,
-    shouldUpdateDraft,
   }: {
     min: number;
     max: number;
     open_upper_bound: boolean;
     open_lower_bound: boolean;
     zero_point: number | null;
-    shouldUpdateDraft?: boolean;
   }) => void;
   questionType: QuestionType.Numeric | QuestionType.Date;
   defaultMin: number | undefined;
@@ -187,7 +185,6 @@ const NumericQuestionInput: React.FC<{
           open_lower_bound: openLowerBound,
           open_upper_bound: openUpperBound,
           zero_point: zeroPoint,
-          shouldUpdateDraft: false,
         });
         shouldUpdateParrent.current = true;
       }

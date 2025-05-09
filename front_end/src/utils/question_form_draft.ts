@@ -2,7 +2,6 @@ import { QuestionDraft } from "@/types/question";
 
 import { cleanupDrafts } from "./drafts";
 
-export const QUESTION_DRAFT_INTERACTION_DELAY = 5000;
 export const QUESTION_DRAFT_DEBOUNCE_TIME = 3000;
 const MAX_QUESTIONS_DRAFT_SIZE_MB = 1.5;
 const QUESTION_DRAFT_PREFIX = "question_draft_";

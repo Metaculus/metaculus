@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isNil } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -89,6 +89,7 @@ const NotebookForm: React.FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
+  const isDraftMounted = useRef(false);
   const draftKey = `notebook`;
   const t = useTranslations();
   const notebookSchema = createNotebookSchema(t);
@@ -173,6 +174,9 @@ const NotebookForm: React.FC<Props> = ({
         );
         form.reset(draft);
       }
+      setTimeout(() => {
+        isDraftMounted.current = true;
+      }, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -191,6 +195,15 @@ const NotebookForm: React.FC<Props> = ({
     handleFormChange,
     QUESTION_DRAFT_DEBOUNCE_TIME
   );
+  // update draft when form values changes
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (mode === "create" && isDraftMounted.current) {
+        debouncedHandleFormChange();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, mode, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -215,7 +228,6 @@ const NotebookForm: React.FC<Props> = ({
             }
           )(e);
         }}
-        onChange={debouncedHandleFormChange}
       >
         {!community_id &&
           !news_category_id &&
@@ -227,7 +239,6 @@ const NotebookForm: React.FC<Props> = ({
               currentProject={currentProject}
               onChange={(project) => {
                 form.setValue("default_project", project.id);
-                debouncedHandleFormChange("");
               }}
             />
           )}
@@ -253,7 +264,6 @@ const NotebookForm: React.FC<Props> = ({
             name={"markdown"}
             defaultValue={post?.notebook?.markdown}
             errors={form.formState.errors.markdown}
-            onChange={debouncedHandleFormChange}
           />
         </div>
         <InputContainer labelText={t("categories")}>
@@ -262,7 +272,6 @@ const NotebookForm: React.FC<Props> = ({
             categories={categoriesList}
             onChange={(categories) => {
               setCategoriesList(categories);
-              debouncedHandleFormChange("");
             }}
           ></CategoryPicker>
         </InputContainer>
