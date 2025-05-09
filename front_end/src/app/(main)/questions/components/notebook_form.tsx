@@ -26,13 +26,13 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { logError } from "@/utils/core/errors";
-import { getPostLink } from "@/utils/navigation";
 import {
   QUESTION_DRAFT_DEBOUNCE_TIME,
   deleteQuestionDraft,
   getQuestionDraft,
   saveQuestionDraft,
-} from "@/utils/question_form_draft";
+} from "@/utils/drafts/questionForm";
+import { getPostLink } from "@/utils/navigation";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";

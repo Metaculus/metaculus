@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 
-import { cleanupQuestionDrafts } from "@/utils/question_form_draft";
+import { cleanupQuestionDrafts } from "@/utils/drafts/questionForm";
 
 const QuestionDraftCleanup = () => {
   useEffect(() => {

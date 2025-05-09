@@ -9,7 +9,7 @@ import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
 import { QuestionDraft, QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
-import { getQuestionDraft } from "@/utils/question_form_draft";
+import { getQuestionDraft } from "@/utils/drafts/questionForm";
 
 const ContinuousPredictionChart = dynamic(
   () =>
