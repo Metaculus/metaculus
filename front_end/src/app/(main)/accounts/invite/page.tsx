@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import InviteForm from "@/app/(main)/accounts/invite/components/invite_form";
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 
 export default async function SignupPage() {
   const t = await getTranslations();
-  const user = await ProfileApi.getMyProfile();
+  const user = await ServerProfileApi.getMyProfile();
 
   if (!user?.is_staff) {
     return redirect("/");

@@ -1,111 +1,49 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { POSTS_PER_PAGE } from "@/constants/posts_feed";
-import CommentsApi, {
+import ServerCommentsApi from "@/services/api/comments/comments.server";
+import {
   CommentReportReason,
   CreateCommentParams,
   EditCommentParams,
-  getCommentsParams,
   KeyFactorVoteParams,
   ToggleCMMCommentParams,
   VoteParams,
-} from "@/services/comments";
-import PostsApi, {
+} from "@/services/api/comments/comments.shared";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import {
   ApprovePostParams,
   BoostDirection,
-  PostsParams,
-} from "@/services/posts";
-import ProfileApi from "@/services/profile";
-import ProjectsApi from "@/services/projects";
-import QuestionsApi, {
+} from "@/services/api/posts/posts.shared";
+import ServerQuestionsApi, {
   ForecastPayload,
   WithdrawalPayload,
-} from "@/services/questions";
+} from "@/services/api/questions/questions.server";
 import { NotebookPost, PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
 import { DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
 import { ApiError } from "@/utils/core/errors";
 
-export async function fetchMorePosts(
-  filters: PostsParams,
-  offset: number,
-  limit: number
-) {
-  const response = await PostsApi.getPostsWithCP({
-    ...filters,
-    offset,
-    limit,
-  });
-  return {
-    newPosts: response.results,
-    hasNextPage: !!response.next && response.results.length >= POSTS_PER_PAGE,
-  };
-}
-
-export async function fetchPosts(
-  filters: PostsParams,
-  offset: number,
-  limit: number
-) {
-  const response = await PostsApi.getPostsWithCP({
-    ...filters,
-    offset,
-    limit,
-  });
-  return { questions: response.results, count: response.count };
-}
-
-export async function fetchTournamentForecastFlowPosts(tournamentSlug: string) {
-  return await PostsApi.getTournamentForecastFlowPosts(tournamentSlug);
-}
-
-export async function fetchRandomPostId() {
-  return await PostsApi.getRandomPostId();
-}
-
-export async function fetchEmbedPosts(search: string) {
-  const response = await PostsApi.getPostsWithCP({
-    search: search || undefined,
-    limit: search ? undefined : 10,
-  });
-
-  return response.results;
-}
-
-export async function fetchProjectFilters() {
-  const user = await ProfileApi.getMyProfile();
-  if (!user?.is_superuser) {
-    return null;
-  }
-
-  const [tournaments, siteMain] = await Promise.all([
-    ProjectsApi.getTournaments(),
-    ProjectsApi.getSiteMain(),
-  ]);
-  return [siteMain, ...tournaments];
-}
-
 export async function votePost(postId: number, direction: VoteDirection) {
-  return await PostsApi.votePost(postId, direction);
+  return await ServerPostsApi.votePost(postId, direction);
 }
 
 export async function markPostAsRead(postId: number) {
-  return await PostsApi.sendPostReadEvent(postId);
+  return await ServerPostsApi.sendPostReadEvent(postId);
 }
 
 export async function createQuestionPost<T>(body: T) {
-  const post = await PostsApi.createQuestionPost(body);
+  const post = await ServerPostsApi.createQuestionPost(body);
   return {
     post: post,
   };
 }
 
 export async function updatePost<T>(postId: number, body: T) {
-  const post = await PostsApi.updatePost(postId, body);
+  const post = await ServerPostsApi.updatePost(postId, body);
   revalidatePath("/questions/create/group/");
   return {
     post: post,
@@ -114,7 +52,7 @@ export async function updatePost<T>(postId: number, body: T) {
 
 export async function approvePost(postId: number, params: ApprovePostParams) {
   try {
-    await PostsApi.approvePost(postId, params);
+    await ServerPostsApi.approvePost(postId, params);
     revalidatePath(`/questions/${postId}/`);
   } catch (err) {
     return {
@@ -125,7 +63,7 @@ export async function approvePost(postId: number, params: ApprovePostParams) {
 
 export async function removePostFromProject(postId: number, projectId: number) {
   try {
-    await PostsApi.removePostFromProject(postId, projectId);
+    await ServerPostsApi.removePostFromProject(postId, projectId);
     return null;
   } catch (err) {
     return {
@@ -140,7 +78,7 @@ export async function createForecasts(
   revalidate = true
 ) {
   try {
-    await QuestionsApi.createForecasts(forecasts);
+    await ServerQuestionsApi.createForecasts(forecasts);
     if (revalidate) {
       revalidatePath(`/questions/${postId}`);
     }
@@ -157,7 +95,7 @@ export async function withdrawForecasts(
   revalidate = true
 ) {
   try {
-    await QuestionsApi.withdrawForecasts(withdrawals);
+    await ServerQuestionsApi.withdrawForecasts(withdrawals);
     if (revalidate) {
       revalidatePath(`/questions/${postId}`);
     }
@@ -168,22 +106,12 @@ export async function withdrawForecasts(
   }
 }
 
-export async function getPost(postId: number) {
-  const response = await PostsApi.getPost(postId);
-  return response;
-}
-
 export async function makeRepost(postId: number, projectId: number) {
-  await PostsApi.repost(postId, projectId);
-}
-
-export async function getQuestion(questionId: number) {
-  const response = await PostsApi.getQuestion(questionId);
-  return response;
+  await ServerPostsApi.repost(postId, projectId);
 }
 
 export async function draftPost(postId: number, defaultProject: Tournament) {
-  await PostsApi.makeDraft(postId);
+  await ServerPostsApi.makeDraft(postId);
 
   if (defaultProject.type === TournamentType.Community) {
     return redirect(
@@ -195,21 +123,21 @@ export async function draftPost(postId: number, defaultProject: Tournament) {
 }
 
 export async function submitPostForReview(postId: number) {
-  return await PostsApi.submitForReview(postId);
+  return await ServerPostsApi.submitForReview(postId);
 }
 
 export async function rejectPost(postId: number) {
-  return await PostsApi.rejectPost(postId);
+  return await ServerPostsApi.rejectPost(postId);
 }
 
 export async function deletePost(postId: number) {
-  await PostsApi.deletePost(postId);
+  await ServerPostsApi.deletePost(postId);
 
   return redirect("/questions/");
 }
 
 export async function sendBackToReview(postId: number) {
-  return await PostsApi.sendBackToReview(postId);
+  return await ServerPostsApi.sendBackToReview(postId);
 }
 
 export async function updateNotebook(
@@ -217,7 +145,7 @@ export async function updateNotebook(
   markdown: string,
   title: string
 ) {
-  const response = await PostsApi.updatePost<
+  const response = await ServerPostsApi.updatePost<
     NotebookPost,
     DeepPartial<NotebookPost>
   >(postId, {
@@ -237,7 +165,7 @@ export async function resolveQuestion(
   actualResolveTime: string
 ) {
   try {
-    const { post_id } = await QuestionsApi.resolve(
+    const { post_id } = await ServerQuestionsApi.resolve(
       questionId,
       resolution,
       actualResolveTime
@@ -255,7 +183,7 @@ export async function resolveQuestion(
 
 export async function unresolveQuestion(questionId: number) {
   try {
-    const { post_id } = await QuestionsApi.unresolve(questionId);
+    const { post_id } = await ServerQuestionsApi.unresolve(questionId);
 
     revalidatePath(`/questions/${post_id}`);
 
@@ -269,17 +197,7 @@ export async function unresolveQuestion(questionId: number) {
 
 export async function uploadImage(formData: FormData) {
   try {
-    return await PostsApi.uploadImage(formData);
-  } catch (err) {
-    return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
-    };
-  }
-}
-
-export async function getComments(commentsParams: getCommentsParams) {
-  try {
-    return await CommentsApi.getComments(commentsParams);
+    return await ServerPostsApi.uploadImage(formData);
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
@@ -289,7 +207,7 @@ export async function getComments(commentsParams: getCommentsParams) {
 
 export async function softDeleteComment(commentId: number) {
   try {
-    return await CommentsApi.softDeleteComment(commentId);
+    return await ServerCommentsApi.softDeleteComment(commentId);
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
@@ -299,7 +217,7 @@ export async function softDeleteComment(commentId: number) {
 
 export async function editComment(commentData: EditCommentParams) {
   try {
-    return await CommentsApi.editComment(commentData);
+    return await ServerCommentsApi.editComment(commentData);
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
@@ -309,7 +227,7 @@ export async function editComment(commentData: EditCommentParams) {
 
 export async function createComment(commentData: CreateCommentParams) {
   try {
-    return await CommentsApi.createComment(commentData);
+    return await ServerCommentsApi.createComment(commentData);
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
@@ -322,7 +240,10 @@ export async function addKeyFactorsToComment(
   keyFactors: string[]
 ) {
   try {
-    return await CommentsApi.addKeyFactorsToComment(commentId, keyFactors);
+    return await ServerCommentsApi.addKeyFactorsToComment(
+      commentId,
+      keyFactors
+    );
   } catch (err) {
     const error = err as ApiError;
 
@@ -332,52 +253,39 @@ export async function addKeyFactorsToComment(
   }
 }
 
-export async function getSuggestedKeyFactors(commentId: number) {
-  return await CommentsApi.getSuggestedKeyFactors(commentId);
-}
-
 export async function commentTogglePin(commentId: number, pin: boolean) {
-  return await CommentsApi.togglePin(commentId, pin);
+  return await ServerCommentsApi.togglePin(commentId, pin);
 }
 
 export async function voteComment(voteData: VoteParams) {
-  return await CommentsApi.voteComment(voteData);
+  return await ServerCommentsApi.voteComment(voteData);
 }
 
 export async function voteKeyFactor(voteData: KeyFactorVoteParams) {
-  return await CommentsApi.voteKeyFactor(voteData);
+  return await ServerCommentsApi.voteKeyFactor(voteData);
 }
 
 export async function toggleCMMComment(cmmParam: ToggleCMMCommentParams) {
-  return await CommentsApi.toggleCMMComment(cmmParam);
+  return await ServerCommentsApi.toggleCMMComment(cmmParam);
 }
 
 export async function reportComment(
   commentId: number,
   reason: CommentReportReason
 ) {
-  return await CommentsApi.report(commentId, reason);
-}
-
-export async function searchUsers(query: string) {
-  try {
-    return await ProfileApi.searchUsers(query);
-  } catch (err) {
-    return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
-    };
-  }
+  return await ServerCommentsApi.report(commentId, reason);
 }
 
 export async function changePostActivityBoost(
   postId: number,
   direction: BoostDirection
 ) {
-  return await PostsApi.changePostActivityBoost(postId, direction);
+  return await ServerPostsApi.changePostActivityBoost(postId, direction);
 }
 
 export async function removeRelatedArticle(articleId: number) {
-  return await PostsApi.removeRelatedArticle(articleId);
+  await ServerPostsApi.removeRelatedArticle(articleId);
+  revalidateTag("related-articles");
 }
 
 export async function changePostSubscriptions(
@@ -385,19 +293,14 @@ export async function changePostSubscriptions(
   subscriptions: PostSubscription[],
   revalidate: boolean = false
 ) {
-  const response = await PostsApi.updateSubscriptions(postId, subscriptions);
+  const response = await ServerPostsApi.updateSubscriptions(
+    postId,
+    subscriptions
+  );
 
   if (revalidate) {
     revalidatePath(`/questions/${postId}`);
     revalidatePath("/accounts/settings");
   }
   return response;
-}
-
-export async function getPostZipData(postId: number) {
-  const blob = await PostsApi.getPostZipData(postId);
-  const arrayBuffer = await blob.arrayBuffer();
-  const base64String = Buffer.from(arrayBuffer).toString("base64");
-
-  return `data:application/octet-stream;base64,${base64String}`;
 }

@@ -10,16 +10,13 @@ import toast from "react-hot-toast";
 import PostDestructiveActionModal, {
   PostDestructiveActionModalProps,
 } from "@/app/(main)/questions/[id]/components/post_destructive_action_modal";
-import {
-  changePostActivityBoost,
-  getPostZipData,
-} from "@/app/(main)/questions/actions";
+import { changePostActivityBoost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
-import { BoostDirection } from "@/services/posts";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { BoostDirection } from "@/services/api/posts/posts.shared";
 import { Post, ProjectPermissions, QuestionStatus } from "@/types/post";
-import { base64ToBlob } from "@/utils/files";
 
 type Props = {
   post: Post;
@@ -80,8 +77,7 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
 
   const handleDownloadQuestionData = async () => {
     try {
-      const base64 = await getPostZipData(post.id);
-      const blob = base64ToBlob(base64);
+      const blob = await ClientPostsApi.getPostZipData(post.id);
       const filename = `${(post.short_title || post.title).replaceAll(" ", "_")}.zip`;
       saveAs(blob, filename);
     } catch (error) {

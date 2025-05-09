@@ -15,7 +15,7 @@ import BackgroundInfo from "@/components/question/background_info";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
-import ProjectsApi from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import {
   GroupOfQuestionsGraphType,
@@ -57,7 +57,7 @@ const IndividualQuestionPage: FC<{
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
-    currentCommunity = await ProjectsApi.getCommunity(
+    currentCommunity = await ServerProjectsApi.getCommunity(
       defaultProject.slug as string
     );
   }

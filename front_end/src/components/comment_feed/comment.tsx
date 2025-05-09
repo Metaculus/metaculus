@@ -20,7 +20,6 @@ import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factor
 import {
   createForecasts,
   editComment,
-  getComments,
   softDeleteComment,
 } from "@/app/(main)/questions/actions";
 import { CommentDate } from "@/components/comment_feed/comment_date";
@@ -416,18 +415,7 @@ const Comment: FC<CommentProps> = ({
           response.errors?.message ?? response.errors?.non_field_errors?.[0];
         setErrorMessage(errorMessage);
       } else {
-        const newCommentDataResponse = await getComments({
-          focus_comment_id: String(comment.id),
-          sort: "-created_at",
-        });
-        if (newCommentDataResponse && "errors" in newCommentDataResponse) {
-          console.error(
-            t("errorDeletingComment"),
-            newCommentDataResponse.errors
-          );
-        } else {
-          setCommentMarkdown(parsedMarkdown);
-        }
+        setCommentMarkdown(parsedMarkdown);
         setIsEditing(false);
       }
     } finally {

@@ -3,9 +3,9 @@
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useRef, useState } from "react";
 
-import { getPost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { generateCurveChoiceOptions } from "@/utils/forecasts/thecurve";
@@ -29,7 +29,7 @@ const CurveHistogramDrawer: FC<Props> = ({ postId, onNextQuestion }) => {
     const fetchPost = async (postId: number) => {
       try {
         setIsLoading(true);
-        const postData = await getPost(postId);
+        const postData = await ClientPostsApi.getPost(postId);
         setPost(postData);
       } finally {
         setIsLoading(false);

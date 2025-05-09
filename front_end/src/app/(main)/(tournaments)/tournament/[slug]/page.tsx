@@ -9,14 +9,14 @@ import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/comp
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
 import IndexSection from "@/app/(main)/(tournaments)/tournament/components/index";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
-import { fetchTournamentForecastFlowPosts } from "@/app/(main)/questions/actions";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { defaultDescription } from "@/constants/metadata";
-import ProfileApi from "@/services/profile";
-import ProjectsApi from "@/services/projects";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
@@ -36,7 +36,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const tournament = await ProjectsApi.getTournament(params.slug);
+  const tournament = await ServerProjectsApi.getTournament(params.slug);
 
   if (!tournament) {
     return {};
@@ -62,12 +62,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function TournamentSlug(props: Props) {
   const params = await props.params;
-  const tournament = await ProjectsApi.getTournament(params.slug);
+  const tournament = await ServerProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
-  const currentUser = await ProfileApi.getMyProfile();
+  const currentUser = await ServerProfileApi.getMyProfile();
   const predictionFlowPosts = !isNil(currentUser)
-    ? await fetchTournamentForecastFlowPosts(params.slug)
+    ? await ServerPostsApi.getTournamentForecastFlowPosts(params.slug)
     : [];
   const t = await getTranslations();
   const isQuestionSeries = tournament.type === TournamentType.QuestionSeries;

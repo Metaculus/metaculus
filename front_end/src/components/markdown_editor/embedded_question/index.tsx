@@ -14,11 +14,11 @@ import {
 import { useTranslations } from "next-intl";
 import { FC, memo, useEffect, useState } from "react";
 
-import { getPost } from "@/app/(main)/questions/actions";
 import ForecastCard from "@/components/forecast_card";
 import EmbedQuestionModal from "@/components/markdown_editor/embedded_question/embed_question_modal";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
 import { logError } from "@/utils/core/errors";
 
@@ -42,7 +42,7 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
     const loadPost = async () => {
       setIsLoading(true);
       try {
-        const post = await getPost(id);
+        const post = await ClientPostsApi.getPost(id);
         setPostData(post);
       } catch (e) {
         logError(e);

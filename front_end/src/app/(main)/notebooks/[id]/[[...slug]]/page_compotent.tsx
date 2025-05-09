@@ -24,8 +24,8 @@ import {
   POST_CATEGORIES_FILTER,
   POST_TAGS_FILTER,
 } from "@/constants/posts_feed";
-import PostsApi from "@/services/posts";
-import ProjectsApi from "@/services/projects";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { PostStatus } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/formatters/date";
@@ -35,7 +35,7 @@ import { getPostTitle, isNotebookPost } from "@/utils/questions/helpers";
 const IndividualNotebookPage: FC<{
   params: { id: number; slug: string[] };
 }> = async ({ params }) => {
-  const postData = await PostsApi.getPost(params.id);
+  const postData = await ServerPostsApi.getPost(params.id);
   const defaultProject = postData.projects.default_project;
 
   if (!isNotebookPost(postData)) {
@@ -45,7 +45,7 @@ const IndividualNotebookPage: FC<{
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
-    currentCommunity = await ProjectsApi.getCommunity(
+    currentCommunity = await ServerProjectsApi.getCommunity(
       defaultProject.slug as string
     );
   }

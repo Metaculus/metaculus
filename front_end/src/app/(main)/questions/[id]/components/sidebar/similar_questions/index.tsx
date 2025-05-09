@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import PostsApi from "@/services/posts";
+import ServerPostsApi from "@/services/api/posts/posts.server";
 
 import SimilarQuestionsDrawer from "./similar_questions_drawer";
 
@@ -10,7 +10,7 @@ type Props = {
 };
 
 const SimilarQuestions: FC<Props> = async ({ post_id }) => {
-  const questions = await PostsApi.getSimilarPosts(post_id);
+  const questions = await ServerPostsApi.getSimilarPosts(post_id);
 
   if (!questions.length) return null;
 

@@ -1,8 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
-import { fetchProjectFilters } from "@/app/(main)/questions/actions";
 import {
   getFilterSectionParticipation,
   getFilterSectionPostStatus,
@@ -18,6 +17,7 @@ import {
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
+import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { PostStatus } from "@/types/post";
 import { TournamentPreview } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
@@ -40,6 +40,7 @@ const MainFeedFilters: FC<Props> = ({
   const [projectFilters, setProjectFilters] = useState<
     TournamentPreview[] | undefined
   >();
+  const fetchProjectFilters = useFetchProjectFilters();
 
   useEffect(() => {
     const loadProjectFilters = async () => {
@@ -52,7 +53,7 @@ const MainFeedFilters: FC<Props> = ({
     if (withProjectFilters) {
       void loadProjectFilters();
     }
-  }, [withProjectFilters]);
+  }, [fetchProjectFilters, withProjectFilters]);
 
   const filters = useMemo(() => {
     const filters = [
@@ -151,6 +152,26 @@ const MainFeedFilters: FC<Props> = ({
       panelClassname={panelClassname}
     />
   );
+};
+
+const useFetchProjectFilters = () => {
+  const { user } = useAuth();
+
+  return useCallback(async () => {
+    if (!user?.is_superuser) {
+      return null;
+    }
+
+    try {
+      const [tournaments, siteMain] = await Promise.all([
+        ClientProjectsApi.getTournaments(),
+        ClientProjectsApi.getSiteMain(),
+      ]);
+      return [siteMain, ...tournaments];
+    } catch {
+      return null;
+    }
+  }, [user?.is_superuser]);
 };
 
 export default MainFeedFilters;

@@ -6,9 +6,9 @@ import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider"
 import {
   addKeyFactorsToComment,
   createComment,
-  getSuggestedKeyFactors,
 } from "@/app/(main)/questions/actions";
 import { useServerAction } from "@/hooks/use_server_action";
+import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { BECommentType, KeyFactor } from "@/types/comment";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
@@ -50,7 +50,7 @@ export const useKeyFactors = ({
   useEffect(() => {
     if (shouldLoadKeyFactors && commentId) {
       setIsLoadingSuggestedKeyFactors(true);
-      getSuggestedKeyFactors(commentId)
+      ClientCommentsApi.getSuggestedKeyFactors(commentId)
         .then((suggested) => {
           setSuggestedKeyFactors(
             suggested.map((text) => ({ text, selected: false }))
