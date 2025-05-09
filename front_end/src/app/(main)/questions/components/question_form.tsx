@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -23,6 +23,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
+import { useDebouncedCallback, useDebouncedValue } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
 import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
@@ -32,6 +33,12 @@ import {
 } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { logError } from "@/utils/core/errors";
+import {
+  cleanupQuestionDrafts,
+  deleteQuestionDraft,
+  getQuestionDraft,
+  saveQuestionDraft,
+} from "@/utils/drafts/questionForm";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions/helpers";
 
@@ -41,6 +48,7 @@ import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
 
 const MIN_OPTIONS_AMOUNT = 2;
+const DRAFT_INTERACTION_DELAY = 10000;
 
 type PostCreationData = {
   title: string;
@@ -271,7 +279,8 @@ const QuestionForm: FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
-
+  const isMounted = useRef(false);
+  const isIntervalRunning = useRef(false);
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
@@ -279,7 +288,8 @@ const QuestionForm: FC<Props> = ({
           (x) => x.id === tournament_id
         )[0] as Tournament)
       : siteMain;
-
+  const [defaultProjectState, setDefaultProjectState] =
+    useState<Tournament>(defaultProject);
   if (isDone) {
     throw new Error(t("isDoneError"));
   }
@@ -339,7 +349,7 @@ const QuestionForm: FC<Props> = ({
       } else {
         resp = await createQuestionPost(post_data);
       }
-
+      deleteQuestionDraft(questionType);
       router.push(getPostLink(resp.post));
     } catch (e) {
       const error = e as Error & { digest?: string };
@@ -358,6 +368,8 @@ const QuestionForm: FC<Props> = ({
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
+  const debouncedCategoriesList = useDebouncedValue(categoriesList, 3000);
+  const debouncedOptionsList = useDebouncedValue(optionsList, 3000);
 
   const schemas = createQuestionSchemas(t, post);
   const getFormSchema = (type: string) => {
@@ -383,6 +395,71 @@ const QuestionForm: FC<Props> = ({
   if (questionType) {
     form.setValue("type", questionType);
   }
+
+  const handleFormChange = useCallback(() => {
+    if (mode === "create") {
+      const formData = form.getValues();
+      saveQuestionDraft(questionType, {
+        ...formData,
+        options: optionsList,
+        categories: categoriesList,
+      });
+    }
+  }, [form, mode, questionType, optionsList, categoriesList]);
+
+  const debouncedHandleFormChange = useDebouncedCallback(
+    handleFormChange,
+    5000
+  );
+
+  // Change draft when react state changes (options, categories)
+  useEffect(() => {
+    // A delay to not update draft with initial state values
+    if (!isMounted.current) {
+      if (!isIntervalRunning.current) {
+        isIntervalRunning.current = true;
+        setTimeout(() => {
+          isMounted.current = true;
+        }, DRAFT_INTERACTION_DELAY);
+      }
+      return;
+    }
+
+    const formData = form.getValues();
+    saveQuestionDraft(questionType, {
+      ...formData,
+      categories: debouncedCategoriesList,
+      options: debouncedOptionsList,
+    });
+  }, [debouncedOptionsList, debouncedCategoriesList, questionType, form]);
+
+  // populate form with draft data
+  useEffect(() => {
+    if (mode === "create") {
+      cleanupQuestionDrafts();
+      const draft = getQuestionDraft(questionType);
+      if (draft) {
+        Object.entries(draft).forEach(([key, value]) => {
+          if (
+            !["lastModified", "type", "options", "categories"].includes(key)
+          ) {
+            form.setValue(key as any, value);
+          }
+        });
+
+        setOptionsList(draft.options ?? Array(MIN_OPTIONS_AMOUNT).fill("")); // MC questions
+        setCategoriesList(draft.categories ?? []);
+        setDefaultProjectState(
+          draft.default_project
+            ? ([...tournaments, siteMain].filter(
+                (x) => x.id === draft.default_project
+              )[0] as Tournament)
+            : defaultProject
+        );
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -413,10 +490,7 @@ const QuestionForm: FC<Props> = ({
             }
           )(e);
         }}
-        onChange={async () => {
-          const data = form.getValues();
-          data["type"] = questionType;
-        }}
+        onChange={debouncedHandleFormChange}
         className="mt-4 flex w-full flex-col gap-6"
       >
         <FormError
@@ -472,6 +546,7 @@ const QuestionForm: FC<Props> = ({
             name={"description"}
             defaultValue={post?.question?.description}
             errors={form.formState.errors.description}
+            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -486,6 +561,7 @@ const QuestionForm: FC<Props> = ({
             name={"resolution_criteria"}
             defaultValue={post?.question?.resolution_criteria}
             errors={form.formState.errors.resolution_criteria}
+            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
         <InputContainer
@@ -498,6 +574,7 @@ const QuestionForm: FC<Props> = ({
             name={"fine_print"}
             defaultValue={post?.question?.fine_print}
             errors={form.formState.errors.fine_print}
+            onChange={debouncedHandleFormChange}
           />
         </InputContainer>
 
@@ -526,6 +603,7 @@ const QuestionForm: FC<Props> = ({
               });
               form.setValue("open_lower_bound", openLowerBound);
               form.setValue("open_upper_bound", openUpperBound);
+              debouncedHandleFormChange("");
             }}
           />
         )}
@@ -697,9 +775,10 @@ const QuestionForm: FC<Props> = ({
               <ProjectPickerInput
                 tournaments={tournaments}
                 siteMain={siteMain}
-                currentProject={defaultProject}
+                currentProject={defaultProjectState}
                 onChange={(project) => {
                   form.setValue("default_project", project.id);
+                  debouncedHandleFormChange("");
                 }}
               />
             )}
