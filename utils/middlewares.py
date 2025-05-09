@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate, gettext_lazy as _
 from rest_framework.authentication import TokenAuthentication
-from rest_framework import exceptions
+from rest_framework import HTTP_HEADER_ENCODING, exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ def get_authorization_cookie_value(request, key="auth_token"):
     cookie = SimpleCookie()
     cookie.load(auth)
     c = cookie.get(key)
-    return c.value if c else ""
+    return c.value.encode(HTTP_HEADER_ENCODING) if c else b""
 
 
 class CookieAuthentication(TokenAuthentication):
@@ -35,7 +35,15 @@ class CookieAuthentication(TokenAuthentication):
             msg = _("Invalid token header. Token string should not contain spaces.")
             raise exceptions.AuthenticationFailed(msg)
 
-        return self.authenticate_credentials(auth[-1])
+        try:
+            token = auth[-1].decode()
+        except UnicodeError:
+            msg = _(
+                "Invalid token header. Token string should not contain invalid characters."
+            )
+            raise exceptions.AuthenticationFailed(msg)
+
+        return self.authenticate_credentials(token)
 
 
 class LocaleOverrideMiddleware:
