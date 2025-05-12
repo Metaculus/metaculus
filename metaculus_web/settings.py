@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "notifications",
     "fab_management",
     "fab_credits",
+    "community_migration",
     "django_select2",
 ]
 
@@ -148,6 +149,15 @@ if not IS_TEST_ENV:
             env="OLD_DATABASE_URL",
             conn_max_age=600,
             default="postgres:///metaculus_old",
+        ),
+        # Should be readonly connection
+        "OPTIONS": {"options": "-c default_transaction_read_only=on"},
+    }
+    DATABASES["forpol"] = {
+        **dj_database_url.config(
+            env="FORPOL_DATABASE_URL",
+            conn_max_age=600,
+            default="postgres:///metaculus_forpol",
         ),
         # Should be readonly connection
         "OPTIONS": {"options": "-c default_transaction_read_only=on"},
