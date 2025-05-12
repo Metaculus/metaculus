@@ -10,7 +10,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-import posthog
 from misc.models import WhitelistUser
 from misc.services.itn import get_post_similar_articles
 from posts.models import (
@@ -60,8 +59,6 @@ from utils.csv_utils import (
 from utils.files import validate_and_upload_image
 from utils.paginator import CountlessLimitOffsetPagination, LimitOffsetPagination
 
-from django.utils.translation import get_language
-
 spam_error = ValidationError(
     detail="This post seems to be spam. Please contact "
     "support@metaculus.com if you believe this was a mistake.",
@@ -74,14 +71,6 @@ spam_error = ValidationError(
 def posts_list_api_view(request):
     paginator = CountlessLimitOffsetPagination()
     qs = Post.objects.all()
-
-    current_language = get_language()
-    # Track language preference in PostHog
-    posthog.capture(
-        str(request.user.id) if request.user.is_authenticated else "anonymous",
-        "language_preference",
-        {"current_language": current_language, "api_view": "posts_list_api_view"},
-    )
 
     # Extra params
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
@@ -215,14 +204,6 @@ def post_detail_oldapi_view(request: Request, pk):
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
     user = request.user if request.user.is_authenticated else None
-
-    current_language = get_language()
-    # Track language preference in PostHog
-    posthog.capture(
-        str(request.user.id) if request.user.is_authenticated else "anonymous",
-        "language_preference",
-        {"current_language": current_language, "api_view": "post_detail"},
-    )
 
     # Extra params
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
