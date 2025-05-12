@@ -7,7 +7,13 @@ import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_
 import SuspendedPostHogPageView from "@/components/posthog_page_view";
 import { getPublicSetting } from "@/components/public_settings_script";
 
-function CSPostHogProvider({ children }: { children: ReactNode }) {
+function CSPostHogProvider({
+  children,
+  locale,
+}: {
+  children: ReactNode;
+  locale: string;
+}) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -45,7 +51,7 @@ function CSPostHogProvider({ children }: { children: ReactNode }) {
 
   return (
     <PostHogProvider client={posthog}>
-      <SuspendedPostHogPageView />
+      <SuspendedPostHogPageView locale={locale} />
       {children}
     </PostHogProvider>
   );
