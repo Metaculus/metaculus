@@ -6,6 +6,13 @@ export type ContactForm = {
   subject: string;
 };
 
+export interface SiteStats {
+  predictions: number;
+  questions: number;
+  resolved_questions: number;
+  years_of_predictions: number;
+}
+
 class MiscApi {
   static async submitContactForm(data: ContactForm) {
     return post("/contact-form/", data);
@@ -21,6 +28,10 @@ class MiscApi {
   }
   static async cancelBulletin(bulletinId: number) {
     const resp = await post(`/cancel-bulletin/${bulletinId}/`, {});
+    return resp;
+  }
+  static async getSiteStats() {
+    const resp = await get<SiteStats>("/get-site-stats/");
     return resp;
   }
 }
