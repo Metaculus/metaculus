@@ -316,7 +316,7 @@ DRAMATIQ_BROKER = {
 }
 DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
     # Setting redis db to 1 for the MQ storage
-    "url": f"{REDIS_URL}/3?{REDIS_URL_CONFIG}",
+    "url": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
 }
 
 # Setting StubBroker broker for unit tests environment
@@ -331,7 +331,7 @@ DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
+        "LOCATION": f"{REDIS_URL}/0?{REDIS_URL_CONFIG}",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
