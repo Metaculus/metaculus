@@ -171,10 +171,10 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
         <PolyfillProvider>
-          <CSPostHogProvider>
+          <CSPostHogProvider locale={locale}>
             <AppThemeProvided>
               <NextIntlClientProvider messages={messages}>
-                <AuthProvider user={user}>
+                <AuthProvider user={user} locale={locale}>
                   <PublicSettingsProvider settings={publicSettings}>
                     <ModalProvider>
                       <NavigationProvider>

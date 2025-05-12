@@ -21,8 +21,9 @@ export const AuthContext = createContext<AuthContextType>({
 const AuthProvider: FC<
   PropsWithChildren<{
     user: CurrentUser | null;
+    locale?: string;
   }>
-> = ({ user: initialUser, children }) => {
+> = ({ user: initialUser, children, locale }) => {
   const [user, setUser] = useState<CurrentUser | null>(initialUser);
   const posthog = usePostHog();
 
@@ -33,6 +34,7 @@ const AuthProvider: FC<
         username,
         is_superuser,
         is_staff,
+        locale,
       });
     } else {
       if (posthog._isIdentified()) {
