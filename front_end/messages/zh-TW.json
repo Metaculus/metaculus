@@ -1249,5 +1249,7 @@
   "allQuestionsPredicted": "所有問題均已預測",
   "thereAreQuestionsYouHaveNotPredicted": "您還有 {count, plural, =1 {<bold># 個問題</bold>} other {<bold># 個問題</bold>}} 尚未預測。",
   "duplicateSubQuestionLabel": "重複的子問題標籤",
-  "CPMovementChangeLabel": "{value} 本 {period}"
+  "CPMovementHourChangeLabel": "{value} 本小時",
+  "CPMovementDayChangeLabel": "{value} 今天",
+  "CPMovementWeekChangeLabel": "{value} 本週"
 }

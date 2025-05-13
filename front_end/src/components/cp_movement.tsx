@@ -8,6 +8,7 @@ import {
   QuestionType,
   QuestionWithForecasts,
 } from "@/types/question";
+import { TranslationKey } from "@/types/translations";
 import cn from "@/utils/core/cn";
 import { formatValueUnit } from "@/utils/questions/units";
 
@@ -42,7 +43,7 @@ const QuestionCPMovement: FC<Props> = ({
   return (
     <PeriodMovement
       direction={movement.direction}
-      message={t("CPMovementChangeLabel", {
+      message={t(getMovementPeriodMessage(Number(movement.period)), {
         value: formatValueUnit(
           movementComponents.amount.toString(),
           question?.type === QuestionType.Binary &&
@@ -50,7 +51,6 @@ const QuestionCPMovement: FC<Props> = ({
             ? "%"
             : movementComponents.unit
         ),
-        period: movement.period ? formatMovementPeriod(+movement.period) : null,
       })}
       className={cn("text-xs", className)}
       iconClassName="text-xs"
@@ -58,22 +58,11 @@ const QuestionCPMovement: FC<Props> = ({
   );
 };
 
-export function formatMovementPeriod(period: number): string {
-  if (period % 3600 !== 0) {
-    return `${period.toString()}s`;
-  }
+export function getMovementPeriodMessage(period: number): TranslationKey {
+  if (period <= 60 * 60) return "CPMovementHourChangeLabel";
+  if (period <= 24 * 60 * 60) return "CPMovementDayChangeLabel";
 
-  const totalHours = period / 3600;
-
-  // special labels
-  if (totalHours === 1) return "hour";
-  if (totalHours === 24) return "day";
-  if (totalHours === 7 * 24) return "week";
-  // Fallback
-  if (totalHours < 24) return `${totalHours}h`;
-  if (totalHours % 24 === 0) return `${totalHours / 24}d`;
-
-  return period.toString();
+  return "CPMovementWeekChangeLabel";
 }
 
 export function getMovementComponents(

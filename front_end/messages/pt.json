@@ -1249,5 +1249,8 @@
   "uncertaintySignificantMovementBannerText": "Previsão da comunidade {direction} a incerteza em <strong>{amount}{unit}</strong> desde sua última previsão.",
   "skippedWithoutPredicting": "Você pulou {count, plural, =1 {# pergunta} other {# perguntas}} sem prever.",
   "allQuestionsPredicted": "Todas as perguntas previstas",
-  "thereAreQuestionsYouHaveNotPredicted": "Há {count, plural, =1 {<bold># pergunta</bold>} other {<bold># perguntas</bold>}} que você ainda não previu."
+  "thereAreQuestionsYouHaveNotPredicted": "Há {count, plural, =1 {<bold># pergunta</bold>} other {<bold># perguntas</bold>}} que você ainda não previu.",
+  "CPMovementHourChangeLabel": "{value} nesta hora",
+  "CPMovementDayChangeLabel": "{value} hoje",
+  "CPMovementWeekChangeLabel": "{value} nesta semana"
 }

@@ -1251,5 +1251,8 @@
   "uncertaintySignificantMovementBannerText": "Nejistota komunitní předpovědi se {direction} o <strong>{amount}{unit}</strong> od vaší poslední prognózy.",
   "skippedWithoutPredicting": "Přeskočili jste {count, plural, =1 {# otázku} other {# otázek}} bez předpovědi.",
   "allQuestionsPredicted": "Všechny otázky jsou předpovězeny",
-  "thereAreQuestionsYouHaveNotPredicted": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které jste ještě nepředpověděli."
+  "thereAreQuestionsYouHaveNotPredicted": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které jste ještě nepředpověděli.",
+  "CPMovementHourChangeLabel": "{value} tuto hodinu",
+  "CPMovementDayChangeLabel": "{value} dnes",
+  "CPMovementWeekChangeLabel": "{value} tento týden"
 }
