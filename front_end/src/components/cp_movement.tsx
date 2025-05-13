@@ -24,7 +24,7 @@ const QuestionCPMovement: FC<Props> = ({
   question,
   className,
   presentation,
-  threshold = 0.25,
+  threshold = 0.1,
 }) => {
   const t = useTranslations();
 
