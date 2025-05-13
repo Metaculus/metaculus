@@ -6,7 +6,6 @@ from django.db import connection
 from django.utils import timezone
 
 from migrator.services.migrate_comments import migrate_comments, migrate_comment_votes
-from migrator.services.migrate_fab_credits import migrate_fab_credits
 from migrator.services.migrate_forecasts import (
     migrate_forecasts,
     migrate_metaculus_predictions,
@@ -80,8 +79,6 @@ class Command(BaseCommand):
         # main model migration
         migrate_users()
         task_start = print_duration("Migrated users", task_start, start)
-        migrate_fab_credits()
-        task_start = print_duration("Migrated fab credits", task_start, start)
         migrate_questions(site_ids=site_ids)
         task_start = print_duration("Migrated questions", task_start, start)
         migrate_projects(site_ids=site_ids)

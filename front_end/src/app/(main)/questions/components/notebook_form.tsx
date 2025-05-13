@@ -1,9 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isNil } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { Category, Post, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
@@ -25,6 +26,12 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { logError } from "@/utils/core/errors";
+import {
+  QUESTION_DRAFT_DEBOUNCE_TIME,
+  deleteQuestionDraft,
+  getQuestionDraft,
+  saveQuestionDraft,
+} from "@/utils/drafts/questionForm";
 import { getPostLink } from "@/utils/navigation";
 
 import BacktoCreate from "./back_to_create";
@@ -82,7 +89,8 @@ const NotebookForm: React.FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
-
+  const isDraftMounted = useRef(false);
+  const draftKey = `notebook`;
   const t = useTranslations();
   const notebookSchema = createNotebookSchema(t);
   const form = useForm<FormData>({
@@ -94,7 +102,6 @@ const NotebookForm: React.FC<Props> = ({
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
-  const [isCategoriesDirty, setIsCategoriesDirty] = useState(false);
 
   const defaultProjectId =
     post?.projects?.default_project?.id ??
@@ -107,10 +114,12 @@ const NotebookForm: React.FC<Props> = ({
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
-      ? [...tournaments, siteMain].find((x) => x.id === tournament_id)
+      ? ([...tournaments, siteMain].find(
+          (x) => x.id === tournament_id
+        ) as Tournament)
       : siteMain;
-  const isFormDirty =
-    !!Object.keys(form.formState.dirtyFields).length || isCategoriesDirty;
+  const [currentProject, setCurrentProject] =
+    useState<Tournament>(defaultProject);
 
   const router = useRouter();
 
@@ -136,8 +145,8 @@ const NotebookForm: React.FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
+        deleteQuestionDraft(draftKey);
       }
-
       router.push(getPostLink(resp.post));
     } catch (e) {
       const error = e as Error & { digest?: string };
@@ -148,7 +157,53 @@ const NotebookForm: React.FC<Props> = ({
     }
   };
 
-  useConfirmPageLeave(isFormDirty);
+  useEffect(() => {
+    if (mode === "create") {
+      const draft = getQuestionDraft(draftKey);
+      if (draft) {
+        setCategoriesList(draft.categories ?? []);
+        setCurrentProject(
+          !isNil(draft.default_project) &&
+            isNil(tournament_id) &&
+            isNil(community_id) &&
+            isNil(news_category_id)
+            ? ([...tournaments, siteMain].filter(
+                (x) => x.id === draft.default_project
+              )[0] as Tournament)
+            : defaultProject
+        );
+        form.reset(draft);
+      }
+      setTimeout(() => {
+        isDraftMounted.current = true;
+      }, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleFormChange = useCallback(() => {
+    if (mode === "create") {
+      const formData = form.getValues();
+      saveQuestionDraft(draftKey, {
+        ...formData,
+        categories: categoriesList,
+      });
+    }
+  }, [form, mode, categoriesList, draftKey]);
+
+  const debouncedHandleFormChange = useDebouncedCallback(
+    handleFormChange,
+    QUESTION_DRAFT_DEBOUNCE_TIME
+  );
+  // update draft when form values changes
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (mode === "create" && isDraftMounted.current) {
+        debouncedHandleFormChange();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, mode, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -181,7 +236,7 @@ const NotebookForm: React.FC<Props> = ({
             <ProjectPickerInput
               tournaments={tournaments}
               siteMain={siteMain}
-              currentProject={defaultProject}
+              currentProject={currentProject}
               onChange={(project) => {
                 form.setValue("default_project", project.id);
               }}
@@ -217,7 +272,6 @@ const NotebookForm: React.FC<Props> = ({
             categories={categoriesList}
             onChange={(categories) => {
               setCategoriesList(categories);
-              setIsCategoriesDirty(true);
             }}
           ></CategoryPicker>
         </InputContainer>

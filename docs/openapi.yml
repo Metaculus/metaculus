@@ -239,12 +239,6 @@ info:
     With this tiny guide, you can be well along your way to submitting continuous forecasts to Metaculus.
     If you have any questions or suggestions, feel free to create tickets on the github: https://github.com/Metaculus/metaculus/issues
     </details>
-
-servers:
-  - url: https://www.metaculus.com
-    description: Production Server
-  - url: http://localhost:8000
-    description: Local Server
 security:
   - TokenAuth: [ ]
 components:
@@ -1045,7 +1039,7 @@ paths:
             type: array
             items:
               type: string
-            example: [ 'quarterly-cup', 'aibq3' ]
+            example: [ 'metaculus-cup', 'aibq3' ]
           description: Tournament slug. You can apply multiple filters.
         - in: query
           name: statuses

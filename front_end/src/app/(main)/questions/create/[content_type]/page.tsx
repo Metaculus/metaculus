@@ -14,6 +14,7 @@ import { SearchParams } from "@/types/navigation";
 
 import ConditionalForm from "../../components/conditional_form";
 import NotebookForm from "../../components/notebook_form";
+import QuestionDraftCleanup from "../components/question_draft_cleanup";
 
 type Props = {
   params: Promise<{ content_type: string }>;
@@ -140,6 +141,7 @@ export default async function QuestionCreator(props: Props) {
   return (
     <>
       {community ? <CommunityHeader community={community} /> : <Header />}
+      <QuestionDraftCleanup />
       {component}
     </>
   );

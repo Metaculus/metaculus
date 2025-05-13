@@ -4,9 +4,26 @@ from django.conf import settings
 from django.http import JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.request import Request as DRFRequest
+from rest_framework.settings import api_settings
 
 logger = logging.getLogger(__name__)
+
+
+def authenticate_request(request):
+    """
+    Try each of the authentication classes until one returns a (user, auth) tuple
+    """
+    request = DRFRequest(request)
+
+    for authenticator_cls in api_settings.DEFAULT_AUTHENTICATION_CLASSES:
+        authenticator = authenticator_cls()
+        result = authenticator.authenticate(request)
+
+        if result:
+            return result
+
+    return None, None
 
 
 class LocaleOverrideMiddleware:
@@ -27,7 +44,6 @@ class LocaleOverrideMiddleware:
 
 
 class AuthenticationRequiredMiddleware(MiddlewareMixin):
-
     def process_view(self, request, view_func, view_args, view_kwargs):
         if settings.PUBLIC_AUTHENTICATION_REQUIRED:
             if any(
@@ -35,12 +51,17 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
                     request.path.startswith("/admin/"),
                     request.path.startswith("/api/auth/"),
                     request.path.startswith("/static/"),
+                    # Swagger doc
+                    request.path == "/api/",
                 ]
             ):
                 return None
 
-            if not TokenAuthentication().authenticate(request):
+            user, _ = authenticate_request(request)
+
+            if not user:
                 raise Http404()
+
         return None
 
 

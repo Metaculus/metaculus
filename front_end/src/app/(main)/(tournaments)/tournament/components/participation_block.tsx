@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { PredictionFlowPost } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
+import { getProjectSlug } from "@/utils/navigation";
 
 type Props = {
   tournament: Tournament;
@@ -35,7 +36,7 @@ type Props = {
 const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
   const { user } = useAuth();
   const t = useTranslations();
-
+  const tournamentSlug = getProjectSlug(tournament);
   if (isNil(user) || !tournament.forecasts_flow_enabled) {
     return null;
   }
@@ -82,7 +83,7 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
             {/* Unpredicted questions */}
             {!!unpredictedPosts.length && (
               <ParticipationBlockLink
-                href={`/tournament/${tournament.slug}/prediction-flow?flow_type=${FlowType.NOT_PREDICTED}`}
+                href={`/tournament/${tournamentSlug}/prediction-flow?flow_type=${FlowType.NOT_PREDICTED}`}
                 text={t("questionsNotPredicted", {
                   count: unpredictedPosts.length,
                 })}
@@ -92,7 +93,7 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
             {/* Significant movement forecasts */}
             {!!significantMovementPosts.length && (
               <ParticipationBlockLink
-                href={`/tournament/${tournament.slug}/prediction-flow?flow_type=${FlowType.MOVEMENT}`}
+                href={`/tournament/${tournamentSlug}/prediction-flow?flow_type=${FlowType.MOVEMENT}`}
                 text={t("significantMovementForecasts", {
                   count: significantMovementPosts.length,
                 })}
@@ -102,7 +103,7 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
             {/* Stale predictions */}
             {!!stalePredictionsPosts.length && (
               <ParticipationBlockLink
-                href={`/tournament/${tournament.slug}/prediction-flow?flow_type=${FlowType.STALE}`}
+                href={`/tournament/${tournamentSlug}/prediction-flow?flow_type=${FlowType.STALE}`}
                 text={t("stalePredictions", {
                   count: stalePredictionsPosts.length,
                 })}
@@ -115,7 +116,7 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
             variant="tertiary"
             size="lg"
             className="mt-4 w-full sm:mt-4"
-            href={`/tournament/${tournament.slug}/prediction-flow?flow_type=${FlowType.GENERAL}`}
+            href={`/tournament/${tournamentSlug}/prediction-flow?flow_type=${FlowType.GENERAL}`}
           >
             {t("reviewAll")}
           </Button>
