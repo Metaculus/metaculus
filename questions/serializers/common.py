@@ -749,7 +749,11 @@ def serialize_question(
                 else None
             )
 
-            if method == AggregationMethod.RECENCY_WEIGHTED and movement_start_date:
+            if (
+                method == AggregationMethod.RECENCY_WEIGHTED
+                and movement_f1
+                and movement_start_date
+            ):
                 serialized_data["aggregations"][method]["movement"] = (
                     serialize_question_movement(
                         question, movement_f1, forecasts[-1], movement_period
