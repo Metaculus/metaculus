@@ -1,7 +1,8 @@
-import { isNil, round } from "lodash";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { ReactNode } from "react";
 
+import { getMovementComponents } from "@/components/cp_movement";
 import RichText from "@/components/rich_text";
 import { PredictionFlowPost } from "@/types/post";
 import {
@@ -77,34 +78,33 @@ function getMovementBannerText(
   flowUserForecast: QuestionWithForecasts["my_forecast"] | undefined,
   t: ReturnType<typeof useTranslations>
 ) {
-  if (isNil(requireAttentionQuestion) || isNil(flowUserForecast?.movement)) {
+  if (
+    isNil(requireAttentionQuestion) ||
+    isNil(flowUserForecast?.movement) ||
+    ![
+      MovementDirection.UP,
+      MovementDirection.DOWN,
+      MovementDirection.CONTRACTED,
+      MovementDirection.EXPANDED,
+    ].includes(flowUserForecast?.movement.direction)
+  ) {
     return;
   }
+
+  const movementComponents = getMovementComponents(
+    requireAttentionQuestion,
+    flowUserForecast.movement,
+    t
+  );
+
+  if (!movementComponents) {
+    return;
+  }
+
+  const { amount, unit, directionLabel } = movementComponents;
+
   // Date questions
   if (requireAttentionQuestion.type === QuestionType.Date) {
-    const direction =
-      flowUserForecast.movement.direction === MovementDirection.UP
-        ? t("later")
-        : t("sooner");
-    // For date questions we receive movement in seconds so we need to convert it to days
-    const movementInDays =
-      (flowUserForecast.movement.movement ?? 0) / (60 * 60 * 24);
-
-    let amount = movementInDays;
-    let unit = t("days");
-    if (movementInDays > 730) {
-      amount = round(movementInDays / 365, 1);
-      unit = t("years");
-    } else if (movementInDays <= 730 && movementInDays > 120) {
-      amount = round(movementInDays / 30, 1);
-      unit = t("months");
-    } else if (movementInDays <= 120 && movementInDays > 21) {
-      amount = round(movementInDays / 7, 1);
-      unit = t("weeks");
-    } else if (movementInDays <= 21) {
-      amount = round(movementInDays, 1);
-      unit = t("days");
-    }
     if (
       [MovementDirection.UP, MovementDirection.DOWN].includes(
         flowUserForecast.movement.direction
@@ -117,8 +117,8 @@ function getMovementBannerText(
             t.rich("dateQuestionSignificantMovementBannerText", {
               ...tags,
               amount,
-              unit: ` ${unit}`,
-              direction,
+              unit,
+              direction: directionLabel,
             })
           }
         </RichText>
@@ -128,19 +128,14 @@ function getMovementBannerText(
         flowUserForecast.movement.direction
       )
     ) {
-      const direction =
-        flowUserForecast.movement.direction === MovementDirection.EXPANDED
-          ? t("expanded")
-          : t("narrowed");
-      // Uncertainty movement
       return (
         <RichText>
           {(tags) =>
             t.rich("uncertaintySignificantMovementBannerText", {
               ...tags,
               amount,
-              unit: ` ${unit}`,
-              direction,
+              unit,
+              direction: directionLabel,
             })
           }
         </RichText>
@@ -148,20 +143,6 @@ function getMovementBannerText(
     }
   } else {
     // Numeric, binary and MC questions
-    const direction =
-      flowUserForecast.movement.direction === MovementDirection.UP
-        ? t("increased")
-        : t("decreased");
-    const unit =
-      requireAttentionQuestion.type === QuestionType.Numeric
-        ? isNil(requireAttentionQuestion.unit)
-          ? requireAttentionQuestion.unit
-          : " " + requireAttentionQuestion.unit
-        : " " + t("percentagePoints");
-    const amount =
-      requireAttentionQuestion.type === QuestionType.Numeric
-        ? round(flowUserForecast.movement.movement, 1) // for numeric questions we receive already scaled value
-        : round(flowUserForecast.movement.movement * 100, 1); // for binary and MC questions we receive a percentage in 0-1 range
     if (
       [MovementDirection.UP, MovementDirection.DOWN].includes(
         flowUserForecast.movement.direction
@@ -175,7 +156,7 @@ function getMovementBannerText(
               ...tags,
               amount,
               unit,
-              direction,
+              direction: directionLabel,
             })
           }
         </RichText>
@@ -186,10 +167,6 @@ function getMovementBannerText(
       )
     ) {
       // Uncertainty movement
-      const direction =
-        flowUserForecast.movement.direction === MovementDirection.EXPANDED
-          ? t("expanded")
-          : t("narrowed");
       return (
         <RichText>
           {(tags) =>
@@ -197,7 +174,7 @@ function getMovementBannerText(
               ...tags,
               amount,
               unit,
-              direction,
+              direction: directionLabel,
             })
           }
         </RichText>
