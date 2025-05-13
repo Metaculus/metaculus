@@ -1251,5 +1251,8 @@
   "uncertaintySignificantMovementBannerText": "La predicción de la comunidad {direction} la incertidumbre en <strong>{amount}{unit}</strong> desde tu último pronóstico.",
   "skippedWithoutPredicting": "Has omitido {count, plural, =1 {# pregunta} other {# preguntas}} sin predecir.",
   "allQuestionsPredicted": "Todas las preguntas predichas",
-  "thereAreQuestionsYouHaveNotPredicted": "Hay {count, plural, =1 {<bold># pregunta</bold>} other {<bold># preguntas</bold>}} que aún no has predicho."
+  "thereAreQuestionsYouHaveNotPredicted": "Hay {count, plural, =1 {<bold># pregunta</bold>} other {<bold># preguntas</bold>}} que aún no has predicho.",
+  "CPMovementHourChangeLabel": "{value} esta hora",
+  "CPMovementDayChangeLabel": "{value} hoy",
+  "CPMovementWeekChangeLabel": "{value} esta semana"
 }
