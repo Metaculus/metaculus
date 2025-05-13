@@ -3,14 +3,18 @@
   --baseBg: theme("colors.gray.100.DEFAULT");
   --basePageBg: theme("colors.gray.0.DEFAULT");
   --baseBgHover: theme("colors.gray.0.DEFAULT");
-  --baseBgActive: theme("colors.gray.0.DEFAULT");
+  --baseBgActive: theme("colors.gray.300.DEFAULT");
   --baseBorder: theme("colors.gray.500.DEFAULT");
+  --baseBase: theme("colors.gray.100.DEFAULT");
 }
 
 .mdxeditor-popup-container {
   @apply z-100;
   [role="dialog"] {
-    @apply flex flex-col xs:flex-row;
+    @apply flex max-w-full flex-col xs:flex-row;
+    form {
+      @apply max-w-full;
+    }
   }
 }
 
@@ -24,7 +28,7 @@
 }
 
 .mdxeditor-toolbar {
-  @apply sticky top-12 flex-wrap;
+  @apply sticky top-12 flex-wrap @container;
   & [class*="toolbarTitleMode"] {
     display: none; /* We render our custom source mode title instead */
   }
@@ -35,6 +39,7 @@
   --basePageBg: theme("colors.gray.0.dark");
   --baseBgHover: theme("colors.gray.0.dark");
   --baseBgActive: theme("colors.gray.0.dark");
+  --baseBase: theme("colors.gray.100.dark");
 }
 
 .markdown-editor table th,

@@ -16,16 +16,16 @@ import {
   faCaretUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useState, forwardRef, FC } from "react";
 
-import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_text_input";
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
+import ForecastTextInput from "@/components/forecast_maker/forecast_text_input";
 import Button from "@/components/ui/button";
-import cn from "@/utils/cn";
-import { logError } from "@/utils/errors";
+import { sendAnalyticsEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
 
 export const BINARY_MIN_VALUE = 0.001;
 export const BINARY_MAX_VALUE = 0.999;
@@ -78,10 +78,9 @@ const CmmMakeForecast: FC<{
 
   const onUpdateVal = (step: number | undefined) => {
     if (isNil(step)) {
-      logError(
-        new Error("Step is undefined"),
-        "Error updating comment forecast"
-      );
+      logError(new Error("Step is undefined"), {
+        message: "Error updating comment forecast",
+      });
       return;
     }
 
@@ -310,7 +309,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
           enabled: !cmmContext.cmmEnabled,
         });
         cmmContext.onCMMToggled(!cmmContext.cmmEnabled);
-        sendGAEvent("event", "commentChangedMind");
+        sendAnalyticsEvent("commentChangedMind");
       } catch (e) {
         logError(e);
         cmmContext.onCMMToggled(cmmContext.cmmEnabled);

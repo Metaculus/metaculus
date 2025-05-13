@@ -3,18 +3,18 @@ import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
+import { createForecasts } from "@/app/(main)/questions/actions";
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,
-} from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
-import { createForecasts } from "@/app/(main)/questions/actions";
+} from "@/components/forecast_maker/binary_slider";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useServerAction } from "@/hooks/use_server_action";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import cn from "@/utils/cn";
-import { generateCurveChoiceOptions } from "@/utils/forecasts";
-import { canPredictQuestion } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { generateCurveChoiceOptions } from "@/utils/forecasts/thecurve";
+import { canPredictQuestion } from "@/utils/questions/predictions";
 
 type Props = {
   post: PostWithForecasts;

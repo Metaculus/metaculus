@@ -1,23 +1,23 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import PredictionChip from "@/components/prediction_chip";
+import { useHideCP } from "@/contexts/cp_context";
 import { ConditionalPost, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import cn from "@/utils/cn";
+import { sendAnalyticsEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
 import {
   getConditionalQuestionTitle,
   getConditionTitle,
-  isUnsuccessfullyResolved,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import ConditionalCard from "./conditional_card";
 import ConditionalChart from "./conditional_chart";
@@ -69,7 +69,7 @@ const ConditionalTile: FC<Props> = ({
       !!question_no.my_forecasts?.history.length ||
       !!question_yes.my_forecasts?.history.length
     ) {
-      sendGAEvent("event", "visitPredictedQuestion", {
+      sendAnalyticsEvent("visitPredictedQuestion", {
         event_category: "conditional",
       });
     }

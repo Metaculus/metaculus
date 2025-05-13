@@ -8,7 +8,7 @@ import {
 } from "@/app/(main)/accounts/schemas";
 import ProfileApi from "@/services/profile";
 import { CurrentUser } from "@/types/users";
-import { ApiError } from "@/utils/errors";
+import { ApiError } from "@/utils/core/errors";
 
 export type ChangeUsernameState = {
   errors?: any;

@@ -1,5 +1,5 @@
 import { AggregationQuestion } from "@/types/question";
-import { get } from "@/utils/fetch";
+import { get } from "@/utils/core/fetch";
 
 export type AggregationExplorerParams = {
   postId?: number | string | null;

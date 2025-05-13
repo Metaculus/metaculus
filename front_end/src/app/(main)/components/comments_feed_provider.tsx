@@ -10,9 +10,16 @@ import {
 
 import { SortOption } from "@/components/comment_feed";
 import { getCommentsParams } from "@/services/comments";
-import { BECommentType, CommentType } from "@/types/comment";
+import {
+  BECommentType,
+  CommentType,
+  KeyFactor,
+  KeyFactorVote,
+  KeyFactorVoteTypes,
+} from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
 import { parseComment } from "@/utils/comments";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import { getComments } from "../questions/actions";
 
@@ -34,6 +41,14 @@ export type CommentsFeedContextType = {
     keepComments: boolean,
     params: getCommentsParams
   ) => Promise<void>;
+  fetchTotalCount: (params: getCommentsParams) => Promise<void>;
+  combinedKeyFactors: KeyFactor[];
+  setCombinedKeyFactors: (combinedKeyFactors: KeyFactor[]) => void;
+  setKeyFactorVote: (
+    keyFactorId: number,
+    keyFactorVote: KeyFactorVote,
+    votesScore: number
+  ) => void;
 };
 
 const COMMENTS_PER_PAGE = 10;
@@ -79,25 +94,112 @@ type BaseProviderProps = {
   rootCommentStructure: boolean;
 };
 type PostProviderProps = {
-  postId: number;
+  postData: PostWithForecasts;
   profileId?: never;
 };
 type ProfileProviderProps = {
   profileId: number;
-  postId?: never;
+  postData?: never;
 };
 
 const CommentsFeedProvider: FC<
   PropsWithChildren<
     BaseProviderProps & (PostProviderProps | ProfileProviderProps)
   >
-> = ({ children, postId, profileId, rootCommentStructure }) => {
+> = ({ children, postData, profileId, rootCommentStructure }) => {
   const [sort, setSort] = useState<SortOption>("created_at");
   const [comments, setComments] = useState<CommentType[]>([]);
   const [totalCount, setTotalCount] = useState<number | "?">("?");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<ErrorType | undefined>(undefined);
   const [offset, setOffset] = useState<number>(0);
+
+  const initialKeyFactors = [...(postData?.key_factors ?? [])].sort((a, b) =>
+    b.votes_score === a.votes_score
+      ? Math.random() - 0.5
+      : b.votes_score - a.votes_score
+  );
+  const [combinedKeyFactors, setCombinedKeyFactors] =
+    useState<KeyFactor[]>(initialKeyFactors);
+
+  const setAndSortCombinedKeyFactors = (keyFactors: KeyFactor[]) => {
+    const sortedKeyFactors = [...keyFactors].sort(
+      (a, b) => b.votes_score - a.votes_score
+    );
+    setCombinedKeyFactors(sortedKeyFactors);
+  };
+
+  const setKeyFactorVote = (
+    keyFactorId: number,
+    keyFactorVote: KeyFactorVote,
+    votes_score: number
+  ) => {
+    // Update the list of combined key factors with the new vote
+    const newKeyFactors = combinedKeyFactors.map((kf) =>
+      kf.id === keyFactorId
+        ? {
+            ...kf,
+            votes_score,
+            user_votes: [
+              ...kf.user_votes.filter(
+                (vote) => vote.vote_type !== keyFactorVote.vote_type
+              ),
+              keyFactorVote,
+            ],
+          }
+        : { ...kf }
+    );
+
+    if (keyFactorVote.vote_type === KeyFactorVoteTypes.UP_DOWN) {
+      setAndSortCombinedKeyFactors(newKeyFactors);
+    } else {
+      setCombinedKeyFactors(newKeyFactors);
+    }
+
+    //Update the comments state with the new vote for the key factor
+    setComments((prevComments) => {
+      return prevComments.map((comment) => {
+        // Check if this comment has the key factor we're updating
+        if (comment.key_factors?.some((kf) => kf.id === keyFactorId)) {
+          // Create a new comment object with updated key factors
+          return {
+            ...comment,
+            key_factors: comment.key_factors?.map((kf) =>
+              kf.id === keyFactorId
+                ? {
+                    ...kf,
+                    votes_score,
+                    user_votes: [
+                      ...kf.user_votes.filter(
+                        (vote) => vote.vote_type !== keyFactorVote.vote_type
+                      ),
+                      keyFactorVote,
+                    ],
+                  }
+                : kf
+            ),
+          };
+        }
+        // Return unchanged comment if it doesn't have the key factor
+        return { ...comment };
+      });
+    });
+  };
+
+  const fetchTotalCount = async (params: getCommentsParams) => {
+    const response = await getComments({
+      post: postData?.id,
+      author: profileId,
+      limit: 1,
+      use_root_comments_pagination: rootCommentStructure,
+      ...params,
+    });
+    if (!!response && "errors" in response) {
+      logError(response.errors, { message: "Error fetching comments:" });
+    } else {
+      setTotalCount(response.total_count ?? response.count);
+    }
+  };
 
   const fetchComments = async (
     keepComments: boolean = true,
@@ -107,7 +209,7 @@ const CommentsFeedProvider: FC<
       setIsLoading(true);
       setError(undefined);
       const response = await getComments({
-        post: postId,
+        post: postData?.id,
         author: profileId,
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
         limit: COMMENTS_PER_PAGE,
@@ -115,7 +217,7 @@ const CommentsFeedProvider: FC<
         ...params,
       });
       if (!!response && "errors" in response) {
-        logError(response.errors, "Error fetching comments:");
+        logError(response.errors, { message: "Error fetching comments:" });
       } else {
         setTotalCount(response.total_count ?? response.count);
 
@@ -140,7 +242,7 @@ const CommentsFeedProvider: FC<
     } catch (err) {
       const error = err as Error & { digest?: string };
       setError(error);
-      logError(err, `Error fetching comments: ${err}`);
+      logError(err, { message: `Error fetching comments: ${err}` });
     } finally {
       setIsLoading(false);
     }
@@ -161,6 +263,10 @@ const CommentsFeedProvider: FC<
         sort,
         setSort,
         fetchComments,
+        fetchTotalCount,
+        combinedKeyFactors,
+        setCombinedKeyFactors: setAndSortCombinedKeyFactors,
+        setKeyFactorVote,
       }}
     >
       {children}

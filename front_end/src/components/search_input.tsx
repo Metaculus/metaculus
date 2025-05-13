@@ -4,7 +4,7 @@ import { Field, Input } from "@headlessui/react";
 import { ChangeEventHandler, FC, FormEvent } from "react";
 
 import Button from "@/components/ui/button";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Size = "base" | "lg";
 

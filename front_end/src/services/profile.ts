@@ -3,7 +3,7 @@ import { PaginatedPayload } from "@/types/fetch";
 import { SubscriptionEmailType } from "@/types/notifications";
 import { ProfilePreferencesType } from "@/types/preferences";
 import { CurrentUser, UserProfile } from "@/types/users";
-import { get, patch, post } from "@/utils/fetch";
+import { get, patch, post } from "@/utils/core/fetch";
 
 class ProfileApi {
   static async getMyProfile(): Promise<CurrentUser | null> {

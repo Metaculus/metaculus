@@ -2,7 +2,6 @@
 
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState } from "react";
 
@@ -12,6 +11,7 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Post, PostSubscription } from "@/types/post";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import PostSubscribeSuccessModal from "./post_subscribe_success_modal";
 import {
@@ -50,7 +50,7 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
             ? getInitialNotebookSubscriptions()
             : getInitialQuestionSubscriptions()
         );
-        sendGAEvent("event", "questionFollowed");
+        sendAnalyticsEvent("questionFollowed");
         // Click on this button automatically subscribes user to the default notifications
         setPostSubscriptions(newSubscriptions);
         // Open success modal

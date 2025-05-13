@@ -13,7 +13,7 @@ import {
 import useAppTheme from "@/hooks/use_app_theme";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { AppTheme } from "@/types/theme";
-import { getChartZoomOptions } from "@/utils/charts";
+import { getChartZoomOptions } from "@/utils/charts/helpers";
 import { addUrlParams } from "@/utils/navigation";
 
 type Props = {

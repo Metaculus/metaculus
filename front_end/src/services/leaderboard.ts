@@ -5,7 +5,7 @@ import {
   MedalEntry,
   MedalRanksEntry,
 } from "@/types/scoring";
-import { get } from "@/utils/fetch";
+import { get } from "@/utils/core/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type ProjectContributionsParams = {

@@ -5,7 +5,7 @@ import WithServerComponentErrorBoundary from "@/components/server_component_erro
 import LeaderboardApi from "@/services/leaderboard";
 import { Tournament } from "@/types/projects";
 import { LeaderboardDetails } from "@/types/scoring";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import ActiveTournamentTimeline from "./active_tournament_timeline";
 import ClosedTournamentTimeline from "./closed_tournament_timeline";

@@ -21,13 +21,16 @@ export type BaseChartData = {
   yScale: Scale;
 };
 
-export type Line<X = number, Y = number | null> = Array<{
+export type LinePoint<X = number, Y = number | null> = {
   x: X;
   y: Y;
   y1?: Y;
   y2?: Y;
   symbol?: string;
-}>;
+  size?: number;
+};
+
+export type Line<X = number, Y = number | null> = Array<LinePoint<X, Y>>;
 export type Area<X = number, Y = number | null> = Array<{ x: X; y: Y; y0?: Y }>;
 
 export type NumericChartType = "date" | "numeric" | "binary";
@@ -62,11 +65,6 @@ export type ContinuousAreaHoverState = {
 };
 
 export type ContinuousAreaGraphType = "pmf" | "cdf";
-
-export enum GroupOfQuestionsGraphType {
-  FanGraph = "fan_graph",
-  MultipleChoiceGraph = "multiple_choice_graph",
-}
 
 export enum ContinuousForecastInputType {
   Slider = "slider",

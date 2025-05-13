@@ -10,11 +10,9 @@ import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
-import {
-  displayValue,
-  findPreviousTimestamp,
-  scaleInternalLocation,
-} from "@/utils/charts";
+import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 import AggregationTooltip from "./aggregation_tooltip";
 import {
@@ -45,7 +43,7 @@ const AggregationsDrawer: FC<Props> = ({
   const { actual_close_time, scaling, type, actual_resolve_time } =
     aggregationData ?? {};
   const actualCloseTime = useMemo(
-    () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
+    () => getPostDrivenTime(actual_close_time),
     [actual_close_time]
   );
   const tooltips = useMemo(() => generateAggregationTooltips(user), [user]);
@@ -195,7 +193,6 @@ function getQuestionTooltipLabel({
 }) {
   const hasValue =
     !isNil(cursorTimestamp) && cursorTimestamp >= Math.min(...timestamps);
-
   if (!hasValue) {
     return "?";
   }
@@ -204,31 +201,18 @@ function getQuestionTooltipLabel({
   const cursorIndex = timestamps.findIndex(
     (timestamp) => timestamp === closestTimestamp
   );
-
   const cursorValue = values[cursorIndex];
-  if (isNil(cursorValue)) {
-    return "...";
-  }
 
-  if (qType === QuestionType.Binary) {
-    return displayValue({
-      value: cursorValue,
-      questionType: qType,
-      actual_resolve_time,
-    });
-  } else {
-    const scaledValue = scaleInternalLocation(cursorValue, {
-      range_min: scaling?.range_min ?? 0,
-      range_max: scaling?.range_max ?? 1,
-      zero_point: scaling?.zero_point ?? null,
-    });
-    return displayValue({
-      value: scaledValue,
-      questionType: qType ?? QuestionType.Numeric,
-      scaling,
-      actual_resolve_time,
-    });
-  }
+  const normalizedScaling: Scaling = {
+    range_min: scaling?.range_min ?? 0,
+    range_max: scaling?.range_max ?? 1,
+    zero_point: scaling?.zero_point ?? null,
+  };
+  return getPredictionDisplayValue(cursorValue, {
+    questionType: qType ?? QuestionType.Numeric,
+    scaling: normalizedScaling,
+    actual_resolve_time,
+  });
 }
 
 export default memo(AggregationsDrawer);

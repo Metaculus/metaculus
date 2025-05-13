@@ -9,7 +9,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from misc.models import WhitelistUser
-from posts.serializers import DownloadDataSerializer
+from posts.models import Post
+from posts.serializers import DownloadDataSerializer, serialize_posts_many_forecast_flow
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
@@ -35,6 +36,7 @@ from questions.models import Question
 from users.services.common import get_users_by_usernames
 from utils.cache import cache_get_or_set
 from utils.csv_utils import export_data_for_questions
+from utils.models import get_by_pk_or_slug
 
 
 @api_view(["GET"])
@@ -174,11 +176,7 @@ def tournament_by_slug_api_view(request: Request, slug: str):
         .annotate_questions_count()
     )
 
-    try:
-        pk = int(slug)
-        obj = get_object_or_404(qs, pk=pk)
-    except Exception:
-        obj = get_object_or_404(qs, slug=slug)
+    obj = get_by_pk_or_slug(qs, slug)
 
     data = TournamentSerializer(obj).data
     data["questions_count"] = getattr(obj, "questions_count", None)
@@ -190,6 +188,24 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     data["index_weights"] = serialize_project_index_weights(obj)
 
     return Response(data)
+
+
+@api_view(["GET"])
+def tournament_forecast_flow_posts_api_view(request: Request, slug: str):
+    tournament = get_by_pk_or_slug(
+        get_projects_qs(user=request.user).filter_tournament(), slug
+    )
+    user = request.user
+
+    posts = (
+        Post.objects.filter_permission(user, permission=ObjectPermission.FORECASTER)
+        .filter_projects(tournament)
+        .filter_active()
+        .filter_questions()
+        .order_by("open_time")
+    )
+
+    return Response(serialize_posts_many_forecast_flow(posts, user))
 
 
 @api_view(["GET"])

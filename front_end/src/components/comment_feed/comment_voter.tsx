@@ -1,5 +1,4 @@
 "use client";
-import { sendGAEvent } from "@next/third-parties/google";
 import { FC, useState } from "react";
 
 import { voteComment } from "@/app/(main)/questions/actions";
@@ -7,7 +6,8 @@ import Voter from "@/components/voter";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { VoteDirection } from "@/types/votes";
-import { logError } from "@/utils/errors";
+import { sendAnalyticsEvent } from "@/utils/analytics";
+import { logError } from "@/utils/core/errors";
 
 type Props = {
   voteData: VoteData;
@@ -40,7 +40,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
         vote: newDirection,
         user: user.id,
       });
-      sendGAEvent("event", "commentVoted");
+      sendAnalyticsEvent("commentVoted");
       if (response && "score" in response) {
         setUserVote(newDirection);
         setVoteScore(response.score as number);

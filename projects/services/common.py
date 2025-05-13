@@ -195,9 +195,9 @@ def get_projects_for_posts(
     # Fetching projects available for the given user
     available_projects_map = {
         obj.id: obj
-        for obj in Project.objects.filter(
-            id__in=[x.project_id for x in post_projects]
-        ).filter_permission(user=user)
+        for obj in Project.objects.filter(id__in=[x.project_id for x in post_projects])
+        .filter_permission(user=user)
+        .select_related("primary_leaderboard")
     }
 
     post_projects_map = defaultdict(list)

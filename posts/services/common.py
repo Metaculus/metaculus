@@ -178,10 +178,14 @@ def create_post(
 def trigger_update_post_translations(
     post: Post, with_comments: bool = False, force: bool = False
 ):
-    if not force and not post.is_automatically_translated:
+    if (
+        not force
+        and not post.is_automatically_translated
+        and post.curation_status != Post.CurationStatus.APPROVED
+    ):
         return
 
-    is_private = post.default_project.default_permission is None
+    is_private = post.is_private()
     should_translate_if_dirty = not is_private or force
 
     post.update_and_maybe_translate(should_translate_if_dirty)

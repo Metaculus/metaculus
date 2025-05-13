@@ -12,7 +12,7 @@ import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import ChoicesLegend from "./choices_legend";
 
@@ -27,7 +27,7 @@ type Props = {
   onChoiceItemsUpdate: (choiceItems: ChoiceItem[]) => void;
   timestamps: number[];
   onCursorChange?: (value: number, format: TickFormat) => void;
-  openTime?: number;
+  openTime?: number | null;
   actualCloseTime?: number | null;
   isClosed?: boolean;
   hideCP?: boolean;

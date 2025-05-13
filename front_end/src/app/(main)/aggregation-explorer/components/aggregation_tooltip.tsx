@@ -10,7 +10,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { ChoiceItem } from "@/types/choices";
 import { AggregationMethod } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import { AggregationMethodWithBots } from "../types";
 

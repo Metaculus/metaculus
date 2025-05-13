@@ -26,10 +26,11 @@ import {
 } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
-import { PostStatus, NotebookPost } from "@/types/post";
+import { PostStatus } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import { formatDate } from "@/utils/date_formatters";
-import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
+import { formatDate } from "@/utils/formatters/date";
+import { estimateReadingTime } from "@/utils/markdown";
+import { getPostTitle, isNotebookPost } from "@/utils/questions/helpers";
 
 const IndividualNotebookPage: FC<{
   params: { id: number; slug: string[] };
@@ -37,7 +38,7 @@ const IndividualNotebookPage: FC<{
   const postData = await PostsApi.getPost(params.id);
   const defaultProject = postData.projects.default_project;
 
-  if (!postData.notebook) {
+  if (!isNotebookPost(postData)) {
     return notFound();
   }
 
@@ -51,7 +52,7 @@ const IndividualNotebookPage: FC<{
 
   const locale = await getLocale();
   const t = await getTranslations();
-  const questionTitle = getQuestionTitle(postData);
+  const questionTitle = getPostTitle(postData);
 
   const HeaderElement = isCommunityQuestion ? (
     <CommunityHeader community={currentCommunity} />
@@ -149,7 +150,7 @@ const IndividualNotebookPage: FC<{
           </div>
           <div className="w-full">
             <NotebookEditor
-              postData={postData as NotebookPost}
+              postData={postData}
               contentId={NOTEBOOK_CONTENT_SECTION}
             />
             <div className="flex flex-col gap-2">
@@ -193,7 +194,7 @@ const IndividualNotebookPage: FC<{
               )}
             </div>
             <CommentsFeedProvider
-              postId={postData.id}
+              postData={postData}
               rootCommentStructure={true}
             >
               <CommentFeed

@@ -3,7 +3,7 @@ import {
   DistributionSlider,
   ForecastData,
 } from "@/types/question";
-import { get, post } from "@/utils/fetch";
+import { get, post } from "@/utils/core/fetch";
 
 export type ForecastPayload = {
   questionId: number;

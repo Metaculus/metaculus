@@ -10,7 +10,7 @@ import ProfileApi from "@/services/profile";
 import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
-import { ApiError } from "@/utils/errors";
+import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 export type PostLoginAction = {

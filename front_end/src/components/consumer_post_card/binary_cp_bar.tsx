@@ -3,7 +3,7 @@ import { FC } from "react";
 
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   question: QuestionWithNumericForecasts;

@@ -3,7 +3,7 @@ import React, { ComponentProps } from "react";
 import { Point, Tuple, VictoryLabel } from "victory";
 
 import { Line } from "@/types/charts";
-import { interpolateYValue } from "@/utils/charts";
+import { interpolateYValue } from "@/utils/charts/helpers";
 
 const SIZE = 4;
 

@@ -1,4 +1,4 @@
-import { QuestionStatus, Resolution } from "@/types/post";
+import { Category, QuestionStatus, Resolution } from "@/types/post";
 
 import { ContinuousForecastInputType } from "./charts";
 
@@ -45,13 +45,6 @@ export enum AggregationMethod {
   single_aggregation = "single_aggregation",
   metaculus_prediction = "metaculus_prediction",
 }
-
-export const aggregationMethodsArray = [
-  AggregationMethod.recency_weighted,
-  AggregationMethod.unweighted,
-  AggregationMethod.single_aggregation,
-  AggregationMethod.metaculus_prediction,
-];
 
 export type Bounds = {
   belowLower: number;
@@ -236,6 +229,59 @@ export type Question = {
   open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
+  // used for prediction flow in tournament
+  my_forecast?: {
+    latest: UserForecast;
+    lifetime_elapsed: number;
+    movement: null | {
+      direction: MovementDirection;
+      movement: number;
+    };
+  };
+};
+
+export enum MovementDirection {
+  UP = "up",
+  DOWN = "down",
+  EXPANDED = "expanded",
+  CONTRACTED = "contracted",
+  // safety values that we should never use
+  UNCHANGED = "unchanged",
+  CHANGED = "changed",
+}
+
+export type EditableQuestionFields = Pick<
+  Question,
+  | "title"
+  | "description"
+  | "options"
+  | "group_variable"
+  | "group_rank"
+  | "scaling"
+  | "resolution"
+  | "include_bots_in_aggregates"
+  | "question_weight"
+  | "fine_print"
+  | "resolution_criteria"
+  | "label"
+  | "unit"
+  | "post_id"
+  | "display_divergences"
+  | "open_lower_bound"
+  | "open_upper_bound"
+  | "status"
+  | "type"
+>;
+
+export type QuestionDraft = Partial<EditableQuestionFields> & {
+  lastModified: number;
+  categories?: Category[];
+  default_project?: number;
+  subQuestions?: QuestionWithForecasts[]; // Group form
+  condition?: QuestionWithForecasts | null;
+  condition_child?: QuestionWithForecasts | null;
+  condition_id?: string;
+  condition_child_id?: string;
 };
 
 export type QuestionWithNumericForecasts = Question & {

@@ -1,5 +1,5 @@
 import Button, { ButtonVariant } from "@/components/ui/button";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 export type GroupButton<T> = {
   value: T;

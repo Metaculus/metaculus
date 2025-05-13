@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import type { JSX } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import IconButton from "./IconButton";
 

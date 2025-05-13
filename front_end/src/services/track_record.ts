@@ -1,5 +1,5 @@
 import { GlobalTrackRecord } from "@/types/track_record";
-import { get } from "@/utils/fetch";
+import { get } from "@/utils/core/fetch";
 
 class TrackRecordApi {
   static async getGlobalTrackRecord() {

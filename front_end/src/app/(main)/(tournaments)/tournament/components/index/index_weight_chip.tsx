@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   value: number;

@@ -12,7 +12,7 @@ import Button from "@/components/ui/button";
 import { useModal } from "@/contexts/modal_context";
 import { NewsCategory } from "@/types/projects";
 import { CurrentUser } from "@/types/users";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   user?: CurrentUser | null;

@@ -4,7 +4,7 @@ import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { Tournament } from "@/types/projects";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   tournament: Tournament;

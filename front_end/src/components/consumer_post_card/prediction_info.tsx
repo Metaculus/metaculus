@@ -8,12 +8,12 @@ import {
   ForecastAvailability,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { formatResolution } from "@/utils/formatters/resolution";
 import {
-  formatResolution,
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
-  isSuccessfullyResolved,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
+import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 import GroupForecastCard from "./group_forecast_card";
 import QuestionForecastChip from "./question_forecast_chip";

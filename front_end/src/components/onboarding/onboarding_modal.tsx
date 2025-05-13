@@ -1,4 +1,3 @@
-import { sendGAEvent } from "@next/third-parties/google";
 import React, { useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
@@ -11,7 +10,8 @@ import { useAuth } from "@/contexts/auth_context";
 import useStoredState from "@/hooks/use_stored_state";
 import { OnboardingStoredState, OnboardingTopic } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
-import { logError } from "@/utils/errors";
+import { sendAnalyticsEvent } from "@/utils/analytics";
+import { logError } from "@/utils/core/errors";
 import {
   ONBOARDING_STATE_KEY,
   setOnboardingSuppressed,
@@ -89,7 +89,9 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   // Hide tutorial for 24h
   const handlePostponeTutorial = () => {
-    sendGAEvent({ event: "onboardingClosed", event_category: "onboarding" });
+    sendAnalyticsEvent("onboardingClosed", {
+      event_category: "onboarding",
+    });
     // Mark as temporarily suppressed
     setOnboardingSuppressed();
     onClose();

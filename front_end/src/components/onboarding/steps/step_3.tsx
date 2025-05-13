@@ -1,9 +1,9 @@
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React from "react";
 
-import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import BinarySlider from "@/components/forecast_maker/binary_slider";
 import { OnboardingStep } from "@/types/onboarding";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import Step from "./step";
 import { extractCommunityForecast } from "../utils";
@@ -24,8 +24,7 @@ const Step3: React.FC<OnboardingStep> = ({
   const communityForecast = extractCommunityForecast(post);
 
   const handleSubmit = async () => {
-    sendGAEvent({
-      event: "onboardingPredicted2",
+    sendAnalyticsEvent("onboardingPredicted2", {
       event_category: "onboarding",
     });
 

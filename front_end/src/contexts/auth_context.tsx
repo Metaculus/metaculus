@@ -9,7 +9,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { v4 } from "uuid";
 
 import { AuthContextType } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
@@ -19,13 +18,12 @@ export const AuthContext = createContext<AuthContextType>({
   setUser: () => {},
 });
 
-const ANONYMOUS_SESSION_ID_KEY = "anonymous_session_id";
-
 const AuthProvider: FC<
   PropsWithChildren<{
     user: CurrentUser | null;
+    locale?: string;
   }>
-> = ({ user: initialUser, children }) => {
+> = ({ user: initialUser, children, locale }) => {
   const [user, setUser] = useState<CurrentUser | null>(initialUser);
   const posthog = usePostHog();
 
@@ -36,19 +34,11 @@ const AuthProvider: FC<
         username,
         is_superuser,
         is_staff,
+        locale,
       });
     } else {
       if (posthog._isIdentified()) {
         posthog.reset();
-      }
-      const anonymousId = sessionStorage.getItem(ANONYMOUS_SESSION_ID_KEY);
-      if (!anonymousId) {
-        const newAnonymousId = v4();
-        sessionStorage.setItem(ANONYMOUS_SESSION_ID_KEY, newAnonymousId);
-
-        posthog.identify(newAnonymousId);
-      } else {
-        posthog.identify(anonymousId);
       }
     }
 

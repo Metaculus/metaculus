@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import ProjectsApi from "@/services/projects";
 import { ProjectPermissions } from "@/types/post";
-import { ApiError } from "@/utils/errors";
+import { ApiError } from "@/utils/core/errors";
 
 export async function getProjectMembers(projectId: number) {
   return ProjectsApi.getMembers(projectId);

@@ -2,7 +2,7 @@ import { FC, useCallback, useState } from "react";
 
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import AggregationsTab from "./aggregation_tab";
 import AggregationsDrawer from "./aggregations_drawer";

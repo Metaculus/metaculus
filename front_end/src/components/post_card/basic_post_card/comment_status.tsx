@@ -8,8 +8,8 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
-import cn from "@/utils/cn";
-import { abbreviatedNumber } from "@/utils/number_formatters";
+import cn from "@/utils/core/cn";
+import { abbreviatedNumber } from "@/utils/formatters/number";
 
 type Props = {
   url: string;

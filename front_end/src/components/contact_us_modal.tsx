@@ -18,7 +18,7 @@ import {
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth_context";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 const contactUsSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }),

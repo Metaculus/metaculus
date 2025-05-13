@@ -2,21 +2,16 @@ import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import {
-  QuestionType,
-  QuestionWithMultipleChoiceForecasts,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionType } from "@/types/question";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import {
   generateChoiceItemsFromGroupQuestions,
   generateChoiceItemsFromMultipleChoiceForecast,
-  getChoiceOptionValue,
-} from "@/utils/charts";
+} from "@/utils/questions/choices";
 import {
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
-  sortGroupPredictionOptions,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
 
 import ForecastCardWrapper from "./forecast_card_wrapper";
 import ForecastChoiceBar from "./forecast_choice_bar";
@@ -40,14 +35,15 @@ const PercentageForecastCard: FC<Props> = ({ post }) => {
   return (
     <ForecastCardWrapper otherItemsCount={otherItemsCount}>
       {visibleChoices.map((choice) => {
-        const choiceValue = getChoiceOptionValue({
-          value:
-            choice.aggregationValues[choice.aggregationValues.length - 1] ??
-            null,
-          questionType: QuestionType.Binary,
-          scaling: choice.scaling,
-          actual_resolve_time: choice.actual_resolve_time ?? null,
-        });
+        const choiceValue = getPredictionDisplayValue(
+          choice.aggregationValues.at(-1),
+          {
+            questionType: QuestionType.Binary,
+            scaling: choice.scaling,
+            actual_resolve_time: choice.actual_resolve_time ?? null,
+            emptyLabel: "?",
+          }
+        );
         const isChoiceClosed = choice.closeTime
           ? choice.closeTime < Date.now()
           : false;
@@ -76,19 +72,12 @@ function generateChoiceItems(
   locale: string
 ) {
   if (isMultipleChoicePost(post)) {
-    return generateChoiceItemsFromMultipleChoiceForecast(
-      post.question as QuestionWithMultipleChoiceForecasts,
-      {
-        activeCount: visibleChoicesCount,
-      }
-    );
+    return generateChoiceItemsFromMultipleChoiceForecast(post.question, {
+      activeCount: visibleChoicesCount,
+    });
   }
   if (isGroupOfQuestionsPost(post)) {
-    const sortedGroupQuestions = sortGroupPredictionOptions(
-      post.group_of_questions?.questions as QuestionWithNumericForecasts[],
-      post.group_of_questions
-    );
-    return generateChoiceItemsFromGroupQuestions(sortedGroupQuestions, {
+    return generateChoiceItemsFromGroupQuestions(post.group_of_questions, {
       activeCount: visibleChoicesCount,
       locale,
     });

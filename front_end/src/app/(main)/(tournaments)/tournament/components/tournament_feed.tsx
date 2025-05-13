@@ -1,21 +1,21 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
 import { useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 
 import { fetchPosts } from "@/app/(main)/questions/actions";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 import PaginatedPostsFeed from "@/components/posts_feed/paginated_feed";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
+import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { PostsParams } from "@/services/posts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
-import { logError } from "@/utils/errors";
+import { sendAnalyticsEvent } from "@/utils/analytics";
+import { logError } from "@/utils/core/errors";
 
 type Props = {
   tournament: Tournament;
@@ -41,7 +41,7 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
-  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerContext();
 
   useEffect(() => {
     if (
@@ -58,7 +58,7 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
       setIsLoading(true);
       setError(undefined);
       try {
-        sendGAEvent("event", "feedSearch", {
+        sendAnalyticsEvent("feedSearch", {
           event_category: JSON.stringify(pageFilters),
         });
         const { questions } = (await fetchPosts(

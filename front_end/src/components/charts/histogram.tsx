@@ -12,7 +12,7 @@ import {
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type HistogramProps = {
   histogramData: { x: number; y: number }[];

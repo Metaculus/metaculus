@@ -7,7 +7,7 @@ import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { Community } from "@/types/projects";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import CommunityFeedCard from "./community_feed_card";
 import { FormErrorMessage } from "../ui/form_field";

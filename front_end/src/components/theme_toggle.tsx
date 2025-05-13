@@ -3,7 +3,7 @@ import { FC } from "react";
 
 import useAppTheme from "@/hooks/use_app_theme";
 import useMounted from "@/hooks/use_mounted";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const ThemeToggle: FC = () => {
   const mounted = useMounted();

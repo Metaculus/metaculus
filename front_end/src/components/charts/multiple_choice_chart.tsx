@@ -36,16 +36,15 @@ import { ChoiceItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
-  findPreviousTimestamp,
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
   generateYDomain,
-  getLeftPadding,
+  getAxisLeftPadding,
   getTickLabelFontSize,
-  scaleInternalLocation,
-  unscaleNominalLocation,
-} from "@/utils/charts";
+} from "@/utils/charts/axis";
+import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
@@ -68,7 +67,7 @@ type Props = {
   isClosed?: boolean;
   aggregation?: boolean;
   isEmptyDomain?: boolean;
-  openTime?: number;
+  openTime?: number | null;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -151,7 +150,7 @@ const MultipleChoiceChart: FC<Props> = ({
   );
 
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
   const isHighlightActive = useMemo(
@@ -424,7 +423,7 @@ function buildChartData({
   extraTheme?: VictoryThemeDefinition;
   hideCP?: boolean;
   isAggregationsEmpty?: boolean;
-  openTime?: number;
+  openTime?: number | null;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)

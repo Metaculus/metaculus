@@ -16,7 +16,7 @@ import { FC, PropsWithChildren, useEffect, useState } from "react";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useAuth } from "@/contexts/auth_context";
 import { Community } from "@/types/projects";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import { fetchCommunities } from "../c/actions";
 

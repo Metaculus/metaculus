@@ -1,3 +1,7 @@
+import { sanitizeHtmlContent } from "@/utils/markdown";
+
+import { EMBEDDED_QUESTION_COMPONENT_NAME } from "./embedded_question";
+import { EMBEDDED_TWITTER_COMPONENT_NAME } from "./embedded_twitter";
 import { transformTwitterLinks } from "./embedded_twitter/helpers";
 
 // match block math: $$...$$
@@ -145,12 +149,92 @@ export const escapeRawDollarSigns = (markdown: string): string => {
   );
 };
 
+const preProcessMarkdownContent = (
+  markdown: string,
+  {
+    search,
+    placeholderName,
+  }: { search: string | RegExp; placeholderName: string }
+) => {
+  const placeholders: {
+    placeholder: string;
+    original: string;
+  }[] = [];
+
+  let placeholderId = 0;
+  markdown = markdown.replace(search, (match) => {
+    const placeholder = `___${placeholderName}_${placeholderId++}___`;
+    placeholders.push({ placeholder, original: match });
+    return placeholder;
+  });
+
+  return { markdown, placeholders };
+};
+
+function sanitizeHtml(markdown: string) {
+  // pre-process embedded JSX as otherwise it will be removed by DOMPurify
+  const supportedComponents = [
+    EMBEDDED_QUESTION_COMPONENT_NAME,
+    EMBEDDED_TWITTER_COMPONENT_NAME,
+  ];
+  const componentPatternString = supportedComponents.join("|");
+  const jsxComponentRegex = new RegExp(
+    `<(${componentPatternString})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
+    "gs"
+  );
+  const { markdown: jsxProcessedMarkdown, placeholders: jsxComponents } =
+    preProcessMarkdownContent(markdown, {
+      search: jsxComponentRegex,
+      placeholderName: "JSX_COMPONENT",
+    });
+  markdown = jsxProcessedMarkdown;
+
+  // pre-process self-closing tags as otherwise DOMPurify will remove or mess them up by converting to HTML5 syntax
+  // also MDXEditor renderer expects images to have self-closing syntax
+  const defaultSelfClosingTags = ["hr", "br", "img"];
+  const selfClosingTagsPattern = defaultSelfClosingTags.join("|");
+  const selfClosingTagsRegex = new RegExp(
+    `<(${selfClosingTagsPattern})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
+    "gs"
+  );
+  const {
+    markdown: selfClosingProcessedMarkdown,
+    placeholders: selfClosingTags,
+  } = preProcessMarkdownContent(markdown, {
+    search: selfClosingTagsRegex,
+    placeholderName: "SELF_CLOSING_TAG",
+  });
+  markdown = selfClosingProcessedMarkdown;
+
+  // sanitize html content
+  markdown = sanitizeHtmlContent(markdown);
+
+  // restore JSX components
+  jsxComponents.forEach(({ placeholder, original }) => {
+    markdown = markdown.replace(placeholder, original);
+  });
+  // restore native self-closing tags
+  selfClosingTags.forEach(({ placeholder, original }) => {
+    // ensure self-closing syntax
+    let nativeTag = original;
+    if (!nativeTag.endsWith("/>") && !nativeTag.endsWith("/ >")) {
+      nativeTag = nativeTag.replace(/>$/, " />");
+    }
+    markdown = markdown.replace(placeholder, nativeTag);
+  });
+
+  // decode gt and lt to < and >, so MDXEditor can render it properly
+  markdown = markdown.replace(/&lt;/g, "<");
+  markdown = markdown.replace(/&gt;/g, ">");
+
+  return markdown;
+}
+
 export function processMarkdown(
   markdown: string,
   config?: { revert?: boolean; withTwitterPreview?: boolean }
 ): string {
   const { revert, withTwitterPreview } = config ?? {};
-
   markdown = formatBlockquoteNewlines(markdown);
   if (!revert) {
     markdown = transformMathJaxToLatex(markdown);
@@ -160,5 +244,8 @@ export function processMarkdown(
   if (withTwitterPreview) {
     markdown = transformTwitterLinks(markdown);
   }
+
+  markdown = sanitizeHtml(markdown);
+
   return markdown;
 }

@@ -9,6 +9,7 @@ import CommentsApi, {
   CreateCommentParams,
   EditCommentParams,
   getCommentsParams,
+  KeyFactorVoteParams,
   ToggleCMMCommentParams,
   VoteParams,
 } from "@/services/comments";
@@ -27,7 +28,7 @@ import { NotebookPost, PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
 import { DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
-import { ApiError } from "@/utils/errors";
+import { ApiError } from "@/utils/core/errors";
 
 export async function fetchMorePosts(
   filters: PostsParams,
@@ -56,6 +57,10 @@ export async function fetchPosts(
     limit,
   });
   return { questions: response.results, count: response.count };
+}
+
+export async function fetchTournamentForecastFlowPosts(tournamentSlug: string) {
+  return await PostsApi.getTournamentForecastFlowPosts(tournamentSlug);
 }
 
 export async function fetchRandomPostId() {
@@ -198,7 +203,9 @@ export async function rejectPost(postId: number) {
 }
 
 export async function deletePost(postId: number) {
-  return await PostsApi.deletePost(postId);
+  await PostsApi.deletePost(postId);
+
+  return redirect("/questions/");
 }
 
 export async function sendBackToReview(postId: number) {
@@ -310,6 +317,21 @@ export async function createComment(commentData: CreateCommentParams) {
   }
 }
 
+export async function addKeyFactorsToComment(
+  commentId: number,
+  keyFactors: string[]
+) {
+  try {
+    return await CommentsApi.addKeyFactorsToComment(commentId, keyFactors);
+  } catch (err) {
+    const error = err as ApiError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export async function commentTogglePin(commentId: number, pin: boolean) {
   return await CommentsApi.togglePin(commentId, pin);
 }
@@ -318,7 +340,7 @@ export async function voteComment(voteData: VoteParams) {
   return await CommentsApi.voteComment(voteData);
 }
 
-export async function voteKeyFactor(voteData: VoteParams) {
+export async function voteKeyFactor(voteData: KeyFactorVoteParams) {
   return await CommentsApi.voteKeyFactor(voteData);
 }
 

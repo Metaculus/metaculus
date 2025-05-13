@@ -9,8 +9,8 @@ import Button from "@/components/ui/button";
 import PostsApi from "@/services/posts";
 import { Candle } from "@/types/experiments";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 type Props = {
@@ -151,16 +151,14 @@ function getForecastData(
   return {
     candles,
     democratPrediction: democratPrediction
-      ? getDisplayValue({
-          value: democratPrediction,
+      ? getPredictionDisplayValue(democratPrediction, {
           questionType: democratQuestion.type,
           scaling: democratQuestion.scaling,
           actual_resolve_time: democratQuestion.actual_resolve_time ?? null,
         })
       : undefined,
     republicanPrediction: republicanPrediction
-      ? getDisplayValue({
-          value: republicanPrediction,
+      ? getPredictionDisplayValue(republicanPrediction, {
           questionType: republicanQuestion.type,
           scaling: republicanQuestion.scaling,
           actual_resolve_time: republicanQuestion.actual_resolve_time ?? null,

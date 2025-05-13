@@ -12,12 +12,17 @@ import Button from "@/components/ui/button";
 import ImageWithFallback from "@/components/ui/image_with_fallback";
 import { useAuth } from "@/contexts/auth_context";
 import { NewsArticle } from "@/types/news";
-import { formatDate } from "@/utils/date_formatters";
+import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
   article: NewsArticle;
   questionId: number;
 };
+
+function getProxiedFaviconUrl(originalUrl: string): string {
+  if (!originalUrl) return "";
+  return `/newsmatch/favicon?url=${encodeURIComponent(originalUrl)}`;
+}
 
 const NewsMatchArticle: FC<Props> = ({ article }) => {
   const { user } = useAuth();
@@ -58,7 +63,7 @@ const NewsMatchArticle: FC<Props> = ({ article }) => {
           {article.favicon_url ? (
             <ImageWithFallback
               className="mr-3 size-8 rounded-full"
-              src={article.favicon_url}
+              src={getProxiedFaviconUrl(article.favicon_url)}
               alt={`${article.media_label} logo`}
               aria-label={`${article.media_label} logo`}
             >

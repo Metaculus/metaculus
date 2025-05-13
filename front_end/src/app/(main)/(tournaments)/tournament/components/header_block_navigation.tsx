@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { Tournament, TournamentType } from "@/types/projects";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import TournamentDropdownMenu from "./dropdown_menu";
 

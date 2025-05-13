@@ -4,7 +4,7 @@ import PasswordReset from "@/app/(main)/accounts/reset/components/password_reset
 import { GlobalErrorContainer } from "@/components/global_error_boundary";
 import AuthApi from "@/services/auth";
 import { getServerSession } from "@/services/session";
-import { ApiError, logError } from "@/utils/errors";
+import { ApiError, logError } from "@/utils/core/errors";
 
 export default async function ResetPassword(props: {
   searchParams: Promise<{ user_id: number; token: string }>;

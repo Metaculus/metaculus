@@ -11,8 +11,8 @@ import { LogOut } from "@/app/(main)/accounts/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import cn from "@/utils/cn";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { formatUsername } from "@/utils/formatters/users";
 
 type Props = {
   btnClassName?: string;

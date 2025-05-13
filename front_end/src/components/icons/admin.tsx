@@ -1,4 +1,4 @@
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 export function Admin({ className, ...props }: React.SVGProps<SVGSVGElement>) {
   return (

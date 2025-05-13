@@ -11,7 +11,7 @@ import {
   TableHeaderCell,
   TableCell,
 } from "@/components/ui/table";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Sheet = {
   name: string;

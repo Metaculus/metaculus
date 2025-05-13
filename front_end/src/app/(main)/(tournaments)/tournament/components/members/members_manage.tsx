@@ -11,7 +11,7 @@ import Listbox from "@/components/ui/listbox";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import { Tournament, TournamentMember } from "@/types/projects";
-import { formatUsername } from "@/utils/users";
+import { formatUsername } from "@/utils/formatters/users";
 
 type Props = {
   user_permission: ProjectPermissions;

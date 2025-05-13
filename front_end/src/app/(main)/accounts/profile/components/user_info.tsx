@@ -26,8 +26,8 @@ import { useAuth } from "@/contexts/auth_context";
 import useContainerSize from "@/hooks/use_container_size";
 import useSearchParams from "@/hooks/use_search_params";
 import { ProfilePageMode, UserProfile } from "@/types/users";
-import cn from "@/utils/cn";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { formatUsername } from "@/utils/formatters/users";
 
 import ChangeUsername from "./change_username";
 import SocialMediaFragment, {

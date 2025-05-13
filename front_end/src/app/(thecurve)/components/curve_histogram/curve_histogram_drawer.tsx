@@ -8,7 +8,7 @@ import Button from "@/components/ui/button";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import { generateCurveChoiceOptions } from "@/utils/forecasts";
+import { generateCurveChoiceOptions } from "@/utils/forecasts/thecurve";
 
 import CurveHistogram from "./curve_histogram";
 

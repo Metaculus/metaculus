@@ -31,7 +31,11 @@ from comments.services.common import (
 )
 from comments.services.common import update_comment
 from comments.services.feed import get_comments_feed
-from comments.services.key_factors import key_factor_vote
+from comments.services.key_factors import (
+    create_key_factors,
+    generate_keyfactors_for_comment,
+    key_factor_vote,
+)
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -119,7 +123,7 @@ def comment_delete_api_view(request: Request, pk: int):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@transaction.atomic
 def comment_create_api_view(request: Request):
     user: User = request.user
     serializer = CommentWriteSerializer(data=request.data)
@@ -128,6 +132,10 @@ def comment_create_api_view(request: Request):
     on_post = serializer.validated_data["on_post"]
     parent = serializer.validated_data.get("parent")
     included_forecast = serializer.validated_data.pop("included_forecast", False)
+
+    key_factors = serializers.ListField(
+        child=serializers.CharField(allow_blank=False), allow_null=True
+    ).run_validation(request.data.get("key_factors"))
 
     # Small validation
     permission = get_post_permission_for_user(
@@ -149,8 +157,12 @@ def comment_create_api_view(request: Request):
         **serializer.validated_data, included_forecast=forecast, user=user
     )
 
+    if key_factors:
+        create_key_factors(new_comment, key_factors)
+
     return Response(
-        serialize_comment_many([new_comment])[0], status=status.HTTP_201_CREATED
+        serialize_comment_many([new_comment], with_key_factors=True)[0],
+        status=status.HTTP_201_CREATED,
     )
 
 
@@ -290,10 +302,58 @@ def key_factor_vote_view(request: Request, pk: int):
     vote = serializers.ChoiceField(
         required=False, allow_null=True, choices=KeyFactorVote.VoteScore.choices
     ).run_validation(request.data.get("vote"))
+    # vote_type is always required, and when vote is None, the type is being used to
+    # decide which vote to delete based on the type
+    vote_type = serializers.ChoiceField(
+        required=True, allow_null=False, choices=KeyFactorVote.VoteType.choices
+    ).run_validation(request.data.get("vote_type"))
 
-    score = key_factor_vote(key_factor, user=request.user, vote=vote)
+    score = key_factor_vote(
+        key_factor, user=request.user, vote=vote, vote_type=vote_type
+    )
 
     return Response({"score": score})
+
+
+@api_view(["POST"])
+@transaction.atomic
+def comment_add_key_factors_view(request: Request, pk: int):
+    comment = get_object_or_404(Comment, pk=pk)
+
+    if comment.author != request.user:
+        raise PermissionDenied(
+            "You do not have permission to add key factors to this comment."
+        )
+
+    key_factors = serializers.ListField(
+        child=serializers.CharField(allow_blank=False), allow_null=True
+    ).run_validation(request.data.get("key_factors"))
+
+    create_key_factors(comment, key_factors)
+
+    return Response(
+        serialize_comment_many([comment], with_key_factors=True)[0],
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def comment_suggest_key_factors_view(request: Request, pk: int):
+    comment = get_object_or_404(Comment, pk=pk)
+
+    existing_keyfactors = [keyfactor.text for keyfactor in comment.key_factors.all()]
+
+    suggested_key_factors = generate_keyfactors_for_comment(
+        comment.text,
+        existing_keyfactors,
+        comment.on_post,  # type: ignore (on_post is not None)
+    )
+
+    return Response(
+        [keyfactor.text for keyfactor in suggested_key_factors],
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["POST"])

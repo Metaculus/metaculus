@@ -6,7 +6,7 @@ import { FC } from "react";
 import NavUserButton from "@/components/auth";
 import { useAuth } from "@/contexts/auth_context";
 import { useSurvey } from "@/contexts/survey_context";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   layout: "landing" | "survey";

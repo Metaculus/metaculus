@@ -4,15 +4,15 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { PostWithForecasts } from "@/types/post";
-import cn from "@/utils/cn";
-import { getQuestionTitle } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { getPostTitle } from "@/utils/questions/helpers";
 
 type Props = {
   question: PostWithForecasts;
 };
 const QuestionLink: FC<Props> = ({ question }) => {
   const t = useTranslations();
-  const questionTitle = getQuestionTitle(question);
+  const questionTitle = getPostTitle(question);
 
   if (!question.conditional) {
     return null;

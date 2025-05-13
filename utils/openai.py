@@ -3,10 +3,10 @@ import textwrap
 import tiktoken
 from django.conf import settings
 from openai import OpenAI, AsyncOpenAI
-from typing import Iterable, Iterator
+from typing import ClassVar, Iterable, Iterator
 
 import instructor
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 EMBEDDING_MODEL = "text-embedding-3-large"
 EMBEDDING_CTX_LENGTH = 8191
@@ -126,3 +126,65 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
         response_model=SpamAnalysisResult,
     )
     return user
+
+
+class KeyFactor(BaseModel):
+    MAX_LENGTH: ClassVar[int] = 50
+
+    text: str = Field(
+        description=f"The key factor text, which should be a single sentence, not longer than {MAX_LENGTH} characters"
+    )
+
+    @field_validator("text")
+    def validate_text(cls, v):
+        if not v:
+            raise ValueError("Text cannot be empty")
+        if len(v) > KeyFactor.MAX_LENGTH:
+            raise ValueError(
+                f"Text cannot be longer than {KeyFactor.MAX_LENGTH} characters"
+            )
+        return v
+
+
+def generate_keyfactors(
+    question_data: str,
+    comment: str,
+    existing_keyfactors: list[str],
+) -> list[KeyFactor]:
+
+    system_prompt = textwrap.dedent(
+        """
+        You are a helpful assistant that creates tools for forecasters to better forecast on Metaculus, where users can predict on all sorts of questions about real world events.
+        """
+    )
+
+    user_prompt = textwrap.dedent(
+        f"""
+        You are a helpful assistant that generates a list of maximum 3 key factors for a comment that a user makes on a Metaculus question.
+        The comment is intended to describe what might influence the predictions on the question so the key factors should only be relate to that.
+        The key factors should be the most important things that the user is trying to say in the comment and how it might influence the predictions on the question.
+        The key factors should be single sentences, not longer than {KeyFactor.MAX_LENGTH} characters and they should only contain the key factor, no other text (e.g.: do not reference the user).
+        The user comment is: \n\n{comment}\n\n
+        The Metaculus question is: \n\n{question_data}\n\n
+        The existing key factors are: \n\n{existing_keyfactors}\n\n
+        """
+    )
+
+    client = instructor.from_openai(get_openai_client())
+
+    keyfactors = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": system_prompt,
+            },
+            {
+                "role": "user",
+                "content": user_prompt,
+            },
+        ],
+        response_model=list[KeyFactor],
+    )
+
+    return keyfactors

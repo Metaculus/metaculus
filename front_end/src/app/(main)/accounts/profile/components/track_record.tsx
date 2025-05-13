@@ -4,7 +4,7 @@ import { FC } from "react";
 
 import TrackRecordCharts from "@/app/(main)/questions/track-record/components/track_record_charts";
 import { UserProfile } from "@/types/users";
-import { formatUsername } from "@/utils/users";
+import { formatUsername } from "@/utils/formatters/users";
 
 const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
   const keyStatStyles =

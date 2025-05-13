@@ -76,14 +76,15 @@ class PostQuerySet(models.QuerySet):
 
     def prefetch_questions(self):
         return self.prefetch_related(
+            # Group Of Questions
+            "group_of_questions__questions__group"
+        ).select_related(
             "question",
             # Conditional
             "conditional__condition",
             "conditional__condition_child",
             "conditional__question_yes",
             "conditional__question_no",
-            # Group Of Questions
-            "group_of_questions__questions__group",
         )
 
     def prefetch_condition_post(self):
@@ -269,22 +270,15 @@ class PostQuerySet(models.QuerySet):
 
         # Exclude posts user doesn't have access to
         qs = qs.filter(
-            Q(author_id=user_id)
-            | (
-                Q(
-                    _user_permission__in=[
-                        ObjectPermission.ADMIN,
-                        ObjectPermission.CURATOR,
-                    ]
-                )
-                & Q(
-                    # Admins should have access to draft and pending content
-                    curation_status__in=[
-                        Post.CurationStatus.DRAFT,
-                        Post.CurationStatus.PENDING,
-                        Post.CurationStatus.REJECTED,
-                    ]
-                )
+            Q(Q(author_id=user_id) & ~Q(curation_status=Post.CurationStatus.DELETED))
+            # Admins are allowed to see all posts
+            | Q(_user_permission=ObjectPermission.ADMIN)
+            # Curators have more strict permissions
+            | Q(
+                Q(_user_permission=ObjectPermission.CURATOR)
+                &
+                # Curators should have access to all posts except deleted ones
+                ~Q(curation_status=Post.CurationStatus.DELETED)
             )
             | (
                 Q(_user_permission__isnull=False)
@@ -377,8 +371,11 @@ class PostQuerySet(models.QuerySet):
             self.filter_published()
             .filter(open_time__lte=timezone.now())
             .filter(
-                Q(actual_close_time__isnull=True)
-                | Q(actual_close_time__gte=timezone.now())
+                (
+                    Q(actual_close_time__isnull=True)
+                    | Q(actual_close_time__gte=timezone.now())
+                )
+                & Q(resolved=False)
             )
         )
 
@@ -456,7 +453,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     user_permission: ObjectPermission = None
     user_last_forecasts_date = None
     divergence: int = None
-
+    html_metadata_json: dict[str, str] | None = None
     objects: PostManager = PostManager()
 
     class CurationStatus(models.TextChoices):
@@ -527,6 +524,32 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # Whether we should display Post/Notebook on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
+    html_metadata_json = models.JSONField(
+        help_text="Custom JSON for HTML meta tags. Supported fields are: title, description, image_url",
+        null=True,
+        blank=True,
+        default=None,
+    )
+
+    @property
+    def status(self):
+        if self.notebook_id or self.curation_status != Post.CurationStatus.APPROVED:
+            return self.curation_status
+
+        if self.resolved:
+            return self.PostStatusChange.RESOLVED
+
+        now = timezone.now()
+
+        if not self.open_time or self.open_time > now:
+            return self.CurationStatus.APPROVED
+
+        if now < self.scheduled_close_time and (
+            not self.actual_close_time or now < self.actual_close_time
+        ):
+            return self.PostStatusChange.OPEN
+
+        return self.PostStatusChange.CLOSED
 
     def set_scheduled_close_time(self):
         if self.question:
