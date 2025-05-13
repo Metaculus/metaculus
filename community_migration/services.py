@@ -66,9 +66,6 @@ class MigrationMappingRegistry:
 registry = MigrationMappingRegistry()
 
 
-# TODO: USER 215376 COLLISION!
-
-
 def model_instance_to_dict(obj: models.Model, exclude: list[str] = None):
     exclude = set(exclude or [])
     data: dict[str, Any] = {}
@@ -201,6 +198,7 @@ def migrate_projects():
         ]
     ):
         data = model_instance_to_dict(project)
+        data["visibility"] = Project.Visibility.NOT_IN_MAIN_FEED
 
         if project.type == Project.ProjectTypes.SITE_MAIN:
             data["type"] = Project.ProjectTypes.COMMUNITY
@@ -214,8 +212,6 @@ def migrate_projects():
         registry.add(project.id, new_obj)
 
     # Migrate permissions
-    # TODO: We removed a lot of projects, so we need to ensure we won't create records for "old"
-    #  projects since New Prod might have ids acctached to brand different instances!
     migrate_table(
         ProjectUserPermission.objects.using(FORPOL_DB).filter(
             project__in=registry.get_for_model(Project).values()
@@ -231,9 +227,6 @@ def migrate_projects():
 
 
 def migrate_posts():
-    # TODO: unfortunately, Forpol already has question ID collision with prod,
-    #  so we need to alter post ids then :(
-
     logger.info("Migrating Posts...")
 
     migrate_table(
