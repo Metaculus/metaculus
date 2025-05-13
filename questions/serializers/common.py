@@ -952,7 +952,7 @@ def serialize_question_movement(
     f1: AggregateForecast,
     f2: AggregateForecast,
     period: timedelta,
-    threshold: float = 0.25,
+    threshold: float = 0.0,
 ) -> dict | None:
     divergence = prediction_difference_for_sorting(
         f1.forecast_values,
