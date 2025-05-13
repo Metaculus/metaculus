@@ -80,12 +80,13 @@ function getMovementBannerText(
 ) {
   if (
     isNil(requireAttentionQuestion) ||
-    isNil(flowUserForecast?.movement) || [
+    isNil(flowUserForecast?.movement) ||
+    ![
       MovementDirection.UP,
       MovementDirection.DOWN,
       MovementDirection.CONTRACTED,
       MovementDirection.EXPANDED,
-    ]
+    ].includes(flowUserForecast?.movement.direction)
   ) {
     return;
   }

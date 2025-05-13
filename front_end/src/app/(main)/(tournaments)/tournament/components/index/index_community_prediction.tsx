@@ -5,6 +5,8 @@ import { FC } from "react";
 import QuestionCPMovement from "@/components/cp_movement";
 import { PostWithForecasts } from "@/types/post";
 
+const CP_MOVEMENT_DISPLAY_THRESHOLD = 7 * 24 * 60 * 60; // one week in seconds
+
 export type IndexCommunityPrediction = {
   rawValue: number | null;
   displayValue: string;
@@ -40,7 +42,7 @@ const CommunityPrediction: FC<Props> = ({
         {displayValue}
       </span>
       {/* Ensure we render only Weekly movement questions */}
-      {!!post.question && movementPeriod >= 604800 && (
+      {!!post.question && movementPeriod >= CP_MOVEMENT_DISPLAY_THRESHOLD && (
         <QuestionCPMovement
           question={post.question}
           threshold={checkDelta ? 0.1 : 0}
