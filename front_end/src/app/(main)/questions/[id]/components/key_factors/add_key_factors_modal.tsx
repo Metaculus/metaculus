@@ -75,7 +75,7 @@ const KeyFactorField = ({
         value={keyFactor}
         placeholder={t("typeKeyFator")}
         onChange={(e) => setKeyFactor(e.target.value)}
-        className="grow rounded px-3 py-2 text-base"
+        className="grow rounded bg-gray-0 px-3 py-2 text-base dark:bg-gray-0-dark"
         readOnly={!isActive}
       />
       {showXButton && (
