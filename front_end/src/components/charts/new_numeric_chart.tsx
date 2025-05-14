@@ -51,9 +51,8 @@ type Props = {
   hideCP?: boolean;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
-  resolutionPoint?: LinePoint;
+  resolutionPoint?: LinePoint[];
   yLabel?: string;
-  onCursorChange?: (value: number | null) => void;
   tickFontSize?: number;
 };
 
@@ -68,7 +67,6 @@ const NewNumericChart: FC<Props> = ({
   withZoomPicker = true,
   resolutionPoint,
   yLabel,
-  onCursorChange,
   tickFontSize,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
@@ -275,7 +273,7 @@ const NewNumericChart: FC<Props> = ({
                 <VictoryPortal>
                   <XTickLabel
                     chartWidth={chartWidth}
-                    withCursor={!!onCursorChange}
+                    withCursor={true}
                     fontSize={tickLabelFontSize}
                     style={{
                       fill: getThemeColor(METAC_COLORS.gray["700"]),
@@ -340,7 +338,7 @@ const NewNumericChart: FC<Props> = ({
             <VictoryScatter data={points} />
             {!!resolutionPoint && (
               <VictoryScatter
-                data={[resolutionPoint]}
+                data={resolutionPoint}
                 style={{
                   data: {
                     stroke: getThemeColor(METAC_COLORS.purple["800"]),
