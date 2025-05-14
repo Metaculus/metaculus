@@ -90,7 +90,7 @@ const CategoryPicker: React.FC<{
                             selected ? "font-bold" : "font-normal"
                           }`}
                         >
-                          {category.name}
+                          {category.emoji} {category.name}
                         </span>
                         {selected && (
                           <span className="flex items-center">
@@ -126,7 +126,9 @@ const CategoryPicker: React.FC<{
                 className="mr-2 cursor-pointer text-gray-400 group-hover:text-gray-500 dark:text-blue-500 dark:group-hover:text-gray-200"
                 icon={faX}
               ></FontAwesomeIcon>
-              <span>{category.name}</span>
+              <span>
+                {category.emoji} {category.name}
+              </span>
             </div>
           );
         })}
