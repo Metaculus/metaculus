@@ -28,7 +28,7 @@ const KeyFactorText: FC<Props> = ({
         className
       )}
     >
-      <div className="relative ml-7 inline xs:ml-0">{text}</div>
+      <div className="relative inline xs:ml-0">{text}</div>
       <a
         href={linkAnchor}
         onClick={(e) => {
