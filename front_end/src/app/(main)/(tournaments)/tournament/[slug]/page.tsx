@@ -1,8 +1,8 @@
 import { isNil } from "lodash";
 import { Metadata } from "next";
 import Image from "next/image";
-import { getLocale, getTranslations } from "next-intl/server";
-import { FC, Suspense } from "react";
+import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
@@ -20,15 +20,14 @@ import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
-import { formatDate } from "@/utils/formatters/date";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+import HeaderBlockInfo from "../components/header_block_info";
 import HeaderBlockNav from "../components/header_block_navigation";
 import ProjectMembers from "../components/members";
 import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
 import TournamentFeed from "../components/tournament_feed";
-import TournamentTimeline from "../components/tournament_timeline";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -71,7 +70,6 @@ export default async function TournamentSlug(props: Props) {
     ? await fetchTournamentForecastFlowPosts(params.slug)
     : [];
   const t = await getTranslations();
-  const locale = await getLocale();
   const isQuestionSeries = tournament.type === TournamentType.QuestionSeries;
   const questionsTitle = isQuestionSeries
     ? t("SeriesContents")
@@ -121,30 +119,7 @@ export default async function TournamentSlug(props: Props) {
             </div>
           </div>
 
-          {tournament.type === TournamentType.Tournament ? (
-            <Suspense fallback={<Skeleton />}>
-              <TournamentTimeline tournament={tournament} />
-            </Suspense>
-          ) : (
-            <div className="flex flex-wrap gap-x-9 gap-y-4 py-4">
-              {!isNil(tournament.prize_pool) && (
-                <TournamentStat
-                  title={t("prizePool")}
-                  text={"$" + Number(tournament.prize_pool).toLocaleString()}
-                />
-              )}
-              <TournamentStat
-                title={t("StartDate")}
-                text={formatDate(locale, new Date(tournament.start_date))}
-              />
-              {!isNil(tournament.close_date) && (
-                <TournamentStat
-                  title={t("EndDate")}
-                  text={formatDate(locale, new Date(tournament.close_date))}
-                />
-              )}
-            </div>
-          )}
+          <HeaderBlockInfo tournament={tournament} />
         </div>
       </div>
 
@@ -157,7 +132,7 @@ export default async function TournamentSlug(props: Props) {
           <HtmlContent content={tournament.description} />
 
           {indexWeights.length > 0 && (
-            <IndexSection indexWeights={indexWeights} />
+            <IndexSection indexWeights={indexWeights} tournament={tournament} />
           )}
 
           {tournament.score_type && (
@@ -210,31 +185,3 @@ export default async function TournamentSlug(props: Props) {
     </main>
   );
 }
-
-const TournamentStat: FC<{ title: string; text: string }> = ({
-  text,
-  title,
-}) => (
-  <div className="flex flex-col text-blue-800 dark:text-blue-800-dark">
-    <span className="text-sm font-normal capitalize leading-5 opacity-50">
-      {title}
-    </span>
-    <span className="text-xl font-bold leading-6">{text}</span>
-  </div>
-);
-
-const Skeleton: FC = () => {
-  return (
-    <div className="mt-4 flex min-h-20 flex-col gap-x-5 gap-y-4 sm:mt-5 sm:flex-row">
-      <div className="flex flex-1 animate-pulse flex-col justify-between">
-        <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
-        <div className="my-3 h-1 w-full rounded bg-gray-200 dark:bg-gray-700" />
-        <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
-      </div>
-
-      <div className="flex max-h-20 animate-pulse items-center justify-center rounded bg-gray-200 py-1.5 dark:bg-gray-700 sm:w-[200px] sm:flex-col sm:py-3">
-        <div className="h-6 w-24 rounded bg-gray-300 dark:bg-gray-600 sm:h-8 sm:w-32" />
-      </div>
-    </div>
-  );
-};

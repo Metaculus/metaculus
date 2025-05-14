@@ -1256,5 +1256,9 @@
   "add": "Adicionar",
   "suggestedKeyFactorsSection": "Aqui estão os fatores-chave sugeridos com base no seu comentário. Sinta-se à vontade para adicionar os que considerar apropriados, ou insira seus fatores-chave manualmente.",
   "loadingSuggestedKeyFactors": "Gerando fatores-chave...",
-  "close": "Fechar"
+  "close": "Fechar",
+  "indexValue": "Valor do índice",
+  "indexWeeklyMovement": "<strong>{value}</strong> esta semana",
+  "metadata": "Metadados",
+  "indexTimeline": "Cronologia do índice"
 }
