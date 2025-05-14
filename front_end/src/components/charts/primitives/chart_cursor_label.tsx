@@ -20,6 +20,7 @@ const ChartCursorLabel: FC<Props> = ({ positionY, fill, ...props }) => {
     <VictoryLabel
       {...props}
       style={{
+        ...((props.style as any) ?? {}),
         fontSize: FONT_SIZE,
         fill: fill ?? (theme === "dark" ? "white" : "black"),
       }}

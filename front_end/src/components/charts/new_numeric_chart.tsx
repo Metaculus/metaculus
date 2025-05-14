@@ -57,6 +57,7 @@ type Props = {
 };
 
 const BOTTOM_PADDING = 20;
+const LABEL_FONT_FAMILY = "Inter";
 
 const NewNumericChart: FC<Props> = ({
   buildChartData,
@@ -153,6 +154,9 @@ const NewNumericChart: FC<Props> = ({
         <ChartCursorLabel
           positionY={height - 10}
           fill={getThemeColor(METAC_COLORS.gray["700"])}
+          style={{
+            fontFamily: LABEL_FONT_FAMILY,
+          }}
         />
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {
@@ -227,6 +231,7 @@ const NewNumericChart: FC<Props> = ({
                   stroke: "transparent",
                 },
                 tickLabels: {
+                  fontFamily: LABEL_FONT_FAMILY,
                   padding: 5,
                   fontSize: tickLabelFontSize,
                   fill: getThemeColor(METAC_COLORS.gray["700"]),
@@ -276,6 +281,7 @@ const NewNumericChart: FC<Props> = ({
                     withCursor={true}
                     fontSize={tickLabelFontSize}
                     style={{
+                      fontFamily: LABEL_FONT_FAMILY,
                       fill: getThemeColor(METAC_COLORS.gray["700"]),
                     }}
                   />
