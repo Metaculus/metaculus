@@ -31,7 +31,7 @@ class NewsCategorySerialize(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "description", "type")
+        fields = ("id", "name", "slug", "emoji", "description", "type")
 
 
 class TopicSerializer(serializers.ModelSerializer):
