@@ -76,7 +76,7 @@ export function getAxisRightPadding(
 ) {
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
   const longestLabelLength = Math.max(...labels.map((label) => label.length));
-  const fontSizeScale = yLabel ? 11 : 10;
+  const fontSizeScale = yLabel ? 10 : 9;
   return {
     rightPadding: Math.round(
       (longestLabelLength * labelsFontSize * fontSizeScale) / 10

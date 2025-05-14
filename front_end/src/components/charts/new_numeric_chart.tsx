@@ -1,17 +1,17 @@
 "use client";
 import { isNil } from "lodash";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
   LineSegment,
   VictoryArea,
   VictoryChart,
-  VictoryContainer,
   VictoryCursorContainer,
   VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
+  VictoryPortal,
   VictoryScatter,
 } from "victory";
 import { VictoryAxis } from "victory";
@@ -26,14 +26,11 @@ import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
 import {
   Area,
-  BaseChartData,
   Line,
   LinePoint,
   Scale,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { Tournament } from "@/types/projects";
-import { QuestionType } from "@/types/question";
 import { getAxisRightPadding, getTickLabelFontSize } from "@/utils/charts/axis";
 import cn from "@/utils/core/cn";
 
@@ -48,7 +45,7 @@ type ChartData = {
 };
 
 type Props = {
-  chartData: ChartData;
+  buildChartData: (width: number, zoom: TimelineChartZoomOption) => ChartData;
   chartTitle?: string;
   height?: number;
   hideCP?: boolean;
@@ -57,12 +54,13 @@ type Props = {
   resolutionPoint?: LinePoint;
   yLabel?: string;
   onCursorChange?: (value: number | null) => void;
+  tickFontSize?: number;
 };
 
 const BOTTOM_PADDING = 20;
-// TODO: implement this as a reusable component that will receive chart data as props
+
 const NewNumericChart: FC<Props> = ({
-  chartData,
+  buildChartData,
   chartTitle,
   height = 170,
   hideCP,
@@ -71,17 +69,46 @@ const NewNumericChart: FC<Props> = ({
   resolutionPoint,
   yLabel,
   onCursorChange,
+  tickFontSize,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
   const [zoom, setZoom] = useState(defaultZoom);
   const [isCursorActive, setIsCursorActive] = useState(false);
-  const { line, area, points, yDomain, xDomain, yScale, xScale } = chartData;
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
+  const { line, area, points, yDomain, xDomain, yScale, xScale } = useMemo(
+    () => buildChartData(chartWidth, zoom),
+    [chartWidth, zoom, buildChartData]
+  );
+  const defaultCursor = useMemo(
+    () => line.at(-1)?.x ?? Date.now() / 1000,
+    [line]
+  );
+  const [cursorTimestamp, setCursorTimestamp] = useState(defaultCursor);
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  const tickLabelFontSize = getTickLabelFontSize(chartTheme);
-  console.log(tickLabelFontSize);
+  const tickLabelFontSize = isNil(tickFontSize)
+    ? getTickLabelFontSize(chartTheme)
+    : tickFontSize;
+
+  const highlightedLine = useMemo(() => {
+    const filteredLine = line.filter((point) => point.x <= cursorTimestamp);
+    // fix visual issue when highlighted line ends before cursor timestamp
+    const lastPoint = filteredLine.at(-1);
+
+    if (!!lastPoint && lastPoint.x < cursorTimestamp) {
+      filteredLine.push({
+        x: cursorTimestamp,
+        y: lastPoint.y,
+      });
+    }
+    return filteredLine;
+  }, [cursorTimestamp, line]);
+
+  const highlightedPoint = useMemo(() => {
+    return highlightedLine.at(-1);
+  }, [highlightedLine]);
+
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
   }, []);
@@ -97,12 +124,10 @@ const NewNumericChart: FC<Props> = ({
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
-  const defaultCursor = Date.now() / 1000;
   const CursorContainer = (
     <VictoryCursorContainer
       cursorDimension={"x"}
-      defaultCursorValue={0}
-      //   defaultCursorValue={defaultCursor}
+      defaultCursor={defaultCursor}
       style={{
         touchAction: "pan-y",
       }}
@@ -121,18 +146,24 @@ const NewNumericChart: FC<Props> = ({
         <LineSegment
           style={{
             stroke: getThemeColor(METAC_COLORS.blue["700"]),
+            opacity: 0.5,
             strokeDasharray: "5,2",
           }}
         />
       }
-      cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
-      //   onCursorChange={(value: CursorCoordinatesPropType) => {
-      //     if (typeof value === "number" && onCursorChange) {
-      //       onCursorChange(
-      //         timestamps[timestamps.findIndex((t) => t > value) - 1] ?? null
-      //       );
-      //     }
-      //   }}
+      cursorLabelComponent={
+        <ChartCursorLabel
+          positionY={height - 10}
+          fill={getThemeColor(METAC_COLORS.gray["700"])}
+        />
+      }
+      onCursorChange={(value: CursorCoordinatesPropType) => {
+        if (typeof value === "number") {
+          setCursorTimestamp(value);
+        } else {
+          setCursorTimestamp(defaultCursor);
+        }
+      }}
     />
   );
 
@@ -165,7 +196,7 @@ const NewNumericChart: FC<Props> = ({
             padding={{
               right: Math.max(rightPadding, MIN_RIGHT_PADDING),
               top: 10,
-              left: 10,
+              left: 0,
               bottom: BOTTOM_PADDING,
             }}
             events={[
@@ -179,26 +210,13 @@ const NewNumericChart: FC<Props> = ({
                     setIsCursorActive(false);
                   },
                   onMouseLeave: () => {
-                    if (!onCursorChange) return;
-                    onCursorChange(null);
+                    setIsCursorActive(false);
+                    setCursorTimestamp(defaultCursor);
                   },
                 },
               },
             ]}
             containerComponent={CursorContainer}
-            // containerComponent={
-            //   onCursorChange ? (
-            //     CursorContainer
-            //   ) : (
-            //     <VictoryContainer
-            //       style={{
-            //         pointerEvents: "auto",
-            //         userSelect: "auto",
-            //         touchAction: "auto",
-            //       }}
-            //     />
-            //   )
-            // }
           >
             {/* Y axis */}
             <VictoryAxis
@@ -207,7 +225,11 @@ const NewNumericChart: FC<Props> = ({
                 ticks: {
                   stroke: "transparent",
                 },
-                tickLabels: { padding: 2, fontSize: 10 },
+                tickLabels: {
+                  padding: 5,
+                  fontSize: tickLabelFontSize,
+                  fill: getThemeColor(METAC_COLORS.gray["700"]),
+                },
                 axis: {
                   stroke: "transparent",
                 },
@@ -230,7 +252,6 @@ const NewNumericChart: FC<Props> = ({
               axisLabelComponent={
                 <VictoryLabel
                   dy={Math.max(rightPadding - 10, MIN_RIGHT_PADDING - 10)}
-                  //   dy={Math.max(rightPadding - 40, MIN_RIGHT_PADDING - 40)}
                 />
               }
             />
@@ -248,11 +269,16 @@ const NewNumericChart: FC<Props> = ({
               tickValues={xScale.ticks}
               tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
               tickLabelComponent={
-                <XTickLabel
-                  chartWidth={chartWidth}
-                  withCursor={!!onCursorChange}
-                  fontSize={tickLabelFontSize as number}
-                />
+                <VictoryPortal>
+                  <XTickLabel
+                    chartWidth={chartWidth}
+                    withCursor={!!onCursorChange}
+                    fontSize={tickLabelFontSize}
+                    style={{
+                      fill: getThemeColor(METAC_COLORS.gray["700"]),
+                    }}
+                  />
+                </VictoryPortal>
               }
             />
             {/* CP range */}
@@ -267,26 +293,48 @@ const NewNumericChart: FC<Props> = ({
                 interpolation="stepAfter"
               />
             )}
-            {/* CP Line */}
+            {/* CP Line background*/}
             {!hideCP && (
               <VictoryLine
                 data={line}
                 style={{
                   data: {
-                    strokeWidth: 2,
+                    strokeWidth: 2.5,
                     stroke: getThemeColor(METAC_COLORS.blue["600"]),
+                    opacity: 0.2,
                   },
                 }}
                 interpolation="stepAfter"
               />
             )}
-
-            {/* Prediciton points */}
-            <VictoryScatter
-              data={points}
-              dataComponent={<PredictionWithRange />}
+            {/* CP Line */}
+            <VictoryLine
+              data={highlightedLine}
+              style={{
+                data: {
+                  strokeWidth: 2.5,
+                  stroke: getThemeColor(METAC_COLORS.blue["600"]),
+                },
+              }}
+              interpolation="stepAfter"
             />
-
+            {/* Cursor line value */}
+            {!isNil(highlightedPoint) && (
+              <VictoryScatter
+                data={[highlightedPoint]}
+                dataComponent={
+                  <VictoryPortal>
+                    <CursorValue
+                      isCursorActive={isCursorActive}
+                      chartWidth={chartWidth}
+                    />
+                  </VictoryPortal>
+                }
+              />
+            )}
+            {/* Prediciton points */}
+            {/* TODO: adjust when integrating questions graph */}
+            <VictoryScatter data={points} />
             {!!resolutionPoint && (
               <VictoryScatter
                 data={[resolutionPoint]}
@@ -306,50 +354,53 @@ const NewNumericChart: FC<Props> = ({
   );
 };
 
-const PredictionWithRange: React.FC<any> = ({
-  x,
-  y,
-  symbol,
-  datum: { y1, y2 },
-  scale,
-}) => {
+const CursorValue: React.FC<{
+  x?: number;
+  y?: number;
+  datum?: any;
+  isCursorActive: boolean;
+  chartWidth: number;
+}> = (props) => {
+  const TEXT_PADDING = 4;
   const { getThemeColor } = useAppTheme();
-  const y1Scaled = scale.y(y1);
-  const y2Scaled = scale.y(y2);
-  return (
-    <>
-      {y1 !== undefined && y2 !== undefined && (
-        <line
-          x1={x}
-          x2={x}
-          y1={y1Scaled}
-          y2={y2Scaled}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-      {symbol === "circle" && (
-        <circle
-          cx={x}
-          cy={y}
-          r={3}
-          fill={getThemeColor(METAC_COLORS.gray["0"])}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
+  const { x, y, datum, isCursorActive, chartWidth } = props;
+  const [textWidth, setTextWidth] = useState(0);
+  const textRef = useRef<SVGTextElement>(null);
+  useEffect(() => {
+    if (textRef.current) {
+      setTextWidth(textRef.current.getBBox().width + TEXT_PADDING);
+    }
+  }, [datum?.y]);
+  if (isNil(x) || isNil(y)) return null;
 
-      {symbol === "x" && (
-        <polygon
-          points={`${x - 3},${y - 3} ${x + 3},${y + 3} ${x},${y} ${x - 3},${y + 3} ${x + 3},${y - 3} ${x},${y}`}
-          r={3}
-          fill={getThemeColor(METAC_COLORS.gray["0"])}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-    </>
+  const adjustedX = isCursorActive ? x : chartWidth - textWidth / 2;
+
+  return (
+    <g>
+      <rect
+        x={adjustedX}
+        y={y}
+        width={textWidth}
+        height={16}
+        fill={getThemeColor(METAC_COLORS.blue["600"])}
+        stroke="transparent"
+        rx={2}
+        ry={2}
+        style={{ transform: `translate(${-textWidth / 2}px, -9px)` }} // center the square
+      />
+      <text
+        ref={textRef}
+        x={adjustedX}
+        y={y}
+        textAnchor="middle"
+        alignmentBaseline="middle"
+        fill={getThemeColor(METAC_COLORS.gray["0"])}
+        fontWeight="bold"
+        fontSize={12}
+      >
+        {datum.y.toFixed(1)}
+      </text>
+    </g>
   );
 };
-
 export default NewNumericChart;

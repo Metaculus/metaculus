@@ -120,9 +120,7 @@ export function calculateIndexTimeline(posts: ProjectIndexWeights[]) {
       question.aggregations.recency_weighted.history.map((el) => el.start_time);
     timestamps.push(...historyTimestamps);
   });
-  const sortedTimestamps = uniq([...timestamps, Date.now() / 1000]).sort(
-    (a, b) => a - b
-  );
+  const sortedTimestamps = uniq([...timestamps]).sort((a, b) => a - b);
 
   // calculate index value for each timestamp
   const line = sortedTimestamps.map((timestamp, index) => {
@@ -137,7 +135,7 @@ export function calculateIndexTimeline(posts: ProjectIndexWeights[]) {
         return acc;
       }
       const aggregation =
-        index === sortedTimestamps.length - 1
+        index >= sortedTimestamps.length - 1
           ? question.aggregations.recency_weighted.latest
           : question.aggregations.recency_weighted.history.findLast(
               (el) => el.start_time <= timestamp
@@ -182,6 +180,14 @@ export function calculateIndexTimeline(posts: ProjectIndexWeights[]) {
       x: timestamp,
     };
   });
-
+  const lastPoint = line.at(-1);
+  if (!isNil(lastPoint?.y)) {
+    const now = Date.now() / 1000;
+    line.push({
+      y: lastPoint.y,
+      x: now,
+    });
+    sortedTimestamps.push(now);
+  }
   return { line, timestamps: sortedTimestamps };
 }
