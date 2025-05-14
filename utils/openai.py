@@ -148,12 +148,21 @@ def generate_keyfactors(
         The comment is intended to describe what might influence the predictions on the question so the key factors should only be relate to that.
         The key factors should be the most important things that the user is trying to say in the comment and how it might influence the predictions on the question.
         The key factors should be single sentences, not longer than {MAX_LENGTH} characters and they should only contain the key factor, no other text (e.g.: do not reference the user).
+
         The user comment is: \n\n{comment}\n\n
         The Metaculus question is: \n\n{question_data}\n\n
         The existing key factors are: \n\n{existing_keyfactors}\n\n
-        Do not include any key factors that are already in the existing key factors list.
+
+        Do not include any key factors that are already in the existing key factors list. Read that carefully and make sure you don't have any duplicates.
+
         If we are not sure the comment has meaningful key factors information, return the literal string "None". Better be conservative than creating meaningless key factors.
-        Each key factor should be a single sentence, not longer than {MAX_LENGTH} characters, and they should be coma separated without quotes or other formatting. List only the key factors, nothing else.
+
+        Each key factor should be a single sentence, not longer than {MAX_LENGTH} characters, and they should follow this format:
+        - separate each key factor with a new line
+        - do not include any other text
+        - do not include any formatting like quotes, numbering or other punctuation
+        - do not include any other formatting like bold or italic
+        - do not include anything else than the key factors
         """
     )
 
@@ -177,4 +186,5 @@ def generate_keyfactors(
     if keyfactors is None or keyfactors.lower() == "none":
         return []
 
-    return keyfactors.split(",")
+    keyfactors = keyfactors.split("\n")
+    return [keyfactor.strip().strip('"').strip("'") for keyfactor in keyfactors]
