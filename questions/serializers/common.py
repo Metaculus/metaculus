@@ -140,7 +140,6 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data: dict):
-        # TODO: add validation for continuous question bounds
         errors = []
 
         published_at = data.get("published_at")
@@ -148,6 +147,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         cp_reveal_time = data.get("cp_reveal_time")
         scheduled_close_time = data.get("scheduled_close_time")
         scheduled_resolve_time = data.get("scheduled_resolve_time")
+        question_type = data.get("type")
 
         if published_at:
             if open_time and published_at > open_time:
@@ -171,9 +171,18 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         if scheduled_close_time:
             if scheduled_resolve_time and scheduled_close_time > scheduled_resolve_time:
                 errors.append("Closing Time must not be after Resolving Time")
+
+        if question_type == Question.QuestionType.MULTIPLE_CHOICE:
+            if not data.get("options"):
+                errors.append("Options are required for multiple choice questions")
+        if question_type in QUESTION_CONTINUOUS_TYPES:
+            if data.get("range_max") is None:
+                errors.append("Range Max is required for continuous questions")
+            if data.get("range_min") is None:
+                errors.append("Range Min is required for continuous questions")
+
         if errors:
             raise serializers.ValidationError(errors)
-
         return data
 
 
