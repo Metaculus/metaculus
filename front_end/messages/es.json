@@ -29,7 +29,6 @@
   "copyLink": "Copiar Enlace",
   "continueButton": "Continuar",
   "submit": "Enviar",
-  "submitTagsFeedback": "Enviar Comentarios de Etiquetas",
   "discardChangesButton": "Descartar Cambios",
   "opens": "Abre",
   "opened": "Abierto",
@@ -343,7 +342,6 @@
   "questionStatus": "Estado de la Pregunta",
   "similarQuestions": "Preguntas Similares",
   "category": "Categoría",
-  "tags": "Etiquetas",
   "tagFilter": "Etiqueta: {tag}",
   "questionAuthor": "Autor de la Pregunta",
   "questionAuthorFilter": "Autor: {author}",
@@ -1254,5 +1252,6 @@
   "thereAreQuestionsYouHaveNotPredicted": "Hay {count, plural, =1 {<bold># pregunta</bold>} other {<bold># preguntas</bold>}} que aún no has predicho.",
   "CPMovementHourChangeLabel": "{value} esta hora",
   "CPMovementDayChangeLabel": "{value} hoy",
-  "CPMovementWeekChangeLabel": "{value} esta semana"
+  "CPMovementWeekChangeLabel": "{value} esta semana",
+  "allCategories": "Todas las categorías"
 }

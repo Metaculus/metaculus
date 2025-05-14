@@ -29,7 +29,6 @@
   "copyLink": "Kopírovat odkaz",
   "continueButton": "Pokračovat",
   "submit": "Potvrdit zadání",
-  "submitTagsFeedback": "Odeslat zpětnou vazbu k tagům",
   "discardChangesButton": "Zahodit změny",
   "opens": "Otevírá se",
   "opened": "Otevřeno",
@@ -336,7 +335,6 @@
   "questionStatus": "Stav otázky",
   "similarQuestions": "Podobné otázky",
   "category": "Kategorie",
-  "tags": "Štítky",
   "tagFilter": "Štítek: {tag}",
   "questionAuthor": "Autor otázky",
   "questionAuthorFilter": "Autor: {author}",
@@ -1254,5 +1252,6 @@
   "thereAreQuestionsYouHaveNotPredicted": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které jste ještě nepředpověděli.",
   "CPMovementHourChangeLabel": "{value} tuto hodinu",
   "CPMovementDayChangeLabel": "{value} dnes",
-  "CPMovementWeekChangeLabel": "{value} tento týden"
+  "CPMovementWeekChangeLabel": "{value} tento týden",
+  "allCategories": "Všechny kategorie"
 }

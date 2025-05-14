@@ -24,6 +24,7 @@ export type Topic = Project & {
 
 export type Category = Project & {
   description: string;
+  emoji?: string;
 };
 
 export type Tag = Project;

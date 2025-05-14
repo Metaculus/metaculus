@@ -6,7 +6,6 @@ import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import NewsMatch from "./news_match";
 import SidebarQuestionInfo from "./sidebar_question_info";
-import SidebarQuestionTags from "./sidebar_question_tags";
 import SimilarQuestions from "./similar_questions";
 import QuestionEmbedButton from "../question_embed_button";
 
@@ -37,14 +36,6 @@ const Sidebar: FC<Props> = ({
         <SidebarContainer>
           <SidebarQuestionInfo postData={postData} />
         </SidebarContainer>
-        <SidebarContainer>
-          <SidebarQuestionTags
-            postId={postData.id}
-            tagData={postData.projects}
-            allowModifications={allowModifications}
-          />
-        </SidebarContainer>
-
         {postData.curation_status === PostStatus.APPROVED && (
           <>
             <Suspense fallback={null}>
@@ -82,14 +73,6 @@ const Sidebar: FC<Props> = ({
         <div className="w-full">
           <SidebarQuestionInfo postData={postData} />
         </div>
-      </SidebarContainer>
-
-      <SidebarContainer>
-        <SidebarQuestionTags
-          postId={postData.id}
-          tagData={postData.projects}
-          allowModifications={allowModifications}
-        />
       </SidebarContainer>
 
       {postData.curation_status === PostStatus.APPROVED && (
