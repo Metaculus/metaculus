@@ -14,6 +14,17 @@ import { Fragment, useEffect, useState } from "react";
 
 import { Category } from "@/types/post";
 
+const CategoryLabel: React.FC<{
+  category: Category;
+}> = ({ category: { emoji, name } }) => {
+  return (
+    <div className="flex gap-1.5">
+      <span>{emoji}</span>
+      <span>{name}</span>
+    </div>
+  );
+};
+
 const CategoryPicker: React.FC<{
   allCategories: Category[];
   categories: Category[];
@@ -90,7 +101,7 @@ const CategoryPicker: React.FC<{
                             selected ? "font-bold" : "font-normal"
                           }`}
                         >
-                          {category.emoji} {category.name}
+                          <CategoryLabel category={category} />
                         </span>
                         {selected && (
                           <span className="flex items-center">
@@ -127,7 +138,7 @@ const CategoryPicker: React.FC<{
                 icon={faX}
               ></FontAwesomeIcon>
               <span>
-                {category.emoji} {category.name}
+                <CategoryLabel category={category} />
               </span>
             </div>
           );
