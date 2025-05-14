@@ -203,6 +203,9 @@ const NewNumericChart: FC<Props> = ({
               {
                 target: "parent",
                 eventHandlers: {
+                  onTouchStart: () => {
+                    setIsCursorActive(true);
+                  },
                   onMouseOverCapture: () => {
                     setIsCursorActive(true);
                   },
