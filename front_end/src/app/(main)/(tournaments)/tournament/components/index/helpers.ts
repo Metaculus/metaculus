@@ -93,7 +93,7 @@ export function calculateIndex(posts: ProjectIndexWeights[]): {
     },
     { scoreSum: 0, weeklyScoreSum: 0 }
   );
-  console.log(scoreSum / weightSum);
+
   return {
     index: scoreSum / weightSum,
     indexWeekAgo: weeklyScoreSum / weightSum,

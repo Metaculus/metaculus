@@ -2,9 +2,10 @@ import { isNil } from "lodash";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
+import PeriodMovement from "@/components/period_movement";
 import RichText from "@/components/rich_text";
-import WeeklyMovement from "@/components/weekly_movement";
 import { Tournament } from "@/types/projects";
+import { MovementDirection } from "@/types/question";
 
 import { calculateIndex } from "./helpers";
 
@@ -21,6 +22,12 @@ const IndexGauge: FC<Props> = async ({ tournament }) => {
   const { index: indexValue, indexWeekAgo } = calculateIndex(indexWeights);
   const indexWeeklyMovement = Number((indexValue - indexWeekAgo).toFixed(1));
 
+  let direction = MovementDirection.UNCHANGED;
+  if (indexWeeklyMovement > 0) {
+    direction = MovementDirection.UP;
+  } else if (indexWeeklyMovement < 0) {
+    direction = MovementDirection.DOWN;
+  }
   return (
     <div className="mb-12 mt-4 flex flex-col gap-1.5 sm:mb-9 sm:mt-6 sm:gap-2">
       {/* Index numbers scale */}
@@ -52,10 +59,10 @@ const IndexGauge: FC<Props> = async ({ tournament }) => {
             {indexValue.toFixed(1)}
           </span>
           <span className="-mt-1">{t("indexValue")}</span>
-          <WeeklyMovement
-            weeklyMovement={indexWeeklyMovement}
+          <PeriodMovement
+            direction={direction}
             message={
-              indexWeeklyMovement === 0 ? (
+              direction === MovementDirection.UNCHANGED ? (
                 t("weeklyMovementChange", {
                   value: t("noChange"),
                 })

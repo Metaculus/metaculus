@@ -21,7 +21,7 @@ const IndexSection: FC<Props> = ({ indexWeights, tournament }) => {
   const locale = useLocale();
   const { index: indexValue, indexWeekAgo } = calculateIndex(indexWeights);
   const indexWeeklyMovement = Number((indexValue - indexWeekAgo).toFixed(1));
-  console.log(indexWeights);
+
   return (
     <>
       <IndexQuestionsTable
