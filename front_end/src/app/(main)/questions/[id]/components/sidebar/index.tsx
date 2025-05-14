@@ -19,14 +19,12 @@ function SidebarContainer({ children }: { children: React.ReactNode }) {
 
 type Props = {
   postData: PostWithForecasts;
-  allowModifications: boolean;
   layout?: "mobile" | "desktop";
   questionTitle: string;
 };
 
 const Sidebar: FC<Props> = ({
   postData,
-  allowModifications,
   layout = "desktop",
   questionTitle,
 }) => {

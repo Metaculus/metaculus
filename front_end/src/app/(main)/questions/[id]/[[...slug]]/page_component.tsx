@@ -17,11 +17,7 @@ import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import {
-  GroupOfQuestionsGraphType,
-  PostStatus,
-  ProjectPermissions,
-} from "@/types/post";
+import { GroupOfQuestionsGraphType } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import {
@@ -64,12 +60,6 @@ const IndividualQuestionPage: FC<{
 
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
-
-  const allowModifications =
-    postData.user_permission === ProjectPermissions.ADMIN ||
-    postData.user_permission === ProjectPermissions.CURATOR ||
-    (postData.user_permission === ProjectPermissions.CREATOR &&
-      postData.curation_status !== PostStatus.APPROVED);
 
   const questionTitle = getPostTitle(postData);
   return (
@@ -171,18 +161,13 @@ const IndividualQuestionPage: FC<{
                   </section>
                   <Sidebar
                     postData={postData}
-                    allowModifications={allowModifications}
                     layout="mobile"
                     questionTitle={questionTitle}
                   />
                   <CommentFeed postData={postData} />
                 </div>
               </div>
-              <Sidebar
-                postData={postData}
-                allowModifications={allowModifications}
-                questionTitle={questionTitle}
-              />
+              <Sidebar postData={postData} questionTitle={questionTitle} />
             </div>
           </main>
 
