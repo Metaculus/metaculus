@@ -1260,5 +1260,6 @@
   "indexValue": "Valor do índice",
   "indexWeeklyMovement": "<strong>{value}</strong> esta semana",
   "metadata": "Metadados",
-  "indexTimeline": "Cronologia do índice"
+  "indexTimeline": "Cronologia do índice",
+  "inTheNews": "Nas Notícias"
 }

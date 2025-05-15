@@ -1265,5 +1265,6 @@
   "indexValue": "指数值",
   "indexWeeklyMovement": "<strong>{value}</strong> 本周",
   "metadata": "元数据",
-  "indexTimeline": "指数时间线"
+  "indexTimeline": "指数时间线",
+  "inTheNews": "新闻报道"
 }

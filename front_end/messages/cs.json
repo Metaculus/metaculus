@@ -1262,5 +1262,6 @@
   "indexValue": "Hodnota indexu",
   "indexWeeklyMovement": "<strong>{value}</strong> tento týden",
   "metadata": "Metadata",
-  "indexTimeline": "Časová osa indexu"
+  "indexTimeline": "Časová osa indexu",
+  "inTheNews": "Ve zprávách"
 }

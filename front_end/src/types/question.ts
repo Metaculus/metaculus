@@ -27,10 +27,10 @@ export enum QuestionOrder {
   ScoreDesc = "-score",
   ScoreAsc = "score",
   ResolveTimeAsc = "scheduled_resolve_time",
+  NewsDistance = "news_distance",
   HotDesc = "-hotness",
   HotAsc = "hotness",
   RankDesc = "-rank",
-  CreatedDesc = "-created_at",
 }
 
 export type Scaling = {

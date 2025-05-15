@@ -111,6 +111,7 @@ const MainFeedFilters: FC<Props> = ({
       },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
+      { value: QuestionOrder.NewsDistance, label: t("inTheNews") },
     ],
     [t]
   );

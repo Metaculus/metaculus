@@ -372,25 +372,6 @@ export function getMainOrderOptions(
   ];
 }
 
-export function getUserSortOptions(
-  t: ReturnType<typeof useTranslations>
-): GroupButton<QuestionOrder>[] {
-  return [
-    {
-      label: t("oldest"),
-      value: QuestionOrder.LastPredictionTimeAsc,
-    },
-    {
-      label: t("newest"),
-      value: QuestionOrder.LastPredictionTimeDesc,
-    },
-    {
-      label: t("divergence"),
-      value: QuestionOrder.DivergenceDesc,
-    },
-  ];
-}
-
 export function getDropdownSortOptions(
   t: ReturnType<typeof useTranslations>,
   isAuthenticated: boolean
@@ -404,6 +385,7 @@ export function getDropdownSortOptions(
     },
     { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
     { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
+    { value: QuestionOrder.NewsDistance, label: t("inTheNews") },
     ...(isAuthenticated
       ? [
           {
