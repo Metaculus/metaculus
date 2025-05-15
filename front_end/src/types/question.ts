@@ -27,7 +27,7 @@ export enum QuestionOrder {
   ScoreDesc = "-score",
   ScoreAsc = "score",
   ResolveTimeAsc = "scheduled_resolve_time",
-  NewsDistance = "news_distance",
+  NewsHotness = "-news_hotness",
   HotDesc = "-hotness",
   HotAsc = "hotness",
   RankDesc = "-rank",
