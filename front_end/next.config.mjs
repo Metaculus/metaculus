@@ -17,6 +17,9 @@ const nextConfig = {
       static: 180,
     },
     serverSourceMaps: true,
+    serverActions: {
+      bodySizeLimit: "3mb", // match GIF size limit on the server
+    },
   },
   images: {
     remotePatterns: [

@@ -1254,5 +1254,7 @@
   "add": "Add",
   "suggestedKeyFactorsSection": "Here are the suggested key factors based on your comment text. Feel free to add the ones you see fit, or enter your key factors manually.",
   "loadingSuggestedKeyFactors": "Generating key factors...",
-  "close": "Close"
+  "close": "Close",
+  "fileSizeExceedsLimit": "File size exceeds {value}MB limit",
+  "errorUploadingImage": "Failed to upload image"
 }
