@@ -278,11 +278,11 @@ def get_posts_feed(
             resolved=False,
             curation_status=Post.CurationStatus.APPROVED,
         )
-    if order_type == PostFilterSerializer.Order.NEWS_DISTANCE:
-        if order_desc:
-            raise ValidationError("Descending is not supported for “In the news” order")
+    if order_type == PostFilterSerializer.Order.NEWS_HOTNESS:
+        if not order_desc:
+            raise ValidationError("Ascending is not supported for “In the news” order")
 
-        qs = qs.annotate_news_distance()
+        qs = qs.annotate_news_hotness()
 
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
