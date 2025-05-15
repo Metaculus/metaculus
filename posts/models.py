@@ -20,6 +20,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
+from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -221,6 +222,17 @@ class PostQuerySet(models.QuerySet):
     def annotate_divergence(self, user_id: int):
         return self.filter(snapshots__user_id=user_id).annotate(
             divergence=F("snapshots__divergence")
+        )
+
+    def annotate_news_distance(self):
+        return self.annotate(
+            news_distance=Coalesce(
+                SubqueryAggregate(
+                    "postarticle__distance",
+                    aggregate=Min,
+                ),
+                1.0,
+            )
         )
 
     #

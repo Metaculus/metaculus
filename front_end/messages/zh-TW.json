@@ -1260,5 +1260,6 @@
   "indexValue": "指數值",
   "indexWeeklyMovement": "本週<strong>{value}</strong>",
   "metadata": "元數據",
-  "indexTimeline": "指數時間表"
+  "indexTimeline": "指數時間表",
+  "inTheNews": "新聞摘要"
 }

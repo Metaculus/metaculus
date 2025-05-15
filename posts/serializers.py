@@ -172,6 +172,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         UNREAD_COMMENT_COUNT = "unread_comment_count"
         WEEKLY_MOVEMENT = "weekly_movement"
         DIVERGENCE = "divergence"
+        NEWS_DISTANCE = "news_distance"
         HOTNESS = "hotness"
         SCORE = "score"
 
