@@ -1258,5 +1258,9 @@
   "add": "Přidat",
   "suggestedKeyFactorsSection": "Zde jsou navrženy klíčové faktory na základě vašeho komentáře. Neváhejte přidat ty, které považujete za vhodné, nebo zadejte své vlastní klíčové faktory ručně.",
   "loadingSuggestedKeyFactors": "Generování klíčových faktorů...",
-  "close": "Zavřít"
+  "close": "Zavřít",
+  "indexValue": "Hodnota indexu",
+  "indexWeeklyMovement": "<strong>{value}</strong> tento týden",
+  "metadata": "Metadata",
+  "indexTimeline": "Časová osa indexu"
 }

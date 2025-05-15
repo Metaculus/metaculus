@@ -1258,5 +1258,9 @@
   "add": "Agregar",
   "suggestedKeyFactorsSection": "Aquí están los factores clave sugeridos basados en el texto de tu comentario. Siéntete libre de añadir los que consideres apropiados o ingresa tus factores clave manualmente.",
   "loadingSuggestedKeyFactors": "Generando factores clave...",
-  "close": "Cerrar"
+  "close": "Cerrar",
+  "indexValue": "Valor del índice",
+  "indexWeeklyMovement": "<strong>{value}</strong> esta semana",
+  "metadata": "Metadatos",
+  "indexTimeline": "Cronología del índice"
 }
