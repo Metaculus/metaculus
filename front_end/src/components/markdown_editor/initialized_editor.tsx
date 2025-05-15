@@ -20,6 +20,7 @@ import {
   toolbarPlugin,
 } from "@mdxeditor/editor";
 import { BeautifulMentionsTheme } from "lexical-beautiful-mentions";
+import { useTranslations } from "next-intl";
 import React, {
   FC,
   ForwardedRef,
@@ -29,6 +30,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import toast from "react-hot-toast";
 import { mergeRefs } from "react-merge-refs";
 
 import { uploadImage } from "@/app/(main)/questions/actions";
@@ -37,6 +39,7 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
 
 import EditorToolbar from "./editor_toolbar";
 import { embeddedQuestionDescriptor } from "./embedded_question";
@@ -108,6 +111,7 @@ const InitializedMarkdownEditor: FC<
 }) => {
   const { user } = useAuth();
   const { theme } = useAppTheme();
+  const t = useTranslations();
   const [errorMarkdown, setErrorMarkdown] = useState<string | null>(null);
 
   const editorRef = useRef<MDXEditorMethods>(null);
@@ -192,11 +196,19 @@ const InitializedMarkdownEditor: FC<
   }, [mode]);
 
   async function imageUploadHandler(image: File) {
+    const MAX_FILE_SIZE_MB = 3;
+    const maxFileSizeBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
+    if (image.size > maxFileSizeBytes) {
+      toast(t("fileSizeExceedsLimit", { value: MAX_FILE_SIZE_MB }));
+      return Promise.reject({ image: "File size exceeds 3MB limit" });
+    }
+
     const formData = new FormData();
     formData.append("image", image);
     const response = await uploadImage(formData);
     if (!!response && "errors" in response) {
-      console.error(response.errors);
+      logError(response.errors);
+      toast(t("errorUploadingImage"));
       return Promise.reject(response.errors);
     } else {
       return response.url;
