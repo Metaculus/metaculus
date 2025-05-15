@@ -381,29 +381,29 @@ const CursorValue: React.FC<{
   if (isNil(x) || isNil(y)) return null;
 
   const adjustedX = isCursorActive ? x : chartWidth - textWidth / 2;
-
+  const chipHeight = 16;
+  const chipFontSize = 12;
   return (
     <g>
       <rect
-        x={adjustedX}
-        y={y}
+        x={adjustedX - textWidth / 2}
+        y={y - chipHeight / 2}
         width={textWidth}
-        height={16}
+        height={chipHeight}
         fill={getThemeColor(METAC_COLORS.blue["600"])}
         stroke="transparent"
         rx={2}
         ry={2}
-        style={{ transform: `translate(${-textWidth / 2}px, -9px)` }} // center the square
       />
       <text
         ref={textRef}
         x={adjustedX}
-        y={y}
+        y={y + chipFontSize / 10} // fix vertical alignment
         textAnchor="middle"
-        alignmentBaseline="middle"
+        dominantBaseline="middle"
         fill={getThemeColor(METAC_COLORS.gray["0"])}
         fontWeight="bold"
-        fontSize={12}
+        fontSize={chipFontSize}
       >
         {datum.y.toFixed(1)}
       </text>
