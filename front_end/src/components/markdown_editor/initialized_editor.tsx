@@ -197,7 +197,9 @@ const InitializedMarkdownEditor: FC<
     const response = await uploadImage(formData);
     if (!!response && "errors" in response) {
       console.error(response.errors);
-      return Promise.reject(response.errors);
+      return Promise.reject(
+        new Error(response.errors?.message ?? "Error uploading image")
+      );
     } else {
       return response.url;
     }

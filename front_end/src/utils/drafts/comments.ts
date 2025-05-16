@@ -1,4 +1,5 @@
 import { CommentDraft } from "@/types/comment";
+import { safeLocalStorage } from "@/utils/core/storage";
 
 import { logError } from "../core/errors";
 
@@ -34,7 +35,7 @@ export function saveCommentDraft(draft: CommentDraft): void {
       return;
     }
     const draftKey = getDraftKey({ ...draft });
-    localStorage.setItem(draftKey, JSON.stringify(draft));
+    safeLocalStorage.setItem(draftKey, JSON.stringify(draft));
   } catch (error) {
     logError(error, { message: "Failed to save comment draft" });
   }
@@ -49,7 +50,7 @@ export function getCommentDraft(
     const draftKey = getDraftKey({ userId, postId, parentId });
     if (!draftKey) return null;
 
-    const draftJson = localStorage.getItem(draftKey);
+    const draftJson = safeLocalStorage.getItem(draftKey);
     return draftJson ? JSON.parse(draftJson) : null;
   } catch (error) {
     logError(error, { message: "Failed to get comment draft" });
@@ -71,7 +72,7 @@ export const deleteCommentDraft = ({
     const draftKey = getDraftKey({ userId, postId, parentId });
 
     if (!draftKey) return;
-    localStorage.removeItem(draftKey);
+    safeLocalStorage.removeItem(draftKey);
   } catch (error) {
     logError(error, { message: "Failed to delete comment draft" });
   }

@@ -1,4 +1,5 @@
 import { QuestionDraft } from "@/types/question";
+import { safeLocalStorage } from "@/utils/core/storage";
 
 import { cleanupDrafts } from ".";
 
@@ -19,18 +20,18 @@ export function saveQuestionDraft(
     ...formData,
     lastModified: Date.now(),
   };
-  localStorage.setItem(key, JSON.stringify(draft));
+  safeLocalStorage.setItem(key, JSON.stringify(draft));
 }
 
 export function getQuestionDraft(keyString: string): QuestionDraft | null {
   const key = getQuestionDraftKey(keyString);
-  const draft = localStorage.getItem(key);
+  const draft = safeLocalStorage.getItem(key);
   return draft ? JSON.parse(draft) : null;
 }
 
 export function deleteQuestionDraft(keyString: string) {
   const key = getQuestionDraftKey(keyString);
-  localStorage.removeItem(key);
+  safeLocalStorage.removeItem(key);
 }
 
 export function cleanupQuestionDrafts(maxAgeDays = 14): void {

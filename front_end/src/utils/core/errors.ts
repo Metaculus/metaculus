@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { EventHint, ErrorEvent } from "@sentry/nextjs";
 import { isNil } from "lodash";
 
 import { ApiErrorResponse, ErrorResponse } from "@/types/fetch";
@@ -96,30 +97,10 @@ export function logError(
 ) {
   const { message, payload } = options ?? {};
 
-  if (ApiError.isApiError(error)) {
-    const { digest, response, data } = error;
-
-    if (isNil(response) && isNil(data)) {
-      // don't track ApiError on client
-      // custom fields won't be properly serialized
-      // we ensure that all required api errors are logged inside handleResponse
-      console.error(message ?? error);
-      return;
-    }
-
-    const { status, url } = response;
-
-    // Capture exception in Sentry for server errors or unknown status
-    if (!status || status >= 500) {
-      if (payload) {
-        Sentry.withScope(function (scope) {
-          scope.setContext("payload", { payload: JSON.stringify(payload) });
-          Sentry.captureException(error);
-        });
-      } else {
-        Sentry.captureException(error);
-      }
-    }
+  // 1. Log error to console
+  if (ApiError.isApiError(error) && !isNil(error.response)) {
+    const { digest } = error;
+    const { status, url } = error.response;
 
     const logChunks = [
       message ?? "Error:",
@@ -130,12 +111,58 @@ export function logError(
       `error=${JSON.stringify(error)}`,
     ];
 
-    // Log the complete message
     console.error(logChunks.join(" "), error);
-    return;
+  } else {
+    console.error(message ?? error);
   }
 
-  // Capture any non-api error to sentry
-  Sentry.captureException(error);
-  console.error(message ?? error);
+  // 2. Log error to Sentry
+  if (payload) {
+    Sentry.withScope(function (scope) {
+      scope.setContext("payload", { payload: JSON.stringify(payload) });
+      Sentry.captureException(error);
+    });
+  } else {
+    Sentry.captureException(error);
+  }
+}
+
+export const SENTRY_IGNORE_ERRORS: string[] = [
+  /*
+   * Next.js specific errors
+   */
+  "NEXT_REDIRECT",
+  "NEXT_NOT_FOUND",
+  "NEXT_HTTP_ERROR_FALLBACK;404",
+
+  /*
+   * The error is related to Edge Mobile
+   * https://techcommunity.microsoft.com/discussions/edgeinsiderdiscussions/error-cant-find-variable-logmutedmessage-on-edge-mobile-/3912307
+   */
+  "Can't find variable: logMutedMessage",
+];
+
+export function beforeSentryAlertSend(event: ErrorEvent, hint: EventHint) {
+  const error = hint.originalException;
+
+  if (ApiError.isApiError(error)) {
+    const { response, data } = error;
+
+    if (isNil(response) && isNil(data)) {
+      // don't track ApiError on client
+      // custom fields won't be properly serialized
+      // we ensure that all required api errors are logged inside handleResponse
+      return null;
+    }
+
+    const { status } = response;
+    if (!!status && status < 500) {
+      // ensure only severe errors are logged to Sentry
+      return null;
+    }
+
+    return event;
+  }
+
+  return event;
 }
