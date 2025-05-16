@@ -4,6 +4,7 @@ import { FC } from "react";
 import { DomainTuple } from "victory";
 
 import NewNumericChart from "@/components/charts/new_numeric_chart";
+import { METAC_COLORS } from "@/constants/colors";
 import { Area, Line } from "@/types/charts";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { Tournament } from "@/types/projects";
@@ -27,9 +28,10 @@ const IndexTimeline: FC<Props> = ({ tournament, height = 170 }) => {
       buildChartData={(width, zoom) =>
         buildIndexChartData({ tournament, width, zoom })
       }
+      withZoomPicker={true}
       height={height}
       chartTitle={t("indexTimeline")}
-      tickFontSize={10}
+      colorOverride={METAC_COLORS.blue["600"]}
     />
   );
 };
