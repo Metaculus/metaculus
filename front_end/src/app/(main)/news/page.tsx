@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import ProjectsApi from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 
 import NewsFilters from "./components/news_filters";
@@ -21,7 +21,7 @@ export default async function NewsFeed(props: {
 }) {
   const searchParams = await props.searchParams;
   const t = await getTranslations();
-  const newsCategories = await ProjectsApi.getNewsCategories();
+  const newsCategories = await ServerProjectsApi.getNewsCategories();
   const filters = {
     ...generateFiltersFromSearchParams(searchParams),
     notebook_type: "news",

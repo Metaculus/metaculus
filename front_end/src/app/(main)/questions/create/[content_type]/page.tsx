@@ -8,8 +8,8 @@ import GroupForm from "@/app/(main)/questions/components/group_form";
 import QuestionForm from "@/app/(main)/questions/components/question_form";
 import RepostForm from "@/app/(main)/questions/components/repost";
 import { extractMode } from "@/app/(main)/questions/create/helpers";
-import PostsApi from "@/services/posts";
-import ProjectsApi from "@/services/projects";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 
 import ConditionalForm from "../../components/conditional_form";
@@ -34,21 +34,21 @@ export default async function QuestionCreator(props: Props) {
   const post_id = numberOrUndefined(searchParams["post_id"]);
   const post = isNil(post_id)
     ? undefined
-    : await PostsApi.getPost(Number(post_id));
+    : await ServerPostsApi.getPost(Number(post_id));
 
   // Edition mode
   const mode = extractMode(searchParams, post);
 
-  const siteMain = await ProjectsApi.getSiteMain();
-  const allCategories = await ProjectsApi.getCategories();
+  const siteMain = await ServerProjectsApi.getSiteMain();
+  const allCategories = await ServerProjectsApi.getCategories();
 
   // Fetching tournaments
   const tournament_id = numberOrUndefined(searchParams["tournament_id"]);
-  const tournaments = await ProjectsApi.getTournaments();
+  const tournaments = await ServerProjectsApi.getTournaments();
   // If the tournament is unlisted, it won't be retrieved via the getTournaments call.
   // In that case, we need to fetch it separately and append it to the tournaments list.
   if (tournament_id && !tournaments.some((obj) => obj.id === tournament_id)) {
-    const tournament = await ProjectsApi.getTournament(tournament_id);
+    const tournament = await ServerProjectsApi.getTournament(tournament_id);
 
     if (tournament) {
       tournaments.push(tournament);
@@ -58,7 +58,7 @@ export default async function QuestionCreator(props: Props) {
   // Fetching communities
   const community_id = numberOrUndefined(searchParams["community_id"]);
   const communitiesResponse = community_id
-    ? await ProjectsApi.getCommunities({ ids: [community_id] })
+    ? await ServerProjectsApi.getCommunities({ ids: [community_id] })
     : undefined;
   const community = communitiesResponse
     ? communitiesResponse.results[0]
@@ -101,10 +101,10 @@ export default async function QuestionCreator(props: Props) {
     let condition = null;
     let conditionChild = null;
     if (post) {
-      condition = await PostsApi.getQuestion(
+      condition = await ServerPostsApi.getQuestion(
         Number(post?.conditional?.condition.id)
       );
-      conditionChild = await PostsApi.getQuestion(
+      conditionChild = await ServerPostsApi.getQuestion(
         Number(post?.conditional?.condition_child.id)
       );
     }

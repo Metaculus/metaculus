@@ -1,4 +1,4 @@
-import ProjectsApi from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { Tournament } from "@/types/projects";
 
 import InviteUsers from "./members_invite";
@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default async function Members({ project }: Props) {
-  const members = await ProjectsApi.getMembers(project.id);
+  const members = await ServerProjectsApi.getMembers(project.id);
 
   return (
     <>

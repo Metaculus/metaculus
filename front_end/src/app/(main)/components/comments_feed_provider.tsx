@@ -9,7 +9,8 @@ import {
 } from "react";
 
 import { SortOption } from "@/components/comment_feed";
-import { getCommentsParams } from "@/services/comments";
+import ClientCommentsApi from "@/services/api/comments/comments.client";
+import { getCommentsParams } from "@/services/api/comments/comments.shared";
 import {
   BECommentType,
   CommentType,
@@ -19,9 +20,6 @@ import {
 } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { parseComment } from "@/utils/comments";
-import { logError } from "@/utils/core/errors";
-
-import { getComments } from "../questions/actions";
 
 type ErrorType = Error & { digest?: string };
 
@@ -187,17 +185,17 @@ const CommentsFeedProvider: FC<
   };
 
   const fetchTotalCount = async (params: getCommentsParams) => {
-    const response = await getComments({
-      post: postData?.id,
-      author: profileId,
-      limit: 1,
-      use_root_comments_pagination: rootCommentStructure,
-      ...params,
-    });
-    if (!!response && "errors" in response) {
-      logError(response.errors, { message: "Error fetching comments:" });
-    } else {
+    try {
+      const response = await ClientCommentsApi.getComments({
+        post: postData?.id,
+        author: profileId,
+        limit: 1,
+        use_root_comments_pagination: rootCommentStructure,
+        ...params,
+      });
       setTotalCount(response.total_count ?? response.count);
+    } catch (err) {
+      console.error("Error fetching total count:", err);
     }
   };
 
@@ -208,7 +206,7 @@ const CommentsFeedProvider: FC<
     try {
       setIsLoading(true);
       setError(undefined);
-      const response = await getComments({
+      const response = await ClientCommentsApi.getComments({
         post: postData?.id,
         author: profileId,
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
@@ -216,33 +214,29 @@ const CommentsFeedProvider: FC<
         use_root_comments_pagination: rootCommentStructure,
         ...params,
       });
-      if (!!response && "errors" in response) {
-        logError(response.errors, { message: "Error fetching comments:" });
-      } else {
-        setTotalCount(response.total_count ?? response.count);
 
-        const sortedComments = parseCommentsArray(
-          response.results as unknown as BECommentType[],
-          rootCommentStructure
+      setTotalCount(response.total_count ?? response.count);
+
+      const sortedComments = parseCommentsArray(
+        response.results as unknown as BECommentType[],
+        rootCommentStructure
+      );
+      if (keepComments && offset > 0) {
+        setComments((prevComments) => [...prevComments, ...sortedComments]);
+      } else {
+        setComments(sortedComments);
+      }
+      if (response.next) {
+        const nextOffset = new URL(response.next).searchParams.get("offset");
+        setOffset(
+          nextOffset ? Number(nextOffset) : (prev) => prev + COMMENTS_PER_PAGE
         );
-        if (keepComments && offset > 0) {
-          setComments((prevComments) => [...prevComments, ...sortedComments]);
-        } else {
-          setComments(sortedComments);
-        }
-        if (response.next) {
-          const nextOffset = new URL(response.next).searchParams.get("offset");
-          setOffset(
-            nextOffset ? Number(nextOffset) : (prev) => prev + COMMENTS_PER_PAGE
-          );
-        } else {
-          setOffset(-1);
-        }
+      } else {
+        setOffset(-1);
       }
     } catch (err) {
-      const error = err as Error & { digest?: string };
+      const error = err as ErrorType;
       setError(error);
-      logError(err, { message: `Error fetching comments: ${err}` });
     } finally {
       setIsLoading(false);
     }

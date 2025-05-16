@@ -1,9 +1,11 @@
+import "server-only";
+import { ApiService } from "@/services/api/api_service";
 import {
   DistributionQuantile,
   DistributionSlider,
   ForecastData,
 } from "@/types/question";
-import { get, post } from "@/utils/core/fetch";
+import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 
 export type ForecastPayload = {
   questionId: number;
@@ -15,11 +17,9 @@ export type WithdrawalPayload = {
   withdrawal_at?: string;
 };
 
-class QuestionsApi {
-  static async createForecasts(
-    forecasts: ForecastPayload[]
-  ): Promise<Response> {
-    return await post(
+class ServerQuestionsApiClass extends ApiService {
+  async createForecasts(forecasts: ForecastPayload[]): Promise<Response> {
+    return await this.post(
       `/questions/forecast/`,
       forecasts.map(({ questionId, forecastData, distributionInput }) => ({
         question: questionId,
@@ -32,18 +32,12 @@ class QuestionsApi {
     );
   }
 
-  static async withdrawForecasts(
-    withdrawals: WithdrawalPayload[]
-  ): Promise<Response> {
-    return await post(`/questions/withdraw/`, withdrawals);
+  async withdrawForecasts(withdrawals: WithdrawalPayload[]): Promise<Response> {
+    return await this.post(`/questions/withdraw/`, withdrawals);
   }
 
-  static async resolve(
-    id: number,
-    resolution: string,
-    actual_resolve_time: string
-  ) {
-    return post<
+  async resolve(id: number, resolution: string, actual_resolve_time: string) {
+    return this.post<
       { post_id: number },
       { resolution: string; actual_resolve_time: string }
     >(`/questions/${id}/resolve/`, {
@@ -52,15 +46,16 @@ class QuestionsApi {
     });
   }
 
-  static async unresolve(id: number) {
-    return post<{ post_id: number }>(`/questions/${id}/unresolve/`, {});
+  async unresolve(id: number) {
+    return this.post<{ post_id: number }>(`/questions/${id}/unresolve/`, {});
   }
 
-  static async legacyGetPostId(questionId: number) {
-    return get<{ post_id: number; post_slug: string }>(
+  async legacyGetPostId(questionId: number) {
+    return this.get<{ post_id: number; post_slug: string }>(
       `/questions/${questionId}/post/`
     );
   }
 }
 
-export default QuestionsApi;
+const ServerQuestionsApi = new ServerQuestionsApiClass(serverFetcher);
+export default ServerQuestionsApi;

@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import RegisterMessage from "./components/register_message";
 
@@ -10,7 +10,7 @@ export default async function CreateQuestionLayout({
   children: React.ReactNode;
 }>) {
   const t = await getTranslations();
-  const user = await ProfileApi.getMyProfile();
+  const user = await ServerProfileApi.getMyProfile();
 
   if (!user) {
     return (

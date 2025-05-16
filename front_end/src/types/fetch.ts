@@ -1,3 +1,21 @@
+export type FetchConfig = {
+  emptyContentType?: boolean;
+  passAuthHeader?: boolean;
+  includeLocale?: boolean;
+};
+
+export type Fetcher = {
+  get<T>(url: string, options?: FetchOptions, config?: FetchConfig): Promise<T>;
+  post<T = Response, B = Record<string, unknown>>(
+    url: string,
+    body: B,
+    options?: FetchOptions
+  ): Promise<T>;
+  put<T, B>(url: string, body: B, options?: FetchOptions): Promise<T>;
+  patch<T, B>(url: string, body: B, options?: FetchOptions): Promise<T>;
+  del<T>(url: string, options?: FetchOptions): Promise<T>;
+};
+
 export type FetchOptions = RequestInit & {
   headers?: HeadersInit;
 };

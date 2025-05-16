@@ -10,7 +10,6 @@ import toast from "react-hot-toast";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   commentTogglePin,
-  getComments,
   markPostAsRead,
 } from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
@@ -24,7 +23,8 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useHash from "@/hooks/use_hash";
 import useScrollTo from "@/hooks/use_scroll_to";
-import { getCommentsParams } from "@/services/comments";
+import ClientCommentsApi from "@/services/api/comments/comments.client";
+import { getCommentsParams } from "@/services/api/comments/comments.shared";
 import { CommentType } from "@/types/comment";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
@@ -220,15 +220,15 @@ const CommentFeed: FC<Props> = ({
     const fetchUserComments = async (userId?: number) => {
       if (!userId) return;
 
-      const response = await getComments({
-        limit: 1,
-        offset: 0,
-        author: userId,
-      });
-      if (!!response && "errors" in response) {
-        console.error("Error fetching comments:", response.errors);
-      } else {
+      try {
+        const response = await ClientCommentsApi.getComments({
+          limit: 1,
+          offset: 0,
+          author: userId,
+        });
         setUserCommentsAmount(response.total_count ?? response.count);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
       }
     };
 

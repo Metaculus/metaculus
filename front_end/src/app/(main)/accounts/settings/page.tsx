@@ -5,14 +5,14 @@ import ApiAccess from "@/app/(main)/accounts/settings/components/api_access";
 import ChangePassword from "@/app/(main)/accounts/settings/components/change_password";
 import EmailNotifications from "@/app/(main)/accounts/settings/components/email_notifications";
 import QuestionNotifications from "@/app/(main)/accounts/settings/components/question_notifications";
-import PostsApi from "@/services/posts";
-import ProfileApi from "@/services/profile";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { getServerSession } from "@/services/session";
 
 export default async function Settings() {
-  const currentUser = await ProfileApi.getMyProfile();
+  const currentUser = await ServerProfileApi.getMyProfile();
   const token = await getServerSession();
-  const posts = await PostsApi.getAllSubscriptions();
+  const posts = await ServerPostsApi.getAllSubscriptions();
 
   if (!token || !currentUser) return redirect("/");
 
