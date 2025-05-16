@@ -384,7 +384,6 @@ export function getDropdownSortOptions(
     },
     { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
     { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
-    { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
     ...(isAuthenticated
       ? [
           {

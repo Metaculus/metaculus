@@ -198,17 +198,19 @@ def generate_related_articles_for_post(post: Post):
 
 
 def get_post_similar_articles(post: Post):
-    article_ids = (
+    return (
         PostArticle.objects.filter(
-            post=post,
-            article__is_removed=False,
-            created_at__gte=timezone.now() - timedelta(days=14),
+            pk__in=PostArticle.objects.filter(
+                post=post,
+                article__is_removed=False,
+                created_at__gte=timezone.now() - timedelta(days=14),
+            )
+            .order_by("distance")
+            .values_list("id")[:18]
         )
-        .order_by("distance")
-        .values_list("article_id")[:18]
+        .order_by("-created_at")
+        .select_related("article")
     )
-
-    return ITNArticle.objects.filter(pk__in=article_ids).order_by("-created_at")
 
 
 def remove_article(article: ITNArticle):

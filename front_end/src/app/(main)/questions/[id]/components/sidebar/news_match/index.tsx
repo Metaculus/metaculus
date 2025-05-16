@@ -13,7 +13,7 @@ const NewsMatch: FC<Props> = async ({ questionId }) => {
   const articles = await ServerPostsApi.getRelatedNews(questionId);
 
   if (articles.length > 0) {
-    return <NewsMatchDrawer articles={articles} questionId={questionId} />;
+    return <NewsMatchDrawer articles={articles} />;
   } else {
     return null;
   }
