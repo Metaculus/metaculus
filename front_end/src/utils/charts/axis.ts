@@ -92,6 +92,7 @@ type GenerateYDomainParams = {
   zoom: TimelineChartZoomOption;
   isChartEmpty: boolean;
   zoomDomainPadding?: number;
+  forceAutoZoom?: boolean;
 };
 
 export function generateYDomain({
@@ -101,6 +102,7 @@ export function generateYDomain({
   maxValues,
   minTimestamp,
   zoomDomainPadding = 0.05,
+  forceAutoZoom,
 }: GenerateYDomainParams): {
   originalYDomain: Tuple<number>;
   zoomedYDomain: Tuple<number>;
@@ -108,7 +110,10 @@ export function generateYDomain({
   const originalYDomain: Tuple<number> = [0, 1];
   const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
 
-  if (zoom === TimelineChartZoomOption.All || isChartEmpty) {
+  if (
+    (zoom === TimelineChartZoomOption.All && !forceAutoZoom) ||
+    isChartEmpty
+  ) {
     return fallback;
   }
 
