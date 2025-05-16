@@ -32,6 +32,7 @@ import {
   Scale,
   TimelineChartZoomOption,
 } from "@/types/charts";
+import { ThemeColor } from "@/types/theme";
 import { getAxisRightPadding, getTickLabelFontSize } from "@/utils/charts/axis";
 import cn from "@/utils/core/cn";
 
@@ -59,7 +60,7 @@ type Props = {
   onChartReady?: () => void;
   onCursorChange?: (value: number | null) => void;
   getCursorValue?: (value: number) => string;
-  isQuestionGraph?: boolean;
+  colorOverride?: ThemeColor;
 };
 
 const BOTTOM_PADDING = 20;
@@ -79,7 +80,7 @@ const NewNumericChart: FC<Props> = ({
   onChartReady,
   onCursorChange,
   getCursorValue,
-  isQuestionGraph = true,
+  colorOverride,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -329,8 +330,8 @@ const NewNumericChart: FC<Props> = ({
                 style={{
                   data: {
                     strokeWidth: 2.5,
-                    ...(!isQuestionGraph && {
-                      stroke: getThemeColor(METAC_COLORS.blue["600"]),
+                    ...(!isNil(colorOverride) && {
+                      stroke: getThemeColor(colorOverride),
                     }),
                     opacity: 0.2,
                   },
@@ -344,8 +345,8 @@ const NewNumericChart: FC<Props> = ({
               style={{
                 data: {
                   strokeWidth: 2.5,
-                  ...(!isQuestionGraph && {
-                    stroke: getThemeColor(METAC_COLORS.blue["600"]),
+                  ...(!isNil(colorOverride) && {
+                    stroke: getThemeColor(colorOverride),
                   }),
                 },
               }}
@@ -361,7 +362,7 @@ const NewNumericChart: FC<Props> = ({
                       isCursorActive={isCursorActive}
                       chartWidth={chartWidth}
                       rightPadding={maxPadding}
-                      isQuestionGraph={isQuestionGraph}
+                      colorOverride={colorOverride}
                       getCursorValue={getCursorValue}
                     />
                   </VictoryPortal>
@@ -399,7 +400,7 @@ const CursorValue: React.FC<{
   isCursorActive: boolean;
   chartWidth: number;
   rightPadding: number;
-  isQuestionGraph?: boolean;
+  colorOverride?: ThemeColor;
   getCursorValue?: (value: number) => string;
 }> = (props) => {
   const TEXT_PADDING = 4;
@@ -411,7 +412,7 @@ const CursorValue: React.FC<{
     isCursorActive,
     chartWidth,
     rightPadding,
-    isQuestionGraph = true,
+    colorOverride,
     getCursorValue,
   } = props;
   const [textWidth, setTextWidth] = useState(0);
@@ -436,9 +437,9 @@ const CursorValue: React.FC<{
         width={textWidth}
         height={chipHeight}
         fill={
-          isQuestionGraph
+          isNil(colorOverride)
             ? getThemeColor(METAC_COLORS.olive["600"])
-            : getThemeColor(METAC_COLORS.blue["600"])
+            : getThemeColor(colorOverride)
         }
         stroke="transparent"
         rx={2}
