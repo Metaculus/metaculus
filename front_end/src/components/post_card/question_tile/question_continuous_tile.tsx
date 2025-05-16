@@ -127,6 +127,7 @@ const QuestionContinuousTile: FC<Props> = ({
       <div className="relative my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
           <NumericTimeline
+            nonInteractive={true}
             aggregation={question.aggregations.recency_weighted}
             myForecasts={question.my_forecasts}
             height={HEIGHT}
