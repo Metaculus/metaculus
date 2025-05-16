@@ -10,12 +10,11 @@ import { NewsArticle } from "@/types/news";
 import NewsMatchArticle from "./news_match_article";
 
 interface Props {
-  questionId: number;
   allowModifications?: boolean;
   articles: NewsArticle[];
 }
 
-const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
+const NewsMatchDrawer: FC<Props> = ({ articles }) => {
   const t = useTranslations();
   const [articleDisplayLimit, setArticleDisplayLimit] = useState(3);
   const closestArticle = [...articles].sort(
@@ -32,7 +31,7 @@ const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
               <NewsMatchArticle
                 key={article.id}
                 article={article}
-                isMostRelatedArticle={closestArticle?.id === article.id}
+                isClosest={closestArticle?.id === article.id}
               />
             ))}
           <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">

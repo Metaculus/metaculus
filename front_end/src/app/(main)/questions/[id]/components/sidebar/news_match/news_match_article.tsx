@@ -17,7 +17,7 @@ import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
   article: NewsArticle;
-  isMostRelatedArticle?: boolean;
+  isClosest?: boolean;
 };
 
 function getProxiedFaviconUrl(originalUrl: string): string {
@@ -25,7 +25,7 @@ function getProxiedFaviconUrl(originalUrl: string): string {
   return `/newsmatch/favicon?url=${encodeURIComponent(originalUrl)}`;
 }
 
-const NewsMatchArticle: FC<Props> = ({ article, isMostRelatedArticle }) => {
+const NewsMatchArticle: FC<Props> = ({ article, isClosest }) => {
   const { user } = useAuth();
   const locale = useLocale();
   const t = useTranslations();
@@ -93,7 +93,7 @@ const NewsMatchArticle: FC<Props> = ({ article, isMostRelatedArticle }) => {
                 <span>Similarity Distance:</span>
                 <span
                   className={cn("mx-2", {
-                    "font-bold text-red-700": isMostRelatedArticle,
+                    "font-bold text-red-700": isClosest,
                   })}
                 >
                   {article.distance.toFixed(2)}
