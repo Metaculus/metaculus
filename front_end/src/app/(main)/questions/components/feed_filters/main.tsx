@@ -135,6 +135,7 @@ const MainFeedFilters: FC<Props> = ({
         QuestionOrder.WeeklyMovementDesc,
         QuestionOrder.PublishTimeDesc,
         QuestionOrder.CloseTimeAsc,
+        QuestionOrder.NewsHotness,
       ].includes(order)
     ) {
       setFilterParam(POST_STATUS_FILTER, "open", false);
