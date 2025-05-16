@@ -26,7 +26,7 @@ def reverse_migrate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("projects", "0014_project_description_zh_tw_project_name_zh_tw_and_more"),
+        ("projects", "0015_project_forecasts_flow_enabled"),
     ]
 
     operations = [
