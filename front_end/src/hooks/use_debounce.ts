@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Timer = ReturnType<typeof setTimeout>;
@@ -49,8 +50,8 @@ export const useDebouncedCallback = <T>(
   }, []);
 
   return useCallback(
-    (arg: T) => {
-      argRef.current = arg;
+    (arg?: T) => {
+      argRef.current = arg ?? null;
       const callNow = leading && !timeout.current;
 
       if (timeout.current) {
@@ -66,7 +67,7 @@ export const useDebouncedCallback = <T>(
         timeout.current = undefined;
       }, wait);
 
-      if (callNow) {
+      if (callNow && !isNil(arg)) {
         funcRef.current(arg);
       }
     },

@@ -6,7 +6,7 @@ import { FC } from "react";
 import ExperimentCandleBarGraph from "@/app/(main)/experiments/components/experiment_candle_bar_graph";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import Button from "@/components/ui/button";
-import PostsApi from "@/services/posts";
+import ServerPostsApi from "@/services/api/posts/posts.server";
 import { Candle } from "@/types/experiments";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -24,8 +24,12 @@ const ExpectedElectoralVotesForecast: FC<Props> = async ({
 }) => {
   const t = await getTranslations();
   const [democratPost, republicanPost] = await Promise.all([
-    PostsApi.getPostAnonymous(democratPostId, { next: { revalidate: 900 } }),
-    PostsApi.getPostAnonymous(republicanPostId, { next: { revalidate: 900 } }),
+    ServerPostsApi.getPostAnonymous(democratPostId, {
+      next: { revalidate: 900 },
+    }),
+    ServerPostsApi.getPostAnonymous(republicanPostId, {
+      next: { revalidate: 900 },
+    }),
   ]);
   if (!democratPost?.question || !republicanPost?.question) {
     return null;

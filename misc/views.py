@@ -1,6 +1,8 @@
+from datetime import datetime
 import django
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -8,10 +10,13 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+from django.views.decorators.cache import cache_page
 
 from .models import Bulletin, BulletinViewedBy, ITNArticle
 from .serializers import ContactSerializer
 from .services.itn import remove_article
+
+from questions.models import Question, Forecast
 
 
 @api_view(["POST"])
@@ -70,6 +75,22 @@ def get_bulletins(request):
         ]
     }
     return Response(bulletins_ser)
+
+
+@cache_page(60 * 60 * 24)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_site_stats(request):
+    now_year = datetime.now().year
+    stats = {
+        "predictions": Forecast.objects.count(),
+        "questions": Question.objects.count(),
+        "resolved_questions": Question.objects.filter(
+            actual_resolve_time__isnull=False
+        ).count(),
+        "years_of_predictions": now_year - 2015 + 1,
+    }
+    return JsonResponse(stats)
 
 
 @api_view(["POST"])

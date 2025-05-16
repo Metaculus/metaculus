@@ -1208,6 +1208,7 @@
   "maxKeyFactorLength": "Los factores clave deben tener menos de 150 caracteres.",
   "addKeyFactorsModalP1": "Enumere los factores clave que considera más importantes — mantenga cada uno de manera breve y específica.",
   "addKeyFactorsModalP2": "Por favor, publique un comentario para explicar por qué estos factores son importantes para su pronóstico.",
+  "duplicateSubQuestionLabel": "Duplicar las etiquetas de subpregunta",
   "withdrawAll": "Retirar todo",
   "reaffirmAll": "Reafirmar todo",
   "outdatedServerActionMessage": "Algo salió mal. Por favor, actualiza la página e inténtalo de nuevo.",
@@ -1250,5 +1251,17 @@
   "uncertaintySignificantMovementBannerText": "La predicción de la comunidad {direction} la incertidumbre en <strong>{amount}{unit}</strong> desde tu último pronóstico.",
   "skippedWithoutPredicting": "Has omitido {count, plural, =1 {# pregunta} other {# preguntas}} sin predecir.",
   "allQuestionsPredicted": "Todas las preguntas predichas",
-  "thereAreQuestionsYouHaveNotPredicted": "Hay {count, plural, =1 {<bold># pregunta</bold>} other {<bold># preguntas</bold>}} que aún no has predicho."
+  "thereAreQuestionsYouHaveNotPredicted": "Hay {count, plural, =1 {<bold># pregunta</bold>} other {<bold># preguntas</bold>}} que aún no has predicho.",
+  "CPMovementHourChangeLabel": "{value} esta hora",
+  "CPMovementDayChangeLabel": "{value} hoy",
+  "CPMovementWeekChangeLabel": "{value} esta semana",
+  "add": "Agregar",
+  "suggestedKeyFactorsSection": "Aquí están los factores clave sugeridos basados en el texto de tu comentario. Siéntete libre de añadir los que consideres apropiados o ingresa tus factores clave manualmente.",
+  "loadingSuggestedKeyFactors": "Generando factores clave...",
+  "close": "Cerrar",
+  "indexValue": "Valor del índice",
+  "indexWeeklyMovement": "<strong>{value}</strong> esta semana",
+  "metadata": "Metadatos",
+  "indexTimeline": "Cronología del índice",
+  "inTheNews": "En las Noticias"
 }

@@ -69,6 +69,22 @@ export function getAxisLeftPadding(
   };
 }
 
+export function getAxisRightPadding(
+  yScale: Scale,
+  labelsFontSize: number,
+  yLabel?: string | undefined
+) {
+  const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
+  const longestLabelLength = Math.max(...labels.map((label) => label.length));
+  const fontSizeScale = yLabel ? 10 : 9;
+  return {
+    rightPadding: Math.round(
+      (longestLabelLength * labelsFontSize * fontSizeScale) / 10
+    ),
+    MIN_RIGHT_PADDING: 35,
+  };
+}
+
 type GenerateYDomainParams = {
   minValues: Array<{ timestamp: number; y: number | null | undefined }>;
   maxValues: Array<{ timestamp: number; y: number | null | undefined }>;

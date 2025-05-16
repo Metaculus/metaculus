@@ -1210,6 +1210,7 @@
   "maxKeyFactorLength": "关键因素必须少于150个字符。",
   "addKeyFactorsModalP1": "列出您认为最重要的关键因素——保持每个因素简短且具体。",
   "addKeyFactorsModalP2": "请发表评论，解释这些因素对您的预测为什么重要。",
+  "duplicateSubQuestionLabel": "子问题标签重复",
   "withdrawAll": "全部撤回",
   "reaffirmAll": "全部重申",
   "outdatedServerActionMessage": "出现了问题。请刷新页面并重试。",
@@ -1252,5 +1253,18 @@
   "uncertaintySignificantMovementBannerText": "社区预测自您上次预测后不确定性<strong>{amount}{unit}</strong>{direction}。",
   "skippedWithoutPredicting": "您跳过了 {count, plural, =1 {# 个问题} other {# 个问题}} 并未预测。",
   "allQuestionsPredicted": "所有问题均已预测",
-  "thereAreQuestionsYouHaveNotPredicted": "您尚未预测的 {count, plural, =1 {是 <bold># 个问题</bold>} other {是 <bold># 个问题</bold>}}。"
+  "thereAreQuestionsYouHaveNotPredicted": "您尚未预测的 {count, plural, =1 {是 <bold># 个问题</bold>} other {是 <bold># 个问题</bold>}}。",
+  "CPMovementHourChangeLabel": "{value} 本小时",
+  "CPMovementDayChangeLabel": "{value} 今天",
+  "CPMovementWeekChangeLabel": "{value} 本周",
+  "CPMovementChangeLabel": "{period} 内的 {value}",
+  "add": "添加",
+  "suggestedKeyFactorsSection": "以下是根据您的评论文本建议的关键因素。您可以添加您认为合适的因素，或手动输入您的关键因素。",
+  "loadingSuggestedKeyFactors": "生成关键因素...",
+  "close": "关闭",
+  "indexValue": "指数值",
+  "indexWeeklyMovement": "<strong>{value}</strong> 本周",
+  "metadata": "元数据",
+  "indexTimeline": "指数时间线",
+  "inTheNews": "新闻报道"
 }

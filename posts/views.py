@@ -568,9 +568,17 @@ def post_related_articles_api_view(request: Request, pk):
     # ObjectPermission.can_view(permission, raise_exception=True)
 
     # Retrieve cached articles
-    articles = get_post_similar_articles(post)
+    post_articles = get_post_similar_articles(post)
 
-    return Response(PostRelatedArticleSerializer(articles, many=True).data)
+    return Response(
+        [
+            {
+                **PostRelatedArticleSerializer(post_article.article).data,
+                "distance": post_article.distance,
+            }
+            for post_article in post_articles
+        ]
+    )
 
 
 @api_view(["GET"])

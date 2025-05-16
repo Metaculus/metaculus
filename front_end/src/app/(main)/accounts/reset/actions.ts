@@ -4,7 +4,7 @@ import {
   passwordResetConfirmSchema,
   passwordResetRequestSchema,
 } from "@/app/(main)/accounts/schemas";
-import AuthApi from "@/services/auth";
+import ServerAuthApi from "@/services/api/auth/auth.server";
 import { setServerSession } from "@/services/session";
 import { AuthResponse } from "@/types/auth";
 import { ApiError } from "@/utils/core/errors";
@@ -28,7 +28,7 @@ export async function passwordResetRequestAction(
   }
 
   try {
-    await AuthApi.passwordResetRequest(validatedFields.data.login);
+    await ServerAuthApi.passwordResetRequest(validatedFields.data.login);
 
     return {};
   } catch (err) {
@@ -58,7 +58,7 @@ export async function passwordResetConfirmAction(
   }
 
   try {
-    const response = await AuthApi.passwordResetConfirm(
+    const response = await ServerAuthApi.passwordResetConfirm(
       validatedFields.data.user_id,
       validatedFields.data.token,
       validatedFields.data.password

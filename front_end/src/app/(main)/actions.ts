@@ -1,22 +1,21 @@
 "use server";
 
-import AuthApi from "@/services/auth";
-import MiscApi, { ContactForm } from "@/services/misc";
+import ServerAuthApi from "@/services/api/auth/auth.server";
+import serverMiscApi from "@/services/api/misc/misc.server";
+import { ContactForm } from "@/services/api/misc/misc.shared";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function submitContactForm(data: ContactForm) {
-  return await MiscApi.submitContactForm(data);
-}
-
-export async function getBulletins() {
-  return await MiscApi.getBulletins();
+  return await serverMiscApi.submitContactForm(data);
 }
 
 export async function cancelBulletin(bulletinId: number) {
-  return await MiscApi.cancelBulletin(bulletinId);
+  return await serverMiscApi.cancelBulletin(bulletinId);
 }
 
 export async function getSocialProviders() {
   const { PUBLIC_APP_URL } = getPublicSettings();
-  return await AuthApi.getSocialProviders(`${PUBLIC_APP_URL}/accounts/social`);
+  return await ServerAuthApi.getSocialProviders(
+    `${PUBLIC_APP_URL}/accounts/social`
+  );
 }

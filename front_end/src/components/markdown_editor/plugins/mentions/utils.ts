@@ -1,4 +1,4 @@
-import { searchUsers } from "@/app/(main)/questions/actions";
+import ClientProfileApi from "@/services/api/profile/profile.client";
 
 import { MentionItem } from "./types";
 
@@ -27,15 +27,18 @@ export async function queryMentions(
     return clientSearch(query, fallbackMentions);
   }
 
-  const users = await searchUsers(query);
-  if (!!users && "errors" in users) {
+  try {
+    const users = await ClientProfileApi.searchUsers(query);
+    return sortUsernames(query, [
+      ...users.results.map((user) => ({
+        value: user.username,
+        userId: user.id,
+      })),
+      ...usersGroupMentions,
+    ]);
+  } catch {
     return clientSearch(query, fallbackMentions);
   }
-
-  return sortUsernames(query, [
-    ...users.results.map((user) => ({ value: user.username, userId: user.id })),
-    ...usersGroupMentions,
-  ]);
 }
 
 const clientSearch = (query: string, mentions: MentionItem[]) =>

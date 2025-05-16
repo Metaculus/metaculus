@@ -6,7 +6,7 @@ import strip from "strip-markdown";
 import IndividualNotebookPage from "@/app/(main)/notebooks/[id]/[[...slug]]/page_compotent";
 import IndividualQuestionPage from "@/app/(main)/questions/[id]/[[...slug]]/page_component";
 import { defaultDescription } from "@/constants/metadata";
-import PostsApi from "@/services/posts";
+import ServerPostsApi from "@/services/api/posts/posts.server";
 import { SearchParams } from "@/types/navigation";
 import { TournamentType } from "@/types/projects";
 import { getPostTitle } from "@/utils/questions/helpers";
@@ -18,7 +18,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const postData = await PostsApi.getPost(params.id);
+  const postData = await ServerPostsApi.getPost(params.id);
 
   if (!postData) {
     return {};
@@ -62,7 +62,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 async function CommunityPost(props: Props) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const postData = await PostsApi.getPost(params.id);
+  const postData = await ServerPostsApi.getPost(params.id);
 
   if (!postData) {
     return notFound();

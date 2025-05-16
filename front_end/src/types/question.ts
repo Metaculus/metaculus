@@ -1,4 +1,4 @@
-import { QuestionStatus, Resolution } from "@/types/post";
+import { Category, QuestionStatus, Resolution } from "@/types/post";
 
 import { ContinuousForecastInputType } from "./charts";
 
@@ -27,10 +27,10 @@ export enum QuestionOrder {
   ScoreDesc = "-score",
   ScoreAsc = "score",
   ResolveTimeAsc = "scheduled_resolve_time",
+  NewsHotness = "-news_hotness",
   HotDesc = "-hotness",
   HotAsc = "hotness",
   RankDesc = "-rank",
-  CreatedDesc = "-created_at",
 }
 
 export type Scaling = {
@@ -143,6 +143,7 @@ export type AggregateForecastHistory = {
   history: AggregateForecast[];
   latest?: AggregateForecast;
   score_data?: ScoreData;
+  movement?: CPMovement | null;
 };
 
 export type Aggregations = {
@@ -178,6 +179,13 @@ export type MultipleChoiceForecast = BaseForecast & {
     q3: number;
     q1: number;
   }>;
+};
+
+export type CPMovement = {
+  divergence?: number;
+  direction: MovementDirection;
+  movement: number;
+  period?: string;
 };
 
 export type Question = {
@@ -230,14 +238,10 @@ export type Question = {
   // Used for GroupOfQuestions
   status?: QuestionStatus;
   // used for prediction flow in tournament
-
   my_forecast?: {
     latest: UserForecast;
     lifetime_elapsed: number;
-    movement: null | {
-      direction: MovementDirection;
-      movement: number;
-    };
+    movement: null | CPMovement;
   };
 };
 
@@ -250,6 +254,40 @@ export enum MovementDirection {
   UNCHANGED = "unchanged",
   CHANGED = "changed",
 }
+
+export type EditableQuestionFields = Pick<
+  Question,
+  | "title"
+  | "description"
+  | "options"
+  | "group_variable"
+  | "group_rank"
+  | "scaling"
+  | "resolution"
+  | "include_bots_in_aggregates"
+  | "question_weight"
+  | "fine_print"
+  | "resolution_criteria"
+  | "label"
+  | "unit"
+  | "post_id"
+  | "display_divergences"
+  | "open_lower_bound"
+  | "open_upper_bound"
+  | "status"
+  | "type"
+>;
+
+export type QuestionDraft = Partial<EditableQuestionFields> & {
+  lastModified: number;
+  categories?: Category[];
+  default_project?: number;
+  subQuestions?: QuestionWithForecasts[]; // Group form
+  condition?: QuestionWithForecasts | null;
+  condition_child?: QuestionWithForecasts | null;
+  condition_id?: string;
+  condition_child_id?: string;
+};
 
 export type QuestionWithNumericForecasts = Question & {
   type: QuestionType.Numeric | QuestionType.Date | QuestionType.Binary;

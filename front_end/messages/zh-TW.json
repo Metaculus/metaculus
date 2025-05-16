@@ -1247,5 +1247,19 @@
   "uncertaintySignificantMovementBannerText": "自您上次預測以來，社會預測不確定性{direction}了<strong>{amount}{unit}</strong>。",
   "skippedWithoutPredicting": "您跳過了 {count, plural, =1 {# 個問題} other {# 個問題}} 而未預測。",
   "allQuestionsPredicted": "所有問題均已預測",
-  "thereAreQuestionsYouHaveNotPredicted": "您還有 {count, plural, =1 {<bold># 個問題</bold>} other {<bold># 個問題</bold>}} 尚未預測。"
+  "thereAreQuestionsYouHaveNotPredicted": "您還有 {count, plural, =1 {<bold># 個問題</bold>} other {<bold># 個問題</bold>}} 尚未預測。",
+  "duplicateSubQuestionLabel": "重複的子問題標籤",
+  "CPMovementHourChangeLabel": "{value} 本小時",
+  "CPMovementDayChangeLabel": "{value} 今天",
+  "CPMovementWeekChangeLabel": "{value} 本週",
+  "CPMovementChangeLabel": "{value} 本 {period}",
+  "add": "新增",
+  "suggestedKeyFactorsSection": "這裡是根據您的評論文本推薦的關鍵因素。如果您覺得合適，可以添加這些關鍵因素，或者手動輸入您的關鍵因素。",
+  "loadingSuggestedKeyFactors": "生成關鍵因素中...",
+  "close": "關閉",
+  "indexValue": "指數值",
+  "indexWeeklyMovement": "本週<strong>{value}</strong>",
+  "metadata": "元數據",
+  "indexTimeline": "指數時間表",
+  "inTheNews": "新聞摘要"
 }

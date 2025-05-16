@@ -180,6 +180,7 @@ type MarkdownEditorFieldProps<T extends FieldValues = FieldValues> = {
   defaultValue?: PathValue<T, Path<T>>;
   errors?: ErrorResponse;
   className?: string;
+  onChange?: (markdown: string) => void;
 };
 
 export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
@@ -188,9 +189,14 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
   errors,
   defaultValue,
   className,
+  onChange,
 }: MarkdownEditorFieldProps<T>) => {
   const { field } = useController({ control, name, defaultValue });
   const editorRef = useRef<MDXEditorMethods>(null);
+
+  useEffect(() => {
+    editorRef.current?.setMarkdown(field.value ?? "");
+  }, [field.value]);
 
   return (
     <>
@@ -217,7 +223,10 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
           ref={editorRef}
           mode="write"
           markdown={field.value ?? ""}
-          onChange={field.onChange}
+          onChange={(markdown) => {
+            field.onChange(markdown);
+            onChange?.(markdown);
+          }}
           onBlur={field.onBlur}
           className="markdown-editor-form w-full"
         />

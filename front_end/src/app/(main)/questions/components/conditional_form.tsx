@@ -1,9 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isNil } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { SetStateAction, useState } from "react";
+import {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { FieldValues, useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
@@ -13,6 +20,7 @@ import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { Post, PostWithForecasts, QuestionStatus } from "@/types/post";
 import {
   Tournament,
@@ -21,6 +29,12 @@ import {
 } from "@/types/projects";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
+import {
+  deleteQuestionDraft,
+  getQuestionDraft,
+  saveQuestionDraft,
+  QUESTION_DRAFT_DEBOUNCE_TIME,
+} from "@/utils/drafts/questionForm";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions/helpers";
 
@@ -67,6 +81,7 @@ const ConditionalForm: React.FC<{
 }) => {
   const router = useRouter();
   const t = useTranslations();
+  const draftKey = `conditional`;
   const { isLive, isDone } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
@@ -76,6 +91,17 @@ const ConditionalForm: React.FC<{
   if (isDone) {
     throw new Error(t("isDoneError"));
   }
+  const isDraftMounted = useRef(false);
+  const defaultProject = post
+    ? post.projects.default_project
+    : tournament_id
+      ? ([...tournaments, siteMain].filter(
+          (x) => x.id === tournament_id
+        )[0] as Tournament)
+      : siteMain;
+  const [currentProject, setCurrentProject] =
+    useState<Tournament>(defaultProject);
+
   const [conditionParent, setConditionParent] =
     useState<QuestionWithForecasts | null>(conditionParentInit);
   const [conditionChild, setConditionChild] =
@@ -113,8 +139,8 @@ const ConditionalForm: React.FC<{
           resp = await updatePost(post?.id as number, post_data);
         } else {
           resp = await createQuestionPost(post_data);
+          deleteQuestionDraft(draftKey);
         }
-
         router.push(getPostLink(resp.post));
       }
     } catch (e) {
@@ -126,13 +152,56 @@ const ConditionalForm: React.FC<{
     }
   };
 
-  const defaultProject = post
-    ? post.projects.default_project
-    : tournament_id
-      ? ([...tournaments, siteMain].filter(
-          (x) => x.id === tournament_id
-        )[0] as Tournament)
-      : siteMain;
+  useEffect(() => {
+    if (mode === "create") {
+      const draft = getQuestionDraft(draftKey);
+      if (draft) {
+        setCurrentProject(
+          !isNil(draft.default_project) &&
+            isNil(tournament_id) &&
+            isNil(community_id)
+            ? ([...tournaments, siteMain].filter(
+                (x) => x.id === draft.default_project
+              )[0] as Tournament)
+            : defaultProject
+        );
+        setConditionParent(draft.condition ?? null);
+        setConditionChild(draft.condition_child ?? null);
+        control.reset(draft);
+      }
+      setTimeout(() => {
+        isDraftMounted.current = true;
+      }, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleFormChange = useCallback(() => {
+    if (mode === "create") {
+      const formData = control.getValues();
+      saveQuestionDraft(draftKey, {
+        default_project: formData.default_project as number,
+        condition: conditionParent,
+        condition_child: conditionChild,
+        condition_id: conditionParent?.id.toString(),
+        condition_child_id: conditionChild?.id.toString(),
+      });
+    }
+  }, [control, mode, draftKey, conditionParent, conditionChild]);
+
+  const debouncedHandleFormChange = useDebouncedCallback(
+    handleFormChange,
+    QUESTION_DRAFT_DEBOUNCE_TIME
+  );
+  // update draft when form values changes
+  useEffect(() => {
+    const subscription = control.watch(() => {
+      if (mode === "create" && isDraftMounted.current) {
+        debouncedHandleFormChange();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [control, mode, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -168,7 +237,7 @@ const ConditionalForm: React.FC<{
           <ProjectPickerInput
             tournaments={tournaments}
             siteMain={siteMain}
-            currentProject={defaultProject}
+            currentProject={currentProject}
             onChange={(project) => {
               control.setValue("default_project", project.id);
             }}
@@ -255,7 +324,7 @@ const ConditionalForm: React.FC<{
   );
 };
 
-async function setConditionQuestion({
+function setConditionQuestion({
   question,
   control,
   setQuestionState,

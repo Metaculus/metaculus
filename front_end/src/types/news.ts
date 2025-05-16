@@ -8,6 +8,7 @@ export type NewsArticle = {
   favicon_url?: string;
   media_label: string;
   user_vote: VoteDirection;
+  distance: number;
 };
 
 export type NotebookIndex = Record<

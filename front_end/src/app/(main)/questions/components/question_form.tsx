@@ -3,10 +3,11 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isNil } from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -23,6 +24,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
 import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
@@ -32,6 +34,12 @@ import {
 } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { logError } from "@/utils/core/errors";
+import {
+  deleteQuestionDraft,
+  getQuestionDraft,
+  QUESTION_DRAFT_DEBOUNCE_TIME,
+  saveQuestionDraft,
+} from "@/utils/drafts/questionForm";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions/helpers";
 
@@ -271,7 +279,7 @@ const QuestionForm: FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
-
+  const isDraftMounted = useRef(false);
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
@@ -279,7 +287,8 @@ const QuestionForm: FC<Props> = ({
           (x) => x.id === tournament_id
         )[0] as Tournament)
       : siteMain;
-
+  const [currentProject, setCurrentProject] =
+    useState<Tournament>(defaultProject);
   if (isDone) {
     throw new Error(t("isDoneError"));
   }
@@ -338,8 +347,8 @@ const QuestionForm: FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
+        deleteQuestionDraft(questionType);
       }
-
       router.push(getPostLink(resp.post));
     } catch (e) {
       const error = e as Error & { digest?: string };
@@ -384,6 +393,56 @@ const QuestionForm: FC<Props> = ({
     form.setValue("type", questionType);
   }
 
+  const handleFormChange = useCallback(() => {
+    if (mode === "create") {
+      const formData = form.getValues();
+      saveQuestionDraft(questionType, {
+        ...formData,
+        options: optionsList,
+        categories: categoriesList,
+      });
+    }
+  }, [form, mode, questionType, optionsList, categoriesList]);
+
+  const debouncedHandleFormChange = useDebouncedCallback(
+    handleFormChange,
+    QUESTION_DRAFT_DEBOUNCE_TIME
+  );
+
+  useEffect(() => {
+    if (mode === "create" && !isDraftMounted.current) {
+      const draft = getQuestionDraft(questionType);
+      if (draft) {
+        setOptionsList(draft.options ?? Array(MIN_OPTIONS_AMOUNT).fill("")); // MC questions
+        setCategoriesList(draft.categories ?? []);
+        setCurrentProject(
+          !isNil(draft.default_project) &&
+            isNil(tournament_id) &&
+            isNil(community_id)
+            ? ([...tournaments, siteMain].filter(
+                (x) => x.id === draft.default_project
+              )[0] as Tournament)
+            : defaultProject
+        );
+        form.reset(draft);
+      }
+      setTimeout(() => {
+        isDraftMounted.current = true;
+      }, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // update draft when form values changes
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (mode === "create" && isDraftMounted.current) {
+        debouncedHandleFormChange();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, mode, debouncedHandleFormChange]);
+
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
@@ -412,10 +471,6 @@ const QuestionForm: FC<Props> = ({
               console.log("Error: ", e);
             }
           )(e);
-        }}
-        onChange={async () => {
-          const data = form.getValues();
-          data["type"] = questionType;
         }}
         className="mt-4 flex w-full flex-col gap-6"
       >
@@ -504,6 +559,7 @@ const QuestionForm: FC<Props> = ({
         {(questionType === QuestionType.Date ||
           questionType === QuestionType.Numeric) && (
           <NumericQuestionInput
+            draftKey={questionType}
             questionType={questionType}
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}
@@ -697,7 +753,7 @@ const QuestionForm: FC<Props> = ({
               <ProjectPickerInput
                 tournaments={tournaments}
                 siteMain={siteMain}
-                currentProject={defaultProject}
+                currentProject={currentProject}
                 onChange={(project) => {
                   form.setValue("default_project", project.id);
                 }}

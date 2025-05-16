@@ -4,7 +4,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
 import { Suspense, useEffect } from "react";
 
-function PostHogPageView() {
+function PostHogPageView({ locale }: { locale: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const posthog = usePostHog();
@@ -16,6 +16,7 @@ function PostHogPageView() {
       }
       posthog.capture("$pageview", {
         $current_url: url,
+        $locale: locale,
       });
     }
   }, [pathname, searchParams, posthog]);
@@ -26,10 +27,14 @@ function PostHogPageView() {
 // Wrap this in Suspense to avoid the `useSearchParams` usage above
 // from de-opting the whole app into client-side rendering
 // See: https://nextjs.org/docs/messages/deopted-into-client-rendering
-export default function SuspendedPostHogPageView() {
+export default function SuspendedPostHogPageView({
+  locale,
+}: {
+  locale: string;
+}) {
   return (
     <Suspense fallback={null}>
-      <PostHogPageView />
+      <PostHogPageView locale={locale} />
     </Suspense>
   );
 }

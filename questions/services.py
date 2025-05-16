@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import cast, TypedDict, Iterable
 
 from django.db import transaction
@@ -27,9 +27,11 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
+from questions.utils import get_question_movement_period
 from scoring.models import Score, Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
+from utils.db import transaction_repeatable_read
 from utils.dtypes import flatten
 from utils.models import model_update
 from utils.the_math.aggregations import (
@@ -157,7 +159,9 @@ def compute_question_movement(question: Question) -> float | None:
         return
 
     cp_previous = get_aggregations_at_time(
-        question, now - timedelta(days=7), [AggregationMethod.RECENCY_WEIGHTED]
+        question,
+        now - get_question_movement_period(question),
+        [AggregationMethod.RECENCY_WEIGHTED],
     ).get(AggregationMethod.RECENCY_WEIGHTED)
 
     if not cp_previous:
@@ -946,54 +950,64 @@ def calculate_user_forecast_movement_for_questions(
         q: None for q in questions
     }
 
-    # Step 1: Fetch aggregated forecasts with deferred `forecast_values` field.
-    # We do this to significantly reduce data transfer size and Django model instance serialization time,
-    # because the `forecast_values` object can be quite large.
-    question_aggregated_forecasts_map = get_aggregated_forecasts_for_questions(
-        # Only forecasted questions
-        forecasts_map.keys(),
-        aggregated_forecast_qs=AggregateForecast.objects.filter(
-            method=AggregationMethod.RECENCY_WEIGHTED,
-        ).only("id", "start_time", "question_id", "end_time"),
-    )
-
-    agg_id_map: dict[Question, tuple[int, int]] = {}
-
-    # Step 2: find First and Last AggregateForecast for each question
-    for question in questions:
-        user_forecast = forecasts_map[question]
-        aggregated_forecasts = question_aggregated_forecasts_map.get(question)
-
-        if not user_forecast or not aggregated_forecasts:
-            continue
-
-        # Skip hidden CP
-        if question.is_cp_hidden:
-            continue
-
-        last_agg = aggregated_forecasts[-1]
-        first_agg = (
-            next(
-                (
-                    agg
-                    for agg in aggregated_forecasts
-                    if agg.start_time <= user_forecast.start_time
-                    and (
-                        agg.end_time is None or agg.end_time > user_forecast.start_time
-                    )
-                ),
-                None,
-            )
-            or last_agg
+    # Run this block at REPEATABLE READ isolation level to prevent race conditions.
+    # We first perform a lightweight query fetching only id, start_time, and end_time
+    # of AggregateForecast to identify the relevant rows, then re-fetch
+    # the full data for those IDs. Without a stable snapshot, records might disappear
+    # mid-process (e.g. due to concurrent CP recalculation), causing missing data errors.
+    # REPEATABLE READ ensures both SELECTs see the same MVCC snapshot and avoids this race.
+    with transaction_repeatable_read():
+        # Step 1: Fetch aggregated forecasts with deferred `forecast_values` field.
+        # We do this to significantly reduce data transfer size and Django model instance serialization time,
+        # because the `forecast_values` object can be quite large.
+        question_aggregated_forecasts_map = get_aggregated_forecasts_for_questions(
+            # Only forecasted questions
+            forecasts_map.keys(),
+            aggregated_forecast_qs=AggregateForecast.objects.filter(
+                method=AggregationMethod.RECENCY_WEIGHTED,
+            ).only("id", "start_time", "question_id", "end_time"),
         )
 
-        agg_id_map[question] = (first_agg.id, last_agg.id)
+        agg_id_map: dict[Question, tuple[int, int]] = {}
 
-    # 3) Bulk‐fetch full forecasts for just those IDs
-    full_aggs = {
-        x.id: x
-        for x in AggregateForecast.objects.filter(pk__in=flatten(agg_id_map.values()))
-    }
+        # Step 2: find First and Last AggregateForecast for each question
+        for question in questions:
+            user_forecast = forecasts_map[question]
+            aggregated_forecasts = question_aggregated_forecasts_map.get(question)
+
+            if not user_forecast or not aggregated_forecasts:
+                continue
+
+            # Skip hidden CP
+            if question.is_cp_hidden:
+                continue
+
+            last_agg = aggregated_forecasts[-1]
+            first_agg = (
+                next(
+                    (
+                        agg
+                        for agg in aggregated_forecasts
+                        if agg.start_time <= user_forecast.start_time
+                        and (
+                            agg.end_time is None
+                            or agg.end_time > user_forecast.start_time
+                        )
+                    ),
+                    None,
+                )
+                or last_agg
+            )
+
+            agg_id_map[question] = (first_agg.id, last_agg.id)
+
+        # 3) Bulk‐fetch full forecasts for just those IDs
+        full_aggs = {
+            x.id: x
+            for x in AggregateForecast.objects.filter(
+                pk__in=flatten(agg_id_map.values())
+            )
+        }
 
     # 4) Compute and return the movement per question
     for question, (first_id, last_id) in agg_id_map.items():

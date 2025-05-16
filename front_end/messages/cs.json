@@ -1208,6 +1208,7 @@
   "maxKeyFactorLength": "Klíčové faktory musí mít méně než 150 znaků.",
   "addKeyFactorsModalP1": "Uveďte klíčové faktory, které považujete za nejdůležitější — každý faktor by měl být krátký a konkrétní.",
   "addKeyFactorsModalP2": "Prosím, přidejte komentář, který vysvětlí, proč jsou tyto faktory pro vaši předpověď důležité.",
+  "duplicateSubQuestionLabel": "Duplicitní štítky podotázky",
   "withdrawAll": "Vybrat vše",
   "reaffirmAll": "Potvrdit vše",
   "outdatedServerActionMessage": "Něco se pokazilo. Prosím, obnovte stránku a zkuste to znovu.",
@@ -1250,5 +1251,17 @@
   "uncertaintySignificantMovementBannerText": "Nejistota komunitní předpovědi se {direction} o <strong>{amount}{unit}</strong> od vaší poslední prognózy.",
   "skippedWithoutPredicting": "Přeskočili jste {count, plural, =1 {# otázku} other {# otázek}} bez předpovědi.",
   "allQuestionsPredicted": "Všechny otázky jsou předpovězeny",
-  "thereAreQuestionsYouHaveNotPredicted": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které jste ještě nepředpověděli."
+  "thereAreQuestionsYouHaveNotPredicted": "Existuje {count, plural, =1 {<bold># otázka</bold>} other {<bold># otázek</bold>}}, které jste ještě nepředpověděli.",
+  "CPMovementHourChangeLabel": "{value} tuto hodinu",
+  "CPMovementDayChangeLabel": "{value} dnes",
+  "CPMovementWeekChangeLabel": "{value} tento týden",
+  "add": "Přidat",
+  "suggestedKeyFactorsSection": "Zde jsou navrženy klíčové faktory na základě vašeho komentáře. Neváhejte přidat ty, které považujete za vhodné, nebo zadejte své vlastní klíčové faktory ručně.",
+  "loadingSuggestedKeyFactors": "Generování klíčových faktorů...",
+  "close": "Zavřít",
+  "indexValue": "Hodnota indexu",
+  "indexWeeklyMovement": "<strong>{value}</strong> tento týden",
+  "metadata": "Metadata",
+  "indexTimeline": "Časová osa indexu",
+  "inTheNews": "Ve zprávách"
 }

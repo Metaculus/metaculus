@@ -8,9 +8,10 @@ const FONT_SIZE = 10;
 
 type Props = ComponentProps<typeof VictoryLabel> & {
   positionY: number;
+  fill?: string;
 };
 
-const ChartCursorLabel: FC<Props> = ({ positionY, ...props }) => {
+const ChartCursorLabel: FC<Props> = ({ positionY, fill, ...props }) => {
   const { theme } = useAppTheme();
 
   const estimatedTextWidth = (props.text?.toString().length ?? 0) * FONT_SIZE;
@@ -19,8 +20,9 @@ const ChartCursorLabel: FC<Props> = ({ positionY, ...props }) => {
     <VictoryLabel
       {...props}
       style={{
+        ...((props.style as any) ?? {}),
         fontSize: FONT_SIZE,
-        fill: theme === "dark" ? "white" : "black",
+        fill: fill ?? (theme === "dark" ? "white" : "black"),
       }}
       y={positionY}
       x={centeredX}

@@ -16,6 +16,7 @@ import { PostStatus } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
+import { getKeyFactorsLimits } from "./hooks";
 import KeyFactorItem from "./key_factor_item";
 
 type KeyFactorsSectionProps = {
@@ -59,6 +60,10 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
 
   const { combinedKeyFactors } = useCommentsFeed();
 
+  const { factorsLimit } = user?.id
+    ? getKeyFactorsLimits(combinedKeyFactors, user?.id)
+    : { factorsLimit: 0 };
+
   useEffect(() => {
     // Expands the key factor list when you follow the #key-factors link.
     if (hash === "key-factors") setDisplayLimit(combinedKeyFactors.length);
@@ -100,6 +105,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
       <SectionToggle
         detailElement={
           combinedKeyFactors.length > 0 &&
+          factorsLimit > 0 &&
           ![
             PostStatus.CLOSED,
             PostStatus.RESOLVED,

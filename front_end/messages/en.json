@@ -475,6 +475,7 @@
   "mostPredictions": "Most Predictions",
   "closingSoon": "Closing Soon",
   "closingTime": "Closing Time",
+  "inTheNews": "In The News",
   "resolvingTime": "Resolving Time",
   "bestScores": "Best Scores",
   "worstScores": "Worst Scores",
@@ -1246,5 +1247,17 @@
   "detailedSignificantMovementBannerText": "Community prediction {direction} by <strong>{amount}{unit}</strong> since your last forecast.",
   "dateQuestionSignificantMovementBannerText": "Community prediction moved <strong>{amount}{unit} {direction}</strong> since your last forecast.",
   "uncertaintySignificantMovementBannerText": "Community prediction {direction} uncertainty by <strong>{amount}{unit}</strong> since your last forecast.",
-  "thereAreQuestionsYouHaveNotPredicted": "There {count, plural, =1 {is <bold># question</bold>} other {are <bold># questions</bold>}} that you have not predicted yet."
+  "thereAreQuestionsYouHaveNotPredicted": "There {count, plural, =1 {is <bold># question</bold>} other {are <bold># questions</bold>}} that you have not predicted yet.",
+  "duplicateSubQuestionLabel": "Duplicate sub question labels",
+  "CPMovementHourChangeLabel": "{value} this hour",
+  "CPMovementDayChangeLabel": "{value} today",
+  "CPMovementWeekChangeLabel": "{value} this week",
+  "add": "Add",
+  "suggestedKeyFactorsSection": "Here are the suggested key factors based on your comment text. Feel free to add the ones you see fit, or enter your key factors manually.",
+  "loadingSuggestedKeyFactors": "Generating key factors...",
+  "close": "Close",
+  "indexValue": "Index value",
+  "indexWeeklyMovement": "<strong>{value}</strong> this week",
+  "metadata": "Metadata",
+  "indexTimeline": "Index Timeline"
 }
