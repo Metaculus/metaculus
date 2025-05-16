@@ -1,3 +1,5 @@
+import { safeLocalStorage } from "@/utils/core/storage";
+
 import { logError } from "../core/errors";
 
 const BYTES_IN_MB = 1024 * 1024;
@@ -15,11 +17,12 @@ export function cleanupDrafts({
     const now = Date.now();
     const maxAge = maxAgeDays * 24 * 60 * 60 * 1000;
 
-    const drafts = Object.keys(localStorage)
+    const drafts = safeLocalStorage
+      .keys()
       .filter((key) => key.startsWith(keyPrefix))
       .map((key) => {
         try {
-          const item = localStorage.getItem(key) || "";
+          const item = safeLocalStorage.getItem(key) || "";
           const draft = JSON.parse(item);
           return {
             key,
