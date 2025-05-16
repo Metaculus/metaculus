@@ -11,6 +11,7 @@ export type ForecastPayload = {
   questionId: number;
   forecastData: ForecastData;
   distributionInput?: DistributionSlider | DistributionQuantile | null;
+  forecastEndTime?: Date;
 };
 export type WithdrawalPayload = {
   question: number;
