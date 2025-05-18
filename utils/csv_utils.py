@@ -428,6 +428,8 @@ def export_data_for_questions(
             resolution_index = string_location_to_bucket_index(
                 aggregate_forecast.question.resolution, aggregate_forecast.question
             )
+            # BUG: aggregate_forecast.get_pmf() doesn't behave well beacuse the MP
+            # cdf sometimes has a different number of values than regular CPs
             pmf = [cdf[0]]
             for i in range(1, len(cdf)):
                 pmf.append(cdf[i] - cdf[i - 1])
