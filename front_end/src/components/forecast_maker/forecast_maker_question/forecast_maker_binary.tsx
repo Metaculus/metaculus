@@ -40,7 +40,6 @@ type Props = {
 const ForecastMakerBinary: FC<Props> = ({
   post,
   question,
-  prevForecast,
   permission,
   canPredict,
   canResolve,
@@ -54,7 +53,16 @@ const ForecastMakerBinary: FC<Props> = ({
   const communityForecast =
     latest && !latest.end_time ? latest?.centers?.[0] : undefined;
 
-  const prevForecastValue = extractPrevBinaryForecastValue(prevForecast);
+  const activeUserForecast =
+    (question.my_forecasts?.latest?.end_time ||
+      new Date().getTime() / 1000 + 1000) <=
+    new Date().getTime() / 1000
+      ? undefined
+      : question.my_forecasts?.latest;
+
+  const prevForecastValue = extractPrevBinaryForecastValue(
+    activeUserForecast?.forecast_values[1]
+  );
   const hasUserForecast = !!prevForecastValue;
   const [forecast, setForecast] = useState<number | null>(prevForecastValue);
 
