@@ -1278,5 +1278,22 @@
   "stepError1": "O passo deve ser pelo menos 1/200 do intervalo: ({rangePortion})",
   "minMaxError0": "Forneça valores mínimos e máximos corretos",
   "minMaxError1": "O valor mínimo deve ser menor que o valor máximo",
-  "rangeWarning0": "Aviso: O passo não divide o intervalo de forma uniforme. Máximo reduzido para {newMax}"
+  "rangeWarning0": "Aviso: O passo não divide o intervalo de forma uniforme. Máximo reduzido para {newMax}",
+  "predictionExpirationText": "Sua previsão irá expirar em {time}",
+  "predictionDuration": "Duração da previsão",
+  "predictionExpiration": "Expiração da previsão",
+  "1day": "1 dia",
+  "3days": "3 dias",
+  "1week": "1 semana",
+  "1month": "1 mês",
+  "3months": "3 meses",
+  "1year": "1 ano",
+  "customDate": "Data personalizada",
+  "neverExpires": "Nunca expira",
+  "useAccountSetting": "Usar configuração em nível de conta",
+  "useCustomExpiration": "Usar configuração de expiração personalizada para esta pergunta",
+  "useAccountSettingDescription": "Isso é baseado na configuração {userForecastExpirationPercent}% da duração total da pergunta.",
+  "change": "Alterar",
+  "expirationHelpText": "Você receberá um e-mail de notificação lembrando você de atualizar quando aproximadamente 5% da duração estiver faltando.",
+  "defaultExpirationSettingText": "Por padrão, minhas previsões expiram após um % do tempo de vida da pergunta"
 }

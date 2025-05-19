@@ -1283,5 +1283,22 @@
   "stepError1": "步长必须至少是范围的1/200: ({rangePortion})",
   "minMaxError0": "请提供正确的最小值和最大值",
   "minMaxError1": "最小值应小于最大值",
-  "rangeWarning0": "警告: 步长不能平均划分范围。最大值减少到 {newMax}"
+  "rangeWarning0": "警告: 步长不能平均划分范围。最大值减少到 {newMax}",
+  "predictionExpirationText": "您的预测将在 {time} 后过期",
+  "predictionDuration": "预测时长",
+  "predictionExpiration": "预测过期",
+  "1day": "1天",
+  "3days": "3天",
+  "1week": "1周",
+  "1month": "1个月",
+  "3months": "3个月",
+  "1year": "1年",
+  "customDate": "自定义日期",
+  "neverExpires": "永不过期",
+  "useAccountSetting": "使用帐户级别设置",
+  "useCustomExpiration": "为此问题使用自定义过期设置",
+  "useAccountSettingDescription": "这是基于问题总持续时间的 {userForecastExpirationPercent}% 的设置。",
+  "change": "更改",
+  "expirationHelpText": "当剩余约 5% 事件持续时间时，您将收到提醒您更新的通知电子邮件。",
+  "defaultExpirationSettingText": "默认情况下，我的预测在问题生命周期的某个百分比后过期"
 }

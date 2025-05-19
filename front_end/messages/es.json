@@ -1280,5 +1280,22 @@
   "stepError1": "El paso debe ser al menos 1/200 del rango: ({rangePortion})",
   "minMaxError0": "Proporcione valores correctos de mínimo y máximo",
   "minMaxError1": "El valor mínimo debe ser menor que el valor máximo",
-  "rangeWarning0": "Advertencia: El paso no divide el rango de manera uniforme. Max reducido a {newMax}"
+  "rangeWarning0": "Advertencia: El paso no divide el rango de manera uniforme. Max reducido a {newMax}",
+  "predictionExpirationText": "Su predicción expirará en {time}",
+  "predictionDuration": "Duración de la predicción",
+  "predictionExpiration": "Expiración de la predicción",
+  "1day": "1 día",
+  "3days": "3 días",
+  "1week": "1 semana",
+  "1month": "1 mes",
+  "3months": "3 meses",
+  "1year": "1 año",
+  "customDate": "Fecha personalizada",
+  "neverExpires": "Nunca expira",
+  "useAccountSetting": "Usar la configuración a nivel de cuenta",
+  "useCustomExpiration": "Usar configuración de expiración personalizada para esta pregunta",
+  "useAccountSettingDescription": "Esto se basa en la configuración del {userForecastExpirationPercent}% de la duración total de la pregunta.",
+  "change": "Cambiar",
+  "expirationHelpText": "Recibirá un correo electrónico de notificación recordándole que actualice cuando quede aproximadamente un 5% del tiempo de duración.",
+  "defaultExpirationSettingText": "Por defecto, mis predicciones expiran después de un % de la vida útil de la pregunta"
 }
