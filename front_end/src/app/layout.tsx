@@ -24,6 +24,8 @@ import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { CurrentUser } from "@/types/users";
+import { logError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 config.autoAddCss = false;
@@ -142,7 +144,14 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
-  const user = await ServerProfileApi.getMyProfile();
+
+  let user: CurrentUser | null = null;
+  try {
+    user = await ServerProfileApi.getMyProfile();
+  } catch (err) {
+    logError(err);
+  }
+
   const publicSettings = getPublicSettings();
 
   return (

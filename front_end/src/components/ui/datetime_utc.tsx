@@ -56,6 +56,11 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
       try {
         // Convert local time to UTC for storage
         if (onChange) {
+          if (!localDateString.trim()) {
+            onChange("");
+            return;
+          }
+
           const localDate = new Date(localDateString);
           const utcDateString = formatISO(localDate, {
             representation: "complete",
