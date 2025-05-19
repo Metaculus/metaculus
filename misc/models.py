@@ -71,3 +71,87 @@ class WhitelistUser(TimeStampedModel):
         "data for the post. If neither project nor post is set, the user is "
         "whitelisted for all data.",
     )
+
+
+class SidebarItem(TimeStampedModel):
+    class SectionTypes(models.TextChoices):
+        HOT_TOPICS = "hot_topics"
+        HOT_CATEGORIES = "hot_categories"
+
+    name = models.CharField(
+        max_length=200,
+        default="",
+        blank=True,
+        help_text=(
+            "Display label for the sidebar item. "
+            "For URL items, this must be set. "
+            "For Post or Project items, it overrides the default title if provided."
+        ),
+    )
+
+    emoji = models.CharField(
+        max_length=10,
+        default="",
+        blank=True,
+        help_text="Optional emoji or icon to display alongside the item name.",
+    )
+
+    section = models.CharField(
+        max_length=32,
+        choices=SectionTypes.choices,
+        default="",
+        blank=True,
+        help_text=(
+            "Assign the item to a sidebar section. "
+            "If left blank, the item appears above all defined sections."
+        ),
+    )
+
+    url = models.CharField(
+        default="",
+        blank=True,
+        help_text=(
+            "Optional full or relative URL. "
+            "If set, the item links to this URL instead of a Post or Project."
+        ),
+    )
+
+    post = models.ForeignKey(
+        Post,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        help_text="Optional. If provided, the item links to the specified Post.",
+    )
+
+    project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        help_text="Optional. If provided, the item links to the specified Project.",
+    )
+
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text=(
+            "Determines the display order within its section. "
+            "Lower numbers appear first."
+        ),
+    )
+
+    class Meta:
+        ordering = ("section", "order", "created_at")
+
+    @property
+    def display_name(self):
+        names = [
+            self.name,
+            getattr(self.post, "title", None),
+            getattr(self.project, "name", None),
+        ]
+
+        return next((x for x in names if x), "")
+
+    def __str__(self):
+        return self.display_name

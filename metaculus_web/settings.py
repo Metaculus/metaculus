@@ -446,6 +446,7 @@ def traces_sampler(sampling_context):
         "/api/get-bulletins",
         "/api/auth/verify_token",
         "/api/auth/social",
+        "/api/sidebar",
     ]
     wsgi_environ = sampling_context.get("wsgi_environ", {})
     url = wsgi_environ.get("PATH_INFO")
