@@ -219,6 +219,14 @@ class Leaderboard(TimeStampedModel):
         </br>- If the Project has a prize pool, but this leaderboard has none, set this to 0.
         """,
     )
+    bot_status = models.CharField(
+        max_length=32,
+        choices=Project.BotLeaderboardStatus.choices,
+        null=True,
+        blank=True,
+        help_text="""Optional. If not set, the Project's bot_leaderboard_status will be
+        used instead. See Project for more details.""",
+    )
     user_list = models.ManyToManyField(
         User,
         blank=True,
