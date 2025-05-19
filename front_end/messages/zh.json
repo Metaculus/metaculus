@@ -1377,5 +1377,22 @@
   "deployMetaculusPlatform": "在您组织内部部署 Metaculus 平台，以揭示洞察，并无缝整合来自您团队的知识和专业知识。",
   "engageProForecasters": "在您最关心的问题上，咨询 Metaculus 专业预测者，无论是在您自己的实例上还是在 Metaculus 上启动的问题中。",
   "weHelpOrganizationsSolve": "我们帮助组织解决复杂挑战——无论是与 CDC 预测呼吸道疾病趋势，还是为 Bridgewater 发掘杰出人才。",
-  "proForecastersHeaderSecondParagraph": "专业预测者提供经过校准的预测，并附以明确的推理，帮助决策者自信地采取行动。"
+  "proForecastersHeaderSecondParagraph": "专业预测者提供经过校准的预测，并附以明确的推理，帮助决策者自信地采取行动。",
+  "predictionExpirationText": "您的预测将在 {time} 后过期",
+  "predictionDuration": "预测时长",
+  "predictionExpiration": "预测过期",
+  "1day": "1天",
+  "3days": "3天",
+  "1week": "1周",
+  "1month": "1个月",
+  "3months": "3个月",
+  "1year": "1年",
+  "customDate": "自定义日期",
+  "neverExpires": "永不过期",
+  "useAccountSetting": "使用帐户级别设置",
+  "useCustomExpiration": "为此问题使用自定义过期设置",
+  "useAccountSettingDescription": "这是基于问题总持续时间的 {userForecastExpirationPercent}% 的设置。",
+  "change": "更改",
+  "expirationHelpText": "当剩余约 5% 事件持续时间时，您将收到提醒您更新的通知电子邮件。",
+  "defaultExpirationSettingText": "默认情况下，我的预测在问题生命周期的某个百分比后过期"
 }
