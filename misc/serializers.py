@@ -11,7 +11,6 @@ class ContactSerializer(serializers.Serializer):
     subject = serializers.CharField(required=False, allow_blank=True)
 
 
-
 class SidebarItemSerializer(serializers.ModelSerializer):
     project = serializers.SerializerMethodField()
     post = serializers.SerializerMethodField()
