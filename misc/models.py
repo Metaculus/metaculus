@@ -120,7 +120,7 @@ class SidebarItem(TimeStampedModel):
         Post,
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         help_text="Optional. If provided, the item links to the specified Post.",
     )
 
@@ -128,7 +128,7 @@ class SidebarItem(TimeStampedModel):
         Project,
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         help_text="Optional. If provided, the item links to the specified Project.",
     )
 
