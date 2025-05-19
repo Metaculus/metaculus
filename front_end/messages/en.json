@@ -1372,5 +1372,22 @@
   "weHelpOrganizationsSolve": "We help organizations solve complex challenges—whether it's forecasting respiratory disease trends with CDC or surfacing exceptional talent for Bridgewater.",
   "proForecastersHeaderFirstParagraph": "With more than 11,000 resolved questions, Metaculus has the data to spot forecasting excellence and the power to put proven forecasting experts to work on your most important challenges.",
   "CPMovementChangeLabel": "{value} this {period}",
-  "withdrawConfirmation": "Are you sure you want to withdraw? You will still be scored on your previous predictions in this question."
+  "withdrawConfirmation": "Are you sure you want to withdraw? You will still be scored on your previous predictions in this question.",
+  "predictionExpirationText": "Your prediction will expire in {time}",
+  "predictionDuration": "Prediction duration",
+  "predictionExpiration": "Prediction expiration",
+  "1day": "1 day",
+  "3days": "3 days",
+  "1week": "1 week",
+  "1month": "1 month",
+  "3months": "3 months",
+  "1year": "1 year",
+  "customDate": "Custom date",
+  "neverExpires": "Never expires",
+  "useAccountSetting": "Use account-level setting",
+  "useCustomExpiration": "Use custom expiration setting for this question",
+  "useAccountSettingDescription": "This is based on the setting {userForecastExpirationPercent}% of question's total duration.",
+  "change": "Change",
+  "expirationHelpText": "You will receive a notification email reminding you to update when approximately 5% of the duration is left.",
+  "defaultExpirationSettingText": "By default, my predictions expire after a % of the question lifetime"
 }

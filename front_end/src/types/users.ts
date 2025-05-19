@@ -60,6 +60,7 @@ export type CurrentUser = User & {
   is_onboarding_complete: boolean;
   registered_campaigns: { key: string; details: object }[];
   has_key_factors: boolean;
+  prediction_expiration_percent: number | null;
 };
 
 export enum ProfilePageMode {
