@@ -1375,5 +1375,22 @@
   "engageProForecasters": "Involucre a los pronosticadores profesionales de Metaculus en las preguntas que más le importan, ya sea en su instancia privada o en preguntas lanzadas en Metaculus.",
   "weHelpOrganizationsSolve": "Ayudamos a las organizaciones a resolver desafíos complejos, ya sea pronosticando tendencias de enfermedades respiratorias con el CDC o descubriendo talento excepcional para Bridgewater.",
   "proForecastersHeaderSecondParagraph": "Los pronosticadores profesionales ofrecen predicciones calibradas acompañadas de razonamiento claro, lo que permite a los responsables de la toma de decisiones actuar con confianza.",
-  "withdrawConfirmation": "¿Estás seguro de que quieres retirar? Seguirás siendo puntuado por tus predicciones anteriores en esta pregunta."
+  "withdrawConfirmation": "¿Estás seguro de que quieres retirar? Seguirás siendo puntuado por tus predicciones anteriores en esta pregunta.",
+  "predictionExpirationText": "Su predicción expirará en {time}",
+  "predictionDuration": "Duración de la predicción",
+  "predictionExpiration": "Expiración de la predicción",
+  "1day": "1 día",
+  "3days": "3 días",
+  "1week": "1 semana",
+  "1month": "1 mes",
+  "3months": "3 meses",
+  "1year": "1 año",
+  "customDate": "Fecha personalizada",
+  "neverExpires": "Nunca expira",
+  "useAccountSetting": "Usar la configuración a nivel de cuenta",
+  "useCustomExpiration": "Usar configuración de expiración personalizada para esta pregunta",
+  "useAccountSettingDescription": "Esto se basa en la configuración del {userForecastExpirationPercent}% de la duración total de la pregunta.",
+  "change": "Cambiar",
+  "expirationHelpText": "Recibirá un correo electrónico de notificación recordándole que actualice cuando quede aproximadamente un 5% del tiempo de duración.",
+  "defaultExpirationSettingText": "Por defecto, mis predicciones expiran después de un % de la vida útil de la pregunta"
 }

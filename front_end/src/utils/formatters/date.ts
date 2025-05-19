@@ -1,5 +1,6 @@
 import {
   differenceInMilliseconds,
+  Duration,
   intlFormat,
   intlFormatDistance,
 } from "date-fns";
@@ -59,4 +60,58 @@ export function formatRelativeDate(
     dateStr = absPrefix + formatDatetime(locale, date);
   }
   return dateStr;
+}
+
+export const truncateDuration = (
+  duration: Duration,
+  truncateNumUnits: number = 1
+): Duration => {
+  const truncatedDuration: Duration = {};
+  let numUnits = 0;
+  for (const key of [
+    "years",
+    "months",
+    "weeks",
+    "days",
+    "hours",
+    "minutes",
+    "seconds",
+  ]) {
+    if (duration[key as keyof Duration] && numUnits < truncateNumUnits) {
+      numUnits++;
+      truncatedDuration[key as keyof Duration] =
+        duration[key as keyof Duration];
+    }
+
+    if (numUnits >= truncateNumUnits) {
+      return truncatedDuration;
+    }
+  }
+  return duration;
+};
+
+export function formatDurationToShortStr(duration: Duration): string {
+  let str = "";
+  if (duration.years) {
+    str += duration.years + "y";
+  }
+  if (duration.months) {
+    str += duration.months + "m";
+  }
+  if (duration.weeks) {
+    str += duration.weeks + "w";
+  }
+  if (duration.days) {
+    str += duration.days + "d";
+  }
+  if (duration.hours) {
+    str += duration.hours + "h";
+  }
+  if (duration.minutes) {
+    str += duration.minutes + "m";
+  }
+  if (duration.seconds) {
+    str += duration.seconds + "s";
+  }
+  return str;
 }

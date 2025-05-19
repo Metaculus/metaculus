@@ -1373,5 +1373,22 @@
   "engageProForecasters": "在您最關心的問題上，無論是在您的私人實例上還是 Metaculus 上發起的問題，聘請 Metaculus 專業預測師。",
   "weHelpOrganizationsSolve": "我們幫助組織解決複雜的挑戰——無論是與 CDC 預測呼吸道疾病趨勢，還是為 Bridgewater 發掘卓越人才。",
   "proForecastersHeaderSecondParagraph": "專業預測師提供校準過的預測，並附上清晰的理由，使決策者能夠自信地採取行動。",
-  "withdrawConfirmation": "您確定要撤回嗎？您在此問題上的先前預測仍將被計分。"
+  "withdrawConfirmation": "您確定要撤回嗎？您在此問題上的先前預測仍將被計分。",
+  "predictionExpirationText": "您的預測將於 {time} 過期",
+  "predictionDuration": "預測持續時間",
+  "predictionExpiration": "預測到期時間",
+  "1day": "1 天",
+  "3days": "3 天",
+  "1week": "1 週",
+  "1month": "1 個月",
+  "3months": "3 個月",
+  "1year": "1 年",
+  "customDate": "自訂日期",
+  "neverExpires": "永不過期",
+  "useAccountSetting": "使用帳戶級別設定",
+  "useCustomExpiration": "為此問題使用自訂到期設定",
+  "useAccountSettingDescription": "這是基於設定 {userForecastExpirationPercent}% 的問題總持續時間。",
+  "change": "變更",
+  "expirationHelpText": "當剩下大約 5% 的持續時間時，您將收到提醒更新的通知電子郵件。",
+  "defaultExpirationSettingText": "預設情況下，我的預測在問題壽命的百分比後過期"
 }
