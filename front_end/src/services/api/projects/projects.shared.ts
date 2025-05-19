@@ -7,7 +7,6 @@ import {
   NewsCategory,
   ProjectVisibility,
   Tag,
-  Topic,
   Tournament,
   TournamentMember,
   TournamentPreview,
@@ -39,10 +38,6 @@ export type CommunityUpdateParams = {
 };
 
 class ProjectsApi extends ApiService {
-  async getTopics(): Promise<Topic[]> {
-    return await this.get<Topic[]>("/projects/topics/");
-  }
-
   async getCategories(): Promise<Category[]> {
     return await this.get<Category[]>("/projects/categories/");
   }

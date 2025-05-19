@@ -7,33 +7,14 @@ import WithServerComponentErrorBoundary from "@/components/server_component_erro
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { PostsParams } from "@/services/api/posts/posts.shared";
-import { Topic } from "@/types/projects";
 
 type Props = {
   filters: PostsParams;
   type?: PostsFeedType;
-  topics?: Topic[];
   isCommunity?: boolean;
 };
 
-const AwaitedPostsFeed: FC<Props> = async ({
-  filters,
-  type,
-  topics,
-  isCommunity,
-}) => {
-  if (
-    topics &&
-    filters.topic &&
-    !topics?.some((topic) => topic.slug === filters.topic)
-  ) {
-    return (
-      <div className="text-center text-gray-500 dark:text-gray-500-dark">
-        Such topic does not exist
-      </div>
-    );
-  }
-
+const AwaitedPostsFeed: FC<Props> = async ({ filters, type, isCommunity }) => {
   const { results: questions } = await ServerPostsApi.getPostsWithCP({
     ...filters,
     limit:

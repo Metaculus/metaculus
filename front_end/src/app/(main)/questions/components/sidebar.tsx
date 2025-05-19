@@ -1,0 +1,238 @@
+"use client";
+import {
+  faArrowUp,
+  faEllipsis,
+  faHome,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { FC, Fragment, useMemo, useState } from "react";
+
+import TopicItem from "@/app/(main)/questions/components/topic_item";
+import useFeed from "@/app/(main)/questions/hooks/use_feed";
+import Button from "@/components/ui/button";
+import {
+  FeedType,
+  POST_COMMUNITIES_FILTER,
+  POST_FOLLOWING_FILTER,
+  POST_FOR_MAIN_FEED,
+  POST_FORECASTER_ID_FILTER,
+  POST_ORDER_BY_FILTER,
+  POST_USERNAMES_FILTER,
+} from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
+import useSearchParams from "@/hooks/use_search_params";
+import { QuestionOrder } from "@/types/question";
+import {
+  SidebarItem,
+  SidebarMenuItem,
+  SidebarSectionType,
+} from "@/types/sidebar";
+import { sendAnalyticsEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
+import { convertSidebarItem } from "@/utils/sidebar";
+
+// TODO: remove feed hook?
+// TODO: optimize /project/tournaments/ call from main feed!!
+// TODO: revisit + deprecate feed hook
+// TODO: test translations (category/post names)!
+// TODO: test Categries and topics
+// TODO: delete unused translations!
+
+type Props = {
+  items: SidebarItem[];
+};
+
+type SidebarSection = {
+  type: SidebarSectionType;
+  title?: string;
+  items: SidebarMenuItem[];
+};
+
+// TODO: call out I've switched from switchFeed to actual page refresh mechanism
+
+const FeedSidebar: FC<Props> = ({ items }) => {
+  const t = useTranslations();
+  const { user } = useAuth();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
+  const { currentFeed } = useFeed();
+  const pathname = usePathname();
+  const { params } = useSearchParams();
+  const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+
+  const sidebarSections: SidebarSection[] = useMemo(() => {
+    const menuItems: SidebarMenuItem[] = [
+      {
+        name: t("feedHome"),
+        emoji: <FontAwesomeIcon icon={faHome} />,
+        url: "/questions/",
+        isActive: currentFeed == FeedType.HOME,
+      },
+      ...(user
+        ? [
+            {
+              name: t("myPredictions"),
+              emoji: "👤",
+              url: `/questions/?${POST_FORECASTER_ID_FILTER}=${user.id}&${POST_ORDER_BY_FILTER}=${QuestionOrder.WeeklyMovementDesc}`,
+              onClick: () => {
+                sendAnalyticsEvent("sidebarClick", {
+                  event_category: t("myPredictions"),
+                });
+              },
+              isActive: currentFeed == FeedType.MY_PREDICTIONS,
+            },
+            {
+              name: t("myQuestionsAndPosts"),
+              emoji: "✍️",
+              url: `/questions/?${POST_FOR_MAIN_FEED}=false&${POST_USERNAMES_FILTER}=${user.username}`,
+              onClick: () => {
+                sendAnalyticsEvent("sidebarClick", {
+                  event_category: t("myQuestionsAndPosts"),
+                });
+              },
+              isActive: currentFeed == FeedType.MY_QUESTIONS_AND_POSTS,
+            },
+            {
+              name: t("followingButton"),
+              emoji: "🔎 ",
+              url: `/questions/?${POST_FOLLOWING_FILTER}=true`,
+              onClick: () => {
+                sendAnalyticsEvent("sidebarClick", {
+                  // TODO: should it be localized?
+                  event_category: t("followingButton"),
+                });
+              },
+              isActive: currentFeed == FeedType.FOLLOWING,
+            },
+          ]
+        : []),
+      ...(!PUBLIC_MINIMAL_UI
+        ? [
+            {
+              name: t("communities"),
+              emoji: "👥",
+              url: `/questions/?${POST_COMMUNITIES_FILTER}=true`,
+              onClick: () => {
+                sendAnalyticsEvent("sidebarClick", {
+                  event_category: "Communities",
+                });
+              },
+              isActive: currentFeed == FeedType.COMMUNITIES,
+            },
+          ]
+        : []),
+      ...items.map((obj) => convertSidebarItem(obj, fullPathname)),
+    ];
+
+    return [
+      {
+        type: null,
+        items: menuItems.filter(({ section }) => !section),
+      },
+      {
+        type: "hot_topics",
+        title: t("topics"),
+        items: menuItems.filter(({ section }) => section == "hot_topics"),
+      },
+      {
+        type: "hot_categories",
+        title: t("categories"),
+        items: menuItems.filter(({ section }) => section == "hot_categories"),
+      },
+    ];
+  }, [PUBLIC_MINIMAL_UI, currentFeed, fullPathname, items, t, user]);
+
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+
+  const { bannerIsVisible: isTranslationBannerVisible } =
+    useContentTranslatedBannerContext();
+
+  const topPositionClasses = isTranslationBannerVisible
+    ? "top-24 lg:top-20"
+    : "top-12 lg:top-20";
+
+  return (
+    <div
+      className={cn(
+        "sticky z-40 mt-0 self-start sm:top-16 sm:mt-4",
+        topPositionClasses
+      )}
+    >
+      <div className="relative w-full border-y border-blue-400 bg-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-blue-700 dark:bg-blue-800/75 sm:max-h-[calc(100vh-76px)] sm:overflow-y-auto sm:border-none sm:bg-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-blue-800/0">
+        <div
+          className={cn(
+            "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-800 sm:hidden",
+            isMobileExpanded && "hidden"
+          )}
+        />
+        <div
+          className={cn(
+            "absolute right-2 z-20 sm:hidden",
+            isMobileExpanded ? "bottom-3.5" : "top-3.5"
+          )}
+        >
+          <Button
+            aria-label={t("toggleAllTopics")}
+            onClick={() => setIsMobileExpanded((prev) => !prev)}
+            variant="tertiary"
+            presentationType="icon"
+          >
+            <FontAwesomeIcon
+              className={cn({ "-rotate-180": !isMobileExpanded })}
+              icon={faArrowUp}
+            />
+          </Button>
+        </div>
+
+        <div
+          className={cn(
+            "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 md:w-[210px] md:px-0 min-[812px]:w-64 min-[812px]:px-1",
+            isMobileExpanded ? "flex-wrap" : "pr-10"
+          )}
+        >
+          {sidebarSections
+            .filter(({ items }) => items.length > 0)
+            .map(({ type: sectionType, title, items }) => (
+              <Fragment key={`menu-${sectionType}`}>
+                {title && (
+                  <div className="mt-1 hidden pl-2 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500-dark sm:block">
+                    {title}
+                  </div>
+                )}
+                {items.map(({ name, emoji, onClick, url, isActive }, idx) => (
+                  <TopicItem
+                    key={`menu-${sectionType}-${idx}`}
+                    text={name}
+                    emoji={emoji}
+                    href={url}
+                    onClick={() => {
+                      setIsMobileExpanded(false);
+                      onClick && onClick();
+                    }}
+                    isActive={isActive ?? false}
+                  />
+                ))}
+              </Fragment>
+            ))}
+
+          <TopicItem
+            href="/questions/discovery"
+            text={t("seeAllCategories")}
+            emoji={<FontAwesomeIcon icon={faEllipsis} />}
+            isActive={false}
+            onClick={() => {
+              sendAnalyticsEvent("sidebarClick", {
+                event_category: t("seeAllCategories"),
+              });
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FeedSidebar;

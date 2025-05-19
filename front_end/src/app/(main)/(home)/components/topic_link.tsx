@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 type Props = {
   text: string;
-  emoji: string;
+  emoji: string | ReactNode;
   href: string;
 };
 
