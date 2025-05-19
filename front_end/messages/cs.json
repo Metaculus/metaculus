@@ -1248,5 +1248,22 @@
   "indexTimeline": "Časová osa indexu",
   "inTheNews": "Ve zprávách",
   "fileSizeExceedsLimit": "Velikost souboru překračuje limit {value}MB",
-  "errorUploadingImage": "Nepodařilo se nahrát obrázek"
+  "errorUploadingImage": "Nepodařilo se nahrát obrázek",
+  "predictionExpirationText": "Vaše předpověď vyprší za {time}",
+  "predictionDuration": "Doba trvání předpovědi",
+  "predictionExpiration": "Vypršení platnosti předpovědi",
+  "1day": "1 den",
+  "3days": "3 dny",
+  "1week": "1 týden",
+  "1month": "1 měsíc",
+  "3months": "3 měsíce",
+  "1year": "1 rok",
+  "customDate": "Vlastní datum",
+  "neverExpires": "Nikdy nevyprší",
+  "useAccountSetting": "Použít nastavení na úrovni účtu",
+  "useCustomExpiration": "Použít vlastní nastavení vypršení platnosti pro tuto otázku",
+  "useAccountSettingDescription": "Toto je založeno na nastavení {userForecastExpirationPercent}% z celkové doby trvání otázky.",
+  "change": "Změnit",
+  "expirationHelpText": "Obdržíte notifikační email, který vám připomene aktualizaci, když zbývá přibližně 5% doby trvání.",
+  "defaultExpirationSettingText": "Výchozí stav je, že mé předpovědi vyprší po % doby trvání otázky"
 }

@@ -1246,5 +1246,22 @@
   "indexTimeline": "指數時間表",
   "inTheNews": "新聞摘要",
   "fileSizeExceedsLimit": "檔案大小超過 {value}MB 限制",
-  "errorUploadingImage": "上傳圖片失敗"
+  "errorUploadingImage": "上傳圖片失敗",
+  "predictionExpirationText": "您的預測將於 {time} 過期",
+  "predictionDuration": "預測持續時間",
+  "predictionExpiration": "預測到期時間",
+  "1day": "1 天",
+  "3days": "3 天",
+  "1week": "1 週",
+  "1month": "1 個月",
+  "3months": "3 個月",
+  "1year": "1 年",
+  "customDate": "自訂日期",
+  "neverExpires": "永不過期",
+  "useAccountSetting": "使用帳戶級別設定",
+  "useCustomExpiration": "為此問題使用自訂到期設定",
+  "useAccountSettingDescription": "這是基於設定 {userForecastExpirationPercent}% 的問題總持續時間。",
+  "change": "變更",
+  "expirationHelpText": "當剩下大約 5% 的持續時間時，您將收到提醒更新的通知電子郵件。",
+  "defaultExpirationSettingText": "預設情況下，我的預測在問題壽命的百分比後過期"
 }
