@@ -12,20 +12,11 @@ import { FC, Fragment, useMemo, useState } from "react";
 import TopicItem from "@/app/(main)/questions/components/topic_item";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import Button from "@/components/ui/button";
-import {
-  FeedType,
-  POST_COMMUNITIES_FILTER,
-  POST_FOLLOWING_FILTER,
-  POST_FOR_MAIN_FEED,
-  POST_FORECASTER_ID_FILTER,
-  POST_ORDER_BY_FILTER,
-  POST_USERNAMES_FILTER,
-} from "@/constants/posts_feed";
+import { FeedType } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
-import { QuestionOrder } from "@/types/question";
 import {
   SidebarItem,
   SidebarMenuItem,
@@ -58,7 +49,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-  const { currentFeed } = useFeed();
+  const { getFeedUrl, currentFeed } = useFeed();
   const pathname = usePathname();
   const { params } = useSearchParams();
   const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
@@ -68,7 +59,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
       {
         name: t("feedHome"),
         emoji: <FontAwesomeIcon icon={faHome} />,
-        url: "/questions/",
+        url: getFeedUrl(FeedType.HOME),
         isActive: currentFeed == FeedType.HOME,
       },
       ...(user
@@ -76,35 +67,35 @@ const FeedSidebar: FC<Props> = ({ items }) => {
             {
               name: t("myPredictions"),
               emoji: "👤",
-              url: `/questions/?${POST_FORECASTER_ID_FILTER}=${user.id}&${POST_ORDER_BY_FILTER}=${QuestionOrder.WeeklyMovementDesc}`,
               onClick: () => {
                 sendAnalyticsEvent("sidebarClick", {
                   event_category: t("myPredictions"),
                 });
               },
+              url: getFeedUrl(FeedType.MY_PREDICTIONS),
               isActive: currentFeed == FeedType.MY_PREDICTIONS,
             },
             {
               name: t("myQuestionsAndPosts"),
               emoji: "✍️",
-              url: `/questions/?${POST_FOR_MAIN_FEED}=false&${POST_USERNAMES_FILTER}=${user.username}`,
               onClick: () => {
                 sendAnalyticsEvent("sidebarClick", {
                   event_category: t("myQuestionsAndPosts"),
                 });
               },
+              url: getFeedUrl(FeedType.MY_QUESTIONS_AND_POSTS),
               isActive: currentFeed == FeedType.MY_QUESTIONS_AND_POSTS,
             },
             {
               name: t("followingButton"),
               emoji: "🔎 ",
-              url: `/questions/?${POST_FOLLOWING_FILTER}=true`,
               onClick: () => {
                 sendAnalyticsEvent("sidebarClick", {
                   // TODO: should it be localized?
                   event_category: t("followingButton"),
                 });
               },
+              url: getFeedUrl(FeedType.FOLLOWING),
               isActive: currentFeed == FeedType.FOLLOWING,
             },
           ]
@@ -114,12 +105,12 @@ const FeedSidebar: FC<Props> = ({ items }) => {
             {
               name: t("communities"),
               emoji: "👥",
-              url: `/questions/?${POST_COMMUNITIES_FILTER}=true`,
               onClick: () => {
                 sendAnalyticsEvent("sidebarClick", {
                   event_category: "Communities",
                 });
               },
+              url: getFeedUrl(FeedType.COMMUNITIES),
               isActive: currentFeed == FeedType.COMMUNITIES,
             },
           ]
