@@ -443,6 +443,15 @@ const QuestionForm: FC<Props> = ({
     return () => subscription.unsubscribe();
   }, [form, mode, debouncedHandleFormChange]);
 
+  // Set Advenced Options default values
+  useEffect(() => {
+    if (post) {
+      form.setValue("open_time", post?.question?.open_time);
+      form.setValue("published_at", post?.published_at);
+      form.setValue("cp_reveal_time", post?.question?.cp_reveal_time);
+    }
+  }, [post, form]);
+
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
