@@ -66,9 +66,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
               {t(isUpcoming ? "opens" : "opened")}:
             </span>
             <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-              <LocalDaytime
-                date={isUpcoming ? postData.open_time : postData.published_at}
-              />
+              <LocalDaytime date={postData.open_time} />
             </span>
           </div>
         )}
