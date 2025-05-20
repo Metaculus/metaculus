@@ -26,13 +26,6 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { convertSidebarItem } from "@/utils/sidebar";
 
-// TODO: remove feed hook?
-// TODO: optimize /project/tournaments/ call from main feed!!
-// TODO: revisit + deprecate feed hook
-// TODO: test translations (category/post names)!
-// TODO: test Categries and topics
-// TODO: delete unused translations!
-
 type Props = {
   items: SidebarItem[];
 };
@@ -42,8 +35,6 @@ type SidebarSection = {
   title?: string;
   items: SidebarMenuItem[];
 };
-
-// TODO: call out I've switched from switchFeed to actual page refresh mechanism
 
 const FeedSidebar: FC<Props> = ({ items }) => {
   const t = useTranslations();
@@ -91,7 +82,6 @@ const FeedSidebar: FC<Props> = ({ items }) => {
               emoji: "🔎 ",
               onClick: () => {
                 sendAnalyticsEvent("sidebarClick", {
-                  // TODO: should it be localized?
                   event_category: t("followingButton"),
                 });
               },
