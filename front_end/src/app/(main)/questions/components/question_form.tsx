@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useRef, useState } from "react";
-import { FieldValues, useForm } from "react-hook-form";
+import { Control, FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
@@ -32,7 +32,7 @@ import {
   TournamentPreview,
   TournamentType,
 } from "@/types/projects";
-import { QuestionType } from "@/types/question";
+import { QuestionDraft, QuestionType } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import {
   deleteQuestionDraft,
@@ -43,10 +43,20 @@ import {
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions/helpers";
 
+import { createQuestionPost, updatePost } from "../actions";
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
-import { createQuestionPost, updatePost } from "../actions";
+
+// Interface estendida para incluir campos adicionais que estão sendo usados
+interface ExtendedQuestionDraft extends QuestionDraft {
+  short_title?: string;
+  published_at?: string;
+  open_time?: string;
+  scheduled_close_time?: string;
+  scheduled_resolve_time?: string;
+  cp_reveal_time?: string;
+}
 
 const MIN_OPTIONS_AMOUNT = 2;
 
@@ -368,6 +378,20 @@ const QuestionForm: FC<Props> = ({
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
 
+  type binaryQuestionType = z.infer<typeof schemas.binaryQuestionSchema>;
+  type numericQuestionType = z.infer<typeof schemas.numericQuestionSchema>;
+  type dateQuestionType = z.infer<typeof schemas.dateQuestionSchema>;
+  type multipleChoiceQuestionType = z.infer<
+    typeof schemas.multipleChoiceQuestionSchema
+  >;
+
+  // Tipo estendido para os erros do formulário
+  type ExtendedFieldErrors = {
+    unit?: any;
+    group_variable?: any;
+    options?: any;
+  };
+
   const schemas = createQuestionSchemas(t, post);
   const getFormSchema = (type: string) => {
     switch (type) {
@@ -383,24 +407,41 @@ const QuestionForm: FC<Props> = ({
         throw new Error("Invalid question type");
     }
   };
+  type FormSchemaType =
+    | binaryQuestionType
+    | numericQuestionType
+    | dateQuestionType
+    | multipleChoiceQuestionType;
 
   // TODO: refactor validation schema setup to properly populate useForm generic
-  const form = useForm({
+  const form = useForm<FormSchemaType>({
     mode: "all",
     resolver: zodResolver(getFormSchema(questionType)),
+    defaultValues: {
+      open_time: post?.question?.open_time,
+      published_at: post?.published_at,
+      cp_reveal_time: post?.question?.cp_reveal_time,
+    },
   });
-  if (questionType) {
+  if (
+    questionType === "binary" ||
+    questionType === "multiple_choice" ||
+    questionType === "date" ||
+    questionType === "numeric"
+  ) {
     form.setValue("type", questionType);
   }
 
   const handleFormChange = useCallback(() => {
     if (mode === "create") {
       const formData = form.getValues();
+      // Converta explicitamente para o tipo ExtendedQuestionDraft
       saveQuestionDraft(questionType, {
         ...formData,
         options: optionsList,
         categories: categoriesList,
-      });
+        type: formData.type as unknown as QuestionType,
+      } as Partial<ExtendedQuestionDraft>);
     }
   }, [form, mode, questionType, optionsList, categoriesList]);
 
@@ -408,6 +449,73 @@ const QuestionForm: FC<Props> = ({
     handleFormChange,
     QUESTION_DRAFT_DEBOUNCE_TIME
   );
+
+  // Helper para converter QuestionDraft para o tipo específico do formulário
+  const convertDraftToFormSchema = (
+    draft: ExtendedQuestionDraft
+  ): FormSchemaType => {
+    // Crie um objeto básico com as propriedades comuns
+    const baseValues = {
+      type: draft.type as "binary" | "multiple_choice" | "date" | "numeric",
+      title: draft.title || "",
+      short_title: draft.short_title || "",
+      description: draft.description || "",
+      resolution_criteria: draft.resolution_criteria || "",
+      fine_print: draft.fine_print,
+      published_at: draft.published_at,
+      open_time: draft.open_time,
+      scheduled_close_time: draft.scheduled_close_time,
+      scheduled_resolve_time: draft.scheduled_resolve_time,
+      cp_reveal_time: draft.cp_reveal_time,
+      default_project: draft.default_project,
+    };
+
+    // Dependendo do tipo de questão, adicione propriedades específicas
+    switch (draft.type) {
+      case "numeric":
+        return {
+          ...baseValues,
+          scaling: draft.scaling || {
+            range_min: null,
+            range_max: null,
+            zero_point: null,
+          },
+          open_lower_bound: draft.open_lower_bound ?? true,
+          open_upper_bound: draft.open_upper_bound ?? true,
+          unit: draft.unit || "",
+          min: draft.scaling?.range_min || undefined,
+          max: draft.scaling?.range_max || undefined,
+        } as numericQuestionType;
+
+      case "date":
+        return {
+          ...baseValues,
+          scaling: draft.scaling || {
+            range_min: null,
+            range_max: null,
+            zero_point: null,
+          },
+          open_lower_bound: draft.open_lower_bound ?? true,
+          open_upper_bound: draft.open_upper_bound ?? true,
+          min: draft.scaling?.range_min
+            ? new Date(draft.scaling.range_min)
+            : undefined,
+          max: draft.scaling?.range_max
+            ? new Date(draft.scaling.range_max)
+            : undefined,
+        } as dateQuestionType;
+
+      case "multiple_choice":
+        return {
+          ...baseValues,
+          group_variable: draft.group_variable || "",
+          options: draft.options || [],
+        } as multipleChoiceQuestionType;
+
+      default:
+        return baseValues as binaryQuestionType;
+    }
+  };
 
   useEffect(() => {
     if (mode === "create" && !isDraftMounted.current) {
@@ -424,7 +532,8 @@ const QuestionForm: FC<Props> = ({
               )[0] as Tournament)
             : defaultProject
         );
-        form.reset(draft);
+        // Converta o draft para o tipo correto esperado pelo formulário
+        form.reset(convertDraftToFormSchema(draft));
       }
       setTimeout(() => {
         isDraftMounted.current = true;
@@ -442,15 +551,6 @@ const QuestionForm: FC<Props> = ({
     });
     return () => subscription.unsubscribe();
   }, [form, mode, debouncedHandleFormChange]);
-
-  // Set Advenced Options default values
-  useEffect(() => {
-    if (post) {
-      form.setValue("open_time", post?.question?.open_time);
-      form.setValue("published_at", post?.published_at);
-      form.setValue("cp_reveal_time", post?.question?.cp_reveal_time);
-    }
-  }, [post, form]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -517,7 +617,9 @@ const QuestionForm: FC<Props> = ({
           >
             <Input
               {...form.register("unit")}
-              errors={form.formState.errors.unit}
+              errors={
+                (form.formState.errors as unknown as ExtendedFieldErrors).unit
+              }
               defaultValue={post?.question?.unit}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
@@ -532,7 +634,7 @@ const QuestionForm: FC<Props> = ({
           isNativeFormControl={false}
         >
           <MarkdownEditorField
-            control={form.control}
+            control={form.control as unknown as Control<FieldValues>}
             name={"description"}
             defaultValue={post?.question?.description}
             errors={form.formState.errors.description}
@@ -546,7 +648,7 @@ const QuestionForm: FC<Props> = ({
           isNativeFormControl={false}
         >
           <MarkdownEditorField
-            control={form.control}
+            control={form.control as unknown as Control<FieldValues>}
             name={"resolution_criteria"}
             defaultValue={post?.question?.resolution_criteria}
             errors={form.formState.errors.resolution_criteria}
@@ -558,7 +660,7 @@ const QuestionForm: FC<Props> = ({
           isNativeFormControl={false}
         >
           <MarkdownEditorField
-            control={form.control}
+            control={form.control as unknown as Control<FieldValues>}
             name={"fine_print"}
             defaultValue={post?.question?.fine_print}
             errors={form.formState.errors.fine_print}
@@ -576,7 +678,7 @@ const QuestionForm: FC<Props> = ({
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
             hasForecasts={hasForecasts && mode !== "create"}
-            control={form}
+            control={form as any}
             onChange={({
               min: rangeMin,
               max: rangeMax,
@@ -603,7 +705,10 @@ const QuestionForm: FC<Props> = ({
             >
               <Input
                 {...form.register("group_variable")}
-                errors={form.formState.errors.group_variable}
+                errors={
+                  (form.formState.errors as unknown as ExtendedFieldErrors)
+                    .group_variable
+                }
                 defaultValue={post?.question?.group_variable}
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               />
@@ -633,9 +738,10 @@ const QuestionForm: FC<Props> = ({
                           }}
                           errors={
                             (
-                              form.formState.errors.options as
-                                | ErrorResponse[]
-                                | undefined
+                              (
+                                form.formState
+                                  .errors as unknown as ExtendedFieldErrors
+                              ).options as ErrorResponse[] | undefined
                             )?.[opt_index]
                           }
                         />
@@ -677,7 +783,7 @@ const QuestionForm: FC<Props> = ({
             className="w-full gap-2"
           >
             <DateInput
-              control={form.control}
+              control={form.control as unknown as Control<FieldValues>}
               name="scheduled_close_time"
               defaultValue={post?.question?.scheduled_close_time}
               errors={form.formState.errors.scheduled_close_time}
@@ -690,7 +796,7 @@ const QuestionForm: FC<Props> = ({
             className="w-full gap-2"
           >
             <DateInput
-              control={form.control}
+              control={form.control as unknown as Control<FieldValues>}
               name="scheduled_resolve_time"
               defaultValue={post?.question?.scheduled_resolve_time}
               errors={form.formState.errors.scheduled_resolve_time}
@@ -720,7 +826,7 @@ const QuestionForm: FC<Props> = ({
               className="w-full gap-2"
             >
               <DateInput
-                control={form.control}
+                control={form.control as unknown as Control<FieldValues>}
                 name="open_time"
                 defaultValue={post?.question?.open_time}
                 errors={form.formState.errors.open_time}
@@ -733,7 +839,7 @@ const QuestionForm: FC<Props> = ({
               className="w-full gap-2"
             >
               <DateInput
-                control={form.control}
+                control={form.control as unknown as Control<FieldValues>}
                 name="published_at"
                 defaultValue={post?.published_at}
                 errors={form.formState.errors.published_at}
@@ -749,7 +855,7 @@ const QuestionForm: FC<Props> = ({
               className="w-full gap-2"
             >
               <DateInput
-                control={form.control}
+                control={form.control as unknown as Control<FieldValues>}
                 name="cp_reveal_time"
                 defaultValue={post?.question?.cp_reveal_time}
                 errors={form.formState.errors.cp_reveal_time}
