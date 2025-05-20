@@ -488,6 +488,12 @@ export default function QuestionChecklist() {
             such predictions are clearly of wide public interest, which is to be
             decided by Community Moderators.
           </li>
+          <li>
+            <strong>
+              Questions should not contain information hazards or credibly pose a risk of causing harm.
+            </strong>{" "}
+            <a href="https://en.wikipedia.org/wiki/Information_hazard" target="_blank">Information hazards</a> are risks posed by the spread of factual information that could lead to harmful outcomes if they reach certain actors or audiences. These range from technical vulnerabilities that could compromise systems, to extreme cases such as information about how to build a bioweapon. Questions should also seek to avoid harmful self-fulfilling or self-negating effects, where the aggregate forecast could itself influence whether the event in question occurs. Information hazards and circular effects are often difficult to assess and can vary substantially in the level of risk posed. Metaculus will weigh the potential benefits and risks of submitted questions and will avoid launching those that pose a significant risk.
+          </li>
         </ul>
         <p>
           Question content rules (with the exception of the notability
