@@ -48,7 +48,7 @@ import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 
-// Interface estendida para incluir campos adicionais que estão sendo usados
+// Extended interface to include additional fields being used
 interface ExtendedQuestionDraft extends QuestionDraft {
   short_title?: string;
   published_at?: string;
@@ -378,14 +378,14 @@ const QuestionForm: FC<Props> = ({
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
 
-  type binaryQuestionType = z.infer<typeof schemas.binaryQuestionSchema>;
-  type numericQuestionType = z.infer<typeof schemas.numericQuestionSchema>;
-  type dateQuestionType = z.infer<typeof schemas.dateQuestionSchema>;
-  type multipleChoiceQuestionType = z.infer<
+  type BinaryQuestionType = z.infer<typeof schemas.binaryQuestionSchema>;
+  type NumericQuestionType = z.infer<typeof schemas.numericQuestionSchema>;
+  type DateQuestionType = z.infer<typeof schemas.dateQuestionSchema>;
+  type MultipleChoiceQuestionType = z.infer<
     typeof schemas.multipleChoiceQuestionSchema
   >;
 
-  // Tipo estendido para os erros do formulário
+  // Extended type for form errors
   type ExtendedFieldErrors = {
     unit?: any;
     group_variable?: any;
@@ -408,10 +408,10 @@ const QuestionForm: FC<Props> = ({
     }
   };
   type FormSchemaType =
-    | binaryQuestionType
-    | numericQuestionType
-    | dateQuestionType
-    | multipleChoiceQuestionType;
+    | BinaryQuestionType
+    | NumericQuestionType
+    | DateQuestionType
+    | MultipleChoiceQuestionType;
 
   // TODO: refactor validation schema setup to properly populate useForm generic
   const form = useForm<FormSchemaType>({
@@ -435,7 +435,7 @@ const QuestionForm: FC<Props> = ({
   const handleFormChange = useCallback(() => {
     if (mode === "create") {
       const formData = form.getValues();
-      // Converta explicitamente para o tipo ExtendedQuestionDraft
+      // Explicitly convert to the ExtendedQuestionDraft type
       saveQuestionDraft(questionType, {
         ...formData,
         options: optionsList,
@@ -450,11 +450,11 @@ const QuestionForm: FC<Props> = ({
     QUESTION_DRAFT_DEBOUNCE_TIME
   );
 
-  // Helper para converter QuestionDraft para o tipo específico do formulário
+  // Helper to convert QuestionDraft to the specific form type
   const convertDraftToFormSchema = (
     draft: ExtendedQuestionDraft
   ): FormSchemaType => {
-    // Crie um objeto básico com as propriedades comuns
+    // Create a basic object with common properties
     const baseValues = {
       type: draft.type as "binary" | "multiple_choice" | "date" | "numeric",
       title: draft.title || "",
@@ -470,7 +470,7 @@ const QuestionForm: FC<Props> = ({
       default_project: draft.default_project,
     };
 
-    // Dependendo do tipo de questão, adicione propriedades específicas
+    // Depending on the question type, add specific properties
     switch (draft.type) {
       case "numeric":
         return {
@@ -485,7 +485,7 @@ const QuestionForm: FC<Props> = ({
           unit: draft.unit || "",
           min: draft.scaling?.range_min || undefined,
           max: draft.scaling?.range_max || undefined,
-        } as numericQuestionType;
+        } as NumericQuestionType;
 
       case "date":
         return {
@@ -503,17 +503,17 @@ const QuestionForm: FC<Props> = ({
           max: draft.scaling?.range_max
             ? new Date(draft.scaling.range_max)
             : undefined,
-        } as dateQuestionType;
+        } as DateQuestionType;
 
       case "multiple_choice":
         return {
           ...baseValues,
           group_variable: draft.group_variable || "",
           options: draft.options || [],
-        } as multipleChoiceQuestionType;
+        } as MultipleChoiceQuestionType;
 
       default:
-        return baseValues as binaryQuestionType;
+        return baseValues as BinaryQuestionType;
     }
   };
 
@@ -532,7 +532,7 @@ const QuestionForm: FC<Props> = ({
               )[0] as Tournament)
             : defaultProject
         );
-        // Converta o draft para o tipo correto esperado pelo formulário
+        // Convert the draft to the correct type expected by the form
         form.reset(convertDraftToFormSchema(draft));
       }
       setTimeout(() => {
@@ -542,7 +542,7 @@ const QuestionForm: FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // update draft when form values changes
+  // update draft when form values change
   useEffect(() => {
     const subscription = form.watch(() => {
       if (mode === "create" && isDraftMounted.current) {
