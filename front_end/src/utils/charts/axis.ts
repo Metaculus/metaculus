@@ -9,7 +9,7 @@ import {
 import { isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
-import { Scale, TimelineChartZoomOption } from "@/types/charts";
+import { Scale, TimelineChartZoomOption, YDomain } from "@/types/charts";
 import { QuestionType, Scaling } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { unscaleNominalLocation } from "@/utils/math";
@@ -95,18 +95,15 @@ type GenerateYDomainParams = {
   includeClosestBoundOnZoom?: boolean;
 };
 
-export function generateYDomain({
+export function generateTimeSeriesYDomain({
   zoom,
   isChartEmpty,
   minValues,
   maxValues,
   minTimestamp,
-  zoomDomainPadding = 0.05,
-  includeClosestBoundOnZoom = false,
-}: GenerateYDomainParams): {
-  originalYDomain: Tuple<number>;
-  zoomedYDomain: Tuple<number>;
-} {
+  zoomDomainPadding,
+  includeClosestBoundOnZoom,
+}: GenerateYDomainParams): YDomain {
   const originalYDomain: Tuple<number> = [0, 1];
   const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
 
@@ -128,6 +125,28 @@ export function generateYDomain({
   if (isNil(minValue) || isNil(maxValue)) {
     return fallback;
   }
+
+  return generateYDomain({
+    minValue,
+    maxValue,
+    zoomDomainPadding,
+    includeClosestBoundOnZoom,
+  });
+}
+
+export function generateYDomain({
+  minValue,
+  maxValue,
+  zoomDomainPadding = 0.05,
+  includeClosestBoundOnZoom = false,
+}: {
+  minValue: number;
+  maxValue: number;
+  zoomDomainPadding?: number;
+  includeClosestBoundOnZoom?: boolean;
+}): YDomain {
+  const originalYDomain: Tuple<number> = [0, 1];
+
   let zoomedYDomain: Tuple<number> = [0, 1];
   const distanceToZero = Math.abs(minValue - zoomDomainPadding);
   const distanceToOne = Math.abs(1 - (maxValue + zoomDomainPadding));

@@ -39,7 +39,7 @@ import {
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
-  generateYDomain,
+  generateTimeSeriesYDomain,
   getAxisLeftPadding,
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
@@ -639,7 +639,7 @@ function buildChartData({
   const areas: Area = graphs
     .filter((g) => !isNil(g.area) && g.active)
     .flatMap((g) => g.area);
-  const { originalYDomain, zoomedYDomain } = generateYDomain({
+  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
