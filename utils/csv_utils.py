@@ -191,10 +191,10 @@ def export_all_data_for_questions(
 
 
 def export_data_for_questions(
-    user: User | None,
+    user_id: int | None,
     is_staff: bool,
     is_whitelisted: bool,
-    questions: QuerySet[Question],
+    question_ids: list[int],
     aggregation_methods: list[AggregationMethod] | None,
     minimize: bool,
     include_scores: bool,
@@ -203,7 +203,10 @@ def export_data_for_questions(
     user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
+    **kwargs,
 ) -> bytes:
+    user = User.objects.get(id=user_id) if user_id is not None else None
+    questions = Question.objects.filter(id__in=question_ids)
     if not include_user_data:
         user_forecasts = Forecast.objects.none()
     else:

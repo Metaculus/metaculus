@@ -305,8 +305,8 @@ export async function changePostSubscriptions(
   return response;
 }
 
-export async function getPostZipData(postId: number) {
-  const blob = await ServerPostsApi.getPostZipData(postId);
+export async function getPostZipData(params: DataParams) {
+  const blob = await ServerPostsApi.getPostZipData(params);
   const arrayBuffer = await blob.arrayBuffer();
   const base64String = Buffer.from(arrayBuffer).toString("base64");
 

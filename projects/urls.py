@@ -40,6 +40,11 @@ urlpatterns = [
         name="project-unsubscribe",
     ),
     path(
+        "projects/<int:project_id>/email-data/",
+        views.email_data,
+        name="projects-email-data",
+    ),
+    path(
         "projects/<int:project_id>/download-data/",
         views.download_data,
         name="projects-download-data",

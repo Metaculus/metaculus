@@ -17,6 +17,7 @@ import { Post } from "@/types/post";
 import { DownloadAggregationMethod } from "@/types/question";
 import { DataParams } from "@/types/utils";
 import { base64ToBlob } from "@/utils/files";
+import { encodeQueryParams } from "@/utils/navigation";
 
 import AggregationMethodsPicker from "./aggregation_methods_picker";
 
@@ -76,12 +77,12 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
   ) => {
     setPendingSubmission(type);
 
+    const params: DataParams = {
+      post_id: post.id,
+      ...data,
+    };
     if (type === "email") {
       try {
-        const params: DataParams = {
-          post_id: post.id,
-          ...data,
-        };
         const response = await emailData(params);
         toast.success(response.message);
       } catch (error) {
@@ -92,7 +93,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
     } else {
       // type === "download"
       try {
-        const base64 = await getPostZipData(post.id);
+        const base64 = await getPostZipData(params);
         const blob = base64ToBlob(base64);
         const filename = `${post.short_title.replaceAll(" ", "_")}.zip`;
         saveAs(blob, filename);

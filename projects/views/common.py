@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
@@ -30,12 +29,12 @@ from projects.services.common import (
     get_site_main_project,
     get_project_timeline_data,
 )
-from users.models import User
 from users.services.common import get_users_by_usernames
 from utils.cache import cache_get_or_set
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
 from utils.views import validate_data_request
+from utils.tasks import email_data_task
 
 
 @api_view(["GET"])
@@ -294,24 +293,24 @@ def project_unsubscribe_api_view(request: Request, pk: str):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def email_data(request: Request, project_id: int):
+    validated_task_params = validate_data_request(request, project_id=project_id)
+    email_data_task.send(**validated_task_params)
+    return Response({"message": "Email scheduled to be sent"}, status=200)
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_data(request, project_id: int):
-    user: User = request.user
-    if not user.is_authenticated:
-        raise ValidationError("User must be authenticated")
+    validated_data_params = validate_data_request(request, project_id=project_id)
+    data = export_data_for_questions(**validated_data_params)
 
-    validated_task_params = validate_data_request(request)
-
-    project_id = request.data.get("project_id")
-    project = get_object_or_404(Project, id=project_id)
-
-    data = export_data_for_questions(**validated_task_params)
-
-    filename = "_".join(project.name.split(" "))
+    filename = validated_data_params.get("filename", "data.zip")
     response = HttpResponse(
         data,
         content_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={filename}.zip"},
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
     return response

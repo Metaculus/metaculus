@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
 
+from questions.types import AggregationMethod
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
 from utils.translation import (
     update_translations_for_model,
@@ -85,7 +86,7 @@ def email_data_task(
     is_whitelisted: bool,
     filename: str,
     question_ids: list[int],
-    aggregation_methods: list[str],
+    aggregation_methods: list[AggregationMethod],
     minimize: bool,
     include_scores: bool,
     include_user_data: bool,
@@ -96,17 +97,12 @@ def email_data_task(
 ):
     try:
         from utils.csv_utils import export_data_for_questions
-        from questions.models import Question
-        from users.models import User
-
-        questions = Question.objects.filter(id__in=question_ids)
-        user = User.objects.get(id=user_id)
 
         data = export_data_for_questions(
-            user,
+            user_id,
             is_staff,
             is_whitelisted,
-            questions,
+            question_ids,
             aggregation_methods,
             minimize,
             include_scores,

@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 
 from django.db.models import Q
+from django.http import HttpResponse
+from django.http.request import QueryDict
 from django.shortcuts import get_object_or_404
 
 from misc.models import WhitelistUser
@@ -13,9 +15,11 @@ from posts.serializers import DataGetRequestSerializer, DataPostRequestSerialize
 from posts.services.common import get_post_permission_for_user
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services.common import get_project_permission_for_user
 from questions.models import Question
 from questions.serializers.common import serialize_question
 from users.models import User
+from utils.csv_utils import export_data_for_questions
 from utils.the_math.aggregations import get_aggregation_history
 from utils.tasks import email_data_task
 
@@ -99,25 +103,46 @@ def aggregation_explorer_api_view(request):
     return Response(data)
 
 
-def validate_data_request(request: Request):
+def validate_data_request(request: Request, **kwargs):
+    if request.method == "GET":
+        data = (request.GET or {}).copy()
+        data.update(kwargs)
+        SerializerClass = DataGetRequestSerializer
+    else:
+        data = (request.data or {}).copy()
+        data.update(kwargs)
+        SerializerClass = DataPostRequestSerializer
+
     user: User = request.user
 
     question: Question | None = None
     post: Post | None = None
     project: Project | None = None
 
-    if question_id := request.data.get("question_id"):
+    if question_id := data.get("question_id"):
         question = get_object_or_404(Question, id=question_id)
-    elif sub_question := request.data.get("sub_question"):
+    elif sub_question := data.get("sub_question"):
         question = get_object_or_404(Question, id=sub_question)
-    if post_id := request.data.get("post_id"):
+
+    if post_id := data.get("post_id"):
         post = get_object_or_404(Post, id=post_id)
     elif question:
         post = question.get_post()
-    if project_id := request.data.get("project_id"):
+    else:
+        post = None
+    if post:
+        # Check permissions
+        permission = get_post_permission_for_user(post, user=user)
+        ObjectPermission.can_view(permission, raise_exception=True)
+
+    if project_id := data.get("project_id"):
         project = get_object_or_404(Project, id=project_id)
     elif post:
         project = post.default_project
+    if project:
+        # Check permissions
+        permission = get_project_permission_for_user(project, user=user)
+        ObjectPermission.can_view(permission, raise_exception=True)
 
     # Context for the serializer
     is_staff = user.is_authenticated and user.is_staff
@@ -137,9 +162,7 @@ def validate_data_request(request: Request):
         "is_whitelisted": is_whitelisted,
     }
 
-    serializer = DataPostRequestSerializer(
-        data=request.data, context=serializer_context
-    )
+    serializer = SerializerClass(data=data, context=serializer_context)
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
 
@@ -181,6 +204,7 @@ def validate_data_request(request: Request):
         filename = project.slug or project.name
     for char in [" ", "-", "/", ":", ",", "."]:
         filename = filename.replace(char, "_")
+    filename = filename.replace("?", "")
     filename += ".zip"
 
     return {
@@ -204,10 +228,20 @@ def validate_data_request(request: Request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def email_data_view(request: Request):
-    user: User = request.user
-    if not user.is_authenticated:
-        raise ValidationError("User must be authenticated")
-
     validated_task_params = validate_data_request(request)
     email_data_task.send(**validated_task_params)
     return Response({"message": "Email scheduled to be sent"}, status=200)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def download_data_view(request: Request):
+    validated_data_params = validate_data_request(request)
+    filename = validated_data_params.get("filename", "data")
+    data = export_data_for_questions(**validated_data_params)
+    response = HttpResponse(
+        data,
+        content_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+    return response

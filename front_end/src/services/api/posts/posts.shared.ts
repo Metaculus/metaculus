@@ -165,8 +165,9 @@ class PostsApi extends ApiService {
     return await this.get<{ id: number; post_slug: string }>("/posts/random/");
   }
 
-  async getPostZipData(postId: number): Promise<Blob> {
-    return await this.get<Blob>(`/posts/${postId}/download-data/`);
+  async getPostZipData(params: DataParams): Promise<Blob> {
+    const queryParams = encodeQueryParams(params);
+    return await this.get<Blob>(`/data/download/${queryParams}`);
   }
 
   async emailData(params: DataParams): Promise<{
