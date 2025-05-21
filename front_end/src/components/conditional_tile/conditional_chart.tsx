@@ -10,16 +10,18 @@ import ProgressBar from "@/components/ui/progress_bar";
 import { ContinuousAreaType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
 import {
-  extractPrevNumericForecastValue,
-  getSliderNumericForecastDataset,
   getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
+} from "@/utils/forecasts/dataset";
+import {
   isQuantileForecast,
   isSliderForecast,
-} from "@/utils/forecasts";
+} from "@/utils/forecasts/helpers";
+import { extractPrevNumericForecastValue } from "@/utils/forecasts/initial_values";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { cdfToPmf } from "@/utils/math";
-import { getQuestionForecastAvailability } from "@/utils/questions";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 
 import CPRevealTime from "../cp_reveal_time";
 
@@ -125,8 +127,7 @@ const ConditionalChart: FC<Props> = ({
           ? aggregateLatest.centers?.[0]
           : undefined;
       const formattedPrediction = prediction
-        ? getDisplayValue({
-            value: prediction,
+        ? getPredictionDisplayValue(prediction, {
             questionType: question.type,
             scaling: question.scaling,
             actual_resolve_time: question.actual_resolve_time ?? null,

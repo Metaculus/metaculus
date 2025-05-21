@@ -10,8 +10,10 @@ import {
   ContinuousAreaHoverState,
 } from "@/types/charts";
 import { AggregateForecastHistory } from "@/types/question";
-import { displayValue, scaleInternalLocation } from "@/utils/charts";
-import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import {
+  getForecastPctDisplayValue,
+  getPredictionDisplayValue,
+} from "@/utils/formatters/prediction";
 import { cdfToPmf } from "@/utils/math";
 
 import { AggregationQuestionWithBots } from "../types";
@@ -37,13 +39,12 @@ const ContinuousAggregationChart: FC<Props> = ({
   const cursorDisplayData = useMemo(() => {
     if (!hoverState) return null;
 
-    const scaledValue = scaleInternalLocation(hoverState.x, {
-      range_min: scaling.range_min ?? 0,
-      range_max: scaling.range_max ?? 1,
-      zero_point: scaling.zero_point,
-    });
-    const xLabel = displayValue({
-      value: scaledValue,
+    const xLabel = getPredictionDisplayValue(hoverState.x, {
+      scaling: {
+        range_min: scaling.range_min ?? 0,
+        range_max: scaling.range_max ?? 1,
+        zero_point: scaling.zero_point,
+      },
       questionType: qType,
       precision: 5,
       actual_resolve_time: null,

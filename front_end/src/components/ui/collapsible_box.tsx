@@ -3,7 +3,7 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, PropsWithChildren } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const CollapsibleBox: FC<
   PropsWithChildren<{

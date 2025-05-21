@@ -20,7 +20,7 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
-import { lightTheme, darkTheme } from "@/constants/chart_theme";
+import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -36,16 +36,15 @@ import { ChoiceItem } from "@/types/choices";
 import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
-  findPreviousTimestamp,
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
-  generateYDomain,
-  getLeftPadding,
+  generateTimeSeriesYDomain,
+  getAxisLeftPadding,
   getTickLabelFontSize,
-  scaleInternalLocation,
-  unscaleNominalLocation,
-} from "@/utils/charts";
+} from "@/utils/charts/axis";
+import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
@@ -68,7 +67,7 @@ type Props = {
   isClosed?: boolean;
   aggregation?: boolean;
   isEmptyDomain?: boolean;
-  openTime?: number;
+  openTime?: number | null;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -151,7 +150,7 @@ const MultipleChoiceChart: FC<Props> = ({
   );
 
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
   const isHighlightActive = useMemo(
@@ -424,7 +423,7 @@ function buildChartData({
   extraTheme?: VictoryThemeDefinition;
   hideCP?: boolean;
   isAggregationsEmpty?: boolean;
-  openTime?: number;
+  openTime?: number | null;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -640,12 +639,13 @@ function buildChartData({
   const areas: Area = graphs
     .filter((g) => !isNil(g.area) && g.active)
     .flatMap((g) => g.area);
-  const { originalYDomain, zoomedYDomain } = generateYDomain({
+  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
     minValues: areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
     maxValues: areas.map((a) => ({ timestamp: a.x, y: a.y })),
+    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
   });
   const yScale = generateScale({
     displayType: questionType,

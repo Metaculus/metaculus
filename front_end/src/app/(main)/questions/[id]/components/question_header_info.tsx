@@ -6,7 +6,7 @@ import PostStatus from "@/components/post_status";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getPostLink } from "@/utils/navigation";
-import { extractPostResolution } from "@/utils/questions";
+import { extractPostResolution } from "@/utils/questions/resolution";
 
 import ForecastersCounter from "../../components/forecaster_counter";
 

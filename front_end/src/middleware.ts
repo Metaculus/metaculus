@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import AuthApi from "@/services/auth";
+import ServerAuthApi from "@/services/api/auth/auth.server";
 import {
   COOKIE_NAME_TOKEN,
   getAlphaTokenSession,
@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   if (serverSession) {
     // Verify auth token
     try {
-      await AuthApi.verifyToken();
+      await ServerAuthApi.verifyToken();
     } catch (error) {
       const errorResponse = error as ErrorResponse;
 

@@ -1,9 +1,12 @@
+import logging
 from datetime import datetime, timezone
 
 import numpy as np
 
 from questions.models import Question
 from utils.typing import ForecastValues
+
+logger = logging.getLogger(__name__)
 
 
 # string_location <> scaled_location <> unscaled_location <> bucket_index
@@ -72,6 +75,14 @@ def unscaled_location_to_scaled_location(
         question.range_max,
         question.range_min,
     )
+
+    if range_max is None or range_min is None:
+        logger.warning(
+            f"Question {question.id} has nullable range_max or range_min value"
+        )
+
+        return unscaled_location
+
     if zero_point is not None:
         deriv_ratio = (range_max - zero_point) / max(
             (range_min - zero_point), 0.0000001

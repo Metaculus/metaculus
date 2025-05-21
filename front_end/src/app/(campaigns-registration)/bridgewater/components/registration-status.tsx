@@ -7,7 +7,7 @@ import Link from "next/link";
 import React, { FC, PropsWithChildren } from "react";
 
 import { CurrentUser } from "@/types/users";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 const HeadingText: FC<{ heading: string; subheading: React.ReactNode }> = ({
   heading,

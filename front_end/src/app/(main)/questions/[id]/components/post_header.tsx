@@ -5,18 +5,18 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions/";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Button from "@/components/ui/button";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import {
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import PostApprovalModal from "./post_approval_modal";
 import PostDestructiveActionModal from "./post_destructive_action_modal";
@@ -30,7 +30,6 @@ export default function PostHeader({
   questionTitle: string;
 }) {
   const t = useTranslations();
-
   let typeLabel = t("notebook");
   if (post.group_of_questions) {
     typeLabel = t("group");
@@ -42,13 +41,14 @@ export default function PostHeader({
 
   const allowModifications =
     post.user_permission === ProjectPermissions.ADMIN ||
-    post.user_permission === ProjectPermissions.CURATOR ||
-    (post.user_permission === ProjectPermissions.CREATOR &&
+    ([ProjectPermissions.CURATOR, ProjectPermissions.CREATOR].includes(
+      post.user_permission
+    ) &&
       post.curation_status !== PostStatus.APPROVED);
 
   const edit_type = getEditType(post);
 
-  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const locale = useLocale();
 
   useEffect(() => {

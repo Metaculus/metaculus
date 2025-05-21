@@ -28,31 +28,16 @@ async def get_google_search_results(
         max_pages: The maximum number of Google pages to search.
                    Each page contains 100 results.
     """
-    try:
-        return await _get_google_search_results(
-            search_query=search_query, max_pages=max_pages
-        )
-    except Exception as e:
-        logger.warning(
-            f"Failed to get Google search results for query '{search_query}': {e}"
-        )
-        raise e
 
-
-async def _get_google_search_results(
-    search_query: str,
-    max_pages: int,
-) -> dict[int, float]:
     results = await _get_serper_results(search_query, max_pages)
     question_ids = []
     for result in results:
         if match := re.match(METACULUS_URL_PATTERN, result["link"]):
             question_ids.append(int(match.group(1)))
 
-    question_id_to_score = _normalize_google_scores(
+    return _normalize_google_scores(
         question_ids=question_ids,
     )
-    return question_id_to_score
 
 
 async def _get_serper_results(

@@ -2,18 +2,18 @@ import { isNil } from "lodash";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 
-import CPWeeklyMovement from "@/components/cp_weekly_movement";
+import QuestionCPMovement from "@/components/cp_movement";
 import { PostWithForecasts } from "@/types/post";
 import {
   ForecastAvailability,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { formatResolution } from "@/utils/formatters/resolution";
 import {
-  formatResolution,
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
-  isSuccessfullyResolved,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
+import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 import GroupForecastCard from "./group_forecast_card";
 import QuestionForecastChip from "./question_forecast_chip";
@@ -72,11 +72,7 @@ const ConsumerPredictionInfo: FC<Props> = ({ post, forecastAvailability }) => {
         <QuestionForecastChip
           question={question as QuestionWithNumericForecasts}
         />
-        <CPWeeklyMovement
-          question={question}
-          displayUnit={false}
-          presentation="consumerView"
-        />
+        <QuestionCPMovement question={question} presentation="consumerView" />
       </div>
     );
   }

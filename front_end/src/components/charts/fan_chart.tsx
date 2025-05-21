@@ -2,6 +2,7 @@
 import { isNil, merge } from "lodash";
 import React, { FC, useMemo, useState } from "react";
 import {
+  Tuple,
   VictoryArea,
   VictoryAxis,
   VictoryChart,
@@ -20,45 +21,68 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
-import { Area, FanOption, Line } from "@/types/charts";
 import {
-  ForecastAvailability,
+  Area,
+  ContinuousForecastInputType,
+  FanOption,
+  Line,
+  YDomain,
+} from "@/types/charts";
+import { PostGroupOfQuestions } from "@/types/post";
+import {
   Quartiles,
   QuestionType,
+  QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
 import {
-  calculateCharWidth,
   generateScale,
-  getLeftPadding,
-  getResolutionPosition,
+  generateYDomain,
+  getAxisLeftPadding,
   getTickLabelFontSize,
+} from "@/utils/charts/axis";
+import {
+  calculateCharWidth,
+  getLineGraphTypeFromQuestion,
+} from "@/utils/charts/helpers";
+import { getResolutionPosition } from "@/utils/charts/resolution";
+import {
+  getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
+} from "@/utils/forecasts/dataset";
+import {
+  extractPrevBinaryForecastValue,
+  extractPrevNumericForecastValue,
+} from "@/utils/forecasts/initial_values";
+import {
+  computeQuartilesFromCDF,
+  getCdfBounds,
   scaleInternalLocation,
   unscaleNominalLocation,
-} from "@/utils/charts";
+} from "@/utils/math";
+import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
+import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 
 const TOOLTIP_WIDTH = 150;
 
 type Props = {
-  options: FanOption[];
+  group: PostGroupOfQuestions<QuestionWithNumericForecasts>;
   height?: number;
   yLabel?: string;
   withTooltip?: boolean;
   extraTheme?: VictoryThemeDefinition;
   pointSize?: number;
   hideCP?: boolean;
-  forecastAvailability?: ForecastAvailability;
 };
 
 const FanChart: FC<Props> = ({
-  options,
+  group,
   height = 220,
   yLabel,
   withTooltip = false,
   extraTheme,
   pointSize,
   hideCP,
-  forecastAvailability,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -72,6 +96,9 @@ const FanChart: FC<Props> = ({
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
+  const forecastAvailability = getGroupForecastAvailability(group.questions);
+
+  const options = useMemo(() => getFanOptions(group), [group]);
   const {
     communityLine,
     userLine,
@@ -80,21 +107,14 @@ const FanChart: FC<Props> = ({
     communityPoints,
     userPoints,
     resolutionPoints,
-    scaling,
-  } = useMemo(() => buildChartData(options), [options]);
+    yScale,
+    yDomain,
+  } = useMemo(() => buildChartData({ options, height }), [height, options]);
 
   const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
-  const yScale = generateScale({
-    // we expect fan graph to be rendered only for group questions, that expect some options
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    displayType: options[0]!.question.type,
-    axisLength: height,
-    direction: "vertical",
-    scaling: scaling,
-  });
   const { ticks, tickFormat } = yScale;
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
   const shouldDisplayChart = !!chartWidth;
@@ -111,7 +131,7 @@ const FanChart: FC<Props> = ({
           height={height}
           theme={actualTheme}
           domain={{
-            y: [0, 1],
+            y: yDomain,
           }}
           domainPadding={{
             x: TOOLTIP_WIDTH / 2,
@@ -286,7 +306,18 @@ const FanChart: FC<Props> = ({
 
 type FanGraphPoint = { x: string; y: number; resolved: boolean };
 
-function buildChartData(options: FanOption[]) {
+function buildChartData({
+  options,
+  height,
+}: {
+  options: FanOption[];
+  height: number;
+}) {
+  // we expect fan graph to be rendered only for group questions, that expect some options
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const groupType = options[0]!.question.type;
+  const isBinaryGroup = groupType === QuestionType.Binary;
+
   const communityLine: Line<string> = [];
   const userLine: Line<string> = [];
   const communityArea: Area<string> = [];
@@ -294,19 +325,96 @@ function buildChartData(options: FanOption[]) {
   const communityPoints: Array<FanGraphPoint> = [];
   const userPoints: Array<FanGraphPoint> = [];
   const resolutionPoints: Array<FanGraphPoint> = [];
+
+  const scaling = getFanGraphScaling(options);
+
+  for (const option of options) {
+    if (option.communityQuartiles) {
+      const {
+        linePoint: communityLinePoint,
+        areaPoint: communityAreaPoint,
+        point: communityPoint,
+      } = getOptionGraphData({
+        name: option.name,
+        quartiles: option.communityQuartiles,
+        optionScaling: option.question.scaling,
+        scaling,
+        withoutScaling: isBinaryGroup,
+      });
+      communityLine.push(communityLinePoint);
+      communityArea.push(communityAreaPoint);
+      communityPoints.push(communityPoint);
+    }
+    if (option.resolved) {
+      resolutionPoints.push({
+        x: option.name,
+        y: getResolutionPosition({
+          question: option.question,
+          scaling,
+        }),
+        resolved: true,
+      });
+    }
+    if (option.userQuartiles) {
+      const {
+        linePoint: userLinePoint,
+        areaPoint: userAreaPoint,
+        point: userPoint,
+      } = getOptionGraphData({
+        name: option.name,
+        quartiles: option.userQuartiles,
+        optionScaling: option.question.scaling,
+        scaling,
+        withoutScaling: isBinaryGroup,
+      });
+      userLine.push(userLinePoint);
+      if (!isBinaryGroup) {
+        userArea.push(userAreaPoint);
+      }
+      userPoints.push(userPoint);
+    }
+  }
+
+  const { originalYDomain, zoomedYDomain } = generateFanGraphYDomain({
+    communityArea,
+    userArea,
+    resolutionPoints,
+    includeClosestBoundOnZoom: isBinaryGroup,
+  });
+  const yScale = generateScale({
+    displayType: groupType,
+    axisLength: height,
+    direction: "vertical",
+    scaling: scaling,
+    domain: originalYDomain,
+    zoomedDomain: zoomedYDomain,
+  });
+
+  return {
+    communityLine,
+    userLine,
+    communityArea,
+    userArea,
+    communityPoints,
+    userPoints,
+    resolutionPoints,
+    yScale,
+    yDomain: zoomedYDomain,
+  };
+}
+
+function getFanGraphScaling(options: FanOption[]): Scaling {
   const zeroPoints: number[] = [];
-  options.forEach((option) => {
+  const rangeMaxValues: number[] = [];
+  const rangeMinValues: number[] = [];
+  for (const option of options) {
     if (
-      option.question.scaling.zero_point !== null &&
+      !isNil(option.question.scaling.zero_point) &&
       !!option.communityQuartiles
     ) {
       zeroPoints.push(option.question.scaling.zero_point);
     }
-  });
 
-  const rangeMaxValues: number[] = [];
-  const rangeMinValues: number[] = [];
-  for (const option of options) {
     if (!isNil(option.question.scaling.range_max)) {
       rangeMaxValues.push(option.question.scaling.range_max);
     }
@@ -338,84 +446,67 @@ function buildChartData(options: FanOption[]) {
     scaling.zero_point = null;
   }
 
-  const isBinaryGroup = options[0]?.question.type === QuestionType.Binary;
-  for (const option of options) {
-    if (option.communityQuartiles) {
-      const {
-        linePoint: communityLinePoint,
-        areaPoint: communityAreaPoint,
-        point: communityPoint,
-      } = getOptionGraphData(
-        {
-          name: option.name,
-          quartiles: option.communityQuartiles,
-          optionScaling: option.question.scaling,
-          scaling,
-        },
-        isBinaryGroup
-      );
-      communityLine.push(communityLinePoint);
-      communityArea.push(communityAreaPoint);
-      communityPoints.push(communityPoint);
-    }
-    if (option.resolved) {
-      resolutionPoints.push({
-        x: option.name,
-        y: getResolutionPosition({
-          question: option.question,
-          scaling,
-        }),
-        resolved: true,
-      });
-    }
-    if (option.userQuartiles) {
-      const {
-        linePoint: userLinePoint,
-        areaPoint: userAreaPoint,
-        point: userPoint,
-      } = getOptionGraphData(
-        {
-          name: option.name,
-          quartiles: option.userQuartiles,
-          optionScaling: option.question.scaling,
-          scaling,
-        },
-        isBinaryGroup
-      );
-      userLine.push(userLinePoint);
-      if (!isBinaryGroup) {
-        userArea.push(userAreaPoint);
-      }
-      userPoints.push(userPoint);
-    }
-  }
-
-  return {
-    communityLine,
-    userLine,
-    communityArea,
-    userArea,
-    communityPoints,
-    userPoints,
-    resolutionPoints,
-    scaling,
-  };
+  return scaling;
 }
 
-function getOptionGraphData(
-  {
-    name,
-    quartiles,
-    scaling,
-    optionScaling,
-  }: {
-    name: string;
-    quartiles: Quartiles;
-    optionScaling: Scaling;
-    scaling: Scaling;
-  },
-  withoutScaling = true
-) {
+function generateFanGraphYDomain({
+  communityArea,
+  resolutionPoints,
+  userArea,
+  includeClosestBoundOnZoom,
+}: {
+  communityArea: Area<string>;
+  userArea: Area<string>;
+  resolutionPoints: Array<FanGraphPoint>;
+  includeClosestBoundOnZoom?: boolean;
+}): YDomain {
+  const originalYDomain: Tuple<number> = [0, 1];
+  const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
+
+  const combinedAreaData = [...communityArea, ...userArea];
+  const minValues: number[] = [];
+  const maxValues: number[] = [];
+  for (const areaPoint of combinedAreaData) {
+    if (!isNil(areaPoint.y0)) {
+      minValues.push(areaPoint.y0);
+    }
+    if (!isNil(areaPoint.y)) {
+      maxValues.push(areaPoint.y);
+    }
+  }
+  for (const resolutionPoint of resolutionPoints) {
+    if (!isNil(resolutionPoint.y)) {
+      minValues.push(resolutionPoint.y);
+      maxValues.push(resolutionPoint.y);
+    }
+  }
+  const minValue = minValues.length ? Math.min(...minValues) : null;
+  const maxValue = maxValues.length ? Math.max(...maxValues) : null;
+
+  if (isNil(minValue) || isNil(maxValue)) {
+    return fallback;
+  }
+
+  return generateYDomain({
+    minValue,
+    maxValue,
+    includeClosestBoundOnZoom,
+  });
+}
+
+function getOptionGraphData({
+  name,
+  quartiles,
+  scaling,
+  optionScaling,
+  withoutScaling,
+}: {
+  name: string;
+  quartiles: Quartiles;
+  optionScaling: Scaling;
+  scaling: Scaling;
+  withoutScaling: boolean;
+}) {
   if (withoutScaling) {
     return {
       linePoint: {
@@ -513,6 +604,112 @@ function adjustLabelsForDisplay(
   return options.map((option, index) =>
     index % step === 0 ? option.name : ""
   );
+}
+
+function getFanOptions(
+  group: PostGroupOfQuestions<QuestionWithNumericForecasts>
+): FanOption[] {
+  const { questions } = group;
+
+  const groupType = questions.at(0)?.type;
+  if (!groupType) {
+    console.warn("Can't generate fan options. Group type is not defined.");
+    return [];
+  }
+
+  const graphType = getLineGraphTypeFromQuestion(groupType);
+  if (!graphType) {
+    console.warn("Can't generate fan options. Graph type is not supported.");
+    return [];
+  }
+
+  const sortedQuestions = sortGroupPredictionOptions(questions, group);
+
+  return graphType === "binary"
+    ? getFanOptionsFromBinaryGroup(sortedQuestions)
+    : getFanOptionsFromContinuousGroup(sortedQuestions);
+}
+
+function getFanOptionsFromContinuousGroup(
+  questions: QuestionWithNumericForecasts[]
+): FanOption[] {
+  return questions
+    .map((q) => {
+      const latest = q.my_forecasts?.latest;
+      const userForecast = extractPrevNumericForecastValue(
+        latest && !latest.end_time ? latest.distribution_input : undefined
+      );
+
+      let userCdf: number[] | null = null;
+      if (userForecast?.components) {
+        userForecast.type === ContinuousForecastInputType.Slider
+          ? (userCdf = getSliderNumericForecastDataset(
+              userForecast.components,
+              q.open_lower_bound,
+              q.open_upper_bound
+            ).cdf)
+          : (userCdf = getQuantileNumericForecastDataset(
+              userForecast.components,
+              q
+            ).cdf);
+      }
+
+      return {
+        name: q.label,
+        communityCdf:
+          q.aggregations.recency_weighted.latest?.forecast_values ?? [],
+        userCdf: userCdf,
+        resolved: q.resolution !== null,
+        question: q,
+      };
+    })
+    .map(({ name, communityCdf, resolved, question, userCdf }) => ({
+      name,
+      communityQuartiles: communityCdf.length
+        ? computeQuartilesFromCDF(communityCdf) ?? null
+        : null,
+      communityBounds: getCdfBounds(communityCdf) ?? null,
+      userQuartiles: userCdf?.length ? computeQuartilesFromCDF(userCdf) : null,
+      userBounds: userCdf ? getCdfBounds(userCdf) ?? null : null,
+      resolved,
+      question,
+    }));
+}
+
+function getFanOptionsFromBinaryGroup(
+  questions: QuestionWithNumericForecasts[]
+): FanOption[] {
+  return questions.map((q) => {
+    const aggregation = q.aggregations.recency_weighted.latest;
+    const resolved = q.resolution !== null;
+
+    const latest = q.my_forecasts?.latest;
+    const userForecast = extractPrevBinaryForecastValue(
+      latest && !latest.end_time ? latest.forecast_values[1] : null
+    );
+
+    return {
+      name: q.label,
+      communityQuartiles: !!aggregation
+        ? {
+            median: aggregation.centers?.[0] ?? 0,
+            lower25: aggregation.interval_lower_bounds?.[0] ?? 0,
+            upper75: aggregation.interval_upper_bounds?.[0] ?? 0,
+          }
+        : null,
+      communityBounds: null,
+      userQuartiles: userForecast
+        ? {
+            lower25: userForecast / 100,
+            median: userForecast / 100,
+            upper75: userForecast / 100,
+          }
+        : null,
+      userBounds: null,
+      resolved,
+      question: q,
+    };
+  });
 }
 
 export default FanChart;

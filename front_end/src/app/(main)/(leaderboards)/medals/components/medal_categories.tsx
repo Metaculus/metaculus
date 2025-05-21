@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { MedalEntry } from "@/types/scoring";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import MedalCard from "./medal_card";
 import { RANKING_CATEGORIES } from "../../ranking_categories";

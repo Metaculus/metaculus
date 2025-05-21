@@ -1,6 +1,6 @@
 import { ButtonHTMLAttributes, FC, PropsWithChildren } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   active: boolean;

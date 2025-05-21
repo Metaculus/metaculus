@@ -1,6 +1,10 @@
+from datetime import datetime
+
 import django
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.http import JsonResponse
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -9,8 +13,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from .models import Bulletin, BulletinViewedBy, ITNArticle
-from .serializers import ContactSerializer
+from questions.models import Question, Forecast
+from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
+from .serializers import ContactSerializer, SidebarItemSerializer
 from .services.itn import remove_article
 
 
@@ -72,6 +77,22 @@ def get_bulletins(request):
     return Response(bulletins_ser)
 
 
+@cache_page(60 * 60 * 24)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_site_stats(request):
+    now_year = datetime.now().year
+    stats = {
+        "predictions": Forecast.objects.count(),
+        "questions": Question.objects.count(),
+        "resolved_questions": Question.objects.filter(
+            actual_resolve_time__isnull=False
+        ).count(),
+        "years_of_predictions": now_year - 2015 + 1,
+    }
+    return JsonResponse(stats)
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def cancel_bulletin(request, pk):
@@ -83,3 +104,13 @@ def cancel_bulletin(request, pk):
     )
     bulletin_viewed_by.save()
     return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def sidebar_api_view(request: Request):
+    sidebar_items = SidebarItem.objects.select_related(
+        "post__default_project", "project"
+    )
+
+    return Response(SidebarItemSerializer(sidebar_items, many=True).data)

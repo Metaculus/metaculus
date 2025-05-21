@@ -333,6 +333,7 @@ def generate_project_leaderboard(
 def assign_ranks(
     entries: list[LeaderboardEntry],
     leaderboard: Leaderboard,
+    include_humans: bool = True,
     include_bots: bool = False,
 ) -> list[LeaderboardEntry]:
     RelativeLegacy = Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
@@ -382,8 +383,10 @@ def assign_ranks(
         id__in=[x.user_id for x in entries if x.user_id], is_active=True
     ).values_list("pk", flat=True)
 
+    if not include_humans:
+        included_users = included_users.exclude(is_bot=False)
     if not include_bots:
-        included_users = included_users.filter(is_bot=False)
+        included_users = included_users.exclude(is_bot=True)
 
     for entry in entries:
         if entry.user_id and entry.user_id not in included_users:
@@ -650,41 +653,42 @@ def update_project_leaderboard(
     new_entries = generate_project_leaderboard(project, leaderboard)
 
     # assign ranks - also applies exclusions
+    bot_status = leaderboard.bot_status or project.bot_leaderboard_status
+    bots_get_ranks = bot_status in [
+        Project.BotLeaderboardStatus.BOTS_ONLY,
+        Project.BotLeaderboardStatus.INCLUDE,
+    ]
+    humans_get_ranks = bot_status != Project.BotLeaderboardStatus.BOTS_ONLY
     new_entries = assign_ranks(
         new_entries,
         leaderboard,
-        include_bots=project.include_bots_in_leaderboard,
+        include_humans=humans_get_ranks,
+        include_bots=bots_get_ranks,
     )
 
     # assign prize percentages
     new_entries = assign_prize_percentages(new_entries)
 
-    # check if we're ready to finalize with medals and prizes
+    # check if we're ready to finalize and assign medals/prizes if applicable
     finalize_time = leaderboard.finalize_time or (
         project.close_date if project else None
     )
-    if (
-        project
-        and (
-            project.type
-            in [
-                Project.ProjectTypes.SITE_MAIN,
-                Project.ProjectTypes.TOURNAMENT,
-            ]
-        )
-        and (force_finalize or (finalize_time and (timezone.now() >= finalize_time)))
-    ):
-        # assign medals
-        new_entries = assign_medals(new_entries)
-        # add prize if applicable
-        prize_pool = (
-            leaderboard.prize_pool
-            if leaderboard.prize_pool is not None
-            else project.prize_pool
-        )
-        if prize_pool:
-            new_entries = assign_prizes(new_entries, prize_pool)
-        # set finalize
+    if force_finalize or (finalize_time and (timezone.now() >= finalize_time)):
+        if project and project.type in [
+            Project.ProjectTypes.SITE_MAIN,
+            Project.ProjectTypes.TOURNAMENT,
+        ]:
+            # assign medals
+            new_entries = assign_medals(new_entries)
+            # add prize if applicable
+            prize_pool = (
+                leaderboard.prize_pool
+                if leaderboard.prize_pool is not None
+                else project.prize_pool
+            )
+            if prize_pool:
+                new_entries = assign_prizes(new_entries, prize_pool)
+        # always set finalize
         Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
 
     # save entries

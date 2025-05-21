@@ -15,10 +15,9 @@ import { FC, PropsWithChildren, useEffect, useState } from "react";
 
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useAuth } from "@/contexts/auth_context";
+import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { Community } from "@/types/projects";
-import { logError } from "@/utils/errors";
-
-import { fetchCommunities } from "../c/actions";
+import { logError } from "@/utils/core/errors";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex h-full items-start justify-start px-2.5 py-2 text-left text-xs font-normal capitalize text-gray-200 opacity-50">
@@ -46,13 +45,17 @@ const CommunitiesDropdown: FC<Props> = ({ community }) => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const { communities: topCommunities = [] } = await fetchCommunities({
-          limit: 4,
-        });
+        const { results: topCommunities } =
+          await ClientProjectsApi.getCommunities({
+            limit: 4,
+          });
         setTopCommunities(topCommunities);
         if (user) {
-          const { communities: followedCommunities = [] } =
-            await fetchCommunities({ is_subscribed: true, limit: 4 });
+          const { results: followedCommunities } =
+            await ClientProjectsApi.getCommunities({
+              is_subscribed: true,
+              limit: 4,
+            });
           setFollowedCommunities(followedCommunities);
         }
       } catch (e) {
@@ -63,7 +66,7 @@ const CommunitiesDropdown: FC<Props> = ({ community }) => {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [user]);
 
   return (

@@ -15,14 +15,14 @@ import {
   MarkdownEditorField,
 } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
-import { CommunityUpdateParams } from "@/services/projects";
+import { CommunityUpdateParams } from "@/services/api/projects/projects.shared";
 import { ProjectPermissions } from "@/types/post";
 import {
   Community,
   CommunitySettingsMode,
   ProjectVisibility,
 } from "@/types/projects";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import { updateCommunity } from "../actions";
 import { CommunitySettingsSchema, communitySettingsSchema } from "../schemas";

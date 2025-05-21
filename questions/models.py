@@ -196,6 +196,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         default=False, db_index=True, editable=False
     )
 
+    # Jeffrey's Divergence
+    movement = models.FloatField(null=True, blank=True)
+
     def __str__(self):
         return f"{self.type} {self.title}"
 
@@ -265,6 +268,10 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             return QuestionStatus.CLOSED
 
         return QuestionStatus.OPEN
+
+    @property
+    def is_cp_hidden(self):
+        return self.cp_reveal_time and self.cp_reveal_time > timezone.now()
 
     def get_global_leaderboard_dates(
         self, gl_dates: list[tuple[datetime, datetime]] | None = None

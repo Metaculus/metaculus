@@ -1,10 +1,10 @@
 from django.db import models
 from pgvector.django import VectorField
 
-from utils.models import TimeStampedModel
-from users.models import User
-from projects.models import Project
 from posts.models import Post
+from projects.models import Project
+from users.models import User
+from utils.models import TimeStampedModel
 
 
 class ITNArticle(TimeStampedModel):
@@ -25,6 +25,19 @@ class ITNArticle(TimeStampedModel):
     is_removed = models.BooleanField(default=False)
 
 
+class PostArticle(TimeStampedModel):
+    article = models.ForeignKey(ITNArticle, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    distance = models.FloatField(null=False, db_index=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="post_article_unique", fields=["article_id", "post_id"]
+            ),
+        ]
+
+
 class Bulletin(TimeStampedModel):
     bulletin_start = models.DateTimeField()
     bulletin_end = models.DateTimeField()
@@ -34,11 +47,6 @@ class Bulletin(TimeStampedModel):
 class BulletinViewedBy(TimeStampedModel):
     bulletin = models.ForeignKey(Bulletin, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
-# TODO: index new posts
-# TODO: ensure we sync PostITNArticle new articles only
-# TODO: create a sync command + cron job
 
 
 class WhitelistUser(TimeStampedModel):
@@ -63,3 +71,87 @@ class WhitelistUser(TimeStampedModel):
         "data for the post. If neither project nor post is set, the user is "
         "whitelisted for all data.",
     )
+
+
+class SidebarItem(TimeStampedModel):
+    class SectionTypes(models.TextChoices):
+        HOT_TOPICS = "hot_topics"
+        HOT_CATEGORIES = "hot_categories"
+
+    name = models.CharField(
+        max_length=200,
+        default="",
+        blank=True,
+        help_text=(
+            "Display label for the sidebar item. "
+            "For URL items, this must be set. "
+            "For Post or Project items, it overrides the default title if provided."
+        ),
+    )
+
+    emoji = models.CharField(
+        max_length=10,
+        default="",
+        blank=True,
+        help_text="Optional emoji or icon to display alongside the item name.",
+    )
+
+    section = models.CharField(
+        max_length=32,
+        choices=SectionTypes.choices,
+        default="",
+        blank=True,
+        help_text=(
+            "Assign the item to a sidebar section. "
+            "If left blank, the item appears above all defined sections."
+        ),
+    )
+
+    url = models.CharField(
+        default="",
+        blank=True,
+        help_text=(
+            "Optional full or relative URL. "
+            "If set, the item links to this URL instead of a Post or Project."
+        ),
+    )
+
+    post = models.ForeignKey(
+        Post,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        help_text="Optional. If provided, the item links to the specified Post.",
+    )
+
+    project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        help_text="Optional. If provided, the item links to the specified Project.",
+    )
+
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text=(
+            "Determines the display order within its section. "
+            "Lower numbers appear first."
+        ),
+    )
+
+    class Meta:
+        ordering = ("section", "order", "created_at")
+
+    @property
+    def display_name(self):
+        names = [
+            self.name,
+            getattr(self.post, "title", None),
+            getattr(self.project, "name", None),
+        ]
+
+        return next((x for x in names if x), "")
+
+    def __str__(self):
+        return self.display_name

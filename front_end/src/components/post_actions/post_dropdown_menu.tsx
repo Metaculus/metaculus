@@ -14,7 +14,9 @@ import { changePostActivityBoost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
+import { BoostDirection } from "@/services/api/posts/posts.shared";
 import { Post, ProjectPermissions, QuestionStatus } from "@/types/post";
+
 type Props = {
   post: Post;
 };
@@ -45,14 +47,16 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
   };
 
   const changePostActivity = useCallback(
-    (score: number) => {
-      changePostActivityBoost(post.id, score).then(({ score_total }) => {
-        if (score > 0) {
-          toast(t("contentBoosted", { score, score_total }));
-        } else {
-          toast(t("contentBuried", { score, score_total }));
+    (direction: BoostDirection) => {
+      changePostActivityBoost(post.id, direction).then(
+        ({ score, score_total }) => {
+          if (score > 0) {
+            toast(t("contentBoosted", { score, score_total }));
+          } else {
+            toast(t("contentBuried", { score, score_total }));
+          }
         }
-      });
+      );
     },
     [post.id, t]
   );
@@ -60,14 +64,22 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
   const createDuplicateLink = (post: Post) => {
     if (post.question) {
       return `/questions/create/question?mode=create&post_id=${post.id}`;
-    } else if (post.conditional) {
+    }
+
+    if (post.conditional) {
       return `/questions/create/conditional?mode=create&post_id=${post.id}`;
-    } else if (post.group_of_questions) {
+    }
+
+    if (post.group_of_questions) {
       return `/questions/create/group?mode=create&post_id=${post.id}`;
-    } else if (post.notebook) {
+    }
+
+    if (post.notebook) {
       return `/questions/create/notebook?mode=create&post_id=${post.id}`;
     }
-    return `/questions/create/question?mode=create&post_id=${post.id}`;
+
+    console.warn("Could not create duplicate link for post: unsupported type");
+    return "#";
   };
 
   const menuItems: MenuItemProps[] = [];
@@ -85,14 +97,14 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
           id: "boost",
           name: t("boost"),
           onClick: () => {
-            changePostActivity(50);
+            changePostActivity(1);
           },
         },
         {
           id: "bury",
           name: t("bury"),
           onClick: () => {
-            changePostActivity(-50);
+            changePostActivity(-1);
           },
         },
         {

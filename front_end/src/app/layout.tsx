@@ -20,11 +20,13 @@ import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import PolyfillProvider from "@/contexts/polyfill";
+import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
-import ProfileApi from "@/services/profile";
+import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import { CurrentUser } from "@/types/users";
+import { logError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
-
-import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
 
 config.autoAddCss = false;
 
@@ -142,7 +144,14 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
-  const user = await ProfileApi.getMyProfile();
+
+  let user: CurrentUser | null = null;
+  try {
+    user = await ServerProfileApi.getMyProfile();
+  } catch (err) {
+    logError(err);
+  }
+
   const publicSettings = getPublicSettings();
 
   return (
@@ -171,10 +180,10 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
         <PolyfillProvider>
-          <CSPostHogProvider>
+          <CSPostHogProvider locale={locale}>
             <AppThemeProvided>
               <NextIntlClientProvider messages={messages}>
-                <AuthProvider user={user}>
+                <AuthProvider user={user} locale={locale}>
                   <PublicSettingsProvider settings={publicSettings}>
                     <ModalProvider>
                       <NavigationProvider>

@@ -3,8 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import LeaderboardApi from "@/services/leaderboard";
-import cn from "@/utils/cn";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
+import cn from "@/utils/core/cn";
 
 import MedalIcon from "../../components/medal_icon";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
@@ -23,7 +23,7 @@ type Props = {
 const MedalsPage: FC<Props> = async ({ profileId }) => {
   const t = await getTranslations();
 
-  const userMedals = await LeaderboardApi.getUserMedals(profileId);
+  const userMedals = await ServerLeaderboardApi.getUserMedals(profileId);
   const categories = getMedalCategories(userMedals, true);
   type MedalType = "gold" | "silver" | "bronze";
 

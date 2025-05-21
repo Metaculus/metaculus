@@ -4,11 +4,11 @@ import invariant from "ts-invariant";
 
 import MedalCategories from "@/app/(main)/(leaderboards)/medals/components/medal_categories";
 import Button from "@/components/ui/button";
-import LeaderboardApi from "@/services/leaderboard";
-import ProfileApi from "@/services/profile";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { SearchParams } from "@/types/navigation";
 import { MedalsPath } from "@/types/scoring";
-import { formatUsername } from "@/utils/users";
+import { formatUsername } from "@/utils/formatters/users";
 
 import { MEDALS_PATH_FILTER, MEDALS_USER_FILTER } from "./search_params";
 
@@ -24,7 +24,7 @@ export default async function Medals(props: {
   ) {
     userId = Number(searchParams[MEDALS_USER_FILTER]);
   } else {
-    const profile = await ProfileApi.getMyProfile();
+    const profile = await ServerProfileApi.getMyProfile();
     userId = profile?.id ?? null;
   }
   invariant(userId, "User id is required");
@@ -35,7 +35,7 @@ export default async function Medals(props: {
     (searchParams[MEDALS_PATH_FILTER] as MedalsPath | null) ??
     MedalsPath.Profile;
 
-  const userMedals = await LeaderboardApi.getUserMedals(userId);
+  const userMedals = await ServerLeaderboardApi.getUserMedals(userId);
   const user = userMedals.at(0)?.user;
   const username = user ? formatUsername(user) : undefined;
 

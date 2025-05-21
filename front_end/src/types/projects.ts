@@ -87,6 +87,7 @@ export type Tournament = TournamentPreview & {
   is_current_content_translated?: boolean;
   index_weights?: ProjectIndexWeights[];
   timeline: TournamentTimeline;
+  forecasts_flow_enabled: boolean;
 };
 
 export type ProjectIndexWeights = {

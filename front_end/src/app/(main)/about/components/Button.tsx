@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 

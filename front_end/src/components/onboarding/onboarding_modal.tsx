@@ -1,17 +1,17 @@
-import { sendGAEvent } from "@next/third-parties/google";
 import React, { useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
-import { fetchPosts } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import OnboardingLoading from "@/components/onboarding/onboarding_loading";
 import StepsRouter from "@/components/onboarding/steps";
 import { ONBOARDING_TOPICS } from "@/components/onboarding/utils";
 import { useAuth } from "@/contexts/auth_context";
 import useStoredState from "@/hooks/use_stored_state";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { OnboardingStoredState, OnboardingTopic } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
-import { logError } from "@/utils/errors";
+import { sendAnalyticsEvent } from "@/utils/analytics";
+import { logError } from "@/utils/core/errors";
 import {
   ONBOARDING_STATE_KEY,
   setOnboardingSuppressed,
@@ -66,12 +66,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       const updatePosts = async () => {
         try {
           const postIds = topicObject.questions.slice(0, 2);
-          const fetchedPosts = await fetchPosts(
-            { ids: postIds },
-            0,
-            postIds.length
-          );
-          setPosts(fetchedPosts.questions);
+          const { results: posts } = await ClientPostsApi.getPostsWithCP({
+            ids: postIds,
+            offset: 0,
+            limit: postIds.length,
+          });
+          setPosts(posts);
           // Go to next page
           if (currentStep === 0) {
             onNext();
@@ -89,7 +89,9 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   // Hide tutorial for 24h
   const handlePostponeTutorial = () => {
-    sendGAEvent({ event: "onboardingClosed", event_category: "onboarding" });
+    sendAnalyticsEvent("onboardingClosed", {
+      event_category: "onboarding",
+    });
     // Mark as temporarily suppressed
     setOnboardingSuppressed();
     onClose();

@@ -11,7 +11,7 @@ import { inviteUsers } from "@/app/(main)/accounts/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 const createSchema = () => {
   return z.object({

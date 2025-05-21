@@ -8,11 +8,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { forEach } from "lodash";
+import { forEach, isNil } from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -33,6 +33,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import Select from "@/components/ui/select";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
   Category,
   Post,
@@ -46,9 +47,15 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
-import { logErrorWithScope } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
+import {
+  deleteQuestionDraft,
+  getQuestionDraft,
+  saveQuestionDraft,
+  QUESTION_DRAFT_DEBOUNCE_TIME,
+} from "@/utils/drafts/questionForm";
 import { getPostLink } from "@/utils/navigation";
-import { sortGroupPredictionOptions } from "@/utils/questions";
+import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -129,7 +136,8 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
-
+  const isDraftMounted = useRef(false);
+  const draftKey = `group_${subtype}`;
   const [isLoading, setIsLoading] = useState<boolean>();
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [error, setError] = useState<
@@ -143,6 +151,8 @@ const GroupForm: React.FC<Props> = ({
           (x) => x.id === tournament_id
         )[0] as Tournament)
       : siteMain;
+  const [currentProject, setCurrentProject] =
+    useState<Tournament>(defaultProject);
 
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
@@ -153,7 +163,7 @@ const GroupForm: React.FC<Props> = ({
     }
     const labels = subQuestions.map((q) => q.label);
     if (new Set(labels).size !== labels.length) {
-      setError("Duplicate sub question labels");
+      setError(t("duplicateSubQuestionLabel"));
       setIsLoading(false);
       return;
     }
@@ -186,7 +196,7 @@ const GroupForm: React.FC<Props> = ({
       if (subtype === QuestionType.Binary) {
         return subquestionData;
       } else if (subtype === QuestionType.Numeric) {
-        if (x.scaling.range_max == null || x.scaling.range_min == null) {
+        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
           setError(
             "Please enter a range_max and range_min value for numeric questions"
           );
@@ -201,7 +211,7 @@ const GroupForm: React.FC<Props> = ({
           open_upper_bound: x.open_upper_bound,
         };
       } else if (subtype === QuestionType.Date) {
-        if (x.scaling.range_max === null || x.scaling.range_min === null) {
+        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
           setError(
             "Please enter a range_max and range_min value for date questions"
           );
@@ -254,12 +264,13 @@ const GroupForm: React.FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
+        deleteQuestionDraft(draftKey);
       }
 
       router.push(getPostLink(resp.post));
     } catch (e) {
       const error = e as Error & { digest?: string };
-      logErrorWithScope(error, post_data);
+      logError(error, { payload: post_data });
       setError(error);
     } finally {
       setIsLoading(false);
@@ -372,6 +383,67 @@ const GroupForm: React.FC<Props> = ({
     return newArray;
   };
 
+  useEffect(() => {
+    if (mode === "create") {
+      const draft = getQuestionDraft(draftKey);
+      if (draft) {
+        setCategoriesList(draft.categories ?? []);
+        setCurrentProject(
+          !isNil(draft.default_project) &&
+            isNil(tournament_id) &&
+            isNil(community_id)
+            ? ([...tournaments, siteMain].filter(
+                (x) => x.id === draft.default_project
+              )[0] as Tournament)
+            : defaultProject
+        );
+        setSubQuestions(draft.subQuestions ?? []);
+        setCollapsedSubQuestions(
+          [...(draft.subQuestions ?? [])].map(() => true)
+        );
+        form.reset(draft);
+      }
+      const timeout = setTimeout(() => {
+        isDraftMounted.current = true;
+      }, QUESTION_DRAFT_DEBOUNCE_TIME);
+      return () => clearTimeout(timeout);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleFormChange = useCallback(() => {
+    if (mode === "create") {
+      const formData = form.getValues();
+      saveQuestionDraft(draftKey, {
+        ...formData,
+        categories: categoriesList,
+        subQuestions: subQuestions,
+      });
+    }
+  }, [form, mode, categoriesList, subQuestions, draftKey]);
+
+  const debouncedHandleFormChange = useDebouncedCallback(
+    handleFormChange,
+    QUESTION_DRAFT_DEBOUNCE_TIME
+  );
+
+  // update draft when form values changes
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (mode === "create" && isDraftMounted.current) {
+        debouncedHandleFormChange();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, mode, debouncedHandleFormChange]);
+
+  // update draft when subquestions state changes
+  useEffect(() => {
+    if (mode === "create" && isDraftMounted.current) {
+      debouncedHandleFormChange();
+    }
+  }, [form, mode, debouncedHandleFormChange, subQuestions]);
+
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
@@ -406,7 +478,7 @@ const GroupForm: React.FC<Props> = ({
           <ProjectPickerInput
             tournaments={tournaments}
             siteMain={siteMain}
-            currentProject={defaultProject}
+            currentProject={currentProject}
             onChange={(project) => {
               form.setValue("default_project", project.id);
             }}
@@ -580,7 +652,7 @@ const GroupForm: React.FC<Props> = ({
                             );
                           }}
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                          value={subQuestion?.unit}
+                          value={subQuestion?.unit ?? ""}
                         />
                       </InputContainer>
                     )}
@@ -709,6 +781,7 @@ const GroupForm: React.FC<Props> = ({
                     {(subtype === QuestionType.Date ||
                       subtype === QuestionType.Numeric) && (
                       <NumericQuestionInput
+                        draftKey={draftKey}
                         questionType={subtype}
                         defaultMin={subQuestion.scaling.range_min}
                         defaultMax={subQuestion.scaling.range_max}
@@ -766,8 +839,8 @@ const GroupForm: React.FC<Props> = ({
                       }}
                     >
                       {collapsedSubQuestions[index] === false
-                        ? "Expand"
-                        : "Collapse"}
+                        ? t("expand")
+                        : t("collapse")}
                     </Button>
 
                     <Button
@@ -839,6 +912,7 @@ const GroupForm: React.FC<Props> = ({
                     ...subQuestions,
                     {
                       ...subQuestions[subQuestions.length - 1],
+                      has_forecasts: false,
                       id: undefined,
                       label: "",
                     },

@@ -1,6 +1,5 @@
 import IsabelJuniewiczImage from "../assets/Isabel Juniewicz.png";
 import PeterWildefordImage from "../assets/Peter Wildeford.png";
-import PhilippSchoeneggerImage from "../assets/Philipp Schoenegger.jpeg";
 import ScottEastmanImageImage from "../assets/Scott Eastman.jpeg";
 import ProForecasterLink from "../components/link";
 import { ProForecaster } from "../types";
@@ -28,36 +27,6 @@ export const PRO_FORECASTERS: ProForecaster[] = [
     ),
     linkedInUrl: "https://www.linkedin.com/in/peterhurford8/",
     image: PeterWildefordImage,
-  },
-  {
-    id: "2",
-    name: "Philipp Schoenegger",
-    description: (
-      <>
-        Philipp is a postdoctoral researcher at the London School of Economics
-        and Political Science. Previously, he was a research analyst at the
-        Forecasting Research Institute and completed a PhD in philosophy and
-        economics at the University of St Andrews. Philipp forecasts for Seldon
-        Capital, the Social Science Prediction Platform, Swift Centre, and other
-        organizations. At Metaculus, Philipp has focused on the future of
-        humanity over the{" "}
-        <ProForecasterLink
-          internal
-          href="/notebooks/14965/forecasting-our-world-in-data-the-next-100-years/"
-        >
-          next 100 years
-        </ProForecasterLink>
-        , climate change and the future of electric vehicles, predicting the
-        success of{" "}
-        <ProForecasterLink internal href="/tournament/fro-casting/">
-          Focused Research Organization proposals
-        </ProForecasterLink>
-        , and the future of benchtop DNA synthesis.
-      </>
-    ),
-    linkedInUrl:
-      "https://www.linkedin.com/in/philipp-schoenegger-phd-755117211/",
-    image: PhilippSchoeneggerImage,
   },
   {
     id: "3",

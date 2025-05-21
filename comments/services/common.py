@@ -65,7 +65,6 @@ def create_comment(
     text: str = None,
 ) -> Comment:
     on_post = parent.on_post if parent else on_post
-    should_soft_delete = False
 
     with transaction.atomic():
         obj = Comment(
@@ -82,13 +81,12 @@ def create_comment(
         obj.full_clean()
         obj.save()
 
-        should_soft_delete = check_and_handle_comment_spam(user, obj)
+    should_soft_delete = check_and_handle_comment_spam(user, obj)
 
-        if not should_soft_delete:
-            # Update comments read cache counter
-            PostUserSnapshot.update_viewed_at(on_post, user)
-
-    if should_soft_delete:
+    if not should_soft_delete:
+        # Update comments read cache counter
+        PostUserSnapshot.update_viewed_at(on_post, user)
+    else:
         obj.is_soft_deleted = True
         obj.save(update_fields=["is_soft_deleted"])
         raise spam_error
@@ -124,11 +122,13 @@ def update_comment(comment: Comment, text: str = None):
         comment.text_edited_at = timezone.now()
 
         should_soft_delete = check_and_handle_comment_spam(comment.author, comment)
-        comment.is_soft_deleted = should_soft_delete
 
         comment.save(
             update_fields=["text", "edit_history", "text_edited_at", "is_soft_deleted"]
         )
+
+        if should_soft_delete:
+            soft_delete_comment(comment)
 
     trigger_update_comment_translations(comment)
 
@@ -139,15 +139,16 @@ def update_comment(comment: Comment, text: str = None):
 def trigger_update_comment_translations(comment: Comment):
     on_post = comment.on_post
     author = comment.author
-    on_bots_tournament = (
-        on_post.default_project is not None
-        and on_post.default_project.include_bots_in_leaderboard
-    )
 
-    on_private_post = on_post.is_private() is None
+    # Don't translate comments that are too long
+    comment_too_long = len(comment.text) > 10000
+
+    on_private_post = on_post.is_private()
     if (
-        not (author.is_bot and on_bots_tournament)
+        not author.is_bot
         and not on_private_post
+        and not comment_too_long
+        and not comment.is_private
         and comment.is_automatically_translated
     ):
         comment.update_and_maybe_translate()

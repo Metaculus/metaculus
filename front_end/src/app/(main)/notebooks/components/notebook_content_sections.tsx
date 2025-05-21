@@ -14,7 +14,7 @@ import {
 import { useBreakpoint } from "@/hooks/tailwind";
 import useHash from "@/hooks/use_hash";
 import useSectionHeadings from "@/hooks/use_section_headings";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   commentsCount: number;

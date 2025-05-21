@@ -10,7 +10,7 @@ import Listbox, { SelectOption } from "@/components/ui/listbox";
 import { useAuth } from "@/contexts/auth_context";
 import { ErrorResponse } from "@/types/fetch";
 import { DownloadAggregationMethod } from "@/types/question";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   methods: DownloadAggregationMethod[];

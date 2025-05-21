@@ -2,7 +2,7 @@
 import { FC, useMemo } from "react";
 
 import { ByStateExperimentBar, StateByForecastItem } from "@/types/experiments";
-import { getColorInSpectrum } from "@/utils/colors";
+import { getColorInSpectrum } from "@/utils/core/colors";
 
 import StateBarHoverPopup from "./state_bar_hover_popup";
 import ExperimentBarGraph from "../../../../components/experiment_bar_graph";

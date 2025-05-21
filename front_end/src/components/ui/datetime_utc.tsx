@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import React, { ChangeEvent, forwardRef, useEffect, useState } from "react";
 
 import { Input, InputProps } from "@/components/ui/form_field";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 interface DatetimeUtcProps extends Omit<InputProps, "onChange"> {
   defaultValue?: string;
@@ -56,6 +56,11 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
       try {
         // Convert local time to UTC for storage
         if (onChange) {
+          if (!localDateString.trim()) {
+            onChange("");
+            return;
+          }
+
           const localDate = new Date(localDateString);
           const utcDateString = formatISO(localDate, {
             representation: "complete",
@@ -69,7 +74,7 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
           return;
         }
 
-        logError(e);
+        logError(e, { payload: localDateString });
         onError && onError(e);
       }
     };

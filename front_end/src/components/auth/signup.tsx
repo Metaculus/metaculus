@@ -4,7 +4,6 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
-import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -24,6 +23,7 @@ import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
 
@@ -82,7 +82,7 @@ export const SignupForm: FC<{
     if (response?.errors) {
       turnstileRef.current?.reset();
     } else {
-      sendGAEvent("event", "register", {
+      sendAnalyticsEvent("register", {
         event_category: new URLSearchParams(window.location.search).toString(),
       });
       if (response?.is_active) {

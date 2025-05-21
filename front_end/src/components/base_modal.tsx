@@ -5,13 +5,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dialog, DialogPanel, Transition } from "@headlessui/react";
 import { FC, Fragment, PropsWithChildren, useEffect } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   isOpen: boolean;
   label?: string;
   onClose?: (isOpen: boolean) => void;
   className?: string;
+  closeButtonClassName?: string;
   isImmersive?: boolean;
   modalContentRef?: React.RefObject<HTMLDivElement | null>;
 };
@@ -22,6 +23,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
   onClose = () => {},
   children,
   className,
+  closeButtonClassName,
   isImmersive = false,
   modalContentRef,
 }) => {
@@ -72,7 +74,10 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
             {!isImmersive && (
               <button
                 onClick={() => onClose(false)}
-                className="absolute right-0 top-0 px-3 py-2 text-xl text-blue-800 no-underline opacity-50 hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark dark:disabled:text-blue-800-dark"
+                className={cn(
+                  "absolute right-0 top-0 px-3 py-2 text-xl text-blue-800 no-underline opacity-50 hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark dark:disabled:text-blue-800-dark",
+                  closeButtonClassName
+                )}
               >
                 <FontAwesomeIcon icon={faXmark} />
               </button>

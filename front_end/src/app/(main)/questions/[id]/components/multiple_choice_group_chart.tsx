@@ -16,30 +16,33 @@ import { useAuth } from "@/contexts/auth_context";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
-import {
-  QuestionLinearGraphType,
-  Question,
-  QuestionWithNumericForecasts,
-  ForecastAvailability,
-} from "@/types/question";
-import {
-  findPreviousTimestamp,
-  generateChoiceItemsFromGroupQuestions,
-  getContinuousGroupScaling,
-  getDisplayValue,
-} from "@/utils/charts";
+import { PostGroupOfQuestions } from "@/types/post";
+import { Question, QuestionWithNumericForecasts } from "@/types/question";
+import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { getLineGraphTypeFromQuestion } from "@/utils/charts/helpers";
+import { getGroupQuestionsTimestamps } from "@/utils/charts/timestamps";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
+import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
+import { getContinuousGroupScaling } from "@/utils/questions/helpers";
 
-type Props = {
-  questions: QuestionWithNumericForecasts[];
-  timestamps: number[];
-  type: QuestionLinearGraphType;
+type QuestionsDataProps =
+  | {
+      questions: QuestionWithNumericForecasts[];
+      group?: never;
+    }
+  | {
+      questions?: never;
+      group: PostGroupOfQuestions<QuestionWithNumericForecasts>;
+    };
+
+type Props = QuestionsDataProps & {
   actualCloseTime?: number | null;
-  openTime?: number;
+  openTime?: number | null;
   isClosed?: boolean;
 
   preselectedQuestionId?: number;
   hideCP?: boolean;
-  forecastAvailability?: ForecastAvailability;
   maxVisibleCheckboxes?: number;
 
   defaultZoom?: TimelineChartZoomOption;
@@ -50,17 +53,21 @@ type Props = {
   className?: string;
 };
 
+/**
+ * Renders details group chart based on provided questions
+ * Supports 2 types of input:
+ * - group data, which will automatically apply sorting based on group post configuration
+ * - raw questions list (specifically useful for rendering conditional post timeline)
+ */
 const MultipleChoiceGroupChart: FC<Props> = ({
   questions,
-  timestamps,
-  type,
+  group,
   actualCloseTime,
   openTime,
   isClosed,
 
   preselectedQuestionId,
   hideCP,
-  forecastAvailability,
   maxVisibleCheckboxes = 6,
 
   defaultZoom,
@@ -73,32 +80,59 @@ const MultipleChoiceGroupChart: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
 
+  const optionQuestions = group ? group.questions : questions;
+
+  const forecastAvailability = getGroupForecastAvailability(optionQuestions);
+  const timestamps = useMemo(
+    () =>
+      getGroupQuestionsTimestamps(optionQuestions, {
+        withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+      }),
+    [optionQuestions, forecastAvailability.cpRevealsOn]
+  );
+
+  const groupType = optionQuestions.at(0)?.type;
+  const graphType = groupType ? getLineGraphTypeFromQuestion(groupType) : null;
   const scaling = useMemo(
     () =>
-      type === "continuous" ? getContinuousGroupScaling(questions) : undefined,
-    [questions, type]
+      graphType === "continuous"
+        ? getContinuousGroupScaling(optionQuestions)
+        : undefined,
+    [optionQuestions, graphType]
   );
 
   const generateList = useCallback(
     (
-      questions: QuestionWithNumericForecasts[],
+      questions?: QuestionWithNumericForecasts[],
+      group?: PostGroupOfQuestions<QuestionWithNumericForecasts>,
       preselectedQuestionId?: number
     ): ChoiceItem[] => {
-      return generateChoiceItemsFromGroupQuestions(questions, {
-        activeCount: maxVisibleCheckboxes,
-        preselectedQuestionId,
-      });
+      if (group) {
+        return generateChoiceItemsFromGroupQuestions(group, {
+          activeCount: maxVisibleCheckboxes,
+          preselectedQuestionId,
+        });
+      }
+
+      if (questions) {
+        return generateChoiceItemsFromGroupQuestions(questions, {
+          activeCount: maxVisibleCheckboxes,
+          preselectedQuestionId,
+        });
+      }
+
+      return [];
     },
     [maxVisibleCheckboxes]
   );
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
-    generateList(questions, preselectedQuestionId)
+    generateList(questions, group, preselectedQuestionId)
   );
 
   // sync BE driven data with local state
   useEffect(() => {
-    setChoiceItems(generateList(questions, preselectedQuestionId));
-  }, [questions, preselectedQuestionId, generateList]);
+    setChoiceItems(generateList(questions, group, preselectedQuestionId));
+  }, [questions, preselectedQuestionId, generateList, group]);
 
   const [cursorTimestamp, tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
@@ -129,7 +163,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
               values: aggregationValues,
               cursorTimestamp,
               closeTime,
-              question: questions.find((q) => q.id === id),
+              question: optionQuestions.find((q) => q.id === id),
             });
           }
 
@@ -142,11 +176,12 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       );
   }, [
     choiceItems,
-    forecastAvailability,
+    forecastAvailability.cpRevealsOn,
+    forecastAvailability?.isEmpty,
     hideCP,
     t,
     cursorTimestamp,
-    questions,
+    optionQuestions,
   ]);
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     if (!user) {
@@ -171,12 +206,12 @@ const MultipleChoiceGroupChart: FC<Props> = ({
               values: userValues,
               cursorTimestamp,
               closeTime,
-              question: questions.find((q) => q.id === id),
+              question: optionQuestions.find((q) => q.id === id),
             }),
           };
         }
       );
-  }, [choiceItems, cursorTimestamp, questions, user]);
+  }, [optionQuestions, choiceItems, cursorTimestamp, user]);
 
   const forecastersCount = useMemo(() => {
     // display cursor based value when viewing a single active option
@@ -224,7 +259,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
       openTime={openTime}
-      questionType={questions[0]?.type}
+      questionType={groupType}
       scaling={scaling}
       title={t("forecastTimelineHeading")}
       yLabel={t("communityPredictionLabel")}
@@ -270,8 +305,7 @@ function getQuestionTooltipLabel({
 
   const value = !isNil(cursorIndex) ? values[cursorIndex] : null;
 
-  return getDisplayValue({
-    value,
+  return getPredictionDisplayValue(value, {
     questionType: question.type,
     scaling: question.scaling,
     actual_resolve_time: question.actual_resolve_time ?? null,

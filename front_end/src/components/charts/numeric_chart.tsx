@@ -44,13 +44,11 @@ import {
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
-  generateYDomain,
-  getLeftPadding,
-  getResolutionPoint,
+  generateTimeSeriesYDomain,
+  getAxisLeftPadding,
   getTickLabelFontSize,
-  unscaleNominalLocation,
-} from "@/utils/charts";
-import { isUnsuccessfullyResolved } from "@/utils/questions";
+} from "@/utils/charts/axis";
+import { getResolutionPoint } from "@/utils/charts/resolution";
 
 import XTickLabel from "./primitives/x_tick_label";
 
@@ -65,7 +63,7 @@ type Props = {
   onCursorChange?: (value: number | null) => void;
   onChartReady?: () => void;
   questionType: QuestionType;
-  actualCloseTime: number | null;
+  actualCloseTime: number | null | undefined;
   scaling: Scaling;
   extraTheme?: VictoryThemeDefinition;
   resolution?: Resolution | null;
@@ -144,10 +142,11 @@ const NumericChart: FC<Props> = ({
       extraTheme,
       isEmptyDomain,
       openTime,
+      unit,
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
   const prevWidth = usePrevious(chartWidth);
@@ -256,6 +255,10 @@ const NumericChart: FC<Props> = ({
             {
               target: "parent",
               eventHandlers: {
+                onTouchStart: () => {
+                  if (!onCursorChange) return;
+                  setIsCursorActive(true);
+                },
                 onMouseOverCapture: () => {
                   if (!onCursorChange) return;
                   setIsCursorActive(true);
@@ -315,7 +318,7 @@ const NumericChart: FC<Props> = ({
 
           {!!resolutionPoint && (
             <VictoryScatter
-              data={resolutionPoint}
+              data={[resolutionPoint]}
               style={{
                 data: {
                   stroke: getThemeColor(METAC_COLORS.purple["800"]),
@@ -382,7 +385,7 @@ function buildChartData({
   unit,
 }: {
   questionType: QuestionType;
-  actualCloseTime: number | null;
+  actualCloseTime?: number | null;
   scaling: Scaling;
   height: number;
   aggregation: AggregateForecastHistory;
@@ -547,12 +550,13 @@ function buildChartData({
   //   domain: xDomain,
   // });
 
-  const { originalYDomain, zoomedYDomain } = generateYDomain({
+  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
     minValues: area.map((d) => ({ timestamp: d.x, y: d.y0 })),
     maxValues: area.map((d) => ({ timestamp: d.x, y: d.y })),
+    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
   });
   const yScale: Scale = generateScale({
     displayType: questionType,
@@ -573,71 +577,6 @@ function buildChartData({
     yScale,
     points,
   };
-}
-
-export function getResolutionData({
-  questionType,
-  resolution,
-  resolveTime,
-  scaling,
-}: {
-  questionType: QuestionType;
-  resolution: Resolution;
-  resolveTime: number;
-  scaling: Scaling;
-}) {
-  if (isUnsuccessfullyResolved(resolution)) {
-    return null;
-  }
-
-  switch (questionType) {
-    case QuestionType.Binary: {
-      // format data for binary question
-      return [
-        {
-          y:
-            resolution === "no"
-              ? scaling.range_min ?? 0
-              : scaling.range_max ?? 1,
-          x: resolveTime,
-          symbol: "diamond",
-          size: 4,
-        },
-      ];
-    }
-    case QuestionType.Numeric: {
-      // format data for numerical question
-      const unscaledResolution = unscaleNominalLocation(
-        Number(resolution),
-        scaling
-      );
-
-      return [
-        {
-          y: unscaledResolution,
-          x: resolveTime,
-          symbol: "diamond",
-          size: 4,
-        },
-      ];
-    }
-    case QuestionType.Date: {
-      // format data for date question
-      const dateTimestamp = new Date(resolution).getTime() / 1000;
-      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
-
-      return [
-        {
-          y: unscaledResolution,
-          x: resolveTime,
-          symbol: "diamond",
-          size: 4,
-        },
-      ];
-    }
-    default:
-      return null;
-  }
 }
 
 const PredictionWithRange: React.FC<any> = ({

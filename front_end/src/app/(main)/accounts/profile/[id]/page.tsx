@@ -16,12 +16,12 @@ import AwaitedPostsFeed from "@/components/posts_feed";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { defaultDescription } from "@/constants/metadata";
-import { PostsParams } from "@/services/posts";
-import ProfileApi from "@/services/profile";
+import { PostsParams } from "@/services/api/posts/posts.shared";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { SearchParams } from "@/types/navigation";
 import { ProfilePageMode, UserProfile } from "@/types/users";
-import cn from "@/utils/cn";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { formatUsername } from "@/utils/formatters/users";
 
 import SoftDeleteButton from "../components/soft_delete_button";
 import TrackRecord from "../components/track_record";
@@ -33,7 +33,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const profile = await ProfileApi.getProfileById(params.id);
+  const profile = await ServerProfileApi.getProfileById(params.id);
 
   if (!profile) {
     return {};
@@ -52,10 +52,10 @@ export default async function Profile(props: Props) {
 
   const { id } = params;
 
-  const currentUser = await ProfileApi.getMyProfile();
+  const currentUser = await ServerProfileApi.getMyProfile();
   const isCurrentUser = currentUser?.id === +id;
 
-  let profile: UserProfile = await ProfileApi.getProfileById(id);
+  let profile: UserProfile = await ServerProfileApi.getProfileById(id);
   const userQuestionsFilters: PostsParams = { usernames: profile.username };
 
   if (!profile) {

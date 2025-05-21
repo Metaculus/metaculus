@@ -7,34 +7,37 @@ import Header from "@/app/(main)/components/headers/header";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
+import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
+import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
+import ForecastMaker from "@/components/forecast_maker";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
+import BackgroundInfo from "@/components/question/background_info";
+import ResolutionCriteria from "@/components/question/resolution_criteria";
+import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
-import ProjectsApi from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
-import { PostStatus, ProjectPermissions } from "@/types/post";
-import { TournamentType } from "@/types/projects";
-import cn from "@/utils/cn";
 import {
-  getQuestionTitle,
+  GroupOfQuestionsGraphType,
+  PostStatus,
+  ProjectPermissions,
+} from "@/types/post";
+import { TournamentType } from "@/types/projects";
+import cn from "@/utils/core/cn";
+import {
+  getPostTitle,
   isConditionalPost,
   isGroupOfQuestionsPost,
   isQuestionPost,
-} from "@/utils/questions";
+} from "@/utils/questions/helpers";
 
 import { cachedGetPost } from "./utils/get_post";
-import BackgroundInfo from "../components/background_info";
-import HideCPProvider from "../components/cp_provider";
-import DetailedGroupCard from "../components/detailed_group_card";
-import DetailedQuestionCard from "../components/detailed_question_card";
-import ForecastMaker from "../components/forecast_maker";
-import ContinuousGroupTimeline from "../components/forecast_timeline_drawer";
 import HistogramDrawer from "../components/histogram_drawer";
-import KeyFactorsSection from "../components/key_factors";
+import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
-import ResolutionCriteria from "../components/resolution_criteria";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 
@@ -44,11 +47,6 @@ const IndividualQuestionPage: FC<{
 }> = async ({ params, searchParams }) => {
   const postData = await cachedGetPost(params.id);
   const defaultProject = postData.projects.default_project;
-  const keyFactors = (postData.key_factors ?? []).sort((a, b) =>
-    b.votes_score === a.votes_score
-      ? Math.random() - 0.5
-      : b.votes_score - a.votes_score
-  );
 
   if (postData.notebook) {
     return redirect(
@@ -59,7 +57,7 @@ const IndividualQuestionPage: FC<{
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
-    currentCommunity = await ProjectsApi.getCommunity(
+    currentCommunity = await ServerProjectsApi.getCommunity(
       defaultProject.slug as string
     );
   }
@@ -73,10 +71,10 @@ const IndividualQuestionPage: FC<{
     (postData.user_permission === ProjectPermissions.CREATOR &&
       postData.curation_status !== PostStatus.APPROVED);
 
-  const questionTitle = getQuestionTitle(postData);
+  const questionTitle = getPostTitle(postData);
   return (
     <EmbedModalContextProvider>
-      <CommentsFeedProvider postId={postData.id} rootCommentStructure={true}>
+      <CommentsFeedProvider postData={postData} rootCommentStructure={true}>
         <HideCPProvider post={postData}>
           {isCommunityQuestion ? (
             <CommunityHeader community={currentCommunity} />
@@ -150,17 +148,24 @@ const IndividualQuestionPage: FC<{
                     )}
 
                     <div className="flex flex-col gap-2.5">
-                      {!!keyFactors.length && (
-                        <KeyFactorsSection keyFactors={keyFactors} />
-                      )}
+                      <KeyFactorsSection
+                        postId={postData.id}
+                        postStatus={postData.status}
+                      />
+
                       <BackgroundInfo post={postData} />
-                      {!!postData.group_of_questions && (
-                        <ContinuousGroupTimeline
-                          post={postData}
-                          preselectedQuestionId={preselectedGroupQuestionId}
-                          className="mt-2"
-                        />
-                      )}
+                      {isGroupOfQuestionsPost(postData) &&
+                        postData.group_of_questions.graph_type ===
+                          GroupOfQuestionsGraphType.FanGraph && (
+                          <DetailedGroupCard
+                            post={postData}
+                            preselectedQuestionId={preselectedGroupQuestionId}
+                            groupPresentationOverride={
+                              GroupOfQuestionsGraphType.MultipleChoiceGraph
+                            }
+                            className="mt-2"
+                          />
+                        )}
                       <HistogramDrawer post={postData} />
                     </div>
                   </section>

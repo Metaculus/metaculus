@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import { ButtonSize, ButtonVariant, buttonVariantClassName } from "./Button";
 

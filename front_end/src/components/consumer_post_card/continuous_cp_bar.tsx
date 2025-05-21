@@ -1,7 +1,7 @@
 import React, { FC, ReactNode } from "react";
 
-import cn from "@/utils/cn";
-import { formatValueUnit, isUnitCompact } from "@/utils/questions";
+import cn from "@/utils/core/cn";
+import { formatValueUnit, isUnitCompact } from "@/utils/questions/units";
 
 type Props = {
   communityPredictionDisplayValue: string | null;

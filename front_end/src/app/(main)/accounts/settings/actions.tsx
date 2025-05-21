@@ -1,11 +1,11 @@
 "use server";
 
-import ProfileApi from "@/services/profile";
-import { ApiError } from "@/utils/errors";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import { ApiError } from "@/utils/core/errors";
 
 export async function changePassword(password: string, new_password: string) {
   try {
-    await ProfileApi.changePassword(password, new_password);
+    await ServerProfileApi.changePassword(password, new_password);
 
     return {};
   } catch (err) {
@@ -21,7 +21,7 @@ export async function changePassword(password: string, new_password: string) {
 
 export async function changeEmail(email: string, password: string) {
   try {
-    await ProfileApi.changeEmail(email, password);
+    await ServerProfileApi.changeEmail(email, password);
 
     return {};
   } catch (err) {

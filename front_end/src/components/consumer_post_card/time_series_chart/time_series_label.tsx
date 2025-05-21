@@ -6,7 +6,7 @@ import { VictoryLabel } from "victory";
 
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
-import { calculateTextWidth } from "@/utils/charts";
+import { calculateTextWidth } from "@/utils/charts/helpers";
 
 type Props = {
   isTickLabel?: boolean;

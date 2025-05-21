@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 
 from django.conf import settings
@@ -5,9 +6,10 @@ from django.contrib import admin
 from django.contrib import messages
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import F
+from django.db.models import F, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, activate, get_language
+from rest_framework.generics import get_object_or_404
 
 from utils.tasks import update_translations_task
 from utils.translation import (
@@ -16,6 +18,8 @@ from utils.translation import (
     is_translation_dirty,
 )
 from utils.types import DjangoModelType
+
+logger = logging.getLogger(__name__)
 
 
 def uniques_ordered_list(ordered_list):
@@ -315,3 +319,65 @@ def model_update(
         has_updated = True
 
     return instance, has_updated
+
+
+class ModelBatchUpdater:
+    """
+    Performs a chunked bulk update of model instances.
+
+    Ideal for memory-efficient updates where each object requires custom logic before saving—
+    e.g. computing a derived field on large querysets. Works well with `.iterator()` to avoid
+    loading everything into memory. Errors during processing are caught and logged.
+
+     Example:
+        ```python
+        with ModelBatchUpdater(
+            model_class=Post, fields=["movement"], batch_size=100
+        ) as updater:
+            for post in Post.objects.iterator(chunk_size=100):
+                post.movement = compute_post_movement(post)
+                updater.append(post)
+        ```
+    """
+
+    def __init__(
+        self,
+        model_class: type[DjangoModelType],
+        fields: list[str],
+        batch_size: int = 100,
+    ):
+        self.model_class = model_class
+        self.fields = fields
+        self.batch_size = batch_size
+
+        self._batch: list[DjangoModelType] = []
+
+    def append(self, obj: DjangoModelType) -> None:
+        self._batch.append(obj)
+
+        if len(self._batch) >= self.batch_size:
+            self.flush()
+
+    def flush(self) -> None:
+        if self._batch:
+            self.model_class.objects.bulk_update(self._batch, fields=self.fields)
+            self._batch.clear()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.flush()
+
+
+def get_by_pk_or_slug(
+    queryset: QuerySet, slug_or_pk: str | int, slug_field: str = "slug"
+):
+    """
+    Tries to retrieve an object by primary key if possible,
+    otherwise by slug field
+    """
+    try:
+        return get_object_or_404(queryset, pk=int(slug_or_pk))
+    except (ValueError, TypeError):
+        return get_object_or_404(queryset, **{slug_field: slug_or_pk})

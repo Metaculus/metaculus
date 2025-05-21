@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { KeyFactor } from "@/types/comment";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   keyFactor: KeyFactor[];

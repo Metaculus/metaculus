@@ -10,14 +10,16 @@ import { NewsArticle } from "@/types/news";
 import NewsMatchArticle from "./news_match_article";
 
 interface Props {
-  questionId: number;
   allowModifications?: boolean;
   articles: NewsArticle[];
 }
 
-const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
+const NewsMatchDrawer: FC<Props> = ({ articles }) => {
   const t = useTranslations();
   const [articleDisplayLimit, setArticleDisplayLimit] = useState(3);
+  const closestArticle = [...articles].sort(
+    (a, b) => a.distance - b.distance
+  )?.[0];
 
   return (
     <div className="w-full @container">
@@ -29,7 +31,7 @@ const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
               <NewsMatchArticle
                 key={article.id}
                 article={article}
-                questionId={questionId}
+                isClosest={closestArticle?.id === article.id}
               />
             ))}
           <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">

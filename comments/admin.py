@@ -5,22 +5,30 @@ from utils.models import CustomTranslationAdmin
 from .models import Comment, KeyFactor
 
 
+class KeyFactorInline(admin.TabularInline):
+    model = KeyFactor
+    extra = 0
+    fields = ["text", "votes_score", "is_active"]
+    readonly_fields = ["votes_score"]
+    can_delete = True
+
+
 @admin.register(Comment)
 class CommentAdmin(CustomTranslationAdmin):
     list_display = [
         "__str__",
         "author",
         "on_post",
-        "on_project",
     ]
     list_filter = [
         AutocompleteFilterFactory("Post", "on_post"),
         AutocompleteFilterFactory("Project", "on_project"),
+        AutocompleteFilterFactory("Author", "author"),
+        "is_soft_deleted",
     ]
     autocomplete_fields = [
         "author",
         "on_post",
-        "on_project",
     ]
     readonly_fields = ["included_forecast"]
     fields = [
@@ -33,6 +41,7 @@ class CommentAdmin(CustomTranslationAdmin):
         "is_private",
     ]
     search_fields = ["id", "text"]
+    inlines = [KeyFactorInline]
 
     def should_update_translations(self, obj):
         return not obj.on_post.is_private()

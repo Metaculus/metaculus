@@ -217,7 +217,24 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         related_name="primary_project",
         blank=True,
     )
-    include_bots_in_leaderboard = models.BooleanField(default=False)
+
+    class BotLeaderboardStatus(models.TextChoices):
+        EXCLUDE_AND_HIDE = "exclude_and_hide"
+        EXCLUDE_AND_SHOW = "exclude_and_show"
+        INCLUDE = "include"
+        BOTS_ONLY = "bots_only"
+
+    bot_leaderboard_status = models.CharField(
+        max_length=32,
+        choices=BotLeaderboardStatus.choices,
+        default=BotLeaderboardStatus.EXCLUDE_AND_SHOW,
+        help_text="""Sets the status of bots in any leaderboard associated with this project.<br>
+        exclude_and_hide: Bots are excluded from ranks/prizes/medals and hidden from the leaderboard.<br>
+        exclude_and_show: Bots are excluded from ranks/prizes/medals but shown on the leaderboard.<br>
+        include: Bots are included in ranks/prizes/medals and shown on the leaderboard.<br>
+        bots_only: Only Bots are included in ranks/prizes/medals. Non-bots are still shown.<br>
+        """,
+    )
 
     name = models.CharField(max_length=200)
     slug = models.CharField(
@@ -267,6 +284,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     )
 
     # Topic-specific fields
+    # TODO: deprecate during the frontend integration
     section = models.CharField(
         max_length=32,
         choices=SectionTypes.choices,
@@ -274,6 +292,11 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="This groups topics together under the same section in the sidebar. ",
+    )
+    section.system_check_deprecated_details = dict(
+        msg="The Project.section field has been deprecated.",
+        hint="Use SidebarItem to place project into the sidebar.",
+        id="Project.section",
     )
 
     # SEO
@@ -324,6 +347,10 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # Whether we should display tournament on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
+
+    forecasts_flow_enabled = models.BooleanField(
+        default=True, help_text="Enables new forecast flow for tournaments"
+    )
 
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 

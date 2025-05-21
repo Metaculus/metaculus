@@ -2,26 +2,28 @@
 
 import {
   faChevronDown,
+  faPlus,
   faReply,
   faThumbtack,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useState, useEffect, useRef, ReactNode, useCallback } from "react";
+import { FC, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
+import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
+import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
+import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
+import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
 import {
-  softDeleteComment,
-  editComment,
   createForecasts,
-  getComments,
+  editComment,
+  softDeleteComment,
 } from "@/app/(main)/questions/actions";
 import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
-import KeyFactor from "@/components/comment_feed/comment_key_factor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import { Admin } from "@/components/icons/admin";
@@ -34,14 +36,20 @@ import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
-import { CommentType } from "@/types/comment";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { CommentType, KeyFactor } from "@/types/comment";
+import {
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
-import cn from "@/utils/cn";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getCommentIdToFocusOn, parseUserMentions } from "@/utils/comments";
-import { logError } from "@/utils/errors";
-import { canPredictQuestion, getMarkdownSummary } from "@/utils/questions";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
+import { formatUsername } from "@/utils/formatters/users";
+import { getMarkdownSummary } from "@/utils/markdown";
+import { canPredictQuestion } from "@/utils/questions/predictions";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
@@ -49,7 +57,6 @@ import { validateComment } from "./validate_comment";
 import LoadingSpinner from "../ui/loading_spiner";
 
 import { SortOption, sortComments } from ".";
-
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
   expandedChildren?: boolean;
@@ -57,6 +64,7 @@ type CommentChildrenTreeProps = {
   sort: SortOption;
   postData?: PostWithForecasts;
   lastViewedAt?: string;
+  shouldSuggestKeyFactors?: boolean;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -66,6 +74,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   sort,
   postData,
   lastViewedAt,
+  shouldSuggestKeyFactors = false,
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
@@ -183,6 +192,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                   sort={sort}
                   postData={postData}
                   lastViewedAt={lastViewedAt}
+                  shouldSuggestKeyFactors={shouldSuggestKeyFactors}
                 />
               </div>
             );
@@ -201,6 +211,8 @@ type CommentProps = {
   postData?: PostWithForecasts;
   lastViewedAt?: string;
   isCollapsed?: boolean;
+  suggestKeyFactorsOnFirstRender?: boolean;
+  shouldSuggestKeyFactors?: boolean;
 };
 
 const Comment: FC<CommentProps> = ({
@@ -212,9 +224,12 @@ const Comment: FC<CommentProps> = ({
   lastViewedAt,
   isCollapsed = false,
   handleCommentPin,
+  suggestKeyFactorsOnFirstRender = false,
+  shouldSuggestKeyFactors = false,
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
+  const keyFactorFormRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isLoading, setIsLoading] = useState(false);
@@ -225,13 +240,11 @@ const Comment: FC<CommentProps> = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const scrollTo = useScrollTo();
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
-
   const isCmmButtonVisible =
     user?.id !== comment.author.id &&
     (!!postData?.question ||
@@ -247,6 +260,105 @@ const Comment: FC<CommentProps> = ({
     comment.changed_my_mind.for_this_user
   );
 
+  const [commentKeyFactors, setCommentKeyFactors] = useState<KeyFactor[]>(
+    comment.key_factors ?? []
+  );
+  useEffect(() => {
+    setCommentKeyFactors(comment.key_factors ?? []);
+  }, [comment.key_factors]);
+
+  const [isKeyfactorsFormOpen, setIsKeyfactorsFormOpen] = useState(false);
+
+  const [loadKeyFactors, setLoadKeyFactors] = useState(
+    suggestKeyFactorsOnFirstRender && shouldSuggestKeyFactors
+  );
+
+  const onKeyFactorsLoadded = () => {
+    setIsKeyfactorsFormOpen(true);
+    setLoadKeyFactors(false);
+    setTimeout(() => {
+      if (keyFactorFormRef.current) {
+        scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
+      }
+    }, 200);
+  };
+
+  const { comments, setComments } = useCommentsFeed();
+  const {
+    keyFactors,
+    setKeyFactors,
+    errorMessage: keyFactorsErrorMessage,
+    setErrorMessage: setKeyFactorsErrorMessage,
+    suggestedKeyFactors,
+    setSuggestedKeyFactors,
+    isLoadingSuggestedKeyFactors,
+    limitError,
+    factorsLimit,
+    submit,
+    isPending,
+    clearState,
+  } = useKeyFactors({
+    suggestKeyFactors: loadKeyFactors,
+    user_id: comment.author.id,
+    commentId: comment.id,
+    postId: comment.on_post_data?.id,
+    onKeyFactorsLoadded,
+  });
+
+  const onAddKeyFactorClick = () => {
+    sendAnalyticsEvent("addKeyFactor", {
+      event_label: "fromComment",
+    });
+
+    console.log("onAddKeyFactorClick", shouldSuggestKeyFactors);
+    clearState();
+    if (isKeyfactorsFormOpen) {
+      setIsKeyfactorsFormOpen(false);
+    } else if (shouldSuggestKeyFactors) {
+      setLoadKeyFactors(true);
+    } else {
+      setIsKeyfactorsFormOpen(true);
+    }
+  };
+
+  const handleSubmit = async () => {
+    const result = await submit(keyFactors, suggestedKeyFactors);
+    if (result?.error) {
+      setKeyFactorsErrorMessage(result.error);
+      return;
+    }
+    if (result?.comment) {
+      const newComment = result.comment;
+
+      if (user && !user.has_key_factors) {
+        // Update the user state to have key factors
+        setUser({ ...user, has_key_factors: true });
+      }
+
+      const updatedComments = comments.map((comment) =>
+        updateCommentKeyFactors(
+          comment,
+          newComment.id,
+          newComment.key_factors ?? []
+        )
+      );
+
+      clearState();
+      setComments(updatedComments);
+      setTimeout(() => {
+        if (commentRef.current) {
+          scrollTo(commentRef.current.getBoundingClientRect().top);
+        }
+      }, 500);
+    }
+    setIsKeyfactorsFormOpen(false);
+  };
+
+  const onCancel = () => {
+    setIsKeyfactorsFormOpen(false);
+    clearState();
+  };
+
   const updateForecast = async (value: number) => {
     const response = await createForecasts(comment.on_post, [
       {
@@ -258,7 +370,7 @@ const Comment: FC<CommentProps> = ({
         },
       },
     ]);
-    sendGAEvent("event", "commentChangedPrediction");
+    sendAnalyticsEvent("commentChangedPrediction");
     if (response && "errors" in response && !!response.errors) {
       throw response.errors;
     }
@@ -268,7 +380,7 @@ const Comment: FC<CommentProps> = ({
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
-      logError(err, `${t("failedToCopyText")} ${err}`);
+      logError(err, { message: `failed to copy text: ${err}` });
     }
   };
   const handleSaveComment = useCallback(async () => {
@@ -303,18 +415,7 @@ const Comment: FC<CommentProps> = ({
           response.errors?.message ?? response.errors?.non_field_errors?.[0];
         setErrorMessage(errorMessage);
       } else {
-        const newCommentDataResponse = await getComments({
-          focus_comment_id: String(comment.id),
-          sort: "-created_at",
-        });
-        if (newCommentDataResponse && "errors" in newCommentDataResponse) {
-          console.error(
-            t("errorDeletingComment"),
-            newCommentDataResponse.errors
-          );
-        } else {
-          setCommentMarkdown(parsedMarkdown);
-        }
+        setCommentMarkdown(parsedMarkdown);
         setIsEditing(false);
       }
     } finally {
@@ -477,6 +578,7 @@ const Comment: FC<CommentProps> = ({
             sort={sort}
             postData={postData}
             lastViewedAt={lastViewedAt}
+            shouldSuggestKeyFactors={shouldSuggestKeyFactors}
           />
         )}
       </div>
@@ -485,10 +587,17 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {comment.key_factors &&
-        comment.key_factors.map((kf) => (
-          <KeyFactor keyFactor={kf} key={`key-factor-${kf.id}`} />
-        ))}
+      {commentKeyFactors.length > 0 && (
+        <div className="mb-3 mt-1.5 flex flex-col gap-1">
+          {commentKeyFactors.map((kf) => (
+            <KeyFactorItem
+              key={`key-factor-${kf.id}`}
+              keyFactor={kf}
+              linkToComment={false}
+            />
+          ))}
+        </div>
+      )}
       <div>
         <CmmOverlay
           forecast={100 * userForecast}
@@ -673,6 +782,45 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
+                  {comment.author.id === user?.id &&
+                    ![
+                      PostStatus.CLOSED,
+                      PostStatus.RESOLVED,
+                      PostStatus.PENDING_RESOLUTION,
+                    ].includes(postData?.status ?? PostStatus.CLOSED) && (
+                      <Button
+                        size="xxs"
+                        variant="tertiary"
+                        onClick={onAddKeyFactorClick}
+                        className="relative flex items-center justify-center"
+                      >
+                        <>
+                          <div
+                            className={cn(
+                              "absolute inset-0 flex items-center justify-center",
+                              isLoadingSuggestedKeyFactors && "visible",
+                              !isLoadingSuggestedKeyFactors && "invisible"
+                            )}
+                          >
+                            <LoadingSpinner className="size-4" />
+                          </div>
+                          <div
+                            className={cn(
+                              "flex items-center",
+                              isLoadingSuggestedKeyFactors && "invisible",
+                              !isLoadingSuggestedKeyFactors && "visible"
+                            )}
+                          >
+                            <FontAwesomeIcon
+                              icon={isKeyfactorsFormOpen ? faXmark : faPlus}
+                              className="size-4 p-1"
+                            />
+                            {t("addKeyFactor")}
+                          </div>
+                        </>
+                      </Button>
+                    )}
+
                   {isCmmButtonVisible && !isMobileScreen && (
                     <CmmToggleButton
                       cmmContext={cmmContext}
@@ -737,6 +885,51 @@ const Comment: FC<CommentProps> = ({
           isReplying={isReplying}
         />
       )}
+
+      {isKeyfactorsFormOpen && (
+        <div
+          ref={keyFactorFormRef}
+          className="mt-3 flex flex-col gap-5 rounded border border-blue-800 bg-gray-0 p-4 dark:border-blue-800-dark dark:bg-gray-0-dark md:p-6"
+        >
+          <AddKeyFactorsForm
+            keyFactors={keyFactors}
+            setKeyFactors={setKeyFactors}
+            isActive={true}
+            factorsLimit={factorsLimit}
+            limitError={limitError}
+            suggestedKeyFactors={suggestedKeyFactors}
+            setSuggestedKeyFactors={setSuggestedKeyFactors}
+          />
+          {keyFactorsErrorMessage && (
+            <p className="text-red-500">{keyFactorsErrorMessage}</p>
+          )}
+          <div className="flex w-full items-end gap-3">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onCancel}
+              className="ml-auto"
+              disabled={isPending}
+            >
+              {t("close")}
+            </Button>
+
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleSubmit}
+              disabled={
+                isPending ||
+                (!keyFactors.some((k) => k.trim() !== "") &&
+                  !suggestedKeyFactors.some((k) => k.selected))
+              }
+            >
+              {t("submit")}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {comment.children?.length > 0 && !isCollapsed && (
         <CommentChildrenTree
           commentChildren={comment.children}
@@ -745,6 +938,7 @@ const Comment: FC<CommentProps> = ({
           sort={sort}
           postData={postData}
           lastViewedAt={lastViewedAt}
+          shouldSuggestKeyFactors={shouldSuggestKeyFactors}
         />
       )}
       <CommentReportModal
@@ -765,6 +959,7 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
     addNewChildrenComment(nestedComment, newComment);
   });
 }
+
 function hasCommentInTree(comments: CommentType[], targetId: number): boolean {
   for (const comment of comments) {
     if (comment.id === targetId) return true;
@@ -773,6 +968,30 @@ function hasCommentInTree(comments: CommentType[], targetId: number): boolean {
     }
   }
   return false;
+}
+
+function updateCommentKeyFactors(
+  comment: CommentType,
+  targetId: number,
+  newKeyFactors: KeyFactor[]
+): CommentType {
+  if (comment.id === targetId) {
+    return {
+      ...comment,
+      key_factors: newKeyFactors,
+    };
+  }
+
+  if (comment.children && comment.children.length > 0) {
+    return {
+      ...comment,
+      children: comment.children.map((child) =>
+        updateCommentKeyFactors(child, targetId, newKeyFactors)
+      ),
+    };
+  }
+
+  return comment;
 }
 
 export default Comment;

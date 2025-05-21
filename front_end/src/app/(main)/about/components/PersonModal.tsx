@@ -3,6 +3,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DialogTitle } from "@headlessui/react";
 import React, { FC } from "react";
 
+import { sanitizeHtmlContent } from "@/utils/markdown";
+
 import MetaculusLogo from "./MetacLogo";
 import ModalWithArrows from "./ModalWithArrows";
 import { Group, Groups, Person } from "./TeamBlock";
@@ -100,7 +102,9 @@ const PersonModal: FC<Props> = ({
           )}
           <p
             className="mb-0 mt-4 text-sm text-gray-700 dark:text-gray-700-dark"
-            dangerouslySetInnerHTML={{ __html: introduction }}
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtmlContent(introduction),
+            }}
           />
         </div>
       </div>

@@ -2,20 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 
-import ProjectsApi from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { ProjectPermissions } from "@/types/post";
-import { ApiError } from "@/utils/errors";
-
-export async function getProjectMembers(projectId: number) {
-  return ProjectsApi.getMembers(projectId);
-}
+import { ApiError } from "@/utils/core/errors";
 
 export async function inviteProjectUsers(
   projectId: number,
   usernames: string[]
 ) {
   try {
-    const response = await ProjectsApi.inviteUsers(projectId, usernames);
+    const response = await ServerProjectsApi.inviteUsers(projectId, usernames);
 
     revalidatePath("/tournament/[slug]");
 
@@ -29,7 +25,7 @@ export async function inviteProjectUsers(
 
 export async function deleteProjectMember(projectId: number, userId: number) {
   try {
-    const response = await ProjectsApi.deleteMember(projectId, userId);
+    const response = await ServerProjectsApi.deleteMember(projectId, userId);
 
     revalidatePath("/tournament/[slug]");
 
@@ -47,7 +43,7 @@ export async function updateMember(
   permission: ProjectPermissions
 ) {
   try {
-    await ProjectsApi.updateMember(projectId, userId, { permission });
+    await ServerProjectsApi.updateMember(projectId, userId, { permission });
 
     revalidatePath("/");
   } catch (err) {
@@ -58,9 +54,9 @@ export async function updateMember(
 }
 
 export async function subscribeProject(projectId: number) {
-  return ProjectsApi.subscribe(projectId);
+  return ServerProjectsApi.subscribe(projectId);
 }
 
 export async function unsubscribeProject(projectId: number) {
-  return ProjectsApi.unsubscribe(projectId);
+  return ServerProjectsApi.unsubscribe(projectId);
 }

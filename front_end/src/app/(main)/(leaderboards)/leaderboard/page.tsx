@@ -3,7 +3,7 @@ import { FC, Fragment, Suspense } from "react";
 
 import { SearchParams } from "@/types/navigation";
 import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import LeaderboardCategoriesTabBar from "./components/categories_tab_bar";
 import GlobalLeaderboard from "./components/global_leaderboard";

@@ -5,7 +5,7 @@ import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useMounted from "@/hooks/use_mounted";
 import { ThemeColor } from "@/types/theme";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   color?: ThemeColor;

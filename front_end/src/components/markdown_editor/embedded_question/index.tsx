@@ -14,13 +14,13 @@ import {
 import { useTranslations } from "next-intl";
 import { FC, memo, useEffect, useState } from "react";
 
-import { getPost } from "@/app/(main)/questions/actions";
 import ForecastCard from "@/components/forecast_card";
 import EmbedQuestionModal from "@/components/markdown_editor/embedded_question/embed_question_modal";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import createEditorComponent from "../createJsxComponent";
 import useLexicalBackspaceNodeRemove from "../hooks/use_backspace_node_remove";
@@ -29,7 +29,7 @@ type Props = {
   id: number;
 };
 
-const COMPONENT_NAME = "EmbeddedQuestion";
+export const EMBEDDED_QUESTION_COMPONENT_NAME = "EmbeddedQuestion";
 
 const EmbeddedQuestion: FC<Props> = ({ id }) => {
   const [postData, setPostData] = useState<PostWithForecasts | null>(null);
@@ -42,7 +42,7 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
     const loadPost = async () => {
       setIsLoading(true);
       try {
-        const post = await getPost(id);
+        const post = await ClientPostsApi.getPost(id);
         setPostData(post);
       } catch (e) {
         logError(e);
@@ -101,7 +101,7 @@ export const EmbedQuestionAction: FC = () => {
 
   const handleSelectQuestion = (id: number) => {
     insertJsx({
-      name: COMPONENT_NAME,
+      name: EMBEDDED_QUESTION_COMPONENT_NAME,
       kind: "flow",
       props: {
         id: id.toString(),
@@ -111,7 +111,11 @@ export const EmbedQuestionAction: FC = () => {
 
   return (
     <>
-      <Button variant="tertiary" onClick={() => setIsModalOpen(true)}>
+      <Button
+        variant="tertiary"
+        className="whitespace-nowrap"
+        onClick={() => setIsModalOpen(true)}
+      >
         + {t("question")}
       </Button>
       <EmbedQuestionModal
@@ -125,7 +129,7 @@ export const EmbedQuestionAction: FC = () => {
 
 const MemorizedEmbeddedQuestion = memo(EmbeddedQuestion);
 export const embeddedQuestionDescriptor: JsxComponentDescriptor = {
-  name: COMPONENT_NAME,
+  name: EMBEDDED_QUESTION_COMPONENT_NAME,
   props: [{ name: "id", type: "number", required: true }],
   kind: "flow",
   hasChildren: false,

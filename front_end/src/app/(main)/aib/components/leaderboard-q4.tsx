@@ -32,7 +32,7 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
     <tr className={tableRowClass}>
       <td className="text-center">{entry.rank}</td>
       <td className={tableCellClass}>
-        <div className="flex items-center">
+        <div className="flex items-center truncate">
           {entry.isMetacBot && (
             <MetaculusLogo className="mr-2 size-5 rounded-sm bg-blue-700 text-gray-0 dark:bg-blue-700-dark dark:text-gray-0-dark" />
           )}
@@ -41,7 +41,7 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
           </Link>
         </div>
       </td>
-      <td className="text-right">
+      <td className="hidden text-right sm:table-cell">
         {entry.totalSpotScore.toLocaleString("en-US", {
           minimumFractionDigits: 1,
           maximumFractionDigits: 1,
@@ -429,12 +429,14 @@ function BotLeaderboard() {
       </h3>
       <table className="w-full">
         <thead>
-          <tr className="h-8 min-[1920px]:h-10">
-            <th className="text-center">Rank</th>
-            <th className="pl-2 text-left">Forecaster</th>
-            <th className="text-right">Total Spot Score</th>
-            <th className="hidden text-right sm:table-cell">Take</th>
-            <th className="text-right">Prize</th>
+          <tr className="h-8 text-sm sm:text-base min-[1920px]:h-10">
+            <th className="w-8 text-center sm:w-16">Rank</th>
+            <th className="w-[60%] pl-2 text-left sm:w-[40%]">Forecaster</th>
+            <th className="hidden w-[20%] text-right sm:table-cell">
+              Total Spot Score
+            </th>
+            <th className="hidden w-[20%] text-right sm:table-cell">Take</th>
+            <th className="w-[40%] text-right sm:w-[20%]">Prize</th>
           </tr>
         </thead>
         <tbody className="text-sm min-[1920px]:text-xl">

@@ -1,5 +1,4 @@
 "use client";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState } from "react";
 
@@ -7,6 +6,7 @@ import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { Post, PostSubscription } from "@/types/post";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 type Props = {
   isOpen: boolean;
@@ -35,7 +35,7 @@ const PostSubscribeSuccessModal: FC<Props> = ({
         [],
         false
       );
-      sendGAEvent("event", "questionUnfollowed");
+      sendAnalyticsEvent("questionUnfollowed");
       onPostSubscriptionChange(newSubscriptions);
     } finally {
       setIsLoading(false);

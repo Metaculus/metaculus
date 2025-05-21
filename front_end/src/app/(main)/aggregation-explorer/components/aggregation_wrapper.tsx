@@ -1,12 +1,12 @@
 import { FC, useCallback, useState } from "react";
 
+import ClientAggregationExplorerApi from "@/services/api/aggregation_explorer/aggregation_explorer.client";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import { logError } from "@/utils/errors";
+import { logError } from "@/utils/core/errors";
 
 import AggregationsTab from "./aggregation_tab";
 import AggregationsDrawer from "./aggregations_drawer";
-import { fetchAggregations } from "../actions";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import {
   AggregationMethodWithBots,
@@ -51,7 +51,7 @@ export const AggregationWrapper: FC<Props> = ({
             ? Number(selectedSubQuestionOption)
             : undefined;
 
-        const response = await fetchAggregations({
+        const response = await ClientAggregationExplorerApi.getAggregations({
           postId,
           questionId: adjustedQuestionId,
           includeBots,

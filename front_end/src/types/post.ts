@@ -3,6 +3,7 @@ import {
   Question,
   QuestionType,
   QuestionWithForecasts,
+  QuestionWithNumericForecasts,
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
@@ -97,13 +98,18 @@ export enum PostGroupOfQuestionsSubquestionsOrder {
   CP_DESC = "CP_DESC",
 }
 
+export enum GroupOfQuestionsGraphType {
+  FanGraph = "fan_graph",
+  MultipleChoiceGraph = "multiple_choice_graph",
+}
+
 export type PostGroupOfQuestions<QT> = {
   id: number;
   description: string;
   resolution_criteria: string;
   fine_print: string;
   group_variable: string;
-  graph_type: string;
+  graph_type: GroupOfQuestionsGraphType;
   questions: QT[];
   subquestions_order?: PostGroupOfQuestionsSubquestionsOrder;
 };
@@ -117,7 +123,7 @@ export type Notebook = {
   image_url: string;
 };
 
-export type Post<QT = Question> = {
+type BasePost = {
   id: number;
   projects: {
     category?: Category[];
@@ -145,10 +151,6 @@ export type Post<QT = Question> = {
   author_username: string;
   coauthors: { id: number; username: string }[];
   author_id: number;
-  question?: QT;
-  conditional?: PostConditional<QT>;
-  group_of_questions?: PostGroupOfQuestions<QT>;
-  notebook?: Notebook;
   curation_status: PostStatus;
   status: PostStatus;
   resolved: boolean;
@@ -160,22 +162,67 @@ export type Post<QT = Question> = {
   last_viewed_at?: string;
   is_current_content_translated?: boolean;
   key_factors?: KeyFactor[];
+  html_metadata_json?: {
+    title: string;
+    description: string;
+    image_url: string;
+  };
 };
 
-export type QuestionPost<QT = Question> = Post<QT> & {
+export type QuestionPost<QT = Question> = BasePost & {
   question: QT;
+  conditional?: never;
+  group_of_questions?: never;
+  notebook?: never;
 };
-export type ConditionalPost<QT = Question> = Post<QT> & {
+
+export type ConditionalPost<
+  QT extends Question | QuestionWithNumericForecasts = Question,
+> = BasePost & {
+  question?: never;
   conditional: PostConditional<QT>;
+  group_of_questions?: never;
+  notebook?: never;
 };
-export type GroupOfQuestionsPost<QT = Question> = Post<QT> & {
+
+export type GroupOfQuestionsPost<
+  QT extends Question | QuestionWithNumericForecasts = Question,
+> = BasePost & {
+  question?: never;
+  conditional?: never;
   group_of_questions: PostGroupOfQuestions<QT>;
+  notebook?: never;
 };
-export type NotebookPost = Omit<Post, "notebook"> & {
+
+export type NotebookPost = BasePost & {
+  question?: never;
+  conditional?: never;
+  group_of_questions?: never;
   notebook: Notebook;
 };
 
-export type PostWithForecasts = Post<QuestionWithForecasts>;
+export type Post<QT = Question> =
+  | QuestionPost<QT>
+  | ConditionalPost<
+      QT extends Question | QuestionWithNumericForecasts ? QT : Question
+    >
+  | GroupOfQuestionsPost<
+      QT extends Question | QuestionWithNumericForecasts ? QT : Question
+    >
+  | NotebookPost;
+
+export type PostWithForecasts =
+  | QuestionPost<QuestionWithForecasts>
+  | ConditionalPost<QuestionWithNumericForecasts>
+  | GroupOfQuestionsPost<QuestionWithNumericForecasts>
+  | NotebookPost;
+
+export type PredictionFlowPost = Pick<
+  PostWithForecasts,
+  "id" | "title" | "conditional" | "group_of_questions" | "question"
+> & {
+  isDone?: boolean;
+};
 
 export enum PostSubscriptionType {
   CP_CHANGE = "cp_change",

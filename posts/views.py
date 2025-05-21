@@ -16,7 +16,6 @@ from posts.models import (
     Post,
     Vote,
     PostUserSnapshot,
-    PostActivityBoost,
 )
 from posts.serializers import (
     DataGetRequestSerializer,
@@ -38,20 +37,20 @@ from posts.services.common import (
     reject_post,
     post_make_draft,
     send_back_to_review,
-    compute_hotness,
     trigger_update_post_translations,
     make_repost,
     vote_post,
 )
-from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.feed import get_posts_feed, get_similar_posts
+from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
+from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_project_permission_for_user
 from questions.models import Question
-from questions.serializers import QuestionApproveSerializer
+from questions.serializers.common import QuestionApproveSerializer
 from users.models import User
 from utils.csv_utils import (
     export_all_data_for_questions,
@@ -255,7 +254,7 @@ def post_create_api_view(request):
     trigger_update_post_translations(post, with_comments=False, force=False)
 
     return Response(
-        serialize_post(post, with_cp=False, current_user=request.user),
+        serialize_post(post, current_user=request.user),
         status=status.HTTP_201_CREATED,
     )
 
@@ -306,7 +305,7 @@ def post_update_api_view(request, pk):
     trigger_update_post_translations(post, with_comments=False, force=False)
 
     return Response(
-        serialize_post(post, with_cp=False, current_user=request.user),
+        serialize_post(post, current_user=request.user),
         status=status.HTTP_200_OK,
     )
 
@@ -435,7 +434,9 @@ def activity_boost_api_view(request, pk):
     """
 
     post = get_object_or_404(Post, pk=pk)
-    score = serializers.IntegerField().run_validation(request.data.get("score"))
+    direction = serializers.ChoiceField(
+        choices=Vote.VoteDirection.choices
+    ).run_validation(request.data.get("direction"))
 
     if not request.user.is_superuser:
         raise PermissionDenied("You do not have permission boost this post")
@@ -444,13 +445,10 @@ def activity_boost_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    PostActivityBoost.objects.create(user=request.user, post=post, score=score)
-
-    # Recalculate hotness for the given post
-    compute_hotness(Post.objects.filter(pk=pk))
+    boost = handle_post_boost(request.user, post, direction)
 
     return Response(
-        {"score_total": PostActivityBoost.get_post_score(pk)},
+        {"score": boost.score, "score_total": compute_hotness_total_boosts(post)},
         status=status.HTTP_201_CREATED,
     )
 
@@ -570,9 +568,17 @@ def post_related_articles_api_view(request: Request, pk):
     # ObjectPermission.can_view(permission, raise_exception=True)
 
     # Retrieve cached articles
-    articles = get_post_similar_articles(post)
+    post_articles = get_post_similar_articles(post)
 
-    return Response(PostRelatedArticleSerializer(articles, many=True).data)
+    return Response(
+        [
+            {
+                **PostRelatedArticleSerializer(post_article.article).data,
+                "distance": post_article.distance,
+            }
+            for post_article in post_articles
+        ]
+    )
 
 
 @api_view(["GET"])

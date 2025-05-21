@@ -16,14 +16,14 @@ import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import Select from "@/components/ui/select";
 import useSearchParams from "@/hooks/use_search_params";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { SearchParams } from "@/types/navigation";
 import { Post, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { logError } from "@/utils/errors";
-import { parseQuestionId } from "@/utils/questions";
+import { logError } from "@/utils/core/errors";
+import { parseQuestionId } from "@/utils/questions/helpers";
 
 import { AggregationWrapper } from "./aggregation_wrapper";
-import { fetchPost, fetchQuestion } from "../actions";
 import { AggregationMethodWithBots } from "../types";
 
 type Props = { searchParams: SearchParams };
@@ -87,7 +87,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
 
         // fetch post data, subquestion options and question data if needed
         try {
-          const postData = await fetchPost(postId);
+          const postData = await ClientPostsApi.getPost(postId, false);
           if (
             !!postData.group_of_questions ||
             !!postData.conditional ||
@@ -98,7 +98,10 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               questionId &&
               postData.question?.type !== QuestionType.MultipleChoice
             ) {
-              const questionData = await fetchQuestion(questionId);
+              const questionData = await ClientPostsApi.getQuestion(
+                questionId,
+                false
+              );
               setData(questionData);
               return;
             } else if (

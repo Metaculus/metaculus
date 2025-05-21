@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   formatedResolution: string;

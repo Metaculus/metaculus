@@ -1,25 +1,26 @@
 "use client";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useFeatureFlagVariantKey } from "posthog-js/react";
 import { FC, Fragment, useEffect, useState } from "react";
 
-import { fetchMorePosts } from "@/app/(main)/questions/actions";
-import { useContentTranslatedBannerProvider } from "@/app/providers";
 import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
-import { PostsParams } from "@/services/posts";
-import { PostWithForecasts, NotebookPost } from "@/types/post";
-import { logError } from "@/utils/errors";
-import { isConditionalPost, isNotebookPost } from "@/utils/questions";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { PostsParams } from "@/services/api/posts/posts.shared";
+import { PostWithForecasts } from "@/types/post";
+import { sendAnalyticsEvent } from "@/utils/analytics";
+import { logError } from "@/utils/core/errors";
+import { safeSessionStorage } from "@/utils/core/storage";
+import { isConditionalPost, isNotebookPost } from "@/utils/questions/helpers";
 
 import { SCROLL_CACHE_KEY } from "./constants";
 import EmptyCommunityFeed from "./empty_community_feed";
@@ -36,9 +37,6 @@ type Props = {
   isCommunity?: boolean;
 };
 
-const FEATURE_FLAG_KEY = "consumer-view-test";
-const CONSUMER_VIEW_ENABLED_VARIANT = "consumer-view-enabled";
-
 const PaginatedPostsFeed: FC<Props> = ({
   initialQuestions,
   filters,
@@ -48,7 +46,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   const t = useTranslations();
   const pathname = usePathname();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-  const consumerViewVariant = useFeatureFlagVariantKey(FEATURE_FLAG_KEY);
+  const { user } = useAuth();
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
     ? Number(params.get(POST_PAGE_FILTER))
@@ -68,7 +66,7 @@ const PaginatedPostsFeed: FC<Props> = ({
     (Error & { digest?: string }) | undefined
   >();
 
-  const { setBannerIsVisible } = useContentTranslatedBannerProvider();
+  const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   useEffect(() => {
@@ -81,7 +79,7 @@ const PaginatedPostsFeed: FC<Props> = ({
 
   useEffect(() => {
     // capture search event from AwaitedPostsFeed
-    sendGAEvent("event", "feedSearch", {
+    sendAnalyticsEvent("feedSearch", {
       event_category: JSON.stringify(filters),
     });
   }, [filters]);
@@ -90,14 +88,17 @@ const PaginatedPostsFeed: FC<Props> = ({
       setIsLoading(true);
       setError(undefined);
       try {
-        sendGAEvent("event", "feedSearch", {
+        sendAnalyticsEvent("feedSearch", {
           event_category: JSON.stringify(filters),
         });
-        const { newPosts, hasNextPage } = await fetchMorePosts(
-          filters,
+        const response = await ClientPostsApi.getPostsWithCP({
+          ...filters,
           offset,
-          POSTS_PER_PAGE
-        );
+          limit: POSTS_PER_PAGE,
+        });
+        const newPosts = response.results;
+        const hasNextPage =
+          !!response.next && response.results.length >= POSTS_PER_PAGE;
 
         if (
           newPosts.filter((q) => q.is_current_content_translated).length > 0
@@ -120,7 +121,7 @@ const PaginatedPostsFeed: FC<Props> = ({
         const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
         const currentScroll = window.scrollY;
         if (currentScroll >= 0) {
-          sessionStorage.setItem(
+          safeSessionStorage.setItem(
             SCROLL_CACHE_KEY,
             JSON.stringify({
               scrollPathName: fullPathname,
@@ -134,15 +135,11 @@ const PaginatedPostsFeed: FC<Props> = ({
   };
 
   const renderPost = (post: PostWithForecasts) => {
-    if (type === "news" && post.notebook) {
-      return <NewsCard post={post as NotebookPost} />;
+    if (isNotebookPost(post) && type === "news") {
+      return <NewsCard post={post} />;
     }
 
-    if (
-      consumerViewVariant === CONSUMER_VIEW_ENABLED_VARIANT &&
-      !isNotebookPost(post) &&
-      !isConditionalPost(post)
-    ) {
+    if (isNil(user) && !isNotebookPost(post) && !isConditionalPost(post)) {
       return <ConsumerPostCard post={post} forCommunityFeed={isCommunity} />;
     }
     return <PostCard post={post} forCommunityFeed={isCommunity} />;

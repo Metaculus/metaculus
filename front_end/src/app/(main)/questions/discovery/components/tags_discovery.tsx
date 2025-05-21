@@ -4,13 +4,14 @@ import { FC, Suspense } from "react";
 import TagFilters from "@/app/(main)/questions/discovery/components/tag_filters";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import ProjectsApi, { TagsParams } from "@/services/projects";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
+import { TagsParams } from "@/services/api/projects/projects.shared";
 
 import DiscoverySection from "./section";
 import AwaitedTags from "./tags";
 
 const TagsDiscovery: FC<{ filters: TagsParams }> = async ({ filters }) => {
-  const tags = await ProjectsApi.getTags(filters);
+  const tags = await ServerProjectsApi.getTags(filters);
   const t = await getTranslations();
 
   return (

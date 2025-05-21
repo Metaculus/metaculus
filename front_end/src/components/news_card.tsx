@@ -8,9 +8,9 @@ import MarkdownEditor from "@/components/markdown_editor";
 import CircleDivider from "@/components/ui/circle_divider";
 import useContainerSize from "@/hooks/use_container_size";
 import { NotebookPost } from "@/types/post";
-import { formatDate } from "@/utils/date_formatters";
+import { formatDate } from "@/utils/formatters/date";
+import { estimateReadingTime, getMarkdownSummary } from "@/utils/markdown";
 import { getPostLink } from "@/utils/navigation";
-import { estimateReadingTime, getMarkdownSummary } from "@/utils/questions";
 
 type Props = {
   post: NotebookPost;

@@ -17,7 +17,7 @@ import {
 } from "@floating-ui/react";
 import { FC, PropsWithChildren, ReactNode, useState } from "react";
 
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   tooltipContent: ReactNode;
@@ -75,6 +75,8 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
       {isOpen && (
         <FloatingPortal>
           <div
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.preventDefault()}
             className={cn(
               "z-10 w-max max-w-[300px] rounded border bg-blue-900-dark p-2 text-sm open:block dark:border-gray-100 dark:bg-blue-900 dark:text-gray-100 sm:max-w-sm md:max-w-md",
               tooltipClassName

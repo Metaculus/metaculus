@@ -12,14 +12,20 @@ import Button from "@/components/ui/button";
 import ImageWithFallback from "@/components/ui/image_with_fallback";
 import { useAuth } from "@/contexts/auth_context";
 import { NewsArticle } from "@/types/news";
-import { formatDate } from "@/utils/date_formatters";
+import cn from "@/utils/core/cn";
+import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
   article: NewsArticle;
-  questionId: number;
+  isClosest?: boolean;
 };
 
-const NewsMatchArticle: FC<Props> = ({ article }) => {
+function getProxiedFaviconUrl(originalUrl: string): string {
+  if (!originalUrl) return "";
+  return `/newsmatch/favicon?url=${encodeURIComponent(originalUrl)}`;
+}
+
+const NewsMatchArticle: FC<Props> = ({ article, isClosest }) => {
   const { user } = useAuth();
   const locale = useLocale();
   const t = useTranslations();
@@ -58,7 +64,7 @@ const NewsMatchArticle: FC<Props> = ({ article }) => {
           {article.favicon_url ? (
             <ImageWithFallback
               className="mr-3 size-8 rounded-full"
-              src={article.favicon_url}
+              src={getProxiedFaviconUrl(article.favicon_url)}
               alt={`${article.media_label} logo`}
               aria-label={`${article.media_label} logo`}
             >
@@ -82,14 +88,20 @@ const NewsMatchArticle: FC<Props> = ({ article }) => {
                 {formatDate(locale, new Date(article.created_at))}
               </span>
             </div>
+            {allowModifications && (
+              <div className="mt-1 text-sm">
+                <span>Similarity Distance:</span>
+                <span
+                  className={cn("mx-2", {
+                    "font-bold text-red-700": isClosest,
+                  })}
+                >
+                  {article.distance.toFixed(2)}
+                </span>
+              </div>
+            )}
           </div>
         </a>
-        {/*
-        {user && (
-          <div className="mr-1 flex flex-col text-gray-900 @md:order-1 @md:self-center dark:text-gray-900-dark">
-            <NewsArticleVoteButtons questionId={questionId} article={article} />
-          </div>
-        )}*/}
       </div>
 
       {allowModifications && (

@@ -4,9 +4,9 @@ import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import LeaderboardApi from "@/services/leaderboard";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 import { MedalCategory, MedalProjectType, MedalType } from "@/types/scoring";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 import MedalIcon from "../../components/medal_icon";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
@@ -118,8 +118,8 @@ const PerformanceCard: FC<{
 export const MedalsWidget: FC<Props> = async ({ profileId }) => {
   const t = await getTranslations();
   const [userMedals, userMedalRanks] = await Promise.all([
-    LeaderboardApi.getUserMedals(profileId),
-    LeaderboardApi.getUserMedalRanks(profileId),
+    ServerLeaderboardApi.getUserMedals(profileId),
+    ServerLeaderboardApi.getUserMedalRanks(profileId),
   ]);
   const categories = getMedalCategories(userMedals, true);
 

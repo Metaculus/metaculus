@@ -1,7 +1,6 @@
 "use client";
 
 import { MDXEditorMethods } from "@mdxeditor/editor";
-import { sendGAEvent } from "@next/third-parties/google";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useEffect, useRef, useState } from "react";
@@ -18,13 +17,14 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
+import { sendAnalyticsEvent } from "@/utils/analytics";
+import { parseComment } from "@/utils/comments";
 import {
   saveCommentDraft,
   getCommentDraft,
   deleteCommentDraft,
-  cleanupDrafts,
-} from "@/utils/comments";
-import { parseComment } from "@/utils/comments";
+  cleanupCommentDrafts,
+} from "@/utils/drafts/comments";
 
 import { validateComment } from "./validate_comment";
 
@@ -51,10 +51,17 @@ const CommentEditor: FC<CommentEditorProps> = ({
 }) => {
   const t = useTranslations();
 
-  /* Manually updating the markdown state outside of MDXEditor only affects 
-   our local state, while the editor retains its previous state. As a workaround, 
-   we use the setMarkdown function in editorRef to update the editor's state. */
+  /**
+   * Manually updating the markdown state outside of MDXEditor only affects
+   * our local state, while the editor retains its previous state. As a workaround,
+   * we use the setMarkdown function in editorRef to update the editor's state.
+   */
   const editorRef = useRef<MDXEditorMethods>(null);
+  /**
+   * Key is used to force editor reset after submission.
+   * This is a workaround for MDX editor issue when`setMarkdown` method won't properly update editor state if the user is on the "source" mode
+   */
+  const [editorRenderKey, setEditorRenderKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
@@ -77,7 +84,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   // Load comment draft and remove old ones on mount
   useEffect(() => {
     if (postId && user?.id) {
-      cleanupDrafts();
+      cleanupCommentDrafts();
       const draft = getCommentDraft(user.id, postId, parentId);
       if (draft) {
         setMarkdown(draft.markdown ?? "");
@@ -130,7 +137,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         return;
       }
     }
-    sendGAEvent("event", "postComment", {
+    sendAnalyticsEvent("postComment", {
       event_label: hasIncludedForecast ? "predictionIncluded" : null,
     });
 
@@ -139,7 +146,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         match.replace(/[\\]/g, "")
       );
 
-      const newComment = await createComment({
+      const response = await createComment({
         parent: parentId,
         text: parsedMarkdown,
         on_post: postId,
@@ -147,10 +154,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
         is_private: isPrivateComment,
       });
 
-      if (!!newComment && "errors" in newComment) {
+      if (!response) {
+        setErrorMessage(t("outdatedServerActionMessage"));
+        return;
+      }
+
+      if (!!response && "errors" in response) {
         const errorMessage =
-          newComment.errors?.message ??
-          newComment.errors?.non_field_errors?.[0];
+          response.errors?.message ?? response.errors?.non_field_errors?.[0];
 
         setErrorMessage(errorMessage);
         return;
@@ -164,7 +175,8 @@ const CommentEditor: FC<CommentEditorProps> = ({
       setHasIncludedForecast(false);
       setMarkdown("");
       editorRef.current?.setMarkdown("");
-      onSubmit?.(parseComment(newComment));
+      setEditorRenderKey((prev) => prev + 1);
+      onSubmit?.(parseComment(response));
     } finally {
       setIsLoading(false);
     }
@@ -215,6 +227,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         className="scroll-mt-24 border border-gray-500 dark:border-gray-500-dark"
       >
         <MarkdownEditor
+          key={editorRenderKey}
           ref={editorRef}
           mode="write"
           markdown={markdown}

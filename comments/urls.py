@@ -22,6 +22,16 @@ urlpatterns = [
     ),
     path("comments/create/", views.comment_create_api_view, name="comment-create"),
     path("key-factors/<int:pk>/vote/", views.key_factor_vote_view, name="key-factor-vote"),
+    path(
+        "comments/<int:pk>/add-key-factors/",
+        views.comment_add_key_factors_view,
+        name="comment-add-key-factors",
+    ),
+    path(
+        "comments/<int:pk>/suggested-key-factors/",
+        views.comment_suggested_key_factors_view,
+        name="comment-suggested-key-factors",
+    ),
 ]
 
 

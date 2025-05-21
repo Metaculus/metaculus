@@ -2,15 +2,16 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 from django.db.models import QuerySet
 from django.http import HttpResponse
-from django.utils.html import format_html
 from django.urls import reverse
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from posts.models import Post, Notebook
 from posts.services.common import trigger_update_post_translations
+from posts.services.hotness import explain_post_hotness
 from questions.models import Question
 from questions.services import build_question_forecasts
 from utils.csv_utils import export_all_data_for_questions
-
 from utils.models import CustomTranslationAdmin
 
 
@@ -43,13 +44,33 @@ class PostAdmin(CustomTranslationAdmin):
         "coauthors",
     ]
     search_fields = ["id", "title_original"]
-    readonly_fields = ["notebook"]
+    readonly_fields = ["notebook", "hotness_explanation"]
     actions = [
         "export_selected_posts_data",
         "export_selected_posts_data_anonymized",
         "update_translations",
         "rebuild_aggregation_history",
     ]
+
+    def hotness_explanation(self, obj):
+        explanation = explain_post_hotness(obj)
+        components_html = "<ul style='margin-left: 0;'>"
+        for comp in explanation["components"]:
+            components_html += (
+                "<li style='list-style: disc;'>"
+                f"<strong>{comp['label']}</strong>: {comp['score']:.2f}"
+                "</li>"
+            )
+        components_html += "</ul>"
+
+        full_html = f"""
+            <p><strong>Total Hotness:</strong> {explanation['hotness']:.2f}</p>
+            <p><strong>Components:</strong></p>
+            {components_html}
+        """
+        return mark_safe(full_html)
+
+    hotness_explanation.short_description = "Hotness Explanation"
 
     def other_project_count(self, obj):
         return obj.projects.count()

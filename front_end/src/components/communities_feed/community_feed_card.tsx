@@ -1,3 +1,4 @@
+import "./styles.css";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
@@ -9,12 +10,11 @@ import { FC } from "react";
 import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
 import { Community } from "@/types/projects";
-import cn from "@/utils/cn";
-import { getMarkdownSummary } from "@/utils/questions";
-import { formatUsername } from "@/utils/users";
+import cn from "@/utils/core/cn";
+import { formatUsername } from "@/utils/formatters/users";
+import { getMarkdownSummary } from "@/utils/markdown";
 
 import Button from "../ui/button";
-import "./styles.css";
 
 type Props = {
   community: Community;

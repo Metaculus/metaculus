@@ -6,17 +6,17 @@ import { FC, useCallback, useState, memo, useMemo } from "react";
 import toast from "react-hot-toast";
 
 import NumericChart from "@/components/charts/numeric_chart";
+import DetailsQuestionCardErrorBoundary from "@/components/detailed_question_card/detailed_question_card/error_boundary";
+import CursorDetailItem from "@/components/detailed_question_card/detailed_question_card/numeric_cursor_item";
 import Button from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use_debounce";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { QuestionType } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
-import { base64ToBlob } from "@/utils/files";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
-import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
-import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
-import { getAggregationsPostZipData } from "../actions";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import { AggregationQuestionWithBots } from "../types";
 
@@ -71,7 +71,7 @@ const AggregationsTab: FC<Props> = ({
   }
 
   const actualCloseTime = useMemo(
-    () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
+    () => getPostDrivenTime(actual_close_time),
     [actual_close_time]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
@@ -165,7 +165,7 @@ const AggregationsTab: FC<Props> = ({
     try {
       const aggregationMethod = tabData.value;
 
-      const base64 = await getAggregationsPostZipData(
+      const blob = await ClientPostsApi.getAggregationsPostZipData(
         postId,
         typeof selectedSubQuestionOption === "number"
           ? selectedSubQuestionOption
@@ -173,8 +173,6 @@ const AggregationsTab: FC<Props> = ({
         aggregationMethod,
         tabData.includeBots
       );
-
-      const blob = base64ToBlob(base64);
       const filename = `${questionTitle.replaceAll(" ", "_")}-${aggregationMethod}${tabData.includeBots ? "-bots" : ""}.zip`;
       saveAs(blob, filename);
     } catch (error) {
@@ -221,8 +219,7 @@ const AggregationsTab: FC<Props> = ({
             />
             <CursorDetailItem
               title={t("communityPredictionLabel")}
-              content={getDisplayValue({
-                value: cursorData.center,
+              content={getPredictionDisplayValue(cursorData.center, {
                 questionType: aggregationData.type,
                 scaling: aggregationData.scaling,
                 range: cursorData?.interval_lower_bound

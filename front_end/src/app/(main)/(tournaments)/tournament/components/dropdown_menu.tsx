@@ -8,7 +8,7 @@ import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { Tournament } from "@/types/projects";
-import cn from "@/utils/cn";
+import cn from "@/utils/core/cn";
 
 type Props = {
   tournament: Tournament;

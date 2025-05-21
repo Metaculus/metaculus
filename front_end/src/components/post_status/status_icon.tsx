@@ -6,7 +6,7 @@ import { PostStatus, Resolution } from "@/types/post";
 import {
   isSuccessfullyResolved,
   isUnsuccessfullyResolved,
-} from "@/utils/questions";
+} from "@/utils/questions/resolution";
 
 const CLOCK_RADIUS = 10;
 
