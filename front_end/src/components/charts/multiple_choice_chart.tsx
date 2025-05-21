@@ -20,7 +20,7 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
-import { lightTheme, darkTheme } from "@/constants/chart_theme";
+import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -39,7 +39,7 @@ import {
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
-  generateYDomain,
+  generateTimeSeriesYDomain,
   getAxisLeftPadding,
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
@@ -639,12 +639,13 @@ function buildChartData({
   const areas: Area = graphs
     .filter((g) => !isNil(g.area) && g.active)
     .flatMap((g) => g.area);
-  const { originalYDomain, zoomedYDomain } = generateYDomain({
+  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
     minValues: areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
     maxValues: areas.map((a) => ({ timestamp: a.x, y: a.y })),
+    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
   });
   const yScale = generateScale({
     displayType: questionType,
