@@ -44,7 +44,7 @@ import {
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
-  generateYDomain,
+  generateTimeSeriesYDomain,
   getAxisLeftPadding,
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
@@ -550,7 +550,7 @@ function buildChartData({
   //   domain: xDomain,
   // });
 
-  const { originalYDomain, zoomedYDomain } = generateYDomain({
+  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
