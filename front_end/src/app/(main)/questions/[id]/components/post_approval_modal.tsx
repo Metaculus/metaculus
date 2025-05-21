@@ -361,10 +361,12 @@ const PostApprovalModal: FC<{
                       new Date(default_project.forecasting_end_date)
                     )
                   : "",
-              question_close_date: formatDate(
-                locale,
-                new Date(approvalData.scheduled_close_time)
-              ),
+              question_close_date: approvalData.scheduled_close_time
+                ? formatDate(
+                    locale,
+                    new Date(approvalData.scheduled_close_time)
+                  )
+                : "",
               b: (child) => <b>{child}</b>,
             })}
           </p>

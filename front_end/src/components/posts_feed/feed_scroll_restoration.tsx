@@ -4,6 +4,7 @@ import { FC, useEffect } from "react";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostWithForecasts } from "@/types/post";
+import { safeSessionStorage } from "@/utils/core/storage";
 
 import { SCROLL_CACHE_KEY } from "./constants";
 
@@ -41,7 +42,7 @@ const PostsFeedScrollRestoration: FC<Props> = ({
     const saveScrollPosition = () => {
       const currentScroll = window.scrollY;
       if (currentScroll >= 0) {
-        sessionStorage.setItem(
+        safeSessionStorage.setItem(
           SCROLL_CACHE_KEY,
           JSON.stringify({
             scrollPathName: fullPathname,
@@ -51,7 +52,7 @@ const PostsFeedScrollRestoration: FC<Props> = ({
       }
     };
 
-    const savedScrollData = sessionStorage.getItem(SCROLL_CACHE_KEY);
+    const savedScrollData = safeSessionStorage.getItem(SCROLL_CACHE_KEY);
     const parsedScrollData = savedScrollData ? JSON.parse(savedScrollData) : {};
     const { scrollPathName, scrollPosition } = parsedScrollData;
 
@@ -67,7 +68,7 @@ const PostsFeedScrollRestoration: FC<Props> = ({
         behavior: "smooth",
       });
 
-      sessionStorage.removeItem(SCROLL_CACHE_KEY);
+      safeSessionStorage.removeItem(SCROLL_CACHE_KEY);
       window.addEventListener("scrollend", saveScrollPosition);
     } else {
       window.addEventListener("scrollend", saveScrollPosition);
