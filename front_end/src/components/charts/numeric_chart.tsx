@@ -556,6 +556,7 @@ function buildChartData({
     isChartEmpty: !domainTimestamps.length,
     minValues: area.map((d) => ({ timestamp: d.x, y: d.y0 })),
     maxValues: area.map((d) => ({ timestamp: d.x, y: d.y })),
+    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
   });
   const yScale: Scale = generateScale({
     displayType: questionType,

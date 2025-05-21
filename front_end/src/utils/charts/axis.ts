@@ -92,6 +92,7 @@ type GenerateYDomainParams = {
   zoom: TimelineChartZoomOption;
   isChartEmpty: boolean;
   zoomDomainPadding?: number;
+  includeClosestBoundOnZoom?: boolean;
 };
 
 export function generateYDomain({
@@ -101,6 +102,7 @@ export function generateYDomain({
   maxValues,
   minTimestamp,
   zoomDomainPadding = 0.05,
+  includeClosestBoundOnZoom = false,
 }: GenerateYDomainParams): {
   originalYDomain: Tuple<number>;
   zoomedYDomain: Tuple<number>;
@@ -115,24 +117,41 @@ export function generateYDomain({
   const min = minValues
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
-    .filter((value): value is number => !isNil(value));
+    .filter((value) => !isNil(value));
   const minValue = min.length ? Math.min(...min) : null;
   const max = maxValues
     .filter((d) => d.timestamp >= minTimestamp)
     .map((d) => d.y)
-    .filter((value): value is number => !isNil(value));
+    .filter((value) => !isNil(value));
   const maxValue = max.length ? Math.max(...max) : null;
 
   if (isNil(minValue) || isNil(maxValue)) {
     return fallback;
   }
+  let zoomedYDomain: Tuple<number> = [0, 1];
+  const distanceToZero = Math.abs(minValue - zoomDomainPadding);
+  const distanceToOne = Math.abs(1 - (maxValue + zoomDomainPadding));
+
+  if (includeClosestBoundOnZoom) {
+    if (distanceToZero === distanceToOne) {
+      zoomedYDomain = [0, 1];
+    } else {
+      // Include the closer bound
+      zoomedYDomain =
+        distanceToZero < distanceToOne
+          ? [0, Math.min(1, maxValue + zoomDomainPadding)]
+          : [Math.max(0, minValue - zoomDomainPadding), 1];
+    }
+  } else {
+    zoomedYDomain = [
+      Math.max(0, minValue - zoomDomainPadding),
+      Math.min(1, maxValue + zoomDomainPadding),
+    ];
+  }
 
   return {
     originalYDomain,
-    zoomedYDomain: [
-      Math.max(0, minValue - zoomDomainPadding),
-      Math.min(1, maxValue + zoomDomainPadding),
-    ],
+    zoomedYDomain,
   };
 }
 
