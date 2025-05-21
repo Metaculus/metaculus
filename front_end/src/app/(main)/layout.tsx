@@ -25,6 +25,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // My Change
   return (
     <div className="flex min-h-screen flex-col">
       <GlobalHeader />
