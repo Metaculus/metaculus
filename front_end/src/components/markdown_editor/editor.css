@@ -72,41 +72,22 @@
 }
 
 /* Remove bullet/number from parent li if it contains a nested list */
-.prose li > ul,
-.prose li > ol {
+.mdx-content-editable li > ul,
+.mdx-content-editable li > ol {
   margin-top: 0.25em;
   margin-bottom: 0.25em;
 }
-.prose li > ul,
-.prose li > ol {
+.mdx-content-editable li > ul,
+.mdx-content-editable li > ol {
   /* Remove marker from parent li */
   position: relative;
 }
-.prose li > ul:before,
-.prose li > ol:before {
+.mdx-content-editable li > ul:before,
+.mdx-content-editable li > ol:before {
   content: none !important;
 }
-.prose li:has(> ul), 
-.prose li:has(> ol) {
+.mdx-content-editable li:has(> ul), 
+.mdx-content-editable li:has(> ol) {
   list-style-type: none !important;
   padding-left: 0 !important;
-}
-
-/* Visual adjustment for nested lists in MDXEditor without relying on the 'prose' class */
-[class^="_contentEditable_"] li > ul,
-[class^="_contentEditable_"] li > ol {
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
-}
-
-[class^="_contentEditable_"] li:has(> ul),
-[class^="_contentEditable_"] li:has(> ol) {
-  list-style-type: none !important;
-  padding-left: 0 !important;
-}
-
-/* Fallback for browsers without :has support */
-[class^="_contentEditable_"] li > ul,
-[class^="_contentEditable_"] li > ol {
-  margin-left: -1.5em;
 }
