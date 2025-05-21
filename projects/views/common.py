@@ -1,18 +1,13 @@
-from django.db.models import Q
 from django.http import HttpResponse
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from misc.models import WhitelistUser
-from posts.serializers import (
-    DataGetRequestSerializer,
-    serialize_posts_many_forecast_flow,
-)
+from posts.serializers import serialize_posts_many_forecast_flow
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -35,11 +30,12 @@ from projects.services.common import (
     get_site_main_project,
     get_project_timeline_data,
 )
-from questions.models import Question
+from users.models import User
 from users.services.common import get_users_by_usernames
 from utils.cache import cache_get_or_set
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
+from utils.views import validate_data_request
 
 
 @api_view(["GET"])
@@ -301,50 +297,18 @@ def project_unsubscribe_api_view(request: Request, pk: str):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_data(request, project_id: int):
-    user = request.user
-    qs = get_projects_qs(user=user)
-    obj = get_object_or_404(qs, pk=project_id)
-    # Check permissions
-    is_staff = user.is_authenticated and user.is_staff
-    is_whitelisted = (
-        user.is_authenticated
-        and WhitelistUser.objects.filter(
-            Q(project=obj) | (Q(post__isnull=True) & Q(project__isnull=True)),
-            user=user,
-        ).exists()
-    )
-    if not (is_staff or is_whitelisted):
-        raise PermissionDenied("You are not allowed to download this project")
-    serializer_context = {
-        "user": user if user.is_authenticated else None,
-        "is_staff": is_staff,
-        "is_whitelisted": is_whitelisted,
-    }
+    user: User = request.user
+    if not user.is_authenticated:
+        raise ValidationError("User must be authenticated")
 
-    serializer = DataGetRequestSerializer(
-        data=request.query_params, context=serializer_context
-    )
-    serializer.is_valid(raise_exception=True)
-    params = serializer.validated_data
-    include_comments = params.get("include_comments", False)
-    include_scores = params.get("include_scores", False)
-    anonymized = params.get("anonymized", False) if is_staff else True
-    # TODO: consider adding support for other params supported by post download_data
+    validated_task_params = validate_data_request(request)
 
-    questions = Question.objects.filter(
-        Q(related_posts__post__default_project=obj)
-        | Q(related_posts__post__projects=obj)
-    ).distinct()
+    project_id = request.data.get("project_id")
+    project = get_object_or_404(Project, id=project_id)
 
-    data = export_data_for_questions(
-        questions=questions,
-        include_user_forecasts=True,
-        include_comments=include_comments,
-        include_scores=include_scores,
-        anonymized=anonymized,
-    )
+    data = export_data_for_questions(**validated_task_params)
 
-    filename = "_".join(obj.name.split(" "))
+    filename = "_".join(project.name.split(" "))
     response = HttpResponse(
         data,
         content_type="application/zip",

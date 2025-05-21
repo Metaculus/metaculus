@@ -195,7 +195,7 @@ def export_data_for_questions(
     is_staff: bool,
     is_whitelisted: bool,
     questions: QuerySet[Question],
-    aggregation_methods: list[str] | None,
+    aggregation_methods: list[AggregationMethod] | None,
     minimize: bool,
     include_scores: bool,
     include_user_data: bool,
