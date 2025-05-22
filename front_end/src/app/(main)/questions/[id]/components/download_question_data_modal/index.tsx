@@ -17,7 +17,6 @@ import { Post } from "@/types/post";
 import { DownloadAggregationMethod } from "@/types/question";
 import { DataParams } from "@/types/utils";
 import { base64ToBlob } from "@/utils/files";
-import { encodeQueryParams } from "@/utils/navigation";
 
 import AggregationMethodsPicker from "./aggregation_methods_picker";
 
@@ -31,7 +30,7 @@ const schema = z.object({
   include_comments: z.boolean(),
   include_scores: z.boolean(),
   include_user_data: z.boolean(),
-  include_bots: z.boolean().nullable(),
+  include_bots: z.boolean(),
   anonymized: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
@@ -62,7 +61,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       include_comments: false,
       include_scores: false,
       include_user_data: true,
-      include_bots: null,
+      include_bots: undefined,
       anonymized: false,
     },
   });
