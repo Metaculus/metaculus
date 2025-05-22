@@ -221,6 +221,7 @@ const InitializedMarkdownEditor: FC<
       )}
       contentEditableClassName={cn(
         { "!p-0": mode === "read" },
+        "mdx-content-editable",
         contentEditableClassName
       )}
       markdown={formattedMarkdown}
