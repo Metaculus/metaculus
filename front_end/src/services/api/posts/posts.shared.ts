@@ -166,11 +166,7 @@ class PostsApi extends ApiService {
   }
 
   async getPostZipData(params: DataParams): Promise<Blob> {
-    const queryParams = encodeQueryParams(
-      Object.fromEntries(
-        Object.entries(params).filter(([_, value]) => value !== null)
-      )
-    );
+    const queryParams = encodeQueryParams(params);
     return await this.get<Blob>(`/data/download/${queryParams}`);
   }
 
