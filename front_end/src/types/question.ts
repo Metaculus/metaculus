@@ -27,10 +27,10 @@ export enum QuestionOrder {
   ScoreDesc = "-score",
   ScoreAsc = "score",
   ResolveTimeAsc = "scheduled_resolve_time",
+  NewsHotness = "-news_hotness",
   HotDesc = "-hotness",
   HotAsc = "hotness",
   RankDesc = "-rank",
-  CreatedDesc = "-created_at",
 }
 
 export type Scaling = {
@@ -143,6 +143,7 @@ export type AggregateForecastHistory = {
   history: AggregateForecast[];
   latest?: AggregateForecast;
   score_data?: ScoreData;
+  movement?: CPMovement | null;
 };
 
 export type Aggregations = {
@@ -178,6 +179,13 @@ export type MultipleChoiceForecast = BaseForecast & {
     q3: number;
     q1: number;
   }>;
+};
+
+export type CPMovement = {
+  divergence?: number;
+  direction: MovementDirection;
+  movement: number;
+  period?: string;
 };
 
 export type Question = {
@@ -233,10 +241,7 @@ export type Question = {
   my_forecast?: {
     latest: UserForecast;
     lifetime_elapsed: number;
-    movement: null | {
-      direction: MovementDirection;
-      movement: number;
-    };
+    movement: null | CPMovement;
   };
 };
 

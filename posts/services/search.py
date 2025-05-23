@@ -4,7 +4,8 @@ import logging
 import numpy as np
 from asgiref.sync import async_to_sync
 from django.contrib.postgres.search import SearchVector, SearchQuery
-from django.db.models import Value, Case, When, FloatField, QuerySet
+from django.db.models import Value, Case, When, FloatField, QuerySet, Q
+from django.utils import timezone
 from pgvector.django import CosineDistance
 
 from posts.models import Post
@@ -67,9 +68,9 @@ def update_post_search_embedding_vector(post: Post):
 
 
 def perform_post_search(qs, search_text: str):
-    embedding_vector, semantic_scores_by_id = async_to_sync(
-        gather_search_results
-    )(search_text)
+    embedding_vector, semantic_scores_by_id = async_to_sync(gather_search_results)(
+        search_text
+    )
     semantic_scores_by_id = semantic_scores_by_id or {}
 
     semantic_whens = [
@@ -81,6 +82,15 @@ def perform_post_search(qs, search_text: str):
         rank=Case(
             *semantic_whens,
             default=1 - CosineDistance("embedding_vector", embedding_vector),
+            output_field=FloatField(),
+        )
+        * Case(
+            # Penalise closed and resolved questions in search by 10%
+            When(
+                Q(resolved=True) | Q(actual_close_time__lte=timezone.now()),
+                then=Value(0.9),
+            ),
+            default=1,
             output_field=FloatField(),
         )
     )

@@ -58,6 +58,10 @@ const ContinuousPredictionChart: FC<Props> = ({
       actual_resolve_time: question.actual_resolve_time ?? null,
       skipQuartilesBorders: true,
     });
+
+    const communityValue =
+      hoverState.yData.community || hoverState.yData.community_closed;
+
     return {
       xLabel,
       yUserLabel: !hoverState.yData.user
@@ -72,11 +76,11 @@ const ContinuousPredictionChart: FC<Props> = ({
           : graphType === "pmf"
             ? (hoverState.yData.user_previous * 200).toFixed(3)
             : getForecastPctDisplayValue(hoverState.yData.user_previous),
-      yCommunityLabel: !hoverState.yData.community
+      yCommunityLabel: !communityValue
         ? null
         : graphType === "pmf"
-          ? (hoverState.yData.community * 200).toFixed(3)
-          : getForecastPctDisplayValue(hoverState.yData.community),
+          ? (communityValue * 200).toFixed(3)
+          : getForecastPctDisplayValue(communityValue),
     };
   }, [graphType, hoverState, question, readOnly]);
 

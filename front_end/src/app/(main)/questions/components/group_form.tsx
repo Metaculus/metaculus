@@ -839,8 +839,8 @@ const GroupForm: React.FC<Props> = ({
                       }}
                     >
                       {collapsedSubQuestions[index] === false
-                        ? "Expand"
-                        : "Collapse"}
+                        ? t("expand")
+                        : t("collapse")}
                     </Button>
 
                     <Button

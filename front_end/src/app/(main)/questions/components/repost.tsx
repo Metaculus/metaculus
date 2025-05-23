@@ -7,13 +7,14 @@ import React, { FC, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { getPost, makeRepost } from "@/app/(main)/questions/actions";
+import { makeRepost } from "@/app/(main)/questions/actions";
 import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import { FormErrorMessage, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
 import { Community } from "@/types/projects";
 import { logError } from "@/utils/core/errors";
@@ -64,7 +65,7 @@ const RepostForm: FC<Props> = ({ community }) => {
       setIsPostLoading(true);
 
       try {
-        const post = await getPost(postId);
+        const post = await ClientPostsApi.getPost(postId);
         setPost(post);
       } catch {
         setError("post_reference", {

@@ -7,7 +7,7 @@ import { FC, PropsWithChildren, Suspense } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import Button from "@/components/ui/button";
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { CategoryKey } from "@/types/scoring";
 import { formatUsername } from "@/utils/formatters/users";
 
@@ -77,7 +77,7 @@ const ContributionsHero: FC<Props> = ({ year, duration, category, userId }) => {
 const AwaitedUserHeader: FC<{ userId: number }> =
   WithServerComponentErrorBoundary(async ({ userId }) => {
     const t = await getTranslations();
-    const profile = await ProfileApi.getProfileById(userId);
+    const profile = await ServerProfileApi.getProfileById(userId);
     const username = formatUsername(profile);
 
     return <UserHeader>{username ?? t("user")}</UserHeader>;

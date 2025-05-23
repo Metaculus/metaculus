@@ -327,7 +327,7 @@ DRAMATIQ_BROKER = {
 }
 DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
     # Setting redis db to 1 for the MQ storage
-    "url": f"{REDIS_URL}/3?{REDIS_URL_CONFIG}",
+    "url": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
 }
 
 # Setting StubBroker broker for unit tests environment
@@ -342,7 +342,7 @@ DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
+        "LOCATION": f"{REDIS_URL}/0?{REDIS_URL_CONFIG}",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -394,14 +394,13 @@ ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
 
 # OpenAI configuration
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+# use a default value, otherwise openai lib will use the value from the default OPENAI_API_KEY variable
+OPENAI_API_KEY_FACTORS = os.environ.get("OPENAI_API_KEY_FACTORS", "nokey")
 
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
 
 GOOGLE_CREDEBTIALS_FAB_SHEET_B64 = os.environ.get("GOOGLE_CREDEBTIALS_FAB_SHEET_B64")
-
-FAB_CREDITS_ANTHROPIC_API_KEY = os.environ.get("FAB_CREDITS_ANTHROPIC_API_KEY")
-FAB_CREDITS_OPENAI_API_KEY = os.environ.get("FAB_CREDITS_OPENAI_API_KEY")
 
 ALLOWED_HOSTS = [
     ".metaculus.com",
@@ -458,6 +457,7 @@ def traces_sampler(sampling_context):
         "/api/get-bulletins",
         "/api/auth/verify_token",
         "/api/auth/social",
+        "/api/sidebar",
     ]
     wsgi_environ = sampling_context.get("wsgi_environ", {})
     url = wsgi_environ.get("PATH_INFO")

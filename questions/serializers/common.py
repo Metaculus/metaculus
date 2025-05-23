@@ -1,8 +1,9 @@
 import logging
 from collections import defaultdict
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime, timezone as dt_timezone, timedelta
 
 import numpy as np
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -18,10 +19,15 @@ from questions.models import (
     AggregationMethod,
 )
 from questions.models import Forecast
+from questions.utils import get_question_movement_period
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
-from utils.the_math.measures import percent_point_function
+from utils.the_math.measures import (
+    percent_point_function,
+    prediction_difference_for_sorting,
+    get_difference_display,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +140,6 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data: dict):
-        # TODO: add validation for continuous question bounds
         errors = []
 
         published_at = data.get("published_at")
@@ -142,6 +147,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         cp_reveal_time = data.get("cp_reveal_time")
         scheduled_close_time = data.get("scheduled_close_time")
         scheduled_resolve_time = data.get("scheduled_resolve_time")
+        question_type = data.get("type")
 
         if published_at:
             if open_time and published_at > open_time:
@@ -165,6 +171,16 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         if scheduled_close_time:
             if scheduled_resolve_time and scheduled_close_time > scheduled_resolve_time:
                 errors.append("Closing Time must not be after Resolving Time")
+
+        if question_type == Question.QuestionType.MULTIPLE_CHOICE:
+            if not data.get("options"):
+                errors.append("Options are required for multiple choice questions")
+        if question_type in QUESTION_CONTINUOUS_TYPES:
+            if data.get("range_max") is None:
+                errors.append("Range Max is required for continuous questions")
+            if data.get("range_min") is None:
+                errors.append("Range Min is required for continuous questions")
+
         if errors:
             raise serializers.ValidationError(errors)
 
@@ -634,7 +650,12 @@ def serialize_question(
     serialized_data = QuestionSerializer(question).data
     serialized_data["post_id"] = post.id if post else question.get_post_id()
     serialized_data["aggregations"] = {
-        "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
+        "recency_weighted": {
+            "history": [],
+            "latest": None,
+            "score_data": dict(),
+            "movement": None,
+        },
         "unweighted": {"history": [], "latest": None, "score_data": dict()},
         "single_aggregation": {"history": [], "latest": None, "score_data": dict()},
         "metaculus_prediction": {
@@ -649,7 +670,21 @@ def serialize_question(
             AggregationMethod, list[AggregateForecast]
         ] = defaultdict(list)
 
+        movement_period = get_question_movement_period(question)
+        movement_start_date = timezone.now() - movement_period
+        movement_f1 = None
+
         for aggregate in aggregate_forecasts:
+            if (
+                aggregate.method == AggregationMethod.RECENCY_WEIGHTED
+                and aggregate.start_time <= movement_start_date
+                and (
+                    aggregate.end_time is None
+                    or aggregate.end_time > movement_start_date
+                )
+            ):
+                movement_f1 = aggregate
+
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
 
         # Debug method for building aggregation history from scratch
@@ -723,6 +758,17 @@ def serialize_question(
                 if forecasts
                 else None
             )
+
+            if (
+                method == AggregationMethod.RECENCY_WEIGHTED
+                and movement_f1
+                and movement_start_date
+            ):
+                serialized_data["aggregations"][method]["movement"] = (
+                    serialize_question_movement(
+                        question, movement_f1, forecasts[-1], movement_period
+                    )
+                )
 
     if (
         current_user
@@ -913,3 +959,36 @@ class QuestionApproveSerializer(serializers.Serializer):
     cp_reveal_time = serializers.DateTimeField(required=True)
     scheduled_close_time = serializers.DateTimeField(required=True)
     scheduled_resolve_time = serializers.DateTimeField(required=True)
+
+
+def serialize_question_movement(
+    question: Question,
+    f1: AggregateForecast,
+    f2: AggregateForecast,
+    period: timedelta,
+    threshold: float = 0.0,
+) -> dict | None:
+    divergence = prediction_difference_for_sorting(
+        f1.forecast_values,
+        f2.forecast_values,
+        question,
+    )
+
+    if divergence >= threshold:
+        display_diff = get_difference_display(
+            f1,
+            f2,
+            question,
+        )
+
+        # Finds max difference for multiple choice cases
+        direction, change = max(display_diff, key=lambda x: x[1])
+
+        return {
+            "divergence": divergence,
+            "direction": direction,
+            "movement": change,
+            "period": period,
+        }
+
+    return

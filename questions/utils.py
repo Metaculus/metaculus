@@ -1,5 +1,6 @@
 import datetime
 import re
+from datetime import timedelta
 
 from django.utils import timezone
 
@@ -27,3 +28,13 @@ def calculate_question_lifespan_from_date(
     passed = timezone.now() - from_date
 
     return passed / duration
+
+
+def get_question_movement_period(question: Question):
+    if timezone.now() - question.open_time < timedelta(hours=24):
+        return timedelta(hours=1)
+
+    if timezone.now() - question.open_time < timedelta(days=7):
+        return timedelta(hours=24)
+
+    return timedelta(days=7)

@@ -8,13 +8,12 @@ import SearchInput from "@/components/search_input";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
-import { PostsParams } from "@/services/posts";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import { parseQuestionId } from "@/utils/questions/helpers";
-
-import { fetchPosts, getPost, getQuestion } from "../actions";
 
 type Props = {
   isParentQuestion: boolean;
@@ -52,15 +51,21 @@ const ConditionalQuestionPicker: FC<Props> = ({
         setIsLoading(true);
         const parsedInput = parseQuestionId(filters.search);
         if (parsedInput.questionId) {
-          const question = await getQuestion(parsedInput.questionId);
+          const question = await ClientPostsApi.getQuestion(
+            parsedInput.questionId
+          );
           setPosts([question]);
         } else if (parsedInput.postId) {
-          const post = await getPost(parsedInput.postId);
+          const post = await ClientPostsApi.getPost(parsedInput.postId);
           setPosts([post]);
         }
         if (!parsedInput.questionId && !parsedInput.postId) {
-          const posts = await fetchPosts(filters, 0, 20);
-          setPosts(posts.questions);
+          const { results: posts } = await ClientPostsApi.getPostsWithCP({
+            ...filters,
+            offset: 0,
+            limit: 20,
+          });
+          setPosts(posts);
         }
       }
     } catch (error) {

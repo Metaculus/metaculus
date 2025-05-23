@@ -6,7 +6,7 @@ import {
   changeUsernameSchema,
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
 
@@ -30,7 +30,9 @@ export default async function changeUsernameAction(
   }
 
   try {
-    const user = await ProfileApi.changeUsername(validatedFields.data.username);
+    const user = await ServerProfileApi.changeUsername(
+      validatedFields.data.username
+    );
     revalidatePath("/");
 
     return {
@@ -45,7 +47,7 @@ export default async function changeUsernameAction(
 
 export async function softDeleteUserAction(userId: number) {
   try {
-    return await ProfileApi.markUserAsSpam(userId);
+    return await ServerProfileApi.markUserAsSpam(userId);
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
@@ -73,7 +75,7 @@ export async function updateProfileFormAction(
   }
 
   try {
-    const user = await ProfileApi.updateProfile(validatedFields.data);
+    const user = await ServerProfileApi.updateProfile(validatedFields.data);
     revalidatePath("/");
 
     return {
@@ -98,7 +100,7 @@ export async function updateProfileAction(
   >,
   revalidate = true
 ) {
-  const response = await ProfileApi.updateProfile(profile);
+  const response = await ServerProfileApi.updateProfile(profile);
 
   if (revalidate) {
     revalidatePath("/");

@@ -255,6 +255,10 @@ const NumericChart: FC<Props> = ({
             {
               target: "parent",
               eventHandlers: {
+                onTouchStart: () => {
+                  if (!onCursorChange) return;
+                  setIsCursorActive(true);
+                },
                 onMouseOverCapture: () => {
                   if (!onCursorChange) return;
                   setIsCursorActive(true);

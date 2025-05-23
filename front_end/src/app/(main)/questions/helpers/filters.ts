@@ -1,6 +1,5 @@
 import { useTranslations } from "next-intl";
 
-import { searchUsers } from "@/app/(main)/questions/actions";
 import {
   FilterOptionType,
   FilterSection,
@@ -29,7 +28,8 @@ import {
   POST_FOLLOWING_FILTER,
   POST_PROJECT_FILTER,
 } from "@/constants/posts_feed";
-import { PostsParams } from "@/services/posts";
+import { PostsParams } from "@/services/api/posts/posts.shared";
+import ClientProfileApi from "@/services/api/profile/profile.client";
 import { SearchParams } from "@/types/navigation";
 import {
   ForecastType,
@@ -231,17 +231,16 @@ export function getFilterSectionUsername({
         return [];
       }
 
-      const response = await searchUsers(query);
-
-      if (response && "errors" in response) {
+      try {
+        const response = await ClientProfileApi.searchUsers(query);
+        return response.results.map((obj) => ({
+          label: obj.username,
+          value: obj.username,
+          active: params.getAll(POST_USERNAMES_FILTER).includes(obj.username),
+        }));
+      } catch {
         return [];
       }
-
-      return response.results.map((obj) => ({
-        label: obj.username,
-        value: obj.username,
-        active: params.getAll(POST_USERNAMES_FILTER).includes(obj.username),
-      }));
     },
     chipColor: getFilterChipColor(POST_USERNAMES_FILTER),
     chipFormat: (value: string) =>
@@ -368,25 +367,6 @@ export function getMainOrderOptions(
     {
       value: QuestionOrder.OpenTimeDesc,
       label: t("new"),
-    },
-  ];
-}
-
-export function getUserSortOptions(
-  t: ReturnType<typeof useTranslations>
-): GroupButton<QuestionOrder>[] {
-  return [
-    {
-      label: t("oldest"),
-      value: QuestionOrder.LastPredictionTimeAsc,
-    },
-    {
-      label: t("newest"),
-      value: QuestionOrder.LastPredictionTimeDesc,
-    },
-    {
-      label: t("divergence"),
-      value: QuestionOrder.DivergenceDesc,
     },
   ];
 }

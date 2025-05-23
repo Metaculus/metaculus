@@ -10,7 +10,6 @@ import toast from "react-hot-toast";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   commentTogglePin,
-  getComments,
   markPostAsRead,
 } from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
@@ -24,9 +23,10 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useHash from "@/hooks/use_hash";
 import useScrollTo from "@/hooks/use_scroll_to";
-import { getCommentsParams } from "@/services/comments";
+import ClientCommentsApi from "@/services/api/comments/comments.client";
+import { getCommentsParams } from "@/services/api/comments/comments.shared";
 import { CommentType } from "@/types/comment";
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getCommentIdToFocusOn } from "@/utils/comments";
 import cn from "@/utils/core/cn";
@@ -109,6 +109,9 @@ const CommentFeed: FC<Props> = ({
     userCommentsAmount !== null &&
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
     !PUBLIC_MINIMAL_UI;
+
+  const [userKeyFactorsComment, setUserKeyFactorsComment] =
+    useState<CommentType | null>(null);
 
   const [feedFilters, setFeedFilters] = useState<getCommentsParams>(() => ({
     is_private: false,
@@ -217,15 +220,15 @@ const CommentFeed: FC<Props> = ({
     const fetchUserComments = async (userId?: number) => {
       if (!userId) return;
 
-      const response = await getComments({
-        limit: 1,
-        offset: 0,
-        author: userId,
-      });
-      if (!!response && "errors" in response) {
-        console.error("Error fetching comments:", response.errors);
-      } else {
+      try {
+        const response = await ClientCommentsApi.getComments({
+          limit: 1,
+          offset: 0,
+          author: userId,
+        });
         setUserCommentsAmount(response.total_count ?? response.count);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
       }
     };
 
@@ -319,6 +322,28 @@ const CommentFeed: FC<Props> = ({
     [t]
   );
 
+  const onNewComment = (newComment: CommentType) => {
+    const isSimpleQuestion =
+      postData?.question?.type &&
+      postData?.question?.type !== QuestionType.MultipleChoice;
+
+    setComments([newComment, ...comments]);
+
+    fetchTotalCount({
+      is_private: feedFilters.is_private,
+    });
+
+    const isPostOpen = ![
+      PostStatus.CLOSED,
+      PostStatus.RESOLVED,
+      PostStatus.PENDING_RESOLUTION,
+    ].includes(postData?.status ?? PostStatus.CLOSED);
+
+    if (postId && isSimpleQuestion && user?.has_key_factors && isPostOpen) {
+      setUserKeyFactorsComment(newComment);
+    }
+  };
+
   return (
     <DefaultUserMentionsContextProvider
       defaultUserMentions={commentAuthorMentionItems}
@@ -384,10 +409,7 @@ const CommentFeed: FC<Props> = ({
                 onSubmit={
                   //TODO: revisit after BE changes
                   (newComment) => {
-                    setComments([newComment, ...comments]);
-                    fetchTotalCount({
-                      is_private: feedFilters.is_private,
-                    });
+                    onNewComment(newComment);
                   }
                 }
                 isPrivateFeed={feedFilters.is_private}
@@ -426,6 +448,11 @@ const CommentFeed: FC<Props> = ({
             profileId={profileId}
             last_viewed_at={postData?.last_viewed_at}
             postData={postData}
+            suggestKeyFactorsOnFirstRender={
+              // This is the newly added comment, so we want to suggest key factors
+              comment.id === userKeyFactorsComment?.id
+            }
+            shouldSuggestKeyFactors={user?.has_key_factors}
           />
         ))}
         {comments.length === 0 && !isLoading && (

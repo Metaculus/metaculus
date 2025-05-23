@@ -1,6 +1,8 @@
 import { getLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 
+import serverMiscApi from "@/services/api/misc/misc.server";
+
 import { AboutHeader } from "./components/AboutHeader";
 import TeamBlock from "./components/TeamBlock";
 import content_pt from "./page_pt";
@@ -13,6 +15,19 @@ export const metadata = {
 };
 
 export default async function AboutPage() {
+  let siteStats = {
+    predictions: 2133159,
+    questions: 17357,
+    resolved_questions: 6654,
+    years_of_predictions: 10,
+  };
+
+  try {
+    siteStats = await serverMiscApi.getSiteStats();
+  } catch (error) {
+    console.error(error);
+  }
+
   const locale = await getLocale();
   if (locale === "pt") {
     return content_pt();
@@ -22,19 +37,19 @@ export default async function AboutPage() {
   const numbers = [
     {
       title: "Predictions",
-      number: "2,133,159",
+      number: siteStats.predictions.toLocaleString(),
     },
     {
       title: "Questions",
-      number: "17,357",
+      number: siteStats.questions.toLocaleString(),
     },
     {
       title: "Resolved Questions",
-      number: "6,654",
+      number: siteStats.resolved_questions.toLocaleString(),
     },
     {
       title: "Years of Predictions",
-      number: "10",
+      number: siteStats.years_of_predictions.toLocaleString(),
     },
   ];
   return (

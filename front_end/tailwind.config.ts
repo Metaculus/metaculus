@@ -69,6 +69,11 @@ const config: Config = {
   plugins: [
     require("@tailwindcss/container-queries"),
     // @ts-ignore
+    function ({ addVariant }) {
+      addVariant("no-hover", "@media (hover: none)");
+      addVariant("can-hover", "@media (hover: hover)");
+    },
+    // @ts-ignore
     plugin(function ({ addUtilities }) {
       addUtilities({
         /* https://github.com/tailwindlabs/tailwindcss/pull/12128 */

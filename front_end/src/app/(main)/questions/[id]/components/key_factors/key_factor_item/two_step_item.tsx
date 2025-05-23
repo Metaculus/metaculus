@@ -131,7 +131,7 @@ export const TwoStepKeyFactorItem: FC<Props> = ({
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark [&:hover_.target]:visible",
+        "relative flex flex-col gap-3 rounded border border-transparent bg-blue-200 p-3 can-hover:hover:border-blue-500 dark:bg-blue-200-dark can-hover:dark:hover:border-blue-500-dark can-hover:[&:hover_.target]:visible",
         { "bg-gray-0 dark:bg-gray-0-dark": linkToComment }
       )}
     >
