@@ -115,6 +115,7 @@ const ForecastCard: FC<Props> = ({
                 actualCloseTime={getPostDrivenTime(question.actual_close_time)}
                 scaling={question.scaling}
                 onCursorChange={nonInteractive ? undefined : setCursorTimestamp}
+                nonInteractive={nonInteractive}
                 extraTheme={embedTheme?.chart}
                 defaultZoom={defaultChartZoom}
                 withZoomPicker={withZoomPicker}

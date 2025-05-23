@@ -7,6 +7,7 @@ import {
   LineSegment,
   VictoryArea,
   VictoryChart,
+  VictoryContainer,
   VictoryCursorContainer,
   VictoryLabel,
   VictoryLabelProps,
@@ -61,6 +62,7 @@ type Props = {
   onCursorChange?: (value: number | null) => void;
   getCursorValue?: (value: number) => string;
   colorOverride?: ThemeColor;
+  nonInteractive?: boolean;
 };
 
 const BOTTOM_PADDING = 20;
@@ -81,6 +83,7 @@ const NewNumericChart: FC<Props> = ({
   onCursorChange,
   getCursorValue,
   colorOverride,
+  nonInteractive = false,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -230,15 +233,19 @@ const NewNumericChart: FC<Props> = ({
                 target: "parent",
                 eventHandlers: {
                   onTouchStart: () => {
+                    if (nonInteractive) return;
                     setIsCursorActive(true);
                   },
                   onMouseOverCapture: () => {
+                    if (nonInteractive) return;
                     setIsCursorActive(true);
                   },
                   onMouseOutCapture: () => {
+                    if (nonInteractive) return;
                     setIsCursorActive(false);
                   },
                   onMouseLeave: () => {
+                    if (nonInteractive) return;
                     setIsCursorActive(false);
                     setCursorTimestamp(defaultCursor);
                     onCursorChange?.(null);
@@ -246,7 +253,19 @@ const NewNumericChart: FC<Props> = ({
                 },
               },
             ]}
-            containerComponent={CursorContainer}
+            containerComponent={
+              nonInteractive ? (
+                <VictoryContainer
+                  style={{
+                    pointerEvents: "auto",
+                    userSelect: "auto",
+                    touchAction: "auto",
+                  }}
+                />
+              ) : (
+                CursorContainer
+              )
+            }
           >
             {/* Y axis */}
             <VictoryAxis
