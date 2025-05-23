@@ -2,7 +2,7 @@
 import { FC, useEffect } from "react";
 
 import Button from "@/components/ui/button";
-import { extractError, logError } from "@/utils/core/errors";
+import { API_ERROR_TAG, extractError, logError } from "@/utils/core/errors";
 
 type GlobalErrorProps = {
   error: any;
@@ -46,7 +46,12 @@ const GlobalErrorBoundary: FC<GlobalErrorBoundaryProps> = ({
 
   // error.digest ensures we use display actual message on production build
   // for more info see definition of ApiError class
-  return <GlobalErrorContainer error={error.digest ?? error} reset={reset} />;
+  return (
+    <GlobalErrorContainer
+      error={error?.digest?.replace(`${API_ERROR_TAG} `, "") ?? error}
+      reset={reset}
+    />
+  );
 };
 
 export default GlobalErrorBoundary;

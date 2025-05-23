@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
+import { safeLocalStorage } from "@/utils/core/storage";
 
 type Props = {
   onClick: () => void;
@@ -34,7 +35,7 @@ const CommentWelcomeMessage: FC<Props> = ({ onClick }) => {
         <Button
           className="mt-4"
           onClick={() => {
-            localStorage.setItem(STORAGE_KEY, "true");
+            safeLocalStorage.setItem(STORAGE_KEY, "true");
             onClick();
           }}
         >
@@ -46,7 +47,7 @@ const CommentWelcomeMessage: FC<Props> = ({ onClick }) => {
 };
 
 export function getIsMessagePreviouslyClosed(): boolean {
-  const alreadyClosed = localStorage.getItem(STORAGE_KEY);
+  const alreadyClosed = safeLocalStorage.getItem(STORAGE_KEY);
 
   return Boolean(alreadyClosed);
 }

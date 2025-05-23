@@ -19,6 +19,7 @@ import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
+import { safeSessionStorage } from "@/utils/core/storage";
 import { isConditionalPost, isNotebookPost } from "@/utils/questions/helpers";
 
 import { SCROLL_CACHE_KEY } from "./constants";
@@ -120,7 +121,7 @@ const PaginatedPostsFeed: FC<Props> = ({
         const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
         const currentScroll = window.scrollY;
         if (currentScroll >= 0) {
-          sessionStorage.setItem(
+          safeSessionStorage.setItem(
             SCROLL_CACHE_KEY,
             JSON.stringify({
               scrollPathName: fullPathname,
