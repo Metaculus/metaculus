@@ -45,7 +45,7 @@ const CommunityPrediction: FC<Props> = ({
       {!!post.question && movementPeriod >= CP_MOVEMENT_DISPLAY_THRESHOLD && (
         <QuestionCPMovement
           question={post.question}
-          threshold={checkDelta ? 0.1 : 0}
+          threshold={checkDelta ? 0.01 : 0}
         />
       )}
     </div>

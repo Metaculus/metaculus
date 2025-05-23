@@ -70,3 +70,24 @@
   cursor: default;
   user-select: none;
 }
+
+/* Remove bullet/number from parent li if it contains a nested list */
+.mdx-content-editable li > ul,
+.mdx-content-editable li > ol {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+.mdx-content-editable li > ul,
+.mdx-content-editable li > ol {
+  /* Remove marker from parent li */
+  position: relative;
+}
+.mdx-content-editable li > ul:before,
+.mdx-content-editable li > ol:before {
+  content: none !important;
+}
+.mdx-content-editable li:has(> ul), 
+.mdx-content-editable li:has(> ol) {
+  list-style-type: none !important;
+  padding-left: 0 !important;
+}
