@@ -44,7 +44,7 @@ import {
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
-  generateYDomain,
+  generateTimeSeriesYDomain,
   getAxisLeftPadding,
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
@@ -550,12 +550,13 @@ function buildChartData({
   //   domain: xDomain,
   // });
 
-  const { originalYDomain, zoomedYDomain } = generateYDomain({
+  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
     minValues: area.map((d) => ({ timestamp: d.x, y: d.y0 })),
     maxValues: area.map((d) => ({ timestamp: d.x, y: d.y })),
+    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
   });
   const yScale: Scale = generateScale({
     displayType: questionType,

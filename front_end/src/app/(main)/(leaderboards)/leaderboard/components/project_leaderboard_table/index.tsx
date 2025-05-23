@@ -40,10 +40,24 @@ const ProjectLeaderboardTable: FC<Props> = ({
     leaderboardDetails.score_type === "relative_legacy_tournament";
 
   return (
-    // TODO: add a prize pool display directly to top of table when it exists
     <div className="overflow-y-hidden rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
       <table className="mb-0 w-full border-separate whitespace-nowrap">
         <thead>
+          {!!leaderboardDetails.prize_pool && (
+            <tr>
+              <th
+                colSpan={
+                  withCoverage && !!leaderboardDetails.prize_pool ? 7 : 6
+                }
+                className="bg-mint-300 py-2 text-center font-medium text-mint-700 dark:bg-mint-800 dark:text-mint-300"
+              >
+                {t("prizePool") + ": "}
+                <span className="font-bold text-mint-800 dark:text-mint-200">
+                  ${leaderboardDetails.prize_pool.toLocaleString()}
+                </span>
+              </th>
+            </tr>
+          )}
           <tr>
             <TableHeader className="sticky left-0 text-left">
               {t("rank")}
