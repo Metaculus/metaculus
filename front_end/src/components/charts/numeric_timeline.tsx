@@ -40,6 +40,7 @@ type Props = {
   openTime?: number;
   unit?: string;
   tickFontSize?: number;
+  nonInteractive?: boolean;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -63,6 +64,7 @@ const NumericTimeline: FC<Props> = ({
   openTime,
   unit,
   tickFontSize,
+  nonInteractive,
 }) => {
   const resolutionPoint = useMemo(() => {
     if (!resolution || !resolveTime || isNil(actualCloseTime)) {
@@ -121,6 +123,7 @@ const NumericTimeline: FC<Props> = ({
       getCursorValue={getCursorValue}
       height={height}
       tickFontSize={tickFontSize}
+      nonInteractive={nonInteractive}
     />
   );
 };
