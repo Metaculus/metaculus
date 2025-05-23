@@ -670,7 +670,7 @@ const QuestionForm: FC<Props> = ({
         {(questionType === QuestionType.Date ||
           questionType === QuestionType.Numeric) && (
           <NumericQuestionInput
-            draftKey={questionType}
+            draftKey={mode === "edit" ? undefined : questionType}
             questionType={questionType}
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}
