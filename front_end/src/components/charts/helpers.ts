@@ -43,6 +43,7 @@ export function buildNumericChartData({
   isAggregationsEmpty,
   openTime,
   unit,
+  forceYTickCount,
 }: {
   questionType: QuestionType;
   actualCloseTime?: number | null;
@@ -57,6 +58,7 @@ export function buildNumericChartData({
   isAggregationsEmpty?: boolean;
   openTime?: number;
   unit?: string;
+  forceYTickCount?: number;
 }): ChartData {
   const line: Line = [];
   const area: Area = [];
@@ -226,6 +228,7 @@ export function buildNumericChartData({
     zoomedDomain: zoomedYDomain,
     scaling,
     unit,
+    forceTickCount: forceYTickCount,
   });
 
   return {

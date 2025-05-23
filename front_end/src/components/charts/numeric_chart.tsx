@@ -20,6 +20,8 @@ import {
 
 import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
+import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
+import XTickLabel from "@/components/charts/primitives/x_tick_label";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
@@ -37,7 +39,6 @@ import { getAxisLeftPadding, getTickLabelFontSize } from "@/utils/charts/axis";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 
 import { buildNumericChartData } from "./helpers";
-import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
   aggregation: AggregateForecastHistory;
@@ -345,52 +346,6 @@ const NumericChart: FC<Props> = ({
         </VictoryChart>
       )}
     </ChartContainer>
-  );
-};
-
-const PredictionWithRange: React.FC<any> = ({
-  x,
-  y,
-  symbol,
-  datum: { y1, y2 },
-  scale,
-}) => {
-  const { getThemeColor } = useAppTheme();
-  const y1Scaled = scale.y(y1);
-  const y2Scaled = scale.y(y2);
-  return (
-    <>
-      {y1 !== undefined && y2 !== undefined && (
-        <line
-          x1={x}
-          x2={x}
-          y1={y1Scaled}
-          y2={y2Scaled}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-      {symbol === "circle" && (
-        <circle
-          cx={x}
-          cy={y}
-          r={3}
-          fill={getThemeColor(METAC_COLORS.gray["0"])}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-
-      {symbol === "x" && (
-        <polygon
-          points={`${x - 3},${y - 3} ${x + 3},${y + 3} ${x},${y} ${x - 3},${y + 3} ${x + 3},${y - 3} ${x},${y}`}
-          r={3}
-          fill={getThemeColor(METAC_COLORS.gray["0"])}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-    </>
   );
 };
 

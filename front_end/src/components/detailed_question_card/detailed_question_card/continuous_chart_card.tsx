@@ -176,7 +176,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
             resolution={question.resolution}
             resolveTime={question.actual_resolve_time}
             onCursorChange={handleCursorChange}
-            yLabel={t("communityPredictionLabel")}
             onChartReady={handleChartReady}
             questionType={question.type}
             actualCloseTime={getPostDrivenTime(question.actual_close_time)}
