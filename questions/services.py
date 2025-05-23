@@ -690,7 +690,6 @@ def create_forecast(
         question=question,
         author=user,
         start_time=now,
-        end_time=None,
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
