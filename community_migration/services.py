@@ -369,7 +369,7 @@ def migrate():
 
     export_migration_log()
 
-    # raise Exception("Finished!")
+    raise Exception("Finished!")
 
 
 # TODO:
