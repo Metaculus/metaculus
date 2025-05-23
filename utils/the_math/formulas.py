@@ -29,9 +29,9 @@ def string_location_to_scaled_location(
 ) -> float:
     if string_location in ["ambiguous", "annulled"]:
         raise ValueError("Cannot convert ambiguous or annulled to any real locations")
-    if question.type == "binary":
+    if question.type == Question.QuestionType.BINARY:
         return 1.0 if string_location == "yes" else 0.0
-    if question.type == "multiple_choice":
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
         return float(question.options.index(string_location))
     # continuous
     if string_location == "below_lower_bound":
@@ -47,9 +47,9 @@ def string_location_to_scaled_location(
 def scaled_location_to_string_location(
     scaled_location: float, question: Question
 ) -> str:
-    if question.type == "binary":
+    if question.type == Question.QuestionType.BINARY:
         return "yes" if scaled_location > 0.5 else "no"
-    if question.type == "multiple_choice":
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
         return question.options[int(scaled_location)]
     # continuous
     if scaled_location < question.range_min:
@@ -65,9 +65,9 @@ def scaled_location_to_string_location(
 def unscaled_location_to_scaled_location(
     unscaled_location: float, question: Question
 ) -> float:
-    if question.type == "binary":
+    if question.type == Question.QuestionType.BINARY:
         return unscaled_location
-    if question.type == "multiple_choice":
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
         return unscaled_location
     # continuous
     zero_point, range_max, range_min = (
@@ -96,9 +96,9 @@ def unscaled_location_to_scaled_location(
 def scaled_location_to_unscaled_location(
     scaled_location: float, question: Question
 ) -> float:
-    if question.type == "binary":
+    if question.type == Question.QuestionType.BINARY:
         return scaled_location
-    if question.type == "multiple_choice":
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
         return scaled_location
     zero_point, range_max, range_min = (
         question.zero_point,
@@ -122,9 +122,9 @@ def scaled_location_to_unscaled_location(
 def unscaled_location_to_bucket_index(
     unscaled_location: float, question: Question
 ) -> int:
-    if question.type == "binary":
+    if question.type == Question.QuestionType.BINARY:
         return int(unscaled_location)
-    if question.type == "multiple_choice":
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
         return int(unscaled_location)
     # continuous
     if unscaled_location < 0:
@@ -146,9 +146,9 @@ def unscaled_location_to_string_location(
 
 
 def bucket_index_to_unscaled_location(bucket_index: int, question: Question) -> float:
-    if question.type == "binary":
+    if question.type == Question.QuestionType.BINARY:
         return bucket_index
-    if question.type == "multiple_choice":
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
         return bucket_index
     # continuous
     if bucket_index <= 0:

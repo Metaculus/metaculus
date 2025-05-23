@@ -571,6 +571,7 @@ def get_aggregation_history(
                     histogram=include_histogram,
                 )
                 new_entry.question = question
+                new_entry.question_type = question.type
                 new_entry.method = method
                 if aggregation_history and aggregation_history[-1].end_time is None:
                     aggregation_history[-1].end_time = new_entry.start_time
