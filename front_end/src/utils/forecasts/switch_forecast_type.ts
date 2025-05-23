@@ -1,6 +1,7 @@
 import { uncmin } from "numeric";
 
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantileComponent,
   DistributionSliderComponent,
   Quantile,
@@ -112,7 +113,8 @@ export function getQuantilesDistributionFromSlider(
   const cdf = getSliderNumericForecastDataset(
     components,
     question.open_lower_bound,
-    question.open_upper_bound
+    question.open_upper_bound,
+    question.inbound_outcome_count ?? DefaultInboundOutcomeCount
   ).cdf;
   const quartiles = computeQuartilesFromCDF(cdf);
   const firstCdfValue = cdf[0] ?? 0;

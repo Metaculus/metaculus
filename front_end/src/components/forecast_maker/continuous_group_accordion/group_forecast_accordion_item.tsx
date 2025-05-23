@@ -12,7 +12,7 @@ import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { Quantile } from "@/types/question";
+import { DefaultInboundOutcomeCount, Quantile } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   getQuantileNumericForecastDataset,
@@ -70,7 +70,8 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
       ? getSliderNumericForecastDataset(
           option.userSliderForecast,
           question.open_lower_bound,
-          question.open_upper_bound
+          question.open_upper_bound,
+          question.inbound_outcome_count ?? DefaultInboundOutcomeCount
         )
       : getQuantileNumericForecastDataset(
           option.userQuantileForecast,
@@ -175,9 +176,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                       height={55}
                       hideLabels
                       hideCP={!showCP}
-                      scaling={question.scaling}
-                      questionType={question.type}
-                      resolution={question.resolution}
+                      question={question}
                     />
                   </div>
                 </div>

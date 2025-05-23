@@ -30,6 +30,7 @@ import {
 } from "@/types/charts";
 import { PostGroupOfQuestions } from "@/types/post";
 import {
+  DefaultInboundOutcomeCount,
   Quartiles,
   QuestionType,
   QuestionWithNumericForecasts,
@@ -646,7 +647,8 @@ function getFanOptionsFromContinuousGroup(
           ? (userCdf = getSliderNumericForecastDataset(
               userForecast.components,
               q.open_lower_bound,
-              q.open_upper_bound
+              q.open_upper_bound,
+              q.inbound_outcome_count ?? DefaultInboundOutcomeCount
             ).cdf)
           : (userCdf = getQuantileNumericForecastDataset(
               userForecast.components,

@@ -10,7 +10,7 @@ import {
   ContinuousAreaGraphType,
   ContinuousForecastInputType,
 } from "@/types/charts";
-import { UserForecast } from "@/types/question";
+import { QuestionType, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 import ContinuousInputModeSwitcher from "./continuous_input_mode_switcher";
@@ -28,6 +28,7 @@ export type ContinuousInputContainerProps = {
     tableGraphType: ContinuousAreaGraphType
   ) => ReactNode;
   disabled?: boolean;
+  questionType: QuestionType;
 };
 
 const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
@@ -40,6 +41,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   copyMenu,
   children,
   disabled,
+  questionType,
 }) => {
   const t = useTranslations();
 
@@ -82,7 +84,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
               )}
               title="probability density function"
             >
-              {t("pdf")}
+              {questionType === QuestionType.Discrete ? t("pmf") : t("pdf")}
             </p>
             <Switch
               checked={activeGraphType === "cdf"}
@@ -102,7 +104,12 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
             <Tooltip
               showDelayMs={200}
               placement={"bottom"}
-              tooltipContent="PDF (Probability Density Function) shows how likely different outcomes are around specific values, while CDF (Cumulative Distribution Function) shows the cumulative probability of outcomes up to a certain value."
+              tooltipContent={
+                (questionType === QuestionType.Discrete
+                  ? "PMF (Probability Mass Function) shows how likely different specific outcomes are,"
+                  : "PDF (Probability Density Function) shows how likely different outcomes are around specific values,") +
+                " while CDF (Cumulative Distribution Function) shows the cumulative probability of outcomes up to a certain value."
+              }
               className=""
               tooltipClassName="text-center !max-w-[331px] !border-blue-400 dark:!border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark !text-base !p-4"
             >
