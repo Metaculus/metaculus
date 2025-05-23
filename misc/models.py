@@ -150,8 +150,10 @@ class SidebarItem(TimeStampedModel):
             getattr(self.post, "title", None),
             getattr(self.project, "name", None),
         ]
+        name = next((x for x in names if x), "")
+        emoji = self.emoji or getattr(self.project, "emoji", None)
 
-        return next((x for x in names if x), "")
+        return " ".join(filter(None, [emoji, name]))
 
     def __str__(self):
         return self.display_name
