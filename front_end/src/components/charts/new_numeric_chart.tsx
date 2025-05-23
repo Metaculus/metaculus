@@ -1,5 +1,5 @@
 "use client";
-import { isNil } from "lodash";
+import { isNil, merge } from "lodash";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -13,6 +13,7 @@ import {
   VictoryLine,
   VictoryPortal,
   VictoryScatter,
+  VictoryThemeDefinition,
 } from "victory";
 import { VictoryAxis } from "victory";
 
@@ -54,6 +55,11 @@ type Props = {
   resolutionPoint?: LinePoint[];
   yLabel?: string;
   tickFontSize?: number;
+  extraTheme?: VictoryThemeDefinition;
+  onChartReady?: () => void;
+  onCursorChange?: (value: number | null) => void;
+  getCursorValue?: (value: number) => string;
+  isQuestionGraph?: boolean;
 };
 
 const BOTTOM_PADDING = 20;
@@ -65,10 +71,15 @@ const NewNumericChart: FC<Props> = ({
   height = 170,
   hideCP,
   defaultZoom = TimelineChartZoomOption.All,
-  withZoomPicker = true,
+  withZoomPicker = false,
   resolutionPoint,
   yLabel,
-  tickFontSize,
+  tickFontSize = 10,
+  extraTheme,
+  onChartReady,
+  onCursorChange,
+  getCursorValue,
+  isQuestionGraph = true,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -80,14 +91,18 @@ const NewNumericChart: FC<Props> = ({
     () => buildChartData(chartWidth, zoom),
     [chartWidth, zoom, buildChartData]
   );
+
   const defaultCursor = useMemo(
     () => line.at(-1)?.x ?? Date.now() / 1000,
     [line]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState(defaultCursor);
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
+  const actualTheme = extraTheme
+    ? merge({}, chartTheme, extraTheme)
+    : chartTheme;
   const tickLabelFontSize = isNil(tickFontSize)
-    ? getTickLabelFontSize(chartTheme)
+    ? getTickLabelFontSize(actualTheme)
     : tickFontSize;
 
   const highlightedLine = useMemo(() => {
@@ -110,7 +125,8 @@ const NewNumericChart: FC<Props> = ({
 
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
-  }, []);
+    onChartReady?.();
+  }, [onChartReady]);
 
   const prevWidth = usePrevious(chartWidth);
   useEffect(() => {
@@ -122,6 +138,9 @@ const NewNumericChart: FC<Props> = ({
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
+  const maxPadding = useMemo(() => {
+    return Math.max(rightPadding, MIN_RIGHT_PADDING);
+  }, [rightPadding, MIN_RIGHT_PADDING]);
 
   const CursorContainer = (
     <VictoryCursorContainer
@@ -151,19 +170,23 @@ const NewNumericChart: FC<Props> = ({
         />
       }
       cursorLabelComponent={
-        <ChartCursorLabel
-          positionY={height - 10}
-          fill={getThemeColor(METAC_COLORS.gray["700"])}
-          style={{
-            fontFamily: LABEL_FONT_FAMILY,
-          }}
-        />
+        <VictoryPortal>
+          <ChartCursorLabel
+            positionY={height - 10}
+            fill={getThemeColor(METAC_COLORS.gray["700"])}
+            style={{
+              fontFamily: LABEL_FONT_FAMILY,
+            }}
+          />
+        </VictoryPortal>
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number") {
           setCursorTimestamp(value);
+          onCursorChange?.(value);
         } else {
           setCursorTimestamp(defaultCursor);
+          onCursorChange?.(null);
         }
       }}
     />
@@ -194,9 +217,9 @@ const NewNumericChart: FC<Props> = ({
             }}
             width={chartWidth}
             height={height}
-            theme={chartTheme}
+            theme={actualTheme}
             padding={{
-              right: Math.max(rightPadding, MIN_RIGHT_PADDING),
+              right: maxPadding,
               top: 10,
               left: 0,
               bottom: BOTTOM_PADDING,
@@ -217,6 +240,7 @@ const NewNumericChart: FC<Props> = ({
                   onMouseLeave: () => {
                     setIsCursorActive(false);
                     setCursorTimestamp(defaultCursor);
+                    onCursorChange?.(null);
                   },
                 },
               },
@@ -229,6 +253,11 @@ const NewNumericChart: FC<Props> = ({
               style={{
                 ticks: {
                   stroke: "transparent",
+                },
+                axisLabel: {
+                  fontFamily: LABEL_FONT_FAMILY,
+                  fontSize: tickLabelFontSize,
+                  fill: getThemeColor(METAC_COLORS.gray["700"]),
                 },
                 tickLabels: {
                   fontFamily: LABEL_FONT_FAMILY,
@@ -250,16 +279,9 @@ const NewNumericChart: FC<Props> = ({
               label={yLabel}
               orientation="left"
               offsetX={
-                isNil(yLabel)
-                  ? chartWidth + 5
-                  : chartWidth -
-                    Math.max(rightPadding - 35, MIN_RIGHT_PADDING - 35)
+                isNil(yLabel) ? chartWidth + 5 : chartWidth - tickFontSize + 5
               }
-              axisLabelComponent={
-                <VictoryLabel
-                  dy={Math.max(rightPadding - 10, MIN_RIGHT_PADDING - 10)}
-                />
-              }
+              axisLabelComponent={<VictoryLabel x={chartWidth} />}
             />
             {/* X axis */}
             <VictoryAxis
@@ -307,7 +329,9 @@ const NewNumericChart: FC<Props> = ({
                 style={{
                   data: {
                     strokeWidth: 2.5,
-                    stroke: getThemeColor(METAC_COLORS.blue["600"]),
+                    ...(!isQuestionGraph && {
+                      stroke: getThemeColor(METAC_COLORS.blue["600"]),
+                    }),
                     opacity: 0.2,
                   },
                 }}
@@ -320,7 +344,9 @@ const NewNumericChart: FC<Props> = ({
               style={{
                 data: {
                   strokeWidth: 2.5,
-                  stroke: getThemeColor(METAC_COLORS.blue["600"]),
+                  ...(!isQuestionGraph && {
+                    stroke: getThemeColor(METAC_COLORS.blue["600"]),
+                  }),
                 },
               }}
               interpolation="stepAfter"
@@ -334,14 +360,19 @@ const NewNumericChart: FC<Props> = ({
                     <CursorValue
                       isCursorActive={isCursorActive}
                       chartWidth={chartWidth}
+                      rightPadding={maxPadding}
+                      isQuestionGraph={isQuestionGraph}
+                      getCursorValue={getCursorValue}
                     />
                   </VictoryPortal>
                 }
               />
             )}
             {/* Prediciton points */}
-            {/* TODO: adjust when integrating questions graph */}
-            <VictoryScatter data={points} />
+            <VictoryScatter
+              data={points}
+              dataComponent={<PredictionWithRange />}
+            />
             {!!resolutionPoint && (
               <VictoryScatter
                 data={resolutionPoint}
@@ -367,10 +398,22 @@ const CursorValue: React.FC<{
   datum?: any;
   isCursorActive: boolean;
   chartWidth: number;
+  rightPadding: number;
+  isQuestionGraph?: boolean;
+  getCursorValue?: (value: number) => string;
 }> = (props) => {
   const TEXT_PADDING = 4;
   const { getThemeColor } = useAppTheme();
-  const { x, y, datum, isCursorActive, chartWidth } = props;
+  const {
+    x,
+    y,
+    datum,
+    isCursorActive,
+    chartWidth,
+    rightPadding,
+    isQuestionGraph = true,
+    getCursorValue,
+  } = props;
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
   useEffect(() => {
@@ -380,7 +423,9 @@ const CursorValue: React.FC<{
   }, [datum?.y]);
   if (isNil(x) || isNil(y)) return null;
 
-  const adjustedX = isCursorActive ? x : chartWidth - textWidth / 2;
+  const adjustedX = isCursorActive
+    ? x
+    : chartWidth - rightPadding + textWidth / 2;
   const chipHeight = 16;
   const chipFontSize = 12;
   return (
@@ -390,7 +435,11 @@ const CursorValue: React.FC<{
         y={y - chipHeight / 2}
         width={textWidth}
         height={chipHeight}
-        fill={getThemeColor(METAC_COLORS.blue["600"])}
+        fill={
+          isQuestionGraph
+            ? getThemeColor(METAC_COLORS.olive["600"])
+            : getThemeColor(METAC_COLORS.blue["600"])
+        }
         stroke="transparent"
         rx={2}
         ry={2}
@@ -405,9 +454,56 @@ const CursorValue: React.FC<{
         fontWeight="bold"
         fontSize={chipFontSize}
       >
-        {datum.y.toFixed(1)}
+        {getCursorValue ? getCursorValue(datum.y) : datum.y.toFixed(1)}
       </text>
     </g>
   );
 };
+
+const PredictionWithRange: React.FC<any> = ({
+  x,
+  y,
+  symbol,
+  datum: { y1, y2 },
+  scale,
+}) => {
+  const { getThemeColor } = useAppTheme();
+  const y1Scaled = scale.y(y1);
+  const y2Scaled = scale.y(y2);
+  return (
+    <>
+      {y1 !== undefined && y2 !== undefined && (
+        <line
+          x1={x}
+          x2={x}
+          y1={y1Scaled}
+          y2={y2Scaled}
+          stroke={getThemeColor(METAC_COLORS.orange["700"])}
+          strokeWidth={2}
+        />
+      )}
+      {symbol === "circle" && (
+        <circle
+          cx={x}
+          cy={y}
+          r={3}
+          fill={getThemeColor(METAC_COLORS.gray["0"])}
+          stroke={getThemeColor(METAC_COLORS.orange["700"])}
+          strokeWidth={2}
+        />
+      )}
+
+      {symbol === "x" && (
+        <polygon
+          points={`${x - 3},${y - 3} ${x + 3},${y + 3} ${x},${y} ${x - 3},${y + 3} ${x + 3},${y - 3} ${x},${y}`}
+          r={3}
+          fill={getThemeColor(METAC_COLORS.gray["0"])}
+          stroke={getThemeColor(METAC_COLORS.orange["700"])}
+          strokeWidth={2}
+        />
+      )}
+    </>
+  );
+};
+
 export default NewNumericChart;

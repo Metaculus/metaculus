@@ -27,9 +27,10 @@ const IndexTimeline: FC<Props> = ({ tournament, height = 170 }) => {
       buildChartData={(width, zoom) =>
         buildIndexChartData({ tournament, width, zoom })
       }
+      withZoomPicker={true}
       height={height}
       chartTitle={t("indexTimeline")}
-      tickFontSize={10}
+      isQuestionGraph={false}
     />
   );
 };
