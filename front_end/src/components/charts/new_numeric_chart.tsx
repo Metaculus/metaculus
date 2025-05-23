@@ -101,6 +101,13 @@ const NewNumericChart: FC<Props> = ({
     [line]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState(defaultCursor);
+  const handleCursorChange = useCallback(
+    (value: number | null) => {
+      setCursorTimestamp(isNil(value) ? defaultCursor : value);
+      onCursorChange?.(value);
+    },
+    [defaultCursor, onCursorChange]
+  );
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
@@ -186,11 +193,9 @@ const NewNumericChart: FC<Props> = ({
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number") {
-          setCursorTimestamp(value);
-          onCursorChange?.(value);
+          handleCursorChange(value);
         } else {
-          setCursorTimestamp(defaultCursor);
-          onCursorChange?.(null);
+          handleCursorChange(null);
         }
       }}
     />
@@ -247,8 +252,7 @@ const NewNumericChart: FC<Props> = ({
                   onMouseLeave: () => {
                     if (nonInteractive) return;
                     setIsCursorActive(false);
-                    setCursorTimestamp(defaultCursor);
-                    onCursorChange?.(null);
+                    handleCursorChange(null);
                   },
                 },
               },
