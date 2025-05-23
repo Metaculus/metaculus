@@ -21,14 +21,16 @@ import {
  */
 export function getSliderNumericForecastDataset(
   components: DistributionSliderComponent[],
-  lowerOpen: boolean,
-  upperOpen: boolean,
-  inboundOutcomeCount: number = DefaultInboundOutcomeCount
+  question: Question
 ) {
   const weights = components.map(({ weight }) => weight);
   const normalizedWeights = weights.map(
     (x) => x / weights.reduce((a, b) => a + b)
   );
+  const lowerOpen = question.open_lower_bound || false;
+  const upperOpen = question.open_upper_bound || false;
+  const inboundOutcomeCount =
+    question.inbound_outcome_count || DefaultInboundOutcomeCount;
 
   const componentCdfs = components.map(
     (component, index) =>

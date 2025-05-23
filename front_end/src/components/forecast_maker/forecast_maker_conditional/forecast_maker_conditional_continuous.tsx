@@ -25,13 +25,13 @@ import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional, QuestionStatus } from "@/types/post";
 import {
-  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
   Quantile,
   Quartiles,
+  Question,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { sendConditionalPredictEvent } from "@/utils/analytics";
@@ -259,16 +259,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 ? {
                     quantileValue: getTableValue(
                       components,
-                      option.question.open_lower_bound,
-                      option.question.open_upper_bound,
+                      option.question,
                       forecastInputMode
                     ),
                   }
                 : {
                     value: getTableValue(
                       components,
-                      option.question.open_lower_bound,
-                      option.question.open_upper_bound,
+                      option.question,
                       forecastInputMode
                     ),
                   }),
@@ -342,8 +340,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ...prevChoice,
             value: getTableValue(
               prevYesForecastValue?.components as DistributionSliderComponent[],
-              question_yes.open_lower_bound,
-              question_yes.open_upper_bound
+              question_yes
             ),
             sliderForecast: getInitialSliderDistributionComponents(
               latestYes,
@@ -352,8 +349,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ),
             quantileValue: getTableValue(
               quantileForecast,
-              question_yes.open_lower_bound,
-              question_yes.open_upper_bound,
+              question_yes,
               ContinuousForecastInputType.Quantile
             ),
             quantileForecast,
@@ -371,8 +367,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ...prevChoice,
             value: getTableValue(
               prevNoForecastValue?.components as DistributionSliderComponent[],
-              question_no.open_lower_bound,
-              question_no.open_upper_bound
+              question_no
             ),
             sliderForecast: getInitialSliderDistributionComponents(
               latestNo,
@@ -381,8 +376,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ),
             quantileValue: getTableValue(
               quantileForecast,
-              question_no.open_lower_bound,
-              question_no.open_upper_bound,
+              question_no,
               ContinuousForecastInputType.Quantile
             ),
             quantileForecast,
@@ -448,12 +442,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               forecastInputMode === ContinuousForecastInputType.Quantile
                 ? getQuantileNumericForecastDataset(quantileForecast, question)
                     .cdf
-                : getSliderNumericForecastDataset(
-                    sliderForecast,
-                    question.open_lower_bound,
-                    question.open_upper_bound,
-                    question.inbound_outcome_count ?? DefaultInboundOutcomeCount
-                  ).cdf,
+                : getSliderNumericForecastDataset(sliderForecast, question).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
           },
@@ -511,16 +500,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ? {
                 value: getTableValue(
                   sliderForecast,
-                  prevChoice.question.open_lower_bound,
-                  prevChoice.question.open_upper_bound,
+                  prevChoice.question,
                   ContinuousForecastInputType.Slider
                 ),
               }
             : {
                 quantileValue: getTableValue(
                   quantileForecast,
-                  prevChoice.question.open_lower_bound,
-                  prevChoice.question.open_upper_bound,
+                  prevChoice.question,
                   ContinuousForecastInputType.Quantile
                 ),
               }),
@@ -571,9 +558,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           id: option.id,
           dataset: getSliderNumericForecastDataset(
             option.sliderForecast,
-            option.question.open_lower_bound,
-            option.question.open_upper_bound,
-            option.question.inbound_outcome_count ?? DefaultInboundOutcomeCount
+            option.question
           ),
         };
       } else if (
@@ -605,10 +590,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     activeOptionData &&
     getSliderNumericForecastDataset(
       activeOptionData.sliderForecast,
-      activeOptionData.question.open_lower_bound,
-      activeOptionData.question.open_upper_bound,
-      activeOptionData.question.inbound_outcome_count ??
-        DefaultInboundOutcomeCount
+      activeOptionData.question
     ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
@@ -825,33 +807,28 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 };
 
 function getUserQuartiles(
-  components?: DistributionSliderComponent[],
-  openLower?: boolean,
-  openUpper?: boolean
+  question: Question,
+  components?: DistributionSliderComponent[]
 ): Quartiles | null {
-  if (
-    !components ||
-    typeof openLower === "undefined" ||
-    typeof openUpper === "undefined"
-  ) {
+  if (!components) {
     return null;
   }
 
-  const dataset = getSliderNumericForecastDataset(
-    components,
-    openLower,
-    openUpper,
-    DefaultInboundOutcomeCount // TODO: add discrete question specificity
-  );
+  const dataset = getSliderNumericForecastDataset(components, question);
   return computeQuartilesFromCDF(dataset.cdf);
 }
 
 function getTableValue(
-  components?: DistributionSliderComponent[] | DistributionQuantileComponent,
-  openLower?: boolean,
-  openUpper?: boolean,
+  components:
+    | DistributionSliderComponent[]
+    | DistributionQuantileComponent
+    | undefined,
+  question: Question,
   forecastInputMode?: ContinuousForecastInputType
 ) {
+  if (!components) {
+    return null;
+  }
   if (forecastInputMode === ContinuousForecastInputType.Quantile) {
     return (
       (components as DistributionQuantileComponent)?.find(
@@ -861,9 +838,8 @@ function getTableValue(
   }
 
   const quartiles = getUserQuartiles(
-    components as DistributionSliderComponent[],
-    openLower,
-    openUpper
+    question,
+    components as DistributionSliderComponent[]
   );
   return quartiles?.median ?? null;
 }
@@ -912,16 +888,14 @@ function getQuestionOptions(
           value: prevYesForecastValue
             ? getTableValue(
                 sliderForecast,
-                question_yes.open_lower_bound,
-                question_yes.open_upper_bound,
+                question_yes,
                 ContinuousForecastInputType.Slider
               )
             : null,
           quantileValue: prevYesForecastValue
             ? getTableValue(
                 quantileForecast,
-                question_yes.open_lower_bound,
-                question_yes.open_upper_bound,
+                question_yes,
                 ContinuousForecastInputType.Quantile
               )
             : null,
@@ -956,16 +930,14 @@ function getQuestionOptions(
           value: prevNoForecastValue
             ? getTableValue(
                 sliderForecast,
-                question_no.open_lower_bound,
-                question_no.open_upper_bound,
+                question_no,
                 ContinuousForecastInputType.Slider
               )
             : null,
           quantileValue: prevNoForecastValue
             ? getTableValue(
                 quantileForecast,
-                question_no.open_lower_bound,
-                question_no.open_upper_bound,
+                question_no,
                 ContinuousForecastInputType.Quantile
               )
             : null,

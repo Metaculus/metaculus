@@ -30,7 +30,6 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import {
-  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionSlider,
   QuestionWithNumericForecasts,
@@ -322,10 +321,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                     getNormalizedContinuousForecast(
                       optionToSubmit.userSliderForecast
                     ),
-                    optionToSubmit.question.open_lower_bound,
-                    optionToSubmit.question.open_upper_bound,
-                    optionToSubmit.question.inbound_outcome_count ??
-                      DefaultInboundOutcomeCount
+                    optionToSubmit.question
                   ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
@@ -412,10 +408,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                     ).cdf
                   : getSliderNumericForecastDataset(
                       getNormalizedContinuousForecast(userSliderForecast),
-                      question.open_lower_bound,
-                      question.open_upper_bound,
-                      question.inbound_outcome_count ??
-                        DefaultInboundOutcomeCount
+                      question
                     ).cdf,
               probabilityYesPerCategory: null,
               probabilityYes: null,

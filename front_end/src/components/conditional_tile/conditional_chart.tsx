@@ -9,11 +9,7 @@ import PredictionChip from "@/components/prediction_chip";
 import ProgressBar from "@/components/ui/progress_bar";
 import { ContinuousAreaType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
-import {
-  DefaultInboundOutcomeCount,
-  QuestionType,
-  QuestionWithForecasts,
-} from "@/types/question";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import {
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
@@ -168,9 +164,7 @@ const ConditionalChart: FC<Props> = ({
       if (isSliderForecast(prevForecastValue)) {
         dataset = getSliderNumericForecastDataset(
           prevForecastValue.components,
-          question.open_lower_bound,
-          question.open_upper_bound,
-          question.inbound_outcome_count ?? DefaultInboundOutcomeCount
+          question
         );
       }
       if (isQuantileForecast(prevForecastValue)) {

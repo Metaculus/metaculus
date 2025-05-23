@@ -18,7 +18,6 @@ import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
-  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,
@@ -151,9 +150,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     if (forecastInputMode === ContinuousForecastInputType.Slider) {
       return getSliderNumericForecastDataset(
         sliderDistributionComponents,
-        question.open_lower_bound,
-        question.open_upper_bound,
-        question.inbound_outcome_count ?? DefaultInboundOutcomeCount
+        question
       );
     }
 

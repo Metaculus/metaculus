@@ -7,7 +7,6 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import {
-  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,
@@ -75,12 +74,7 @@ export function getUserContinuousQuartiles(
     return null;
   }
 
-  const dataset = getSliderNumericForecastDataset(
-    components,
-    !!question.open_lower_bound,
-    !!question.open_upper_bound,
-    question.inbound_outcome_count ?? DefaultInboundOutcomeCount
-  );
+  const dataset = getSliderNumericForecastDataset(components, question);
 
   return computeQuartilesFromCDF(dataset.cdf);
 }
