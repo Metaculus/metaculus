@@ -2,8 +2,10 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantileComponent,
   Quantile,
+  QuestionType,
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
@@ -243,7 +245,10 @@ export function validateUserQuantileData({
   }
 
   // Check CDF length
-  if (cdf.length !== 201) {
+  if (
+    cdf.length !==
+    (question.inbound_outcome_count || DefaultInboundOutcomeCount) + 1
+  ) {
     validationErrors.push(t("invalidCdfLengthError"));
     return validationErrors;
   }
@@ -256,14 +261,16 @@ export function validateUserQuantileData({
     inboundPmf.push(Number(diff.toFixed(10)));
   }
 
-  // Check minimum step size (0.00005)
-  const minDiff = 0.01 / 200;
+  // Check minimum step size (0.00005 for default continuous)
+  // Guarantee that at least 1% of weight is evenly spread within bounds
+  const minDiff = 0.01 / inboundPmf.length;
   if (inboundPmf.some((diff) => diff < minDiff)) {
     validationErrors.push(t("quantileTooCloseError"));
   }
 
-  // Check maximum step size (0.59)
-  const maxDiff = 0.59;
+  // Check maximum step size (0.59 for default continuous)
+  // TODO: refine Discrete condition
+  const maxDiff = question.type !== QuestionType.Discrete ? 0.59 : 0.99;
   if (inboundPmf.some((diff) => diff > maxDiff)) {
     validationErrors.push(t("quantileTooCloseError"));
   }

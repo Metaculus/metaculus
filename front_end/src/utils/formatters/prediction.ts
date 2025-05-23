@@ -12,6 +12,29 @@ import { abbreviatedNumber } from "@/utils/formatters/number";
 import { scaleInternalLocation } from "@/utils/math";
 import { formatValueUnit, isUnitCompact } from "@/utils/questions/units";
 
+export function getDiscreteValueOptions(
+  question: Question
+): number[] | undefined {
+  if (
+    !(question.type === QuestionType.Discrete) ||
+    !question?.inbound_outcome_count ||
+    isNil(question.scaling?.range_min) ||
+    isNil(question.scaling?.range_max)
+  ) {
+    return undefined;
+  }
+  const discreteValueOptions: number[] = [];
+  for (let i = 0; i < question.inbound_outcome_count; i++) {
+    discreteValueOptions.push(
+      question.scaling.range_min +
+        ((question.scaling.range_max - question.scaling.range_min) *
+          (i + 0.5)) /
+          question.inbound_outcome_count
+    );
+  }
+  return discreteValueOptions;
+}
+
 export function getForecastPctDisplayValue(
   value: number | string | null | undefined
 ) {
@@ -27,10 +50,17 @@ export function getForecastNumericDisplayValue(
   params?: {
     precision?: number;
     unit?: string;
+    discreteValueOptions?: number[];
   }
 ) {
-  const { precision, unit } = params ?? {};
-  return formatValueUnit(abbreviatedNumber(value, precision), unit);
+  const { precision, unit, discreteValueOptions } = params ?? {};
+  let closestValue = +value;
+  if (discreteValueOptions) {
+    closestValue = discreteValueOptions.reduce((prev, curr) =>
+      Math.abs(curr - +value) < Math.abs(prev - +value) ? curr : prev
+    );
+  }
+  return formatValueUnit(abbreviatedNumber(closestValue, precision), unit);
 }
 
 export function getForecastDateDisplayValue(
@@ -71,6 +101,7 @@ function formatPredictionDisplayValue(
     dateFormatString,
     unit,
     adjustLabels = false,
+    discreteValueOptions,
   }: {
     questionType: QuestionType;
     actual_resolve_time: string | null;
@@ -80,6 +111,7 @@ function formatPredictionDisplayValue(
     dateFormatString?: string;
     unit?: string;
     adjustLabels?: boolean;
+    discreteValueOptions?: number[];
   }
 ): string {
   precision = precision ?? 3;
@@ -90,8 +122,15 @@ function formatPredictionDisplayValue(
       scaling,
       adjustLabels,
     });
-  } else if (questionType === QuestionType.Numeric) {
-    return getForecastNumericDisplayValue(value, { precision, unit });
+  } else if (
+    questionType === QuestionType.Numeric ||
+    questionType === QuestionType.Discrete
+  ) {
+    return getForecastNumericDisplayValue(value, {
+      precision,
+      unit,
+      discreteValueOptions,
+    });
   } else {
     return getForecastPctDisplayValue(value);
   }
@@ -103,11 +142,14 @@ function checkQuartilesOutOfBorders(
 ) {
   const { longBounds = false } = options ?? {};
 
+  if (isNil(quartile)) {
+    return "";
+  }
   if (longBounds) {
-    return quartile === 0 ? "Less than " : quartile === 1 ? "More than " : "";
+    return quartile <= 0 ? "Less than " : quartile >= 1 ? "More than " : "";
   }
 
-  return quartile === 0 ? "<" : quartile === 1 ? ">" : "";
+  return quartile <= 0 ? "<" : quartile >= 1 ? ">" : "";
 }
 
 type PredictionDisplayValueParams = {
@@ -122,6 +164,7 @@ type PredictionDisplayValueParams = {
   skipQuartilesBorders?: boolean; // remove "<" or ">" from the formatted value if the value is out of the quartiles
   longBounds?: boolean;
   emptyLabel?: string;
+  discreteValueOptions?: number[];
 };
 
 function displayValue(
@@ -137,13 +180,20 @@ function displayValue(
     skipQuartilesBorders = false,
     longBounds = false,
     emptyLabel = "...",
+    discreteValueOptions,
   }: Omit<PredictionDisplayValueParams, "range">
 ) {
   if (isNil(value)) {
     return emptyLabel;
   }
 
-  const scaledValue = scaling ? scaleInternalLocation(value, scaling) : value;
+  let scaledValue = scaling ? scaleInternalLocation(value, scaling) : value;
+  if (discreteValueOptions) {
+    const closestValue = discreteValueOptions.reduce((prev, curr) =>
+      Math.abs(curr - scaledValue) < Math.abs(prev - scaledValue) ? curr : prev
+    );
+    scaledValue = closestValue;
+  }
   const prefix = skipQuartilesBorders
     ? ""
     : checkQuartilesOutOfBorders(value, {
@@ -207,6 +257,7 @@ export function getTableDisplayValue(
     range,
     forecastInputMode = ContinuousForecastInputType.Slider,
     unit,
+    discreteValueOptions,
   }: {
     questionType: QuestionType;
     actual_resolve_time: string | null;
@@ -215,6 +266,7 @@ export function getTableDisplayValue(
     range?: number[];
     forecastInputMode?: ContinuousForecastInputType;
     unit?: string;
+    discreteValueOptions?: number[];
   }
 ) {
   if (isNil(value)) {
@@ -227,6 +279,7 @@ export function getTableDisplayValue(
       scaling,
       actual_resolve_time,
       precision,
+      discreteValueOptions,
     });
   }
 
@@ -236,6 +289,7 @@ export function getTableDisplayValue(
     actual_resolve_time,
     precision,
     range,
+    discreteValueOptions,
   });
 
   return isUnitCompact(unit)
@@ -293,6 +347,7 @@ export function getUserPredictionDisplayValue({
   actual_resolve_time,
   showRange,
   unit,
+  discreteValueOptions,
 }: {
   myForecasts: UserForecastHistory;
   timestamp: number | null | undefined;
@@ -301,6 +356,7 @@ export function getUserPredictionDisplayValue({
   actual_resolve_time: string | null;
   showRange?: boolean;
   unit?: string;
+  discreteValueOptions?: number[];
 }): string {
   if (!timestamp) {
     return "...";
@@ -391,17 +447,44 @@ export function getUserPredictionDisplayValue({
     }
 
     return displayCenter;
-  } else if (questionType === QuestionType.Numeric) {
-    const displayCenter =
-      checkQuartilesOutOfBorders(center) +
-      formatValueUnit(abbreviatedNumber(scaledCenter), unit);
+  } else if (
+    questionType === QuestionType.Numeric ||
+    questionType === QuestionType.Discrete
+  ) {
+    const displayCenter = getPredictionDisplayValue(center, {
+      questionType,
+      scaling: scaling ?? {
+        range_min: 0,
+        range_max: 1,
+        zero_point: null,
+      },
+      unit,
+      actual_resolve_time,
+      discreteValueOptions,
+    });
     if (showRange) {
-      const displayLower = !isNil(scaledLower)
-        ? checkQuartilesOutOfBorders(lower) + abbreviatedNumber(scaledLower)
-        : "...";
-      const displayUpper = !isNil(scaledUpper)
-        ? checkQuartilesOutOfBorders(upper) + abbreviatedNumber(scaledUpper)
-        : "...";
+      const displayLower = getPredictionDisplayValue(scaledLower, {
+        questionType,
+        scaling: scaling ?? {
+          range_min: 0,
+          range_max: 1,
+          zero_point: null,
+        },
+        unit,
+        actual_resolve_time,
+        discreteValueOptions,
+      });
+      const displayUpper = getPredictionDisplayValue(scaledUpper, {
+        questionType,
+        scaling: scaling ?? {
+          range_min: 0,
+          range_max: 1,
+          zero_point: null,
+        },
+        unit,
+        actual_resolve_time,
+        discreteValueOptions,
+      });
       return `${displayCenter}\n(${displayLower} - ${displayUpper})`;
     }
     return displayCenter;

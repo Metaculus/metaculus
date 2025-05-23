@@ -11,10 +11,14 @@ export const getChartZoomOptions = () =>
 
 export const getClosestYValue = (xValue: number, line: Line) => {
   const i = findLastIndex(line, (point) => point.x <= xValue);
+  if (i === -1) {
+    return line[0]?.y ?? 0;
+  }
   const p1 = line[i];
-  const p2 = line[i + 1];
+  const p2 = line[i + 1] ?? line[i];
 
-  if (!p1 || !p2) return 0;
+  if (!p1?.y) return 0;
+  if (!p2?.y) return p1.y;
 
   if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
     return p1.y;
@@ -24,13 +28,35 @@ export const getClosestYValue = (xValue: number, line: Line) => {
 
 export const interpolateYValue = (xValue: number, line: Line) => {
   const i = findLastIndex(line, (point) => point.x <= xValue);
+  if (i === -1) {
+    return line[0]?.y ?? 0;
+  }
+  if (i === line.length - 1) {
+    return line[line.length - 1]?.y ?? 0;
+  }
   const p1 = line[i];
   const p2 = line[i + 1] ?? line[i];
 
-  if (!p1?.y || !p2?.y) return 0;
+  if (!p1?.y) return 0;
+  if (!p2?.y) return p1.y;
 
   const t = (xValue - p1.x) / (p2.x - p1.x);
   return p1.y + t * (p2.y - p1.y);
+};
+
+export const getClosestXValue = (xValue: number, line: Line) => {
+  const i = findLastIndex(line, (point) => point.x <= xValue);
+  const p1 = line[i];
+  const p2 = line[i + 1];
+  if (!!p1 && !!p2) {
+    if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
+      return p1.x;
+    }
+    return p2.x;
+  }
+  if (p1) return p1.x;
+  if (p2) return p2.x;
+  return 0;
 };
 
 const getPlaceholderElement = (text: string, fontSize: number) => {
@@ -84,8 +110,9 @@ export function getLineGraphTypeFromQuestion(
     case QuestionType.Binary:
       type = "binary";
       break;
-    case QuestionType.Date:
     case QuestionType.Numeric:
+    case QuestionType.Discrete:
+    case QuestionType.Date:
       type = "continuous";
       break;
     default:

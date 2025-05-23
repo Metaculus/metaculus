@@ -74,11 +74,7 @@ export function getUserContinuousQuartiles(
     return null;
   }
 
-  const dataset = getSliderNumericForecastDataset(
-    components,
-    !!question.open_lower_bound,
-    !!question.open_upper_bound
-  );
+  const dataset = getSliderNumericForecastDataset(components, question);
 
   return computeQuartilesFromCDF(dataset.cdf);
 }

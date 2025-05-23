@@ -2,10 +2,12 @@ import { isNil } from "lodash";
 import * as math from "mathjs";
 
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantileComponent,
   DistributionSliderComponent,
   Quantile,
   Question,
+  QuestionType,
 } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
 import {
@@ -19,13 +21,16 @@ import {
  */
 export function getSliderNumericForecastDataset(
   components: DistributionSliderComponent[],
-  lowerOpen: boolean,
-  upperOpen: boolean
+  question: Question
 ) {
   const weights = components.map(({ weight }) => weight);
   const normalizedWeights = weights.map(
     (x) => x / weights.reduce((a, b) => a + b)
   );
+  const lowerOpen = question.open_lower_bound || false;
+  const upperOpen = question.open_upper_bound || false;
+  const inboundOutcomeCount =
+    question.inbound_outcome_count || DefaultInboundOutcomeCount;
 
   const componentCdfs = components.map(
     (component, index) =>
@@ -35,7 +40,8 @@ export function getSliderNumericForecastDataset(
           component.center,
           component.right,
           lowerOpen,
-          upperOpen
+          upperOpen,
+          inboundOutcomeCount
         ),
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         normalizedWeights[index]!
@@ -203,12 +209,17 @@ function generateQuantileContinuousCdf({
   scaledQuantiles.sort((a, b) => a.value - b.value);
 
   const cdfEvalLocs: number[] = [];
-  // TODO: set up for arbitrary cdf size
-  for (let i = 0; i < 201; i++) {
-    cdfEvalLocs.push(i / 200);
+  const inboundOutcomeCount =
+    question.inbound_outcome_count ?? DefaultInboundOutcomeCount;
+  for (let i = 0; i < inboundOutcomeCount + 1; i++) {
+    cdfEvalLocs.push(i / inboundOutcomeCount);
   }
 
-  const hydratedQuantiles = hydrateQuantiles(scaledQuantiles, cdfEvalLocs);
+  // TODO: figure out better hydration that also works for Discrete
+  const hydratedQuantiles =
+    question.type !== QuestionType.Discrete
+      ? hydrateQuantiles(scaledQuantiles, cdfEvalLocs)
+      : scaledQuantiles;
   if (hydratedQuantiles.length < 2) {
     // TODO: adjust error message
     return "chartDataError";
@@ -246,8 +257,8 @@ function generateQuantileContinuousCdf({
   }
 
   const cdf = [];
-  for (let i = 0; i < 201; i++) {
-    const cdfValue = getCdfAt(i / 200);
+  for (let i = 0; i < inboundOutcomeCount + 1; i++) {
+    const cdfValue = getCdfAt(i / inboundOutcomeCount);
     !isNil(cdfValue) ? cdf.push(cdfValue) : undefined;
   }
 

@@ -114,6 +114,7 @@ const ConditionalChart: FC<Props> = ({
       );
     }
     case QuestionType.Numeric:
+    case QuestionType.Discrete:
     case QuestionType.Date: {
       if (aggregate.history.length === 0) {
         return <div className="text-center text-xs">No data yet</div>;
@@ -163,8 +164,7 @@ const ConditionalChart: FC<Props> = ({
       if (isSliderForecast(prevForecastValue)) {
         dataset = getSliderNumericForecastDataset(
           prevForecastValue.components,
-          question.open_lower_bound,
-          question.open_upper_bound
+          question
         );
       }
       if (isQuantileForecast(prevForecastValue)) {
@@ -196,11 +196,9 @@ const ConditionalChart: FC<Props> = ({
             )}
             <ContinuousAreaChart
               height={40}
-              scaling={question.scaling}
               data={continuousAreaChartData}
               extraTheme={chartTheme}
-              questionType={question.type}
-              resolution={question.resolution}
+              question={question}
               hideCP={hideCP}
               shortLabels={true}
             />

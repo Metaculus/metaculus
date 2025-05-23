@@ -109,11 +109,7 @@ export function getQuantilesDistributionFromSlider(
   question: QuestionWithNumericForecasts,
   isDirty: boolean = false
 ): DistributionQuantileComponent {
-  const cdf = getSliderNumericForecastDataset(
-    components,
-    question.open_lower_bound,
-    question.open_upper_bound
-  ).cdf;
+  const cdf = getSliderNumericForecastDataset(components, question).cdf;
   const quartiles = computeQuartilesFromCDF(cdf);
   const firstCdfValue = cdf[0] ?? 0;
   const p0 = Number((firstCdfValue * 100).toFixed(2));

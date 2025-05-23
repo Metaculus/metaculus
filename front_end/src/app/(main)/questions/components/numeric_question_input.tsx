@@ -7,7 +7,11 @@ import { UseFormReturn } from "react-hook-form";
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
-import { QuestionDraft, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  DefaultInboundOutcomeCount,
+  QuestionDraft,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { QuestionType } from "@/types/question";
 import { getQuestionDraft } from "@/utils/drafts/questionForm";
 
@@ -80,7 +84,6 @@ const NumericQuestionInput: React.FC<{
     updated_at: "",
     scheduled_close_time: "",
     scheduled_resolve_time: "",
-    possibilities: {},
     fine_print: "",
     resolution_criteria: "",
     label: "",
@@ -118,6 +121,7 @@ const NumericQuestionInput: React.FC<{
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
     },
+    inbound_outcome_count: DefaultInboundOutcomeCount,
   });
 
   const runChecks = () => {

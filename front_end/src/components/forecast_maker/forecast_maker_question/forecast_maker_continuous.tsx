@@ -150,8 +150,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     if (forecastInputMode === ContinuousForecastInputType.Slider) {
       return getSliderNumericForecastDataset(
         sliderDistributionComponents,
-        question.open_lower_bound,
-        question.open_upper_bound
+        question
       );
     }
 

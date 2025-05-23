@@ -321,8 +321,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                     getNormalizedContinuousForecast(
                       optionToSubmit.userSliderForecast
                     ),
-                    optionToSubmit.question.open_lower_bound,
-                    optionToSubmit.question.open_upper_bound
+                    optionToSubmit.question
                   ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
@@ -409,8 +408,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                     ).cdf
                   : getSliderNumericForecastDataset(
                       getNormalizedContinuousForecast(userSliderForecast),
-                      question.open_lower_bound,
-                      question.open_upper_bound
+                      question
                     ).cdf,
               probabilityYesPerCategory: null,
               probabilityYes: null,

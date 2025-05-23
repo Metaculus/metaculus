@@ -10,6 +10,7 @@ import {
   DistributionQuantileComponent,
   DistributionSliderComponent,
   QuantileValue,
+  QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { isAllQuantileComponentsDirty } from "@/utils/forecasts/helpers";
@@ -46,6 +47,7 @@ type Props = {
   isDirty?: boolean;
   submitControls?: ReactNode;
   disabled?: boolean;
+  disableInputModeSwitch?: boolean;
   predictionMessage?: ReactNode;
   menu?: ReactNode;
   copyMenu?: ReactNode;
@@ -69,6 +71,7 @@ const ContinuousInput: FC<Props> = ({
   isDirty,
   submitControls,
   disabled,
+  disableInputModeSwitch,
   predictionMessage,
   menu,
   copyMenu,
@@ -112,6 +115,8 @@ const ContinuousInput: FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forecastInputMode]);
 
+  const discrete = question.type === QuestionType.Discrete;
+
   return (
     <ContinuousInputContainer
       forecastInputMode={forecastInputMode}
@@ -121,7 +126,8 @@ const ContinuousInput: FC<Props> = ({
       previousForecast={previousForecast}
       menu={menu}
       copyMenu={copyMenu}
-      disabled={disabled}
+      disabled={disabled || disableInputModeSwitch}
+      questionType={question.type}
     >
       {(sliderGraphType, tableGraphType) => (
         <>
@@ -159,19 +165,23 @@ const ContinuousInput: FC<Props> = ({
             question={question}
             userBounds={getCdfBounds(userCdf)}
             userQuartiles={
-              userCdf ? computeQuartilesFromCDF(userCdf) : undefined
+              userCdf
+                ? computeQuartilesFromCDF(userCdf, true, discrete)
+                : undefined
             }
             quantileComponents={quantileComponent}
             onQuantileChange={onQuantileChange}
             userPreviousBounds={getCdfBounds(userPreviousCdf)}
             userPreviousQuartiles={
               userPreviousCdf
-                ? computeQuartilesFromCDF(userPreviousCdf)
+                ? computeQuartilesFromCDF(userPreviousCdf, true, discrete)
                 : undefined
             }
             communityBounds={getCdfBounds(communityCdf)}
             communityQuartiles={
-              communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
+              communityCdf
+                ? computeQuartilesFromCDF(communityCdf, true, discrete)
+                : undefined
             }
             withCommunityQuartiles={withCommunityQuartiles}
             isDirty={isDirty}

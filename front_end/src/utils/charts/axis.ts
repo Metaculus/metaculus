@@ -10,7 +10,13 @@ import { isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { Scale, TimelineChartZoomOption, YDomain } from "@/types/charts";
-import { QuestionType, Scaling } from "@/types/question";
+import {
+  DefaultInboundOutcomeCount,
+  GraphingQuestionProps,
+  Question,
+  QuestionType,
+  Scaling,
+} from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { unscaleNominalLocation } from "@/utils/math";
 import { formatValueUnit, isUnitCompact } from "@/utils/questions/units";
@@ -284,10 +290,13 @@ type GenerateScaleParams = {
   zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
   unit?: string;
+  forcedTickCount?: number;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
   shortLabels?: boolean;
   adjustLabels?: boolean;
+  inboundOutcomeCount?: number | null;
+  question?: Question | GraphingQuestionProps;
 };
 
 /**
@@ -319,6 +328,8 @@ export function generateScale({
   unit,
   shortLabels = false,
   adjustLabels = false,
+  inboundOutcomeCount,
+  question,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -331,6 +342,10 @@ export function generateScale({
   const rangeMin = scaling?.range_min ?? domainMin;
   const rangeMax = scaling?.range_max ?? domainMax;
   const zeroPoint = scaling?.zero_point ?? null;
+  const inbound_outcome_count =
+    question?.inbound_outcome_count ??
+    inboundOutcomeCount ??
+    DefaultInboundOutcomeCount;
   const rangeScaling = {
     range_min: rangeMin,
     range_max: rangeMax,
@@ -358,7 +373,12 @@ export function generateScale({
   } else {
     maxLabelCount = direction === "horizontal" ? 21 : 26;
   }
-  const tickCount = (maxLabelCount - 1) * 5 + 1;
+  const tickCount =
+    displayType === QuestionType.Discrete
+      ? inbound_outcome_count
+        ? 2 + inbound_outcome_count
+        : (maxLabelCount - 1) * 5 + 1
+      : (maxLabelCount - 1) * 5 + 1;
 
   // TODO: this does not support choosing values intelligently in
   // real scaling. The y-axis is always a domain of 0-1 with

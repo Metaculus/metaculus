@@ -48,8 +48,9 @@ const ForecastMakerConditional: FC<Props> = ({
           onPredictionSubmit={onPredictionSubmit}
         />
       )}
-      {(question_yes.type === QuestionType.Date ||
-        question_yes.type === QuestionType.Numeric) && (
+      {(question_yes.type === QuestionType.Numeric ||
+        question_yes.type === QuestionType.Discrete ||
+        question_yes.type === QuestionType.Date) && (
         <ForecastMakerConditionalContinuous
           postId={postId}
           postTitle={postTitle}

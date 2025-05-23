@@ -66,9 +66,10 @@ const QuestionTile: FC<Props> = ({
     : TimelineChartZoomOption.TwoMonths;
 
   switch (question.type) {
-    case QuestionType.Numeric:
-    case QuestionType.Date:
     case QuestionType.Binary:
+    case QuestionType.Numeric:
+    case QuestionType.Discrete:
+    case QuestionType.Date:
       return (
         <QuestionContinuousTile
           question={question}
