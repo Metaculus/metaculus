@@ -1255,5 +1255,7 @@
   "indexValue": "Index value",
   "indexWeeklyMovement": "<strong>{value}</strong> this week",
   "metadata": "Metadata",
-  "indexTimeline": "Index Timeline"
+  "indexTimeline": "Index Timeline",
+  "fileSizeExceedsLimit": "File size exceeds {value}MB limit",
+  "errorUploadingImage": "Failed to upload image"
 }

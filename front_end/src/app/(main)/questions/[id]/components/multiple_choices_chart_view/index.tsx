@@ -75,7 +75,7 @@ const MultiChoicesChartView: FC<Props> = ({
 }) => {
   const { user } = useAuth();
   const t = useTranslations();
-
+  const isInteracted = useRef(false);
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
@@ -105,6 +105,9 @@ const MultiChoicesChartView: FC<Props> = ({
 
   const handleChoiceChange = useCallback(
     (choice: string, checked: boolean) => {
+      if (!isInteracted.current) {
+        isInteracted.current = true;
+      }
       onChoiceItemsUpdate(
         choiceItems.map((item) =>
           item.choice === choice
@@ -195,6 +198,7 @@ const MultiChoicesChartView: FC<Props> = ({
           }
           isEmptyDomain={isEmptyDomain}
           openTime={openTime}
+          forceAutoZoom={isInteracted.current}
         />
       </div>
 

@@ -1261,5 +1261,7 @@
   "indexWeeklyMovement": "<strong>{value}</strong> 本周",
   "metadata": "元数据",
   "indexTimeline": "指数时间线",
-  "inTheNews": "新闻报道"
+  "inTheNews": "新闻报道",
+  "fileSizeExceedsLimit": "文件大小超出{value}MB限制",
+  "errorUploadingImage": "上传图片失败"
 }
