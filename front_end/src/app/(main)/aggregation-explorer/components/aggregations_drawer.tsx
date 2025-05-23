@@ -2,7 +2,15 @@
 
 import { uniq } from "lodash";
 import { isNil } from "lodash";
-import { FC, useCallback, useState, memo, useMemo, useEffect } from "react";
+import {
+  FC,
+  useCallback,
+  useState,
+  memo,
+  useMemo,
+  useEffect,
+  useRef,
+} from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { useAuth } from "@/contexts/auth_context";
@@ -76,8 +84,12 @@ const AggregationsDrawer: FC<Props> = ({
   );
   const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
+  const isInteracted = useRef(false);
 
   const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
+    if (!isInteracted.current) {
+      isInteracted.current = true;
+    }
     setChoiceItems((prev) =>
       prev.map((item) =>
         item.choice === choice
@@ -139,6 +151,7 @@ const AggregationsDrawer: FC<Props> = ({
           withZoomPicker
           questionType={type}
           scaling={type === QuestionType.Binary ? undefined : scaling}
+          forceAutoZoom={isInteracted.current}
         />
       )}
       <div className="my-5 grid grid-cols-1 justify-items-center gap-x-5 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
