@@ -93,6 +93,7 @@ type GenerateYDomainParams = {
   isChartEmpty: boolean;
   zoomDomainPadding?: number;
   includeClosestBoundOnZoom?: boolean;
+  forceAutoZoom?: boolean;
 };
 
 export function generateTimeSeriesYDomain({
@@ -103,11 +104,15 @@ export function generateTimeSeriesYDomain({
   minTimestamp,
   zoomDomainPadding,
   includeClosestBoundOnZoom,
+  forceAutoZoom,
 }: GenerateYDomainParams): YDomain {
   const originalYDomain: Tuple<number> = [0, 1];
   const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
 
-  if (zoom === TimelineChartZoomOption.All || isChartEmpty) {
+  if (
+    (zoom === TimelineChartZoomOption.All && !forceAutoZoom) ||
+    isChartEmpty
+  ) {
     return fallback;
   }
 
