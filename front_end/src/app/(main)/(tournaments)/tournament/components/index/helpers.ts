@@ -120,10 +120,51 @@ export function calculateIndexTimeline(posts: ProjectIndexWeights[]) {
       question.aggregations.recency_weighted.history.map((el) => el.start_time);
     timestamps.push(...historyTimestamps);
   });
-  const sortedTimestamps = uniq([...timestamps]).sort((a, b) => a - b);
+  const sortedTimestamps = uniq([...timestamps]).sort(
+    (a, b) => a - b
+  ) as number[];
 
-  // calculate index value for each timestamp
-  const line = sortedTimestamps.map((timestamp, index) => {
+  const now = Math.floor(Date.now() / 1000);
+  const last24Hours = now - 24 * 60 * 60;
+  const twoWeeksAgo = now - 14 * 24 * 60 * 60;
+  const twoMonthsAgo = now - 60 * 24 * 60 * 60;
+
+  const sampledTimestamps: number[] = [];
+  const sampleTimeRange = (start: number, end: number, maxPoints: number) => {
+    const points = sortedTimestamps.filter((t) => t >= start && t < end);
+    if (points.length <= maxPoints) return points;
+    if (points.length === 0) return null;
+
+    // Ensure we keep the first and last points
+    const firstPoint = points[0] as number;
+    const lastPoint = points[points.length - 1] as number;
+
+    // Sample the middle points
+    const middlePoints = points.slice(1, -1);
+    const step = Math.floor(middlePoints.length / (maxPoints - 2));
+    const sampledMiddle = middlePoints
+      .filter((_, i) => i % step === 0)
+      .slice(0, maxPoints - 2);
+
+    return [firstPoint, ...sampledMiddle, lastPoint];
+  };
+
+  const timeRanges = [
+    { start: last24Hours, end: now },
+    { start: twoWeeksAgo, end: last24Hours },
+    { start: twoMonthsAgo, end: twoWeeksAgo },
+    { start: 0, end: twoMonthsAgo },
+  ];
+
+  timeRanges.forEach(({ start, end }) => {
+    const timestamps = sampleTimeRange(start, end, 100);
+    timestamps && sampledTimestamps.push(...timestamps);
+  });
+
+  const finalTimestamps = [...sampledTimestamps, now].sort((a, b) => a - b);
+
+  // calculate index value for sampled timestamps
+  const line = finalTimestamps.map((timestamp, index) => {
     const indexValue = posts.reduce((acc, obj) => {
       const question =
         obj.post.question ||
@@ -135,7 +176,7 @@ export function calculateIndexTimeline(posts: ProjectIndexWeights[]) {
         return acc;
       }
       const aggregation =
-        index >= sortedTimestamps.length - 1
+        index >= finalTimestamps.length - 1
           ? question.aggregations.recency_weighted.latest
           : question.aggregations.recency_weighted.history.findLast(
               (el) => el.start_time <= timestamp
@@ -180,14 +221,6 @@ export function calculateIndexTimeline(posts: ProjectIndexWeights[]) {
       x: timestamp,
     };
   });
-  const lastPoint = line.at(-1);
-  if (!isNil(lastPoint?.y)) {
-    const now = Date.now() / 1000;
-    line.push({
-      y: lastPoint.y,
-      x: now,
-    });
-    sortedTimestamps.push(now);
-  }
-  return { line, timestamps: sortedTimestamps };
+
+  return { line, timestamps: finalTimestamps };
 }
