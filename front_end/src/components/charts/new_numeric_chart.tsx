@@ -1,5 +1,5 @@
 "use client";
-import { isNil } from "lodash";
+import { isNil, merge } from "lodash";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -7,17 +7,20 @@ import {
   LineSegment,
   VictoryArea,
   VictoryChart,
+  VictoryContainer,
   VictoryCursorContainer,
   VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
   VictoryPortal,
   VictoryScatter,
+  VictoryThemeDefinition,
 } from "victory";
 import { VictoryAxis } from "victory";
 
 import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
+import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
 import XTickLabel from "@/components/charts/primitives/x_tick_label";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -31,6 +34,7 @@ import {
   Scale,
   TimelineChartZoomOption,
 } from "@/types/charts";
+import { ThemeColor } from "@/types/theme";
 import { getAxisRightPadding, getTickLabelFontSize } from "@/utils/charts/axis";
 import cn from "@/utils/core/cn";
 
@@ -54,6 +58,12 @@ type Props = {
   resolutionPoint?: LinePoint[];
   yLabel?: string;
   tickFontSize?: number;
+  extraTheme?: VictoryThemeDefinition;
+  onChartReady?: () => void;
+  onCursorChange?: (value: number | null) => void;
+  getCursorValue?: (value: number) => string;
+  colorOverride?: ThemeColor;
+  nonInteractive?: boolean;
 };
 
 const BOTTOM_PADDING = 20;
@@ -65,10 +75,16 @@ const NewNumericChart: FC<Props> = ({
   height = 170,
   hideCP,
   defaultZoom = TimelineChartZoomOption.All,
-  withZoomPicker = true,
+  withZoomPicker = false,
   resolutionPoint,
   yLabel,
-  tickFontSize,
+  tickFontSize = 10,
+  extraTheme,
+  onChartReady,
+  onCursorChange,
+  getCursorValue,
+  colorOverride,
+  nonInteractive = false,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -80,25 +96,43 @@ const NewNumericChart: FC<Props> = ({
     () => buildChartData(chartWidth, zoom),
     [chartWidth, zoom, buildChartData]
   );
+  const shouldAdjustCursorLabel = line.at(-1)?.x !== xDomain.at(-1);
   const defaultCursor = useMemo(
     () => line.at(-1)?.x ?? Date.now() / 1000,
     [line]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState(defaultCursor);
+  const handleCursorChange = useCallback(
+    (value: number | null) => {
+      setCursorTimestamp(isNil(value) ? defaultCursor : value);
+      onCursorChange?.(value);
+    },
+    [defaultCursor, onCursorChange]
+  );
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  const tickLabelFontSize = isNil(tickFontSize)
-    ? getTickLabelFontSize(chartTheme)
-    : tickFontSize;
+  const actualTheme = extraTheme
+    ? merge({}, chartTheme, extraTheme)
+    : chartTheme;
+  const tickLabelFontSize =
+    isNil(tickFontSize) || !isNil(extraTheme)
+      ? getTickLabelFontSize(actualTheme)
+      : tickFontSize;
 
   const highlightedLine = useMemo(() => {
     const filteredLine = line.filter((point) => point.x <= cursorTimestamp);
     // fix visual issue when highlighted line ends before cursor timestamp
-    const lastPoint = filteredLine.at(-1);
+    const lastFilteredPointIndex = filteredLine.length - 1;
+    const lastFilteredPoint = line[lastFilteredPointIndex];
+    const nextPoint = line[lastFilteredPointIndex + 1];
 
-    if (!!lastPoint && lastPoint.x < cursorTimestamp) {
+    if (
+      !!lastFilteredPoint &&
+      lastFilteredPoint.x < cursorTimestamp &&
+      !isNil(nextPoint?.y)
+    ) {
       filteredLine.push({
         x: cursorTimestamp,
-        y: lastPoint.y,
+        y: lastFilteredPoint.y,
       });
     }
     return filteredLine;
@@ -110,7 +144,8 @@ const NewNumericChart: FC<Props> = ({
 
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
-  }, []);
+    onChartReady?.();
+  }, [onChartReady]);
 
   const prevWidth = usePrevious(chartWidth);
   useEffect(() => {
@@ -122,6 +157,9 @@ const NewNumericChart: FC<Props> = ({
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
+  const maxPadding = useMemo(() => {
+    return Math.max(rightPadding, MIN_RIGHT_PADDING);
+  }, [rightPadding, MIN_RIGHT_PADDING]);
 
   const CursorContainer = (
     <VictoryCursorContainer
@@ -151,19 +189,21 @@ const NewNumericChart: FC<Props> = ({
         />
       }
       cursorLabelComponent={
-        <ChartCursorLabel
-          positionY={height - 10}
-          fill={getThemeColor(METAC_COLORS.gray["700"])}
-          style={{
-            fontFamily: LABEL_FONT_FAMILY,
-          }}
-        />
+        <VictoryPortal>
+          <ChartCursorLabel
+            positionY={height - 10}
+            fill={getThemeColor(METAC_COLORS.gray["700"])}
+            style={{
+              fontFamily: LABEL_FONT_FAMILY,
+            }}
+          />
+        </VictoryPortal>
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number") {
-          setCursorTimestamp(value);
+          handleCursorChange(value);
         } else {
-          setCursorTimestamp(defaultCursor);
+          handleCursorChange(null);
         }
       }}
     />
@@ -194,9 +234,9 @@ const NewNumericChart: FC<Props> = ({
             }}
             width={chartWidth}
             height={height}
-            theme={chartTheme}
+            theme={actualTheme}
             padding={{
-              right: Math.max(rightPadding, MIN_RIGHT_PADDING),
+              right: maxPadding,
               top: 10,
               left: 0,
               bottom: BOTTOM_PADDING,
@@ -206,22 +246,38 @@ const NewNumericChart: FC<Props> = ({
                 target: "parent",
                 eventHandlers: {
                   onTouchStart: () => {
+                    if (nonInteractive) return;
                     setIsCursorActive(true);
                   },
                   onMouseOverCapture: () => {
+                    if (nonInteractive) return;
                     setIsCursorActive(true);
                   },
                   onMouseOutCapture: () => {
+                    if (nonInteractive) return;
                     setIsCursorActive(false);
                   },
                   onMouseLeave: () => {
+                    if (nonInteractive) return;
                     setIsCursorActive(false);
-                    setCursorTimestamp(defaultCursor);
+                    handleCursorChange(null);
                   },
                 },
               },
             ]}
-            containerComponent={CursorContainer}
+            containerComponent={
+              nonInteractive ? (
+                <VictoryContainer
+                  style={{
+                    pointerEvents: "auto",
+                    userSelect: "auto",
+                    touchAction: "auto",
+                  }}
+                />
+              ) : (
+                CursorContainer
+              )
+            }
           >
             {/* Y axis */}
             <VictoryAxis
@@ -229,6 +285,11 @@ const NewNumericChart: FC<Props> = ({
               style={{
                 ticks: {
                   stroke: "transparent",
+                },
+                axisLabel: {
+                  fontFamily: LABEL_FONT_FAMILY,
+                  fontSize: tickLabelFontSize,
+                  fill: getThemeColor(METAC_COLORS.gray["700"]),
                 },
                 tickLabels: {
                   fontFamily: LABEL_FONT_FAMILY,
@@ -250,16 +311,9 @@ const NewNumericChart: FC<Props> = ({
               label={yLabel}
               orientation="left"
               offsetX={
-                isNil(yLabel)
-                  ? chartWidth + 5
-                  : chartWidth -
-                    Math.max(rightPadding - 35, MIN_RIGHT_PADDING - 35)
+                isNil(yLabel) ? chartWidth + 5 : chartWidth - tickFontSize + 5
               }
-              axisLabelComponent={
-                <VictoryLabel
-                  dy={Math.max(rightPadding - 10, MIN_RIGHT_PADDING - 10)}
-                />
-              }
+              axisLabelComponent={<VictoryLabel x={chartWidth} />}
             />
             {/* X axis */}
             <VictoryAxis
@@ -307,7 +361,9 @@ const NewNumericChart: FC<Props> = ({
                 style={{
                   data: {
                     strokeWidth: 2.5,
-                    stroke: getThemeColor(METAC_COLORS.blue["600"]),
+                    ...(!isNil(colorOverride) && {
+                      stroke: getThemeColor(colorOverride),
+                    }),
                     opacity: 0.2,
                   },
                 }}
@@ -315,33 +371,42 @@ const NewNumericChart: FC<Props> = ({
               />
             )}
             {/* CP Line */}
-            <VictoryLine
-              data={highlightedLine}
-              style={{
-                data: {
-                  strokeWidth: 2.5,
-                  stroke: getThemeColor(METAC_COLORS.blue["600"]),
-                },
-              }}
-              interpolation="stepAfter"
-            />
+            {!hideCP && (
+              <VictoryLine
+                data={highlightedLine}
+                style={{
+                  data: {
+                    strokeWidth: 2.5,
+                    ...(!isNil(colorOverride) && {
+                      stroke: getThemeColor(colorOverride),
+                    }),
+                  },
+                }}
+                interpolation="stepAfter"
+              />
+            )}
             {/* Cursor line value */}
-            {!isNil(highlightedPoint) && (
+            {!isNil(highlightedPoint) && !hideCP && (
               <VictoryScatter
                 data={[highlightedPoint]}
                 dataComponent={
                   <VictoryPortal>
                     <CursorValue
-                      isCursorActive={isCursorActive}
+                      isCursorActive={shouldAdjustCursorLabel || isCursorActive}
                       chartWidth={chartWidth}
+                      rightPadding={maxPadding}
+                      colorOverride={colorOverride}
+                      getCursorValue={getCursorValue}
                     />
                   </VictoryPortal>
                 }
               />
             )}
             {/* Prediciton points */}
-            {/* TODO: adjust when integrating questions graph */}
-            <VictoryScatter data={points} />
+            <VictoryScatter
+              data={points}
+              dataComponent={<PredictionWithRange />}
+            />
             {!!resolutionPoint && (
               <VictoryScatter
                 data={resolutionPoint}
@@ -367,10 +432,22 @@ const CursorValue: React.FC<{
   datum?: any;
   isCursorActive: boolean;
   chartWidth: number;
+  rightPadding: number;
+  colorOverride?: ThemeColor;
+  getCursorValue?: (value: number) => string;
 }> = (props) => {
   const TEXT_PADDING = 4;
   const { getThemeColor } = useAppTheme();
-  const { x, y, datum, isCursorActive, chartWidth } = props;
+  const {
+    x,
+    y,
+    datum,
+    isCursorActive,
+    chartWidth,
+    rightPadding,
+    colorOverride,
+    getCursorValue,
+  } = props;
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
   useEffect(() => {
@@ -380,7 +457,9 @@ const CursorValue: React.FC<{
   }, [datum?.y]);
   if (isNil(x) || isNil(y)) return null;
 
-  const adjustedX = isCursorActive ? x : chartWidth - textWidth / 2;
+  const adjustedX = isCursorActive
+    ? x
+    : chartWidth - rightPadding + textWidth / 2;
   const chipHeight = 16;
   const chipFontSize = 12;
   return (
@@ -390,7 +469,11 @@ const CursorValue: React.FC<{
         y={y - chipHeight / 2}
         width={textWidth}
         height={chipHeight}
-        fill={getThemeColor(METAC_COLORS.blue["600"])}
+        fill={
+          isNil(colorOverride)
+            ? getThemeColor(METAC_COLORS.olive["600"])
+            : getThemeColor(colorOverride)
+        }
         stroke="transparent"
         rx={2}
         ry={2}
@@ -405,9 +488,10 @@ const CursorValue: React.FC<{
         fontWeight="bold"
         fontSize={chipFontSize}
       >
-        {datum.y.toFixed(1)}
+        {getCursorValue ? getCursorValue(datum.y) : datum.y.toFixed(1)}
       </text>
     </g>
   );
 };
+
 export default NewNumericChart;

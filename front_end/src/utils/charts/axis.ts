@@ -76,7 +76,7 @@ export function getAxisRightPadding(
 ) {
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
   const longestLabelLength = Math.max(...labels.map((label) => label.length));
-  const fontSizeScale = yLabel ? 10 : 9;
+  const fontSizeScale = yLabel ? 11 : 9;
   return {
     rightPadding: Math.round(
       (longestLabelLength * labelsFontSize * fontSizeScale) / 10
@@ -288,6 +288,7 @@ type GenerateScaleParams = {
   cursorDisplayLabel?: string | null;
   shortLabels?: boolean;
   adjustLabels?: boolean;
+  forceTickCount?: number;
 };
 
 /**
@@ -319,6 +320,7 @@ export function generateScale({
   unit,
   shortLabels = false,
   adjustLabels = false,
+  forceTickCount,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -358,7 +360,7 @@ export function generateScale({
   } else {
     maxLabelCount = direction === "horizontal" ? 21 : 26;
   }
-  const tickCount = (maxLabelCount - 1) * 5 + 1;
+  const tickCount = forceTickCount ?? (maxLabelCount - 1) * 5 + 1;
 
   // TODO: this does not support choosing values intelligently in
   // real scaling. The y-axis is always a domain of 0-1 with

@@ -25,8 +25,8 @@ const HistogramDrawer: FC<Props> = ({
   ) {
     if (!activeAggregation || !selectedTimestamp) return null;
 
-    const timestampIndex = activeAggregation.history.findIndex(
-      (item) => item.start_time === selectedTimestamp
+    const timestampIndex = activeAggregation.history.findLastIndex(
+      (item) => item.start_time <= selectedTimestamp
     );
     const histogram = activeAggregation.history[timestampIndex]?.histogram?.at(
       aggregationIndex || 0
