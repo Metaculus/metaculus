@@ -1,8 +1,10 @@
 import logging
+import pickle
 from typing import Union, Any, Callable
 
 from django.db import models, transaction, IntegrityError
 from django.db.models import QuerySet
+from django.utils.translation import activate
 from rest_framework.authtoken.models import Token
 from social_django.models import Partial, UserSocialAuth
 
@@ -26,6 +28,10 @@ lang_extra = {
 }
 
 logger = logging.getLogger(__name__)
+
+OLD_MAIN_PROJECT_ID = 2391
+project_main = Project.objects.get(pk=32765)
+project_storage = Project.objects.get(pk=32768)
 
 
 class MigrationMappingRegistry:
@@ -77,6 +83,10 @@ def model_instance_to_dict(obj: models.Model, exclude: list[str] = None):
 
         # skip excluded names (for FK we compare against f.name, not attname)
         if f.name in exclude:
+            continue
+
+        # Skip _cs translated fields
+        if f.name.endswith("_cs") or f.name.endswith("_original"):
             continue
 
         # handle ForeignKey
@@ -170,6 +180,8 @@ def migrate_users():
 
             continue
 
+        data = {**data, "is_staff": False, "is_superuser": False}
+
         try:
             with transaction.atomic():
                 new_user = User.objects.create(**data)
@@ -188,8 +200,8 @@ def migrate_users():
 def migrate_projects():
     logger.info("Migrating Projects...")
 
-    # Composing records
-    # TODO: this ignores PrivateProjects!
+    # Don't migrate projects
+    # Map to the new entities instead
     for project in Project.objects.using(FORPOL_DB).filter(
         type__in=[
             Project.ProjectTypes.SITE_MAIN,
@@ -197,32 +209,25 @@ def migrate_projects():
             Project.ProjectTypes.QUESTION_SERIES,
         ]
     ):
-        data = model_instance_to_dict(project)
-        data["visibility"] = Project.Visibility.NOT_IN_MAIN_FEED
+        new_obj = project_storage
 
-        if project.type == Project.ProjectTypes.SITE_MAIN:
-            data["type"] = Project.ProjectTypes.COMMUNITY
-
-        # Moving with same ids
-        new_obj = Project.objects.using("default").create(
-            **{**data, "primary_leaderboard_id": None}
-        )
+        if project.id == OLD_MAIN_PROJECT_ID:
+            new_obj = project_main
 
         # Old ID -> New Obj map!
         registry.add(project.id, new_obj)
 
     # Migrate permissions
     migrate_table(
-        ProjectUserPermission.objects.using(FORPOL_DB).filter(
-            project__in=registry.get_for_model(Project).values()
-        ),
+        ProjectUserPermission,
         exclude=["id"],
+        skip_failed_registry_lookup=True,
+        ignore_conflicts=True,
     )
     migrate_table(
-        ProjectSubscription.objects.using(FORPOL_DB).filter(
-            project__in=registry.get_for_model(Project).values()
-        ),
+        ProjectSubscription,
         exclude=["id"],
+        skip_failed_registry_lookup=True,
     )
 
 
@@ -244,14 +249,25 @@ def migrate_posts():
     # Some forpol questions were created after Rewrite release
     # So there are already collisions with Forpol & Rewrite instance Primary Keys
     # This is an attempt to keep old ids wherever it's possible
-    migrate_table(Question, generate_id_on_failure=True)
+    migrate_table(Question, generate_id_on_failure=True, extra=lang_extra)
 
-    migrate_table(Conditional)
+    migrate_table(Conditional, extra=lang_extra)
 
     old_posts_map = {}
 
     for old_post in Post.objects.using(FORPOL_DB).all():
-        data = {**model_instance_to_dict(old_post), **lang_extra}
+        title = old_post.title
+
+        if old_post.default_project_id != OLD_MAIN_PROJECT_ID:
+            # Append project prefix
+            title = f"{title} [{old_post.default_project.name}]"
+
+        data = {
+            **model_instance_to_dict(old_post),
+            **lang_extra,
+            "title": title,
+            "title_original": title,
+        }
 
         try:
             with transaction.atomic():
@@ -315,9 +331,26 @@ def after_migrate():
                 question.label = extract_label_from_question(question)
                 question.save()
 
+        # Ensure we don't duplicate default_project in Post.projects
+        post.projects.set(
+            [
+                project
+                for project in post.projects.all()
+                if project.id != post.default_project_id
+            ]
+        )
+
+
+def export_migration_log():
+    with open("migration_registry.pickle", "wb") as f:
+        pickle.dump(registry, f)
+
 
 @transaction.atomic
 def migrate():
+    # Activate Czech as original language of the content
+    activate("cs")
+
     # Users
     migrate_users()
 
@@ -334,10 +367,14 @@ def migrate():
 
     # TODO: should we reset sequence?
 
-    raise Exception("Finished!")
+    export_migration_log()
+
+    # raise Exception("Finished!")
 
 
 # TODO:
 #   - Generate question vectors!
-#   - Generate leaderboards
-#   - We could probably omit migrating personal projects since they all contain Only reposts and not own posts
+#   - Generate leaderboards/What to do with them?
+#   - Ensure no migrated objects actually use Project relation to ensure they won't use old IDs that now represent new entities in prod db
+#   - TODO: should we convert community Forecasters to Community Subscribers?
+#   - TODO: group question labels are broken (because or _original translations!)
