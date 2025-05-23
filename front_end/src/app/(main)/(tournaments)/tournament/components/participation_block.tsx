@@ -37,7 +37,11 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
   const { user } = useAuth();
   const t = useTranslations();
   const tournamentSlug = getProjectSlug(tournament);
-  if (isNil(user) || !tournament.forecasts_flow_enabled) {
+  if (
+    isNil(user) ||
+    !tournament.forecasts_flow_enabled ||
+    tournament.timeline.all_questions_closed
+  ) {
     return null;
   }
   const isParticipated = posts.some((post) =>
