@@ -1244,5 +1244,7 @@
   "indexWeeklyMovement": "<strong>{value}</strong> esta semana",
   "metadata": "Metadados",
   "indexTimeline": "Cronologia do índice",
-  "inTheNews": "Nas Notícias"
+  "inTheNews": "Nas Notícias",
+  "fileSizeExceedsLimit": "O tamanho do arquivo excede o limite de {value}MB",
+  "errorUploadingImage": "Falha ao fazer o upload da imagem"
 }

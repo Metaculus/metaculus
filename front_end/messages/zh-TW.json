@@ -1244,5 +1244,7 @@
   "indexWeeklyMovement": "本週<strong>{value}</strong>",
   "metadata": "元數據",
   "indexTimeline": "指數時間表",
-  "inTheNews": "新聞摘要"
+  "inTheNews": "新聞摘要",
+  "fileSizeExceedsLimit": "檔案大小超過 {value}MB 限制",
+  "errorUploadingImage": "上傳圖片失敗"
 }
