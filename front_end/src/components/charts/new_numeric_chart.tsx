@@ -20,6 +20,7 @@ import { VictoryAxis } from "victory";
 
 import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
+import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
 import XTickLabel from "@/components/charts/primitives/x_tick_label";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -95,7 +96,7 @@ const NewNumericChart: FC<Props> = ({
     () => buildChartData(chartWidth, zoom),
     [chartWidth, zoom, buildChartData]
   );
-
+  const shouldAdjustCursorLabel = line.at(-1)?.x !== xDomain.at(-1);
   const defaultCursor = useMemo(
     () => line.at(-1)?.x ?? Date.now() / 1000,
     [line]
@@ -112,19 +113,26 @@ const NewNumericChart: FC<Props> = ({
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
-  const tickLabelFontSize = isNil(tickFontSize)
-    ? getTickLabelFontSize(actualTheme)
-    : tickFontSize;
+  const tickLabelFontSize =
+    isNil(tickFontSize) || !isNil(extraTheme)
+      ? getTickLabelFontSize(actualTheme)
+      : tickFontSize;
 
   const highlightedLine = useMemo(() => {
     const filteredLine = line.filter((point) => point.x <= cursorTimestamp);
     // fix visual issue when highlighted line ends before cursor timestamp
-    const lastPoint = filteredLine.at(-1);
+    const lastFilteredPointIndex = filteredLine.length - 1;
+    const lastFilteredPoint = line[lastFilteredPointIndex];
+    const nextPoint = line[lastFilteredPointIndex + 1];
 
-    if (!!lastPoint && lastPoint.x < cursorTimestamp) {
+    if (
+      !!lastFilteredPoint &&
+      lastFilteredPoint.x < cursorTimestamp &&
+      !isNil(nextPoint?.y)
+    ) {
       filteredLine.push({
         x: cursorTimestamp,
-        y: lastPoint.y,
+        y: lastFilteredPoint.y,
       });
     }
     return filteredLine;
@@ -363,26 +371,28 @@ const NewNumericChart: FC<Props> = ({
               />
             )}
             {/* CP Line */}
-            <VictoryLine
-              data={highlightedLine}
-              style={{
-                data: {
-                  strokeWidth: 2.5,
-                  ...(!isNil(colorOverride) && {
-                    stroke: getThemeColor(colorOverride),
-                  }),
-                },
-              }}
-              interpolation="stepAfter"
-            />
+            {!hideCP && (
+              <VictoryLine
+                data={highlightedLine}
+                style={{
+                  data: {
+                    strokeWidth: 2.5,
+                    ...(!isNil(colorOverride) && {
+                      stroke: getThemeColor(colorOverride),
+                    }),
+                  },
+                }}
+                interpolation="stepAfter"
+              />
+            )}
             {/* Cursor line value */}
-            {!isNil(highlightedPoint) && (
+            {!isNil(highlightedPoint) && !hideCP && (
               <VictoryScatter
                 data={[highlightedPoint]}
                 dataComponent={
                   <VictoryPortal>
                     <CursorValue
-                      isCursorActive={isCursorActive}
+                      isCursorActive={shouldAdjustCursorLabel || isCursorActive}
                       chartWidth={chartWidth}
                       rightPadding={maxPadding}
                       colorOverride={colorOverride}
@@ -481,52 +491,6 @@ const CursorValue: React.FC<{
         {getCursorValue ? getCursorValue(datum.y) : datum.y.toFixed(1)}
       </text>
     </g>
-  );
-};
-
-const PredictionWithRange: React.FC<any> = ({
-  x,
-  y,
-  symbol,
-  datum: { y1, y2 },
-  scale,
-}) => {
-  const { getThemeColor } = useAppTheme();
-  const y1Scaled = scale.y(y1);
-  const y2Scaled = scale.y(y2);
-  return (
-    <>
-      {y1 !== undefined && y2 !== undefined && (
-        <line
-          x1={x}
-          x2={x}
-          y1={y1Scaled}
-          y2={y2Scaled}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-      {symbol === "circle" && (
-        <circle
-          cx={x}
-          cy={y}
-          r={3}
-          fill={getThemeColor(METAC_COLORS.gray["0"])}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-
-      {symbol === "x" && (
-        <polygon
-          points={`${x - 3},${y - 3} ${x + 3},${y + 3} ${x},${y} ${x - 3},${y + 3} ${x + 3},${y - 3} ${x},${y}`}
-          r={3}
-          fill={getThemeColor(METAC_COLORS.gray["0"])}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-    </>
   );
 };
 

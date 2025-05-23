@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { DomainTuple } from "victory";
 
 import NewNumericChart from "@/components/charts/new_numeric_chart";
@@ -22,12 +22,15 @@ type Props = {
 
 const IndexTimeline: FC<Props> = ({ tournament, height = 170 }) => {
   const t = useTranslations();
+  const buildChartData = useCallback(
+    (width: number, zoom: TimelineChartZoomOption) =>
+      buildIndexChartData({ tournament, width, zoom }),
+    [tournament]
+  );
 
   return (
     <NewNumericChart
-      buildChartData={(width, zoom) =>
-        buildIndexChartData({ tournament, width, zoom })
-      }
+      buildChartData={buildChartData}
       withZoomPicker={true}
       height={height}
       chartTitle={t("indexTimeline")}

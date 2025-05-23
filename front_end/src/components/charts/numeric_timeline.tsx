@@ -25,7 +25,6 @@ type Props = {
   myForecasts?: UserForecastHistory;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
-  yLabel?: string;
   height?: number;
   onCursorChange?: (value: number | null) => void;
   onChartReady?: () => void;
@@ -49,7 +48,6 @@ const NumericTimeline: FC<Props> = ({
   myForecasts,
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker,
-  yLabel,
   height = 150,
   onCursorChange,
   onChartReady,
@@ -92,32 +90,48 @@ const NumericTimeline: FC<Props> = ({
     },
     [questionType, scaling, unit, resolveTime]
   );
+
+  const buildChartData = useCallback(
+    (width: number, zoom: TimelineChartZoomOption) =>
+      buildNumericChartData({
+        questionType,
+        actualCloseTime,
+        scaling,
+        height,
+        aggregation,
+        aggregationIndex,
+        myForecasts,
+        width,
+        zoom,
+        extraTheme,
+        isAggregationsEmpty: isEmptyDomain,
+        openTime,
+        unit,
+        forceYTickCount: 5,
+      }),
+    [
+      questionType,
+      actualCloseTime,
+      scaling,
+      height,
+      aggregation,
+      aggregationIndex,
+      myForecasts,
+      extraTheme,
+      isEmptyDomain,
+      openTime,
+      unit,
+    ]
+  );
+
   return (
     <NewNumericChart
-      buildChartData={(width, zoom) =>
-        buildNumericChartData({
-          questionType,
-          actualCloseTime,
-          scaling,
-          height,
-          aggregation,
-          aggregationIndex,
-          myForecasts,
-          width,
-          zoom,
-          extraTheme,
-          isAggregationsEmpty: isEmptyDomain,
-          openTime,
-          unit,
-          forceYTickCount: 5,
-        })
-      }
+      buildChartData={buildChartData}
       extraTheme={extraTheme}
       onChartReady={onChartReady}
       onCursorChange={onCursorChange}
       defaultZoom={defaultZoom}
       withZoomPicker={withZoomPicker}
-      yLabel={yLabel}
       hideCP={hideCP}
       resolutionPoint={resolutionPoint ? [resolutionPoint] : undefined}
       getCursorValue={getCursorValue}
