@@ -489,6 +489,11 @@ class Forecast(models.Model):
 
 class AggregateForecast(models.Model):
     id: int
+    question_id: int
+
+    # Annotations
+    question_type: str
+
     question = models.ForeignKey(
         Question, models.CASCADE, related_name="aggregate_forecasts"
     )
@@ -522,15 +527,19 @@ class AggregateForecast(models.Model):
             pvs = str(pv)
         return (
             f"<Forecast at {str(self.start_time).split(".")[0]} "
-            f"by {self.method}: {pvs}>"
+            f"by {self.method} on {self.question_id}: {pvs}>"
         )
 
     def get_cdf(self) -> list[float] | None:
-        if len(self.forecast_values) == DEFAULT_INBOUND_OUTCOME_COUNT + 1:
+        # grab annotation if it exists for efficiency
+        question_type = getattr(self, "question_type", self.question.type)
+        if question_type in QUESTION_CONTINUOUS_TYPES:
             return self.forecast_values
 
     def get_pmf(self) -> list[float]:
-        if len(self.forecast_values) == DEFAULT_INBOUND_OUTCOME_COUNT + 1:
+        # grab annotation if it exists for efficiency
+        question_type = getattr(self, "question_type", self.question.type)
+        if question_type in QUESTION_CONTINUOUS_TYPES:
             cdf = self.forecast_values
             pmf = [cdf[0]]
             for i in range(1, len(cdf)):
