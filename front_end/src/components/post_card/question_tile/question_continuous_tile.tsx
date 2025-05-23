@@ -5,7 +5,7 @@ import ForecastersCounter from "@/app/(main)/questions/components/forecaster_cou
 import ContinuousAreaChart, {
   getContinuousAreaChartData,
 } from "@/components/charts/continuous_area_chart";
-import NumericChart from "@/components/charts/numeric_chart";
+import NumericTimeline from "@/components/charts/numeric_timeline";
 import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
@@ -126,7 +126,7 @@ const QuestionContinuousTile: FC<Props> = ({
       </div>
       <div className="relative my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
-          <NumericChart
+          <NumericTimeline
             aggregation={question.aggregations.recency_weighted}
             myForecasts={question.my_forecasts}
             height={HEIGHT}
@@ -137,13 +137,13 @@ const QuestionContinuousTile: FC<Props> = ({
             resolution={question.resolution}
             resolveTime={question.actual_resolve_time}
             hideCP={hideCP}
-            withUserForecastTimestamps={!forecastAvailability.cpRevealsOn}
             isEmptyDomain={
               !!forecastAvailability?.isEmpty ||
               !!forecastAvailability?.cpRevealsOn
             }
             openTime={getPostDrivenTime(question.open_time)}
             unit={question.unit}
+            tickFontSize={9}
           />
         ) : (
           <ContinuousAreaChart

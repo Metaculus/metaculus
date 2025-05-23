@@ -4,10 +4,11 @@ import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
+import NumericTimeline from "@/components/charts/numeric_timeline";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { ForecastAvailability, Question } from "@/types/question";
+import { ForecastAvailability, Question, QuestionType } from "@/types/question";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import {
@@ -168,32 +169,60 @@ const DetailedContinuousChartCard: FC<Props> = ({
       )}
     >
       <div className="relative">
-        <NumericChart
-          aggregation={question.aggregations.recency_weighted}
-          myForecasts={question.my_forecasts}
-          resolution={question.resolution}
-          resolveTime={question.actual_resolve_time}
-          onCursorChange={handleCursorChange}
-          yLabel={t("communityPredictionLabel")}
-          onChartReady={handleChartReady}
-          questionType={question.type}
-          actualCloseTime={getPostDrivenTime(question.actual_close_time)}
-          scaling={question.scaling}
-          defaultZoom={
-            user
-              ? TimelineChartZoomOption.All
-              : TimelineChartZoomOption.TwoMonths
-          }
-          withZoomPicker
-          hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
-          withUserForecastTimestamps={!!forecastAvailability?.cpRevealsOn}
-          isEmptyDomain={
-            !!forecastAvailability?.isEmpty ||
-            !!forecastAvailability?.cpRevealsOn
-          }
-          openTime={getPostDrivenTime(question.open_time)}
-          unit={question.unit}
-        />
+        {question.type === QuestionType.Binary ? (
+          <NumericTimeline
+            aggregation={question.aggregations.recency_weighted}
+            myForecasts={question.my_forecasts}
+            resolution={question.resolution}
+            resolveTime={question.actual_resolve_time}
+            onCursorChange={handleCursorChange}
+            yLabel={t("communityPredictionLabel")}
+            onChartReady={handleChartReady}
+            questionType={question.type}
+            actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+            scaling={question.scaling}
+            defaultZoom={
+              user
+                ? TimelineChartZoomOption.All
+                : TimelineChartZoomOption.TwoMonths
+            }
+            withZoomPicker
+            hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
+            openTime={getPostDrivenTime(question.open_time)}
+            unit={question.unit}
+          />
+        ) : (
+          <NumericChart
+            aggregation={question.aggregations.recency_weighted}
+            myForecasts={question.my_forecasts}
+            resolution={question.resolution}
+            resolveTime={question.actual_resolve_time}
+            onCursorChange={handleCursorChange}
+            yLabel={t("communityPredictionLabel")}
+            onChartReady={handleChartReady}
+            questionType={question.type}
+            actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+            scaling={question.scaling}
+            defaultZoom={
+              user
+                ? TimelineChartZoomOption.All
+                : TimelineChartZoomOption.TwoMonths
+            }
+            withZoomPicker
+            hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
+            withUserForecastTimestamps={!!forecastAvailability?.cpRevealsOn}
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
+            openTime={getPostDrivenTime(question.open_time)}
+            unit={question.unit}
+          />
+        )}
       </div>
       <div
         className={cn(
