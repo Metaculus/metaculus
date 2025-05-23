@@ -30,7 +30,6 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import {
-  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionSlider,
   QuestionWithNumericForecasts,

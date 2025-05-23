@@ -1,7 +1,6 @@
 import { uncmin } from "numeric";
 
 import {
-  DefaultInboundOutcomeCount,
   DistributionQuantileComponent,
   DistributionSliderComponent,
   Quantile,

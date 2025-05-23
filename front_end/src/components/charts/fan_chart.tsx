@@ -30,7 +30,6 @@ import {
 } from "@/types/charts";
 import { PostGroupOfQuestions } from "@/types/post";
 import {
-  DefaultInboundOutcomeCount,
   Quartiles,
   QuestionType,
   QuestionWithNumericForecasts,
