@@ -726,21 +726,21 @@ const QuestionForm: FC<Props> = ({
             unit={post?.question?.unit}
             control={form as any}
             onChange={({
-              range_min: rangeMin,
-              range_max: rangeMax,
-              zero_point: zeroPoint,
-              open_upper_bound: openUpperBound,
-              open_lower_bound: openLowerBound,
-              inbound_outcome_count: inboundOutcomeCount,
+              range_min,
+              range_max,
+              zero_point,
+              open_upper_bound,
+              open_lower_bound,
+              inbound_outcome_count,
             }) => {
               form.setValue("scaling", {
-                range_min: rangeMin,
-                range_max: rangeMax,
-                zero_point: zeroPoint,
+                range_min,
+                range_max,
+                zero_point,
               });
-              form.setValue("open_lower_bound", openLowerBound);
-              form.setValue("open_upper_bound", openUpperBound);
-              form.setValue("inbound_outcome_count", inboundOutcomeCount);
+              form.setValue("open_lower_bound", open_lower_bound);
+              form.setValue("open_upper_bound", open_upper_bound);
+              form.setValue("inbound_outcome_count", inbound_outcome_count);
             }}
           />
         )}

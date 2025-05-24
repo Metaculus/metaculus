@@ -822,11 +822,12 @@ const GroupForm: React.FC<Props> = ({
                           subQuestion.has_forecasts && mode !== "create"
                         }
                         onChange={({
-                          range_min: range_min,
-                          range_max: range_max,
+                          range_min,
+                          range_max,
                           open_lower_bound,
                           open_upper_bound,
                           zero_point,
+                          inbound_outcome_count,
                         }) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) =>
@@ -835,6 +836,7 @@ const GroupForm: React.FC<Props> = ({
                                     ...subQuestion,
                                     open_lower_bound,
                                     open_upper_bound,
+                                    inbound_outcome_count,
                                     scaling: {
                                       range_min,
                                       range_max,
