@@ -4,7 +4,6 @@ import zipfile
 import hashlib
 
 from django.db.models import QuerySet, Q
-from django.utils import timezone
 
 from comments.models import Comment
 from questions.models import Question, AggregateForecast, Forecast
@@ -12,95 +11,6 @@ from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
-
-
-def export_specific_data_for_questions(
-    questions: QuerySet[Question],
-    user: User | None = None,
-    aggregation_methods: list[AggregationMethod] | None = None,
-    include_comments: bool = False,
-    include_scores: bool = False,
-    include_bots: bool = False,
-    minimize: bool = True,
-) -> bytes:
-    # This method only returns a specific user's own data and public data - typically
-    # only called by a view. Respects cp_reveal_time.
-
-    # check input
-    if not aggregation_methods and (include_bots or not minimize):
-        raise ValueError(
-            "If user_ids, include_bots, or minimize is set, "
-            "aggregation_methods must also be set."
-        )
-
-    user_forecasts = (
-        None
-        if user is None
-        else Forecast.objects.filter(author=user, question__in=questions).order_by(
-            "question_id", "start_time"
-        )
-    )
-
-    now = timezone.now()
-    aggregate_forecasts: list[AggregateForecast] = []
-    for question in questions:
-        if question.cp_reveal_time and question.cp_reveal_time > now:
-            # CP is hidden, don't return any aggregate forecasts
-            continue
-
-        if not aggregation_methods:
-            aggregate_forecasts = list(
-                AggregateForecast.objects.filter(question__in=questions).order_by(
-                    "question_id", "start_time"
-                )
-            )
-        else:
-            aggregate_forecasts = []
-            for question in questions:
-                aggregation_dict = get_aggregation_history(
-                    question,
-                    aggregation_methods,
-                    user_ids=None,
-                    minimize=minimize,
-                    include_stats=True,
-                    include_bots=(
-                        include_bots
-                        if include_bots is not None
-                        else question.include_bots_in_aggregates
-                    ),
-                    histogram=True,
-                )
-                for values in aggregation_dict.values():
-                    aggregate_forecasts.extend(values)
-
-    if include_comments:
-        comments = Comment.objects.filter(
-            Q(is_private=False) | Q(author=user),
-            Q(is_soft_deleted=False) | Q(author=user),
-            on_post__in=questions.values_list("related_posts__post", flat=True),
-        ).order_by("created_at")
-    else:
-        comments = None
-
-    if include_scores:
-        scores = Score.objects.filter(
-            Q(user=user) | Q(user__isnull=True),
-            question__in=questions,
-        ).order_by("created_at")
-        archived_scores = ArchivedScore.objects.filter(
-            Q(user=user) | Q(user__isnull=True),
-            question__in=questions,
-        ).order_by("created_at")
-        all_scores = scores.union(archived_scores)
-    else:
-        all_scores = None
-    return export_data_for_questions(
-        questions=questions,
-        user_forecasts=user_forecasts,
-        aggregate_forecasts=aggregate_forecasts,
-        comments=comments,
-        scores=all_scores,
-    )
 
 
 def export_all_data_for_questions(
@@ -113,6 +23,8 @@ def export_all_data_for_questions(
     minimize: bool = True,
     anonymized: bool = False,
 ) -> bytes:
+    # TODO: deprecate this - supersceded by export_data_for_questions
+
     # This method returns all data including private and should only be called by
     # admin panel or a view called by staff or whitelisted user.
     # Does not respect cp_reveal_time.
@@ -176,7 +88,7 @@ def export_all_data_for_questions(
     else:
         all_scores = None
 
-    return export_data_for_questions(
+    return generate_data(
         questions=questions,
         user_forecasts=user_forecasts,
         aggregate_forecasts=aggregate_forecasts,
@@ -187,6 +99,103 @@ def export_all_data_for_questions(
 
 
 def export_data_for_questions(
+    user_id: int | None,
+    is_staff: bool,
+    is_whitelisted: bool,
+    question_ids: list[int],
+    aggregation_methods: list[AggregationMethod] | None,
+    minimize: bool,
+    include_scores: bool,
+    include_user_data: bool,
+    include_comments: bool,
+    user_ids: list[int] | None,
+    include_bots: bool | None,
+    anonymized: bool,
+    **kwargs,
+) -> bytes:
+    user = User.objects.get(id=user_id) if user_id is not None else None
+    questions = Question.objects.filter(id__in=question_ids)
+    if not include_user_data:
+        user_forecasts = Forecast.objects.none()
+    else:
+        user_forecasts = Forecast.objects.filter(question__in=questions).order_by(
+            "question_id", "start_time"
+        )
+    if user_ids:
+        user_forecasts = user_forecasts.filter(author_id__in=user_ids)
+    if not (is_whitelisted or is_staff):
+        user_forecasts = user_forecasts.filter(author=user)
+
+    if not aggregation_methods or (
+        aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED] and minimize is True
+    ):
+        aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
+            AggregateForecast.objects.filter(question__in=questions)
+        ).order_by("question_id", "start_time")
+    else:
+        aggregate_forecasts = []
+        for question in questions:
+            aggregation_dict = get_aggregation_history(
+                question,
+                aggregation_methods,
+                user_ids=user_ids,
+                minimize=minimize,
+                include_stats=True,
+                include_bots=(
+                    include_bots
+                    if include_bots is not None
+                    else question.include_bots_in_aggregates
+                ),
+                histogram=True,
+            )
+            for values in aggregation_dict.values():
+                aggregate_forecasts.extend(values)
+
+    if include_user_data and include_comments:
+        comments = Comment.objects.filter(
+            is_private=False,
+            is_soft_deleted=False,
+            on_post__in=questions.values_list("related_posts__post", flat=True),
+        ).order_by("created_at")
+    else:
+        comments = None
+
+    if include_scores:
+        scores = Score.objects.filter(question__in=questions)
+        archived_scores = ArchivedScore.objects.filter(question__in=questions)
+        if not include_user_data:
+            # don't include user-specific scores
+            scores = scores.filter(user__isnull=True)
+            archived_scores = archived_scores.filter(user__isnull=True)
+        elif user_ids:
+            # only include user-specific scores for the given user_ids
+            scores = scores.filter(Q(user_id__in=user_ids) | Q(user__isnull=True))
+            archived_scores = archived_scores.filter(
+                Q(user_id__in=user_ids) | Q(user__isnull=True)
+            )
+        elif not (is_whitelisted or is_staff):
+            # only include user-specific scores for the logged-in user
+            scores = scores.filter(
+                Q(user__isnull=True) | (Q(user=user) if user else Q())
+            )
+            archived_scores = archived_scores.filter(
+                Q(user__isnull=True) | (Q(user=user) if user else Q())
+            )
+        all_scores = scores.union(archived_scores)
+    else:
+        all_scores = None
+
+    return generate_data(
+        questions=questions,
+        user_forecasts=user_forecasts,
+        aggregate_forecasts=aggregate_forecasts,
+        comments=comments,
+        scores=all_scores,
+        anonymized=anonymized,
+    )
+
+
+def generate_data(
     questions: QuerySet[Question],
     user_forecasts: QuerySet[Forecast] | list[Forecast] | None = None,
     aggregate_forecasts: (
@@ -368,7 +377,7 @@ def export_data_for_questions(
         if anonymized:
             row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
         else:
-            row.extend([forecast.author_id, forecast.author.username])
+            row.extend([forecast.author_id, username_dict[forecast.author_id]])
         row.extend(
             [
                 comment.parent_id,
