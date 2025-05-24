@@ -6,6 +6,7 @@ import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
 import QuestionRepost from "@/app/(main)/questions/components/question_repost";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
@@ -25,6 +26,7 @@ export const metadata = {
 const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
   props
 ) => {
+  const currentUser = await ServerProfileApi.getMyProfile();
   const searchParams = await props.searchParams;
   const t = await getTranslations();
   const createHref = (
@@ -129,13 +131,15 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
             questionType={t("numericRange")}
             questionExample={`"${t("numericRangeExample")}"`}
           />
-          <QuestionTypePicker
-            url={createHref("/questions/create/question", {
-              type: QuestionType.Discrete,
-            })}
-            questionType={t("discrete")}
-            questionExample={`"${t("discreteExample")}"`}
-          />
+          {currentUser?.is_staff && ( // TODO: remove to launch Discrete questions
+            <QuestionTypePicker
+              url={createHref("/questions/create/question", {
+                type: QuestionType.Discrete,
+              })}
+              questionType={t("discrete")}
+              questionExample={`"${t("discreteExample")}"`}
+            />
+          )}
           <QuestionTypePicker
             url={createHref("/questions/create/question", {
               type: QuestionType.Date,
@@ -161,13 +165,15 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
             questionType={t("numericGroup")}
             questionExample={`"${t("numericGroupExample")}"`}
           />
-          {/* <QuestionTypePicker
-            url={createHref("/questions/create/group", {
-              subtype: QuestionType.Discrete,
-            })}
-            questionType={t("discreteGroup")}
-            questionExample={`"${t("discreteGroupExample")}"`}
-          /> */}
+          {/* {currentUser?.is_staff && ( // TODO: launch Discrete group questions
+            <QuestionTypePicker
+              url={createHref("/questions/create/group", {
+                subtype: QuestionType.Discrete,
+              })}
+              questionType={t("discreteGroup")}
+              questionExample={`"${t("discreteGroupExample")}"`}
+            />
+          )} */}
           <QuestionTypePicker
             url={createHref("/questions/create/group", {
               subtype: QuestionType.Date,
