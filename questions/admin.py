@@ -148,9 +148,7 @@ class ConditionalAdmin(admin.ModelAdmin):
     list_display = ["__str__"]
     search_fields = ["id"]
     autocomplete_fields = ["condition", "condition_child"]
-    readonly_fields = [
-        "post_link",
-    ]
+    readonly_fields = ["post_link"]
 
     def post_link(self, obj):
         post = obj.post
