@@ -25,6 +25,7 @@ import {
   Line,
 } from "@/types/charts";
 import {
+  DefaultInboundOutcomeCount,
   GraphingQuestionProps,
   Question,
   QuestionType,
@@ -333,7 +334,9 @@ const ContinuousAreaChart: FC<Props> = ({
       (question.open_lower_bound ? 1 : 0) + (question.open_upper_bound ? 1 : 0);
     return (
       (chartWidth - 30) /
-      (1.07 * ((question.inbound_outcome_count || 200) - 1 + openBoundCount))
+      (1.07 *
+        ((question.inbound_outcome_count || DefaultInboundOutcomeCount) +
+          openBoundCount))
     );
   }, [chartWidth, data, question]);
   const CursorContainer = (

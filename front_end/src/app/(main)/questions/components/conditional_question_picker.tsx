@@ -40,7 +40,12 @@ const ConditionalQuestionPicker: FC<Props> = ({
       search,
       forecast_type: isParentQuestion
         ? [QuestionType.Binary]
-        : [QuestionType.Binary, QuestionType.Numeric, QuestionType.Date],
+        : [
+            QuestionType.Binary,
+            QuestionType.Numeric,
+            QuestionType.Discrete,
+            QuestionType.Date,
+          ],
       statuses: [PostStatus.OPEN, PostStatus.UPCOMING],
     };
   }, [isParentQuestion, search]);

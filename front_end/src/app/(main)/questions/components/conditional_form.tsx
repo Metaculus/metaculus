@@ -349,6 +349,7 @@ function setConditionQuestion({
     (question.type === QuestionType.Binary ||
       (fieldName === "condition_child_id" &&
         (question.type === QuestionType.Numeric ||
+          question.type === QuestionType.Discrete ||
           question.type === QuestionType.Date)))
   ) {
     if (
