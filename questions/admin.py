@@ -45,8 +45,8 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     ]
     list_filter = [
         "type",
-        "related_posts__post",
         "related_posts__post__curation_status",
+        AutocompleteFilterFactory("Post", "related_posts__post"),
         AutocompleteFilterFactory("Author", "related_posts__post__author"),
         AutocompleteFilterFactory(
             "Default Project", "related_posts__post__default_project"
