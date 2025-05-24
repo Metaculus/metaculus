@@ -10,7 +10,7 @@ import ConditionalTile from "@/components/conditional_tile";
 import DetailedMultipleChoiceChartCard from "@/components/detailed_question_card/detailed_question_card/multiple_choice_chart_card";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionChip from "@/components/prediction_chip";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getCursorForecast } from "@/utils/charts/cursor";
@@ -22,6 +22,8 @@ import {
   isConditionalPost,
 } from "@/utils/questions/helpers";
 
+import ContinuousPredictionChart from "./forecast_maker/continuous_input/continuous_prediction_chart";
+
 type Props = {
   post: PostWithForecasts;
   className?: string;
@@ -31,6 +33,7 @@ type Props = {
   nonInteractive?: boolean;
   navigateToNewTab?: boolean;
   embedTitle?: string;
+  embedChartType?: EmbedChartType;
 };
 
 const ForecastCard: FC<Props> = ({
@@ -42,6 +45,7 @@ const ForecastCard: FC<Props> = ({
   nonInteractive = false,
   navigateToNewTab,
   embedTitle,
+  embedChartType,
 }) => {
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -100,39 +104,58 @@ const ForecastCard: FC<Props> = ({
     if (post.question) {
       const { question } = post;
       const forecastAvailability = getQuestionForecastAvailability(question);
+      const NumericTimeline = (
+        <div className="relative flex w-full flex-col">
+          <NumericChart
+            aggregation={question.aggregations.recency_weighted}
+            myForecasts={question.my_forecasts}
+            resolution={question.resolution}
+            resolveTime={question.actual_resolve_time}
+            height={chartHeight}
+            questionType={question.type}
+            actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+            scaling={question.scaling}
+            onCursorChange={nonInteractive ? undefined : setCursorTimestamp}
+            extraTheme={embedTheme?.chart}
+            defaultZoom={defaultChartZoom}
+            withZoomPicker={withZoomPicker}
+            withUserForecastTimestamps={!!forecastAvailability.cpRevealsOn}
+            isEmptyDomain={
+              forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn
+            }
+            openTime={getPostDrivenTime(question.open_time)}
+            unit={question.unit}
+          />
+          <ForecastAvailabilityChartOverflow
+            forecastAvailability={forecastAvailability}
+            className="justify-end pr-10 text-xs md:text-sm"
+          />
+        </div>
+      );
       switch (question.type) {
-        case QuestionType.Binary:
         case QuestionType.Numeric:
         case QuestionType.Date:
-          return (
-            <div className="relative flex w-full flex-col">
-              <NumericChart
-                aggregation={question.aggregations.recency_weighted}
-                myForecasts={question.my_forecasts}
-                resolution={question.resolution}
-                resolveTime={question.actual_resolve_time}
-                height={chartHeight}
-                questionType={question.type}
-                actualCloseTime={getPostDrivenTime(question.actual_close_time)}
-                scaling={question.scaling}
-                onCursorChange={nonInteractive ? undefined : setCursorTimestamp}
-                extraTheme={embedTheme?.chart}
-                defaultZoom={defaultChartZoom}
-                withZoomPicker={withZoomPicker}
-                withUserForecastTimestamps={!!forecastAvailability.cpRevealsOn}
-                isEmptyDomain={
-                  forecastAvailability.isEmpty ||
-                  !!forecastAvailability.cpRevealsOn
-                }
-                openTime={getPostDrivenTime(question.open_time)}
-                unit={question.unit}
-              />
-              <ForecastAvailabilityChartOverflow
-                forecastAvailability={forecastAvailability}
-                className="justify-end pr-10 text-xs md:text-sm"
-              />
-            </div>
-          );
+          if (embedChartType === EmbedChartType.Current) {
+            return (
+              <div className="flex w-full flex-col">
+                <ContinuousPredictionChart
+                  question={question}
+                  dataset={{
+                    cdf: [],
+                    pmf: [],
+                  }}
+                  chartTheme={embedTheme?.chart}
+                  graphType={"pmf"}
+                  height={chartHeight}
+                  readOnly
+                />
+              </div>
+            );
+          } else {
+            return NumericTimeline;
+          }
+        case QuestionType.Binary:
+          return NumericTimeline;
         case QuestionType.MultipleChoice:
           return (
             <DetailedMultipleChoiceChartCard

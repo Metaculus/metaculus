@@ -1248,5 +1248,7 @@
   "indexTimeline": "Časová osa indexu",
   "inTheNews": "Ve zprávách",
   "fileSizeExceedsLimit": "Velikost souboru překračuje limit {value}MB",
-  "errorUploadingImage": "Nepodařilo se nahrát obrázek"
+  "errorUploadingImage": "Nepodařilo se nahrát obrázek",
+  "currentForecast": "Aktuální předpověď",
+  "selectAGraphType": "Vyberte typ grafu"
 }

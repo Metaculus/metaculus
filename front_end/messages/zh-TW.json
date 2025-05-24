@@ -1246,5 +1246,7 @@
   "indexTimeline": "指數時間表",
   "inTheNews": "新聞摘要",
   "fileSizeExceedsLimit": "檔案大小超過 {value}MB 限制",
-  "errorUploadingImage": "上傳圖片失敗"
+  "errorUploadingImage": "上傳圖片失敗",
+  "currentForecast": "目前預報",
+  "selectAGraphType": "選擇一個圖表類型"
 }

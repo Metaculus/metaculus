@@ -1246,5 +1246,7 @@
   "indexTimeline": "Cronologia do índice",
   "inTheNews": "Nas Notícias",
   "fileSizeExceedsLimit": "O tamanho do arquivo excede o limite de {value}MB",
-  "errorUploadingImage": "Falha ao fazer o upload da imagem"
+  "errorUploadingImage": "Falha ao fazer o upload da imagem",
+  "currentForecast": "Previsão atual",
+  "selectAGraphType": "Selecione um tipo de gráfico"
 }
