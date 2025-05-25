@@ -61,7 +61,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="forecast",
             name="distribution_input",
-            field=models.JSONField(null=True),
+            field=models.JSONField(
+                null=True,
+                blank=True,
+            ),
         ),
         migrations.RunPython(
             migrate_distribution_input_field, migrations.RunPython.noop

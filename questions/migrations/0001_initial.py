@@ -98,9 +98,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "edited_at",
-                    models.DateTimeField(
-                        editable=False, null=True
-                    ),
+                    models.DateTimeField(editable=False, null=True),
                 ),
             ],
             options={
@@ -132,6 +130,7 @@ class Migration(migrations.Migration):
                         db_index=True,
                         help_text="Time at which this prediction is no longer active",
                         null=True,
+                        blank=True,
                     ),
                 ),
                 (
@@ -140,7 +139,13 @@ class Migration(migrations.Migration):
                         base_field=models.FloatField(), null=True, size=201
                     ),
                 ),
-                ("probability_yes", models.FloatField(null=True)),
+                (
+                    "probability_yes",
+                    models.FloatField(
+                        null=True,
+                        blank=True,
+                    ),
+                ),
                 (
                     "probability_yes_per_category",
                     django.contrib.postgres.fields.ArrayField(
@@ -179,9 +184,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "edited_at",
-                    models.DateTimeField(
-                        editable=False, null=True
-                    ),
+                    models.DateTimeField(editable=False, null=True),
                 ),
                 ("description", models.TextField(blank=True)),
                 ("resolution_criteria", models.TextField(blank=True, null=True)),
@@ -223,9 +226,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "edited_at",
-                    models.DateTimeField(
-                        editable=False, null=True
-                    ),
+                    models.DateTimeField(editable=False, null=True),
                 ),
                 (
                     "type",
