@@ -1,5 +1,6 @@
-import { Post } from "@/types/post";
-import { Project, TournamentType } from "@/types/projects";
+import { Notebook, Post, PostGroupOfQuestions } from "@/types/post";
+import { Project, TaxonomyProjectType, TournamentType } from "@/types/projects";
+import { Question } from "@/types/question";
 import { Optional } from "@/types/utils";
 
 type EncodableValue = string | number | boolean;
@@ -36,9 +37,12 @@ export const addUrlParams = (
 
 export const getPostLink = (
   post: Optional<
-    Pick<Post, "id" | "slug" | "notebook" | "projects" | "group_of_questions">,
-    "slug" | "notebook" | "projects" | "group_of_questions"
-  >,
+    Pick<Post, "id" | "slug" | "projects">,
+    "slug" | "projects"
+  > & {
+    notebook?: Pick<Notebook, "id">;
+    group_of_questions?: Pick<PostGroupOfQuestions<Question>, "id">;
+  },
   questionId?: number
 ) => {
   const idPath = post.slug ? `${post.id}/${post.slug}` : post.id;
@@ -52,7 +56,7 @@ export const getPostLink = (
   }
 
   // If generate links to the specific subquestion
-  if (post?.group_of_questions?.questions.length && questionId) {
+  if (post?.group_of_questions?.id && questionId) {
     url += `?sub-question=${questionId}`;
   }
 
@@ -60,7 +64,9 @@ export const getPostLink = (
 };
 
 export const getProjectLink = (
-  project: Pick<Project, "id" | "type" | "slug">
+  project: Pick<Project, "id" | "slug"> & {
+    type: TournamentType | TaxonomyProjectType;
+  }
 ) => {
   switch (project.type) {
     case TournamentType.NewsCategory:
@@ -69,14 +75,16 @@ export const getProjectLink = (
       return `/c/${project.slug}/`;
     case TournamentType.Index:
       return `/index/${getProjectSlug(project)}/`;
+    case TaxonomyProjectType.Topic:
+      return `/questions/?topic=${project.slug}`;
+    case TaxonomyProjectType.Category:
+      return `/questions/?categories=${project.slug}`;
     default:
       return `/tournament/${getProjectSlug(project)}`;
   }
 };
 
-export const getProjectSlug = (
-  project: Pick<Project, "id" | "type" | "slug">
-) => {
+export const getProjectSlug = (project: Pick<Project, "id" | "slug">) => {
   return project.slug ?? project.id;
 };
 

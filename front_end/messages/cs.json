@@ -1246,5 +1246,7 @@
   "indexWeeklyMovement": "<strong>{value}</strong> tento týden",
   "metadata": "Metadata",
   "indexTimeline": "Časová osa indexu",
-  "inTheNews": "Ve zprávách"
+  "inTheNews": "Ve zprávách",
+  "fileSizeExceedsLimit": "Velikost souboru překračuje limit {value}MB",
+  "errorUploadingImage": "Nepodařilo se nahrát obrázek"
 }

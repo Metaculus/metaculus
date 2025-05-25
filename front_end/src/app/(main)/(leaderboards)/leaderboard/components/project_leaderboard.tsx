@@ -36,20 +36,10 @@ const ProjectLeaderboard: FC<Props> = async ({
     ? t("openLeaderboard")
     : t("leaderboard");
 
-  const detailText = !!leaderboardDetails.prize_pool
-    ? t("prizePool") + ": $" + leaderboardDetails.prize_pool.toLocaleString()
-    : null;
-
-  const detailElement = (
-    <span className="ml-auto font-medium text-gray-800 dark:text-gray-800-dark">
-      {detailText}
-    </span>
-  );
   return (
     <SectionToggle
       title={leaderboardTitle}
       variant={isQuestionSeries ? "primary" : "gold"}
-      detailElement={detailElement}
     >
       <ProjectLeaderboardTable
         leaderboardDetails={leaderboardDetails}

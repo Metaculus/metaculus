@@ -32,7 +32,7 @@ const RandomButton: FC = () => {
       onClick={handleRandomClick}
       disabled={isLoading}
       aria-label="Random Question"
-      className="flex h-[48px] w-[48px] cursor-pointer items-center justify-center rounded-none border-0 bg-transparent text-xl transition-transform hover:animate-spin"
+      className="flex w-[48px] cursor-pointer items-center justify-center rounded-none border-0 bg-transparent text-xl transition-transform hover:animate-spin"
     >
       <Die className="die" />
     </Button>

@@ -68,6 +68,7 @@ type Props = {
   aggregation?: boolean;
   isEmptyDomain?: boolean;
   openTime?: number | null;
+  forceAutoZoom?: boolean;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -88,6 +89,7 @@ const MultipleChoiceChart: FC<Props> = ({
   aggregation,
   isEmptyDomain,
   openTime,
+  forceAutoZoom,
 }) => {
   const t = useTranslations();
   const {
@@ -131,6 +133,7 @@ const MultipleChoiceChart: FC<Props> = ({
         hideCP,
         isAggregationsEmpty: isEmptyDomain,
         openTime,
+        forceAutoZoom,
       }),
     [
       timestamps,
@@ -146,9 +149,9 @@ const MultipleChoiceChart: FC<Props> = ({
       hideCP,
       isEmptyDomain,
       openTime,
+      forceAutoZoom,
     ]
   );
-
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
     return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
@@ -410,6 +413,7 @@ function buildChartData({
   hideCP,
   isAggregationsEmpty,
   openTime,
+  forceAutoZoom,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -424,6 +428,7 @@ function buildChartData({
   hideCP?: boolean;
   isAggregationsEmpty?: boolean;
   openTime?: number | null;
+  forceAutoZoom?: boolean;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -646,6 +651,7 @@ function buildChartData({
     minValues: areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
     maxValues: areas.map((a) => ({ timestamp: a.x, y: a.y })),
     includeClosestBoundOnZoom: questionType === QuestionType.Binary,
+    forceAutoZoom,
   });
   const yScale = generateScale({
     displayType: questionType,

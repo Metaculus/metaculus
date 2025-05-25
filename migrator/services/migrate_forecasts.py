@@ -213,7 +213,11 @@ def migrate_metaculus_predictions():
         )
         question_id = mp_data["question_id"]
         question = questions_dict.get(question_id, None)
-        if not question or question.type not in ["numeric", "date"]:
+        if not question or question.type not in [
+            Question.QuestionType.NUMERIC,
+            Question.QuestionType.DATE,
+            Question.QuestionType.DISCRETE,
+        ]:
             continue
         user_forecasts = question.user_forecasts.all()
         open_lower = question.open_lower_bound

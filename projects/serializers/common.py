@@ -37,7 +37,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "emoji", "section", "type")
+        fields = ("id", "name", "slug", "emoji", "type")
 
 
 class TournamentShortSerializer(serializers.ModelSerializer):
