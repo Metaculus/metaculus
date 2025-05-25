@@ -5,12 +5,30 @@ from users.models import User
 from utils.dtypes import setdefaults_not_null
 
 
-def create_question(*, question_type: Question.QuestionType, **kwargs) -> Question:
+def create_question(**kwargs) -> Question:
     """
     Question factory
+    if "question" is given, will just update question with any additional properties
     """
+    question_type = kwargs.pop("question_type", None)
+    if question := kwargs.pop("question", None):
+        for key, val in kwargs.items():
+            setattr(question, key, val)
+        question.type = question_type or question.type
+        question.save()
+    else:
+        question = G(
+            Question,
+            **setdefaults_not_null(
+                kwargs,
+                type=question_type or Question.QuestionType.BINARY,
+            ),
+        )
+    if not question.get_post():
+        from tests.unit.test_posts.factories import factory_post
 
-    return G(Question, **setdefaults_not_null(kwargs, type=question_type))
+        factory_post(question=question)
+    return question
 
 
 def factory_group_of_questions(
@@ -20,7 +38,7 @@ def factory_group_of_questions(
         GroupOfQuestions,
         **setdefaults_not_null(
             kwargs,
-        )
+        ),
     )
 
     questions = questions or []
@@ -38,7 +56,7 @@ def create_conditional(
     condition_child: Question = None,
     question_yes: Question = None,
     question_no: Question = None,
-    **kwargs
+    **kwargs,
 ):
     return G(
         Conditional,
@@ -48,7 +66,7 @@ def create_conditional(
             condition_child=condition_child,
             question_yes=question_yes,
             question_no=question_no,
-        )
+        ),
     )
 
 
@@ -59,7 +77,7 @@ def factory_forecast(*, author: User = None, question: Question = None, **kwargs
             kwargs,
             author=author,
             question=question,
-        )
+        ),
     )
 
     f.post.update_forecasts_count()

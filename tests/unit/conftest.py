@@ -75,7 +75,7 @@ def create_client_for_user() -> Callable[[User | None], APIClient]:
 
 @pytest.fixture()
 def anon_client(
-    create_client_for_user: Callable[[User | None], APIClient]
+    create_client_for_user: Callable[[User | None], APIClient],
 ) -> APIClient:
     return create_client_for_user(None)
 
@@ -85,6 +85,13 @@ def user1_client(
     create_client_for_user: Callable[[User | None], APIClient], user1: User
 ) -> APIClient:
     return create_client_for_user(user1)
+
+
+@pytest.fixture
+def user_admin_client(
+    create_client_for_user: Callable[[User | None], APIClient], user_admin: User
+) -> APIClient:
+    return create_client_for_user(user_admin)
 
 
 @pytest.fixture
