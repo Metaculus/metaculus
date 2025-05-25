@@ -521,7 +521,7 @@
   "Tournament": "Tournament",
   "QuestionSeries": "Question Series",
   "Archive": "Archive",
-  "prizePool": "prize pool",
+  "prizePool": "Prize Pool",
   "prize": "Prize",
   "percentPrize": "% Prize",
   "questionCount": "{count, plural, =1 {# Question} other {# Questions} }",

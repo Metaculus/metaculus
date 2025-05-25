@@ -82,7 +82,12 @@ def get_timestamp(row_values, field_name, default_time="00:00:00"):
 
 def get_type(row_values):
     value_str = row_values["type"]
-    if value_str not in ["binary", "numeric", "multiple_choice"]:
+    if value_str not in [
+        Question.QuestionType.BINARY,
+        Question.QuestionType.MULTIPLE_CHOICE,
+        Question.QuestionType.NUMERIC,
+        Question.QuestionType.DISCRETE,
+    ]:
         raise ValueError("Unknown value for the question type")
     return value_str
 
@@ -255,10 +260,13 @@ def submit_questions(
                 question_fields = list(common_fields)
                 author = get_author(row_values)
 
-                if question_type == "numeric":
+                if question_type in [
+                    Question.QuestionType.NUMERIC,
+                    Question.QuestionType.DISCRETE,
+                ]:
                     question_fields += numeric_q_fields
 
-                if question_type == "multiple_choice":
+                if question_type == Question.QuestionType.MULTIPLE_CHOICE:
                     question_fields += multiple_choice_q_fields
 
                 for field_name, field_get_value_fn in question_fields:
