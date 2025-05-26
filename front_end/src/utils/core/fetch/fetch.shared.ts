@@ -59,7 +59,14 @@ export const handleResponse = async <T>(
     return null as T;
   }
 
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    logError(error, {
+      payload: text,
+    });
+    throw error;
+  }
 };
 
 type FetchInitializer = <T>(
