@@ -1246,5 +1246,6 @@
   "indexTimeline": "Cronologia do índice",
   "inTheNews": "Nas Notícias",
   "fileSizeExceedsLimit": "O tamanho do arquivo excede o limite de {value}MB",
-  "errorUploadingImage": "Falha ao fazer o upload da imagem"
+  "errorUploadingImage": "Falha ao fazer o upload da imagem",
+  "emptyCommentField": "O campo de comentário não pode estar vazio"
 }

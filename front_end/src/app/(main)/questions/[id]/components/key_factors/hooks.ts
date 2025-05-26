@@ -129,6 +129,7 @@ export const useKeyFactors = ({
       return {
         error:
           errors?.message ??
+          errors?.text ??
           errors?.non_field_errors?.[0] ??
           "" + comment.errors,
       };
