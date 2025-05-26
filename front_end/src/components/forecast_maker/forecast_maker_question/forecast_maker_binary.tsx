@@ -88,10 +88,7 @@ const ForecastMakerBinary: FC<Props> = ({
   const {
     modalSavedState,
     setModalSavedState,
-    userExpirationPercent,
-    userDefaultExpirationDurationStr,
     expirationShortChip,
-    expiryDate,
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
     previousForecastExpirationString,
@@ -99,7 +96,7 @@ const ForecastMakerBinary: FC<Props> = ({
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const handlePredictSubmit = async () => {
+  const handlePredictSubmit = async (forecastEndTime: Date | null) => {
     setSubmitError(undefined);
 
     if (forecast === null) return;
@@ -115,7 +112,7 @@ const ForecastMakerBinary: FC<Props> = ({
           probabilityYes: forecastValue,
           probabilityYesPerCategory: null,
         },
-        forecastEndTime: expiryDate ?? undefined,
+        forecastEndTime: forecastEndTime ?? undefined,
       },
     ]);
     setIsForecastDirty(false);
@@ -160,8 +157,8 @@ const ForecastMakerBinary: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        userForecastExpirationPercent={userExpirationPercent}
-        userForecastExpirationDurationStr={userDefaultExpirationDurationStr}
+        onReaffirm={hasUserForecast && !isForecastDirty ? submit : undefined}
+        questionDuration={questionDuration}
       />
 
       <BinarySlider
@@ -200,7 +197,7 @@ const ForecastMakerBinary: FC<Props> = ({
                   hasUserForecast={hasUserForecast}
                   isDirty={isForecastDirty}
                   isPending={isPending}
-                  onSubmit={submit}
+                  onSubmit={() => submit(modalSavedState.expiryDate)}
                   predictLabel={t("predict")}
                   predictionExpirationChip={expirationShortChip}
                   onPredictionExpirationClick={() =>
