@@ -1295,5 +1295,6 @@
   "useAccountSettingDescription": "這是基於設定 {userForecastExpirationPercent}% 的問題總持續時間。",
   "change": "變更",
   "expirationHelpText": "當剩下大約 5% 的持續時間時，您將收到提醒更新的通知電子郵件。",
-  "defaultExpirationSettingText": "預設情況下，我的預測在問題壽命的百分比後過期"
+  "defaultExpirationSettingText": "預設情況下，我的預測在問題壽命的百分比後過期",
+  "predictionsSettingsLabel": "預測"
 }
