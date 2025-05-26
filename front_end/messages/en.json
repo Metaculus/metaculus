@@ -1244,5 +1244,6 @@
   "metadata": "Metadata",
   "indexTimeline": "Index Timeline",
   "fileSizeExceedsLimit": "File size exceeds {value}MB limit",
-  "errorUploadingImage": "Failed to upload image"
+  "errorUploadingImage": "Failed to upload image",
+  "emptyCommentField": "Comment field might not be empty"
 }

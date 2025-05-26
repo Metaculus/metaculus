@@ -1248,5 +1248,6 @@
   "indexTimeline": "Časová osa indexu",
   "inTheNews": "Ve zprávách",
   "fileSizeExceedsLimit": "Velikost souboru překračuje limit {value}MB",
-  "errorUploadingImage": "Nepodařilo se nahrát obrázek"
+  "errorUploadingImage": "Nepodařilo se nahrát obrázek",
+  "emptyCommentField": "Pole pro komentář nesmí být prázdné"
 }
