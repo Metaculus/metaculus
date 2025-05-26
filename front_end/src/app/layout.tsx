@@ -98,6 +98,15 @@ export default async function RootLayout({
               });
             `}
         </Script>
+
+        {/* Enable CookieBot banner */}
+        <Script
+          id="Cookiebot"
+          src="https://consent.cookiebot.com/uc.js"
+          data-cbid="2c9ddca1-3390-44a1-8822-647196373686"
+          data-blockingmode="auto"
+          strategy="lazyOnload"
+        />
       </head>
       <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
         <PolyfillProvider>
