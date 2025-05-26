@@ -1,0 +1,142 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
+import { safeLocalStorage } from "@/utils/core/storage";
+
+import {
+  getCookiebotConsent,
+  useCookiebotBannerListenersHook,
+  submitCookiebotConsent,
+} from "./cookiebot";
+
+const STORAGE_KEY = "all_cookies_consent";
+
+export type CookiesSettings = {
+  necessary: boolean;
+  preferences: boolean;
+  statistics: boolean;
+  marketing: boolean;
+};
+
+type CookiesContextType = {
+  cookiesConsent: CookiesSettings | null;
+  saveCookiesConsent: (settings: CookiesSettings) => void;
+  isModalOpen: boolean;
+  isBannerVisible: boolean;
+  setIsBannerVisible: (visible: boolean) => void;
+  openModal: () => void;
+  closeModal: () => void;
+};
+
+const CookiesContext = createContext<CookiesContextType | undefined>(undefined);
+
+export const useCookiesContext = () => {
+  const context = useContext(CookiesContext);
+  if (context === undefined) {
+    throw new Error("useCookiesContext must be used within a CookiesProvider");
+  }
+  return context;
+};
+
+function onConsentUpdated(cookiesConsent: CookiesSettings | null) {
+  posthog.set_config({
+    persistence: cookiesConsent?.statistics ? "localStorage+cookie" : "memory",
+  });
+
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("consent", "update", {
+      analytics_storage: cookiesConsent?.statistics ? "granted" : "denied",
+    });
+  }
+}
+export function getSavedCookiesConsent(): CookiesSettings | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const val = safeLocalStorage.getItem(STORAGE_KEY);
+  const localConsent = val ? JSON.parse(val) : null;
+
+  // If we have a Cookiebot consent, we use that, otherwise we use the local storage.
+  // We instantiate the app sometimes without Cookiebot, so we need to use the local storage.
+  return getCookiebotConsent() || localConsent;
+}
+
+export function getCookiesConsentStatistics(): boolean {
+  const consent = getSavedCookiesConsent();
+  return !!consent?.statistics;
+}
+
+function CookiesProvider({ children }: { children: ReactNode }) {
+  const [cookiesConsent, setConsentGiven] = useState<CookiesSettings | null>(
+    null
+  );
+  const router = useRouter();
+  const [isBannerVisible, setIsBannerVisible] = useState(false);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useCookiebotBannerListenersHook(() => {
+    // If the user has interacted with the banner, we need to update state on our side too
+    const newConsent = getSavedCookiesConsent();
+    setIsBannerVisible(false);
+    setConsentGiven(newConsent);
+    onConsentUpdated(newConsent);
+  });
+
+  useEffect(() => {
+    setTimeout(() => {
+      // We do this to give Cookiebot time to initialize, as we cannot read the consent right away
+      // During that time our banner is hidden
+      const consent = getSavedCookiesConsent();
+      setConsentGiven(consent);
+
+      if (!consent) {
+        // Make the banner visible if we don't have consent and we've given Cookiebot time to initialize
+        setIsBannerVisible(true);
+      }
+    }, 1500);
+  }, []);
+
+  const saveCookiesConsent = (newConsent: CookiesSettings) => {
+    safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(newConsent));
+
+    submitCookiebotConsent(newConsent);
+
+    closeModal();
+    setConsentGiven(newConsent);
+    onConsentUpdated(newConsent);
+    setIsBannerVisible(false);
+    router.refresh();
+  };
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
+  const contextValue: CookiesContextType = {
+    cookiesConsent,
+    saveCookiesConsent,
+    isBannerVisible,
+    setIsBannerVisible,
+    isModalOpen,
+    openModal,
+    closeModal,
+  };
+
+  return (
+    <CookiesContext.Provider value={contextValue}>
+      {children}
+    </CookiesContext.Provider>
+  );
+}
+
+export default CookiesProvider;
