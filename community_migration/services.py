@@ -193,9 +193,9 @@ def migrate_users():
 
         registry.add(old_user.id, new_user)
 
-    migrate_table(Token, exclude=["id"])
+    migrate_table(Token, exclude=["id"], ignore_conflicts=True)
     migrate_table(Partial, exclude=["id"])
-    migrate_table(UserSocialAuth, exclude=["id"])
+    migrate_table(UserSocialAuth, exclude=["id"], ignore_conflicts=True)
 
 
 def migrate_projects():
