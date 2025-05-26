@@ -37,22 +37,22 @@ type Preset = { id: string; label: string; duration?: Duration };
 const buildExpiryDate = (
   option: "account" | "custom",
   customExpiryDate: Date | null,
-  durationFromNowMs: number | null,
+  durationFromNowSec: number | null,
   selectedPreset: Preset | undefined
 ) => {
   const today = new Date();
 
   if (option === "account") {
-    return durationFromNowMs
-      ? new Date(today.getTime() + durationFromNowMs)
+    return durationFromNowSec
+      ? new Date(today.getTime() + durationFromNowSec * 1000)
       : null;
   }
 
-  if (option === "custom" && selectedPreset?.id === "customDate") {
+  if (selectedPreset?.id === "customDate") {
     return customExpiryDate;
   }
 
-  if (option === "custom" && selectedPreset?.id === "neverExpires") {
+  if (selectedPreset?.id === "neverExpires") {
     return null;
   }
 
@@ -131,9 +131,7 @@ export const useExpirationModalState = (
   const finalExpiryDate = buildExpiryDate(
     modalSavedState.option,
     modalSavedState.expiryDate,
-    userDefaultExpirationDurationSec
-      ? userDefaultExpirationDurationSec * 1000
-      : null,
+    userDefaultExpirationDurationSec ?? null,
     presetDurations.find((p) => p.id === modalSavedState.selectedPreset)
   );
 
@@ -164,9 +162,17 @@ export const useExpirationModalState = (
     });
 
     previousForecastExpirationString = formatDuration(
-      lastForecastExpiryDuration,
+      truncateDuration(lastForecastExpiryDuration, 2),
       {
-        format: ["years", "months", "weeks", "days", "hours"],
+        format: [
+          "years",
+          "months",
+          "weeks",
+          "days",
+          "hours",
+          "minutes",
+          "seconds",
+        ],
       }
     );
   }
