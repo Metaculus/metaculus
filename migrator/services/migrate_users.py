@@ -147,7 +147,7 @@ def delete_orphan_users(batch_size=10_000):
     for rel in opts.get_fields():
         if rel.auto_created and not rel.concrete and (rel.one_to_many or rel.one_to_one):
             tbl = rel.related_model._meta.db_table
-            if tbl == "social_auth_usersocialauth":
+            if tbl in ("social_auth_usersocialauth", "authtoken_token"):
                 continue
             fks.append((tbl, rel.field.column))
 
@@ -180,6 +180,12 @@ def delete_orphan_users(batch_size=10_000):
                       DELETE FROM social_auth_usersocialauth s
                        USING orphan o
                       WHERE s.user_id = o.id
+                    ),
+                    -- Any tokens
+                    deleted_tokens AS (
+                      DELETE FROM authtoken_token t
+                       USING orphan o
+                      WHERE t.user_id = o.id
                     )
                     -- then delete the users themselves
                     DELETE FROM {user_table} u
