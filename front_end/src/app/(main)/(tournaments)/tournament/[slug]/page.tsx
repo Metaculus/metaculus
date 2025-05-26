@@ -66,9 +66,13 @@ export default async function TournamentSlug(props: Props) {
   invariant(tournament, `Tournament not found: ${params.slug}`);
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const currentUser = await ServerProfileApi.getMyProfile();
-  const predictionFlowPosts = !isNil(currentUser)
-    ? await ServerPostsApi.getTournamentForecastFlowPosts(params.slug)
-    : [];
+  const isForecastsFlowEnabled =
+    tournament.forecasts_flow_enabled &&
+    !tournament.timeline.all_questions_closed;
+  const predictionFlowPosts =
+    isForecastsFlowEnabled && !isNil(currentUser)
+      ? await ServerPostsApi.getTournamentForecastFlowPosts(params.slug)
+      : [];
   const t = await getTranslations();
   const isQuestionSeries = tournament.type === TournamentType.QuestionSeries;
   const questionsTitle = isQuestionSeries
