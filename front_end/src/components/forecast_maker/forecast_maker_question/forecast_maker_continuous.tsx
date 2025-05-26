@@ -44,16 +44,16 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import PredictionSuccessBox from "./prediction_success_box";
 import ContinuousInput from "../continuous_input";
 import {
+  ForecastExpirationModal,
+  useExpirationModalState,
+} from "../forecast_expiration_modal";
+import {
   validateAllQuantileInputs,
   validateUserQuantileData,
 } from "../helpers";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
-import {
-  ForecastExpirationModal,
-  useExpirationModalState,
-} from "../forecast_expiration_modal";
 
 type Props = {
   post: PostWithForecasts;
@@ -282,10 +282,8 @@ const ForecastMakerContinuous: FC<Props> = ({
     userExpirationPercent,
     userDefaultExpirationDurationStr,
     expirationShortChip,
-    expiryDate,
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
-    previousForecastExpirationString,
   } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
 
   const handlePredictWithdraw = async () => {

@@ -9,6 +9,7 @@ import {
 } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, useState, useRef } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
@@ -21,7 +22,6 @@ import {
 
 import BaseModal from "../base_modal";
 import Button from "../ui/button";
-import { useFeatureFlagEnabled, usePostHog } from "posthog-js/react";
 
 interface ForecastExpirationModalProps {
   isOpen: boolean;
