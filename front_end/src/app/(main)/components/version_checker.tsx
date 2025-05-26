@@ -7,7 +7,7 @@ import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { logError } from "@/utils/core/errors";
 
-const POLLING_INTERVAL = 1000 * 60 * 5; //  5 minutes
+const POLLING_INTERVAL = 1000 * 30; //  30 seconds
 
 const VersionChecker: FC = () => {
   const router = useRouter();
