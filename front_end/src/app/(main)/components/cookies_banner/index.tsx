@@ -7,6 +7,7 @@ import posthog from "posthog-js";
 import { FC, useEffect, useState } from "react";
 
 import Button from "@/components/ui/button";
+import { safeLocalStorage } from "@/utils/core/storage";
 
 import CookiesModal from "./cookies_modal";
 
@@ -49,7 +50,7 @@ const CookiesBanner: FC = () => {
       : analyticsCheckboxValue
         ? "yes"
         : "no";
-    localStorage.setItem(STORAGE_KEY, consentValue);
+    safeLocalStorage.setItem(STORAGE_KEY, consentValue);
     setConsentGiven(consentValue);
     router.refresh();
   };
@@ -110,13 +111,9 @@ const CookiesBanner: FC = () => {
 };
 
 export function getAnalyticsCookieConsentGiven(): ConsentGiven {
-  try {
-    const consentGiven = localStorage.getItem(STORAGE_KEY);
+  const consentGiven = safeLocalStorage.getItem(STORAGE_KEY);
 
-    return consentGiven ? (consentGiven as ConsentGiven) : "undecided";
-  } catch {
-    return "undecided";
-  }
+  return consentGiven ? (consentGiven as ConsentGiven) : "undecided";
 }
 
 export default CookiesBanner;

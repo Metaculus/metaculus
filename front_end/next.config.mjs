@@ -17,6 +17,9 @@ const nextConfig = {
       static: 180,
     },
     serverSourceMaps: true,
+    serverActions: {
+      bodySizeLimit: "3mb", // match GIF size limit on the server
+    },
   },
   images: {
     remotePatterns: [
@@ -77,7 +80,14 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  webpack: (config, { buildId }) => {
+  webpack: (config, { buildId, webpack }) => {
+    // propagate buildId to environment so we could trigger prompt message on outdated version
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        "process.env.BUILD_ID": JSON.stringify(buildId),
+      })
+    );
+
     config.output.filename = config.output.filename.replace(
       "[chunkhash]",
       buildId

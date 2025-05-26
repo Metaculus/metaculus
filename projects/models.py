@@ -283,22 +283,6 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         default=list, blank=True, help_text="Used during tournament onboarding."
     )
 
-    # Topic-specific fields
-    # TODO: deprecate during the frontend integration
-    section = models.CharField(
-        max_length=32,
-        choices=SectionTypes.choices,
-        default=None,
-        null=True,
-        blank=True,
-        help_text="This groups topics together under the same section in the sidebar. ",
-    )
-    section.system_check_deprecated_details = dict(
-        msg="The Project.section field has been deprecated.",
-        hint="Use SidebarItem to place project into the sidebar.",
-        id="Project.section",
-    )
-
     # SEO
     meta_description = models.TextField(blank=True, default="")
 

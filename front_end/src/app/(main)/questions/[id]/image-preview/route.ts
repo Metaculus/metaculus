@@ -47,7 +47,9 @@ export async function GET(
         `Screenshot service failed. code=${screenshotResponse.status}, response=${errorText}`
       );
       logError(
-        `Screenshot service failed. code=${screenshotResponse.status}, response=${errorText}`
+        new Error(
+          `Screenshot service failed. code=${screenshotResponse.status}, response=${errorText}`
+        )
       );
       return NextResponse.json(
         { error: "Failed to generate a question image." + errorText },

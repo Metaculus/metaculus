@@ -57,24 +57,26 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     "x-pass-auth",
     "x-include-locale",
   ];
-  const requestHeaders: HeadersInit = {
+
+  const requestHeaders: HeadersInit = new Headers({
     ...Object.fromEntries(
       Array.from(request.headers.entries()).filter(
         ([key]) => !blocklistHeaders.includes(key.toLowerCase())
       )
     ),
-    "Accept-Language": locale,
-  };
+  });
 
-  if (emptyContentType && "Content-Type" in requestHeaders) {
-    delete requestHeaders["Content-Type"];
+  requestHeaders.set("Accept-Language", locale);
+
+  if (emptyContentType && requestHeaders.has("Content-Type")) {
+    requestHeaders.delete("Content-Type");
   }
 
   if (authToken) {
-    requestHeaders["Authorization"] = `Token ${authToken}`;
+    requestHeaders.set("Authorization", `Token ${authToken}`);
   }
   if (alphaToken) {
-    requestHeaders["x-alpha-auth-token"] = alphaToken;
+    requestHeaders.set("x-alpha-auth-token", alphaToken);
   }
 
   const response = await fetch(targetUrl, {

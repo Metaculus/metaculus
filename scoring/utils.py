@@ -1,9 +1,9 @@
 import csv
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from io import StringIO
-import logging
 
 import numpy as np
 from django.db import transaction
@@ -30,6 +30,7 @@ from sql_util.aggregates import SubqueryAggregate
 from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
+from projects.permissions import ObjectPermission
 from questions.models import Question, Forecast, QuestionPost
 from questions.types import AggregationMethod
 from scoring.models import (
@@ -45,7 +46,6 @@ from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
-from projects.permissions import ObjectPermission
 
 logger = logging.getLogger(__name__)
 
@@ -884,7 +884,7 @@ def get_contributions(
         min_score = contributions[int(h_index)].score if contributions else 0
         return [c for c in contributions if c.score >= min_score]
 
-    questions = leaderboard.get_questions()
+    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
         return get_contribution_question_writing(user, leaderboard, questions)

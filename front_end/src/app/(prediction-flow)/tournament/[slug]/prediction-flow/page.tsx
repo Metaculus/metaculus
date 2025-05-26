@@ -30,7 +30,11 @@ export default async function PredictionFlow(props: Props) {
   if (!tournament) {
     return notFound();
   }
-  if (!user || !tournament.forecasts_flow_enabled) {
+  if (
+    !user ||
+    !tournament.forecasts_flow_enabled ||
+    tournament.timeline.all_questions_closed
+  ) {
     return redirect(`/tournament/${params.slug}`);
   }
 
