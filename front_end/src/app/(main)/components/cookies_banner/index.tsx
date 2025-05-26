@@ -11,51 +11,77 @@ import { safeLocalStorage } from "@/utils/core/storage";
 
 import CookiesModal from "./cookies_modal";
 
-type ConsentGiven = "yes" | "no" | "undecided";
+const STORAGE_KEY = "all_cookies_consent";
 
-const STORAGE_KEY = "analytic_cookies_consent";
+export type CookiesSettings = {
+  necessary: boolean;
+  preferences: boolean;
+  statistics: boolean;
+  marketing: boolean;
+};
 
 const CookiesBanner: FC = () => {
   const t = useTranslations();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [consentGiven, setConsentGiven] = useState<ConsentGiven | null>(null);
+  const [consentGiven, setConsentGiven] = useState<
+    CookiesSettings | null | "loadingConsent"
+  >("loadingConsent");
   const router = useRouter();
-  const [analyticsCheckboxValue, setAnalyticsCheckboxValue] =
-    useState<boolean>(true);
+
+  const [cookiesUISettings, setCookiesUISettings] = useState<CookiesSettings>({
+    necessary: true,
+    preferences: true,
+    statistics: true,
+    marketing: true,
+  });
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
   useEffect(() => {
-    setConsentGiven(getAnalyticsCookieConsentGiven());
+    setTimeout(() => {
+      // Give time to Cookiebot to initialize, if using that
+      const consent = getCookiesConset();
+      setConsentGiven(consent);
+      console.log("Elis -- CookiesBanner:  setting consent given", consent);
+    }, 2000);
   }, []);
 
   useEffect(() => {
-    if (consentGiven !== null) {
+    if (consentGiven !== "loadingConsent") {
       posthog.set_config({
-        persistence: consentGiven === "yes" ? "localStorage+cookie" : "memory",
+        persistence: consentGiven?.statistics
+          ? "localStorage+cookie"
+          : "memory",
       });
 
       if (typeof window !== "undefined" && window.gtag) {
         window.gtag("consent", "update", {
-          analytics_storage: consentGiven === "yes" ? "granted" : "denied",
+          analytics_storage: consentGiven?.statistics ? "granted" : "denied",
         });
       }
     }
   }, [consentGiven]);
 
-  const submitBanner = (necessaryOnly?: boolean) => {
-    const consentValue = necessaryOnly
-      ? "no"
-      : analyticsCheckboxValue
-        ? "yes"
-        : "no";
-    safeLocalStorage.setItem(STORAGE_KEY, consentValue);
-    setConsentGiven(consentValue);
+  const submitBanner = (settings?: CookiesSettings) => {
+    const settingsToSubmit = settings || cookiesUISettings;
+
+    safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(settingsToSubmit));
+
+    // if Cookiebot is available, submit it there too
+    if (window.Cookiebot && window.Cookiebot.submitCustomConsent) {
+      window.Cookiebot?.submitCustomConsent(
+        settingsToSubmit.preferences,
+        settingsToSubmit.statistics,
+        settingsToSubmit.marketing
+      );
+    }
+    setConsentGiven(settingsToSubmit);
     router.refresh();
   };
 
-  if (consentGiven !== "undecided") {
+  if (consentGiven !== null) {
     return null;
   }
 
@@ -83,7 +109,14 @@ const CookiesBanner: FC = () => {
           <div className="flex gap-2">
             <Button
               className="whitespace-nowrap"
-              onClick={() => submitBanner(true)}
+              onClick={() =>
+                submitBanner({
+                  necessary: true,
+                  preferences: false,
+                  statistics: false,
+                  marketing: false,
+                })
+              }
             >
               {t("necessaryOnly")}
             </Button>
@@ -92,7 +125,14 @@ const CookiesBanner: FC = () => {
           <Button
             className="whitespace-nowrap"
             variant="primary"
-            onClick={() => submitBanner()}
+            onClick={() =>
+              submitBanner({
+                necessary: true,
+                preferences: true,
+                statistics: true,
+                marketing: true,
+              })
+            }
           >
             {t("acceptAndClose")}
           </Button>
@@ -102,18 +142,46 @@ const CookiesBanner: FC = () => {
       <CookiesModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        analyticsValue={analyticsCheckboxValue}
-        onAnalyticsValueChange={setAnalyticsCheckboxValue}
-        onSubmit={submitBanner}
+        cookiesSettingsValue={cookiesUISettings}
+        onCookiesSettingsChange={setCookiesUISettings}
+        onSubmit={() => submitBanner()}
       />
     </div>
   );
 };
 
-export function getAnalyticsCookieConsentGiven(): ConsentGiven {
-  const consentGiven = safeLocalStorage.getItem(STORAGE_KEY);
+export function getCookiesConset(): CookiesSettings | null {
+  const val = safeLocalStorage.getItem(STORAGE_KEY);
+  const localConsent = val ? JSON.parse(val) : null;
 
-  return consentGiven ? (consentGiven as ConsentGiven) : "undecided";
+  console.log(
+    "Elis -- getCookiesConset1: ",
+    localConsent,
+    window.Cookiebot?.hasResponse
+  );
+
+  // if Cookiebot is not available, use the local consent
+  if (!window.Cookiebot?.hasResponse) {
+    return localConsent;
+  }
+
+  console.log("Elis -- getCookiesConset2: ", window.Cookiebot.consent);
+
+  return {
+    necessary: window.Cookiebot.consent.necessary,
+    preferences: window.Cookiebot.consent.preferences,
+    statistics: window.Cookiebot.consent.statistics,
+    marketing: window.Cookiebot.consent.marketing,
+  };
+}
+
+export function getCookiesConsentStatistics(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const consent = getCookiesConset();
+  return !!consent?.statistics;
 }
 
 export default CookiesBanner;

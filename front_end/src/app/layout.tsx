@@ -98,6 +98,17 @@ export default async function RootLayout({
               });
             `}
         </Script>
+
+        {/* Add the Cookiebot script if the ID is set */}
+        {!!publicSettings.PUBLIC_COOKIEBOT_ID && (
+          <Script
+            id="Cookiebot"
+            src="https://consent.cookiebot.com/uc.js"
+            data-cbid={publicSettings.PUBLIC_COOKIEBOT_ID}
+            data-blockingmode="auto"
+            strategy="lazyOnload"
+          />
+        )}
       </head>
       <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
         <PolyfillProvider>

@@ -3,7 +3,7 @@ import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { ReactNode, useEffect } from "react";
 
-import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
+import { getCookiesConsentStatistics } from "@/app/(main)/components/cookies_banner";
 import SuspendedPostHogPageView from "@/components/posthog_page_view";
 import { getPublicSetting } from "@/components/public_settings_script";
 
@@ -26,10 +26,9 @@ function CSPostHogProvider({
         person_profiles: "always",
         // Disable automatic pageview capture, as we capture manually
         capture_pageview: false,
-        persistence:
-          getAnalyticsCookieConsentGiven() === "yes"
-            ? "localStorage+cookie"
-            : "memory",
+        persistence: getCookiesConsentStatistics()
+          ? "localStorage+cookie"
+          : "memory",
       });
     }
   }, []);

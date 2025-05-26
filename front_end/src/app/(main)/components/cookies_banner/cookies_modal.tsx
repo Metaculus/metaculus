@@ -6,20 +6,21 @@ import { FC } from "react";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
+import { CookiesSettings } from ".";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  analyticsValue: boolean;
-  onAnalyticsValueChange: (value: boolean) => void;
+  cookiesSettingsValue: CookiesSettings;
+  onCookiesSettingsChange: (value: CookiesSettings) => void;
   onSubmit: () => void;
 };
 
 const CookiesModal: FC<Props> = ({
   isOpen,
   onClose,
-  analyticsValue,
-  onAnalyticsValueChange,
+  cookiesSettingsValue,
+  onCookiesSettingsChange,
   onSubmit,
 }) => {
   const t = useTranslations();
@@ -53,13 +54,52 @@ const CookiesModal: FC<Props> = ({
         <li className="flex flex-row items-center justify-between gap-3 px-3 py-2">
           <div className="flex flex-row items-center gap-1.5">
             <Checkbox
-              label={t("analytics")}
-              checked={analyticsValue}
-              onChange={onAnalyticsValueChange}
+              label={t("preferences")}
+              checked={cookiesSettingsValue.preferences}
+              onChange={() =>
+                onCookiesSettingsChange({
+                  ...cookiesSettingsValue,
+                  preferences: !cookiesSettingsValue.preferences,
+                })
+              }
             />
           </div>
           <div className="text-right text-gray-500 dark:text-gray-500-dark">
-            {t("helpsImprovePlatform")}
+            {t("cookiesPreferencesDescription")}
+          </div>
+        </li>
+        <li className="flex flex-row items-center justify-between gap-3 px-3 py-2">
+          <div className="flex flex-row items-center gap-1.5">
+            <Checkbox
+              label={t("statistics")}
+              checked={cookiesSettingsValue.statistics}
+              onChange={() =>
+                onCookiesSettingsChange({
+                  ...cookiesSettingsValue,
+                  statistics: !cookiesSettingsValue.statistics,
+                })
+              }
+            />
+          </div>
+          <div className="text-right text-gray-500 dark:text-gray-500-dark">
+            {t("cookiesStatisticsDescription")}
+          </div>
+        </li>
+        <li className="flex flex-row items-center justify-between gap-3 px-3 py-2">
+          <div className="flex flex-row items-center gap-1.5">
+            <Checkbox
+              label={t("marketing")}
+              checked={cookiesSettingsValue.marketing}
+              onChange={() =>
+                onCookiesSettingsChange({
+                  ...cookiesSettingsValue,
+                  marketing: !cookiesSettingsValue.marketing,
+                })
+              }
+            />
+          </div>
+          <div className="text-right text-gray-500 dark:text-gray-500-dark">
+            {t("cookiesMarketingDescription")}
           </div>
         </li>
       </ul>
