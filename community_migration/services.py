@@ -22,10 +22,6 @@ from questions.services import build_question_forecasts
 from users.models import User
 
 FORPOL_DB = "forpol"
-lang_extra = {
-    "is_automatically_translated": False,
-    "content_original_lang": "cz",
-}
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +82,12 @@ def model_instance_to_dict(obj: models.Model, exclude: list[str] = None):
             continue
 
         # Skip _cs translated fields
-        if f.name.endswith("_cs") or f.name.endswith("_original"):
+        if f.name.endswith("_original"):
+            original_field = f.name.removesuffix("_original")
+
+            if hasattr(obj, original_field):
+                data[f.name] = getattr(obj, original_field)
+
             continue
 
         # handle ForeignKey
@@ -235,12 +236,10 @@ def migrate_posts():
     logger.info("Migrating Posts...")
 
     migrate_table(
-        Notebook,
-        extra=lang_extra,
+        Notebook
     )
     migrate_table(
-        GroupOfQuestions,
-        extra=lang_extra,
+        GroupOfQuestions
     )
 
     # migrate questions
@@ -249,9 +248,9 @@ def migrate_posts():
     # Some forpol questions were created after Rewrite release
     # So there are already collisions with Forpol & Rewrite instance Primary Keys
     # This is an attempt to keep old ids wherever it's possible
-    migrate_table(Question, generate_id_on_failure=True, extra=lang_extra)
+    migrate_table(Question, generate_id_on_failure=True)
 
-    migrate_table(Conditional, extra=lang_extra)
+    migrate_table(Conditional)
 
     old_posts_map = {}
 
@@ -264,7 +263,6 @@ def migrate_posts():
 
         data = {
             **model_instance_to_dict(old_post),
-            **lang_extra,
             "title": title,
             "title_original": title,
         }
@@ -300,7 +298,6 @@ def migrate_comments():
 
     migrate_table(
         Comment.objects.using(FORPOL_DB).order_by("created_at"),
-        extra=lang_extra,
         generate_id_on_failure=True,
     )
     migrate_table(CommentVote, exclude=["id"])
@@ -328,7 +325,8 @@ def after_migrate():
                 )
 
             if question.group_id:
-                question.label = extract_label_from_question(question)
+                label = extract_label_from_question(question)
+                question.label = question.label_original = label
                 question.save()
 
         # Ensure we don't duplicate default_project in Post.projects
@@ -377,4 +375,4 @@ def migrate():
 #   - Generate leaderboards/What to do with them?
 #   - Ensure no migrated objects actually use Project relation to ensure they won't use old IDs that now represent new entities in prod db
 #   - TODO: should we convert community Forecasters to Community Subscribers?
-#   - TODO: group question labels are broken (because or _original translations!)
+#   - TODO: trigger trigger_update_post_translations for newly created posts.
