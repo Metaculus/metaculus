@@ -4,4 +4,5 @@ export enum SubscriptionEmailType {
   cp_change = "cp_change",
   tournament_new_questions = "tournament_new_questions",
   newsletter = "newsletter",
+  forecasts_expiration = "forecasts_expiration",
 }

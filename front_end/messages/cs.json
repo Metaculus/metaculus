@@ -1265,5 +1265,6 @@
   "useAccountSettingDescription": "Toto je založeno na nastavení {userForecastExpirationPercent}% z celkové doby trvání otázky.",
   "change": "Změnit",
   "expirationHelpText": "Obdržíte notifikační email, který vám připomene aktualizaci, když zbývá přibližně 5% doby trvání.",
-  "defaultExpirationSettingText": "Výchozí stav je, že mé předpovědi vyprší po % doby trvání otázky"
+  "defaultExpirationSettingText": "Výchozí stav je, že mé předpovědi vyprší po % doby trvání otázky",
+  "predictionsSettingsLabel": "Předpovědi"
 }
