@@ -9,7 +9,6 @@ import {
 } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import { FC, useState, useRef } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
@@ -22,6 +21,7 @@ import {
 
 import BaseModal from "../base_modal";
 import Button from "../ui/button";
+import { useFeatureFlagEnabled, usePostHog } from "posthog-js/react";
 
 interface ForecastExpirationModalProps {
   isOpen: boolean;
@@ -92,6 +92,9 @@ export const useExpirationModalState = (
   const { user } = useAuth();
   const t = useTranslations();
   const presetDurations = getPresetDurations(t);
+  const isForecastExpirationEnabled = useFeatureFlagEnabled(
+    "forecast_expiration"
+  );
 
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
   const userDefaultExpirationDurationSec = userExpirationPercent
@@ -168,7 +171,7 @@ export const useExpirationModalState = (
     );
   }
 
-  if (!posthog.isFeatureEnabled("forecast_expiration")) {
+  if (!isForecastExpirationEnabled) {
     expirationShortChip = undefined;
     previousForecastExpirationString = undefined;
   }
