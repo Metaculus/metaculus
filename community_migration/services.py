@@ -371,6 +371,7 @@ def migrate():
 
 
 # TODO:
+#   - Use latest old-prod database, not backup!
 #   - Generate question vectors!
 #   - Generate leaderboards/What to do with them?
 #   - Ensure no migrated objects actually use Project relation to ensure they won't use old IDs that now represent new entities in prod db
