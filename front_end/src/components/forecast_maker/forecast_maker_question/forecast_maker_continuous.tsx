@@ -44,6 +44,10 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import PredictionSuccessBox from "./prediction_success_box";
 import ContinuousInput from "../continuous_input";
 import {
+  ForecastExpirationModal,
+  useExpirationModalState,
+} from "../forecast_expiration_modal";
+import {
   validateAllQuantileInputs,
   validateUserQuantileData,
 } from "../helpers";
@@ -218,6 +222,22 @@ const ForecastMakerContinuous: FC<Props> = ({
       actual_resolve_time: question.actual_resolve_time ?? null,
     });
 
+  const questionDuration =
+    new Date(question.scheduled_close_time).getTime() -
+    new Date(question.open_time ?? question.created_at).getTime();
+
+  const {
+    modalSavedState,
+    setModalSavedState,
+    userExpirationPercent,
+    userDefaultExpirationDurationStr,
+    expirationShortChip,
+    isForecastExpirationModalOpen,
+    setIsForecastExpirationModalOpen,
+    expiryDate,
+    previousForecastExpirationString,
+  } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
+
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
     sendPredictEvent(post, question, hideCP);
@@ -248,6 +268,7 @@ const ForecastMakerContinuous: FC<Props> = ({
           probabilityYes: null,
           probabilityYesPerCategory: null,
         },
+        forecastEndTime: expiryDate ?? undefined,
         distributionInput: {
           type: forecastInputMode,
           components:
@@ -325,63 +346,80 @@ const ForecastMakerContinuous: FC<Props> = ({
   if (canPredict) {
     SubmitControls = (
       <>
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
-          {!!user &&
-            forecastInputMode === ContinuousForecastInputType.Slider && (
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={handleAddComponent}
-              >
-                {t("addComponentButton")}
+        <div className="flex flex-col items-center justify-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
+            {!!user &&
+              forecastInputMode === ContinuousForecastInputType.Slider && (
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={handleAddComponent}
+                >
+                  {t("addComponentButton")}
+                </Button>
+              )}
+
+            {(forecastInputMode === ContinuousForecastInputType.Slider &&
+              isDirty) ||
+            (forecastInputMode === ContinuousForecastInputType.Quantile &&
+              Object.values(quantileDistributionComponents ?? []).some(
+                (value) => value?.isDirty === true
+              )) ? (
+              <Button variant="secondary" type="submit" onClick={handleDiscard}>
+                {t("discard")}
               </Button>
+            ) : (
+              !!activeForecast && (
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={withdrawalIsPending}
+                  onClick={withdraw}
+                >
+                  {t("withdraw")}
+                </Button>
+              )
             )}
 
-          {(forecastInputMode === ContinuousForecastInputType.Slider &&
-            isDirty) ||
-          (forecastInputMode === ContinuousForecastInputType.Quantile &&
-            Object.values(quantileDistributionComponents ?? []).some(
-              (value) => value?.isDirty === true
-            )) ? (
-            <Button variant="secondary" type="submit" onClick={handleDiscard}>
-              {t("discard")}
-            </Button>
-          ) : (
-            !!activeForecast && (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={withdrawalIsPending}
-                onClick={withdraw}
-              >
-                {t("withdraw")}
-              </Button>
-            )
-          )}
-
-          {forecastInputMode === ContinuousForecastInputType.Slider ? (
-            <PredictButton
-              onSubmit={submit}
-              isDirty={isDirty}
-              hasUserForecast={hasUserForecast}
-              isPending={isPending}
-              predictLabel={previousForecast ? undefined : t("predict")}
-            />
-          ) : (
-            <PredictButton
-              onSubmit={submit}
-              isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
-              hasUserForecast={hasUserForecast}
-              isPending={isPending}
-              predictLabel={previousForecast ? undefined : t("predict")}
-              isDisabled={
-                validateAllQuantileInputs({
-                  question,
-                  components: quantileDistributionComponents,
-                  t,
-                }).length !== 0 || !isNil(submitError)
-              }
-            />
+            {forecastInputMode === ContinuousForecastInputType.Slider ? (
+              <PredictButton
+                onSubmit={submit}
+                isDirty={isDirty}
+                hasUserForecast={hasUserForecast}
+                isPending={isPending}
+                predictLabel={previousForecast ? undefined : t("predict")}
+                predictionExpirationChip={expirationShortChip}
+                onPredictionExpirationClick={() =>
+                  setIsForecastExpirationModalOpen(true)
+                }
+              />
+            ) : (
+              <PredictButton
+                onSubmit={submit}
+                isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
+                hasUserForecast={hasUserForecast}
+                isPending={isPending}
+                predictLabel={previousForecast ? undefined : t("predict")}
+                predictionExpirationChip={expirationShortChip}
+                onPredictionExpirationClick={() =>
+                  setIsForecastExpirationModalOpen(true)
+                }
+                isDisabled={
+                  validateAllQuantileInputs({
+                    question,
+                    components: quantileDistributionComponents,
+                    t,
+                  }).length !== 0 || !isNil(submitError)
+                }
+              />
+            )}
+          </div>
+          {previousForecastExpirationString && (
+            <span className="text-xs text-salmon-800 dark:text-salmon-800-dark">
+              {t("predictionExpirationText", {
+                time: previousForecastExpirationString,
+              })}
+            </span>
           )}
         </div>
 
@@ -401,6 +439,16 @@ const ForecastMakerContinuous: FC<Props> = ({
 
   return (
     <>
+      <ForecastExpirationModal
+        savedState={modalSavedState}
+        setSavedState={setModalSavedState}
+        isOpen={isForecastExpirationModalOpen}
+        onClose={() => {
+          setIsForecastExpirationModalOpen(false);
+        }}
+        userForecastExpirationPercent={userExpirationPercent}
+        userForecastExpirationDurationStr={userDefaultExpirationDurationStr}
+      />
       <ContinuousInput
         question={question}
         dataset={dataset}
