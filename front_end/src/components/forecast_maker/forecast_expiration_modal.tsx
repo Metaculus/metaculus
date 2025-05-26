@@ -9,6 +9,7 @@ import {
 } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, useState, useRef } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
@@ -21,7 +22,6 @@ import {
 
 import BaseModal from "../base_modal";
 import Button from "../ui/button";
-import { useFeatureFlagEnabled, usePostHog } from "posthog-js/react";
 
 interface ForecastExpirationModalProps {
   isOpen: boolean;
@@ -37,22 +37,22 @@ type Preset = { id: string; label: string; duration?: Duration };
 const buildExpiryDate = (
   option: "account" | "custom",
   customExpiryDate: Date | null,
-  durationFromNowMs: number | null,
+  durationFromNowSec: number | null,
   selectedPreset: Preset | undefined
 ) => {
   const today = new Date();
 
   if (option === "account") {
-    return durationFromNowMs
-      ? new Date(today.getTime() + durationFromNowMs)
+    return durationFromNowSec
+      ? new Date(today.getTime() + durationFromNowSec * 1000)
       : null;
   }
 
-  if (option === "custom" && selectedPreset?.id === "customDate") {
+  if (selectedPreset?.id === "customDate") {
     return customExpiryDate;
   }
 
-  if (option === "custom" && selectedPreset?.id === "neverExpires") {
+  if (selectedPreset?.id === "neverExpires") {
     return null;
   }
 
@@ -178,9 +178,7 @@ export const useExpirationModalState = (
   const finalExpiryDate = buildExpiryDate(
     modalSavedState.option,
     modalSavedState.expiryDate,
-    userDefaultExpirationDurationSec
-      ? userDefaultExpirationDurationSec * 1000
-      : null,
+    userDefaultExpirationDurationSec ?? null,
     presetDurations.find((p) => p.id === modalSavedState.selectedPreset)
   );
 
@@ -211,9 +209,17 @@ export const useExpirationModalState = (
     });
 
     previousForecastExpirationString = formatDuration(
-      lastForecastExpiryDuration,
+      truncateDuration(lastForecastExpiryDuration, 2),
       {
-        format: ["years", "months", "weeks", "days", "hours"],
+        format: [
+          "years",
+          "months",
+          "weeks",
+          "days",
+          "hours",
+          "minutes",
+          "seconds",
+        ],
       }
     );
   }
@@ -282,7 +288,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={() => handleClose()}
-      className="h-full w-full max-w-3xl px-3 md:h-auto"
+      className="h-full w-full max-w-max px-3 md:h-auto"
     >
       <div className="flex flex-col gap-4 rounded bg-gray-0 p-6 dark:bg-gray-0-dark md:w-[628px]">
         <h2 className="text-lg font-medium leading-7 text-black dark:text-gray-100-dark">
@@ -305,7 +311,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
             </span>
 
             <div className="flex flex-1 flex-col gap-1">
-              <p className="text-base md:mt-0 md:leading-none">
+              <p className="my-0 text-base md:mt-0 md:leading-none">
                 {t("useAccountSetting")}
                 <span className="ml-1 font-medium">
                   (
@@ -315,7 +321,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                   )
                 </span>
               </p>
-              <p className="text-xs leading-none">
+              <p className="my-0 text-xs leading-none">
                 {t("useAccountSettingDescription", {
                   userForecastExpirationPercent,
                 })}
@@ -337,7 +343,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
           className={optionClasses(currentState.option === "custom")}
           onClick={() => setCurrentState({ ...currentState, option: "custom" })}
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             {/* radio */}
             <span className="flex h-4 w-4 items-center justify-center">
               <span className="flex h-4 w-4 items-center justify-center rounded-full border border-[#161c22] dark:border-gray-100-dark">
@@ -346,18 +352,81 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 )}
               </span>
             </span>
-            <p className="text-base leading-normal">
+            <p className="my-0 text-base leading-normal">
               {t("useCustomExpiration")}
             </p>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-1">
-            {presetDurations.slice(0, -2).map((preset) => (
+          {currentState.option === "custom" && (
+            <div className="mt-3 flex flex-wrap gap-1">
+              {presetDurations.slice(0, -2).map((preset) => (
+                <Button
+                  key={preset.label}
+                  type="button"
+                  variant={
+                    currentState.selectedPreset === preset.id &&
+                    currentState.option === "custom"
+                      ? "primary"
+                      : "secondary"
+                  }
+                  className={cn("rounded-[3px]")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCustomOptionSelected(preset.id);
+                  }}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+
               <Button
-                key={preset.label}
+                key="customDate"
                 type="button"
                 variant={
-                  currentState.selectedPreset === preset.id &&
+                  currentState.selectedPreset === "customDate" &&
+                  currentState.option === "custom"
+                    ? "primary"
+                    : "secondary"
+                }
+                className={"relative flex items-center gap-0 rounded-[3px]"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCustomOptionSelected("customDate");
+                  setShowDatePicker(true);
+                  setTimeout(() => {
+                    dateInputRef.current?.showPicker();
+                  }, 0);
+                }}
+              >
+                {t("customDate")}
+
+                {showDatePicker && (
+                  <>
+                    <input
+                      ref={dateInputRef}
+                      type="datetime-local"
+                      className="absolute left-0 top-0 opacity-0"
+                      onChange={(e) => {
+                        setCurrentState({
+                          ...currentState,
+                          expiryDate: new Date(e.target.value),
+                        });
+                      }}
+                    />
+                    {currentState.expiryDate && (
+                      <span className="text-sm">
+                        {": " + format(currentState.expiryDate, "d MMMM yyyy")}
+                      </span>
+                    )}
+                  </>
+                )}
+              </Button>
+
+              <Button
+                key="neverExpires"
+                type="button"
+                variant={
+                  currentState.selectedPreset === "neverExpires" &&
                   currentState.option === "custom"
                     ? "primary"
                     : "secondary"
@@ -365,75 +434,14 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 className={cn("rounded-[3px]")}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onCustomOptionSelected(preset.id);
+                  onCustomOptionSelected("neverExpires");
+                  setShowDatePicker(false);
                 }}
               >
-                {preset.label}
+                {t("neverExpires")}
               </Button>
-            ))}
-
-            <Button
-              key="customDate"
-              type="button"
-              variant={
-                currentState.selectedPreset === "customDate" &&
-                currentState.option === "custom"
-                  ? "primary"
-                  : "secondary"
-              }
-              className={"relative flex items-center gap-0 rounded-[3px]"}
-              onClick={(e) => {
-                e.stopPropagation();
-                onCustomOptionSelected("customDate");
-                setShowDatePicker(true);
-                setTimeout(() => {
-                  dateInputRef.current?.showPicker();
-                }, 0);
-              }}
-            >
-              {t("customDate")}
-
-              {showDatePicker && (
-                <>
-                  <input
-                    ref={dateInputRef}
-                    type="datetime-local"
-                    className="absolute left-0 top-0 opacity-0"
-                    onChange={(e) => {
-                      setCurrentState({
-                        ...currentState,
-                        expiryDate: new Date(e.target.value),
-                      });
-                    }}
-                  />
-                  {currentState.expiryDate && (
-                    <span className="text-sm">
-                      {": " + format(currentState.expiryDate, "d MMMM yyyy")}
-                    </span>
-                  )}
-                </>
-              )}
-            </Button>
-
-            <Button
-              key="neverExpires"
-              type="button"
-              variant={
-                currentState.selectedPreset === "neverExpires" &&
-                currentState.option === "custom"
-                  ? "primary"
-                  : "secondary"
-              }
-              className={cn("rounded-[3px]")}
-              onClick={(e) => {
-                e.stopPropagation();
-                onCustomOptionSelected("neverExpires");
-                setShowDatePicker(false);
-              }}
-            >
-              {t("neverExpires")}
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Helper text */}
@@ -457,6 +465,11 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
             onClick={() => {
               handleSave();
             }}
+            disabled={
+              currentState.option === savedState.option &&
+              currentState.selectedPreset === savedState.selectedPreset &&
+              currentState.expiryDate === savedState.expiryDate
+            }
           >
             {t("saveChanges")}
           </Button>
