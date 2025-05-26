@@ -96,6 +96,7 @@ export async function updateProfileAction(
       | "unsubscribed_preferences_tags"
       | "hide_community_prediction"
       | "is_onboarding_complete"
+      | "prediction_expiration_percent"
     >
   >,
   revalidate = true
