@@ -24,7 +24,7 @@ from migrator.services.migrate_projects import migrate_projects, cleanup_unused_
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_scoring import migrate_archived_scores, score_questions
 from migrator.services.migrate_subscriptions import migrate_subscriptions
-from migrator.services.migrate_users import migrate_users
+from migrator.services.migrate_users import migrate_users, delete_orphan_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import (
     post_migrate_calculate_divergence,
@@ -139,6 +139,8 @@ class Command(BaseCommand):
         post_migrate_update_post_fields()
         post_migrate_show_on_homepage()
         print_duration("Updating other post fields", task_start, start)
+
+        delete_orphan_users()
 
         # Reset sql sequences
         reset_sequence()

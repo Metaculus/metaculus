@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.db import transaction, connection
 from migrator.utils import paginated_query, filter_for_existing_users
 from rest_framework.authtoken.models import Token
 from social_django.models import Association, Code, Nonce, Partial, UserSocialAuth
@@ -51,7 +52,10 @@ def migrate_social_auth():
 def migrate_users(site_ids: list = None):
     allowed_users = None
 
-    if site_ids:
+    # TODO: tmp disabled!
+    # if site_ids:
+    # if site_ids:
+    if False:
         allowed_users = list(
             paginated_query(
                 "SELECT user_id FROM metac_account_usersitedata " "WHERE site_id in %s",
@@ -122,3 +126,69 @@ def migrate_users(site_ids: list = None):
 
     # Social migrations
     migrate_social_auth()
+
+
+def delete_orphan_users(batch_size=10_000):
+    """
+    Delete User rows (in batches) that have NO FK references
+    in any table *except* social_auth_usersocialauth.
+    First deletes any social_auth_usersocialauth rows for those users
+    (to avoid FK constraint errors), then deletes the users.
+
+    Returns:
+        int: total number of User rows deleted
+    """
+    opts = User._meta
+    user_table = opts.db_table
+    pk_col = opts.pk.column   # usually "id"
+
+    # 1) Discover all reverse-FKs except social_auth_usersocialauth
+    fks = []
+    for rel in opts.get_fields():
+        if rel.auto_created and not rel.concrete and (rel.one_to_many or rel.one_to_one):
+            tbl = rel.related_model._meta.db_table
+            if tbl == "social_auth_usersocialauth":
+                continue
+            fks.append((tbl, rel.field.column))
+
+    # If no other FK references exist at all, nothing to delete.
+    if not fks:
+        return 0
+
+    # 2) Build WHERE clause: user has no rows in any of these FK tables
+    not_exists_clauses = [
+        f"NOT EXISTS (SELECT 1 FROM {tbl} t WHERE t.{col} = u.{pk_col})"
+        for tbl, col in fks
+    ]
+    where_clause = " AND ".join(not_exists_clauses)
+
+    total_deleted = 0
+
+    # 3) Batch‐delete loop
+    with transaction.atomic():
+        with connection.cursor() as cursor:
+            while True:
+                cursor.execute(f"""
+                    WITH orphan AS (
+                      SELECT u.{pk_col} AS id
+                        FROM {user_table} u
+                       WHERE {where_clause}
+                       LIMIT {batch_size}
+                    ),
+                    -- first delete any lingering social-auth rows
+                    deleted_social AS (
+                      DELETE FROM social_auth_usersocialauth s
+                       USING orphan o
+                      WHERE s.user_id = o.id
+                    )
+                    -- then delete the users themselves
+                    DELETE FROM {user_table} u
+                      USING orphan o
+                     WHERE u.{pk_col} = o.id;
+                """)
+                n = cursor.rowcount
+                if not n:
+                    break
+                total_deleted += n
+
+    return total_deleted
