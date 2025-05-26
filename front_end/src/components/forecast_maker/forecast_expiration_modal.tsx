@@ -65,6 +65,54 @@ interface ModalState {
   expiryDate: Date | null;
 }
 
+const buildDefaultState = (
+  lastForecast: UserForecast | undefined,
+  presetDurations: Preset[]
+): ModalState => {
+  let state: ModalState = {
+    option: "account",
+    selectedPreset: "1w",
+    expiryDate: null,
+  };
+
+  if (lastForecast?.end_time) {
+    // Convert the last forecast duration to milliseconds for comparison
+    const lastForecastDurationMs =
+      (lastForecast.end_time - lastForecast.start_time) * 1000;
+
+    // Only consider presets with actual durations and transform them in
+    const presetsDurationssMs = presetDurations
+      .filter((preset) => !!preset.duration)
+      .map((preset) => {
+        return {
+          durationMs: preset.duration
+            ? add(new Date(0), preset.duration).getTime()
+            : Infinity,
+          id: preset.id,
+        };
+      });
+
+    let closestPresetId = "1w"; // default fallback
+    let minDifference = Infinity;
+
+    for (const preset of presetsDurationssMs) {
+      const difference = Math.abs(lastForecastDurationMs - preset.durationMs);
+      if (difference < minDifference) {
+        minDifference = difference;
+        closestPresetId = preset.id;
+      }
+    }
+
+    state = {
+      option: "custom",
+      selectedPreset: closestPresetId,
+      expiryDate: null,
+    };
+  }
+
+  return state;
+};
+
 const getPresetDurations = (t: ReturnType<typeof useTranslations>): Preset[] =>
   [
     { id: "1d", label: t("1day"), duration: { days: 1 } },
@@ -83,15 +131,14 @@ export const useExpirationModalState = (
 ) => {
   const [isForecastExpirationModalOpen, setIsForecastExpirationModalOpen] =
     useState(false);
-
-  const [modalSavedState, setModalSavedState] = useState<ModalState>({
-    option: "account",
-    selectedPreset: "1w",
-    expiryDate: null,
-  });
-  const { user } = useAuth();
   const t = useTranslations();
   const presetDurations = getPresetDurations(t);
+
+  const [modalSavedState, setModalSavedState] = useState<ModalState>(
+    buildDefaultState(lastForecast, presetDurations)
+  );
+
+  const { user } = useAuth();
   const isForecastExpirationEnabled = useFeatureFlagEnabled(
     "forecast_expiration"
   );
