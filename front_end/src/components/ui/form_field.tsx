@@ -191,6 +191,16 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
 }: MarkdownEditorFieldProps<T>) => {
   const { field } = useController({ control, name, defaultValue });
   const editorRef = useRef<MDXEditorMethods>(null);
+  const isMounted = useRef(false);
+
+  // populate the editor with draft form value when
+  useEffect(() => {
+    const editorValue = editorRef.current?.getMarkdown();
+    if (!editorValue && !isMounted.current && field.value) {
+      editorRef.current?.setMarkdown(field.value);
+      isMounted.current = true;
+    }
+  }, [field.value]);
 
   return (
     <>
