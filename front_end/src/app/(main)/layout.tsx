@@ -10,6 +10,7 @@ import Bulletins from "./components/bulletins";
 import CookiesBanner from "./components/cookies_banner";
 import Footer from "./components/footer";
 import GlobalHeader from "./components/headers/global_header";
+import VersionChecker from "./components/version_checker";
 
 config.autoAddCss = false;
 
@@ -37,6 +38,7 @@ export default async function RootLayout({
         </>
       )}
       <CookiesBanner />
+      <VersionChecker />
     </div>
   );
 }
