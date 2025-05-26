@@ -50,6 +50,10 @@ import {
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
+import {
+  ForecastExpirationModal,
+  useExpirationModalState,
+} from "../forecast_expiration_modal";
 
 type Props = {
   post: PostWithForecasts;
@@ -268,6 +272,22 @@ const ForecastMakerContinuous: FC<Props> = ({
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
+  const questionDuration =
+    new Date(question.scheduled_close_time).getTime() -
+    new Date(question.open_time ?? question.created_at).getTime();
+
+  const {
+    modalSavedState,
+    setModalSavedState,
+    userExpirationPercent,
+    userDefaultExpirationDurationStr,
+    expirationShortChip,
+    expiryDate,
+    isForecastExpirationModalOpen,
+    setIsForecastExpirationModalOpen,
+    previousForecastExpirationString,
+  } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
+
   const handlePredictWithdraw = async () => {
     setSubmitError(undefined);
 
@@ -367,6 +387,10 @@ const ForecastMakerContinuous: FC<Props> = ({
               hasUserForecast={hasUserForecast}
               isPending={isPending}
               predictLabel={previousForecast ? undefined : t("predict")}
+              predictionExpirationChip={expirationShortChip}
+              onPredictionExpirationClick={() =>
+                setIsForecastExpirationModalOpen(true)
+              }
             />
           ) : (
             <PredictButton
@@ -375,6 +399,10 @@ const ForecastMakerContinuous: FC<Props> = ({
               hasUserForecast={hasUserForecast}
               isPending={isPending}
               predictLabel={previousForecast ? undefined : t("predict")}
+              predictionExpirationChip={expirationShortChip}
+              onPredictionExpirationClick={() =>
+                setIsForecastExpirationModalOpen(true)
+              }
               isDisabled={
                 validateAllQuantileInputs({
                   question,
@@ -402,6 +430,16 @@ const ForecastMakerContinuous: FC<Props> = ({
 
   return (
     <>
+      <ForecastExpirationModal
+        savedState={modalSavedState}
+        setSavedState={setModalSavedState}
+        isOpen={isForecastExpirationModalOpen}
+        onClose={() => {
+          setIsForecastExpirationModalOpen(false);
+        }}
+        userForecastExpirationPercent={userExpirationPercent}
+        userForecastExpirationDurationStr={userDefaultExpirationDurationStr}
+      />
       <ContinuousInput
         question={question}
         dataset={dataset}
