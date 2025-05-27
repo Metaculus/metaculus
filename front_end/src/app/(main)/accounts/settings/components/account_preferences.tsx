@@ -20,6 +20,10 @@ const AccountPreferences: FC<Props> = ({ user }) => {
   const t = useTranslations();
   const DEFAULT_EXPIRATION_PERCENT = 10;
 
+  const isForecastExpirationEnabled = useFeatureFlagEnabled(
+    "forecast_expiration"
+  );
+
   const [localExpirationPercent, setLocalExpirationPercent] = useState<string>(
     (user.prediction_expiration_percent ?? "") + ""
   );
@@ -62,51 +66,53 @@ const AccountPreferences: FC<Props> = ({ user }) => {
         {isPendingUpdateCP && <LoadingSpinner size="1x" />}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center">
-          <Checkbox
-            checked={localExpirationPercent !== ""}
-            onChange={(checked) => {
-              if (checked) {
-                setLocalExpirationPercent(DEFAULT_EXPIRATION_PERCENT + "");
-                debouncedUpdateExpirationPercent(DEFAULT_EXPIRATION_PERCENT);
-              } else {
-                setLocalExpirationPercent("");
-                debouncedUpdateExpirationPercent(null);
-              }
-            }}
-            className="p-1.5"
-            readOnly={isPendingUpdateExpirationPercent}
-            label={t("defaultExpirationSettingText")}
-          />
-          {isPendingUpdateExpirationPercent && <LoadingSpinner size="1x" />}
-        </div>
-
-        {localExpirationPercent !== "" && (
-          <div className="ml-7 flex flex-col gap-2 bg-blue-200 px-4 py-3 dark:bg-blue-200-dark">
-            <div>
-              Expire after{" "}
-              <div className="inline-flex items-center gap-1 rounded border border-blue-500 bg-gray-100 px-1 dark:border-blue-500-dark dark:bg-gray-0-dark">
-                <Input
-                  type="number"
-                  value={localExpirationPercent}
-                  onChange={(e) => {
-                    if (e.target.value !== "") {
-                      const newValue = parseInt(e.target.value);
-                      debouncedUpdateExpirationPercent(newValue);
-                    }
-
-                    setLocalExpirationPercent(e.target.value);
-                  }}
-                  className="w-[5ch] border-none outline-none"
-                />
-                %
-              </div>
-              of total question lifetime
-            </div>
+      {isForecastExpirationEnabled && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center">
+            <Checkbox
+              checked={localExpirationPercent !== ""}
+              onChange={(checked) => {
+                if (checked) {
+                  setLocalExpirationPercent(DEFAULT_EXPIRATION_PERCENT + "");
+                  debouncedUpdateExpirationPercent(DEFAULT_EXPIRATION_PERCENT);
+                } else {
+                  setLocalExpirationPercent("");
+                  debouncedUpdateExpirationPercent(null);
+                }
+              }}
+              className="p-1.5"
+              readOnly={isPendingUpdateExpirationPercent}
+              label={t("defaultExpirationSettingText")}
+            />
+            {isPendingUpdateExpirationPercent && <LoadingSpinner size="1x" />}
           </div>
-        )}
-      </div>
+
+          {localExpirationPercent !== "" && (
+            <div className="ml-7 flex flex-col gap-2 bg-blue-200 px-4 py-3 dark:bg-blue-200-dark">
+              <div>
+                Expire after{" "}
+                <div className="inline-flex items-center gap-1 rounded border border-blue-500 bg-gray-100 px-1 dark:border-blue-500-dark dark:bg-gray-0-dark">
+                  <Input
+                    type="number"
+                    value={localExpirationPercent}
+                    onChange={(e) => {
+                      if (e.target.value !== "") {
+                        const newValue = parseInt(e.target.value);
+                        debouncedUpdateExpirationPercent(newValue);
+                      }
+
+                      setLocalExpirationPercent(e.target.value);
+                    }}
+                    className="w-[5ch] border-none outline-none"
+                  />
+                  %
+                </div>
+                of total question lifetime
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 };
