@@ -515,6 +515,11 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = {
     "zh-TW": ("zh",),
 }
 
+# This is used to mark the fallback value for translations that are not available. The default of "" is not good
+# because it prevents us from being able to set fields to empty strings. None is also not good because
+# it cannot be set from admin, in case admins want to mark a field to not be translated.
+TRANSLATIONS_FALLBACK_UNDEFINED = "--NOT_TRANSLATED--"
+
 USE_I18N = True
 
 LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)
