@@ -70,29 +70,40 @@ const VersionChecker: FC = () => {
   );
 };
 
-// Track consecutive 502 errors to avoid spamming to Sentry
-// We expect 502 during deployments
-let consecutive502Errors = 0;
+// Track consecutive errors to avoid spamming Sentry
+let consecutiveErrors = 0;
+const ERROR_THRESHOLD = 3;
 
 const fetchServerVersion = async () => {
   try {
     const response = await fetch("/app-version");
 
-    if (response.status === 502) {
-      consecutive502Errors++;
-      if (consecutive502Errors >= 5) {
-        logError(new Error("Received 502 from /app-version 5 times in a row"), {
-          message: "Error fetching app version",
-        });
+    if (!response.ok) {
+      consecutiveErrors++;
+      if (consecutiveErrors >= ERROR_THRESHOLD) {
+        logError(
+          new Error(
+            `Failed to fetch app version ${ERROR_THRESHOLD} times in a row`
+          ),
+          {
+            message: "Error fetching app version",
+          }
+        );
       }
       return null;
     }
 
-    consecutive502Errors = 0;
+    // Reset counter on successful response
+    consecutiveErrors = 0;
     const data = await response.json();
     return data?.buildId ?? null;
   } catch (error) {
-    logError(error, { message: "Error fetching app version" });
+    consecutiveErrors++;
+    if (consecutiveErrors >= ERROR_THRESHOLD) {
+      logError(error, {
+        message: "Error fetching app version",
+      });
+    }
     return null;
   }
 };
