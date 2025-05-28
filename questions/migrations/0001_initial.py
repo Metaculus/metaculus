@@ -98,7 +98,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "edited_at",
-                    models.DateTimeField(editable=False, null=True),
+                    models.DateTimeField(
+                        editable=False, null=True
+                    ),
                 ),
             ],
             options={
@@ -184,7 +186,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "edited_at",
-                    models.DateTimeField(editable=False, null=True),
+                    models.DateTimeField(
+                        editable=False, null=True
+                    ),
                 ),
                 ("description", models.TextField(blank=True)),
                 ("resolution_criteria", models.TextField(blank=True, null=True)),
@@ -226,7 +230,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "edited_at",
-                    models.DateTimeField(editable=False, null=True),
+                    models.DateTimeField(
+                        editable=False, null=True
+                    ),
                 ),
                 (
                     "type",
