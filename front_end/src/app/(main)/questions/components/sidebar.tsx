@@ -138,7 +138,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   return (
     <div
       className={cn(
-        "sticky z-40 mt-0 self-start sm:top-16 sm:mt-4",
+        "sticky z-100 mt-0 self-start sm:top-16 sm:mt-4",
         topPositionClasses
       )}
     >

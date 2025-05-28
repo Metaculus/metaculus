@@ -1260,5 +1260,6 @@
   "indexTimeline": "Cronología del índice",
   "inTheNews": "En las Noticias",
   "fileSizeExceedsLimit": "El tamaño del archivo supera el límite de {value}MB",
-  "errorUploadingImage": "Error al subir la imagen"
+  "errorUploadingImage": "Error al subir la imagen",
+  "emptyCommentField": "El campo de comentarios no debe estar vacío"
 }

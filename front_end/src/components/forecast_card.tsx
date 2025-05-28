@@ -6,6 +6,7 @@ import { EmbedTheme } from "@/app/(embed)/questions/constants/embed_theme";
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
+import NumericTimeline from "@/components/charts/numeric_timeline";
 import ConditionalTile from "@/components/conditional_tile";
 import DetailedMultipleChoiceChartCard from "@/components/detailed_question_card/detailed_question_card/multiple_choice_chart_card";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
@@ -102,6 +103,36 @@ const ForecastCard: FC<Props> = ({
       const forecastAvailability = getQuestionForecastAvailability(question);
       switch (question.type) {
         case QuestionType.Binary:
+          return (
+            <div className="relative flex w-full flex-col">
+              <NumericTimeline
+                aggregation={question.aggregations.recency_weighted}
+                myForecasts={question.my_forecasts}
+                resolution={question.resolution}
+                resolveTime={question.actual_resolve_time}
+                height={chartHeight}
+                questionType={question.type}
+                actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+                scaling={question.scaling}
+                onCursorChange={nonInteractive ? undefined : setCursorTimestamp}
+                nonInteractive={nonInteractive}
+                extraTheme={embedTheme?.chart}
+                defaultZoom={defaultChartZoom}
+                withZoomPicker={withZoomPicker}
+                isEmptyDomain={
+                  forecastAvailability.isEmpty ||
+                  !!forecastAvailability.cpRevealsOn
+                }
+                openTime={getPostDrivenTime(question.open_time)}
+                unit={question.unit}
+                tickFontSize={9}
+              />
+              <ForecastAvailabilityChartOverflow
+                forecastAvailability={forecastAvailability}
+                className="justify-end pr-10 text-xs md:text-sm"
+              />
+            </div>
+          );
         case QuestionType.Numeric:
         case QuestionType.Date:
           return (
