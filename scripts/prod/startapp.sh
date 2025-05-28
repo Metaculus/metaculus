@@ -11,7 +11,7 @@ source venv/bin/activate
 (
   gunicorn metaculus_web.wsgi:application \
     --bind=unix:./gunicorn.sock \
-    --workers 4 \
+    --workers 8 \
     --threads 2 \
     --timeout 25 \
     --keep-alive 5 \
