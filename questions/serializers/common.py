@@ -22,7 +22,10 @@ from questions.models import Forecast
 from questions.utils import get_question_movement_period
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
-from utils.the_math.formulas import get_scaled_quartiles_from_cdf
+from utils.the_math.formulas import (
+    get_scaled_quartiles_from_cdf,
+    unscaled_location_to_scaled_location,
+)
 from utils.the_math.measures import (
     percent_point_function,
     prediction_difference_for_sorting,
@@ -76,10 +79,29 @@ class QuestionSerializer(serializers.ModelSerializer):
         )
 
     def get_scaling(self, question: Question):
+        continuous_range = None
+        if question.type in QUESTION_CONTINUOUS_TYPES:
+
+            def format_value(val):
+                if val is None or question.type != Question.QuestionType.DATE:
+                    return val
+                return datetime.fromtimestamp(val, dt_timezone.utc)
+
+            # locations where CDF is evaluated
+            continuous_range = []
+            for x in np.linspace(
+                0, 1, question.inbound_outcome_count or DEFAULT_INBOUND_OUTCOME_COUNT
+            ):
+                val = unscaled_location_to_scaled_location(x, question)
+                continuous_range.append(format_value(val))
         return {
             "range_max": question.range_max,
             "range_min": question.range_min,
             "zero_point": question.zero_point,
+            "open_upper_bound": question.open_upper_bound,
+            "open_lower_bound": question.open_lower_bound,
+            "inbound_outcome_count": question.inbound_outcome_count,
+            "continuous_range": continuous_range,
         }
 
     def get_spot_scoring_time(self, question: Question):
