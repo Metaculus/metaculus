@@ -80,7 +80,14 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  webpack: (config, { buildId }) => {
+  webpack: (config, { buildId, webpack }) => {
+    // propagate buildId to environment so we could trigger prompt message on outdated version
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        "process.env.BUILD_ID": JSON.stringify(buildId),
+      })
+    );
+
     config.output.filename = config.output.filename.replace(
       "[chunkhash]",
       buildId

@@ -179,10 +179,8 @@ def trigger_update_post_translations(
     post: Post, with_comments: bool = False, force: bool = False
 ):
     if (
-        not force
-        and not post.is_automatically_translated
-        and post.curation_status != Post.CurationStatus.APPROVED
-    ):
+        not force and not post.is_automatically_translated
+    ) or post.curation_status != Post.CurationStatus.APPROVED:
         return
 
     is_private = post.is_private()
