@@ -9,6 +9,7 @@ import {
   VictoryContainer,
   VictoryCursorContainer,
   VictoryLine,
+  VictoryPortal,
   VictoryScatter,
   VictoryThemeDefinition,
 } from "victory";
@@ -69,6 +70,7 @@ type Props = {
   hideCP?: boolean;
   hideLabels?: boolean;
   shortLabels?: boolean;
+  readOnly?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -82,6 +84,7 @@ const ContinuousAreaChart: FC<Props> = ({
   hideCP,
   hideLabels = false,
   shortLabels = false,
+  readOnly,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -190,20 +193,19 @@ const ContinuousAreaChart: FC<Props> = ({
   // TODO: find a nice way to display the out of bounds weights as numbers
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
-  const leftPadding = useMemo(() => {
-    // TODO: handle Discrete case where PMF has y axis
-    if (graphType === "cdf") {
+  const horizontalPadding = useMemo(() => {
+    if (!readOnly) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
       );
-      const longestLabelWidth = longestLabelLength * 9;
+      const longestLabelWidth = longestLabelLength * 5;
 
       return HORIZONTAL_PADDING + longestLabelWidth;
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale]);
+  }, [graphType, yScale, readOnly]);
 
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
@@ -216,8 +218,8 @@ const ContinuousAreaChart: FC<Props> = ({
       if (!svg) return;
       setCursorEdge(null);
       const bounds = svg.getBoundingClientRect();
-      const chartLeft = bounds.left + leftPadding;
-      const chartRight = bounds.right - HORIZONTAL_PADDING;
+      const chartLeft = bounds.left + horizontalPadding;
+      const chartRight = bounds.right - horizontalPadding;
 
       // Used to handle cursor display when hovering chart edges
       if (
@@ -273,7 +275,7 @@ const ContinuousAreaChart: FC<Props> = ({
         }
       }
     },
-    [charts, onCursorChange, chartContainerRef, leftPadding]
+    [charts, onCursorChange, chartContainerRef, horizontalPadding]
   );
   useEffect(() => {
     const svg = chartContainerRef.current?.firstChild as SVGElement;
@@ -367,9 +369,9 @@ const ContinuousAreaChart: FC<Props> = ({
           theme={actualTheme}
           padding={{
             top: paddingTop,
-            left: leftPadding,
+            left: horizontalPadding,
             bottom: BOTTOM_PADDING,
-            right: HORIZONTAL_PADDING,
+            right: horizontalPadding,
           }}
           domain={{ x: xDomain, y: yDomain }}
           containerComponent={
@@ -466,16 +468,19 @@ const ContinuousAreaChart: FC<Props> = ({
             />
           )}
           {graphType === "cdf" && (
-            <VictoryAxis
-              dependentAxis
-              style={{
-                tickLabels: { padding: 2 },
-                ticks: { strokeWidth: 1 },
-              }}
-              tickValues={yScale.ticks}
-              tickFormat={yScale.tickFormat}
-              axisValue={xDomain[0]}
-            />
+            // Prevent Y axis being cut off in edge cases
+            <VictoryPortal>
+              <VictoryAxis
+                dependentAxis
+                style={{
+                  tickLabels: { padding: 2 },
+                  ticks: { strokeWidth: 1 },
+                }}
+                tickValues={yScale.ticks}
+                tickFormat={yScale.tickFormat}
+                axisValue={xDomain[0]}
+              />
+            </VictoryPortal>
           )}
           <VictoryAxis
             tickValues={xScale.ticks}
@@ -525,8 +530,8 @@ const ContinuousAreaChart: FC<Props> = ({
             <LineCursorPoints
               x={
                 cursorEdge < 0.5
-                  ? leftPadding + CURSOR_POINT_OFFSET
-                  : chartWidth - CURSOR_POINT_OFFSET
+                  ? horizontalPadding + CURSOR_POINT_OFFSET
+                  : chartWidth - horizontalPadding + CURSOR_POINT_OFFSET
               }
               datum={{
                 x: cursorEdge,

@@ -82,7 +82,7 @@ export function getAxisRightPadding(
 ) {
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
   const longestLabelLength = Math.max(...labels.map((label) => label.length));
-  const fontSizeScale = yLabel ? 10 : 9;
+  const fontSizeScale = yLabel ? 11 : 9;
   return {
     rightPadding: Math.round(
       (longestLabelLength * labelsFontSize * fontSizeScale) / 10
@@ -297,6 +297,7 @@ type GenerateScaleParams = {
   adjustLabels?: boolean;
   inboundOutcomeCount?: number | null;
   question?: Question | GraphingQuestionProps;
+  forceTickCount?: number;
 };
 
 /**
@@ -330,6 +331,7 @@ export function generateScale({
   adjustLabels = false,
   inboundOutcomeCount,
   question,
+  forceTickCount,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -377,8 +379,8 @@ export function generateScale({
     displayType === QuestionType.Discrete
       ? inbound_outcome_count
         ? 2 + inbound_outcome_count
-        : (maxLabelCount - 1) * 5 + 1
-      : (maxLabelCount - 1) * 5 + 1;
+        : forceTickCount ?? (maxLabelCount - 1) * 5 + 1
+      : forceTickCount ?? (maxLabelCount - 1) * 5 + 1;
 
   // TODO: this does not support choosing values intelligently in
   // real scaling. The y-axis is always a domain of 0-1 with
