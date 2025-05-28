@@ -9,17 +9,19 @@ source venv/bin/activate
 
 # 1) Django API (Gunicorn)
 (
-  gunicorn metaculus_web.wsgi:application \
-    --bind=unix:./gunicorn.sock \
-    --workers 4 \
-    --threads 2 \
-    --timeout 25 \
-    --keep-alive 5 \
-    --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(M)s' \
-    --access-logfile - \
-    --error-logfile - \
-  2>&1 | sed 's/^/[Backend]: /'
-) &
+  (
+    gunicorn metaculus_web.wsgi:application \
+      --bind=unix:./gunicorn.sock \
+      --workers $GUNICORN_WORKERS \
+      --threads 2 \
+      --timeout 25 \
+      --keep-alive 5 \
+      --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(M)s' \
+      --access-logfile - \
+      --error-logfile - \
+    2>&1 | sed 's/^/[Backend]: /'
+  ) &
+) && sleep 1
 
 # 2) Next.js Frontend
 export NODE_ENV=production
@@ -27,10 +29,12 @@ export NODE_OPTIONS="--max-old-space-size=512"
 export UV_THREADPOOL_SIZE=2
 
 (
-  cd front_end &&
-  PORT=3000 pm2-runtime npm -- start \
-  2>&1 | sed 's/^/[Frontend]: /'
-) &
+  (
+    cd front_end &&
+    PORT=3000 pm2-runtime npm -- start \
+    2>&1 | sed 's/^/[Frontend]: /'
+  ) &
+) && sleep 1
 
 # 3) Render Nginx config & launch it
 PORT="${PORT:-8080}" \
