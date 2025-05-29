@@ -94,7 +94,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       try {
         const base64 = await getPostZipData(params);
         const blob = base64ToBlob(base64);
-        const title = post.short_title || post.title;
+        const title = post.short_title || post.title || "data";
         const filename = `${title.replaceAll(" ", "_")}.zip`;
         saveAs(blob, filename);
       } catch (error) {
