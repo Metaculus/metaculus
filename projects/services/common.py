@@ -288,3 +288,16 @@ def get_project_timeline_data(project: Project):
         "all_questions_resolved": all_questions_resolved,
         "all_questions_closed": all_questions_closed,
     }
+
+
+def get_questions_count_for_projects(project_ids: list[int]) -> dict[int, int]:
+    """
+    Returns a dict mapping each project_id to its questions_count
+    (0 if it doesn’t exist or has no questions).
+    """
+    qs = (
+        Project.objects.filter(id__in=project_ids)
+        .annotate_questions_count()
+        .values_list("id", "questions_count")
+    )
+    return {pid: count or 0 for pid, count in qs}

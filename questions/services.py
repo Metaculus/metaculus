@@ -16,6 +16,7 @@ from posts.services.subscriptions import (
 )
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
+from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.common import notify_project_subscriptions_question_open
 from questions.constants import ResolutionType
 from questions.models import (
@@ -518,6 +519,9 @@ def resolve_question(
 
     update_global_leaderboard_tags(post)
     post.save()
+
+    # Invalidate project questions count cache since resolution affects visibility
+    invalidate_projects_questions_count_cache(post.get_related_projects())
 
     # Calculate scores + notify forecasters
     from questions.tasks import resolve_question_and_send_notifications
