@@ -5,7 +5,6 @@ import { isNil, merge, uniq } from "lodash";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
-  DomainTuple,
   LineSegment,
   VictoryArea,
   VictoryAxis,
@@ -21,18 +20,14 @@ import {
 
 import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
+import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
+import XTickLabel from "@/components/charts/primitives/x_tick_label";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
-import {
-  Area,
-  BaseChartData,
-  Line,
-  Scale,
-  TimelineChartZoomOption,
-} from "@/types/charts";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { Resolution } from "@/types/post";
 import {
   AggregateForecastHistory,
@@ -40,17 +35,10 @@ import {
   Scaling,
   UserForecastHistory,
 } from "@/types/question";
-import {
-  generateNumericXDomain,
-  generateScale,
-  generateTimestampXScale,
-  generateTimeSeriesYDomain,
-  getAxisLeftPadding,
-  getTickLabelFontSize,
-} from "@/utils/charts/axis";
+import { getAxisLeftPadding, getTickLabelFontSize } from "@/utils/charts/axis";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 
-import XTickLabel from "./primitives/x_tick_label";
+import { buildNumericChartData } from "./helpers";
 
 type Props = {
   aggregation: AggregateForecastHistory;
@@ -73,6 +61,7 @@ type Props = {
   isEmptyDomain?: boolean;
   openTime?: number;
   unit?: string;
+  inboundOutcomeCount?: number | null;
 };
 
 const NumericChart: FC<Props> = ({
@@ -96,6 +85,7 @@ const NumericChart: FC<Props> = ({
   isEmptyDomain,
   openTime,
   unit,
+  inboundOutcomeCount,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -114,7 +104,7 @@ const NumericChart: FC<Props> = ({
   const [zoom, setZoom] = useState(defaultZoom);
   const { line, area, yDomain, xDomain, xScale, yScale, points } = useMemo(
     () =>
-      buildChartData({
+      buildNumericChartData({
         questionType,
         actualCloseTime,
         scaling,
@@ -128,6 +118,7 @@ const NumericChart: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         unit,
+        inboundOutcomeCount,
       }),
     [
       questionType,
@@ -143,6 +134,7 @@ const NumericChart: FC<Props> = ({
       isEmptyDomain,
       openTime,
       unit,
+      inboundOutcomeCount,
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
@@ -217,7 +209,12 @@ const NumericChart: FC<Props> = ({
     !!chartWidth && !!xScale.ticks.length && yScale.ticks.length;
 
   const resolutionPoint = useMemo(() => {
-    if (!resolution || !resolveTime || isNil(actualCloseTime)) {
+    if (
+      !resolution ||
+      resolution === "" ||
+      !resolveTime ||
+      isNil(actualCloseTime)
+    ) {
       return null;
     }
 
@@ -358,270 +355,6 @@ const NumericChart: FC<Props> = ({
         </VictoryChart>
       )}
     </ChartContainer>
-  );
-};
-
-export type ChartData = BaseChartData & {
-  line: Line;
-  area: Area;
-  points: Line;
-  yDomain: DomainTuple;
-  xDomain: DomainTuple;
-};
-
-function buildChartData({
-  questionType,
-  actualCloseTime,
-  scaling,
-  height,
-  aggregation,
-  aggregationIndex,
-  myForecasts,
-  width,
-  zoom,
-  extraTheme,
-  isAggregationsEmpty,
-  openTime,
-  unit,
-}: {
-  questionType: QuestionType;
-  actualCloseTime?: number | null;
-  scaling: Scaling;
-  height: number;
-  aggregation: AggregateForecastHistory;
-  aggregationIndex: number;
-  myForecasts?: UserForecastHistory;
-  width: number;
-  zoom: TimelineChartZoomOption;
-  extraTheme?: VictoryThemeDefinition;
-  isAggregationsEmpty?: boolean;
-  openTime?: number;
-  unit?: string;
-}): ChartData {
-  const line: Line = [];
-  const area: Area = [];
-
-  aggregation.history.forEach((forecast) => {
-    if (!line.length) {
-      line.push({
-        x: forecast.start_time,
-        y: forecast.centers?.[aggregationIndex] ?? 0,
-      });
-      area.push({
-        x: forecast.start_time,
-        y0: forecast.interval_lower_bounds?.[aggregationIndex] ?? 0,
-        y: forecast.interval_upper_bounds?.[aggregationIndex] ?? 0,
-      });
-    } else if (
-      line.length &&
-      line[line.length - 1]?.x === forecast.start_time
-    ) {
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      line[line.length - 1]!.y = forecast.centers?.[aggregationIndex] ?? 0;
-      area[area.length - 1]!.y0 =
-        forecast.interval_lower_bounds?.[aggregationIndex] ?? 0;
-      area[area.length - 1]!.y =
-        forecast.interval_upper_bounds?.[aggregationIndex] ?? 0;
-      /* eslint-enable @typescript-eslint/no-non-null-assertion */
-    } else {
-      // pushing null data terminates previous point (if any)
-      line.push({
-        x: forecast.start_time,
-        y: null,
-      });
-      area.push({
-        x: forecast.start_time,
-        y0: null,
-        y: null,
-      });
-      line.push({
-        x: forecast.start_time,
-        y: forecast.centers?.[aggregationIndex] ?? 0,
-      });
-      area.push({
-        x: forecast.start_time,
-        y0: forecast.interval_lower_bounds?.[aggregationIndex] ?? 0,
-        y: forecast.interval_upper_bounds?.[aggregationIndex] ?? 0,
-      });
-    }
-
-    if (!!forecast.end_time) {
-      line.push({
-        x: forecast.end_time,
-        y: forecast.centers?.[aggregationIndex] ?? 0,
-      });
-      area.push({
-        x: forecast.end_time,
-        y0: forecast.interval_lower_bounds?.[aggregationIndex] ?? 0,
-        y: forecast.interval_upper_bounds?.[aggregationIndex] ?? 0,
-      });
-    }
-  });
-
-  const latestTimestamp = actualCloseTime
-    ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
-    : Date.now() / 1000;
-  if (aggregation.latest?.end_time === null) {
-    line.push({
-      x: latestTimestamp,
-      y: aggregation.latest.centers?.[aggregationIndex] ?? 0,
-    });
-    area.push({
-      x: latestTimestamp,
-      y0: aggregation.latest.interval_lower_bounds?.[aggregationIndex] ?? 0,
-      y: aggregation.latest.interval_upper_bounds?.[aggregationIndex] ?? 0,
-    });
-  } else if (
-    aggregation.latest?.end_time &&
-    aggregation.latest.end_time >= latestTimestamp
-  ) {
-    line[line.length - 1] = {
-      x: latestTimestamp,
-      y: aggregation.latest.centers?.[aggregationIndex] ?? 0,
-    };
-    area[area.length - 1] = {
-      x: latestTimestamp,
-      y0: aggregation.latest.interval_lower_bounds?.[aggregationIndex] ?? 0,
-      y: aggregation.latest.interval_upper_bounds?.[aggregationIndex] ?? 0,
-    };
-  }
-
-  const points: Line = [];
-  if (myForecasts?.history.length) {
-    myForecasts.history.forEach((forecast) => {
-      const newPoint = {
-        x: forecast.start_time,
-        y:
-          questionType === "binary"
-            ? forecast.forecast_values[1] ?? null
-            : forecast.centers?.[aggregationIndex] ?? 0,
-        y1:
-          questionType === "binary"
-            ? undefined
-            : forecast.interval_lower_bounds?.[aggregationIndex],
-        y2:
-          questionType === "binary"
-            ? undefined
-            : forecast.interval_upper_bounds?.[aggregationIndex],
-        symbol: "circle",
-      };
-
-      if (points.length > 0) {
-        // if the last forecasts terminates at the new
-        // forecast's start time, replace the end point record
-        // with the new point
-        const lastPoint = points[points.length - 1];
-        if (lastPoint?.x === newPoint.x) {
-          points.pop();
-        }
-      }
-
-      points.push(newPoint);
-      if (!!forecast.end_time) {
-        points.push({
-          x: forecast.end_time,
-          y: newPoint.y,
-          symbol: "x",
-        });
-      }
-    });
-  }
-  // TODO: add quartiles if continuous
-
-  const domainTimestamps =
-    isAggregationsEmpty && openTime
-      ? [openTime / 1000, latestTimestamp]
-      : [
-          ...aggregation.history.map((f) => f.start_time),
-          ...(myForecasts?.history
-            ? myForecasts.history.map((f) => f.start_time)
-            : []),
-          latestTimestamp,
-        ];
-
-  const xDomain = generateNumericXDomain(domainTimestamps, zoom);
-  const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
-  const xScale = generateTimestampXScale(xDomain, width, fontSize);
-  // TODO: implement general scaling:
-  // const xScale: Scale = generateScale({
-  //   displayType: QuestionType.Date,
-  //   axisLength: width,
-  //   direction: "horizontal",
-  //   domain: xDomain,
-  // });
-
-  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
-    zoom,
-    minTimestamp: xDomain[0],
-    isChartEmpty: !domainTimestamps.length,
-    minValues: area.map((d) => ({ timestamp: d.x, y: d.y0 })),
-    maxValues: area.map((d) => ({ timestamp: d.x, y: d.y })),
-    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
-  });
-  const yScale: Scale = generateScale({
-    displayType: questionType,
-    axisLength: height,
-    direction: "vertical",
-    domain: originalYDomain,
-    zoomedDomain: zoomedYDomain,
-    scaling,
-    unit,
-  });
-
-  return {
-    line,
-    area,
-    yDomain: zoomedYDomain,
-    xDomain,
-    xScale,
-    yScale,
-    points,
-  };
-}
-
-const PredictionWithRange: React.FC<any> = ({
-  x,
-  y,
-  symbol,
-  datum: { y1, y2 },
-  scale,
-}) => {
-  const { getThemeColor } = useAppTheme();
-  const y1Scaled = scale.y(y1);
-  const y2Scaled = scale.y(y2);
-  return (
-    <>
-      {y1 !== undefined && y2 !== undefined && (
-        <line
-          x1={x}
-          x2={x}
-          y1={y1Scaled}
-          y2={y2Scaled}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-      {symbol === "circle" && (
-        <circle
-          cx={x}
-          cy={y}
-          r={3}
-          fill={getThemeColor(METAC_COLORS.gray["0"])}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-
-      {symbol === "x" && (
-        <polygon
-          points={`${x - 3},${y - 3} ${x + 3},${y + 3} ${x},${y} ${x - 3},${y + 3} ${x + 3},${y - 3} ${x},${y}`}
-          r={3}
-          fill={getThemeColor(METAC_COLORS.gray["0"])}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-    </>
   );
 };
 

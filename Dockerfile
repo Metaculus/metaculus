@@ -7,6 +7,7 @@ RUN apk add --no-cache --update python3 py3-pip bash curl git \
     bzip2-dev \
     readline-dev \
     sqlite-dev \
+    postgresql-dev \
     wget \
     curl \
     llvm \

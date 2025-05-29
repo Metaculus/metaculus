@@ -243,11 +243,16 @@ const AddKeyFactorsModal: FC<Props> = ({
   });
 
   const handleOnClose = () => {
+    setCurrentStep(1);
     clearState();
     onClose(true);
   };
 
   const handleSubmit = async () => {
+    if (isNil(commentId) && !markdown) {
+      setErrorMessage(t("emptyCommentField"));
+      return;
+    }
     const result = await submit(keyFactors, suggestedKeyFactors, markdown);
     if (result?.error) {
       setErrorMessage(result.error);
@@ -328,7 +333,7 @@ const AddKeyFactorsModal: FC<Props> = ({
                 variant="primary"
                 size="sm"
                 onClick={handleSubmit}
-                disabled={isPending}
+                disabled={isPending || (isNil(commentId) && !markdown)}
               >
                 {t("submit")}
               </Button>

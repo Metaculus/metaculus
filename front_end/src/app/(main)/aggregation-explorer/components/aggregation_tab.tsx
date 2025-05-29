@@ -6,6 +6,7 @@ import { FC, useCallback, useState, memo, useMemo } from "react";
 import toast from "react-hot-toast";
 
 import NumericChart from "@/components/charts/numeric_chart";
+import NumericTimeline from "@/components/charts/numeric_timeline";
 import DetailsQuestionCardErrorBoundary from "@/components/detailed_question_card/detailed_question_card/error_boundary";
 import CursorDetailItem from "@/components/detailed_question_card/detailed_question_card/numeric_cursor_item";
 import Button from "@/components/ui/button";
@@ -138,6 +139,7 @@ const AggregationsTab: FC<Props> = ({
           />
         );
       case QuestionType.Numeric:
+      case QuestionType.Discrete:
       case QuestionType.Date:
         return (
           <ContinuousAggregationChart
@@ -201,16 +203,29 @@ const AggregationsTab: FC<Props> = ({
         </div>
       )}
       <DetailsQuestionCardErrorBoundary>
-        <NumericChart
-          aggregation={activeAggregation}
-          aggregationIndex={aggregationIndex}
-          questionType={aggregationData.type}
-          actualCloseTime={actualCloseTime}
-          scaling={aggregationData.scaling}
-          resolution={resolution}
-          onCursorChange={handleCursorChange}
-          unit={unit}
-        />
+        {aggregationData.type === QuestionType.Binary ? (
+          <NumericTimeline
+            aggregation={activeAggregation}
+            aggregationIndex={aggregationIndex}
+            questionType={aggregationData.type}
+            actualCloseTime={actualCloseTime}
+            scaling={aggregationData.scaling}
+            resolution={resolution}
+            onCursorChange={handleCursorChange}
+            unit={unit}
+          />
+        ) : (
+          <NumericChart
+            aggregation={activeAggregation}
+            aggregationIndex={aggregationIndex}
+            questionType={aggregationData.type}
+            actualCloseTime={actualCloseTime}
+            scaling={aggregationData.scaling}
+            resolution={resolution}
+            onCursorChange={handleCursorChange}
+            unit={unit}
+          />
+        )}
         {!!cursorData && (
           <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
             <CursorDetailItem

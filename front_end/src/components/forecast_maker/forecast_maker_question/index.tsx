@@ -40,6 +40,7 @@ const QuestionForecastMaker: FC<Props> = ({
   return (
     <ForecastMakerContainer>
       {(question.type === QuestionType.Numeric ||
+        question.type === QuestionType.Discrete ||
         question.type === QuestionType.Date) && (
         <>
           <ForecastMakerContinuous
@@ -108,8 +109,9 @@ const QuestionResolutionText = ({
     case QuestionType.MultipleChoice:
       resolutionText = t("resolutionDescriptionMultipleChoice");
       break;
-    case QuestionType.Date:
     case QuestionType.Numeric:
+    case QuestionType.Discrete:
+    case QuestionType.Date:
       resolutionText = t("resolutionDescriptionContinuous");
   }
 

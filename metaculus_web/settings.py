@@ -20,6 +20,7 @@ import django.conf.locale
 import sentry_sdk
 from django.core.exceptions import DisallowedHost
 from dramatiq.errors import RateLimitExceeded
+from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.dramatiq import DramatiqIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -450,16 +451,37 @@ def traces_sampler(sampling_context):
     ]
     wsgi_environ = sampling_context.get("wsgi_environ", {})
     url = wsgi_environ.get("PATH_INFO")
+    method = wsgi_environ.get("REQUEST_METHOD")
 
     if url:
         for starts_with in exclude_endpoints:
             if url.startswith(starts_with):
                 return 0
 
-    if re.match(r"^/api/posts/\d+/similar-posts/?$", url) or url == "/api/medals/":
+    if (
+        re.match(r"^/api/posts/\d+/similar-posts/?$", url)
+        or url == "/api/medals/"
+        or re.match(r"^/api/posts/\d+/read/?$", url)
+    ):
         return 0.1
 
+    # Sample all POSTs at 100%
+    if method in ("POST", "PATCH", "PUT", "DELETE"):
+        return 1.0
+
     return SENTRY_SAMPLE_RATE
+
+
+def sentry_before_send_transaction(event, hint=None):
+    """
+    Keep only insensitive user data for sentry.
+    """
+    user = event.get("user")
+    if isinstance(user, dict):
+        if "email" in user:
+            del user["email"]
+
+    return event
 
 
 if SENTRY_DNS:
@@ -469,6 +491,7 @@ if SENTRY_DNS:
         profiles_sample_rate=SENTRY_SAMPLE_RATE,
         environment=METACULUS_ENV,
         integrations=[
+            DjangoIntegration(),
             DramatiqIntegration(),
         ],
         ignore_errors=[
@@ -479,6 +502,8 @@ if SENTRY_DNS:
             # Bot request to wrong host (direct heroku url)
             DisallowedHost,
         ],
+        send_default_pii=True,
+        before_send_transaction=sentry_before_send_transaction,
     )
 
 
@@ -514,6 +539,11 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = {
     "zh": ("zh-TW",),
     "zh-TW": ("zh",),
 }
+
+# This is used to mark the fallback value for translations that are not available. The default of "" is not good
+# because it prevents us from being able to set fields to empty strings. None is also not good because
+# it cannot be set from admin, in case admins want to mark a field to not be translated.
+TRANSLATIONS_FALLBACK_UNDEFINED = "--NOT_TRANSLATED--"
 
 USE_I18N = True
 

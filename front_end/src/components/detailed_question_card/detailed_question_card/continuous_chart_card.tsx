@@ -4,13 +4,15 @@ import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
+import NumericTimeline from "@/components/charts/numeric_timeline";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { ForecastAvailability, Question } from "@/types/question";
+import { ForecastAvailability, Question, QuestionType } from "@/types/question";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import {
+  getDiscreteValueOptions,
   getPredictionDisplayValue,
   getUserPredictionDisplayValue,
 } from "@/utils/formatters/prediction";
@@ -90,6 +92,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
     forecastAvailability,
   ]);
 
+  const discreteValueOptions = getDiscreteValueOptions(question);
+
   const cpCursorElement = useMemo(() => {
     if (forecastAvailability?.cpRevealsOn) {
       return <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />;
@@ -116,6 +120,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           : [],
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
+      discreteValueOptions,
     });
     return renderDisplayValue(displayValue);
   }, [
@@ -127,6 +132,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.actual_resolve_time,
     question.unit,
     hideCP,
+    discreteValueOptions,
   ]);
 
   const userCursorElement = useMemo(() => {
@@ -141,6 +147,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       showRange: true,
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
+      discreteValueOptions,
     });
     return renderDisplayValue(userDisplayValue);
   }, [
@@ -150,6 +157,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.scaling,
     question.actual_resolve_time,
     question.unit,
+    discreteValueOptions,
   ]);
 
   const handleCursorChange = useCallback((value: number | null) => {
@@ -168,32 +176,60 @@ const DetailedContinuousChartCard: FC<Props> = ({
       )}
     >
       <div className="relative">
-        <NumericChart
-          aggregation={question.aggregations.recency_weighted}
-          myForecasts={question.my_forecasts}
-          resolution={question.resolution}
-          resolveTime={question.actual_resolve_time}
-          onCursorChange={handleCursorChange}
-          yLabel={t("communityPredictionLabel")}
-          onChartReady={handleChartReady}
-          questionType={question.type}
-          actualCloseTime={getPostDrivenTime(question.actual_close_time)}
-          scaling={question.scaling}
-          defaultZoom={
-            user
-              ? TimelineChartZoomOption.All
-              : TimelineChartZoomOption.TwoMonths
-          }
-          withZoomPicker
-          hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
-          withUserForecastTimestamps={!!forecastAvailability?.cpRevealsOn}
-          isEmptyDomain={
-            !!forecastAvailability?.isEmpty ||
-            !!forecastAvailability?.cpRevealsOn
-          }
-          openTime={getPostDrivenTime(question.open_time)}
-          unit={question.unit}
-        />
+        {question.type === QuestionType.Binary ? (
+          <NumericTimeline
+            aggregation={question.aggregations.recency_weighted}
+            myForecasts={question.my_forecasts}
+            resolution={question.resolution}
+            resolveTime={question.actual_resolve_time}
+            onCursorChange={handleCursorChange}
+            onChartReady={handleChartReady}
+            questionType={question.type}
+            actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+            scaling={question.scaling}
+            defaultZoom={
+              user
+                ? TimelineChartZoomOption.All
+                : TimelineChartZoomOption.TwoMonths
+            }
+            withZoomPicker
+            hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
+            openTime={getPostDrivenTime(question.open_time)}
+            unit={question.unit}
+          />
+        ) : (
+          <NumericChart
+            aggregation={question.aggregations.recency_weighted}
+            myForecasts={question.my_forecasts}
+            resolution={question.resolution}
+            resolveTime={question.actual_resolve_time}
+            onCursorChange={handleCursorChange}
+            yLabel={t("communityPredictionLabel")}
+            onChartReady={handleChartReady}
+            questionType={question.type}
+            actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+            scaling={question.scaling}
+            defaultZoom={
+              user
+                ? TimelineChartZoomOption.All
+                : TimelineChartZoomOption.TwoMonths
+            }
+            withZoomPicker
+            hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
+            withUserForecastTimestamps={!!forecastAvailability?.cpRevealsOn}
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
+            openTime={getPostDrivenTime(question.open_time)}
+            unit={question.unit}
+            inboundOutcomeCount={question.inbound_outcome_count}
+          />
+        )}
       </div>
       <div
         className={cn(

@@ -22,7 +22,7 @@ const Select = <T extends string>(
   return (
     <HeadlessSelect
       className={cn(
-        "min-w-16 rounded-none border border-gray-600-dark bg-transparent py-1",
+        "min-w-16 rounded-none border border-gray-600 bg-transparent py-1 text-gray-900 dark:border-gray-600-dark dark:bg-gray-0-dark dark:text-gray-900-dark",
         className
       )}
       ref={ref}
@@ -33,7 +33,10 @@ const Select = <T extends string>(
           value={option.value as unknown as string}
           key={option.value as unknown as string}
           disabled={option.disabled}
-          className={option.className}
+          className={cn(
+            "text-gray-900 dark:text-gray-900-dark",
+            option.className
+          )}
         >
           {option.label}
         </option>
