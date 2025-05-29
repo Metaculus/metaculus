@@ -15,6 +15,8 @@ source venv/bin/activate
     --threads 2 \
     --timeout 25 \
     --keep-alive 5 \
+    --max-requests 1000 \
+    --max-requests-jitter 100 \
     --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(M)s' \
     --access-logfile - \
     --error-logfile - \
