@@ -30,7 +30,7 @@ const schema = z.object({
   include_comments: z.boolean(),
   include_scores: z.boolean(),
   include_user_data: z.boolean(),
-  include_bots: z.boolean(),
+  include_bots: z.boolean().optional(),
   anonymized: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
