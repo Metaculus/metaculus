@@ -7,6 +7,7 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import {
+  DefaultInboundOutcomeCount,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,

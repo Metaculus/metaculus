@@ -12,7 +12,7 @@ import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { Quantile } from "@/types/question";
+import { DefaultInboundOutcomeCount, Quantile } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   getQuantileNumericForecastDataset,
