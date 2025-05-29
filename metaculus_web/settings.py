@@ -466,7 +466,7 @@ def traces_sampler(sampling_context):
         return 0.1
 
     # Sample all POSTs at 100%
-    if method == "POST":
+    if method in ("POST", "PATCH", "PUT", "DELETE"):
         return 1.0
 
     return SENTRY_SAMPLE_RATE
