@@ -678,8 +678,9 @@ def update_project_leaderboard(
             Project.ProjectTypes.SITE_MAIN,
             Project.ProjectTypes.TOURNAMENT,
         ]:
-            # assign medals
-            new_entries = assign_medals(new_entries)
+            if project.default_permission is not None:
+                # assign medals
+                new_entries = assign_medals(new_entries)
             # add prize if applicable
             prize_pool = (
                 leaderboard.prize_pool
