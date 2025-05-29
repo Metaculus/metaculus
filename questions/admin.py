@@ -29,7 +29,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "curation_status",
         "post_link",
     ]
-    readonly_fields = ["post_link"]
+    readonly_fields = ["post_link", "view_forecasts"]
     search_fields = [
         "id",
         "title_original",
@@ -46,6 +46,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     list_filter = [
         "type",
         "related_posts__post__curation_status",
+        AutocompleteFilterFactory("Post", "related_posts__post"),
         AutocompleteFilterFactory("Author", "related_posts__post__author"),
         AutocompleteFilterFactory(
             "Default Project", "related_posts__post__default_project"
@@ -73,6 +74,10 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         url = reverse("admin:posts_post_change", args=[post.id])
         return format_html('<a href="{}">{}</a>', url, f"Post-{post.id}")
 
+    def view_forecasts(self, obj):
+        url = reverse("admin:questions_forecast_changelist") + f"?question={obj.id}"
+        return format_html('<a href="{}">View Forecasts</a>', url)
+
     def should_update_translations(self, obj):
         is_private = (
             obj.related_posts.first().post.default_project.default_permission is None
@@ -81,9 +86,10 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
-        if "post_link" in fields:
-            fields.remove("post_link")
-        fields.insert(0, "post_link")
+        for field in ["post_link", "view_forecasts"]:
+            if field in fields:
+                fields.remove(field)
+            fields.insert(0, field)
         return fields
 
     def get_actions(self, request):
@@ -142,21 +148,45 @@ class ConditionalAdmin(admin.ModelAdmin):
     list_display = ["__str__"]
     search_fields = ["id"]
     autocomplete_fields = ["condition", "condition_child"]
+    readonly_fields = ["post_link"]
 
-    def should_update_translations(self, obj):
-        is_private = obj.post.default_project.default_permission is None
-        return not is_private
+    def post_link(self, obj):
+        post = obj.post
+        url = reverse("admin:posts_post_change", args=[post.id])
+        return format_html('<a href="{}">{}</a>', url, f"Post-{post.id}")
 
     def get_actions(self, request):
         actions = super().get_actions(request)
         if "delete_selected" in actions:
             del actions["delete_selected"]
         return actions
+
+    def should_update_translations(self, obj):
+        is_private = obj.post.default_project.default_permission is None
+        return not is_private
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        for field in ["post_link"]:
+            if field in fields:
+                fields.remove(field)
+            fields.insert(0, field)
+        return fields
 
 
 @admin.register(GroupOfQuestions)
 class GroupOfQuestionsAdmin(CustomTranslationAdmin):
     search_fields = ["id"]
+    readonly_fields = ["post_link", "view_questions"]
+
+    def post_link(self, obj):
+        post = obj.post
+        url = reverse("admin:posts_post_change", args=[post.id])
+        return format_html('<a href="{}">{}</a>', url, f"Post-{post.id}")
+
+    def view_questions(self, obj):
+        url = reverse("admin:questions_question_changelist") + f"?group={obj.id}"
+        return format_html('<a href="{}">View Questions</a>', url)
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -167,6 +197,14 @@ class GroupOfQuestionsAdmin(CustomTranslationAdmin):
     def should_update_translations(self, obj):
         is_private = obj.post.default_project.default_permission is None
         return not is_private
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        for field in ["post_link", "view_questions"]:
+            if field in fields:
+                fields.remove(field)
+            fields.insert(0, field)
+        return fields
 
 
 @admin.register(Forecast)
