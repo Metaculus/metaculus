@@ -67,7 +67,7 @@ if ! nc -z localhost 3000; then
   exit 1
 fi
 
-echo "All upstreams are ready—starting Nginx."
+echo "All upstreams are ready. Starting Nginx..."
 
 # 4) Render Nginx config & launch it
 PORT="${PORT:-8080}" \
