@@ -12,6 +12,7 @@ import { ForecastAvailability, Question, QuestionType } from "@/types/question";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import {
+  getDiscreteValueOptions,
   getPredictionDisplayValue,
   getUserPredictionDisplayValue,
 } from "@/utils/formatters/prediction";
@@ -91,6 +92,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
     forecastAvailability,
   ]);
 
+  const discreteValueOptions = getDiscreteValueOptions(question);
+
   const cpCursorElement = useMemo(() => {
     if (forecastAvailability?.cpRevealsOn) {
       return <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />;
@@ -117,6 +120,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           : [],
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
+      discreteValueOptions,
     });
     return renderDisplayValue(displayValue);
   }, [
@@ -128,6 +132,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.actual_resolve_time,
     question.unit,
     hideCP,
+    discreteValueOptions,
   ]);
 
   const userCursorElement = useMemo(() => {
@@ -142,6 +147,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       showRange: true,
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
+      discreteValueOptions,
     });
     return renderDisplayValue(userDisplayValue);
   }, [
@@ -151,6 +157,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.scaling,
     question.actual_resolve_time,
     question.unit,
+    discreteValueOptions,
   ]);
 
   const handleCursorChange = useCallback((value: number | null) => {
@@ -220,6 +227,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             }
             openTime={getPostDrivenTime(question.open_time)}
             unit={question.unit}
+            inboundOutcomeCount={question.inbound_outcome_count}
           />
         )}
       </div>

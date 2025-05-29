@@ -61,6 +61,7 @@ type Props = {
   isEmptyDomain?: boolean;
   openTime?: number;
   unit?: string;
+  inboundOutcomeCount?: number | null;
 };
 
 const NumericChart: FC<Props> = ({
@@ -84,6 +85,7 @@ const NumericChart: FC<Props> = ({
   isEmptyDomain,
   openTime,
   unit,
+  inboundOutcomeCount,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -116,6 +118,7 @@ const NumericChart: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         unit,
+        inboundOutcomeCount,
       }),
     [
       questionType,
@@ -131,6 +134,7 @@ const NumericChart: FC<Props> = ({
       isEmptyDomain,
       openTime,
       unit,
+      inboundOutcomeCount,
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
@@ -205,7 +209,12 @@ const NumericChart: FC<Props> = ({
     !!chartWidth && !!xScale.ticks.length && yScale.ticks.length;
 
   const resolutionPoint = useMemo(() => {
-    if (!resolution || !resolveTime || isNil(actualCloseTime)) {
+    if (
+      !resolution ||
+      resolution === "" ||
+      !resolveTime ||
+      isNil(actualCloseTime)
+    ) {
       return null;
     }
 
