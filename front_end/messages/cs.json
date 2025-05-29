@@ -68,6 +68,7 @@
   "pdfLabel": "Hustota pravděpodobnosti",
   "cdfLabel": "Kumulativní pravděpodobnost",
   "pdf": "PDF",
+  "pmf": "PMF",
   "cdf": "CDF",
   "recencyWeighted": "Váženo o nedávnost",
   "unweighted": "Neváženo",

@@ -68,6 +68,7 @@
   "pdfLabel": "Densidad de Probabilidad",
   "cdfLabel": "Probabilidad Acumulada",
   "pdf": "PDF",
+  "pmf": "PMF",
   "cdf": "CDF",
   "recencyWeighted": "Peso reciente",
   "unweighted": "Sin peso",
