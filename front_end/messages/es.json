@@ -1261,5 +1261,12 @@
   "inTheNews": "En las Noticias",
   "fileSizeExceedsLimit": "El tamaño del archivo supera el límite de {value}MB",
   "errorUploadingImage": "Error al subir la imagen",
+  "discrete": "Pregunta discreta",
+  "discreteExample": "¿Cuántos días lloverá el próximo mes?",
+  "discreteGroup": "Grupo discreto",
+  "discreteGroupExample": "¿Cuántos días lloverá en estas ciudades?",
+  "discreteDescription": "Una pregunta discreta pregunta sobre un resultado de un conjunto de valores distinto y ordenado.",
+  "discreteQuestionGroup": "Grupo de preguntas discretas",
+  "discreteQuestionGroupDescription": "Los grupos de preguntas discretas contienen preguntas que preguntan sobre el valor de una cantidad futura desconocida y se resuelven dentro de un rango específico.",
   "emptyCommentField": "El campo de comentarios no debe estar vacío"
 }

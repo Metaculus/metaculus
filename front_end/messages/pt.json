@@ -1259,5 +1259,12 @@
   "inTheNews": "Nas Notícias",
   "fileSizeExceedsLimit": "O tamanho do arquivo excede o limite de {value}MB",
   "errorUploadingImage": "Falha ao fazer o upload da imagem",
+  "discrete": "Pergunta discreta",
+  "discreteExample": "Quantos dias de chuva no próximo mês?",
+  "discreteGroup": "Grupo discreto",
+  "discreteGroupExample": "Quantos dias de chuva para estas cidades?",
+  "discreteDescription": "Uma pergunta discreta pergunta sobre um resultado de um conjunto distinto e ordenado de valores.",
+  "discreteQuestionGroup": "Grupo de perguntas discretas",
+  "discreteQuestionGroupDescription": "Grupos de perguntas discretas contêm perguntas que perguntam sobre o valor de uma quantidade futura desconhecida e são resolvidas dentro de um intervalo especificado.",
   "emptyCommentField": "O campo de comentário não pode estar vazio"
 }

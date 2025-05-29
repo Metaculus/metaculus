@@ -1261,5 +1261,12 @@
   "inTheNews": "Ve zprávách",
   "fileSizeExceedsLimit": "Velikost souboru překračuje limit {value}MB",
   "errorUploadingImage": "Nepodařilo se nahrát obrázek",
+  "discrete": "Diskrétní otázka",
+  "discreteExample": "Kolik dní deště bude příští měsíc?",
+  "discreteGroup": "Diskrétní skupina",
+  "discreteGroupExample": "Kolik dní deště bude mít tato města?",
+  "discreteDescription": "Diskrétní otázka se ptá na výsledek z odlišné a uspořádané sady hodnot.",
+  "discreteQuestionGroup": "Diskrétní skupina otázek",
+  "discreteQuestionGroupDescription": "Diskrétní skupiny otázek obsahují otázky, které se ptají na hodnotu neznámé budoucí veličiny a řeší se v rámci zadaného rozsahu.",
   "emptyCommentField": "Pole pro komentář nesmí být prázdné"
 }
