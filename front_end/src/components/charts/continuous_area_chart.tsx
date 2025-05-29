@@ -345,10 +345,10 @@ const ContinuousAreaChart: FC<Props> = ({
     const openBoundCount =
       (question.open_lower_bound ? 1 : 0) + (question.open_upper_bound ? 1 : 0);
     return (
-      (chartWidth - 30) /
-      (1.07 * ((question.inbound_outcome_count || 200) - 1 + openBoundCount))
+      (chartWidth - horizontalPadding) /
+      (1.09 * ((question.inbound_outcome_count || 200) + openBoundCount))
     );
-  }, [chartWidth, data, question]);
+  }, [chartWidth, data, question, horizontalPadding]);
   const CursorContainer = (
     <VictoryCursorContainer
       cursorLabel={"label"}
@@ -385,7 +385,7 @@ const ContinuousAreaChart: FC<Props> = ({
           paddingTop={paddingTop}
           paddingBottom={BOTTOM_PADDING}
           paddingLeft={horizontalPadding}
-          paddingRight={HORIZONTAL_PADDING}
+          paddingRight={horizontalPadding}
           discrete={discrete}
         />
       }
@@ -655,7 +655,7 @@ const ContinuousAreaChart: FC<Props> = ({
               paddingBottom={BOTTOM_PADDING}
               paddingTop={paddingTop}
               paddingLeft={horizontalPadding}
-              paddingRight={HORIZONTAL_PADDING}
+              paddingRight={horizontalPadding}
               discrete={discrete}
               barWidth={barWidth}
             />
