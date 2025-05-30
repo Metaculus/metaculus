@@ -26,6 +26,7 @@ def get_projects_qs(
     user: User = None,
     permission: ObjectPermission = None,
     show_on_homepage: bool = None,
+    show_on_services_page: bool = None,
 ):
     """
     Returns available projects for the user
@@ -35,6 +36,9 @@ def get_projects_qs(
 
     if show_on_homepage:
         qs = qs.filter(show_on_homepage=True)
+
+    if show_on_services_page:
+        qs = qs.filter(show_on_services_page=True)
 
     return qs
 

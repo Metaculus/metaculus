@@ -6,8 +6,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from posts.serializers import serialize_posts_many_forecast_flow
 from posts.models import Post
+from posts.serializers import serialize_posts_many_forecast_flow
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
@@ -33,8 +33,8 @@ from users.services.common import get_users_by_usernames
 from utils.cache import cache_get_or_set
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
-from utils.views import validate_data_request
 from utils.tasks import email_data_task
+from utils.views import validate_data_request
 
 
 @api_view(["GET"])
@@ -139,12 +139,16 @@ def tournaments_list_api_view(request: Request):
     show_on_homepage = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("show_on_homepage")
     )
+    show_on_services_page = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("show_on_services_page")
+    )
 
     qs = (
         get_projects_qs(
             user=request.user,
             permission=permission,
             show_on_homepage=show_on_homepage,
+            show_on_services_page=show_on_services_page,
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
@@ -159,6 +163,8 @@ def tournaments_list_api_view(request: Request):
     for obj in qs.all():
         serialized_tournament = TournamentShortSerializer(obj).data
         serialized_tournament["questions_count"] = obj.questions_count
+        serialized_tournament["forecasts_count"] = obj.forecasts_count
+        serialized_tournament["forecasters_count"] = obj.forecasters_count
 
         data.append(serialized_tournament)
 
