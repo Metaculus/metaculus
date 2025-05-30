@@ -225,10 +225,15 @@ const NumericQuestionInput: React.FC<{
       mx = Math.round(1e10 * (mx + 0.5 * step)) / 1e10;
       mn -= 0.5 * step;
     }
-    const inboundOutcomeCount = Math.max(
-      3,
-      Math.min(200, Math.round((mx - mn) / step))
-    );
+    let inboundOutcomeCount: number;
+    if (questionType === QuestionType.Discrete) {
+      inboundOutcomeCount = Math.max(
+        3,
+        Math.min(200, Math.round((mx - mn) / step))
+      );
+    } else {
+      inboundOutcomeCount = DefaultInboundOutcomeCount;
+    }
     if (!isMounted.current) {
       // populate draft values
       const draft = getQuestionDraft(draftKey ?? "");
@@ -241,8 +246,28 @@ const NumericQuestionInput: React.FC<{
           draftZeroPoint,
           draftInboundOutcomeCount,
         } = getDraftValues(draft, index);
-        setMin(isNil(draftMin) ? min : draftMin);
-        setMax(isNil(draftMax) ? max : draftMax);
+        inboundOutcomeCount =
+          draftInboundOutcomeCount ?? DefaultInboundOutcomeCount;
+        mn =
+          Math.round(
+            1e10 * (isNil(draftMin) ? min ?? 0 : (draftMin as number))
+          ) / 1e10;
+        mx =
+          Math.round(
+            1e10 * (isNil(draftMax) ? max ?? 1 : (draftMax as number))
+          ) / 1e10;
+        if (questionType === QuestionType.Discrete) {
+          const draftStep =
+            isNil(draftMin) || isNil(draftMax)
+              ? 1
+              : Math.round(1e10 * ((mx - mn) / inboundOutcomeCount)) / 1e10;
+          setStep(draftStep);
+          setMax(mx - draftStep);
+          setMin(mn + draftStep);
+        } else {
+          setMax(mx);
+          setMin(mn);
+        }
         setOpenLowerBound(
           isNil(draftOpenLowerBound) ? openLowerBound : draftOpenLowerBound
         );
@@ -250,13 +275,6 @@ const NumericQuestionInput: React.FC<{
           isNil(draftOpenUpperBound) ? openUpperBound : draftOpenUpperBound
         );
         setZeroPoint(isNil(draftZeroPoint) ? zeroPoint : draftZeroPoint);
-        setStep(
-          isNil(draftInboundOutcomeCount) || isNil(draftMin) || isNil(draftMax)
-            ? 1
-            : Math.round(
-                1e10 * ((draftMax - draftMin) / (draftInboundOutcomeCount - 1))
-              ) / 1e10
-        );
       } else {
         onChange({
           range_min: mn as number,
