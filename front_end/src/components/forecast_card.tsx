@@ -134,6 +134,7 @@ const ForecastCard: FC<Props> = ({
             </div>
           );
         case QuestionType.Numeric:
+        case QuestionType.Discrete:
         case QuestionType.Date:
           return (
             <div className="relative flex w-full flex-col">
@@ -189,6 +190,7 @@ const ForecastCard: FC<Props> = ({
       switch (question.type) {
         case QuestionType.Binary:
         case QuestionType.Numeric:
+        case QuestionType.Discrete:
         case QuestionType.Date: {
           const cursorForecast = getCursorForecast(
             cursorTimestamp,

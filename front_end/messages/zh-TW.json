@@ -87,6 +87,7 @@
   "pdfLabel": "概率密度",
   "cdfLabel": "累積概率",
   "pdf": "PDF",
+  "pmf": "PMF",
   "cdf": "CDF",
   "recencyWeighted": "最近加權",
   "unweighted": "未加權",
@@ -1247,5 +1248,12 @@
   "inTheNews": "新聞摘要",
   "fileSizeExceedsLimit": "檔案大小超過 {value}MB 限制",
   "errorUploadingImage": "上傳圖片失敗",
+  "discrete": "离散问题",
+  "discreteExample": "下个月有多少天会下雨？",
+  "discreteGroup": "离散组",
+  "discreteGroupExample": "这些城市有多少天会下雨？",
+  "discreteDescription": "离散问题询问一组独特且有序的值的结果。",
+  "discreteQuestionGroup": "离散问题组",
+  "discreteQuestionGroupDescription": "离散问题组包含询问未知未来量值并在指定范围内解析的问题。",
   "emptyCommentField": "評論欄不能為空"
 }

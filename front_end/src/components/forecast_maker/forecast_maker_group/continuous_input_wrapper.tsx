@@ -117,8 +117,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     if (forecastInputMode === ContinuousForecastInputType.Slider) {
       return getSliderNumericForecastDataset(
         forecast as DistributionSliderComponent[],
-        option.question.open_lower_bound,
-        option.question.open_upper_bound
+        option.question
       );
     }
     const validationErrors = validateAllQuantileInputs({
@@ -181,8 +180,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
 
   const userCdf: number[] | undefined = getSliderNumericForecastDataset(
     getNormalizedContinuousForecast(option.userSliderForecast),
-    option.question.open_lower_bound,
-    option.question.open_upper_bound
+    option.question
   ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast

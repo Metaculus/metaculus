@@ -44,12 +44,13 @@ import cn from "@/utils/core/cn";
 
 // TODO: translate
 const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
-  [QuestionType.Numeric]: "Numeric",
-  [QuestionType.Date]: "Date",
-  [QuestionType.MultipleChoice]: "Multiple Choice",
   [QuestionType.Binary]: "Binary",
-  [PostForecastType.Conditional]: "Conditional",
+  [QuestionType.MultipleChoice]: "Multiple Choice",
+  [QuestionType.Numeric]: "Numeric",
+  [QuestionType.Discrete]: "Discrete",
+  [QuestionType.Date]: "Date",
   [PostForecastType.Group]: "Group",
+  [PostForecastType.Conditional]: "Conditional",
   [NotebookType.Notebook]: "Notebook",
 };
 

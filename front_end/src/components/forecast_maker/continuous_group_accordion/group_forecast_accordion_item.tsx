@@ -67,11 +67,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
   const isResolvedOption = type === QuestionStatus.RESOLVED;
   const optionForecast =
     forecastInputMode === ContinuousForecastInputType.Slider
-      ? getSliderNumericForecastDataset(
-          option.userSliderForecast,
-          question.open_lower_bound,
-          question.open_upper_bound
-        )
+      ? getSliderNumericForecastDataset(option.userSliderForecast, question)
       : getQuantileNumericForecastDataset(
           option.userQuantileForecast,
           question
@@ -175,9 +171,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({
                       height={55}
                       hideLabels
                       hideCP={!showCP}
-                      scaling={question.scaling}
-                      questionType={question.type}
-                      resolution={question.resolution}
+                      question={question}
                     />
                   </div>
                 </div>

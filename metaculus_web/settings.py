@@ -256,6 +256,7 @@ EMAIL_SENDER_NO_REPLY = os.environ.get(
     "EMAIL_SENDER_NO_REPLY", f"Metaculus NoReply <no-reply@{MAILGUN_DOMAIN}>"
 )
 EMAIL_FEEDBACK = os.environ.get("EMAIL_FEEDBACK", "feedback@metaculus.com")
+EMAIL_SUPPORT = os.environ.get("EMAIL_SUPPORT", "support@metaculus.com")
 # TODO: reconsider after release
 EMAIL_ALLOW_SEND_TO_ALL_USERS = (
     os.environ.get("EMAIL_ALLOW_SEND_TO_ALL_USERS", "false").lower() == "true"
@@ -466,7 +467,7 @@ def traces_sampler(sampling_context):
         return 0.1
 
     # Sample all POSTs at 100%
-    if method == "POST":
+    if method in ("POST", "PATCH", "PUT", "DELETE"):
         return 1.0
 
     return SENTRY_SAMPLE_RATE

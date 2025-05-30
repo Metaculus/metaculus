@@ -15,7 +15,11 @@ from rest_framework.response import Response
 
 from questions.models import Question, Forecast
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
-from .serializers import ContactSerializer, SidebarItemSerializer
+from .serializers import (
+    ContactSerializer,
+    ContactServicesSerializer,
+    SidebarItemSerializer,
+)
 from .services.itn import remove_article
 
 
@@ -30,6 +34,28 @@ def contact_api_view(request: Request):
         body=serializer.data["message"],
         from_email=settings.EMAIL_SENDER_NO_REPLY,
         to=[settings.EMAIL_FEEDBACK],
+        reply_to=[serializer.data["email"]],
+    ).send()
+
+    return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def contact_service_api_view(request: Request):
+    serializer = ContactServicesSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    EmailMessage(
+        subject="New form submission via Services page",
+        body=(
+            f"Your name: {serializer.data.get('name')}\n"
+            f"Email address: {serializer.data['email']}\n"
+            f"Organization: {serializer.data.get('organization')}\n"
+            f"Interested in: {serializer.data.get('service')}\n"
+        ),
+        from_email=settings.EMAIL_SENDER_NO_REPLY,
+        to=[settings.EMAIL_SUPPORT],
         reply_to=[serializer.data["email"]],
     ).send()
 
