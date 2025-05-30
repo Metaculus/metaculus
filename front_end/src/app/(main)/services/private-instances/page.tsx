@@ -6,11 +6,10 @@ import CaseStudyCard from "../components/case_study_card";
 import GetInTouchForm from "../components/get_in_touch_form";
 import StepCard from "../components/step_card";
 
-// TODO: adjust metadata
 export const metadata = {
-  title: "Private Instances Metaculus",
+  title: "Create Your Private Forecasting Platform",
   description:
-    "Metaculus is an online forecasting platform and aggregation engine working to improve human reasoning and coordination on topics of global importance.",
+    "Launch your own private forecasting instance with Metaculus. Combine the power of predictive analytics with internal expertise to address key strategic questions within your organization.",
 };
 
 export default async function PrivateInstancesPage() {
@@ -49,7 +48,7 @@ export default async function PrivateInstancesPage() {
           {t("howItWorks")}
         </h3>
         <p className="m-0 mt-3 text-center text-xl font-medium">
-          {t("stepsForSettingUpTournament")}
+          {t("stepsForSettingUpPrivateInstance")}
         </p>
         <div className="mt-12 flex flex-col gap-3 lg:flex-row lg:items-stretch lg:gap-[22px]">
           <StepCard
@@ -83,7 +82,7 @@ export default async function PrivateInstancesPage() {
 
       <CaseStudyCard
         title={t("organizationsLikeCzechPriorities")}
-        className="mt-[120px]"
+        className="mt-10 sm:mt-16 lg:mt-[120px]"
       >
         <p className="m-0">{t("sinceItsDebutIn2016")}</p>
         <br />

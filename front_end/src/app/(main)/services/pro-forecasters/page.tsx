@@ -1,15 +1,17 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import CaseStudyCard from "../components/case_study_card";
 import GetInTouchForm from "../components/get_in_touch_form";
 import StepCard from "../components/step_card";
-// TODO: adjust metadata
+import ProForecastersBlock from "./components/pro_forecasters_block";
+
 export const metadata = {
-  title: "Pro Forecasters Service Metaculus",
+  title: "Deploy Metaculus Pro Forecasters on Key Questions",
   description:
-    "Metaculus is an online forecasting platform and aggregation engine working to improve human reasoning and coordination on topics of global importance.",
+    "Access calibrated forecasts from top predictors. Metaculus Pro Forecasters bring transparent reasoning and expert insight to your organization’s most important questions.",
 };
 
 export default async function ProForecastersPage() {
@@ -18,7 +20,7 @@ export default async function ProForecastersPage() {
     <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px] min-[1366px]:pt-[103px]">
       <div>
         <h3 className="m-0 mx-auto max-w-[448px] text-balance px-6 text-center text-[32px] font-bold leading-9 tracking-tight text-blue-800 dark:text-blue-800-dark sm:text-5xl md:max-w-[576px] lg:max-w-full lg:px-0 lg:text-start">
-          {t.rich("createPrivateInstance", {
+          {t.rich("metaculusProForecasters", {
             span: (chunks) => (
               <span className="text-blue-700 dark:text-blue-700-dark">
                 {chunks}
@@ -30,15 +32,18 @@ export default async function ProForecastersPage() {
         <div className="mt-5 flex-col px-6 text-center text-sm text-blue-700 dark:text-blue-700-dark sm:px-16 sm:text-[21px] sm:leading-[32px] lg:mt-8 lg:flex lg:px-0 lg:text-start">
           {/* Mobile paragraph */}
           <p className="m-0 text-pretty text-blue-700 dark:text-blue-700-dark lg:hidden">
-            {t("sinceItsDebutIn2016")} {t("youCanDeployProForecasters")}
+            {t("proForecastersHeaderFirstParagraph")}{" "}
+            {t("proForecastersHeaderSecondParagraph")}
           </p>
           {/* Desktop paragraphs */}
           <div className="hidden lg:block">
             <p className="m-0 text-xl font-medium">
-              {t("sinceItsDebutIn2016")}
+              {t("proForecastersHeaderFirstParagraph")}
             </p>
             <br />
-            <p className="m-0 text-lg">{t("youCanDeployProForecasters")}</p>
+            <p className="m-0 text-lg">
+              {t("proForecastersHeaderSecondParagraph")}
+            </p>
           </div>
         </div>
       </div>
@@ -48,13 +53,13 @@ export default async function ProForecastersPage() {
           {t("howItWorks")}
         </h3>
         <p className="m-0 mt-3 text-center text-xl font-medium">
-          {t("stepsForSettingUpTournament")}
+          {t("stepsForCollaboratingWithProForecasters")}
         </p>
         <div className="mt-12 flex flex-col gap-3 lg:flex-row lg:items-stretch lg:gap-[22px]">
           <StepCard
             step={1}
             title={t("contactUs")}
-            description={t("letsExplorHowOurSoftware")}
+            description={t("proForecastersStep1Description")}
             className="flex-1"
           />
           <FontAwesomeIcon
@@ -63,8 +68,8 @@ export default async function ProForecastersPage() {
           />
           <StepCard
             step={2}
-            title={t("payAnnuallyOrMonthly")}
-            description={t("chooseServiceArrangement")}
+            title={t("proForecastersStep2Title")}
+            description={t("proForecastersStep2Description")}
             className="flex-1"
           />
           <FontAwesomeIcon
@@ -73,22 +78,43 @@ export default async function ProForecastersPage() {
           />
           <StepCard
             step={3}
-            title={t("deployToYourTeam")}
-            description={t("whetherMetaculusHostedOrOnPremises")}
+            title={t("proForecastersStep3Title")}
+            description={t("proForecastersStep3Description")}
             className="flex-1"
           />
         </div>
       </div>
 
       <CaseStudyCard
-        title={t("organizationsLikeCzechPriorities")}
-        className="mt-[120px]"
+        title={t("proForecastersCaseStudyTitle")}
+        className="mt-10 sm:mt-16 lg:mt-[120px]"
       >
-        <p className="m-0">{t("sinceItsDebutIn2016")}</p>
+        <p className="m-0">{t("proForecastersCaseStudyParagraph1")}</p>
         <br />
-        <p className="m-0">{t("youCanDeployMetaculusCodebase")}</p>
+        <p className="m-0">
+          {t.rich("proForecastersCaseStudyParagraph2", {
+            link: (chunks) => (
+              <Link
+                className="underline"
+                href="/tournament/respiratory-outlook-23-24/"
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
+        </p>
+        <br />
+        <p className="m-0">
+          {t.rich("proForecastersCaseStudyParagraph3", {
+            link: (chunks) => (
+              <a className="underline" href="https://www.nsf.gov/">
+                {chunks}
+              </a>
+            ),
+          })}
+        </p>
       </CaseStudyCard>
-
+      <ProForecastersBlock className="mt-10 sm:mt-16 lg:mt-[120px]" />
       <GetInTouchForm className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]" />
     </main>
   );

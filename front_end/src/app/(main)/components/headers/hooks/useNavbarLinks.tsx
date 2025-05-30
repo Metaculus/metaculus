@@ -45,8 +45,12 @@ const useNavbarLinks = ({
           label: t("tournaments"),
           href: "/tournaments",
         },
+        workWithUs: {
+          label: t("workWithUs"),
+          href: "/services",
+        },
         leaderboards: {
-          label: t("leaderboards"),
+          label: <span className="capitalize">{t("leaderboards")}</span>,
           href: "/leaderboard",
         },
         news: {
@@ -100,7 +104,7 @@ const useNavbarLinks = ({
       lgLinks: [
         LINKS.questions,
         LINKS.tournaments,
-        ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.leaderboards, LINKS.news]),
+        ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.workWithUs, LINKS.news]),
       ],
       /**
        * Breakpoint: 512 - 1023
@@ -148,7 +152,7 @@ const useNavbarLinks = ({
       ],
     }),
     [
-      LINKS.leaderboards,
+      LINKS.workWithUs,
       LINKS.news,
       LINKS.questions,
       LINKS.tournaments,
@@ -164,6 +168,7 @@ const useNavbarLinks = ({
   const menuLinks = useMemo(() => {
     // common links that are always shown
     const links: NavbarLinkDefinition[] = [
+      LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
     ];
@@ -179,7 +184,7 @@ const useNavbarLinks = ({
 
       if (!isMenuCollapsed) {
         // leaderboard and news are moved from navbar to desktop menu
-        links.unshift(LINKS.leaderboards, LINKS.news);
+        links.unshift(LINKS.workWithUs, LINKS.news);
       }
     }
 
@@ -191,6 +196,7 @@ const useNavbarLinks = ({
     LINKS.faq,
     LINKS.journal,
     LINKS.leaderboards,
+    LINKS.workWithUs,
     LINKS.news,
     LINKS.press,
     LINKS.trackRecord,
@@ -214,9 +220,10 @@ const useNavbarLinks = ({
                 "max-[511px]:flex": isNil(user),
               }),
             },
-            LINKS.leaderboards,
+            LINKS.workWithUs,
             LINKS.news,
             { href: null, label: t("more"), isTitle: true },
+            LINKS.leaderboards,
             LINKS.about,
             LINKS.press,
             LINKS.faq,

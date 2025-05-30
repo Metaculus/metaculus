@@ -32,10 +32,10 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
       )}
       href={getProjectLink(tournament)}
     >
-      <div className="relative h-[100px] w-full flex-none bg-cover bg-center">
+      <div className="relative h-[100px] w-full bg-cover bg-center">
         <Image
           src={tournamentPlaceholder}
-          className="absolute h-full w-full"
+          className="absolute size-full object-cover object-center"
           alt=""
           placeholder={"blur"}
           quality={100}
@@ -45,6 +45,7 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
             src={headerImage}
             alt=""
             fill
+            className="size-full object-cover object-center"
             sizes="(max-width: 768px) 200vw, 100vw"
             quality={100}
           />
