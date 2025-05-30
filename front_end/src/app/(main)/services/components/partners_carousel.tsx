@@ -7,7 +7,7 @@ import { FC } from "react";
 import useAppTheme from "@/hooks/use_app_theme";
 import cn from "@/utils/core/cn";
 
-import ServiceConfig from "../serviceConfig.json";
+import ServiceConfig from "../serviceConfig";
 
 type Props = {
   className?: string;
@@ -25,10 +25,12 @@ const PartnersCarousel: FC<Props> = ({ className }) => {
     [AutoScroll({ speed: 1, stopOnInteraction: false })]
   );
   const { partnersLogos } = ServiceConfig;
+  const logoKey = theme === "light" || theme === "dark" ? theme : "light";
   // Duplicate logos to always have the infinite scrolling effect
-  const duplicatedLogos = theme
-    ? [...partnersLogos[theme], ...partnersLogos[theme]]
-    : [];
+  const duplicatedLogos = [
+    ...partnersLogos[logoKey],
+    ...partnersLogos[logoKey],
+  ];
   return (
     <div
       className={cn(

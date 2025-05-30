@@ -6,7 +6,7 @@ import { getTranslations } from "next-intl/server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 
 import StepCard from "../components/step_card";
-import ServiceConfig from "../serviceConfig.json";
+import ServiceConfig from "../serviceConfig";
 import OtherTournaments from "./components/other_tournaments";
 import TournamentSpotlight from "./components/tournament_spotlight";
 import GetInTouchForm from "../components/get_in_touch_form";

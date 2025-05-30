@@ -8,9 +8,10 @@ import { z } from "zod";
 
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
-import { FormError, FormErrorMessage, Input } from "@/components/ui/form_field";
+import { FormErrorMessage, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { ErrorResponse } from "@/types/fetch";
+import { TranslationKey } from "@/types/translations";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
@@ -25,6 +26,39 @@ const ServiceType = {
 } as const;
 
 type ServiceType = (typeof ServiceType)[keyof typeof ServiceType];
+type ServiceOption = {
+  value: ServiceType;
+  labelKey: TranslationKey;
+  order: string;
+};
+
+const SERVICE_OPTIONS: ServiceOption[] = [
+  {
+    value: ServiceType.GENERAL_INQUIRY,
+    labelKey: "generalInquiry",
+    order: "lg:order-1",
+  },
+  {
+    value: ServiceType.RUNNING_TOURNAMENT,
+    labelKey: "runningTournament",
+    order: "lg:order-2",
+  },
+  {
+    value: ServiceType.PRIVATE_INSTANCE,
+    labelKey: "settingUpPrivateInstance",
+    order: "lg:order-3",
+  },
+  {
+    value: ServiceType.PRO_FORECASTING,
+    labelKey: "proForecasting",
+    order: "lg:order-4",
+  },
+  {
+    value: ServiceType.PARTNERSHIP,
+    labelKey: "partnership",
+    order: "lg:order-5",
+  },
+];
 
 const getInTouchFormSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -62,6 +96,7 @@ const GetInTouchForm: FC<Props> = ({ className, id }) => {
     handleSubmit,
     control,
     reset,
+    clearErrors,
   } = useForm<GetInTouchFormchema>({
     resolver: zodResolver(getInTouchFormSchema),
     defaultValues: {
@@ -139,123 +174,46 @@ const GetInTouchForm: FC<Props> = ({ className, id }) => {
             {t("whatServiceAreYouInterestedIn")}
           </p>
           <div className="mx-auto mt-3 flex max-w-[600px] flex-wrap items-center justify-center gap-x-5 gap-y-3 text-blue-800 dark:text-blue-800-dark lg:mt-5">
-            <Controller
-              name="services"
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  {...field}
-                  label={t("runningTournament")}
-                  className="inline-flex items-center lg:order-2"
-                  inputClassName="w-4 h-4 flex"
-                  checked={field.value?.includes(
-                    ServiceType.RUNNING_TOURNAMENT
-                  )}
-                  onChange={(checked) => {
-                    field.onChange(
-                      checked
-                        ? [
-                            ...(field.value || []),
-                            ServiceType.RUNNING_TOURNAMENT,
-                          ]
-                        : (field.value || []).filter(
-                            (v) => v !== ServiceType.RUNNING_TOURNAMENT
+            {SERVICE_OPTIONS.map((serviceOption) => (
+              <Controller
+                key={serviceOption.value}
+                name="services"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    label={t(serviceOption.labelKey)}
+                    className={cn(
+                      "inline-flex items-center",
+                      serviceOption.order
+                    )}
+                    inputClassName="w-4 h-4 flex"
+                    checked={field.value?.includes(serviceOption.value)}
+                    onChange={(checked) => {
+                      if (checked) {
+                        clearErrors("services");
+                        field.onChange([
+                          ...(field.value || []),
+                          serviceOption.value,
+                        ]);
+                      } else {
+                        field.onChange(
+                          (field.value || []).filter(
+                            (v) => v !== serviceOption.value
                           )
-                    );
-                  }}
-                />
-              )}
-            />
-            <Controller
-              name="services"
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  {...field}
-                  label={t("settingUpPrivateInstance")}
-                  className="inline-flex items-center lg:order-3"
-                  inputClassName="w-4 h-4 flex"
-                  checked={field.value?.includes(ServiceType.PRIVATE_INSTANCE)}
-                  onChange={(checked) => {
-                    field.onChange(
-                      checked
-                        ? [...(field.value || []), ServiceType.PRIVATE_INSTANCE]
-                        : (field.value || []).filter(
-                            (v) => v !== ServiceType.PRIVATE_INSTANCE
-                          )
-                    );
-                  }}
-                />
-              )}
-            />
-            <Controller
-              name="services"
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  {...field}
-                  label={t("proForecasting")}
-                  className="inline-flex items-center lg:order-4"
-                  inputClassName="w-4 h-4 flex"
-                  checked={field.value?.includes(ServiceType.PRO_FORECASTING)}
-                  onChange={(checked) => {
-                    field.onChange(
-                      checked
-                        ? [...(field.value || []), ServiceType.PRO_FORECASTING]
-                        : (field.value || []).filter(
-                            (v) => v !== ServiceType.PRO_FORECASTING
-                          )
-                    );
-                  }}
-                />
-              )}
-            />
-            <Controller
-              name="services"
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  {...field}
-                  label={t("partnership")}
-                  className="inline-flex items-center lg:order-5"
-                  inputClassName="w-4 h-4 flex"
-                  checked={field.value?.includes(ServiceType.PARTNERSHIP)}
-                  onChange={(checked) => {
-                    field.onChange(
-                      checked
-                        ? [...(field.value || []), ServiceType.PARTNERSHIP]
-                        : (field.value || []).filter(
-                            (v) => v !== ServiceType.PARTNERSHIP
-                          )
-                    );
-                  }}
-                />
-              )}
-            />
-            <Controller
-              name="services"
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  {...field}
-                  label={t("generalInquiry")}
-                  className="inline-flex items-center lg:order-1"
-                  inputClassName="w-4 h-4 flex"
-                  checked={field.value?.includes(ServiceType.GENERAL_INQUIRY)}
-                  onChange={(checked) => {
-                    field.onChange(
-                      checked
-                        ? [...(field.value || []), ServiceType.GENERAL_INQUIRY]
-                        : (field.value || []).filter(
-                            (v) => v !== ServiceType.GENERAL_INQUIRY
-                          )
-                    );
-                  }}
-                />
-              )}
-            />
+                        );
+                      }
+                    }}
+                  />
+                )}
+              />
+            ))}
           </div>
-          <FormError errors={errors} name="services" />
+          {!!errors.services && (
+            <FormErrorMessage
+              containerClassName="flex justify-center py-1.5"
+              errors={errors.services}
+            />
+          )}
           {!isLoading && <FormErrorMessage errors={error?.digest} />}
         </div>
         <Button
