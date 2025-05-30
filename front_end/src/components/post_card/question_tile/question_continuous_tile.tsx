@@ -81,6 +81,7 @@ const QuestionContinuousTile: FC<Props> = ({
           break;
         }
         case QuestionType.Numeric:
+        case QuestionType.Discrete:
         case QuestionType.Date: {
           const activeForecast = isNil(userForecast.end_time)
             ? userForecast
@@ -148,13 +149,10 @@ const QuestionContinuousTile: FC<Props> = ({
           />
         ) : (
           <ContinuousAreaChart
-            scaling={question.scaling}
             data={continuousAreaChartData}
             height={HEIGHT}
-            questionType={question.type}
-            resolution={question.resolution}
+            question={question}
             hideCP={hideCP}
-            unit={question.unit}
           />
         )}
 

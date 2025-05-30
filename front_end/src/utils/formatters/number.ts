@@ -1,3 +1,7 @@
+import { isNil } from "lodash";
+
+import { Scaling } from "@/types/question";
+
 /**
  * Format a number to a given number of significant figures.
  * leadingNumbers is the number of digits to display before the decimal point.
@@ -44,7 +48,8 @@ export function toScientificNotation(
 export function abbreviatedNumber(
   val: number | string,
   sigfigs = 3,
-  trailingZeros: boolean = false
+  trailingZeros: boolean = false,
+  scaling?: Scaling
 ) {
   val = +val;
   if (!val) {
@@ -75,6 +80,16 @@ export function abbreviatedNumber(
     leadingNumbers = pow - 2;
   } else if (pow >= -3) {
     leadingNumbers = pow + 1;
+  }
+  if (!isNil(scaling?.range_min) && !isNil(scaling?.range_max)) {
+    // check if sufficiently close to zero just to round
+    if (
+      scaling.range_min < val &&
+      val < scaling.range_max &&
+      scaling.range_max - scaling.range_min > 200 * Math.abs(val)
+    ) {
+      return "0" + suffix;
+    }
   }
   return (
     toScientificNotation(val, sigfigs, leadingNumbers, trailingZeros) + suffix
