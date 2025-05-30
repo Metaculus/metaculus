@@ -66,6 +66,7 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     ),
   });
 
+  requestHeaders.set("Accept", "application/json");
   requestHeaders.set("Accept-Language", locale);
 
   if (emptyContentType && requestHeaders.has("Content-Type")) {

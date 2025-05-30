@@ -63,6 +63,11 @@ urlpatterns = [
         name="remove-post-from-project",
     ),
     path(
+        "posts/<int:post_id>/email-data/",
+        views.email_data,
+        name="posts-email-data",
+    ),
+    path(
         "posts/<int:post_id>/download-data/",
         views.download_data,
         name="posts-download-data",

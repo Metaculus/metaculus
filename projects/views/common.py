@@ -1,16 +1,13 @@
-from django.db.models import Q
 from django.http import HttpResponse
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from misc.models import WhitelistUser
 from posts.models import Post
-from posts.serializers import DownloadDataSerializer, serialize_posts_many_forecast_flow
+from posts.serializers import serialize_posts_many_forecast_flow
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
@@ -23,6 +20,7 @@ from projects.serializers.common import (
     NewsCategorySerialize,
     serialize_project_index_weights,
 )
+from projects.services.cache import get_projects_questions_count_cached
 from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
@@ -32,11 +30,12 @@ from projects.services.common import (
     get_site_main_project,
     get_project_timeline_data,
 )
-from questions.models import Question
 from users.services.common import get_users_by_usernames
 from utils.cache import cache_get_or_set
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
+from utils.tasks import email_data_task
+from utils.views import validate_data_request
 
 
 @api_view(["GET"])
@@ -141,28 +140,39 @@ def tournaments_list_api_view(request: Request):
     show_on_homepage = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("show_on_homepage")
     )
+    show_on_services_page = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("show_on_services_page")
+    )
 
     qs = (
         get_projects_qs(
             user=request.user,
             permission=permission,
             show_on_homepage=show_on_homepage,
+            show_on_services_page=show_on_services_page,
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
-        .annotate_questions_count()
-        .order_by("-questions_count")
-        .defer("description")
         .prefetch_related("primary_leaderboard")
     )
 
-    data = []
+    # Get all projects without the expensive annotation
+    projects = list(qs.all())
 
-    for obj in qs.all():
+    # Get questions count using cached bulk operation
+    questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
+
+    data = []
+    for obj in projects:
         serialized_tournament = TournamentShortSerializer(obj).data
-        serialized_tournament["questions_count"] = obj.questions_count
+        serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0
+        serialized_tournament["forecasts_count"] = obj.forecasts_count
+        serialized_tournament["forecasters_count"] = obj.forecasters_count
 
         data.append(serialized_tournament)
+
+    # Sort by questions_count descending
+    data.sort(key=lambda x: x["questions_count"], reverse=True)
 
     return Response(data)
 
@@ -170,16 +180,14 @@ def tournaments_list_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tournament_by_slug_api_view(request: Request, slug: str):
-    qs = (
-        get_projects_qs(user=request.user)
-        .filter_tournament()
-        .annotate_questions_count()
-    )
-
+    qs = get_projects_qs(user=request.user).filter_tournament()
     obj = get_by_pk_or_slug(qs, slug)
 
+    # Get questions count using cached operation
+    questions_count_map = get_projects_questions_count_cached([obj.id])
+
     data = TournamentSerializer(obj).data
-    data["questions_count"] = getattr(obj, "questions_count", None)
+    data["questions_count"] = questions_count_map.get(obj.id) or 0
     data["timeline"] = get_project_timeline_data(obj)
 
     if request.user.is_authenticated:
@@ -295,56 +303,24 @@ def project_unsubscribe_api_view(request: Request, pk: str):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def email_data(request: Request, project_id: int):
+    validated_task_params = validate_data_request(request, project_id=project_id)
+    email_data_task.send(**validated_task_params)
+    return Response({"message": "Email scheduled to be sent"}, status=200)
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_data(request, project_id: int):
-    user = request.user
-    qs = get_projects_qs(user=user)
-    obj = get_object_or_404(qs, pk=project_id)
-    # Check permissions
-    is_staff = user.is_authenticated and user.is_staff
-    is_whitelisted = (
-        user.is_authenticated
-        and WhitelistUser.objects.filter(
-            Q(project=obj) | (Q(post__isnull=True) & Q(project__isnull=True)),
-            user=user,
-        ).exists()
-    )
-    if not (is_staff or is_whitelisted):
-        raise PermissionDenied("You are not allowed to download this project")
-    serializer_context = {
-        "user": user if user.is_authenticated else None,
-        "is_staff": is_staff,
-        "is_whitelisted": is_whitelisted,
-    }
+    validated_data_params = validate_data_request(request, project_id=project_id)
+    data = export_data_for_questions(**validated_data_params)
 
-    serializer = DownloadDataSerializer(
-        data=request.query_params, context=serializer_context
-    )
-    serializer.is_valid(raise_exception=True)
-    params = serializer.validated_data
-    include_comments = params.get("include_comments", False)
-    include_scores = params.get("include_scores", False)
-    anonymized = params.get("anonymized", False) if is_staff else True
-    # TODO: consider adding support for other params supported by post download_data
-
-    questions = Question.objects.filter(
-        Q(related_posts__post__default_project=obj)
-        | Q(related_posts__post__projects=obj)
-    ).distinct()
-
-    data = export_data_for_questions(
-        questions=questions,
-        include_user_forecasts=True,
-        include_comments=include_comments,
-        include_scores=include_scores,
-        anonymized=anonymized,
-    )
-
-    filename = "_".join(obj.name.split(" "))
+    filename = validated_data_params.get("filename", "data.zip")
     response = HttpResponse(
         data,
         content_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={filename}.zip"},
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
     return response

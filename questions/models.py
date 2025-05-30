@@ -392,12 +392,14 @@ class Forecast(models.Model):
 
     # times
     start_time = models.DateTimeField(
-        help_text="Begining time when this prediction is active", db_index=True
+        help_text="Begining time when this prediction is active",
+        db_index=True,
     )
     end_time = models.DateTimeField(
         null=True,
         help_text="Time at which this prediction is no longer active",
         db_index=True,
+        blank=True,
     )
 
     # CDF of a continuous forecast
@@ -406,11 +408,19 @@ class Forecast(models.Model):
         models.FloatField(),
         null=True,
         max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1,
+        blank=True,
     )
     # binary prediction
-    probability_yes = models.FloatField(null=True)
+    probability_yes = models.FloatField(
+        null=True,
+        blank=True,
+    )
     # multiple choice prediction
-    probability_yes_per_category = ArrayField(models.FloatField(), null=True)
+    probability_yes_per_category = ArrayField(
+        models.FloatField(),
+        null=True,
+        blank=True,
+    )
 
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(
@@ -439,7 +449,10 @@ class Forecast(models.Model):
         default="",
     )
 
-    distribution_input = models.JSONField(null=True)
+    distribution_input = models.JSONField(
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         indexes = [

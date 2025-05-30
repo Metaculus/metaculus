@@ -29,7 +29,11 @@ class Migration(migrations.Migration):
             model_name="forecast",
             name="continuous_cdf",
             field=django_better_admin_arrayfield.models.fields.ArrayField(
-                base_field=models.FloatField(), max_length=201, null=True, size=None
+                base_field=models.FloatField(),
+                max_length=201,
+                null=True,
+                size=None,
+                blank=True,
             ),
         ),
         migrations.AlterField(

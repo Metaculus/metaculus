@@ -12,6 +12,7 @@ import {
 import { mergeRefs } from "react-merge-refs";
 
 import MarkdownEditor from "@/components/markdown_editor";
+import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { ErrorResponse } from "@/types/fetch";
 import cn from "@/utils/core/cn";
@@ -191,6 +192,16 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
 }: MarkdownEditorFieldProps<T>) => {
   const { field } = useController({ control, name, defaultValue });
   const editorRef = useRef<MDXEditorMethods>(null);
+  const isMounted = useRef(false);
+
+  // populate the editor with draft form value when
+  useEffect(() => {
+    const editorValue = editorRef.current?.getMarkdown();
+    if (!editorValue && !isMounted.current && field.value) {
+      editorRef.current?.setMarkdown(field.value);
+      isMounted.current = true;
+    }
+  }, [field.value]);
 
   return (
     <>
@@ -231,6 +242,42 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
           className="text-sm font-bold capitalize"
         />
       )}
+    </>
+  );
+};
+
+type CheckboxFieldProps<T extends FieldValues = FieldValues> = {
+  control: Control<T>;
+  name: Path<T>;
+  defaultValue?: PathValue<T, Path<T>>;
+  label: string;
+  disabled?: boolean;
+  errors?: ErrorResponse;
+  inputClassName?: string;
+  className?: string;
+};
+
+export const CheckboxField = <T extends FieldValues = FieldValues>({
+  control,
+  name,
+  defaultValue,
+  label,
+  disabled,
+  errors,
+  ...restProps
+}: CheckboxFieldProps<T>) => {
+  const { field } = useController({ control, name, defaultValue });
+
+  return (
+    <>
+      <Checkbox
+        checked={field.value}
+        onChange={field.onChange}
+        disabled={disabled}
+        label={label}
+        {...restProps}
+      />
+      {errors && <FormError name={name} errors={errors} />}
     </>
   );
 };
