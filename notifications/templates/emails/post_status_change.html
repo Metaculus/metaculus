@@ -159,15 +159,12 @@
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% if params.from_projects %} {% for item in params.from_projects %} <p> {% blocktrans with project_name=item.project.name %} In <b>{{project_name}}</b>: {% endblocktrans %} </p> {% for notification in item.notifications %} <!-- TODO: BUILD URL TO THE SUBQUESTION -->
-                          <li>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% if params.from_projects %} {% for item in params.from_projects %} <p> {% blocktrans with project_name=item.project.name %} In <b>{{project_name}}</b>: {% endblocktrans %} </p> {% for notification in item.notifications %} <li>
                             <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">{{ notification.question.title|default:notification.post.post_title }}</a> {% if notification.post.post_type != 'notebook' %} <span>is now {{notification.event}}</span> {% endif %}
-                          </li> {% endfor %} {% endfor %} {% endif %} {% if params.from_posts %} {% if params.from_projects %} <p> {% blocktrans %} In the rest of Metaculus: {% endblocktrans %} </p> {% else %} {% blocktrans with count=params.from_posts|length %} These {{count}} questions have changed status: {% endblocktrans %} {% endif %} <!-- TODO: BUILD URL TO THE SUBQUESTION -->
-                          <ul> {% for notification in params.from_posts %} <li>
+                          </li> {% endfor %} {% endfor %} {% endif %} {% if params.from_posts %} {% if params.from_projects %} <p> {% blocktrans %} In the rest of Metaculus: {% endblocktrans %} </p> {% else %} {% blocktrans with count=params.from_posts|length %} These {{count}} questions have changed status: {% endblocktrans %} {% endif %} <ul> {% for notification in params.from_posts %} <li>
                               <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">{{ notification.question.title|default:notification.post.post_title }}</a>
                               <span>is now {{notification.event}}</span>
-                            </li> {% endfor %} </ul> {% endif %}
-                        </div>
+                            </li> {% endfor %} </ul> {% endif %}</div>
                       </td>
                     </tr>
                   </tbody>

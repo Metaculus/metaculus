@@ -1,0 +1,128 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.5, pluggy-1.5.0
+django: version: 5.1.8, settings: metaculus_web.test_settings (from ini)
+rootdir: /home/tobi/metaculus
+configfile: pytest.ini
+plugins: mock-3.14.0, django-4.10.0, env-1.1.5, anyio-4.9.0, Faker-37.1.0
+collected 1 item
+
+tests/integration/test_simple.py F                                       [100%]
+
+=================================== FAILURES ===================================
+______________________ TestSimpleFunctionality.test_login ______________________
+
+cls = <class 'tests.integration.test_simple.TestSimpleFunctionality'>
+
+    @classmethod
+    def test_login(cls):
+        context = cls.context
+        page = context.new_page()
+        page.on("console", lambda msg: print("[Browser console] ", msg.text))
+    
+        url = "http://localhost:3000/"
+        page.goto(url)
+    
+        page.get_by_role("button", name="Log in").click()
+    
+        page.get_by_placeholder("username or email").fill("username_1")
+        page.get_by_placeholder("password").fill("Test1234")
+        page.get_by_role("button", name="Log in", exact=True).last.click()
+        time.sleep(1)
+        page.get_by_role("link", name="Questions", exact=True).click()
+>       page.get_by_role("button", name="Filter").click()
+
+cls        = <class 'tests.integration.test_simple.TestSimpleFunctionality'>
+context    = <BrowserContext browser=<Browser type=<BrowserType name=chromium executable_path=/home/tobi/.cache/ms-playwright/chromium-1161/chrome-linux/chrome> version=134.0.6998.35>>
+page       = <Page url='http://localhost:3000/'>
+url        = 'http://localhost:3000/'
+
+tests/integration/test_simple.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.cache/pypoetry/virtualenvs/metaculus-web-eB1x_cyH-py3.12/lib/python3.12/site-packages/playwright/sync_api/_generated.py:15507: in click
+    self._sync(
+        button     = None
+        click_count = None
+        delay      = None
+        force      = None
+        modifiers  = None
+        no_wait_after = None
+        position   = None
+        self       = <Locator frame=<Frame name= url='http://localhost:3000/'> selector='internal:role=button[name="Filter"i]'>
+        timeout    = None
+        trial      = None
+../.cache/pypoetry/virtualenvs/metaculus-web-eB1x_cyH-py3.12/lib/python3.12/site-packages/playwright/_impl/_locator.py:160: in click
+    return await self._frame.click(self._selector, strict=True, **params)
+        button     = None
+        clickCount = None
+        delay      = None
+        force      = None
+        modifiers  = None
+        noWaitAfter = None
+        params     = {}
+        position   = None
+        self       = <Locator frame=<Frame name= url='http://localhost:3000/'> selector='internal:role=button[name="Filter"i]'>
+        timeout    = None
+        trial      = None
+../.cache/pypoetry/virtualenvs/metaculus-web-eB1x_cyH-py3.12/lib/python3.12/site-packages/playwright/_impl/_frame.py:488: in click
+    await self._channel.send("click", locals_to_params(locals()))
+        button     = None
+        clickCount = None
+        delay      = None
+        force      = None
+        modifiers  = None
+        noWaitAfter = None
+        position   = None
+        selector   = 'internal:role=button[name="Filter"i]'
+        self       = <Frame name= url='http://localhost:3000/'>
+        strict     = True
+        timeout    = None
+        trial      = None
+../.cache/pypoetry/virtualenvs/metaculus-web-eB1x_cyH-py3.12/lib/python3.12/site-packages/playwright/_impl/_connection.py:61: in send
+    return await self._connection.wrap_api_call(
+        method     = 'click'
+        params     = {'selector': 'internal:role=button[name="Filter"i]', 'strict': True}
+        self       = <playwright._impl._connection.Channel object at 0x7f51a6d11520>
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f51a689f800>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f51a64c63e0>
+is_internal = False
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(task, "__pw_stack__", inspect.stack())
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for get_by_role("button", name="Filter")
+
+cb         = <function Channel.send.<locals>.<lambda> at 0x7f51a64c63e0>
+is_internal = False
+parsed_st  = {'apiName': 'Locator.click', 'frames': [{'column': 0, 'file': '/home/tobi/metaculus/tests/integration/test_simple.py',...b-eB1x_cyH-py3.12/lib/python3.12/site-packages/_pytest/python.py', 'function': 'Function.runtest', 'line': 1627}, ...]}
+self       = <playwright._impl._connection.Connection object at 0x7f51a689f800>
+st         = [FrameInfo(frame=<frame at 0x7f51a64b12a0, file '/home/tobi/.cache/pypoetry/virtualenvs/metaculus-web-eB1x_cyH-py3.12/...gs, firstresult)\n'], index=0, positions=Positions(lineno=120, end_lineno=120, col_offset=15, end_col_offset=76)), ...]
+task       = <Task finished name='Task-14' coro=<Locator.click() done, defined at /home/tobi/.cache/pypoetry/virtualenvs/metaculus-...utError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for get_by_role("button", name="Filter")\n')>
+
+../.cache/pypoetry/virtualenvs/metaculus-web-eB1x_cyH-py3.12/lib/python3.12/site-packages/playwright/_impl/_connection.py:528: TimeoutError
+----------------------------- Captured stdout call -----------------------------
+[Browser console]  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+--------------------------- Captured stdout teardown ---------------------------
+[Browser console]  [Fast Refresh] rebuilding
+=============================== warnings summary ===============================
+comments/models.py:129
+  /home/tobi/metaculus/comments/models.py:129: RemovedInDjango60Warning: CheckConstraint.check is deprecated in favor of `.condition`.
+    models.CheckConstraint(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/integration/test_simple.py::TestSimpleFunctionality::test_login
+======================== 1 failed, 1 warning in 53.83s =========================
