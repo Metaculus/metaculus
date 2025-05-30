@@ -6,6 +6,7 @@ import { Tournament } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
 import Button from "./button";
+import TournamentCard from "./tournament_card";
 import TournamentCarousel from "./tournament_carousel";
 
 type Props = {
@@ -19,7 +20,7 @@ const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
   return (
     <div
       className={cn(
-        "flex w-full flex-col items-center justify-center rounded-2xl bg-blue-800 p-8",
+        "flex w-full flex-col items-center justify-center rounded-2xl bg-blue-800 p-8 sm:p-14",
         className
       )}
     >
@@ -35,10 +36,17 @@ const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
         </Button>
       </div>
 
-      <TournamentCarousel
-        tournaments={tournaments}
-        className="mt-10 sm:mt-12"
-      />
+      <div className="mt-10 w-full sm:mt-12">
+        <TournamentCarousel tournaments={tournaments} className="xl:hidden" />
+        {/* Desktop tournaments lis */}
+        <div className="hidden gap-6 xl:flex">
+          {tournaments.map((tournament) => (
+            <div key={tournament.id} className="flex-1">
+              <TournamentCard key={tournament.id} tournament={tournament} />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   faChevronLeft,
   faChevronRight,
@@ -14,13 +16,20 @@ import TournamentCard from "./tournament_card";
 type Props = {
   tournaments: Tournament[];
   className?: string;
+  arrowsClassName?: string;
+  buttonPosition?: "tight" | "loose";
 };
 
-const TournamentCarousel = ({ tournaments, className }: Props) => {
+const TournamentCarousel = ({
+  tournaments,
+  className,
+  arrowsClassName,
+  buttonPosition = "tight",
+}: Props) => {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
-    watchDrag: false,
+    watchDrag: true,
   });
   // Duplicate tournaments to allow for infinite scrolling
   const duplicatedTournaments = [...tournaments, ...tournaments];
@@ -31,43 +40,47 @@ const TournamentCarousel = ({ tournaments, className }: Props) => {
           {duplicatedTournaments.map((tournament, index) => (
             <div
               key={tournament.id + index}
-              className="flex-[0_0_100%] pl-6 xs:flex-[0_0_50%] md:flex-[0_0_33.33%] xl:hidden"
+              className="flex-[0_0_100%] pl-6 xs:flex-[0_0_50%] md:flex-[0_0_33.33%] xl:flex-[0_0_25%]"
             >
               <TournamentCard tournament={tournament} className="h-full" />
             </div>
           ))}
         </div>
       </div>
-      {/* Desktop carousel */}
-      <div className="hidden gap-6 xl:flex">
-        {tournaments.map((tournament) => (
-          <div key={tournament.id} className="flex-1">
-            <TournamentCard key={tournament.id} tournament={tournament} />
-          </div>
-        ))}
-      </div>
       {/* Carousel controls */}
-      <div className="xl:hidden">
+      <div>
         <Button
-          className="absolute -left-6 top-1/2 h-auto -translate-y-1/2"
+          className={cn(
+            "absolute top-1/2 h-auto -translate-y-1/2",
+            {
+              tight: "-left-6 sm:-left-10",
+              loose: "-left-6 sm:-left-6 lg:-left-10 xl:-left-14",
+            }[buttonPosition]
+          )}
           variant="text"
           presentationType="icon"
           onClick={() => emblaApi?.scrollPrev()}
         >
           <FontAwesomeIcon
             icon={faChevronLeft}
-            className="h-11 w-5 text-gray-0"
+            className={cn("h-11 w-5 text-gray-0/30", arrowsClassName)}
           />
         </Button>
         <Button
-          className="absolute -right-6 top-1/2 h-auto -translate-y-1/2"
+          className={cn(
+            "absolute top-1/2 h-auto -translate-y-1/2",
+            {
+              tight: "-right-6 sm:-right-10",
+              loose: "-right-6 sm:-right-6 lg:-right-10 xl:-right-14",
+            }[buttonPosition]
+          )}
           variant="text"
           presentationType="icon"
           onClick={() => emblaApi?.scrollNext()}
         >
           <FontAwesomeIcon
             icon={faChevronRight}
-            className="h-11 w-5 text-gray-0"
+            className={cn("h-11 w-5 text-gray-0/30", arrowsClassName)}
           />
         </Button>
       </div>
