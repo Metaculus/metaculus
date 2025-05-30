@@ -1255,5 +1255,21 @@
   "discreteDescription": "离散问题询问一组独特且有序的值的结果。",
   "discreteQuestionGroup": "离散问题组",
   "discreteQuestionGroupDescription": "离散问题组包含询问未知未来量值并在指定范围内解析的问题。",
-  "emptyCommentField": "評論欄不能為空"
+  "emptyCommentField": "評論欄不能為空",
+  "geometricMean": "幾何平均",
+  "singleAggregation": "單一聚合",
+  "spotBaselineScoreInfo": "您在該問題上的<link>現場基準分數</link>。如果您看不到分數，那麼要麼問題還未解決，要麼您還未進行預測（或二者皆是）。",
+  "totalSpotBaselineScoreInfo": "您在該錦標賽中所有問題上的<link>現場基準分數</link>按問題權重計算的總和（但只包括在錦標賽結束前關閉的問題）。",
+  "spotBaselineTakeInfo": "您的採取分數是您現場基準分數按問題權重計算的總和的平方，如果您的總分為負值則為0。",
+  "summarizeAggregations": "總結聚合",
+  "questionData": "問題數據",
+  "commentData": "評論數據",
+  "anonymize": "匿名化",
+  "scoreData": "分數數據",
+  "includeUserData": "包括用戶數據",
+  "aggregationMethods": "聚合方法",
+  "configuration": "配置",
+  "loginConfigurationMessage": "登入以選擇不同選項",
+  "downloadData": "下載數據",
+  "emailData": "將此數據發送到我的電子郵箱"
 }

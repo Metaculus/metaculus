@@ -1269,5 +1269,9 @@
   "discreteDescription": "Una pregunta discreta pregunta sobre un resultado de un conjunto de valores distinto y ordenado.",
   "discreteQuestionGroup": "Grupo de preguntas discretas",
   "discreteQuestionGroupDescription": "Los grupos de preguntas discretas contienen preguntas que preguntan sobre el valor de una cantidad futura desconocida y se resuelven dentro de un rango específico.",
-  "emptyCommentField": "El campo de comentarios no debe estar vacío"
+  "emptyCommentField": "El campo de comentarios no debe estar vacío",
+  "spotBaselineScoreInfo": "Tu <link>Puntuación Base Spot</link> en esa pregunta. Si no ves ninguna puntuación, significa que la pregunta aún no se ha resuelto o que no la has predicho (¡o ambas!).",
+  "totalSpotBaselineScoreInfo": "La suma ponderada por preguntas de tus <link>Puntuaciones Base Spot</link> en todas las preguntas del torneo (pero solo aquellas que se cierran antes del final del torneo).",
+  "spotBaselineTakeInfo": "Tu Toma es el cuadrado de la suma ponderada por preguntas de tus puntuaciones base spot o 0 si tu puntuación total es negativa.",
+  "anonymize": "Anonimizar"
 }

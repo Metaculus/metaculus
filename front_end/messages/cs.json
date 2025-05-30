@@ -1269,5 +1269,9 @@
   "discreteDescription": "Diskrétní otázka se ptá na výsledek z odlišné a uspořádané sady hodnot.",
   "discreteQuestionGroup": "Diskrétní skupina otázek",
   "discreteQuestionGroupDescription": "Diskrétní skupiny otázek obsahují otázky, které se ptají na hodnotu neznámé budoucí veličiny a řeší se v rámci zadaného rozsahu.",
-  "emptyCommentField": "Pole pro komentář nesmí být prázdné"
+  "emptyCommentField": "Pole pro komentář nesmí být prázdné",
+  "spotBaselineScoreInfo": "Vaše <link>Spot Base Score</link> na danou otázku. Pokud nevidíte žádné skóre, pak otázka buď ještě není vyřešena, nebo jste ji nepředpověděli (nebo obojí!).",
+  "totalSpotBaselineScoreInfo": "Otázkově vážený součet vašich <link>Spot Base Score</link> na všechny otázky v turnaji (ale pouze ty, které se uzavřou před koncem turnaje).",
+  "spotBaselineTakeInfo": "Vaše Take je čtverec otázkově váženého součtu vašich spot base skóre nebo 0, pokud je vaše celkové skóre záporné.",
+  "anonymize": "Anonymizovat"
 }
