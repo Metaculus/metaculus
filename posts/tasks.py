@@ -35,6 +35,18 @@ def run_on_post_forecast(post_id):
     compute_post_sorting_divergence_and_update_snapshots(post)
     notify_post_cp_change(post)
 
+    # Update related project stats
+    for project in post.get_related_projects():
+        if project.type in (
+            project.ProjectTypes.COMMUNITY,
+            project.ProjectTypes.TOURNAMENT,
+            project.ProjectTypes.QUESTION_SERIES,
+            project.ProjectTypes.INDEX,
+        ):
+            project.update_forecasts_count()
+            project.update_forecasters_count()
+            project.save(update_fields=["forecasts_count", "forecasters_count"])
+
 
 @dramatiq.actor
 def run_post_indexing(post_id):

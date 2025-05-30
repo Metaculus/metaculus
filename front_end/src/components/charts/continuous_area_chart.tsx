@@ -10,6 +10,7 @@ import {
   VictoryContainer,
   VictoryCursorContainer,
   VictoryLine,
+  VictoryPortal,
   VictoryScatter,
   VictoryThemeDefinition,
 } from "victory";
@@ -25,7 +26,6 @@ import {
   Line,
 } from "@/types/charts";
 import {
-  DefaultInboundOutcomeCount,
   GraphingQuestionProps,
   Question,
   QuestionType,
@@ -75,6 +75,7 @@ type Props = {
   hideCP?: boolean;
   hideLabels?: boolean;
   shortLabels?: boolean;
+  readOnly?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -88,6 +89,7 @@ const ContinuousAreaChart: FC<Props> = ({
   hideCP,
   hideLabels = false,
   shortLabels = false,
+  readOnly,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -221,8 +223,11 @@ const ContinuousAreaChart: FC<Props> = ({
   // TODO: find a nice way to display the out of bounds weights as numbers
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
-  const leftPadding = useMemo(() => {
-    if (graphType === "cdf" || question.type === QuestionType.Discrete) {
+  const horizontalPadding = useMemo(() => {
+    if (
+      !readOnly &&
+      (graphType === "cdf" || question.type === QuestionType.Discrete)
+    ) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
@@ -233,7 +238,7 @@ const ContinuousAreaChart: FC<Props> = ({
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale, question.type]);
+  }, [graphType, yScale, question.type, readOnly]);
 
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
@@ -246,8 +251,8 @@ const ContinuousAreaChart: FC<Props> = ({
       if (!svg) return;
       setCursorEdge(null);
       const bounds = svg.getBoundingClientRect();
-      const chartLeft = bounds.left + leftPadding;
-      const chartRight = bounds.right - HORIZONTAL_PADDING;
+      const chartLeft = bounds.left + horizontalPadding;
+      const chartRight = bounds.right - horizontalPadding;
 
       // Used to handle cursor display when hovering chart edges
       if (
@@ -310,7 +315,14 @@ const ContinuousAreaChart: FC<Props> = ({
         }
       }
     },
-    [charts, onCursorChange, chartContainerRef, leftPadding, data, question]
+    [
+      charts,
+      onCursorChange,
+      chartContainerRef,
+      horizontalPadding,
+      data,
+      question,
+    ]
   );
   useEffect(() => {
     const svg = chartContainerRef.current?.firstChild as SVGElement;
@@ -333,12 +345,10 @@ const ContinuousAreaChart: FC<Props> = ({
     const openBoundCount =
       (question.open_lower_bound ? 1 : 0) + (question.open_upper_bound ? 1 : 0);
     return (
-      (chartWidth - 30) /
-      (1.07 *
-        ((question.inbound_outcome_count || DefaultInboundOutcomeCount) +
-          openBoundCount))
+      (chartWidth - horizontalPadding) /
+      (1.09 * ((question.inbound_outcome_count || 200) + openBoundCount))
     );
-  }, [chartWidth, data, question]);
+  }, [chartWidth, data, question, horizontalPadding]);
   const CursorContainer = (
     <VictoryCursorContainer
       cursorLabel={"label"}
@@ -374,8 +384,8 @@ const ContinuousAreaChart: FC<Props> = ({
           barWidth={barWidth}
           paddingTop={paddingTop}
           paddingBottom={BOTTOM_PADDING}
-          paddingLeft={leftPadding}
-          paddingRight={HORIZONTAL_PADDING}
+          paddingLeft={horizontalPadding}
+          paddingRight={horizontalPadding}
           discrete={discrete}
         />
       }
@@ -425,9 +435,9 @@ const ContinuousAreaChart: FC<Props> = ({
           theme={actualTheme}
           padding={{
             top: paddingTop,
-            left: leftPadding,
+            left: horizontalPadding,
             bottom: BOTTOM_PADDING,
-            right: HORIZONTAL_PADDING,
+            right: horizontalPadding,
           }}
           domain={{ x: xDomain, y: yDomain }}
           containerComponent={
@@ -559,16 +569,19 @@ const ContinuousAreaChart: FC<Props> = ({
             />
           )}
           {(graphType === "cdf" || question.type === QuestionType.Discrete) && (
-            <VictoryAxis
-              dependentAxis
-              style={{
-                tickLabels: { padding: 2 },
-                ticks: { strokeWidth: 1 },
-              }}
-              tickValues={yScale.ticks}
-              tickFormat={yScale.tickFormat}
-              axisValue={xDomain[0]}
-            />
+            // Prevent Y axis being cut off in edge cases
+            <VictoryPortal>
+              <VictoryAxis
+                dependentAxis
+                style={{
+                  tickLabels: { padding: 2 },
+                  ticks: { strokeWidth: 1 },
+                }}
+                tickValues={yScale.ticks}
+                tickFormat={yScale.tickFormat}
+                axisValue={xDomain[0]}
+              />
+            </VictoryPortal>
           )}
           <VictoryAxis
             tickValues={xScale.ticks}
@@ -619,8 +632,8 @@ const ContinuousAreaChart: FC<Props> = ({
               chartWidth={chartWidth}
               x={
                 cursorEdge < 0.5
-                  ? leftPadding + CURSOR_POINT_OFFSET
-                  : chartWidth - CURSOR_POINT_OFFSET
+                  ? horizontalPadding + CURSOR_POINT_OFFSET
+                  : chartWidth - horizontalPadding + CURSOR_POINT_OFFSET
               }
               datum={{
                 x: cursorEdge,
@@ -641,8 +654,8 @@ const ContinuousAreaChart: FC<Props> = ({
               xDomain={xDomain}
               paddingBottom={BOTTOM_PADDING}
               paddingTop={paddingTop}
-              paddingLeft={leftPadding}
-              paddingRight={HORIZONTAL_PADDING}
+              paddingLeft={horizontalPadding}
+              paddingRight={horizontalPadding}
               discrete={discrete}
               barWidth={barWidth}
             />

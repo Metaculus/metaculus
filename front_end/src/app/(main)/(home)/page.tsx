@@ -42,7 +42,7 @@ export default async function Home() {
       title: t("biosecurity"),
       Icon: FocusAreaBiosecurityIcon,
       text: t("biosecurityDescription"),
-      href: "/questions/?has_group=false&topic=biosecurity&order_by=-activity",
+      href: "/questions/?topic=biosecurity",
     },
     {
       id: "ai",
@@ -56,14 +56,14 @@ export default async function Home() {
       title: t("nuclearSecurity"),
       Icon: FocusAreaNuclearIcon,
       text: t("nuclearSecurityDescription"),
-      href: "/questions/?has_group=false&topic=nuclear&order_by=-activity",
+      href: "/questions/?topic=nuclear",
     },
     {
       id: "climate",
       title: t("climateChange"),
       Icon: FocusAreaClimateIcon,
       text: t("climateChangeDescription"),
-      href: "/questions/?has_group=false&topic=climate&order_by=-activity",
+      href: "/questions/?topic=climate",
     },
   ];
 
