@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { isNil } from "lodash";
+import { getTranslations } from "next-intl/server";
 import { useEffect, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
@@ -14,7 +15,6 @@ import {
 } from "@/types/question";
 import { QuestionType } from "@/types/question";
 import { getQuestionDraft } from "@/utils/drafts/questionForm";
-import { getTranslations } from "next-intl/server";
 
 const t = await getTranslations();
 
@@ -221,7 +221,7 @@ const NumericQuestionInput: React.FC<{
       }
     }
 
-    setError(current_errors);
+    setError([...current_errors.filter((item) => typeof item === "string")]);
     if (current_errors.length > 0) {
       return false;
     }
