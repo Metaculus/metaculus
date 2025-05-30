@@ -14,6 +14,9 @@ import {
 } from "@/types/question";
 import { QuestionType } from "@/types/question";
 import { getQuestionDraft } from "@/utils/drafts/questionForm";
+import { getTranslations } from "next-intl/server";
+
+const t = await getTranslations();
 
 const NumericQuestionInput: React.FC<{
   onChange: ({
@@ -166,19 +169,28 @@ const NumericQuestionInput: React.FC<{
 
     if (zeroPoint !== undefined && zeroPoint !== null) {
       if (questionType == QuestionType.Discrete) {
-        current_errors.push(
-          "Zero point is not supported for discrete questions"
-        );
+        current_errors.push(t("zeroPointError0"));
       } else {
         if ((min ? min : 0) <= zeroPoint && zeroPoint <= (max ? max : 0)) {
           questionType == QuestionType.Numeric
             ? current_errors.push(
-                `Zero point (${zeroPoint}) should not be between min (${min}) and max (${max})`
+                t.rich("zeroPointError1", { zeroPoint, min, max })
               )
             : current_errors.push(
-                `Zero point (${format(new Date(zeroPoint * 1000), "yyyy-MM-dd HH:mm")}) should ` +
-                  `not be between min (${format(new Date((min ? min : 0) * 1000), "yyyy-MM-dd HH:mm")}) ` +
-                  `and max (${format(new Date((max ? max : 0) * 1000), "yyyy-MM-dd HH:mm")})`
+                t.rich("zeroPointError1", {
+                  zeroPoint: format(
+                    new Date(zeroPoint * 1000),
+                    "yyyy-MM-dd HH:mm"
+                  ),
+                  min: format(
+                    new Date((min ? min : 0) * 1000),
+                    "yyyy-MM-dd HH:mm"
+                  ),
+                  max: format(
+                    new Date((max ? max : 0) * 1000),
+                    "yyyy-MM-dd HH:mm"
+                  ),
+                })
               );
         }
       }
@@ -190,22 +202,22 @@ const NumericQuestionInput: React.FC<{
         }
         if (step > (max - min) / 2) {
           current_errors.push(
-            `Step cannot be more than half the range: (${(max - min) / 2})`
+            t.rich("stepError0", { halfRange: (max - min) / 2 })
           );
         }
         if (step != 0 && step < (max - min) / 200) {
           current_errors.push(
-            `Step must be at least 1/200 of the range: (${(max - min) / 200})`
+            t.rich("stepError1", { rangePortion: (max - min) / 2 })
           );
         }
       }
     }
     if (!isNil(min) && !isNil(max)) {
       if (isNaN(min) || isNaN(max)) {
-        current_errors.push("Provide correct min and max values");
+        current_errors.push(t("minMaxError0"));
       }
       if (min >= max) {
-        current_errors.push("Minimum value should be less than maximum value");
+        current_errors.push(t("minMaxError1"));
       }
     }
 
@@ -385,10 +397,12 @@ const NumericQuestionInput: React.FC<{
               !isNil(question.scaling?.range_max) &&
               Math.round(1e10 * (max - min)) % (1e10 * step) != 0 && (
                 <span className="ml-2 text-sm font-medium text-red-500 dark:text-red-500-dark">
-                  Warning: Step does not divide the range evenly. Max reduced to{" "}
-                  {Math.round(
-                    1e10 * (question.scaling.range_max - 0.5 * step)
-                  ) / 1e10}
+                  {t.rich("rangeWarning0", {
+                    newMax:
+                      Math.round(
+                        1e10 * (question.scaling.range_max - 0.5 * step)
+                      ) / 1e10,
+                  })}
                 </span>
               )}
             <br />
