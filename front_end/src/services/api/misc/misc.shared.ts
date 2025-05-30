@@ -6,6 +6,13 @@ export type ContactForm = {
   subject: string;
 };
 
+export type GetInTouchForm = {
+  name: string;
+  email: string;
+  organization: string;
+  service: string;
+};
+
 export interface SiteStats {
   predictions: number;
   questions: number;

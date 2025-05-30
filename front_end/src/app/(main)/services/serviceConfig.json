@@ -1,5 +1,5 @@
 {
-  "tournamentsIds": ["32567", "1756", "2100", "32725"],
+  "spotlightTournamentId": "bridgewater",
   "proForecastersImages": [
     "/images/pro-forecasters/pro-forecaster-1.jpg",
     "/images/pro-forecasters/pro-forecaster-2.jpg",
@@ -83,6 +83,5 @@
         "height": "27"
       }
     ]
-  },
-  "spotlightTournamentId": "32567"
+  }
 }

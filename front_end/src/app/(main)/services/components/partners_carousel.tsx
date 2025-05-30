@@ -25,6 +25,7 @@ const PartnersCarousel: FC<Props> = ({ className }) => {
     [AutoScroll({ speed: 1, stopOnInteraction: false })]
   );
   const { partnersLogos } = ServiceConfig;
+  // Duplicate logos to always have the infinite scrolling effect
   const duplicatedLogos = theme
     ? [...partnersLogos[theme], ...partnersLogos[theme]]
     : [];

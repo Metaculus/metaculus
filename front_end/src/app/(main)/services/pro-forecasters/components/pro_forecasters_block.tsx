@@ -14,9 +14,6 @@ type Props = {
 const ProForecastersBlock: FC<Props> = ({ className }) => {
   const t = useTranslations();
 
-  // Duplicate pro forecasters to allow for infinite scrolling
-  const duplicatedProForecasters = [...PRO_FORECASTERS, ...PRO_FORECASTERS];
-
   return (
     <div className={cn("flex flex-col", className)}>
       <h3 className="m-0 text-center text-3xl font-bold tracking-tight text-blue-700 dark:text-blue-700-dark">
@@ -26,12 +23,16 @@ const ProForecastersBlock: FC<Props> = ({ className }) => {
         {t("proForecastersBlockDescription")}
       </p>
       <div className="mt-12 px-4 sm:px-0">
+        {/* Adjust visibility of arrows when adding more pro forecasters */}
         <EmblaCarousel
-          arrowsClassName="text-blue-800/30 dark:text-blue-800-dark/30"
+          arrowsClassName="text-blue-800/30 dark:text-blue-800-dark/30 md:hidden"
           buttonPosition="loose"
+          config={{
+            watchDrag: false,
+          }}
         >
           <div className="-ml-3 flex">
-            {duplicatedProForecasters.map((proForecaster, index) => (
+            {PRO_FORECASTERS.map((proForecaster, index) => (
               <div
                 key={index}
                 className="flex-[0_0_100%] pl-3 xs:flex-[0_0_50%] md:flex-[0_0_33.33%]"
@@ -39,7 +40,6 @@ const ProForecastersBlock: FC<Props> = ({ className }) => {
                 <ProForecasterCard
                   key={proForecaster.id}
                   proForecaster={proForecaster}
-                  // className="h-full"
                 />
               </div>
             ))}

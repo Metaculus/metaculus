@@ -5,12 +5,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import tournamentPlaceholder from "@/app/assets/images/tournament.png";
-import { Tournament } from "@/types/projects";
+import { TournamentPreview } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import { getProjectLink } from "@/utils/navigation";
 
 type Props = {
-  tournament: Tournament;
+  tournament: TournamentPreview;
   className?: string;
 };
 
@@ -22,6 +22,7 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
     header_image: headerImage,
     is_ongoing: isOngoing,
     questions_count: questionsCount,
+    forecasts_count: forecastsCount,
   } = tournament;
 
   return (
@@ -87,8 +88,7 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
               {t("predictions")}
             </span>
             <span className="text-sm font-medium text-blue-800">
-              {/* TODO: adjust with predictions count */}
-              {questionsCount + Math.round(questionsCount * Math.random())}
+              {forecastsCount}
             </span>
           </div>
         </div>

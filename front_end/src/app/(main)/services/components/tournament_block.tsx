@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { Tournament } from "@/types/projects";
+import { TournamentPreview } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
 import Button from "./button";
@@ -10,7 +10,7 @@ import EmblaCarousel from "./embla_carousel";
 import TournamentCard from "./tournament_card";
 
 type Props = {
-  tournaments: Tournament[];
+  tournaments: TournamentPreview[];
   className?: string;
 };
 

@@ -15,6 +15,11 @@ type Props = PropsWithChildren<{
   className?: string;
   arrowsClassName?: string;
   buttonPosition?: "tight" | "loose";
+  config?: {
+    loop?: boolean;
+    align?: "start" | "center" | "end";
+    watchDrag?: boolean;
+  };
 }>;
 
 const EmblaCarousel: FC<Props> = ({
@@ -22,11 +27,13 @@ const EmblaCarousel: FC<Props> = ({
   arrowsClassName,
   buttonPosition = "tight",
   children,
+  config,
 }) => {
+  const { loop = true, align = "start", watchDrag = true } = config ?? {};
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true,
-    align: "start",
-    watchDrag: true,
+    loop,
+    align,
+    watchDrag,
   });
 
   return (

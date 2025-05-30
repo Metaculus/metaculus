@@ -5,13 +5,13 @@ import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import tournamentPlaceholder from "@/app/assets/images/tournament.png";
-import { Tournament } from "@/types/projects";
+import { TournamentPreview } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import { getProjectLink } from "@/utils/navigation";
 
 import Button from "../../components/button";
 
-type Props = { tournament: Tournament; className?: string };
+type Props = { tournament: TournamentPreview; className?: string };
 
 const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
   const t = useTranslations();
@@ -20,14 +20,16 @@ const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
     prize_pool: prizePool,
     header_image: headerImage,
     questions_count: questionsCount,
+    forecasts_count: forecastsCount,
+    forecasters_count: forecastersCount,
     name,
   } = tournament;
   return (
     <div className={cn("overflow-hidden rounded-2xl bg-blue-800", className)}>
-      <div className="relative h-[195px] w-full ">
+      <div className="relative h-[195px] w-full bg-[#e9edf2]">
         <Image
           src={tournamentPlaceholder}
-          className="absolute size-full"
+          className="absolute size-full object-contain object-center"
           alt=""
           placeholder={"blur"}
           quality={100}
@@ -77,17 +79,9 @@ const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
             field={t("prizePool")}
             value={"$" + `${Number(prizePool).toLocaleString(locale)}`}
           />
-          {/* TODO: adjust with new field */}
-          <InfoCard
-            field={t("participations")}
-            value={Number(prizePool).toLocaleString(locale)}
-          />
-          <InfoCard field={t("questions")} value={String(questionsCount)} />
-          {/* TODO: adjust with new field */}
-          <InfoCard
-            field={t("predictions")}
-            value={String(Math.round(questionsCount * 2 * (1 + Math.random())))}
-          />
+          <InfoCard field={t("participations")} value={forecastersCount} />
+          <InfoCard field={t("questions")} value={questionsCount} />
+          <InfoCard field={t("predictions")} value={forecastsCount} />
         </div>
       </div>
     </div>
@@ -96,7 +90,7 @@ const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
 
 type InfoCardProps = {
   field: string;
-  value: string;
+  value: string | number;
 };
 
 const InfoCard: FC<InfoCardProps> = ({ field, value }) => {
