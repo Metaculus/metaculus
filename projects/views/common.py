@@ -140,12 +140,16 @@ def tournaments_list_api_view(request: Request):
     show_on_homepage = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("show_on_homepage")
     )
+    show_on_services_page = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("show_on_services_page")
+    )
 
     qs = (
         get_projects_qs(
             user=request.user,
             permission=permission,
             show_on_homepage=show_on_homepage,
+            show_on_services_page=show_on_services_page,
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
@@ -162,6 +166,9 @@ def tournaments_list_api_view(request: Request):
     for obj in projects:
         serialized_tournament = TournamentShortSerializer(obj).data
         serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0
+        serialized_tournament["forecasts_count"] = obj.forecasts_count
+        serialized_tournament["forecasters_count"] = obj.forecasters_count
+
         data.append(serialized_tournament)
 
     # Sort by questions_count descending
