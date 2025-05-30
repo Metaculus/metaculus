@@ -825,6 +825,9 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     def is_private(self):
         return self.default_project.default_permission is None
 
+    def get_related_projects(self) -> list[Project]:
+        return [self.default_project] + list(self.projects.all())
+
 
 class PostSubscription(TimeStampedModel):
     # typing

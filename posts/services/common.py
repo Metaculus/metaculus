@@ -13,6 +13,7 @@ from comments.services.feed import get_comments_feed
 from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.common import get_projects_staff_users, get_site_main_project
 from projects.services.common import move_project_forecasting_end_date
 from questions.models import Question
@@ -171,6 +172,9 @@ def create_post(
 
     # Run async tasks
     run_post_indexing.send(obj.id)
+
+    # Invalidate projects cache
+    invalidate_projects_questions_count_cache(obj.get_related_projects())
 
     return obj
 
@@ -409,11 +413,14 @@ def approve_post(
     )
 
     # Automatically update secondary and default project forecasting end date
-    for project in [post.default_project] + list(post.projects.all()):
+    for project in post.get_related_projects():
         if project.type == Project.ProjectTypes.TOURNAMENT:
             move_project_forecasting_end_date(project, post)
 
     post.update_pseudo_materialized_fields()
+
+    # Invalidate project questions count cache since approval affects visibility
+    invalidate_projects_questions_count_cache(post.get_related_projects())
 
 
 @transaction.atomic
