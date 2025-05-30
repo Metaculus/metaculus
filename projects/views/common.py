@@ -20,6 +20,7 @@ from projects.serializers.common import (
     NewsCategorySerialize,
     serialize_project_index_weights,
 )
+from projects.services.cache import get_projects_questions_count_cached
 from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
@@ -152,21 +153,26 @@ def tournaments_list_api_view(request: Request):
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
-        .annotate_questions_count()
-        .order_by("-questions_count")
-        .defer("description")
         .prefetch_related("primary_leaderboard")
     )
 
-    data = []
+    # Get all projects without the expensive annotation
+    projects = list(qs.all())
 
-    for obj in qs.all():
+    # Get questions count using cached bulk operation
+    questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
+
+    data = []
+    for obj in projects:
         serialized_tournament = TournamentShortSerializer(obj).data
-        serialized_tournament["questions_count"] = obj.questions_count
+        serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0
         serialized_tournament["forecasts_count"] = obj.forecasts_count
         serialized_tournament["forecasters_count"] = obj.forecasters_count
 
         data.append(serialized_tournament)
+
+    # Sort by questions_count descending
+    data.sort(key=lambda x: x["questions_count"], reverse=True)
 
     return Response(data)
 
@@ -174,16 +180,14 @@ def tournaments_list_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tournament_by_slug_api_view(request: Request, slug: str):
-    qs = (
-        get_projects_qs(user=request.user)
-        .filter_tournament()
-        .annotate_questions_count()
-    )
-
+    qs = get_projects_qs(user=request.user).filter_tournament()
     obj = get_by_pk_or_slug(qs, slug)
 
+    # Get questions count using cached operation
+    questions_count_map = get_projects_questions_count_cached([obj.id])
+
     data = TournamentSerializer(obj).data
-    data["questions_count"] = getattr(obj, "questions_count", None)
+    data["questions_count"] = questions_count_map.get(obj.id) or 0
     data["timeline"] = get_project_timeline_data(obj)
 
     if request.user.is_authenticated:

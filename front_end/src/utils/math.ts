@@ -22,7 +22,7 @@ export function logisticDistributionParamsFromSliders(
   // k == extremisation constant
   const k = 0.15;
   const mode = (1 + 2 * k) * center - k;
-  let scale = Number(math.pow(math.atanh(right - left), 2));
+  let scale = Number(math.pow(math.atanh(Math.min(0.999, right - left)), 2));
   let asymmetry = (right + left - 2 * center) / (right - left);
   if (asymmetry > 0.95) {
     asymmetry = 0.95;
