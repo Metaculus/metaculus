@@ -153,7 +153,6 @@ const NumericQuestionInput: React.FC<{
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
     },
-    inbound_outcome_count: DefaultInboundOutcomeCount,
   });
 
   const runChecks = () => {
