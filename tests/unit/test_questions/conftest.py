@@ -57,7 +57,7 @@ def question_date():
         question_type=Question.QuestionType.DATE,
         inbound_outcome_count=4,
         range_min=datetime(2025, 1, 1).timestamp(),
-        range_max=datetime(2030, 1, 1).timestamp(),
+        range_max=datetime(2028, 1, 1).timestamp(),
         open_lower_bound=False,
         open_upper_bound=False,
     )
