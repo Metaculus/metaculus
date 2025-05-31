@@ -2,15 +2,27 @@ import csv
 import io
 import zipfile
 import hashlib
+import datetime
+import numpy as np
 
 from django.db.models import QuerySet, Q
 
 from comments.models import Comment
-from questions.models import Question, AggregateForecast, Forecast
+from questions.models import (
+    Question,
+    AggregateForecast,
+    Forecast,
+    QUESTION_CONTINUOUS_TYPES,
+)
 from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
+from utils.the_math.measures import percent_point_function
+from utils.the_math.formulas import (
+    unscaled_location_to_scaled_location,
+    string_location_to_bucket_index,
+)
 
 
 def export_all_data_for_questions(
@@ -211,14 +223,12 @@ def generate_data(
     #     comment_data - only if comments given
     #     score_data - only if scores given
     username_dict = dict(User.objects.values_list("id", "username"))
-
     questions = questions.prefetch_related(
         "related_posts__post", "related_posts__post__default_project"
     )
     question_ids = questions.values_list("id", flat=True)
     if not question_ids:
         return
-
     # question_data csv file
     question_output = io.StringIO()
     question_writer = csv.writer(question_output)
@@ -235,7 +245,11 @@ def generate_data(
             "Label",
             "Question Type",
             "MC Options",
-            "Scaling",
+            "Lower Bound",
+            "Open Lower Bound",
+            "Upper Bound",
+            "Open Upper Bound",
+            "Continuous Range",
             "Open Time",
             "CP Reveal Time",
             "Scheduled Close Time",
@@ -248,6 +262,21 @@ def generate_data(
     )
     for question in questions:
         post = question.related_posts.first().post
+
+        def format_value(val):
+            if val is None or question.type != Question.QuestionType.DATE:
+                return val
+            return datetime.datetime.fromtimestamp(val, datetime.timezone.utc).strftime(
+                "%Y-%m-%d"
+            )
+
+        continuous_range = None
+        if question.type in QUESTION_CONTINUOUS_TYPES:
+            # locations where CDF is evaluated
+            continuous_range = []
+            for x in np.linspace(0, 1, 201):
+                val = unscaled_location_to_scaled_location(x, question)
+                continuous_range.append(format_value(val))
         question_writer.writerow(
             [
                 question.id,
@@ -265,17 +294,11 @@ def generate_data(
                 question.label,
                 question.type,
                 question.options or None,
-                (
-                    {
-                        "Range Min": question.range_min,
-                        "Range Max": question.range_max,
-                        "Zero Point": question.zero_point,
-                        "Open Lower Bound": question.open_lower_bound,
-                        "Open Upper Bound": question.open_upper_bound,
-                    }
-                    if question.range_min is not None
-                    else None
-                ),
+                format_value(question.range_min),
+                question.open_lower_bound,
+                format_value(question.range_max),
+                question.open_upper_bound,
+                continuous_range,
                 question.open_time,
                 question.cp_reveal_time,
                 question.scheduled_close_time,
@@ -286,7 +309,6 @@ def generate_data(
                 question.question_weight,
             ]
         )
-
     # forecast_data csv file
     forecast_output = io.StringIO()
     forecast_writer = csv.writer(forecast_output)
@@ -303,10 +325,18 @@ def generate_data(
             "Probability Yes",
             "Probability Yes Per Category",
             "Continuous CDF",
+            "Probability Below Lower Bound",
+            "Probability Above Upper Bound",
+            "5th Percentile",
+            "25th Percentile",
+            "Median",
+            "75th Percentile",
+            "95th Percentile",
+            "Probability of Resolution",
+            "PDF at Resolution",
         ]
     )
     forecast_writer.writerow(headers)
-
     for forecast in user_forecasts or []:
         row = [forecast.question_id]
         if anonymized:
@@ -323,6 +353,39 @@ def generate_data(
                 forecast.continuous_cdf,
             ]
         )
+        if forecast.question.type not in QUESTION_CONTINUOUS_TYPES:
+            row.extend([None] * 7)
+        else:
+            cdf = forecast.continuous_cdf
+            continuous_columns = []
+            continuous_columns.append(round(cdf[0], 10))
+            continuous_columns.append(round(1 - cdf[-1], 10))
+            percentiles = percent_point_function(cdf, [5, 25, 50, 75, 95])
+            for p in percentiles:
+                scaled_location = unscaled_location_to_scaled_location(
+                    p, forecast.question
+                )
+                if forecast.question.type == Question.QuestionType.DATE:
+                    scaled_location = datetime.datetime.fromtimestamp(
+                        scaled_location, datetime.timezone.utc
+                    ).strftime("%Y-%m-%d")
+                continuous_columns.append(scaled_location)
+            row.extend(continuous_columns)
+        resolution_index = string_location_to_bucket_index(
+            forecast.question.resolution, forecast.question
+        )
+        if resolution_index is None:
+            row.append(None)
+        else:
+            pmf = forecast.get_pmf()
+            forecast_at_resolution = pmf[resolution_index]
+            row.append(forecast_at_resolution)
+            if forecast.question.type in QUESTION_CONTINUOUS_TYPES:
+                # Also append PDF value
+                row.append(forecast_at_resolution * (len(pmf) - 2))
+            else:
+                row.append(None)
+
         forecast_writer.writerow(row)
     for aggregate_forecast in aggregate_forecasts or []:
         match aggregate_forecast.question.type:
@@ -353,6 +416,44 @@ def generate_data(
                 continuous_cdf,
             ]
         )
+        if aggregate_forecast.question.type not in QUESTION_CONTINUOUS_TYPES:
+            row.extend([None] * 7)
+        else:
+            cdf = continuous_cdf
+            continuous_columns = []
+            continuous_columns.append(round(cdf[0], 10))
+            continuous_columns.append(round(1 - cdf[-1], 10))
+            percentiles = percent_point_function(cdf, [5, 25, 50, 75, 95])
+            for p in percentiles:
+                scaled_location = unscaled_location_to_scaled_location(
+                    p, aggregate_forecast.question
+                )
+                if aggregate_forecast.question.type == Question.QuestionType.DATE:
+                    scaled_location = datetime.datetime.fromtimestamp(
+                        val, datetime.timezone.utc
+                    ).strftime("%Y-%m-%d")
+                continuous_columns.append(scaled_location)
+            row.extend(continuous_columns)
+
+        resolution_index = string_location_to_bucket_index(
+            aggregate_forecast.question.resolution, aggregate_forecast.question
+        )
+        if resolution_index is None:
+            row.append(None)
+        else:
+            # BUG: aggregate_forecast.get_pmf() doesn't behave well beacuse the MP
+            # cdf sometimes has a different number of values than regular CPs
+            pmf = [cdf[0]]
+            for i in range(1, len(cdf)):
+                pmf.append(cdf[i] - cdf[i - 1])
+            pmf.append(1 - cdf[-1])
+            forecast_at_resolution = pmf[resolution_index]
+            row.append(forecast_at_resolution)
+            if aggregate_forecast.question.type in QUESTION_CONTINUOUS_TYPES:
+                # Also append PDF value
+                row.append(forecast_at_resolution * (len(pmf) - 2))
+            else:
+                row.append(None)
         forecast_writer.writerow(row)
 
     # comment_data csv file

@@ -287,6 +287,7 @@ export type EditableQuestionFields = Pick<
   | "display_divergences"
   | "open_lower_bound"
   | "open_upper_bound"
+  | "inbound_outcome_count"
   | "status"
   | "type"
 >;
