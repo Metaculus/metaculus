@@ -1,6 +1,8 @@
+"use client";
+
 import { format } from "date-fns";
 import { isNil } from "lodash";
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
@@ -15,8 +17,6 @@ import {
 } from "@/types/question";
 import { QuestionType } from "@/types/question";
 import { getQuestionDraft } from "@/utils/drafts/questionForm";
-
-const t = await getTranslations();
 
 const NumericQuestionInput: React.FC<{
   onChange: ({
@@ -64,6 +64,7 @@ const NumericQuestionInput: React.FC<{
   unit,
   draftKey,
 }) => {
+  const t = useTranslations();
   const [errors, setError] = useState<string[]>([]);
   const [min, setMin] = useState(
     questionType !== QuestionType.Discrete ||
