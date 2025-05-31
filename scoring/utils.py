@@ -169,6 +169,7 @@ def generate_scoring_leaderboard_entries(
     elif leaderboard.score_type in (
         Leaderboard.ScoreTypes.PEER_TOURNAMENT,
         Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
     ):
         for entry in entries.values():
             entry.take = max(entry.score, 0) ** 2
@@ -511,6 +512,7 @@ def calculate_medals_points_at_time(at_time):
                 Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
                 Leaderboard.ScoreTypes.PEER_TOURNAMENT,
                 Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+                Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
             ],
             then=Value(LeaderboardsRanksEntry.RankTypes.TOURNAMENTS_GLOBAL),
         ),

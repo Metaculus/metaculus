@@ -28,7 +28,8 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
   }
   const showLastParticipationDay =
     leaderboardDetails &&
-    leaderboardDetails.score_type === "spot_peer_tournament";
+    (leaderboardDetails.score_type === "spot_peer_tournament" ||
+      leaderboardDetails.score_type === "spot_baseline_tournament");
 
   const {
     last_cp_reveal_time,

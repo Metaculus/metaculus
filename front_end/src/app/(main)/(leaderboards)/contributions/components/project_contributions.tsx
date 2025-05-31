@@ -159,6 +159,16 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                         ),
                       })}
                     </dd>
+                  ) : leaderboard.score_type === "spot_baseline_tournament" ? (
+                    <dd>
+                      {t.rich("spotBaselineScoreInfo", {
+                        link: (chunks) => (
+                          <Link href={"/help/scores-faq/#spot-score"}>
+                            {chunks}
+                          </Link>
+                        ),
+                      })}
+                    </dd>
                   ) : (
                     <dd>
                       {t.rich("relativeScoreInfo", {
@@ -188,6 +198,16 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                   ) : leaderboard.score_type === "spot_peer_tournament" ? (
                     <dd>
                       {t.rich("totalSpotPeerScoreInfo", {
+                        link: (chunks) => (
+                          <Link href={"/help/scores-faq/#spot-score"}>
+                            {chunks}
+                          </Link>
+                        ),
+                      })}
+                    </dd>
+                  ) : leaderboard.score_type === "spot_baseline_tournament" ? (
+                    <dd>
+                      {t.rich("totalSpotBaselineScoreInfo", {
                         link: (chunks) => (
                           <Link href={"/help/scores-faq/#spot-score"}>
                             {chunks}
@@ -231,6 +251,8 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                     <dd>{t("peerTakeInfo")}</dd>
                   ) : leaderboard.score_type === "spot_peer_tournament" ? (
                     <dd>{t("spotPeerTakeInfo")}</dd>
+                  ) : leaderboard.score_type === "spot_baseline_tournament" ? (
+                    <dd>{t("spotBaselineTakeInfo")}</dd>
                   ) : (
                     <dd>{t("relativeTakeInfo")}</dd>
                   )}
