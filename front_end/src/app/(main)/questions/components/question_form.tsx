@@ -81,9 +81,9 @@ const createQuestionSchemas = (
     type: z.enum([
       QuestionType.Binary,
       QuestionType.MultipleChoice,
-      QuestionType.Date,
-      QuestionType.Discrete,
       QuestionType.Numeric,
+      QuestionType.Discrete,
+      QuestionType.Date,
     ]),
     title: z
       .string()
