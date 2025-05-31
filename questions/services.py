@@ -272,6 +272,9 @@ def clone_question(question: Question, title: str = None, **kwargs) -> Question:
         zero_point=kwargs.pop("zero_point", question.zero_point),
         open_upper_bound=kwargs.pop("open_upper_bound", question.open_upper_bound),
         open_lower_bound=kwargs.pop("open_lower_bound", question.open_lower_bound),
+        inbound_outcome_count=kwargs.pop(
+            "inbound_outcome_count", question.inbound_outcome_count
+        ),
         options=kwargs.pop("options", question.options),
         group_variable=kwargs.pop("group_variable", question.group_variable),
         resolution_set_time=kwargs.pop(
