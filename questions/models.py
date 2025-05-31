@@ -218,13 +218,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             self.open_upper_bound = False
             self.open_lower_bound = False
             self.unit = ""
+            self.inbound_outcome_count = None
         if self.type not in [
             self.QuestionType.DATE,
             self.QuestionType.NUMERIC,
         ]:
             self.zero_point = None
-        if self.type != self.QuestionType.DISCRETE:
-            self.inbound_outcome_count = None
         if self.type != self.QuestionType.MULTIPLE_CHOICE:
             self.options = None
 
