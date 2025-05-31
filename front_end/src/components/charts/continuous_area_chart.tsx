@@ -225,8 +225,8 @@ const ContinuousAreaChart: FC<Props> = ({
   // const massAboveBounds = dataset[dataset.length - 1];
   const horizontalPadding = useMemo(() => {
     if (
-      !readOnly &&
-      (graphType === "cdf" || question.type === QuestionType.Discrete)
+      (!readOnly && graphType === "cdf") ||
+      question.type === QuestionType.Discrete
     ) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(

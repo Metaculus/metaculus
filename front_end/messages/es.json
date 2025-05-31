@@ -1273,5 +1273,12 @@
   "spotBaselineScoreInfo": "Tu <link>Puntuación Base Spot</link> en esa pregunta. Si no ves ninguna puntuación, significa que la pregunta aún no se ha resuelto o que no la has predicho (¡o ambas!).",
   "totalSpotBaselineScoreInfo": "La suma ponderada por preguntas de tus <link>Puntuaciones Base Spot</link> en todas las preguntas del torneo (pero solo aquellas que se cierran antes del final del torneo).",
   "spotBaselineTakeInfo": "Tu Toma es el cuadrado de la suma ponderada por preguntas de tus puntuaciones base spot o 0 si tu puntuación total es negativa.",
-  "anonymize": "Anonimizar"
+  "anonymize": "Anonimizar",
+  "zeroPointError0": "El punto cero no está permitido para preguntas discretas",
+  "zeroPointError1": "El punto cero ({zeroPoint}) no debe estar entre min ({min}) y max ({max})",
+  "stepError0": "El paso no puede ser mayor que la mitad del rango: ({halfRange})",
+  "stepError1": "El paso debe ser al menos 1/200 del rango: ({rangePortion})",
+  "minMaxError0": "Proporcione valores correctos de mínimo y máximo",
+  "minMaxError1": "El valor mínimo debe ser menor que el valor máximo",
+  "rangeWarning0": "Advertencia: El paso no divide el rango de manera uniforme. Max reducido a {newMax}"
 }

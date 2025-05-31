@@ -1276,5 +1276,12 @@
   "spotBaselineScoreInfo": "你在该问题上的<link>即时基线分数</link>。如果你没有看到分数，可能是因为问题尚未解决或你尚未预测（或两者都没有！）。",
   "totalSpotBaselineScoreInfo": "你在锦标赛中所有问题的<link>即时基线分数</link>的按问题加权总和（但仅限于在锦标赛结束前关闭的问题）。",
   "spotBaselineTakeInfo": "你的得分是即时基线得分按问题加权总和的平方，如果你的总分为负，则得分为0。",
-  "anonymize": "匿名化"
+  "anonymize": "匿名化",
+  "zeroPointError0": "不支持离散问题的零点",
+  "zeroPointError1": "零点 ({zeroPoint}) 不应在最小值 ({min}) 和最大值 ({max}) 之间",
+  "stepError0": "步长不能超过范围的一半: ({halfRange})",
+  "stepError1": "步长必须至少是范围的1/200: ({rangePortion})",
+  "minMaxError0": "请提供正确的最小值和最大值",
+  "minMaxError1": "最小值应小于最大值",
+  "rangeWarning0": "警告: 步长不能平均划分范围。最大值减少到 {newMax}"
 }

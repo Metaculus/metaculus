@@ -1273,5 +1273,12 @@
   "spotBaselineScoreInfo": "Vaše <link>Spot Base Score</link> na danou otázku. Pokud nevidíte žádné skóre, pak otázka buď ještě není vyřešena, nebo jste ji nepředpověděli (nebo obojí!).",
   "totalSpotBaselineScoreInfo": "Otázkově vážený součet vašich <link>Spot Base Score</link> na všechny otázky v turnaji (ale pouze ty, které se uzavřou před koncem turnaje).",
   "spotBaselineTakeInfo": "Vaše Take je čtverec otázkově váženého součtu vašich spot base skóre nebo 0, pokud je vaše celkové skóre záporné.",
-  "anonymize": "Anonymizovat"
+  "anonymize": "Anonymizovat",
+  "zeroPointError0": "Nulový bod není podporován pro diskrétní otázky",
+  "zeroPointError1": "Nulový bod ({zeroPoint}) by neměl být mezi min ({min}) a max ({max})",
+  "stepError0": "Krok nemůže být větší než polovina rozsahu: ({halfRange})",
+  "stepError1": "Krok musí být alespoň 1/200 rozsahu: ({rangePortion})",
+  "minMaxError0": "Zadejte správné hodnoty min a max",
+  "minMaxError1": "Minimální hodnota by měla být menší než maximální hodnota",
+  "rangeWarning0": "Upozornění: Krok nedělí rozsah rovnoměrně. Max snížen na {newMax}"
 }
