@@ -882,7 +882,7 @@ def get_contributions(
             contributions.append(contribution)
         h_index = decimal_h_index([c.score for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        min_score = (contributions[: int(h_index)][-1].score) if contributions else 0
+        min_score = contributions[: int(h_index)][-1].score if contributions else 0
         return [c for c in contributions if c.score >= min_score]
 
     questions = leaderboard.get_questions().prefetch_related("related_posts__post")
