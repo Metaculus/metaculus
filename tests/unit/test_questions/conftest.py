@@ -20,8 +20,47 @@ def question_binary():
 
 
 @pytest.fixture()
+def question_multiple_choice():
+    return create_question(
+        question_type=Question.QuestionType.MULTIPLE_CHOICE,
+        options=["a", "b", "c", "d"],
+    )
+
+
+@pytest.fixture()
 def question_numeric():
-    return create_question(question_type=Question.QuestionType.NUMERIC)
+    return create_question(
+        question_type=Question.QuestionType.NUMERIC,
+        inbound_outcome_count=4,
+        range_min=10,
+        range_max=13,
+        open_lower_bound=False,
+        open_upper_bound=False,
+    )
+
+
+@pytest.fixture()
+def question_discrete():
+    return create_question(
+        question_type=Question.QuestionType.DISCRETE,
+        inbound_outcome_count=4,
+        range_min=9.5,
+        range_max=13.5,
+        open_lower_bound=False,
+        open_upper_bound=False,
+    )
+
+
+@pytest.fixture()
+def question_date():
+    return create_question(
+        question_type=Question.QuestionType.DATE,
+        inbound_outcome_count=4,
+        range_min=datetime(2025, 1, 1).timestamp(),
+        range_max=datetime(2030, 1, 1).timestamp(),
+        open_lower_bound=False,
+        open_upper_bound=False,
+    )
 
 
 @pytest.fixture()
