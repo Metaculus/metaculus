@@ -275,8 +275,8 @@ const NumericQuestionInput: React.FC<{
               ? 1
               : Math.round(1e10 * ((mx - mn) / inboundOutcomeCount)) / 1e10;
           setStep(draftStep);
-          setMax(mx - draftStep);
-          setMin(mn + draftStep);
+          setMax(mx - 0.5 * draftStep);
+          setMin(mn + 0.5 * draftStep);
         } else {
           setMax(mx);
           setMin(mn);
