@@ -1272,5 +1272,13 @@
   "discreteDescription": "离散问题询问一组独特且有序的值的结果。",
   "discreteQuestionGroup": "离散问题组",
   "discreteQuestionGroupDescription": "离散问题组包含询问未知未来量值并在指定范围内解析的问题。",
-  "emptyCommentField": "评论字段不应为空"
+  "emptyCommentField": "评论字段不应为空",
+  "anonymize": "匿名化",
+  "zeroPointError0": "不支持离散问题的零点",
+  "zeroPointError1": "零点 ({zeroPoint}) 不应在最小值 ({min}) 和最大值 ({max}) 之间",
+  "stepError0": "步长不能超过范围的一半: ({halfRange})",
+  "stepError1": "步长必须至少是范围的1/200: ({rangePortion})",
+  "minMaxError0": "请提供正确的最小值和最大值",
+  "minMaxError1": "最小值应小于最大值",
+  "rangeWarning0": "警告: 步长不能平均划分范围。最大值减少到 {newMax}"
 }

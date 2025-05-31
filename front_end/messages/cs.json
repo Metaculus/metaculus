@@ -1269,5 +1269,13 @@
   "discreteDescription": "Diskrétní otázka se ptá na výsledek z odlišné a uspořádané sady hodnot.",
   "discreteQuestionGroup": "Diskrétní skupina otázek",
   "discreteQuestionGroupDescription": "Diskrétní skupiny otázek obsahují otázky, které se ptají na hodnotu neznámé budoucí veličiny a řeší se v rámci zadaného rozsahu.",
-  "emptyCommentField": "Pole pro komentář nesmí být prázdné"
+  "emptyCommentField": "Pole pro komentář nesmí být prázdné",
+  "anonymize": "Anonymizovat",
+  "zeroPointError0": "Nulový bod není podporován pro diskrétní otázky",
+  "zeroPointError1": "Nulový bod ({zeroPoint}) by neměl být mezi min ({min}) a max ({max})",
+  "stepError0": "Krok nemůže být větší než polovina rozsahu: ({halfRange})",
+  "stepError1": "Krok musí být alespoň 1/200 rozsahu: ({rangePortion})",
+  "minMaxError0": "Zadejte správné hodnoty min a max",
+  "minMaxError1": "Minimální hodnota by měla být menší než maximální hodnota",
+  "rangeWarning0": "Upozornění: Krok nedělí rozsah rovnoměrně. Max snížen na {newMax}"
 }
