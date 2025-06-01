@@ -397,23 +397,6 @@ export function getUserPredictionDisplayValue({
     return "...";
   }
 
-  const scaledCenter = scaleInternalLocation(
-    center,
-    scaling ?? { range_min: 0, range_max: 1, zero_point: null }
-  );
-  const scaledLower = !isNil(lower)
-    ? scaleInternalLocation(
-        lower,
-        scaling ?? { range_min: 0, range_max: 1, zero_point: null }
-      )
-    : null;
-  const scaledUpper = !isNil(upper)
-    ? scaleInternalLocation(
-        upper,
-        scaling ?? { range_min: 0, range_max: 1, zero_point: null }
-      )
-    : null;
-
   if (questionType === QuestionType.Date) {
     const displayCenter = getPredictionDisplayValue(center, {
       questionType,
@@ -463,7 +446,7 @@ export function getUserPredictionDisplayValue({
       discreteValueOptions,
     });
     if (showRange) {
-      const displayLower = getPredictionDisplayValue(scaledLower, {
+      const displayLower = getPredictionDisplayValue(lower, {
         questionType,
         scaling: scaling ?? {
           range_min: 0,
@@ -474,7 +457,7 @@ export function getUserPredictionDisplayValue({
         actual_resolve_time,
         discreteValueOptions,
       });
-      const displayUpper = getPredictionDisplayValue(scaledUpper, {
+      const displayUpper = getPredictionDisplayValue(upper, {
         questionType,
         scaling: scaling ?? {
           range_min: 0,
@@ -489,6 +472,10 @@ export function getUserPredictionDisplayValue({
     }
     return displayCenter;
   } else {
+    const scaledCenter = scaleInternalLocation(
+      center,
+      scaling ?? { range_min: 0, range_max: 1, zero_point: null }
+    );
     return `${Math.round(scaledCenter * 1000) / 10}%`;
   }
 }
