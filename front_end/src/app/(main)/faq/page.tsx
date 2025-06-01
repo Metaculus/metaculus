@@ -2729,7 +2729,7 @@ export default async function FAQ() {
             </a>{" "}
             (&quot;PMF&quot;) for discrete questions, and represents the
             relative likelyhood of each possible outcome in the question range.
-            We'll refer to both as pdf for simplicity in this FAQ as the
+            We&apos;ll refer to both as pdf for simplicity in this FAQ as the
             difference is not significant. The area under the pdf curve between
             two outcomes is proportional to the probability that the resolution
             will be between these two values.
