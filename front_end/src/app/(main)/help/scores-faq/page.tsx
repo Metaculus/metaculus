@@ -391,9 +391,9 @@ export default async function ScoresFAQ() {
         What is the log score for continuous questions?
       </h2>
       <p>
-        Since the domain of possible outcomes for continuous questions is (drum
-        roll) continuous, any outcome has mathematically 0 chance of happening.
-        Thankfully we can adapt the log score in the form:
+        Since the domain of possible outcomes for numeric and date continuous
+        questions is (drum roll) continuous, any outcome has mathematically 0
+        chance of happening. Thankfully we can adapt the log score in the form:
       </p>
       <KatexRenderer
         equation="\text{log score} = \ln(\operatorname{pdf}(outcome))"
@@ -411,6 +411,12 @@ export default async function ScoresFAQ() {
           uniform distribution
         </a>{" "}
         of height 0.01 added to them. This prevents extreme log scores.
+      </p>
+      <p>
+        For discrete continuous questions, the pmf is used in place of the pdf,
+        and the minimum value assigned to any outcome cannot go below 0.01 /
+        number of possible inbound outcomes. This is effectively the same
+        operation as the uniform 0.01 distribution added to pdfs.
       </p>
       <p>
         This is also a proper scoring rule, and behaves in somewhat similar ways

@@ -1042,6 +1042,22 @@ export default async function FAQ() {
           and 6.5 was the upper bound.
         </p>
 
+        <h5 className="text-lg font-semibold">Discrete Range</h5>
+        {/* TODO: put a real Discrete question example after one exists */}
+        <p>
+          Discrete range questions resolve to a specific value (usually a whole
+          number). For example, the question &quot;How many days will it rain in
+          New York City in the month of June?&quot; could resolve to 10 or 11,
+          but not 10.5.
+        </p>
+        <p>
+          Same as numeric range questions, discrete questions can sometimes
+          resolve to a value outside of the given range. For example, the
+          question &quot;What will be the rate of inflation in the United States
+          next year to the nearest tenth of a percent?&quot; that has a discrete
+          range of 0% to 10% could resolve to 10.5% even if it is unlikely.
+        </p>
+
         <h5 className="text-lg font-semibold">Date Range</h5>
         <p>
           Date range questions can resolve as a certain date. For example, the
@@ -2700,16 +2716,23 @@ export default async function FAQ() {
             How do I use the range interface?
           </h3>
           <p>
-            Some Metaculus questions are numeric or date ranges. To predict, you
-            must specify a distribution of likelyhoods over a certain range of
-            outcomes. This probability distribution is known as a{" "}
+            Some Metaculus questions are numeric, discrete, or date ranges. To
+            predict, you must specify a distribution of likelyhoods over a
+            certain range of outcomes. This probability distribution is known as
+            a{" "}
             <a href="https://en.wikipedia.org/wiki/Probability_density_function">
               probability density function
             </a>{" "}
-            (&quot;PDF&quot;) and represents the relative likelyhood of each
-            possible outcome in the question range. The area under the pdf curve
-            between two outcomes is proportional to the probability that the
-            resolution will be between these two values.
+            (&quot;PDF&quot;) for numeric and date questions, and a{" "}
+            <a href="https://en.wikipedia.org/wiki/Probability_mass_function">
+              probability mass function
+            </a>{" "}
+            (&quot;PMF&quot;) for discrete questions, and represents the
+            relative likelyhood of each possible outcome in the question range.
+            We'll refer to both as pdf for simplicity in this FAQ as the
+            difference is not significant. The area under the pdf curve between
+            two outcomes is proportional to the probability that the resolution
+            will be between these two values.
           </p>
           <p>
             To specify your pdf, move the sliders below the graph. The square
@@ -2758,6 +2781,7 @@ export default async function FAQ() {
             width={734}
             height={799}
           />
+          {/* TODO: add image of Discrete input */}
         </div>
 
         <div>
