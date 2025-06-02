@@ -874,13 +874,12 @@ def get_contributions(
         contributions: list[Contribution] = []
         for comment in comments:
             contribution = Contribution(
-                score=comment.vote_score,
+                score=comment.vote_score or 0,
                 post=posts_map[comment.on_post_id],
                 comment=comment,
             )
 
-            if contribution.score is not None:
-                contributions.append(contribution)
+            contributions.append(contribution)
 
         h_index = decimal_h_index([c.score for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
