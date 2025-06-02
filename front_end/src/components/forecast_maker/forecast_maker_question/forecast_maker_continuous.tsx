@@ -46,6 +46,8 @@ import PredictionSuccessBox from "./prediction_success_box";
 import ContinuousInput from "../continuous_input";
 import {
   ForecastExpirationModal,
+  forecastExpirationToDate,
+  ForecastExpirationValue,
   useExpirationModalState,
 } from "../forecast_expiration_modal";
 import {
@@ -235,7 +237,9 @@ const ForecastMakerContinuous: FC<Props> = ({
     previousForecastExpirationString,
   } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
 
-  const handlePredictSubmit = async (forecastEndTime: Date | null) => {
+  const handlePredictSubmit = async (
+    forecastExpiration: ForecastExpirationValue
+  ) => {
     setSubmitError(undefined);
     sendPredictEvent(post, question, hideCP);
 
@@ -265,7 +269,7 @@ const ForecastMakerContinuous: FC<Props> = ({
           probabilityYes: null,
           probabilityYesPerCategory: null,
         },
-        forecastEndTime: forecastEndTime ?? undefined,
+        forecastEndTime: forecastExpirationToDate(forecastExpiration),
         distributionInput: {
           type: forecastInputMode,
           components:
@@ -380,7 +384,7 @@ const ForecastMakerContinuous: FC<Props> = ({
 
             {forecastInputMode === ContinuousForecastInputType.Slider ? (
               <PredictButton
-                onSubmit={() => submit(modalSavedState.expiryDate)}
+                onSubmit={() => submit(modalSavedState.forecastExpiration)}
                 isDirty={isDirty}
                 hasUserForecast={hasUserForecast}
                 isPending={isPending}
@@ -392,7 +396,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               />
             ) : (
               <PredictButton
-                onSubmit={() => submit(modalSavedState.expiryDate)}
+                onSubmit={() => submit(modalSavedState.forecastExpiration)}
                 isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
                 hasUserForecast={hasUserForecast}
                 isPending={isPending}
