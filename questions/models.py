@@ -743,19 +743,4 @@ class CausalLink(BinaryQuestionLink):
         return None
     
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'source_question', 'target_question'],
-                name='unique_user_causal_link'
-            ),
-            # Prevent bidirectional causal links
-            models.CheckConstraint(
-                check=models.Q(bidirectional=False),
-                name='causal_links_not_bidirectional'
-            ),
-            # Include base class constraints explicitly
-            models.CheckConstraint(
-                check=~models.Q(source_question=models.F('target_question')),
-                name='causal_no_self_links'
-            ),
-        ]
+        pass
