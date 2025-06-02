@@ -28,61 +28,62 @@ interface ForecastExpirationModalProps {
   onClose: () => void;
   savedState: ModalState;
   setSavedState: (state: ModalState) => void;
-  //userForecastExpirationPercent: number | null;
-  //userForecastExpirationDurationStr: string | null;
-  onReaffirm?: (expiryDate: Date | null) => Promise<void>;
+  onReaffirm?: (forecastExpiration: ForecastExpirationValue) => Promise<void>;
   questionDuration: number;
 }
 
 type Preset = { id: string; label: string; duration?: Duration };
 
-const buildExpiryDate = (
-  option: "account" | "custom",
-  customExpiryDate: Date | null,
-  durationFromNowSec: number | null,
-  selectedPreset: Preset | undefined
-) => {
-  const today = new Date();
-
-  if (option === "account") {
-    return durationFromNowSec
-      ? new Date(today.getTime() + durationFromNowSec * 1000)
-      : null;
-  }
-
-  if (selectedPreset?.id === "customDate") {
-    return customExpiryDate;
-  }
-
-  if (selectedPreset?.id === "neverExpires") {
-    return null;
-  }
-
-  return add(today, selectedPreset?.duration ?? { days: 0 });
-};
+export type ForecastExpirationValue =
+  | { kind: "duration"; value: Duration }
+  | { kind: "date"; value: Date }
+  | { kind: "infinity" };
 
 interface ModalState {
   option: "account" | "custom";
   selectedPreset: Preset["id"];
-  expiryDate: Date | null;
-  customDate: Date | null;
+  forecastExpiration: ForecastExpirationValue;
+  datePickerDate: Date | null;
 }
+
+export const forecastExpirationToDate = (
+  expiration: ForecastExpirationValue | undefined
+): Date | undefined => {
+  if (!expiration) {
+    return undefined;
+  }
+
+  if (expiration.kind === "infinity") {
+    return undefined;
+  }
+
+  if (expiration.kind === "duration") {
+    return add(new Date(), expiration.value);
+  }
+  return expiration.value;
+};
 
 const buildDefaultState = (
   lastForecast: UserForecast | undefined,
   presetDurations: Preset[],
   userDefaultExpirationDurationSec: number | null
 ): ModalState => {
+  const now = new Date();
   let state: ModalState = {
     option: "account",
     selectedPreset: "1w",
-    customDate: null,
-    expiryDate: buildExpiryDate(
-      "account",
-      null,
-      userDefaultExpirationDurationSec ?? null,
-      presetDurations.find((p) => p.id === "1w")
-    ),
+    datePickerDate: null,
+    forecastExpiration: userDefaultExpirationDurationSec
+      ? {
+          kind: "duration",
+          value: intervalToDuration({
+            start: now,
+            end: add(now, {
+              seconds: userDefaultExpirationDurationSec,
+            }),
+          }),
+        }
+      : { kind: "infinity" },
   };
 
   if (lastForecast?.end_time) {
@@ -91,41 +92,37 @@ const buildDefaultState = (
       (lastForecast.end_time - lastForecast.start_time) * 1000;
 
     // Only consider presets with actual durations and transform them in
-    const presetsDurationssMs = presetDurations
+    const presetsWithDurationMs = presetDurations
       .filter((preset) => !!preset.duration)
       .map((preset) => {
         return {
           durationMs: preset.duration
             ? add(new Date(0), preset.duration).getTime()
             : Infinity,
-          id: preset.id,
+          preset,
         };
       });
 
-    let closestPresetId = "1w"; // default fallback
+    let closestPreset = presetsWithDurationMs[0]!.preset; // we know it's not undefined because we filtered it out above
     let minDifference = Infinity;
 
-    for (const preset of presetsDurationssMs) {
+    for (const preset of presetsWithDurationMs) {
       const difference = Math.abs(lastForecastDurationMs - preset.durationMs);
       if (difference < minDifference) {
         minDifference = difference;
-        closestPresetId = preset.id;
+        closestPreset = preset.preset;
       }
     }
 
     state = {
       option: "custom",
-      selectedPreset: closestPresetId,
-      expiryDate: null,
-      customDate: null,
+      selectedPreset: closestPreset.id,
+      forecastExpiration: {
+        kind: "duration",
+        value: closestPreset.duration!, // we know it's not undefined because we filtered it out above
+      },
+      datePickerDate: null,
     };
-
-    state.expiryDate = buildExpiryDate(
-      state.option,
-      state.customDate,
-      null,
-      presetDurations.find((p) => p.id === state.selectedPreset)
-    );
   }
 
   return state;
@@ -175,14 +172,16 @@ export const useExpirationModalState = (
     <FontAwesomeIcon icon={faInfinity} />
   );
 
-  if (modalSavedState.expiryDate) {
+  if (modalSavedState.forecastExpiration.kind === "duration") {
+    expirationShortChip = formatDurationToShortStr(
+      truncateDuration(modalSavedState.forecastExpiration.value, 1)
+    );
+  } else if (modalSavedState.forecastExpiration.kind === "date") {
     expirationShortChip = formatDurationToShortStr(
       truncateDuration(
         intervalToDuration({
           start: new Date(),
-          end: add(modalSavedState.expiryDate, {
-            seconds: 10, // add some extra time to avoid rounding issues and not falling on the next lower unit
-          }),
+          end: modalSavedState.forecastExpiration.value,
         }),
         1
       )
@@ -193,7 +192,7 @@ export const useExpirationModalState = (
 
   if (lastForecast?.end_time) {
     const lastForecastExpiryDuration = intervalToDuration({
-      start: new Date(lastForecast.start_time * 1000),
+      start: new Date(),
       end: new Date(lastForecast.end_time * 1000),
     });
 
@@ -290,27 +289,51 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     : null;
 
   useEffect(() => {
-    const expiryDate = buildExpiryDate(
-      currentState.option,
-      currentState.customDate,
-      userDefaultExpirationDurationSec ?? null,
-      presetDurations.find((p) => p.id === currentState.selectedPreset)
-    );
+    if (currentState.datePickerDate) {
+      setCurrentState({
+        ...currentState,
+        forecastExpiration: {
+          kind: "date",
+          value: currentState.datePickerDate!,
+        },
+      });
+    }
+  }, [currentState.datePickerDate]);
 
-    setCurrentState({ ...currentState, expiryDate });
-  }, [
-    currentState.selectedPreset,
-    currentState.customDate,
-    currentState.option,
-  ]);
-
-  const onCustomOptionSelected = (id: Preset["id"]) => {
+  const onCustomOptionSelected = (preset: Preset) => {
     setCurrentState({
       ...currentState,
-      selectedPreset: id,
+      selectedPreset: preset.id,
       option: "custom",
+      forecastExpiration: {
+        kind: "duration",
+        value: preset.duration!, // we know it's not undefined
+      },
     });
     setShowDatePicker(false);
+  };
+
+  const onCustomDateSelected = () => {
+    setCurrentState({
+      ...currentState,
+      selectedPreset: "customDate",
+      option: "custom",
+      forecastExpiration: {
+        kind: "date",
+        value: currentState.datePickerDate!,
+      },
+    });
+  };
+
+  const onNeverExpiresSelected = () => {
+    setCurrentState({
+      ...currentState,
+      selectedPreset: "neverExpires",
+      option: "custom",
+      forecastExpiration: {
+        kind: "infinity",
+      },
+    });
   };
 
   const handleClose = () => {
@@ -324,7 +347,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   };
 
   const handleReaffirm = async () => {
-    onReaffirm?.(currentState.expiryDate);
+    onReaffirm?.(currentState.forecastExpiration);
     handleSave();
   };
 
@@ -416,7 +439,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                   className={cn("rounded-[3px]")}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onCustomOptionSelected(preset.id);
+                    onCustomOptionSelected(preset);
                   }}
                 >
                   {preset.label}
@@ -435,7 +458,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 className={"relative flex items-center gap-0 rounded-[3px]"}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onCustomOptionSelected("customDate");
+                  onCustomDateSelected();
                   setShowDatePicker(true);
                   setTimeout(() => {
                     dateInputRef.current?.showPicker();
@@ -453,13 +476,14 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                       onChange={(e) => {
                         setCurrentState({
                           ...currentState,
-                          customDate: new Date(e.target.value),
+                          datePickerDate: new Date(e.target.value),
                         });
                       }}
                     />
-                    {currentState.customDate && (
+                    {currentState.datePickerDate && (
                       <span className="text-sm">
-                        {": " + format(currentState.customDate, "d MMMM yyyy")}
+                        {": " +
+                          format(currentState.datePickerDate, "d MMMM yyyy")}
                       </span>
                     )}
                   </>
@@ -478,7 +502,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 className={cn("rounded-[3px]")}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onCustomOptionSelected("neverExpires");
+                  onNeverExpiresSelected();
                   setShowDatePicker(false);
                 }}
               >
@@ -510,7 +534,8 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
             disabled={
               currentState.option === savedState.option &&
               currentState.selectedPreset === savedState.selectedPreset &&
-              currentState.expiryDate === savedState.expiryDate
+              JSON.stringify(currentState.forecastExpiration) ===
+                JSON.stringify(savedState.forecastExpiration)
             }
           >
             {onReaffirm ? t("reaffirm") : t("saveChanges")}
