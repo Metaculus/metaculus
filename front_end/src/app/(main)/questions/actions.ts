@@ -23,7 +23,7 @@ import ServerQuestionsApi, {
 } from "@/services/api/questions/questions.server";
 import { NotebookPost, PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
-import { DeepPartial } from "@/types/utils";
+import { DataParams, DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
 import { ApiError } from "@/utils/core/errors";
 
@@ -303,4 +303,16 @@ export async function changePostSubscriptions(
     revalidatePath("/accounts/settings");
   }
   return response;
+}
+
+export async function getPostZipData(params: DataParams) {
+  const blob = await ServerPostsApi.getPostZipData(params);
+  const arrayBuffer = await blob.arrayBuffer();
+  const base64String = Buffer.from(arrayBuffer).toString("base64");
+
+  return `data:application/octet-stream;base64,${base64String}`;
+}
+
+export async function emailData(params: DataParams) {
+  return await ServerPostsApi.emailData(params);
 }

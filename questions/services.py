@@ -16,6 +16,7 @@ from posts.services.subscriptions import (
 )
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
+from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.common import notify_project_subscriptions_question_open
 from questions.constants import ResolutionType
 from questions.models import (
@@ -271,6 +272,9 @@ def clone_question(question: Question, title: str = None, **kwargs) -> Question:
         zero_point=kwargs.pop("zero_point", question.zero_point),
         open_upper_bound=kwargs.pop("open_upper_bound", question.open_upper_bound),
         open_lower_bound=kwargs.pop("open_lower_bound", question.open_lower_bound),
+        inbound_outcome_count=kwargs.pop(
+            "inbound_outcome_count", question.inbound_outcome_count
+        ),
         options=kwargs.pop("options", question.options),
         group_variable=kwargs.pop("group_variable", question.group_variable),
         resolution_set_time=kwargs.pop(
@@ -519,6 +523,9 @@ def resolve_question(
     update_global_leaderboard_tags(post)
     post.save()
 
+    # Invalidate project questions count cache since resolution affects visibility
+    invalidate_projects_questions_count_cache(post.get_related_projects())
+
     # Calculate scores + notify forecasters
     from questions.tasks import resolve_question_and_send_notifications
 
@@ -750,14 +757,6 @@ def after_forecast_actions(question: Question, user: User):
 
     run_build_question_forecasts.send(question.id)
 
-    # There may be situations where async jobs from `create_forecast` complete after
-    # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
-    # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
-    #
-    # As a temporary solution, we introduce a 10-second delay before execution
-    # to ensure all forecasts are processed.
-    run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
-
 
 def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
     posts = set()
@@ -769,6 +768,16 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
 
         create_forecast(question=question, user=user, **forecast)
         after_forecast_actions(question, user)
+
+    # Update counters
+    for post in posts:
+        # There may be situations where async jobs from `create_forecast` complete after
+        # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
+        # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
+        #
+        # As a temporary solution, we introduce a 10-second delay before execution
+        # to ensure all forecasts are processed.
+        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
 def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
@@ -810,6 +819,15 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
             type=PostSubscription.SubscriptionType.CP_CHANGE,
             is_global=True,
         ).delete()
+
+    for post in posts:
+        # There may be situations where async jobs from `create_forecast` complete after
+        # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
+        # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
+        #
+        # As a temporary solution, we introduce a 10-second delay before execution
+        # to ensure all forecasts are processed.
+        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
 def get_recency_weighted_for_questions(

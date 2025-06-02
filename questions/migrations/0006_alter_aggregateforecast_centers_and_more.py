@@ -76,7 +76,10 @@ class Migration(migrations.Migration):
             model_name="forecast",
             name="probability_yes_per_category",
             field=django_better_admin_arrayfield.models.fields.ArrayField(
-                base_field=models.FloatField(), null=True, size=None
+                base_field=models.FloatField(),
+                null=True,
+                size=None,
+                blank=True,
             ),
         ),
         migrations.AlterField(

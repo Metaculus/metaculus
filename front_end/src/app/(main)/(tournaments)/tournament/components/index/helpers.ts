@@ -234,7 +234,8 @@ export function calculateIndexTimeline(posts: ProjectIndexWeights[]) {
           postValue = 2 * median - 1;
           break;
         }
-        case QuestionType.Numeric: {
+        case QuestionType.Numeric:
+        case QuestionType.Discrete: {
           const cdfPoints = aggregation.forecast_values ?? [];
           if (!cdfPoints.length) {
             break;
