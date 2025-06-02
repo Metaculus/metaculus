@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 from datetime import datetime
-from typing import cast, TypedDict, Iterable
+from typing import cast, List, TypedDict, Iterable, Dict, Any
 
 from django.db import transaction
 from django.db.models import Q, QuerySet, Subquery, OuterRef
@@ -25,6 +25,7 @@ from questions.models import (
     Conditional,
     Forecast,
     AggregateForecast,
+    CausalLink,
 )
 from questions.types import AggregationMethod
 from questions.utils import get_question_movement_period
@@ -1053,3 +1054,140 @@ def handle_question_open(question: Question):
 
     # Handle question on followed projects subscriptions
     notify_project_subscriptions_question_open(question)
+
+# Question Link MVP Additions
+
+def get_linked_questions_for_user(user: User, question_id: int) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Get all questions linked to the given question for the user.
+    Returns both incoming and outgoing causal links.
+    
+    Used for post-prediction prompts to suggest updating linked forecasts.
+    """
+    
+    # Get all active causal links involving this question for this user
+    links = CausalLink.objects.filter(
+        Q(source_question_id=question_id) | Q(target_question_id=question_id),
+        user=user,
+        status='active'
+    ).select_related('source_question', 'target_question')
+    
+    incoming_links = []
+    outgoing_links = []
+    
+    for link in links:
+        if link.target_question_id == question_id:
+            # This question is the target (incoming link)
+            incoming_links.append({
+                'link_id': link.id,
+                'question': {
+                    'id': link.source_question.id,
+                    'title': link.source_question.title,
+                    'type': link.source_question.type,
+                },
+                'direction': link.direction,
+                'strength': link.strength,
+                'reasoning': link.reasoning,
+            })
+        else:
+            # This question is the source (outgoing link)
+            outgoing_links.append({
+                'link_id': link.id,
+                'question': {
+                    'id': link.target_question.id,
+                    'title': link.target_question.title,
+                    'type': link.target_question.type,
+                },
+                'direction': link.direction,
+                'strength': link.strength,
+                'reasoning': link.reasoning,
+            })
+    
+    return {
+        'incoming_links': incoming_links,
+        'outgoing_links': outgoing_links,
+    }
+
+
+def check_for_cycle(user: User, source_question_id: int, target_question_id: int) -> bool:
+    """
+    Check if creating a link from source to target would create a cycle.
+    
+    This is a stretch goal function for cycle detection.
+    Returns True if a cycle would be created.
+    """
+    
+    # Simple BFS to check if target_question_id is reachable from source_question_id
+    # through existing causal links for this user
+    
+    visited = set()
+    queue = [target_question_id]
+    
+    while queue:
+        current_id = queue.pop(0)
+        
+        if current_id == source_question_id:
+            return True  # Cycle detected
+        
+        if current_id in visited:
+            continue
+            
+        visited.add(current_id)
+        
+        # Find all questions that this current question points to
+        outgoing_links = CausalLink.objects.filter(
+            user=user,
+            source_question_id=current_id,
+            status='active'
+        ).values_list('target_question_id', flat=True)
+        
+        queue.extend(outgoing_links)
+    
+    return False  # No cycle detected
+
+
+def get_user_causal_graph(user: User) -> Dict[str, Any]:
+    """
+    Get the complete causal graph for a user.
+    
+    Returns nodes and edges for visualization (stretch goal).
+    """
+    
+    links = CausalLink.objects.filter(
+        user=user,
+        status='active'
+    ).select_related('source_question', 'target_question')
+    
+    nodes = {}
+    edges = []
+    
+    for link in links:
+        # Add source node
+        if link.source_question.id not in nodes:
+            nodes[link.source_question.id] = {
+                'id': link.source_question.id,
+                'title': link.source_question.title,
+                'type': link.source_question.type,
+            }
+        
+        # Add target node
+        if link.target_question.id not in nodes:
+            nodes[link.target_question.id] = {
+                'id': link.target_question.id,
+                'title': link.target_question.title,
+                'type': link.target_question.type,
+            }
+        
+        # Add edge
+        edges.append({
+            'source': link.source_question.id,
+            'target': link.target_question.id,
+            'direction': link.direction,
+            'strength': link.strength,
+            'link_id': link.id,
+        })
+    
+    return {
+        'nodes': list(nodes.values()),
+        'edges': edges,
+    }

@@ -12,13 +12,18 @@ from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
-from questions.models import Question
+from questions.models import Question, CausalLink
 from questions.serializers.common import (
     validate_question_resolution,
     OldForecastWriteSerializer,
     ForecastWriteSerializer,
     ForecastWithdrawSerializer,
     serialize_question,
+)
+from questions.serializers.causal_links import (
+    CausalLinkSerializer, 
+    CausalLinkWriteSerializer,
+    QuestionCausalLinksSerializer
 )
 from questions.services import (
     resolve_question,
@@ -243,3 +248,103 @@ def legacy_question_api_view(request, pk: int):
     return Response(
         {"question_id": pk, "post_id": post.pk, "post_slug": get_post_slug(post)}
     )
+
+# Question Link MVP Additions
+
+@api_view(["GET", "POST"])
+def causal_links_list_create_api_view(request):
+    """
+    GET: List all causal links for the current user
+    POST: Create a new causal link
+    """
+    
+    if request.method == "GET":
+        # List user's causal links
+        links = CausalLink.objects.filter(
+            user=request.user,
+            status='active'  # Only show active links
+        ).select_related(
+            'source_question', 'target_question'
+        ).order_by('-created_at')
+        
+        serializer = CausalLinkSerializer(links, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == "POST":
+        # Create new causal link
+        serializer = CausalLinkWriteSerializer(
+            data=request.data, 
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        
+        # Validate permissions for both questions
+        source_id = serializer.validated_data['source_question_id']
+        target_id = serializer.validated_data['target_question_id']
+        
+        source_question = Question.objects.get(pk=source_id)
+        target_question = Question.objects.get(pk=target_id)
+        
+        # Check user can view both questions
+        source_permission = get_post_permission_for_user(
+            source_question.get_post(), user=request.user
+        )
+        target_permission = get_post_permission_for_user(
+            target_question.get_post(), user=request.user
+        )
+        
+        ObjectPermission.can_view(source_permission, raise_exception=True)
+        ObjectPermission.can_view(target_permission, raise_exception=True)
+        
+        # Create the link
+        causal_link = serializer.save()
+        
+        # Return the created link with full question data
+        response_serializer = CausalLinkSerializer(causal_link)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["DELETE"])
+def causal_link_delete_api_view(request, pk: int):
+    """
+    DELETE: Remove a causal link
+    """
+    try:
+        causal_link = CausalLink.objects.get(pk=pk, user=request.user)
+    except CausalLink.DoesNotExist:
+        raise Http404("Causal link not found")
+    
+    causal_link.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def question_causal_links_api_view(request, question_id: int):
+    """
+    GET: Get all causal links for a specific question (both incoming and outgoing)
+    """
+    question = get_object_or_404(Question.objects.all(), pk=question_id)
+    
+    # Check permissions
+    permission = get_post_permission_for_user(question.get_post(), user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+    
+    # Get user's causal links for this question
+    incoming_links = CausalLink.objects.filter(
+        user=request.user,
+        target_question=question,
+        status='active'
+    ).select_related('source_question')
+    
+    outgoing_links = CausalLink.objects.filter(
+        user=request.user,
+        source_question=question,
+        status='active'
+    ).select_related('target_question')
+    
+    data = {
+        'incoming_links': CausalLinkSerializer(incoming_links, many=True).data,
+        'outgoing_links': CausalLinkSerializer(outgoing_links, many=True).data
+    }
+    
+    return Response(data)
