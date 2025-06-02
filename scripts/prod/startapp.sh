@@ -38,7 +38,7 @@ export UV_THREADPOOL_SIZE=2
 
 (
   cd front_end &&
-  npm run start \
+  PORT=3000 npm run start \
   2>&1 | sed 's/^/[Frontend]: /'
 ) &
 
