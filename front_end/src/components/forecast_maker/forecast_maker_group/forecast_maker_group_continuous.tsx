@@ -64,6 +64,10 @@ import GroupForecastAccordion, {
 import { validateUserQuantileData } from "../helpers";
 import PredictButton from "../predict_button";
 import WithdrawButton from "../withdraw/withdraw_button";
+import {
+  forecastExpirationToDate,
+  ForecastExpirationValue,
+} from "../forecast_expiration_modal";
 
 type Props = {
   post: PostWithForecasts;
@@ -158,13 +162,13 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const handleForecastExpiration = useCallback(
-    (optionId: number, expiryDate: Date | null) => {
+    (optionId: number, forecastExpiration: ForecastExpirationValue) => {
       setGroupOptions((prev) =>
         prev.map((option) => {
           if (option.id === optionId) {
             return {
               ...option,
-              forecastExpiryDate: expiryDate ?? undefined,
+              forecastExpiration,
             };
           }
           return option;
@@ -320,7 +324,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const handleSingleQuestionSubmit = useCallback(
-    async (questionId: number, expiryDate: Date | null) => {
+    async (questionId: number, forecastExpiration: ForecastExpirationValue) => {
       const optionToSubmit = questionsToSubmit.find(
         (opt) => opt.id === questionId
       );
@@ -331,7 +335,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       const response = await createForecasts(postId, [
         {
           questionId: optionToSubmit.question.id,
-          forecastEndTime: expiryDate ?? undefined,
+          forecastEndTime: forecastExpirationToDate(forecastExpiration),
           forecastData: {
             continuousCdf:
               optionToSubmit.forecastInputMode ===
@@ -419,11 +423,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           userSliderForecast,
           userQuantileForecast,
           forecastInputMode,
-          forecastExpiryDate,
+          forecastExpiration,
         }) => {
           return {
             questionId: question.id,
-            forecastEndTime: forecastExpiryDate,
+            forecastEndTime: forecastExpirationToDate(forecastExpiration),
             forecastData: {
               continuousCdf:
                 forecastInputMode === ContinuousForecastInputType.Quantile
