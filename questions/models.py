@@ -580,3 +580,185 @@ class QuestionPost(models.Model):
     class Meta:
         managed = False
         db_table = "questions_question_post"
+
+class BinaryQuestionLink(TimeStampedModel):
+    """
+    Base model for binary relationships between two questions as defined by a user.
+    Extensible for different types of binary relationships.
+    """
+    
+    class LinkStatus(models.TextChoices):
+        ACTIVE = "active", "Active"
+        INACTIVE = "inactive", "Inactive"  
+        INVALID = "invalid", "Invalid"
+    
+    class ResolutionStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        RESOLVED = "resolved", "Resolved"
+    
+    class ForecastStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        STALE = "stale", "Stale"
+        LIVE = "live", "Live"
+    
+    # Core relationship
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name="question_links"
+    )
+    source_question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="outgoing_links",
+        help_text="The question that influences the target"
+    )
+    target_question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="incoming_links", 
+        help_text="The question that is influenced by the source"
+    )
+    
+    # Base properties
+    bidirectional = models.BooleanField(
+        default=False,
+        help_text="Whether this relationship works in both directions"
+    )
+    
+    link_type = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Type of relationship (e.g., 'causal', 'correlation', etc.)"
+    )
+    
+    reasoning = models.TextField(
+        blank=True,
+        help_text="User's explanation for why these questions are linked"
+    )
+    
+    # Status tracking (for future use, MVP defaults to ACTIVE/PENDING)
+    status = models.CharField(
+        max_length=10,
+        choices=LinkStatus.choices,
+        default=LinkStatus.ACTIVE
+    )
+    
+    resolution_status = models.CharField(
+        max_length=10,
+        choices=ResolutionStatus.choices,
+        default=ResolutionStatus.PENDING
+    )
+    
+    forecast_status = models.CharField(
+        max_length=10,
+        choices=ForecastStatus.choices,
+        default=ForecastStatus.PENDING
+    )
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'source_question', 'target_question'],
+                name='unique_user_binary_question_link'
+            ),
+            models.CheckConstraint(
+                check=~models.Q(source_question=models.F('target_question')),
+                name='no_self_links'
+            )
+        ]
+        indexes = [
+            models.Index(fields=['user', 'source_question']),
+            models.Index(fields=['user', 'target_question']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        direction_symbol = "↔" if self.bidirectional else "→"
+        type_str = f"[{self.link_type}] " if self.link_type else ""
+        return f"{self.user.username}: {type_str}{self.source_question.title} {direction_symbol} {self.target_question.title}"
+    
+    def get_reverse_link(self):
+        """
+        For bidirectional prompting, get the reverse relationship if it exists.
+        Returns None for directional relationships like causal links.
+        """
+        if not self.bidirectional:
+            return None
+            
+        try:
+            return self.__class__.objects.get(
+                user=self.user,
+                source_question=self.target_question,
+                target_question=self.source_question
+            )
+        except self.__class__.DoesNotExist:
+            return None
+
+
+class CausalLink(BinaryQuestionLink):
+    """
+    Represents a directed causal relationship between two questions.
+    Always unidirectional (bidirectional=False).
+    """
+    
+    class Direction(models.TextChoices):
+        POSITIVE = "positive", "Positive"
+        NEGATIVE = "negative", "Negative"
+    
+    class Strength(models.TextChoices):
+        WEAK = "weak", "Weak"
+        MODERATE = "moderate", "Moderate" 
+        STRONG = "strong", "Strong"
+    
+    # Override parent's link_type with hardcoded default
+    link_type = models.CharField(
+        max_length=50,
+        default='causal',
+        editable=False,
+        help_text="Type of relationship (hardcoded as 'causal' for this subclass)"
+    )
+    
+    # Causal-specific properties
+    direction = models.CharField(
+        max_length=10,
+        choices=Direction.choices,
+        help_text="Whether source positively or negatively affects target"
+    )
+    strength = models.CharField(
+        max_length=10,
+        choices=Strength.choices,
+        help_text="Strength of the causal relationship"
+    )
+    
+    def save(self, **kwargs):
+        # Causal links are always unidirectional and have type 'causal'
+        self.bidirectional = False
+        self.link_type = 'causal'   # defensive programming safeguard
+        super().save(**kwargs)
+    
+    def __str__(self):
+        direction_symbol = "→+" if self.direction == self.Direction.POSITIVE else "→-"
+        type_str = f"[{self.link_type}] " if self.link_type else ""
+        return f"{self.user.username}: {type_str}{self.source_question.title} {direction_symbol}({self.strength}) {self.target_question.title}"
+    
+    def get_reverse_link(self):
+        """
+        Causal links are unidirectional, so reverse links are illegal.
+        At most one of (A→B, B→A) can exist.
+        """
+        return None
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'source_question', 'target_question'],
+                name='unique_user_causal_link'
+            ),
+            # Prevent bidirectional causal links
+            models.CheckConstraint(
+                check=models.Q(bidirectional=False),
+                name='causal_links_not_bidirectional'
+            ),
+        ] + BinaryQuestionLink.Meta.constraints
