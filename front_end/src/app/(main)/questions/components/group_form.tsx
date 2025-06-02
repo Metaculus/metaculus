@@ -46,7 +46,11 @@ import {
   TournamentPreview,
   TournamentType,
 } from "@/types/projects";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  DefaultInboundOutcomeCount,
+  QuestionType,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import {
   deleteQuestionDraft,
@@ -110,6 +114,7 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
 type SupportedType =
   | QuestionType.Binary
   | QuestionType.Numeric
+  | QuestionType.Discrete
   | QuestionType.Date
   | string;
 
@@ -209,6 +214,22 @@ const GroupForm: React.FC<Props> = ({
           scaling: x.scaling,
           open_lower_bound: x.open_lower_bound,
           open_upper_bound: x.open_upper_bound,
+        };
+      } else if (subtype === QuestionType.Discrete) {
+        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
+          setError(
+            "Please enter a range_max and range_min value for discrete questions"
+          );
+          break_out = true;
+          return;
+        }
+        return {
+          ...subquestionData,
+          unit: x.unit,
+          scaling: x.scaling,
+          open_lower_bound: x.open_lower_bound,
+          open_upper_bound: x.open_upper_bound,
+          inbound_outcome_count: x.inbound_outcome_count,
         };
       } else if (subtype === QuestionType.Date) {
         if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
@@ -331,6 +352,10 @@ const GroupForm: React.FC<Props> = ({
     numeric: {
       title: t("numericQuestionGroup"),
       description: t("numericQuestionGroupDescription"),
+    },
+    discrete: {
+      title: t("discreteQuestionGroup"),
+      description: t("discreteQuestionGroupDescription"),
     },
     date: {
       title: t("dateQuestionGroup"),
@@ -636,7 +661,8 @@ const GroupForm: React.FC<Props> = ({
                 </InputContainer>
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4">
-                    {subtype === QuestionType.Numeric && (
+                    {(subtype === QuestionType.Numeric ||
+                      subtype === QuestionType.Discrete) && (
                       <InputContainer
                         labelText={t("subquestionUnit")}
                         explanation={t("questionUnitDescription")}
@@ -778,25 +804,30 @@ const GroupForm: React.FC<Props> = ({
                         </InputContainer>
                       </div>
                     )}
-                    {(subtype === QuestionType.Date ||
-                      subtype === QuestionType.Numeric) && (
+                    {(subtype === QuestionType.Numeric ||
+                      subtype === QuestionType.Discrete ||
+                      subtype === QuestionType.Date) && (
                       <NumericQuestionInput
                         draftKey={mode === "edit" ? undefined : draftKey}
                         questionType={subtype}
-                        defaultMin={subQuestion.scaling.range_min}
-                        defaultMax={subQuestion.scaling.range_max}
+                        defaultMin={subQuestion.scaling?.range_min}
+                        defaultMax={subQuestion.scaling?.range_max}
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
-                        defaultZeroPoint={subQuestion.scaling.zero_point}
+                        defaultInboundOutcomeCount={
+                          subQuestion.inbound_outcome_count
+                        }
+                        defaultZeroPoint={subQuestion.scaling?.zero_point}
                         hasForecasts={
                           subQuestion.has_forecasts && mode !== "create"
                         }
                         onChange={({
-                          min: range_min,
-                          max: range_max,
+                          range_min,
+                          range_max,
                           open_lower_bound,
                           open_upper_bound,
                           zero_point,
+                          inbound_outcome_count,
                         }) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) =>
@@ -805,6 +836,7 @@ const GroupForm: React.FC<Props> = ({
                                     ...subQuestion,
                                     open_lower_bound,
                                     open_upper_bound,
+                                    inbound_outcome_count,
                                     scaling: {
                                       range_min,
                                       range_max,
@@ -918,11 +950,11 @@ const GroupForm: React.FC<Props> = ({
                     },
                   ]);
                 } else {
-                  if (subtype === "numeric") {
+                  if (subtype === QuestionType.Numeric) {
                     setSubQuestions([
                       ...subQuestions,
                       {
-                        type: "numeric",
+                        type: QuestionType.Numeric,
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
@@ -937,11 +969,31 @@ const GroupForm: React.FC<Props> = ({
                         open_upper_bound: null,
                       },
                     ]);
-                  } else if (subtype === "date") {
+                  } else if (subtype === QuestionType.Discrete) {
                     setSubQuestions([
                       ...subQuestions,
                       {
-                        type: "date",
+                        type: QuestionType.Discrete,
+                        label: "",
+                        scheduled_close_time:
+                          form.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          form.getValues().scheduled_resolve_time,
+                        scaling: {
+                          range_min: null,
+                          range_max: null,
+                          zero_point: null,
+                        },
+                        open_lower_bound: null,
+                        open_upper_bound: null,
+                        inbound_outcome_count: DefaultInboundOutcomeCount,
+                      },
+                    ]);
+                  } else if (subtype === QuestionType.Date) {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: QuestionType.Date,
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,

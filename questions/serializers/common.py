@@ -76,6 +76,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         )
 
     def get_scaling(self, question: Question):
+        # TODO: add `continuous_range` - but check for performance issues
         return {
             "range_max": question.range_max,
             "range_min": question.range_min,
