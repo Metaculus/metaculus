@@ -33,6 +33,7 @@ export type ContinuousGroupOption = {
   hasUserForecast: boolean;
   resolution: Resolution | null;
   menu?: ReactNode;
+  forecastExpiryDate?: Date;
 };
 
 type Props = {
@@ -48,7 +49,10 @@ type Props = {
   ) => void;
   handleAddComponent: (option: ContinuousGroupOption) => void;
   handleResetForecasts: (option?: ContinuousGroupOption) => void;
-  handlePredictSubmit: (id: number) => Promise<
+  handlePredictSubmit: (
+    id: number,
+    expiryDate: Date | null
+  ) => Promise<
     | {
         errors: ErrorResponse | undefined;
       }
@@ -65,6 +69,7 @@ type Props = {
     mode: ContinuousForecastInputType
   ) => void;
   handleCopy: (fromOptionId: number, toOptionId: number) => void;
+  handleForecastExpiration: (optionId: number, expiryDate: Date | null) => void;
 };
 
 const GroupForecastAccordion: FC<Props> = ({
@@ -80,6 +85,7 @@ const GroupForecastAccordion: FC<Props> = ({
   handlePredictSubmit,
   handlePredictWithdraw,
   handleForecastInputModeChange,
+  handleForecastExpiration,
   handleCopy,
 }) => {
   const t = useTranslations();
@@ -180,6 +186,7 @@ const GroupForecastAccordion: FC<Props> = ({
               handleResetForecasts={handleResetForecasts}
               handlePredictSubmit={handlePredictSubmit}
               handlePredictWithdraw={handlePredictWithdraw}
+              handleForecastExpiration={handleForecastExpiration}
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
@@ -214,6 +221,7 @@ const GroupForecastAccordion: FC<Props> = ({
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
+              handleForecastExpiration={handleForecastExpiration}
             />
           </AccordionItem>
         );
@@ -245,6 +253,7 @@ const GroupForecastAccordion: FC<Props> = ({
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
+              handleForecastExpiration={handleForecastExpiration}
             />
           </AccordionItem>
         );
