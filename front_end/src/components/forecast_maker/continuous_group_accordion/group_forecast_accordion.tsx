@@ -19,6 +19,7 @@ import { isUnitCompact } from "@/utils/questions/units";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
 import ContinuousInputWrapper from "../forecast_maker_group/continuous_input_wrapper";
+import { ForecastExpirationValue } from "../forecast_expiration_modal";
 
 export type ContinuousGroupOption = {
   id: number;
@@ -33,7 +34,7 @@ export type ContinuousGroupOption = {
   hasUserForecast: boolean;
   resolution: Resolution | null;
   menu?: ReactNode;
-  forecastExpiryDate?: Date;
+  forecastExpiration?: ForecastExpirationValue;
 };
 
 type Props = {
@@ -51,7 +52,7 @@ type Props = {
   handleResetForecasts: (option?: ContinuousGroupOption) => void;
   handlePredictSubmit: (
     id: number,
-    expiryDate: Date | null
+    forecastExpiration: ForecastExpirationValue
   ) => Promise<
     | {
         errors: ErrorResponse | undefined;
@@ -69,7 +70,10 @@ type Props = {
     mode: ContinuousForecastInputType
   ) => void;
   handleCopy: (fromOptionId: number, toOptionId: number) => void;
-  handleForecastExpiration: (optionId: number, expiryDate: Date | null) => void;
+  handleForecastExpiration: (
+    optionId: number,
+    forecastExpiration: ForecastExpirationValue
+  ) => void;
 };
 
 const GroupForecastAccordion: FC<Props> = ({
