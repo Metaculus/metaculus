@@ -874,12 +874,13 @@ def get_contributions(
         contributions: list[Contribution] = []
         for comment in comments:
             contribution = Contribution(
-                score=comment.vote_score,
+                score=comment.vote_score or 0,
                 post=posts_map[comment.on_post_id],
                 comment=comment,
             )
 
             contributions.append(contribution)
+
         h_index = decimal_h_index([c.score for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
         min_score = contributions[: int(h_index)][-1].score if contributions else 0
