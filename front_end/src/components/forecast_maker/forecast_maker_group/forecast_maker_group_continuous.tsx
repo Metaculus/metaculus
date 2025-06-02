@@ -95,11 +95,14 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         Record<number, DistributionSlider | DistributionQuantile | undefined>
       >((acc, question) => {
         const latest = question.my_forecasts?.latest;
+        const todayTs = new Date().getTime();
+        const dist_input =
+          latest && latest.end_time && latest.end_time * 1000 > todayTs
+            ? latest.distribution_input
+            : undefined;
         return {
           ...acc,
-          [question.id]: extractPrevNumericForecastValue(
-            latest && !latest.end_time ? latest.distribution_input : undefined
-          ),
+          [question.id]: extractPrevNumericForecastValue(dist_input),
         };
       }, {}),
     [questions]
@@ -154,12 +157,30 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     [groupOptions]
   );
 
+  const handleForecastExpiration = useCallback(
+    (optionId: number, expiryDate: Date | null) => {
+      setGroupOptions((prev) =>
+        prev.map((option) => {
+          if (option.id === optionId) {
+            return {
+              ...option,
+              forecastExpiryDate: expiryDate ?? undefined,
+            };
+          }
+          return option;
+        })
+      );
+    },
+    []
+  );
+
   const handleChange = useCallback(
     (
       optionId: number,
       distribution: DistributionSlider | DistributionQuantile
     ) => {
       const { components, type: forecastInputMode } = distribution;
+
       setGroupOptions((prev) =>
         prev.map((option) => {
           if (option.id === optionId) {
@@ -299,7 +320,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const handleSingleQuestionSubmit = useCallback(
-    async (questionId: number) => {
+    async (questionId: number, expiryDate: Date | null) => {
       const optionToSubmit = questionsToSubmit.find(
         (opt) => opt.id === questionId
       );
@@ -310,6 +331,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       const response = await createForecasts(postId, [
         {
           questionId: optionToSubmit.question.id,
+          forecastEndTime: expiryDate ?? undefined,
           forecastData: {
             continuousCdf:
               optionToSubmit.forecastInputMode ===
@@ -397,9 +419,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           userSliderForecast,
           userQuantileForecast,
           forecastInputMode,
+          forecastExpiryDate,
         }) => {
           return {
             questionId: question.id,
+            forecastEndTime: forecastExpiryDate,
             forecastData: {
               continuousCdf:
                 forecastInputMode === ContinuousForecastInputType.Quantile
@@ -531,8 +555,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         handlePredictWithdraw={handlePredictWithdraw}
         handleForecastInputModeChange={handleForecastInputModeChange}
         handleCopy={handleCopy}
+        handleForecastExpiration={handleForecastExpiration}
         permission={permission}
       />
+
       <div className="mx-auto mb-2 mt-4 flex flex-wrap justify-center gap-3">
         {questions.some((q) => canWithdrawForecast(q, permission)) && (
           <WithdrawButton
