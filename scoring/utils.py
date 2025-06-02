@@ -879,7 +879,9 @@ def get_contributions(
                 comment=comment,
             )
 
-            contributions.append(contribution)
+            if contribution.score is not None:
+                contributions.append(contribution)
+
         h_index = decimal_h_index([c.score for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
         min_score = contributions[: int(h_index)][-1].score if contributions else 0
