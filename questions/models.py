@@ -712,14 +712,6 @@ class CausalLink(BinaryQuestionLink):
         MODERATE = "moderate", "Moderate" 
         STRONG = "strong", "Strong"
     
-    # Override parent's link_type with hardcoded default
-    link_type = models.CharField(
-        max_length=50,
-        default='causal',
-        editable=False,
-        help_text="Type of relationship (hardcoded as 'causal' for this subclass)"
-    )
-    
     # Causal-specific properties
     direction = models.CharField(
         max_length=10,
@@ -735,7 +727,7 @@ class CausalLink(BinaryQuestionLink):
     def save(self, **kwargs):
         # Causal links are always unidirectional and have type 'causal'
         self.bidirectional = False
-        self.link_type = 'causal'   # defensive programming safeguard
+        self.link_type = 'causal'
         super().save(**kwargs)
     
     def __str__(self):
@@ -761,4 +753,9 @@ class CausalLink(BinaryQuestionLink):
                 check=models.Q(bidirectional=False),
                 name='causal_links_not_bidirectional'
             ),
-        ] + BinaryQuestionLink.Meta.constraints
+            # Include base class constraints explicitly
+            models.CheckConstraint(
+                check=~models.Q(source_question=models.F('target_question')),
+                name='causal_no_self_links'
+            ),
+        ]
