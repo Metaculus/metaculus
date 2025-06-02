@@ -46,6 +46,7 @@ import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
 import {
   ForecastExpirationModal,
+  ForecastExpirationValue,
   useExpirationModalState,
 } from "../forecast_expiration_modal";
 
@@ -57,13 +58,13 @@ type Props = {
   handleChange: (
     optionId: number,
     distribution: DistributionSlider | DistributionQuantile,
-    expiryDate?: Date
+    forecastExpiration?: ForecastExpirationValue
   ) => void;
   handleAddComponent: (option: ContinuousGroupOption) => void;
   handleResetForecasts: (option?: ContinuousGroupOption) => void;
   handlePredictSubmit: (
     id: number,
-    expiryDate: Date | null
+    forecastExpiration: ForecastExpirationValue
   ) => Promise<
     | {
         errors: ErrorResponse | undefined;
@@ -78,7 +79,10 @@ type Props = {
   >;
   setForecastInputMode: (mode: ContinuousForecastInputType) => void;
   copyMenu?: ReactNode;
-  handleForecastExpiration: (optionId: number, expiryDate: Date | null) => void;
+  handleForecastExpiration: (
+    optionId: number,
+    forecastExpiration: ForecastExpirationValue
+  ) => void;
 };
 
 const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
@@ -166,7 +170,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   );
 
   const onSubmit = useCallback(
-    async (forecastEndTime: Date | null) => {
+    async (forecastExpiration: ForecastExpirationValue) => {
       setSubmitError(undefined);
       if (option.forecastInputMode === ContinuousForecastInputType.Quantile) {
         const errors = validateUserQuantileData({
@@ -181,7 +185,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
         }
       }
 
-      const response = await handlePredictSubmit(option.id, forecastEndTime);
+      const response = await handlePredictSubmit(option.id, forecastExpiration);
       if (response && "errors" in response && !!response.errors) {
         setSubmitError(response.errors);
       }
@@ -228,8 +232,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   );
 
   useEffect(() => {
-    handleForecastExpiration(option.id, modalSavedState.expiryDate);
-  }, [handleForecastExpiration, option.id, modalSavedState.expiryDate]);
+    handleForecastExpiration(option.id, modalSavedState.forecastExpiration);
+  }, [handleForecastExpiration, option.id, modalSavedState.forecastExpiration]);
 
   let SubmitControls: ReactNode = null;
   if (option.question.status === QuestionStatus.OPEN && canPredict) {
@@ -288,7 +292,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
 
           {forecastInputMode === ContinuousForecastInputType.Slider ? (
             <PredictButton
-              onSubmit={() => onSubmit(modalSavedState.expiryDate)}
+              onSubmit={() => onSubmit(modalSavedState.forecastExpiration)}
               isDirty={option.isDirty}
               hasUserForecast={hasUserForecast}
               isPending={isPending}
@@ -304,7 +308,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             />
           ) : (
             <PredictButton
-              onSubmit={() => onSubmit(modalSavedState.expiryDate)}
+              onSubmit={() => onSubmit(modalSavedState.forecastExpiration)}
               isDirty={option.userQuantileForecast.some((q) => q.isDirty)}
               hasUserForecast={hasUserForecast}
               isPending={isPending}
