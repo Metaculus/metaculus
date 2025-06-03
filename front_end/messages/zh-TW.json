@@ -1296,5 +1296,7 @@
   "change": "變更",
   "expirationHelpText": "當剩下大約 5% 的持續時間時，您將收到提醒更新的通知電子郵件。",
   "defaultExpirationSettingText": "預設情況下，我的預測在問題壽命的百分比後過期",
-  "predictionsSettingsLabel": "預測"
+  "predictionsSettingsLabel": "預測",
+  "predictionWillExpireInText": "您的預測將在 {time} 到期",
+  "predictionExpiredText": "您的預測已於 {time} 前到期"
 }
