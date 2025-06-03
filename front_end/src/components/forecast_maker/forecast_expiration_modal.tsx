@@ -213,11 +213,18 @@ export const useExpirationModalState = (
         ],
       }
     );
+
+    const timeToExpireDays =
+      add(new Date(0), lastForecastExpiryDuration).getTime() /
+      1000 /
+      60 /
+      60 /
+      24;
+
     previousForecastExpiration = {
       string: previousForecastExpirationString,
       isExpired: previousForecastIsExpired,
-      expiresSoon:
-        previousForecastIsExpired || (lastForecastExpiryDuration.days ?? 0) < 2,
+      expiresSoon: previousForecastIsExpired || timeToExpireDays < 2,
     };
   }
 
