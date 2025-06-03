@@ -440,7 +440,6 @@ def create_subscription_cp_change(
         cp_change_threshold=cp_change_threshold,
         last_sent_at=timezone.now(),
         is_global=is_global,
-        # TODO: adjust `migrator.services.migrate_subscriptions.migrate_cp_change` in the old db migrator script!
     )
 
     if save:

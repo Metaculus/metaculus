@@ -11,16 +11,17 @@ export function getResolutionPoint({
   resolution,
   resolveTime,
   scaling,
+  inboundOutcomeCount,
 }: {
   questionType: QuestionType;
   resolution: Resolution;
   resolveTime: number;
   scaling: Scaling;
+  inboundOutcomeCount?: number | null;
 }): LinePoint | null {
   if (isUnsuccessfullyResolved(resolution)) {
     return null;
   }
-
   switch (questionType) {
     case QuestionType.Binary: {
       // format data for binary question
@@ -32,12 +33,10 @@ export function getResolutionPoint({
         size: 4,
       };
     }
-    case QuestionType.Numeric: {
-      // format data for numerical question
-      const unscaledResolution = unscaleNominalLocation(
-        Number(resolution),
-        scaling
-      );
+    case QuestionType.Date: {
+      // format data for date question
+      const dateTimestamp = new Date(resolution).getTime() / 1000;
+      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
 
       return {
         y: unscaledResolution,
@@ -46,10 +45,35 @@ export function getResolutionPoint({
         size: 4,
       };
     }
-    case QuestionType.Date: {
-      // format data for date question
-      const dateTimestamp = new Date(resolution).getTime() / 1000;
-      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
+    case QuestionType.Numeric: {
+      // format data for numerical question
+      const unscaledResolution = unscaleNominalLocation(
+        Number(resolution),
+        scaling
+      );
+      return {
+        y: unscaledResolution,
+        x: resolveTime,
+        symbol: "diamond",
+        size: 4,
+      };
+    }
+    case QuestionType.Discrete: {
+      // format data for discrete question
+      let unscaledResolution = unscaleNominalLocation(
+        Number(resolution),
+        scaling
+      );
+      if (resolution === "below_lower_bound" || unscaledResolution <= 0) {
+        unscaledResolution = inboundOutcomeCount
+          ? -0.5 / inboundOutcomeCount
+          : 0;
+      }
+      if (resolution === "above_upper_bound" || unscaledResolution >= 1) {
+        unscaledResolution = inboundOutcomeCount
+          ? 1 + 0.5 / inboundOutcomeCount
+          : 1;
+      }
 
       return {
         y: unscaledResolution,
@@ -80,7 +104,6 @@ export function getResolutionPosition({
   if (adjustBinaryPoint && ["no", "yes"].includes(resolution as string)) {
     return 0.4;
   }
-
   if (
     ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
       resolution as string
@@ -90,7 +113,8 @@ export function getResolutionPosition({
   } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
     return 1;
   } else {
-    return question.type === QuestionType.Numeric
+    return question.type === QuestionType.Numeric ||
+      question.type === QuestionType.Discrete
       ? unscaleNominalLocation(Number(resolution), scaling)
       : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
   }

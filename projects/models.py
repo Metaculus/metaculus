@@ -7,6 +7,7 @@ from django.db.models import (
     BooleanField,
     Exists,
     OuterRef,
+    Sum,
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone as django_timezone
@@ -331,6 +332,9 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # Whether we should display tournament on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
+    show_on_services_page = models.BooleanField(
+        default=False, db_index=True, help_text="Show project on the Services page."
+    )
 
     forecasts_flow_enabled = models.BooleanField(
         default=True, help_text="Enables new forecast flow for tournaments"
@@ -338,11 +342,14 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
-    # Annotated fields
+    # Stored counters
     followers_count = models.PositiveIntegerField(
         default=0, db_index=True, editable=False
     )
+    forecasts_count = models.PositiveIntegerField(default=0, editable=False)
+    forecasters_count = models.PositiveIntegerField(default=0, editable=False)
 
+    # Annotated fields
     posts_count: int = 0
     is_subscribed: bool = False
     user_permission: ObjectPermission = None
@@ -417,6 +424,26 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def update_followers_count(self):
         self.followers_count = self.subscriptions.count()
+
+    def update_forecasts_count(self):
+        from posts.models import Post
+
+        result = Post.objects.filter_projects(self).aggregate(
+            total_forecasts=Sum("forecasts_count")
+        )
+
+        self.forecasts_count = result["total_forecasts"] or 0
+
+    def update_forecasters_count(self):
+        from posts.models import PostUserSnapshot
+
+        self.forecasters_count = (
+            PostUserSnapshot.objects.filter(last_forecast_date__isnull=False)
+            .filter(Q(post__default_project=self) | Q(post__projects=self))
+            .values("user_id")
+            .distinct()
+            .count()
+        )
 
 
 class ProjectUserPermission(TimeStampedModel):

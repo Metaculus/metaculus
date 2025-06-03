@@ -678,8 +678,9 @@ def update_project_leaderboard(
             Project.ProjectTypes.SITE_MAIN,
             Project.ProjectTypes.TOURNAMENT,
         ]:
-            # assign medals
-            new_entries = assign_medals(new_entries)
+            if project.default_permission is not None:
+                # assign medals
+                new_entries = assign_medals(new_entries)
             # add prize if applicable
             prize_pool = (
                 leaderboard.prize_pool
@@ -773,7 +774,7 @@ def update_leaderboard_from_csv_data(
 
 @dataclass
 class Contribution:
-    score: float | None
+    score: float
     coverage: float | None = None
     question: Question | None = None
     post: Post | None = None
@@ -879,9 +880,10 @@ def get_contributions(
             )
 
             contributions.append(contribution)
+
         h_index = decimal_h_index([c.score for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        min_score = contributions[int(h_index)].score if contributions else 0
+        min_score = contributions[: int(h_index)][-1].score if contributions else 0
         return [c for c in contributions if c.score >= min_score]
 
     questions = leaderboard.get_questions().prefetch_related("related_posts__post")

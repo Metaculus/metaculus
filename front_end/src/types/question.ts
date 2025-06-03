@@ -2,11 +2,14 @@ import { Category, QuestionStatus, Resolution } from "@/types/post";
 
 import { ContinuousForecastInputType } from "./charts";
 
+export const DefaultInboundOutcomeCount = 200;
+
 export enum QuestionType {
-  Numeric = "numeric",
-  Date = "date",
   Binary = "binary",
   MultipleChoice = "multiple_choice",
+  Numeric = "numeric",
+  Discrete = "discrete",
+  Date = "date",
 }
 
 export type QuestionLinearGraphType = "binary" | "continuous";
@@ -44,6 +47,14 @@ export enum AggregationMethod {
   unweighted = "unweighted",
   single_aggregation = "single_aggregation",
   metaculus_prediction = "metaculus_prediction",
+}
+
+export enum DownloadAggregationMethod {
+  recency_weighted = AggregationMethod.recency_weighted,
+  unweighted = AggregationMethod.unweighted,
+  single_aggregation = AggregationMethod.single_aggregation,
+  metaculus_prediction = AggregationMethod.metaculus_prediction,
+  geometric_mean = "geometric_mean",
 }
 
 export type Bounds = {
@@ -188,6 +199,16 @@ export type CPMovement = {
   period?: string;
 };
 
+export type GraphingQuestionProps = {
+  scaling: Scaling;
+  resolution?: Resolution | null;
+  type: QuestionType;
+  unit?: string;
+  open_lower_bound?: boolean;
+  open_upper_bound?: boolean;
+  inbound_outcome_count?: number | null;
+};
+
 export type Question = {
   id: number;
   title: string;
@@ -207,19 +228,13 @@ export type Question = {
   options?: string[];
   group_variable?: string;
   group_rank?: number;
-  // Other
+  // Continuous only
   scaling: Scaling;
-  possibilities: {
-    format?: string;
-    high?: string;
-    low?: string;
-    type?: string;
-    scale?: {
-      max: number;
-      min: number;
-      deriv_ratio: number;
-    };
-  }; // TODO: update type
+  open_lower_bound: boolean | null;
+  open_upper_bound: boolean | null;
+  // Discrete only
+  inbound_outcome_count: number | null;
+  // Other
   resolution: Resolution | null;
   include_bots_in_aggregates: boolean;
   question_weight: number;
@@ -233,8 +248,6 @@ export type Question = {
   display_divergences?: number[][];
   aggregations: Aggregations;
   my_forecasts?: UserForecastHistory;
-  open_lower_bound: boolean | null;
-  open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
   // used for prediction flow in tournament
@@ -274,6 +287,7 @@ export type EditableQuestionFields = Pick<
   | "display_divergences"
   | "open_lower_bound"
   | "open_upper_bound"
+  | "inbound_outcome_count"
   | "status"
   | "type"
 >;
@@ -290,7 +304,11 @@ export type QuestionDraft = Partial<EditableQuestionFields> & {
 };
 
 export type QuestionWithNumericForecasts = Question & {
-  type: QuestionType.Numeric | QuestionType.Date | QuestionType.Binary;
+  type:
+    | QuestionType.Binary
+    | QuestionType.Numeric
+    | QuestionType.Date
+    | QuestionType.Discrete;
   forecasts: NumericForecast;
   open_lower_bound?: boolean;
   open_upper_bound?: boolean;
@@ -326,26 +344,16 @@ export type AggregationQuestion = {
   fine_print: string;
   id: number;
   label: string | null;
+  scaling: Scaling;
   open_lower_bound: boolean | null;
-  open_time: string;
   open_upper_bound: boolean | null;
+  inbound_outcome_count: number | null;
+  open_time: string;
   options: string[] | null;
-  possibilities: {
-    format?: string;
-    high?: string;
-    low?: string;
-    type?: string;
-    scale?: {
-      max: number;
-      min: number;
-      deriv_ratio: number;
-    };
-  };
   post_id: number;
   resolution: string | null;
   resolution_criteria: string;
   resolution_set_time: string | null;
-  scaling: Scaling;
   scheduled_close_time: string;
   scheduled_resolve_time: string;
   title: string;

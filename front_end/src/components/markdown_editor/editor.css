@@ -17,6 +17,18 @@
     }
   }
 }
+.mdxeditor-source-editor > div {
+  .cm-gutters {
+    @apply dark:bg-transparent dark:text-white;
+  }
+  .cm-activeLineGutter {
+    @apply dark:bg-blue-200-dark;
+  }
+  @apply dark:bg-transparent dark:text-white;
+  .ͼ16 {
+    @apply dark:text-white;
+  }
+}
 
 /* user mentions menu */
 #typeahead-menu {
@@ -86,7 +98,7 @@
 .mdx-content-editable li > ol:before {
   content: none !important;
 }
-.mdx-content-editable li:has(> ul), 
+.mdx-content-editable li:has(> ul),
 .mdx-content-editable li:has(> ol) {
   list-style-type: none !important;
   padding-left: 0 !important;
