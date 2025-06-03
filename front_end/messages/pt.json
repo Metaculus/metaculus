@@ -1393,5 +1393,7 @@
   "defaultExpirationSettingText": "Por padrão, minhas previsões expiram após um % do tempo de vida da pergunta",
   "predictionsSettingsLabel": "Previsões",
   "predictionWillExpireInText": "Sua previsão expirará em {time}",
-  "predictionExpiredText": "Sua previsão expirou há {time}"
+  "predictionExpiredText": "Sua previsão expirou há {time}",
+  "predictionsSoonToExpireText": "{count, plural, =1 {# previsão} other {# previsões}} irão expirar em breve",
+  "predictionsExpiredText": "{count, plural, =1 {# previsão já} other {# previsões já}} expiraram"
 }

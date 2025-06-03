@@ -74,6 +74,27 @@ const modalPresets: Preset[] = [
   { id: "neverExpires" },
 ] as const;
 
+export const getTimeToExpireDays = (
+  lastForecast: UserForecast | undefined
+): number | undefined => {
+  if (lastForecast?.end_time) {
+    const lastForecastExpiryDate = new Date(lastForecast.end_time * 1000);
+
+    const lastForecastExpiryDuration = intervalToDuration({
+      start: new Date(),
+      end: lastForecastExpiryDate,
+    });
+
+    return (
+      add(new Date(0), lastForecastExpiryDuration).getTime() /
+      1000 /
+      60 /
+      60 /
+      24
+    );
+  }
+};
+
 export const buildDefaultForecastExpiration = (
   question: QuestionWithForecasts,
   userPredictionExpirationPercent: number | undefined

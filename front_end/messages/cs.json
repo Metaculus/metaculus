@@ -1395,5 +1395,7 @@
   "defaultExpirationSettingText": "Výchozí stav je, že mé předpovědi vyprší po % doby trvání otázky",
   "predictionsSettingsLabel": "Předpovědi",
   "predictionWillExpireInText": "Vaše předpověď vyprší za {time}",
-  "predictionExpiredText": "Vaše předpověď vypršela před {time}"
+  "predictionExpiredText": "Vaše předpověď vypršela před {time}",
+  "predictionsSoonToExpireText": "{count, plural, =1 {# předpověď} other {# předpovědí}} brzy vyprší",
+  "predictionsExpiredText": "{count, plural, =1 {# předpověď vypršela} other {# předpovědí vypršelo}}"
 }
