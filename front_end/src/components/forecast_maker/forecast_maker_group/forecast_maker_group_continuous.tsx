@@ -65,9 +65,11 @@ import GroupForecastAccordion, {
 import { validateUserQuantileData } from "../helpers";
 import PredictButton from "../predict_button";
 import {
+  buildDefaultForecastExpiration,
   forecastExpirationToDate,
   ForecastExpirationValue,
 } from "../forecast_expiration_modal";
+import { useAuth } from "@/contexts/auth_context";
 
 type Props = {
   post: PostWithForecasts;
@@ -92,7 +94,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const resetTarget = useRef<"all" | number | undefined>(undefined);
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const { id: postId, user_permission: permission } = post;
-
+  const { user } = useAuth();
   const prevForecastValuesMap = useMemo(
     () =>
       questions.reduce<
@@ -475,11 +477,20 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     onPredictionSubmit?.();
     setIsSubmitting(false);
   }, [postId, questionsToSubmit, t, onPredictionSubmit]);
+
   const predictedQuestions = useMemo(() => {
-    return questions.filter((q) =>
-      isOpenQuestionPredicted(q, { treatClosedAsPredicted: false })
-    );
-  }, [questions]);
+    return questions
+      .filter((q) =>
+        isOpenQuestionPredicted(q, { treatClosedAsPredicted: false })
+      )
+      .map((q) => ({
+        ...q,
+        forecastExpiration: buildDefaultForecastExpiration(
+          q,
+          user?.prediction_expiration_percent ?? undefined
+        ),
+      }));
+  }, [questions, user?.prediction_expiration_percent]);
 
   const handlePredictWithdraw = useCallback(
     async (questionId?: number) => {
@@ -512,10 +523,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setIsSubmitting(true);
     const response = await createForecasts(
       postId,
-      predictedQuestions.map(({ my_forecasts, id }) => {
+      predictedQuestions.map(({ my_forecasts, id, forecastExpiration }) => {
         const latest = my_forecasts?.latest as UserForecast;
         return {
           questionId: id,
+          forecastEndTime: forecastExpirationToDate(forecastExpiration),
           forecastData: {
             continuousCdf: latest.forecast_values,
             probabilityYesPerCategory: null,
