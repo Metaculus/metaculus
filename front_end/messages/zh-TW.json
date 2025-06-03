@@ -1392,5 +1392,7 @@
   "defaultExpirationSettingText": "預設情況下，我的預測在問題壽命的百分比後過期",
   "predictionsSettingsLabel": "預測",
   "predictionWillExpireInText": "您的預測將在 {time} 到期",
-  "predictionExpiredText": "您的預測已於 {time} 前到期"
+  "predictionExpiredText": "您的預測已於 {time} 前到期",
+  "predictionsSoonToExpireText": "{count, plural, =1 {# 個預測} other {# 個預測}} 即將到期",
+  "predictionsExpiredText": "{count, plural, =1 {# 個預測已} other {# 個預測已}} 到期"
 }
