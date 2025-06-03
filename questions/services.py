@@ -1117,8 +1117,9 @@ def check_for_cycle(user: User, source_question_id: int, target_question_id: int
     Returns True if a cycle would be created.
     """
     
-    # Simple BFS to check if target_question_id is reachable from source_question_id
-    # through existing causal links for this user
+    # Simple BFS to check if source_question_id is reachable from target_question_id
+    # through existing causal links for this user.
+    # If source is reachable from target, then adding source->target creates a cycle.
     
     visited = set()
     queue = [target_question_id]
@@ -1150,7 +1151,7 @@ def get_user_causal_graph(user: User) -> Dict[str, Any]:
     """
     Get the complete causal graph for a user.
     
-    Returns nodes and edges for visualization (stretch goal).
+    Returns nodes and edges for visualisation (stretch goal).
     """
     
     links = CausalLink.objects.filter(
