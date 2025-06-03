@@ -13,7 +13,7 @@ import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, useState, useRef, useEffect } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
-import { UserForecast } from "@/types/question";
+import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   formatDurationToShortStr,
@@ -32,7 +32,7 @@ interface ForecastExpirationModalProps {
   questionDuration: number;
 }
 
-type Preset = { id: string; label: string; duration?: Duration };
+type Preset = { id: string; duration?: Duration };
 
 export type ForecastExpirationValue =
   | { kind: "duration"; value: Duration }
@@ -61,6 +61,40 @@ export const forecastExpirationToDate = (
     return add(new Date(), expiration.value);
   }
   return expiration.value;
+};
+
+const modalPresets: Preset[] = [
+  { id: "1d", duration: { days: 1 } },
+  { id: "3d", duration: { days: 3 } },
+  { id: "1w", duration: { weeks: 1 } },
+  { id: "1m", duration: { months: 1 } },
+  { id: "3m", duration: { months: 3 } },
+  { id: "1y", duration: { years: 1 } },
+  { id: "customDate" },
+  { id: "neverExpires" },
+] as const;
+
+export const buildDefaultForecastExpiration = (
+  question: QuestionWithForecasts,
+  userPredictionExpirationPercent: number | undefined
+): ForecastExpirationValue => {
+  const lastForecast = question.my_forecasts?.latest;
+
+  const questionDuration =
+    new Date(question.scheduled_close_time).getTime() -
+    new Date(question.open_time ?? question.created_at).getTime();
+
+  const userDefaultExpirationDurationSec = userPredictionExpirationPercent
+    ? ((userPredictionExpirationPercent / 100) * questionDuration) / 1000
+    : null;
+
+  const defaultState = buildDefaultState(
+    lastForecast,
+    modalPresets,
+    userDefaultExpirationDurationSec
+  );
+
+  return defaultState.forecastExpiration;
 };
 
 const buildDefaultState = (
@@ -128,17 +162,23 @@ const buildDefaultState = (
   return state;
 };
 
-const getPresetDurations = (t: ReturnType<typeof useTranslations>): Preset[] =>
-  [
-    { id: "1d", label: t("1day"), duration: { days: 1 } },
-    { id: "3d", label: t("3days"), duration: { days: 3 } },
-    { id: "1w", label: t("1week"), duration: { weeks: 1 } },
-    { id: "1m", label: t("1month"), duration: { months: 1 } },
-    { id: "3m", label: t("3months"), duration: { months: 3 } },
-    { id: "1y", label: t("1year"), duration: { years: 1 } },
+const getPresetLabel = (
+  presetID: Preset["id"],
+  t: ReturnType<typeof useTranslations>
+) => {
+  const presets = [
+    { id: "1d", label: t("1day") },
+    { id: "3d", label: t("3days") },
+    { id: "1w", label: t("1week") },
+    { id: "1m", label: t("1month") },
+    { id: "3m", label: t("3months") },
+    { id: "1y", label: t("1year") },
     { id: "customDate", label: t("customDate") },
     { id: "neverExpires", label: t("neverExpires") },
   ] as const;
+
+  return presets.find((preset) => preset.id === presetID)?.label;
+};
 
 export const useExpirationModalState = (
   questionDuration: number,
@@ -147,7 +187,6 @@ export const useExpirationModalState = (
   const [isForecastExpirationModalOpen, setIsForecastExpirationModalOpen] =
     useState(false);
   const t = useTranslations();
-  const presetDurations = getPresetDurations(t);
 
   const { user } = useAuth();
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
@@ -157,7 +196,7 @@ export const useExpirationModalState = (
 
   const initialState = buildDefaultState(
     lastForecast,
-    presetDurations,
+    modalPresets,
     userDefaultExpirationDurationSec
   );
 
@@ -260,8 +299,6 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   const restoreFromSavedState = () => {
     setCurrentState({ ...savedState });
   };
-
-  const presetDurations = getPresetDurations(t);
 
   const optionClasses = (selected: boolean) =>
     cn(
@@ -442,9 +479,9 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
 
           {currentState.option === "custom" && (
             <div className="mt-3 flex flex-wrap gap-1">
-              {presetDurations.slice(0, -2).map((preset) => (
+              {modalPresets.slice(0, -2).map((preset) => (
                 <Button
-                  key={preset.label}
+                  key={getPresetLabel(preset.id, t)}
                   type="button"
                   variant={
                     currentState.selectedPreset === preset.id &&
@@ -458,7 +495,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                     onCustomOptionSelected(preset);
                   }}
                 >
-                  {preset.label}
+                  {getPresetLabel(preset.id, t)}
                 </Button>
               ))}
 
