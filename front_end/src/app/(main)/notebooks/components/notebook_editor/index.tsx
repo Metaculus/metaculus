@@ -67,23 +67,16 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
       const targetHash = window.location.hash;
 
       const scrollToHash = () => {
-        const element = document.querySelector(targetHash);
-        if (element) {
-          setTimeout(() => {
+        setTimeout(() => {
+          const element = document.querySelector(targetHash);
+          if (element) {
             element.scrollIntoView({
               behavior: "smooth",
               block: "start",
             });
-          }, 1500);
-          return true;
-        }
-        return false;
+          }
+        }, 1500);
       };
-
-      // Try immediate scroll first
-      if (scrollToHash()) {
-        return;
-      }
 
       const observer = new MutationObserver((mutations) => {
         // Check if any mutations added new elements
@@ -92,7 +85,8 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
             mutation.type === "childList" && mutation.addedNodes.length > 0
         );
 
-        if (hasNewElements && scrollToHash()) {
+        if (hasNewElements) {
+          scrollToHash();
           observer.disconnect();
         }
       });
