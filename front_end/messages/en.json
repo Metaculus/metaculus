@@ -1375,6 +1375,8 @@
   "CPMovementChangeLabel": "{value} this {period}",
   "withdrawConfirmation": "Are you sure you want to withdraw? You will still be scored on your previous predictions in this question.",
   "predictionExpirationText": "Your prediction will expire in {time}",
+  "predictionWillExpireInText": "Your prediction will expire in {time}",
+  "predictionExpiredText": "Your prediction expired {time} ago",
   "predictionDuration": "Prediction duration",
   "predictionExpiration": "Prediction expiration",
   "1day": "1 day",
