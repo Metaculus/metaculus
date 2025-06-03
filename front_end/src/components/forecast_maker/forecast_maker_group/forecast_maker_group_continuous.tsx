@@ -44,6 +44,7 @@ import {
   getNormalizedContinuousForecast,
   getUserContinuousQuartiles,
   isAllQuantileComponentsDirty,
+  isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
 import {
   extractPrevNumericForecastValue,
@@ -476,11 +477,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setIsSubmitting(false);
   }, [postId, questionsToSubmit, t, onPredictionSubmit]);
   const predictedQuestions = useMemo(() => {
-    return questions.filter(
-      (q) =>
-        q.status === QuestionStatus.OPEN &&
-        q.my_forecasts?.latest &&
-        isNil(q.my_forecasts?.latest.end_time)
+    return questions.filter((q) =>
+      isOpenQuestionPredicted(q, { treatClosedAsPredicted: false })
     );
   }, [questions]);
 
