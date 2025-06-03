@@ -68,6 +68,7 @@ import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getTimeToExpireDays,
 } from "../forecast_expiration";
 import { useAuth } from "@/contexts/auth_context";
 
@@ -113,6 +114,21 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       }, {}),
     [questions]
   );
+
+  const soonToExpireForecastsCount = useMemo(() => {
+    return questions.filter((q) => {
+      const timeToExpireDays = getTimeToExpireDays(q.my_forecasts?.latest);
+      return timeToExpireDays && timeToExpireDays > 0 && timeToExpireDays < 2;
+    }).length;
+  }, [questions]);
+
+  const expiredForecastsCount = useMemo(() => {
+    return questions.filter((q) => {
+      const timeToExpireDays = getTimeToExpireDays(q.my_forecasts?.latest);
+      return timeToExpireDays && timeToExpireDays < 0;
+    }).length;
+  }, [questions]);
+
   const [groupOptions, setGroupOptions] = useState<ContinuousGroupOption[]>(
     generateGroupOptions({
       questions,
@@ -611,6 +627,21 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               predictLabel={t("saveAllChanges")}
             />
           </>
+        )}
+      </div>
+
+      <div className="mt-2 flex flex-col items-center text-xs text-salmon-800 dark:text-salmon-800-dark">
+        {soonToExpireForecastsCount > 0 && (
+          <div>
+            {t("predictionsSoonToExpireText", {
+              count: soonToExpireForecastsCount,
+            })}
+          </div>
+        )}
+        {expiredForecastsCount > 0 && (
+          <div>
+            {t("predictionsExpiredText", { count: expiredForecastsCount })}
+          </div>
         )}
       </div>
 

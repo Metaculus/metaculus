@@ -1300,5 +1300,7 @@
   "defaultExpirationSettingText": "Por defecto, mis predicciones expiran después de un % de la vida útil de la pregunta",
   "predictionsSettingsLabel": "Predicciones",
   "predictionWillExpireInText": "Tu predicción expirará en {time}",
-  "predictionExpiredText": "Tu predicción expiró hace {time}"
+  "predictionExpiredText": "Tu predicción expiró hace {time}",
+  "predictionsSoonToExpireText": "{count, plural, =1 {# predicción} other {# predicciones}} vencerán pronto",
+  "predictionsExpiredText": "{count, plural, =1 {# predicción ha} other {# predicciones han}} vencido"
 }

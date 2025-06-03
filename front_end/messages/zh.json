@@ -1303,5 +1303,7 @@
   "defaultExpirationSettingText": "默认情况下，我的预测在问题生命周期的某个百分比后过期",
   "predictionsSettingsLabel": "预测",
   "predictionWillExpireInText": "您的预测将在 {time} 后过期",
-  "predictionExpiredText": "您的预测已于 {time} 前过期"
+  "predictionExpiredText": "您的预测已于 {time} 前过期",
+  "predictionsSoonToExpireText": "{count, plural, =1 {# 个预测} other {# 个预测}} 即将过期",
+  "predictionsExpiredText": "{count, plural, =1 {# 个预测已} other {# 个预测已}} 过期"
 }
