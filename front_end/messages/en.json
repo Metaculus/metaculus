@@ -1390,5 +1390,7 @@
   "useAccountSettingDescription": "This is based on the setting {userForecastExpirationPercent}% of question's total duration.",
   "change": "Change",
   "expirationHelpText": "You will receive a notification email reminding you to update when approximately 5% of the duration is left.",
-  "defaultExpirationSettingText": "By default, my predictions expire after a % of the question lifetime"
+  "defaultExpirationSettingText": "By default, my predictions expire after a % of the question lifetime",
+  "predictionsSoonToExpireText": "{count, plural, =1 {# prediction} other {# predictions}} will expire soon",
+  "predictionsExpiredText": "{count, plural, =1 {# prediction has} other {# predictions have}} expired"
 }
