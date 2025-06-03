@@ -69,7 +69,7 @@ import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
   ForecastExpirationValue,
-} from "../forecast_expiration_modal";
+} from "../forecast_expiration";
 import { useAuth } from "@/contexts/auth_context";
 
 type Props = {

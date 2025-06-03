@@ -26,7 +26,7 @@ import {
   ForecastExpirationValue,
   forecastExpirationToDate,
   useExpirationModalState,
-} from "../forecast_expiration_modal";
+} from "../forecast_expiration";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
