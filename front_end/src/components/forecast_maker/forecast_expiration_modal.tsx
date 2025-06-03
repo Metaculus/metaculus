@@ -188,15 +188,18 @@ export const useExpirationModalState = (
     );
   }
 
-  let previousForecastExpirationString = undefined;
+  let previousForecastExpiration = undefined;
 
   if (lastForecast?.end_time) {
+    const lastForecastExpiryDate = new Date(lastForecast.end_time * 1000);
+    const previousForecastIsExpired = lastForecastExpiryDate < new Date();
+
     const lastForecastExpiryDuration = intervalToDuration({
-      start: new Date(),
-      end: new Date(lastForecast.end_time * 1000),
+      start: previousForecastIsExpired ? lastForecastExpiryDate : new Date(),
+      end: previousForecastIsExpired ? new Date() : lastForecastExpiryDate,
     });
 
-    previousForecastExpirationString = formatDuration(
+    const previousForecastExpirationString = formatDuration(
       truncateDuration(lastForecastExpiryDuration, 2),
       {
         format: [
@@ -210,11 +213,17 @@ export const useExpirationModalState = (
         ],
       }
     );
+    previousForecastExpiration = {
+      string: previousForecastExpirationString,
+      isExpired: previousForecastIsExpired,
+      expiresSoon:
+        previousForecastIsExpired || (lastForecastExpiryDuration.days ?? 0) < 2,
+    };
   }
 
   if (!isForecastExpirationEnabled) {
     expirationShortChip = undefined;
-    previousForecastExpirationString = undefined;
+    previousForecastExpiration = undefined;
   }
 
   return {
@@ -223,7 +232,7 @@ export const useExpirationModalState = (
     expirationShortChip,
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
-    previousForecastExpirationString,
+    previousForecastExpiration,
   };
 };
 
