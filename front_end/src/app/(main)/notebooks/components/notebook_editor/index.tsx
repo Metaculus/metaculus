@@ -69,7 +69,12 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
       const scrollToHash = () => {
         const element = document.querySelector(targetHash);
         if (element) {
-          element.scrollIntoView({ behavior: "smooth" });
+          setTimeout(() => {
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }, 1500);
           return true;
         }
         return false;
