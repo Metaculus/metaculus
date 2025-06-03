@@ -19,7 +19,7 @@ import { isUnitCompact } from "@/utils/questions/units";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
 import ContinuousInputWrapper from "../forecast_maker_group/continuous_input_wrapper";
-import { ForecastExpirationValue } from "../forecast_expiration_modal";
+import { ForecastExpirationValue } from "../forecast_expiration";
 
 export type ContinuousGroupOption = {
   id: number;

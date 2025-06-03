@@ -47,7 +47,7 @@ import {
   ForecastExpirationModal,
   ForecastExpirationValue,
   useExpirationModalState,
-} from "../forecast_expiration_modal";
+} from "../forecast_expiration";
 
 type Props = {
   option: ContinuousGroupOption;
