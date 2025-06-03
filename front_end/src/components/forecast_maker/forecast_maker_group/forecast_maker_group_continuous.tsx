@@ -102,11 +102,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         Record<number, DistributionSlider | DistributionQuantile | undefined>
       >((acc, question) => {
         const latest = question.my_forecasts?.latest;
-        const todayTs = new Date().getTime();
-        const dist_input =
-          latest && latest.end_time && latest.end_time * 1000 > todayTs
-            ? latest.distribution_input
-            : undefined;
+        const isQPredicted = isOpenQuestionPredicted(question, {
+          treatClosedAsPredicted: false,
+        });
+        const dist_input = isQPredicted
+          ? latest?.distribution_input
+          : undefined;
         return {
           ...acc,
           [question.id]: extractPrevNumericForecastValue(dist_input),
