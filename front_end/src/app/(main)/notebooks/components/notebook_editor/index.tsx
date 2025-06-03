@@ -5,7 +5,7 @@ import "./editor.css";
 import { Field, Input, Label } from "@headlessui/react";
 import { ApiError } from "next/dist/server/api-utils";
 import { useLocale, useTranslations } from "next-intl";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 import { updateNotebook } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -26,6 +26,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
   const t = useTranslations();
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const [title, setTitle] = useState(postData.title);
   const [markdown, setMarkdown] = useState(postData.notebook.markdown);
@@ -59,6 +60,55 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
       setBannerIsVisible(true);
     }
   }, [postData, locale]);
+
+  // Handle hash anchor scrolling after content is rendered
+  useEffect(() => {
+    if (!isEditing && window.location.hash && contentRef.current) {
+      const targetHash = window.location.hash;
+
+      const scrollToHash = () => {
+        const element = document.querySelector(targetHash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+          return true;
+        }
+        return false;
+      };
+
+      // Try immediate scroll first
+      if (scrollToHash()) {
+        return;
+      }
+
+      const observer = new MutationObserver((mutations) => {
+        // Check if any mutations added new elements
+        const hasNewElements = mutations.some(
+          (mutation) =>
+            mutation.type === "childList" && mutation.addedNodes.length > 0
+        );
+
+        if (hasNewElements && scrollToHash()) {
+          observer.disconnect();
+        }
+      });
+
+      // Start observing the markdown change container
+      // Assuming it finishes rendering when it's changed
+      observer.observe(contentRef.current, {
+        childList: true,
+        subtree: true,
+      });
+
+      const timeoutId = setTimeout(() => {
+        observer.disconnect();
+      }, 10000);
+
+      return () => {
+        observer.disconnect();
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [isEditing, markdown]);
 
   const defaultProject = postData.projects.default_project;
   return (
@@ -98,7 +148,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
       )}
 
       {!isEditing && (
-        <div id={contentId}>
+        <div id={contentId} ref={contentRef}>
           <MarkdownEditor mode="read" markdown={markdown} withTwitterPreview />
         </div>
       )}
