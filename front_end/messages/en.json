@@ -1373,6 +1373,8 @@
   "weHelpOrganizationsSolve": "We help organizations solve complex challenges—whether it's forecasting respiratory disease trends with CDC or surfacing exceptional talent for Bridgewater.",
   "proForecastersHeaderFirstParagraph": "With more than 11,000 resolved questions, Metaculus has the data to spot forecasting excellence and the power to put proven forecasting experts to work on your most important challenges.",
   "predictionExpirationText": "Your prediction will expire in {time}",
+  "predictionWillExpireInText": "Your prediction will expire in {time}",
+  "predictionExpiredText": "Your prediction expired {time} ago",
   "predictionDuration": "Prediction duration",
   "predictionExpiration": "Prediction expiration",
   "1day": "1 day",

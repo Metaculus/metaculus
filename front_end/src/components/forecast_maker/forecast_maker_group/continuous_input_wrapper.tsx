@@ -221,7 +221,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     expirationShortChip,
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
-    previousForecastExpirationString,
+    previousForecastExpiration,
   } = useExpirationModalState(
     questionDuration,
     option.question.my_forecasts?.latest
@@ -322,11 +322,21 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             />
           )}
         </div>
-        {previousForecastExpirationString && (
-          <span className="text-center text-xs text-salmon-800 dark:text-salmon-800-dark">
-            {t("predictionExpirationText", {
-              time: previousForecastExpirationString,
-            })}
+        {previousForecastExpiration && (
+          <span
+            className={cn(
+              "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+              previousForecastExpiration.expiresSoon &&
+                "text-salmon-800 dark:text-salmon-800-dark"
+            )}
+          >
+            {previousForecastExpiration.isExpired
+              ? t("predictionExpiredText", {
+                  time: previousForecastExpiration.string,
+                })
+              : t("predictionWillExpireInText", {
+                  time: previousForecastExpiration.string,
+                })}
           </span>
         )}
       </>

@@ -1392,5 +1392,7 @@
   "change": "Změnit",
   "expirationHelpText": "Obdržíte notifikační email, který vám připomene aktualizaci, když zbývá přibližně 5% doby trvání.",
   "defaultExpirationSettingText": "Výchozí stav je, že mé předpovědi vyprší po % doby trvání otázky",
-  "predictionsSettingsLabel": "Předpovědi"
+  "predictionsSettingsLabel": "Předpovědi",
+  "predictionWillExpireInText": "Vaše předpověď vyprší za {time}",
+  "predictionExpiredText": "Vaše předpověď vypršela před {time}"
 }

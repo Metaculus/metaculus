@@ -31,6 +31,7 @@ import {
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
+import cn from "@/utils/core/cn";
 
 type Props = {
   post: PostWithForecasts;
@@ -93,7 +94,7 @@ const ForecastMakerBinary: FC<Props> = ({
     expirationShortChip,
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
-    previousForecastExpirationString,
+    previousForecastExpiration,
   } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
@@ -210,11 +211,21 @@ const ForecastMakerBinary: FC<Props> = ({
             )}
           </div>
 
-          {previousForecastExpirationString && (
-            <span className="text-xs text-salmon-800 dark:text-salmon-800-dark">
-              {t("predictionExpirationText", {
-                time: previousForecastExpirationString,
-              })}
+          {previousForecastExpiration && (
+            <span
+              className={cn(
+                "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+                previousForecastExpiration.expiresSoon &&
+                  "text-salmon-800 dark:text-salmon-800-dark"
+              )}
+            >
+              {previousForecastExpiration.isExpired
+                ? t("predictionExpiredText", {
+                    time: previousForecastExpiration.string,
+                  })
+                : t("predictionWillExpireInText", {
+                    time: previousForecastExpiration.string,
+                  })}
             </span>
           )}
         </div>
