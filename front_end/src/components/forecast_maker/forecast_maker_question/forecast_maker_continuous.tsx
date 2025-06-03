@@ -49,7 +49,7 @@ import {
   forecastExpirationToDate,
   ForecastExpirationValue,
   useExpirationModalState,
-} from "../forecast_expiration_modal";
+} from "../forecast_expiration";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
