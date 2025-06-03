@@ -1392,5 +1392,7 @@
   "change": "Cambiar",
   "expirationHelpText": "Recibirá un correo electrónico de notificación recordándole que actualice cuando quede aproximadamente un 5% del tiempo de duración.",
   "defaultExpirationSettingText": "Por defecto, mis predicciones expiran después de un % de la vida útil de la pregunta",
-  "predictionsSettingsLabel": "Predicciones"
+  "predictionsSettingsLabel": "Predicciones",
+  "predictionWillExpireInText": "Tu predicción expirará en {time}",
+  "predictionExpiredText": "Tu predicción expiró hace {time}"
 }
