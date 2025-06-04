@@ -441,7 +441,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         {previousForecastExpiration && (
           <div
             className={cn(
-              "ml-auto border-b-lue mt-2 text-center text-xs text-gray-800 dark:text-gray-800-dark",
+              "border-b-lue ml-auto mt-2 text-center text-xs text-gray-800 dark:text-gray-800-dark",
               previousForecastExpiration.expiresSoon &&
                 "text-salmon-800 dark:text-salmon-800-dark"
             )}

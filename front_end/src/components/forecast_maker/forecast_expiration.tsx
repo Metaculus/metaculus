@@ -158,6 +158,7 @@ const buildDefaultState = (
         };
       });
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     let closestPreset = presetsWithDurationMs[0]!.preset; // we know it's not undefined because we filtered it out above
     let minDifference = Infinity;
 
@@ -174,6 +175,7 @@ const buildDefaultState = (
       selectedPreset: closestPreset.id,
       forecastExpiration: {
         kind: "duration",
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         value: closestPreset.duration!, // we know it's not undefined because we filtered it out above
       },
       datePickerDate: null,
@@ -207,7 +209,6 @@ export const useExpirationModalState = (
 ) => {
   const [isForecastExpirationModalOpen, setIsForecastExpirationModalOpen] =
     useState(false);
-  const t = useTranslations();
 
   const { user } = useAuth();
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
@@ -372,6 +373,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
         ...currentState,
         forecastExpiration: {
           kind: "date",
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           value: currentState.datePickerDate!,
         },
       });
@@ -385,6 +387,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
       option: "custom",
       forecastExpiration: {
         kind: "duration",
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         value: preset.duration!, // we know it's not undefined
       },
     });
@@ -398,6 +401,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
       option: "custom",
       forecastExpiration: {
         kind: "date",
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         value: currentState.datePickerDate!,
       },
     });

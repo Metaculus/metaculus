@@ -18,6 +18,7 @@ import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
 import PredictionSuccessBox from "./prediction_success_box";
@@ -31,7 +32,6 @@ import {
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
-import cn from "@/utils/core/cn";
 
 type Props = {
   post: PostWithForecasts;
