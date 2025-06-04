@@ -69,9 +69,7 @@ INSTALLED_APPS = [
     "django_dramatiq",
     "admin_auto_filters",
     "django_better_admin_arrayfield",
-    # TODO: disable in prod
     # first-party:
-    "migrator",
     "authentication",
     "users",
     "posts",
@@ -140,18 +138,6 @@ DATABASES = {
         **dj_database_url.config(conn_max_age=600, default="postgres:///metaculus"),
     },
 }
-
-if not IS_TEST_ENV:
-    # Old database for the migrator
-    DATABASES["old"] = {
-        **dj_database_url.config(
-            env="OLD_DATABASE_URL",
-            conn_max_age=600,
-            default="postgres:///metaculus_old",
-        ),
-        # Should be readonly connection
-        "OPTIONS": {"options": "-c default_transaction_read_only=on"},
-    }
 
 # REST Framework
 # https://www.django-rest-framework.org/
