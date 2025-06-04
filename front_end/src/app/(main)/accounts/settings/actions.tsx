@@ -34,3 +34,17 @@ export async function changeEmail(email: string, password: string) {
     };
   }
 }
+
+export async function emailMeMyData() {
+  try {
+    return await ServerProfileApi.emailMeMyData();
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}

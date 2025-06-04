@@ -133,3 +133,42 @@ def email_data_task(
             to=[user_email],
         )
         email.send()
+
+
+@dramatiq.actor
+@task_concurrent_limit(
+    lambda user_id: f"email-user-their-data-{user_id}",
+    limit=1,
+)
+def email_user_their_data_task(user_id: int):
+    from users.models import User
+
+    user = User.objects.filter(id=user_id).first()
+    if not user:
+        raise ValueError(f"User with id {user_id} does not exist.")
+    user_email = user.email
+    try:
+        from utils.csv_utils import export_data_for_user
+
+        data = export_data_for_user(user)
+
+        assert data is not None, "No data generated"
+
+        email = EmailMessage(
+            subject="Your User Data",
+            body="Attached is your User Data on Metaculus.",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            to=[user_email],
+        )
+        email.attach("user_data.zip", data, "application/zip")
+        email.send()
+
+    except Exception as e:
+        email = EmailMessage(
+            subject="Error generating Metaculus data",
+            body="Error generating Metaculus data. Please contact an adminstrator "
+            f"for assistance.\nError: {e}",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            to=[user_email],
+        )
+        email.send()
