@@ -25,6 +25,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
 import {
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
@@ -57,7 +58,6 @@ import {
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
-import cn from "@/utils/core/cn";
 
 type Props = {
   post: PostWithForecasts;
