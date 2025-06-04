@@ -91,7 +91,7 @@ const AccountPreferences: FC<Props> = ({ user }) => {
             <div className="ml-7 flex flex-col gap-2 bg-blue-200 px-4 py-3 dark:bg-blue-200-dark">
               <div>
                 Expire after{" "}
-                <div className="inline-flex items-center gap-1 rounded border border-blue-500 bg-gray-100 px-1 dark:border-blue-500-dark dark:bg-gray-0-dark">
+                <div className="min-w-10 px-1.5 py-1 bg-gray-100 rounded outline outline-1 outline-offset-[-1px] outline-blue-500 inline-flex justify-center items-center gap-0.5 dark:bg-gray-0-dark dark:outline-blue-500-dark">
                   <Input
                     type="number"
                     value={localExpirationPercent}
@@ -103,9 +103,10 @@ const AccountPreferences: FC<Props> = ({ user }) => {
 
                       setLocalExpirationPercent(e.target.value);
                     }}
-                    className="w-[5ch] border-none outline-none"
+                    className="border-none outline-none bg-transparent text-center text-gray-700 text-base font-normal leading-tight dark:text-gray-700-dark [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:m-0 [-moz-appearance:textfield]"
+                    style={{ width: `${Math.max(2, localExpirationPercent.length + 1)}ch` }}
                   />
-                  %
+                  <div className="text-center text-gray-500 text-base font-normal leading-tight dark:text-gray-500-dark">%</div>
                 </div>
                 of total question lifetime
               </div>
