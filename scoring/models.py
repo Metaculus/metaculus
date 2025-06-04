@@ -408,6 +408,9 @@ class LeaderboardsRanksEntry(TimeStampedModel):
 class MedalExclusionRecord(models.Model):
     id: int
     objects: models.Manager["MedalExclusionRecord"]
+    user_id: int
+    project_id: int | None
+    leaderboard_id: int | None
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
