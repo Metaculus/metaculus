@@ -8,11 +8,7 @@ import Button from "@/components/ui/button";
 
 import { emailMeMyData } from "../actions";
 
-export type Props = {
-  token: string;
-};
-
-const EmailMeMyData: FC<Props> = () => {
+const EmailMeMyData: FC = () => {
   const t = useTranslations();
 
   const emailMe = async () => {
