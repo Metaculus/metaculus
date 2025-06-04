@@ -21,6 +21,11 @@ import {
 } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
+import {
+  buildDefaultForecastExpiration,
+  forecastExpirationToDate,
+} from "@/components/forecast_maker/forecast_expiration";
+import { useAuth } from "@/contexts/auth_context";
 
 const HEIGHT = 100;
 
@@ -44,6 +49,7 @@ const QuestionContinuousTile: FC<Props> = ({
   const { onReaffirm } = useCardReaffirmContext();
 
   const { hideCP } = useHideCP();
+  const { user } = useAuth();
 
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
@@ -68,9 +74,14 @@ const QuestionContinuousTile: FC<Props> = ({
             BINARY_FORECAST_PRECISION
           );
 
+          const forecastExpiration = buildDefaultForecastExpiration(
+            question,
+            user?.prediction_expiration_percent ?? undefined
+          );
           onReaffirm([
             {
               questionId: question.id,
+              forecastEndTime: forecastExpirationToDate(forecastExpiration),
               forecastData: {
                 continuousCdf: null,
                 probabilityYes: forecastValue,
