@@ -12,6 +12,8 @@ from questions.models import (
     Question,
     GroupOfQuestions,
     Forecast,
+    BinaryQuestionLink,
+    CausalLink,
 )
 from questions.services import build_question_forecasts
 from utils.csv_utils import export_all_data_for_questions
@@ -231,3 +233,67 @@ class AggregateForecastAdmin(admin.ModelAdmin):
         if "delete_selected" in actions:
             del actions["delete_selected"]
         return actions
+
+# Question Link MVP Additions
+@admin.register(BinaryQuestionLink)
+class BinaryQuestionLinkAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'user', 'source_question_title', 'target_question_title', 
+        'link_type', 'status', 'created_at'
+    )
+    list_filter = ('link_type', 'status', 'bidirectional', 'created_at')
+    search_fields = (
+        'user__username', 'source_question__title', 'target_question__title'
+    )
+    readonly_fields = ('created_at', 'updated_at')
+    raw_id_fields = ('user', 'source_question', 'target_question')
+    
+    def source_question_title(self, obj):
+        return obj.source_question.title[:50] + "..." if len(obj.source_question.title) > 50 else obj.source_question.title
+    source_question_title.short_description = "Source Question"
+    
+    def target_question_title(self, obj):
+        return obj.target_question.title[:50] + "..." if len(obj.target_question.title) > 50 else obj.target_question.title
+    target_question_title.short_description = "Target Question"
+
+
+@admin.register(CausalLink)
+class CausalLinkAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'user', 'source_question_title', 'direction_symbol', 
+        'target_question_title', 'strength', 'status', 'created_at'
+    )
+    list_filter = ('direction', 'strength', 'status', 'created_at')
+    search_fields = (
+        'user__username', 'source_question__title', 'target_question__title'
+    )
+    readonly_fields = ('created_at', 'updated_at', 'link_type', 'bidirectional')
+    raw_id_fields = ('user', 'source_question', 'target_question')
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('user', 'source_question', 'target_question')
+        }),
+        ('Causal Properties', {
+            'fields': ('direction', 'strength', 'reasoning')
+        }),
+        ('Status', {
+            'fields': ('status', 'resolution_status', 'forecast_status')
+        }),
+        ('Metadata', {
+            'fields': ('link_type', 'bidirectional', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def source_question_title(self, obj):
+        return obj.source_question.title[:50] + "..." if len(obj.source_question.title) > 50 else obj.source_question.title
+    source_question_title.short_description = "Source Question"
+    
+    def target_question_title(self, obj):
+        return obj.target_question.title[:50] + "..." if len(obj.target_question.title) > 50 else obj.target_question.title
+    target_question_title.short_description = "Target Question"
+    
+    def direction_symbol(self, obj):
+        return "→+" if obj.direction == obj.Direction.POSITIVE else "→-"
+    direction_symbol.short_description = "Direction"
