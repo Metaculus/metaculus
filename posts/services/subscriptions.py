@@ -22,6 +22,7 @@ from notifications.services import (
 from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast, AggregateForecast
 from questions.types import AggregationMethod
+from questions.utils import get_last_aggregated_forecast_in_the_past
 from users.models import User
 from utils.models import ArrayLength
 from utils.the_math.formulas import (
@@ -182,7 +183,11 @@ def notify_post_cp_change(post: Post):
             if entry is None:
                 continue
             old_forecast_values = entry.forecast_values
-            current_entry = forecast_summary[-1]
+            current_entry = get_last_aggregated_forecast_in_the_past(forecast_summary)
+
+            if not current_entry:
+                continue
+
             current_forecast_values = current_entry.forecast_values
             difference = prediction_difference_for_sorting(
                 old_forecast_values,
