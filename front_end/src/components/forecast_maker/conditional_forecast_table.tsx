@@ -7,8 +7,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import RadioButton from "@/components/ui/radio_button";
 import { ForecastExpirationValue } from "@/components/forecast_maker/forecast_expiration";
+import RadioButton from "@/components/ui/radio_button";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { Question, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";

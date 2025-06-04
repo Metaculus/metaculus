@@ -6,10 +6,15 @@ import { VictoryThemeDefinition } from "victory";
 
 import FanChart from "@/components/charts/fan_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import {
+  buildDefaultForecastExpiration,
+  forecastExpirationToDate,
+} from "@/components/forecast_maker/forecast_expiration";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useAuth } from "@/contexts/auth_context";
 import useContainerSize from "@/hooks/use_container_size";
 import { ForecastPayload } from "@/services/api/questions/questions.server";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -22,14 +27,9 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
+import { CurrentUser } from "@/types/users";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
-import {
-  buildDefaultForecastExpiration,
-  forecastExpirationToDate,
-} from "@/components/forecast_maker/forecast_expiration";
-import { CurrentUser, User } from "@/types/users";
-import { useAuth } from "@/contexts/auth_context";
 
 type BaseProps = {
   choices: ChoiceItem[];
