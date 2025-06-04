@@ -1,10 +1,13 @@
 "use client";
+import { faHourglass } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import React, { FC, useMemo } from "react";
+import React, { FC, ReactNode, useMemo } from "react";
 
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import cn from "@/utils/core/cn";
 
 type Props = {
   predictLabel?: string;
@@ -13,6 +16,8 @@ type Props = {
   hasUserForecast: boolean;
   isPending: boolean;
   isDisabled?: boolean;
+  predictionExpirationChip?: ReactNode;
+  onPredictionExpirationClick?: () => void;
 };
 
 const PredictButton: FC<Props> = ({
@@ -22,6 +27,8 @@ const PredictButton: FC<Props> = ({
   isDirty,
   onSubmit,
   isDisabled,
+  predictionExpirationChip,
+  onPredictionExpirationClick,
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -68,14 +75,30 @@ const PredictButton: FC<Props> = ({
   };
 
   return (
-    <Button
-      variant="primary"
-      type="submit"
-      disabled={disabled}
-      onClick={handleClick}
-    >
-      {buttonLabel}
-    </Button>
+    <div className="flex">
+      <Button
+        variant="primary"
+        type="submit"
+        disabled={disabled}
+        onClick={handleClick}
+        className={cn("", {
+          "rounded-r-none": !!predictionExpirationChip,
+        })}
+      >
+        {buttonLabel}
+      </Button>
+
+      {predictionExpirationChip && (
+        <Button
+          variant="secondary"
+          onClick={() => onPredictionExpirationClick?.()}
+          className="gap-1 rounded-l-none px-1.5"
+        >
+          <FontAwesomeIcon icon={faHourglass} />
+          {predictionExpirationChip}
+        </Button>
+      )}
+    </div>
   );
 };
 

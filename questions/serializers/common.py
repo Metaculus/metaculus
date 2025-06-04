@@ -508,6 +508,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "percentiles",
             "distribution_input",
             "source",
+            "end_time",
         )
 
     def binary_validation(self, probability_yes):
