@@ -317,6 +317,10 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    setCurrentState({ ...savedState });
+  }, [savedState]);
+
   const restoreFromSavedState = () => {
     setCurrentState({ ...savedState });
   };
