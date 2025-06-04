@@ -38,17 +38,17 @@ import { canWithdrawForecast } from "@/utils/questions/predictions";
 import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
 import ContinuousInput from "../continuous_input";
 import {
+  ForecastExpirationModal,
+  ForecastExpirationValue,
+  useExpirationModalState,
+} from "../forecast_expiration";
+import {
   validateAllQuantileInputs,
   validateUserQuantileData,
 } from "../helpers";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
-import {
-  ForecastExpirationModal,
-  ForecastExpirationValue,
-  useExpirationModalState,
-} from "../forecast_expiration";
 
 type Props = {
   option: ContinuousGroupOption;

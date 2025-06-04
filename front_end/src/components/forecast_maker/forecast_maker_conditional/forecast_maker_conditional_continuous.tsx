@@ -57,20 +57,19 @@ import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
 import ContinuousInput from "../continuous_input";
+import WithdrawButton from "../withdraw/withdraw_button";
+import {
+  buildDefaultForecastExpiration,
+  ForecastExpirationModal,
+  forecastExpirationToDate,
+  useExpirationModalState,
+} from "../forecast_expiration";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
 } from "../helpers";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
-import WithdrawButton from "../withdraw/withdraw_button";
-import {
-  buildDefaultForecastExpiration,
-  ForecastExpirationModal,
-  forecastExpirationToDate,
-  ForecastExpirationValue,
-  useExpirationModalState,
-} from "../forecast_expiration";
 
 type Props = {
   postId: number;
