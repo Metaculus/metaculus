@@ -433,10 +433,10 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={() => handleClose()}
-      className="h-full w-full max-w-max px-3 md:h-auto"
+      className="h-full w-full max-w-max md:h-auto"
     >
-      <div className="flex flex-col gap-4 rounded bg-gray-0 p-6 dark:bg-gray-0-dark md:w-[628px]">
-        <h2 className="text-lg font-medium leading-7 text-black dark:text-gray-100-dark">
+      <div className="flex flex-col gap-4 rounded bg-gray-0 dark:bg-gray-0-dark md:w-[628px]">
+        <h2 className="text-lg font-medium leading-7 text-gray-1000 dark:text-gray-1000-dark">
           {t("predictionExpiration")}
         </h2>
 
@@ -448,9 +448,9 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
         >
           <div className="flex items-center gap-2.5 lg:items-start">
             <span className="flex h-4 w-4 items-center justify-center">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-[#161c22] dark:border-gray-100-dark">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-900 dark:border-gray-900-dark">
                 {currentState.option === "account" && (
-                  <span className="h-2 w-2 rounded-full bg-[#161c22] dark:bg-gray-100-dark" />
+                  <span className="h-2 w-2 rounded-full bg-gray-900 dark:bg-gray-900-dark" />
                 )}
               </span>
             </span>
@@ -474,7 +474,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                   href="/accounts/settings/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-1 font-bold text-blue-700 underline dark:text-blue-400-dark"
+                  className="ml-1 font-bold text-blue-700 underline dark:text-blue-700-dark"
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
@@ -493,9 +493,9 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
           <div className="flex items-center gap-3">
             {/* radio */}
             <span className="flex h-4 w-4 items-center justify-center">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-[#161c22] dark:border-gray-100-dark">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-900 dark:border-gray-900-dark">
                 {currentState.option === "custom" && (
-                  <span className="h-2 w-2 rounded-full bg-[#161c22] dark:bg-gray-100-dark" />
+                  <span className="h-2 w-2 rounded-full bg-gray-900 dark:bg-gray-900-dark" />
                 )}
               </span>
             </span>
@@ -593,7 +593,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
         </div>
 
         {/* Helper text */}
-        <p className="mx-auto max-w-[408px] text-wrap text-center text-sm leading-tight text-gray-700 dark:text-gray-400-dark">
+        <p className="mx-auto max-w-[408px] text-wrap text-center text-sm leading-tight text-gray-700 dark:text-gray-700-dark">
           {t("expirationHelpText")}
         </p>
 
