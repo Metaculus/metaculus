@@ -9,11 +9,12 @@ import {
 } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import posthog from "posthog-js";
 import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, useState, useRef, useEffect } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
-import { UserForecast } from "@/types/question";
+import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   formatDurationToShortStr,
@@ -28,61 +29,121 @@ interface ForecastExpirationModalProps {
   onClose: () => void;
   savedState: ModalState;
   setSavedState: (state: ModalState) => void;
-  //userForecastExpirationPercent: number | null;
-  //userForecastExpirationDurationStr: string | null;
-  onReaffirm?: (expiryDate: Date | null) => Promise<void>;
+  onReaffirm?: (forecastExpiration: ForecastExpirationValue) => Promise<void>;
   questionDuration: number;
 }
 
-type Preset = { id: string; label: string; duration?: Duration };
+type Preset = { id: string; duration?: Duration };
 
-const buildExpiryDate = (
-  option: "account" | "custom",
-  customExpiryDate: Date | null,
-  durationFromNowSec: number | null,
-  selectedPreset: Preset | undefined
-) => {
-  const today = new Date();
-
-  if (option === "account") {
-    return durationFromNowSec
-      ? new Date(today.getTime() + durationFromNowSec * 1000)
-      : null;
-  }
-
-  if (selectedPreset?.id === "customDate") {
-    return customExpiryDate;
-  }
-
-  if (selectedPreset?.id === "neverExpires") {
-    return null;
-  }
-
-  return add(today, selectedPreset?.duration ?? { days: 0 });
-};
+export type ForecastExpirationValue =
+  | { kind: "duration"; value: Duration }
+  | { kind: "date"; value: Date }
+  | { kind: "infinity" };
 
 interface ModalState {
   option: "account" | "custom";
   selectedPreset: Preset["id"];
-  expiryDate: Date | null;
-  customDate: Date | null;
+  forecastExpiration: ForecastExpirationValue;
+  datePickerDate: Date | null;
 }
+
+export const forecastExpirationToDate = (
+  expiration: ForecastExpirationValue | undefined
+): Date | undefined => {
+  if (!posthog.getFeatureFlag("forecast_expiration")) {
+    return undefined;
+  }
+
+  if (!expiration) {
+    return undefined;
+  }
+
+  if (expiration.kind === "infinity") {
+    return undefined;
+  }
+
+  if (expiration.kind === "duration") {
+    return add(new Date(), expiration.value);
+  }
+  return expiration.value;
+};
+
+const modalPresets: Preset[] = [
+  { id: "1d", duration: { days: 1 } },
+  { id: "3d", duration: { days: 3 } },
+  { id: "1w", duration: { weeks: 1 } },
+  { id: "1m", duration: { months: 1 } },
+  { id: "3m", duration: { months: 3 } },
+  { id: "1y", duration: { years: 1 } },
+  { id: "customDate" },
+  { id: "neverExpires" },
+] as const;
+
+export const getTimeToExpireDays = (
+  lastForecast: UserForecast | undefined
+): number | undefined => {
+  if (lastForecast?.end_time) {
+    const lastForecastExpiryDate = new Date(lastForecast.end_time * 1000);
+
+    const lastForecastExpiryDuration = intervalToDuration({
+      start: new Date(),
+      end: lastForecastExpiryDate,
+    });
+
+    return (
+      add(new Date(0), lastForecastExpiryDuration).getTime() /
+      1000 /
+      60 /
+      60 /
+      24
+    );
+  }
+};
+
+export const buildDefaultForecastExpiration = (
+  question: QuestionWithForecasts,
+  userPredictionExpirationPercent: number | undefined
+): ForecastExpirationValue => {
+  const lastForecast = question.my_forecasts?.latest;
+
+  const questionDuration =
+    new Date(question.scheduled_close_time).getTime() -
+    new Date(question.open_time ?? question.created_at).getTime();
+
+  const userDefaultExpirationDurationSec = userPredictionExpirationPercent
+    ? ((userPredictionExpirationPercent / 100) * questionDuration) / 1000
+    : null;
+
+  const defaultState = buildDefaultState(
+    lastForecast,
+    modalPresets,
+    userDefaultExpirationDurationSec
+  );
+
+  return defaultState.forecastExpiration;
+};
 
 const buildDefaultState = (
   lastForecast: UserForecast | undefined,
   presetDurations: Preset[],
   userDefaultExpirationDurationSec: number | null
 ): ModalState => {
+  const now = new Date();
   let state: ModalState = {
     option: "account",
     selectedPreset: "1w",
-    customDate: null,
-    expiryDate: buildExpiryDate(
-      "account",
-      null,
-      userDefaultExpirationDurationSec ?? null,
-      presetDurations.find((p) => p.id === "1w")
-    ),
+    datePickerDate: null,
+    forecastExpiration: userDefaultExpirationDurationSec
+      ? {
+          kind: "duration",
+          value: intervalToDuration({
+            start: now,
+            end: add(now, {
+              seconds: userDefaultExpirationDurationSec,
+            }),
+          }),
+        }
+      : { kind: "infinity" },
   };
 
   if (lastForecast?.end_time) {
@@ -91,57 +152,61 @@ const buildDefaultState = (
       (lastForecast.end_time - lastForecast.start_time) * 1000;
 
     // Only consider presets with actual durations and transform them in
-    const presetsDurationssMs = presetDurations
+    const presetsWithDurationMs = presetDurations
       .filter((preset) => !!preset.duration)
       .map((preset) => {
         return {
           durationMs: preset.duration
             ? add(new Date(0), preset.duration).getTime()
             : Infinity,
-          id: preset.id,
+          preset,
         };
       });
 
-    let closestPresetId = "1w"; // default fallback
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    let closestPreset = presetsWithDurationMs[0]!.preset; // we know it's not undefined because we filtered it out above
     let minDifference = Infinity;
 
-    for (const preset of presetsDurationssMs) {
+    for (const preset of presetsWithDurationMs) {
       const difference = Math.abs(lastForecastDurationMs - preset.durationMs);
       if (difference < minDifference) {
         minDifference = difference;
-        closestPresetId = preset.id;
+        closestPreset = preset.preset;
       }
     }
 
     state = {
       option: "custom",
-      selectedPreset: closestPresetId,
-      expiryDate: null,
-      customDate: null,
+      selectedPreset: closestPreset.id,
+      forecastExpiration: {
+        kind: "duration",
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        value: closestPreset.duration!, // we know it's not undefined because we filtered it out above
+      },
+      datePickerDate: null,
     };
-
-    state.expiryDate = buildExpiryDate(
-      state.option,
-      state.customDate,
-      null,
-      presetDurations.find((p) => p.id === state.selectedPreset)
-    );
   }
 
   return state;
 };
 
-const getPresetDurations = (t: ReturnType<typeof useTranslations>): Preset[] =>
-  [
-    { id: "1d", label: t("1day"), duration: { days: 1 } },
-    { id: "3d", label: t("3days"), duration: { days: 3 } },
-    { id: "1w", label: t("1week"), duration: { weeks: 1 } },
-    { id: "1m", label: t("1month"), duration: { months: 1 } },
-    { id: "3m", label: t("3months"), duration: { months: 3 } },
-    { id: "1y", label: t("1year"), duration: { years: 1 } },
+const getPresetLabel = (
+  presetID: Preset["id"],
+  t: ReturnType<typeof useTranslations>
+) => {
+  const presets = [
+    { id: "1d", label: t("1day") },
+    { id: "3d", label: t("3days") },
+    { id: "1w", label: t("1week") },
+    { id: "1m", label: t("1month") },
+    { id: "3m", label: t("3months") },
+    { id: "1y", label: t("1year") },
     { id: "customDate", label: t("customDate") },
     { id: "neverExpires", label: t("neverExpires") },
   ] as const;
+
+  return presets.find((preset) => preset.id === presetID)?.label;
+};
 
 export const useExpirationModalState = (
   questionDuration: number,
@@ -149,8 +214,6 @@ export const useExpirationModalState = (
 ) => {
   const [isForecastExpirationModalOpen, setIsForecastExpirationModalOpen] =
     useState(false);
-  const t = useTranslations();
-  const presetDurations = getPresetDurations(t);
 
   const { user } = useAuth();
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
@@ -160,7 +223,7 @@ export const useExpirationModalState = (
 
   const initialState = buildDefaultState(
     lastForecast,
-    presetDurations,
+    modalPresets,
     userDefaultExpirationDurationSec
   );
 
@@ -175,29 +238,34 @@ export const useExpirationModalState = (
     <FontAwesomeIcon icon={faInfinity} />
   );
 
-  if (modalSavedState.expiryDate) {
+  if (modalSavedState.forecastExpiration.kind === "duration") {
+    expirationShortChip = formatDurationToShortStr(
+      truncateDuration(modalSavedState.forecastExpiration.value, 1)
+    );
+  } else if (modalSavedState.forecastExpiration.kind === "date") {
     expirationShortChip = formatDurationToShortStr(
       truncateDuration(
         intervalToDuration({
           start: new Date(),
-          end: add(modalSavedState.expiryDate, {
-            seconds: 10, // add some extra time to avoid rounding issues and not falling on the next lower unit
-          }),
+          end: modalSavedState.forecastExpiration.value,
         }),
         1
       )
     );
   }
 
-  let previousForecastExpirationString = undefined;
+  let previousForecastExpiration = undefined;
 
   if (lastForecast?.end_time) {
+    const lastForecastExpiryDate = new Date(lastForecast.end_time * 1000);
+    const previousForecastIsExpired = lastForecastExpiryDate < new Date();
+
     const lastForecastExpiryDuration = intervalToDuration({
-      start: new Date(lastForecast.start_time * 1000),
-      end: new Date(lastForecast.end_time * 1000),
+      start: previousForecastIsExpired ? lastForecastExpiryDate : new Date(),
+      end: previousForecastIsExpired ? new Date() : lastForecastExpiryDate,
     });
 
-    previousForecastExpirationString = formatDuration(
+    const previousForecastExpirationString = formatDuration(
       truncateDuration(lastForecastExpiryDuration, 2),
       {
         format: [
@@ -211,11 +279,24 @@ export const useExpirationModalState = (
         ],
       }
     );
+
+    const timeToExpireDays =
+      add(new Date(0), lastForecastExpiryDuration).getTime() /
+      1000 /
+      60 /
+      60 /
+      24;
+
+    previousForecastExpiration = {
+      string: previousForecastExpirationString,
+      isExpired: previousForecastIsExpired,
+      expiresSoon: previousForecastIsExpired || timeToExpireDays < 2,
+    };
   }
 
   if (!isForecastExpirationEnabled) {
     expirationShortChip = undefined;
-    previousForecastExpirationString = undefined;
+    previousForecastExpiration = undefined;
   }
 
   return {
@@ -224,7 +305,7 @@ export const useExpirationModalState = (
     expirationShortChip,
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
-    previousForecastExpirationString,
+    previousForecastExpiration,
   };
 };
 
@@ -242,11 +323,13 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    setCurrentState({ ...savedState });
+  }, [savedState]);
+
   const restoreFromSavedState = () => {
     setCurrentState({ ...savedState });
   };
-
-  const presetDurations = getPresetDurations(t);
 
   const optionClasses = (selected: boolean) =>
     cn(
@@ -290,27 +373,54 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     : null;
 
   useEffect(() => {
-    const expiryDate = buildExpiryDate(
-      currentState.option,
-      currentState.customDate,
-      userDefaultExpirationDurationSec ?? null,
-      presetDurations.find((p) => p.id === currentState.selectedPreset)
-    );
+    if (currentState.datePickerDate) {
+      setCurrentState({
+        ...currentState,
+        forecastExpiration: {
+          kind: "date",
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          value: currentState.datePickerDate!,
+        },
+      });
+    }
+  }, [currentState.datePickerDate]);
 
-    setCurrentState({ ...currentState, expiryDate });
-  }, [
-    currentState.selectedPreset,
-    currentState.customDate,
-    currentState.option,
-  ]);
-
-  const onCustomOptionSelected = (id: Preset["id"]) => {
+  const onCustomOptionSelected = (preset: Preset) => {
     setCurrentState({
       ...currentState,
-      selectedPreset: id,
+      selectedPreset: preset.id,
       option: "custom",
+      forecastExpiration: {
+        kind: "duration",
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        value: preset.duration!, // we know it's not undefined
+      },
     });
     setShowDatePicker(false);
+  };
+
+  const onCustomDateSelected = () => {
+    setCurrentState({
+      ...currentState,
+      selectedPreset: "customDate",
+      option: "custom",
+      forecastExpiration: {
+        kind: "date",
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        value: currentState.datePickerDate!,
+      },
+    });
+  };
+
+  const onNeverExpiresSelected = () => {
+    setCurrentState({
+      ...currentState,
+      selectedPreset: "neverExpires",
+      option: "custom",
+      forecastExpiration: {
+        kind: "infinity",
+      },
+    });
   };
 
   const handleClose = () => {
@@ -324,7 +434,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   };
 
   const handleReaffirm = async () => {
-    onReaffirm?.(currentState.expiryDate);
+    onReaffirm?.(currentState.forecastExpiration);
     handleSave();
   };
 
@@ -332,10 +442,10 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={() => handleClose()}
-      className="h-full w-full max-w-max px-3 md:h-auto"
+      className="h-full w-full max-w-max md:h-auto"
     >
-      <div className="flex flex-col gap-4 rounded bg-gray-0 p-6 dark:bg-gray-0-dark md:w-[628px]">
-        <h2 className="text-lg font-medium leading-7 text-black dark:text-gray-100-dark">
+      <div className="flex flex-col gap-4 rounded bg-gray-0 dark:bg-gray-0-dark md:w-[628px]">
+        <h2 className="text-lg font-medium leading-7 text-gray-1000 dark:text-gray-1000-dark">
           {t("predictionExpiration")}
         </h2>
 
@@ -347,9 +457,9 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
         >
           <div className="flex items-center gap-2.5 lg:items-start">
             <span className="flex h-4 w-4 items-center justify-center">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-[#161c22] dark:border-gray-100-dark">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-900 dark:border-gray-900-dark">
                 {currentState.option === "account" && (
-                  <span className="h-2 w-2 rounded-full bg-[#161c22] dark:bg-gray-100-dark" />
+                  <span className="h-2 w-2 rounded-full bg-gray-900 dark:bg-gray-900-dark" />
                 )}
               </span>
             </span>
@@ -371,7 +481,9 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 })}
                 <Link
                   href="/accounts/settings/"
-                  className="ml-1 font-bold text-blue-700 underline dark:text-blue-400-dark"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-1 font-bold text-blue-700 underline dark:text-blue-700-dark"
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
@@ -390,9 +502,9 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
           <div className="flex items-center gap-3">
             {/* radio */}
             <span className="flex h-4 w-4 items-center justify-center">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-[#161c22] dark:border-gray-100-dark">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-900 dark:border-gray-900-dark">
                 {currentState.option === "custom" && (
-                  <span className="h-2 w-2 rounded-full bg-[#161c22] dark:bg-gray-100-dark" />
+                  <span className="h-2 w-2 rounded-full bg-gray-900 dark:bg-gray-900-dark" />
                 )}
               </span>
             </span>
@@ -403,9 +515,9 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
 
           {currentState.option === "custom" && (
             <div className="mt-3 flex flex-wrap gap-1">
-              {presetDurations.slice(0, -2).map((preset) => (
+              {modalPresets.slice(0, -2).map((preset) => (
                 <Button
-                  key={preset.label}
+                  key={getPresetLabel(preset.id, t)}
                   type="button"
                   variant={
                     currentState.selectedPreset === preset.id &&
@@ -416,10 +528,10 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                   className={cn("rounded-[3px]")}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onCustomOptionSelected(preset.id);
+                    onCustomOptionSelected(preset);
                   }}
                 >
-                  {preset.label}
+                  {getPresetLabel(preset.id, t)}
                 </Button>
               ))}
 
@@ -435,7 +547,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 className={"relative flex items-center gap-0 rounded-[3px]"}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onCustomOptionSelected("customDate");
+                  onCustomDateSelected();
                   setShowDatePicker(true);
                   setTimeout(() => {
                     dateInputRef.current?.showPicker();
@@ -453,13 +565,14 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                       onChange={(e) => {
                         setCurrentState({
                           ...currentState,
-                          customDate: new Date(e.target.value),
+                          datePickerDate: new Date(e.target.value),
                         });
                       }}
                     />
-                    {currentState.customDate && (
+                    {currentState.datePickerDate && (
                       <span className="text-sm">
-                        {": " + format(currentState.customDate, "d MMMM yyyy")}
+                        {": " +
+                          format(currentState.datePickerDate, "d MMMM yyyy")}
                       </span>
                     )}
                   </>
@@ -478,7 +591,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 className={cn("rounded-[3px]")}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onCustomOptionSelected("neverExpires");
+                  onNeverExpiresSelected();
                   setShowDatePicker(false);
                 }}
               >
@@ -489,7 +602,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
         </div>
 
         {/* Helper text */}
-        <p className="mx-auto max-w-[408px] text-wrap text-center text-sm leading-tight text-gray-700 dark:text-gray-400-dark">
+        <p className="mx-auto max-w-[408px] text-wrap text-center text-sm leading-tight text-gray-700 dark:text-gray-700-dark">
           {t("expirationHelpText")}
         </p>
 
@@ -510,7 +623,8 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
             disabled={
               currentState.option === savedState.option &&
               currentState.selectedPreset === savedState.selectedPreset &&
-              currentState.expiryDate === savedState.expiryDate
+              JSON.stringify(currentState.forecastExpiration) ===
+                JSON.stringify(savedState.forecastExpiration)
             }
           >
             {onReaffirm ? t("reaffirm") : t("saveChanges")}

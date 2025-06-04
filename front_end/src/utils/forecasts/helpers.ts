@@ -136,8 +136,10 @@ export function isOpenQuestionPredicted(
       ? question.status !== QuestionStatus.OPEN
       : false) ||
     (!isNil(question.my_forecasts?.latest) &&
-      !question.my_forecasts?.latest.end_time) ||
+      (!question.my_forecasts?.latest.end_time ||
+        new Date(question.my_forecasts.latest.end_time * 1000) > new Date())) ||
     (!isNil(question.my_forecast?.latest) &&
-      !question.my_forecast?.latest.end_time)
+      (!question.my_forecast?.latest.end_time ||
+        new Date(question.my_forecast.latest.end_time * 1000) > new Date()))
   );
 }

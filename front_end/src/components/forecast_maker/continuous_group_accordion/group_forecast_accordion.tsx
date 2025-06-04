@@ -18,6 +18,7 @@ import {
 import { isUnitCompact } from "@/utils/questions/units";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
+import { ForecastExpirationValue } from "../forecast_expiration";
 import ContinuousInputWrapper from "../forecast_maker_group/continuous_input_wrapper";
 
 export type ContinuousGroupOption = {
@@ -33,6 +34,7 @@ export type ContinuousGroupOption = {
   hasUserForecast: boolean;
   resolution: Resolution | null;
   menu?: ReactNode;
+  forecastExpiration?: ForecastExpirationValue;
 };
 
 type Props = {
@@ -48,7 +50,10 @@ type Props = {
   ) => void;
   handleAddComponent: (option: ContinuousGroupOption) => void;
   handleResetForecasts: (option?: ContinuousGroupOption) => void;
-  handlePredictSubmit: (id: number) => Promise<
+  handlePredictSubmit: (
+    id: number,
+    forecastExpiration: ForecastExpirationValue
+  ) => Promise<
     | {
         errors: ErrorResponse | undefined;
       }
@@ -65,6 +70,10 @@ type Props = {
     mode: ContinuousForecastInputType
   ) => void;
   handleCopy: (fromOptionId: number, toOptionId: number) => void;
+  handleForecastExpiration: (
+    optionId: number,
+    forecastExpiration: ForecastExpirationValue
+  ) => void;
 };
 
 const GroupForecastAccordion: FC<Props> = ({
@@ -80,6 +89,7 @@ const GroupForecastAccordion: FC<Props> = ({
   handlePredictSubmit,
   handlePredictWithdraw,
   handleForecastInputModeChange,
+  handleForecastExpiration,
   handleCopy,
 }) => {
   const t = useTranslations();
@@ -180,6 +190,7 @@ const GroupForecastAccordion: FC<Props> = ({
               handleResetForecasts={handleResetForecasts}
               handlePredictSubmit={handlePredictSubmit}
               handlePredictWithdraw={handlePredictWithdraw}
+              handleForecastExpiration={handleForecastExpiration}
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
@@ -214,6 +225,7 @@ const GroupForecastAccordion: FC<Props> = ({
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
+              handleForecastExpiration={handleForecastExpiration}
             />
           </AccordionItem>
         );
@@ -245,6 +257,7 @@ const GroupForecastAccordion: FC<Props> = ({
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
+              handleForecastExpiration={handleForecastExpiration}
             />
           </AccordionItem>
         );

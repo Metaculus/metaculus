@@ -18,14 +18,17 @@ import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
 import PredictionSuccessBox from "./prediction_success_box";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import {
   ForecastExpirationModal,
+  ForecastExpirationValue,
+  forecastExpirationToDate,
   useExpirationModalState,
-} from "../forecast_expiration_modal";
+} from "../forecast_expiration";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
@@ -91,11 +94,13 @@ const ForecastMakerBinary: FC<Props> = ({
     expirationShortChip,
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
-    previousForecastExpirationString,
+    previousForecastExpiration,
   } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
-  const handlePredictSubmit = async (forecastEndTime: Date | null) => {
+  const handlePredictSubmit = async (
+    forecastExpiration: ForecastExpirationValue
+  ) => {
     setSubmitError(undefined);
 
     if (forecast === null) return;
@@ -111,7 +116,7 @@ const ForecastMakerBinary: FC<Props> = ({
           probabilityYes: forecastValue,
           probabilityYesPerCategory: null,
         },
-        forecastEndTime: forecastEndTime ?? undefined,
+        forecastEndTime: forecastExpirationToDate(forecastExpiration),
       },
     ]);
     setIsForecastDirty(false);
@@ -195,7 +200,7 @@ const ForecastMakerBinary: FC<Props> = ({
                   hasUserForecast={hasUserForecast}
                   isDirty={isForecastDirty}
                   isPending={isPending}
-                  onSubmit={() => submit(modalSavedState.expiryDate)}
+                  onSubmit={() => submit(modalSavedState.forecastExpiration)}
                   predictLabel={t("predict")}
                   predictionExpirationChip={expirationShortChip}
                   onPredictionExpirationClick={() =>
@@ -206,11 +211,21 @@ const ForecastMakerBinary: FC<Props> = ({
             )}
           </div>
 
-          {previousForecastExpirationString && (
-            <span className="text-xs text-salmon-800 dark:text-salmon-800-dark">
-              {t("predictionExpirationText", {
-                time: previousForecastExpirationString,
-              })}
+          {previousForecastExpiration && (
+            <span
+              className={cn(
+                "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+                previousForecastExpiration.expiresSoon &&
+                  "text-salmon-800 dark:text-salmon-800-dark"
+              )}
+            >
+              {previousForecastExpiration.isExpired
+                ? t("predictionExpiredText", {
+                    time: previousForecastExpiration.string,
+                  })
+                : t("predictionWillExpireInText", {
+                    time: previousForecastExpiration.string,
+                  })}
             </span>
           )}
         </div>

@@ -25,6 +25,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
 import {
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
@@ -46,8 +47,10 @@ import PredictionSuccessBox from "./prediction_success_box";
 import ContinuousInput from "../continuous_input";
 import {
   ForecastExpirationModal,
+  forecastExpirationToDate,
+  ForecastExpirationValue,
   useExpirationModalState,
-} from "../forecast_expiration_modal";
+} from "../forecast_expiration";
 import {
   validateAllQuantileInputs,
   validateUserQuantileData,
@@ -232,10 +235,12 @@ const ForecastMakerContinuous: FC<Props> = ({
     expirationShortChip,
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
-    previousForecastExpirationString,
+    previousForecastExpiration,
   } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
 
-  const handlePredictSubmit = async (forecastEndTime: Date | null) => {
+  const handlePredictSubmit = async (
+    forecastExpiration: ForecastExpirationValue
+  ) => {
     setSubmitError(undefined);
     sendPredictEvent(post, question, hideCP);
 
@@ -265,7 +270,7 @@ const ForecastMakerContinuous: FC<Props> = ({
           probabilityYes: null,
           probabilityYesPerCategory: null,
         },
-        forecastEndTime: forecastEndTime ?? undefined,
+        forecastEndTime: forecastExpirationToDate(forecastExpiration),
         distributionInput: {
           type: forecastInputMode,
           components:
@@ -380,7 +385,7 @@ const ForecastMakerContinuous: FC<Props> = ({
 
             {forecastInputMode === ContinuousForecastInputType.Slider ? (
               <PredictButton
-                onSubmit={() => submit(modalSavedState.expiryDate)}
+                onSubmit={() => submit(modalSavedState.forecastExpiration)}
                 isDirty={isDirty}
                 hasUserForecast={hasUserForecast}
                 isPending={isPending}
@@ -392,7 +397,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               />
             ) : (
               <PredictButton
-                onSubmit={() => submit(modalSavedState.expiryDate)}
+                onSubmit={() => submit(modalSavedState.forecastExpiration)}
                 isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
                 hasUserForecast={hasUserForecast}
                 isPending={isPending}
@@ -411,11 +416,21 @@ const ForecastMakerContinuous: FC<Props> = ({
               />
             )}
           </div>
-          {previousForecastExpirationString && (
-            <span className="text-xs text-salmon-800 dark:text-salmon-800-dark">
-              {t("predictionExpirationText", {
-                time: previousForecastExpirationString,
-              })}
+          {previousForecastExpiration && (
+            <span
+              className={cn(
+                "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+                previousForecastExpiration.expiresSoon &&
+                  "text-salmon-800 dark:text-salmon-800-dark"
+              )}
+            >
+              {previousForecastExpiration.isExpired
+                ? t("predictionExpiredText", {
+                    time: previousForecastExpiration.string,
+                  })
+                : t("predictionWillExpireInText", {
+                    time: previousForecastExpiration.string,
+                  })}
             </span>
           )}
         </div>
