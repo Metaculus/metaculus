@@ -472,6 +472,8 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 })}
                 <Link
                   href="/accounts/settings/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="ml-1 font-bold text-blue-700 underline dark:text-blue-400-dark"
                   onClick={(e) => {
                     e.stopPropagation();
