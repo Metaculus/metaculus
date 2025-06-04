@@ -21,6 +21,7 @@ import {
 } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
+import { useAuth } from "@/contexts/auth_context";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import {
@@ -62,15 +63,14 @@ import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import GroupForecastAccordion, {
   ContinuousGroupOption,
 } from "../continuous_group_accordion/group_forecast_accordion";
-import { validateUserQuantileData } from "../helpers";
-import PredictButton from "../predict_button";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
   ForecastExpirationValue,
   getTimeToExpireDays,
 } from "../forecast_expiration";
-import { useAuth } from "@/contexts/auth_context";
+import { validateUserQuantileData } from "../helpers";
+import PredictButton from "../predict_button";
 
 type Props = {
   post: PostWithForecasts;

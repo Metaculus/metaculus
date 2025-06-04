@@ -31,15 +31,13 @@ import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
-import PredictButton from "../predict_button";
-import ScoreDisplay from "../resolution/score_display";
 import {
-  buildDefaultForecastExpiration,
   ForecastExpirationModal,
   forecastExpirationToDate,
-  ForecastExpirationValue,
   useExpirationModalState,
 } from "../forecast_expiration";
+import PredictButton from "../predict_button";
+import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   postId: number;
