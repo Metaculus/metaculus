@@ -595,6 +595,8 @@ class ProjectAdmin(CustomTranslationAdmin):
         return render(request, "admin/projects/add_posts_to_project.html", context)
 
     def questions_in_project(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
         project = Project.objects.filter(id=obj.id).annotate_questions_count().first()
         if project:
             return project.questions_count
@@ -602,15 +604,24 @@ class ProjectAdmin(CustomTranslationAdmin):
     questions_in_project.short_description = "Questions in Project (weight > 0)"
 
     def questions_in_primary_leaderboard(self, obj: Project):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
         leaderboard = obj.primary_leaderboard
         if leaderboard:
-            return leaderboard.get_questions().filter(question_weight__gt=0).distinct().count()
+            return (
+                leaderboard.get_questions()
+                .filter(question_weight__gt=0)
+                .distinct()
+                .count()
+            )
 
     questions_in_primary_leaderboard.short_description = (
         "Questions in Primary Leaderboard (weight > 0)"
     )
 
     def latest_resolving_time(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
         questions = Question.objects.filter(
             Q(related_posts__post__projects=obj)
             | Q(related_posts__post__default_project=obj),
@@ -634,6 +645,8 @@ class ProjectAdmin(CustomTranslationAdmin):
     latest_resolving_time.short_description = "Latest Resolving Time (Expected)"
 
     def primary_leaderboard_finalize_time(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
         leaderboard = obj.primary_leaderboard
         if leaderboard:
             return leaderboard.finalize_time or (obj.close_date if obj else None)
