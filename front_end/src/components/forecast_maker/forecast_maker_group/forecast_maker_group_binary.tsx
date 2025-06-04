@@ -38,6 +38,7 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { canWithdrawForecast } from "@/utils/questions/predictions";
+import cn from "@/utils/core/cn";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import {
@@ -49,6 +50,13 @@ import ForecastChoiceOption from "../forecast_choice_option";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
+import {
+  buildDefaultForecastExpiration,
+  ForecastExpirationModal,
+  forecastExpirationToDate,
+  ForecastExpirationValue,
+  useExpirationModalState,
+} from "../forecast_expiration";
 
 type QuestionOption = {
   id: number;
@@ -60,6 +68,7 @@ type QuestionOption = {
   color: ThemeColor;
   menu: ReactNode;
   status?: QuestionStatus;
+  forecastExpiration?: ForecastExpirationValue;
 };
 
 type Props = {
@@ -92,11 +101,13 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     () =>
       questions.reduce<Record<number, number | null>>((acc, question) => {
         const latest = question.my_forecasts?.latest;
+        const todayTs = new Date().getTime();
         return {
           ...acc,
-          [question.id]: extractPrevBinaryForecastValue(
-            latest && !latest.end_time ? latest.forecast_values[1] : null
-          ),
+          [question.id]:
+            latest && (!latest.end_time || latest.end_time * 1000 > todayTs)
+              ? extractPrevBinaryForecastValue(latest.forecast_values[1])
+              : null,
         };
       }, {}),
     [questions]
@@ -105,12 +116,41 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     () => Object.values(prevForecastValuesMap).some((v) => v !== null),
     [prevForecastValuesMap]
   );
+
+  // Calculate average duration for the group questions for expiration modal
+  const averageQuestionDuration = useMemo(() => {
+    const durations = questions.map(
+      (q) =>
+        new Date(q.scheduled_close_time).getTime() -
+        new Date(q.open_time ?? q.created_at).getTime()
+    );
+    return (
+      durations.reduce((sum, duration) => sum + duration, 0) / durations.length
+    );
+  }, [questions]);
+
+  const expirationState = useExpirationModalState(
+    averageQuestionDuration,
+    questions[0]?.my_forecasts?.latest // Use first question as reference
+  );
+
+  const {
+    modalSavedState,
+    setModalSavedState,
+    expirationShortChip,
+    isForecastExpirationModalOpen,
+    setIsForecastExpirationModalOpen,
+    previousForecastExpiration,
+  } = expirationState;
+
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
     generateChoiceOptions({
       questions,
       prevForecastValuesMap,
       post,
       onPredictionSubmit,
+      userPredictionExpirationPercent:
+        user?.prediction_expiration_percent ?? null,
     })
   );
 
@@ -141,9 +181,27 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         permission,
         post,
         onPredictionSubmit,
+        userPredictionExpirationPercent:
+          user?.prediction_expiration_percent ?? null,
       })
     );
-  }, [permission, prevForecastValuesMap, questions, post, onPredictionSubmit]);
+  }, [
+    permission,
+    prevForecastValuesMap,
+    questions,
+    post,
+    onPredictionSubmit,
+    user?.prediction_expiration_percent,
+  ]);
+
+  useEffect(() => {
+    setQuestionOptions((prev) =>
+      prev.map((option) => ({
+        ...option,
+        forecastExpiration: modalSavedState.forecastExpiration,
+      }))
+    );
+  }, [modalSavedState.forecastExpiration]);
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -181,42 +239,48 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       })
     );
   }, []);
-  const handlePredictSubmit = useCallback(async () => {
-    setSubmitError(undefined);
+  const handlePredictSubmit = useCallback(
+    async (forecastExpiration?: ForecastExpirationValue) => {
+      setSubmitError(undefined);
 
-    if (!questionsToSubmit.length) {
-      return;
-    }
+      if (!questionsToSubmit.length) {
+        return;
+      }
 
-    const response = await createForecasts(
-      postId,
-      questionsToSubmit.map((q) => {
-        const forecastValue = round(
-          // okay to use non-null assertion here because we handle nullable state in questionsToSubmit calculation
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          q.forecast! / 100,
-          BINARY_FORECAST_PRECISION
-        );
+      const response = await createForecasts(
+        postId,
+        questionsToSubmit.map((q) => {
+          const forecastValue = round(
+            // okay to use non-null assertion here because we handle nullable state in questionsToSubmit calculation
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            q.forecast! / 100,
+            BINARY_FORECAST_PRECISION
+          );
 
-        return {
-          questionId: q.id,
-          forecastData: {
-            probabilityYes: forecastValue,
-            probabilityYesPerCategory: null,
-            continuousCdf: null,
-          },
-        };
-      })
-    );
-    setQuestionOptions((prev) =>
-      prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
-    );
+          return {
+            questionId: q.id,
+            forecastEndTime: forecastExpirationToDate(
+              forecastExpiration ?? q.forecastExpiration
+            ),
+            forecastData: {
+              probabilityYes: forecastValue,
+              probabilityYesPerCategory: null,
+              continuousCdf: null,
+            },
+          };
+        })
+      );
+      setQuestionOptions((prev) =>
+        prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
+      );
 
-    if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors);
-    }
-    onPredictionSubmit?.();
-  }, [postId, questionsToSubmit, onPredictionSubmit]);
+      if (response && "errors" in response && !!response.errors) {
+        setSubmitError(response.errors);
+      }
+      onPredictionSubmit?.();
+    },
+    [postId, questionsToSubmit, onPredictionSubmit]
+  );
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
   const predictedQuestions = useMemo(() => {
@@ -245,6 +309,16 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const [withdraw, isWithdrawing] = useServerAction(handlePredictWithdraw);
   return (
     <>
+      <ForecastExpirationModal
+        savedState={modalSavedState}
+        setSavedState={setModalSavedState}
+        isOpen={isForecastExpirationModalOpen}
+        onClose={() => {
+          setIsForecastExpirationModalOpen(false);
+        }}
+        questionDuration={averageQuestionDuration}
+        onReaffirm={isPickerDirty ? undefined : submit}
+      />
       <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
@@ -347,8 +421,31 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               hasUserForecast={hasUserForecast}
               isPending={isPending || isWithdrawing}
               isDisabled={!questionsToSubmit.length}
+              predictionExpirationChip={expirationShortChip}
+              onPredictionExpirationClick={() =>
+                setIsForecastExpirationModalOpen(true)
+              }
             />
           </div>
+
+          {previousForecastExpiration && (
+            <div
+              className={cn(
+                "mt-2 text-center text-xs text-gray-800 dark:text-gray-800-dark",
+                previousForecastExpiration.expiresSoon &&
+                  "text-salmon-800 dark:text-salmon-800-dark"
+              )}
+            >
+              {previousForecastExpiration.isExpired
+                ? t("predictionExpiredText", {
+                    time: previousForecastExpiration.string,
+                  })
+                : t("predictionWillExpireInText", {
+                    time: previousForecastExpiration.string,
+                  })}
+            </div>
+          )}
+
           <FormError
             errors={submitError}
             className="mt-2 flex items-center justify-center"
@@ -370,13 +467,33 @@ function generateChoiceOptions({
   permission,
   post,
   onPredictionSubmit,
+  userPredictionExpirationPercent,
 }: {
   questions: QuestionWithNumericForecasts[];
   prevForecastValuesMap: Record<number, number | null>;
   permission?: ProjectPermissions;
   post?: Post;
   onPredictionSubmit?: () => void;
+  userPredictionExpirationPercent?: number | null;
 }): QuestionOption[] {
+  const { question: shortestLifetimeQuestion } = questions.reduce(
+    ({ question, min }, q) => {
+      const questionDuration =
+        new Date(q.scheduled_close_time).getTime() -
+        new Date(q.open_time ?? q.created_at).getTime();
+      return {
+        question: questionDuration < min ? q : question,
+        min: Math.min(min, questionDuration),
+      };
+    },
+    { question: questions[0]!, min: Infinity }
+  );
+
+  const forecastExpiration = buildDefaultForecastExpiration(
+    shortestLifetimeQuestion,
+    userPredictionExpirationPercent ?? undefined
+  );
+
   return questions.map((question, index) => {
     const latest = question.aggregations.recency_weighted.latest;
     return {
@@ -389,6 +506,7 @@ function generateChoiceOptions({
       isDirty: false,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       status: question.status,
+      forecastExpiration,
       menu: (
         <ForecastMakerGroupControls
           question={question}
