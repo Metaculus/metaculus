@@ -36,9 +36,9 @@ import {
 } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
+import cn from "@/utils/core/cn";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { canWithdrawForecast } from "@/utils/questions/predictions";
-import cn from "@/utils/core/cn";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import {
@@ -47,8 +47,6 @@ import {
   BINARY_MIN_VALUE,
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
-import PredictButton from "../predict_button";
-import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
 import {
   buildDefaultForecastExpiration,
@@ -57,6 +55,8 @@ import {
   ForecastExpirationValue,
   useExpirationModalState,
 } from "../forecast_expiration";
+import PredictButton from "../predict_button";
+import ScoreDisplay from "../resolution/score_display";
 
 type QuestionOption = {
   id: number;
@@ -486,6 +486,7 @@ function generateChoiceOptions({
         min: Math.min(min, questionDuration),
       };
     },
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     { question: questions[0]!, min: Infinity }
   );
 
