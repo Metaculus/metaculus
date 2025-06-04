@@ -472,7 +472,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       </div>
 
       {previousForecastExpiration && (
-        <span
+        <div
           className={cn(
             "text-center text-xs text-gray-800 dark:text-gray-800-dark",
             previousForecastExpiration.expiresSoon &&
@@ -486,7 +486,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             : t("predictionWillExpireInText", {
                 time: previousForecastExpiration.string,
               })}
-        </span>
+        </div>
       )}
 
       <FormError
