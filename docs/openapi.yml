@@ -509,6 +509,10 @@ components:
         open_lower_bound:
           type: boolean
           nullable: false
+        inbound_outcome_count:
+          type: integer
+          nullable: true
+          example: 200
         resolution_criteria:
           type: string
           example: "string"
@@ -1095,7 +1099,7 @@ paths:
             type: array
             items:
               type: string
-              enum: [ binary, numeric, date, multiple_choice, conditional, group_of_questions, notebook ]
+              enum: [ binary, multiple_choice, numeric, discrete, date, conditional, group_of_questions, notebook ]
             example: [ 'numeric', 'binary' ]
           description: Forecast type. You can apply multiple filters.
         - in: query
@@ -1208,21 +1212,13 @@ paths:
                           type: "numeric"
                           options: null
                           status: "resolved"
-                          possibilities:
-                            low: "tail"
-                            high: "tail"
-                            type: "continuous"
-                            scale:
-                              max: 100000000
-                              min: 200
-                              deriv_ratio: 500000
-                            format: "num"
                           resolution: "77289125.94957079"
                           resolution_criteria: "Resolution Criteria Copy"
                           fine_print: ""
                           label: null
                           open_upper_bound: true
                           open_lower_bound: true
+                          inbound_outcome_count: 200
                           unit: "people"
                           scaling:
                             range_max: 100000000.0
@@ -1887,6 +1883,11 @@ paths:
                       0.99801, 0.99830, 0.99858, 0.99884, 0.99909, 0.99933, 0.99956, 0.99978, 
                       1.00000
                     ]
+              ContinuousQuestionExample3:
+                summary: Discrete Question - inbound_outcome_count = 10, closed bounds
+                value:
+                  - question: 1
+                    continuous_cdf: [0, 0.05, 0.1, 0.15, 0.2, 0.35, 0.6, 0.75, 0.85, 0.95, 1.0]
               MultipleChoiceQuestionExample:
                 summary: Multiple Choice
                 value:
