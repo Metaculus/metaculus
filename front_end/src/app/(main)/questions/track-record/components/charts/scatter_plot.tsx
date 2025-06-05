@@ -36,7 +36,9 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   score_scatter_plot,
   username,
 }) => {
-  // square root every `score` in score_scatter_plut
+  // square root every `score` in score_scatter_plot to display more resolution
+  // near zero, compressing extreme forecasts
+  // Then, below, scale back up with y-axis labels to show original values
   score_scatter_plot = score_scatter_plot.map((data) => ({
     ...data,
     score: data.score > 0 ? Math.sqrt(data.score) : -Math.sqrt(-data.score),
@@ -295,6 +297,8 @@ function buildChartData({
 
   const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
   const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
+  // these ticks are in the real range, which we then scale down so that they are
+  // evenly spaced in real space, making the chart's compression more obvious
   const realTicksY = range(
     Math.round((yMin > 0 ? yMin ** 2 : -(yMin ** 2)) / 100) * 100,
     Math.round(yMax ** 2 / 100) * 100,
@@ -302,6 +306,7 @@ function buildChartData({
   );
   const ticksY = realTicksY.map((y) => (y > 0 ? Math.sqrt(y) : -Math.sqrt(-y)));
   const ticksYFormat = (y: number) => {
+    // scale up the y value to the original scale
     if (y ** 2 % 50 < 1) {
       return (Math.round(y ** 2 / 10) * 10).toString();
     } else {
