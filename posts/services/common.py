@@ -127,6 +127,8 @@ def create_post(
     short_title: str = None,
     published_at: datetime = None,
 ) -> Post:
+    # We always want to create post & questions content in the original mode
+    activate(settings.ORIGINAL_LANGUAGE_CODE)
     site_main = get_site_main_project()
 
     categories = list(categories or [])
