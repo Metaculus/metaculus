@@ -32,9 +32,11 @@ export default async function QuestionCreator(props: Props) {
 
   invariant(content_type, "Question type is required");
   const post_id = numberOrUndefined(searchParams["post_id"]);
+
+  // We want to allow edition of original content only!
   const post = isNil(post_id)
     ? undefined
-    : await ServerPostsApi.getPost(Number(post_id));
+    : await ServerPostsApi.getPostOriginal(Number(post_id));
 
   // Edition mode
   const mode = extractMode(searchParams, post);

@@ -2,6 +2,7 @@ export type FetchConfig = {
   emptyContentType?: boolean;
   passAuthHeader?: boolean;
   includeLocale?: boolean;
+  forceLocale?: string;
 };
 
 export type Fetcher = {
