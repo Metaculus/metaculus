@@ -50,6 +50,14 @@ def get_last_aggregated_forecast_in_the_past(
     Please note: aggregated_forecasts should be already sorted ASC `start_time`
     """
 
+    # Briefly check it's ASC order
+    # Don't perform double-sorting for optimization
+    if (
+        aggregated_forecasts
+        and aggregated_forecasts[0].start_time > aggregated_forecasts[-1].start_time
+    ):
+        raise ValueError("aggregated_forecasts should be already sorted ASC")
+
     return next(
         (
             agg
@@ -57,6 +65,8 @@ def get_last_aggregated_forecast_in_the_past(
             # Ensure we do not count aggregations in the future
             # Which could happen when user has explicit expire date of the forecast
             if agg.start_time <= timezone.now()
+            # Handle withdrawn forecasts
+            and (agg.end_time is None or agg.end_time > timezone.now())
         ),
         None,
     )
