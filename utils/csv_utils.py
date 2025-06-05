@@ -441,12 +441,7 @@ def generate_data(
         if resolution_index is None:
             row.append(None)
         else:
-            # BUG: aggregate_forecast.get_pmf() doesn't behave well beacuse the MP
-            # cdf sometimes has a different number of values than regular CPs
-            pmf = [cdf[0]]
-            for i in range(1, len(cdf)):
-                pmf.append(cdf[i] - cdf[i - 1])
-            pmf.append(1 - cdf[-1])
+            pmf = aggregate_forecast.get_pmf()
             forecast_at_resolution = pmf[resolution_index]
             row.append(forecast_at_resolution)
             if aggregate_forecast.question.type in QUESTION_CONTINUOUS_TYPES:
