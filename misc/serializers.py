@@ -16,6 +16,7 @@ class ContactServicesSerializer(serializers.Serializer):
     email = serializers.EmailField()
     organization = serializers.CharField(required=False, allow_blank=True)
     service = serializers.CharField(required=False, allow_blank=True)
+    message = serializers.CharField(required=False, allow_blank=True)
 
 
 class SidebarItemSerializer(serializers.ModelSerializer):
