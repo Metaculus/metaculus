@@ -19,7 +19,12 @@ const EmailMeMyData: FC = () => {
       } else {
         toast.success(t("emailScheduled"));
       }
-    } finally {
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(t("emailMeError") + err.message);
+      } else {
+        toast.error(t("emailMeError"));
+      }
     }
   };
 
