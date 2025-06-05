@@ -36,6 +36,11 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   score_scatter_plot,
   username,
 }) => {
+  // square root every `score` in score_scatter_plut
+  score_scatter_plot = score_scatter_plot.map((data) => ({
+    ...data,
+    score: data.score > 0 ? Math.sqrt(data.score) : -Math.sqrt(-data.score),
+  }));
   const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -88,8 +93,8 @@ const ScatterPlot: React.FC<HistogramProps> = ({
     const sum = score_scatter_plot.reduce((acc, { score }) => acc + score, 0);
     return (sum / score_scatter_plot.length).toFixed(3);
   }, [score_scatter_plot]);
-  const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
-  const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
+  const yMin = Math.min(-10, ...score_scatter_plot.map((data) => data.score));
+  const yMax = Math.max(10, ...score_scatter_plot.map((data) => data.score));
 
   const handleChartClick = useCallback((event: React.MouseEvent) => {
     const target = event.target as Element;
@@ -290,14 +295,15 @@ function buildChartData({
 
   const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
   const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
-  const ticksY = range(
-    Math.round(yMin / 10) * 10,
-    Math.round(yMax / 10) * 10,
-    5
+  const realTicksY = range(
+    Math.round((yMin > 0 ? yMin ** 2 : -(yMin ** 2)) / 100) * 100,
+    Math.round(yMax ** 2 / 100) * 100,
+    10
   );
+  const ticksY = realTicksY.map((y) => (y > 0 ? Math.sqrt(y) : -Math.sqrt(-y)));
   const ticksYFormat = (y: number) => {
-    if (y % 50 == 0) {
-      return y.toString();
+    if (y ** 2 % 50 < 1) {
+      return (Math.round(y ** 2 / 10) * 10).toString();
     } else {
       return "";
     }
