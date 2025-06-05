@@ -1,3 +1,4 @@
+import logging
 from typing import Union, Iterable
 
 from django.db import models
@@ -39,6 +40,8 @@ from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
 from .models import Notebook, Post, PostSubscription
 from .utils import get_post_slug
+
+logger = logging.getLogger(__name__)
 
 
 class NotebookSerializer(serializers.ModelSerializer):
@@ -620,9 +623,14 @@ def serialize_posts_many_forecast_flow(
     questions = flatten([p.get_questions() for p in posts])
 
     user_question_forecasts_map = get_user_last_forecasts_map(questions, current_user)
-    question_movement_map = calculate_user_forecast_movement_for_questions(
-        questions, user_question_forecasts_map
-    )
+
+    try:
+        question_movement_map = calculate_user_forecast_movement_for_questions(
+            questions, user_question_forecasts_map
+        )
+    except Exception:
+        logger.exception("Failed to calculate user forecast movement")
+        question_movement_map = {}
 
     return [
         {

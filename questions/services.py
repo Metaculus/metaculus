@@ -28,7 +28,10 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from questions.utils import get_question_movement_period
+from questions.utils import (
+    get_question_movement_period,
+    get_last_aggregated_forecast_in_the_past,
+)
 from scoring.models import Score, Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
@@ -1000,7 +1003,7 @@ def calculate_user_forecast_movement_for_questions(
             if question.is_cp_hidden:
                 continue
 
-            last_agg = aggregated_forecasts[-1]
+            last_agg = get_last_aggregated_forecast_in_the_past(aggregated_forecasts)
             first_agg = (
                 next(
                     (
