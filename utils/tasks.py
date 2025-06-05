@@ -135,10 +135,6 @@ def email_data_task(
         email.send()
 
 
-# @task_concurrent_limit(
-#     lambda user_id: f"email-user-their-data-{user_id}",
-#     limit=1,
-# )
 @dramatiq.actor
 def email_user_their_data_task(user_id: int):
     from users.models import User
