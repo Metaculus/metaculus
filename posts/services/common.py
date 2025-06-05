@@ -423,6 +423,9 @@ def approve_post(
     # Invalidate project questions count cache since approval affects visibility
     invalidate_projects_questions_count_cache(post.get_related_projects())
 
+    # Translate approved post
+    trigger_update_post_translations(post, with_comments=False, force=False)
+
 
 @transaction.atomic
 def reject_post(post: Post):
