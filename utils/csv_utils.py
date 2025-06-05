@@ -8,6 +8,7 @@ import numpy as np
 from django.db.models import QuerySet, Q
 
 from comments.models import Comment
+from posts.models import Post
 from questions.models import (
     Question,
     AggregateForecast,
@@ -16,13 +17,13 @@ from questions.models import (
 )
 from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
-from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.measures import percent_point_function
 from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
     string_location_to_bucket_index,
 )
+from users.models import User
 
 
 def export_all_data_for_questions(
@@ -204,6 +205,26 @@ def export_data_for_questions(
         comments=comments,
         scores=all_scores,
         anonymized=anonymized,
+    )
+
+
+def export_data_for_user(user=User):
+    forecasts = Forecast.objects.filter(author=user).select_related("question")
+    questions = Question.objects.filter(user_forecasts__in=forecasts).distinct()
+    authored_posts = Post.objects.filter(Q(author=user) | Q(coauthors=user)).distinct()
+    authored_questions = Question.objects.filter(
+        related_posts__post__in=authored_posts
+    ).distinct()
+    comments = Comment.objects.filter(author=user)
+    scores = Score.objects.filter(user=user)
+
+    return generate_data(
+        questions=Question.objects.filter(
+            id__in=questions.union(authored_questions).values_list("id")
+        ),
+        user_forecasts=forecasts,
+        comments=comments,
+        scores=scores,
     )
 
 

@@ -1278,5 +1278,10 @@
   "stepError1": "O passo deve ser pelo menos 1/200 do intervalo: ({rangePortion})",
   "minMaxError0": "Forneça valores mínimos e máximos corretos",
   "minMaxError1": "O valor mínimo deve ser menor que o valor máximo",
-  "rangeWarning0": "Aviso: O passo não divide o intervalo de forma uniforme. Máximo reduzido para {newMax}"
+  "rangeWarning0": "Aviso: O passo não divide o intervalo de forma uniforme. Máximo reduzido para {newMax}",
+  "emailMeMyData": "Envie meus dados por e-mail",
+  "emailMeMyDataStatement": "Clique neste botão para que seus dados sejam enviados por e-mail. Isso inclui perguntas que você criou ou colaborou, previsões que fez, comentários que escreveu e qualquer pontuação que recebeu.",
+  "emailMe": "Envie-me por e-mail",
+  "emailScheduled": "E-mail agendado para ser enviado.",
+  "emailMeError": "Erro encontrado. Por favor, entre em contato com o suporte para obter ajuda."
 }
