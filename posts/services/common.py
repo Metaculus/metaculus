@@ -2,10 +2,12 @@ import logging
 from collections.abc import Iterable
 from datetime import date, datetime
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, QuerySet
 from django.db.utils import IntegrityError
 from django.utils import timezone
+from django.utils.translation import activate
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
@@ -241,6 +243,10 @@ def update_post(
     notebook: dict = None,
     **kwargs,
 ):
+    # We need to edit post & questions content in the original mode
+    # To override _original fields instead of _<language> ones
+    activate(settings.ORIGINAL_LANGUAGE_CODE)
+
     # Content for embedding generation before update
     original_embedding_content = generate_post_content_for_embedding_vectorization(post)
 
