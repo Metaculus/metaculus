@@ -50,7 +50,7 @@ def get_last_aggregated_forecast_in_the_past(
     Please note: aggregated_forecasts should be already sorted ASC `start_time`
     """
 
-    # Briefly check it's ASC order
+    # Briefly checks its ASC order
     # Don't perform double-sorting for optimization
     if (
         aggregated_forecasts
