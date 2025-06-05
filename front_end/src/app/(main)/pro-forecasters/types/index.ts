@@ -5,6 +5,7 @@ export type ProForecaster = {
   id: string;
   name: string;
   description: ReactNode;
+  rawDescription: string;
   linkedInUrl: string | null;
   image: StaticImageData;
 };
