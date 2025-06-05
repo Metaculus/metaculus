@@ -294,6 +294,7 @@ DRAMATIQ_BROKER = {
         "url": f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
     },
     "MIDDLEWARE": [
+        "utils.dramatiq.SentryTracingMiddleware",
         "dramatiq.middleware.AgeLimit",
         "dramatiq.middleware.TimeLimit",
         "dramatiq.middleware.Callbacks",
