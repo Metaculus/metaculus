@@ -45,6 +45,7 @@ export function buildNumericChartData({
   unit,
   forceYTickCount,
   inboundOutcomeCount,
+  alwaysShowYTicks,
 }: {
   questionType: QuestionType;
   actualCloseTime?: number | null;
@@ -61,6 +62,7 @@ export function buildNumericChartData({
   unit?: string;
   forceYTickCount?: number;
   inboundOutcomeCount?: number | null;
+  alwaysShowYTicks?: boolean;
 }): ChartData {
   const line: Line = [];
   const area: Area = [];
@@ -232,6 +234,7 @@ export function buildNumericChartData({
     unit,
     forceTickCount: forceYTickCount,
     inboundOutcomeCount,
+    alwaysShowTicks: alwaysShowYTicks,
   });
 
   return {

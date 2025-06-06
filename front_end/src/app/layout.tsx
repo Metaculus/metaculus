@@ -10,7 +10,6 @@ import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
 
-import ChunkRetryScript from "@/components/chunk_retry_script";
 import GlobalModals from "@/components/global_modals";
 import PublicSettingsScript from "@/components/public_settings_script";
 import AppThemeProvided from "@/components/theme_provider";
@@ -74,6 +73,8 @@ const sourceSerifPro = localFont({
     },
   ],
   variable: "--font-source-serif-pro",
+  display: "swap",
+  preload: false,
 });
 
 const inter = localFont({
@@ -106,6 +107,8 @@ const interVariable = localFont({
 const leagueGothic = localFont({
   src: "../../public/fonts/league_gothic_variable.ttf",
   variable: "--font-league-gothic",
+  display: "swap",
+  preload: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -210,7 +213,6 @@ export default async function RootLayout({
       {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
         <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />
       )}
-      <ChunkRetryScript />
     </html>
   );
 }

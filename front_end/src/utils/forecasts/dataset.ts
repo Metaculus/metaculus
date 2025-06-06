@@ -1,5 +1,4 @@
 import { isNil } from "lodash";
-import * as math from "mathjs";
 
 import {
   DefaultInboundOutcomeCount,
@@ -32,24 +31,24 @@ export function getSliderNumericForecastDataset(
   const inboundOutcomeCount =
     question.inbound_outcome_count || DefaultInboundOutcomeCount;
 
-  const componentCdfs = components.map(
-    (component, index) =>
-      math.multiply(
-        cdfFromSliders(
-          component.left,
-          component.center,
-          component.right,
-          lowerOpen,
-          upperOpen,
-          inboundOutcomeCount
-        ),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        normalizedWeights[index]!
-      ) as unknown as number[]
-  );
-  let cdf = componentCdfs.reduce((acc, componentCdf) =>
-    math.add(acc, componentCdf)
-  );
+  const componentCdfs = components.map((component, index) => {
+    const cdf = cdfFromSliders(
+      component.left,
+      component.center,
+      component.right,
+      lowerOpen,
+      upperOpen,
+      inboundOutcomeCount
+    );
+    console.log(cdf, normalizedWeights[index]);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const result = cdf.map((x) => x * normalizedWeights[index]!);
+    return result;
+  });
+  let cdf = componentCdfs.reduce((acc, componentCdf) => {
+    return acc.map((x, i) => x + componentCdf[i]);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  }, Array(componentCdfs[0]!.length).fill(0));
   cdf = cdf.map((F) => Number(F));
 
   // standardize cdf

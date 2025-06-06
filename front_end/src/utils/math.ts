@@ -1,5 +1,4 @@
 import { isNil } from "lodash";
-import * as math from "mathjs";
 
 import {
   Bounds,
@@ -22,7 +21,7 @@ export function logisticDistributionParamsFromSliders(
   // k == extremisation constant
   const k = 0.15;
   const mode = (1 + 2 * k) * center - k;
-  let scale = Number(math.pow(math.atanh(Math.min(0.999, right - left)), 2));
+  let scale = Number(Math.pow(Math.atanh(Math.min(0.999, right - left)), 2));
   let asymmetry = (right + left - 2 * center) / (right - left);
   if (asymmetry > 0.95) {
     asymmetry = 0.95;
@@ -42,11 +41,11 @@ export function logisticDistributionParamsFromSliders(
 }
 
 function Fprime(x: number) {
-  return Number(math.divide(1, math.add(math.pow(math.e, -x), 1)));
+  return Number(1 / (Math.pow(Math.E, -x) + 1));
 }
 
 function sprime(scale: number) {
-  return Number(math.divide(scale, math.log(3)));
+  return Number(scale / Math.log(3));
 }
 
 function logisticCDF(
@@ -61,13 +60,7 @@ function logisticCDF(
     c +
     k *
       (1 - asymmetry * k) *
-      Fprime(
-        k *
-          math.divide(
-            math.subtract(x, mode),
-            sprime(scale) * (1 - asymmetry * k)
-          )
-      )
+      Fprime((k * (x - mode)) / (sprime(scale) * (1 - asymmetry * k)))
   );
 }
 
