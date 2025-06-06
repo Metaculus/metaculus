@@ -47,7 +47,7 @@ next,MIT,https://www.npmjs.com/package/next
 next-intl,MIT,https://www.npmjs.com/package/next-intl
 next-themes,MIT,https://www.npmjs.com/package/next-themes
 nextjs-toploader,MIT,https://www.npmjs.com/package/nextjs-toploader
-numeric,??,https://www.npmjs.com/package/numeric
+numeric,MIT,https://www.npmjs.com/package/numeric
 openai,Apache-2.0,https://www.npmjs.com/package/openai
 posthog-js,MIT,https://www.npmjs.com/package/posthog-js
 posthog-node,Apache-2.0,https://www.npmjs.com/package/posthog-node
