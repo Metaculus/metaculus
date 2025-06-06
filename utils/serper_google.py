@@ -1,8 +1,8 @@
+import re
 from logging import getLogger
 
 import aiohttp
 from django.conf import settings
-import re
 
 logger = getLogger(__name__)
 
@@ -45,9 +45,11 @@ async def _get_serper_results(
     max_pages: int,
 ) -> list[dict]:
     results: list[dict] = []
+    timeout = aiohttp.ClientTimeout(total=5)
+
     for _ in range(max_pages):
         url = "https://google.serper.dev/search"
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(
                 url,
                 headers={
