@@ -70,10 +70,6 @@
   @apply w-full;
 }
 
-[data-editor-block-type="image"] img {
-  @apply max-h-[300px];
-}
-
 [data-editor-block-type="image"] > :last-child:not(:only-child) {
   @apply hidden;
 }
