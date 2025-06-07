@@ -119,13 +119,6 @@ def compute_weighted_semi_standard_deviations(
     return np.sqrt(lower_semivariances), np.sqrt(upper_semivariances)
 
 
-@dataclass
-class Reputation:
-    user_id: int
-    value: float
-    time: datetime
-
-
 class Weighting:
     def get_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
         """Combine all weights multiplicatively"""
@@ -310,6 +303,13 @@ class LogOddsMeanValues:
             lowers = (np.array(centers) - lowers_sd).tolist()
             uppers = (np.array(centers) + uppers_sd).tolist()
         return lowers, centers, uppers
+
+
+@dataclass
+class Reputation:
+    user_id: int
+    value: float
+    time: datetime
 
 
 class ReputationWeighted(Weighting):
