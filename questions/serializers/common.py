@@ -993,7 +993,7 @@ def serialize_question_movement(
     divergence = prediction_difference_for_sorting(
         f1.forecast_values,
         f2.forecast_values,
-        question,
+        question.type,
     )
 
     if divergence >= threshold:
