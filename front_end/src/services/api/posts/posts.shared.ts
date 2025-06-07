@@ -63,6 +63,19 @@ class PostsApi extends ApiService {
     );
   }
 
+  /**
+   * Returns post in original content
+   */
+  async getPostOriginal(id: number): Promise<PostWithForecasts> {
+    return await this.get<PostWithForecasts>(
+      `/posts/${id}/${encodeQueryParams({ with_cp: false })}`,
+      undefined,
+      {
+        forceLocale: "original",
+      }
+    );
+  }
+
   async getQuestion(
     id: number,
     with_cp = true
