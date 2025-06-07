@@ -510,6 +510,13 @@ export default async function FAQ() {
           proportion of the prize pool you receive.
         </p>
 
+        <p>
+          Note: to limit administrative costs, tournaments that closed after 1st
+          of June, 2025 no longer give prizes below 50$, and the remaining money
+          is redistributed to forecasters with higher scores. Tournaments that
+          closed before 1st of June, 2025 still do not give prizes below 10$.
+        </p>
+
         <h4 className="text-lg font-semibold">
           Can I donate my tournament winnings?
         </h4>
