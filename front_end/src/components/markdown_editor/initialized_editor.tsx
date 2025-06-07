@@ -172,7 +172,6 @@ const InitializedMarkdownEditor: FC<
     tablePlugin(),
     imagePlugin({
       disableImageSettingsButton: true,
-      disableImageResize: true,
       imageUploadHandler,
     }),
     equationPlugin(),
