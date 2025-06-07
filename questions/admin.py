@@ -155,11 +155,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
             score_question(
                 question=question,
                 resolution=question.resolution,
-                aggregation_methods=[
-                    AggregationMethod.UNWEIGHTED,
-                    AggregationMethod.RECENCY_WEIGHTED,
-                    AggregationMethod.SINGLE_AGGREGATION,
-                ],
+                aggregation_methods=list(AggregationMethod._member_map_.values()),
             )
 
     trigger_scoring_with_all_aggregations.short_description = (
