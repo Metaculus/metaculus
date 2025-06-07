@@ -90,7 +90,7 @@ const Listbox = <T extends string>(props: Props<T>) => {
       </ListboxButton>
       <ListboxOptions
         className={cn(
-          "absolute top-10 z-50 divide-y divide-gray-300 rounded border border-gray-300 bg-gray-0 shadow-lg outline-none dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark",
+          "absolute top-10 z-100 divide-y divide-gray-300 rounded border border-gray-300 bg-gray-0 shadow-lg outline-none dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark",
           {
             "right-0": menuPosition === "right",
             "left-0": menuPosition === "left",
