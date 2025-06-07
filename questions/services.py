@@ -174,7 +174,7 @@ def compute_question_movement(question: Question) -> float | None:
     return prediction_difference_for_sorting(
         cp_now.get_prediction_values(),
         cp_previous.get_prediction_values(),
-        question,
+        question.type,
     )
 
 
@@ -1038,7 +1038,7 @@ def calculate_user_forecast_movement_for_questions(
         divergence = prediction_difference_for_sorting(
             f1.forecast_values,
             f2.forecast_values,
-            question,
+            question.type,
         )
 
         if divergence >= 0.25:
