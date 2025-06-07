@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
@@ -86,7 +87,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                   )}
                   {hasQuestionWeights && (
                     <th className="px-4 py-2.5 text-right text-sm font-bold">
-                      {contribution.question_weight
+                      {!isNil(contribution.question_weight)
                         ? `${contribution.question_weight.toFixed(1)}`
                         : "1.0"}
                     </th>
