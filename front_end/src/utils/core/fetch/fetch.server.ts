@@ -17,6 +17,7 @@ const serverAppFetch = async <T>(
     emptyContentType = false,
     passAuthHeader = true,
     includeLocale = true,
+    forceLocale,
   } = config ?? {};
 
   // Prevent token leaks when using cache
@@ -32,7 +33,11 @@ const serverAppFetch = async <T>(
       ? await getServerSession()
       : null;
   const alphaToken = await getAlphaTokenSession();
-  const locale = includeLocale ? await getLocale() : "en";
+  const locale = forceLocale
+    ? forceLocale
+    : includeLocale
+      ? await getLocale()
+      : "en";
 
   const finalUrl = `${PUBLIC_API_BASE_URL}/api${url}`;
   const finalOptions: FetchOptions = {
