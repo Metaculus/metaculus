@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
+from questions.types import AggregationMethod
 from questions.models import (
     AggregateForecast,
     Conditional,
@@ -42,6 +43,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "export_selected_questions_data_anonymized",
         "rebuild_aggregation_history",
         "trigger_scoring",
+        "trigger_scoring_with_all_aggregations",
     ]
     list_filter = [
         "type",
@@ -141,6 +143,28 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
             )
 
     trigger_scoring.short_description = "Trigger Scoring (does nothing if not resolved)"
+
+    def trigger_scoring_with_all_aggregations(
+        self, request, queryset: QuerySet[Question]
+    ):
+        from scoring.utils import score_question
+
+        for question in queryset:
+            if question.resolution in ["", None, "ambiguous", "annulled"]:
+                continue
+            score_question(
+                question=question,
+                resolution=question.resolution,
+                aggregation_methods=[
+                    AggregationMethod.UNWEIGHTED,
+                    AggregationMethod.RECENCY_WEIGHTED,
+                    AggregationMethod.SINGLE_AGGREGATION,
+                ],
+            )
+
+    trigger_scoring_with_all_aggregations.short_description = (
+        "Trigger Scoring (Includes ALL Aggregations) (does nothing if not resolved)"
+    )
 
 
 @admin.register(Conditional)
