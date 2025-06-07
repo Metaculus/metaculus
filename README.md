@@ -153,7 +153,7 @@ poetry run python manage.py runserver
 ```
 
 ## Running the frontend
-Running the front end is pretty easy. Note that you'll have to navigate to the `font_end` directory first.
+Running the front end is pretty easy. Note that you'll have to navigate to the `front_end` directory first.
 ```bash
 cd front_end
 npm run dev
