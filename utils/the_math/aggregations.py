@@ -12,13 +12,13 @@ Normalise to 1 over all outcomes.
 from bisect import bisect_left, bisect_right
 from dataclasses import dataclass
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta, timezone
 from typing import Sequence
 
 import numpy as np
-from django.utils import timezone
-from django.db.models import Q, QuerySet
+from django.db.models import F, Q, QuerySet
 
+from projects.permissions import ObjectPermission
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
     Question,
@@ -26,7 +26,8 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.models import Score
+from scoring.models import Score, LeaderboardEntry
+from users.models import User
 from utils.the_math.measures import (
     weighted_percentile_2d,
     percent_point_function,
@@ -535,10 +536,218 @@ class SingleAggregation(MeanValues, ReputationWeighted, Aggregation):
         return weights if weights.size else None
 
 
+class MedalistsAggregation(ReputationWeighted, Aggregation):
+    """
+    unweighted
+    median
+    only medalists
+    """
+
+    reputations: dict[int, list[Reputation]]
+    question: Question
+    method = AggregationMethod.MEDALISTS
+
+    def get_reputation_history(
+        self, user_ids: list[int]
+    ) -> dict[int, list[Reputation]]:
+        """returns a dict reputations. Each one is a record of what a particular
+        user's reputation was at a particular time.
+        The reputation can change during the interval."""
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        medals = (
+            LeaderboardEntry.objects.filter(
+                user_id__in=user_ids,
+                medal__isnull=False,
+                leaderboard__project__default_permission=ObjectPermission.FORECASTER,
+            )
+            .annotate(set_time=F("leaderboard__finalize_time"))
+            .filter(set_time__lte=end)
+            .order_by("set_time")
+        )
+
+        # setup
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish initial reputations at the start of the interval.
+        old_medals = list(medals.filter(set_time__lte=start).order_by("set_time"))
+        for medal in old_medals:
+            user_id = medal.user_id
+            reputations[user_id] = [Reputation(user_id, 1, start)]
+        for user_id in user_ids:
+            if user_id not in reputations:
+                reputations[user_id] = [Reputation(user_id, 0, start)]
+        # Then, for each new medal, add a new reputation record
+        new_medals = list(medals.filter(set_time__gt=start).order_by("set_time"))
+        for medal in new_medals:
+            user_id = medal.user_id
+            if reputations[user_id][-1].value == 0:
+                reputations[user_id].append(
+                    Reputation(user_id, 1, medal.edited_at or medal.created_at)
+                )
+        return reputations
+
+
+class Experienced25ResolvedAggregation(ReputationWeighted, Aggregation):
+    """
+    unweighted
+    median
+    only forecasters with at least 25 Resolved
+    """
+
+    reputations: dict[int, list[Reputation]]
+    question: Question
+    method = AggregationMethod.MEDALISTS
+
+    def get_reputation_history(
+        self, user_ids: list[int]
+    ) -> dict[int, list[Reputation]]:
+        """returns a dict reputations. Each one is a record of what a particular
+        user's reputation was at a particular time.
+        The reputation can change during the interval."""
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        peer_scores = (
+            Score.objects.filter(
+                user_id__in=user_ids,
+                score_type=Score.ScoreTypes.PEER,
+                question__in=Question.objects.filter_public(),
+            )
+            .annotate(set_time=F("question__actual_resolve_time"))
+            .order_by("set_time")
+            .filter(set_time__lte=end)
+            .distinct()
+        )
+
+        # setup
+        resolved_per_user: dict[int, int] = defaultdict(int)
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish reputations at the start of the interval.
+        old_peer_scores = list(
+            peer_scores.filter(set_time__lte=start).order_by("set_time")
+        )
+        for score in old_peer_scores:
+            resolved_per_user[score.user_id] += 1
+        for user_id in user_ids:
+            reputations[user_id].append(
+                Reputation(user_id, 1 if resolved_per_user[user_id] >= 25 else 0, start)
+            )
+
+        # Then, for each new score, add a new reputation record
+        new_peer_scores = list(
+            peer_scores.filter(set_time__gt=start).order_by("set_time")
+        )
+        for score in new_peer_scores:
+            # update the scores by user, then calculate the updated reputation
+            resolved_per_user[score.user_id] += 1
+            reputations[score.user_id].append(
+                Reputation(
+                    score.user_id,
+                    1 if resolved_per_user[score.user_id] >= 25 else 0,
+                    score.set_time,
+                )
+            )
+        return reputations
+
+
+class IgnoranceAggregation(Aggregation):
+    """
+    always returns ignorance values
+    """
+
+    method = AggregationMethod.IGNORANCE
+
+    def __init__(self, *args, question_type: Question.QuestionType, **kwargs):
+        super().__init__(*args, question_type=question_type, **kwargs)
+        self.question_type = question_type
+
+    def calculate_forecast_values(
+        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+    ) -> np.ndarray:
+        values_count = len(forecast_set.forecasts_values[0])
+        if self.question_type in QUESTION_CONTINUOUS_TYPES:
+            # prediction is a CDF
+            return np.linspace(0.05, 0.95, values_count)
+        else:
+            return np.ones_like(forecast_set.forecasts_values[0]) / values_count
+
+
+class RecencyWeightedLogOddsAggregation(
+    LogOddsMeanValues, RecencyWeighted, Aggregation
+):
+    """
+    recency weighted
+    log odds mean
+    """
+
+    method = AggregationMethod.RECENCY_WEIGHTED_LOG_ODDS
+
+
+class RecencyWeightedMeanNoOutliersAggregation(
+    NoOutliers, MeanValues, RecencyWeightedAggregation
+):
+    """
+    recency weighted
+    mean
+    remove 10% outliers
+    """
+
+    method = AggregationMethod.RECENCY_WEIGHTED_MEAN_NO_OUTLIERS
+
+
+class RecencyWeightedMedalistsAggregation(RecencyWeighted, MedalistsAggregation):
+    """
+    recency weighted
+    median
+    only medalists
+    """
+
+    method = AggregationMethod.RECENCY_WEIGHTED_MEDALISTS
+
+
+class RecencyWeightedExperienced25ResolvedAggregation(
+    RecencyWeighted, Experienced25ResolvedAggregation
+):
+    """
+    recency weighted
+    median
+    only forecasters with at least 25 Resolved
+    """
+
+    method = AggregationMethod.RECENCY_WEIGHTED_EXPERIENCED_USERS_25_RESOLVED
+
+
+class RecencyWeightedLogOddsNoOutliersAggregation(
+    LogOddsMeanValues, RecencyWeightedMeanNoOutliersAggregation
+):
+    """
+    recency weighted
+    log odds mean
+    remove 10% outliers
+    """
+
+    method = AggregationMethod.RECENCY_WEIGHTED_LOG_ODDS_NO_OUTLIERS
+
+
 aggregation_method_map: dict[AggregationMethod, type[Aggregation]] = {
     AggregationMethod.UNWEIGHTED: UnweightedAggregation,
     AggregationMethod.RECENCY_WEIGHTED: RecencyWeightedAggregation,
     AggregationMethod.SINGLE_AGGREGATION: SingleAggregation,
+    AggregationMethod.MEDALISTS: MedalistsAggregation,
+    AggregationMethod.EXPERIENCED_USERS_25_RESOLVED: Experienced25ResolvedAggregation,
+    AggregationMethod.IGNORANCE: IgnoranceAggregation,
+    AggregationMethod.RECENCY_WEIGHTED_LOG_ODDS: RecencyWeightedLogOddsAggregation,
+    AggregationMethod.RECENCY_WEIGHTED_MEAN_NO_OUTLIERS: RecencyWeightedMeanNoOutliersAggregation,
+    AggregationMethod.RECENCY_WEIGHTED_MEDALISTS: RecencyWeightedMedalistsAggregation,
+    AggregationMethod.RECENCY_WEIGHTED_EXPERIENCED_USERS_25_RESOLVED: (
+        RecencyWeightedExperienced25ResolvedAggregation
+    ),
+    AggregationMethod.RECENCY_WEIGHTED_LOG_ODDS_NO_OUTLIERS: RecencyWeightedLogOddsNoOutliersAggregation,
 }
 
 
