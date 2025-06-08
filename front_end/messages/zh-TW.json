@@ -1283,5 +1283,6 @@
   "emailMeMyDataStatement": "點擊此按鈕會將您的資料發送到電子郵箱。這包括您創建或共同創建的問題、您所做的預測、您撰寫的評論以及您收到的任何評分。",
   "emailMe": "發送到我的電子郵件",
   "emailScheduled": "電子郵件已安排發送。",
-  "emailMeError": "發生錯誤。請聯繫客服尋求幫助。"
+  "emailMeError": "發生錯誤。請聯繫客服尋求幫助。",
+  "advanced": "進階"
 }

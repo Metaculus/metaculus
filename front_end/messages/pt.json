@@ -1283,5 +1283,6 @@
   "emailMeMyDataStatement": "Clique neste botão para que seus dados sejam enviados por e-mail. Isso inclui perguntas que você criou ou colaborou, previsões que fez, comentários que escreveu e qualquer pontuação que recebeu.",
   "emailMe": "Envie-me por e-mail",
   "emailScheduled": "E-mail agendado para ser enviado.",
-  "emailMeError": "Erro encontrado. Por favor, entre em contato com o suporte para obter ajuda."
+  "emailMeError": "Erro encontrado. Por favor, entre em contato com o suporte para obter ajuda.",
+  "advanced": "avançado"
 }

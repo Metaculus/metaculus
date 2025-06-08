@@ -7,9 +7,13 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
+import { isNil } from "lodash";
+import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import cn from "@/utils/core/cn";
+
+import Switch from "./switch";
 
 export type SectionVariant =
   | "primary"
@@ -26,6 +30,8 @@ type Props = {
   variant?: SectionVariant;
   id?: string;
   detailElement?: React.ReactNode | null;
+  isAdvanced?: boolean;
+  onAdvancedToggle?: () => void;
 };
 
 const SectionToggle: FC<PropsWithChildren<Props>> = ({
@@ -37,7 +43,10 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
   wrapperClassName,
   children,
   detailElement,
+  isAdvanced,
+  onAdvancedToggle,
 }) => {
+  const t = useTranslations();
   return (
     <Disclosure
       defaultOpen={defaultOpen}
@@ -111,6 +120,15 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
               <span>{title}</span>
 
               {detailElement}
+              {open && !isNil(isAdvanced) && !isNil(onAdvancedToggle) && (
+                <div className="ml-auto flex items-center gap-2">
+                  <span className="text-sm">{t("advanced")}</span>
+                  <Switch
+                    checked={isAdvanced}
+                    onChange={() => onAdvancedToggle()}
+                  />
+                </div>
+              )}
             </div>
           </DisclosureButton>
           <DisclosurePanel
