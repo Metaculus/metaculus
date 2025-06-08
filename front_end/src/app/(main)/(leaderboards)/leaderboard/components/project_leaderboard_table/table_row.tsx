@@ -77,18 +77,14 @@ const TableRow: FC<Props> = ({
               <Td className="text-right tabular-nums" highlight={highlight}>
                 {take?.toFixed(3)}
               </Td>
-              <>
-                <Td className="text-right tabular-nums" highlight={highlight}>
-                  {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
-                </Td>
-              </>
+              <Td className="text-right tabular-nums" highlight={highlight}>
+                {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
+              </Td>
             </>
           )}
-          <>
-            <Td className="text-right tabular-nums" highlight={highlight}>
-              {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
-            </Td>
-          </>
+          <Td className="text-right tabular-nums" highlight={highlight}>
+            {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
+          </Td>
         </>
       )}
     </tr>
