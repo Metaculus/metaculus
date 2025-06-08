@@ -20,6 +20,8 @@ To run this project locally, you'll need python, poetry, django, postgres, redis
 quick rundown of the setup process.
 (Note: all commands written for a unix bash shell)
 
+If you're on a Mac, we recommend using [Homebrew](https://brew.sh/) as your package manager.
+
 ## .env file
 Create a `.env` file in the front_end directory of the project by copying the `.env.example` file.
 This will hold all of the environment variables that are used by the project. For example, adding `DEBUG=true` will give you access to the django debug toolbar in browser.
@@ -38,17 +40,19 @@ sudo -u postgres psql # start up postgres
 ```
 If on Mac, you can instead do `brew services start postgresql` to start up postgres.
 
+If this doesn't put you into a postgres shell, use `psql postgres`.
+
 Then in the postgres shell:
 ```sql
 CREATE DATABASE metaculus;
 ```
-You may have to give metaculus a superuser as an owner, which you can do with:
+You may have to give metaculus a superuser as an owner, which if not done automatically you can do with:
 ```sql
 CREATE USER postgres WITH SUPERUSER;
 ALTER USER postgres WITH PASSWORD 'postgres';
 ALTER DATABASE metaculus OWNER TO postgres;
 ```
-Note: to leave psql, type `\q`
+Note: to leave psql, type `\q`.
 
 Next, add the database name to your `.env` file:
 ```
@@ -61,7 +65,9 @@ The last step in getting your database ready is adding the [pgvector](https://gi
 ```bash
 sudo apt install postgresql-16-pgvector
 ```
->Installing pgvector on Mac:
+
+If on a Mac and using a [supported postgres version](https://github.com/pgvector/pgvector#homebrew), you can use `brew install pgvector`. Oherwise:
+
 >1. `git clone https://github.com/pgvector/pgvector.git`
 >2. `cd pgvector`
 >3. Find out your `pg_config` path\
@@ -73,13 +79,9 @@ sudo apt install postgresql-16-pgvector
 >4. `export PG_CONFIG=path/to/pg_config`
 >5. `make`
 >6. `make install`
->7. Connect to psql and enable extension: `CREATE EXTENSION vector;`
 >Other installations and detailed instructions - https://github.com/pgvector/pgvector
 
 Then enable the extension:
-```bash
-sudo -u postgres psql # start up postgres
-```
 ```sql
 CREATE EXTENSION vector;
 ```
@@ -102,6 +104,9 @@ Install pyenv:
 ```bash
 curl https://pyenv.run | bash
 ```
+
+Or `brew install pyenv` on Mac.
+
 Then, install python 3.12.3:
 ```bash
 pyenv install 3.12.3
@@ -111,7 +116,7 @@ Install poetry:
 ```bash
 curl -sSL https://install.python-poetry.org | python3 -
 ```
-If all is installed properly, you should be able to run `poetry --version`.
+And follow any install directions it gives you. (You may need to reload your shell afterwards.) If all is installed properly, you should be able to run `poetry --version`.
 It is also useful to know that you can run `poetry env use 3.12.3` to switch to a specific python version. And to use `poetry shell` to enter a poetry shell so you won't have to prefix all of the python commands with `poetry run`.
 
 With that, you should be good to start installing the python dependencies.
