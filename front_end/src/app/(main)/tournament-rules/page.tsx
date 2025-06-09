@@ -9,8 +9,6 @@ export const metadata = {
 };
 
 export default async function TournamentRules() {
-  const locale = await getLocale();
-
   return (
     <PageWrapper>
       <h1 className="mb-6 text-3xl font-bold">
