@@ -33,9 +33,9 @@ export default async function TermsOfUse() {
         expressly incorporate by reference (collectively, &quot;Terms of
         Use&quot;) apply to the Metaculus.com website including any content,
         functionality, and services offered on or through the Metaculus.com
-        website (the &quot;Service&quot; or &quot;Services&quot; or &quot;Site&quot; or
-        &quot;Website&quot;), whether as a guest or registered user. Metaculus,
-        Inc. is referred to in these Terms of Use as {" "}
+        website (the &quot;Service&quot; or &quot;Services&quot; or
+        &quot;Site&quot; or &quot;Website&quot;), whether as a guest or
+        registered user. Metaculus, Inc. is referred to in these Terms of Use as{" "}
         <strong>Metaculus</strong>, <strong>Metaculus Website</strong>,{" "}
         <strong>we</strong> or <strong>our</strong>.<strong>You</strong>,{" "}
         <strong>your</strong> and <strong>user</strong> refer to any person or
@@ -104,8 +104,8 @@ export default async function TermsOfUse() {
         or share or otherwise transfer your membership or any membership rights.
         You agree to notify Metaculus immediately if you suspect any
         unauthorized use of your account or access to your password. Metaculus
-        has the right to terminate, suspend, or limit your account for any reason at our sole
-        discretion without notice and without liability.
+        has the right to terminate, suspend, or limit your account for any
+        reason at our sole discretion without notice and without liability.
       </p>
       <p className="mb-4">
         Competitions on Metaculus are skills-based, designed to evaluate
@@ -135,11 +135,11 @@ export default async function TermsOfUse() {
         The Service is not intended or authorized for distribution or use in any
         jurisdiction or country where such distribution or use would be contrary
         to law or regulation or which would subject Metaculus to any
-        registration requirement within such jurisdiction or country. By using this Website,
-        you represent and warrant that you of legal age to form a binding
-        contract with the Metaculus, are not on any list of restricted persons
-        with whom it is unlawful for a U.S. company to do business. Metaculus
-        operates the Service in the United States. Metaculus makes no
+        registration requirement within such jurisdiction or country. By using
+        this Website, you represent and warrant that you of legal age to form a
+        binding contract with the Metaculus, are not on any list of restricted
+        persons with whom it is unlawful for a U.S. company to do business.
+        Metaculus operates the Service in the United States. Metaculus makes no
         representations or warranties that the Service is appropriate for use or
         access in other locations. Anyone using or accessing the Service from
         other locations does so on their own initiative and is responsible for
@@ -167,16 +167,17 @@ export default async function TermsOfUse() {
         images, as well as the selection, assembly and arrangement thereof and
         the &quot;look and feel&quot; of the Service (collectively,
         &quot;Metaculus Content&quot;), are owned, controlled, or licensed by
-        Metaculus. A list of open source software employed by the Service, which is not Metaculus Content may be found{" "}
+        Metaculus. A list of open source software employed by the Service, which
+        is not Metaculus Content may be found{" "}
         <a
           href="https://github.com/Metaculus/metaculus/tree/main/licenses"
           className="text-blue-600 hover:underline"
         >
           here
         </a>
-        . Metaculus Content is protected from unauthorized use, copying
-        and dissemination by copyright, trademark, patent, and other laws,
-        rules, regulations and treaties.{" "}
+        . Metaculus Content is protected from unauthorized use, copying and
+        dissemination by copyright, trademark, patent, and other laws, rules,
+        regulations and treaties.{" "}
         <strong>
           <em>Any unauthorized use of Metaculus Content is prohibited.</em>
         </strong>{" "}
@@ -198,27 +199,30 @@ export default async function TermsOfUse() {
         as scripts, bots, spiders, crawlers, or scrapers), or to use other data
         mining technology or processes to frame, mask, extract data or other
         materials from the Metaculus Content, except as may be a result of
-        standard search engine or Internet browser usage or through and subject to the terms of an API provided by Metaculus (which Metaculus may choose to provide from time to time), or unless formally
-        authorized by Metaculus under separate written agreement. No materials
-        from the Service may be copied, reproduced, modified, republished,
-        downloaded, uploaded, posted, transmitted, or distributed in any form or
-        by any means without Metaculus&apos;s prior written permission or as
-        expressly provided in these Terms of Use or in any license granted by Metaculus. You may not use the Service,
-        any Metaculus Content, or any User Content accessed through the Service
-        to train or otherwise create or develop any artificial intelligence or
-        machine learning model or algorithm without Metaculus&apos;s prior
-        written permission. When you download or use the Metaculus Content as
-        authorized by these Terms of Use, you must: (a) keep intact all
-        copyright and other proprietary notices; (b) make no modifications to
-        the Metaculus Content; and (c) not copy or adapt any object code
-        associated with the Service or reverse engineer, modify or attempt to
-        discover any source code associated with the Service unless permitted by a license granted by Metaculus, nor allow or
-        assist any third party (whether or not for your benefit) to do so. All
-        rights not expressly granted herein are reserved. Metaculus may impose
-        reasonable limits on your scope of access to Metaculus Content,
-        including limits on time or number of materials accessed or machines
-        used to access such Content, to prevent unauthorized third-party access
-        to or use of that Content.
+        standard search engine or Internet browser usage or through and subject
+        to the terms of an API provided by Metaculus (which Metaculus may choose
+        to provide from time to time), or unless formally authorized by
+        Metaculus under separate written agreement. No materials from the
+        Service may be copied, reproduced, modified, republished, downloaded,
+        uploaded, posted, transmitted, or distributed in any form or by any
+        means without Metaculus&apos;s prior written permission or as expressly
+        provided in these Terms of Use or in any license granted by Metaculus.
+        You may not use the Service, any Metaculus Content, or any User Content
+        accessed through the Service to train or otherwise create or develop any
+        artificial intelligence or machine learning model or algorithm without
+        Metaculus&apos;s prior written permission. When you download or use the
+        Metaculus Content as authorized by these Terms of Use, you must: (a)
+        keep intact all copyright and other proprietary notices; (b) make no
+        modifications to the Metaculus Content; and (c) not copy or adapt any
+        object code associated with the Service or reverse engineer, modify or
+        attempt to discover any source code associated with the Service unless
+        permitted by a license granted by Metaculus, nor allow or assist any
+        third party (whether or not for your benefit) to do so. All rights not
+        expressly granted herein are reserved. Metaculus may impose reasonable
+        limits on your scope of access to Metaculus Content, including limits on
+        time or number of materials accessed or machines used to access such
+        Content, to prevent unauthorized third-party access to or use of that
+        Content.
       </p>
 
       <h2
@@ -233,21 +237,21 @@ export default async function TermsOfUse() {
         ability to share certain Metaculus Content with others (&quot;Social
         Distribution&quot;). For example, the Service may allow you to send
         certain Metaculus Content to friends, display Metaculus Content on your
-        personal website or post Metaculus Content on a third party website.
-        You agree that you will not state or imply that you and Metaculus are affiliated
-        in any way or that Metaculus approves of your comments. We reserve the
-        right to revoke our permission for Social Distribution at any time and
-        for any reason, and you agree to immediately cease Social Distribution
-        upon notice of revocation and to comply with any terms we post in
-        connection with the Social Distribution of Metaculus Content.
+        personal website or post Metaculus Content on a third party website. You
+        agree that you will not state or imply that you and Metaculus are
+        affiliated in any way or that Metaculus approves of your comments. We
+        reserve the right to revoke our permission for Social Distribution at
+        any time and for any reason, and you agree to immediately cease Social
+        Distribution upon notice of revocation and to comply with any terms we
+        post in connection with the Social Distribution of Metaculus Content.
       </p>
 
       <p className="mb-4">
         Similarly, the Service may provide content that you may choose to embed
-        on your personal web page, third party website or social networking
-        site by pasting the HTML or other code provided by us (typically labeled
-        as an embed code) (&quot;Widgets&quot;). Widgets are Metaculus Content
-        and subject to the limited, revocable license described above. We may
+        on your personal web page, third party website or social networking site
+        by pasting the HTML or other code provided by us (typically labeled as
+        an embed code) (&quot;Widgets&quot;). Widgets are Metaculus Content and
+        subject to the limited, revocable license described above. We may
         discontinue providing the Service necessary for the Widgets to operate
         or we may disable Widgets you have embedded at any time for any reason
         without any liability to you. You agree that our permission to you to
@@ -278,8 +282,9 @@ export default async function TermsOfUse() {
         When you submit, post, upload, embed, display, communicate, link to,
         email or otherwise distribute or publish any question, prediction,
         review, problem, suggestion, idea, solution, question, answer, feedback,
-        message, image, video, text, profile data or other material (&quot;User Content&quot;) to Metaculus, any Metaculus employee or
-        contractor, or a Metaculus website,{" "}
+        message, image, video, text, profile data or other material (&quot;User
+        Content&quot;) to Metaculus, any Metaculus employee or contractor, or a
+        Metaculus website,{" "}
         <strong>
           you grant Metaculus and our affiliates, licensees, distributors,
           agents, representatives and other entities or individuals authorized
@@ -349,10 +354,10 @@ export default async function TermsOfUse() {
         You understand that any predictions made on or through the Website are
         not guarantees – the future is not knowable, and the User Content on the
         Website is at most simply a prediction, forecast, or surmise about what
-        may happen in the future. Acting in reliance on any User Content or content published by Metaculus is at
-        your own risk, and we advise you to do your own research and consult
-        with your own professional advisors prior to taking any action relying
-        on the User Content.
+        may happen in the future. Acting in reliance on any User Content or
+        content published by Metaculus is at your own risk, and we advise you to
+        do your own research and consult with your own professional advisors
+        prior to taking any action relying on the User Content.
       </p>
       <p className="mb-4">
         You agree that Metaculus has no obligation to monitor or enforce your
@@ -363,10 +368,11 @@ export default async function TermsOfUse() {
         or may not monitor, display or accept your User Content and may delete
         it at any time. We may, but are not obligated to, review User Content
         prior to posting it on or distributing it through the Service, or
-        allowing User Content to be distributed through the Service. This includes
-        private messages exchanged by you and other users through the Service.
-        This &quot;User Content and Activities&quot; section shall survive any
-        expiration or termination of your relationship with Metaculus.
+        allowing User Content to be distributed through the Service. This
+        includes private messages exchanged by you and other users through the
+        Service. This &quot;User Content and Activities&quot; section shall
+        survive any expiration or termination of your relationship with
+        Metaculus.
       </p>
       <p className="mb-4">
         You understand and agree that Metaculus may, at various times, make a
@@ -419,8 +425,8 @@ export default async function TermsOfUse() {
           an adult or otherwise objectionable website;
         </li>
         <li>
-          contains information that poses or creates a privacy or security risk to
-          any person;
+          contains information that poses or creates a privacy or security risk
+          to any person;
         </li>
         <li>
           constitutes or promotes information that you know is false or
@@ -497,7 +503,8 @@ export default async function TermsOfUse() {
         </li>
         <li>
           any automated use of the Service, such as, but not limited to, using
-          scripts to send messages or posts (except through and subject to the terms of an API provided by Metaculus);
+          scripts to send messages or posts (except through and subject to the
+          terms of an API provided by Metaculus);
         </li>
         <li>
           use of the Service, any Metaculus Content, or any User Content
@@ -554,16 +561,17 @@ export default async function TermsOfUse() {
         Mobile Use
       </h2>
       <p className="mb-4">
-        The Service may offer features and Services that are available to you via
-        your mobile device. These features and Services may include, without
+        The Service may offer features and Services that are available to you
+        via your mobile device. These features and Services may include, without
         limitation, the ability to upload content to the Service, receive
         messages from the Service, download applications to your mobile phone or
-        access features from the Service (collectively, the &quot;Mobile Features&quot;). Standard messaging, data and
-        other fees may be charged by your carrier. Carrier fees and charges will
-        appear on your mobile bill or be deducted from your pre-paid balance.
-        Your carrier may prohibit or restrict certain Mobile Features and
-        certain Mobile Features may be incompatible with your carrier or mobile
-        device. Contact your carrier with questions regarding these issues.
+        access features from the Service (collectively, the &quot;Mobile
+        Features&quot;). Standard messaging, data and other fees may be charged
+        by your carrier. Carrier fees and charges will appear on your mobile
+        bill or be deducted from your pre-paid balance. Your carrier may
+        prohibit or restrict certain Mobile Features and certain Mobile Features
+        may be incompatible with your carrier or mobile device. Contact your
+        carrier with questions regarding these issues.
       </p>
 
       <h2
@@ -573,7 +581,14 @@ export default async function TermsOfUse() {
         Email and Text Message Notifications
       </h2>
       <p className="mb-4">
-        Metaculus may communicate with you using email or any other means of communication for which you have provided contact information, in Metaculus&apos;s sole discretion. You are responsible for keeping all of your contact information up to date to ensure that you receive all notifications. Metaculus will not ask you for your password or any of your credit or debit card information via email or text message. Metaculus will have no responsibility for any misuse of such information if you provide such information via email or text message.
+        Metaculus may communicate with you using email or any other means of
+        communication for which you have provided contact information, in
+        Metaculus&apos;s sole discretion. You are responsible for keeping all of
+        your contact information up to date to ensure that you receive all
+        notifications. Metaculus will not ask you for your password or any of
+        your credit or debit card information via email or text message.
+        Metaculus will have no responsibility for any misuse of such information
+        if you provide such information via email or text message.
       </p>
 
       <h2
@@ -583,7 +598,13 @@ export default async function TermsOfUse() {
         Account Cancellation
       </h2>
       <p className="mb-4">
-        You may cancel your account at any time throughout our Service. Metaculus may cancel your account in its sole discretion for any reason, including but not limited to inactivity or misuse of the Service. Even if your account is canceled, your User Content, (including any information, posts, and any other data you have shared via the Service) may persist within the Service after cancellation of your account consistent with our Privacy Policy.
+        You may cancel your account at any time throughout our Service.
+        Metaculus may cancel your account in its sole discretion for any reason,
+        including but not limited to inactivity or misuse of the Service. Even
+        if your account is canceled, your User Content, (including any
+        information, posts, and any other data you have shared via the Service)
+        may persist within the Service after cancellation of your account
+        consistent with our Privacy Policy.
       </p>
 
       <h2
@@ -608,16 +629,16 @@ export default async function TermsOfUse() {
         lets you post to your social networking page a link to a specific
         product or the ability to share content from the Service or your User
         Content with a third party, which may be publicly posted on that third
-        party&apos;s website. Using this functionality typically requires you
-        to login to your account on the third party website, and you do so at
-        your own risk. We do not control any of these third party sites or any
-        of their content. Accordingly, you expressly acknowledge and agree that
-        we are in no way responsible or liable for any of those third party
-        sites or online features. YOUR CORRESPONDENCE AND BUSINESS DEALINGS WITH
-        THIRD PARTIES FOUND THROUGH THE SERVICE INCLUDING, WITHOUT LIMITATION,
-        THE PAYMENT AND DELIVERY OF PRODUCTS AND SERVICE, AND ANY TERMS,
-        CONDITIONS, WARRANTIES AND REPRESENTATIONS ASSOCIATED WITH ANY SUCH
-        DEALINGS, ARE SOLELY BETWEEN YOU AND THE THIRD PARTY.
+        party&apos;s website. Using this functionality typically requires you to
+        login to your account on the third party website, and you do so at your
+        own risk. We do not control any of these third party sites or any of
+        their content. Accordingly, you expressly acknowledge and agree that we
+        are in no way responsible or liable for any of those third party sites
+        or online features. YOUR CORRESPONDENCE AND BUSINESS DEALINGS WITH THIRD
+        PARTIES FOUND THROUGH THE SERVICE INCLUDING, WITHOUT LIMITATION, THE
+        PAYMENT AND DELIVERY OF PRODUCTS AND SERVICE, AND ANY TERMS, CONDITIONS,
+        WARRANTIES AND REPRESENTATIONS ASSOCIATED WITH ANY SUCH DEALINGS, ARE
+        SOLELY BETWEEN YOU AND THE THIRD PARTY.
       </p>
 
       <h2
@@ -627,18 +648,19 @@ export default async function TermsOfUse() {
         Linking Policy
       </h2>
       <p className="mb-4">
-        Metaculus grants you the revocable permission to link to the websites
-        on which these Terms of Use are posted; provided, however, that any link
-        to such a website: (a) must not frame or create a browser or border
+        Metaculus grants you the revocable permission to link to the websites on
+        which these Terms of Use are posted; provided, however, that any link to
+        such a website: (a) must not frame or create a browser or border
         environment around any of the content on such websites or otherwise
-        mirror any part of such websites (except for purpose-built functionality we may offer on the site from time to time); (b) must not imply that Metaculus or
-        the Service are endorsing or sponsoring any third party or its products
-        or Service, unless Metaculus has given the third party prior written
-        consent; (c) must not present false information about, or disparage,
-        tarnish, or otherwise, in Metaculus&apos;s sole opinion, harm Metaculus
-        or its products or Service; (d) must not use any Metaculus trademarks
-        without the prior written permission from Metaculus; (e) must not
-        contain content that could be construed as distasteful, offensive or
+        mirror any part of such websites (except for purpose-built functionality
+        we may offer on the site from time to time); (b) must not imply that
+        Metaculus or the Service are endorsing or sponsoring any third party or
+        its products or Service, unless Metaculus has given the third party
+        prior written consent; (c) must not present false information about, or
+        disparage, tarnish, or otherwise, in Metaculus&apos;s sole opinion, harm
+        Metaculus or its products or Service; (d) must not use any Metaculus
+        trademarks without the prior written permission from Metaculus; (e) must
+        not contain content that could be construed as distasteful, offensive or
         controversial or otherwise objectionable (in Metaculus&apos;s sole
         opinion); and (f) must be owned and controlled by you or the person or
         entity placing the link, or otherwise permit you to enable such link
@@ -686,12 +708,12 @@ export default async function TermsOfUse() {
         OR REGARDING THE RESULTS OF THE USE OF THE SERVICE IN TERMS OF THEIR
         COMPLETENESS, CORRECTNESS, ACCURACY, RELIABILITY, USEFULNESS OR
         OTHERWISE, UNLESS SPECIFICALLY SET OUT ON THE SERVICE. YOU ACKNOWLEDGE
-        THAT YOUR USE OF THE SERVICE IS AT YOUR SOLE RISK. THE METACULUS
-        PARTIES DO NOT WARRANT THAT YOUR USE OF THE SERVICE IS LAWFUL IN ANY
-        PARTICULAR JURISDICTION, AND THE METACULUS PARTIES SPECIFICALLY DISCLAIM
-        SUCH WARRANTIES. SOME JURISDICTIONS LIMIT OR DO NOT ALLOW THE DISCLAIMER
-        OF IMPLIED OR OTHER WARRANTIES SO THE ABOVE DISCLAIMER MAY NOT APPLY TO
-        THE EXTENT SUCH JURISDICTION&apos;S LAW IS APPLICABLE TO THESE TERMS.
+        THAT YOUR USE OF THE SERVICE IS AT YOUR SOLE RISK. THE METACULUS PARTIES
+        DO NOT WARRANT THAT YOUR USE OF THE SERVICE IS LAWFUL IN ANY PARTICULAR
+        JURISDICTION, AND THE METACULUS PARTIES SPECIFICALLY DISCLAIM SUCH
+        WARRANTIES. SOME JURISDICTIONS LIMIT OR DO NOT ALLOW THE DISCLAIMER OF
+        IMPLIED OR OTHER WARRANTIES SO THE ABOVE DISCLAIMER MAY NOT APPLY TO THE
+        EXTENT SUCH JURISDICTION&apos;S LAW IS APPLICABLE TO THESE TERMS.
       </p>
 
       <p className="mb-4">
@@ -703,23 +725,23 @@ export default async function TermsOfUse() {
       <p className="mb-4">
         THE METACULUS PARTIES ARE NOT RESPONSIBLE FOR THE USER CONTENT, ACCURACY
         OR OPINIONS EXPRESSED IN USER CONTENT POSTED OR PROVIDED BY THIRD
-        PARTIES ON THE SERVICE OR LINKED SERVICE, AND SUCH USER CONTENT AND LINKED SERVICES ARE NOT
-        NECESSARILY INVESTIGATED, MONITORED OR CHECKED FOR ACCURACY OR
-        COMPLETENESS BY METACULUS. INCLUSION OF ANY LINKED WEBSITE OR FEATURE ON
-        THE SERVICE DOES NOT IMPLY APPROVAL OR ENDORSEMENT OF THE LINKED WEBSITE
-        OR FEATURE BY METACULUS. IN ADDITION, THE METACULUS PARTIES ARE NOT
-        RESPONSIBLE FOR, AND SPECIFICALLY DISCLAIM ANY RESPONSIBILITY OR
-        LIABILITY TO ANY PERSON OR ANY ENTITY FOR ANY DAMAGE (WHETHER ACTUAL,
-        CONSEQUENTIAL, PUNITIVE OR OTHERWISE), INJURY, LOSS, CLAIM, OR LIABILITY
-        OR OTHER CAUSE OF ANY KIND OR CHARACTER BASED UPON OR RESULTING FROM ANY
-        USER CONTENT OR BY ANY OF THE EQUIPMENT OR PROGRAMMING ASSOCIATED WITH
-        OR UTILIZED IN THE SERVICE OR LINKED SERVICE. POSTS AND LINKED SERVICES
-        CREATED AND POSTED BY USERS ON, THOUGH OR IN CONNECTION WITH THE SERVICE
-        MAY CONTAIN LINKS TO OTHER WEBSITES OR SERVICES. METACULUS TAKES NO
-        RESPONSIBILITY FOR THIRD PARTY ADVERTISEMENTS OR LINKED SERVICES THAT ARE
-        POSTED ON, THROUGH OR IN CONNECTION WITH THE SERVICE OR A LINKED SERVICE,
-        NOR DOES IT TAKE ANY RESPONSIBILITY FOR THE GOODS OR SERVICE PROVIDED BY
-        THESE THIRD PARTIES.
+        PARTIES ON THE SERVICE OR LINKED SERVICE, AND SUCH USER CONTENT AND
+        LINKED SERVICES ARE NOT NECESSARILY INVESTIGATED, MONITORED OR CHECKED
+        FOR ACCURACY OR COMPLETENESS BY METACULUS. INCLUSION OF ANY LINKED
+        WEBSITE OR FEATURE ON THE SERVICE DOES NOT IMPLY APPROVAL OR ENDORSEMENT
+        OF THE LINKED WEBSITE OR FEATURE BY METACULUS. IN ADDITION, THE
+        METACULUS PARTIES ARE NOT RESPONSIBLE FOR, AND SPECIFICALLY DISCLAIM ANY
+        RESPONSIBILITY OR LIABILITY TO ANY PERSON OR ANY ENTITY FOR ANY DAMAGE
+        (WHETHER ACTUAL, CONSEQUENTIAL, PUNITIVE OR OTHERWISE), INJURY, LOSS,
+        CLAIM, OR LIABILITY OR OTHER CAUSE OF ANY KIND OR CHARACTER BASED UPON
+        OR RESULTING FROM ANY USER CONTENT OR BY ANY OF THE EQUIPMENT OR
+        PROGRAMMING ASSOCIATED WITH OR UTILIZED IN THE SERVICE OR LINKED
+        SERVICE. POSTS AND LINKED SERVICES CREATED AND POSTED BY USERS ON,
+        THOUGH OR IN CONNECTION WITH THE SERVICE MAY CONTAIN LINKS TO OTHER
+        WEBSITES OR SERVICES. METACULUS TAKES NO RESPONSIBILITY FOR THIRD PARTY
+        ADVERTISEMENTS OR LINKED SERVICES THAT ARE POSTED ON, THROUGH OR IN
+        CONNECTION WITH THE SERVICE OR A LINKED SERVICE, NOR DOES IT TAKE ANY
+        RESPONSIBILITY FOR THE GOODS OR SERVICE PROVIDED BY THESE THIRD PARTIES.
       </p>
 
       <p className="mb-4">
@@ -1059,8 +1081,9 @@ export default async function TermsOfUse() {
       <p className="mb-4">
         When using the Service, you are subject to any posted policies or rules
         applicable to features you use through the Service, including without
-        limitation the GENERAL POLICIES, FAQ/Help, Rules for Competitions on Metaculus, and all policies referenced in
-        the General Policies or elsewhere in this Agreement (&quot;
+        limitation the GENERAL POLICIES, FAQ/Help, Rules for Competitions on
+        Metaculus, and all policies referenced in the General Policies or
+        elsewhere in this Agreement (&quot;
         <strong>Additional Terms</strong>&quot;). All such policies or rules are
         hereby incorporated into these Terms of Use. These policies may change
         from time to time.
@@ -1132,8 +1155,9 @@ export default async function TermsOfUse() {
       </h2>
       <p className="mb-4">
         If you have any questions or concerns regarding the Metaculus Websites
-        or Service, please write to us Metaculus Inc., 1112 Montana Ave. Ste. 464, Santa Monica, CA, 90403. All notices, authorizations, and requests to Metaculus
-        shall be deemed given on receipt.
+        or Service, please write to us Metaculus Inc., 1112 Montana Ave. Ste.
+        464, Santa Monica, CA, 90403. All notices, authorizations, and requests
+        to Metaculus shall be deemed given on receipt.
       </p>
     </PageWrapper>
   );
