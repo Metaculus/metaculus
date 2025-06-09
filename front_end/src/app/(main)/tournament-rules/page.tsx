@@ -1,5 +1,3 @@
-import { getLocale } from "next-intl/server";
-
 import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
