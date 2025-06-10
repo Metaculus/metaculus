@@ -21,7 +21,7 @@ from questions.models import (
 from questions.models import Forecast
 from questions.utils import (
     get_question_movement_period,
-    get_last_aggregated_forecast_in_the_past,
+    get_last_forecast_in_the_past,
 )
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
@@ -784,7 +784,7 @@ def serialize_question(
                 if forecasts
                 else None
             )
-            movement_f_last = get_last_aggregated_forecast_in_the_past(forecasts)
+            movement_f_last = get_last_forecast_in_the_past(forecasts)
 
             if (
                 method == AggregationMethod.RECENCY_WEIGHTED

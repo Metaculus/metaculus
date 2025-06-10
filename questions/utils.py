@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from questions.models import Question, AggregateForecast
+from questions.models import Question, AggregateForecast, Forecast
 
 
 def get_question_group_title(title: str) -> str:
@@ -40,8 +40,9 @@ def get_question_movement_period(question: Question):
     return timedelta(days=7)
 
 
-def get_last_aggregated_forecast_in_the_past(
-    aggregated_forecasts: list[AggregateForecast],
+def get_last_forecast_in_the_past(
+    aggregated_forecasts: list[Forecast | AggregateForecast],
+    at_time: datetime.datetime = None,
 ) -> AggregateForecast | None:
     """
     Returns last aggregated forecast in the past.
@@ -49,6 +50,8 @@ def get_last_aggregated_forecast_in_the_past(
 
     Please note: aggregated_forecasts should be already sorted ASC `start_time`
     """
+
+    at_time = at_time or timezone.now()
 
     # Briefly checks its ASC order
     # Don't perform double-sorting for optimization
@@ -64,9 +67,9 @@ def get_last_aggregated_forecast_in_the_past(
             for agg in reversed(aggregated_forecasts)
             # Ensure we do not count aggregations in the future
             # Which could happen when user has explicit expire date of the forecast
-            if agg.start_time <= timezone.now()
+            if agg.start_time <= at_time
             # Handle withdrawn forecasts
-            and (agg.end_time is None or agg.end_time > timezone.now())
+            and (agg.end_time is None or agg.end_time > at_time)
         ),
         None,
     )
