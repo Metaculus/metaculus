@@ -1281,5 +1281,6 @@
   "emailMeMyDataStatement": "Click this button to have your data emailed to you. This includes Questions you've authored or co-authored, Forecasts you've made, Comments you've written, and any Scores you've received.",
   "emailMe": "Email Me",
   "emailScheduled": "Email Scheduled to be Sent.",
-  "emailMeError": "Error encountered. Please contact support for help."
+  "emailMeError": "Error encountered. Please contact support for help.",
+  "currentForecast": "Current Forecast"
 }

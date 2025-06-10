@@ -1288,5 +1288,6 @@
   "emailMeMyDataStatement": "点击此按钮即可将您的数据通过邮件发送给您。这包括您创作或合作创作的问题、您所作的预测、您写的评论以及您收到的任何分数。",
   "emailMe": "邮件发送给我",
   "emailScheduled": "邮件已安排发送。",
-  "emailMeError": "遇到错误。请联系支持人员寻求帮助。"
+  "emailMeError": "遇到错误。请联系支持人员寻求帮助。",
+  "currentForecast": "当前预报"
 }

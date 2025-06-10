@@ -1285,5 +1285,6 @@
   "emailMeMyDataStatement": "Klepněte na toto tlačítko, abyste si nechali zaslat data e-mailem. Tato data zahrnují otázky, které jste vytvořili či spolu-vytvořili, předpovědi, které jste učinili, komentáře, které jste napsali, a jakékoli skóre, které jste obdrželi.",
   "emailMe": "Pošli mi e-mail",
   "emailScheduled": "E-mail naplánován k odeslání.",
-  "emailMeError": "Došlo k chybě. Prosím, kontaktujte podporu pro pomoc."
+  "emailMeError": "Došlo k chybě. Prosím, kontaktujte podporu pro pomoc.",
+  "currentForecast": "Aktuální předpověď"
 }
