@@ -89,7 +89,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   const activeForecastValues = activeForecast
     ? extractPrevNumericForecastValue(activeForecast.distribution_input)
     : undefined;
-  const hasUserForecast = !!activeForecastValues;
+  const hasUserActiveForecast = !!activeForecastValues;
   const t = useTranslations();
   const [forecastInputMode, setForecastInputMode] =
     useState<ContinuousForecastInputType>(
@@ -387,7 +387,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               <PredictButton
                 onSubmit={() => submit(modalSavedState.forecastExpiration)}
                 isDirty={isDirty}
-                hasUserForecast={hasUserForecast}
+                hasUserForecast={hasUserActiveForecast}
                 isPending={isPending}
                 predictLabel={previousForecast ? undefined : t("predict")}
                 predictionExpirationChip={expirationShortChip}
@@ -399,7 +399,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               <PredictButton
                 onSubmit={() => submit(modalSavedState.forecastExpiration)}
                 isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
-                hasUserForecast={hasUserForecast}
+                hasUserForecast={hasUserActiveForecast}
                 isPending={isPending}
                 predictLabel={previousForecast ? undefined : t("predict")}
                 predictionExpirationChip={expirationShortChip}
@@ -458,7 +458,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        onReaffirm={hasUserForecast && !isDirty ? submit : undefined}
+        onReaffirm={hasUserActiveForecast && !isDirty ? submit : undefined}
         questionDuration={questionDuration}
       />
       <ContinuousInput
@@ -492,7 +492,7 @@ const ForecastMakerContinuous: FC<Props> = ({
             setIsDirty(true);
           }
         }}
-        hasUserForecast={hasUserForecast}
+        hasUserForecast={hasUserActiveForecast}
         isDirty={isDirty}
         submitControls={SubmitControls}
         disabled={!canPredict}
