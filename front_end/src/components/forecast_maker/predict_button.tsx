@@ -1,5 +1,5 @@
 "use client";
-import { faHourglass } from "@fortawesome/free-solid-svg-icons";
+import { faHourglassStart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useMemo } from "react";
@@ -94,7 +94,7 @@ const PredictButton: FC<Props> = ({
           onClick={() => onPredictionExpirationClick?.()}
           className="gap-1 rounded-l-none px-1.5"
         >
-          <FontAwesomeIcon icon={faHourglass} />
+          <FontAwesomeIcon icon={faHourglassStart} />
           {predictionExpirationChip}
         </Button>
       )}
