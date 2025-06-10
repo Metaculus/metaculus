@@ -28,6 +28,9 @@
   .ͼ16 {
     @apply dark:text-white;
   }
+  .cm-activeLine {
+    @apply dark:!caret-white;
+  }
 }
 
 /* user mentions menu */
@@ -67,11 +70,7 @@
 }
 
 [data-editor-block-type="image"] {
-  @apply w-full;
-}
-
-[data-editor-block-type="image"] img {
-  @apply max-h-[300px];
+  @apply mx-auto flex w-fit;
 }
 
 [data-editor-block-type="image"] > :last-child:not(:only-child) {

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import AccountPreferences from "@/app/(main)/accounts/settings/components/account_preferences";
 import ApiAccess from "@/app/(main)/accounts/settings/components/api_access";
 import ChangePassword from "@/app/(main)/accounts/settings/components/change_password";
+import EmailMeMyData from "@/app/(main)/accounts/settings/components/email_me_my_data";
 import EmailNotifications from "@/app/(main)/accounts/settings/components/email_notifications";
 import QuestionNotifications from "@/app/(main)/accounts/settings/components/question_notifications";
 import ServerPostsApi from "@/services/api/posts/posts.server";
@@ -23,6 +24,7 @@ export default async function Settings() {
       <QuestionNotifications posts={posts} revalidateSubscriptions />
       <ChangePassword />
       <ApiAccess token={token} />
+      <EmailMeMyData />
     </main>
   );
 }

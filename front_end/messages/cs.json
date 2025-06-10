@@ -1280,5 +1280,10 @@
   "stepError1": "Krok musí být alespoň 1/200 rozsahu: ({rangePortion})",
   "minMaxError0": "Zadejte správné hodnoty min a max",
   "minMaxError1": "Minimální hodnota by měla být menší než maximální hodnota",
-  "rangeWarning0": "Upozornění: Krok nedělí rozsah rovnoměrně. Max snížen na {newMax}"
+  "rangeWarning0": "Upozornění: Krok nedělí rozsah rovnoměrně. Max snížen na {newMax}",
+  "emailMeMyData": "Pošli mi data e-mailem",
+  "emailMeMyDataStatement": "Klepněte na toto tlačítko, abyste si nechali zaslat data e-mailem. Tato data zahrnují otázky, které jste vytvořili či spolu-vytvořili, předpovědi, které jste učinili, komentáře, které jste napsali, a jakékoli skóre, které jste obdrželi.",
+  "emailMe": "Pošli mi e-mail",
+  "emailScheduled": "E-mail naplánován k odeslání.",
+  "emailMeError": "Došlo k chybě. Prosím, kontaktujte podporu pro pomoc."
 }

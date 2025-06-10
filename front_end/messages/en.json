@@ -1276,5 +1276,10 @@
   "stepError1": "Step must be at least 1/200 of the range: ({rangePortion})",
   "minMaxError0": "Provide correct min and max values",
   "minMaxError1": "Minimum value should be less than maximum value",
-  "rangeWarning0": "Warning: Step does not divide the range evenly. Max reduced to {newMax}"
+  "rangeWarning0": "Warning: Step does not divide the range evenly. Max reduced to {newMax}",
+  "emailMeMyData": "Email Me My Data",
+  "emailMeMyDataStatement": "Click this button to have your data emailed to you. This includes Questions you've authored or co-authored, Forecasts you've made, Comments you've written, and any Scores you've received.",
+  "emailMe": "Email Me",
+  "emailScheduled": "Email Scheduled to be Sent.",
+  "emailMeError": "Error encountered. Please contact support for help."
 }
